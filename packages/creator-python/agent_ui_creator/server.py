@@ -761,6 +761,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
     mutation_coordinator = ProjectMutationCoordinator()
     checkpointer = InMemorySaver()
     pending_questions: dict[str, PendingCreatorQuestion] = {}
+    closed_development_interrupts: dict[tuple[str, str], str] = {}
     active_runs: dict[str, tuple[str, CreatorEventBus, asyncio.Task[Any], Path]] = {}
     stopped_requests: dict[tuple[str, str], str] = {}
     development_authorities: dict[str, PluginDevelopmentAuthority] = {}
@@ -931,10 +932,17 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                 pending = pending_questions.get(run_input.threadId)
                 development_authority = development_authority_for(run_input.threadId)
                 resume_answers: dict[str, Any] | None = None
+                development_decision: str | None = None
                 if resume_requested:
                     if pending is None:
-                        yield encode(reject_interrupt("CREATOR_INTERRUPT_NOT_FOUND",
-                            "这个问题对应的 Agent 执行状态已经失效，请重新发起请求。"))
+                        resume_payload = command["resume"] if isinstance(command, dict) else None
+                        closed_id = resume_payload.get("interruptId") if isinstance(resume_payload, dict) else None
+                        if isinstance(closed_id, str) and (run_input.threadId, closed_id) in closed_development_interrupts:
+                            yield encode(reject_interrupt("CREATOR_INTERRUPT_CONTEXT_INVALID",
+                                "这个开发决定已结束，请重新发起请求。"))
+                        else:
+                            yield encode(reject_interrupt("CREATOR_INTERRUPT_NOT_FOUND",
+                                "这个问题对应的 Agent 执行状态已经失效，请重新发起请求。"))
                         return
                     if (
                         not isinstance(pending, PendingCreatorQuestion)
@@ -966,12 +974,55 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                 active.proposal_id, question_id=pending.envelope.id,
                                 checkpoint_id=pending.checkpoint_id, choice=selected[0],
                             )
+                            development_decision = selected[0]
                     except (ValueError, ValidationError) as error:
                         yield encode(reject_interrupt("CREATOR_INTERRUPT_INVALID_ANSWER", str(error)))
                         return
                 elif pending is not None:
                     yield encode(reject_interrupt("CREATOR_INTERRUPT_PENDING",
                         "请先回答当前问题，再继续 Creator 会话。"))
+                    return
+                if development_decision in {"defer", "adjust"}:
+                    assert activity is not None and logger is not None and pending is not None
+                    pending_questions.pop(run_input.threadId, None)
+                    pending_clarifications.clear(run_input.threadId)
+                    await checkpointer.adelete_thread(run_input.threadId)
+                    closed_development_interrupts[(run_input.threadId, pending.envelope.id)] = development_decision
+                    if len(closed_development_interrupts) > 128:
+                        closed_development_interrupts.pop(next(iter(closed_development_interrupts)))
+                    response_text = (
+                        "已按你的选择暂不开发；目标工程未因该方案修改。"
+                        if development_decision == "defer" else
+                        "已结束当前开发方案；请提交调整后的需求。目标工程未因该方案修改。"
+                    )
+                    activity.record_verification({
+                        "status": "decision-no-project-change",
+                        "verificationMode": settings.verification_mode,
+                        "projectRevision": activity.revision,
+                        "checks": [{"id": "development-decision", "status": "passed",
+                                    "evidence": development_decision}],
+                    })
+                    receipt = activity.finish()
+                    logger.finish("success", verification_mode=settings.verification_mode,
+                                  runtime_verification_status="not-run")
+                    for event in (
+                        TextMessageStartEvent(type=EventType.TEXT_MESSAGE_START,
+                                              message_id=message_id, role="assistant"),
+                        TextMessageContentEvent(type=EventType.TEXT_MESSAGE_CONTENT,
+                                                message_id=message_id, delta=response_text),
+                        TextMessageEndEvent(type=EventType.TEXT_MESSAGE_END,
+                                            message_id=message_id),
+                        RunFinishedEvent(type=EventType.RUN_FINISHED,
+                                         thread_id=run_input.threadId, run_id=run_input.runId,
+                                         outcome=RunFinishedSuccessOutcome(type="success"),
+                                         result={"runtime": "python", "agentMode": agent_mode,
+                                                 "phase": "development-decision", "completion": "success",
+                                                 "verificationMode": settings.verification_mode,
+                                                 "runtimeVerificationStatus": "not-run",
+                                                 "pluginDevelopment": development_authority.active.public_result(),
+                                                 "receipt": receipt}),
+                    ):
+                        yield encode(event)
                     return
                 if agent_mode in {"minimal", "domain-read", "domain-write"}:
                     assert activity is not None

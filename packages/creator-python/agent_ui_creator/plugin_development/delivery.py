@@ -8,6 +8,11 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 from ..project_paths import agent_ui_source_path
+from ..verification_policy import CreatorVerificationMode
+
+
+def delivery_status_satisfies_mode(status: object, mode: CreatorVerificationMode) -> bool:
+    return status == ("statically-verified" if mode == "static_only" else "completed")
 
 
 class GeometryExpectation(BaseModel):

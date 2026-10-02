@@ -159,6 +159,74 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
         visit(model)
         return selected
 
+    def _selected_plugin_instances(self) -> dict[str, str]:
+        model_path = self.authority.project_root / agent_ui_source_path(
+            self.authority.project_root, "app-ui/app-ui.json"
+        ).lstrip("/")
+        try:
+            model = json.loads(model_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return {}
+        selected: dict[str, str] = {}
+
+        def visit(value: Any) -> None:
+            if isinstance(value, dict):
+                plugin_id = value.get("pluginId")
+                instance_id = value.get("id")
+                if isinstance(plugin_id, str) and isinstance(instance_id, str):
+                    selected[instance_id] = plugin_id
+                for child in value.values():
+                    visit(child)
+            elif isinstance(value, list):
+                for child in value:
+                    visit(child)
+
+        visit(model)
+        return selected
+
+    def _require_bound_composition(self, operations: object, target_plugin_id: str) -> None:
+        """A development grant admits only its Plugin selection, before Host mutation."""
+        if not isinstance(operations, list) or not operations:
+            raise PluginDevelopmentError("AppUIModel 操作缺少有效的开发目标。")
+        selected = self._selected_plugin_instances()
+
+        def plugin_nodes(value: Any) -> list[dict[str, Any]]:
+            found: list[dict[str, Any]] = []
+            if isinstance(value, dict):
+                if "pluginId" in value:
+                    found.append(value)
+                for child in value.values():
+                    found.extend(plugin_nodes(child))
+            elif isinstance(value, list):
+                for child in value:
+                    found.extend(plugin_nodes(child))
+            return found
+
+        for operation in operations:
+            if not isinstance(operation, dict):
+                raise PluginDevelopmentError("AppUIModel 操作无效。")
+            kind = operation.get("type")
+            if kind in {"insert_plugin", "insert_plugin_default", "replace_plugin"}:
+                nodes = plugin_nodes(operation.get("replacement") if kind == "replace_plugin" else operation.get("plugin"))
+                if not nodes or any(node.get("pluginId") != target_plugin_id for node in nodes):
+                    raise PluginDevelopmentError("插件组合超出了已批准的 Plugin 目标；已有 Plugin 需走独立的复用授权。")
+            elif kind in {"insert_layout_node", "insert_layout_relative", "replace_layout_node"}:
+                for node in plugin_nodes(operation.get("node")):
+                    plugin_id, instance_id = node.get("pluginId"), node.get("id")
+                    if plugin_id != target_plugin_id and (
+                        not isinstance(instance_id, str) or selected.get(instance_id) != plugin_id
+                    ):
+                        raise PluginDevelopmentError("布局操作不能借当前开发授权新增其他 Plugin。")
+            elif kind in {"move_plugin", "move_plugin_to", "remove_plugin",
+                          "remove_plugin_default", "set_plugin_enabled"}:
+                instance_id = operation.get("instanceId")
+                if not isinstance(instance_id, str) or selected.get(instance_id) != target_plugin_id:
+                    raise PluginDevelopmentError("插件选择操作超出了已批准的 Plugin 目标。")
+            elif kind == "execute_creator_action":
+                raise PluginDevelopmentError("当前开发授权不能执行未展开目标的组合动作。")
+            elif kind not in {"update_layout_node_props", "move_layout_node", "remove_layout_node"}:
+                raise PluginDevelopmentError("当前开发授权不能执行未知的 AppUIModel 操作。")
+
     def _unselected_customized_source(self, plugin_id: str) -> bool:
         if plugin_id in self._selected_plugin_ids():
             return False
@@ -220,6 +288,8 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
             raise PluginDevelopmentError("新开发方案未授权；当前只允许组合已检查的现有 Plugin。")
         if name in _WRITES and active is not None and active.status == "authorized":
             self.authority.require_skill()
+        if name == "mutate_app_ui_model" and active is not None and active.status == "authorized":
+            self._require_bound_composition(args.get("operations"), active.target_plugin_id)
         if name == "create_ui_plugin":
             plugin_id = args.get("pluginId")
             if not isinstance(plugin_id, str):

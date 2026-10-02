@@ -12,7 +12,9 @@ from ..runtime_diagnostics import RuntimeDiagnosticInspectionService
 from ..run_control import CreatorRunControlState
 from ..validation import CREATOR_COMPLETION_VALIDATIONS, CreatorValidationService
 from ..repair import CreatorRepairState
-from ..plugin_development.delivery import delivery_report, source_delivery_contract
+from ..plugin_development.delivery import (
+    delivery_report, delivery_status_satisfies_mode, source_delivery_contract,
+)
 from ..plugin_development.authority import PluginDevelopmentAuthority
 from ..verification_policy import (
     CreatorVerificationMode,
@@ -173,11 +175,13 @@ class CreatorDevelopmentCompletionGate:
         if not reports:
             return decision
         self.activity.record_plugin_deliveries(reports)
-        acceptable = {"completed"} if self.verification_mode == "static_and_runtime" else {"statically-verified"}
-        incomplete = [report for report in reports if report["delivery"]["status"] not in acceptable]
+        incomplete = [report for report in reports if not delivery_status_satisfies_mode(
+            report["delivery"]["status"], self.verification_mode,
+        )]
         if not incomplete:
             if self.verification_mode == "static_only" and decision.accepted:
-                return CompletionDecision(True, decision.text.rstrip() + "\n\n本轮仅通过静态检查；Runtime 与浏览器行为未验证。")
+                notice = "当前静态验证通过；Runtime / 浏览器行为未由 Creator 验证。"
+                return CompletionDecision(True, decision.text.rstrip() + ("" if notice in decision.text else "\n\n" + notice))
             return decision
         blockers = "；".join(
             f"{report['pluginId']}: " + "；".join(report["delivery"]["blockers"])

@@ -438,10 +438,53 @@ def test_approved_grant_cannot_edit_other_plugin_or_agent_contract(tmp_path):
         ("edit_file", {"file_path": "/plugins/task-list/manifest.json"}),
         ("mutate_ui_plugin_source", {"pluginId": "other"}),
         ("edit_file", {"file_path": "/plugins/other/index.tsx"}),
+        ("edit_file", {"file_path": "/services/other-service.ts"}),
         ("edit_file", {"file_path": "/agent-contract/agent-tools.ts"}),
         ("edit_file", {"file_path": "/components/other.tsx"}),
     ]:
         assert json.loads(_call(middleware, name, args).content)["ok"] is False
+
+
+def test_authorized_composition_cannot_insert_another_plugin_in_any_slot(tmp_path):
+    state = authority(tmp_path, "explicit")
+    state.prepare(work_kind="create-plugin", target_plugin_id="task-list",
+                  desired_outcome="本地任务清单", missing_capabilities=["清单交互"],
+                  reuse_evidence_refs=[])
+    state.mark_skill_loaded()
+    middleware = PluginDevelopmentAdmissionMiddleware(state)
+    task = {"id": "task-main", "pluginId": "task-list", "enabled": True}
+    assert _call(middleware, "mutate_app_ui_model", {"operations": [{
+        "type": "insert_plugin", "plugin": task,
+        "target": {"type": "layout_slot", "slotRef": "l4"},
+    }]}) == "allowed"
+    assert _call(middleware, "mutate_app_ui_model", {"operations": [{
+        "type": "update_layout_node_props", "nodeRef": "l0",
+        "set": {"sizes": ["280px", "minmax(0, 1fr)"]},
+    }]}) == "allowed"
+
+    for target in ({"type": "application"},
+                   {"type": "layout_slot", "slotRef": "l4"},
+                   {"type": "plugin_slot", "parentInstanceId": "task-main", "slot": "body"}):
+        for instance_id in ("other-main", "task-main"):
+            result = _call(middleware, "mutate_app_ui_model", {"operations": [{
+                "type": "insert_plugin",
+                "plugin": {"id": instance_id, "pluginId": "other", "enabled": True},
+                "target": target,
+            }]})
+            payload = json.loads(result.content)
+            assert payload["ok"] is False
+            assert payload["error"]["code"] == "PLUGIN_DEVELOPMENT_AUTHORIZATION_REQUIRED"
+            assert payload["error"]["stateChanged"] is False
+    nested = {**task, "slots": {"body": [{"id": "other-nested", "pluginId": "other", "enabled": True}]}}
+    for operation in ({"type": "insert_plugin", "plugin": nested,
+                       "target": {"type": "layout_slot", "slotRef": "l4"}},
+                      {"type": "insert_layout_node", "node": {"type": "slot", "plugins": [nested]},
+                       "parentRef": "l0"},
+                      {"type": "insert_plugin_default", "plugin": {"id": "other-default",
+                       "pluginId": "other", "enabled": True}}):
+        assert json.loads(_call(middleware, "mutate_app_ui_model", {
+            "operations": [operation],
+        }).content)["ok"] is False
 
 
 @pytest.mark.parametrize("source_root", [None, "src/agent-ui"])

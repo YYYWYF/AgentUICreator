@@ -13,7 +13,10 @@ from agent_ui_creator.domain_tools import create_project_control_tools
 from agent_ui_creator.domain_tools.capabilities import component_navigation
 from agent_ui_creator.plugin_development.authority import PluginDevelopmentAuthority
 from agent_ui_creator.plugin_development.admission_middleware import PluginDevelopmentAdmissionMiddleware
-from agent_ui_creator.plugin_development.delivery import PluginAuthoringContract, delivery_report
+from agent_ui_creator.plugin_development.delivery import (
+    PluginAuthoringContract, delivery_report, delivery_status_satisfies_mode,
+)
+from agent_ui_creator.validation import CREATOR_COMPLETION_VALIDATIONS
 from agent_ui_creator.plugin_development.behavior import parse_behavior_result, create_plugin_behavior_tool
 from agent_ui_creator.repair import CreatorRepairState
 
@@ -140,6 +143,13 @@ def test_static_only_reports_scope_without_runtime_or_browser_claims(tmp_path):
                   verification_mode="static_and_runtime")["delivery"]["status"] == "blocked"
 
 
+def test_delivery_completion_uses_one_verification_mode_rule():
+    assert delivery_status_satisfies_mode("statically-verified", "static_only")
+    assert not delivery_status_satisfies_mode("statically-verified", "static_and_runtime")
+    assert delivery_status_satisfies_mode("completed", "static_and_runtime")
+    assert not delivery_status_satisfies_mode("blocked", "static_only")
+
+
 def test_explicit_source_only_finishes_without_instance_but_requires_current_static(tmp_path):
     artifacts(tmp_path)
     write(tmp_path, "plugins/registry.generated.ts", 'import("./checklist/definition")')
@@ -237,6 +247,37 @@ def test_completion_gate_overrides_model_success_for_unmounted_plugin(tmp_path):
     assert decision.accepted is False
     assert "尚未交付完成" in decision.text
     assert activity.snapshot()["pluginDeliveries"][0]["delivery"]["status"] == "blocked"
+
+
+def test_static_completion_gate_accepts_current_composition_without_runtime_claim(tmp_path):
+    artifacts(tmp_path)
+    write(tmp_path, "plugins/registry.generated.ts", 'import("./checklist/definition")')
+    compose(tmp_path)
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("run")
+    activity.capture_before_content("/plugins/checklist/index.tsx", None)
+    activity.touch("/plugins/checklist/index.tsx")
+    authority = SimpleNamespace(active=SimpleNamespace(
+        status="authorized", target_plugin_id="checklist", delivery_contract=CONTRACT,
+        scope_hash="scope", public_result=lambda: {"status": "authorized",
+                                                  "workKind": "create-plugin"}),
+        blocked_customized_source_plugin_id=None,
+        installed_source_plugin_ids=())
+    checks = [SimpleNamespace(command=command, status="passed", revision=activity.revision,
+                              source="executed", exit_code=0)
+              for command in CREATOR_COMPLETION_VALIDATIONS]
+    validation = SimpleNamespace(current_result=lambda: SimpleNamespace(
+        status="passed", checks=checks, workspace_warning=None))
+    runtime = SimpleNamespace(current_result=lambda: None, current_layout=lambda: None)
+    gate = CreatorDevelopmentCompletionGate(activity=activity, validation=validation,
+        runtime=runtime, repair_state=CreatorRepairState(), verification_mode="static_only",
+        plugin_development_authority=authority)
+    decision = gate.review("插件已接入。")
+    assert decision.accepted
+    assert "当前静态验证通过；Runtime / 浏览器行为未由 Creator 验证。" in decision.text
+    delivery = activity.snapshot()["pluginDeliveries"][0]
+    assert delivery["delivery"]["status"] == "statically-verified"
+    assert delivery["verification"]["runtime"] == "not-run"
 
 
 def test_behavior_tool_runs_real_project_browser_tests(tmp_path):

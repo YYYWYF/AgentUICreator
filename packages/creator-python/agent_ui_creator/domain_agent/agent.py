@@ -43,7 +43,7 @@ from ..model_settings import DEFAULT_CREATOR_MODEL_MAX_RETRIES
 from ..human_input import ask_user_question
 from ..observability import CreatorRunTelemetry
 from ..plugin_development.authority import PluginDevelopmentAuthority
-from ..plugin_development.delivery import create_plugin_delivery_tool
+from ..plugin_development.delivery import create_plugin_delivery_tool, delivery_status_satisfies_mode
 from ..plugin_development.behavior import create_plugin_behavior_tool
 from ..plugin_development.prepare_tool import create_prepare_ui_plugin_development_tool
 from ..plugin_development.admission_middleware import PluginDevelopmentAdmissionMiddleware
@@ -281,7 +281,12 @@ class CreatorDomainReadAgent:
         )
         if completion_decision is not None and not completion_decision.accepted:
             completion = "blocked"
-        if any(report["delivery"]["status"] != "completed" for report in self.activity.snapshot().get("pluginDeliveries", [])):
+        if self.completion_gate is not None and any(
+            not delivery_status_satisfies_mode(
+                report["delivery"]["status"], self.completion_gate.verification_mode,
+            )
+            for report in self.activity.snapshot().get("pluginDeliveries", [])
+        ):
             completion = "blocked"
         values = dict(
             text=text,

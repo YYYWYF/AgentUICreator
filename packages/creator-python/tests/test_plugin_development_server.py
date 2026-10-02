@@ -16,6 +16,7 @@ from agent_ui_creator.operations import (
     CreatorActionSelection, CreatorIntentPresentation, CreatorResolveResult,
 )
 from agent_ui_creator.server import create_app
+from agent_ui_creator.plugin_development.admission_middleware import PluginDevelopmentAdmissionMiddleware
 from agent_ui_creator.source_tools import UISourceCreationService, UISourceFile
 from agent_ui_creator.minimal_agent.path_policy import MinimalAgentPathPolicy
 from agent_ui_creator.validation.models import CommandExecutionResult
@@ -119,6 +120,7 @@ def test_pending_proposal_decline_resumes_as_honest_no_change(tmp_path, monkeypa
     assert not (tmp_path / "plugins").exists()
     assert "create_ui_plugin" not in model.offered_tools[0]
 
+    model_calls_before_decision = len(model.offered_tools)
     resumed = _events(client, run_id="request-b", resume={
         "interruptId": question["id"],
         "answers": {"plugin-development-decision": [choice]},
@@ -126,14 +128,54 @@ def test_pending_proposal_decline_resumes_as_honest_no_change(tmp_path, monkeypa
     assert not any(event["type"] == "RUN_ERROR" for event in resumed)
     finished = next(event for event in resumed if event["type"] == "RUN_FINISHED")
     assert finished["result"]["pluginDevelopment"]["status"] == choice
+    assert finished["result"]["completion"] == "success"
+    assert len(model.offered_tools) == model_calls_before_decision
     assert state.active.status == choice
+    assert "thread-a" not in app.state.pending_creator_questions
     assert not (tmp_path / "plugins").exists()
     assert expected in json.dumps(resumed, ensure_ascii=False)
     repeated = _events(client, run_id="request-c", resume={
         "interruptId": question["id"],
         "answers": {"plugin-development-decision": [choice]},
     })
-    assert any(event.get("code") == "CREATOR_INTERRUPT_NOT_FOUND" for event in repeated)
+    assert any(event.get("code") == "CREATOR_INTERRUPT_CONTEXT_INVALID" for event in repeated)
+
+
+def test_deferred_development_does_not_block_new_task_source_transaction(tmp_path, monkeypatch):
+    model = TrackingModel(responses=[AIMessage(content="", tool_calls=[{
+        "name": "prepare_ui_plugin_development", "args": PREPARE, "id": "prepare-defer-new",
+    }])])
+    app, client = _app(tmp_path, monkeypatch, model)
+    first = _events(client, run_id="request-a", text="在聊天旁边做一个任务核对清单")
+    question = next(event["value"] for event in first if event.get("name") == "on_interrupt")
+    _events(client, run_id="request-b", resume={
+        "interruptId": question["id"],
+        "answers": {"plugin-development-decision": ["defer"]},
+    })
+
+    async def new_task_run(settings, _messages, activity, coordinator, _diagnostics,
+                           _thread_id, _event_sink, _telemetry,
+                           *, development_authority, **_kwargs):
+        development_authority.begin_task(task_id="new-task", request_id="new-task",
+            user_message="请开发新的独立插件", intent="explicit")
+        assert development_authority.active is None
+        source = UISourceCreationService(
+            project_root=settings.project_root, activity=activity,
+            mutation_coordinator=coordinator,
+            path_policy=MinimalAgentPathPolicy.internal_source(),
+        )
+        await source.create([UISourceFile(path="/plugins/new-task/manifest.json",
+                                          content='{"id":"new-task"}\n')])
+        metrics = SimpleNamespace(to_dict=lambda: {})
+        return SimpleNamespace(text="新任务写入完成", completion="committed_unverified",
+                               metrics=metrics, project_control=metrics,
+                               repeated_project_control_reads=0,
+                               domain_observations=metrics)
+
+    monkeypatch.setattr("agent_ui_creator.server._domain_write_agent_result", new_task_run)
+    fresh = _events(client, run_id="request-c", text="请开发新的独立插件")
+    assert not any(event["type"] == "RUN_ERROR" for event in fresh)
+    assert (tmp_path / "plugins/new-task/manifest.json").is_file()
 
 
 def test_wrong_decision_answer_cannot_activate_grant(tmp_path, monkeypatch):
@@ -564,6 +606,57 @@ def test_direct_development_commission_does_not_ask_again(tmp_path, monkeypatch)
     assert not any(event.get("name") == "on_interrupt" for event in events)
     assert not any(event["type"] == "RUN_ERROR" for event in events)
     assert app.state.plugin_development_authorities["thread-a"].active.grant_source == "explicit-request"
+
+
+def test_server_tool_admission_rejects_other_plugin_composition_before_write(tmp_path, monkeypatch):
+    model_path = tmp_path / "app-ui" / "app-ui.json"
+    model_path.parent.mkdir()
+    model_path.write_text('{"root":{"type":"slot","plugins":[]}}\n', encoding="utf-8")
+    before = model_path.read_bytes()
+    observed = {}
+
+    async def call_tool_on_server(_settings, _messages, _activity, _coordinator,
+                                  _diagnostics, _thread_id, _event_sink, _telemetry,
+                                  *, development_authority, **_kwargs):
+        development_authority.begin_task(
+            task_id="scope-a", request_id="scope-a",
+            user_message="请开发一个独立任务清单插件", intent="explicit",
+        )
+        development_authority.prepare(**{
+            "work_kind": "create-plugin", "target_plugin_id": "task-list",
+            "desired_outcome": "本地任务清单", "missing_capabilities": ["清单交互"],
+            "reuse_evidence_refs": [],
+        })
+        development_authority.mark_skill_loaded()
+        middleware = PluginDevelopmentAdmissionMiddleware(development_authority)
+
+        def forbidden_host_write(_request):
+            model_path.write_text("unauthorized", encoding="utf-8")
+            return "allowed"
+
+        response = middleware.wrap_tool_call(SimpleNamespace(tool_call={
+            "name": "mutate_app_ui_model", "id": "insert-other",
+            "args": {"operations": [{"type": "insert_plugin",
+                    "plugin": {"id": "other-main", "pluginId": "other", "enabled": True},
+                    "target": {"type": "application"}}]},
+        }), forbidden_host_write)
+        observed["result"] = json.loads(response.content)
+        metrics = SimpleNamespace(to_dict=lambda: {})
+        return SimpleNamespace(text="授权拒绝已由实际工具中间件返回。", completion="success",
+                               metrics=metrics, project_control=metrics,
+                               repeated_project_control_reads=0,
+                               domain_observations=metrics)
+
+    monkeypatch.setattr("agent_ui_creator.server._domain_write_agent_result", call_tool_on_server)
+    _app_instance, client = _app(tmp_path, monkeypatch,
+                                 TrackingModel(responses=[AIMessage(content="unused")]),
+                                 intent="explicit")
+    events = _events(client, run_id="scope-a", text="请开发一个独立任务清单插件")
+    assert any(event["type"] == "RUN_FINISHED" for event in events)
+    assert observed["result"]["ok"] is False
+    assert observed["result"]["error"]["code"] == "PLUGIN_DEVELOPMENT_AUTHORIZATION_REQUIRED"
+    assert observed["result"]["error"]["stateChanged"] is False
+    assert model_path.read_bytes() == before
 
 
 def test_ordinary_question_preserves_existing_development_scope(tmp_path, monkeypatch):
