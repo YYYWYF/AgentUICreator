@@ -74,6 +74,7 @@ def delivery_report(*, root: Path, plugin_id: str, contract: dict | None,
     blockers: list[str] = []
     instances: list[dict] = []
     application_delivery = False
+    renderer_delivery = False
     try:
         manifest = json.loads(_read(root, f"plugins/{plugin_id}/manifest.json"))
         stages["created"] = (manifest.get("id") == plugin_id and all(
@@ -90,6 +91,9 @@ def delivery_report(*, root: Path, plugin_id: str, contract: dict | None,
         stages["composed"] = stages["registered"] and bool(instances)
         application_ids = {item.get("id") for item in model.get("applicationPlugins", []) if isinstance(item, dict)}
         application_delivery = bool(instances) and all(item.get("id") in application_ids for item in instances)
+        renderer_delivery = bool(instances) and not application_delivery and bool(
+            manifest.get("requiresRenderScope") or (manifest.get("data") or {}).get("messageUI")
+        ) and contract is not None and contract.get("renderingCategory") == "semantic-slot"
         if contract and contract.get("renderingCategory") == "application" and not application_delivery:
             blockers.append("application 交付契约与实际挂载位置不一致")
     except (OSError, ValueError, TypeError, AttributeError):
@@ -109,7 +113,8 @@ def delivery_report(*, root: Path, plugin_id: str, contract: dict | None,
                           and runtime.get("compositionVerified") is True)
     if not runtime_passed and verification_mode == "static_and_runtime":
         blockers.append("当前版本运行验证尚未通过")
-    geometry_passed = application_delivery and contract is not None and contract.get("renderingCategory") == "application"
+    geometry_passed = (application_delivery and contract is not None and contract.get("renderingCategory") == "application"
+                       or renderer_delivery and not (contract or {}).get("geometry"))
     if not geometry_passed:
         observed = {item.get("instanceId"): item.get("rect") for item in (layout or {}).get("instances", [])}
         geometry_passed = bool(instances) and bool(layout and layout.get("compositionFresh") is True) and all(
@@ -146,7 +151,7 @@ def delivery_report(*, root: Path, plugin_id: str, contract: dict | None,
                      "instanceIds": [item["id"] for item in instances]},
         "verification": {"static": "pass" if static_passed else "not-passed",
                          "runtime": "not-run" if verification_mode == "static_only" else "pass" if runtime_passed else "not-passed",
-                         "geometry": "not-run" if verification_mode == "static_only" else "pass" if geometry_passed else "not-passed",
+                         "geometry": "not-run" if verification_mode == "static_only" else "not-applicable" if geometry_passed and (application_delivery or renderer_delivery) else "pass" if geometry_passed else "not-passed",
                          "interaction": "not-run" if verification_mode == "static_only" and needs_behavior else "pass" if behavior_passed else "not-passed" if needs_behavior else "not-required"},
     }
 

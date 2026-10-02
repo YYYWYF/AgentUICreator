@@ -140,6 +140,31 @@ def test_static_only_reports_scope_without_runtime_or_browser_claims(tmp_path):
                   verification_mode="static_and_runtime")["delivery"]["status"] == "blocked"
 
 
+def test_unmatched_message_renderer_needs_runtime_but_not_a_dom_rectangle(tmp_path):
+    artifacts(tmp_path)
+    write(tmp_path, "plugins/checklist/manifest.json", {"id": "checklist", "requiresRenderScope": True,
+                                                    "data": {"messageUI": True}})
+    write(tmp_path, "plugins/registry.generated.ts", 'import("./checklist/definition")')
+    compose(tmp_path)
+    contract = {**CONTRACT, "renderingCategory": "semantic-slot"}
+    result = report(tmp_path, contract=contract, layout=None)
+    assert result["delivery"]["status"] == "completed"
+    assert result["verification"]["geometry"] == "not-applicable"
+    assert report(tmp_path, contract=contract, runtime=None, layout=None)["delivery"]["status"] == "blocked"
+
+
+def test_headless_application_does_not_require_dom_geometry(tmp_path):
+    artifacts(tmp_path)
+    write(tmp_path, "plugins/checklist/manifest.json", {"id": "checklist", "capabilities": ["headless"]})
+    write(tmp_path, "plugins/registry.generated.ts", 'import("./checklist/definition")')
+    write(tmp_path, "app-ui/app-ui.json", {"applicationPlugins": [
+        {"id": "checklist-main", "pluginId": "checklist", "enabled": True}],
+        "root": {"type": "slot", "plugins": []}})
+    result = report(tmp_path, contract={**CONTRACT, "renderingCategory": "application"}, layout=None)
+    assert result["delivery"]["status"] == "completed"
+    assert result["verification"]["geometry"] == "not-applicable"
+
+
 @pytest.mark.parametrize("status", ["skipped", "failed", "timedOut"])
 def test_browser_report_never_accepts_skips_or_failures(status):
     output = json.dumps({"suites": [{"specs": [{"title": "[delivery:checklist] send", "tests": [
