@@ -23,7 +23,10 @@ from agent_ui_creator.plugin_development.authority import (
 from agent_ui_creator.plugin_development.admission_middleware import (
     PluginDevelopmentAdmissionMiddleware,
 )
-from agent_ui_creator.plugin_development.prepare_tool import PrepareUIPluginDevelopmentInput
+from agent_ui_creator.plugin_development.prepare_tool import (
+    PrepareUIPluginDevelopmentInput, create_prepare_ui_plugin_development_tool,
+)
+from agent_ui_creator.model_protocol.tool_protocol_guard import _validate_arguments
 
 
 def authority(tmp_path, intent: str = "none") -> PluginDevelopmentAuthority:
@@ -647,6 +650,44 @@ def test_model_cannot_supply_grant_or_installer_identity(forged):
             "workKind": "create-plugin", "targetPluginId": "task-list",
             "desiredOutcome": "本地任务清单", "missingCapabilities": ["清单交互"],
             **forged,
+        })
+
+
+def test_prepare_plan_accepts_observed_nested_plan_fields_without_grant_expansion(tmp_path):
+    contract = {
+        "capability": "本地任务清单", "renderingCategory": "panel",
+        "placement": "聊天区旁边", "lifecycle": "页面内存",
+        "dependencies": [], "verificationMethod": "runtime",
+    }
+    arguments = {
+        "deliveryContract": {
+            **contract, "targetPluginId": "task-list",
+            "uiScope": "聊天区旁边", "excludedOperations": ["后端"],
+            "componentBasisRefs": [],
+        },
+        "missingCapabilities": ["清单交互"],
+    }
+    parsed = PrepareUIPluginDevelopmentInput.model_validate(arguments)
+    assert parsed.workKind == "create-plugin"
+    assert parsed.targetPluginId == "task-list"
+    assert parsed.desiredOutcome == "本地任务清单"
+    assert parsed.uiScope == "聊天区旁边"
+    assert parsed.excludedOperations == ["后端"]
+    assert parsed.deliveryContract.model_dump()["capability"] == "本地任务清单"
+    tool = create_prepare_ui_plugin_development_tool(authority(tmp_path, "explicit"))
+    assert _validate_arguments(tool, arguments) == (True, None)
+    result = json.loads(tool.invoke(arguments))
+    assert result["ok"] is True
+    assert result["result"]["targetPluginId"] == "task-list"
+
+    with pytest.raises(ValidationError):
+        PrepareUIPluginDevelopmentInput.model_validate({
+            **arguments, "targetPluginId": "other-plugin",
+        })
+    with pytest.raises(ValidationError):
+        PrepareUIPluginDevelopmentInput.model_validate({
+            **arguments,
+            "deliveryContract": {**contract, "targetPluginId": "task-list", "grantSource": "model"},
         })
 
 

@@ -5,7 +5,7 @@ from typing import Any, Literal
 
 from langchain_core.tools import BaseTool, tool
 from langgraph.types import interrupt
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from ..human_input.models import QuestionRequest
 from .delivery import PluginAuthoringContract
@@ -19,7 +19,7 @@ DEVELOPMENT_DECISION_OPTIONS = frozenset({"start", "adjust", "defer"})
 class PrepareUIPluginDevelopmentInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     deliveryContract: PluginAuthoringContract
-    workKind: Literal["create-plugin", "adapt-component", "extend-capability"]
+    workKind: Literal["create-plugin", "adapt-component", "extend-capability"] = "create-plugin"
     targetPluginId: str = Field(min_length=1, max_length=100)
     desiredOutcome: str = Field(min_length=1, max_length=1200)
     missingCapabilities: list[str] = Field(min_length=1, max_length=12)
@@ -28,6 +28,29 @@ class PrepareUIPluginDevelopmentInput(BaseModel):
     dataScope: str = Field(default="", max_length=500)
     excludedOperations: list[str] = Field(default_factory=list, max_length=12)
     componentBasisRefs: list[str] = Field(default_factory=list, max_length=12)
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_plan_fields(cls, value: Any) -> Any:
+        if not isinstance(value, dict) or not isinstance(value.get("deliveryContract"), dict):
+            return value
+        normalized = dict(value)
+        contract = dict(normalized["deliveryContract"])
+        for field_name in (
+            "workKind", "targetPluginId", "desiredOutcome", "missingCapabilities",
+            "reuseEvidenceRefs", "uiScope", "dataScope", "excludedOperations",
+            "componentBasisRefs",
+        ):
+            if field_name not in contract:
+                continue
+            nested_value = contract.pop(field_name)
+            if field_name in normalized and normalized[field_name] != nested_value:
+                raise ValueError(f"Conflicting {field_name} values in development plan")
+            normalized.setdefault(field_name, nested_value)
+        if "desiredOutcome" not in normalized and isinstance(contract.get("capability"), str):
+            normalized["desiredOutcome"] = contract["capability"]
+        normalized["deliveryContract"] = contract
+        return normalized
 
 
 def is_development_decision_question(metadata: dict[str, Any]) -> bool:
