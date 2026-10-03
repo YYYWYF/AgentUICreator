@@ -353,6 +353,70 @@ def test_default_placement_keeps_unknown_extra_fields_invalid():
     assert metrics.protocolDiagnostics[0]["operationType"] == "insert_plugin_default"
 
 
+def test_default_placement_discards_only_text_description_hint():
+    mutation_tool = {
+        "name": "mutate_app_ui_model",
+        "function": {"parameters": APP_UI_MODEL_MUTATION_TOOL_SCHEMA},
+    }
+    plugin = {"id": "task-list-main", "pluginId": "task-list", "enabled": True}
+    metrics = ToolProtocolMetrics(modelCalls=21)
+    decision = ToolProtocolGuard(metrics).inspect(
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "mutate_app_ui_model",
+            "args": {"operations": [{
+                "type": "insert_plugin_default", "plugin": plugin,
+                "description": "Place the panel at its declared default location",
+            }]},
+            "id": "default-with-description",
+        }])]),
+        [mutation_tool],
+    )
+
+    assert decision.status == "tool_call"
+    assert decision.response.result[0].tool_calls[0]["args"] == {
+        "operations": [{"type": "insert_plugin_default", "plugin": plugin}]
+    }
+    assert metrics.protocolRepairAttempts == 0
+
+
+def test_default_placement_extra_nested_operations_get_exact_repair_hint():
+    mutation_tool = {
+        "name": "mutate_app_ui_model",
+        "function": {"parameters": APP_UI_MODEL_MUTATION_TOOL_SCHEMA},
+    }
+    plugin = {"id": "task-list-main", "pluginId": "task-list", "enabled": True}
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[mutation_tool])
+    responses = iter([
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "mutate_app_ui_model",
+            "args": {"operations": [{
+                "type": "insert_plugin_default", "plugin": plugin,
+                "target": {"type": "application"}, "operations": [],
+            }]},
+            "id": "invalid-default",
+        }])]),
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "mutate_app_ui_model",
+            "args": {"operations": [{
+                "type": "insert_plugin_default", "plugin": plugin,
+            }]},
+            "id": "repaired-default",
+        }])]),
+    ])
+    requests = []
+
+    def handler(current_request):
+        requests.append(current_request)
+        return next(responses)
+
+    result = middleware.wrap_model_call(request, handler)
+
+    assert result.result[0].tool_calls[0]["id"] == "repaired-default"
+    assert middleware.metrics.protocolRepairSuccesses == 1
+    assert "nested `operations`" in requests[1].messages[-1].content
+
+
 @pytest.mark.parametrize(
     ("change", "expected_type"),
     [

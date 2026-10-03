@@ -169,10 +169,13 @@ def _recover_default_placement_operation(arguments: Any) -> tuple[dict[str, Any]
         target = operation.get("target")
         explicit_default = (operation.get("type") == "insert_plugin_default"
                             and "plugin" in operation
-                            and set(operation) <= {"type", "plugin", "target", "actionId"}
-                            and ("actionId" in operation or "target" in operation)
+                            and set(operation) <= {"type", "plugin", "target", "actionId", "description"}
+                            and ("actionId" in operation or "target" in operation
+                                 or "description" in operation)
                             and ("actionId" not in operation
                                  or isinstance(operation["actionId"], str))
+                            and ("description" not in operation
+                                 or isinstance(operation["description"], str))
                             and ("target" not in operation
                                  or (isinstance(target, Mapping)
                                      and target.get("type") in {"relative", "application"})))
@@ -368,6 +371,19 @@ def _repair_validation_hint(
     error_type = diagnostic.get("errorType")
     if not isinstance(error_type, str):
         return None
+    if (expected_tool_name == "mutate_app_ui_model"
+            and error_type == "oneOf"
+            and diagnostic.get("errorPath") == ["operations", 0]
+            and diagnostic.get("operationType") == "insert_plugin_default"
+            and {"path": [], "type": "additionalProperties"}
+            in diagnostic.get("branchErrors", [])):
+        return (
+            "Re-issue `mutate_app_ui_model` with exactly "
+            "`{operations: [{type: 'insert_plugin_default', "
+            "plugin: {id, pluginId, enabled}}]}`. "
+            "The operation accepts only `type` and `plugin`; omit "
+            "nested `operations`, `target`, `description`, and all other hints."
+        )
     if (expected_tool_name == "mutate_app_ui_model"
             and error_type == "oneOf"
             and diagnostic.get("errorPath") == ["operations", 0]
