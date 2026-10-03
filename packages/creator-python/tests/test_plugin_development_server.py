@@ -662,7 +662,17 @@ def test_server_tool_admission_rejects_other_plugin_composition_before_write(tmp
 def test_server_tool_admission_requires_declared_relative_plugin_placement(tmp_path, monkeypatch):
     model_path = tmp_path / "app-ui" / "app-ui.json"
     model_path.parent.mkdir()
-    model_path.write_text('{"root":{"type":"slot","plugins":[]}}\n', encoding="utf-8")
+    model_path.write_text(json.dumps({"root": {
+        "type": "row", "children": [
+            {"type": "panel", "child": {"type": "slot", "plugins": [
+                {"id": "nav-main", "pluginId": "conversation-thread-list", "enabled": True},
+            ]}},
+            {"type": "panel", "child": {"type": "slot", "plugins": [
+                {"id": "conversation-main", "pluginId": "conversation-surface", "enabled": True},
+            ]}},
+        ], "responsive": {"type": "trailing-drawer", "primaryIndex": 1,
+                          "drawerIndex": 2, "minPrimaryWidth": 320},
+    }}), encoding="utf-8")
     before = model_path.read_bytes()
     observed = {}
 
@@ -710,6 +720,14 @@ def test_server_tool_admission_requires_declared_relative_plugin_placement(tmp_p
                     }}}]},
         }), forbidden_host_write)
         observed["nested"] = json.loads(nested.content)
+        observed["rootPanel"] = middleware.wrap_tool_call(SimpleNamespace(tool_call={
+            "name": "mutate_app_ui_model", "id": "insert-root-drawer-panel",
+            "args": {"operations": [{"type": "insert_layout_node", "parentRef": "l0",
+                    "index": 2, "size": "280px", "node": {"type": "panel", "child": {
+                        "type": "slot", "plugins": [{"id": "task-list-main",
+                            "pluginId": "task-list", "enabled": True}],
+                    }}}]},
+        }), lambda _request: "admitted")
         observed["default"] = middleware.wrap_tool_call(SimpleNamespace(tool_call={
             "name": "mutate_app_ui_model", "id": "insert-at-default",
             "args": {"operations": [{"type": "insert_plugin_default",
@@ -733,6 +751,7 @@ def test_server_tool_admission_requires_declared_relative_plugin_placement(tmp_p
     assert observed["result"]["error"]["stateChanged"] is False
     assert observed["nested"]["error"]["code"] == "PLUGIN_DEVELOPMENT_PLACEMENT_REQUIRED"
     assert observed["nested"]["error"]["stateChanged"] is False
+    assert observed["rootPanel"] == "admitted"
     assert observed["default"] == "admitted"
     assert model_path.read_bytes() == before
 

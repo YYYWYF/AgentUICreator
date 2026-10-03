@@ -189,24 +189,67 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
         visit(model)
         return selected
 
-    def _has_relative_default_placement(self, plugin_id: str) -> bool:
+    def _relative_default_placement(self, plugin_id: str) -> dict[str, Any] | None:
         manifest_path = self.authority.project_root / agent_ui_source_path(
             self.authority.project_root, f"plugins/{plugin_id}/manifest.json"
         ).lstrip("/")
         try:
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         except (OSError, ValueError):
-            return False
+            return None
         authoring = manifest.get("authoring") if isinstance(manifest, dict) else None
         placement = authoring.get("defaultPlacement") if isinstance(authoring, dict) else None
-        return isinstance(placement, dict) and placement.get("type") == "relative"
+        return placement if isinstance(placement, dict) and placement.get("type") == "relative" else None
+
+    def _is_root_drawer_panel_insertion(
+        self, operation: Mapping[str, Any], placement: Mapping[str, Any]
+    ) -> bool:
+        """A root Row's declared drawer child is a valid explicit side panel."""
+        if operation.get("type") != "insert_layout_node" or operation.get("parentRef") != "l0":
+            return False
+        node = operation.get("node")
+        if not isinstance(node, dict) or node.get("type") != "panel":
+            return False
+        child = node.get("child")
+        if not isinstance(child, dict) or child.get("type") != "slot":
+            return False
+        model_path = self.authority.project_root / agent_ui_source_path(
+            self.authority.project_root, "app-ui/app-ui.json"
+        ).lstrip("/")
+        try:
+            model = json.loads(model_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return False
+        root = model.get("root") if isinstance(model, dict) else None
+        if not isinstance(root, dict) or root.get("type") != "row":
+            return False
+        children, responsive = root.get("children"), root.get("responsive")
+        anchor_plugin_id = placement.get("anchorPluginId")
+        primary_index = responsive.get("primaryIndex") if isinstance(responsive, dict) else None
+        if (placement.get("relation") != "after" or not isinstance(anchor_plugin_id, str)
+                or not isinstance(children, list) or not isinstance(primary_index, int)
+                or primary_index < 0 or primary_index >= len(children)):
+            return False
+
+        def contains_anchor(value: Any) -> bool:
+            if isinstance(value, dict):
+                return value.get("pluginId") == anchor_plugin_id or any(
+                    contains_anchor(child) for child in value.values()
+                )
+            return isinstance(value, list) and any(contains_anchor(child) for child in value)
+
+        return (
+            contains_anchor(children[primary_index]) and isinstance(responsive, dict)
+            and responsive.get("type") == "trailing-drawer"
+            and operation.get("index") == len(children) == responsive.get("drawerIndex")
+        )
 
     def _require_bound_composition(self, operations: object, target_plugin_id: str) -> None:
         """A development grant admits only its Plugin selection, before Host mutation."""
         if not isinstance(operations, list) or not operations:
             raise PluginDevelopmentError("AppUIModel 操作缺少有效的开发目标。")
         selected = self._selected_plugin_instances()
-        relative_default = self._has_relative_default_placement(target_plugin_id)
+        relative_default = self._relative_default_placement(target_plugin_id)
 
         def require_default_placement() -> None:
             raise PluginDevelopmentPlacementRequired(
@@ -243,7 +286,8 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
                         not isinstance(instance_id, str) or selected.get(instance_id) != plugin_id
                     ):
                         raise PluginDevelopmentError("布局操作不能借当前开发授权新增其他 Plugin。")
-                    if plugin_id == target_plugin_id and relative_default:
+                    if (plugin_id == target_plugin_id and relative_default
+                            and not self._is_root_drawer_panel_insertion(operation, relative_default)):
                         require_default_placement()
             elif kind in {"move_plugin", "move_plugin_to", "remove_plugin",
                           "remove_plugin_default", "set_plugin_enabled"}:
