@@ -61,6 +61,21 @@ def test_model_plan_cannot_reduce_full_user_delivery_scope(tmp_path):
     assert prepared["deliveryScope"] == "full"
 
 
+def test_explicit_development_cannot_finish_as_zero_write_clarification(tmp_path):
+    state = authority(tmp_path, "explicit")
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("explicit-zero-write")
+    gate = CreatorDevelopmentCompletionGate(
+        activity=activity, validation=object(), runtime=object(),
+        repair_state=CreatorRepairState(), plugin_development_authority=state,
+        verification_mode="static_only",
+    )
+    decision = gate.review("当前工具不完整，请重新提交这个开发请求？")
+    assert not decision.accepted
+    assert "prepare_ui_plugin_development" in (decision.feedback or "")
+    assert activity.snapshot()["verification"]["status"] == "failed"
+
+
 def test_no_grant_or_skill_cannot_create(tmp_path):
     state = authority(tmp_path)
     with pytest.raises(PluginDevelopmentError, match="授权"):

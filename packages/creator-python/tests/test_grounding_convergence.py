@@ -14,6 +14,7 @@ from agent_ui_creator.domain_agent.grounding_convergence import (
     CompositionGroundingConvergenceMiddleware,
 )
 from agent_ui_creator.domain_agent.tool_policy import ALLOWED_DOMAIN_WRITE_TOOLS
+from agent_ui_creator.domain_agent.tool_policy import RUNTIME_VERIFICATION_TOOL_NAMES
 from agent_ui_creator.domain_state import DomainObservationContext
 from agent_ui_creator.minimal_agent.path_policy import (
     MinimalAgentPathPolicy,
@@ -103,7 +104,10 @@ def test_grounded_composition_narrows_and_restores_tool_surface(tmp_path):
     )
     middleware.wrap_model_call(request, handler)
     pre_mutation_tool_names = [tool.name for tool in seen[-1].tools]
-    assert pre_mutation_tool_names == list(COMPOSITION_PRE_MUTATION_TOOL_NAMES)
+    assert pre_mutation_tool_names == [
+        name for name in COMPOSITION_PRE_MUTATION_TOOL_NAMES
+        if name not in RUNTIME_VERIFICATION_TOOL_NAMES
+    ]
     assert "inspect_app_ui_model" not in pre_mutation_tool_names
     assert "list_ui_plugins" not in pre_mutation_tool_names
     assert "inspect_ui_slots" not in pre_mutation_tool_names
@@ -123,7 +127,10 @@ def test_grounded_composition_narrows_and_restores_tool_surface(tmp_path):
         mutate_and_touch,
     )
     middleware.wrap_model_call(request, handler)
-    assert [tool.name for tool in seen[-1].tools] == list(COMPOSITION_POST_MUTATION_TOOL_NAMES)
+    assert [tool.name for tool in seen[-1].tools] == [
+        name for name in COMPOSITION_POST_MUTATION_TOOL_NAMES
+        if name not in RUNTIME_VERIFICATION_TOOL_NAMES
+    ]
 
     backend.activity.touch("app-ui/app-ui.json")
     middleware.wrap_model_call(request, handler)
@@ -162,6 +169,59 @@ def test_source_discovery_before_composition_keeps_install_tool_available(tmp_pa
     assert "apply_agent_ui_source_item" in [tool.name for tool in seen[0].tools]
     assert "list_ui_plugins" in [tool.name for tool in seen[0].tools]
     assert "prepare_ui_plugin_development" in [tool.name for tool in seen[0].tools]
+
+
+def test_explicit_development_can_leave_composition_lane_without_source_inventory(tmp_path):
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+    observations = DomainObservationContext()
+    observations.observe_composition_snapshot(
+        hash="a" * 64, revision=0, coverage=COMPOSITION_COVERAGE,
+    )
+    middleware = CompositionGroundingConvergenceMiddleware(observations, backend)
+    tools = [SimpleNamespace(name=name) for name in ALLOWED_DOMAIN_WRITE_TOOLS]
+    request = ModelRequest(model=Mock(), messages=[], tools=tools)
+    offered = []
+
+    middleware.wrap_model_call(
+        request,
+        lambda candidate: (
+            offered.extend(tool.name for tool in candidate.tools),
+            ModelResponse(result=[AIMessage(content="done")]),
+        )[1],
+    )
+    assert "prepare_ui_plugin_development" in offered
+    assert "create_ui_plugin" not in offered
+
+    failed = middleware.wrap_tool_call(
+        _tool_request("prepare_ui_plugin_development", {}),
+        lambda candidate: ToolMessage(
+            content='{"ok":false,"error":{"code":"PLUGIN_DEVELOPMENT_DENIED"}}',
+            tool_call_id=candidate.tool_call["id"], name=candidate.tool_call["name"],
+            status="success",
+        ),
+    )
+    assert failed.status == "success"
+    assert observations.composition_grounding_status(current_revision=0) == "grounded"
+
+    accepted = middleware.wrap_tool_call(
+        _tool_request("prepare_ui_plugin_development", {}),
+        lambda candidate: ToolMessage(
+            content='{"ok":true,"result":{"status":"authorized"}}',
+            tool_call_id=candidate.tool_call["id"], name=candidate.tool_call["name"],
+            status="success",
+        ),
+    )
+    assert accepted.status == "success"
+    assert observations.composition_grounding_status(current_revision=0) == "unobserved"
+    offered.clear()
+    middleware.wrap_model_call(
+        request,
+        lambda candidate: (
+            offered.extend(tool.name for tool in candidate.tools),
+            ModelResponse(result=[AIMessage(content="done")]),
+        )[1],
+    )
+    assert "create_ui_plugin" in offered
 
 
 def test_source_inventory_can_leave_composition_lane_for_development(tmp_path):
@@ -534,5 +594,6 @@ def test_grounding_middleware_emits_bounded_tool_trajectory(tmp_path):
         "composition.snapshot",
         "capability.summary",
         "service.readiness",
+        "creator.authoring-targets",
     ]
     assert entries[1]["data"]["result"]["status"] == "rejected"

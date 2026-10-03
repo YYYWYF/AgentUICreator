@@ -318,7 +318,11 @@ class CreatorDevelopmentCompletionGate:
             stripped = candidate.strip()
             is_clarification = stripped.endswith("?") or stripped.endswith("？")
             is_declared_read_only = stripped.lower().startswith(read_only_marker)
-            if not is_clarification and not is_declared_read_only:
+            commissioned_development = (
+                self.plugin_development_authority is not None
+                and self.plugin_development_authority.intent in {"explicit", "conditional"}
+            )
+            if commissioned_development or (not is_clarification and not is_declared_read_only):
                 self.activity.record_verification(
                     {
                         "status": "failed",
@@ -329,6 +333,8 @@ class CreatorDevelopmentCompletionGate:
                             self._check(
                                 "net-project-change",
                                 False,
+                                "本次运行没有产生项目文件变更，开发委托尚未完成。"
+                                if commissioned_development else
                                 "本次运行没有产生项目文件变更，也未声明为只读任务。",
                             )
                         ],
@@ -343,9 +349,14 @@ class CreatorDevelopmentCompletionGate:
                     text,
                     (
                         "The Creator completion gate found no net project change. "
-                        "Continue implementing the requested change. If the request is "
-                        "genuinely read-only, respond again starting with "
+                    "Continue implementing the requested change. "
+                    + (
+                        "The user commissioned Plugin development; inspect existing capabilities "
+                        "and call prepare_ui_plugin_development for the bound grant."
+                        if commissioned_development else
+                        "If the request is genuinely read-only, respond again starting with "
                         "[creator-verification:read-only]."
+                    )
                     ),
                 )
             self.activity.record_verification(

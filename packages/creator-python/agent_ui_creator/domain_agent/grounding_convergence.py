@@ -29,6 +29,7 @@ COMPOSITION_PRE_MUTATION_TOOL_NAMES = (
     "inspect_agent_ui_sources",
     "inspect_ui_capabilities",
     "inspect_ui_plugin_delivery",
+    "prepare_ui_plugin_development",
     "mutate_app_ui_model",
     "inspect_runtime_layout",
 )
@@ -53,8 +54,9 @@ If another authoring layer is genuinely required, issue the smallest targeted
 cross-layer read. For a missing reusable capability, inspect_agent_ui_sources
 is available and exits the Composition fast path in one read. Other cross-layer
 reads are rejected as explicit exit signals; retry them on the next model call.
-After source inventory confirms a development gap, prepare_ui_plugin_development
-is available to make the required authorization decision and exit this lane.
+For an explicit user commission, prepare_ui_plugin_development is available
+to bind the development grant and exit this lane. For other requests, inspect
+existing Plugins and Source Items before proposing new development.
 For conditional development, list_ui_plugins must also complete the installed
 Plugin inventory before preparation; a Composition summary does not substitute
 for that inventory.
@@ -92,7 +94,7 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         source_inventory_observed: bool = False,
     ) -> list[Any]:
         source_inventory_tools = (
-            {"apply_agent_ui_source_item", "list_ui_plugins", "prepare_ui_plugin_development"}
+            {"apply_agent_ui_source_item", "list_ui_plugins"}
             if source_inventory_observed and not after_mutation else set()
         )
         allowed_names = frozenset((
@@ -117,7 +119,7 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
                 if name not in RUNTIME_VERIFICATION_TOOL_NAMES
             )
         if source_inventory_observed and not after_mutation:
-            names = (*names, "apply_agent_ui_source_item", "list_ui_plugins", "prepare_ui_plugin_development")
+            names = (*names, "apply_agent_ui_source_item", "list_ui_plugins")
         return [by_name[name] for name in names if name in by_name]
 
     def _request(self, request: ModelRequest) -> ModelRequest:
@@ -189,6 +191,14 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
     def _filesystem_read_succeeded(result: object) -> bool:
         return getattr(result, "status", None) == "success"
 
+    @staticmethod
+    def _prepare_succeeded(result: object) -> bool:
+        try:
+            payload = json.loads(getattr(result, "content", ""))
+        except (TypeError, ValueError):
+            return False
+        return isinstance(payload, dict) and payload.get("ok") is True
+
     def _record_tool_observation(
         self,
         name: str,
@@ -230,17 +240,6 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
             == "grounded"
             and is_cross_layer_read(name, arguments, project_root=str(self.backend.cwd))
         )
-        if (
-            name == "prepare_ui_plugin_development"
-            and self.observations.source_inventory_observed
-            and self.observations.composition_grounding_status(
-                current_revision=self.backend.mutation_revision
-            ) == "grounded"
-        ):
-            self.observations.clear_composition_grounding(
-                reason="development_gap",
-                current_revision=self.backend.mutation_revision,
-            )
         if prohibited:
             metrics.record_cross_layer_read_attempt()
             if filesystem_source_read_path(name, arguments, project_root=str(self.backend.cwd)) is not None:
@@ -260,6 +259,17 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         result: object,
     ) -> None:
         metrics = self.observations.composition_fast_path_metrics
+        if (
+            name == "prepare_ui_plugin_development"
+            and self._prepare_succeeded(result)
+            and self.observations.composition_grounding_status(
+                current_revision=self.backend.mutation_revision
+            ) == "grounded"
+        ):
+            self.observations.clear_composition_grounding(
+                reason="development_gap",
+                current_revision=self.backend.mutation_revision,
+            )
         if name == "mutate_app_ui_model":
             metrics.record_first_mutation_result(
                 result,
