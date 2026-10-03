@@ -209,6 +209,15 @@ def test_valid_single_action_or_distinct_reads(message):
     assert is_valid_domain_tool_batch(ModelResponse(result=[message]))
 
 
+def test_four_distinct_reads_are_valid_but_five_are_not():
+    reads = [
+        call("read_file", {"file_path": f"/plugins/example/file-{index}.ts"}, f"read-{index}")
+        for index in range(5)
+    ]
+    assert is_valid_domain_tool_batch(ModelResponse(result=[batch(*reads[:4])]))
+    assert not is_valid_domain_tool_batch(ModelResponse(result=[batch(*reads)]))
+
+
 def test_policy_inspects_last_ai_message_and_canonical_arguments():
     duplicate = batch(
         call("grep", {"pattern": "x", "path": "/plugins"}, "a"),
@@ -255,12 +264,12 @@ INVALID_BATCHES = [
     ),
     batch(call("inspect_ui_project", {}, "duplicate-1"), call("inspect_ui_project", {}, "duplicate-2")),
     batch(*(call(name, {}, f"over-limit-{index}") for index, name in enumerate(
-        ["inspect_ui_project", "inspect_app_ui_model", "list_ui_plugins", "inspect_ui_slots"]
+        ["inspect_ui_project", "inspect_app_ui_model", "list_ui_plugins", "inspect_ui_slots", "inspect_ui_services"]
     ))),
 ]
 
 
-@pytest.mark.parametrize("invalid", INVALID_BATCHES, ids=["read-write", "two-writes", "edit-mutation", "duplicate", "four-reads"])
+@pytest.mark.parametrize("invalid", INVALID_BATCHES, ids=["read-write", "two-writes", "edit-mutation", "duplicate", "five-reads"])
 def test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_model_call(tmp_path, invalid):
     client = BatchClient(tmp_path)
     before = project_files(tmp_path)

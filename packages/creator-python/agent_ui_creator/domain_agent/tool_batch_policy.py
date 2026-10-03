@@ -11,9 +11,9 @@ from ..model_protocol.trace import ToolProtocolMetrics
 from ..run_control import CreatorRunControlState
 from .tool_policy import READ_ONLY_TOOL_NAMES
 
-MAX_READ_BATCH_SIZE = 3
+MAX_READ_BATCH_SIZE = 4
 BATCH_POLICY_REPAIR_PROMPT = """Your previous tool batch violates the Creator domain execution policy.
-Read-only tools may be batched together, up to three independent calls with distinct
+Read-only tools may be batched together, up to four independent calls with distinct
 tool name + arguments. Request only necessary reads whose arguments are already known.
 A side-effecting tool must be the only tool call in the response.
 Re-issue only the next valid action using the structured tool interface."""

@@ -410,7 +410,7 @@ Round-trip reduction policy
 
 When several independent read-only facts are already known to be necessary,
 request them in the same model response instead of serializing them across
-multiple model turns. A read batch may contain at most three independent read-only
+multiple model turns. A read batch may contain at most four independent read-only
 tool calls, with no duplicate tool name + arguments. Do not batch speculative
 inspections or read more merely to fill a batch. If a later tool's arguments or
 necessity depend on an earlier result, wait for that result.
