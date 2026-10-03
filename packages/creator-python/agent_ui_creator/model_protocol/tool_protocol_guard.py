@@ -155,19 +155,23 @@ def _recover_plugin_change_types(arguments: Any) -> tuple[dict[str, Any], list[s
     return {**arguments, "changes": changes}, recovered
 
 
-def _remove_redundant_default_placement_target(arguments: Any) -> tuple[dict[str, Any], int] | None:
-    """Honor an explicit default-placement operation when it also repeats a relative hint."""
+def _recover_default_placement_operation(arguments: Any) -> tuple[dict[str, Any], int, int] | None:
+    """Normalize the unique valid operation for a Plugin plus relative-placement hint."""
     if not isinstance(arguments, Mapping) or not isinstance(arguments.get("operations"), list):
         return None
     operations = []
     removed = 0
+    inferred = 0
     for operation in arguments["operations"]:
         if not isinstance(operation, Mapping):
             operations.append(operation)
             continue
         target = operation.get("target")
-        if (operation.get("type") == "insert_plugin_default"
-                and set(operation) == {"type", "plugin", "target"}
+        explicit_default = (operation.get("type") == "insert_plugin_default"
+                            and set(operation) == {"type", "plugin", "target"})
+        missing_type = ("type" not in operation
+                        and set(operation) == {"plugin", "target"})
+        if ((explicit_default or missing_type)
                 and isinstance(target, Mapping)
                 and target.get("type") == "relative"
                 and target.get("relation") in {"before", "after"}
@@ -175,13 +179,14 @@ def _remove_redundant_default_placement_target(arguments: Any) -> tuple[dict[str
                      or set(target) == {"type", "relation", "anchorInstanceId"})
                 and any(isinstance(target.get(key), str) and target[key]
                         for key in ("parentInstanceId", "anchorInstanceId"))):
-            operations.append({key: value for key, value in operation.items() if key != "target"})
+            operations.append({"type": "insert_plugin_default", "plugin": operation["plugin"]})
             removed += 1
+            inferred += int(missing_type)
         else:
             operations.append(dict(operation))
     if not removed:
         return None
-    return {**arguments, "operations": operations}, removed
+    return {**arguments, "operations": operations}, removed, inferred
 
 
 def _bounded_error_path(path: Any) -> list[object]:
@@ -624,15 +629,16 @@ class ToolProtocolGuard:
                         })
                         continue
                 if call.get("name") == "mutate_app_ui_model":
-                    recovered = _remove_redundant_default_placement_target(call.get("args"))
+                    recovered = _recover_default_placement_operation(call.get("args"))
                     if recovered is not None:
-                        arguments, removed = recovered
+                        arguments, removed, inferred = recovered
                         normalized_calls.append({**call, "args": arguments})
                         _record_protocol_diagnostic(self.metrics, {
                             "kind": "tool_argument_redundant_default_target_removed",
                             "modelCallSequence": self.metrics.modelCalls,
                             "toolName": "mutate_app_ui_model",
                             "operationCount": removed,
+                            "missingTypeCount": inferred,
                         })
                         continue
                 normalized_calls.append(call)

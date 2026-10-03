@@ -268,7 +268,37 @@ def test_default_placement_discards_only_redundant_relative_target_without_repai
         "modelCallSequence": 21,
         "toolName": "mutate_app_ui_model",
         "operationCount": 1,
+        "missingTypeCount": 0,
     }]
+
+
+def test_relative_plugin_insert_without_type_resolves_to_declared_default():
+    mutation_tool = {
+        "name": "mutate_app_ui_model",
+        "function": {"parameters": APP_UI_MODEL_MUTATION_TOOL_SCHEMA},
+    }
+    plugin = {"id": "task-list-main", "pluginId": "task-list", "enabled": True}
+    metrics = ToolProtocolMetrics(modelCalls=21)
+    decision = ToolProtocolGuard(metrics).inspect(
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "mutate_app_ui_model",
+            "args": {"appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "operations": [{
+                "plugin": plugin,
+                "target": {"type": "relative", "anchorInstanceId": "conversation-main",
+                           "relation": "after"},
+            }]},
+            "id": "missing-operation-type",
+        }])]),
+        [mutation_tool],
+    )
+
+    assert decision.status == "tool_call"
+    assert decision.response.result[0].tool_calls[0]["args"] == {
+        "appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "operations": [{"type": "insert_plugin_default", "plugin": plugin}],
+    }
+    assert metrics.protocolRepairAttempts == 0
+    assert metrics.protocolDiagnostics[0]["missingTypeCount"] == 1
 
 
 def test_default_placement_does_not_discard_nonrelative_target():
