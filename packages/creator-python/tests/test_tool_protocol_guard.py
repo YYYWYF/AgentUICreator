@@ -236,6 +236,62 @@ def test_relative_target_schema_failure_repairs_to_default_placement():
     assert "Omit `target`" in requests[1].messages[-1].content
 
 
+def test_default_placement_discards_only_redundant_relative_target_without_repair():
+    mutation_tool = {
+        "name": "mutate_app_ui_model",
+        "function": {"parameters": APP_UI_MODEL_MUTATION_TOOL_SCHEMA},
+    }
+    plugin = {"id": "task-list-main", "pluginId": "task-list", "enabled": True}
+    metrics = ToolProtocolMetrics(modelCalls=21)
+    decision = ToolProtocolGuard(metrics).inspect(
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "mutate_app_ui_model",
+            "args": {"operations": [{
+                "type": "insert_plugin_default", "plugin": plugin,
+                "target": {"type": "relative", "parentInstanceId": "conversation-main",
+                           "relation": "after"},
+            }]},
+            "id": "default-with-redundant-target",
+        }])]),
+        [mutation_tool],
+    )
+
+    assert decision.status == "tool_call"
+    assert decision.response.result[0].tool_calls[0]["args"] == {
+        "operations": [{"type": "insert_plugin_default", "plugin": plugin}]
+    }
+    assert metrics.protocolRepairAttempts == 0
+    assert metrics.protocolDiagnostics == [{
+        "kind": "tool_argument_redundant_default_target_removed",
+        "modelCallSequence": 21,
+        "toolName": "mutate_app_ui_model",
+        "operationCount": 1,
+    }]
+
+
+def test_default_placement_does_not_discard_nonrelative_target():
+    mutation_tool = {
+        "name": "mutate_app_ui_model",
+        "function": {"parameters": APP_UI_MODEL_MUTATION_TOOL_SCHEMA},
+    }
+    metrics = ToolProtocolMetrics(modelCalls=21)
+    decision = ToolProtocolGuard(metrics).inspect(
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "mutate_app_ui_model",
+            "args": {"operations": [{
+                "type": "insert_plugin_default",
+                "plugin": {"id": "task-list-main", "pluginId": "task-list", "enabled": True},
+                "target": {"type": "application"},
+            }]},
+            "id": "default-with-unrelated-target",
+        }])]),
+        [mutation_tool],
+    )
+
+    assert decision.status == "repair"
+    assert metrics.protocolDiagnostics[0]["operationType"] == "insert_plugin_default"
+
+
 @pytest.mark.parametrize(
     ("change", "expected_type"),
     [

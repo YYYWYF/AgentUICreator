@@ -155,6 +155,35 @@ def _recover_plugin_change_types(arguments: Any) -> tuple[dict[str, Any], list[s
     return {**arguments, "changes": changes}, recovered
 
 
+def _remove_redundant_default_placement_target(arguments: Any) -> tuple[dict[str, Any], int] | None:
+    """Honor an explicit default-placement operation when it also repeats a relative hint."""
+    if not isinstance(arguments, Mapping) or not isinstance(arguments.get("operations"), list):
+        return None
+    operations = []
+    removed = 0
+    for operation in arguments["operations"]:
+        if not isinstance(operation, Mapping):
+            operations.append(operation)
+            continue
+        target = operation.get("target")
+        if (operation.get("type") == "insert_plugin_default"
+                and set(operation) == {"type", "plugin", "target"}
+                and isinstance(target, Mapping)
+                and target.get("type") == "relative"
+                and target.get("relation") in {"before", "after"}
+                and (set(target) == {"type", "relation", "parentInstanceId"}
+                     or set(target) == {"type", "relation", "anchorInstanceId"})
+                and any(isinstance(target.get(key), str) and target[key]
+                        for key in ("parentInstanceId", "anchorInstanceId"))):
+            operations.append({key: value for key, value in operation.items() if key != "target"})
+            removed += 1
+        else:
+            operations.append(dict(operation))
+    if not removed:
+        return None
+    return {**arguments, "operations": operations}, removed
+
+
 def _bounded_error_path(path: Any) -> list[object]:
     if path is None:
         return []
@@ -582,21 +611,31 @@ class ToolProtocolGuard:
         if message.tool_calls:
             normalized_calls = []
             for call in message.tool_calls:
-                if call.get("name") != "mutate_ui_plugin_source":
-                    normalized_calls.append(call)
-                    continue
-                recovered = _recover_plugin_change_types(call.get("args"))
-                if recovered is None:
-                    normalized_calls.append(call)
-                    continue
-                arguments, inferred_types = recovered
-                normalized_calls.append({**call, "args": arguments})
-                _record_protocol_diagnostic(self.metrics, {
-                    "kind": "tool_argument_discriminator_recovered",
-                    "modelCallSequence": self.metrics.modelCalls,
-                    "toolName": "mutate_ui_plugin_source",
-                    "changeTypes": inferred_types[:_MAX_TRACE_ITEMS],
-                })
+                if call.get("name") == "mutate_ui_plugin_source":
+                    recovered = _recover_plugin_change_types(call.get("args"))
+                    if recovered is not None:
+                        arguments, inferred_types = recovered
+                        normalized_calls.append({**call, "args": arguments})
+                        _record_protocol_diagnostic(self.metrics, {
+                            "kind": "tool_argument_discriminator_recovered",
+                            "modelCallSequence": self.metrics.modelCalls,
+                            "toolName": "mutate_ui_plugin_source",
+                            "changeTypes": inferred_types[:_MAX_TRACE_ITEMS],
+                        })
+                        continue
+                if call.get("name") == "mutate_app_ui_model":
+                    recovered = _remove_redundant_default_placement_target(call.get("args"))
+                    if recovered is not None:
+                        arguments, removed = recovered
+                        normalized_calls.append({**call, "args": arguments})
+                        _record_protocol_diagnostic(self.metrics, {
+                            "kind": "tool_argument_redundant_default_target_removed",
+                            "modelCallSequence": self.metrics.modelCalls,
+                            "toolName": "mutate_app_ui_model",
+                            "operationCount": removed,
+                        })
+                        continue
+                normalized_calls.append(call)
             if any(old is not new for old, new in zip(message.tool_calls, normalized_calls)):
                 normalized_message = message.model_copy(update={"tool_calls": normalized_calls})
                 response = ModelResponse(
