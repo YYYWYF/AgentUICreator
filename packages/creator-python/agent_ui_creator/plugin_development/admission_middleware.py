@@ -41,6 +41,10 @@ class PluginCustomizedSourceDecisionRequired(PluginDevelopmentError):
     code = "PLUGIN_CUSTOMIZED_SOURCE_DECISION_REQUIRED"
 
 
+class PluginDevelopmentPlacementRequired(PluginDevelopmentError):
+    code = "PLUGIN_DEVELOPMENT_PLACEMENT_REQUIRED"
+
+
 def _result_payload(result: Any) -> Mapping[str, Any] | None:
     value = getattr(result, "content", result)
     if not isinstance(value, str):
@@ -185,6 +189,18 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
         visit(model)
         return selected
 
+    def _has_relative_default_placement(self, plugin_id: str) -> bool:
+        manifest_path = self.authority.project_root / agent_ui_source_path(
+            self.authority.project_root, f"plugins/{plugin_id}/manifest.json"
+        ).lstrip("/")
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return False
+        authoring = manifest.get("authoring") if isinstance(manifest, dict) else None
+        placement = authoring.get("defaultPlacement") if isinstance(authoring, dict) else None
+        return isinstance(placement, dict) and placement.get("type") == "relative"
+
     def _require_bound_composition(self, operations: object, target_plugin_id: str) -> None:
         """A development grant admits only its Plugin selection, before Host mutation."""
         if not isinstance(operations, list) or not operations:
@@ -211,6 +227,11 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
                 nodes = plugin_nodes(operation.get("replacement") if kind == "replace_plugin" else operation.get("plugin"))
                 if not nodes or any(node.get("pluginId") != target_plugin_id for node in nodes):
                     raise PluginDevelopmentError("插件组合超出了已批准的 Plugin 目标；已有 Plugin 需走独立的复用授权。")
+                if kind == "insert_plugin" and self._has_relative_default_placement(target_plugin_id):
+                    raise PluginDevelopmentPlacementRequired(
+                        "此 Plugin 声明了相对默认位置；请使用 insert_plugin_default "
+                        "按清单中的 anchor 和尺寸组合，不要插入现有会话 Slot。"
+                    )
             elif kind in {"insert_layout_node", "insert_layout_relative", "replace_layout_node"}:
                 for node in plugin_nodes(operation.get("node")):
                     plugin_id, instance_id = node.get("pluginId"), node.get("id")
