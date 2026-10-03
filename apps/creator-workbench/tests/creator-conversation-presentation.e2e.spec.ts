@@ -41,17 +41,20 @@ test("presents answers, inspection, mutation, no-op, and validation by run facts
       body: events.map(event => `data: ${JSON.stringify(event)}\n\n`).join("") });
   });
 
-  await page.goto("/dock.html?creatorDebug=0");
+  await page.goto("/dock.html");
   const request = page.locator("#creator-request");
   await expect(request).toBeVisible();
 
   await request.fill("你能做什么？");
   await page.getByRole("button", { name: "发送" }).click();
   await expect(page.locator(".creator-panel-message--assistant")).toContainText("我可以解释 Creator 的用法");
+  await expect(page.getByRole("region", { name: "运行诊断" })).toHaveCount(0);
   await expect(page.getByText("修改回执")).toHaveCount(0);
   await expect(page.getByText("已识别意图")).toHaveCount(0);
   await expect(page.getByText("诊断日志")).toHaveCount(0);
 
+  await page.goto("/dock.html?creatorDebug=0");
+  await expect(request).toBeVisible();
   await request.fill("看看当前有哪些插件");
   await page.getByRole("button", { name: "发送" }).click();
   await expect(page.locator(".creator-panel-message--assistant").last()).toContainText("会话 UI Plugin");

@@ -8,28 +8,37 @@ import {
 } from "../src/ui/creatorStageProjection.js";
 
 describe("Creator debug mode", () => {
-  it("defaults to debug on for localhost", () => {
+  it("defaults to ordinary mode on local hosts", () => {
     expect(
       resolveCreatorDebugMode({ hostname: "localhost", search: "" }),
-    ).toBe(true);
+    ).toBe(false);
     expect(
       resolveCreatorDebugMode({ hostname: "127.0.0.1", search: "" }),
-    ).toBe(true);
+    ).toBe(false);
   });
 
-  it("honors explicit URL overrides", () => {
+  it("enables debug only for explicit true values", () => {
     expect(
-      resolveCreatorDebugMode({
-        hostname: "localhost",
-        search: "?creatorDebug=0",
-      }),
-    ).toBe(false);
+      resolveCreatorDebugMode({ hostname: "localhost", search: "?creatorDebug=1" }),
+    ).toBe(true);
     expect(
       resolveCreatorDebugMode({
         hostname: "preview.example.com",
         search: "?creatorDebug=true",
       }),
     ).toBe(true);
+  });
+
+  it("keeps false, empty, and unknown values disabled", () => {
+    for (const search of ["?creatorDebug=0", "?creatorDebug=false", "?creatorDebug=", "?creatorDebug=foo"]) {
+      expect(resolveCreatorDebugMode({ hostname: "localhost", search })).toBe(false);
+    }
+    expect(
+      resolveCreatorDebugMode({
+        hostname: "preview.example.com",
+        search: "?creatorDebug=foo",
+      }),
+    ).toBe(false);
   });
 
   it("defaults to ordinary mode on remote hosts", () => {
