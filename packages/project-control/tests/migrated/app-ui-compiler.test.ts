@@ -192,6 +192,13 @@ describe("compileAppUIModel", () => {
       settings: { theme: "dark" },
     })).toThrow();
     expect(() => parseAppUIRuntimeModel({
+      root: { type: "row", id: "root", children: [
+        { type: "slot", id: "chat", slotId: "chat" },
+      ], responsive: { type: "trailing-drawer", primaryIndex: 1,
+        drawerIndex: 2, minPrimaryWidth: 320 } },
+      pluginInstances: {},
+    })).toThrow();
+    expect(() => parseAppUIRuntimeModel({
       root: { type: "slot", id: "root", slotId: "root" },
       pluginInstances: {
         "surface-main": {

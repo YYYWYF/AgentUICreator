@@ -19,6 +19,19 @@ describe("responsive Row composition", () => {
     delete (HTMLDialogElement.prototype as Partial<HTMLDialogElement>).close;
   });
 
+  it("reports invalid responsive indices instead of rendering a plain Row", async () => {
+    host = document.createElement("div");
+    document.body.append(host);
+    root = createRoot(host);
+    const invalid: RowNode = {
+      type: "row", id: "invalid", children: [{ type: "slot", id: "chat", slotId: "chat" }],
+      responsive: { type: "trailing-drawer", primaryIndex: 1, drawerIndex: 2, minPrimaryWidth: 320 },
+    };
+    await expect(act(async () => root!.render(
+      <LayoutRenderer root={invalid} renderSlot={() => null} />,
+    ))).rejects.toThrow('Invalid responsive Row indices for "invalid".');
+  });
+
   it("moves only the business track into one drawer and restores the same mounted instance", async () => {
     let width = 1280;
     let notifyResize = () => {};

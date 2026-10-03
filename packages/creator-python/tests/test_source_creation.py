@@ -169,7 +169,7 @@ def test_create_ui_plugin_requires_its_stylesheet_to_be_loaded(tmp_path):
     assert result.plugin_id == "task-status"
 
 
-def test_create_ui_plugin_rejects_side_panel_local_collapse_before_write(tmp_path):
+def test_create_ui_plugin_allows_local_collapse_with_relative_placement(tmp_path):
     creation, activity = plugin_service(tmp_path)
     files = plugin_sources()
     files[0] = plugin_source("manifest.json", json.dumps({
@@ -183,23 +183,11 @@ def test_create_ui_plugin_rejects_side_panel_local_collapse_before_write(tmp_pat
         "return <button onClick={() => setCollapsed(true)}>Hide</button>; }\n"
     ))
 
-    with pytest.raises(SourceCreationError) as captured:
-        asyncio.run(creation.create("task-status", files))
-    assert captured.value.code == "PLUGIN_PANEL_COLLAPSE_MUST_USE_LAYOUT"
-    assert "As the next tool call, retry create_ui_plugin" in str(captured.value)
-    assert "do not spend model turns editing locale files now" in str(captured.value)
-    assert activity.revision == 0
-    assert not (tmp_path / "plugins/task-status").exists()
-
-    files[2] = plugin_source("index.tsx", (
-        "import { useState } from 'react';\n"
-        "export function Panel() { const [done, setDone] = useState(false); "
-        "return <button onClick={() => setDone(true)}>Done</button>; }\n"
-    ))
     assert asyncio.run(creation.create("task-status", files)).plugin_id == "task-status"
+    assert activity.revision == 3
 
 
-def test_create_ui_plugin_rejects_whole_panel_collapsible_and_reversed_filter(tmp_path):
+def test_create_ui_plugin_allows_internal_collapsible_and_business_filter(tmp_path):
     creation, activity = plugin_service(tmp_path)
     files = plugin_sources()
     files[0] = plugin_source("manifest.json", json.dumps({
@@ -216,13 +204,8 @@ def test_create_ui_plugin_rejects_whole_panel_collapsible_and_reversed_filter(tm
         "</Collapsible></aside>;\n"
     ))
 
-    with pytest.raises(SourceCreationError) as captured:
-        asyncio.run(creation.create("task-status", files))
-
-    assert captured.value.code == "PLUGIN_PANEL_COLLAPSE_MUST_USE_LAYOUT"
-    assert "Also correct the pending-only filter label" in str(captured.value)
-    assert activity.revision == 0
-    assert not (tmp_path / "plugins/task-status").exists()
+    assert asyncio.run(creation.create("task-status", files)).plugin_id == "task-status"
+    assert activity.revision == 3
 
 
 def test_create_ui_plugin_normalizes_known_project_root_imports_atomically(tmp_path):
@@ -373,7 +356,7 @@ def test_create_ui_plugin_rejects_invalid_project_definition_before_atomic_write
     ("pendingOnly", "showPendingOnly"),
     ("incompleteOnly", "showIncompleteOnly"),
 ])
-def test_create_ui_plugin_rejects_reversed_pending_filter_label_before_write(
+def test_create_ui_plugin_allows_business_filter_labels(
     tmp_path, filter_state, active_label
 ):
     source_creation, activity = service(tmp_path)
@@ -396,18 +379,8 @@ def test_create_ui_plugin_rejects_reversed_pending_filter_label_before_write(
         f"const label = {filter_state} ? labels.{active_label} : labels.showAll;\n"
     ))
 
-    with pytest.raises(SourceCreationError) as captured:
-        asyncio.run(creation.create("task-status", files))
-
-    assert captured.value.code == "PLUGIN_FILTER_LABEL_REVERSED"
-    assert "retry create_ui_plugin" in str(captured.value)
-    assert activity.revision == 0
-    assert not (tmp_path / "plugins/task-status").exists()
-
-    files[2] = plugin_source("index.tsx", (
-        f"const label = {filter_state} ? labels.showAll : labels.{active_label};\n"
-    ))
     assert asyncio.run(creation.create("task-status", files)).plugin_id == "task-status"
+    assert activity.revision == 3
 
 def test_create_ui_plugin_rejects_local_state_as_ag_ui_data(tmp_path):
     creation, activity = plugin_service(tmp_path)

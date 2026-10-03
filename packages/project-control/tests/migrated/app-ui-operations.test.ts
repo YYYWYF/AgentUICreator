@@ -338,6 +338,42 @@ describe("AppUIModel semantic operations", () => {
     expect(source.root.children).toHaveLength(2);
   });
 
+  it("rejects responsive indices invalidated by Layout operations", () => {
+    const source: AppUIModel = { root: {
+      type: "row",
+      responsive: { type: "trailing-drawer", primaryIndex: 1, drawerIndex: 2, minPrimaryWidth: 320 },
+      children: [
+        { type: "slot", plugins: [] },
+        { type: "slot", plugins: [] },
+      ],
+    } };
+    const invalid = { code: "RESPONSIVE_DRAWER_INDEX_INVALID" };
+    expect(() => applyAppUIOperations(source, [{
+      type: "remove_layout_node", nodeRef: "l2",
+    }])).toThrowError(expect.objectContaining(invalid));
+    expect(() => applyAppUIOperations(source, [{
+      type: "replace_layout_node", nodeRef: "l0",
+      node: { type: "row", responsive: source.root.type === "row" ? source.root.responsive : undefined,
+        children: [{ type: "slot", plugins: [] }] },
+    }])).toThrowError(expect.objectContaining(invalid));
+    expect(() => applyAppUIOperations(source, [{
+      type: "move_layout_node", nodeRef: "l2", newParentRef: "l0", index: 0,
+    }])).not.toThrow();
+    const nested: AppUIModel = { root: { type: "column", children: [
+      { type: "row", responsive: {
+        type: "trailing-drawer", primaryIndex: 0, drawerIndex: 1, minPrimaryWidth: 320,
+      }, children: [{ type: "slot", plugins: [] }] },
+      { type: "stack", children: [] },
+    ] } };
+    expect(() => applyAppUIOperations(nested, [{
+      type: "move_layout_node", nodeRef: "l2", newParentRef: "l3",
+    }])).toThrowError(expect.objectContaining(invalid));
+    expect(() => applyAppUIOperations(source, [{
+      type: "insert_layout_node", parentRef: "l0", index: 2,
+      node: { type: "slot", plugins: [] },
+    }])).not.toThrow();
+  });
+
   it("enforces deterministic relative sizing", () => {
     const sized = { root: {
       type: "row" as const,

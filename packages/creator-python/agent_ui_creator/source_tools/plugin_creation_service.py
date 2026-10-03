@@ -21,36 +21,6 @@ from .source_creation_service import UISourceCreationService
 _PLUGIN_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9-]{0,99}$")
 _REQUIRED_PLUGIN_FILES = frozenset({"manifest.json", "definition.ts", "index.tsx"})
 _STYLESHEET_IMPORT = re.compile(r"\bimport\s*(?:\(\s*)?['\"]\./styles\.css['\"]")
-_LOCAL_PANEL_COLLAPSE = re.compile(
-    r"\bconst\s*\[\s*(?:is)?collapsed\s*,\s*set(?:Is)?Collapsed\s*\]\s*=\s*useState\s*\(",
-    re.IGNORECASE,
-)
-_LOCAL_PANEL_COLLAPSIBLE = re.compile(
-    r"<Collapsible\b[^>]*\bopen\s*=\s*\{\s*(?P<state>[A-Za-z_]\w*)\s*\}[^>]*>"
-)
-_REVERSED_PENDING_FILTER_LABEL = re.compile(
-    r"\b(?P<state>[A-Za-z_]\w*)\s*\?\s*"
-    r"labels\.(?P<when_on>[A-Za-z_]\w*)\s*:\s*"
-    r"labels\.(?P<when_off>[A-Za-z_]\w*)",
-)
-_PENDING_FILTER_WORDS = ("pending", "incomplete", "unfinished")
-
-
-def _has_reversed_pending_filter_label(source: str) -> bool:
-    return any(
-        any(word in match.group("state").lower() for word in _PENDING_FILTER_WORDS)
-        and any(word in match.group("when_on").lower() for word in _PENDING_FILTER_WORDS)
-        and "all" in match.group("when_off").lower()
-        for match in _REVERSED_PENDING_FILTER_LABEL.finditer(source)
-    )
-
-
-def _has_local_panel_collapsible(source: str) -> bool:
-    return any(
-        re.search(rf"\baria-expanded\s*=\s*\{{\s*{re.escape(match.group('state'))}\s*\}}", source)
-        is not None
-        for match in _LOCAL_PANEL_COLLAPSIBLE.finditer(source)
-    )
 _PROJECT_ROOT_IMPORT = re.compile(
     r"(?P<prefix>\bfrom\s*[\"']|\bimport\s*[\"'])"
     r"(?P<wrong>\.\./(?P<domain>agent-ui|framework|services)/(?P<rest>[^\"']+))"
@@ -266,38 +236,6 @@ class UIPluginCreationService:
                 "Do not call validate_creator_changes or compose before creation succeeds; "
                 "no Plugin files were written.",
                 {"relativePath": "definition.ts"},
-            )
-        placement = manifest.get("authoring", {}).get("defaultPlacement") if isinstance(
-            manifest.get("authoring"), dict
-        ) else None
-        reversed_filter_label = _has_reversed_pending_filter_label(plugin_source)
-        if (
-            isinstance(placement, dict)
-            and placement.get("type") == "relative"
-            and (_LOCAL_PANEL_COLLAPSE.search(plugin_source)
-                 or _has_local_panel_collapsible(plugin_source))
-        ):
-            raise SourceCreationError(
-                "PLUGIN_PANEL_COLLAPSE_MUST_USE_LAYOUT",
-                "The current Platform Layout already renders collapse and restore controls automatically "
-                "after this Plugin is composed beside conversation. As the next tool call, retry "
-                "create_ui_plugin with the same manifest and requested behavior, removing the "
-                "Plugin-local collapsed state and collapse/restore buttons from Plugin source. "
-                "Unused locale keys can remain; do not spend model turns editing locale files now. "
-                + ("Also correct the pending-only filter label: show the pending-only action "
-                   "while off and show-all while on, or use a stable checkbox label. "
-                   if reversed_filter_label else "")
-                + "No Runtime source search or new API is needed.",
-                {"relativePath": "index.tsx"},
-            )
-        if not self.internal_trusted and reversed_filter_label:
-            raise SourceCreationError(
-                "PLUGIN_FILTER_LABEL_REVERSED",
-                "The pending-only filter label describes the opposite action. As the next tool call, "
-                "retry create_ui_plugin with this source corrected: a toggle Button should show the "
-                "pending-only label while the filter is off and the show-all label while it is on; "
-                "a checkbox should keep a stable pending-only label. No Plugin files were written.",
-                {"relativePath": "index.tsx"},
             )
         for hook, service in _BUILTIN_HOOK_SERVICES.items():
             if not re.search(rf"\b{hook}\s*\(", plugin_source):

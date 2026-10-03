@@ -235,10 +235,10 @@ def test_relative_target_schema_failure_repairs_to_default_placement():
     assert diagnostic["branchErrors"] == [{"path": ["target"], "type": "oneOf"}]
     assert "private-anchor" not in str(diagnostic)
     assert "insert_plugin_default" in requests[1].messages[-1].content
-    assert "Omit `target`" in requests[1].messages[-1].content
+    assert "if the Plugin's declared placement is intended" in requests[1].messages[-1].content
 
 
-def test_default_placement_discards_only_redundant_relative_target_without_repair():
+def test_default_placement_with_relative_target_requires_repair():
     mutation_tool = {
         "name": "mutate_app_ui_model",
         "function": {"parameters": APP_UI_MODEL_MUTATION_TOOL_SCHEMA},
@@ -258,21 +258,17 @@ def test_default_placement_discards_only_redundant_relative_target_without_repai
         [mutation_tool],
     )
 
-    assert decision.status == "tool_call"
+    assert decision.status == "repair"
     assert decision.response.result[0].tool_calls[0]["args"] == {
-        "operations": [{"type": "insert_plugin_default", "plugin": plugin}]
+        "operations": [{"type": "insert_plugin_default", "plugin": plugin,
+                        "target": {"type": "relative", "parentInstanceId": "conversation-main",
+                                   "relation": "after"}}]
     }
     assert metrics.protocolRepairAttempts == 0
-    assert metrics.protocolDiagnostics == [{
-        "kind": "tool_argument_default_placement_normalized",
-        "modelCallSequence": 21,
-        "toolName": "mutate_app_ui_model",
-        "operationCount": 1,
-        "missingTypeCount": 0,
-    }]
+    assert metrics.protocolDiagnostics[0]["kind"] == "tool_argument_validation_failure"
 
 
-def test_relative_plugin_insert_without_type_resolves_to_declared_default():
+def test_relative_plugin_insert_without_type_requires_repair():
     mutation_tool = {
         "name": "mutate_app_ui_model",
         "function": {"parameters": APP_UI_MODEL_MUTATION_TOOL_SCHEMA},
@@ -292,20 +288,22 @@ def test_relative_plugin_insert_without_type_resolves_to_declared_default():
         [mutation_tool],
     )
 
-    assert decision.status == "tool_call"
+    assert decision.status == "repair"
     assert decision.response.result[0].tool_calls[0]["args"] == {
         "appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "operations": [{"type": "insert_plugin_default", "plugin": plugin}],
+        "operations": [{"plugin": plugin,
+                        "target": {"type": "relative", "anchorInstanceId": "conversation-main",
+                                   "relation": "after"}}],
     }
     assert metrics.protocolRepairAttempts == 0
-    assert metrics.protocolDiagnostics[0]["missingTypeCount"] == 1
+    assert metrics.protocolDiagnostics[0]["kind"] == "tool_argument_validation_failure"
 
 
 @pytest.mark.parametrize("extra", [
     {"actionId": "side-panel-action"},
     {"actionId": "side-panel-action", "target": {"type": "application"}},
 ])
-def test_default_placement_ignores_action_catalog_hint_and_conflicting_target(extra):
+def test_default_placement_preserves_extra_intent_for_repair(extra):
     mutation_tool = {
         "name": "mutate_app_ui_model",
         "function": {"parameters": APP_UI_MODEL_MUTATION_TOOL_SCHEMA},
@@ -323,12 +321,48 @@ def test_default_placement_ignores_action_catalog_hint_and_conflicting_target(ex
         [mutation_tool],
     )
 
-    assert decision.status == "tool_call"
+    assert decision.status == "repair"
     assert decision.response.result[0].tool_calls[0]["args"] == {
-        "operations": [{"type": "insert_plugin_default", "plugin": plugin}]
+        "operations": [{"type": "insert_plugin_default", "plugin": plugin, **extra}]
     }
     assert metrics.protocolRepairAttempts == 0
-    assert metrics.protocolDiagnostics[0]["kind"] == "tool_argument_default_placement_normalized"
+    assert metrics.protocolDiagnostics[0]["kind"] == "tool_argument_validation_failure"
+
+
+def test_conflicting_default_placement_uses_one_bounded_repair():
+    mutation_tool = {
+        "name": "mutate_app_ui_model",
+        "function": {"parameters": APP_UI_MODEL_MUTATION_TOOL_SCHEMA},
+    }
+    plugin = {"id": "task-list-main", "pluginId": "task-list", "enabled": True}
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[mutation_tool])
+    responses = iter([
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "mutate_app_ui_model",
+            "args": {"operations": [{"type": "insert_plugin_default", "plugin": plugin,
+                                     "target": {"type": "application"}}]},
+            "id": "conflicting-intent",
+        }])]),
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "mutate_app_ui_model",
+            "args": {"operations": [{"type": "insert_plugin", "plugin": plugin,
+                                     "target": {"type": "application"}}]},
+            "id": "repaired-intent",
+        }])]),
+    ])
+    requests = []
+
+    def handler(current_request):
+        requests.append(current_request)
+        return next(responses)
+
+    result = middleware.wrap_model_call(request, handler)
+    assert result.result[0].tool_calls[0]["id"] == "repaired-intent"
+    assert len(requests) == 2
+    assert "choose a compatible operation" in requests[1].messages[-1].content
+    assert middleware.metrics.protocolRepairAttempts == 1
+    assert middleware.metrics.protocolRepairSuccesses == 1
 
 
 def test_default_placement_keeps_unknown_extra_fields_invalid():
@@ -353,7 +387,7 @@ def test_default_placement_keeps_unknown_extra_fields_invalid():
     assert metrics.protocolDiagnostics[0]["operationType"] == "insert_plugin_default"
 
 
-def test_default_placement_discards_only_text_description_hint():
+def test_default_placement_description_hint_requires_repair():
     mutation_tool = {
         "name": "mutate_app_ui_model",
         "function": {"parameters": APP_UI_MODEL_MUTATION_TOOL_SCHEMA},
@@ -372,9 +406,10 @@ def test_default_placement_discards_only_text_description_hint():
         [mutation_tool],
     )
 
-    assert decision.status == "tool_call"
+    assert decision.status == "repair"
     assert decision.response.result[0].tool_calls[0]["args"] == {
-        "operations": [{"type": "insert_plugin_default", "plugin": plugin}]
+        "operations": [{"type": "insert_plugin_default", "plugin": plugin,
+                        "description": "Place the panel at its declared default location"}]
     }
     assert metrics.protocolRepairAttempts == 0
 
@@ -414,7 +449,7 @@ def test_default_placement_extra_nested_operations_get_exact_repair_hint():
 
     assert result.result[0].tool_calls[0]["id"] == "repaired-default"
     assert middleware.metrics.protocolRepairSuccesses == 1
-    assert "nested `operations`" in requests[1].messages[-1].content
+    assert "choose a compatible operation" in requests[1].messages[-1].content
 
 
 @pytest.mark.parametrize(

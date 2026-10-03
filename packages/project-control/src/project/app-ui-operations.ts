@@ -1713,5 +1713,19 @@ export function applyAppUIOperations(
     applyOperation(context, operation);
     if (preserveStackActive) restoreStackActiveStates(model, states);
   }
+  for (const { node } of walkAppUILayout(model.root)) {
+    if (node.type === "row" && node.responsive !== undefined && (
+      node.responsive.primaryIndex >= node.children.length ||
+      node.responsive.primaryIndex >= node.responsive.drawerIndex ||
+      node.responsive.drawerIndex > node.children.length
+    )) {
+      operationError(
+        "RESPONSIVE_DRAWER_INDEX_INVALID",
+        "Row responsive indices must identify an existing primary child and a drawer position at or before the end.",
+        { primaryIndex: node.responsive.primaryIndex, drawerIndex: node.responsive.drawerIndex,
+          childCount: node.children.length },
+      );
+    }
+  }
   return model;
 }

@@ -14,6 +14,13 @@ describe("AppUIModel", () => {
       responsive: { type: "trailing-drawer", primaryIndex: 1, drawerIndex: 2, minPrimaryWidth: 320 } };
     expect(parseAppUIModel({ root: row }).root).toMatchObject(row);
     expect(() => parseAppUIModel({ root: { ...row, responsive: { ...row.responsive, drawerIndex: 0 } } })).toThrow();
+    for (const responsive of [
+      { ...row.responsive, primaryIndex: 2 },
+      { ...row.responsive, primaryIndex: 2, drawerIndex: 3 },
+      { ...row.responsive, drawerIndex: 3 },
+    ]) {
+      expect(() => parseAppUIModel({ root: { ...row, responsive } })).toThrow();
+    }
     expect(parseAppUIModel({ root: { type: "slot", plugins: [] } }).root).not.toHaveProperty("responsive");
   });
   it("keeps Grid tracks separate from Panel dimensions", () => {

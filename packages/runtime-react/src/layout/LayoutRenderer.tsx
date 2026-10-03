@@ -134,7 +134,14 @@ function ResponsiveRow({ node, renderSlot, drawerLabels }: LayoutNodeViewProps &
 
 function LayoutNodeView({ node, renderSlot, drawerLabels }: LayoutNodeViewProps) {
   if (node.type === "row") {
-    if (node.responsive !== undefined && node.children[node.responsive.primaryIndex] !== undefined && node.children[node.responsive.drawerIndex] !== undefined) {
+    if (node.responsive !== undefined && (
+      node.responsive.primaryIndex >= node.children.length ||
+      node.responsive.primaryIndex >= node.responsive.drawerIndex ||
+      node.responsive.drawerIndex > node.children.length
+    )) {
+      throw new Error(`Invalid responsive Row indices for "${node.id}".`);
+    }
+    if (node.responsive !== undefined && node.responsive.drawerIndex < node.children.length) {
       return <ResponsiveRow node={node} renderSlot={renderSlot} drawerLabels={drawerLabels} />;
     }
     const style: CSSProperties = {

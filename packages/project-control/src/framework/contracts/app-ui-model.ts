@@ -241,9 +241,11 @@ export const appUIModelSchema = appUIModelShapeSchema.superRefine((model, contex
       if (node.sizes !== undefined && node.sizes.length !== node.children.length) {
         context.addIssue({ code: "custom", path: [...path, "sizes"], message: "sizes must contain exactly one entry for each child", input: node.sizes });
       }
-      if (node.type === "row" && node.responsive !== undefined &&
-          node.responsive.drawerIndex <= node.responsive.primaryIndex) {
-        context.addIssue({ code: "custom", path: [...path, "responsive"], message: "Row drawer index must follow the primary index", input: node.responsive });
+      if (node.type === "row" && node.responsive !== undefined && (
+          node.responsive.primaryIndex >= node.children.length ||
+          node.responsive.primaryIndex >= node.responsive.drawerIndex ||
+          node.responsive.drawerIndex > node.children.length)) {
+        context.addIssue({ code: "custom", path: [...path, "responsive"], message: "Row responsive indices must identify an existing primary child and a drawer position at or before the end", input: node.responsive });
       }
       node.children.forEach((child, index) => visitLayout(child, [...path, "children", index]));
     } else if (node.type === "stack") {
