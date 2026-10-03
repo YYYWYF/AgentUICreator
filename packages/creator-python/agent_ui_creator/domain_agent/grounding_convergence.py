@@ -16,6 +16,7 @@ from ..domain_state import (
 from ..minimal_agent.path_policy import PolicyFilesystemBackend
 from ..minimal_agent.tool_policy import tool_name
 from ..model_protocol.trace import ToolProtocolMetrics
+from ..plugin_development.authority import PluginDevelopmentAuthority
 from ..verification_policy import (
     CreatorVerificationMode,
     DEFAULT_CREATOR_VERIFICATION_MODE,
@@ -43,6 +44,16 @@ COMPOSITION_POST_MUTATION_TOOL_NAMES = (
     "inspect_ui_plugin_delivery",
     "verify_ui_plugin_behavior",
 )
+SOURCE_INSTALLED_TOOL_NAMES = (
+    "inspect_ui_project",
+    "inspect_ui_capabilities",
+    "inspect_ui_plugin",
+    "preflight_ui_plugin_placement",
+    "prepare_ui_plugin_development",
+    "mutate_app_ui_model",
+    "inspect_ui_plugin_delivery",
+    "validate_creator_changes",
+)
 
 
 COMPOSITION_GROUNDING_CONTROL = """Composition grounding is sufficient.
@@ -69,6 +80,15 @@ passes. Do not browse unrelated source files, Host internals, or Mock scenario
 implementations to repeat facts already established. If a decisive requested
 change is still missing, use the smallest available targeted read or mutation."""
 
+SOURCE_INSTALLED_CONTROL = """The formal Source Item has been installed for this
+task. Its Plugin implementation and registry now exist. Finish the requested
+reuse through the public Composition tools: inspect_ui_project(view=composition)
+for the current hash, then mutate_app_ui_model to insert that installed Plugin
+at its declared placement, and validate_creator_changes on the new revision.
+Do not inspect Host, Runtime, or framework source to infer a separate mount path.
+If the current user explicitly requested further Plugin development, use
+prepare_ui_plugin_development for that distinct authorized work."""
+
 
 class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
     """Inject execution control while the authoritative Composition snapshot is fresh."""
@@ -79,11 +99,13 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         backend: PolicyFilesystemBackend,
         protocol_metrics: ToolProtocolMetrics | None = None,
         verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
+        development_authority: PluginDevelopmentAuthority | None = None,
     ) -> None:
         self.observations = observations
         self.backend = backend
         self.protocol_metrics = protocol_metrics or ToolProtocolMetrics()
         self.verification_mode = verification_mode
+        self.development_authority = development_authority
 
     @staticmethod
     def _composition_lane_tools(
@@ -133,6 +155,18 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
             status == "stale"
             and successful_mutation_revision == current_revision
         )
+        if (
+            self.development_authority is not None
+            and self.development_authority.installed_source_plugin_ids
+            and not metrics.first_mutation_started
+        ):
+            allowed = frozenset(SOURCE_INSTALLED_TOOL_NAMES)
+            by_name = {tool_name(candidate): candidate for candidate in request.tools
+                       if tool_name(candidate) in allowed}
+            return request.override(
+                messages=[*request.messages, SystemMessage(content=SOURCE_INSTALLED_CONTROL)],
+                tools=[by_name[name] for name in SOURCE_INSTALLED_TOOL_NAMES if name in by_name],
+            )
         if status != "grounded" and not post_mutation_revision_change:
             return request
         after_mutation = metrics.first_mutation_started

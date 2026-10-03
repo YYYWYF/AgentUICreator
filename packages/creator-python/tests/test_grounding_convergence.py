@@ -22,6 +22,7 @@ from agent_ui_creator.minimal_agent.path_policy import (
 )
 from agent_ui_creator.model_protocol.trace import ModelCallTrace, ToolProtocolMetrics
 from agent_ui_creator.observability import CreatorRunLogger
+from agent_ui_creator.plugin_development.authority import PluginDevelopmentAuthority
 
 
 COMPOSITION_COVERAGE = (
@@ -222,6 +223,36 @@ def test_explicit_development_can_leave_composition_lane_without_source_inventor
         )[1],
     )
     assert "create_ui_plugin" in offered
+
+
+def test_installed_formal_source_converges_on_composition_tools(tmp_path):
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+    observations = DomainObservationContext()
+    authority = PluginDevelopmentAuthority(tmp_path, thread_id="thread-a")
+    authority.begin_task(
+        task_id="source-reuse", request_id="source-reuse",
+        user_message="显示已有的文件卡片", intent="none",
+    )
+    authority.record_installed_source_plugin("generated-file-message")
+    backend.activity.touch("plugins/generated-file-message/manifest.json")
+    middleware = CompositionGroundingConvergenceMiddleware(
+        observations, backend, development_authority=authority,
+    )
+    tools = [SimpleNamespace(name=name) for name in ALLOWED_DOMAIN_WRITE_TOOLS]
+    offered = []
+    middleware.wrap_model_call(
+        ModelRequest(model=Mock(), messages=[], tools=tools),
+        lambda candidate: (
+            offered.extend(tool.name for tool in candidate.tools),
+            ModelResponse(result=[AIMessage(content="done")]),
+        )[1],
+    )
+    assert "inspect_ui_project" in offered
+    assert "mutate_app_ui_model" in offered
+    assert "validate_creator_changes" in offered
+    assert "read_file" not in offered
+    assert "grep" not in offered
+    assert "create_ui_plugin" not in offered
 
 
 def test_source_inventory_can_leave_composition_lane_for_development(tmp_path):

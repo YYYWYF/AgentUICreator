@@ -842,6 +842,7 @@ def create_domain_write_creator_agent(
                 backend,
                 protocol_metrics=metrics,
                 verification_mode=verification_mode,
+                development_authority=development_authority,
             ),
             scope_guard,
             repeated_read_guard,
