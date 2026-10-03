@@ -486,7 +486,10 @@ drawerIndex after the primary conversation region. Never insert it before the
 primary region: that would turn the conversation into the drawer. If the Layout
 already provides collapse and restore controls, use those controls for the panel;
 do not add a Plugin-local collapsed state or a second collapse button that leaves
-the Layout track occupied. Do not add this Platform sidebar structure to an
+the Grid track occupied. In the current Platform template these controls appear
+automatically after composition; Plugin source needs no collapse API, state,
+buttons, or locale copy. Do not search Runtime source for such an API.
+Do not add this Platform sidebar structure to an
 Embedded or narrow project that does not already have it.
 Static validation cannot establish this geometry without measured evidence.
 If the User defers or adjusts, stop this task with an honest no-delivery answer;

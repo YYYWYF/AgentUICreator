@@ -182,8 +182,10 @@ class UIPluginCreationService:
         ):
             raise SourceCreationError(
                 "PLUGIN_PANEL_COLLAPSE_MUST_USE_LAYOUT",
-                "A placed side panel must use the public Layout responsive drawer collapse and restore controls. "
-                "Remove the Plugin-local collapsed state and collapse/restore buttons; keep local state only for panel content.",
+                "The current Platform Layout already renders collapse and restore controls automatically "
+                "after this Plugin is composed beside conversation. Retry create_ui_plugin with the same "
+                "manifest and behavior, but remove the Plugin-local collapsed state, collapse/restore "
+                "buttons, and their locale copy. No Runtime source search or new API is needed.",
                 {"relativePath": "index.tsx"},
             )
         for hook, service in _BUILTIN_HOOK_SERVICES.items():
