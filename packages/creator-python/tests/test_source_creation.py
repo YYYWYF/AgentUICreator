@@ -199,6 +199,32 @@ def test_create_ui_plugin_rejects_side_panel_local_collapse_before_write(tmp_pat
     assert asyncio.run(creation.create("task-status", files)).plugin_id == "task-status"
 
 
+def test_create_ui_plugin_rejects_whole_panel_collapsible_and_reversed_filter(tmp_path):
+    creation, activity = plugin_service(tmp_path)
+    files = plugin_sources()
+    files[0] = plugin_source("manifest.json", json.dumps({
+        "id": "task-status", "authoring": {"defaultPlacement": {
+            "type": "relative", "relation": "after", "anchorPluginId": "conversation-surface",
+        }},
+    }))
+    files[2] = plugin_source("index.tsx", (
+        "const [open, setOpen] = useState(true);\n"
+        "const filterLabel = pendingOnly ? labels.showPendingOnly : labels.showAll;\n"
+        "return <aside><Collapsible open={open} onOpenChange={setOpen}>"
+        "<button aria-expanded={open}>Toggle</button>"
+        "<CollapsibleContent>Tasks</CollapsibleContent>"
+        "</Collapsible></aside>;\n"
+    ))
+
+    with pytest.raises(SourceCreationError) as captured:
+        asyncio.run(creation.create("task-status", files))
+
+    assert captured.value.code == "PLUGIN_PANEL_COLLAPSE_MUST_USE_LAYOUT"
+    assert "Also correct the pending-only filter label" in str(captured.value)
+    assert activity.revision == 0
+    assert not (tmp_path / "plugins/task-status").exists()
+
+
 def test_create_ui_plugin_normalizes_known_project_root_imports_atomically(tmp_path):
     for directory in ("framework/contracts", "services", "agent-ui/i18n"):
         (tmp_path / directory).mkdir(parents=True)
