@@ -481,6 +481,13 @@ container constraints and the new panel's usable minimum. Preserve the user's
 explicit sizes and existing tracks. If the current template has no responsive
 placement that keeps both the panel and Composer usable, ask for a layout
 decision instead of silently shrinking existing panels or changing Plugin scope.
+For a Row with a reserved responsive drawer, put the new business panel at its
+drawerIndex after the primary conversation region. Never insert it before the
+primary region: that would turn the conversation into the drawer. If the Layout
+already provides collapse and restore controls, use those controls for the panel;
+do not add a Plugin-local collapsed state or a second collapse button that leaves
+the Layout track occupied. Do not add this Platform sidebar structure to an
+Embedded or narrow project that does not already have it.
 Static validation cannot establish this geometry without measured evidence.
 If the User defers or adjusts, stop this task with an honest no-delivery answer;
 do not continue searching for another write path. Do not claim Runtime or

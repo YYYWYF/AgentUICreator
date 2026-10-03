@@ -318,6 +318,26 @@ describe("AppUIModel semantic operations", () => {
     expect(result.root).toMatchObject({ responsive, sizes: ["280px", "minmax(0, 1fr)", "260px"] });
   });
 
+  it("rejects filling a reserved drawer before the chat primary region", () => {
+    const source: AppUIModel = { root: {
+      type: "row",
+      responsive: { type: "trailing-drawer", primaryIndex: 1, drawerIndex: 2, minPrimaryWidth: 320 },
+      sizes: ["280px", "minmax(0, 1fr)"],
+      children: [labeledSlot("nav"), labeledSlot("chat")],
+    } };
+    const business = labeledSlot("business") as Extract<AppUILayoutNode, { type: "slot" }>;
+    expect(() => applyAppUIOperations(source, [{
+      type: "insert_layout_relative", anchorRef: "l2", direction: "left",
+      node: business, size: "260px",
+    }])).toThrowError(expect.objectContaining({ code: "RESPONSIVE_DRAWER_PLACEMENT_INVALID" }));
+    expect(() => applyAppUIOperations(source, [{
+      type: "insert_layout_node", parentRef: "l0", index: 1,
+      node: business, size: "260px",
+    }])).toThrowError(expect.objectContaining({ code: "RESPONSIVE_DRAWER_PLACEMENT_INVALID" }));
+    if (source.root.type !== "row") throw new Error("fixture");
+    expect(source.root.children).toHaveLength(2);
+  });
+
   it("enforces deterministic relative sizing", () => {
     const sized = { root: {
       type: "row" as const,

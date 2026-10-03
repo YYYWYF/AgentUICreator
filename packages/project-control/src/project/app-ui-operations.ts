@@ -1404,6 +1404,15 @@ function childContainer(node: AppUILayoutNode, operation: string): ChildrenNode 
 function insertChild(parent: ChildrenNode, node: AppUILayoutNode, index: number | undefined, size: AppUILayoutTrackSize | undefined): void {
   const targetIndex = index ?? parent.children.length;
   if (targetIndex > parent.children.length) operationError("INDEX_OUT_OF_RANGE", `Layout child index ${targetIndex} exceeds length ${parent.children.length}.`);
+  if (parent.type === "row" && parent.responsive !== undefined &&
+      parent.children.length === parent.responsive.drawerIndex &&
+      targetIndex !== parent.responsive.drawerIndex) {
+    operationError(
+      "RESPONSIVE_DRAWER_PLACEMENT_INVALID",
+      "The reserved responsive drawer must be filled after the primary region; inserting before it would turn the primary region into the drawer.",
+      { targetIndex, primaryIndex: parent.responsive.primaryIndex, drawerIndex: parent.responsive.drawerIndex },
+    );
+  }
   if (parent.type === "row" || parent.type === "column") {
     if (parent.sizes !== undefined) {
       if (size === undefined) operationError("LAYOUT_SIZE_REQUIRED", "The destination container has sizes; the inserted child requires a size.");

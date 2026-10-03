@@ -168,6 +168,45 @@ afterEach(async () => {
 });
 
 describe("new Plugin placement preflight", () => {
+  it("rejects a business panel that would displace the reserved responsive primary", async () => {
+    const model = rowModel(["navigation", "conversation"]);
+    if (model.root.type !== "row") throw new Error("fixture");
+    model.root.responsive = {
+      type: "trailing-drawer", primaryIndex: 1, drawerIndex: 2, minPrimaryWidth: 320,
+    };
+    const projectRoot = await createFixtureProject(model, [
+      ["navigation", { capabilities: ["navigation"] }],
+      ["conversation", { capabilities: ["conversation"] }],
+    ]);
+    const source = await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8");
+    const generation = generatePluginRegistryFromFacts(
+      model, await collectPluginProjectFacts(projectRoot, fixtureConfig),
+    );
+    const manifest = (relation: "before" | "after") => ({
+      id: "checklist", name: "Checklist", description: "Checklist panel", version: "1.0.0",
+      capabilities: ["visual"],
+      authoring: {
+        intents: ["show checklist"],
+        defaultPlacement: { type: "relative" as const, relation, anchorPluginId: "conversation" },
+        recommendedSize: { width: "280px" },
+      },
+    });
+    const input = {
+      appUIModelHash: hash(source),
+      capabilityCatalogRevision: generation.capabilityCatalog.revision,
+      instanceId: "checklist-main",
+    };
+    expect(await preflightCreatorPluginPlacement(projectRoot, {
+      ...input, manifest: manifest("before"),
+    })).toMatchObject({ eligible: false, diagnostic: {
+      code: "RESPONSIVE_DRAWER_PLACEMENT_INVALID",
+    } });
+    expect(await preflightCreatorPluginPlacement(projectRoot, {
+      ...input, manifest: manifest("after"),
+    })).toMatchObject({ eligible: true });
+    expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8")).toBe(source);
+  });
+
   it("plans a right-side Plugin without writing source or changing authored tracks", async () => {
     const model = rowModel(["conversation"]);
     const projectRoot = await createFixtureProject(model, [["conversation", {

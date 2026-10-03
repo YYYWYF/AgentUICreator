@@ -5,6 +5,7 @@ import path from "node:path";
 import { parseAppUIModelJson } from "../framework/contracts/app-ui-model";
 import { parseUIPluginManifest } from "../framework/contracts/ui-plugin";
 import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./agent-ui-project-paths";
+import { applyAppUIOperations } from "./app-ui-operations";
 import { planDefaultPluginInsertion } from "./creator-action-planners";
 import { readAgentUIProjectConfig } from "./project-mode";
 import { collectPluginProjectFacts, generatePluginRegistryFromFacts } from "./registry-generator";
@@ -80,6 +81,7 @@ export async function preflightCreatorPluginPlacement(
       { ...generation, assets: [...generation.assets, candidate] },
       { skipServiceReadiness: true },
     );
+    applyAppUIOperations(model, plan.operations);
     return {
       eligible: true,
       appUIModelHash,
