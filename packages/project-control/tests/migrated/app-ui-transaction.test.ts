@@ -142,6 +142,15 @@ describe("AppUIModel transaction", () => {
     });
 
     expect(result.changedPaths).toEqual(["app-ui/app-ui.json"]);
+    expect(result.mutationFootprint).toEqual({
+      appUIModel: true,
+      pluginConfig: false,
+      generatedRegistry: true,
+      sourceFiles: false,
+      runtimeFiles: false,
+      dependencies: false,
+      workspaceInfrastructure: false,
+    });
     expect(result.diff.capabilityCatalog.changed).toBe(false);
     expect(result.activeComposition.resolvedPluginIds).toEqual([]);
   });

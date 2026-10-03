@@ -14,7 +14,7 @@ from .models import (
     CreatorOperationPostconditionResult,
     CreatorOperationVerificationResult,
 )
-from .validation_plan import footprint_from_mutation
+from .validation_plan import MutationFootprint
 from .snapshot import CreatorDomainSnapshotProvider
 from .verification import CompositionOperationVerificationService
 
@@ -953,6 +953,9 @@ class CreatorActionExecutionPlaybook:
                 raw_mutation = mutation_result.to_dict()
                 mutation = _required_mapping(raw_mutation, "mutation")
                 expectations = _validate_host_result(mutation, current_candidate)
+                mutation_footprint = MutationFootprint.from_dict(
+                    mutation.get("mutationFootprint")
+                )
             except _HostResultInvalid as error:
                 return self._result(
                     started_at,
@@ -1037,16 +1040,9 @@ class CreatorActionExecutionPlaybook:
                 expectations=expectations,
                 mutation=mutation,
             )
-            try:
-                mutation_footprint = footprint_from_mutation(
-                    mutation,
-                    app_ui_model_path=self.mutation_service.app_ui_model_path,
-                ).to_dict()
-            except ValueError:
-                mutation_footprint = None
             verification = await self.verification.verify(
                 mutation_result=mutation,
-                app_ui_model_path=self.mutation_service.app_ui_model_path,
+                mutation_footprint=mutation_footprint,
                 expected_runtime=expectations.expected_runtime,
                 expected_geometry=expectations.expected_geometry,
                 expected_placement=expectations.expected_placement,
@@ -1064,7 +1060,7 @@ class CreatorActionExecutionPlaybook:
                 status=status,
                 instance_id=expectations.instance_id,
                 mutation_changed=True,
-                mutation_footprint=mutation_footprint,
+                mutation_footprint=mutation_footprint.to_dict(),
                 mutation_revision=mutation_revision,
                 postcondition=postcondition,
                 verification=verification,

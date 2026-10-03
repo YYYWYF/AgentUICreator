@@ -13,7 +13,7 @@ from agent_ui_creator.operations import (
 )
 from agent_ui_creator.operations.models import CreatorOperationPostconditionResult
 from agent_ui_creator.operations.engine import ProductizedOperationEngine, _operation_text
-from agent_ui_creator.operations.validation_plan import footprint_from_mutation, plan_validation
+from agent_ui_creator.operations.validation_plan import MutationFootprint, plan_validation
 
 
 class _Validation:
@@ -37,12 +37,7 @@ def test_productized_validation_uses_committed_footprint_without_workspace_comma
     class Validation:
         def __init__(self):
             self.activity = SimpleNamespace(logger=None)
-            self.runner = SimpleNamespace(execute_target_project_typecheck=self.execute_target_project_typecheck)
             self.commands = []
-
-        async def execute_target_project_typecheck(self):
-            self.commands.append("targetProjectTypecheck")
-            return SimpleNamespace(exit_code=0, output="")
 
         async def validate(self, *, mode):
             raise AssertionError("Workspace validation must not run for AppUIModel changes")
@@ -58,7 +53,13 @@ def test_productized_validation_uses_committed_footprint_without_workspace_comma
             self.calls += 1
             return {"status": self.status, "errors": [], "warnings": []}
 
-    async def check(paths, status="passed"):
+    model_footprint = MutationFootprint(
+        app_ui_model=True, plugin_config=False, generated_registry=True,
+        source_files=False, runtime_files=False, dependencies=False,
+        workspace_infrastructure=False,
+    )
+
+    async def check(status="passed"):
         validation = Validation()
         control = Control(status)
         result = await CompositionOperationVerificationService(
@@ -67,32 +68,83 @@ def test_productized_validation_uses_committed_footprint_without_workspace_comma
             runtime=_Runtime({}),
             verification_mode="static_only",
         ).verify(
-            mutation_result={"changedPaths": paths},
+            mutation_result={"changedPaths": ["unrelated-name.tsx"]},
+            mutation_footprint=model_footprint,
             expected_runtime={},
         )
         return result, control.calls, validation.commands
 
-    model_paths = ["app-ui/app-ui.json", "plugins/registry.generated.ts"]
-    result, calls, commands = asyncio.run(check(model_paths))
+    result, calls, commands = asyncio.run(check())
     assert (result.validationLevel, result.staticStatus, calls, commands) == (
         "ui-model", "passed", 1, [],
     )
-    failed, calls, commands = asyncio.run(check(model_paths, status="failed"))
+    failed, calls, commands = asyncio.run(check(status="failed"))
     assert (failed.staticStatus, failed.runtimeStatus, calls, commands) == (
         "failed", "not-run", 1, [],
     )
-    source, calls, commands = asyncio.run(check([*model_paths, "plugins/foo/index.tsx"]))
-    assert (source.validationLevel, source.staticStatus, calls, commands) == (
-        "target-source", "passed", 1, ["targetProjectTypecheck"],
-    )
 
 
-def test_workspace_footprint_requires_workspace_validation():
-    footprint = footprint_from_mutation(
-        {"changedPaths": ["app-ui/app-ui.json", "packages/runtime-core/src/index.ts"]},
-        app_ui_model_path="app-ui/app-ui.json",
-    )
-    assert plan_validation(footprint) == "workspace"
+def test_validation_planner_uses_only_structured_footprint():
+    model = MutationFootprint.from_dict({
+        "appUIModel": True, "pluginConfig": False,
+        "generatedRegistry": True, "sourceFiles": False,
+        "runtimeFiles": False, "dependencies": False,
+        "workspaceInfrastructure": False,
+    })
+    assert plan_validation(model) == "ui-model"
+    assert plan_validation(MutationFootprint.from_dict({
+        **model.to_dict(), "sourceFiles": True,
+    })) == "target-source"
+    assert plan_validation(MutationFootprint.from_dict({
+        **model.to_dict(), "workspaceInfrastructure": True,
+    })) == "workspace"
+
+
+def test_source_validation_preserves_delta_mode(tmp_path):
+    class Validation:
+        def __init__(self):
+            self.activity = SimpleNamespace(logger=None)
+            self.modes = []
+            self.has_pre_mutation_baseline = True
+
+        async def validate(self, *, mode):
+            self.modes.append(mode)
+            return SimpleNamespace(status="passed")
+
+    class Control:
+        project_root = tmp_path
+
+        async def verify_ui_project(self):
+            return {"status": "passed", "errors": []}
+
+    validation = Validation()
+    footprint = MutationFootprint.from_dict({
+        "appUIModel": False, "pluginConfig": False,
+        "generatedRegistry": False, "sourceFiles": True,
+        "runtimeFiles": False, "dependencies": False,
+        "workspaceInfrastructure": False,
+    })
+    result = asyncio.run(CompositionOperationVerificationService(
+        validation=validation, project_control=Control(),
+        runtime=_Runtime({}), verification_mode="static_only",
+    ).verify(
+        mutation_result={"changedPaths": ["arbitrary"]},
+        mutation_footprint=footprint, expected_runtime={},
+    ))
+    assert result.validationLevel == "target-source"
+    assert validation.modes == ["delta"]
+
+    validation.has_pre_mutation_baseline = False
+    unavailable = asyncio.run(CompositionOperationVerificationService(
+        validation=validation, project_control=Control(),
+        runtime=_Runtime({}), verification_mode="static_only",
+    ).verify(
+        mutation_result={"changedPaths": ["arbitrary"]},
+        mutation_footprint=footprint, expected_runtime={},
+    ))
+    assert unavailable.staticStatus == "failed"
+    assert validation.modes == ["delta"]
+    assert "baseline captured before mutation" in unavailable.validationErrors[0]
 
 
 def test_workspace_reflow_rejects_a_narrow_surviving_center():

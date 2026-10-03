@@ -123,6 +123,15 @@ export interface AppUITransactionResult {
   transactionId: string;
   changed: boolean;
   changedPaths: string[];
+  mutationFootprint: {
+    appUIModel: boolean;
+    pluginConfig: boolean;
+    generatedRegistry: boolean;
+    sourceFiles: boolean;
+    runtimeFiles: boolean;
+    dependencies: boolean;
+    workspaceInfrastructure: boolean;
+  };
   appUIModel: {
     beforeHash: string;
     afterHash: string;
@@ -1361,6 +1370,15 @@ async function runTransaction(
     transactionId,
     changed: changes.length > 0,
     changedPaths: changes.map((change) => change.relativePath).sort(),
+    mutationFootprint: {
+      appUIModel: true,
+      pluginConfig: false,
+      generatedRegistry: true,
+      sourceFiles: false,
+      runtimeFiles: false,
+      dependencies: false,
+      workspaceInfrastructure: false,
+    },
     appUIModel: { beforeHash, afterHash },
     diff: {
       plugins: changedKeys(mapInstances(beforeModel), mapInstances(afterModel)),

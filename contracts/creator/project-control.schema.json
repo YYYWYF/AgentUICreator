@@ -2233,6 +2233,7 @@
         "transactionId",
         "changed",
         "changedPaths",
+        "mutationFootprint",
         "appUIModel",
         "diff",
         "activeComposition",
@@ -2256,6 +2257,28 @@
           "maxItems": 1000,
           "items": {
             "$ref": "#/$defs/path"
+          }
+        },
+        "mutationFootprint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "appUIModel",
+            "pluginConfig",
+            "generatedRegistry",
+            "sourceFiles",
+            "runtimeFiles",
+            "dependencies",
+            "workspaceInfrastructure"
+          ],
+          "properties": {
+            "appUIModel": { "type": "boolean" },
+            "pluginConfig": { "type": "boolean" },
+            "generatedRegistry": { "type": "boolean" },
+            "sourceFiles": { "type": "boolean" },
+            "runtimeFiles": { "type": "boolean" },
+            "dependencies": { "type": "boolean" },
+            "workspaceInfrastructure": { "type": "boolean" }
           }
         },
         "appUIModel": {

@@ -541,6 +541,22 @@ class AppUIModelMutationService:
                 },
             )
 
+        # This transaction only owns AppUIModel composition and its generated registry.
+        # Validate the Host's declaration independently of changedPaths.
+        if result.get("mutationFootprint") != {
+            "appUIModel": True,
+            "pluginConfig": False,
+            "generatedRegistry": True,
+            "sourceFiles": False,
+            "runtimeFiles": False,
+            "dependencies": False,
+            "workspaceInfrastructure": False,
+        }:
+            raise AppUIModelMutationError(
+                "APP_UI_MODEL_MUTATION_RESULT_INCONSISTENT",
+                "Target mutation result has an invalid AppUIModel mutation footprint.",
+            )
+
         app_ui_model = _object(result.get("appUIModel"), "appUIModel")
         before_hash = _hash(app_ui_model.get("beforeHash"), "appUIModel.beforeHash")
         after_hash = _hash(app_ui_model.get("afterHash"), "appUIModel.afterHash")

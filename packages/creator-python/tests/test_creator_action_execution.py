@@ -344,6 +344,15 @@ def mutation(
         "transactionId": "transaction",
         "changed": changed,
         "changedPaths": ["app-ui/app-ui.json"] if changed else [],
+        "mutationFootprint": {
+            "appUIModel": True,
+            "pluginConfig": False,
+            "generatedRegistry": True,
+            "sourceFiles": False,
+            "runtimeFiles": False,
+            "dependencies": False,
+            "workspaceInfrastructure": False,
+        },
         "appUIModel": {
             "beforeHash": before_hash,
             "afterHash": after_hash or ("c" * 64 if changed else before_hash),

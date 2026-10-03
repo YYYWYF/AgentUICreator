@@ -240,6 +240,17 @@ class CreatorValidationService:
         return await self.ensure_baseline()
 
     @property
+    def has_pre_mutation_baseline(self) -> bool:
+        """Whether a usable TypeScript baseline was captured before any mutation."""
+
+        self._synchronize_run_state()
+        return (
+            self._baseline_capture_started
+            and self._baseline is not None
+            and self._baseline.available
+        )
+
+    @property
     def runner_project_root(self) -> Path:
         project_root = getattr(self.runner, "project_root", None)
         if isinstance(project_root, (str, Path)):

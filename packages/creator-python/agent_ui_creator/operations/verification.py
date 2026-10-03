@@ -15,7 +15,7 @@ from ..verification_policy import (
     DEFAULT_CREATOR_VERIFICATION_MODE,
 )
 from .models import CreatorOperationVerificationResult, CreatorVisualObservationEvidence
-from .validation_plan import footprint_from_mutation, plan_validation
+from .validation_plan import MutationFootprint, plan_validation
 
 
 MAX_RUNTIME_FRESHNESS_ATTEMPTS = 3
@@ -431,7 +431,7 @@ class CompositionOperationVerificationService:
         self,
         *,
         mutation_result: Mapping[str, Any],
-        app_ui_model_path: str = "app-ui/app-ui.json",
+        mutation_footprint: MutationFootprint | None = None,
         expected_runtime: Mapping[str, Any],
         expected_geometry: Mapping[str, Any] | None = None,
         expected_placement: Mapping[str, Any] | None = None,
@@ -445,10 +445,9 @@ class CompositionOperationVerificationService:
                 validation = await self.validation.validate(mode="delta")
                 validation_passed = getattr(validation, "status", None) == "passed"
             else:
-                footprint = footprint_from_mutation(
-                    mutation_result, app_ui_model_path=app_ui_model_path,
-                )
-                level = plan_validation(footprint)
+                if mutation_footprint is None:
+                    raise ValueError("Productized validation requires a Host mutation footprint.")
+                level = plan_validation(mutation_footprint)
                 checks = ["verifyUIProject"]
                 errors: list[str] = []
                 validation_metadata = {
@@ -466,11 +465,17 @@ class CompositionOperationVerificationService:
                 if not validation_passed and not errors:
                     errors.append("UI project verification failed without issue details.")
                 if validation_passed and level == "target-source":
-                    checks.append("targetProjectTypecheck")
-                    result = await self.validation.runner.execute_target_project_typecheck()
-                    validation_passed = result.exit_code == 0
+                    # Source mutations must capture the run baseline before writing.
+                    # The existing delta validator preserves diagnostic attribution.
+                    if not self.validation.has_pre_mutation_baseline:
+                        raise ValueError(
+                            "Source validation requires a TypeScript baseline captured before mutation."
+                        )
+                    checks.extend(["pnpm verify:ui", "pnpm typecheck (delta)"])
+                    result = await self.validation.validate(mode="delta")
+                    validation_passed = result.status == "passed"
                     if not validation_passed:
-                        errors.append(result.output[:2000] or "Target project typecheck failed.")
+                        errors.append("Source validation failed; see differential validation receipts.")
                 elif validation_passed and level == "workspace":
                     checks.extend(["pnpm verify:ui", "pnpm typecheck"])
                     result = await self.validation.validate(mode="clean")
@@ -488,7 +493,7 @@ class CompositionOperationVerificationService:
                         "level": level,
                         "checks": checks,
                         "targetProject": str(self.project_control.project_root),
-                        "footprint": footprint.to_dict(),
+                        "footprint": mutation_footprint.to_dict(),
                         "durationMs": round((monotonic() - started_validation) * 1000),
                         "status": "passed" if validation_passed else "failed",
                         "errors": errors[:8],
