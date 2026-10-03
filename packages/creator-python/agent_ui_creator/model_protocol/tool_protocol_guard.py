@@ -737,7 +737,19 @@ class ToolProtocolMiddleware(AgentMiddleware):
             if (response_message is not None
                     and response_message.invalid_tool_calls
                     and _response_finish_reason(response_message) == "length"):
-                prompt = f"""Your previous `{expected_tool_name}` call was cut off by the output limit.
+                if expected_tool_name == "create_ui_plugin":
+                    prompt = """Your `create_ui_plugin` JSON arguments were cut off by the output limit.
+
+Re-issue ONE valid structured `create_ui_plugin` call with only `pluginId` and
+`files: [{relativePath, content}, ...]`. Write a NEW, much shorter implementation
+of the same requested behavior; do not repeat the previous long payload. Include
+the required manifest.json, definition.ts, and index.tsx. Omit optional files
+such as styles.css if the complete call would otherwise be cut off; use concise
+source and minimal presentation. Keep the Plugin usable and its required locale,
+service, and composition contracts. Do not switch tools, split this atomic
+creation across calls, or explain in prose."""
+                else:
+                    prompt = f"""Your previous `{expected_tool_name}` call was cut off by the output limit.
 
 Re-issue only that same structured tool call with shorter valid arguments.
 Keep all required files and behavior, but remove unnecessary prose, comments,

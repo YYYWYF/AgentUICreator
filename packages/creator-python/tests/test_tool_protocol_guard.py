@@ -110,6 +110,54 @@ def test_output_limited_invalid_tool_call_repair_requests_compact_same_tool():
     assert middleware.metrics.protocolRepairSuccesses == 1
 
 
+def test_truncated_plugin_creation_repair_requests_a_short_atomic_payload():
+    schema = create_model(
+        "CreatePluginArgs", pluginId=(str, ...), files=(list[dict[str, str]], ...)
+    )
+    create_plugin = StructuredTool.from_function(
+        lambda pluginId, files: pluginId,
+        name="create_ui_plugin",
+        description="Create one Plugin atomically.",
+        args_schema=schema,
+    )
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[create_plugin])
+    responses = iter([
+        ModelResponse(result=[AIMessage(
+            content="", response_metadata={"finish_reason": "length"},
+            invalid_tool_calls=[{
+                "name": "create_ui_plugin", "args": '{"pluginId":"task-list","files":',
+                "id": "partial",
+            }],
+        )]),
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "create_ui_plugin",
+            "args": {"pluginId": "task-list", "files": [
+                {"relativePath": path, "content": "short"}
+                for path in ("manifest.json", "definition.ts", "index.tsx")
+            ]},
+            "id": "repaired",
+        }])]),
+    ])
+    requests = []
+
+    def handler(current_request):
+        requests.append(current_request)
+        return next(responses)
+
+    result = middleware.wrap_model_call(request, handler)
+
+    assert result.result[0].tool_calls[0]["id"] == "repaired"
+    assert len(requests) == 2
+    repair_prompt = requests[1].messages[-1].content
+    assert "`create_ui_plugin` JSON arguments were cut off" in repair_prompt
+    assert "manifest.json, definition.ts, and index.tsx" in repair_prompt
+    assert "much shorter implementation" in repair_prompt
+    assert "do not repeat the previous long payload" in repair_prompt
+    assert middleware.metrics.protocolRepairAttempts == 1
+    assert middleware.metrics.protocolRepairSuccesses == 1
+
+
 def test_pydantic_argument_failure_records_bounded_shape():
     metrics = ToolProtocolMetrics(modelCalls=5)
     decision = ToolProtocolGuard(metrics).inspect(
