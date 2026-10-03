@@ -221,6 +221,26 @@ class UIPluginCreationService:
             if name.endswith((".ts", ".tsx", ".js", ".jsx"))
             and name != "definition.ts"
         )
+        contract_path = plugin_root.parent.parent / "framework/contracts/ui-plugin.ts"
+        unsupported_builder = (
+            re.search(r"\bdefineUIPlugin\s*\(", definition) is not None
+            and contract_path.is_file()
+            and "defineUIPlugin" not in contract_path.read_text(encoding="utf-8")
+        )
+        misplaced_contract_fields = (
+            re.search(r"\bcomponent\s*:", definition) is not None
+            or re.search(r"\bservices\s*:\s*\{", definition) is not None
+        )
+        if not self.internal_trusted and (unsupported_builder or misplaced_contract_fields):
+            raise SourceCreationError(
+                "PLUGIN_DEFINITION_CONTRACT_INVALID",
+                "definition.ts does not match this project's UIPluginDefinition contract. "
+                "Reissue create_ui_plugin with a plain definition object containing "
+                "Component (capital C), manifest, and top-level inject/optionalInject as needed. "
+                "Do not call validate_creator_changes or compose before creation succeeds; "
+                "no Plugin files were written.",
+                {"relativePath": "definition.ts"},
+            )
         placement = manifest.get("authoring", {}).get("defaultPlacement") if isinstance(
             manifest.get("authoring"), dict
         ) else None

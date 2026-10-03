@@ -304,12 +304,43 @@ def test_create_ui_plugin_preflights_declared_placement_before_source_commit(
         "instance_id": "task-status-main",
         "manifest": manifest,
     }]
-
     control.eligible = True
     result = asyncio.run(creation.create("task-status", files))
     assert result.plugin_id == "task-status"
     assert (tmp_path / "plugins/task-status/manifest.json").exists()
 
+
+def test_create_ui_plugin_rejects_invalid_project_definition_before_atomic_write(tmp_path):
+    source_creation, activity = service(tmp_path)
+    contract = tmp_path / "framework/contracts/ui-plugin.ts"
+    contract.parent.mkdir(parents=True)
+    contract.write_text("export interface UIPluginDefinition { Component: unknown }\n")
+
+    class Authority:
+        def require_create(self, plugin_id):
+            assert plugin_id == "task-status"
+
+    creation = UIPluginCreationService(
+        project_root=tmp_path,
+        source_creation=source_creation,
+        activity=activity,
+        development_authority=Authority(),
+    )
+    files = plugin_sources()
+    files[1] = plugin_source(
+        "definition.ts",
+        'import { defineUIPlugin } from "../../framework/contracts/ui-plugin";\n'
+        'export default defineUIPlugin({ manifest: {}, component: null, '
+        'services: { optionalInject: [] } });\n',
+    )
+
+    with pytest.raises(SourceCreationError) as captured:
+        asyncio.run(creation.create("task-status", files))
+
+    assert captured.value.code == "PLUGIN_DEFINITION_CONTRACT_INVALID"
+    assert "Component (capital C)" in str(captured.value)
+    assert activity.revision == 0
+    assert not (tmp_path / "plugins/task-status").exists()
 
 def test_create_ui_plugin_rejects_local_state_as_ag_ui_data(tmp_path):
     creation, activity = plugin_service(tmp_path)
