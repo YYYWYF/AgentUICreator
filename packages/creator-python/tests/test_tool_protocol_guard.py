@@ -17,6 +17,7 @@ from agent_ui_creator.model_protocol import (
     ToolProtocolMiddleware,
 )
 from agent_ui_creator.source_tools.models import MutateUIPluginSourceInput
+from agent_ui_creator.app_ui_model.mutation_tool import APP_UI_MODEL_MUTATION_TOOL_SCHEMA
 
 
 @tool
@@ -191,6 +192,48 @@ def test_pydantic_argument_failure_records_bounded_shape():
         }
     ]
     assert "l0" not in str(metrics.protocolDiagnostics)
+
+
+def test_relative_target_schema_failure_repairs_to_default_placement():
+    mutation_tool = {
+        "name": "mutate_app_ui_model",
+        "function": {"parameters": APP_UI_MODEL_MUTATION_TOOL_SCHEMA},
+    }
+    plugin = {"id": "task-list-main", "pluginId": "task-list", "enabled": True}
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[mutation_tool])
+    responses = iter([
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "mutate_app_ui_model",
+            "args": {"operations": [{
+                "type": "insert_plugin", "plugin": plugin,
+                "target": {"type": "relative", "anchorInstanceId": "private-anchor", "relation": "after"},
+            }]},
+            "id": "invalid-relative",
+        }])]),
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "mutate_app_ui_model",
+            "args": {"operations": [{"type": "insert_plugin_default", "plugin": plugin}]},
+            "id": "repaired-default",
+        }])]),
+    ])
+    requests = []
+
+    def handler(current_request):
+        requests.append(current_request)
+        return next(responses)
+
+    result = middleware.wrap_model_call(request, handler)
+
+    assert result.result[0].tool_calls[0]["id"] == "repaired-default"
+    assert middleware.metrics.protocolRepairAttempts == 1
+    assert middleware.metrics.protocolRepairSuccesses == 1
+    diagnostic = middleware.metrics.protocolDiagnostics[0]
+    assert diagnostic["operationType"] == "insert_plugin"
+    assert diagnostic["branchErrors"] == [{"path": ["target"], "type": "oneOf"}]
+    assert "private-anchor" not in str(diagnostic)
+    assert "insert_plugin_default" in requests[1].messages[-1].content
+    assert "Omit `target`" in requests[1].messages[-1].content
 
 
 def test_json_schema_extra_key_records_only_argument_shape():

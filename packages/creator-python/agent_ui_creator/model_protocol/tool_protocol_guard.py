@@ -213,6 +213,10 @@ def _validate_arguments(
                 if isinstance(operation, Mapping):
                     operation_type = operation.get("type")
                     schema = getattr(tool, "args_schema", None)
+                    if schema is None and isinstance(tool, Mapping):
+                        function = tool.get("function", tool)
+                        if isinstance(function, Mapping):
+                            schema = function.get("parameters")
                     variants = (
                         schema.get("properties", {}).get("operations", {})
                         .get("items", {}).get("oneOf", [])
@@ -231,6 +235,11 @@ def _validate_arguments(
                         nested = operation.get(key)
                         if isinstance(nested, Mapping):
                             diagnostic[f"{key}Shape"] = _argument_shape(nested)
+                            if (key == "target"
+                                    and isinstance(nested.get("type"), str)
+                                    and nested.get("type") in {
+                                    "relative", "application", "layout_slot", "plugin_slot"}):
+                                diagnostic["targetType"] = nested["type"]
                     if branch_index is not None:
                         diagnostic["branchErrors"] = [
                             {
@@ -292,6 +301,24 @@ def _repair_validation_hint(
     error_type = diagnostic.get("errorType")
     if not isinstance(error_type, str):
         return None
+    if (expected_tool_name == "mutate_app_ui_model"
+            and error_type == "oneOf"
+            and diagnostic.get("errorPath") == ["operations", 0]
+            and diagnostic.get("operationType") == "insert_plugin"
+            and diagnostic.get("targetType") == "relative"
+            and isinstance(diagnostic.get("targetShape"), Mapping)
+            and diagnostic["targetShape"].get("argumentKeys")
+            == ["anchorInstanceId", "relation", "type"]
+            and {"path": ["target"], "type": "oneOf"}
+            in diagnostic.get("branchErrors", [])):
+        return (
+            "`operations[0].target` has a relative-placement shape, which "
+            "`insert_plugin` does not accept. The target Plugin declares "
+            "relative `authoring.defaultPlacement`: re-issue "
+            "`mutate_app_ui_model` with `operations: "
+            "[{type: 'insert_plugin_default', plugin: {id, pluginId, enabled}}]`. "
+            "Omit `target`; the Host resolves the declared placement."
+        )
     if (expected_tool_name == "mutate_ui_plugin_source"
             and error_type == "union_tag_not_found"
             and diagnostic.get("errorPath") == ["changes", 0]):
