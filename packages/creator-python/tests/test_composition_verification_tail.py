@@ -457,8 +457,9 @@ async def test_agent_lifecycle_accepts_stale_then_fresh_without_second_graph_inv
 @pytest.mark.parametrize("delivery_status,completes", [
     ("statically-verified", True), ("blocked", False),
 ])
+@pytest.mark.parametrize("operation", ["insert_plugin_default", "insert_layout_node"])
 def test_model_budget_after_composition_uses_current_revision_evidence_only(
-    tmp_path, monkeypatch, delivery_status, completes,
+    tmp_path, monkeypatch, delivery_status, completes, operation,
 ):
     activity = mutated_activity_for_revision(tmp_path)
     validation = FakeValidation()
@@ -467,7 +468,10 @@ def test_model_budget_after_composition_uses_current_revision_evidence_only(
         metrics=CompositionFastPathMetrics(), verification_mode="static_only",
     )
     mutation_service = SimpleNamespace(
-        last_result=mutation_result().last_result,
+        last_result=AppUIModelMutationResult(
+            {"changed": True, "semanticComposition": {"operation": operation}},
+            mutation_revision=activity.revision,
+        ),
         metrics=AppUIModelMutationMetrics(),
     )
 
@@ -492,7 +496,9 @@ def test_model_budget_after_composition_uses_current_revision_evidence_only(
         project_control=SimpleNamespace(metrics=ProjectControlMetrics()),
         observations=DomainObservationContext(),
         mutation_service=mutation_service,
-        completion_gate=SimpleNamespace(review=review, verification_mode="static_only"),
+        completion_gate=SimpleNamespace(
+            review=review, verification_mode="static_only", validation=validation,
+        ),
         completion_verification_tail=tail,
         plugin_development_authority=SimpleNamespace(
             task_id="task", active=SimpleNamespace(status="authorized"),

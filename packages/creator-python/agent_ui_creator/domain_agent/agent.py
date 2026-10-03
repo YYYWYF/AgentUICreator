@@ -346,10 +346,14 @@ class CreatorDomainReadAgent:
         if self.mutation_service.last_result is None:
             if not await self._compose_authorized_default_after_budget():
                 return None
-        tail = await self.completion_verification_tail.run_if_needed(
+        await self.completion_verification_tail.run_if_needed(
             self.mutation_service
         )
-        if tail is None or tail.get("staticValidationStatus") != "passed":
+        validation_service = self.completion_gate.validation
+        validation = validation_service.current_result()
+        if validation is None or validation.revision != self.activity.revision:
+            validation = await validation_service.validate(mode="delta")
+        if validation.status != "passed" or validation.revision != self.activity.revision:
             return None
         self.runtime.raise_terminal_error()
         decision = self.completion_gate.review(
