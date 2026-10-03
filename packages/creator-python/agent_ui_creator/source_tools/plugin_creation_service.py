@@ -21,6 +21,10 @@ from .source_creation_service import UISourceCreationService
 _PLUGIN_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9-]{0,99}$")
 _REQUIRED_PLUGIN_FILES = frozenset({"manifest.json", "definition.ts", "index.tsx"})
 _STYLESHEET_IMPORT = re.compile(r"\bimport\s*(?:\(\s*)?['\"]\./styles\.css['\"]")
+_LOCAL_PANEL_COLLAPSE = re.compile(
+    r"\bconst\s*\[\s*(?:is)?collapsed\s*,\s*set(?:Is)?Collapsed\s*\]\s*=\s*useState\s*\(",
+    re.IGNORECASE,
+)
 _BUILTIN_HOOK_SERVICES = {
     "useAgentUILocale": "AGENT_UI_LOCALE_SERVICE",
     "useAgentUIThemeMode": "AGENT_UI_THEME_SERVICE",
@@ -168,6 +172,20 @@ class UIPluginCreationService:
             if name.endswith((".ts", ".tsx", ".js", ".jsx"))
             and name != "definition.ts"
         )
+        placement = manifest.get("authoring", {}).get("defaultPlacement") if isinstance(
+            manifest.get("authoring"), dict
+        ) else None
+        if (
+            isinstance(placement, dict)
+            and placement.get("type") == "relative"
+            and _LOCAL_PANEL_COLLAPSE.search(plugin_source)
+        ):
+            raise SourceCreationError(
+                "PLUGIN_PANEL_COLLAPSE_MUST_USE_LAYOUT",
+                "A placed side panel must use the public Layout responsive drawer collapse and restore controls. "
+                "Remove the Plugin-local collapsed state and collapse/restore buttons; keep local state only for panel content.",
+                {"relativePath": "index.tsx"},
+            )
         for hook, service in _BUILTIN_HOOK_SERVICES.items():
             if not re.search(rf"\b{hook}\s*\(", plugin_source):
                 continue

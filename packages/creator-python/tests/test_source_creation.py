@@ -169,6 +169,34 @@ def test_create_ui_plugin_requires_its_stylesheet_to_be_loaded(tmp_path):
     assert result.plugin_id == "task-status"
 
 
+def test_create_ui_plugin_rejects_side_panel_local_collapse_before_write(tmp_path):
+    creation, activity = plugin_service(tmp_path)
+    files = plugin_sources()
+    files[0] = plugin_source("manifest.json", json.dumps({
+        "id": "task-status", "authoring": {"defaultPlacement": {
+            "type": "relative", "relation": "after", "anchorPluginId": "conversation-surface",
+        }},
+    }))
+    files[2] = plugin_source("index.tsx", (
+        "import { useState } from 'react';\n"
+        "export function Panel() { const [collapsed, setCollapsed] = useState(false); "
+        "return <button onClick={() => setCollapsed(true)}>Hide</button>; }\n"
+    ))
+
+    with pytest.raises(SourceCreationError) as captured:
+        asyncio.run(creation.create("task-status", files))
+    assert captured.value.code == "PLUGIN_PANEL_COLLAPSE_MUST_USE_LAYOUT"
+    assert activity.revision == 0
+    assert not (tmp_path / "plugins/task-status").exists()
+
+    files[2] = plugin_source("index.tsx", (
+        "import { useState } from 'react';\n"
+        "export function Panel() { const [done, setDone] = useState(false); "
+        "return <button onClick={() => setDone(true)}>Done</button>; }\n"
+    ))
+    assert asyncio.run(creation.create("task-status", files)).plugin_id == "task-status"
+
+
 def test_create_ui_plugin_preflights_declared_placement_before_source_commit(tmp_path):
     source_creation, activity = service(tmp_path)
 
