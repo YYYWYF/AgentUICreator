@@ -889,12 +889,19 @@ class ToolProtocolMiddleware(AgentMiddleware):
         expected_tool_name: str | None,
     ) -> ModelRequest:
         prompt = PROTOCOL_REPAIR_PROMPT
+        repair_tools = request.tools
+        repair_tool_choice = request.tool_choice
         if expected_tool_name is not None:
             response_message = _ai_message(response)
             if (response_message is not None
                     and response_message.invalid_tool_calls
                     and _response_finish_reason(response_message) == "length"):
                 if expected_tool_name == "create_ui_plugin":
+                    matching_tools = [tool for tool in request.tools
+                                      if _tool_name(tool) == "create_ui_plugin"]
+                    if len(matching_tools) == 1:
+                        repair_tools = matching_tools
+                        repair_tool_choice = "create_ui_plugin"
                     prompt = """Your `create_ui_plugin` JSON arguments were cut off by the output limit.
 
 Re-issue ONE valid structured `create_ui_plugin` call with only `pluginId` and
@@ -933,7 +940,9 @@ Re-issue only that intended action using the provided structured tool interface.
 Do not switch to another tool.
 Do not explain the error in prose."""
         return request.override(
-            messages=[*request.messages, HumanMessage(content=prompt)]
+            messages=[*request.messages, HumanMessage(content=prompt)],
+            tools=repair_tools,
+            tool_choice=repair_tool_choice,
         )
 
     @staticmethod

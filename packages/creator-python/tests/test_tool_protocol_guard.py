@@ -122,7 +122,7 @@ def test_truncated_plugin_creation_repair_requests_a_short_atomic_payload():
         args_schema=schema,
     )
     middleware = ToolProtocolMiddleware()
-    request = ModelRequest(model=object(), messages=[], tools=[create_plugin])
+    request = ModelRequest(model=object(), messages=[], tools=[read_file, create_plugin])
     responses = iter([
         ModelResponse(result=[AIMessage(
             content="", response_metadata={"finish_reason": "length"},
@@ -155,6 +155,8 @@ def test_truncated_plugin_creation_repair_requests_a_short_atomic_payload():
     assert "manifest.json, definition.ts, and index.tsx" in repair_prompt
     assert "much shorter implementation" in repair_prompt
     assert "do not repeat the previous long payload" in repair_prompt
+    assert [tool.name for tool in requests[1].tools] == ["create_ui_plugin"]
+    assert requests[1].tool_choice == "create_ui_plugin"
     assert middleware.metrics.protocolRepairAttempts == 1
     assert middleware.metrics.protocolRepairSuccesses == 1
 
