@@ -6,14 +6,7 @@ import {
   projectCreatorIntentStage,
   reconcileCreatorStagesFromRunResult,
 } from "../src/ui/creatorStageProjection.js";
-import { shouldPresentMutationReceipt, shouldPresentStage } from "../src/ui/creatorConversationPresentation.js";
-import type { CreatorRunReceipt } from "../src/receiptTypes.js";
-
-const emptyReceipt: CreatorRunReceipt = {
-  files: [], validations: [],
-  verification: { status: "no-project-change", projectRevision: 0, auditAttempts: 0, checks: [] },
-  diagnosticLog: { format: "jsonl", path: ".agentuicreator/logs/run.jsonl", schemaVersion: 1 },
-};
+import { shouldPresentStage } from "../src/ui/creatorConversationPresentation.js";
 
 describe("Creator conversation presentation", () => {
   it("preserves every Python route in the stage wire contract", () => {
@@ -26,7 +19,7 @@ describe("Creator conversation presentation", () => {
     }
   });
 
-  it("shows answer stages and read-only receipts only in debug mode", () => {
+  it("shows answer stages only in debug mode", () => {
     const stage = projectCreatorIntentStage(undefined, {
       kind: "finished", name: "creator.resolve",
       metadata: { creator: { status: "success", route: "answer_only" } },
@@ -34,15 +27,6 @@ describe("Creator conversation presentation", () => {
     expect(stage).toBeDefined();
     expect(shouldPresentStage(stage!, false)).toBe(false);
     expect(shouldPresentStage(stage!, true)).toBe(true);
-    expect(shouldPresentMutationReceipt({ route: "answer_only", receipt: emptyReceipt, debug: false })).toBe(false);
-    expect(shouldPresentMutationReceipt({ route: "read_only_general", receipt: emptyReceipt, debug: false })).toBe(false);
-    expect(shouldPresentMutationReceipt({ route: "read_only_general", receipt: emptyReceipt, debug: true })).toBe(true);
-  });
-
-  it("keeps mutation attempts and productized outcomes visible", () => {
-    expect(shouldPresentMutationReceipt({ route: "unscoped_general", receipt: emptyReceipt, debug: false })).toBe(true);
-    expect(shouldPresentMutationReceipt({ route: "productized", receipt: emptyReceipt, debug: false })).toBe(true);
-    expect(shouldPresentMutationReceipt({ route: "read_only_general", receipt: emptyReceipt, debug: false, mutationAttempts: 1 })).toBe(true);
   });
 });
 

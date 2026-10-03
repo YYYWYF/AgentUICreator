@@ -1,5 +1,5 @@
 import type { CreatorRunReceipt } from "../receiptTypes.js";
-import type { CreatorIntentRoute, CreatorStageActivity } from "./creatorStageProjection.js";
+import type { CreatorStageActivity } from "./creatorStageProjection.js";
 
 export function shouldPresentStage(activity: CreatorStageActivity, debug: boolean): boolean {
   if (debug) return true;
@@ -10,21 +10,12 @@ export function shouldPresentStage(activity: CreatorStageActivity, debug: boolea
   return true;
 }
 
-export function shouldPresentMutationReceipt({
-  route,
-  receipt,
-  debug,
-  mutationAttempts = 0,
-}: {
-  route?: CreatorIntentRoute;
-  receipt: CreatorRunReceipt;
-  debug: boolean;
-  mutationAttempts?: number;
-}): boolean {
-  if (debug) return true;
-  if (route === "answer_only") return false;
-  if (route === "read_only_general" && mutationAttempts === 0 && receipt.files.length === 0) {
-    return false;
-  }
-  return true;
+export type CreatorReceiptPresentation = "none" | "mutation" | "validation";
+
+export function classifyCreatorReceiptPresentation(
+  receipt: CreatorRunReceipt,
+): CreatorReceiptPresentation {
+  if (receipt.files.length > 0) return "mutation";
+  if (receipt.validations.length > 0) return "validation";
+  return "none";
 }

@@ -40,9 +40,8 @@ import {
   reconcileCreatorStagesFromRunResult,
   type CreatorStageActivity,
   type CreatorStageName,
-  type CreatorIntentRoute,
 } from "./creatorStageProjection.js";
-import { shouldPresentMutationReceipt, shouldPresentStage } from "./creatorConversationPresentation.js";
+import { classifyCreatorReceiptPresentation, shouldPresentStage } from "./creatorConversationPresentation.js";
 
 const STORAGE_KEY = "agent-ui-creator-conversation";
 const WORKSPACE_PATH_STORAGE_KEY = "agent-ui-creator-selected-project-root";
@@ -111,8 +110,6 @@ interface CreatorMessage {
   role: "user" | "assistant" | "error";
   content: string;
   receipt?: CreatorRunReceipt | undefined;
-  receiptRoute?: CreatorIntentRoute | undefined;
-  mutationAttempts?: number | undefined;
   streaming?: boolean | undefined;
 }
 
@@ -394,15 +391,12 @@ function storedItem(value: unknown): CreatorConversationItem | undefined {
     (role === "user" || role === "assistant" || role === "error") &&
     typeof value.content === "string"
   ) {
-    const receiptRoute = parseCreatorStepMetadata({ creator: { route: value.receiptRoute } })?.route;
     return {
       kind: "message",
       id: value.id,
       role,
       content: value.content,
       ...(isCreatorRunReceipt(value.receipt) ? { receipt: value.receipt } : {}),
-      ...(receiptRoute === undefined ? {} : { receiptRoute }),
-      ...(typeof value.mutationAttempts === "number" ? { mutationAttempts: value.mutationAttempts } : {}),
       streaming: false,
     };
   }
@@ -489,7 +483,53 @@ function CreatorMarkdown({ content }: { content: string }) {
   );
 }
 
-function CreatorReceipt({ receipt, debug, onUndo, undoBusy }: { receipt: CreatorRunReceipt; debug: boolean; onUndo?: ((runId: string) => void) | undefined; undoBusy?: boolean }) {
+function CreatorRunDiagnostics({ diagnosticLog }: { diagnosticLog: NonNullable<CreatorRunReceipt["diagnosticLog"]> }) {
+  return (
+    <div className="creator-receipt-section">
+      <h2>诊断日志</h2>
+      <div className="creator-receipt-meta">
+        Creator 已把本次模型、工具和验证链路保存在项目本地：
+      </div>
+      <pre aria-label="Creator 诊断日志路径">
+        <code>{diagnosticLog.path}</code>
+      </pre>
+      <div className="creator-receipt-note">
+        日志可能包含用户请求、项目内容和工具输出；对外分享前请先检查。
+      </div>
+    </div>
+  );
+}
+
+function CreatorValidationSections({ validations, showHeading = true }: { validations: CreatorValidationReceipt[]; showHeading?: boolean }) {
+  if (validations.length === 0) return null;
+  return (
+    <div className="creator-receipt-section">
+      {showHeading ? <h2>验证结果</h2> : null}
+      {validations.map((validation, index) => (
+        <details className="creator-receipt-item" key={`${validation.command}-${index}`}>
+          <summary>
+            <span className={`creator-receipt-status creator-receipt-status--${validation.status}`}>
+              {validationStatusLabels[validation.status]}
+            </span>
+            <code>{validation.command}</code>
+          </summary>
+          <div className="creator-receipt-meta">
+            Revision：{validation.revision ?? "旧版回执"} · 退出码：
+            {validation.exitCode ?? "不可用"}
+          </div>
+          <pre aria-label={`${validation.command} 输出`}>
+            <code>{validation.output || "（命令无输出）"}</code>
+          </pre>
+          {validation.truncated ? (
+            <div className="creator-receipt-note">验证输出已截断</div>
+          ) : null}
+        </details>
+      ))}
+    </div>
+  );
+}
+
+function CreatorMutationReceipt({ receipt, debug, onUndo, undoBusy }: { receipt: CreatorRunReceipt; debug: boolean; onUndo?: ((runId: string) => void) | undefined; undoBusy?: boolean }) {
   const verification = receipt.verification;
   const verificationPassed =
     verification?.status === "changed-and-statically-verified" ||
@@ -524,7 +564,8 @@ function CreatorReceipt({ receipt, debug, onUndo, undoBusy }: { receipt: Creator
       <header className="creator-receipt-header">
         <strong>修改回执</strong>
         <span>
-          {receipt.files.length} 个文件 · {receipt.validations.length} 项验证
+          {receipt.files.length} 个文件
+          {receipt.validations.length > 0 ? ` · ${receipt.validations.length} 项验证` : ""}
         </span>
       </header>
 
@@ -594,79 +635,62 @@ function CreatorReceipt({ receipt, debug, onUndo, undoBusy }: { receipt: Creator
         </div>
       )}
 
-      {!debug || receipt.diagnosticLog === undefined ? null : (
-        <div className="creator-receipt-section">
-          <h2>诊断日志</h2>
-          <div className="creator-receipt-meta">
-            Creator 已把本次模型、工具和验证链路保存在项目本地：
-          </div>
-          <pre aria-label="Creator 诊断日志路径">
-            <code>{receipt.diagnosticLog.path}</code>
-          </pre>
-          <div className="creator-receipt-note">
-            日志可能包含用户请求、项目内容和工具输出；对外分享前请先检查。
-          </div>
-        </div>
-      )}
+      {debug && receipt.diagnosticLog !== undefined ? (
+        <CreatorRunDiagnostics diagnosticLog={receipt.diagnosticLog} />
+      ) : null}
 
       <div className="creator-receipt-section">
         <h2>文件修改</h2>
-        {receipt.files.length === 0 ? (
-          <div className="creator-receipt-empty">未检测到文件修改</div>
-        ) : (
-          receipt.files.map((file) => (
-            <details className="creator-receipt-item" key={file.path}>
-              <summary>
-                <span className={`creator-receipt-status creator-receipt-status--${file.status}`}>
-                  {fileStatusLabels[file.status]}
-                </span>
-                <code>{file.path}</code>
-              </summary>
-              <pre aria-label={`${file.path} Diff`}>
-                <code>{file.diff}</code>
-              </pre>
-              {file.truncated ? (
-                <div className="creator-receipt-note">Diff 已截断</div>
-              ) : null}
-            </details>
-          ))
-        )}
+        {receipt.files.map((file) => (
+          <details className="creator-receipt-item" key={file.path}>
+            <summary>
+              <span className={`creator-receipt-status creator-receipt-status--${file.status}`}>
+                {fileStatusLabels[file.status]}
+              </span>
+              <code>{file.path}</code>
+            </summary>
+            <pre aria-label={`${file.path} Diff`}>
+              <code>{file.diff}</code>
+            </pre>
+            {file.truncated ? (
+              <div className="creator-receipt-note">Diff 已截断</div>
+            ) : null}
+          </details>
+        ))}
       </div>
-
-      <div className="creator-receipt-section">
-        <h2>验证结果</h2>
-        {receipt.validations.length === 0 ? (
-          <div className="creator-receipt-empty">未运行验证</div>
-        ) : (
-          receipt.validations.map((validation, index) => (
-            <details
-              className="creator-receipt-item"
-              key={`${validation.command}-${index}`}
-            >
-              <summary>
-                <span
-                  className={`creator-receipt-status creator-receipt-status--${validation.status}`}
-                >
-                  {validationStatusLabels[validation.status]}
-                </span>
-                <code>{validation.command}</code>
-              </summary>
-              <div className="creator-receipt-meta">
-                Revision：{validation.revision ?? "旧版回执"} · 退出码：
-                {validation.exitCode ?? "不可用"}
-              </div>
-              <pre aria-label={`${validation.command} 输出`}>
-                <code>{validation.output || "（命令无输出）"}</code>
-              </pre>
-              {validation.truncated ? (
-                <div className="creator-receipt-note">验证输出已截断</div>
-              ) : null}
-            </details>
-          ))
-        )}
-      </div>
+      <CreatorValidationSections validations={receipt.validations} />
     </section>
   );
+}
+
+function CreatorRunReceiptPresentation({ receipt, debug, onUndo, undoBusy }: { receipt: CreatorRunReceipt; debug: boolean; onUndo?: ((runId: string) => void) | undefined; undoBusy?: boolean }) {
+  const presentation = classifyCreatorReceiptPresentation(receipt);
+  if (presentation === "mutation") {
+    return <CreatorMutationReceipt receipt={receipt} debug={debug} onUndo={onUndo} undoBusy={undoBusy} />;
+  }
+  if (presentation === "validation") {
+    return (
+      <section className="creator-receipt" aria-label="验证结果">
+        <header className="creator-receipt-header">
+          <strong>验证结果</strong>
+          <span>{receipt.validations.length} 项验证</span>
+        </header>
+        <CreatorValidationSections validations={receipt.validations} showHeading={false} />
+        {debug && receipt.diagnosticLog !== undefined ? (
+          <CreatorRunDiagnostics diagnosticLog={receipt.diagnosticLog} />
+        ) : null}
+      </section>
+    );
+  }
+  if (debug && receipt.diagnosticLog !== undefined) {
+    return (
+      <section className="creator-receipt" aria-label="运行诊断">
+        <header className="creator-receipt-header"><strong>运行诊断</strong></header>
+        <CreatorRunDiagnostics diagnosticLog={receipt.diagnosticLog} />
+      </section>
+    );
+  }
+  return null;
 }
 
 function CreatorToolActivityCard({
@@ -1431,11 +1455,6 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
       });
       const receipt = receiptFromRunResult(result.result);
       if (receipt !== undefined) {
-        const runResult = isRecord(result.result) ? result.result : {};
-        const intent = isRecord(runResult.creatorIntent) ? runResult.creatorIntent : {};
-        const receiptRoute = parseCreatorStepMetadata({ creator: intent })?.route;
-        const mutationAttempts = typeof runResult.mutationAttempts === "number"
-          ? runResult.mutationAttempts : 0;
         if (latestAssistantMessageId === undefined) {
           updateRunItems((current) => [
             ...current,
@@ -1445,8 +1464,6 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
               role: "assistant",
               content: "Creator 已完成本次处理。",
               receipt,
-              receiptRoute,
-              mutationAttempts,
               streaming: false,
             },
           ]);
@@ -1455,7 +1472,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
           updateRunItems((current) =>
             current.map((item) =>
               item.kind === "message" && item.id === receiptMessageId
-                ? { ...item, receipt, receiptRoute, mutationAttempts, streaming: false }
+                ? { ...item, receipt, streaming: false }
                 : item,
             ),
           );
@@ -1893,13 +1910,8 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                           aria-hidden="true"
                         />
                       ) : null}
-                      {item.receipt === undefined || !shouldPresentMutationReceipt({
-                        route: item.receiptRoute,
-                        receipt: item.receipt,
-                        debug: creatorDebug,
-                        mutationAttempts: item.mutationAttempts,
-                      }) ? null : (
-                        <CreatorReceipt receipt={item.receipt} debug={creatorDebug}
+                      {item.receipt === undefined ? null : (
+                        <CreatorRunReceiptPresentation receipt={item.receipt} debug={creatorDebug}
                           onUndo={!isRunning && !hasPendingCreatorQuestion(items) ? (runId) => { void undoCreatorRun(runId); } : undefined}
                           undoBusy={undoRunId === item.receipt.transaction?.runId} />
                       )}
