@@ -309,7 +309,7 @@ function receiptFromRunResult(value: unknown): CreatorRunReceipt | undefined {
     return undefined;
   }
   if (!isCreatorRunReceipt(value.receipt)) {
-    throw new Error("Creator 返回了无效的修改回执。");
+    throw new Error("Creator 返回了无效的运行回执。");
   }
   return value.receipt;
 }
