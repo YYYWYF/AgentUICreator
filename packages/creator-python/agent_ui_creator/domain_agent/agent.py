@@ -104,7 +104,7 @@ from .prompt import (
 from .runtime_guard import RepeatedProjectControlReadGuard
 from .skills import create_domain_skills_backend, default_creator_skills_root
 from .tool_batch_policy import DomainToolBatchPolicyMiddleware
-from .tool_policy import ALLOWED_INSPECT_READ_ONLY_TOOLS, SIDE_EFFECT_TOOL_NAMES, DomainReadToolPolicyMiddleware, DomainWriteToolPolicyMiddleware
+from .tool_policy import ALLOWED_INSPECT_READ_ONLY_TOOLS, ANSWER_ONLY_FORBIDDEN_TOOL_NAMES, SIDE_EFFECT_TOOL_NAMES, DomainReadToolPolicyMiddleware, DomainWriteToolPolicyMiddleware
 
 
 @dataclass(frozen=True, slots=True)
@@ -511,7 +511,8 @@ def create_domain_read_creator_agent(
         provider_trace_collector=provider_trace_collector,
         run_control=run_control,
         forbidden_tool_names=(
-            SIDE_EFFECT_TOOL_NAMES if permission_scope == "inspect_read_only"
+            ANSWER_ONLY_FORBIDDEN_TOOL_NAMES if answer_only
+            else SIDE_EFFECT_TOOL_NAMES if permission_scope == "inspect_read_only"
             else frozenset()
         ),
     )
@@ -537,12 +538,18 @@ def create_domain_read_creator_agent(
         backend,
         run_control=run_control,
     )
+    # DeepAgents requires read_file in an explicit filesystem allowlist.
+    # The answer-only model still receives no tools through DomainReadToolPolicyMiddleware.
+    filesystem_tools = (
+        ["read_file"] if answer_only
+        else [
+            name for name in ALLOWED_MINIMAL_TOOLS
+            if permission_scope != "inspect_read_only" or name != "edit_file"
+        ]
+    )
     filesystem = FilesystemMiddleware(
         backend=backend,
-        tools=[
-            name for name in ALLOWED_MINIMAL_TOOLS
-            if not answer_only and (permission_scope != "inspect_read_only" or name != "edit_file")
-        ],
+        tools=filesystem_tools,
         tool_token_limit_before_evict=None,
         human_message_token_limit_before_evict=None,
     )

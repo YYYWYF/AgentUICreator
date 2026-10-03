@@ -1,14 +1,19 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from dataclasses import replace
 
+import pytest
 from fastapi.testclient import TestClient
 from langchain_core.language_models.fake_chat_models import FakeMessagesListChatModel
 from langchain_core.messages import AIMessage
 
 from agent_ui_creator.config import CreatorServerSettings
+from agent_ui_creator.domain_agent import create_domain_read_creator_agent
 from agent_ui_creator.domain_agent.tool_policy import SIDE_EFFECT_TOOL_NAMES
+from agent_ui_creator.minimal_agent.path_policy import PolicyFilesystemBackend
+from agent_ui_creator.model_protocol.errors import ToolPermissionDeniedError
 from agent_ui_creator.operations import (
     CreatorActionSelection,
     CreatorIntentPresentation,
@@ -59,11 +64,17 @@ def _client(tmp_path, monkeypatch, model, *, route="read_only_general"):
 
     class FixedSelector:
         def __init__(self, **_kwargs):
-            pass
+            self.telemetry = _kwargs.get("telemetry")
 
         async def run(self, messages):
             selected_route = route(messages) if callable(route) else route
-            return _selection(selected_route)
+            result = _selection(selected_route)
+            if self.telemetry is not None:
+                self.telemetry.bind(
+                    operation_route={"route": selected_route},
+                    operation_presentation=result.presentation.to_dict(),
+                )
+            return result
 
     monkeypatch.setattr("agent_ui_creator.server.ProductizedOperationEngine", FixedSelector)
     settings = CreatorServerSettings(
@@ -104,8 +115,51 @@ def test_answer_only_streams_without_project_tools_or_mutation(tmp_path, monkeyp
     assert finished["result"]["executionPolicy"] == "read-only"
     assert finished["result"].get("mutationAttempts", 0) == 0
     assert "productizedOperation" not in finished["result"]
-    assert all(not offered for offered in getattr(model, "offered_tools", []))
+    assert finished["result"]["projectControl"]["requests"] == 0
+    assert all(not trace["offeredToolNames"]
+               for trace in finished["result"]["toolProtocol"]["traces"])
     assert any("我可以解释" in event.get("delta", "") for event in events)
+
+
+def test_answer_only_agent_can_be_constructed_with_deepagents_filesystem_contract(tmp_path):
+    agent = create_domain_read_creator_agent(
+        model=TrackingModel(responses=[AIMessage(content="I can help with Agent UI.")]),
+        workspace=tmp_path,
+        permission_scope="inspect_read_only",
+        answer_only=True,
+    )
+
+    assert agent.graph is not None
+
+
+def test_answer_only_rejects_unoffered_read_file_before_execution(tmp_path, monkeypatch):
+    target = tmp_path / "plugins" / "existing.ts"
+    target.parent.mkdir()
+    original = 'export const name = "original";\n'
+    target.write_text(original)
+    reads = []
+
+    def track_read(self, path, *args, **kwargs):
+        reads.append(path)
+        raise AssertionError("answer-only must not read project files")
+
+    monkeypatch.setattr(PolicyFilesystemBackend, "read", track_read)
+    model = TrackingModel(responses=[AIMessage(content="", tool_calls=[
+        {"name": "read_file", "args": {"file_path": "/plugins/existing.ts"}, "id": "injected-read"},
+    ])])
+    agent = create_domain_read_creator_agent(
+        model=model, workspace=tmp_path, permission_scope="inspect_read_only",
+        answer_only=True,
+    )
+
+    with pytest.raises(ToolPermissionDeniedError, match="TOOL_PERMISSION_DENIED"):
+        asyncio.run(agent.run("What can you do?"))
+    assert agent.protocol.metrics.traces
+    assert all(not trace.offeredToolNames for trace in agent.protocol.metrics.traces)
+    assert reads == []
+    assert target.read_text() == original
+    assert agent.project_control.metrics.requests == 0
+    assert agent.activity.revision == 0
 
 
 def test_inspect_question_resumes_read_only_with_read_only_receipt(tmp_path, monkeypatch):

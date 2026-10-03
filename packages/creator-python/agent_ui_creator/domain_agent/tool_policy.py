@@ -38,6 +38,9 @@ DOMAIN_WRITE_TOOL_NAMES = (
 )
 ALLOWED_DOMAIN_WRITE_TOOLS = (*ALLOWED_MINIMAL_TOOLS, *DOMAIN_WRITE_TOOL_NAMES)
 _ALLOWED_DOMAIN_WRITE_TOOL_SET = frozenset(ALLOWED_DOMAIN_WRITE_TOOLS)
+ANSWER_ONLY_FORBIDDEN_TOOL_NAMES = _ALLOWED_DOMAIN_WRITE_TOOL_SET | frozenset(
+    {"write_file", "delete", "execute", "write_todos", "task"}
+)
 RUNTIME_VERIFICATION_TOOL_NAMES = frozenset(
     {"inspect_runtime_errors", "inspect_runtime_layout", "verify_ui_plugin_behavior"}
 )
