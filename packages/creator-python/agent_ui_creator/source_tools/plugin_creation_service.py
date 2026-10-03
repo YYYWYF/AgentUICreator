@@ -210,9 +210,11 @@ class UIPluginCreationService:
             raise SourceCreationError(
                 "PLUGIN_PANEL_COLLAPSE_MUST_USE_LAYOUT",
                 "The current Platform Layout already renders collapse and restore controls automatically "
-                "after this Plugin is composed beside conversation. Retry create_ui_plugin with the same "
-                "manifest and behavior, but remove the Plugin-local collapsed state, collapse/restore "
-                "buttons, and their locale copy. No Runtime source search or new API is needed.",
+                "after this Plugin is composed beside conversation. As the next tool call, retry "
+                "create_ui_plugin with the same manifest and checklist behavior, removing the "
+                "Plugin-local collapsed state and collapse/restore buttons from Plugin source. "
+                "Unused locale keys can remain; do not spend model turns editing locale files now. "
+                "No Runtime source search or new API is needed.",
                 {"relativePath": "index.tsx"},
             )
         for hook, service in _BUILTIN_HOOK_SERVICES.items():

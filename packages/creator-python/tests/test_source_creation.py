@@ -186,6 +186,8 @@ def test_create_ui_plugin_rejects_side_panel_local_collapse_before_write(tmp_pat
     with pytest.raises(SourceCreationError) as captured:
         asyncio.run(creation.create("task-status", files))
     assert captured.value.code == "PLUGIN_PANEL_COLLAPSE_MUST_USE_LAYOUT"
+    assert "As the next tool call, retry create_ui_plugin" in str(captured.value)
+    assert "do not spend model turns editing locale files now" in str(captured.value)
     assert activity.revision == 0
     assert not (tmp_path / "plugins/task-status").exists()
 
