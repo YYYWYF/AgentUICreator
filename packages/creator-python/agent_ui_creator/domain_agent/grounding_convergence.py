@@ -49,6 +49,9 @@ SOURCE_INSTALLED_TOOL_NAMES = (
     "inspect_ui_capabilities",
     "inspect_ui_plugin",
     "preflight_ui_plugin_placement",
+    "inspect_agent_ui_sources",
+    "apply_agent_ui_source_item",
+    "list_ui_plugins",
     "prepare_ui_plugin_development",
     "mutate_app_ui_model",
     "inspect_ui_plugin_delivery",
@@ -86,6 +89,8 @@ reuse through the public Composition tools: inspect_ui_project(view=composition)
 for the current hash, then mutate_app_ui_model to insert that installed Plugin
 at its declared placement, and validate_creator_changes on the new revision.
 Do not inspect Host, Runtime, or framework source to infer a separate mount path.
+If the request needs another formal Source Item, use the Source inventory and
+installer before composition.
 If the current user explicitly requested further Plugin development, use
 prepare_ui_plugin_development for that distinct authorized work."""
 
@@ -159,6 +164,10 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
             self.development_authority is not None
             and self.development_authority.installed_source_plugin_ids
             and not metrics.first_mutation_started
+            and not (
+                self.development_authority.active is not None
+                and self.development_authority.active.status == "authorized"
+            )
         ):
             allowed = frozenset(SOURCE_INSTALLED_TOOL_NAMES)
             by_name = {tool_name(candidate): candidate for candidate in request.tools

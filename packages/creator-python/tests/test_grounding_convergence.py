@@ -253,6 +253,27 @@ def test_installed_formal_source_converges_on_composition_tools(tmp_path):
     assert "read_file" not in offered
     assert "grep" not in offered
     assert "create_ui_plugin" not in offered
+    assert "apply_agent_ui_source_item" in offered
+
+    authority.begin_task(
+        task_id="source-and-development", request_id="source-and-development",
+        user_message="请开发一个独立任务清单插件", intent="explicit",
+    )
+    authority.record_installed_source_plugin("generated-file-message")
+    authority.prepare(
+        work_kind="create-plugin", target_plugin_id="task-checklist",
+        desired_outcome="任务清单", missing_capabilities=["清单交互"],
+        reuse_evidence_refs=[],
+    )
+    offered.clear()
+    middleware.wrap_model_call(
+        ModelRequest(model=Mock(), messages=[], tools=tools),
+        lambda candidate: (
+            offered.extend(tool.name for tool in candidate.tools),
+            ModelResponse(result=[AIMessage(content="done")]),
+        )[1],
+    )
+    assert "read_file" in offered
 
 
 def test_source_inventory_can_leave_composition_lane_for_development(tmp_path):
