@@ -206,6 +206,13 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
         if not isinstance(operations, list) or not operations:
             raise PluginDevelopmentError("AppUIModel 操作缺少有效的开发目标。")
         selected = self._selected_plugin_instances()
+        relative_default = self._has_relative_default_placement(target_plugin_id)
+
+        def require_default_placement() -> None:
+            raise PluginDevelopmentPlacementRequired(
+                "此 Plugin 声明了相对默认位置；请使用 insert_plugin_default "
+                "按清单中的 anchor 和尺寸组合，不要插入现有会话 Slot 或其嵌套 Row。"
+            )
 
         def plugin_nodes(value: Any) -> list[dict[str, Any]]:
             found: list[dict[str, Any]] = []
@@ -227,11 +234,8 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
                 nodes = plugin_nodes(operation.get("replacement") if kind == "replace_plugin" else operation.get("plugin"))
                 if not nodes or any(node.get("pluginId") != target_plugin_id for node in nodes):
                     raise PluginDevelopmentError("插件组合超出了已批准的 Plugin 目标；已有 Plugin 需走独立的复用授权。")
-                if kind == "insert_plugin" and self._has_relative_default_placement(target_plugin_id):
-                    raise PluginDevelopmentPlacementRequired(
-                        "此 Plugin 声明了相对默认位置；请使用 insert_plugin_default "
-                        "按清单中的 anchor 和尺寸组合，不要插入现有会话 Slot。"
-                    )
+                if kind != "insert_plugin_default" and relative_default:
+                    require_default_placement()
             elif kind in {"insert_layout_node", "insert_layout_relative", "replace_layout_node"}:
                 for node in plugin_nodes(operation.get("node")):
                     plugin_id, instance_id = node.get("pluginId"), node.get("id")
@@ -239,6 +243,8 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
                         not isinstance(instance_id, str) or selected.get(instance_id) != plugin_id
                     ):
                         raise PluginDevelopmentError("布局操作不能借当前开发授权新增其他 Plugin。")
+                    if plugin_id == target_plugin_id and relative_default:
+                        require_default_placement()
             elif kind in {"move_plugin", "move_plugin_to", "remove_plugin",
                           "remove_plugin_default", "set_plugin_enabled"}:
                 instance_id = operation.get("instanceId")

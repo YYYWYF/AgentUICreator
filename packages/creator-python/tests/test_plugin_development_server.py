@@ -701,6 +701,15 @@ def test_server_tool_admission_requires_declared_relative_plugin_placement(tmp_p
                     "target": {"type": "layout_slot", "slotRef": "l4"}, "index": 1}]},
         }), forbidden_host_write)
         observed["result"] = json.loads(response.content)
+        nested = middleware.wrap_tool_call(SimpleNamespace(tool_call={
+            "name": "mutate_app_ui_model", "id": "insert-nested-row",
+            "args": {"operations": [{"type": "insert_layout_relative", "anchorRef": "l4",
+                    "direction": "right", "node": {"type": "panel", "child": {
+                        "type": "slot", "plugins": [{"id": "task-list-main",
+                            "pluginId": "task-list", "enabled": True}],
+                    }}}]},
+        }), forbidden_host_write)
+        observed["nested"] = json.loads(nested.content)
         observed["default"] = middleware.wrap_tool_call(SimpleNamespace(tool_call={
             "name": "mutate_app_ui_model", "id": "insert-at-default",
             "args": {"operations": [{"type": "insert_plugin_default",
@@ -722,6 +731,8 @@ def test_server_tool_admission_requires_declared_relative_plugin_placement(tmp_p
     assert observed["result"]["error"]["code"] == "PLUGIN_DEVELOPMENT_PLACEMENT_REQUIRED", observed["result"]
     assert "insert_plugin_default" in observed["result"]["error"]["message"]
     assert observed["result"]["error"]["stateChanged"] is False
+    assert observed["nested"]["error"]["code"] == "PLUGIN_DEVELOPMENT_PLACEMENT_REQUIRED"
+    assert observed["nested"]["error"]["stateChanged"] is False
     assert observed["default"] == "admitted"
     assert model_path.read_bytes() == before
 
