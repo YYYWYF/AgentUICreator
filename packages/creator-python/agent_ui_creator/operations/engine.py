@@ -275,6 +275,38 @@ class ProductizedOperationEngine:
         """Return a productized result or an explicit General Agent handoff."""
 
         user_message = _latest_user_message(messages)
+        if await self.selector.preflight(user_message) == "ANSWER":
+            selection = CreatorActionSelection(decision="answer_only")
+            presentation = present_creator_action_selection(
+                selection, None, route="answer_only",
+            )
+            await self._publish_step_started(
+                "creator.resolve",
+                {"phase": "understanding", "status": "running"},
+            )
+            await self._publish_step_finished(
+                "creator.resolve",
+                {
+                    "phase": "understanding",
+                    "status": "success",
+                    **presentation.to_dict(),
+                    **self._action_selector_step_metadata(),
+                },
+            )
+            self._record_route(
+                selection,
+                selected_action=None,
+                selected_target=None,
+                route="answer_only",
+                presentation=presentation,
+            )
+            self.pending_clarifications.clear(self.thread_id)
+            return CreatorResolveResult(
+                route="answer_only",
+                selection=selection,
+                presentation=presentation,
+            )
+
         await self._publish_step_started(
             "creator.grounding",
             {"phase": "grounding", "status": "running"},

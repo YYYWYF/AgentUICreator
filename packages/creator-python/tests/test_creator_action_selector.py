@@ -872,6 +872,24 @@ def test_selector_answer_protocol_for_product_guidance(message):
     assert "ANSWER" in _SELECTOR_SYSTEM_PROMPT
 
 
+@pytest.mark.parametrize(("message", "response", "expected"), [
+    ("你能做什么？", "ANSWER", "ANSWER"),
+    ("Creator 怎么用？", "ANSWER", "ANSWER"),
+    ("看看当前有哪些插件", "CONTINUE", "CONTINUE"),
+    ("先根据当前工程给方案，不修改", "CONTINUE", "CONTINUE"),
+    ("把会话插件移动到右侧", "CONTINUE", "CONTINUE"),
+    ("开发一个新的 xxx 插件", "CONTINUE", "CONTINUE"),
+    ("unexpected", "INSPECT", "CONTINUE"),
+])
+def test_answer_preflight_uses_only_user_message(message, response, expected):
+    model = StaticChatModel([response])
+    selector = CreatorActionSelector(model=model)
+
+    assert asyncio.run(selector.preflight(message)) == expected
+    assert selector.metrics.modelCalls == 1
+    assert model.messages[0][1].content == message
+
+
 @pytest.mark.parametrize("message", [
     "看看我现在有哪些插件", "为什么现在有两个 Footer？",
     "先根据当前工程给方案，不要修改",

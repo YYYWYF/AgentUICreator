@@ -70,6 +70,7 @@ class _Selector:
     ) -> None:
         self.selection = selection
         self.calls = 0
+        self.preflight_calls = 0
         self.messages: list[tuple[str, object]] = []
         self.requested_model = None
         self.selector_settings = CreatorSelectorModelSettings()
@@ -81,6 +82,13 @@ class _Selector:
             candidateCount=3,
             contextCharacters=100,
         )
+
+    async def preflight(self, _message: str) -> str:
+        self.preflight_calls += 1
+        return "ANSWER" if (
+            isinstance(self.selection, CreatorActionSelection)
+            and self.selection.decision == "answer_only"
+        ) else "CONTINUE"
 
     async def select(
         self,
@@ -97,11 +105,11 @@ class _Selector:
 
 
 class _StaticChatModel:
-    def __init__(self, response: str) -> None:
-        self.response = response
+    def __init__(self, *responses: str) -> None:
+        self.responses = iter(responses)
 
     async def ainvoke(self, _messages):
-        return SimpleNamespace(content=self.response, response_metadata={})
+        return SimpleNamespace(content=next(self.responses), response_metadata={})
 
 
 class _ActionPlaybook:
@@ -274,7 +282,11 @@ def _engine(
     engine.action_playbook = action_playbook
     engine.project_control = SimpleNamespace(metrics=ProjectControlMetrics())
     engine.mutation_service = SimpleNamespace(metrics=AppUIModelMutationMetrics())
-    engine.validation = SimpleNamespace(metrics=lambda: {})
+    validation_calls: list[None] = []
+    engine.validation = SimpleNamespace(
+        calls=validation_calls,
+        metrics=lambda: validation_calls.append(None) or {},
+    )
     engine.telemetry = telemetry
     if event_sink is not None:
         engine.event_sink = event_sink
@@ -436,7 +448,7 @@ def test_reasoning_renderer_restore_uses_productized_route_with_static_selector(
         playbook=_ActionPlaybook(_operation_result(operation="add_existing_plugin")),
         candidates=[candidate],
     )
-    engine.selector = CreatorActionSelector(model=_StaticChatModel("SELECT A1"))
+    engine.selector = CreatorActionSelector(model=_StaticChatModel("CONTINUE", "SELECT A1"))
 
     result = asyncio.run(engine.run([{
         "role": "user",
@@ -497,10 +509,77 @@ def test_answer_only_handoff_has_no_mutation_or_validation():
     assert result.route == "answer_only"
     assert result.presentation.route == "answer_only"
     assert result.presentation.label == "回答 Creator 使用问题"
-    assert selector.calls == 1
+    assert selector.preflight_calls == 1
+    assert selector.calls == 0
+    assert engine.snapshot_provider.build_calls == 0
     assert action_playbook.calls == []
     assert engine.mutation_service.metrics.operations == 0
+    assert engine.validation.calls == []
     assert telemetry.operation_route["generalAgent"] is False
+
+
+def test_answer_only_does_not_depend_on_workspace_snapshot():
+    provider = _SnapshotProvider(error=CreatorDomainSnapshotError(
+        "DOMAIN_SNAPSHOT_INVALID", "synthetic invalid snapshot",
+    ))
+    event_bus = CreatorEventBus()
+    engine, selector, action_playbook, telemetry = _engine(
+        CreatorActionSelection(decision="answer_only"),
+        snapshot_provider=provider,
+        event_sink=event_bus,
+    )
+
+    async def scenario():
+        result = await engine.run([{"role": "user", "content": "你能做什么？"}])
+        events = [await event_bus.next_event() for _ in range(2)]
+        event_bus.close()
+        return result, events
+
+    result, events = asyncio.run(scenario())
+
+    assert isinstance(result, CreatorResolveResult)
+    assert result.route == "answer_only"
+    assert provider.build_calls == 0
+    assert selector.preflight_calls == 1
+    assert selector.calls == 0
+    assert action_playbook.calls == []
+    assert engine.mutation_service.metrics.operations == 0
+    assert engine.validation.calls == []
+    assert [event.name for event in events] == ["creator.resolve", "creator.resolve"]
+    assert telemetry.operation_route["route"] == "answer_only"
+
+
+@pytest.mark.parametrize(("message", "selection_response", "expected_route"), [
+    ("看看当前有哪些插件", "INSPECT", "read_only_general"),
+    ("先根据当前工程给方案，不修改", "INSPECT", "read_only_general"),
+    ("把会话插件移动到右侧", "SELECT A1", "productized"),
+    ("开发一个新的 xxx 插件", "GENERAL DEVELOPMENT_EXPLICIT", "unscoped_general"),
+])
+def test_workspace_requests_continue_to_existing_selector(
+    message, selection_response, expected_route,
+):
+    candidate = _candidate("move_plugin")
+    provider = _SnapshotProvider([candidate])
+    engine, _selector, action_playbook, _telemetry = _engine(
+        _selection_for(candidate),
+        snapshot_provider=provider,
+        playbook=_ActionPlaybook(_operation_result(operation="move_plugin")),
+    )
+    engine.selector = CreatorActionSelector(
+        model=_StaticChatModel("CONTINUE", selection_response),
+    )
+
+    result = asyncio.run(engine.run([{"role": "user", "content": message}]))
+
+    assert provider.build_calls == 1
+    if expected_route == "productized":
+        assert isinstance(result, ProductizedOperationRun)
+    else:
+        assert isinstance(result, CreatorResolveResult)
+        assert result.route == expected_route
+    if expected_route == "unscoped_general":
+        assert result.selection.developmentIntent == "explicit"
+    assert len(action_playbook.calls) == (1 if expected_route == "productized" else 0)
 
 
 def test_repaired_general_change_preserves_selector_reason_and_model_totals():
