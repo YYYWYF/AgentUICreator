@@ -342,6 +342,47 @@ def test_create_ui_plugin_rejects_invalid_project_definition_before_atomic_write
     assert activity.revision == 0
     assert not (tmp_path / "plugins/task-status").exists()
 
+
+@pytest.mark.parametrize("filter_state,active_label", [
+    ("pendingOnly", "showPendingOnly"),
+    ("incompleteOnly", "showIncompleteOnly"),
+])
+def test_create_ui_plugin_rejects_reversed_pending_filter_label_before_write(
+    tmp_path, filter_state, active_label
+):
+    source_creation, activity = service(tmp_path)
+
+    class Authority:
+        def require_create(self, plugin_id):
+            assert plugin_id == "task-status"
+
+        def mark_created(self, plugin_id):
+            assert plugin_id == "task-status"
+
+    creation = UIPluginCreationService(
+        project_root=tmp_path,
+        source_creation=source_creation,
+        activity=activity,
+        development_authority=Authority(),
+    )
+    files = plugin_sources()
+    files[2] = plugin_source("index.tsx", (
+        f"const label = {filter_state} ? labels.{active_label} : labels.showAll;\n"
+    ))
+
+    with pytest.raises(SourceCreationError) as captured:
+        asyncio.run(creation.create("task-status", files))
+
+    assert captured.value.code == "PLUGIN_FILTER_LABEL_REVERSED"
+    assert "retry create_ui_plugin" in str(captured.value)
+    assert activity.revision == 0
+    assert not (tmp_path / "plugins/task-status").exists()
+
+    files[2] = plugin_source("index.tsx", (
+        f"const label = {filter_state} ? labels.showAll : labels.{active_label};\n"
+    ))
+    assert asyncio.run(creation.create("task-status", files)).plugin_id == "task-status"
+
 def test_create_ui_plugin_rejects_local_state_as_ag_ui_data(tmp_path):
     creation, activity = plugin_service(tmp_path)
     files = plugin_sources()

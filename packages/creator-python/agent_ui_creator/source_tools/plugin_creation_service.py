@@ -25,6 +25,21 @@ _LOCAL_PANEL_COLLAPSE = re.compile(
     r"\bconst\s*\[\s*(?:is)?collapsed\s*,\s*set(?:Is)?Collapsed\s*\]\s*=\s*useState\s*\(",
     re.IGNORECASE,
 )
+_REVERSED_PENDING_FILTER_LABEL = re.compile(
+    r"\b(?P<state>[A-Za-z_]\w*)\s*\?\s*"
+    r"labels\.(?P<when_on>[A-Za-z_]\w*)\s*:\s*"
+    r"labels\.(?P<when_off>[A-Za-z_]\w*)",
+)
+_PENDING_FILTER_WORDS = ("pending", "incomplete", "unfinished")
+
+
+def _has_reversed_pending_filter_label(source: str) -> bool:
+    return any(
+        any(word in match.group("state").lower() for word in _PENDING_FILTER_WORDS)
+        and any(word in match.group("when_on").lower() for word in _PENDING_FILTER_WORDS)
+        and "all" in match.group("when_off").lower()
+        for match in _REVERSED_PENDING_FILTER_LABEL.finditer(source)
+    )
 _PROJECT_ROOT_IMPORT = re.compile(
     r"(?P<prefix>\bfrom\s*[\"']|\bimport\s*[\"'])"
     r"(?P<wrong>\.\./(?P<domain>agent-ui|framework|services)/(?P<rest>[^\"']+))"
@@ -240,6 +255,15 @@ class UIPluginCreationService:
                 "Do not call validate_creator_changes or compose before creation succeeds; "
                 "no Plugin files were written.",
                 {"relativePath": "definition.ts"},
+            )
+        if not self.internal_trusted and _has_reversed_pending_filter_label(plugin_source):
+            raise SourceCreationError(
+                "PLUGIN_FILTER_LABEL_REVERSED",
+                "The pending-only filter label describes the opposite action. As the next tool call, "
+                "retry create_ui_plugin with this source corrected: a toggle Button should show the "
+                "pending-only label while the filter is off and the show-all label while it is on; "
+                "a checkbox should keep a stable pending-only label. No Plugin files were written.",
+                {"relativePath": "index.tsx"},
             )
         placement = manifest.get("authoring", {}).get("defaultPlacement") if isinstance(
             manifest.get("authoring"), dict
