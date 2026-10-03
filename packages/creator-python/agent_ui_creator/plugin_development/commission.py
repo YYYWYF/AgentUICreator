@@ -5,7 +5,7 @@ import re
 
 _QUOTED = re.compile(r"“[^”]*”|\"[^\"]*\"|‘[^’]*’")
 _DIRECT_PLUGIN = re.compile(
-    r"(?:开发|创建|新建|编写|实现|扩展|增强)\s*.{0,60}?(?:UI\s*)?(?:插件|Plugin)"
+    r"(?:开发|创建|新建|新增|编写|实现|扩展|增强)\s*.{0,60}?(?:UI\s*)?(?:插件|Plugin)"
     r"|\b(?:develop|build|create|implement|extend)\s+.{0,90}?\bplugin\b",
     re.I,
 )

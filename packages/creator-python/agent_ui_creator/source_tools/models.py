@@ -118,14 +118,21 @@ class PluginCreationResult:
     plugin_id: str
     created_paths: tuple[str, ...]
     mutation_revision: int
+    normalized_imports: tuple[tuple[str, str, str], ...] = ()
 
     def to_dict(self) -> dict[str, object]:
-        return {
+        result: dict[str, object] = {
             "pluginId": self.plugin_id,
             "created": True,
             "createdPaths": list(self.created_paths),
             "mutationRevision": self.mutation_revision,
         }
+        if self.normalized_imports:
+            result["normalizedImports"] = [
+                {"relativePath": path, "from": before, "to": after}
+                for path, before, after in self.normalized_imports
+            ]
+        return result
 
 
 @dataclass(frozen=True, slots=True)

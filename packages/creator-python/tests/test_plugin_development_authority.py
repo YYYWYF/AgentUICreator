@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+from langchain_core.messages import ToolMessage
 import asyncio
 import hashlib
 import json
@@ -488,6 +489,30 @@ def test_authorized_composition_cannot_insert_another_plugin_in_any_slot(tmp_pat
         assert json.loads(_call(middleware, "mutate_app_ui_model", {
             "operations": [operation],
         }).content)["ok"] is False
+
+
+def test_locale_exact_edit_error_points_to_existing_single_line_anchor(tmp_path):
+    state = authority(tmp_path, "explicit")
+    state.prepare(work_kind="create-plugin", target_plugin_id="task-list",
+                  desired_outcome="本地任务清单", missing_capabilities=["清单交互"],
+                  reuse_evidence_refs=[])
+    state.mark_skill_loaded()
+    locale = tmp_path / "agent-ui/i18n/locale-types.ts"
+    locale.parent.mkdir(parents=True)
+    locale.write_text("export interface Messages {\n  theme: {\n  };\n}\n")
+    middleware = PluginDevelopmentAdmissionMiddleware(state)
+    error = ToolMessage(content="Error: String not found in file: 'wrong indentation'",
+                        tool_call_id="edit-locale", name="edit_file", status="error")
+    request = SimpleNamespace(tool_call={"name": "edit_file", "id": "edit-locale", "args": {
+        "file_path": "/agent-ui/i18n/locale-types.ts", "old_string": "wrong indentation",
+        "new_string": "  taskChecklist: {};\n  theme: {",
+    }})
+
+    result = middleware.wrap_tool_call(request, lambda _request: error)
+
+    assert result.status == "error"
+    assert "old_string `  theme: {`" in result.content
+    assert locale.read_text() == "export interface Messages {\n  theme: {\n  };\n}\n"
 
 
 @pytest.mark.parametrize("source_root", [None, "src/agent-ui"])

@@ -25,6 +25,10 @@ _LOCAL_PANEL_COLLAPSE = re.compile(
     r"\bconst\s*\[\s*(?:is)?collapsed\s*,\s*set(?:Is)?Collapsed\s*\]\s*=\s*useState\s*\(",
     re.IGNORECASE,
 )
+_PROJECT_ROOT_IMPORT = re.compile(
+    r"(?P<prefix>\bfrom\s*[\"']|\bimport\s*[\"'])"
+    r"(?P<wrong>\.\./(?P<domain>agent-ui|framework|services)/(?P<rest>[^\"']+))"
+)
 _BUILTIN_HOOK_SERVICES = {
     "useAgentUILocale": "AGENT_UI_LOCALE_SERVICE",
     "useAgentUIThemeMode": "AGENT_UI_THEME_SERVICE",
@@ -112,6 +116,29 @@ class UIPluginCreationService:
                 "PLUGIN_REQUIRED_FILE_MISSING",
                 "A new Plugin must include manifest.json, definition.ts, and index.tsx.",
                 {"missingRelativePaths": missing_paths},
+            )
+
+        normalized_imports: list[tuple[str, str, str]] = []
+        plugin_root = resolve_creator_project_file(
+            self.project_root,
+            agent_ui_source_path(self.project_root, f"plugins/{plugin_id}"),
+        ).absolute_path
+        for relative_path in ("definition.ts", "index.tsx"):
+            content = normalized_files[relative_path]
+
+            def correct_project_import(match: re.Match[str]) -> str:
+                domain = match.group("domain")
+                project_directory = plugin_root.parent.parent / domain
+                sibling_directory = plugin_root.parent / domain
+                if not project_directory.is_dir() or sibling_directory.exists():
+                    return match.group(0)
+                wrong = match.group("wrong")
+                corrected = f"../../{domain}/{match.group('rest')}"
+                normalized_imports.append((relative_path, wrong, corrected))
+                return match.group("prefix") + corrected
+
+            normalized_files[relative_path] = _PROJECT_ROOT_IMPORT.sub(
+                correct_project_import, content
             )
 
         try:
@@ -278,4 +305,5 @@ class UIPluginCreationService:
             plugin_id=plugin_id,
             created_paths=result.created_paths,
             mutation_revision=result.mutation_revision,
+            normalized_imports=tuple(normalized_imports),
         )

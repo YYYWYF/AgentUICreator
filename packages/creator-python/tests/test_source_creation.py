@@ -197,6 +197,35 @@ def test_create_ui_plugin_rejects_side_panel_local_collapse_before_write(tmp_pat
     assert asyncio.run(creation.create("task-status", files)).plugin_id == "task-status"
 
 
+def test_create_ui_plugin_normalizes_known_project_root_imports_atomically(tmp_path):
+    for directory in ("framework/contracts", "services", "agent-ui/i18n"):
+        (tmp_path / directory).mkdir(parents=True)
+    creation, _activity = plugin_service(tmp_path)
+    files = plugin_sources()
+    files[1] = plugin_source("definition.ts", (
+        'import type { UIPluginDefinition } from "../framework/contracts/ui-plugin";\n'
+        'import { AGENT_UI_LOCALE_SERVICE } from "../services/agent-ui-locale";\n'
+        'export default { optionalInject: [AGENT_UI_LOCALE_SERVICE] } as UIPluginDefinition;\n'
+    ))
+    files[2] = plugin_source("index.tsx", (
+        'import { useAgentUILocale } from "../agent-ui/i18n/useAgentUILocale";\n'
+        'export function App() { return useAgentUILocale("layout").open; }\n'
+    ))
+
+    result = asyncio.run(creation.create("task-status", files))
+
+    assert len(result.to_dict()["normalizedImports"]) == 3
+    assert 'from "../../framework/contracts/ui-plugin"' in (
+        tmp_path / "plugins/task-status/definition.ts"
+    ).read_text()
+    assert 'from "../../services/agent-ui-locale"' in (
+        tmp_path / "plugins/task-status/definition.ts"
+    ).read_text()
+    assert 'from "../../agent-ui/i18n/useAgentUILocale"' in (
+        tmp_path / "plugins/task-status/index.tsx"
+    ).read_text()
+
+
 def test_create_ui_plugin_preflights_declared_placement_before_source_commit(tmp_path):
     source_creation, activity = service(tmp_path)
 

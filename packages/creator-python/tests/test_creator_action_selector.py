@@ -65,12 +65,14 @@ def test_conditional_development_requires_actual_fallback_commission(message, ex
         "needs_decision",
     ),
     ("请开发一个独立的任务核对清单插件，使用项目现有组件。", "explicit"),
+    ("授权你新增并挂载任务核对清单 Plugin，使用项目现有组件。", "explicit"),
     ("请扩展现有插件，增加本地筛选交互。", "explicit"),
     ("把已有的任务清单组件封装成 UI 插件，保留原实现。", "explicit"),
     ("先分析一下是否需要开发插件，不要修改项目。", "needs_decision"),
     ("这个是不是需要开发插件？先告诉我你的判断。", "needs_decision"),
     ("我们先讨论开发插件的可能性，不要动代码。", "needs_decision"),
     ("任务清单有现成的就用现成的，没有就开发一个插件。", "needs_decision"),
+    ("现成插件能用就用，没有才新增一个 Plugin。", "needs_decision"),
     ("文档里写着“开发一个新插件”，现在只调整按钮文案。", "needs_decision"),
 ])
 def test_explicit_development_requires_real_commission(message, expected):

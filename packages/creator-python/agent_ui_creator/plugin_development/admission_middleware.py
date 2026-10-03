@@ -10,6 +10,7 @@ from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResp
 from langchain_core.messages import ToolMessage
 
 from ..resource_scope import project_logical_path
+from ..files import resolve_creator_project_file
 from ..minimal_agent.tool_policy import tool_name
 from ..project_paths import agent_ui_source_path
 from .authority import PluginDevelopmentAuthority, PluginDevelopmentError
@@ -433,7 +434,7 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
             return self._blocked(call, error)
         result = handler(request)
         self._observe(name, args, result)
-        return result
+        return self._guide_locale_edit_failure(name, args, result)
 
     async def awrap_tool_call(
         self, request: Any, handler: Callable[[Any], Awaitable[Any]],
@@ -447,4 +448,29 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
             return self._blocked(call, error)
         result = await handler(request)
         self._observe(name, args, result)
-        return result
+        return self._guide_locale_edit_failure(name, args, result)
+
+    def _guide_locale_edit_failure(self, name: str, args: Mapping[str, Any], result: Any) -> Any:
+        if name != "edit_file" or not isinstance(result, ToolMessage):
+            return result
+        path = args.get("file_path")
+        content = result.content
+        if not isinstance(path, str) or not isinstance(content, str) or "String not found in file" not in content:
+            return result
+        logical = project_logical_path(path, self.authority.project_root)
+        if logical not in _PLUGIN_LOCALE_PATHS:
+            return result
+        source_path = agent_ui_source_path(self.authority.project_root, logical.lstrip("/"))
+        try:
+            current = resolve_creator_project_file(self.authority.project_root, source_path).absolute_path.read_text(encoding="utf-8")
+        except (OSError, ValueError):
+            return result
+        if current.count("  theme: {") != 1:
+            return result
+        hint = (
+            "\nFor a new locale namespace in this file, use the exact single-line "
+            "old_string `  theme: {` and a new_string containing the new namespace "
+            "followed by the same `  theme: {` line. Do not include adjacent lines "
+            "or indentation guessed from numbered read_file output. Retry edit_file directly."
+        )
+        return result.model_copy(update={"content": content + hint})
