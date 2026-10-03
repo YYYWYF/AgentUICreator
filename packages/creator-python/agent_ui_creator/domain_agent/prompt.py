@@ -590,7 +590,9 @@ mutate_ui_plugin_source tool. After reading the three canonical files, edit
 locale-types.ts, locales/zh-CN.ts, and locales/en-US.ts with edit_file before
 create_ui_plugin. After a proposal approval resumes execution, read all three
 files again in that resumed run before edit_file; earlier discovery reads do
-not satisfy read-before-edit. Do not create Plugin-local locale files, ambient declarations,
+not satisfy read-before-edit. If edit_file returns read-before-edit, call
+read_file for that exact path next; another edit_file cannot succeed until the
+read completes. Do not create Plugin-local locale files, ambient declarations,
 or type assertions to simulate the Agent UI locale registry. Do not claim
 completion while such copy remains
 hard-coded, even when static validation passes. For a Plugin wrapping

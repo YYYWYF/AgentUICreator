@@ -78,7 +78,9 @@ class CreatorFileObservationStore:
             raise CreatorFileObservationError(
                 "read-before-edit",
                 file_path,
-                f"read-before-edit: Read {file_path} successfully in this run before editing it.",
+                f"read-before-edit: No current-run observation for {file_path}. "
+                f"Next call read_file with file_path={file_path}; after that read succeeds, "
+                "retry edit_file. Repeating edit_file before the read cannot succeed.",
             )
         return self._assert_fresh(file_path, observation, "editing")
 
