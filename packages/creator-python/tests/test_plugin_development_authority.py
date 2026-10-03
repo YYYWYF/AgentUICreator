@@ -491,6 +491,57 @@ def test_authorized_composition_cannot_insert_another_plugin_in_any_slot(tmp_pat
         }).content)["ok"] is False
 
 
+def test_platform_panel_grant_requires_independent_root_drawer_track(tmp_path):
+    model_path = tmp_path / "app-ui/app-ui.json"
+    model_path.parent.mkdir(parents=True)
+    model_path.write_text(json.dumps({"root": {
+        "type": "row", "children": [
+            {"type": "panel", "child": {"type": "slot", "plugins": [
+                {"id": "nav-main", "pluginId": "conversation-thread-list", "enabled": True},
+            ]}},
+            {"type": "panel", "child": {"type": "slot", "plugins": [
+                {"id": "conversation-main", "pluginId": "conversation-surface", "enabled": True},
+            ]}},
+        ], "responsive": {"type": "trailing-drawer", "primaryIndex": 1,
+                          "drawerIndex": 2, "minPrimaryWidth": 320},
+    }}))
+    state = authority(tmp_path, "explicit")
+    state.prepare(
+        work_kind="create-plugin", target_plugin_id="task-list",
+        desired_outcome="会话旁的业务面板", missing_capabilities=["任务清单"],
+        reuse_evidence_refs=[], delivery_contract={
+            "capability": "任务清单", "renderingCategory": "panel",
+            "placement": "会话旁", "lifecycle": "页面内存",
+            "dependencies": [], "verificationMethod": "runtime",
+        },
+    )
+    state.mark_skill_loaded()
+    middleware = PluginDevelopmentAdmissionMiddleware(state)
+    task = {"id": "task-main", "pluginId": "task-list", "enabled": True}
+    for operation in (
+        {"type": "insert_plugin", "plugin": task,
+         "target": {"type": "layout_slot", "slotRef": "l2"}},
+        {"type": "insert_layout_relative", "anchorRef": "l2", "direction": "right",
+         "node": {"type": "panel", "child": {"type": "slot", "plugins": [task]}}},
+    ):
+        result = _call(middleware, "mutate_app_ui_model", {"operations": [operation]})
+        payload = json.loads(result.content)
+        assert payload["error"]["code"] == "PLUGIN_DEVELOPMENT_PLACEMENT_REQUIRED"
+        assert payload["error"]["stateChanged"] is False
+    assert _call(middleware, "mutate_app_ui_model", {"operations": [{
+        "type": "insert_layout_node", "parentRef": "l0", "index": 2,
+        "node": {"type": "panel", "child": {"type": "slot", "plugins": [task]}},
+    }]}) == "allowed"
+    assert _call(middleware, "mutate_app_ui_model", {"operations": [{
+        "type": "insert_plugin_default", "plugin": task,
+    }]}) == "allowed"
+    model_path.write_text(json.dumps({"root": {"type": "slot", "plugins": []}}))
+    assert _call(middleware, "mutate_app_ui_model", {"operations": [{
+        "type": "insert_plugin", "plugin": task,
+        "target": {"type": "layout_slot", "slotRef": "l0"},
+    }]}) == "allowed"
+
+
 def test_locale_exact_edit_error_points_to_existing_single_line_anchor(tmp_path):
     state = authority(tmp_path, "explicit")
     state.prepare(work_kind="create-plugin", target_plugin_id="task-list",

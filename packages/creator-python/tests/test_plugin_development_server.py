@@ -659,6 +659,70 @@ def test_server_tool_admission_rejects_other_plugin_composition_before_write(tmp
     assert model_path.read_bytes() == before
 
 
+def test_server_tool_admission_rejects_new_platform_panel_in_navigation_slot(tmp_path, monkeypatch):
+    model_path = tmp_path / "app-ui/app-ui.json"
+    model_path.parent.mkdir()
+    model_path.write_text(json.dumps({"root": {
+        "type": "row", "children": [
+            {"type": "panel", "child": {"type": "slot", "plugins": [
+                {"id": "nav-main", "pluginId": "conversation-thread-list", "enabled": True},
+            ]}},
+            {"type": "panel", "child": {"type": "slot", "plugins": [
+                {"id": "conversation-main", "pluginId": "conversation-surface", "enabled": True},
+            ]}},
+        ], "responsive": {"type": "trailing-drawer", "primaryIndex": 1,
+                          "drawerIndex": 2, "minPrimaryWidth": 320},
+    }}), encoding="utf-8")
+    before = model_path.read_bytes()
+    observed = {}
+
+    async def call_tool_on_server(_settings, _messages, _activity, _coordinator,
+                                  _diagnostics, _thread_id, _event_sink, _telemetry,
+                                  *, development_authority, **_kwargs):
+        development_authority.begin_task(
+            task_id="panel-a", request_id="panel-a",
+            user_message="请开发一个会话旁任务清单面板插件", intent="explicit",
+        )
+        development_authority.prepare(**{
+            "work_kind": "create-plugin", "target_plugin_id": "task-list",
+            "desired_outcome": "会话旁任务清单面板", "missing_capabilities": ["清单交互"],
+            "reuse_evidence_refs": [], "delivery_contract": {
+                "capability": "任务清单", "renderingCategory": "panel",
+                "placement": "会话旁", "lifecycle": "页面内存",
+                "dependencies": [], "verificationMethod": "runtime",
+            },
+        })
+        development_authority.mark_skill_loaded()
+        middleware = PluginDevelopmentAdmissionMiddleware(development_authority)
+
+        def forbidden_host_write(_request):
+            model_path.write_text("wrong placement", encoding="utf-8")
+            return "allowed"
+
+        response = middleware.wrap_tool_call(SimpleNamespace(tool_call={
+            "name": "mutate_app_ui_model", "id": "insert-in-nav",
+            "args": {"operations": [{"type": "insert_plugin",
+                    "plugin": {"id": "task-list-main", "pluginId": "task-list", "enabled": True},
+                    "target": {"type": "layout_slot", "slotRef": "l2"}}]},
+        }), forbidden_host_write)
+        observed["result"] = json.loads(response.content)
+        metrics = SimpleNamespace(to_dict=lambda: {})
+        return SimpleNamespace(text="已拦截错误区域。", completion="success",
+                               metrics=metrics, project_control=metrics,
+                               repeated_project_control_reads=0,
+                               domain_observations=metrics)
+
+    monkeypatch.setattr("agent_ui_creator.server._domain_write_agent_result", call_tool_on_server)
+    _app_instance, client = _app(tmp_path, monkeypatch,
+                                 TrackingModel(responses=[AIMessage(content="unused")]),
+                                 intent="explicit")
+    events = _events(client, run_id="panel-a", text="请开发一个会话旁任务清单面板插件")
+    assert any(event["type"] == "RUN_FINISHED" for event in events)
+    assert observed["result"]["error"]["code"] == "PLUGIN_DEVELOPMENT_PLACEMENT_REQUIRED"
+    assert observed["result"]["error"]["stateChanged"] is False
+    assert model_path.read_bytes() == before
+
+
 def test_server_tool_admission_requires_declared_relative_plugin_placement(tmp_path, monkeypatch):
     model_path = tmp_path / "app-ui" / "app-ui.json"
     model_path.parent.mkdir()

@@ -201,8 +201,30 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
         placement = authoring.get("defaultPlacement") if isinstance(authoring, dict) else None
         return placement if isinstance(placement, dict) and placement.get("type") == "relative" else None
 
+    def _platform_panel_track_pending(self) -> bool:
+        record = self.authority.active
+        contract = record.delivery_contract if record is not None else None
+        if not isinstance(contract, dict) or contract.get("renderingCategory") != "panel":
+            return False
+        model_path = self.authority.project_root / agent_ui_source_path(
+            self.authority.project_root, "app-ui/app-ui.json"
+        ).lstrip("/")
+        try:
+            model = json.loads(model_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return False
+        root = model.get("root") if isinstance(model, dict) else None
+        if not isinstance(root, dict) or root.get("type") != "row":
+            return False
+        children, responsive = root.get("children"), root.get("responsive")
+        return (
+            isinstance(children, list) and isinstance(responsive, dict)
+            and responsive.get("type") == "trailing-drawer"
+            and responsive.get("drawerIndex") == len(children)
+        )
+
     def _is_root_drawer_panel_insertion(
-        self, operation: Mapping[str, Any], placement: Mapping[str, Any]
+        self, operation: Mapping[str, Any], placement: Mapping[str, Any] | None
     ) -> bool:
         """A root Row's declared drawer child is a valid explicit side panel."""
         if operation.get("type") != "insert_layout_node" or operation.get("parentRef") != "l0":
@@ -224,23 +246,27 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
         if not isinstance(root, dict) or root.get("type") != "row":
             return False
         children, responsive = root.get("children"), root.get("responsive")
-        anchor_plugin_id = placement.get("anchorPluginId")
         primary_index = responsive.get("primaryIndex") if isinstance(responsive, dict) else None
-        if (placement.get("relation") != "after" or not isinstance(anchor_plugin_id, str)
-                or not isinstance(children, list) or not isinstance(primary_index, int)
+        if (not isinstance(children, list) or not isinstance(primary_index, int)
                 or primary_index < 0 or primary_index >= len(children)):
             return False
 
-        def contains_anchor(value: Any) -> bool:
+        def contains_anchor(value: Any, anchor_plugin_id: str) -> bool:
             if isinstance(value, dict):
                 return value.get("pluginId") == anchor_plugin_id or any(
-                    contains_anchor(child) for child in value.values()
+                    contains_anchor(child, anchor_plugin_id) for child in value.values()
                 )
-            return isinstance(value, list) and any(contains_anchor(child) for child in value)
+            return isinstance(value, list) and any(
+                contains_anchor(child, anchor_plugin_id) for child in value
+            )
 
         return (
-            contains_anchor(children[primary_index]) and isinstance(responsive, dict)
-            and responsive.get("type") == "trailing-drawer"
+            (placement is None or (
+                placement.get("relation") == "after"
+                and isinstance(placement.get("anchorPluginId"), str)
+                and contains_anchor(children[primary_index], placement["anchorPluginId"])
+            ))
+            and isinstance(responsive, dict) and responsive.get("type") == "trailing-drawer"
             and operation.get("index") == len(children) == responsive.get("drawerIndex")
         )
 
@@ -250,11 +276,20 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
             raise PluginDevelopmentError("AppUIModel 操作缺少有效的开发目标。")
         selected = self._selected_plugin_instances()
         relative_default = self._relative_default_placement(target_plugin_id)
+        panel_track_pending = self._platform_panel_track_pending()
 
         def require_default_placement() -> None:
             raise PluginDevelopmentPlacementRequired(
                 "此 Plugin 声明了相对默认位置；请使用 insert_plugin_default "
                 "按清单中的 anchor 和尺寸组合，不要插入现有会话 Slot 或其嵌套 Row。"
+            )
+
+        def require_panel_track() -> None:
+            raise PluginDevelopmentPlacementRequired(
+                "Platform 的新业务 Panel 必须占用根 Row 声明的 drawer track，"
+                "不能插进现有导航或会话 Slot。若 manifest 声明了相对 defaultPlacement，"
+                "请使用 insert_plugin_default；否则用 insert_layout_node 在根 Row "
+                "的 drawerIndex 添加独立 Panel/Slot 和本 Plugin 实例。"
             )
 
         def plugin_nodes(value: Any) -> list[dict[str, Any]]:
@@ -277,10 +312,16 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
                 nodes = plugin_nodes(operation.get("replacement") if kind == "replace_plugin" else operation.get("plugin"))
                 if not nodes or any(node.get("pluginId") != target_plugin_id for node in nodes):
                     raise PluginDevelopmentError("插件组合超出了已批准的 Plugin 目标；已有 Plugin 需走独立的复用授权。")
+                if kind == "insert_plugin" and panel_track_pending:
+                    require_panel_track()
                 if kind != "insert_plugin_default" and relative_default:
                     require_default_placement()
             elif kind in {"insert_layout_node", "insert_layout_relative", "replace_layout_node"}:
-                for node in plugin_nodes(operation.get("node")):
+                inserted_nodes = plugin_nodes(operation.get("node"))
+                if (panel_track_pending and kind == "insert_layout_node"
+                        and not inserted_nodes):
+                    require_panel_track()
+                for node in inserted_nodes:
                     plugin_id, instance_id = node.get("pluginId"), node.get("id")
                     if plugin_id != target_plugin_id and (
                         not isinstance(instance_id, str) or selected.get(instance_id) != plugin_id
@@ -289,6 +330,9 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
                     if (plugin_id == target_plugin_id and relative_default
                             and not self._is_root_drawer_panel_insertion(operation, relative_default)):
                         require_default_placement()
+                    if (plugin_id == target_plugin_id and panel_track_pending
+                            and not self._is_root_drawer_panel_insertion(operation, None)):
+                        require_panel_track()
             elif kind in {"move_plugin", "move_plugin_to", "remove_plugin",
                           "remove_plugin_default", "set_plugin_enabled"}:
                 instance_id = operation.get("instanceId")
