@@ -505,3 +505,86 @@ def test_model_budget_after_composition_uses_current_revision_evidence_only(
     else:
         with pytest.raises(AgentNoProgressError):
             asyncio.run(agent.run("创建并挂载插件"))
+
+
+def test_model_budget_after_source_uses_authorized_default_transaction(tmp_path, monkeypatch):
+    activity = mutated_activity_for_revision(tmp_path)
+
+    class CurrentValidation(FakeValidation):
+        async def validate(self, mode):
+            await super().validate(mode)
+            self.result.revision = activity.revision
+            return self.result
+
+    validation = CurrentValidation()
+    tail = CompositionVerificationTail(
+        activity=activity, validation=validation, runtime=FakeRuntime([]),
+        metrics=CompositionFastPathMetrics(), verification_mode="static_only",
+    )
+    writes = []
+
+    async def mutate(*, app_ui_model_hash, operations):
+        writes.append((app_ui_model_hash, operations))
+        path = tmp_path / "app-ui/app-ui.json"
+        path.write_text('{"composed":true}\n', encoding="utf-8")
+        activity.touch("app-ui/app-ui.json")
+        mutation_service.last_result = AppUIModelMutationResult(
+            {"changed": True, "semanticComposition": {"operation": "insert_plugin_default"}},
+            mutation_revision=activity.revision,
+        )
+        return mutation_service.last_result
+
+    async def inspect_ui_project(*, view):
+        assert view == "composition"
+        return {"appUIModel": {"hash": "a" * 64}}
+
+    mutation_service = SimpleNamespace(
+        last_result=None, metrics=AppUIModelMutationMetrics(), mutate=mutate,
+    )
+
+    async def exhausted(*_args, **_kwargs):
+        raise AgentNoProgressError("Minimal agent exceeded 24 model calls.")
+
+    monkeypatch.setattr(
+        "agent_ui_creator.domain_agent.agent.DeepAgentV3Runner.run_result", exhausted,
+    )
+
+    def review(candidate):
+        activity.record_plugin_deliveries([{"delivery": {"status": "statically-verified"}}])
+        return CompletionDecision(True, candidate)
+
+    agent = CreatorDomainWriteAgent(
+        graph=object(), protocol=SimpleNamespace(metrics=ToolProtocolMetrics()),
+        runtime=SimpleNamespace(
+            backend=SimpleNamespace(activity=activity), activities=[],
+            raise_terminal_error=lambda: None, event_sink=None,
+        ),
+        repeated_read_guard=SimpleNamespace(repeated_reads=0),
+        project_control=SimpleNamespace(
+            metrics=ProjectControlMetrics(), inspect_ui_project=inspect_ui_project,
+        ),
+        observations=DomainObservationContext(),
+        mutation_service=mutation_service,
+        completion_gate=SimpleNamespace(
+            review=review, verification_mode="static_only", validation=validation,
+            inspect_deliveries=lambda: [{
+                "pluginId": "task-list", "delivery": {"stages": {
+                    "created": True, "registered": True, "composed": False,
+                }},
+            }],
+        ),
+        completion_verification_tail=tail,
+        plugin_development_authority=SimpleNamespace(
+            task_id="task", active=SimpleNamespace(
+                status="authorized", delivery_scope="full", work_kind="create-plugin",
+                created_plugin_id="task-list", target_plugin_id="task-list",
+            ),
+        ),
+    )
+    result = asyncio.run(agent.run("创建并挂载插件"))
+    assert result.completion == "success"
+    assert writes == [("a" * 64, [{
+        "type": "insert_plugin_default",
+        "plugin": {"id": "task-list-main", "pluginId": "task-list", "enabled": True},
+    }])]
+    assert validation.current_result().revision == activity.revision == 2

@@ -15,6 +15,7 @@ from langgraph.types import Command
 
 from ..activity import CreatorActivityRecorder
 from ..app_ui_model import (
+    AppUIModelMutationError,
     AppUIModelMutationMetrics,
     AppUIModelMutationService,
     ProjectMutationCoordinator,
@@ -342,6 +343,9 @@ class CreatorDomainReadAgent:
             or self.run_control.blocked
         ):
             return None
+        if self.mutation_service.last_result is None:
+            if not await self._compose_authorized_default_after_budget():
+                return None
         tail = await self.completion_verification_tail.run_if_needed(
             self.mutation_service
         )
@@ -360,6 +364,47 @@ class CreatorDomainReadAgent:
         ):
             return None
         return self._build_result(text=decision.text, completion="success")
+
+    async def _compose_authorized_default_after_budget(self) -> bool:
+        record = self.plugin_development_authority.active
+        if (
+            record.delivery_scope != "full"
+            or record.work_kind != "create-plugin"
+            or record.created_plugin_id != record.target_plugin_id
+        ):
+            return False
+        validation_service = self.completion_gate.validation
+        validation = validation_service.current_result()
+        if validation is None or validation.revision != self.activity.revision:
+            validation = await validation_service.validate(mode="delta")
+        if validation.status != "passed" or validation.revision != self.activity.revision:
+            return False
+        reports = self.completion_gate.inspect_deliveries()
+        if len(reports) != 1 or reports[0].get("pluginId") != record.target_plugin_id:
+            return False
+        stages = reports[0]["delivery"]["stages"]
+        if not stages["created"] or not stages["registered"] or stages["composed"]:
+            return False
+        snapshot = await self.project_control.inspect_ui_project(view="composition")
+        model = snapshot.get("appUIModel") if isinstance(snapshot, dict) else None
+        model_hash = model.get("hash") if isinstance(model, dict) else None
+        if not isinstance(model_hash, str):
+            return False
+        try:
+            await self.mutation_service.mutate(
+                app_ui_model_hash=model_hash,
+                operations=[{
+                    "type": "insert_plugin_default",
+                    "plugin": {
+                        "id": f"{record.target_plugin_id}-main",
+                        "pluginId": record.target_plugin_id,
+                        "enabled": True,
+                    },
+                }],
+            )
+        except AppUIModelMutationError:
+            return False
+        return True
 
     def _build_result(
         self,
