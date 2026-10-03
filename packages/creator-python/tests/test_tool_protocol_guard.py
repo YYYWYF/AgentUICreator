@@ -236,6 +236,70 @@ def test_relative_target_schema_failure_repairs_to_default_placement():
     assert "Omit `target`" in requests[1].messages[-1].content
 
 
+@pytest.mark.parametrize(
+    ("change", "expected_type"),
+    [
+        ({"relativePath": "index.tsx", "edits": [
+            {"oldText": "old", "newText": "new"},
+        ]}, "edit"),
+        ({"relativePath": "new.tsx", "content": "export const value = 1;"}, "create"),
+    ],
+)
+def test_plugin_source_change_missing_discriminator_is_recovered_when_unambiguous(
+    change, expected_type
+):
+    source_tool = StructuredTool.from_function(
+        lambda pluginId, changes: "ok",
+        name="mutate_ui_plugin_source",
+        description="Edit Plugin source.",
+        args_schema=MutateUIPluginSourceInput,
+    )
+    metrics = ToolProtocolMetrics(modelCalls=7)
+    decision = ToolProtocolGuard(metrics).inspect(
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "mutate_ui_plugin_source",
+            "args": {"pluginId": "task-list", "changes": [change]},
+            "id": "missing-discriminator",
+        }])]),
+        [source_tool],
+    )
+
+    assert decision.status == "tool_call"
+    assert decision.response.result[0].tool_calls[0]["args"]["changes"][0]["type"] == expected_type
+    assert metrics.protocolRepairAttempts == 0
+    assert metrics.protocolDiagnostics == [{
+        "kind": "tool_argument_discriminator_recovered",
+        "modelCallSequence": 7,
+        "toolName": "mutate_ui_plugin_source",
+        "changeTypes": [expected_type],
+    }]
+    assert "export const value" not in str(metrics.protocolDiagnostics)
+
+
+def test_plugin_source_change_ambiguous_without_discriminator_remains_invalid():
+    source_tool = StructuredTool.from_function(
+        lambda pluginId, changes: "ok",
+        name="mutate_ui_plugin_source",
+        description="Edit Plugin source.",
+        args_schema=MutateUIPluginSourceInput,
+    )
+    metrics = ToolProtocolMetrics(modelCalls=7)
+    decision = ToolProtocolGuard(metrics).inspect(
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "mutate_ui_plugin_source",
+            "args": {"pluginId": "task-list", "changes": [{
+                "relativePath": "index.tsx", "edits": [{"oldText": "old", "newText": "new"}],
+                "content": "ambiguous",
+            }]},
+            "id": "ambiguous-change",
+        }])]),
+        [source_tool],
+    )
+
+    assert decision.status == "repair"
+    assert metrics.protocolDiagnostics[0]["errorType"] == "union_tag_not_found"
+
+
 def test_json_schema_extra_key_records_only_argument_shape():
     tool_definition = {
         "name": "inspect_runtime_layout",
@@ -844,7 +908,7 @@ def test_repair_prompt_uses_current_sanitized_validation_hint():
     assert middleware.metrics.protocolRepairFailures == 0
 
 
-def test_repair_prompt_names_missing_plugin_change_type():
+def test_repair_prompt_names_missing_ambiguous_plugin_change_type():
     mutation_tool = StructuredTool.from_function(
         lambda pluginId, changes: "ok",
         name="mutate_ui_plugin_source",
@@ -858,6 +922,7 @@ def test_repair_prompt_names_missing_plugin_change_type():
             "name": "mutate_ui_plugin_source", "id": "bad",
             "args": {"pluginId": "task-list", "changes": [{
                 "relativePath": "index.tsx", "edits": [{"oldText": "a", "newText": "b"}],
+                "content": "ambiguous",
             }]},
         }])]),
         ModelResponse(result=[AIMessage(content="", tool_calls=[{

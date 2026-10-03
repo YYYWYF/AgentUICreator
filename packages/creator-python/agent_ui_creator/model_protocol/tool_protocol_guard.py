@@ -129,6 +129,32 @@ def _argument_shape(arguments: Mapping[Any, Any]) -> dict[str, object]:
     }
 
 
+def _recover_plugin_change_types(arguments: Any) -> tuple[dict[str, Any], list[str]] | None:
+    """Restore a missing discriminant only when the change fields select one schema branch."""
+    if not isinstance(arguments, Mapping) or not isinstance(arguments.get("changes"), list):
+        return None
+    changes = []
+    recovered: list[str] = []
+    for change in arguments["changes"]:
+        if not isinstance(change, Mapping):
+            return None
+        if "type" in change:
+            changes.append(dict(change))
+            continue
+        keys = set(change)
+        if keys == {"relativePath", "edits"}:
+            change_type = "edit"
+        elif keys == {"relativePath", "content"}:
+            change_type = "create"
+        else:
+            return None
+        changes.append({"type": change_type, **change})
+        recovered.append(change_type)
+    if not recovered:
+        return None
+    return {**arguments, "changes": changes}, recovered
+
+
 def _bounded_error_path(path: Any) -> list[object]:
     if path is None:
         return []
@@ -554,6 +580,30 @@ class ToolProtocolGuard:
             return GuardDecision(response, "repair")
 
         if message.tool_calls:
+            normalized_calls = []
+            for call in message.tool_calls:
+                if call.get("name") != "mutate_ui_plugin_source":
+                    normalized_calls.append(call)
+                    continue
+                recovered = _recover_plugin_change_types(call.get("args"))
+                if recovered is None:
+                    normalized_calls.append(call)
+                    continue
+                arguments, inferred_types = recovered
+                normalized_calls.append({**call, "args": arguments})
+                _record_protocol_diagnostic(self.metrics, {
+                    "kind": "tool_argument_discriminator_recovered",
+                    "modelCallSequence": self.metrics.modelCalls,
+                    "toolName": "mutate_ui_plugin_source",
+                    "changeTypes": inferred_types[:_MAX_TRACE_ITEMS],
+                })
+            if any(old is not new for old, new in zip(message.tool_calls, normalized_calls)):
+                normalized_message = message.model_copy(update={"tool_calls": normalized_calls})
+                response = ModelResponse(
+                    result=[normalized_message if item is message else item for item in response.result],
+                    structured_response=response.structured_response,
+                )
+                message = normalized_message
             all_valid = True
             for call in message.tool_calls:
                 call_valid = True
