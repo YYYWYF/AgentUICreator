@@ -182,7 +182,7 @@ def test_side_effect_classification_and_round_trip_prompt_contract():
     for rule in (
         "Keep grounding demand-driven",
         "Round-trip reduction policy",
-        "at most three independent read-only tool calls",
+        "at most four independent read-only tool calls",
         "Do not batch speculative inspections",
         "arguments or necessity depend on an earlier result, wait for that result",
         "If list_ui_plugins is genuinely required to discover the target identifier, call it first",
