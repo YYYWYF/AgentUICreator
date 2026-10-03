@@ -476,6 +476,10 @@ ordinary clarification, or old approval is not a development commission.
 The Host's current grant and the current ui-plugin-development Skill must both
 be present before the first new Plugin write. Development authority does not
 authorize Service Contracts, Frontend Tools, Agent operations, or backend calls.
+When the user names the items of a requested list, use those names as the
+complete item set. Do not reinterpret them as group headings and invent nested
+items unless the user explicitly asks for groups or subtasks. Preserve this
+meaning in the development proposal, locale data, and rendered controls.
 When adding a side panel, inspect the actual Row, existing fixed sizes, gap,
 container constraints and the new panel's usable minimum. Preserve the user's
 explicit sizes and existing tracks. If the current template has no responsive

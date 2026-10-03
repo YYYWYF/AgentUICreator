@@ -65,6 +65,9 @@ Once one closest Plugin, the used public control, and the relevant locale/theme
 conventions are known, stop exploratory reads and implement. Inspect another
 component or contract section only for a concrete API or ownership question;
 do not search unrelated Conversation Tool UIs or Thread views to compare styles.
+For a requested list with named items, make each named value one item. Do not
+turn those values into group headings and invent extra tasks unless the user
+explicitly requested groups or subtasks.
 Do not inspect `node_modules` with Creator filesystem tools. Use a target Plugin
 already importing the public control, then check new imports with typecheck.
 New Plugin presentation text, including titles, controls, empty states, aria
