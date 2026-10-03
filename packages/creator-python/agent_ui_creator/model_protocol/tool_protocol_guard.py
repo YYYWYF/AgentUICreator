@@ -156,7 +156,7 @@ def _recover_plugin_change_types(arguments: Any) -> tuple[dict[str, Any], list[s
 
 
 def _recover_default_placement_operation(arguments: Any) -> tuple[dict[str, Any], int, int] | None:
-    """Normalize the unique valid operation for a Plugin plus relative-placement hint."""
+    """Keep the declared placement when a default operation carries tool-side hints."""
     if not isinstance(arguments, Mapping) or not isinstance(arguments.get("operations"), list):
         return None
     operations = []
@@ -168,17 +168,24 @@ def _recover_default_placement_operation(arguments: Any) -> tuple[dict[str, Any]
             continue
         target = operation.get("target")
         explicit_default = (operation.get("type") == "insert_plugin_default"
-                            and set(operation) == {"type", "plugin", "target"})
+                            and "plugin" in operation
+                            and set(operation) <= {"type", "plugin", "target", "actionId"}
+                            and ("actionId" in operation or "target" in operation)
+                            and ("actionId" not in operation
+                                 or isinstance(operation["actionId"], str))
+                            and ("target" not in operation
+                                 or (isinstance(target, Mapping)
+                                     and target.get("type") in {"relative", "application"})))
         missing_type = ("type" not in operation
                         and set(operation) == {"plugin", "target"})
-        if ((explicit_default or missing_type)
-                and isinstance(target, Mapping)
+        relative_hint = (isinstance(target, Mapping)
                 and target.get("type") == "relative"
                 and target.get("relation") in {"before", "after"}
                 and (set(target) == {"type", "relation", "parentInstanceId"}
                      or set(target) == {"type", "relation", "anchorInstanceId"})
                 and any(isinstance(target.get(key), str) and target[key]
-                        for key in ("parentInstanceId", "anchorInstanceId"))):
+                        for key in ("parentInstanceId", "anchorInstanceId")))
+        if explicit_default or (missing_type and relative_hint):
             operations.append({"type": "insert_plugin_default", "plugin": operation["plugin"]})
             removed += 1
             inferred += int(missing_type)
@@ -634,7 +641,7 @@ class ToolProtocolGuard:
                         arguments, removed, inferred = recovered
                         normalized_calls.append({**call, "args": arguments})
                         _record_protocol_diagnostic(self.metrics, {
-                            "kind": "tool_argument_redundant_default_target_removed",
+                            "kind": "tool_argument_default_placement_normalized",
                             "modelCallSequence": self.metrics.modelCalls,
                             "toolName": "mutate_app_ui_model",
                             "operationCount": removed,

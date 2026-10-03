@@ -264,7 +264,7 @@ def test_default_placement_discards_only_redundant_relative_target_without_repai
     }
     assert metrics.protocolRepairAttempts == 0
     assert metrics.protocolDiagnostics == [{
-        "kind": "tool_argument_redundant_default_target_removed",
+        "kind": "tool_argument_default_placement_normalized",
         "modelCallSequence": 21,
         "toolName": "mutate_app_ui_model",
         "operationCount": 1,
@@ -301,7 +301,37 @@ def test_relative_plugin_insert_without_type_resolves_to_declared_default():
     assert metrics.protocolDiagnostics[0]["missingTypeCount"] == 1
 
 
-def test_default_placement_does_not_discard_nonrelative_target():
+@pytest.mark.parametrize("extra", [
+    {"actionId": "side-panel-action"},
+    {"actionId": "side-panel-action", "target": {"type": "application"}},
+])
+def test_default_placement_ignores_action_catalog_hint_and_conflicting_target(extra):
+    mutation_tool = {
+        "name": "mutate_app_ui_model",
+        "function": {"parameters": APP_UI_MODEL_MUTATION_TOOL_SCHEMA},
+    }
+    metrics = ToolProtocolMetrics(modelCalls=21)
+    plugin = {"id": "task-list-main", "pluginId": "task-list", "enabled": True}
+    decision = ToolProtocolGuard(metrics).inspect(
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "mutate_app_ui_model",
+            "args": {"operations": [{
+                "type": "insert_plugin_default", "plugin": plugin, **extra,
+            }]},
+            "id": "default-with-action-hint",
+        }])]),
+        [mutation_tool],
+    )
+
+    assert decision.status == "tool_call"
+    assert decision.response.result[0].tool_calls[0]["args"] == {
+        "operations": [{"type": "insert_plugin_default", "plugin": plugin}]
+    }
+    assert metrics.protocolRepairAttempts == 0
+    assert metrics.protocolDiagnostics[0]["kind"] == "tool_argument_default_placement_normalized"
+
+
+def test_default_placement_keeps_unknown_extra_fields_invalid():
     mutation_tool = {
         "name": "mutate_app_ui_model",
         "function": {"parameters": APP_UI_MODEL_MUTATION_TOOL_SCHEMA},
@@ -311,11 +341,10 @@ def test_default_placement_does_not_discard_nonrelative_target():
         ModelResponse(result=[AIMessage(content="", tool_calls=[{
             "name": "mutate_app_ui_model",
             "args": {"operations": [{
-                "type": "insert_plugin_default",
+                "type": "insert_plugin_default", "index": 1,
                 "plugin": {"id": "task-list-main", "pluginId": "task-list", "enabled": True},
-                "target": {"type": "application"},
             }]},
-            "id": "default-with-unrelated-target",
+            "id": "default-with-unknown-field",
         }])]),
         [mutation_tool],
     )
