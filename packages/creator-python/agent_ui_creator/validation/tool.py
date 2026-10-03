@@ -26,11 +26,35 @@ def create_validation_tool(service: CreatorValidationService) -> BaseTool:
                     "details": error.details,
                 },
             }, ensure_ascii=False, separators=(",", ":"))
+        evidence = result.to_dict()
+        priority = (
+            "revision", "status", "validationMode", "differentialStatus",
+            "newDiagnostics", "failureSemantics",
+        )
+        ordered = {key: evidence[key] for key in priority if key in evidence}
+        failure = evidence.get("failureSemantics")
+        if (
+            result.status == "failed"
+            and isinstance(failure, dict)
+            and failure.get("automaticRepairAllowed") is True
+            and evidence.get("newDiagnostics")
+        ):
+            ordered["repairGuidance"] = (
+                "Repair the listed introduced diagnostics in their named files, "
+                "then validate the current revision again. Use these paths and "
+                "messages before searching other source files."
+            )
+        ordered.update({
+            key: value for key, value in evidence.items()
+            if key not in ordered and key != "checks"
+        })
+        if "checks" in evidence:
+            ordered["checks"] = evidence["checks"]
         return json.dumps(
             {
                 "ok": True,
                 "result": {
-                    **result.to_dict(),
+                    **ordered,
                     **service.repair_state.to_dict(),
                 },
             },

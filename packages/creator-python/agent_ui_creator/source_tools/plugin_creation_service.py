@@ -29,6 +29,14 @@ _PROJECT_ROOT_IMPORT = re.compile(
     r"(?P<prefix>\bfrom\s*[\"']|\bimport\s*[\"'])"
     r"(?P<wrong>\.\./(?P<domain>agent-ui|framework|services)/(?P<rest>[^\"']+))"
 )
+_BUILTIN_SERVICE_BARREL_IMPORT = re.compile(
+    r"(?P<prefix>\bimport\s*\{\s*(?P<symbol>AGENT_UI_LOCALE_SERVICE|AGENT_UI_THEME_SERVICE)"
+    r"\s*\}\s*from\s*)(?P<quote>[\"'])(?P<wrong>\.\./(?:\.\./)?services)(?P=quote)"
+)
+_BUILTIN_SERVICE_MODULES = {
+    "AGENT_UI_LOCALE_SERVICE": "agent-ui-locale",
+    "AGENT_UI_THEME_SERVICE": "agent-ui-theme",
+}
 _BUILTIN_HOOK_SERVICES = {
     "useAgentUILocale": "AGENT_UI_LOCALE_SERVICE",
     "useAgentUIThemeMode": "AGENT_UI_THEME_SERVICE",
@@ -140,6 +148,20 @@ class UIPluginCreationService:
             normalized_files[relative_path] = _PROJECT_ROOT_IMPORT.sub(
                 correct_project_import, content
             )
+
+        definition = normalized_files["definition.ts"]
+
+        def correct_builtin_service_import(match: re.Match[str]) -> str:
+            module = _BUILTIN_SERVICE_MODULES[match.group("symbol")]
+            if not (plugin_root.parent.parent / "services" / f"{module}.ts").is_file():
+                return match.group(0)
+            corrected = f"../../services/{module}"
+            normalized_imports.append(("definition.ts", match.group("wrong"), corrected))
+            return match.group("prefix") + match.group("quote") + corrected + match.group("quote")
+
+        normalized_files["definition.ts"] = _BUILTIN_SERVICE_BARREL_IMPORT.sub(
+            correct_builtin_service_import, definition
+        )
 
         try:
             manifest = json.loads(normalized_files["manifest.json"])

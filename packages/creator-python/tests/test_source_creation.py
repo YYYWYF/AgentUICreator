@@ -228,6 +228,28 @@ def test_create_ui_plugin_normalizes_known_project_root_imports_atomically(tmp_p
     ).read_text()
 
 
+def test_create_ui_plugin_uses_direct_builtin_service_module_in_definition(tmp_path):
+    service_file = tmp_path / "services/agent-ui-locale.ts"
+    service_file.parent.mkdir(parents=True)
+    service_file.write_text('export const AGENT_UI_LOCALE_SERVICE = "agent-ui.locale";')
+    creation, _activity = plugin_service(tmp_path)
+    files = plugin_sources()
+    files[1] = plugin_source("definition.ts", (
+        'import { AGENT_UI_LOCALE_SERVICE } from "../../services";\n'
+        'export default { optionalInject: [AGENT_UI_LOCALE_SERVICE] };\n'
+    ))
+
+    result = asyncio.run(creation.create("task-status", files))
+
+    definition = (tmp_path / "plugins/task-status/definition.ts").read_text()
+    assert 'from "../../services/agent-ui-locale"' in definition
+    assert result.to_dict()["normalizedImports"] == [{
+        "relativePath": "definition.ts",
+        "from": "../../services",
+        "to": "../../services/agent-ui-locale",
+    }]
+
+
 def test_create_ui_plugin_preflights_declared_placement_before_source_commit(tmp_path):
     source_creation, activity = service(tmp_path)
 

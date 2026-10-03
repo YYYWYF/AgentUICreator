@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from types import SimpleNamespace
 
 from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.app_ui_model import ProjectMutationCoordinator
@@ -174,6 +175,35 @@ def test_failed_validation_returns_diagnostics_not_run_error(tmp_path):
         "automaticCrossLayerRepairAllowed": False,
         "recovery": "stop_and_report_blocker",
     }
+
+
+def test_validation_tool_exposes_introduced_diagnostics_before_long_check_output():
+    class Validation:
+        status = "failed"
+
+        def to_dict(self):
+            return {
+                "revision": 8,
+                "status": "failed",
+                "checks": [{"command": "pnpm verify:ui", "status": "passed", "output": "x" * 8000}],
+                "newDiagnostics": [{"path": "src/agent-ui/agent-ui/i18n/locales/en-US.ts",
+                                    "code": "TS2741", "message": "Missing checklist locale."}],
+                "failureSemantics": {"automaticRepairAllowed": True},
+            }
+
+    class Service:
+        repair_state = SimpleNamespace(to_dict=lambda: {})
+
+        async def validate(self, mode="delta"):
+            return Validation()
+
+    raw = asyncio.run(create_validation_tool(Service()).ainvoke({}))
+    payload = json.loads(raw)
+
+    assert raw.index('"newDiagnostics"') < raw.index('"checks"')
+    assert '"TS2741"' in raw[:4096]
+    assert payload["result"]["checks"][0]["output"] == "x" * 8000
+    assert "named files" in payload["result"]["repairGuidance"]
 
 
 def test_composition_validation_blocker_is_unrelated_and_not_auto_repairable(
