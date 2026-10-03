@@ -307,6 +307,7 @@ async def _domain_read_agent_result(
     checkpointer: Any = None,
     resume: dict[str, Any] | None = None,
     inspect_read_only: bool = False,
+    answer_only: bool = False,
 ):
     from .domain_agent import create_domain_read_creator_agent
     from .model_factory import create_creator_chat_model
@@ -337,6 +338,7 @@ async def _domain_read_agent_result(
         workspace=settings.project_root,
         mode="development",
         permission_scope="inspect_read_only" if inspect_read_only else "legacy",
+        answer_only=answer_only,
         raw_trace=model_settings.raw_trace,
         provider_trace_collector=provider_trace_collector,
         activity=activity,
@@ -427,7 +429,7 @@ async def _domain_write_agent_result(
             user_message=current_user_message,
             intent=productized_result.selection.developmentIntent,
         )
-    if productized_result.route == "read_only_general":
+    if productized_result.route in {"read_only_general", "answer_only"}:
         if execution_context is not None:
             execution_context.permission = "inspect_read_only"
         return await _domain_read_agent_result(
@@ -440,6 +442,7 @@ async def _domain_write_agent_result(
             diagnostics=diagnostics,
             checkpointer=checkpointer,
             inspect_read_only=True,
+            answer_only=productized_result.route == "answer_only",
         )
     if execution_context is not None:
         execution_context.permission = "domain_write"

@@ -2,6 +2,8 @@
 
 Python Agent UI Creator 的开发时 Node host、CLI、Vite 代理与 React Workbench。模型、Agent loop、项目工具、验证、回执和运行时诊断状态都由 `packages/creator-python` 负责；目标前端不需要把 Creator 打进生产 Bundle。
 
+Creator 是 Agent UI 的开发助手。用户可以直接提问了解使用方法，让它检查当前工程、先设计方案，也可以要求修改和验证。仅在请求依赖工程现状时读取项目；仅在请求修改时进入写路径。普通对话直接显示回答，开发执行信息随实际工作出现。
+
 ## CLI
 
 在包含 `.env.creator.local` 的目录运行：

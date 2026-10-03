@@ -112,6 +112,7 @@ operations, invent ownership, or execute changes.
 
 Return exactly ONE line in one of these forms:
 SELECT A<n>
+ANSWER
 INSPECT
 GENERAL
 GENERAL DEVELOPMENT_DECISION
@@ -121,8 +122,18 @@ GENERAL DEVELOPMENT_PROHIBITED
 UNSUPPORTED
 CLARIFY <question>
 
-Never invent a choice, target, owner, placement, or mutation. Use INSPECT for a
-project-related read-only request (analysis, inventory, diagnosis, or an
+Never invent a choice, target, owner, placement, or mutation. Use ANSWER for
+Creator usage, its general capabilities and workflow, or Agent UI concepts
+that can be explained without current workspace facts. Examples: what can you
+do, how do I use Creator, how should I describe a request, can you first plan
+without editing, or can you validate a completed change. ANSWER is a direct
+conversation, not a zero-file mutation task. Use INSPECT when the answer needs
+current project facts, including the installed Plugins, current implementation,
+diagnosis, or a plan grounded in the current project. A request to plan without
+editing remains read-only. Use GENERAL or a supplied choice only when the user
+requests a changed project state. Clarify only when missing information would
+materially change a requested side effect; do not clarify ordinary questions.
+Use INSPECT for a project-related read-only request (analysis, inventory, diagnosis, or an
 evidence-based answer). It routes to an agent whose actual tools are read-only.
 If the User forbids development or all modifications but asks whether existing
 capabilities cover a specific feature or what gap remains, use INSPECT. The
@@ -363,14 +374,14 @@ def _repair_feedback(
             "Your previous SELECT referenced a choice that does not exist in the "
             "current request.\n\n"
             f"Select exactly one of: {valid}.\n"
-            "Return exactly SELECT <valid-choice>, or use INSPECT / GENERAL / GENERAL DEVELOPMENT_DECISION / GENERAL DEVELOPMENT_EXPLICIT / GENERAL DEVELOPMENT_CONDITIONAL / GENERAL DEVELOPMENT_PROHIBITED / UNSUPPORTED / "
+            "Return exactly SELECT <valid-choice>, or use ANSWER / INSPECT / GENERAL / GENERAL DEVELOPMENT_DECISION / GENERAL DEVELOPMENT_EXPLICIT / GENERAL DEVELOPMENT_CONDITIONAL / GENERAL DEVELOPMENT_PROHIBITED / UNSUPPORTED / "
             "CLARIFY if semantically correct.\n"
             "Do not reinterpret the user's request."
         )
     return (
         "Your previous response did not match the Creator Action Selector protocol.\n\n"
         "Return exactly ONE line in one of these forms:\n"
-        "SELECT <choice>\nINSPECT\nGENERAL\nGENERAL DEVELOPMENT_DECISION\nGENERAL DEVELOPMENT_EXPLICIT\nGENERAL DEVELOPMENT_CONDITIONAL\nGENERAL DEVELOPMENT_PROHIBITED\nUNSUPPORTED\nCLARIFY <question>\n\n"
+        "SELECT <choice>\nANSWER\nINSPECT\nGENERAL\nGENERAL DEVELOPMENT_DECISION\nGENERAL DEVELOPMENT_EXPLICIT\nGENERAL DEVELOPMENT_CONDITIONAL\nGENERAL DEVELOPMENT_PROHIBITED\nUNSUPPORTED\nCLARIFY <question>\n\n"
         "When using CLARIFY, write the question in Simplified Chinese by default.\n"
         f"Valid choices are: {valid}.\n"
         "Do not return JSON, Markdown, or explanation.\n"
@@ -453,6 +464,8 @@ def _parse_selector_response(
         return CreatorActionSelection(
             decision="general_change", developmentIntent=development_intents[line]
         )
+    if line == "ANSWER":
+        return CreatorActionSelection(decision="answer_only")
     if line == "INSPECT":
         return CreatorActionSelection(decision="read_only_analysis")
     if line == "UNSUPPORTED":

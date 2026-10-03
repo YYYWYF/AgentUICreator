@@ -15,6 +15,7 @@ from .models import (
 
 
 CreatorIntentRoute: TypeAlias = Literal[
+    "answer_only",
     "productized",
     "general-agent",
     "read_only_general",
@@ -98,6 +99,8 @@ def _label_for_action_selection(
     action: CreatorActionCandidate | None,
     target: CreatorAuthoringTargetCandidate | None,
 ) -> str:
+    if selection.decision == "answer_only":
+        return "回答 Creator 使用问题"
     if selection.decision == "needs_clarification":
         return "需要确认修改目标"
     if selection.decision == "unsupported_product_action":
@@ -153,6 +156,7 @@ def present_creator_action_selection(
     selected = selection.decision == "select_action" and action is not None
     selected_target = selection.decision == "select_intent" and target is not None
     effective_route = route or {
+        "answer_only": "answer_only",
         "select_action": "productized",
         "select_intent": target.kind if target is not None else "scoped_general_handoff",
         "needs_clarification": "clarification",

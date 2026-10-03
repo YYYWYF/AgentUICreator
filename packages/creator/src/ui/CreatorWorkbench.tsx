@@ -40,7 +40,9 @@ import {
   reconcileCreatorStagesFromRunResult,
   type CreatorStageActivity,
   type CreatorStageName,
+  type CreatorIntentRoute,
 } from "./creatorStageProjection.js";
+import { shouldPresentMutationReceipt, shouldPresentStage } from "./creatorConversationPresentation.js";
 
 const STORAGE_KEY = "agent-ui-creator-conversation";
 const WORKSPACE_PATH_STORAGE_KEY = "agent-ui-creator-selected-project-root";
@@ -109,6 +111,8 @@ interface CreatorMessage {
   role: "user" | "assistant" | "error";
   content: string;
   receipt?: CreatorRunReceipt | undefined;
+  receiptRoute?: CreatorIntentRoute | undefined;
+  mutationAttempts?: number | undefined;
   streaming?: boolean | undefined;
 }
 
@@ -390,12 +394,15 @@ function storedItem(value: unknown): CreatorConversationItem | undefined {
     (role === "user" || role === "assistant" || role === "error") &&
     typeof value.content === "string"
   ) {
+    const receiptRoute = parseCreatorStepMetadata({ creator: { route: value.receiptRoute } })?.route;
     return {
       kind: "message",
       id: value.id,
       role,
       content: value.content,
       ...(isCreatorRunReceipt(value.receipt) ? { receipt: value.receipt } : {}),
+      ...(receiptRoute === undefined ? {} : { receiptRoute }),
+      ...(typeof value.mutationAttempts === "number" ? { mutationAttempts: value.mutationAttempts } : {}),
       streaming: false,
     };
   }
@@ -482,7 +489,7 @@ function CreatorMarkdown({ content }: { content: string }) {
   );
 }
 
-function CreatorReceipt({ receipt, onUndo, undoBusy }: { receipt: CreatorRunReceipt; onUndo?: ((runId: string) => void) | undefined; undoBusy?: boolean }) {
+function CreatorReceipt({ receipt, debug, onUndo, undoBusy }: { receipt: CreatorRunReceipt; debug: boolean; onUndo?: ((runId: string) => void) | undefined; undoBusy?: boolean }) {
   const verification = receipt.verification;
   const verificationPassed =
     verification?.status === "changed-and-statically-verified" ||
@@ -587,7 +594,7 @@ function CreatorReceipt({ receipt, onUndo, undoBusy }: { receipt: CreatorRunRece
         </div>
       )}
 
-      {receipt.diagnosticLog === undefined ? null : (
+      {!debug || receipt.diagnosticLog === undefined ? null : (
         <div className="creator-receipt-section">
           <h2>诊断日志</h2>
           <div className="creator-receipt-meta">
@@ -895,7 +902,7 @@ function CreatorStageActivityCard({
   activity: CreatorStageActivity;
   debug: boolean;
 }) {
-  if (!debug && activity.name === "creator.grounding") {
+  if (!shouldPresentStage(activity, debug)) {
     return null;
   }
   return (
@@ -1424,6 +1431,11 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
       });
       const receipt = receiptFromRunResult(result.result);
       if (receipt !== undefined) {
+        const runResult = isRecord(result.result) ? result.result : {};
+        const intent = isRecord(runResult.creatorIntent) ? runResult.creatorIntent : {};
+        const receiptRoute = parseCreatorStepMetadata({ creator: intent })?.route;
+        const mutationAttempts = typeof runResult.mutationAttempts === "number"
+          ? runResult.mutationAttempts : 0;
         if (latestAssistantMessageId === undefined) {
           updateRunItems((current) => [
             ...current,
@@ -1433,6 +1445,8 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
               role: "assistant",
               content: "Creator 已完成本次处理。",
               receipt,
+              receiptRoute,
+              mutationAttempts,
               streaming: false,
             },
           ]);
@@ -1441,7 +1455,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
           updateRunItems((current) =>
             current.map((item) =>
               item.kind === "message" && item.id === receiptMessageId
-                ? { ...item, receipt, streaming: false }
+                ? { ...item, receipt, receiptRoute, mutationAttempts, streaming: false }
                 : item,
             ),
           );
@@ -1842,11 +1856,11 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
               ) : workspaceState?.status !== "ready" && workspaceState?.status !== "legacy" ? (
                 <div className="creator-panel-empty"><strong>选择项目后才能使用 Creator。</strong></div>
               ) : items.filter(
-                (item) => creatorDebug || item.kind !== "stage" || item.name !== "creator.grounding",
+                (item) => item.kind !== "stage" || shouldPresentStage(item, creatorDebug),
               ).length === 0 ? (
                 <div className="creator-panel-empty">
-                  <strong>描述你想做的前端修改。</strong>
-                  <p>Creator 可以修改本项目的 app-ui 和 UI Plugin 源码。</p>
+                  <strong>告诉 Creator 你想了解、检查或修改什么。</strong>
+                  <p>可以分析当前 Agent UI、设计修改方案，或直接描述你想要的效果。</p>
                 </div>
               ) : (
                 items.map((item) =>
@@ -1879,8 +1893,13 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                           aria-hidden="true"
                         />
                       ) : null}
-                      {item.receipt === undefined ? null : (
-                        <CreatorReceipt receipt={item.receipt}
+                      {item.receipt === undefined || !shouldPresentMutationReceipt({
+                        route: item.receiptRoute,
+                        receipt: item.receipt,
+                        debug: creatorDebug,
+                        mutationAttempts: item.mutationAttempts,
+                      }) ? null : (
+                        <CreatorReceipt receipt={item.receipt} debug={creatorDebug}
                           onUndo={!isRunning && !hasPendingCreatorQuestion(items) ? (runId) => { void undoCreatorRun(runId); } : undefined}
                           undoBusy={undoRunId === item.receipt.transaction?.runId} />
                       )}
@@ -1890,7 +1909,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
               )}
               {isRunning ? (
                 <p className="creator-panel-running" role="status">
-                  Creator 正在检查并修改项目…
+                  Creator 正在处理请求…
                 </p>
               ) : null}
             </div>}
@@ -1978,13 +1997,13 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
               ) : null}
             </div>
             {workspaceState?.status === "ready" || workspaceState?.status === "legacy" ? <form className="creator-panel-composer" onSubmit={submit}>
-              <label htmlFor="creator-request">修改需求</label>
+              <label htmlFor="creator-request">告诉 Creator</label>
               <textarea
                 disabled={isRunning || !creatorRuntimeReady || questionPending}
                 id="creator-request"
                 onChange={(event) => setInput(event.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="例如：右边增加一个工具调用详情面板"
+                placeholder="例如：看看当前 UI，或在右侧增加工具详情面板"
                 rows={2}
                 value={input}
               />

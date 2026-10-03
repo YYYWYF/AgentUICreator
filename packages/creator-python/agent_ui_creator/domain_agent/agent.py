@@ -95,6 +95,7 @@ from .change_scope import (
     build_change_layer_run_metrics,
 )
 from .prompt import (
+    DOMAIN_ANSWER_AGENT_PROMPT,
     DOMAIN_INSPECT_AGENT_PROMPT,
     DOMAIN_READ_AGENT_PROMPT,
     DOMAIN_WRITE_AGENT_PROMPT,
@@ -458,6 +459,7 @@ def create_domain_read_creator_agent(
     workspace: str | Path,
     mode: Literal["development", "conformance"] = "development",
     permission_scope: Literal["legacy", "inspect_read_only"] = "legacy",
+    answer_only: bool = False,
     raw_trace: bool = False,
     provider_trace_collector: ProviderResponseTraceCollector | None = None,
     project_control: ProjectControlClient | None = None,
@@ -489,12 +491,12 @@ def create_domain_read_creator_agent(
         observations=observations,
         activity=backend.activity,
     )
-    domain_tools = (*create_project_control_tools(
+    domain_tools = () if answer_only else (*create_project_control_tools(
         client,
         observations=observations,
         activity=backend.activity,
     ), ask_user_question)
-    if verification_mode == "static_and_runtime":
+    if verification_mode == "static_and_runtime" and not answer_only:
         domain_tools = (*domain_tools, create_runtime_layout_tool(runtime_inspection))
     if permission_scope == "inspect_read_only":
         domain_tools = tuple(
@@ -539,7 +541,7 @@ def create_domain_read_creator_agent(
         backend=backend,
         tools=[
             name for name in ALLOWED_MINIMAL_TOOLS
-            if permission_scope != "inspect_read_only" or name != "edit_file"
+            if not answer_only and (permission_scope != "inspect_read_only" or name != "edit_file")
         ],
         tool_token_limit_before_evict=None,
         human_message_token_limit_before_evict=None,
@@ -549,7 +551,9 @@ def create_domain_read_creator_agent(
         tools=list(domain_tools),
         checkpointer=checkpointer,
         system_prompt=creator_verification_prompt(
-            DOMAIN_INSPECT_AGENT_PROMPT
+            DOMAIN_ANSWER_AGENT_PROMPT
+            if answer_only
+            else DOMAIN_INSPECT_AGENT_PROMPT
             if permission_scope == "inspect_read_only"
             else DOMAIN_READ_AGENT_PROMPT,
             verification_mode,
@@ -563,6 +567,7 @@ def create_domain_read_creator_agent(
             DomainReadToolPolicyMiddleware(
                 verification_mode,
                 inspect_read_only=permission_scope == "inspect_read_only",
+                answer_only=answer_only,
             ),
             repeated_read_guard,
             runtime,

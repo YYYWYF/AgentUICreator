@@ -64,6 +64,53 @@ def test_selector_inspect_route_uses_actual_read_only_agent(tmp_path, monkeypatc
     assert calls == [("read", True)]
 
 
+def test_selector_answer_route_uses_tool_free_read_agent(tmp_path, monkeypatch):
+    from agent_ui_creator.activity import CreatorActivityRecorder
+    from agent_ui_creator.app_ui_model import ProjectMutationCoordinator
+    from agent_ui_creator.runtime_diagnostics import RuntimeDiagnosticStore
+    from agent_ui_creator.server import _domain_write_agent_result
+
+    resolved = CreatorResolveResult(
+        route="answer_only",
+        selection=CreatorActionSelection(decision="answer_only"),
+        presentation=CreatorIntentPresentation(
+            label="回答 Creator 使用问题", kind="answer_only",
+            target_plugin_ids=(), target_instance_ids=(), route="answer_only",
+        ),
+    )
+    calls = []
+
+    class FakeEngine:
+        def __init__(self, **_kwargs):
+            pass
+
+        async def run(self, _messages):
+            return resolved
+
+    async def fake_read(*_args, **kwargs):
+        calls.append(("read", kwargs.get("inspect_read_only"), kwargs.get("answer_only")))
+        return "usage answer"
+
+    async def fake_write(*_args, **_kwargs):
+        calls.append(("write",))
+
+    monkeypatch.setenv("CREATOR_MODEL_BASE_URL", "http://127.0.0.1:9/v1")
+    monkeypatch.setenv("CREATOR_MODEL_API_KEY", "test-only")
+    monkeypatch.setattr("agent_ui_creator.model_factory.create_creator_chat_model", lambda *_args, **_kwargs: object())
+    monkeypatch.setattr("agent_ui_creator.server.ProductizedOperationEngine", FakeEngine)
+    monkeypatch.setattr("agent_ui_creator.server._domain_read_agent_result", fake_read)
+    monkeypatch.setattr("agent_ui_creator.server._general_domain_write_agent_result", fake_write)
+    settings = CreatorServerSettings(project_root=tmp_path, skills_root=tmp_path, auth_token="x" * 32)
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("answer-only-route")
+    result = asyncio.run(_domain_write_agent_result(
+        settings, [{"role": "user", "content": "你能做什么？"}], activity,
+        ProjectMutationCoordinator(), RuntimeDiagnosticStore(), "thread-1", None,
+    ))
+    assert result == "usage answer"
+    assert calls == [("read", True, True)]
+
+
 def test_conversation_messages_keeps_only_nonempty_user_and_assistant_text():
     run_input = AgUiRunInput(
         threadId="thread-1",

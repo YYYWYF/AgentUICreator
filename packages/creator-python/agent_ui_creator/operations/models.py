@@ -602,6 +602,7 @@ CreatorIntentSelectorContext = CreatorActionSelectorContext
 
 
 CreatorActionDecision: TypeAlias = Literal[
+    "answer_only",
     "select_action",
     "select_intent",
     "needs_clarification",

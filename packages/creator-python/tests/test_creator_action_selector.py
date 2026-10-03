@@ -860,6 +860,27 @@ def test_selector_has_project_read_route_and_keeps_multistep_work_general():
     assert "no matching atomic Action" in _SELECTOR_SYSTEM_PROMPT
 
 
+@pytest.mark.parametrize("message", [
+    "你能做什么？", "Creator 怎么用？", "我应该怎么描述需求？",
+    "我可以让你先给方案再修改吗？",
+])
+def test_selector_answer_protocol_for_product_guidance(message):
+    selector = CreatorActionSelector(model=StaticChatModel(["ANSWER"]))
+    result = asyncio.run(selector.select(message, _context()))
+    assert result.decision == "answer_only"
+    assert _parse_selector_response("ANSWER", {}).decision == "answer_only"
+    assert "ANSWER" in _SELECTOR_SYSTEM_PROMPT
+
+
+@pytest.mark.parametrize("message", [
+    "看看我现在有哪些插件", "为什么现在有两个 Footer？",
+    "先根据当前工程给方案，不要修改",
+])
+def test_selector_keeps_workspace_questions_on_inspect(message):
+    selector = CreatorActionSelector(model=StaticChatModel(["INSPECT"]))
+    assert asyncio.run(selector.select(message, _context())).decision == "read_only_analysis"
+
+
 def test_preserving_source_does_not_authorize_reverting_earlier_changes():
     assert "restore any source changed by an earlier turn" not in _SELECTOR_SYSTEM_PROMPT
     assert "preserve currently authorized source changes" in _SELECTOR_SYSTEM_PROMPT

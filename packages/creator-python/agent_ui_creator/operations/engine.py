@@ -111,7 +111,7 @@ class ProductizedOperationRun:
 class CreatorResolveResult:
     """Explicit handoff result for a scoped or unscoped General Agent route."""
 
-    route: Literal["scoped_general_handoff", "unscoped_general", "read_only_general"]
+    route: Literal["scoped_general_handoff", "unscoped_general", "read_only_general", "answer_only"]
     selection: CreatorActionSelection
     presentation: CreatorIntentPresentation
     handoff: CreatorAuthoringHandoff | None = None
@@ -397,6 +397,7 @@ class ProductizedOperationEngine:
             if selection.decision == "select_intent" and selected_target is not None
             else {
                 "select_action": "productized",
+                "answer_only": "answer_only",
                 "needs_clarification": "clarification",
                 "general_change": "unscoped_general",
                 "read_only_analysis": "read_only_general",
@@ -446,9 +447,9 @@ class ProductizedOperationEngine:
                 presentation=presentation,
             )
 
-        if selection.decision == "read_only_analysis":
+        if selection.decision in {"read_only_analysis", "answer_only"}:
             return CreatorResolveResult(
-                route="read_only_general",
+                route=route,
                 selection=selection,
                 presentation=presentation,
             )

@@ -486,6 +486,23 @@ def test_general_change_is_the_only_decision_that_returns_none():
     assert "fallback" not in telemetry.operation_route
 
 
+def test_answer_only_handoff_has_no_mutation_or_validation():
+    engine, selector, action_playbook, telemetry = _engine(
+        CreatorActionSelection(decision="answer_only")
+    )
+
+    result = asyncio.run(engine.run([{"role": "user", "content": "你能做什么？"}]))
+
+    assert isinstance(result, CreatorResolveResult)
+    assert result.route == "answer_only"
+    assert result.presentation.route == "answer_only"
+    assert result.presentation.label == "回答 Creator 使用问题"
+    assert selector.calls == 1
+    assert action_playbook.calls == []
+    assert engine.mutation_service.metrics.operations == 0
+    assert telemetry.operation_route["generalAgent"] is False
+
+
 def test_repaired_general_change_preserves_selector_reason_and_model_totals():
     engine, _selector, _action_playbook, telemetry = _engine(
         CreatorActionSelection(decision="general_change"),

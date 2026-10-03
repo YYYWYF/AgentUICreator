@@ -33,8 +33,8 @@ class TrackingModel(FakeMessagesListChatModel):
 
 
 def _selection(route: str) -> CreatorResolveResult:
-    read_only = route == "read_only_general"
-    decision = "read_only_analysis" if read_only else "general_change"
+    read_only = route in {"read_only_general", "answer_only"}
+    decision = "answer_only" if route == "answer_only" else "read_only_analysis" if read_only else "general_change"
     return CreatorResolveResult(
         route=route,
         selection=CreatorActionSelection(decision=decision),
@@ -90,6 +90,22 @@ def _question(events):
 
 def _answer(question):
     return {"interruptId": question["id"], "answers": {"choice": ["yes"]}}
+
+
+def test_answer_only_streams_without_project_tools_or_mutation(tmp_path, monkeypatch):
+    model = TrackingModel(responses=[
+        AIMessage(content="我可以解释、检查、规划和修改 Agent UI。"),
+    ])
+    _app, client = _client(tmp_path, monkeypatch, model, route="answer_only")
+
+    events = _events(client, "thread-answer", "run-answer", text="你能做什么？")
+    finished = next(event for event in events if event["type"] == "RUN_FINISHED")
+    assert finished["result"]["creatorIntent"]["route"] == "answer_only"
+    assert finished["result"]["executionPolicy"] == "read-only"
+    assert finished["result"].get("mutationAttempts", 0) == 0
+    assert "productizedOperation" not in finished["result"]
+    assert all(not offered for offered in getattr(model, "offered_tools", []))
+    assert any("我可以解释" in event.get("delta", "") for event in events)
 
 
 def test_inspect_question_resumes_read_only_with_read_only_receipt(tmp_path, monkeypatch):

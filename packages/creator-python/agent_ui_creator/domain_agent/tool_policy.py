@@ -73,7 +73,10 @@ def filter_domain_read_tools(
     *,
     verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
     inspect_read_only: bool = False,
+    answer_only: bool = False,
 ) -> list[Any]:
+    if answer_only:
+        return []
     allowed = (
         frozenset(ALLOWED_INSPECT_READ_ONLY_TOOLS)
         if inspect_read_only else _ALLOWED_DOMAIN_READ_TOOL_SET
@@ -113,9 +116,11 @@ class DomainReadToolPolicyMiddleware(AgentMiddleware):
         verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
         *,
         inspect_read_only: bool = False,
+        answer_only: bool = False,
     ) -> None:
         self.verification_mode = verification_mode
         self.inspect_read_only = inspect_read_only
+        self.answer_only = answer_only
 
     def wrap_model_call(
         self,
@@ -128,6 +133,7 @@ class DomainReadToolPolicyMiddleware(AgentMiddleware):
                     request.tools,
                     verification_mode=self.verification_mode,
                     inspect_read_only=self.inspect_read_only,
+                    answer_only=self.answer_only,
                 )
             )
         )
@@ -143,6 +149,7 @@ class DomainReadToolPolicyMiddleware(AgentMiddleware):
                     request.tools,
                     verification_mode=self.verification_mode,
                     inspect_read_only=self.inspect_read_only,
+                    answer_only=self.answer_only,
                 )
             )
         )

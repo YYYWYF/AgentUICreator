@@ -6,8 +6,14 @@ export type CreatorStageName =
 export type CreatorStageStatus = "running" | "completed" | "failed";
 
 export type CreatorIntentRoute =
+  | "answer_only"
   | "productized"
   | "general-agent"
+  | "read_only_general"
+  | "unscoped_general"
+  | "scoped_general_handoff"
+  | "application_config"
+  | "plugin_source"
   | "clarification"
   | "unsupported";
 
@@ -20,8 +26,11 @@ export interface CreatorStageMetadata {
   displayIntent?: string;
   intent?: string;
   decision?:
+    | "answer_only"
     | "select_action"
+    | "select_intent"
     | "needs_clarification"
+    | "read_only_analysis"
     | "general_change"
     | "unsupported_product_action";
   actionId?: string;
@@ -123,8 +132,14 @@ function stringArray(value: unknown): string[] | undefined {
 }
 
 function routeValue(value: unknown): CreatorIntentRoute | undefined {
-  return value === "productized" ||
+  return value === "answer_only" ||
+    value === "productized" ||
     value === "general-agent" ||
+    value === "read_only_general" ||
+    value === "unscoped_general" ||
+    value === "scoped_general_handoff" ||
+    value === "application_config" ||
+    value === "plugin_source" ||
     value === "clarification" ||
     value === "unsupported"
     ? value
@@ -135,7 +150,10 @@ function decisionValue(
   value: unknown,
 ): CreatorStageMetadata["decision"] {
   return value === "select_action" ||
+    value === "answer_only" ||
+    value === "select_intent" ||
     value === "needs_clarification" ||
+    value === "read_only_analysis" ||
     value === "general_change" ||
     value === "unsupported_product_action"
     ? value
