@@ -196,11 +196,52 @@ def _validate_arguments(
             error_type=first.get("type", "argument_validation_error"),
         )
     except ValidationError as error:
-        return False, _validation_failure(
+        diagnostic = _validation_failure(
             arguments,
             error_path=getattr(error, "absolute_path", getattr(error, "path", ())),
             error_type=getattr(error, "validator", None) or "argument_validation_error",
         )
+        if (_tool_name(tool) == "mutate_app_ui_model"
+                and diagnostic["errorType"] == "oneOf"
+                and len(diagnostic["errorPath"]) == 2
+                and diagnostic["errorPath"][0] == "operations"
+                and isinstance(diagnostic["errorPath"][1], int)):
+            index = diagnostic["errorPath"][1]
+            operations = arguments.get("operations")
+            if isinstance(operations, list) and 0 <= index < len(operations):
+                operation = operations[index]
+                if isinstance(operation, Mapping):
+                    operation_type = operation.get("type")
+                    schema = getattr(tool, "args_schema", None)
+                    variants = (
+                        schema.get("properties", {}).get("operations", {})
+                        .get("items", {}).get("oneOf", [])
+                        if isinstance(schema, Mapping) else []
+                    )
+                    branch_index = next((
+                        offset for offset, variant in enumerate(variants)
+                        if variant.get("properties", {}).get("type", {}).get("const")
+                        == operation_type
+                    ), None)
+                    diagnostic["operationType"] = (
+                        operation_type if branch_index is not None else "<unknown>"
+                    )
+                    diagnostic["operationShape"] = _argument_shape(operation)
+                    for key in ("plugin", "target", "node"):
+                        nested = operation.get(key)
+                        if isinstance(nested, Mapping):
+                            diagnostic[f"{key}Shape"] = _argument_shape(nested)
+                    if branch_index is not None:
+                        diagnostic["branchErrors"] = [
+                            {
+                                "path": _bounded_error_path(sub_error.path),
+                                "type": _trace_label(sub_error.validator),
+                            }
+                            for sub_error in error.context
+                            if sub_error.schema_path
+                            and sub_error.schema_path[0] == branch_index
+                        ][:8]
+        return False, diagnostic
     except (TypeError, ValueError):
         return False, _validation_failure(arguments)
     return True, None
