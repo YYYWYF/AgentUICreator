@@ -300,7 +300,10 @@ function isCreatorRunReceipt(value: unknown): value is CreatorRunReceipt {
     (value.transaction === undefined ||
       (isRecord(value.transaction) &&
         typeof value.transaction.runId === "string" &&
-        typeof value.transaction.undoable === "boolean"))
+        typeof value.transaction.undoable === "boolean" &&
+        (value.transaction.undone === undefined || typeof value.transaction.undone === "boolean") &&
+        (value.transaction.reapplyable === undefined || typeof value.transaction.reapplyable === "boolean") &&
+        (value.transaction.reapplied === undefined || typeof value.transaction.reapplied === "boolean")))
   );
 }
 
@@ -529,7 +532,7 @@ function CreatorValidationSections({ validations, showHeading = true }: { valida
   );
 }
 
-function CreatorMutationReceipt({ receipt, debug, onUndo, undoBusy }: { receipt: CreatorRunReceipt; debug: boolean; onUndo?: ((runId: string) => void) | undefined; undoBusy?: boolean }) {
+function CreatorMutationReceipt({ receipt, debug, onUndo, onReapply, undoBusy, reapplyBusy }: { receipt: CreatorRunReceipt; debug: boolean; onUndo?: ((runId: string) => void) | undefined; onReapply?: ((runId: string) => void) | undefined; undoBusy?: boolean | undefined; reapplyBusy?: boolean | undefined }) {
   const verification = receipt.verification;
   const verificationPassed =
     verification?.status === "changed-and-statically-verified" ||
@@ -582,23 +585,33 @@ function CreatorMutationReceipt({ receipt, debug, onUndo, undoBusy }: { receipt:
       ))}
       {receipt.transaction === undefined ? null : (
         <div className="creator-receipt-section">
-          <h2>安全撤销</h2>
+          <h2>修改操作</h2>
           <div className="creator-receipt-meta">
             <span
               className={`creator-receipt-status creator-receipt-status--${
-                receipt.transaction.undoable ? "passed" : "failed"
+                receipt.transaction.undone ? "undone" : receipt.transaction.undoable ? "passed" : "failed"
               }`}
             >
-              {receipt.transaction.undoable ? "当前可撤销" : "当前不可撤销"}
-            </span>{" "}
-            · Run <code>{receipt.transaction.runId}</code>
+              {receipt.transaction.undone ? "已撤销" : receipt.transaction.undoable ? "当前可撤销" : "当前不可撤销"}
+            </span>
+            {debug ? <> · Run <code>{receipt.transaction.runId}</code></> : null}
           </div>
           <div className="creator-receipt-note">
-            撤销执行时会再次检查所有文件；后续人工修改不会被覆盖。
+            {receipt.transaction.undone
+              ? receipt.transaction.reapplyable
+                ? "再次应用前会检查所有文件；后续人工修改不会被覆盖。"
+                : "文件已恢复到本次修改前的状态。此记录无法再次应用。"
+              : "撤销执行时会再次检查所有文件；后续人工修改不会被覆盖。"}
+            {receipt.transaction.reapplied ? " 本次再次应用尚未重新验证。" : null}
           </div>
           {receipt.transaction.undoable && onUndo !== undefined ? (
-            <button type="button" disabled={undoBusy} onClick={() => onUndo(receipt.transaction!.runId)}>
+            <button className="creator-receipt-action" type="button" disabled={undoBusy} onClick={() => onUndo(receipt.transaction!.runId)}>
               {undoBusy ? "正在撤销…" : "撤销本次修改"}
+            </button>
+          ) : null}
+          {receipt.transaction.undone && receipt.transaction.reapplyable && onReapply !== undefined ? (
+            <button className="creator-receipt-action creator-receipt-action--reapply" type="button" disabled={reapplyBusy} onClick={() => onReapply(receipt.transaction!.runId)}>
+              {reapplyBusy ? "正在再次应用…" : "再次应用本次修改"}
             </button>
           ) : null}
         </div>
@@ -606,7 +619,7 @@ function CreatorMutationReceipt({ receipt, debug, onUndo, undoBusy }: { receipt:
 
       {verification === undefined ? null : (
         <div className="creator-receipt-section">
-          <h2>完成验证</h2>
+          <h2>{receipt.transaction?.undone || receipt.transaction?.reapplied ? "原运行验证" : "完成验证"}</h2>
           <div className="creator-receipt-meta">
             <span
               className={`creator-receipt-status creator-receipt-status--${
@@ -663,10 +676,10 @@ function CreatorMutationReceipt({ receipt, debug, onUndo, undoBusy }: { receipt:
   );
 }
 
-function CreatorRunReceiptPresentation({ receipt, debug, onUndo, undoBusy }: { receipt: CreatorRunReceipt; debug: boolean; onUndo?: ((runId: string) => void) | undefined; undoBusy?: boolean }) {
+function CreatorRunReceiptPresentation({ receipt, debug, onUndo, onReapply, undoBusy, reapplyBusy }: { receipt: CreatorRunReceipt; debug: boolean; onUndo?: ((runId: string) => void) | undefined; onReapply?: ((runId: string) => void) | undefined; undoBusy?: boolean | undefined; reapplyBusy?: boolean | undefined }) {
   const presentation = classifyCreatorReceiptPresentation(receipt);
   if (presentation === "mutation") {
-    return <CreatorMutationReceipt receipt={receipt} debug={debug} onUndo={onUndo} undoBusy={undoBusy} />;
+    return <CreatorMutationReceipt receipt={receipt} debug={debug} onUndo={onUndo} onReapply={onReapply} undoBusy={undoBusy} reapplyBusy={reapplyBusy} />;
   }
   if (presentation === "validation") {
     return (
@@ -991,6 +1004,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
   const [workspaceBusy, setWorkspaceBusy] = useState(false);
   const [stopBusy, setStopBusy] = useState(false);
   const [undoRunId, setUndoRunId] = useState<string | null>(null);
+  const [reapplyRunId, setReapplyRunId] = useState<string | null>(null);
   const [runAccepted, setRunAccepted] = useState(false);
   const [workspacePicking, setWorkspacePicking] = useState(false);
   const [showWorkspaceSelector, setShowWorkspaceSelector] = useState(true);
@@ -1545,12 +1559,12 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
 
   const undoCreatorRun = async (runId: string) => {
     const agent = agentRef.current;
-    if (agent === null || isRunning || undoRunId !== null || hasPendingCreatorQuestion(itemsRef.current)) return;
+    if (agent === null || isRunning || undoRunId !== null || reapplyRunId !== null || hasPendingCreatorQuestion(itemsRef.current)) return;
     setUndoRunId(runId);
     try {
-      const changedPaths = await agent.undo(runId);
+      const { changedPaths, reapplyable } = await agent.undo(runId);
       updateItems(current => [...current.map(item => item.kind === "message" && item.receipt?.transaction?.runId === runId
-        ? { ...item, receipt: { ...item.receipt, transaction: { ...item.receipt.transaction, undoable: false } } }
+        ? { ...item, receipt: { ...item.receipt, transaction: { ...item.receipt.transaction, undoable: false, undone: true, reapplyable, reapplied: false } } }
         : item), { kind: "message", id: crypto.randomUUID(), role: "assistant",
           content: `已撤销本次修改：${changedPaths.join("、") || "没有文件变更"}。` }]);
       setSetupValidationEpoch(current => current + 1);
@@ -1559,6 +1573,25 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
         content: error instanceof Error ? error.message : String(error) }]);
     } finally {
       setUndoRunId(null);
+    }
+  };
+
+  const reapplyCreatorRun = async (runId: string) => {
+    const agent = agentRef.current;
+    if (agent === null || isRunning || undoRunId !== null || reapplyRunId !== null || hasPendingCreatorQuestion(itemsRef.current)) return;
+    setReapplyRunId(runId);
+    try {
+      const changedPaths = await agent.reapply(runId);
+      updateItems(current => [...current.map(item => item.kind === "message" && item.receipt?.transaction?.runId === runId
+        ? { ...item, receipt: { ...item.receipt, transaction: { ...item.receipt.transaction, undoable: true, undone: false, reapplied: true } } }
+        : item), { kind: "message", id: crypto.randomUUID(), role: "assistant",
+          content: `已再次应用本次修改：${changedPaths.join("、") || "没有文件变更"}。请重新验证当前项目。` }]);
+      setSetupValidationEpoch(current => current + 1);
+    } catch (error) {
+      updateItems(current => [...current, { kind: "message", id: crypto.randomUUID(), role: "error",
+        content: error instanceof Error ? error.message : String(error) }]);
+    } finally {
+      setReapplyRunId(null);
     }
   };
 
@@ -1913,7 +1946,9 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                       {item.receipt === undefined ? null : (
                         <CreatorRunReceiptPresentation receipt={item.receipt} debug={creatorDebug}
                           onUndo={!isRunning && !hasPendingCreatorQuestion(items) ? (runId) => { void undoCreatorRun(runId); } : undefined}
-                          undoBusy={undoRunId === item.receipt.transaction?.runId} />
+                          onReapply={!isRunning && !hasPendingCreatorQuestion(items) ? (runId) => { void reapplyCreatorRun(runId); } : undefined}
+                          undoBusy={undoRunId === item.receipt.transaction?.runId}
+                          reapplyBusy={reapplyRunId === item.receipt.transaction?.runId} />
                       )}
                     </article>
                   ),

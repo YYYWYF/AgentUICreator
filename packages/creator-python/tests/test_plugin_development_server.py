@@ -20,6 +20,7 @@ from agent_ui_creator.plugin_development.admission_middleware import PluginDevel
 from agent_ui_creator.source_tools import UISourceCreationService, UISourceFile
 from agent_ui_creator.minimal_agent.path_policy import MinimalAgentPathPolicy
 from agent_ui_creator.validation.models import CommandExecutionResult
+from agent_ui_creator.transactions import CreatorTransactionFileInput, CreatorTransactionStore
 
 
 SKILLS_ROOT = Path(__file__).resolve().parents[2] / "creator" / "skills"
@@ -94,6 +95,33 @@ def _app(tmp_path, monkeypatch, model, *, intent="needs_decision"):
     )
     app = create_app(settings)
     return app, TestClient(app, headers={"Authorization": f"Bearer {settings.auth_token}"})
+
+
+def test_reapply_control_restores_undone_run_and_rejects_changed_files(tmp_path, monkeypatch):
+    _, client = _app(tmp_path, monkeypatch, TrackingModel(responses=[]))
+    target = tmp_path / "plugins" / "foo.ts"
+    target.parent.mkdir()
+    target.write_text("after", encoding="utf-8")
+    store = CreatorTransactionStore(tmp_path)
+    store.persist_run(
+        run_id="control-reapply", mutation_revision=1, validation_revision=None,
+        files=(CreatorTransactionFileInput("plugins/foo.ts", "before", "after"),),
+    )
+    payload = {"threadId": "thread-a", "runId": "control-reapply"}
+    with client:
+        undo = client.post("/creator-control", json={**payload, "action": "undo"})
+        assert undo.status_code == 200
+        assert undo.json()["reapplyable"] is True
+        reapply = client.post("/creator-control", json={**payload, "action": "reapply"})
+        assert reapply.status_code == 200
+        assert reapply.json()["status"] == "reapplied"
+        assert target.read_text(encoding="utf-8") == "after"
+        assert client.post("/creator-control", json={**payload, "action": "undo"}).status_code == 200
+        target.write_text("manual", encoding="utf-8")
+        conflict = client.post("/creator-control", json={**payload, "action": "reapply"})
+        assert conflict.status_code == 409
+        assert conflict.json()["code"] == "CREATOR_REAPPLY_CONFLICT"
+        assert target.read_text(encoding="utf-8") == "manual"
 
 
 @pytest.mark.parametrize("choice,expected", [

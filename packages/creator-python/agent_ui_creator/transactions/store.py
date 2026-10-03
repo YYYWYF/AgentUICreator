@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import threading
+from dataclasses import replace
 from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -88,7 +89,7 @@ def _created_directory_path(value: Any, label: str) -> str:
 
 
 def _file_state(
-    value: Any, label: str, *, include_content: bool
+    value: Any, label: str, *, include_content: bool, allow_content: bool = False
 ) -> CreatorTransactionFileState:
     if not isinstance(value, dict):
         raise _invalid(f"{label} must be an object.")
@@ -105,16 +106,18 @@ def _file_state(
     content = value.get("content")
     if include_content and exists and not isinstance(content, str):
         raise _invalid(f"{label}.content is required for an existing before state.")
-    if (not exists or not include_content) and "content" in value:
+    if (not exists or not (include_content or allow_content)) and "content" in value:
         raise _invalid(f"{label}.content is not allowed for this state.")
+    if "content" in value and not isinstance(content, str):
+        raise _invalid(f"{label}.content must be a string.")
     actual_hash = (
         creator_content_hash(content)
-        if exists and include_content
+        if exists and isinstance(content, str)
         else CREATOR_MISSING_FILE_HASH if not exists else None
     )
     if actual_hash is not None and actual_hash != digest:
         raise _invalid(f"{label}.hash does not match its state.")
-    return CreatorTransactionFileState(exists, digest, content if exists else None)
+    return CreatorTransactionFileState(exists, digest, content if exists and isinstance(content, str) else None)
 
 
 def parse_transaction_record(
@@ -144,7 +147,7 @@ def parse_transaction_record(
         if status not in {"created", "modified", "deleted"}:
             raise _invalid(f"{label}.status is invalid.")
         before = _file_state(raw_file.get("before"), f"{label}.before", include_content=True)
-        after = _file_state(raw_file.get("after"), f"{label}.after", include_content=False)
+        after = _file_state(raw_file.get("after"), f"{label}.after", include_content=False, allow_content=True)
         expected_status = (
             "created"
             if not before.exists and after.exists
@@ -258,7 +261,7 @@ class CreatorTransactionStore:
                     location.receipt_path,
                     status,
                     before,
-                    CreatorTransactionFileState(after.exists, after.hash),
+                    after,
                 )
             )
         canonical_directories = tuple(
@@ -286,10 +289,16 @@ class CreatorTransactionStore:
             record.to_dict(), ensure_ascii=False, indent=2, separators=(",", ": ")
         ) + "\n"
         if len(source.encode("utf-8")) > MAX_CREATOR_TRANSACTION_BYTES:
-            raise CreatorTransactionError(
-                "CREATOR_TRANSACTION_TOO_LARGE",
-                f"Creator transaction exceeds {MAX_CREATOR_TRANSACTION_BYTES} bytes.",
+            record = replace(
+                record,
+                files=tuple(replace(file, after=replace(file.after, content=None)) for file in record.files),
             )
+            source = json.dumps(record.to_dict(), ensure_ascii=False, indent=2, separators=(",", ": ")) + "\n"
+            if len(source.encode("utf-8")) > MAX_CREATOR_TRANSACTION_BYTES:
+                raise CreatorTransactionError(
+                    "CREATOR_TRANSACTION_TOO_LARGE",
+                    f"Creator transaction exceeds {MAX_CREATOR_TRANSACTION_BYTES} bytes.",
+                )
         self._ensure_directory()
         replace_creator_file_atomically(
             self.project_root, self._relative_path(run_id), source
@@ -488,6 +497,109 @@ class CreatorTransactionStore:
                 "undo", {"runId": record.run_id, "changedPaths": list(changed_paths)}
             )
             return CreatorUndoResult(record.run_id, changed_paths, record)
+
+    def reapply(
+        self,
+        run_id: str,
+        *,
+        simulate_failure_after_write: int | None = None,
+    ) -> CreatorUndoResult:
+        with _undo_lock(self.project_root):
+            record = self.load(run_id)
+            if not record.reapplyable:
+                raise CreatorTransactionError(
+                    "CREATOR_REAPPLY_UNAVAILABLE",
+                    f'Creator run "{run_id}" has no saved after content for reapplication.',
+                )
+            marker_path = self._undo_marker_path(run_id)
+            marker = read_creator_file_state(self.project_root, marker_path)
+            if not marker.exists:
+                _, conflicts = self._preflight(record)
+                if not conflicts:
+                    return CreatorUndoResult(run_id, tuple(sorted(file.path for file in record.files)), record)
+                raise CreatorTransactionError(
+                    "CREATOR_REAPPLY_NOT_UNDONE",
+                    f'Creator run "{run_id}" is not marked as undone.',
+                )
+            if marker.content != "undone\n":
+                raise CreatorTransactionError(
+                    "CREATOR_REAPPLY_CONFLICT",
+                    f'Creator run "{run_id}" undo marker changed.',
+                )
+            current_states, conflicts = self._preflight_before(record)
+            if conflicts:
+                raise CreatorTransactionError(
+                    "CREATOR_REAPPLY_CONFLICT",
+                    f'Creator run "{run_id}" cannot be reapplied because project files changed afterward.',
+                    {"conflicts": [conflict.to_dict() for conflict in conflicts]},
+                )
+            _, conflicts = self._preflight_before(record)
+            if conflicts:
+                raise CreatorTransactionError(
+                    "CREATOR_REAPPLY_CONFLICT",
+                    f'Creator run "{run_id}" changed during reapply preflight.',
+                    {"conflicts": [conflict.to_dict() for conflict in conflicts]},
+                )
+
+            applied: list[CreatorTransactionFileRecord] = []
+            try:
+                for file in record.files:
+                    expected = current_states[file.path]
+                    if file.after.exists:
+                        if expected.exists:
+                            replace_creator_file_atomically(
+                                self.project_root, file.path, file.after.content or "", expected
+                            )
+                        else:
+                            create_creator_file_atomically(
+                                self.project_root, file.path, file.after.content or ""
+                            )
+                    else:
+                        remove_creator_file(self.project_root, file.path, expected)
+                    applied.append(file)
+                    if simulate_failure_after_write == len(applied):
+                        raise RuntimeError("Simulated Creator reapply failure")
+                remove_creator_file(self.project_root, marker_path, marker)
+            except BaseException as error:
+                try:
+                    for file in reversed(applied):
+                        original = current_states[file.path]
+                        reapplied = CreatorFileState(file.after.exists, file.after.hash, file.after.content)
+                        if original.exists:
+                            replace_creator_file_atomically(
+                                self.project_root, file.path, original.content or "", reapplied
+                            )
+                        else:
+                            remove_creator_file(self.project_root, file.path, reapplied)
+                except BaseException as rollback_error:
+                    raise CreatorTransactionError(
+                        "CREATOR_REAPPLY_ROLLBACK_FAILED",
+                        f'Creator run "{run_id}" reapply failed and rollback was incomplete.',
+                        {"cause": str(error), "rollbackCause": str(rollback_error)},
+                    ) from rollback_error
+                self._cleanup_created_directories(record.created_directories)
+                if isinstance(error, CreatorFileStateConflictError):
+                    raise CreatorTransactionError(
+                        "CREATOR_REAPPLY_CONFLICT",
+                        f'Creator run "{run_id}" changed during reapply.',
+                        {"conflicts": [{"path": error.file_path}]},
+                    ) from error
+                raise
+            changed_paths = tuple(sorted(file.path for file in record.files))
+            self._record("reapply", {"runId": run_id, "changedPaths": list(changed_paths)})
+            return CreatorUndoResult(run_id, changed_paths, record)
+
+    def _preflight_before(
+        self, record: CreatorTransactionRecord
+    ) -> tuple[dict[str, CreatorFileState], tuple[CreatorTransactionConflict, ...]]:
+        states: dict[str, CreatorFileState] = {}
+        conflicts: list[CreatorTransactionConflict] = []
+        for file in record.files:
+            current = read_creator_file_state(self.project_root, file.path)
+            states[file.path] = current
+            if current.exists != file.before.exists or current.hash != file.before.hash:
+                conflicts.append(CreatorTransactionConflict(file.path, file.before.hash, current.hash))
+        return states, tuple(conflicts)
 
     def _preflight(
         self, record: CreatorTransactionRecord

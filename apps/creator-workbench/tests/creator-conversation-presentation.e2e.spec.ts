@@ -24,6 +24,7 @@ test("presents answers, inspection, mutation, no-op, and validation by run facts
       ? [{ path: "app-ui/app-ui.json", status: "modified", diff: "updated", truncated: false }] : [],
       validations: turnIndex === 4
         ? [{ command: "pnpm typecheck", status: "passed", exitCode: 0, output: "", truncated: false }] : [],
+      ...(turnIndex === 2 ? { transaction: { runId: "presentation-run", undoable: true } } : {}),
       diagnosticLog: { format: "jsonl", path: ".agentuicreator/logs/run.jsonl", schemaVersion: 1 },
       verification: { status: turnIndex === 2 ? "changed-and-statically-verified" : "no-project-change",
         projectRevision: turnIndex === 2 ? 1 : 0, auditAttempts: 0, checks: [] } };
@@ -39,6 +40,13 @@ test("presents answers, inspection, mutation, no-op, and validation by run facts
     ];
     await route.fulfill({ contentType: "text/event-stream",
       body: events.map(event => `data: ${JSON.stringify(event)}\n\n`).join("") });
+  });
+  await page.route("**/__creator/control", route => {
+    const { action } = route.request().postDataJSON() as { action: "undo" | "reapply" };
+    return route.fulfill({ json: {
+      status: action === "undo" ? "undone" : "reapplied",
+      runId: "presentation-run", changedPaths: ["app-ui/app-ui.json"], reapplyable: true,
+    } });
   });
 
   await page.goto("/dock.html");
@@ -65,6 +73,16 @@ test("presents answers, inspection, mutation, no-op, and validation by run facts
   await expect(page.locator(".creator-panel-message--assistant").last()).toContainText("已将插件移动到右侧");
   await expect(page.getByRole("region", { name: "修改回执" })).toBeVisible();
   await expect(page.getByText("诊断日志")).toHaveCount(0);
+  const undoButton = page.getByRole("button", { name: "撤销本次修改" });
+  await expect(undoButton).toBeVisible();
+  await expect(page.getByText("Run presentation-run")).toHaveCount(0);
+  await undoButton.click();
+  await expect(page.getByText("已撤销", { exact: true })).toBeVisible();
+  await expect(undoButton).toHaveCount(0);
+  await page.getByRole("button", { name: "再次应用本次修改" }).click();
+  await expect(page.getByText("已再次应用本次修改", { exact: false })).toBeVisible();
+  await expect(undoButton).toBeVisible();
+  await expect(page.getByText("本次再次应用尚未重新验证。", { exact: false })).toBeVisible();
 
   await request.fill("保持会话插件在右侧");
   await page.getByRole("button", { name: "发送" }).click();

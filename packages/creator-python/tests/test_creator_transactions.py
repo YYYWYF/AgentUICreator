@@ -42,6 +42,7 @@ def valid_record():
         lambda value: value.update(schemaVersion=2),
         lambda value: value["files"].append(value["files"][0].copy()),
         lambda value: value["files"][0]["before"].update(hash="bad"),
+        lambda value: value["files"][0]["after"].update(content="wrong"),
         lambda value: value["files"][0].update(status="created"),
         lambda value: value["files"][0]["before"].update(exists=False),
     ],
@@ -119,6 +120,152 @@ def test_deleted_file_transaction_restores_content(tmp_path):
     assert store.status("delete-run").undoable is True
     store.undo("delete-run")
     assert target.read_text(encoding="utf-8") == "before\n"
+
+
+def test_reapply_round_trip_for_created_modified_and_deleted_files(tmp_path):
+    plugins = tmp_path / "plugins"
+    plugins.mkdir()
+    modified = plugins / "modified.ts"
+    modified.write_text("after modified", encoding="utf-8")
+    deleted = plugins / "deleted.ts"
+    created = plugins / "created.ts"
+    created.write_text("created", encoding="utf-8")
+    store = CreatorTransactionStore(tmp_path)
+    record = store.persist_run(
+        run_id="round-trip",
+        mutation_revision=3,
+        validation_revision=None,
+        files=(
+            CreatorTransactionFileInput("plugins/modified.ts", "before modified", "after modified"),
+            CreatorTransactionFileInput("plugins/deleted.ts", "before deleted", None),
+            CreatorTransactionFileInput("plugins/created.ts", None, "created"),
+        ),
+    )
+    assert record is not None and record.reapplyable
+    assert store.load("round-trip").reapplyable
+
+    store.undo("round-trip")
+    assert modified.read_text(encoding="utf-8") == "before modified"
+    assert deleted.read_text(encoding="utf-8") == "before deleted"
+    assert not created.exists()
+
+    store.reapply("round-trip")
+    store.reapply("round-trip")
+    assert modified.read_text(encoding="utf-8") == "after modified"
+    assert not deleted.exists()
+    assert created.read_text(encoding="utf-8") == "created"
+    assert store.status("round-trip").undoable
+    store.undo("round-trip")
+    assert not created.exists()
+
+
+def test_reapply_conflict_performs_zero_writes(tmp_path):
+    plugins = tmp_path / "plugins"
+    plugins.mkdir()
+    foo = plugins / "foo.ts"
+    bar = plugins / "bar.ts"
+    foo.write_text("new foo", encoding="utf-8")
+    bar.write_text("new bar", encoding="utf-8")
+    store = CreatorTransactionStore(tmp_path)
+    store.persist_run(
+        run_id="reapply-conflict", mutation_revision=2, validation_revision=None,
+        files=(
+            CreatorTransactionFileInput("plugins/foo.ts", "old foo", "new foo"),
+            CreatorTransactionFileInput("plugins/bar.ts", "old bar", "new bar"),
+        ),
+    )
+    store.undo("reapply-conflict")
+    bar.write_text("manual edit", encoding="utf-8")
+    with pytest.raises(CreatorTransactionError) as captured:
+        store.reapply("reapply-conflict")
+    assert captured.value.code == "CREATOR_REAPPLY_CONFLICT"
+    assert [item["path"] for item in captured.value.details["conflicts"]] == ["plugins/bar.ts"]
+    assert foo.read_text(encoding="utf-8") == "old foo"
+    assert bar.read_text(encoding="utf-8") == "manual edit"
+
+
+def test_reapply_write_failure_restores_all_files(tmp_path):
+    plugins = tmp_path / "plugins"
+    plugins.mkdir()
+    foo = plugins / "foo.ts"
+    bar = plugins / "bar.ts"
+    foo.write_text("new foo", encoding="utf-8")
+    bar.write_text("new bar", encoding="utf-8")
+    store = CreatorTransactionStore(tmp_path)
+    store.persist_run(
+        run_id="reapply-failure", mutation_revision=2, validation_revision=None,
+        files=(
+            CreatorTransactionFileInput("plugins/foo.ts", "old foo", "new foo"),
+            CreatorTransactionFileInput("plugins/bar.ts", "old bar", "new bar"),
+        ),
+    )
+    store.undo("reapply-failure")
+    with pytest.raises(RuntimeError, match="Simulated Creator reapply failure"):
+        store.reapply("reapply-failure", simulate_failure_after_write=1)
+    assert foo.read_text(encoding="utf-8") == "old foo"
+    assert bar.read_text(encoding="utf-8") == "old bar"
+    store.reapply("reapply-failure")
+    assert foo.read_text(encoding="utf-8") == "new foo"
+
+
+def test_reapply_marker_failure_restores_files(tmp_path, monkeypatch):
+    import agent_ui_creator.transactions.store as store_module
+
+    target = tmp_path / "plugins" / "foo.ts"
+    target.parent.mkdir()
+    target.write_text("after", encoding="utf-8")
+    store = CreatorTransactionStore(tmp_path)
+    store.persist_run(
+        run_id="marker-failure", mutation_revision=1, validation_revision=None,
+        files=(CreatorTransactionFileInput("plugins/foo.ts", "before", "after"),),
+    )
+    store.undo("marker-failure")
+    original_remove = store_module.remove_creator_file
+
+    def fail_marker_removal(project_root, file_path, expected=None):
+        if file_path.endswith(".undone"):
+            raise OSError("marker removal failed")
+        return original_remove(project_root, file_path, expected)
+
+    monkeypatch.setattr(store_module, "remove_creator_file", fail_marker_removal)
+    with pytest.raises(OSError, match="marker removal failed"):
+        store.reapply("marker-failure")
+    assert target.read_text(encoding="utf-8") == "before"
+    assert (tmp_path / store._undo_marker_path("marker-failure")).exists()
+
+
+def test_legacy_transaction_can_undo_but_cannot_reapply(tmp_path):
+    plugins = tmp_path / "plugins"
+    plugins.mkdir()
+    target = plugins / "foo.ts"
+    target.write_text("new", encoding="utf-8")
+    store = CreatorTransactionStore(tmp_path)
+    record_path = tmp_path / ".agentuicreator" / "transactions" / store._file_name("run-1")
+    record_path.parent.mkdir(parents=True)
+    record_path.write_text(json.dumps(valid_record()), encoding="utf-8")
+    assert not store.load("run-1").reapplyable
+    store.undo("run-1")
+    assert target.read_text(encoding="utf-8") == "old"
+    with pytest.raises(CreatorTransactionError) as captured:
+        store.reapply("run-1")
+    assert captured.value.code == "CREATOR_REAPPLY_UNAVAILABLE"
+
+
+def test_large_after_content_preserves_undo_without_reapply(tmp_path):
+    plugins = tmp_path / "plugins"
+    plugins.mkdir()
+    target = plugins / "large.ts"
+    before = "a" * 3_000_000
+    after = "b" * 3_000_000
+    target.write_text(after, encoding="utf-8")
+    store = CreatorTransactionStore(tmp_path)
+    record = store.persist_run(
+        run_id="large-run", mutation_revision=1, validation_revision=None,
+        files=(CreatorTransactionFileInput("plugins/large.ts", before, after),),
+    )
+    assert record is not None and not record.reapplyable
+    store.undo("large-run")
+    assert target.read_text(encoding="utf-8") == before
 
 
 def test_undo_conflict_performs_zero_writes(tmp_path):

@@ -39,7 +39,7 @@ class CreatorTransactionFileRecord:
             "path": self.path,
             "status": self.status,
             "before": self.before.to_dict(include_content=True),
-            "after": self.after.to_dict(include_content=False),
+            "after": self.after.to_dict(include_content=self.after.content is not None),
         }
 
 
@@ -52,6 +52,10 @@ class CreatorTransactionRecord:
     validation_revision: int | None
     files: tuple[CreatorTransactionFileRecord, ...]
     created_directories: tuple[str, ...] = ()
+
+    @property
+    def reapplyable(self) -> bool:
+        return all(not file.after.exists or file.after.content is not None for file in self.files)
 
     def to_dict(self) -> dict[str, object]:
         return {

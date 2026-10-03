@@ -22,15 +22,31 @@ describe("Creator AG-UI 0.0.59 compatibility", () => {
     vi.stubGlobal("fetch", vi.fn(async (_url: string, init: RequestInit) => {
       requests.push(JSON.parse(String(init.body)) as Record<string, unknown>);
       return requests.length === 1
-        ? Response.json({ status: "undone", runId: "run-a", changedPaths: ["plugins/a/index.tsx"] })
+        ? Response.json({ status: "undone", runId: "run-a", changedPaths: ["plugins/a/index.tsx"], reapplyable: true })
         : Response.json({ code: "CREATOR_UNDO_CONFLICT", error: "File changed", details: {
           conflicts: [{ path: "plugins/a/index.tsx" }],
         } }, { status: 409 });
     }));
     const client = new CreatorAgentClient("workspace-1", "thread-1");
-    expect(await client.undo("run-a")).toEqual(["plugins/a/index.tsx"]);
+    expect(await client.undo("run-a")).toEqual({ changedPaths: ["plugins/a/index.tsx"], reapplyable: true });
     await expect(client.undo("run-a")).rejects.toThrow("plugins/a/index.tsx");
     expect(requests[0]).toEqual({ action: "undo", threadId: "thread-1", runId: "run-a" });
+  });
+
+  it("sends reapply for the selected run and reports conflicts", async () => {
+    const requests: Record<string, unknown>[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (_url: string, init: RequestInit) => {
+      requests.push(JSON.parse(String(init.body)) as Record<string, unknown>);
+      return requests.length === 1
+        ? Response.json({ status: "reapplied", runId: "run-a", changedPaths: ["plugins/a/index.tsx"] })
+        : Response.json({ code: "CREATOR_REAPPLY_CONFLICT", error: "File changed", details: {
+          conflicts: [{ path: "plugins/a/index.tsx" }],
+        } }, { status: 409 });
+    }));
+    const client = new CreatorAgentClient("workspace-1", "thread-1");
+    expect(await client.reapply("run-a")).toEqual(["plugins/a/index.tsx"]);
+    await expect(client.reapply("run-a")).rejects.toThrow("plugins/a/index.tsx");
+    expect(requests[0]).toEqual({ action: "reapply", threadId: "thread-1", runId: "run-a" });
   });
 
   it("projects on_interrupt and sends resume only through forwardedProps.command.resume", async () => {

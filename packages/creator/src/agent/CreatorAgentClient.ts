@@ -52,24 +52,37 @@ export class CreatorAgentClient {
     return body.status === "abandoned" ? "abandoned" : "stopping";
   }
 
-  async undo(runId: string): Promise<string[]> {
+  async undo(runId: string): Promise<{ changedPaths: string[]; reapplyable: boolean }> {
+    return this.#changeRunFiles("undo", "undone", runId);
+  }
+
+  async reapply(runId: string): Promise<string[]> {
+    return (await this.#changeRunFiles("reapply", "reapplied", runId)).changedPaths;
+  }
+
+  async #changeRunFiles(
+    action: "undo" | "reapply", status: "undone" | "reapplied", runId: string,
+  ): Promise<{ changedPaths: string[]; reapplyable: boolean }> {
     const response = await fetch(CREATOR_CONTROL_API_PATH, {
       method: "POST",
       headers: { "Content-Type": "application/json", [CREATOR_WORKSPACE_ID_HEADER]: this.#workspaceId },
-      body: JSON.stringify({ action: "undo", threadId: this.threadId, runId }),
+      body: JSON.stringify({ action, threadId: this.threadId, runId }),
     });
     const body: unknown = await response.json();
-    if (!response.ok || typeof body !== "object" || body === null || !("status" in body) || body.status !== "undone") {
+    if (!response.ok || typeof body !== "object" || body === null || !("status" in body) || body.status !== status) {
       const message = typeof body === "object" && body !== null && "error" in body && typeof body.error === "string"
-        ? body.error : "Creator 撤销请求未被接受。";
+        ? body.error : `Creator ${action === "undo" ? "撤销" : "再次应用"}请求未被接受。`;
       const conflicts = typeof body === "object" && body !== null && "details" in body &&
         typeof body.details === "object" && body.details !== null && "conflicts" in body.details &&
         Array.isArray(body.details.conflicts) ? body.details.conflicts.map((item: unknown) =>
           typeof item === "object" && item !== null && "path" in item ? String(item.path) : "").filter(Boolean) : [];
       throw new Error(conflicts.length > 0 ? `${message} 冲突文件：${conflicts.join("、")}` : message);
     }
-    return "changedPaths" in body && Array.isArray(body.changedPaths)
-      ? body.changedPaths.filter((path): path is string => typeof path === "string") : [];
+    return {
+      changedPaths: "changedPaths" in body && Array.isArray(body.changedPaths)
+        ? body.changedPaths.filter((path): path is string => typeof path === "string") : [],
+      reapplyable: "reapplyable" in body && body.reapplyable === true,
+    };
   }
 
   #subscriber({ onQuestion, ...subscriber }: CreatorRunSubscriber): AgentSubscriber {

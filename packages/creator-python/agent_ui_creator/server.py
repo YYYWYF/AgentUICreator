@@ -786,27 +786,31 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
     async def creator_control(request: Request) -> JSONResponse:
         try:
             payload = await _json_body(request, 4096)
-            if not isinstance(payload, dict) or payload.get("action") not in {"stop", "abandon", "undo"}:
-                raise ValueError("Expected a stop, abandon, or undo action.")
+            if not isinstance(payload, dict) or payload.get("action") not in {"stop", "abandon", "undo", "reapply"}:
+                raise ValueError("Expected a stop, abandon, undo, or reapply action.")
             thread_id = payload.get("threadId")
             run_id = payload.get("runId")
             interrupt_id = payload.get("interruptId")
             if not isinstance(thread_id, str) or not thread_id:
                 raise ValueError("threadId is required.")
-            if payload["action"] == "undo":
+            if payload["action"] in {"undo", "reapply"}:
                 if not isinstance(run_id, str) or not run_id:
-                    raise ValueError("runId is required for undo.")
+                    raise ValueError("runId is required for undo or reapply.")
                 if thread_id in active_runs:
-                    return JSONResponse(status_code=409, content={"code": "CREATOR_RUN_ACTIVE", "error": "Wait for the Creator run to stop before undo."})
+                    return JSONResponse(status_code=409, content={"code": "CREATOR_RUN_ACTIVE", "error": "Wait for the Creator run to stop before changing files."})
                 async with writing_run_lock:
                     if thread_id in active_runs:
-                        return JSONResponse(status_code=409, content={"code": "CREATOR_RUN_ACTIVE", "error": "Wait for the Creator run to stop before undo."})
+                        return JSONResponse(status_code=409, content={"code": "CREATOR_RUN_ACTIVE", "error": "Wait for the Creator run to stop before changing files."})
                     try:
-                        result = CreatorTransactionStore(settings.project_root).undo(run_id)
+                        store = CreatorTransactionStore(settings.project_root)
+                        result = store.undo(run_id) if payload["action"] == "undo" else store.reapply(run_id)
                     except CreatorTransactionError as error:
                         return JSONResponse(status_code=409, content={"code": error.code, "error": str(error), "details": error.details})
-                    return JSONResponse(status_code=200, content={"status": "undone", "runId": result.run_id,
-                                                               "changedPaths": list(result.changed_paths)})
+                    return JSONResponse(status_code=200, content={
+                        "status": "undone" if payload["action"] == "undo" else "reapplied",
+                        "runId": result.run_id, "changedPaths": list(result.changed_paths),
+                        "reapplyable": result.record.reapplyable,
+                    })
             active = active_runs.get(thread_id)
             pending = pending_questions.get(thread_id)
             request_key = (thread_id, run_id if isinstance(run_id, str) else interrupt_id)

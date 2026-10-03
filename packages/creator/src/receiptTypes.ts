@@ -67,6 +67,9 @@ export interface CreatorRunReceipt {
     | {
         runId: string;
         undoable: boolean;
+        undone?: boolean;
+        reapplyable?: boolean;
+        reapplied?: boolean;
       }
     | undefined;
 }
