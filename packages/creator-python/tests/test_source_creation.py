@@ -250,7 +250,13 @@ def test_create_ui_plugin_uses_direct_builtin_service_module_in_definition(tmp_p
     }]
 
 
-def test_create_ui_plugin_preflights_declared_placement_before_source_commit(tmp_path):
+@pytest.mark.parametrize("diagnostic_code, expects_retry_hint", [
+    ("NO_MATCHING_SLOT", False),
+    ("RESPONSIVE_DRAWER_PLACEMENT_INVALID", True),
+])
+def test_create_ui_plugin_preflights_declared_placement_before_source_commit(
+    tmp_path, diagnostic_code, expects_retry_hint
+):
     source_creation, activity = service(tmp_path)
 
     class Authority:
@@ -269,7 +275,7 @@ def test_create_ui_plugin_preflights_declared_placement_before_source_commit(tmp
 
         async def preflight_ui_plugin_placement(self, **kwargs):
             self.calls.append(kwargs)
-            return {"eligible": self.eligible, "diagnostic": {"code": "NO_MATCHING_SLOT"}}
+            return {"eligible": self.eligible, "diagnostic": {"code": diagnostic_code}}
 
     control = ProjectControl()
     creation = UIPluginCreationService(
@@ -288,7 +294,8 @@ def test_create_ui_plugin_preflights_declared_placement_before_source_commit(tmp
     with pytest.raises(SourceCreationError) as captured:
         asyncio.run(creation.create("task-status", files))
     assert captured.value.code == "PLUGIN_PLACEMENT_INELIGIBLE"
-    assert captured.value.details["diagnostic"]["code"] == "NO_MATCHING_SLOT"
+    assert captured.value.details["diagnostic"]["code"] == diagnostic_code
+    assert ("Reissue create_ui_plugin" in str(captured.value)) is expects_retry_hint
     assert activity.revision == 0
     assert not (tmp_path / "plugins/task-status").exists()
     assert control.calls == [{

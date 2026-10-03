@@ -300,10 +300,19 @@ class UIPluginCreationService:
                             {"relativePath": "manifest.json", "causeCode": error.code, "causeDetails": error.details},
                         ) from error
                     if placement.get("eligible") is not True:
+                        diagnostic = placement.get("diagnostic")
+                        responsive_drawer_conflict = (
+                            isinstance(diagnostic, dict)
+                            and diagnostic.get("code") == "RESPONSIVE_DRAWER_PLACEMENT_INVALID"
+                        )
                         raise SourceCreationError(
                             "PLUGIN_PLACEMENT_INELIGIBLE",
-                            "The proposed Plugin cannot use its declared defaultPlacement in the current Composition.",
-                            {"relativePath": "manifest.json", "diagnostic": placement.get("diagnostic")},
+                            "The proposed Plugin cannot use its declared defaultPlacement in the current Composition. "
+                            + ("No Plugin files were created. Reissue create_ui_plugin with "
+                               "manifest.authoring.defaultPlacement after the primary conversation region; "
+                               "wait for successful creation before validation or composition."
+                               if responsive_drawer_conflict else ""),
+                            {"relativePath": "manifest.json", "diagnostic": diagnostic},
                         )
 
             result = await self.source_creation.create(

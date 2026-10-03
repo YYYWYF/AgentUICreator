@@ -484,6 +484,12 @@ decision instead of silently shrinking existing panels or changing Plugin scope.
 For a Row with a reserved responsive drawer, put the new business panel at its
 drawerIndex after the primary conversation region. Never insert it before the
 primary region: that would turn the conversation into the drawer. If the Layout
+is the current Platform template and the panel belongs on the right, set
+manifest.authoring.defaultPlacement to
+{type: 'relative', relation: 'after', anchorPluginId: 'conversation-surface'}
+before create_ui_plugin; use insert_plugin_default after creation. A rejected
+create_ui_plugin call writes no Plugin files: correct its manifest and retry
+creation before validation or composition. If the Layout
 already provides collapse and restore controls, use those controls for the panel;
 do not add a Plugin-local collapsed state or a second collapse button that leaves
 the Grid track occupied. In the current Platform template these controls appear
