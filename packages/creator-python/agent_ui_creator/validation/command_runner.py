@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 from pathlib import Path
 
@@ -26,6 +27,45 @@ class CreatorValidationCommandRunner:
         self, command: CreatorValidationCommand
     ) -> CommandExecutionResult:
         return await self.execute_arguments(_COMMANDS[command])
+
+    async def execute_target_project_typecheck(self) -> CommandExecutionResult:
+        """Run the target project's own script with its declared package manager."""
+        try:
+            package = json.loads((self.project_root / "package.json").read_text())
+            if not isinstance(package, dict) or not isinstance(package.get("scripts"), dict) or "typecheck" not in package["scripts"]:
+                return CommandExecutionResult("Target project has no typecheck script.", None, False)
+            declared = package.get("packageManager")
+            manager = declared.split("@", 1)[0] if isinstance(declared, str) else None
+            if manager is None:
+                for directory in (self.project_root, *self.project_root.parents):
+                    parent_package = directory / "package.json"
+                    if parent_package != self.project_root / "package.json" and parent_package.exists():
+                        parent_declared = json.loads(parent_package.read_text()).get("packageManager")
+                        if isinstance(parent_declared, str):
+                            manager = parent_declared.split("@", 1)[0]
+                    if manager is None:
+                        for lockfile, candidate in (
+                            ("pnpm-lock.yaml", "pnpm"), ("yarn.lock", "yarn"),
+                            ("package-lock.json", "npm"), ("bun.lock", "bun"),
+                            ("bun.lockb", "bun"),
+                        ):
+                            if (directory / lockfile).exists():
+                                manager = candidate
+                                break
+                    if manager is not None:
+                        break
+            manager = manager or "npm"
+            commands = {
+                "pnpm": ("pnpm", "typecheck"),
+                "yarn": ("yarn", "typecheck"),
+                "npm": ("npm", "run", "typecheck"),
+                "bun": ("bun", "run", "typecheck"),
+            }
+            if manager not in commands:
+                return CommandExecutionResult("Target project package manager is unavailable.", None, False)
+            return await self.execute_arguments(commands[manager])
+        except (OSError, ValueError, TypeError) as error:
+            return CommandExecutionResult(str(error), None, False)
 
     async def execute_arguments(self, arguments_: tuple[str, ...]) -> CommandExecutionResult:
         """Host-only argv entry; never exposed as a model command tool."""

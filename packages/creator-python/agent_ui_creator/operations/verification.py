@@ -8,12 +8,14 @@ from typing import Any, Protocol
 from urllib.parse import quote
 
 from ..validation import CreatorValidationService
+from ..project_control import ProjectControlClient
 from ..visual_observation import VisualObservationStore
 from ..verification_policy import (
     CreatorVerificationMode,
     DEFAULT_CREATOR_VERIFICATION_MODE,
 )
 from .models import CreatorOperationVerificationResult, CreatorVisualObservationEvidence
+from .validation_plan import footprint_from_mutation, plan_validation
 
 
 MAX_RUNTIME_FRESHNESS_ATTEMPTS = 3
@@ -377,11 +379,13 @@ class CompositionOperationVerificationService:
         self,
         *,
         validation: CreatorValidationService,
+        project_control: ProjectControlClient | None = None,
         runtime: RuntimeInspectionForOperation,
         visual_observations: VisualObservationStore | None = None,
         verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
     ) -> None:
         self.validation = validation
+        self.project_control = project_control
         self.runtime = runtime
         self.visual_observations = visual_observations
         self.verification_mode = verification_mode
@@ -423,40 +427,99 @@ class CompositionOperationVerificationService:
                 return {"visualObservationStatus": "unavailable"}
             await asyncio.sleep(min(0.15, remaining))
 
-    async def ensure_baseline(self) -> None:
-        """Capture the validation baseline before a Productized side effect."""
-
-        await self.validation.ensure_baseline()
-
     async def verify(
         self,
         *,
         mutation_result: Mapping[str, Any],
+        app_ui_model_path: str = "app-ui/app-ui.json",
         expected_runtime: Mapping[str, Any],
         expected_geometry: Mapping[str, Any] | None = None,
         expected_placement: Mapping[str, Any] | None = None,
         expected_workspace_fill: list[Mapping[str, Any]] | None = None,
     ) -> CreatorOperationVerificationResult:
+        validation_metadata: dict[str, Any] = {}
+        started_validation = monotonic()
         try:
-            validation = await self.validation.validate(mode="delta")
-        except Exception:
+            if self.project_control is None:
+                # Legacy injected verifier used by isolated operation tests.
+                validation = await self.validation.validate(mode="delta")
+                validation_passed = getattr(validation, "status", None) == "passed"
+            else:
+                footprint = footprint_from_mutation(
+                    mutation_result, app_ui_model_path=app_ui_model_path,
+                )
+                level = plan_validation(footprint)
+                checks = ["verifyUIProject"]
+                errors: list[str] = []
+                validation_metadata = {
+                    "validationLevel": level,
+                    "validationChecks": checks,
+                }
+                ui_result = await self.project_control.verify_ui_project()
+                validation_passed = ui_result.get("status") == "passed"
+                if ui_result.get("status") not in {"passed", "failed"}:
+                    validation_passed = False
+                    errors.append("ProjectControl returned an invalid UI verification status.")
+                for issue in ui_result.get("errors", []):
+                    if isinstance(issue, Mapping):
+                        errors.append(str(issue.get("message", issue.get("code", "unknown"))))
+                if not validation_passed and not errors:
+                    errors.append("UI project verification failed without issue details.")
+                if validation_passed and level == "target-source":
+                    checks.append("targetProjectTypecheck")
+                    result = await self.validation.runner.execute_target_project_typecheck()
+                    validation_passed = result.exit_code == 0
+                    if not validation_passed:
+                        errors.append(result.output[:2000] or "Target project typecheck failed.")
+                elif validation_passed and level == "workspace":
+                    checks.extend(["pnpm verify:ui", "pnpm typecheck"])
+                    result = await self.validation.validate(mode="clean")
+                    validation_passed = result.status == "passed"
+                    if not validation_passed:
+                        errors.append("Workspace validation failed; see validation receipts.")
+                validation_metadata = {
+                    "validationLevel": level,
+                    "validationChecks": checks,
+                    "validationErrors": errors[:8],
+                }
+                logger = self.validation.activity.logger
+                if logger is not None:
+                    logger.record("productized_validation_finished", {
+                        "level": level,
+                        "checks": checks,
+                        "targetProject": str(self.project_control.project_root),
+                        "footprint": footprint.to_dict(),
+                        "durationMs": round((monotonic() - started_validation) * 1000),
+                        "status": "passed" if validation_passed else "failed",
+                        "errors": errors[:8],
+                    })
+        except Exception as error:
+            validation_passed = False
+            validation_metadata["validationErrors"] = [str(error)[:2000]]
+            logger = getattr(getattr(self.validation, "activity", None), "logger", None)
+            if logger is not None:
+                logger.record("productized_validation_finished", {
+                    "level": validation_metadata.get("validationLevel"),
+                    "checks": validation_metadata.get("validationChecks", []),
+                    "durationMs": round((monotonic() - started_validation) * 1000),
+                    "status": "failed",
+                    "errors": validation_metadata["validationErrors"],
+                })
+        validation_metadata["validationDurationMs"] = round(
+            (monotonic() - started_validation) * 1000
+        )
+        if not validation_passed:
             return CreatorOperationVerificationResult(
                 staticStatus="failed",
                 runtimeStatus="not-run",
                 runtimeFreshnessAttempts=0,
                 runtimeFreshnessWaitMs=0,
-            )
-
-        if getattr(validation, "status", None) != "passed":
-            return CreatorOperationVerificationResult(
-                staticStatus="failed",
-                runtimeStatus="not-run",
-                runtimeFreshnessAttempts=0,
-                runtimeFreshnessWaitMs=0,
+                **validation_metadata,
             )
 
         if self.verification_mode == "static_only":
             return CreatorOperationVerificationResult(
+                **validation_metadata,
                 staticStatus="passed",
                 runtimeStatus="not-run",
                 runtimeFreshnessAttempts=0,
@@ -502,6 +565,7 @@ class CompositionOperationVerificationService:
             "compositionFresh"
         ) is not True:
             return CreatorOperationVerificationResult(
+                **validation_metadata,
                 staticStatus="passed",
                 runtimeStatus=(
                     runtime_status
@@ -514,6 +578,7 @@ class CompositionOperationVerificationService:
 
         if result.get("runtimeObserved") is False:
             return CreatorOperationVerificationResult(
+                **validation_metadata,
                 staticStatus="passed",
                 runtimeStatus="unavailable",
                 runtimeFreshnessAttempts=attempts,
@@ -533,6 +598,7 @@ class CompositionOperationVerificationService:
             or current_hash != expected_hash
         ):
             return CreatorOperationVerificationResult(
+                **validation_metadata,
                 staticStatus="passed",
                 runtimeStatus="failed",
                 runtimeFreshnessAttempts=attempts,
@@ -554,6 +620,7 @@ class CompositionOperationVerificationService:
             or failed_composition_check
         ):
             return CreatorOperationVerificationResult(
+                **validation_metadata,
                 staticStatus="passed",
                 runtimeStatus="failed",
                 runtimeFreshnessAttempts=attempts,
@@ -566,6 +633,7 @@ class CompositionOperationVerificationService:
             )
         if runtime_status == "failed":
             return CreatorOperationVerificationResult(
+                **validation_metadata,
                 staticStatus="passed",
                 runtimeStatus="unavailable",
                 runtimeFreshnessAttempts=attempts,
@@ -603,6 +671,7 @@ class CompositionOperationVerificationService:
                 placement_expected and expected_placement.get("type") == "relative"
             )
             return CreatorOperationVerificationResult(
+                **validation_metadata,
                 staticStatus="passed",
                 runtimeStatus="failed",
                 runtimeFreshnessAttempts=attempts,
@@ -640,6 +709,7 @@ class CompositionOperationVerificationService:
             geometry_verified = placement.get("geometryVerified")
             if placement.get("status") == "failed":
                 return CreatorOperationVerificationResult(
+                    **validation_metadata,
                     staticStatus="passed",
                     runtimeStatus="failed",
                     runtimeFreshnessAttempts=attempts,
@@ -660,6 +730,7 @@ class CompositionOperationVerificationService:
                 )
             if placement.get("status") in {"stale", "unavailable"}:
                 return CreatorOperationVerificationResult(
+                    **validation_metadata,
                     staticStatus="passed",
                     runtimeStatus=(
                         "stale"
@@ -683,6 +754,7 @@ class CompositionOperationVerificationService:
             geometry_verified = geometry.get("geometryVerified")
             if geometry.get("status") == "failed":
                 return CreatorOperationVerificationResult(
+                    **validation_metadata,
                     staticStatus="passed",
                     runtimeStatus="failed",
                     runtimeFreshnessAttempts=attempts,
@@ -699,6 +771,7 @@ class CompositionOperationVerificationService:
                 )
             if geometry.get("status") in {"stale", "unavailable"}:
                 return CreatorOperationVerificationResult(
+                    **validation_metadata,
                     staticStatus="passed",
                     runtimeStatus=(
                         "stale"
@@ -724,6 +797,7 @@ class CompositionOperationVerificationService:
             workspace_fill_verified = fill.get("workspaceFillVerified")
             if fill["status"] != "passed":
                 return CreatorOperationVerificationResult(
+                    **validation_metadata,
                     staticStatus="passed",
                     runtimeStatus=(
                         "failed" if fill["status"] == "failed" else "unavailable"
@@ -744,6 +818,7 @@ class CompositionOperationVerificationService:
 
         visual_evidence = await self._visual_evidence(expected_hash)
         return CreatorOperationVerificationResult(
+            **validation_metadata,
             staticStatus="passed",
             runtimeStatus="passed",
             runtimeFreshnessAttempts=attempts,

@@ -30,6 +30,7 @@ MutationProjectControlOperation: TypeAlias = Literal[
 ]
 InternalProjectControlOperation: TypeAlias = Literal[
     "verify_runtime_composition",
+    "verify_ui_project",
 ]
 ProjectControlOperation: TypeAlias = (
     ReadProjectControlOperation

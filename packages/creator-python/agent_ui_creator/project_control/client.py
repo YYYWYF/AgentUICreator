@@ -133,6 +133,10 @@ class ProjectControlClient:
             },
         )
 
+    async def verify_ui_project(self) -> dict[str, Any]:
+        """Run the target Host's deterministic UI verification through its API."""
+        return await self._request("verify_ui_project", {})
+
     async def inspect_agent_ui_sources(self) -> dict[str, Any]:
         return await self._request("inspect_agent_ui_sources", {})
 

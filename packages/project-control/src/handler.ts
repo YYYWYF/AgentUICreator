@@ -4,6 +4,7 @@ import path from "node:path";
 
 import { z } from "zod";
 import { validateProjectControlResult } from "./result-contract.mjs";
+import { verifyUIProject } from "./verify-ui";
 
 import { parseAppUIModelJson } from "./framework/contracts/app-ui-model";
 import {
@@ -113,6 +114,11 @@ export const requestSchema = z.discriminatedUnion("operation", [
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("verify_runtime_composition"),
     input: verifyRuntimeCompositionInputSchema,
+  }),
+  z.strictObject({
+    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
+    operation: z.literal("verify_ui_project"),
+    input: emptyInputSchema,
   }),
   z.strictObject({
     schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
@@ -437,6 +443,10 @@ async function executeRequest(
       );
     case "verify_runtime_composition":
       return verifyRuntimeComposition(projectRoot, request.input);
+    case "verify_ui_project": {
+      const result = await verifyUIProject(projectRoot);
+      return { status: result.status, errors: result.errors, warnings: result.warnings };
+    }
     case "mutate_app_ui_model":
       return mutateAppUIModel(projectRoot, request.input);
     case "inspect_agent_ui_sources":

@@ -14,6 +14,7 @@ from .models import (
     CreatorOperationPostconditionResult,
     CreatorOperationVerificationResult,
 )
+from .validation_plan import footprint_from_mutation
 from .snapshot import CreatorDomainSnapshotProvider
 from .verification import CompositionOperationVerificationService
 
@@ -720,6 +721,7 @@ class CreatorActionExecutionPlaybook:
         status: str,
         instance_id: str | None = None,
         mutation_changed: bool = False,
+        mutation_footprint: dict[str, Any] | None = None,
         mutation_revision: int | None = None,
         postcondition: CreatorOperationPostconditionResult | None = None,
         verification: CreatorOperationVerificationResult | None = None,
@@ -735,6 +737,7 @@ class CreatorActionExecutionPlaybook:
             pluginId=candidate.target.pluginId,
             instanceId=instance_id,
             mutationChanged=mutation_changed,
+            mutationFootprint=mutation_footprint,
             mutationRevision=mutation_revision,
             postcondition=postcondition,
             verification=verification,
@@ -865,18 +868,6 @@ class CreatorActionExecutionPlaybook:
         """Execute the selected action without rechecking its eligibility in Python."""
 
         started_at = monotonic()
-        try:
-            await self.verification.ensure_baseline()
-        except Exception as error:
-            return self._result(
-                started_at,
-                candidate=candidate,
-                status="failed",
-                instance_id=candidate.target.instanceId,
-                error_code="PRODUCT_OPERATION_STATIC_BASELINE_FAILED",
-                message=str(error),
-            )
-
         current_snapshot = snapshot
         current_candidate = candidate
         mutation_attempts = 0
@@ -1046,8 +1037,16 @@ class CreatorActionExecutionPlaybook:
                 expectations=expectations,
                 mutation=mutation,
             )
+            try:
+                mutation_footprint = footprint_from_mutation(
+                    mutation,
+                    app_ui_model_path=self.mutation_service.app_ui_model_path,
+                ).to_dict()
+            except ValueError:
+                mutation_footprint = None
             verification = await self.verification.verify(
                 mutation_result=mutation,
+                app_ui_model_path=self.mutation_service.app_ui_model_path,
                 expected_runtime=expectations.expected_runtime,
                 expected_geometry=expectations.expected_geometry,
                 expected_placement=expectations.expected_placement,
@@ -1065,6 +1064,7 @@ class CreatorActionExecutionPlaybook:
                 status=status,
                 instance_id=expectations.instance_id,
                 mutation_changed=True,
+                mutation_footprint=mutation_footprint,
                 mutation_revision=mutation_revision,
                 postcondition=postcondition,
                 verification=verification,

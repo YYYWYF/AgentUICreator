@@ -236,6 +236,7 @@ class ProductizedOperationEngine:
         )
         verification = CompositionOperationVerificationService(
             validation=self.validation,
+            project_control=project_control,
             runtime=self.runtime_inspection,
             visual_observations=visual_observations,
             verification_mode=verification_mode,
@@ -563,6 +564,7 @@ class ProductizedOperationEngine:
                 {
                     "operation": operation_result.operation,
                     "status": operation_result.status,
+                    "mutationFootprint": operation_result.mutationFootprint,
                     "errorCode": operation_result.errorCode,
                     "postcondition": (
                         None
@@ -570,6 +572,17 @@ class ProductizedOperationEngine:
                         else operation_result.postcondition.model_dump(mode="json")
                     ),
                     "metrics": operation_result.metrics.model_dump(mode="json"),
+                    "actionSelectorCalls": selector_metrics.modelCalls,
+                    "productActions": 1,
+                    "projectControlCalls": self.project_control.metrics.requests,
+                    "validationLevel": (
+                        operation_result.verification.validationLevel
+                        if operation_result.verification is not None else None
+                    ),
+                    "validationDurationMs": (
+                        operation_result.verification.validationDurationMs
+                        if operation_result.verification is not None else 0
+                    ),
                 },
             )
 
@@ -704,6 +717,15 @@ class ProductizedOperationEngine:
                 " 已读回持久化 AppUIModel，哈希="
                 f"{operation.postcondition.appUIModelHash}。"
             )
+        static_evidence = f"静态验证状态={verification.staticStatus}。"
+        if verification.validationLevel is not None:
+            static_evidence = (
+                f"静态验证状态={verification.staticStatus}；"
+                f"级别={verification.validationLevel}；"
+                f"检查={', '.join(verification.validationChecks)}。"
+            )
+            if verification.validationErrors:
+                static_evidence += " 错误：" + "；".join(verification.validationErrors)
         checks: list[dict[str, str]] = [
             {
                 "id": "operation-postcondition",
@@ -715,7 +737,7 @@ class ProductizedOperationEngine:
             {
                 "id": "static-validation",
                 "status": static_check_status,
-                "evidence": f"静态验证状态={verification.staticStatus}。",
+                "evidence": static_evidence,
             },
         ]
         if (
@@ -892,6 +914,7 @@ class ProductizedOperationEngine:
             "status": operation.status,
             "verificationMode": self.verification_mode,
             "operation": operation.operation,
+            "mutationFootprint": operation.mutationFootprint,
             "postconditionStatus": (
                 operation.postcondition.status
                 if operation.postcondition is not None
@@ -915,6 +938,10 @@ class ProductizedOperationEngine:
             "staticStatus": (
                 verification.staticStatus if verification is not None else "not-run"
             ),
+            "validationLevel": verification.validationLevel if verification is not None else None,
+            "validationChecks": verification.validationChecks if verification is not None else [],
+            "validationDurationMs": verification.validationDurationMs if verification is not None else 0,
+            "validationErrors": verification.validationErrors if verification is not None else [],
             "runtimeStatus": (
                 verification.runtimeStatus if verification is not None else "not-run"
             ),

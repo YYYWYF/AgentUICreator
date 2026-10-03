@@ -716,6 +716,10 @@ class CreatorOperationVerificationResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     staticStatus: Literal["passed", "failed", "unavailable", "not-run"]
+    validationLevel: Literal["ui-model", "target-source", "workspace"] | None = None
+    validationChecks: list[str] = Field(default_factory=list)
+    validationDurationMs: int = Field(default=0, ge=0)
+    validationErrors: list[str] = Field(default_factory=list)
     runtimeStatus: CreatorOperationRuntimeStatus
     runtimeFreshnessAttempts: int = Field(ge=0, le=3)
     runtimeFreshnessWaitMs: int = Field(ge=0)
@@ -772,6 +776,7 @@ class CreatorOperationExecutionResult(BaseModel):
     pluginId: BoundedPluginId | None = None
     instanceId: BoundedPluginInstanceId | None = None
     mutationChanged: bool = False
+    mutationFootprint: dict[str, Any] | None = None
     mutationRevision: int | None = Field(default=None, ge=0)
     postcondition: CreatorOperationPostconditionResult | None = None
     verification: CreatorOperationVerificationResult | None = None

@@ -572,6 +572,16 @@
         {
           "type": "object",
           "additionalProperties": false,
+          "required": ["schemaVersion", "operation", "input"],
+          "properties": {
+            "schemaVersion": { "const": 3 },
+            "operation": { "const": "verify_ui_project" },
+            "input": { "$ref": "#/$defs/emptyInput" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
           "required": [
             "schemaVersion",
             "operation",
@@ -686,6 +696,9 @@
                 },
                 {
                   "$ref": "#/$defs/verifyRuntimeCompositionResult"
+                },
+                {
+                  "$ref": "#/$defs/verifyUIProjectResult"
                 },
                 {
                   "$ref": "#/$defs/mutateAppUIModelResult"
@@ -1802,6 +1815,24 @@
         },
         "truncated": {
           "type": "boolean"
+        }
+      }
+    },
+    "verifyUIProjectResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "errors", "warnings"],
+      "properties": {
+        "status": { "enum": ["passed", "failed"] },
+        "errors": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/projectIssue" }
+        },
+        "warnings": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/projectIssue" }
         }
       }
     },

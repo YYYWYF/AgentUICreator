@@ -13,6 +13,7 @@ from agent_ui_creator.operations import (
 )
 from agent_ui_creator.operations.models import CreatorOperationPostconditionResult
 from agent_ui_creator.operations.engine import ProductizedOperationEngine, _operation_text
+from agent_ui_creator.operations.validation_plan import footprint_from_mutation, plan_validation
 
 
 class _Validation:
@@ -30,6 +31,68 @@ class _Runtime:
 
     async def inspect_host(self) -> dict[str, object]:
         return self.result
+
+
+def test_productized_validation_uses_committed_footprint_without_workspace_commands(tmp_path):
+    class Validation:
+        def __init__(self):
+            self.activity = SimpleNamespace(logger=None)
+            self.runner = SimpleNamespace(execute_target_project_typecheck=self.execute_target_project_typecheck)
+            self.commands = []
+
+        async def execute_target_project_typecheck(self):
+            self.commands.append("targetProjectTypecheck")
+            return SimpleNamespace(exit_code=0, output="")
+
+        async def validate(self, *, mode):
+            raise AssertionError("Workspace validation must not run for AppUIModel changes")
+
+    class Control:
+        project_root = tmp_path
+
+        def __init__(self, status):
+            self.status = status
+            self.calls = 0
+
+        async def verify_ui_project(self):
+            self.calls += 1
+            return {"status": self.status, "errors": [], "warnings": []}
+
+    async def check(paths, status="passed"):
+        validation = Validation()
+        control = Control(status)
+        result = await CompositionOperationVerificationService(
+            validation=validation,
+            project_control=control,
+            runtime=_Runtime({}),
+            verification_mode="static_only",
+        ).verify(
+            mutation_result={"changedPaths": paths},
+            expected_runtime={},
+        )
+        return result, control.calls, validation.commands
+
+    model_paths = ["app-ui/app-ui.json", "plugins/registry.generated.ts"]
+    result, calls, commands = asyncio.run(check(model_paths))
+    assert (result.validationLevel, result.staticStatus, calls, commands) == (
+        "ui-model", "passed", 1, [],
+    )
+    failed, calls, commands = asyncio.run(check(model_paths, status="failed"))
+    assert (failed.staticStatus, failed.runtimeStatus, calls, commands) == (
+        "failed", "not-run", 1, [],
+    )
+    source, calls, commands = asyncio.run(check([*model_paths, "plugins/foo/index.tsx"]))
+    assert (source.validationLevel, source.staticStatus, calls, commands) == (
+        "target-source", "passed", 1, ["targetProjectTypecheck"],
+    )
+
+
+def test_workspace_footprint_requires_workspace_validation():
+    footprint = footprint_from_mutation(
+        {"changedPaths": ["app-ui/app-ui.json", "packages/runtime-core/src/index.ts"]},
+        app_ui_model_path="app-ui/app-ui.json",
+    )
+    assert plan_validation(footprint) == "workspace"
 
 
 def test_workspace_reflow_rejects_a_narrow_surviving_center():

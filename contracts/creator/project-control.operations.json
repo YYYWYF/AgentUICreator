@@ -73,6 +73,13 @@
       "agentExposed": false
     },
     {
+      "name": "verify_ui_project",
+      "kind": "read",
+      "inputDef": "emptyInput",
+      "resultDef": "verifyUIProjectResult",
+      "agentExposed": false
+    },
+    {
       "name": "mutate_app_ui_model",
       "kind": "mutation",
       "inputDef": "mutateAppUIModelInput",
