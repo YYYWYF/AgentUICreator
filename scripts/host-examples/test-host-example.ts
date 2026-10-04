@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -42,10 +43,17 @@ async function main() {
   const state = await inspectCreatorProject(projectRoot);
   assert.equal(state.status, "ready", JSON.stringify(state));
   assert.ok(state.status === "ready");
-  assert.equal(state.projectConfig.mode, mode);
-  assert.equal(state.projectConfig.version, "2");
-  assert.ok(state.projectConfig.version === "2");
-  assert.equal(state.projectConfig.sourceRoot, "src/agent-ui");
+  assert.deepEqual(state.projectConfig, { mode, sourceRoot: "src/agent-ui" });
+
+  // pretest ensures the Host once; a second ensure must accept the same configuration.
+  execFileSync(process.execPath, ["--import", "tsx", fileURLToPath(new URL("./host-project.ts", import.meta.url)), "ensure", mode, projects[mode]], {
+    cwd: projectRoot,
+    stdio: "pipe",
+  });
+  const ensuredState = await inspectCreatorProject(projectRoot);
+  assert.equal(ensuredState.status, "ready", JSON.stringify(ensuredState));
+  assert.ok(ensuredState.status === "ready");
+  assert.deepEqual(ensuredState.projectConfig, { mode, sourceRoot: "src/agent-ui" });
 
   const verification = await verifyUIProject(projectRoot);
   assert.equal(verification.status, "passed", JSON.stringify(verification.errors));

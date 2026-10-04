@@ -6,19 +6,15 @@ it delegates parsing, mutation and inspection to the existing project contracts.
 The build bundles those contracts and the Source Registry, leaving TypeScript 7
 as a dependency of this tool package (including its native parser).
 
-Initialization installs `.agent-ui/control/project-control.mjs`. This versioned
-entry imports the compiled runtime from the installed tool, and resolves the Host
-root from its own location. The Host does not install tsx or ship control code in
-its production app. Build this tool package as part of the development-tool
-release, before initializing Hosts. Creator select/refresh calls
-`ensureManagedProjectControl` before starting Python: current entries are a noop,
-stale versions or relocated tool URLs are atomically upgraded, and modified entries
-are refused. Missing v2 entries are installed; legacy projects retain their fallback.
-Metadata lives inside the entry, without changing the public project schema.
-
-Keep legacy scripts/tsx fallback for at least one full migration cycle. Remove
-it only after managed-path tests and all three Host modes have passed. No legacy
-Host entry is removed in this migration.
+Initialization installs `.agent-ui/control/project-control.mjs` as the only managed
+control entry. It imports the compiled runtime from the installed development
+tool and resolves the Host root from its own location. The Host does not install
+tsx or ship control code in its production app. Build this tool package as part
+of the development-tool release before initializing Hosts. On Creator
+select/refresh, `ensureManagedProjectControl` ensures the entry matches the
+installed runtime: it installs a missing entry, atomically updates an entry when
+the tool location or runtime source changes, and refuses to overwrite an
+unmanaged or user-modified entry.
 
 ProjectControl's canonical wire contract is
 `contracts/creator/project-control.schema.json`. The adjacent

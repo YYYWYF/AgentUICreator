@@ -28,7 +28,7 @@ function describeState(state: Awaited<ReturnType<typeof inspectCreatorProject>>)
     return {
       status: state.status,
       mode: state.projectConfig.mode,
-      sourceRoot: state.projectConfig.version === "2" ? state.projectConfig.sourceRoot : undefined,
+      sourceRoot: state.projectConfig.sourceRoot,
     };
   }
   return { status: state.status, ...(state.status === "broken" ? { issues: state.issues } : {}) };
@@ -45,7 +45,7 @@ async function main() {
   }
   const before = await inspectCreatorProject(projectRoot);
   if (command === "ensure" && before.status === "ready") {
-    if (before.projectConfig.mode !== mode || before.projectConfig.version !== "2" || before.projectConfig.sourceRoot !== sourceRoot) {
+    if (before.projectConfig.mode !== mode || before.projectConfig.sourceRoot !== sourceRoot) {
       throw new Error(`Project is already initialized with a different configuration: ${JSON.stringify(describeState(before))}`);
     }
     const sources = await handleUIProjectControlRequest({ operation: "inspect_agent_ui_sources", input: {} }, projectRoot);
@@ -74,8 +74,8 @@ async function main() {
 
   await initializeAgentUIProject({ projectRoot, mode, sourceRoot }, initializationHost);
   const after = await inspectCreatorProject(projectRoot);
-  if (after.status !== "ready" || after.projectConfig.version !== "2" ||
-      after.projectConfig.mode !== mode || after.projectConfig.sourceRoot !== sourceRoot) {
+  if (after.status !== "ready" || after.projectConfig.mode !== mode ||
+      after.projectConfig.sourceRoot !== sourceRoot) {
     throw new Error(`Initialization postcondition failed: ${JSON.stringify(describeState(after))}`);
   }
   console.log([
