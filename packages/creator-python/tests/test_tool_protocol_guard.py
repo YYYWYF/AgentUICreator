@@ -16,7 +16,10 @@ from agent_ui_creator.model_protocol import (
     ToolProtocolMetrics,
     ToolProtocolMiddleware,
 )
-from agent_ui_creator.model_protocol.textual_tool_intent import textual_tool_signals
+from agent_ui_creator.model_protocol.textual_tool_intent import (
+    has_textual_tool_intent,
+    textual_tool_signals,
+)
 from agent_ui_creator.source_tools.models import MutateUIPluginSourceInput
 from agent_ui_creator.app_ui_model.mutation_tool import APP_UI_MODEL_MUTATION_TOOL_SCHEMA
 
@@ -681,6 +684,10 @@ _JSON_CALL = (
 _PARTIAL_CALL = '<tool_call><function=read_file>{"file_path":"/src/a.ts"}'
 _FENCED_JSON_CALL = f"```xml\n{_JSON_CALL}\n```"
 _FENCED_PARTIAL_CALL = f"```xml\n{_PARTIAL_CALL}\n```"
+_NAMED_FENCED_CALLS = (
+    '```arduino\n下一步：read_file {"file_path":"/src/a.ts"}\n```',
+    '```arduino\n调用：mutate_app_ui_model {"operations": []}\n```',
+)
 
 
 def _visible_blocks(value):
@@ -702,6 +709,29 @@ def test_shared_signals_keep_quoted_complete_calls_separate_from_literals(as_blo
         assert signals.unquoted_call is unquoted
         assert signals.fenced_complete_call is fenced
         assert signals.quoted_literal is literal
+
+
+@pytest.mark.parametrize("as_blocks", [False, True])
+@pytest.mark.parametrize("content", [
+    *_NAMED_FENCED_CALLS,
+    _FENCED_CALL,
+    _FENCED_JSON_CALL,
+])
+def test_complete_fenced_call_is_always_a_call_shape(as_blocks, content):
+    visible = _visible_blocks(content) if as_blocks else content
+    signals = textual_tool_signals(visible)
+    assert signals.fenced_complete_call is True
+    assert signals.fenced_call_shape is True
+    assert has_textual_tool_intent(visible) is True
+
+
+@pytest.mark.parametrize("as_blocks", [False, True])
+@pytest.mark.parametrize("content", [*_NAMED_FENCED_CALLS, _FENCED_CALL,
+                                     _FENCED_JSON_CALL, _FENCED_PARTIAL_CALL])
+def test_fenced_complete_call_implies_call_shape_for_detector_cases(as_blocks, content):
+    visible = _visible_blocks(content) if as_blocks else content
+    signals = textual_tool_signals(visible)
+    assert not signals.fenced_complete_call or signals.fenced_call_shape
 
 
 @pytest.mark.parametrize("as_blocks", [False, True])
@@ -734,7 +764,8 @@ def test_fenced_wrapper_detection_does_not_depend_on_tool_name():
 
 @pytest.mark.parametrize("async_call", [False, True])
 @pytest.mark.parametrize("as_blocks", [False, True])
-@pytest.mark.parametrize("fenced", [_FENCED_JSON_CALL, _FENCED_PARTIAL_CALL])
+@pytest.mark.parametrize("fenced", [*_NAMED_FENCED_CALLS,
+                                     _FENCED_JSON_CALL, _FENCED_PARTIAL_CALL])
 @pytest.mark.parametrize("preface, ambiguous", [
     ("", False),
     ("我先看一下项目结构和修改历史。\n\n", True),
@@ -890,8 +921,10 @@ def test_no_tool_protocol_example_finishes_without_opening_tools(async_call, as_
 @pytest.mark.parametrize("async_call", [False, True])
 @pytest.mark.parametrize("as_blocks", [False, True])
 @pytest.mark.parametrize("second_content", [
+    *_NAMED_FENCED_CALLS,
     _FENCED_JSON_CALL,
     _FENCED_PARTIAL_CALL,
+    *(f"A call might look like this:\n{content}" for content in _NAMED_FENCED_CALLS),
     f"A call might look like this:\n{_FENCED_JSON_CALL}",
     f"A call might look like this:\n{_FENCED_PARTIAL_CALL}",
 ])

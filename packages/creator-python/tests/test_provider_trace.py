@@ -311,6 +311,30 @@ def test_provider_trace_and_guard_agree_on_fenced_call_shapes(
     assert decision.status == expected
 
 
+@pytest.mark.parametrize("as_blocks", [False, True])
+@pytest.mark.parametrize("body", [
+    '下一步：read_file {"file_path":"/src/a.ts"}',
+    '调用：mutate_app_ui_model {"operations": []}',
+])
+def test_provider_trace_reports_complete_named_calls_inside_fences(as_blocks, body):
+    content = f"```arduino\n{body}\n```"
+    if as_blocks:
+        split = len(content) // 2
+        content = [{"type": "text", "text": content[:split]},
+                   {"type": "text", "text": content[split:]}]
+    collector = ProviderResponseTraceCollector(enabled=True)
+    collector.on_response(_response({
+        "choices": [{"finish_reason": "stop", "message": {"content": content}}]
+    }))
+    trace = collector.pop_successful_completion()
+    decision = ToolProtocolGuard(ToolProtocolMetrics()).inspect(
+        ModelResponse(result=[AIMessage(content=content)]), [read_file]
+    )
+    assert trace is not None
+    assert trace.textualToolIntent is True
+    assert decision.status == "repair"
+
+
 def test_retry_attempts_are_attached_only_to_the_following_success():
     collector = ProviderResponseTraceCollector(enabled=True)
     collector.on_response(

@@ -57,7 +57,8 @@ def _has_complete_call(text: str) -> bool:
 
 def _has_call_shape(text: str) -> bool:
     return bool(
-        any(match.group(1).strip() for match in _TOOL_CALL_WRAPPER.finditer(text))
+        _has_complete_call(text)
+        or any(match.group(1).strip() for match in _TOOL_CALL_WRAPPER.finditer(text))
         or _CALL_FRAGMENT.search(text)
         or any(pattern.search(text) for pattern in _PATTERNS[3:])
     )
