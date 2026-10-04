@@ -707,7 +707,7 @@ class ToolProtocolGuard:
         signals = textual_tool_signals(message.content)
         if signals.unquoted_call:
             return GuardDecision(response, "repair")
-        if signals.fenced_complete_call:
+        if signals.fenced_call_shape:
             if not signals.outside_fences_text:
                 return GuardDecision(response, "repair")
             if tools:

@@ -674,6 +674,13 @@ def test_discussion_of_literal_tool_call_tag_is_final_text():
 _XML_CALL = '<tool_call><function=workspace__list_directory>{"path":"."}</function></tool_call>'
 _FENCED_CALL = f"```xml\n{_XML_CALL}\n```"
 _AMBIGUOUS_CALL = f"我先看一下项目结构和修改历史。\n\n{_FENCED_CALL}"
+_JSON_CALL = (
+    '<tool_call>\n{"name":"read_file","arguments":{"file_path":"/src/a.ts"}}'
+    '\n</tool_call>'
+)
+_PARTIAL_CALL = '<tool_call><function=read_file>{"file_path":"/src/a.ts"}'
+_FENCED_JSON_CALL = f"```xml\n{_JSON_CALL}\n```"
+_FENCED_PARTIAL_CALL = f"```xml\n{_PARTIAL_CALL}\n```"
 
 
 def _visible_blocks(value):
@@ -687,12 +694,82 @@ def test_shared_signals_keep_quoted_complete_calls_separate_from_literals(as_blo
     for content, unquoted, fenced, literal in [
         (_XML_CALL, True, False, False),
         (_AMBIGUOUS_CALL, False, True, True),
+        (_FENCED_JSON_CALL, False, True, True),
+        (_FENCED_PARTIAL_CALL, False, False, True),
         ("The literal `<tool_call>` names a tag.", False, False, True),
     ]:
         signals = textual_tool_signals(_visible_blocks(content) if as_blocks else content)
         assert signals.unquoted_call is unquoted
         assert signals.fenced_complete_call is fenced
         assert signals.quoted_literal is literal
+
+
+@pytest.mark.parametrize("as_blocks", [False, True])
+@pytest.mark.parametrize("fenced", [_FENCED_JSON_CALL, _FENCED_PARTIAL_CALL])
+@pytest.mark.parametrize("preface, expected", [
+    ("", "repair"),
+    ("我先看一下项目结构和修改历史。\n\n", "repair_ambiguous"),
+])
+def test_fenced_call_body_and_fragment_enter_existing_repair_branches(
+    as_blocks, fenced, preface, expected
+):
+    content = preface + fenced
+    message = AIMessage(content=_visible_blocks(content) if as_blocks else content)
+    signals = textual_tool_signals(message.content)
+    assert signals.fenced_call_shape is True
+    decision, _ = inspect(message)
+    assert decision.status == expected
+    assert decision.response.result[0].tool_calls == []
+
+
+def test_fenced_wrapper_detection_does_not_depend_on_tool_name():
+    content = (
+        '```xml\n<tool_call>{"name":"unrecognized_action","arguments":{}}'
+        '</tool_call>\n```'
+    )
+    decision, _ = inspect(AIMessage(content=content))
+    assert decision.status == "repair"
+    assert decision.response.result[0].tool_calls == []
+
+
+@pytest.mark.parametrize("async_call", [False, True])
+@pytest.mark.parametrize("as_blocks", [False, True])
+@pytest.mark.parametrize("fenced", [_FENCED_JSON_CALL, _FENCED_PARTIAL_CALL])
+@pytest.mark.parametrize("preface, ambiguous", [
+    ("", False),
+    ("我先看一下项目结构和修改历史。\n\n", True),
+])
+def test_fenced_call_regressions_take_one_repair_on_first_response(
+    async_call, as_blocks, fenced, preface, ambiguous
+):
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+    content = preface + fenced
+    second = ModelResponse(result=[AIMessage(content="", tool_calls=[{
+        "name": "read_file", "args": {"file_path": "/src/a.ts"}, "id": "fixed",
+    }])])
+    responses = iter([
+        ModelResponse(result=[AIMessage(content=(
+            _visible_blocks(content) if as_blocks else content
+        ))]),
+        second,
+    ])
+    calls = []
+
+    def handler(current_request):
+        calls.append(current_request)
+        return next(responses)
+
+    async def async_handler(current_request):
+        return handler(current_request)
+
+    result = (asyncio.run(middleware.awrap_model_call(request, async_handler))
+              if async_call else middleware.wrap_model_call(request, handler))
+    assert result is second
+    assert len(calls) == 2
+    assert calls[1].tool_choice == ("auto" if ambiguous else request.tool_choice)
+    assert middleware.metrics.protocolRepairAttempts == 1
+    assert middleware.metrics.protocolRepairSuccesses == 1
 
 
 @pytest.mark.parametrize("content, expected", [
@@ -808,6 +885,47 @@ def test_no_tool_protocol_example_finishes_without_opening_tools(async_call, as_
     assert result is response
     assert len(calls) == 1
     assert middleware.metrics.protocolRepairAttempts == 0
+
+
+@pytest.mark.parametrize("async_call", [False, True])
+@pytest.mark.parametrize("as_blocks", [False, True])
+@pytest.mark.parametrize("second_content", [
+    _FENCED_JSON_CALL,
+    _FENCED_PARTIAL_CALL,
+    f"A call might look like this:\n{_FENCED_JSON_CALL}",
+    f"A call might look like this:\n{_FENCED_PARTIAL_CALL}",
+])
+def test_ambiguous_repair_rejects_rewrapped_or_partial_calls(
+    async_call, as_blocks, second_content
+):
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+    responses = iter([
+        ModelResponse(result=[AIMessage(content=(
+            _visible_blocks(_AMBIGUOUS_CALL) if as_blocks else _AMBIGUOUS_CALL
+        ))]),
+        ModelResponse(result=[AIMessage(content=(
+            _visible_blocks(second_content) if as_blocks else second_content
+        ))]),
+    ])
+    calls = []
+
+    def handler(current_request):
+        calls.append(current_request)
+        return next(responses)
+
+    async def async_handler(current_request):
+        return handler(current_request)
+
+    with pytest.raises(ModelToolProtocolError):
+        if async_call:
+            asyncio.run(middleware.awrap_model_call(request, async_handler))
+        else:
+            middleware.wrap_model_call(request, handler)
+    assert len(calls) == 2
+    assert middleware.metrics.protocolRepairAttempts == 1
+    assert middleware.metrics.protocolRepairFailures == 1
+    assert middleware.metrics.protocolRepairSuccesses == 0
 
 
 @pytest.mark.parametrize("async_call", [False, True])

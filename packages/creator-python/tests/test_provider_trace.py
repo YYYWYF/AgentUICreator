@@ -3,10 +3,16 @@ import json
 
 import httpx
 import pytest
+from langchain.agents.middleware import ModelResponse
+from langchain_core.messages import AIMessage
 from langchain_core.tools import tool
 
 from agent_ui_creator.model_factory import create_creator_chat_model
-from agent_ui_creator.model_protocol import ProviderResponseTraceCollector
+from agent_ui_creator.model_protocol import (
+    ProviderResponseTraceCollector,
+    ToolProtocolGuard,
+    ToolProtocolMetrics,
+)
 from agent_ui_creator.model_settings import CreatorModelSettings
 
 
@@ -272,6 +278,37 @@ def test_provider_textual_intent_uses_shared_visible_text_detection(content, exp
     assert trace is not None
     assert trace.textualToolIntent is expected
     assert trace.toolCallCount == 0
+
+
+@pytest.mark.parametrize("as_blocks", [False, True])
+@pytest.mark.parametrize("body, preface, expected", [
+    ('<tool_call>\n{"name":"read_file","arguments":{"file_path":"/src/a.ts"}}'
+     '\n</tool_call>', "", "repair"),
+    ('<tool_call><function=read_file>{"file_path":"/src/a.ts"}', "", "repair"),
+    ('<tool_call>\n{"name":"read_file","arguments":{"file_path":"/src/a.ts"}}'
+     '\n</tool_call>', "I will inspect the project.\n", "repair_ambiguous"),
+    ('<tool_call><function=read_file>{"file_path":"/src/a.ts"}',
+     "I will inspect the project.\n", "repair_ambiguous"),
+])
+def test_provider_trace_and_guard_agree_on_fenced_call_shapes(
+    as_blocks, body, preface, expected
+):
+    content = f"{preface}```xml\n{body}\n```"
+    if as_blocks:
+        split = len(content) // 2
+        content = [{"type": "text", "text": content[:split]},
+                   {"type": "text", "text": content[split:]}]
+    collector = ProviderResponseTraceCollector(enabled=True)
+    collector.on_response(_response({
+        "choices": [{"finish_reason": "stop", "message": {"content": content}}]
+    }))
+    trace = collector.pop_successful_completion()
+    decision = ToolProtocolGuard(ToolProtocolMetrics()).inspect(
+        ModelResponse(result=[AIMessage(content=content)]), [read_file]
+    )
+    assert trace is not None
+    assert trace.textualToolIntent is True
+    assert decision.status == expected
 
 
 def test_retry_attempts_are_attached_only_to_the_following_success():
