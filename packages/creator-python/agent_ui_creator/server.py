@@ -175,50 +175,6 @@ def _conversation_messages(run_input: AgUiRunInput) -> list[dict[str, str]]:
     return messages[-MAX_CREATOR_CONVERSATION_MESSAGES:]
 
 
-def _authoring_handoff_messages(
-    messages: list[dict[str, str]],
-    handoff: CreatorAuthoringHandoff | None,
-) -> list[dict[str, str]]:
-    """Bind a resolved Host ownership target before invoking the General Agent."""
-
-    if handoff is None:
-        return messages
-    owner = {
-        "ownerPath": handoff.ownerPath,
-        "ownerRoot": handoff.ownerRoot,
-        "sourceRoot": handoff.sourceRoot,
-        "definitionPath": handoff.definitionPath,
-    }
-    instruction = (
-        "The Creator Host has already resolved the semantic authoring target. "
-        "Treat this Host ownership as authoritative; do not inspect the Composition "
-        "catalog to rediscover or replace the target. Read only the supplied owner "
-        "source needed for the requested change, then keep product integration within "
-        "that owner boundary. For application_config, read ownerPath first. For "
-        "plugin_source, read the exact definitionPath first, then specific files "
-        "under ownerRoot as needed. Do not read a directory as a file. "
-        "If sourceRoot is known, locale contract files are at "
-        "<sourceRoot>/agent-ui/i18n/locale-types.ts and "
-        "<sourceRoot>/agent-ui/i18n/locales/{zh-CN,en-US}.ts; read the exact "
-        "needed paths directly before searching. AppUIModel composition changes "
-        "require an explicit separate request. Resolved target: "
-        + json.dumps(
-            {
-                "targetId": handoff.targetId,
-                "kind": handoff.kind,
-                "name": handoff.name,
-                "description": handoff.description,
-                **owner,
-                "relatedPluginIds": handoff.relatedPluginIds,
-                "pluginId": handoff.pluginId,
-            },
-            ensure_ascii=False,
-            separators=(",", ":"),
-        )
-    )
-    return [{"role": "system", "content": instruction}, *messages]
-
-
 async def _checkpoint_input_messages(
     checkpointer: Any, thread_id: str, messages: list[dict[str, str]]
 ) -> list[dict[str, str]]:
@@ -344,6 +300,7 @@ async def _domain_read_agent_result(
         mode="development",
         permission_scope="inspect_read_only" if inspect_read_only else "legacy",
         answer_only=answer_only,
+        skills_root=settings.skills_root,
         raw_trace=model_settings.raw_trace,
         provider_trace_collector=provider_trace_collector,
         activity=activity,
@@ -626,7 +583,9 @@ async def _general_domain_write_agent_result(
         assert agent.completion_gate is not None
         decision = agent.completion_gate.review("")
         return agent._build_result(text=decision.text, completion="success")
-    input_messages = _authoring_handoff_messages(messages, handoff)
+    # Current project and owner navigation is assembled at model-request time;
+    # do not persist a changing Host snapshot into checkpoint history.
+    input_messages = messages
     graph_messages = await _checkpoint_input_messages(checkpointer, thread_id, input_messages) if resume is None else input_messages
     return await agent.run_messages(graph_messages) if resume is None else await agent.run_messages(input_messages, resume=resume)
 

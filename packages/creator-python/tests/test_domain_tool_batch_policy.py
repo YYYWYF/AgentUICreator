@@ -178,23 +178,9 @@ def test_side_effect_classification_and_round_trip_prompt_contract():
     }
     assert READ_ONLY_TOOL_NAMES == set(ALLOWED_DOMAIN_WRITE_TOOLS) - SIDE_EFFECT_TOOL_NAMES
     prompt = " ".join(DOMAIN_WRITE_AGENT_PROMPT.split())
-    for rule in (
-        "Keep grounding demand-driven",
-        "Round-trip reduction policy",
-        "at most four independent read-only tool calls",
-        "Do not batch speculative inspections",
-        "arguments or necessity depend on an earlier result, wait for that result",
-        "If list_ui_plugins is genuinely required to discover the target identifier, call it first",
-        "Never guess a pluginId",
-        "Never combine edit_file, create_ui_plugin, mutate_ui_plugin_source, prepare_ui_service_contract_change",
-        "smallest determinable atomic mutation",
-        "current authoritative observations",
-        "re-inspect a successful result merely for confirmation",
-        "stale-observation/hash-conflict error",
-        "one allowed semantic replan",
-        "workspace-integrity failures",
-    ):
-        assert rule in prompt
+    assert "Batch up to four independent reads" in prompt
+    assert "Execute a side-effecting tool alone" in prompt
+    assert "one smallest determinable atomic mutate_app_ui_model request" in prompt
 
 
 @pytest.mark.parametrize("message", [

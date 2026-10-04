@@ -402,6 +402,7 @@ def test_composition_graph_contract_e2e_pack(
 
 def test_remove_capability_is_not_documented_as_composition_only():
     skill = (SKILLS_ROOT / "app-ui-model/SKILL.md").read_text(encoding="utf-8")
-    assert "Completely remove history capability" in skill
+    examples = (SKILLS_ROOT / "app-ui-model/references/operation-examples.md").read_text(encoding="utf-8")
+    assert "Completely remove history capability" in examples
     assert "Runtime Capability" in skill
-    assert "Incorrect: interpret request A" in skill
+    assert "Incorrect: interpret request A" in examples

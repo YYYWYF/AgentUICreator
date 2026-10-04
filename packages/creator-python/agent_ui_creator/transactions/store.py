@@ -361,9 +361,26 @@ class CreatorTransactionStore:
                 )
         return CreatorTransactionStatus(run_id, not conflicts, tuple(conflicts))
 
+    def was_undone(self, run_id: str) -> bool:
+        self.load(run_id)
+        return read_creator_file_state(
+            self.project_root, self._undo_marker_path(run_id)
+        ).exists
+
     def latest_undoable(
         self, exclude_run_id: str | None = None
     ) -> CreatorTransactionRecord:
+        for record in self.list_records(exclude_run_id=exclude_run_id):
+            if self.status(record.run_id).undoable:
+                return record
+        raise CreatorTransactionError(
+            "CREATOR_TRANSACTION_NOT_FOUND", "No undoable Creator run is available."
+        )
+
+    def list_records(
+        self, *, exclude_run_id: str | None = None
+    ) -> tuple[CreatorTransactionRecord, ...]:
+        """List actual transactions without skipping a conflicted newer record."""
         directory = self.project_root / CREATOR_TRANSACTION_DIRECTORY
         records: list[CreatorTransactionRecord] = []
         if directory.exists():
@@ -397,12 +414,7 @@ class CreatorTransactionStore:
                     ) from error
                 if record.run_id != exclude_run_id:
                     records.append(record)
-        for record in sorted(records, key=lambda item: item.created_at, reverse=True):
-            if self.status(record.run_id).undoable:
-                return record
-        raise CreatorTransactionError(
-            "CREATOR_TRANSACTION_NOT_FOUND", "No undoable Creator run is available."
-        )
+        return tuple(sorted(records, key=lambda item: (item.created_at, item.run_id), reverse=True))
 
     def undo(
         self,

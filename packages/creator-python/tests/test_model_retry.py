@@ -760,8 +760,10 @@ def test_exhausted_transport_retry_logs_bounded_failure_events(monkeypatch, tmp_
         "durationMs": failures[0]["data"]["durationMs"],
         "requestMessageCount": 0,
         "requestMessageChars": 0,
+        "requestMessageUtf8Bytes": 0,
         "requestToolCount": 0,
         "requestToolSchemaChars": 0,
+        "requestToolSchemaUtf8Bytes": 0,
         "requestMaxToolSchemaChars": 0,
         "requestMaxToolSchemaName": None,
         "offeredToolNames": [],
@@ -831,8 +833,10 @@ def test_transport_failure_events_include_the_failed_request_shape(
     for event in (failure, exhausted):
         assert event["data"]["requestMessageCount"] == 1
         assert event["data"]["requestMessageChars"] == len("composition request")
+        assert event["data"]["requestMessageUtf8Bytes"] == len("composition request".encode("utf-8"))
         assert event["data"]["requestToolCount"] == 2
         assert event["data"]["requestToolSchemaChars"] == 0
+        assert event["data"]["requestToolSchemaUtf8Bytes"] == 0
         assert event["data"]["requestMaxToolSchemaChars"] == 0
         assert event["data"]["requestMaxToolSchemaName"] is None
         assert event["data"]["offeredToolNames"] == [

@@ -99,19 +99,10 @@ def test_tool_and_prompt_preserve_final_state_transaction_contract(tmp_path):
     assert "current resolved user intent" in schema["description"]
     assert "one complete transaction" in schema["description"]
     prompt = " ".join(DOMAIN_WRITE_AGENT_PROMPT.split())
-    for rule in (
-        "Desired state first, operations second",
-        "user request -> current state -> desired state -> semantic delta -> operations",
-        "semantic `insert_plugin_default`",
-        "load `/skills/app-ui-model/SKILL.md` for low-level Composition operations",
-        "smallest determinable atomic mutation",
-        "Do not add a planning call, probe with partial writes",
-        "stale refreshes do not consume the one allowed semantic replan",
-        "changed=false",
-        "workspace_integrity",
-        "Automatically repair only introduced or in_scope defects",
-    ):
-        assert rule in prompt
+    assert "desired final state, current authoritative project facts" in prompt
+    assert "semantic fast path" in prompt
+    assert "one smallest determinable atomic mutate_app_ui_model request" in prompt
+    assert "custom Composition operations, read the app-ui-model Skill" in prompt
 
 
 @pytest.mark.parametrize("initial,operations,prompt", [

@@ -119,7 +119,7 @@ def test_service_inspection_distinguishes_resolved_provider_from_live_backend():
 
 
 def test_read_inventory_stops_after_evidence_and_reports_unverified_connection():
-    assert "do not search for proof of an unobserved live connection" in DOMAIN_READ_AGENT_PROMPT
+    assert "answer from observed facts" in DOMAIN_READ_AGENT_PROMPT
 
 
 def test_source_inventory_marks_current_run_for_available_install_tool(tmp_path):
@@ -173,9 +173,8 @@ def test_existing_source_install_returns_explicit_observation_handoff(tmp_path, 
 
 
 def test_source_reuse_guidance_precedes_unneeded_host_exploration():
-    assert "available Source Item metadata is sufficient to install" in DOMAIN_WRITE_AGENT_PROMPT
-    assert "Do not invent a Skill path from a tool name" in DOMAIN_WRITE_AGENT_PROMPT
-    assert "After a changed source install, inspect_ui_project(view=\"composition\")" in DOMAIN_WRITE_AGENT_PROMPT
+    assert "inspect existing and formal Source Item availability" in DOMAIN_WRITE_AGENT_PROMPT
+    assert "An incomplete inventory is not proof of absence" in DOMAIN_WRITE_AGENT_PROMPT
 
 
 def test_domain_slot_tool_forwards_layout_hash_binding():

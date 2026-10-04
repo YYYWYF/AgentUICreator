@@ -1779,8 +1779,10 @@ def test_model_trace_records_request_shape_without_request_contents():
     assert trace.requestMessageChars == len("system instructions") + len(
         "user secret content"
     )
+    assert trace.requestMessageUtf8Bytes == trace.requestMessageChars
     assert trace.requestToolCount == 2
     assert trace.requestToolSchemaChars > 0
+    assert trace.requestToolSchemaUtf8Bytes > 0
     assert trace.requestMaxToolSchemaChars > 0
     assert trace.requestMaxToolSchemaName in {
         "read_file",

@@ -24,8 +24,10 @@ class ModelCallTrace:
     toolCallOrigin: str | None = None
     requestMessageCount: int = 0
     requestMessageChars: int = 0
+    requestMessageUtf8Bytes: int = 0
     requestToolCount: int = 0
     requestToolSchemaChars: int = 0
+    requestToolSchemaUtf8Bytes: int = 0
     requestMaxToolSchemaChars: int = 0
     requestMaxToolSchemaName: str | None = None
     offeredToolNames: tuple[str, ...] = ()

@@ -30,17 +30,10 @@ def test_runtime_layout_tool_is_read_only_in_both_domain_policies():
 
 def test_prompt_requires_geometry_evidence_only_for_visible_layout_outcomes():
     prompt = " ".join(DOMAIN_WRITE_AGENT_PROMPT.split())
-    for rule in (
-        "explicit user-visible geometry request",
-        "static AppUIModel validity is not completion evidence",
-        "read-only inspect_runtime_layout tool",
-        "compare the fresh rectangles",
-        "continue diagnosis and repair",
-        "visual verification was not available",
-        "Geometry checks are demand-driven",
-        "Authoring Layout nodeRefs",
-    ):
-        assert rule in prompt
+    assert "For visible geometry claims" in prompt
+    assert "compare fresh Runtime rectangles only when Runtime inspection is available" in prompt
+    assert "visual verification is unavailable" in prompt
+
 
 
 def layout_envelope(*, app_hash: str = APP_HASH) -> RuntimeDiagnosticEnvelope:

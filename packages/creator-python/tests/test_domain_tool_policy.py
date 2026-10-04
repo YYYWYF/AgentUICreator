@@ -19,23 +19,21 @@ SKILLS_ROOT = Path(__file__).resolve().parents[2] / "creator" / "skills"
 
 
 def test_conversation_ownership_prompt_reuses_project_runtime():
-    assert "assistant-ui may be an upstream design reference only" not in DOMAIN_WRITE_AGENT_PROMPT
-    assert "Reuse the project's existing\nConversation Runtime" in DOMAIN_WRITE_AGENT_PROMPT
-    assert "Plugins must not create another Runtime" in DOMAIN_WRITE_AGENT_PROMPT
+    assert "The generated project owns its Agent Runtime" in DOMAIN_WRITE_AGENT_PROMPT
+    assert "do not add Creator to the generated app" in DOMAIN_WRITE_AGENT_PROMPT
 
 
-def test_ag_ui_skill_declares_only_available_tools():
+def test_ag_ui_skill_does_not_claim_tool_permissions():
     skill = (SKILLS_ROOT / "ag-ui-frontend" / "SKILL.md").read_text()
-    allowed_line = next(line for line in skill.splitlines() if line.startswith("allowed-tools:"))
-    declared = set(allowed_line.partition(":")[2].split())
-    assert declared <= set(ALLOWED_DOMAIN_WRITE_TOOLS)
-    assert not {"write_file", "execute"}.intersection(declared)
+    assert "allowed-tools:" not in skill
 
 
 def test_plugin_skill_runtime_instructions_follow_verification_mode():
     skill = (SKILLS_ROOT / "ui-plugin-development" / "SKILL.md").read_text()
-    assert "In `static_and_runtime` mode, call `inspect_runtime_errors`" in skill
-    assert "In `static_only` mode, stop after current-revision static validation" in skill
+    detail = (SKILLS_ROOT / "ui-plugin-development" / "references" / "completion-loop.md").read_text()
+    assert "completion-loop.md" in skill
+    assert "static_and_runtime" in detail
+    assert "static_only" in detail
 
 
 def test_domain_read_policy_exposes_only_filesystem_and_read_domain_tools():

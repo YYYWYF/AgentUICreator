@@ -125,6 +125,8 @@ class CreatorRunControlState:
         blocker = self.terminal_blocker
         if blocker is None:
             raise RuntimeError("Cannot render a missing terminal blocker.")
+        if blocker.category in {"recovery_evidence", "recovery_conflict"}:
+            return f"本次恢复未执行：{blocker.message}"
         return (
             "本次修改未完成：当前项目存在工作区完整性问题。\n"
             f"原因：{blocker.message}\n"

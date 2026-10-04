@@ -1,7 +1,7 @@
 from agent_ui_creator.domain_agent.skills import ReadOnlySkillsBackend
 
 
-def test_full_skill_read_blocks_redundant_offset_reads_but_keeps_other_files_available(tmp_path):
+def test_skill_can_be_read_again_after_prior_delivery(tmp_path):
     (tmp_path / "guide.md").write_text("first\nsecond\n", encoding="utf-8")
     (tmp_path / "other.md").write_text("other\n", encoding="utf-8")
     backend = ReadOnlySkillsBackend(root_dir=tmp_path, virtual_mode=True)
@@ -12,6 +12,10 @@ def test_full_skill_read_blocks_redundant_offset_reads_but_keeps_other_files_ava
     assert first.next_offset is None
 
     repeated = backend.read("/guide.md", offset=1, limit=1)
-    assert repeated.error is not None
-    assert "SKILL_RESOURCE_FULLY_READ" in repeated.error
+    assert repeated.error is None
     assert backend.read("/other.md").error is None
+
+    (tmp_path / "guide.md").write_text("changed\n", encoding="utf-8")
+    refreshed = backend.read("/guide.md")
+    assert refreshed.error is None
+    assert "changed" in refreshed.content

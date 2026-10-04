@@ -34,6 +34,13 @@ def _serialized_chars(value: Any) -> int:
         return len(repr(value))
 
 
+def _serialized_bytes(value: Any) -> int:
+    try:
+        return len(json.dumps(value, ensure_ascii=False, default=str, separators=(",", ":")).encode("utf-8"))
+    except (TypeError, ValueError):
+        return len(repr(value).encode("utf-8"))
+
+
 def _content_chars(content: Any) -> int:
     if isinstance(content, str):
         return len(content)
@@ -47,6 +54,20 @@ def _content_chars(content: Any) -> int:
             for block in content
         )
     return _serialized_chars(content)
+
+
+def _content_bytes(content: Any) -> int:
+    if isinstance(content, str):
+        return len(content.encode("utf-8"))
+    if isinstance(content, list):
+        return sum(
+            len(block.encode("utf-8")) if isinstance(block, str)
+            else len(block["text"].encode("utf-8"))
+            if isinstance(block, Mapping) and isinstance(block.get("text"), str)
+            else _serialized_bytes(block)
+            for block in content
+        )
+    return _serialized_bytes(content)
 
 
 def _tool_schema(tool: Any) -> Any:
@@ -95,8 +116,16 @@ def request_shape(request: Any) -> dict[str, object]:
             _content_chars(getattr(message, "content", message))
             for message in messages
         ),
+        "requestMessageUtf8Bytes": sum(
+            _content_bytes(getattr(message, "content", message))
+            for message in messages
+        ),
         "requestToolCount": len(tools),
         "requestToolSchemaChars": sum(size for _, size in schema_sizes),
+        "requestToolSchemaUtf8Bytes": sum(
+            _serialized_bytes(schema) for tool in tools
+            if (schema := _tool_schema(tool)) is not None
+        ),
         "requestMaxToolSchemaChars": max_tool_chars,
         "requestMaxToolSchemaName": max_tool_name,
         "offeredToolNames": tuple(

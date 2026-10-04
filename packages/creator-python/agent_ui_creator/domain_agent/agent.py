@@ -21,7 +21,7 @@ from ..app_ui_model import (
     ProjectMutationCoordinator,
 )
 from ..app_ui_model.mutation_tool import create_app_ui_model_mutation_tool
-from ..domain_tools import create_project_control_tools
+from ..domain_tools import RecoveryEvidence, create_project_control_tools, create_recovery_inspection_tools, create_undo_creator_change_tool
 from ..domain_state import (
     CompositionFastPathMetrics,
     DomainObservationContext,
@@ -106,8 +106,10 @@ from .prompt import (
     DOMAIN_WRITE_AGENT_PROMPT,
     creator_verification_prompt,
 )
+from .project_context import CreatorProjectContextMiddleware
+from .skill_delivery import SkillDeliveryMiddleware
 from .runtime_guard import RepeatedProjectControlReadGuard
-from .skills import create_domain_skills_backend, default_creator_skills_root
+from .skills import ReadOnlySkillsBackend, create_domain_skills_backend, default_creator_skills_root
 from .tool_batch_policy import DomainToolBatchPolicyMiddleware
 from .tool_policy import ALLOWED_INSPECT_READ_ONLY_TOOLS, ANSWER_ONLY_FORBIDDEN_TOOL_NAMES, SIDE_EFFECT_TOOL_NAMES, DomainReadToolPolicyMiddleware, DomainWriteToolPolicyMiddleware
 
@@ -472,6 +474,7 @@ def create_domain_read_creator_agent(
     mode: Literal["development", "conformance"] = "development",
     permission_scope: Literal["legacy", "inspect_read_only"] = "legacy",
     answer_only: bool = False,
+    skills_root: str | Path | None = None,
     raw_trace: bool = False,
     provider_trace_collector: ProviderResponseTraceCollector | None = None,
     project_control: ProjectControlClient | None = None,
@@ -494,6 +497,11 @@ def create_domain_read_creator_agent(
         else MinimalAgentPathPolicy.conformance()
     )
     backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+    resolved_skills_root = skills_root or default_creator_skills_root()
+    skill_files = ReadOnlySkillsBackend(root_dir=Path(resolved_skills_root).resolve(), virtual_mode=True)
+    skills_backend = create_domain_skills_backend(
+        backend, resolved_skills_root, skill_backend=skill_files
+    )
     client = project_control or ProjectControlClient(project_root=Path(workspace))
     observations = DomainObservationContext()
     runtime_inspection = RuntimeDiagnosticInspectionService(
@@ -507,7 +515,7 @@ def create_domain_read_creator_agent(
         client,
         observations=observations,
         activity=backend.activity,
-    ), ask_user_question)
+    ), *create_recovery_inspection_tools(workspace), ask_user_question)
     if verification_mode == "static_and_runtime" and not answer_only:
         domain_tools = (*domain_tools, create_runtime_layout_tool(runtime_inspection))
     if permission_scope == "inspect_read_only":
@@ -560,7 +568,7 @@ def create_domain_read_creator_agent(
         ]
     )
     filesystem = FilesystemMiddleware(
-        backend=backend,
+        backend=skills_backend,
         tools=filesystem_tools,
         tool_token_limit_before_evict=None,
         human_message_token_limit_before_evict=None,
@@ -577,12 +585,19 @@ def create_domain_read_creator_agent(
             else DOMAIN_READ_AGENT_PROMPT,
             verification_mode,
         ),
-        backend=backend,
+        backend=skills_backend,
         subagents=[],
-        skills=None,
+        skills=None if answer_only else ["/skills/"],
         memory=None,
         middleware=[
             filesystem,
+            *([] if answer_only else [SkillDeliveryMiddleware(skill_files, backend.activity.logger)]),
+            *([] if answer_only else [CreatorProjectContextMiddleware(
+                workspace,
+                permission="inspect_read_only" if permission_scope == "inspect_read_only" else "domain_read_legacy",
+                verification_mode=verification_mode,
+                logger=backend.activity.logger,
+            )]),
             DomainReadToolPolicyMiddleware(
                 verification_mode,
                 inspect_read_only=permission_scope == "inspect_read_only",
@@ -643,8 +658,10 @@ def create_domain_write_creator_agent(
         else MinimalAgentPathPolicy.conformance()
     )
     backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+    resolved_skills_root = skills_root or default_creator_skills_root()
+    skill_files = ReadOnlySkillsBackend(root_dir=Path(resolved_skills_root).resolve(), virtual_mode=True)
     skills_backend = create_domain_skills_backend(
-        backend, skills_root or default_creator_skills_root()
+        backend, resolved_skills_root, skill_backend=skill_files
     )
     client = project_control or ProjectControlClient(project_root=Path(workspace))
     coordinator = mutation_coordinator or ProjectMutationCoordinator()
@@ -777,6 +794,7 @@ def create_domain_write_creator_agent(
         plugin_development_authority=development_authority,
     )
     backend.activity.plugin_delivery_provider = completion_gate.inspect_deliveries
+    recovery_evidence = RecoveryEvidence()
     domain_tools = [
         ask_user_question,
         *create_project_control_tools(
@@ -784,6 +802,8 @@ def create_domain_write_creator_agent(
             observations=observations,
             activity=backend.activity,
         ),
+        *create_recovery_inspection_tools(workspace, run_control=run_control, evidence=recovery_evidence),
+        create_undo_creator_change_tool(workspace, backend.activity, coordinator, run_control, recovery_evidence),
         create_ui_plugin_tool(plugin_creation),
         create_prepare_ui_plugin_development_tool(development_authority),
         create_plugin_behavior_tool(authority=development_authority, activity=backend.activity),
@@ -865,6 +885,12 @@ def create_domain_write_creator_agent(
         memory=None,
         middleware=[
             filesystem,
+            SkillDeliveryMiddleware(skill_files, backend.activity.logger),
+            CreatorProjectContextMiddleware(
+                workspace, permission="domain_write",
+                verification_mode=verification_mode, handoff=authoring_handoff,
+                logger=backend.activity.logger,
+            ),
             DomainWriteToolPolicyMiddleware(verification_mode),
             PluginDevelopmentAdmissionMiddleware(development_authority),
             CompositionGroundingConvergenceMiddleware(

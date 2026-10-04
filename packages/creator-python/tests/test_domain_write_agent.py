@@ -15,7 +15,6 @@ from agent_ui_creator.domain_agent import (
 from agent_ui_creator.files import read_creator_file_state
 from agent_ui_creator.operations import CreatorAuthoringHandoff
 from agent_ui_creator.project_control import ProjectControlError, ProjectControlMetrics
-from agent_ui_creator.server import _authoring_handoff_messages
 from agent_ui_creator.validation import CommandExecutionResult
 import agent_ui_creator.validation.attribution as validation_attribution
 
@@ -251,10 +250,8 @@ def test_application_config_handoff_reads_only_the_host_owner_first(tmp_path):
             AIMessage(content="The application-owned suggestions source is ready to edit."),
         ]
     )
-    agent = create_domain_write_creator_agent(model=model, workspace=root)
-    messages = _authoring_handoff_messages(
-        [{"role": "user", "content": "把示例问题改成 A/B/C"}], handoff
-    )
+    agent = create_domain_write_creator_agent(model=model, workspace=root, authoring_handoff=handoff)
+    messages = [{"role": "user", "content": "把示例问题改成 A/B/C"}]
 
     result = asyncio.run(agent.run_messages(messages))
 
@@ -263,8 +260,6 @@ def test_application_config_handoff_reads_only_the_host_owner_first(tmp_path):
         "/agent-ui/conversation/config/conversation-runtime-config.ts"
     )
     assert [activity.name for activity in result.activities] == ["read_file"]
-    assert "ownerPath" in messages[0]["content"]
-    assert "conversation-runtime-config.ts" in messages[0]["content"]
 
 
 def test_plugin_source_handoff_reads_within_the_host_owner_root_first(tmp_path):
@@ -294,10 +289,8 @@ def test_plugin_source_handoff_reads_within_the_host_owner_root_first(tmp_path):
             AIMessage(content="The supplied Plugin implementation source is ready to edit."),
         ]
     )
-    agent = create_domain_write_creator_agent(model=model, workspace=root)
-    messages = _authoring_handoff_messages(
-        [{"role": "user", "content": "把示例问题按钮改成圆角"}], handoff
-    )
+    agent = create_domain_write_creator_agent(model=model, workspace=root, authoring_handoff=handoff)
+    messages = [{"role": "user", "content": "把示例问题按钮改成圆角"}]
 
     result = asyncio.run(agent.run_messages(messages))
 
@@ -306,8 +299,6 @@ def test_plugin_source_handoff_reads_within_the_host_owner_root_first(tmp_path):
         "/plugins/conversation-suggestions/"
     )
     assert "inspect_ui_project" not in [activity.name for activity in result.activities]
-    assert "ownerRoot" in messages[0]["content"]
-    assert "definition.ts" in messages[0]["content"]
 
 
 def test_workspace_integrity_terminal_blocker_stops_before_next_model_call(tmp_path):

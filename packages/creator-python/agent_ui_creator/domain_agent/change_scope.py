@@ -65,6 +65,7 @@ _RESOURCE_RESULT_SIDE_EFFECT_TOOLS = frozenset(
         "create_ui_plugin",
         "mutate_ui_plugin_source",
         "apply_agent_ui_source_item",
+        "undo_creator_change",
         "prepare_ui_service_contract_change",
         "create_ui_service_contract",
         "mutate_ui_service_contract",
@@ -795,11 +796,26 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
         resources: Sequence[ResourceKey],
         result: Any,
     ) -> None:
-        if layer is None or not self._is_side_effect_tool(name):
+        if not self._is_side_effect_tool(name):
             return
         succeeded = _side_effect_succeeded(name, result)
         if not succeeded:
             self.metrics.failedSideEffectAttempts += 1
+            return
+        if name == "undo_creator_change":
+            payload = _result_payload(result)
+            value = payload.get("result") if isinstance(payload, Mapping) else None
+            paths = value.get("changedPaths") if isinstance(value, Mapping) else None
+            if isinstance(paths, list) and all(isinstance(path, str) for path in paths):
+                for path in paths:
+                    actual_layer = change_layer_for_path(path, project_root=self.project_root)
+                    if actual_layer is not None:
+                        self.metrics.commit_scope(
+                            actual_layer,
+                            resource_keys_for_path(project_logical_path(path, self.project_root)),
+                        )
+            return
+        if layer is None:
             return
         if not _scope_commit_allowed(name, result):
             return

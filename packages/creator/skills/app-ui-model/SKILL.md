@@ -1,8 +1,6 @@
 ---
 name: app-ui-model
 description: Load for low-level AppUIModel composition changes, including custom add, remove, hide, move, resize, placement, Layout, or nested Plugin Slot changes. The Host-owned insert_plugin_default semantic fast path does not require this Skill.
-compatibility: Agent UI Plugin Creator authoring model.
-allowed-tools: read_file ls glob grep inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin mutate_app_ui_model execute
 ---
 
 # AppUIModel Composition Manual
@@ -11,6 +9,9 @@ Use this Skill for low-level Composition changes, not for the Host-owned
 `insert_plugin_default` fast path. The semantic operation already carries the
 complete desired insertion and the Host deterministically resolves its
 authoring-default placement.
+Resolve `sourceRoot` from the Host before reading project files. All paths in
+this guide are relative to that root; filesystem tools need a leading `/` plus
+the actual project-relative `sourceRoot`. Never pass a placeholder literally.
 AppUIModel owns which Plugin instances exist, whether they are enabled, their
 placement, child Slot topology, and the Layout tree that contains visual
 regions. Product content, presentation copy, Runtime configuration, and Plugin
@@ -33,7 +34,7 @@ Do not choose a tool operation from the wording alone.
 - Composition owns AppUIModel plugin presence, enabled state, identity,
   placement, child Slot topology, Layout, Panels, Rows, Columns, Stacks, Slots,
   and Slot occupants.
-- Plugin Behavior owns `/plugins/**` rendering, interaction, and child Slot
+- Plugin Behavior owns `<sourceRoot>/plugins/**` rendering, interaction, and child Slot
   declarations.
 - Runtime Capability owns Services, Runtime stores, shared state, and Runtime
   actions.
@@ -44,7 +45,7 @@ Do not choose a tool operation from the wording alone.
 - Repair only defects introduced by this run or necessarily included in the
   user's requested final state. Report unrelated workspace-integrity blockers.
 
-Treat `/app-ui/app-ui.json` as the editable authoring source of truth. Runtime
+Treat `<sourceRoot>/app-ui/app-ui.json` as the editable authoring source of truth. Runtime
 IR, Runtime slot ids, compiler-generated Layout ids, contributions, mounts, and
 SlotRegistry state are derived and must never be edited or passed to Creator
 tools. Use ProjectControl inspections for current facts and
@@ -136,53 +137,7 @@ Prefer one complete transaction. The Host parses and compiles the draft,
 checks composition and child Slot integrity, regenerates the static Registry,
 and commits atomically only when its gates succeed.
 
-## Canonical patterns
-
-### Remove a visual region
-
-1. Resolve the visible feature to its Plugin instance.
-2. Inspect its authoring target and containing Layout structure.
-3. Derive the desired final Layout tree.
-4. Remove the Plugin instance.
-5. If its containing Layout region is now unnecessary, collapse or remove that
-   Layout structure in the same transaction.
-
-Do not edit either the removed Plugin source or neighboring Plugin source, and
-do not remove a Service merely because its visual consumer was removed.
-
-### Hide versus remove versus remove capability
-
-- “先隐藏/先不要显示” -> `set_plugin_enabled(false)` and retain Layout.
-- “去掉这个 UI/区域” -> `remove_plugin` with
-  `reflow: "collapse-empty-region"` when the Plugin owns a dedicated visible
-  region; otherwise use ordinary `remove_plugin` and preserve the Slot.
-- “彻底删除能力” -> analyze Runtime Capability ownership and consumers; this
-  is not automatically a Composition-only request.
-
-### Remove a child Plugin
-
-When a parent Plugin contributes a child Slot and the user removes the visual
-feature occupying it, remove the child Plugin instance. Do not delete the
-Parent Plugin's Slot declaration. Slot declaration is capability; occupant is
-composition.
-
-### Reuse an optional capability
-
-Use the Composition Snapshot capability summaries to find an existing
-unselected or disabled asset. Insert, enable, or reconfigure it before
-considering new Plugin source. A Composition request to add an existing Theme
-Switch is not Plugin creation.
-
-### Move and resize
-
-Use `move_plugin` for Plugin relocation. Use Layout operations and current
-snapshot refs for region moves and sizing. Include all already-known related
-size adjustments in the same transaction. A fixed sidebar track should be
-written explicitly, for example:
-
-```text
-["280px", "minmax(0, 1fr)"]
-```
+For a nontrivial add, move, replace or nested Slot operation, inspect the operation patterns. Read [canonical-patterns.md](references/canonical-patterns.md) when this task needs those details.
 
 ## Failure semantics and retry
 
@@ -201,144 +156,5 @@ If an error reports `observationStillValid=true`, reuse the observation. If it
 reports false, re-inspect before another mutation. A second semantic retry is
 not allowed. Stale-state refreshes do not consume the one semantic replan.
 
-## Golden examples
+For an unfamiliar low-level operation shape, use the small operation examples. Read [operation-examples.md](references/operation-examples.md) when this task needs those details.
 
-Each example shows the reasoning contract; ids and refs must come from current
-inspection, never from these examples.
-
-### 1. Remove left conversation history
-
-```text
-User request: Remove the left conversation history.
-Current composition: row(left panel -> thread-list, main panel -> surface).
-Desired state: conversation surface only; ConversationService remains.
-Owning layer: Composition.
-Semantic delta: remove thread-list instance and collapse its dedicated left
-Layout region.
-Correct tool: one mutate_app_ui_model transaction with
-`remove_plugin(reflow="collapse-empty-region")`.
-Incorrect: edit thread-list source, edit conversation-surface source, remove
-ConversationService, or submit layout removal first as a probing mutation.
-```
-
-### 2. Hide left conversation history
-
-```text
-User request: Hide the history for now.
-Current composition: enabled thread-list in the left region.
-Desired state: same composition and Layout, instance disabled.
-Owning layer: Composition.
-Semantic delta: enabled true -> false.
-Correct tool: set_plugin_enabled(false).
-Incorrect: remove the instance, delete the left Layout, or edit CSS/source.
-```
-
-### 3. Remove Suggestions
-
-```text
-User request: Remove suggested questions.
-Current composition: conversation-surface.emptySuggestions contains a
-conversation-suggestions instance.
-Desired state: the child Slot remains declared but has no Suggestions occupant.
-Owning layer: Composition.
-Semantic delta: remove the Suggestions child Plugin instance.
-Correct tool: remove_plugin.
-Incorrect: delete emptySuggestions from the parent manifest or edit the parent.
-```
-
-### 4. Move an existing Plugin
-
-```text
-User request: Move the existing inspector to the right region.
-Current composition: one inspector instance in another Slot; destination known.
-Desired state: same persistent instance in the destination.
-Owning layer: Composition.
-Semantic delta: placement only.
-Correct tool: move_plugin.
-Incorrect: remove plus insert, create a new Plugin, or copy Plugin source.
-```
-
-### 5. Resize the left panel
-
-```text
-User request: Make the left panel 320px wide.
-Current composition: left Panel identified by current nodeRef.
-Desired state: same subtree with width 320.
-Owning layer: Composition.
-Semantic delta: one Layout property update.
-Correct tool: update_layout_node_props using the current snapshot ref.
-Incorrect: edit Plugin CSS or persist a runtime Layout id.
-```
-
-### 6. Add an existing Theme Switch
-
-```text
-User request: Add a theme switch.
-Current composition: Theme Switch asset exists but is not selected.
-Desired state: one enabled instance in the requested or uniquely resolved Slot.
-Owning layer: Composition.
-Semantic delta: insert the existing asset with final identity and placement.
-Correct tools: inspect_ui_project(view=composition), then insert_plugin in one
-mutation.
-Incorrect: create a duplicate Theme Switch Plugin or add Runtime theme state.
-```
-
-### 7. Remove UI entry versus capability
-
-```text
-User request A: Remove the history entry from the UI.
-Desired state A: visual instance and now-unused Layout region are absent.
-Owning layer A: Composition.
-
-User request B: Completely remove history capability.
-Desired state B: capability, providers, and consumers may all change.
-Owning layers B: Runtime Capability plus any explicitly required Composition or
-Plugin Behavior changes, after inspecting consumers.
-
-Incorrect: interpret request A as authorization to delete a Service or source.
-```
-
-### 8. Add conversation management
-
-```text
-User request: Add conversation management.
-Current composition: conversation-surface is mounted;
-conversation-thread-list is an unselected capability whose authoring intents
-cover conversation management/history/selection, whose visual role is
-conversation navigation, whose typical placement is before conversation-surface,
-and whose required Services are resolved. No product default width is declared
-by this capability. Desired state: an enabled conversation-thread-list in a
-valid sized region before the existing conversation surface; existing
-ConversationService remains.
-Owning layer: Composition.
-Semantic delta: insert the recommended left Layout region and the existing
-capability in one atomic mutation.
-Correct tools for an eligible authoring-default insertion:
-inspect_ui_project(view=composition), then one `mutate_app_ui_model` call with
-`insert_plugin_default`; the Host owns deterministic Layout lowering and
-post-commit verification. Load this Skill and `ui-layout` only when the
-semantic operation is unavailable or the request specifies custom placement.
-Incorrect: read the manifest, inspect Services, read Plugin source/CSS, or scan
-the project to preflight checks listed in hostGuarantees.
-```
-
-### 9. Remove or restore a Renderer presentation
-
-```text
-User request: I don't want to show the reasoning process.
-Current composition: conversation-surface.reasoningGroup contains the selected
-assistant-ui-reasoning Renderer Plugin.
-Desired state: reasoning presentation absent while conversation text remains.
-Owning layer: Composition.
-Semantic delta: remove the reasoningGroup occupant.
-Correct tool: remove_plugin(assistant-ui-reasoning-main).
-Result: reasoningGroup is empty and renders nothing; the Host does not reveal a
-hidden canonical fallback or modify the assistant-ui Thread.
-Incorrect: edit ConversationAdapter, edit assistant-ui Thread/grouping, create
-a hidden Renderer Plugin, or modify reasoning Runtime state.
-
-User request: Restore the reasoning process.
-Semantic delta: insert the existing assistant-ui-reasoning capability into
-conversation-surface.reasoningGroup.
-Correct tool: insert the existing Plugin instance through Composition.
-```
