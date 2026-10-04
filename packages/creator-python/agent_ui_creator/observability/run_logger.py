@@ -382,6 +382,7 @@ class CreatorRunLogger:
         source_grounding_metrics: Mapping[str, object] | None = None,
         project_control_metrics: Mapping[str, object] | None = None,
         validation_metrics: Mapping[str, object] | None = None,
+        recovery_metrics: Mapping[str, object] | None = None,
         action_selector_metrics: Mapping[str, object] | None = None,
         action_selection: Mapping[str, object] | None = None,
         selected_creator_action: Mapping[str, object] | None = None,
@@ -421,6 +422,7 @@ class CreatorRunLogger:
                     else {}
                 ),
                 "modelToolMetrics": dict(metrics) if metrics is not None else {},
+                **({"recoveryMetrics": dict(recovery_metrics)} if recovery_metrics is not None else {}),
                 **(dict(mutation_metrics) if mutation_metrics is not None else {}),
                 **(
                     {"mutationMetrics": dict(mutation_metrics)}

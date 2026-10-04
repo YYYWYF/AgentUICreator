@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Literal
 
@@ -123,6 +123,7 @@ class DomainReadAgentResult:
     completion: CompletionStatus
     blocker: dict[str, Any] | None
     terminal_metrics: dict[str, Any]
+    completion_reason: str | None = field(default=None, kw_only=True)
 
 
 @dataclass(frozen=True, slots=True)
@@ -303,8 +304,11 @@ class CreatorDomainReadAgent:
             if self.activity.semantic_noop_satisfied
             else "success"
         )
-        if completion_decision is not None and not completion_decision.accepted:
-            completion = "blocked"
+        if completion_decision is not None:
+            if completion_decision.completion is not None:
+                completion = completion_decision.completion
+            if not completion_decision.accepted:
+                completion = "blocked"
         completion = _completion_from_verification(
             completion, self.activity.snapshot()
         )
@@ -323,6 +327,7 @@ class CreatorDomainReadAgent:
             activities=tuple(self.runtime.activities),
             domain_observations=self.observations.metrics,
             completion=completion,
+            completion_reason=None if completion_decision is None else completion_decision.reason,
             blocker=self.run_control.blocker_dict(),
             terminal_metrics=self.run_control.metrics(),
         )
@@ -349,6 +354,9 @@ class CreatorDomainReadAgent:
         return result_type(**values)
 
     async def _run_composition_verification_tail(self) -> None:
+        recovery = getattr(self.completion_gate, "recovery", None)
+        if recovery is not None and recovery.is_recovery_only():
+            return
         if (
             self.completion_verification_tail is None
             or self.mutation_service is None
@@ -450,6 +458,7 @@ class CreatorDomainReadAgent:
             "activities": tuple(self.runtime.activities),
             "domain_observations": self.observations.metrics,
             "completion": completion,
+            "completion_reason": (self.run_control.blocker_dict() or {}).get("category"),
             "blocker": self.run_control.blocker_dict(),
             "terminal_metrics": self.run_control.metrics(),
         }
@@ -790,8 +799,9 @@ def create_domain_write_creator_agent(
         metrics=observations.composition_fast_path_metrics,
         verification_mode=verification_mode,
     )
+    recovery_queries = CreatorRecoveryQueries(workspace, activity=backend.activity, run_control=run_control)
     completion_gate = CreatorDevelopmentCompletionGate(
-        activity=backend.activity, validation=validation, runtime=runtime_inspection,
+        recovery=recovery_queries, activity=backend.activity, validation=validation, runtime=runtime_inspection,
         repair_state=repair_state, service_authorization_finalizer=service_verifier,
         run_control=run_control, verification_mode=verification_mode,
         plugin_development_authority=development_authority,
@@ -821,7 +831,6 @@ def create_domain_write_creator_agent(
         ),
         create_validation_tool(validation),
     ]
-    recovery_queries = CreatorRecoveryQueries(workspace, activity=backend.activity)
     domain_tools.extend((*create_recovery_query_tools(recovery_queries),
                          create_recovery_undo_tool(recovery_queries)))
     if verification_mode == "static_and_runtime":
@@ -852,6 +861,7 @@ def create_domain_write_creator_agent(
             scope=scope_guard.metrics,
             composition_fast_path=observations.composition_fast_path_metrics,
             source_grounding=source_grounding.metrics,
+            recovery=recovery_queries,
             run_control=run_control,
         )
     model_retry = create_creator_model_retry_middleware(

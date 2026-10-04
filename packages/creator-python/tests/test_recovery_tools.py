@@ -107,7 +107,8 @@ def test_targeted_diff_distinguishes_equal_length_edits_and_stale_record(tmp_pat
     observation = queries.inspect("r1")
     (tmp_path / "plugins/panel.ts").write_text("manual B\n")
     failure = queries.undo("r1", observation["transactionId"], ["plugins/panel.ts"])
-    assert failure == {"status": "conflict", "error": "CREATOR_UNDO_CONFLICT"}
+    assert failure["error"] == "CREATOR_UNDO_CONFLICT"
+    assert failure["completion"] == {"status": "blocked", "reason": "recovery_conflict"}
 
 
 def test_replaced_record_invalidates_old_observation(tmp_path):
@@ -115,9 +116,9 @@ def test_replaced_record_invalidates_old_observation(tmp_path):
     queries = CreatorRecoveryQueries(tmp_path)
     old = queries.inspect("r1")
     _record(tmp_path, "r1", [("src/plugins/panel.ts", "panel A\n", "panel C\n")])
-    assert queries.undo("r1", old["transactionId"], ["src/plugins/panel.ts"]) == {
-        "status": "conflict", "error": "CREATOR_TRANSACTION_CHANGED",
-    }
+    result = queries.undo("r1", old["transactionId"], ["src/plugins/panel.ts"])
+    assert result["error"] == "CREATOR_TRANSACTION_CHANGED"
+    assert result["completion"] == {"status": "blocked", "reason": "recovery_conflict"}
     assert (tmp_path / "src/plugins/panel.ts").read_text() == "panel C\n"
 
 
@@ -157,7 +158,8 @@ def test_undo_is_recorded_as_current_run_mutation(tmp_path):
     assert result["status"] == "undone"
     assert activity.revision == 1
     repeated = queries.undo("old-run", observed["transactionId"], [path])
-    assert repeated == {"status": "already_undone", "error": "CREATOR_ALREADY_UNDONE"}
+    assert repeated["error"] == "RECOVERY_ALREADY_OBSERVED"
+    assert repeated["nextAction"] == "validate_current_revision"
     assert activity.revision == 1
     receipt = activity.finish()
     assert [entry["path"] for entry in receipt["files"]] == [path]

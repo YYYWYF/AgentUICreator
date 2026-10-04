@@ -465,7 +465,7 @@ class ProductizedOperationEngine:
         self._record_route(
             selection,
             catalog_revision=(
-                snapshot.action_selector_context.catalogRevision if snapshot is not None else None
+                snapshot.action_catalog.revision if snapshot is not None else None
             ),
             selected_action=selected_action,
             selected_target=selected_target,

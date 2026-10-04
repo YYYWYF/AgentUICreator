@@ -5,11 +5,12 @@ import json
 from typing import Protocol
 
 from ..activity import CreatorActivityRecorder
+from ..domain_tools.recovery_tools import CreatorRecoveryQueries
 from ..resource_scope import change_layers_for_paths
 from ..project_paths import agent_ui_source_path
 from ..runtime_diagnostics.layout_intent import has_fixed_geometry
 from ..runtime_diagnostics import RuntimeDiagnosticInspectionService
-from ..run_control import CreatorRunControlState
+from ..run_control import CompletionStatus, CreatorRunControlState
 from ..validation import CREATOR_COMPLETION_VALIDATIONS, CreatorValidationService
 from ..repair import CreatorRepairState
 from ..plugin_development.delivery import (
@@ -28,6 +29,8 @@ class CompletionDecision:
     accepted: bool
     text: str
     feedback: str | None = None
+    completion: CompletionStatus | None = None
+    reason: str | None = None
 
 
 class ServiceAuthorizationFinalizer(Protocol):
@@ -50,7 +53,9 @@ class CreatorDevelopmentCompletionGate:
         run_control: CreatorRunControlState | None = None,
         verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
         plugin_development_authority: PluginDevelopmentAuthority | None = None,
+        recovery: CreatorRecoveryQueries | None = None,
     ) -> None:
+        self.recovery = recovery
         self.activity = activity
         self.validation = validation
         self.runtime = runtime
@@ -169,6 +174,9 @@ class CreatorDevelopmentCompletionGate:
         return reports
 
     def review(self, candidate: str) -> CompletionDecision:
+        recovery_decision = self._review_recovery()
+        if recovery_decision is not None:
+            return recovery_decision
         decision = self._review(candidate)
         self._delivery_review_run_id = self.activity.run_id
         reports = self.inspect_deliveries()
@@ -212,6 +220,68 @@ class CreatorDevelopmentCompletionGate:
             "inspect_runtime_layout; run verify_ui_plugin_behavior for declared interactions. "
             "Do not repeat successful work or invent placement types. Evidence: " + json.dumps(reports, ensure_ascii=False)
         ))
+
+    def _review_recovery(self) -> CompletionDecision | None:
+        recovery = self.recovery
+        if recovery is None:
+            return None
+        recovery._ensure_run()
+        evidence = recovery.evidence
+        if evidence.status == "inactive":
+            return None
+        if evidence.status == "blocked":
+            return CompletionDecision(True, "恢复被阻塞：历史记录或当前文件已发生变化，未覆盖后续修改。",
+                                      completion="blocked", reason=evidence.reason)
+        # Recovery semantics apply to recovery-only mutations. Mixed authoring
+        # continues through the existing development verification boundary.
+        if not recovery.is_recovery_only():
+            return None
+        if evidence.status == "needs_user_input":
+            return CompletionDecision(True, "尚未执行恢复：请明确要恢复的历史修改及完整范围。",
+                                      completion="needs_user_input", reason=evidence.reason)
+        if not recovery.current_recovery_matches():
+            recovery._conflict("CREATOR_UNDO_CONFLICT")
+            return CompletionDecision(True, "恢复后文件再次发生变化，无法确认当前状态；已保留后续修改。",
+                                      completion="blocked", reason="recovery_conflict")
+        validation = self.validation.current_result()
+        passed = validation is not None and validation.status == "passed" and (
+            validation.revision == self.activity.revision
+        ) and all(any(check.command == command and check.status == "passed"
+                      and check.revision == self.activity.revision for check in validation.checks)
+                  for command in CREATOR_COMPLETION_VALIDATIONS)
+        if not passed:
+            failed = validation is not None and validation.status == "failed" and (
+                validation.revision == self.activity.revision
+            )
+            evidence.final_state = "blocked" if failed else "pending_validation"
+            evidence.reason = "recovery_validation_failed" if failed else "recovery_validation_required"
+            self.activity.record_verification({
+                "status": "failed", "projectRevision": self.activity.revision,
+                "verificationMode": self.verification_mode, "runtimeStatus": "not-run",
+                "auditAttempts": self.repair_state.repair_rounds,
+                "checks": [self._check("recovery-validation", False, evidence.reason)],
+            })
+            if failed:
+                return CompletionDecision(True, "恢复已执行，但当前版本静态验证失败；已保留恢复结果。",
+                                          completion="blocked", reason=evidence.reason)
+            return CompletionDecision(False, "恢复已执行，当前版本尚未通过静态验证。",
+                                      "Recovery has completed. Run validate_creator_changes for the current revision; "
+                                      "reuse the transaction evidence and do not repeat undo. If validation failed, "
+                                      "report the failure without overwriting later edits.",
+                                      completion="blocked", reason=evidence.reason)
+        evidence.final_state = evidence.status
+        evidence.reason = None
+        self.activity.record_verification({
+            "status": "changed-and-statically-verified" if self.activity.snapshot()["files"] else "no-project-change",
+            "projectRevision": self.activity.revision, "verificationMode": self.verification_mode,
+            "runtimeStatus": "not-run", "auditAttempts": self.repair_state.repair_rounds,
+            "checks": [self._check("recovery-validation", True, f"revision={self.activity.revision}")],
+        })
+        text = ("已恢复历史修改，当前版本静态验证通过。Runtime / 浏览器行为未验证。"
+                if evidence.status == "recovered" else
+                "该历史修改已恢复，当前版本静态验证通过。Runtime / 浏览器行为未验证。")
+        return CompletionDecision(True, self._with_workspace_warning(text, validation),
+                                  completion=evidence.status)
 
     def _review(self, candidate: str) -> CompletionDecision:
         if self.run_control is not None and self.run_control.blocked:

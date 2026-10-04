@@ -28,6 +28,7 @@ class CreatorRunTelemetry:
     composition_fast_path: Any | None = None
     source_grounding: Any | None = None
     validation: Any | None = None
+    recovery: Any | None = None
     run_control: Any | None = None
     action_selector: dict[str, object] | None = None
     action_selection: dict[str, object] | None = None
@@ -48,6 +49,7 @@ class CreatorRunTelemetry:
         composition_fast_path: Any | None = None,
         source_grounding: Any | None = None,
         validation: Any | None = None,
+        recovery: Any | None = None,
         run_control: Any | None = None,
         action_selector: dict[str, object] | None = None,
         action_selection: dict[str, object] | None = None,
@@ -71,6 +73,8 @@ class CreatorRunTelemetry:
             self.composition_fast_path = composition_fast_path
         if source_grounding is not None:
             self.source_grounding = source_grounding
+        if recovery is not None:
+            self.recovery = recovery
         if validation is not None:
             self.validation = validation
         if run_control is not None:
@@ -140,10 +144,16 @@ class CreatorRunTelemetry:
     def validation_metrics(self) -> dict[str, object] | None:
         return _to_dict(self.validation, method="metrics")
 
+    def recovery_metrics(self) -> dict[str, object] | None:
+        return _to_dict(getattr(self.recovery, "evidence", None))
+
     def snapshot(self) -> dict[str, object]:
         snapshot: dict[str, object] = {
             "modelToolMetrics": self.model_tool_metrics(),
         }
+        recovery = self.recovery_metrics()
+        if recovery is not None:
+            snapshot["recoveryMetrics"] = recovery
         if self.action_selector is not None:
             snapshot["actionSelector"] = dict(self.action_selector)
         if self.action_selection is not None:

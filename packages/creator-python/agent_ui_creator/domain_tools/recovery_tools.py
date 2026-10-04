@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+from dataclasses import dataclass, field
 import difflib
 import hashlib
 import json
+import threading
 from pathlib import Path
 
 from langchain_core.tools import BaseTool, tool
@@ -10,6 +13,8 @@ from langchain_core.tools import BaseTool, tool
 from ..activity import CreatorActivityRecorder
 from ..files import read_creator_file_state
 from ..project_paths import agent_ui_source_root
+from ..resource_scope import change_layers_for_paths
+from ..run_control import CreatorRunControlState
 from ..transactions import CreatorTransactionError, CreatorTransactionStore
 from ..transactions.models import CreatorTransactionRecord
 
@@ -36,15 +41,168 @@ def _record_digest(record: CreatorTransactionRecord) -> str:
     return hashlib.sha256(source.encode("utf-8")).hexdigest()
 
 
+@dataclass(slots=True)
+class RecoveryInspectionState:
+    run_id: str
+    transaction_id: str
+    summary_seen: bool = False
+    scope_complete: bool = False
+    conflict_checked: bool = False
+    selected_paths: tuple[str, ...] = ()
+
+
+@dataclass(slots=True)
+class RecoveryEvidence:
+    inspected_transactions: dict[str, RecoveryInspectionState] = field(default_factory=dict)
+    status: str = "inactive"
+    reason: str | None = None
+    recovery_mutation_count: int = 0
+    recovered_states: dict[str, str] = field(default_factory=dict)
+    recovered_transactions: dict[str, str] = field(default_factory=dict)
+    transactions_inspected: int = 0
+    transaction_details_read: int = 0
+    transaction_changes_read: int = 0
+    undo_attempts: int = 0
+    duplicate_recovery_calls: int = 0
+    final_state: str = "inactive"
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "transactionsInspected": self.transactions_inspected,
+            "transactionDetailsRead": self.transaction_details_read,
+            "transactionChangesRead": self.transaction_changes_read,
+            "undoAttempts": self.undo_attempts,
+            "duplicateRecoveryCalls": self.duplicate_recovery_calls,
+            "finalState": self.final_state,
+            "reason": self.reason,
+        }
+
+
 class CreatorRecoveryQueries:
     def __init__(self, project_root: str | Path,
-                 activity: CreatorActivityRecorder | None = None) -> None:
+                 activity: CreatorActivityRecorder | None = None,
+                 run_control: CreatorRunControlState | None = None) -> None:
         self.activity = activity
         self.store = activity.transactions if activity is not None else CreatorTransactionStore(project_root)
-        self.observed: dict[str, str] = {}
+        self.run_control = run_control
+        self.evidence = RecoveryEvidence()
+        self._run_id = None if activity is None else activity.run_id
+        self._call_lock = threading.RLock()
+        self._successful_calls: dict[str, tuple[object, dict[str, object]]] = {}
         self.coverage: dict[tuple[str, str], set[int]] = {}
 
-    def list(self) -> dict[str, object]:
+    def _ensure_run(self) -> None:
+        if self.activity is not None and self._run_id != self.activity.run_id:
+            self._run_id = self.activity.run_id
+            self.evidence = RecoveryEvidence()
+            self.coverage.clear()
+            self._successful_calls.clear()
+
+    def _inspection(self, record: CreatorTransactionRecord) -> RecoveryInspectionState:
+        digest = _record_digest(record)
+        state = self.evidence.inspected_transactions.get(record.run_id)
+        if state is None or state.transaction_id != digest:
+            state = RecoveryInspectionState(record.run_id, digest)
+            self.evidence.inspected_transactions[record.run_id] = state
+        return state
+
+    def _call_token(self, result: dict[str, object]) -> object:
+        # Duplicates reuse evidence only while both history and current files
+        # are unchanged. This token never grants permission to undo.
+        run_ids = ([str(item["runId"]) for item in result["transactions"]]
+                   if "transactions" in result else [str(result["runId"])])
+        tokens = []
+        for run_id in run_ids:
+            record = self.store.load(run_id)
+            tokens.append((_record_digest(record), tuple(
+                read_creator_file_state(self.store.project_root, file.path).hash
+                for file in record.files
+            ), read_creator_file_state(
+                self.store.project_root, self.store._undo_marker_path(run_id)
+            ).hash))
+        if "transactions" in result:
+            directory = self.store.project_root / ".agentuicreator/transactions"
+            tokens.append(tuple(sorted((path.name, path.stat().st_mtime_ns, path.stat().st_size)
+                                       for path in directory.glob("*.json"))))
+        return tuple(tokens)
+
+    def _call(self, name: str, args: dict[str, object],
+              execute: Callable[[], dict[str, object]], counter: str) -> dict[str, object]:
+        # LangChain may dispatch synchronous tools on separate worker threads.
+        # Serialize observation/check/execute/cache so duplicate undo is guarded.
+        with self._call_lock:
+            return self._execute_call(name, args, execute, counter)
+
+    def _execute_call(self, name: str, args: dict[str, object],
+                      execute: Callable[[], dict[str, object]], counter: str) -> dict[str, object]:
+        self._ensure_run()
+        key = json.dumps([name, args], sort_keys=True)
+        cached = self._successful_calls.get(key)
+        if cached is not None:
+            try:
+                unchanged = cached[0] == self._call_token(cached[1])
+            except (OSError, ValueError, CreatorTransactionError):
+                unchanged = False
+            if unchanged:
+                self.evidence.duplicate_recovery_calls += 1
+                return {"status": "already_observed", "error": "RECOVERY_ALREADY_OBSERVED",
+                        "tool": name, "arguments": args, "reusePreviousResult": True,
+                        **({"completion": cached[1]["completion"]} if "completion" in cached[1] else {}),
+                        "nextAction": "validate_current_revision" if self.evidence.status in {
+                            "recovered", "already_recovered"} else "reuse_previous_result"}
+        setattr(self.evidence, counter, getattr(self.evidence, counter) + 1)
+        if self.evidence.status == "inactive":
+            self.evidence.status = "needs_user_input"
+            self.evidence.final_state = "needs_user_input"
+            self.evidence.reason = "missing_recovery_evidence"
+        result = execute()
+        if result.get("status") in {"available", "undone", "already_undone"}:
+            try:
+                self._successful_calls[key] = (self._call_token(result), result)
+            except (OSError, ValueError, CreatorTransactionError):
+                pass
+        return result
+
+    def list(self, *, offset: int = 0, limit: int = _PAGE_SIZE) -> dict[str, object]:
+        def execute() -> dict[str, object]:
+            if offset < 0 or not 1 <= limit <= _PAGE_SIZE:
+                return {"status": "query_error", "error": "INVALID_PAGINATION"}
+            result = self._list()
+            if result["status"] == "query_error":
+                return result
+            records = result["transactions"]
+            selected = records[offset:offset + limit]
+            summaries = []
+            for item in selected:
+                record = self.store.load(str(item["runId"]))
+                status = self.store.status(record.run_id)
+                state = self._inspection(record)
+                state.summary_seen = True
+                state.conflict_checked = True
+                paths = [file.path for file in record.files]
+                layers = change_layers_for_paths(paths, project_root=self.store.project_root)
+                summaries.append({**item, "changedPaths": paths[:_PAGE_SIZE],
+                    "pathsTruncated": len(paths) > _PAGE_SIZE,
+                    "changeSummary": {kind: sum(file.status == kind for file in record.files)
+                                      for kind in ("created", "modified", "deleted")},
+                    "scopeHints": ["plugin_source" if layer == "plugin_behavior" else layer for layer in layers],
+                    "undoable": status.undoable,
+                    "conflicts": [conflict.to_dict() for conflict in status.conflicts[:_PAGE_SIZE]],
+                    "conflictCount": len(status.conflicts),
+                    "conflictsTruncated": len(status.conflicts) > _PAGE_SIZE})
+            if selected and self.evidence.status == "needs_user_input":
+                self.evidence.reason = "recovery_target_not_confirmed"
+            return {**result, "transactions": summaries, "offset": offset, "limit": limit,
+                    "hasMore": offset + limit < len(records), "total": len(records),
+                    "truncated": offset + limit < len(records),
+                    "nextOffset": offset + len(selected) if offset + limit < len(records) else None}
+        try:
+            return self._call("inspect_creator_transactions", {"offset": offset, "limit": limit},
+                              execute, "transactions_inspected")
+        except CreatorTransactionError as error:
+            return {"status": "query_error", "error": error.code}
+
+    def _list(self) -> dict[str, object]:
         directory = self.store.project_root / ".agentuicreator/transactions"
         if not directory.exists():
             return {"status": "evidence_missing", "transactions": [],
@@ -70,10 +228,14 @@ class CreatorRecoveryQueries:
             return {"status": "query_error", "error": getattr(error, "code", type(error).__name__)}
         transactions.sort(key=lambda item: (str(item["createdAt"]), str(item["runId"])), reverse=True)
         return {"status": "available" if transactions else "evidence_missing",
-                "transactions": transactions[:100], "truncated": len(transactions) > 100,
+                "transactions": transactions, "truncated": False,
                 "association": "unavailable"}
 
     def inspect(self, run_id: str, *, page: int = 1) -> dict[str, object]:
+        return self._call("inspect_creator_transaction", {"run_id": run_id, "page": page},
+                          lambda: self._inspect(run_id, page=page), "transaction_details_read")
+
+    def _inspect(self, run_id: str, *, page: int = 1) -> dict[str, object]:
         if page < 1:
             return {"status": "query_error", "error": "INVALID_PAGE"}
         try:
@@ -96,8 +258,14 @@ class CreatorRecoveryQueries:
         pages = self.coverage.setdefault((run_id, digest), set())
         pages.add(page)
         complete = len(pages) == page_count
-        if complete:
-            self.observed[run_id] = digest
+        state = self._inspection(record)
+        state.summary_seen = True
+        state.scope_complete = complete
+        state.conflict_checked = True
+        state.selected_paths = tuple(file.path for index, file in enumerate(record.files)
+                                     if index // _PAGE_SIZE + 1 in pages)
+        if self.evidence.status == "needs_user_input":
+            self.evidence.reason = "recovery_target_not_confirmed"
         return {"status": "available", "runId": run_id,
                 "transactionId": digest, "scopeComplete": complete,
                 "fileCount": total, "observedPages": len(pages),
@@ -107,6 +275,10 @@ class CreatorRecoveryQueries:
                 "association": "unavailable"}
 
     def change(self, run_id: str, path: str) -> dict[str, object]:
+        return self._call("inspect_creator_transaction_change", {"run_id": run_id, "path": path},
+                          lambda: self._change(run_id, path), "transaction_changes_read")
+
+    def _change(self, run_id: str, path: str) -> dict[str, object]:
         try:
             record = self.store.load(run_id)
         except CreatorTransactionError as error:
@@ -173,9 +345,11 @@ class CreatorRecoveryQueries:
     def baseline(self, path: str, *, run_id: str | None = None) -> dict[str, object]:
         # A sourceRoot is a location, never proof of an original version.
         # Saved before states are the only content source exposed here.
-        listing = self.list()
+        listing = self._list()
         if listing["status"] == "query_error":
             return listing
+        listing = {**listing, "transactions": listing["transactions"][:100],
+                   "truncated": len(listing["transactions"]) > 100}
         lock_status, source_candidates = self._source_lock_candidates(path)
         candidates = ([run_id] if run_id is not None else
                       [str(item["runId"]) for item in listing["transactions"]])
@@ -225,13 +399,25 @@ class CreatorRecoveryQueries:
     def undo(self, run_id: str, transaction_id: str,
              requested_paths: list[str]) -> dict[str, object]:
         """Undo only a fully observed transaction with an exact requested scope."""
-        if self.observed.get(run_id) != transaction_id:
-            return {"status": "observation_required", "error": "FULL_SCOPE_NOT_OBSERVED"}
+        return self._call("undo_creator_run", {"run_id": run_id, "transaction_id": transaction_id,
+                          "requested_paths": sorted(requested_paths)},
+                          lambda: self._undo(run_id, transaction_id, requested_paths), "undo_attempts")
+
+    def _undo(self, run_id: str, transaction_id: str,
+              requested_paths: list[str]) -> dict[str, object]:
+        state = self.evidence.inspected_transactions.get(run_id)
+        if state is None or not (state.summary_seen and state.scope_complete and state.conflict_checked):
+            return {"status": "observation_required", "error": "RECOVERY_SCOPE_NOT_CONFIRMED",
+                    "completion": {"status": "needs_user_input", "reason": "missing_recovery_evidence"}}
+        if state.transaction_id != transaction_id:
+            return self._conflict("CREATOR_TRANSACTION_CHANGED")
         try:
             record = self.store.load(run_id)
             if _record_digest(record) != transaction_id:
-                return {"status": "conflict", "error": "CREATOR_TRANSACTION_CHANGED"}
+                return self._conflict("CREATOR_TRANSACTION_CHANGED")
             paths = {file.path for file in record.files}
+            if set(state.selected_paths) != paths:
+                return {"status": "observation_required", "error": "RECOVERY_SCOPE_NOT_CONFIRMED"}
             if len(requested_paths) != len(paths) or set(requested_paths) != paths:
                 return {"status": "scope_mismatch", "error": "PARTIAL_TRANSACTION_UNDO_UNAVAILABLE",
                         "transactionPaths": sorted(paths)}
@@ -242,26 +428,74 @@ class CreatorRecoveryQueries:
                 run_id, expected_transaction_id=transaction_id, require_pending=True,
             )
         except CreatorTransactionError as error:
-            return {"status": "already_undone" if error.code == "CREATOR_ALREADY_UNDONE" else
-                    "conflict" if error.code in {"CREATOR_TRANSACTION_CHANGED", "CREATOR_UNDO_CONFLICT"} else "query_error",
-                    "error": error.code}
+            if error.code == "CREATOR_ALREADY_UNDONE":
+                # The marker alone is insufficient: later edits must not be
+                # described as already recovered.
+                if any(read_creator_file_state(self.store.project_root, file.path).hash != file.before.hash
+                       for file in record.files):
+                    return self._conflict("CREATOR_UNDO_CONFLICT")
+                self.evidence.recovered_transactions[run_id] = transaction_id
+                self.evidence.status = "already_recovered"
+                self.evidence.reason = None
+                self.evidence.final_state = "pending_validation"
+                self.evidence.recovered_states.update({file.path: file.before.hash for file in record.files})
+                return {"ok": True, "status": "already_undone", "runId": run_id,
+                        "changedPaths": [], "alreadyUndone": True,
+                        "completion": {"status": "already_recovered", "nextAction": "validate_current_revision"}}
+            if error.code in {"CREATOR_TRANSACTION_CHANGED", "CREATOR_UNDO_CONFLICT"}:
+                return self._conflict(error.code)
+            return {"status": "query_error", "error": error.code}
         if self.activity is not None:
             for path in result.changed_paths:
                 self.activity.file_observations.observe(path)
                 self.activity.touch(path)
+        self.evidence.recovered_transactions[run_id] = transaction_id
+        self.evidence.status = "recovered"
+        self.evidence.reason = None
+        self.evidence.final_state = "pending_validation"
+        self.evidence.recovery_mutation_count += len(result.changed_paths)
+        self.evidence.recovered_states.update({file.path: file.before.hash for file in record.files})
         return {"ok": True, "status": "undone", "runId": run_id,
-                "changedPaths": list(result.changed_paths)}
+                "changedPaths": list(result.changed_paths), "alreadyUndone": False,
+                "completion": {"status": "recovered", "nextAction": "validate_current_revision"}}
+
+    def is_recovery_only(self) -> bool:
+        return self.activity is not None and self.evidence.status != "inactive" and (
+            self.activity.revision == self.evidence.recovery_mutation_count
+        )
+
+    def current_recovery_matches(self) -> bool:
+        try:
+            for run_id, transaction_id in self.evidence.recovered_transactions.items():
+                record = self.store.load(run_id)
+                if _record_digest(record) != transaction_id:
+                    return False
+            return bool(self.evidence.recovered_transactions) and all(
+                read_creator_file_state(self.store.project_root, path).hash == digest
+                for path, digest in self.evidence.recovered_states.items()
+            )
+        except (CreatorTransactionError, OSError, ValueError):
+            return False
+
+    def _conflict(self, code: str) -> dict[str, object]:
+        self.evidence.status = self.evidence.final_state = "blocked"
+        self.evidence.reason = "recovery_conflict"
+        if self.run_control is not None:
+            self.run_control.block(category="recovery_conflict", code=code, source="undo_creator_run",
+                                   message="恢复被阻塞：历史记录或当前文件已发生变化，未覆盖后续修改。")
+        return {"status": "conflict", "error": code,
+                "completion": {"status": "blocked", "reason": "recovery_conflict"}}
 
 
 def create_recovery_query_tools(queries: CreatorRecoveryQueries) -> tuple[BaseTool, ...]:
     @tool("inspect_creator_transactions")
-    def inspect_creator_transactions() -> str:
-        """List recorded Creator changes; recency does not identify the user's target."""
-        return _result(**queries.list())
+    def inspect_creator_transactions(offset: int = 0, limit: int = _PAGE_SIZE) -> str:
+        """Page through bounded change summaries, without source. Select using the user's request; recency alone is insufficient. Confirm scope with inspect_creator_transaction before undo."""
+        return _result(**queries.list(offset=offset, limit=limit))
 
     @tool("inspect_creator_transaction")
     def inspect_creator_transaction(run_id: str, page: int = 1) -> str:
-        """Inspect a complete bounded transaction scope and paged file details."""
+        """Confirm transaction scope and conflicts. Inspect all pages before undo; saved diffs are optional."""
         return _result(**queries.inspect(run_id, page=page))
 
     @tool("inspect_creator_transaction_change")
@@ -282,7 +516,7 @@ def create_recovery_undo_tool(queries: CreatorRecoveryQueries) -> BaseTool:
     @tool("undo_creator_run")
     def undo_creator_run(run_id: str, transaction_id: str,
                          requested_paths: list[str]) -> str:
-        """Undo an explicitly requested whole Creator run after full scope inspection. Supply exactly the paths the user requested to undo; a partial scope is rejected."""
+        """Undo an explicitly requested whole Creator run after full scope inspection. Supply exactly the paths the user requested to undo; a partial scope is rejected. On recovery success validate the current revision and finish; do not repeat undo."""
         return _result(**queries.undo(run_id, transaction_id, requested_paths))
 
     return undo_creator_run

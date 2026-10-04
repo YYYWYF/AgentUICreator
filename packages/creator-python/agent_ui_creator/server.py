@@ -736,6 +736,7 @@ async def _execute_agent_run(
                 ),
                 project_control_metrics=run_telemetry.project_control_metrics(),
                 validation_metrics=run_telemetry.validation_metrics(),
+                recovery_metrics=run_telemetry.recovery_metrics(),
                 action_selector_metrics=run_telemetry.action_selector,
                 action_selection=run_telemetry.action_selection,
                 selected_creator_action=run_telemetry.selected_creator_action,
@@ -752,6 +753,9 @@ async def _execute_agent_run(
                 "success",
                 "already_satisfied",
                 "committed_unverified",
+                "recovered",
+                "already_recovered",
+                "needs_user_input",
                 "blocked",
                 "failed",
             }
@@ -825,6 +829,7 @@ async def _execute_agent_run(
                 ),
                 project_control_metrics=run_telemetry.project_control_metrics(),
                 validation_metrics=run_telemetry.validation_metrics(),
+                recovery_metrics=run_telemetry.recovery_metrics(),
                 action_selector_metrics=run_telemetry.action_selector,
                 action_selection=run_telemetry.action_selection,
                 selected_creator_action=run_telemetry.selected_creator_action,
@@ -854,6 +859,7 @@ async def _execute_agent_run(
             ),
             project_control_metrics=run_telemetry.project_control_metrics(),
             validation_metrics=run_telemetry.validation_metrics(),
+            recovery_metrics=run_telemetry.recovery_metrics(),
             action_selector_metrics=run_telemetry.action_selector,
             action_selection=run_telemetry.action_selection,
             selected_creator_action=run_telemetry.selected_creator_action,
@@ -1468,6 +1474,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                         }
                     completion = str(getattr(result, "completion", "success"))
                     run_result["completion"] = completion
+                    if getattr(result, "completion_reason", None) is not None:
+                        run_result["completionReason"] = result.completion_reason
                     static_validation_status, runtime_verification_status = (
                         _verification_telemetry(result, execution.receipt, telemetry)
                     )

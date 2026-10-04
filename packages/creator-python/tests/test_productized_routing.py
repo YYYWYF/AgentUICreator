@@ -101,6 +101,7 @@ class _Selector:
         *,
         clarification_context: object | None = None,
         recent_conversation: object | None = None,
+        route_review_context: str | None = None,
     ):
         self.calls += 1
         self.messages.append((message, clarification_context or context))
@@ -525,6 +526,7 @@ def test_answer_only_handoff_has_no_mutation_or_validation():
     assert engine.mutation_service.metrics.operations == 0
     assert engine.validation.calls == []
     assert telemetry.operation_route["generalAgent"] is False
+    assert telemetry.operation_route["catalogRevision"] == "c" * 64
 
 
 def test_answer_only_does_not_depend_on_workspace_snapshot():
