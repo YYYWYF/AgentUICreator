@@ -274,7 +274,7 @@ workflow. Read-only requests do not incur that baseline cost.
 Before the first side-effecting operation, resolve the user's actual target and
 requested operation against authoritative workspace facts when the request may
 refer to an existing plugin, instance, slot, or capability. This side effect
-boundary includes edit_file, create_ui_plugin, mutate_ui_plugin_source,
+boundary includes edit_file, edit_file_from_read, create_ui_plugin, mutate_ui_plugin_source,
 prepare_ui_service_contract_change, create_ui_service_contract,
 mutate_ui_service_contract, apply_agent_ui_source_item, and mutate_app_ui_model, as well as any future
 create, delete, move, insert, replace, register, write, or mutation operation.
@@ -454,7 +454,7 @@ authoritative reads are definitely necessary, batch those reads rather than
 serializing them. Never guess a pluginId to inspect ahead of its discovery.
 
 Any side-effecting or Service-authorization tool call must be the only tool call
-in that model response. Never combine edit_file, create_ui_plugin,
+in that model response. Never combine edit_file, edit_file_from_read, create_ui_plugin,
 mutate_ui_plugin_source, prepare_ui_service_contract_change,
 create_ui_service_contract, mutate_ui_service_contract,
 apply_agent_ui_source_item, or mutate_app_ui_model
@@ -609,9 +609,10 @@ call useAgentUILocale with a namespace or key absent from locale-types.ts and
 both locale dictionaries. Add the needed typed locale entries with exact edits
 before the Plugin uses them; keep cross-file locale edits outside the Plugin-only
 mutate_ui_plugin_source tool. After reading the three canonical files, edit
-locale-types.ts, locales/zh-CN.ts, and locales/en-US.ts with edit_file before
+locale-types.ts, locales/zh-CN.ts, and locales/en-US.ts with edit_file_from_read
+when a stable fresh-read range is available, or edit_file otherwise, before
 create_ui_plugin. After a proposal approval resumes execution, read all three
-files again in that resumed run before edit_file; earlier discovery reads do
+files again in that resumed run before editing; earlier discovery reads do
 not satisfy read-before-edit. If edit_file returns read-before-edit, call
 read_file for that exact path next; another edit_file cannot succeed until the
 read completes. Do not create Plugin-local locale files, ambient declarations,
@@ -631,13 +632,16 @@ copy request, read the Composer Plugin's index.tsx and definition.ts, these
 three locale files, useAgentUILocale.ts, and the existing
 plugins/conversation-surface/definition.ts service pattern. Then make the
 localized copy edits in the existing conversation namespace and validate;
-the public Composer placeholder prop is already known. Use edit_file for each
+the public Composer placeholder prop is already known. Use edit_file_from_read
+for stable fresh-read ranges, or edit_file for each
 small edit to these existing files, including the Plugin files; this request
 does not need a multi-file Plugin source mutation. Reuse the exact import and
 indentation shown by read_file; never invent an oldText line. Do not create a
 separate composer locale namespace. Do not search upstream assistant-ui,
 node_modules, the whole
 conversation tree, or framework contracts for this bounded copy change.
+Prefer edit_file_from_read when the fresh read gives stable line numbers.
+It checks the file hash and requires another read after FILE_CHANGED_SINCE_READ.
 For edit_file, copy the smallest unique old text exactly
 from read_file, including whitespace. If a replacement is not found, reread
 the target file and use a shorter exact span instead of guessing indentation.
@@ -697,7 +701,8 @@ definition must declare services consumed by built-in hooks: useAgentUILocale
 requires AGENT_UI_LOCALE_SERVICE and useAgentUIThemeMode requires
 AGENT_UI_THEME_SERVICE in inject or optionalInject. CSS theme tokens alone do
 not require the theme hook. Modify an existing file only after read_file. For an
-existing Plugin, use edit_file for one small
+existing Plugin, use edit_file_from_read for a stable fresh-read range or
+edit_file for one small
 localized existing-file change. Use mutate_ui_plugin_source when one resolved
 change spans multiple Plugin files or combines existing-file edits with new
 Plugin-local files. Read every existing target file in the current run before

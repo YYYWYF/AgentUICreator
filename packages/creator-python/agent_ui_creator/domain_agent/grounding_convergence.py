@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
+from time import monotonic
 from collections.abc import Awaitable, Callable, Sequence
 from typing import Any
 
@@ -249,6 +251,9 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         *,
         result: object = None,
         error: BaseException | None = None,
+        tool_call_id: str | None = None,
+        started_at: str | None = None,
+        started_clock: float | None = None,
     ) -> None:
         logger = getattr(self.backend.activity, "logger", None)
         if logger is None:
@@ -264,6 +269,11 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
             arguments=arguments,
             result=result,
             error=error,
+            tool_call_id=tool_call_id,
+            started_at=started_at,
+            finished_at=datetime.now(timezone.utc).isoformat(),
+            duration_ms=(max(0, round((monotonic() - started_clock) * 1000))
+                         if started_clock is not None else None),
         )
 
     def _before_tool_call(
@@ -325,10 +335,14 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
             metrics.record_filesystem_source_read()
 
     def wrap_tool_call(self, request: object, handler: Callable[[object], object]) -> object:
+        started_at = datetime.now(timezone.utc).isoformat()
+        started_clock = monotonic()
         call, name, arguments, prohibited = self._before_tool_call(request)
+        timing = {"tool_call_id": str(call.get("id") or ""),
+                  "started_at": started_at, "started_clock": started_clock}
         if prohibited:
             result = self._prohibited_message(call, name)
-            self._record_tool_observation(name, arguments, result=result)
+            self._record_tool_observation(name, arguments, result=result, **timing)
             return result
         try:
             result = handler(request)
@@ -337,10 +351,10 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
                 self.observations.composition_fast_path_metrics.record_first_mutation_exception(
                     error
                 )
-            self._record_tool_observation(name, arguments, error=error)
+            self._record_tool_observation(name, arguments, error=error, **timing)
             raise
         self._after_tool_call(name, arguments, result)
-        self._record_tool_observation(name, arguments, result=result)
+        self._record_tool_observation(name, arguments, result=result, **timing)
         return result
 
     async def awrap_tool_call(
@@ -348,10 +362,14 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         request: object,
         handler: Callable[[object], Awaitable[object]],
     ) -> object:
+        started_at = datetime.now(timezone.utc).isoformat()
+        started_clock = monotonic()
         call, name, arguments, prohibited = self._before_tool_call(request)
+        timing = {"tool_call_id": str(call.get("id") or ""),
+                  "started_at": started_at, "started_clock": started_clock}
         if prohibited:
             result = self._prohibited_message(call, name)
-            self._record_tool_observation(name, arguments, result=result)
+            self._record_tool_observation(name, arguments, result=result, **timing)
             return result
         try:
             result = await handler(request)
@@ -360,8 +378,8 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
                 self.observations.composition_fast_path_metrics.record_first_mutation_exception(
                     error
                 )
-            self._record_tool_observation(name, arguments, error=error)
+            self._record_tool_observation(name, arguments, error=error, **timing)
             raise
         self._after_tool_call(name, arguments, result)
-        self._record_tool_observation(name, arguments, result=result)
+        self._record_tool_observation(name, arguments, result=result, **timing)
         return result

@@ -16,6 +16,7 @@ from ..observability import CreatorRunTelemetry
 from ..model_protocol.provider_trace import ProviderResponseTraceCollector
 from ..model_settings import CreatorSelectorModelSettings
 from ..project_control import ProjectControlClient, ProjectControlMetrics
+from ..project_paths import agent_ui_source_root
 from ..repair import CreatorRepairState
 from ..runtime_diagnostics import (
     RuntimeDiagnosticInspectionService,
@@ -124,6 +125,33 @@ def _latest_user_message(messages: list[dict[str, str]]) -> str:
             if content:
                 return content
     raise ValueError("A Productized Operation requires a non-empty user message.")
+
+
+def _bounded_recent_conversation(messages: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Supply navigation context from at most two completed prior turns."""
+    prior = messages[:next(
+        (index for index in range(len(messages) - 1, -1, -1)
+         if messages[index].get("role") == "user"), len(messages)
+    )]
+    pairs: list[list[dict[str, str]]] = []
+    for message in prior:
+        role, content = message.get("role"), message.get("content")
+        if role == "user" and isinstance(content, str):
+            pairs.append([{"role": "user", "content": content}])
+        elif role == "assistant" and isinstance(content, str) and pairs and len(pairs[-1]) == 1:
+            pairs[-1].append({"role": "assistant", "content": content})
+    complete = [pair for pair in pairs if len(pair) == 2][-2:]
+    remaining = 4000
+    bounded: list[dict[str, str]] = []
+    for message in reversed([item for pair in complete for item in pair]):
+        content = message["content"][-remaining:]
+        if not content:
+            break
+        bounded.append({"role": message["role"], "content": content})
+        remaining -= len(content)
+        if remaining == 0:
+            break
+    return list(reversed(bounded))
 
 
 def _operation_text(
@@ -276,42 +304,11 @@ class ProductizedOperationEngine:
         """Return a productized result or an explicit General Agent handoff."""
 
         user_message = _latest_user_message(messages)
-        if await self.selector.preflight(user_message) == "ANSWER":
-            selection = CreatorActionSelection(decision="answer_only")
-            presentation = present_creator_action_selection(
-                selection, None, route="answer_only",
-            )
-            await self._publish_step_started(
-                "creator.resolve",
-                {"phase": "understanding", "status": "running"},
-            )
-            await self._publish_step_finished(
-                "creator.resolve",
-                {
-                    "phase": "understanding",
-                    "status": "success",
-                    **presentation.to_dict(),
-                    **self._action_selector_step_metadata(),
-                },
-            )
-            self._record_route(
-                selection,
-                selected_action=None,
-                selected_target=None,
-                route="answer_only",
-                presentation=presentation,
-            )
-            self.pending_clarifications.clear(self.thread_id)
-            return CreatorResolveResult(
-                route="answer_only",
-                selection=selection,
-                presentation=presentation,
-            )
-
         await self._publish_step_started(
             "creator.grounding",
             {"phase": "grounding", "status": "running"},
         )
+        snapshot = None
         try:
             snapshot = await self.snapshot_provider.build()
         except Exception as error:
@@ -326,23 +323,23 @@ class ProductizedOperationEngine:
                     "modelCalls": 0,
                 },
             )
-            raise
-        await self._publish_step_finished(
-            "creator.grounding",
-            {
-                "phase": "grounding",
-                "status": "success",
-                "snapshotBuildMs": self.snapshot_provider.metrics.durationMs,
-                "snapshotBuilds": self.snapshot_provider.metrics.builds,
-                "snapshotFailures": self.snapshot_provider.metrics.failures,
-                "modelCalls": 0,
-            },
-        )
-        self.observations.observe_composition_snapshot(
-            hash=snapshot.app_ui_model_hash,
-            revision=self.activity.revision,
-            coverage=snapshot.observation_coverage,
-        )
+        else:
+            await self._publish_step_finished(
+                "creator.grounding",
+                {
+                    "phase": "grounding",
+                    "status": "success",
+                    "snapshotBuildMs": self.snapshot_provider.metrics.durationMs,
+                    "snapshotBuilds": self.snapshot_provider.metrics.builds,
+                    "snapshotFailures": self.snapshot_provider.metrics.failures,
+                    "modelCalls": 0,
+                },
+            )
+            self.observations.observe_composition_snapshot(
+                hash=snapshot.app_ui_model_hash,
+                revision=self.activity.revision,
+                coverage=snapshot.observation_coverage,
+            )
 
         await self._publish_step_started(
             "creator.resolve",
@@ -359,12 +356,16 @@ class ProductizedOperationEngine:
             )
             selection = await self.selector.select(
                 user_message,
-                snapshot.action_selector_context,
+                snapshot.action_selector_context if snapshot is not None else {
+                    "catalogRevision": "0" * 64, "actions": [], "pluginSemantics": [],
+                },
+                recent_conversation=_bounded_recent_conversation(messages),
                 **selector_kwargs,
             )
             selected_action = None
             selected_target = None
             if selection.decision == "select_action":
+                assert snapshot is not None
                 assert selection.actionId is not None
                 selected_action = next(
                     (
@@ -383,6 +384,7 @@ class ProductizedOperationEngine:
                         },
                     )
             elif selection.decision == "select_intent":
+                assert snapshot is not None
                 assert selection.targetId is not None
                 selected_target = next(
                     (
@@ -402,9 +404,14 @@ class ProductizedOperationEngine:
                     )
             authoring_handoff = (
                 snapshot.authoring_handoff(selection.targetId)
-                if selection.decision == "select_intent" and selection.targetId is not None
+                if snapshot is not None and selection.decision == "select_intent" and selection.targetId is not None
                 else None
             )
+            if authoring_handoff is not None:
+                try:
+                    authoring_handoff.sourceRoot = agent_ui_source_root(self.project_root)
+                except ValueError:
+                    pass
         except Exception as error:
             if pending_clarification is not None:
                 self.pending_clarifications.restore(

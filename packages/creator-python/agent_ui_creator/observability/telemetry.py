@@ -26,6 +26,7 @@ class CreatorRunTelemetry:
     mutation: Any | None = None
     scope: Any | None = None
     composition_fast_path: Any | None = None
+    source_grounding: Any | None = None
     validation: Any | None = None
     run_control: Any | None = None
     action_selector: dict[str, object] | None = None
@@ -45,6 +46,7 @@ class CreatorRunTelemetry:
         mutation: Any | None = None,
         scope: Any | None = None,
         composition_fast_path: Any | None = None,
+        source_grounding: Any | None = None,
         validation: Any | None = None,
         run_control: Any | None = None,
         action_selector: dict[str, object] | None = None,
@@ -67,6 +69,8 @@ class CreatorRunTelemetry:
             self.scope = scope
         if composition_fast_path is not None:
             self.composition_fast_path = composition_fast_path
+        if source_grounding is not None:
+            self.source_grounding = source_grounding
         if validation is not None:
             self.validation = validation
         if run_control is not None:
@@ -162,6 +166,9 @@ class CreatorRunTelemetry:
         composition_fast_path = self.composition_fast_path_metrics()
         if composition_fast_path is not None:
             snapshot["compositionFastPath"] = composition_fast_path
+        source_grounding = _to_dict(self.source_grounding)
+        if source_grounding is not None:
+            snapshot["sourceGrounding"] = source_grounding
         validation = self.validation_metrics()
         if validation is not None:
             snapshot["validationMetrics"] = validation

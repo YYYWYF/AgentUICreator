@@ -92,6 +92,9 @@ def _side_effect_succeeded(name: str, result: Any) -> bool:
 
     if getattr(result, "status", None) == "error":
         return False
+    if name == "edit_file_from_read":
+        payload = _result_payload(result)
+        return payload is not None and payload.get("ok") is True
     if name == "edit_file":
         # FilesystemMiddleware returns a ToolMessage with an explicit success
         # status for a committed edit.  Its human-readable content is not a
@@ -189,7 +192,7 @@ def _resource_keys_for_app_ui_operations(
 
 
 def change_layer_for_tool_call(name: str, arguments: Mapping[str, Any]) -> ChangeLayer | None:
-    if name == "edit_file":
+    if name in {"edit_file", "edit_file_from_read"}:
         path = arguments.get("file_path")
         return change_layer_for_path(path) if isinstance(path, str) else None
     return _STATIC_SIDE_EFFECT_LAYERS.get(name)
@@ -201,7 +204,7 @@ def resource_keys_for_tool_call(
 ) -> tuple[ResourceKey, ...]:
     """Extract semantic resources from already-authorized tool arguments."""
 
-    if name == "edit_file":
+    if name in {"edit_file", "edit_file_from_read"}:
         path = arguments.get("file_path")
         return resource_keys_for_path(path) if isinstance(path, str) else ()
     if name == "mutate_app_ui_model":
@@ -500,7 +503,7 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
             # A Host-known Service identity is authoritative.  Discard the
             # filename-derived fallback for a Service contract path so the
             # scope never contains an opaque or guessed Service resource.
-            if name == "edit_file" and resolved:
+            if name in {"edit_file", "edit_file_from_read"} and resolved:
                 resources = [
                     resource
                     for resource in resources

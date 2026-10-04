@@ -42,7 +42,7 @@ If another action is required, emit the next structured tool call now.
 If the task is already complete, return a concise final answer."""
 
 _TOOL_INTENT_NAMES = (
-    "read_file|edit_file|grep|glob|ls|inspect_ui_project|inspect_app_ui_model|"
+    "read_file|edit_file|edit_file_from_read|grep|glob|ls|inspect_ui_project|inspect_app_ui_model|"
     "list_ui_plugins|inspect_ui_slots|inspect_ui_plugin|"
     "inspect_ui_services|"
     "inspect_ui_plugin_source_references|inspect_agent_ui_sources|"

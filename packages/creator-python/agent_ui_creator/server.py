@@ -186,6 +186,7 @@ def _authoring_handoff_messages(
     owner = {
         "ownerPath": handoff.ownerPath,
         "ownerRoot": handoff.ownerRoot,
+        "sourceRoot": handoff.sourceRoot,
         "definitionPath": handoff.definitionPath,
     }
     instruction = (
@@ -194,9 +195,13 @@ def _authoring_handoff_messages(
         "catalog to rediscover or replace the target. Read only the supplied owner "
         "source needed for the requested change, then keep product integration within "
         "that owner boundary. For application_config, read ownerPath first. For "
-        "plugin_source, read ownerRoot and definitionPath first. Do not change "
-        "AppUIModel composition unless the user explicitly asks for a separate "
-        "composition action. Resolved target: "
+        "plugin_source, read the exact definitionPath first, then specific files "
+        "under ownerRoot as needed. Do not read a directory as a file. "
+        "If sourceRoot is known, locale contract files are at "
+        "<sourceRoot>/agent-ui/i18n/locale-types.ts and "
+        "<sourceRoot>/agent-ui/i18n/locales/{zh-CN,en-US}.ts; read the exact "
+        "needed paths directly before searching. AppUIModel composition changes "
+        "require an explicit separate request. Resolved target: "
         + json.dumps(
             {
                 "targetId": handoff.targetId,
@@ -517,6 +522,7 @@ async def _general_domain_write_agent_result(
         recovery_factory=recovery_factory,
         verification_mode=settings.verification_mode,
         plugin_development_authority=development_authority,
+        authoring_handoff=handoff,
     )
     if (resume is None and handoff is not None and handoff.kind == "plugin_source"
             and handoff.pluginId is not None and development_authority is not None
@@ -708,6 +714,10 @@ async def _execute_agent_run(
                 composition_fast_path_metrics=(
                     run_telemetry.composition_fast_path_metrics()
                 ),
+                source_grounding_metrics=(
+                    run_telemetry.source_grounding.to_dict()
+                    if run_telemetry.source_grounding is not None else None
+                ),
                 project_control_metrics=run_telemetry.project_control_metrics(),
                 validation_metrics=run_telemetry.validation_metrics(),
                 action_selector_metrics=run_telemetry.action_selector,
@@ -732,6 +742,10 @@ async def _execute_agent_run(
             change_layer_metrics=run_telemetry.change_layer_metrics(),
             composition_fast_path_metrics=(
                 run_telemetry.composition_fast_path_metrics()
+            ),
+            source_grounding_metrics=(
+                run_telemetry.source_grounding.to_dict()
+                if run_telemetry.source_grounding is not None else None
             ),
             project_control_metrics=run_telemetry.project_control_metrics(),
             validation_metrics=run_telemetry.validation_metrics(),
@@ -1281,6 +1295,9 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                 run_result["compositionFastPath"] = (
                                     composition_metrics.to_dict()
                                 )
+                            source_metrics = getattr(result, "source_grounding_metrics", None)
+                            if source_metrics is not None:
+                                run_result["sourceGrounding"] = source_metrics.to_dict()
                             validation_metrics = telemetry.validation_metrics()
                             if validation_metrics is not None:
                                 run_result["validationMetrics"] = validation_metrics

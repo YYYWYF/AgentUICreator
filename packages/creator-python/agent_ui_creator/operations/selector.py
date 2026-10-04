@@ -6,7 +6,7 @@ import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from time import monotonic
-from typing import Any, Literal
+from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import ValidationError
@@ -25,13 +25,6 @@ from .models import (
 MAX_ACTION_SELECTOR_REPAIR_CALLS = 1
 MAX_INVALID_SELECTOR_PREVIEW_CHARACTERS = 300
 ACTION_SELECTOR_PROTOCOL = "choice-text-v1"
-
-_ANSWER_PREFLIGHT_PROMPT = """You are the Creator Action Selector checking whether a request can be answered without the workspace.
-
-Return exactly one line: ANSWER or CONTINUE.
-ANSWER only when the entire current request is clearly about Creator usage, general capabilities, workflow, or general Agent UI concepts and can be answered without any facts about the current project. Examples include asking what Creator can do or how to describe a request.
-CONTINUE for project inspection, a plan based on the current project, diagnosis, any requested modification or validation, a reply to an earlier clarification, or any request whose answer may depend on workspace facts. A request to plan or inspect without modifying still needs CONTINUE when it refers to the current project. If uncertain, return CONTINUE.
-Do not answer the user's question or infer project state."""
 
 _SELECT_PATTERN = re.compile(r"SELECT (A[1-9][0-9]*)\Z")
 _CLARIFY_PATTERN = re.compile(r"CLARIFY ([^\r\n]+)\Z")
@@ -116,6 +109,9 @@ _SELECTOR_SYSTEM_PROMPT = """You are the Creator Intent Selector.
 The Host has already determined the currently valid Composition Actions and
 Authoring Targets. You only select one supplied choice; you do not construct
 operations, invent ownership, or execute changes.
+Recent conversation is bounded navigation context for resolving follow-up
+references. Current Host choices and fresh workspace observations remain the
+authority; never treat prior file content as current.
 
 Return exactly ONE line in one of these forms:
 SELECT A<n>
@@ -539,50 +535,13 @@ class CreatorIntentSelector:
         )
         self.metrics = CreatorActionSelectorMetrics()
 
-    async def preflight(self, user_message: str) -> Literal["ANSWER", "CONTINUE"]:
-        """Admit only workspace-independent answers before project grounding."""
-        if not isinstance(user_message, str) or not user_message.strip():
-            raise CreatorActionSelectionError(
-                "The original user message must be a non-empty string."
-            )
-        started_at = monotonic()
-        self.metrics.modelCalls += 1
-        try:
-            result = await self._invocation_reliability.ainvoke(
-                self._invocation_model,
-                lambda current_model: current_model.ainvoke([
-                    SystemMessage(content=_ANSWER_PREFLIGHT_PROMPT),
-                    HumanMessage(content=user_message),
-                ]),
-            )
-            trace = (
-                self._provider_trace_collector.pop_successful_completion()
-                if self._provider_trace_collector is not None else None
-            )
-            response = _model_response(result, trace)
-            self.metrics.finishReason = response.finish_reason
-            self.metrics.promptTokens = response.prompt_tokens
-            self.metrics.completionTokens = response.completion_tokens
-            self.metrics.totalTokens = response.total_tokens
-            self.metrics.reasoningTokens = response.reasoning_tokens
-            self.metrics.resolvedModel = response.resolved_model
-            if response.text == "ANSWER":
-                return "ANSWER"
-            if response.text != "CONTINUE":
-                self.metrics.invalidResponses += 1
-            return "CONTINUE"
-        except Exception:
-            # An unavailable or malformed preflight cannot bypass grounding.
-            return "CONTINUE"
-        finally:
-            self.metrics.durationMs += max(0, round((monotonic() - started_at) * 1_000))
-
     async def select(
         self,
         user_message: str,
         context: CreatorActionSelectorContext | Mapping[str, Any],
         *,
         clarification_context: Mapping[str, str] | None = None,
+        recent_conversation: list[dict[str, str]] | None = None,
     ) -> CreatorActionSelection:
         started_at = monotonic()
         try:
@@ -603,6 +562,8 @@ class CreatorIntentSelector:
             prompt_context = _selector_prompt_context(normalized_context)
             if clarification_context is not None:
                 prompt_context["recentClarification"] = dict(clarification_context)
+            if recent_conversation:
+                prompt_context["recentConversation"] = recent_conversation
             context_json = json.dumps(
                 prompt_context,
                 ensure_ascii=False,

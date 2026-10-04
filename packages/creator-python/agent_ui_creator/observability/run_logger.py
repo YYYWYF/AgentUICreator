@@ -106,6 +106,9 @@ def _sanitized_tool_arguments(
                 else 0
             ),
         }
+    if tool_name in {"edit_file", "edit_file_from_read"}:
+        path = arguments.get("file_path")
+        return {"file_path": path} if isinstance(path, str) else {}
     if tool_name in _FILESYSTEM_TOOL_NAMES:
         key = "file_path" if tool_name == "read_file" else "path"
         if tool_name == "glob":
@@ -316,16 +319,41 @@ class CreatorRunLogger:
         arguments: Mapping[str, Any],
         result: Any = None,
         error: BaseException | None = None,
+        tool_call_id: str | None = None,
+        started_at: str | None = None,
+        finished_at: str | None = None,
+        duration_ms: int | None = None,
     ) -> None:
         normalized_phase = (
             phase if phase in _TOOL_OBSERVATION_PHASES else "before_first_mutation"
         )
         status, code = _tool_result_status(result, error)
+        reason: str | None = type(error).__name__ if error is not None else None
+        if reason is None:
+            content = getattr(result, "content", result)
+            if isinstance(content, str):
+                try:
+                    payload = json.loads(content)
+                except (TypeError, ValueError):
+                    payload = None
+                if isinstance(payload, Mapping):
+                    structured_error = payload.get("error")
+                    if isinstance(structured_error, Mapping):
+                        message = structured_error.get("message")
+                        if isinstance(message, str):
+                            reason = message[:300]
         self.record(
             _TOOL_OBSERVATION_EVENT,
             {
                 "modelCallSequence": max(0, int(model_call_sequence)),
                 "toolName": tool_name,
+                "toolCallId": tool_call_id,
+                "startedAt": started_at,
+                "finishedAt": finished_at,
+                "durationMs": duration_ms,
+                "status": status,
+                "structuredErrorCode": code,
+                "structuredErrorReason": reason,
                 "phase": normalized_phase,
                 "arguments": _sanitized_tool_arguments(tool_name, arguments),
                 "result": {
@@ -344,6 +372,7 @@ class CreatorRunLogger:
         mutation_metrics: Mapping[str, object] | None = None,
         change_layer_metrics: Mapping[str, object] | None = None,
         composition_fast_path_metrics: Mapping[str, object] | None = None,
+        source_grounding_metrics: Mapping[str, object] | None = None,
         project_control_metrics: Mapping[str, object] | None = None,
         validation_metrics: Mapping[str, object] | None = None,
         action_selector_metrics: Mapping[str, object] | None = None,
@@ -408,6 +437,11 @@ class CreatorRunLogger:
                         )
                     }
                     if composition_fast_path_metrics is not None
+                    else {}
+                ),
+                **(
+                    {"sourceGrounding": dict(source_grounding_metrics)}
+                    if source_grounding_metrics is not None
                     else {}
                 ),
                 **(

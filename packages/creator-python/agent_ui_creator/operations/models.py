@@ -523,6 +523,7 @@ class CreatorAuthoringHandoff(BaseModel):
     description: BoundedAuthoringTargetDescription
     ownerPath: BoundedAuthoringTargetPath | None = None
     ownerRoot: BoundedAuthoringTargetPath | None = None
+    sourceRoot: BoundedAuthoringTargetPath | None = None
     definitionPath: BoundedAuthoringTargetPath | None = None
     relatedPluginIds: list[BoundedPluginId] = Field(default_factory=list, max_length=MAX_PLUGIN_CAPABILITIES)
     pluginId: BoundedPluginId | None = None

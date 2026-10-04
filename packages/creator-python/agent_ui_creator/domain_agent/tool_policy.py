@@ -30,6 +30,7 @@ DOMAIN_WRITE_TOOL_NAMES = (
     "create_ui_service_contract",
     "mutate_ui_service_contract",
     "mutate_app_ui_model",
+    "edit_file_from_read",
     "apply_agent_ui_source_item",
     "validate_creator_changes",
     "inspect_runtime_errors",
@@ -49,6 +50,7 @@ RUNTIME_VERIFICATION_TOOL_NAMES = frozenset(
 SIDE_EFFECT_TOOL_NAMES = frozenset(
     {
         "edit_file",
+        "edit_file_from_read",
         "create_ui_plugin",
         "prepare_ui_plugin_development",
         "mutate_ui_plugin_source",

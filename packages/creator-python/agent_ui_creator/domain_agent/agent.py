@@ -43,6 +43,7 @@ from ..model_protocol.trace import ToolProtocolMetrics
 from ..model_settings import DEFAULT_CREATOR_MODEL_MAX_RETRIES
 from ..human_input import ask_user_question
 from ..observability import CreatorRunTelemetry
+from ..operations.models import CreatorAuthoringHandoff
 from ..plugin_development.authority import PluginDevelopmentAuthority
 from ..plugin_development.delivery import create_plugin_delivery_tool, delivery_status_satisfies_mode
 from ..plugin_development.behavior import create_plugin_behavior_tool
@@ -90,6 +91,10 @@ from ..verification_policy import (
 from .completion_gate import CreatorDevelopmentCompletionGate
 from .composition_verification_tail import CompositionVerificationTail
 from .grounding_convergence import CompositionGroundingConvergenceMiddleware
+from .source_grounding import (
+    SourceGroundingConvergenceMiddleware, SourceGroundingMetrics,
+    create_edit_file_from_read_tool,
+)
 from .change_scope import (
     ScopeAwareRecoveryGuard,
     build_change_layer_run_metrics,
@@ -125,6 +130,7 @@ class DomainWriteAgentResult(DomainReadAgentResult):
     app_ui_model_mutations: AppUIModelMutationMetrics
     change_layer_metrics: dict[str, object]
     composition_fast_path_metrics: CompositionFastPathMetrics
+    source_grounding_metrics: SourceGroundingMetrics | None = None
 
 
 class CreatorDomainReadAgent:
@@ -321,6 +327,9 @@ class CreatorDomainReadAgent:
             values["composition_fast_path_metrics"] = (
                 self.observations.composition_fast_path_metrics
             )
+            values["source_grounding_metrics"] = getattr(
+                getattr(self, "source_grounding", None), "metrics", None,
+            )
         return result_type(**values)
 
     async def _run_composition_verification_tail(self) -> None:
@@ -444,6 +453,9 @@ class CreatorDomainReadAgent:
             )
             values["composition_fast_path_metrics"] = (
                 self.observations.composition_fast_path_metrics
+            )
+            values["source_grounding_metrics"] = getattr(
+                getattr(self, "source_grounding", None), "metrics", None,
             )
         result_type = (
             DomainWriteAgentResult
@@ -622,6 +634,7 @@ def create_domain_write_creator_agent(
     recovery_factory: Callable[[], BaseChatModel] | None = None,
     verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
     plugin_development_authority: PluginDevelopmentAuthority | None = None,
+    authoring_handoff: CreatorAuthoringHandoff | None = None,
 ) -> CreatorDomainWriteAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -709,7 +722,7 @@ def create_domain_write_creator_agent(
                 return (f"service:{record.spec.service_name}",)
             except Exception:
                 pass
-        if name == "edit_file":
+        if name in {"edit_file", "edit_file_from_read"}:
             path = arguments.get("file_path")
             if isinstance(path, str):
                 normalized = path if path.startswith("/") else f"/{path}"
@@ -796,6 +809,10 @@ def create_domain_write_creator_agent(
             ]
         )
     metrics = ToolProtocolMetrics()
+    source_grounding = SourceGroundingConvergenceMiddleware(
+        backend, authoring_handoff, metrics,
+    )
+    domain_tools.append(create_edit_file_from_read_tool(backend, source_grounding))
     protocol = ToolProtocolMiddleware(
         metrics=metrics,
         max_model_calls=24,
@@ -811,6 +828,7 @@ def create_domain_write_creator_agent(
             mutation=service.metrics,
             scope=scope_guard.metrics,
             composition_fast_path=observations.composition_fast_path_metrics,
+            source_grounding=source_grounding.metrics,
             run_control=run_control,
         )
     model_retry = create_creator_model_retry_middleware(
@@ -856,6 +874,7 @@ def create_domain_write_creator_agent(
                 verification_mode=verification_mode,
                 development_authority=development_authority,
             ),
+            source_grounding,
             scope_guard,
             repeated_read_guard,
             runtime,
@@ -892,5 +911,6 @@ def create_domain_write_creator_agent(
     agent.service_contract_creation = service_creation
     agent.service_contract_mutation = service_mutation
     agent.validation = validation
+    agent.source_grounding = source_grounding
     agent.runtime_inspection = runtime_inspection
     return agent

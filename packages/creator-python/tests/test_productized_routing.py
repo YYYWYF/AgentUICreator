@@ -37,6 +37,7 @@ from agent_ui_creator.operations.engine import (
     ProductizedOperationEngine,
     ProductizedOperationRun,
     ProductizedOperationToolMetrics,
+    _bounded_recent_conversation,
 )
 from agent_ui_creator.model_settings import CreatorSelectorModelSettings
 from agent_ui_creator.operations.snapshot import CreatorDomainSnapshotMetrics
@@ -48,6 +49,17 @@ from agent_ui_creator.streaming import (
     CreatorStepFinished,
     CreatorStepStarted,
 )
+
+
+def test_recent_conversation_keeps_two_complete_prior_turns():
+    messages = [
+        {"role": "user", "content": "old"},
+        {"role": "assistant", "content": "old answer"},
+        {"role": "user", "content": "加头像和 test agent"},
+        {"role": "assistant", "content": "已修改 conversation-thread-list"},
+        {"role": "user", "content": "把 test agent 改成 my agent"},
+    ]
+    assert _bounded_recent_conversation(messages) == messages[:4]
 
 
 _OBSERVATION_COVERAGE = (
@@ -70,7 +82,6 @@ class _Selector:
     ) -> None:
         self.selection = selection
         self.calls = 0
-        self.preflight_calls = 0
         self.messages: list[tuple[str, object]] = []
         self.requested_model = None
         self.selector_settings = CreatorSelectorModelSettings()
@@ -83,19 +94,13 @@ class _Selector:
             contextCharacters=100,
         )
 
-    async def preflight(self, _message: str) -> str:
-        self.preflight_calls += 1
-        return "ANSWER" if (
-            isinstance(self.selection, CreatorActionSelection)
-            and self.selection.decision == "answer_only"
-        ) else "CONTINUE"
-
     async def select(
         self,
         message: str,
         context: object,
         *,
         clarification_context: object | None = None,
+        recent_conversation: object | None = None,
     ):
         self.calls += 1
         self.messages.append((message, clarification_context or context))
@@ -317,23 +322,23 @@ def _authoring_target_snapshot(
             relatedPluginIds=["conversation-suggestions"],
         )
     else:
-        target_id = "plugin-source:conversation-suggestions"
+        target_id = "plugin-source:conversation-thread-list"
         target = CreatorAuthoringTargetCandidate(
             targetId=target_id,
             kind="plugin_source",
-            name="Conversation Suggestions Plugin implementation",
+            name="Conversation Thread List Plugin implementation",
             description="Modify rendering, styling, interaction, or implementation behavior.",
-            intents=["change Conversation Suggestions styling"],
-            relatedPluginIds=["conversation-suggestions"],
+            intents=["change Conversation Thread List presentation"],
+            relatedPluginIds=["conversation-thread-list"],
         )
         binding = CreatorAuthoringTargetBinding(
             targetId=target_id,
             kind="plugin_source",
-            ownerRoot="plugins/conversation-suggestions",
-            definitionPath="plugins/conversation-suggestions/definition.ts",
-            manifestPath="plugins/conversation-suggestions/manifest.json",
-            pluginId="conversation-suggestions",
-            relatedPluginIds=["conversation-suggestions"],
+            ownerRoot="plugins/conversation-thread-list",
+            definitionPath="plugins/conversation-thread-list/definition.ts",
+            manifestPath="plugins/conversation-thread-list/manifest.json",
+            pluginId="conversation-thread-list",
+            relatedPluginIds=["conversation-thread-list"],
         )
     return (
         CreatorActionSelection(decision="select_intent", targetId=target_id),
@@ -356,7 +361,12 @@ def test_scoped_authoring_routes_emit_owner_bound_telemetry(kind):
         snapshot_provider=snapshot_provider,
     )
 
-    result = asyncio.run(engine.run([{"role": "user", "content": "change"}]))
+    messages = ([
+        {"role": "user", "content": "帮我在新建会话上面加头像和 agent 的名称"},
+        {"role": "assistant", "content": "已修改 conversation-thread-list"},
+        {"role": "user", "content": "把 test agent 改成 my agent"},
+    ] if kind == "plugin_source" else [{"role": "user", "content": "change"}])
+    result = asyncio.run(engine.run(messages))
 
     assert isinstance(result, CreatorResolveResult)
     assert result.route == "scoped_general_handoff"
@@ -509,9 +519,8 @@ def test_answer_only_handoff_has_no_mutation_or_validation():
     assert result.route == "answer_only"
     assert result.presentation.route == "answer_only"
     assert result.presentation.label == "回答 Creator 使用问题"
-    assert selector.preflight_calls == 1
-    assert selector.calls == 0
-    assert engine.snapshot_provider.build_calls == 0
+    assert selector.calls == 1
+    assert engine.snapshot_provider.build_calls == 1
     assert action_playbook.calls == []
     assert engine.mutation_service.metrics.operations == 0
     assert engine.validation.calls == []
@@ -531,7 +540,7 @@ def test_answer_only_does_not_depend_on_workspace_snapshot():
 
     async def scenario():
         result = await engine.run([{"role": "user", "content": "你能做什么？"}])
-        events = [await event_bus.next_event() for _ in range(2)]
+        events = [await event_bus.next_event() for _ in range(4)]
         event_bus.close()
         return result, events
 
@@ -539,13 +548,14 @@ def test_answer_only_does_not_depend_on_workspace_snapshot():
 
     assert isinstance(result, CreatorResolveResult)
     assert result.route == "answer_only"
-    assert provider.build_calls == 0
-    assert selector.preflight_calls == 1
-    assert selector.calls == 0
+    assert provider.build_calls == 1
+    assert selector.calls == 1
     assert action_playbook.calls == []
     assert engine.mutation_service.metrics.operations == 0
     assert engine.validation.calls == []
-    assert [event.name for event in events] == ["creator.resolve", "creator.resolve"]
+    assert [event.name for event in events] == [
+        "creator.grounding", "creator.grounding", "creator.resolve", "creator.resolve",
+    ]
     assert telemetry.operation_route["route"] == "answer_only"
 
 
@@ -734,7 +744,7 @@ def test_selector_failure_does_not_route_to_general_agent():
     assert action_playbook.calls == []
 
 
-def test_snapshot_failure_does_not_call_selector_or_action_playbook():
+def test_snapshot_failure_keeps_reserved_selector_routes_available():
     provider = _SnapshotProvider(
         error=CreatorDomainSnapshotError(
             "DOMAIN_SNAPSHOT_INVALID",
@@ -746,11 +756,11 @@ def test_snapshot_failure_does_not_call_selector_or_action_playbook():
         snapshot_provider=provider,
     )
 
-    with pytest.raises(CreatorDomainSnapshotError) as raised:
-        asyncio.run(engine.run([{"role": "user", "content": "change"}]))
+    result = asyncio.run(engine.run([{"role": "user", "content": "change"}]))
 
-    assert raised.value.code == "DOMAIN_SNAPSHOT_INVALID"
-    assert selector.calls == 0
+    assert isinstance(result, CreatorResolveResult)
+    assert result.route == "unscoped_general"
+    assert selector.calls == 1
     assert action_playbook.calls == []
 
 

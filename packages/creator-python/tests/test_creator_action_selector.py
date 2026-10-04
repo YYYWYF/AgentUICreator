@@ -872,22 +872,31 @@ def test_selector_answer_protocol_for_product_guidance(message):
     assert "ANSWER" in _SELECTOR_SYSTEM_PROMPT
 
 
-@pytest.mark.parametrize(("message", "response", "expected"), [
-    ("你能做什么？", "ANSWER", "ANSWER"),
-    ("Creator 怎么用？", "ANSWER", "ANSWER"),
-    ("看看当前有哪些插件", "CONTINUE", "CONTINUE"),
-    ("先根据当前工程给方案，不修改", "CONTINUE", "CONTINUE"),
-    ("把会话插件移动到右侧", "CONTINUE", "CONTINUE"),
-    ("开发一个新的 xxx 插件", "CONTINUE", "CONTINUE"),
-    ("unexpected", "INSPECT", "CONTINUE"),
-])
-def test_answer_preflight_uses_only_user_message(message, response, expected):
-    model = StaticChatModel([response])
+def test_selector_uses_one_call_with_recent_navigation_context():
+    model = StaticChatModel(["ANSWER"])
     selector = CreatorActionSelector(model=model)
-
-    assert asyncio.run(selector.preflight(message)) == expected
+    result = asyncio.run(selector.select(
+        "你能做什么？", _context(),
+        recent_conversation=[{"role": "user", "content": "上次的名字"}],
+    ))
+    assert result.decision == "answer_only"
     assert selector.metrics.modelCalls == 1
-    assert model.messages[0][1].content == message
+    assert "recentConversation" in model.messages[0][1].content
+
+
+def test_follow_up_can_select_current_source_target_from_recent_context():
+    model = StaticChatModel(["SELECT A6"])
+    selector = CreatorActionSelector(model=model)
+    result = asyncio.run(selector.select(
+        "把刚才那个按钮改成圆角", _unified_context(),
+        recent_conversation=[
+            {"role": "user", "content": "修改示例问题按钮"},
+            {"role": "assistant", "content": "已修改 conversation-suggestions"},
+        ],
+    ))
+    assert result.decision == "select_intent"
+    assert result.targetId == "plugin-source:conversation-suggestions"
+    assert selector.metrics.modelCalls == 1
 
 
 @pytest.mark.parametrize("message", [
