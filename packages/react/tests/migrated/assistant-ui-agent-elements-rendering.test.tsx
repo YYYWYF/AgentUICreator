@@ -28,9 +28,24 @@ describe("assistant-ui official agent element fixtures", () => {
           stages={[{ name: "build", weight: 1, description: "Compile the app." }]}
           stageIndex={1}
           stageProgress={0}
-          eta=""
           outcome={{ status: "partial", summary: "One check was skipped." }}
           elapsedMs={65_000}
+        />
+        <JobProgress
+          title="Build"
+          stages={[{ name: "build", weight: 1 }]}
+          stageIndex={1}
+          stageProgress={1}
+          eta=""
+          outcome={{ status: "failed", summary: "Build failed." }}
+        />
+        <JobProgress
+          title="Deploy"
+          stages={[{ name: "deploy", weight: 1 }]}
+          stageIndex={1}
+          stageProgress={1}
+          eta=""
+          outcome={{ status: "cancelled", summary: "Stopped by request." }}
         />
       </>,
     );
@@ -42,6 +57,10 @@ describe("assistant-ui official agent element fixtures", () => {
     expect(html).toContain('data-slot="subagent-list"');
     expect(html).toContain('data-slot="job-progress"');
     expect(html).toContain("One check was skipped.");
+    expect(html).toContain('data-state="failed"');
+    expect(html).toContain("Build failed.");
+    expect(html).toContain('data-state="cancelled"');
+    expect(html).toContain("Stopped by request.");
     expect(html).toContain("Waiting for approval");
   });
 });

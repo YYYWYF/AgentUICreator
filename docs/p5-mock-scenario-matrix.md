@@ -59,6 +59,7 @@ correlate resume entries by `interruptId`, not by array position.
 | Multi-Agent | `nested-subagent-conversation` | Standard `SUBAGENT_*` → TaskCard | Backend Reference | Recommended |
 | Multi-Agent | `nested-subagent-task-group` | Sibling Subagents → TaskGroup | Frontend Presentation | Advanced |
 | Presentation | `agent-plan` | `ACTIVITY_SNAPSHOT / ACTIVITY_DELTA` → AgentPlan | Frontend Presentation | |
+| Advanced | `resumable-agent-plan` | Run Resume + Activity Snapshot → AgentPlan | Frontend Presentation | Advanced |
 | Presentation | `agent-status` | Application-defined Tool Args → AgentStatus | Frontend Presentation | |
 | Presentation | `file-output` | Backend Tool Result → named Tool UI → File / Download | Frontend Presentation | Recommended |
 | Advanced | `nested-subagent-recursive` | Recursive Subagent | Frontend Presentation | Advanced |
@@ -124,6 +125,14 @@ The AgentPlan event flow is `RUN_STARTED → ACTIVITY_SNAPSHOT → ACTIVITY_DELT
 TEXT_MESSAGE_* → RUN_FINISHED`. Refresh recovery replays the latest complete
 snapshot before subsequent deltas. Old completed history is not guaranteed to
 restore a Plan.
+
+`resumable-agent-plan` exercises that live-run contract across a refresh. The
+first connection emits `RUN_STARTED`, an `agent-plan` snapshot at `activeIndex: 0`,
+and a delta to `activeIndex: 1`. Reattaching the existing run emits a complete
+snapshot at `activeIndex: 1`, followed by deltas to `2` and `3`, then
+`RUN_FINISHED`. The process-owned mock run remains at `runCount === 1`; recovery
+does not start another Agent invocation. Backend Activity is authoritative;
+Tool Args and reasoning text do not create or advance the Plan.
 
 JobProgress remains `ToolCall + STATE_SNAPSHOT / STATE_DELTA`; the CI Tool Result
 must provide an explicit terminal outcome. A completed stage index does not

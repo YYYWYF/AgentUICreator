@@ -163,19 +163,33 @@ describe("generated Agent thread identity and resume provider lifecycle", () => 
   it("restores the latest live plan on resume without another Agent invocation", async () => {
     const conversation = service();
     const runAgent = vi.fn();
-    const plan = {
+    const planAt = (activeIndex: number) => ({
       title: "Workspace update",
       steps: [
         { id: "inspect", label: "Inspect", description: "Read the active source." },
-        { id: "update", label: "Update", description: "Change the current UI." },
-        { id: "verify", label: "Verify", description: "Check the focused regressions." },
+        { id: "modify", label: "Modify", description: "Apply the requested changes." },
+        { id: "test", label: "Test", description: "Check the focused regressions." },
       ],
-      activeIndex: 1,
-    };
+      activeIndex,
+    });
+    let releaseSecondUpdate!: () => void;
+    let releaseThirdUpdate!: () => void;
+    const secondUpdate = new Promise<void>(resolve => { releaseSecondUpdate = resolve; });
+    const thirdUpdate = new Promise<void>(resolve => { releaseThirdUpdate = resolve; });
     const resume = {
-      stream: vi.fn(async function* () {
+      stream: vi.fn(async function* (_signal: AbortSignal) {
         yield {
-          content: [{ type: "data", name: "agui-activity/agent-plan", data: plan }],
+          content: [{ type: "data", name: "agui-activity/agent-plan", data: planAt(1) }],
+          status: { type: "running" as const },
+        };
+        await secondUpdate;
+        yield {
+          content: [{ type: "data", name: "agui-activity/agent-plan", data: planAt(2) }],
+          status: { type: "running" as const },
+        };
+        await thirdUpdate;
+        yield {
+          content: [{ type: "data", name: "agui-activity/agent-plan", data: planAt(3) }],
           status: { type: "complete" as const, reason: "stop" as const },
         };
       }),
@@ -192,17 +206,40 @@ describe("generated Agent thread identity and resume provider lifecycle", () => 
         await vi.waitFor(() => {
           expect(element.querySelectorAll('[data-slot="agent-plan"]')).toHaveLength(1);
           expect(element.textContent).toContain("1 of 3");
+          expect(element.textContent).toContain("Modify in progress");
         });
       });
       expect(element.textContent).toContain("Workspace update");
-      expect(element.textContent).toContain("Change the current UI.");
-      expect(element.textContent).toContain("Verify not started");
+      expect(element.textContent).toContain("Read the active source.");
+      expect(element.textContent).toContain("Test not started");
+
+      await act(async () => {
+        releaseSecondUpdate();
+        await vi.waitFor(() => {
+          expect(element.textContent).toContain("2 of 3");
+          expect(element.textContent).toContain("Test in progress");
+        });
+      });
+      expect(element.querySelectorAll('[data-slot="agent-plan"]')).toHaveLength(1);
+
+      await act(async () => {
+        releaseThirdUpdate();
+        await vi.waitFor(() => {
+          expect(element.textContent).toContain("3 of 3");
+          expect(element.textContent).toContain("Test done");
+        });
+      });
+      expect(element.querySelectorAll('[data-slot="agent-plan"]')).toHaveLength(1);
+
       expect(binding.getThreadId()).toBe("running-thread");
       expect(provider).toHaveBeenCalledOnce();
       expect(resume.stream).toHaveBeenCalledOnce();
       expect(runAgent).not.toHaveBeenCalled();
-      expect(JSON.stringify(runtime.thread.getState().messages))
-        .toContain('"name":"agui-activity/agent-plan"');
+      const agentPlanParts = runtime.thread.getState().messages
+        .filter(message => message.role === "assistant")
+        .flatMap(message => message.content)
+        .filter(part => part.type === "data" && part.name === "agui-activity/agent-plan");
+      expect(agentPlanParts).toHaveLength(1);
     } finally { await act(async () => { root.unmount(); }); }
   });
 });

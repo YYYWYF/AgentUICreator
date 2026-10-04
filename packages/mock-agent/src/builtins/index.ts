@@ -23,6 +23,7 @@ import { reasoningChatScenario } from "./reasoning-chat.js";
 import { reasoningLongPreviewScenario } from "./reasoning-long-preview.js";
 import { reasoningToolSuccessScenario } from "./reasoning-tool-success.js";
 import { simpleChatScenario } from "./simple-chat.js";
+import { resumableAgentPlanScenario } from "./resumable-agent-plan.js";
 import { resumableLongRunScenario } from "./resumable-long-run.js";
 import { markdownShowcaseScenario } from "./markdown-showcase.js";
 import { subagentLifecycleScenario } from "./subagent-lifecycle.js";
@@ -56,6 +57,7 @@ export {
   reasoningLongPreviewScenario,
   reasoningToolSuccessScenario,
   simpleChatScenario,
+  resumableAgentPlanScenario,
   resumableLongRunScenario,
   markdownShowcaseScenario,
   subagentLifecycleScenario,
@@ -79,6 +81,7 @@ export const backendReferenceMockScenarios: MockScenario[] = [
 
 export const frontendPresentationMockScenarios: MockScenario[] = [
   resumableLongRunScenario,
+  resumableAgentPlanScenario,
   cancelBeforeFirstOutputScenario,
   fileOutputScenario,
   a2uiFormControlsScenario,

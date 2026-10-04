@@ -954,10 +954,13 @@ export interface JobProgressStage {
   description?: string | undefined;
 }
 
-export interface ConversationJobProgressOutcome {
+export interface ConversationJobOutcome {
   status: "success" | "partial" | "failed" | "cancelled";
   summary?: string | undefined;
 }
+
+/** @deprecated Use the product-owned ConversationJobOutcome name. */
+export type ConversationJobProgressOutcome = ConversationJobOutcome;
 
 export interface JobProgressProps
   extends Omit<
@@ -968,15 +971,21 @@ export interface JobProgressProps
   stages: readonly JobProgressStage[];
   stageIndex: number;
   stageProgress: number;
-  eta: string;
+  eta?: string | undefined;
   onCancel?: (() => void) | undefined;
-  outcome?: ConversationJobProgressOutcome | undefined;
+  outcome?: ConversationJobOutcome | undefined;
   elapsedMs?: number | undefined;
 }
 
 /** Stable facade for the official assistant-ui standalone JobProgress Element. */
 export function JobProgress(props: Readonly<JobProgressProps>) {
-  return <InternalJobProgress {...(props as ComponentProps<typeof InternalJobProgress>)} />;
+  const { eta = "", ...facadeProps } = props;
+  return (
+    <InternalJobProgress
+      {...(facadeProps as ComponentProps<typeof InternalJobProgress>)}
+      eta={eta}
+    />
+  );
 }
 
 export function useConversationNavigation(): ConversationNavigation {

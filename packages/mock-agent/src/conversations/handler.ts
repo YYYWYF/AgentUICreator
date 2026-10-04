@@ -82,6 +82,15 @@ export function createMockConversationApiHandler({
         response.setHeader("Content-Type", "text/event-stream; charset=utf-8");
         response.setHeader("Cache-Control", "no-cache, no-transform");
         response.flushHeaders();
+        if (snapshot.scenarioId === "resumable-agent-plan") {
+          const unsubscribe = mockDurableRuns.subscribeAgentPlanResume(id, event => {
+            if (!response.destroyed) response.write(`data: ${JSON.stringify(event)}\n\n`);
+          }, () => {
+            if (!response.destroyed) response.end();
+          });
+          response.once("close", unsubscribe);
+          return true;
+        }
         const unsubscribe = mockDurableRuns.subscribeContinuation(id, text => {
           if (!response.destroyed) { response.write(`data: ${JSON.stringify({ text })}\n\n`); response.end(); }
         });

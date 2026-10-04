@@ -1,4 +1,11 @@
 import { ConversationRuntimeProvider, useConversationRuntimeBridge } from "@agent-ui/runtime-conversation";
+import {
+  AgentPlan,
+  ConversationThread,
+  DataMessageUIRegistration,
+  defineDataMessageUI,
+  type ConversationAgentPlanProps,
+} from "@agent-ui/react";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import {
   useConversationServiceThreadBinding,
@@ -9,7 +16,13 @@ import type {
 } from "./agent-ui/services/conversations";
 import { continuation, readJson, RUN_RESUME_API, type RunSnapshot, type RunSummary } from "./RunResumeDemo";
 
+const agentPlanResumeDemoMessageUI = defineDataMessageUI<ConversationAgentPlanProps>({
+  name: "agui-activity/agent-plan",
+  render: ({ data }) => <div data-agent-ui-composition-part="plan"><AgentPlan {...data} /></div>,
+});
+
 const STORAGE_KEY = "agent-ui-production-resume-thread";
+export type ProductionResumeScenario = "resumable-long-run" | "resumable-agent-plan";
 
 function conversationService(summaries: RunSummary[]): ConversationService {
   const snapshot: ConversationSnapshot = {
@@ -36,25 +49,35 @@ function conversationService(summaries: RunSummary[]): ConversationService {
   };
 }
 
-function ProductionThread({ summaries, initialThreadId }: {
+function ProductionThread({ summaries, initialThreadId, scenarioId }: {
   summaries: RunSummary[]; initialThreadId?: string;
+  scenarioId: ProductionResumeScenario;
 }) {
   const service = useMemo(() => conversationService(summaries), [summaries]);
   const provider = useMemo<ConversationRunResumeProvider>(() => async ({ threadId }) => {
     const run = await readJson<RunSnapshot>(`${RUN_RESUME_API}/${encodeURIComponent(threadId)}`);
-    return run.resumable ? { stream: signal => continuation(threadId, signal) } : undefined;
-  }, []);
+    return run.resumable
+      ? { stream: signal => continuation(threadId, signal, run.scenarioId ?? scenarioId) }
+      : undefined;
+  }, [scenarioId]);
   const binding = useConversationServiceThreadBinding(provider, initialThreadId);
+  const storageKey = `${STORAGE_KEY}:${scenarioId}`;
   useEffect(() => {
-    sessionStorage.setItem(STORAGE_KEY, binding.getThreadId());
+    sessionStorage.setItem(storageKey, binding.getThreadId());
     return binding.attachConversationService(service);
-  }, [binding, service]);
-  return <ConversationRuntimeProvider endpoint="/agent?scenario=resumable-long-run" threadBinding={binding}>
-    <ProductionConversation threadId={binding.getThreadId()} />
+  }, [binding, service, storageKey]);
+  return <ConversationRuntimeProvider endpoint={`/agent?scenario=${scenarioId}`} threadBinding={binding}>
+    {scenarioId === "resumable-agent-plan"
+      ? <DataMessageUIRegistration definition={agentPlanResumeDemoMessageUI} />
+      : null}
+    <ProductionConversation threadId={binding.getThreadId()} scenarioId={scenarioId} />
   </ConversationRuntimeProvider>;
 }
 
-function ProductionConversation({ threadId }: { threadId: string }) {
+function ProductionConversation({ threadId, scenarioId }: {
+  threadId: string;
+  scenarioId: ProductionResumeScenario;
+}) {
   const { agentRuntime } = useConversationRuntimeBridge();
   const snapshot = useSyncExternalStore(
     agentRuntime.subscribe.bind(agentRuntime), agentRuntime.getSnapshot.bind(agentRuntime), agentRuntime.getSnapshot.bind(agentRuntime),
@@ -68,33 +91,33 @@ function ProductionConversation({ threadId }: { threadId: string }) {
     return () => clearInterval(timer);
   }, [threadId]);
   return <main style={{ maxWidth: 760, margin: "48px auto", padding: 24, fontFamily: "system-ui" }}>
-    <h1>Production binding refresh recovery</h1>
+    <h1>{scenarioId === "resumable-agent-plan" ? "AgentPlan Activity refresh recovery" : "Production binding refresh recovery"}</h1>
     <p data-testid="production-thread-id">{snapshot.conversation.id}</p>
     <p data-testid="production-run-count">Agent invocation count: {runCount}</p>
     <p data-testid="production-run-status">{snapshot.run.status}</p>
-    <div data-testid="production-conversation-messages">{snapshot.messages.map(message =>
-      message.role === "user" || message.role === "assistant" ?
-        <p key={message.id} data-role={message.role}>
-          {typeof message.content === "string" ? message.content : message.content?.map(part => part.text ?? "").join("")}
-        </p> : null,
-    )}</div>
+    <div data-testid="production-conversation-messages" style={{ height: 380 }}>
+      <ConversationThread autoFocus={false} composer={null} />
+    </div>
     <button type="button" disabled={snapshot.run.status === "running"}
       onClick={() => void agentRuntime.sendMessage("执行一个长任务")}>发送</button>
   </main>;
 }
 
-export function RunResumeProductionDemo() {
+export function RunResumeProductionDemo({ scenarioId = "resumable-long-run" }: {
+  scenarioId?: ProductionResumeScenario;
+}) {
+  const storageKey = `${STORAGE_KEY}:${scenarioId}`;
   const [boot, setBoot] = useState<{ summaries: RunSummary[]; initialThreadId?: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     let cancelled = false;
     void readJson<{ threads: RunSummary[] }>(RUN_RESUME_API).then(({ threads }) => {
       if (cancelled) return;
-      const saved = sessionStorage.getItem(STORAGE_KEY);
+      const saved = sessionStorage.getItem(storageKey);
       setBoot({ summaries: threads, ...(saved === null ? {} : { initialThreadId: saved }) });
     }).catch(value => { if (!cancelled) setError(String(value)); });
     return () => { cancelled = true; };
-  }, []);
+  }, [storageKey]);
   if (error !== null) return <p role="alert">{error}</p>;
-  return boot === null ? <p>加载中……</p> : <ProductionThread {...boot} />;
+  return boot === null ? <p>加载中……</p> : <ProductionThread {...boot} scenarioId={scenarioId} />;
 }

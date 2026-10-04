@@ -6,8 +6,11 @@ const RunResumeProductionDemo = lazy(() => import("./RunResumeProductionDemo")
   .then(module => ({ default: module.RunResumeProductionDemo })));
 
 export function App() {
-  if (import.meta.env.DEV && new URLSearchParams(window.location.search).has("run-resume-production")) {
-    return <Suspense fallback={null}><RunResumeProductionDemo /></Suspense>;
+  const productionResumeScenario = new URLSearchParams(window.location.search).get("run-resume-production");
+  if (import.meta.env.DEV && productionResumeScenario !== null) {
+    return <Suspense fallback={null}><RunResumeProductionDemo
+      scenarioId={productionResumeScenario === "agent-plan" ? "resumable-agent-plan" : "resumable-long-run"}
+    /></Suspense>;
   }
   if (import.meta.env.DEV && new URLSearchParams(window.location.search).has("run-resume-demo")) {
     return <RunResumeDemo />;

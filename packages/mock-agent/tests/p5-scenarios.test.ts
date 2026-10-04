@@ -119,9 +119,10 @@ describe("P5-A mock scenarios", () => {
   });
 
   it("keeps the live catalog limited to showcase scenarios", () => {
-    expect(showcaseMockScenarios).toHaveLength(24);
+    expect(showcaseMockScenarios).toHaveLength(25);
     expect(showcaseMockScenarios.map(({ id }) => id)).toContain("file-output");
     expect(showcaseMockScenarios.map(({ id }) => id)).toContain("multi-message-response");
+    expect(showcaseMockScenarios.map(({ id }) => id)).toContain("resumable-agent-plan");
     expect(mockRegressionScenarios.map(({ id }) => id)).toEqual([
       "reasoning-long-preview",
       "multi-tool",

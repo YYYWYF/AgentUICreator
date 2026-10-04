@@ -4,7 +4,6 @@ import {
   type DataMessageUIRenderProps,
 } from "@agent-ui/react";
 import {
-  AGENT_PLAN_ACTIVITY_TYPE,
   projectAgentPlanActivity,
 } from "../../agent-contract/agent-plan-activity";
 
@@ -26,6 +25,6 @@ function AgentPlanActivityMessage({
 }
 
 export const agentPlanActivityMessageUI = defineDataMessageUI<unknown>({
-  name: `agui-activity/${AGENT_PLAN_ACTIVITY_TYPE}`,
+  name: "agui-activity/agent-plan",
   render: AgentPlanActivityMessage,
 });

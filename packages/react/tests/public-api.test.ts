@@ -34,6 +34,7 @@ describe("@agent-ui/react public API", () => {
       "ConversationTaskGroup",
       "ConversationTaskGroupRenderScope",
       "JobProgress",
+      "ConversationJobOutcome",
       "ConversationJobProgressOutcome",
       "JobProgressStage",
       "ConversationAgentStatus",

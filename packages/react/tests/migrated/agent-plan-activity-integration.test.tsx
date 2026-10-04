@@ -6,7 +6,7 @@ import { useAui, MessagePrimitive, ThreadPrimitive, type AssistantRuntime } from
 import { ConversationRuntimeProvider, type ConversationThreadBinding } from "@agent-ui/runtime-conversation";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { DataMessageUIRegistration } from "@agent-ui/react";
 import { agentPlanActivityMessageUI } from "../../../source-registry/registry/items/plugin-agent-plan-message/files/plugins/agent-plan-message/index";
 
@@ -132,6 +132,7 @@ async function fixture() {
 
 afterEach(async () => {
   for (const dispose of disposers.splice(0)) await dispose();
+  vi.restoreAllMocks();
 });
 
 describe("authoritative AgentPlan Activity through react-ag-ui", () => {
@@ -157,7 +158,10 @@ describe("authoritative AgentPlan Activity through react-ag-ui", () => {
     await act(async () => { await until(() => f.container.querySelector('[data-slot="agent-plan"]') !== null); });
     expect(f.container.querySelectorAll('[data-slot="agent-plan"]')).toHaveLength(1);
     expect(f.container.textContent).toContain("Workspace update");
+    expect(f.container.textContent).toContain("Inspect");
+    expect(f.container.textContent).toContain("Inspect in progress");
     expect(f.container.textContent).toContain("Read the active source.");
+    expect(f.container.textContent).toContain("Compare not started");
     expect(f.container.textContent).toContain("0 of 4");
 
     await f.send({
@@ -168,6 +172,7 @@ describe("authoritative AgentPlan Activity through react-ag-ui", () => {
     });
     expect(f.container.querySelectorAll('[data-slot="agent-plan"]')).toHaveLength(1);
     expect(f.container.textContent).toContain("1 of 4");
+    expect(f.container.textContent).toContain("Compare in progress");
     expect(f.container.textContent).toContain("Compare contract boundaries.");
 
     await f.send({
@@ -185,17 +190,19 @@ describe("authoritative AgentPlan Activity through react-ag-ui", () => {
 
   it("renders no Plan and keeps the thread alive for an invalid activity payload", async () => {
     const f = await fixture();
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
     await f.start();
     await f.send({
       type: "ACTIVITY_SNAPSHOT",
       messageId: "agent-plan-invalid",
       activityType: "agent-plan",
       replace: true,
-      content: { steps: [{ label: "Inspect" }, { description: "missing label" }], activeIndex: 0 },
+      content: { steps: "invalid" },
     });
     expect(f.container.querySelector('[data-slot="agent-plan"]')).toBeNull();
     expect(JSON.stringify(f.runtime.thread.getState().messages))
       .toContain('"name":"agui-activity/agent-plan"');
+    expect(consoleError).not.toHaveBeenCalled();
     await f.finish();
   });
 });

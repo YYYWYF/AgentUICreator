@@ -13,6 +13,8 @@ export interface RunSnapshot {
   userText: string;
   assistantText: string;
   resumable: boolean;
+  scenarioId?: "resumable-long-run" | "resumable-agent-plan";
+  activity?: Record<string, unknown>;
 }
 
 export async function readJson<T>(url: string): Promise<T> {
@@ -21,12 +23,17 @@ export async function readJson<T>(url: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function* continuation(id: string, signal: AbortSignal): AsyncGenerator<ConversationAssistantRunUpdate, void, unknown> {
+export async function* continuation(
+  id: string,
+  signal: AbortSignal,
+  scenarioId: RunSnapshot["scenarioId"] = "resumable-long-run",
+): AsyncGenerator<ConversationAssistantRunUpdate, void, unknown> {
   const response = await fetch(`${RUN_RESUME_API}/${encodeURIComponent(id)}/stream`, { signal });
   if (!response.ok || response.body === null) throw new Error(`Resume stream failed: ${response.status}`);
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
+  let activity: Record<string, unknown> | undefined;
   try {
     while (!signal.aborted) {
       const { done, value } = await reader.read();
@@ -37,7 +44,47 @@ export async function* continuation(id: string, signal: AbortSignal): AsyncGener
         const frame = buffer.slice(0, boundary);
         buffer = buffer.slice(boundary + 2);
         const data = frame.split("\n").find(line => line.startsWith("data: "))?.slice(6);
-        if (data !== undefined) yield { content: [{ type: "text", text: (JSON.parse(data) as { text: string }).text }] };
+        if (data !== undefined) {
+          const event = JSON.parse(data) as Record<string, unknown>;
+          if (scenarioId !== "resumable-agent-plan") {
+            if (typeof event.text === "string") {
+              yield { content: [{ type: "text", text: event.text }] };
+            }
+          } else if (
+            event.type === "ACTIVITY_SNAPSHOT" &&
+            event.activityType === "agent-plan" &&
+            typeof event.content === "object" &&
+            event.content !== null &&
+            !Array.isArray(event.content)
+          ) {
+            activity = event.content as Record<string, unknown>;
+            yield {
+              content: [{ type: "data", name: "agui-activity/agent-plan", data: activity }],
+              status: { type: "running" },
+            };
+          } else if (event.type === "ACTIVITY_DELTA" && activity !== undefined) {
+            if (Array.isArray(event.patch)) {
+              for (const operation of event.patch) {
+                if (
+                  typeof operation === "object" && operation !== null &&
+                  "op" in operation && operation.op === "replace" &&
+                  "path" in operation && operation.path === "/activeIndex" &&
+                  "value" in operation && Number.isInteger(operation.value) &&
+                  typeof operation.value === "number"
+                ) {
+                  activity = { ...activity, activeIndex: operation.value };
+                }
+              }
+            }
+            yield {
+              content: [{ type: "data", name: "agui-activity/agent-plan", data: activity }],
+              status: { type: "running" },
+            };
+          } else if (event.type === "RUN_FINISHED") {
+            yield { status: { type: "complete", reason: "stop" } };
+            return;
+          }
+        }
         boundary = buffer.indexOf("\n\n");
       }
     }

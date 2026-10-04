@@ -45,6 +45,7 @@ describe("createScenarioRegistry", () => {
       "agent-state-sync",
       "nested-subagent-conversation",
       "resumable-long-run",
+      "resumable-agent-plan",
       "cancel-before-first-output",
       "file-output",
       "a2ui-form-controls",
@@ -161,6 +162,18 @@ describe("createScenarioRegistry", () => {
       "TOOL_CALL_END",
       "TOOL_CALL_RESULT (acknowledgement)",
     ]);
+    expect(registry.list().find(({ id }) => id === "resumable-agent-plan")?.reference?.eventFlow).toEqual([
+      "RUN_STARTED",
+      "ACTIVITY_SNAPSHOT (activeIndex: 0)",
+      "ACTIVITY_DELTA (activeIndex: 1)",
+      "refresh and reattach the same Run",
+      "ACTIVITY_SNAPSHOT (activeIndex: 1)",
+      "ACTIVITY_DELTA (activeIndex: 2)",
+      "ACTIVITY_DELTA (activeIndex: 3)",
+      "RUN_FINISHED",
+    ]);
+    expect(registry.list().find(({ id }) => id === "resumable-agent-plan")?.resources)
+      .toEqual(["agent-plan-message"]);
   });
 
   it("includes a long streaming reasoning preview scenario", () => {

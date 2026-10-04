@@ -136,13 +136,26 @@ export function createMockAgentHttpHandler({
     }
 
     if (scenario.durableRun) {
-      const run = mockDurableRuns.start(parsedInput.data);
+      const durableScenarioId = scenario.id === "resumable-agent-plan"
+        ? "resumable-agent-plan"
+        : "resumable-long-run";
+      const run = mockDurableRuns.start(parsedInput.data, durableScenarioId);
       response.statusCode = 200;
       response.setHeader("Content-Type", "text/event-stream; charset=utf-8");
       response.setHeader("Cache-Control", "no-cache, no-transform");
       response.flushHeaders();
       const unsubscribe = mockDurableRuns.subscribeEvents(run.threadId,
-        event => { if (!response.destroyed) response.write(`data: ${JSON.stringify(EventSchemas.parse(event))}\n\n`); },
+        event => {
+          const standardEvent = EventSchemas.parse(event);
+          events.push({
+            threadId: parsedInput.data.threadId,
+            runId: parsedInput.data.runId,
+            type: standardEvent.type,
+            timestamp: Date.now(),
+          });
+          if (events.length > 500) events.shift();
+          if (!response.destroyed) response.write(`data: ${JSON.stringify(standardEvent)}\n\n`);
+        },
         () => { if (!response.destroyed) response.end(); },
       );
       response.once("close", unsubscribe);

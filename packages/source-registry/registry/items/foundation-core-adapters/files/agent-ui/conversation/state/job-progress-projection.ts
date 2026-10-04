@@ -1,5 +1,5 @@
 import type {
-  ConversationJobProgressOutcome,
+  ConversationJobOutcome,
   JobProgressStage,
 } from "@agent-ui/react";
 
@@ -15,7 +15,7 @@ export interface RunCiJobArgs {
 }
 
 export interface RunCiJobResultView {
-  readonly outcome: ConversationJobProgressOutcome | null;
+  readonly outcome: ConversationJobOutcome | null;
   readonly elapsedMs?: number | undefined;
 }
 
@@ -79,7 +79,7 @@ export function projectRunCiJobArgs(args: unknown): RunCiJobArgs | null {
   return { target, stages };
 }
 
-const terminalOutcomes = new Set<ConversationJobProgressOutcome["status"]>([
+const terminalOutcomes = new Set<ConversationJobOutcome["status"]>([
   "success",
   "partial",
   "failed",
@@ -105,12 +105,12 @@ export function projectRunCiJobResult(value: unknown): RunCiJobResultView {
 
   const nestedOutcome = isRecord(result.outcome) ? result.outcome : undefined;
   const explicitStatus = nestedOutcome?.status ?? result.status;
-  let status: ConversationJobProgressOutcome["status"] | undefined;
+  let status: ConversationJobOutcome["status"] | undefined;
   if (
     typeof explicitStatus === "string" &&
-    terminalOutcomes.has(explicitStatus as ConversationJobProgressOutcome["status"])
+    terminalOutcomes.has(explicitStatus as ConversationJobOutcome["status"])
   ) {
-    status = explicitStatus as ConversationJobProgressOutcome["status"];
+    status = explicitStatus as ConversationJobOutcome["status"];
   } else if (result.success === true) {
     status = "success";
   } else if (result.success === false) {
