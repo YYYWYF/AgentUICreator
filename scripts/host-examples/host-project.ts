@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { handleUIProjectControlRequest, inspectCreatorProject } from "../../packages/project-control/dist/runtime/project-control-runtime.mjs";
 import { initializeAgentUIProject } from "../../packages/bootstrap/dist/index.js";
 import { ensureManagedHostPlugins } from "./ensure-managed-plugins.js";
+import { ensureManagedConversationBinding } from "./ensure-managed-conversation-binding.js";
 
 const initializationHost = createAgentUIInitializationHost();
 
@@ -66,6 +67,7 @@ async function main() {
       }
     }
     await ensureManagedHostPlugins(request => handleUIProjectControlRequest({ ...request }, projectRoot), { preserveCustomized: true });
+    if (projectName === "creator-host-sandbox") await ensureManagedConversationBinding(projectRoot);
     return;
   }
   if (before.status !== "uninitialized") {
