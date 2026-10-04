@@ -1,4 +1,16 @@
 import { InternalConversationToolkitProvider } from "./internal/conversation-toolkit-provider.js";
+export {
+  ConversationOptionList,
+  ConversationQuestionFlow,
+  useConversationCanAnswerToolCall,
+} from "./internal/conversation-question-flow.js";
+export type {
+  ConversationOption,
+  ConversationOptionListProps,
+  ConversationQuestionStep,
+  ConversationQuestionFlowLabels,
+  ConversationQuestionFlowProps,
+} from "./internal/conversation-question-flow.js";
 import { AgentUIRoot as InternalAgentUIRoot, useAgentUIPortalContainer as useInternalAgentUIPortalContainer } from "./internal/style-boundary/AgentUIRoot.js";
 import { AgentUIDialog as InternalAgentUIDialog } from "./internal/style-boundary/AgentUIDialog.js";
 import { DialogContent as InternalAgentUIDialogContent } from "./internal/vendor/assistant-ui/components/ui/dialog.js";
