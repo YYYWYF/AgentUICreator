@@ -42,6 +42,7 @@ import { ConversationApplicationEventSource } from "./events/conversation-applic
 import type {
   ConversationThreadBinding,
   ConversationLoadedThread,
+  ConversationRunResume,
 } from "./threads/types.js";
 import { createConversationRemoteThreadListAdapter } from "./threads/conversation-remote-thread-list-adapter.js";
 import { createConversationFrontendToolPort, type ConversationFrontendToolUIRegistry } from "./tools/types.js";
@@ -140,8 +141,10 @@ export function ConversationRuntimeProvider<TState = unknown>({
       createNewThread: () => threadBinding.createNewThread(),
     }), [ownedId, threadBinding]);
     const [historyFailed, setHistoryFailed] = useState(false);
+    const resumeRef = useRef<ConversationRunResume | undefined>(undefined);
     const history = useMemo<ThreadHistoryAdapter>(() => ({
       async load() {
+        resumeRef.current = undefined;
         let loaded: ConversationLoadedThread<TState>;
         try {
           loaded = item.remoteId === undefined ? { messages: [] } :
@@ -150,13 +153,23 @@ export function ConversationRuntimeProvider<TState = unknown>({
           setHistoryFailed(true);
           throw error;
         }
+        resumeRef.current = loaded.resume;
         return {
           messages: loaded.messages.map((message, index) => ({
             parentId: index === 0 ? null : loaded.messages[index - 1]!.id,
             message: message as unknown as ThreadMessage,
           })),
           ...(loaded.state === undefined ? {} : { state: loaded.state as never }),
+          ...(resumeRef.current === undefined ? {} : { unstable_resume: true }),
         };
+      },
+      async *resume(options) {
+        const capability = resumeRef.current;
+        if (capability === undefined) throw new Error(`No resumable run for conversation ${ownedId}`);
+        for await (const text of capability.stream(options.abortSignal)) {
+          if (options.abortSignal.aborted) return;
+          yield { content: [{ type: "text", text }] };
+        }
       },
       async append() { await aui.threadListItem().initialize(); },
     }), [aui, ownedId, threadBinding]);

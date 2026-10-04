@@ -8,6 +8,15 @@ export interface ConversationMessage {
 export interface ConversationLoadedThread<TState = unknown> {
   messages: readonly ConversationMessage[];
   state?: TState | undefined;
+  /** An existing server run paired with this exact history snapshot. */
+  resume?: ConversationRunResume | undefined;
+}
+
+/** Optional text resumption capability owned by the loaded thread, not by the active selection.
+ * Values are full snapshots of the resumed segment, excluding text already in messages.
+ */
+export interface ConversationRunResume {
+  stream(signal: AbortSignal): AsyncGenerator<string, void, unknown>;
 }
 
 export interface ConversationThreadListItem<
