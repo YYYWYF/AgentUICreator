@@ -23,7 +23,7 @@ import {
   type AgentUISourceFileMutation,
   type AgentUISourceTransactionTestOptions,
 } from "./transaction";
-import type { AgentUISourceApplyResult, AgentUISourceLock } from "./types";
+import type { AgentUISourceApplyResult, AgentUISourceLock, AgentUISourceLockItem } from "./types";
 
 export interface ApplyAgentUISourceItemInput {
   itemId: string;
@@ -64,6 +64,14 @@ function stateError(itemId: string, status: string): AgentUISourceError {
     `Agent UI source item ${itemId} is ${status}; refusing to overwrite project source.`,
     { itemId, status },
   );
+}
+
+function lockedSourceMatchesRegistry(
+  item: LoadedAgentUISourceItem,
+  locked: AgentUISourceLockItem | undefined,
+): boolean {
+  if (!locked || Object.keys(locked.files).length !== item.loadedFiles.length) return false;
+  return item.loadedFiles.every(file => locked.files[file.target]?.sha256 === sha256(file.content));
 }
 
 /** Installs a clean dependency closure as one Source Registry transaction. */
@@ -139,6 +147,7 @@ export async function preflightAgentUISourceApply(
     );
   }
   const byId = new Map(before.items.map((item) => [item.id, item]));
+  const { lock } = await readAgentUISourceLock(projectRoot, config);
   for (const item of closure) {
     const inspection = byId.get(item.id);
     const status = inspection?.status;
@@ -151,16 +160,14 @@ export async function preflightAgentUISourceApply(
     if (
       status === "customized" &&
       item.id !== input.itemId &&
-      inspection?.installedVersion !== item.version
+      !lockedSourceMatchesRegistry(item, lock.items[item.id])
     ) {
       throw new AgentUISourceError(
         "AGENT_UI_SOURCE_CUSTOMIZED_DEPENDENCY",
-        `Agent UI source dependency ${item.id} was customized by the project and cannot be synchronized automatically; ${input.itemId} cannot be installed against a different dependency version.`,
+        `Agent UI source dependency ${item.id} was customized by the project and cannot be synchronized automatically; ${input.itemId} requires changed dependency source.`,
         {
           requestedItemId: input.itemId,
           dependencyItemId: item.id,
-          installedVersion: inspection?.installedVersion,
-          requiredVersion: item.version,
         },
       );
     }
@@ -170,8 +177,6 @@ export async function preflightAgentUISourceApply(
   if (packageIssue !== undefined) {
     throw new AgentUISourceError(packageIssue.code, packageIssue.message, packageIssue);
   }
-
-  const { lock } = await readAgentUISourceLock(projectRoot, config);
   return { loadedRegistry, closure, before, byId, lock };
 }
 
@@ -191,14 +196,14 @@ export async function applyAgentUISourceItem(
     if (config.agentUI.providedSourceItems?.includes(item.id)) continue;
     const inspection = byId.get(item.id);
     if (inspection?.status === "customized") continue;
-    if (inspection?.status === "managed" && inspection.installedVersion === item.version) continue;
+    if (inspection?.status === "managed" && lockedSourceMatchesRegistry(item, lock.items[item.id])) continue;
     const previous = nextLock.items[item.id];
     const nextTargets = new Set(item.loadedFiles.map((file) => file.target));
     for (const oldTarget of Object.keys(previous?.files ?? {})) {
       if (!nextTargets.has(oldTarget)) mutations.set(oldTarget, { target: oldTarget });
     }
     for (const file of item.loadedFiles) {
-      // A version bump can leave most files unchanged. Replacing those files
+      // A source update can leave most files unchanged. Replacing those files
       // needlessly invalidates their Vite modules (including shared contexts).
       if (previous?.files[file.target]?.sha256 === sha256(file.content)) continue;
       mutations.set(file.target, { target: file.target, content: file.content });
