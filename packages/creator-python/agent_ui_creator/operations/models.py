@@ -77,6 +77,7 @@ InvalidActionSelectionReason: TypeAlias = Literal[
     "structured_parse_failed",
     "schema_validation_failed",
     "unknown_action_id",
+    "intent_route_conflict",
 ]
 
 PluginPlacementRelation: TypeAlias = Literal["before", "after", "above", "below"]
@@ -619,6 +620,8 @@ class CreatorActionSelection(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     decision: CreatorActionDecision
+    taskIntent: Literal["modify", "read_only", "unknown"] = "unknown"
+    explicitReadOnly: bool = False
     actionId: BoundedActionId | None = None
     targetId: BoundedAuthoringTargetId | None = None
     clarificationQuestion: BoundedClarificationQuestion | None = None
@@ -626,6 +629,8 @@ class CreatorActionSelection(BaseModel):
 
     @model_validator(mode="after")
     def validate_decision_fields(self) -> "CreatorActionSelection":
+        if self.explicitReadOnly and self.taskIntent != "read_only":
+            raise ValueError("explicitReadOnly requires read_only taskIntent.")
         if self.decision != "general_change" and self.developmentIntent != "none":
             raise ValueError("developmentIntent is only valid for a General handoff.")
         if self.decision == "select_action":
@@ -683,6 +688,9 @@ class CreatorActionSelectorMetrics:
     totalTokens: int | None = None
     reasoningTokens: int | None = None
     resolvedModel: str | None = None
+    rawVisibleChoice: str | None = None
+    parsedSelection: dict[str, object] | None = None
+    routeAdjustmentReason: str | None = None
 
     def to_dict(self) -> dict[str, object]:
         result: dict[str, object] = {

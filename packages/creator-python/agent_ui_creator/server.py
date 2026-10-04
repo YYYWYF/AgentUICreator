@@ -8,7 +8,7 @@ import socket
 import sys
 from collections.abc import Awaitable
 from contextlib import closing
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, AsyncIterator, Literal
 from uuid import uuid4
 
@@ -437,7 +437,7 @@ async def _domain_write_agent_result(
     if productized_result.route in {"read_only_general", "answer_only"}:
         if execution_context is not None:
             execution_context.permission = "inspect_read_only"
-        return await _domain_read_agent_result(
+        read_result = await _domain_read_agent_result(
             settings,
             messages,
             activity,
@@ -449,6 +449,49 @@ async def _domain_write_agent_result(
             inspect_read_only=True,
             answer_only=productized_result.route == "answer_only",
         )
+        review_marker = "ROUTE_REVIEW_REQUESTED"
+        if (
+            productized_result.route == "read_only_general"
+            and isinstance(getattr(read_result, "text", None), str)
+            and read_result.text.startswith(review_marker + "\n")
+        ):
+            report = read_result.text[len(review_marker):].strip()
+            if activity.logger is not None:
+                activity.logger.record("creator_route_review_requested", {
+                    "initialTaskIntent": productized_result.selection.taskIntent,
+                    "initialRoute": productized_result.route,
+                    "report": report[:500],
+                })
+            reviewed = await engine.run(messages, route_review_context=report)
+            if isinstance(reviewed, CreatorResolveResult) and reviewed.route in {
+                "unscoped_general", "scoped_general_handoff"
+            } and reviewed.selection.taskIntent == "modify" and not productized_result.selection.explicitReadOnly:
+                if activity.logger is not None:
+                    activity.logger.record("creator_route_review_finished", {
+                        "finalRoute": reviewed.route,
+                        "reason": "host_review_confirmed_modify_intent",
+                        "finalTaskIntent": reviewed.selection.taskIntent,
+                    })
+                if development_authority is not None:
+                    development_authority.begin_task(
+                        task_id=activity.run_id, request_id=activity.run_id,
+                        user_message=current_user_message,
+                        intent=reviewed.selection.developmentIntent,
+                    )
+                if execution_context is not None:
+                    execution_context.permission = "domain_write"
+                return await _general_domain_write_agent_result(
+                    settings, messages, activity, mutation_coordinator, diagnostics,
+                    thread_id, event_sink, telemetry, handoff=reviewed.handoff,
+                    checkpointer=checkpointer, development_authority=development_authority,
+                )
+            if activity.logger is not None:
+                activity.logger.record("creator_route_review_finished", {
+                    "finalRoute": getattr(reviewed, "route", "productized"),
+                    "reason": "original_request_does_not_authorize_write",
+                })
+            return replace(read_result, text=report)
+        return read_result
     if execution_context is not None:
         execution_context.permission = "domain_write"
     return await _general_domain_write_agent_result(

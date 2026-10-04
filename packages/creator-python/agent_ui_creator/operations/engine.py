@@ -299,7 +299,7 @@ class ProductizedOperationEngine:
             )
 
     async def run(
-        self, messages: list[dict[str, str]]
+        self, messages: list[dict[str, str]], *, route_review_context: str | None = None
     ) -> ProductizedOperationRun | CreatorResolveResult:
         """Return a productized result or an explicit General Agent handoff."""
 
@@ -360,6 +360,7 @@ class ProductizedOperationEngine:
                     "catalogRevision": "0" * 64, "actions": [], "pluginSemantics": [],
                 },
                 recent_conversation=_bounded_recent_conversation(messages),
+                route_review_context=route_review_context,
                 **selector_kwargs,
             )
             selected_action = None
@@ -461,6 +462,9 @@ class ProductizedOperationEngine:
         )
         self._record_route(
             selection,
+            catalog_revision=(
+                snapshot.action_selector_context.catalogRevision if snapshot is not None else None
+            ),
             selected_action=selected_action,
             selected_target=selected_target,
             route=route,
@@ -858,6 +862,12 @@ class ProductizedOperationEngine:
             result["actionSelectorRepairReasonCode"] = metrics.repairReasonCode
         if metrics.repairReason is not None:
             result["actionSelectorRepairReason"] = metrics.repairReason
+        if metrics.rawVisibleChoice is not None:
+            result["actionSelectorRawVisibleChoice"] = metrics.rawVisibleChoice
+        if metrics.parsedSelection is not None:
+            result["actionSelectorParsedSelection"] = metrics.parsedSelection
+        if metrics.routeAdjustmentReason is not None:
+            result["actionSelectorRouteAdjustmentReason"] = metrics.routeAdjustmentReason
         for key, value in {
             "actionSelectorResolvedModel": metrics.resolvedModel,
             "actionSelectorFinishReason": metrics.finishReason,
@@ -987,6 +997,7 @@ class ProductizedOperationEngine:
         self,
         selection: CreatorActionSelection,
         *,
+        catalog_revision: str | None = None,
         selected_action: CreatorActionCandidate | None,
         selected_target: CreatorAuthoringTargetCandidate | None,
         route: CreatorIntentRoute,
@@ -995,7 +1006,16 @@ class ProductizedOperationEngine:
     ) -> None:
         route_value = {
             "decision": selection.decision,
+            "taskIntent": selection.taskIntent,
+            "explicitReadOnly": selection.explicitReadOnly,
             "route": route,
+            "selectorVisibleChoice": self.selector.metrics.rawVisibleChoice,
+            "selectorParsedSelection": self.selector.metrics.parsedSelection,
+            "routeAdjustmentReason": self.selector.metrics.routeAdjustmentReason,
+            "candidateCount": self.selector.metrics.candidateCount,
+            "selectorContextCharacters": self.selector.metrics.contextCharacters,
+            "catalogRevision": catalog_revision,
+            "threadId": self.thread_id,
             "productized": route == "productized",
             "generalAgent": route in {
                 "general-agent",

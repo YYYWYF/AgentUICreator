@@ -27,6 +27,34 @@ from agent_ui_creator.operations.selector import (
     _SELECTOR_SYSTEM_PROMPT,
     _parse_selector_response,
 )
+
+
+def test_task_intent_is_independent_of_route_and_conflicts_get_one_repair():
+    model = StaticChatModel(["MODIFY INSPECT", "MODIFY GENERAL"])
+    selector = CreatorActionSelector(model=model)
+    result = asyncio.run(selector.select("先查清楚新增了什么，然后帮我恢复", _unified_context()))
+    assert result.taskIntent == "modify"
+    assert result.decision == "general_change"
+    assert selector.metrics.repairCalls == 1
+    assert selector.metrics.repairReasonCode == "intent_route_conflict"
+    assert selector.metrics.rawVisibleChoice == "MODIFY GENERAL"
+
+
+def test_read_only_intent_cannot_select_write_route():
+    model = StaticChatModel(["READ_ONLY GENERAL", "READ_ONLY INSPECT"])
+    selector = CreatorActionSelector(model=model)
+    result = asyncio.run(selector.select("先查一下，不要修改", _unified_context()))
+    assert result.taskIntent == "read_only"
+    assert result.decision == "read_only_analysis"
+    assert selector.metrics.repairCalls == 1
+
+
+def test_conflicting_modify_output_never_falls_back_to_read_only():
+    selector = CreatorActionSelector(model=StaticChatModel(["MODIFY INSPECT", "MODIFY INSPECT"]))
+    with pytest.raises(CreatorActionSelectionError):
+        asyncio.run(selector.select("先检查再恢复", _unified_context()))
+    assert selector.metrics.modelCalls == 2
+    assert selector.metrics.repairReasonCode == "intent_route_conflict"
 from agent_ui_creator.model_settings import CreatorSelectorModelSettings
 
 

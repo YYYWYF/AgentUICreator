@@ -24,7 +24,7 @@ from .models import (
 
 MAX_ACTION_SELECTOR_REPAIR_CALLS = 1
 MAX_INVALID_SELECTOR_PREVIEW_CHARACTERS = 300
-ACTION_SELECTOR_PROTOCOL = "choice-text-v1"
+ACTION_SELECTOR_PROTOCOL = "intent-route-text-v2"
 
 _SELECT_PATTERN = re.compile(r"SELECT (A[1-9][0-9]*)\Z")
 _CLARIFY_PATTERN = re.compile(r"CLARIFY ([^\r\n]+)\Z")
@@ -113,17 +113,22 @@ Recent conversation is bounded navigation context for resolving follow-up
 references. Current Host choices and fresh workspace observations remain the
 authority; never treat prior file content as current.
 
-Return exactly ONE line in one of these forms:
-SELECT A<n>
-ANSWER
-INSPECT
-GENERAL
-GENERAL DEVELOPMENT_DECISION
-GENERAL DEVELOPMENT_EXPLICIT
-GENERAL DEVELOPMENT_CONDITIONAL
-GENERAL DEVELOPMENT_PROHIBITED
-UNSUPPORTED
-CLARIFY <question>
+Return exactly ONE line: <task intent> <route>. Task intent is MODIFY when
+the user's requested final result changes the project, and READ_ONLY when the
+requested final result is only an answer or inspection. Use READ_ONLY_EXPLICIT
+when the current user explicitly forbids modifying the project. Routes are SELECT A<n>,
+ANSWER, INSPECT, GENERAL, GENERAL DEVELOPMENT_DECISION,
+GENERAL DEVELOPMENT_EXPLICIT, GENERAL DEVELOPMENT_CONDITIONAL,
+GENERAL DEVELOPMENT_PROHIBITED, UNSUPPORTED, or CLARIFY <question>.
+Examples: MODIFY GENERAL; READ_ONLY INSPECT; READ_ONLY_EXPLICIT INSPECT;
+MODIFY SELECT A1.
+Determine task intent from the final deliverable before choosing a route.
+Inspection needed before editing, an unidentified target, or no matching atomic
+Action never turns a modification request into READ_ONLY. Use MODIFY GENERAL
+to discover the target and make an authorized frontend change. Historical
+discussion cannot override the current user's explicit read-only or modify
+instruction. Never infer a template reset operation or permission to overwrite
+the project from a request to restore its earlier appearance.
 
 Never invent a choice, target, owner, placement, or mutation. Use ANSWER for
 Creator usage, its general capabilities and workflow, or Agent UI concepts
@@ -138,6 +143,9 @@ requests a changed project state. Clarify only when missing information would
 materially change a requested side effect; do not clarify ordinary questions.
 Use INSPECT for a project-related read-only request (analysis, inventory, diagnosis, or an
 evidence-based answer). It routes to an agent whose actual tools are read-only.
+When the user asks to inspect first and then change the project, use MODIFY
+GENERAL. When the user asks how to change it but says not to edit yet, use
+READ_ONLY ANSWER or READ_ONLY INSPECT as appropriate.
 If the User forbids development or all modifications but asks whether existing
 capabilities cover a specific feature or what gap remains, use INSPECT. The
 absence of an authorized write is not grounds for UNSUPPORTED when a read-only
@@ -372,18 +380,26 @@ def _repair_feedback(
     *, reason_code: InvalidActionSelectionReason, choices: Mapping[str, Any]
 ) -> str:
     valid = ", ".join(choices)
+    if reason_code == "intent_route_conflict":
+        return (
+            "Your task intent and route contradict each other. Re-read the ORIGINAL "
+            "user request and decide whether its final result changes the project. "
+            "Inspection before a requested edit is MODIFY GENERAL. An explicit "
+            "request to leave the project unchanged is READ_ONLY_EXPLICIT INSPECT or "
+            "READ_ONLY_EXPLICIT ANSWER. Return one corrected <task intent> <route> line."
+        )
     if reason_code == "unknown_choice_key":
         return (
             "Your previous SELECT referenced a choice that does not exist in the "
             "current request.\n\n"
             f"Select exactly one of: {valid}.\n"
-            "Return exactly SELECT <valid-choice>, or use ANSWER / INSPECT / GENERAL / GENERAL DEVELOPMENT_DECISION / GENERAL DEVELOPMENT_EXPLICIT / GENERAL DEVELOPMENT_CONDITIONAL / GENERAL DEVELOPMENT_PROHIBITED / UNSUPPORTED / "
+            "Return MODIFY SELECT <valid-choice>, or use an intent and ANSWER / INSPECT / GENERAL / GENERAL DEVELOPMENT_DECISION / GENERAL DEVELOPMENT_EXPLICIT / GENERAL DEVELOPMENT_CONDITIONAL / GENERAL DEVELOPMENT_PROHIBITED / UNSUPPORTED / "
             "CLARIFY if semantically correct.\n"
             "Do not reinterpret the user's request."
         )
     return (
         "Your previous response did not match the Creator Action Selector protocol.\n\n"
-        "Return exactly ONE line in one of these forms:\n"
+        "Return exactly ONE line: MODIFY, READ_ONLY, or READ_ONLY_EXPLICIT followed by one route:\n"
         "SELECT <choice>\nANSWER\nINSPECT\nGENERAL\nGENERAL DEVELOPMENT_DECISION\nGENERAL DEVELOPMENT_EXPLICIT\nGENERAL DEVELOPMENT_CONDITIONAL\nGENERAL DEVELOPMENT_PROHIBITED\nUNSUPPORTED\nCLARIFY <question>\n\n"
         "When using CLARIFY, write the question in Simplified Chinese by default.\n"
         f"Valid choices are: {valid}.\n"
@@ -424,6 +440,30 @@ def _selector_prompt_context(context: CreatorActionSelectorContext) -> dict[str,
 
 
 def _parse_selector_response(
+    response: object, choices: Mapping[str, Any]
+) -> CreatorActionSelection:
+    if not isinstance(response, str):
+        raise _InvalidActionSelection(
+            "protocol_parse_failed", "Selector response is not one text line."
+        )
+    line = response.strip()
+    if line.startswith("MODIFY "):
+        return _parse_route_response(line[len("MODIFY "):], choices).model_copy(
+            update={"taskIntent": "modify"}
+        )
+    if line.startswith("READ_ONLY "):
+        return _parse_route_response(line[len("READ_ONLY "):], choices).model_copy(
+            update={"taskIntent": "read_only"}
+        )
+    if line.startswith("READ_ONLY_EXPLICIT "):
+        return _parse_route_response(line[len("READ_ONLY_EXPLICIT "):], choices).model_copy(
+            update={"taskIntent": "read_only", "explicitReadOnly": True}
+        )
+    # Persisted and composition-only callers can still supply the old route line.
+    return _parse_route_response(response, choices)
+
+
+def _parse_route_response(
     response: object, choices: Mapping[str, Any]
 ) -> CreatorActionSelection:
     if not isinstance(response, str):
@@ -535,6 +575,13 @@ class CreatorIntentSelector:
         )
         self.metrics = CreatorActionSelectorMetrics()
 
+    def _general_adjustment(self, selection: CreatorActionSelection) -> CreatorActionSelection:
+        self.metrics.routeAdjustmentReason = "selected_choice_requires_general_handoff"
+        return CreatorActionSelection(
+            decision="general_change", taskIntent=selection.taskIntent,
+            developmentIntent=selection.developmentIntent,
+        )
+
     async def select(
         self,
         user_message: str,
@@ -542,6 +589,7 @@ class CreatorIntentSelector:
         *,
         clarification_context: Mapping[str, str] | None = None,
         recent_conversation: list[dict[str, str]] | None = None,
+        route_review_context: str | None = None,
     ) -> CreatorActionSelection:
         started_at = monotonic()
         try:
@@ -564,6 +612,11 @@ class CreatorIntentSelector:
                 prompt_context["recentClarification"] = dict(clarification_context)
             if recent_conversation:
                 prompt_context["recentConversation"] = recent_conversation
+            if route_review_context is not None:
+                prompt_context["routeReview"] = {
+                    "executionAgentReport": route_review_context[:500],
+                    "instruction": "Reassess the original user request's final result and Host choices. The execution agent cannot grant itself write permission. Explicit read-only instructions remain read-only.",
+                }
             context_json = json.dumps(
                 prompt_context,
                 ensure_ascii=False,
@@ -625,23 +678,32 @@ class CreatorIntentSelector:
                                 }.items() if value is not None},
                             },
                         )
+                    self.metrics.rawVisibleChoice = (
+                        response.text[:MAX_INVALID_SELECTOR_PREVIEW_CHARACTERS]
+                        if isinstance(response.text, str) else None
+                    )
                     selection = _parse_selector_response(response.text, choices)
+                    self.metrics.parsedSelection = selection.model_dump(mode="json")
                     self.validate_selection(selection, normalized_context)
+                    if (route_review_context is not None
+                            and selection.decision in {"select_action", "select_intent"}):
+                        raise _InvalidActionSelection(
+                            "intent_route_conflict",
+                            "A reviewed modification must use the General Host authorization path.",
+                        )
                     if (selection.decision == "general_change"
                             and selection.developmentIntent == "explicit"
                             and not explicitly_commissions_plugin_development(user_message)):
-                        return CreatorActionSelection(
-                            decision="general_change", developmentIntent="needs_decision",
-                        )
+                        self.metrics.routeAdjustmentReason = "development_commission_not_confirmed"
+                        return selection.model_copy(update={"developmentIntent": "needs_decision"})
                     if (selection.decision == "general_change"
                             and selection.developmentIntent == "conditional"
                             and not _CONDITIONAL_DEVELOPMENT_COMMISSION.search(user_message)):
-                        return CreatorActionSelection(
-                            decision="general_change", developmentIntent="needs_decision",
-                        )
+                        self.metrics.routeAdjustmentReason = "conditional_development_not_confirmed"
+                        return selection.model_copy(update={"developmentIntent": "needs_decision"})
                     if (selection.decision in {"select_action", "select_intent"}
                             and _RESTORE_PLUGIN_SOURCE.search(user_message)):
-                        return CreatorActionSelection(decision="general_change")
+                        return self._general_adjustment(selection)
                     if selection.decision == "select_intent" and _PRESERVE_PLUGIN_SOURCE.search(user_message):
                         selected_intent = next(
                             (candidate for candidate in intent_candidates
@@ -649,7 +711,7 @@ class CreatorIntentSelector:
                             None,
                         )
                         if getattr(selected_intent, "type", None) == "plugin_source":
-                            return CreatorActionSelection(decision="general_change")
+                            return self._general_adjustment(selection)
                     if (selection.decision == "select_intent"
                             and _SHOW_DEFAULT_VISUAL_STATE.search(user_message)
                             and _PRESERVE_DEFAULT_PRESENTATION.search(user_message)):
@@ -659,7 +721,7 @@ class CreatorIntentSelector:
                             None,
                         )
                         if getattr(selected_intent, "type", None) == "plugin_source":
-                            return CreatorActionSelection(decision="general_change")
+                            return self._general_adjustment(selection)
                     if selection.decision == "select_action":
                         selected = next(
                             candidate
@@ -668,21 +730,21 @@ class CreatorIntentSelector:
                         )
                         if (selected.kind == "move_plugin"
                                 and _RESTORE_VISUAL_STATE.search(user_message)):
-                            return CreatorActionSelection(decision="general_change")
+                            return self._general_adjustment(selection)
                         if (selected.kind == "add_existing_plugin"
                                 and selected.effect.type == "workspace_region"
                                 and _RESTORE_VISUAL_STATE.search(user_message)
                                 and _ORIGINAL_VISUAL_STATE.search(user_message)):
-                            return CreatorActionSelection(decision="general_change")
+                            return self._general_adjustment(selection)
                         if (selected.kind == "remove_plugin"
                                 and _CURRENT_VISUAL_SCOPE.search(user_message)
                                 and _PRESERVE_PLUGIN_SOURCE.search(user_message)):
-                            return CreatorActionSelection(decision="general_change")
+                            return self._general_adjustment(selection)
                         requested_region = _explicit_workspace_region(user_message)
                         if selected.kind == "add_existing_plugin" and requested_region is not None:
                             if selected.effect.type == "workspace_region":
                                 if selected.effect.region != requested_region:
-                                    return CreatorActionSelection(decision="general_change")
+                                    return self._general_adjustment(selection)
                             elif selected.effect.type == "add_default":
                                 placement_domain = selected.effect.placementDomain
                                 explicit_workspace = _EXPLICIT_WORKSPACE_PLACEMENT.search(
@@ -698,15 +760,15 @@ class CreatorIntentSelector:
                                 ) is not None
                                 if (explicit_workspace or placement_domain != "plugin_slot"
                                         or not described_region):
-                                    return CreatorActionSelection(decision="general_change")
+                                    return self._general_adjustment(selection)
                             else:
-                                return CreatorActionSelection(decision="general_change")
+                                return self._general_adjustment(selection)
                         if (
                             selected.kind == "add_existing_plugin"
                             and selected.effect.type == "add_default"
                             and _EXPLICIT_RELATIVE_PLACEMENT.search(user_message)
                         ):
-                            return CreatorActionSelection(decision="general_change")
+                            return self._general_adjustment(selection)
                     return selection
                 except _InvalidActionSelection as error:
                     if (
@@ -760,6 +822,16 @@ class CreatorIntentSelector:
         context: CreatorActionSelectorContext | Mapping[str, Any],
     ) -> None:
         normalized_context = _coerce_context(context)
+        if selection.taskIntent == "modify" and selection.decision in {
+            "answer_only", "read_only_analysis"
+        } or selection.taskIntent == "read_only" and selection.decision in {
+            "select_action", "select_intent", "general_change"
+        }:
+            raise _InvalidActionSelection(
+                "intent_route_conflict",
+                "The task's final-result intent conflicts with the selected route.",
+                {"taskIntent": selection.taskIntent, "decision": selection.decision},
+            )
         if selection.decision == "select_action":
             candidate_ids = [
                 candidate.actionId for candidate in normalized_context.actions

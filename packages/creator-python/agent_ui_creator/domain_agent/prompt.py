@@ -158,6 +158,11 @@ DOMAIN_INSPECT_AGENT_PROMPT = _DOMAIN_READ_COMMON_PROMPT + """
 This INSPECT request is strictly read-only. Project files cannot be changed,
 including by an edit tool call carried over from an earlier Creator turn.
 If a requested change requires a write, report that it was not performed.
+If the original current user request clearly asks you to change the project
+after inspection, begin your final response with the exact line
+ROUTE_REVIEW_REQUESTED, followed by a short explanation. This only asks the
+Host to review its route. It does not grant you write permission. Never emit
+this line when the user explicitly asks to leave the project unchanged.
 """
 
 CREATOR_PRODUCT_GUIDANCE = """Creator is the development assistant for Agent UI.
