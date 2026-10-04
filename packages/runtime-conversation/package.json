@@ -28,11 +28,11 @@
   "dependencies": {
     "@ag-ui/client": "0.0.59",
     "@agent-ui/react": "workspace:^",
-    "@assistant-ui/react": "0.15.22",
-    "@assistant-ui/react-ag-ui": "0.0.62",
+    "@assistant-ui/react": "0.15.23",
+    "@assistant-ui/react-ag-ui": "0.0.63",
     "@assistant-ui/react-langgraph": "0.14.29",
     "rxjs": "7.8.1",
-    "@assistant-ui/core": "0.3.21"
+    "@assistant-ui/core": "0.3.22"
   },
   "peerDependencies": {
     "@agent-ui/runtime-core": "^0.1.0",

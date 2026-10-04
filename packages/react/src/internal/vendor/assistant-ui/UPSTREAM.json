@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "project": "assistant-ui/assistant-ui",
-  "revision": "da9a624496ae97864ae30e90f85c7533092a228d",
+  "revision": "3542d602272a62eddeb8989befc910841c267022",
   "license": "MIT",
   "sourceForm": "official Base UI registry output",
   "packages": {
-    "@assistant-ui/react": "0.15.22",
-    "@assistant-ui/react-ag-ui": "0.0.62",
+    "@assistant-ui/react": "0.15.23",
+    "@assistant-ui/react-ag-ui": "0.0.63",
     "@assistant-ui/react-markdown": "0.14.16",
     "@ag-ui/client": "0.0.59"
   },
@@ -14,8 +14,8 @@
     {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/agent-plan.tsx",
       "localPath": "components/assistant-ui/elements/agent-plan.tsx",
-      "upstreamSha256": "649fe62e87c0842ea6e569fb748a81424eb49f92ac1d47e162123d6776b7b87f",
-      "installedSha256": "54bf9e06211f95b54b455c0356270d6e2c0f82110ab113f2612da1f60bb5f240",
+      "upstreamSha256": "4af75ef701d08b01abe698c2ee67745c94f0d0d0ee0f40c024bcdb1493f3eeed",
+      "installedSha256": "bb2ab81374b14e9b30d8e3179ea595cc1e8fa88fc3934affe5b335efcc432d3f",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative"
@@ -64,8 +64,8 @@
     {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/file.tsx",
       "localPath": "components/assistant-ui/elements/file.tsx",
-      "upstreamSha256": "7a0dc1833c193148ce52ef27dee0ba7ce1c4f2f3a947e045418ca97bb407f8db",
-      "installedSha256": "0d91bcd9a468b0d62c19ee325c53682cc509243685ba27d50dea33ead1e58d61",
+      "upstreamSha256": "115ed660c91dc78de16a627c2868543a2deca6771d9ac7960e36215f0281fd68",
+      "installedSha256": "25f9a00685e9552175a4a34eb498384a05523c730461659ae89fc41724365c93",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative"
@@ -83,8 +83,8 @@
     {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/image.tsx",
       "localPath": "components/assistant-ui/elements/image.tsx",
-      "upstreamSha256": "3e88d0dbc830f10f2ac67fe3e404896a7ea7fd7b65cc827ef4b2ede9e16638b3",
-      "installedSha256": "2200e0efc898b710fac7c0639ea1fd729c7cc98ac0cb854e60205d1029ed1724",
+      "upstreamSha256": "01f7655ba942cc344dd585890e2c6df372725d198523c75e99db327f5c9a057f",
+      "installedSha256": "afa378929ba26bfe964d96c2d87e722fa13893f704d23b6d997e01c30c47feea",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative",
@@ -94,8 +94,8 @@
     {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/job-progress.tsx",
       "localPath": "components/assistant-ui/elements/job-progress.tsx",
-      "upstreamSha256": "160cb61f6d335f6170610ff639b62b4ebcf1e1440131c4fd8c81d9cbbdd01d2f",
-      "installedSha256": "5c88f5c20239cf6cd8758311b66aa22a931c8d3223cfd699ec23f97a967c28a7",
+      "upstreamSha256": "f9da3838580b091bb81ff8a09bc74cc28905508ac99e9c63a8b95cf8f556e32e",
+      "installedSha256": "8286fd088337d8b4adc4e885c6fbb82a99a864c5dde1d128f31504930df7b815",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative"
@@ -112,10 +112,30 @@
       ]
     },
     {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/media-player.tsx",
+      "localPath": "components/assistant-ui/elements/media-player.tsx",
+      "upstreamSha256": "10d9aa25e3b962c3a5420932b990a9975fbb09efe78410c884eea12461439eaa",
+      "installedSha256": "ea7006322eb54ca921872ef45162f25d6a06528da6fbbcc28b007509c2982b35",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/option-list.tsx",
+      "localPath": "components/assistant-ui/elements/option-list.tsx",
+      "upstreamSha256": "e1fe5779d01b9471ff2f54a977ee09dd9f6b15ecba9a2685ce852e5c03d1dda3",
+      "installedSha256": "d719248c17473c7bea429bfe38e009bf9d092f96c1dc6664152c4c44a62c133d",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/reasoning.aui.tsx",
       "localPath": "components/assistant-ui/elements/reasoning.aui.tsx",
-      "upstreamSha256": "96738041df6542b9aca4085b0ee539100aa5836bdd359b69c2dabb63747e863b",
-      "installedSha256": "32c3b000370561900797a633d606a7172f6d465a2c06f3e39b6e820535dcd79f",
+      "upstreamSha256": "af46e4d5c13cbb2cf584b9f7212d95b9cd97b6e08c741bc829227e40dff65b4e",
+      "installedSha256": "d695ed0a776b664cb8c620c94598ad10b0c93181079a7abec054884503c53443",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative"
@@ -134,8 +154,8 @@
     {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/sources.aui.tsx",
       "localPath": "components/assistant-ui/elements/sources.aui.tsx",
-      "upstreamSha256": "0f2a85db1a4134230cdf07ed55b6fdc31b2c7853e1dea7d749d2fce92593fb60",
-      "installedSha256": "0c514eec19a43c734d6d12410615d034eab2ea6e2d6b0b7ca3766c9fb3cbbeae",
+      "upstreamSha256": "bcc08587928fc7bdb9a66c5c7f8a75c1f66a8a755dca3e6749d55abcc851cc25",
+      "installedSha256": "161febf1347a7c717b275d246d235ba8a89c327ac314448c94873ba27d2fdde0",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative"
@@ -164,8 +184,8 @@
     {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/task-card.aui.tsx",
       "localPath": "components/assistant-ui/elements/task-card.aui.tsx",
-      "upstreamSha256": "5246c2e82dda8f3492b55e2a4448bb54fc63af34bd53e3186f0986586c8271d5",
-      "installedSha256": "ea9e05d7404e497b4569471ad03c3c7235f8f23d54c0c37d14e92fcae57fe59b",
+      "upstreamSha256": "23de4d99beffb02e4fa254896a913aeb60a0448d4437294cac591b8a9e67bc51",
+      "installedSha256": "c09e7821d0841dfe1f2583e1bc8f2d56cb4d1d15d32a9ff03e0223f4ea920542",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative"
@@ -184,8 +204,8 @@
     {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/thread-list.aui.tsx",
       "localPath": "components/assistant-ui/elements/thread-list.aui.tsx",
-      "upstreamSha256": "ab9d03a356cf554b5aa7969ed9d03a553644dbbeb2fc52b5a1d9f1056e056d52",
-      "installedSha256": "841d2b374aa5197c7603060143d184ebcc5d5f4d401a5eed789ca2b9753b6faf",
+      "upstreamSha256": "0d0bf30eef4d96e076df5c85915cd2ef92067178579a48be33b70ab904fab4cf",
+      "installedSha256": "dba97aed1ac096e2fbaaebb92e334ec877716e430e7157929d38e8311d358364",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative"
@@ -214,8 +234,8 @@
     {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/tool-fallback.aui.tsx",
       "localPath": "components/assistant-ui/elements/tool-fallback.aui.tsx",
-      "upstreamSha256": "6bb5eb8ada837722197db2cbd32fa5132d23d93fced8093b25df287adc2c3f76",
-      "installedSha256": "196629ce188860dee25c8251132483a0649860f49b653d2965ee581418397632",
+      "upstreamSha256": "74490307ac889c436759c2f5d3b18b4e693c6fb2f13929ec64dc0955aeda3adb",
+      "installedSha256": "e22c55485613936018a831773d6b4495d636d48148a02ac5345fa63e1d32ccf8",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative"
@@ -240,6 +260,13 @@
         "official-registry-base-ui-rendering",
         "import-alias-to-relative"
       ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/utils/href.ts",
+      "localPath": "components/assistant-ui/utils/href.ts",
+      "upstreamSha256": "3a8038d038b1918ae3f58a61dcd30933633131dda341eb5bea5b6a650b31a912",
+      "installedSha256": "3a8038d038b1918ae3f58a61dcd30933633131dda341eb5bea5b6a650b31a912",
+      "adaptations": []
     },
     {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/utils/range.ts",

@@ -7,11 +7,11 @@ allowBuilds:
   esbuild: true
 
 minimumReleaseAgeExclude:
-  - '@assistant-ui/react@0.15.22'
-  - '@assistant-ui/react-ag-ui@0.0.62'
+  - '@assistant-ui/react@0.15.23'
+  - '@assistant-ui/react-ag-ui@0.0.63'
   - '@assistant-ui/react-generative-ui@0.0.21'
   - '@assistant-ui/react-markdown@0.14.16'
-  - '@assistant-ui/core@0.3.21'
+  - '@assistant-ui/core@0.3.22'
   - '@assistant-ui/store@0.3.15'
   - '@assistant-ui/tap@0.9.19'
   - assistant-stream@0.3.45

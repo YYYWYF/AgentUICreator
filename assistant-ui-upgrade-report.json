@@ -1,23 +1,35 @@
 {
   "schemaVersion": 1,
-  "fromRevision": "039c3c32822632f2a564164f089f538926886124",
-  "toRevision": "da9a624496ae97864ae30e90f85c7533092a228d",
+  "fromRevision": "da9a624496ae97864ae30e90f85c7533092a228d",
+  "toRevision": "3542d602272a62eddeb8989befc910841c267022",
   "packagesChanged": [
-    "@assistant-ui/react",
-    "@assistant-ui/react-ag-ui"
+    "packages/mock-agent/package.json",
+    "packages/react/package.json",
+    "packages/runtime-conversation/package.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml"
   ],
   "vendorFilesChanged": [
-    "components/assistant-ui/elements/attachment.aui.tsx",
+    "components/assistant-ui/elements/agent-plan.tsx",
+    "components/assistant-ui/elements/file.tsx",
     "components/assistant-ui/elements/image.tsx",
+    "components/assistant-ui/elements/job-progress.tsx",
+    "components/assistant-ui/elements/option-list.tsx",
+    "components/assistant-ui/elements/reasoning.aui.tsx",
+    "components/assistant-ui/elements/sources.aui.tsx",
     "components/assistant-ui/elements/task-card.aui.tsx",
-    "components/assistant-ui/elements/thread.aui.tsx",
-    "components/assistant-ui/elements/tool-fallback.aui.tsx",
-    "hooks/use-copy-to-clipboard.ts"
+    "components/assistant-ui/elements/thread-list.aui.tsx",
+    "components/assistant-ui/elements/tool-fallback.aui.tsx"
   ],
-  "vendorFilesAdded": [],
+  "vendorFilesAdded": [
+    "components/assistant-ui/elements/media-player.tsx",
+    "components/assistant-ui/utils/href.ts"
+  ],
   "vendorFilesRemoved": [],
   "vendorFilesRenamed": [],
-  "newTransitiveDependencies": [],
+  "newTransitiveDependencies": [
+    "components/assistant-ui/utils/href.ts"
+  ],
   "newAvailableElements": [
     "components/assistant-ui/elements/activity-graph.tsx",
     "components/assistant-ui/elements/agent-card.tsx",
@@ -67,11 +79,14 @@
     "components/assistant-ui/elements/flow-graph.tsx",
     "components/assistant-ui/elements/flow.tsx",
     "components/assistant-ui/elements/generative-ui.tsx",
+    "components/assistant-ui/elements/geo-map.tsx",
     "components/assistant-ui/elements/guardrail-notice.tsx",
     "components/assistant-ui/elements/heat-graph.tsx",
+    "components/assistant-ui/elements/image-gallery.tsx",
     "components/assistant-ui/elements/image-generation.tsx",
     "components/assistant-ui/elements/inline-citation.tsx",
     "components/assistant-ui/elements/launcher-bubble.tsx",
+    "components/assistant-ui/elements/link-preview.tsx",
     "components/assistant-ui/elements/loading-state.tsx",
     "components/assistant-ui/elements/logos.tsx",
     "components/assistant-ui/elements/map-answer.tsx",
@@ -79,6 +94,7 @@
     "components/assistant-ui/elements/mcp-config.aui.radix.tsx",
     "components/assistant-ui/elements/mcp-config.aui.tsx",
     "components/assistant-ui/elements/mcp-server-panel.tsx",
+    "components/assistant-ui/elements/media-player.tsx",
     "components/assistant-ui/elements/memory-chips.tsx",
     "components/assistant-ui/elements/mermaid-diagram.aui.tsx",
     "components/assistant-ui/elements/mermaid-diagram.tsx",
@@ -99,6 +115,7 @@
     "components/assistant-ui/elements/onboarding.tsx",
     "components/assistant-ui/elements/permission-grant.tsx",
     "components/assistant-ui/elements/prompt-library.tsx",
+    "components/assistant-ui/elements/question-flow.tsx",
     "components/assistant-ui/elements/quota-banner.tsx",
     "components/assistant-ui/elements/quote-reply.tsx",
     "components/assistant-ui/elements/quote.aui.tsx",
@@ -145,13 +162,20 @@
     "components/assistant-ui/elements/web-preview.tsx",
     "components/assistant-ui/elements/web-search.tsx"
   ],
-  "newlyAdoptedElements": [],
+  "newlyAdoptedElements": [
+    "components/assistant-ui/elements/media-player.tsx"
+  ],
   "removedUpstreamElements": [],
   "changedUpstreamElements": [
-    "components/assistant-ui/elements/attachment.aui.tsx",
+    "components/assistant-ui/elements/agent-plan.tsx",
+    "components/assistant-ui/elements/file.tsx",
     "components/assistant-ui/elements/image.tsx",
+    "components/assistant-ui/elements/job-progress.tsx",
+    "components/assistant-ui/elements/option-list.tsx",
+    "components/assistant-ui/elements/reasoning.aui.tsx",
+    "components/assistant-ui/elements/sources.aui.tsx",
     "components/assistant-ui/elements/task-card.aui.tsx",
-    "components/assistant-ui/elements/thread.aui.tsx",
+    "components/assistant-ui/elements/thread-list.aui.tsx",
     "components/assistant-ui/elements/tool-fallback.aui.tsx"
   ],
   "ignoredUpstreamElements": [
@@ -348,11 +372,19 @@
       "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
     },
     {
+      "localPath": "components/assistant-ui/elements/geo-map.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
       "localPath": "components/assistant-ui/elements/guardrail-notice.tsx",
       "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
     },
     {
       "localPath": "components/assistant-ui/elements/heat-graph.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/image-gallery.tsx",
       "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
     },
     {
@@ -365,6 +397,10 @@
     },
     {
       "localPath": "components/assistant-ui/elements/launcher-bubble.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/link-preview.tsx",
       "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
     },
     {
@@ -473,6 +509,10 @@
     },
     {
       "localPath": "components/assistant-ui/elements/prompt-library.tsx",
+      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
+    },
+    {
+      "localPath": "components/assistant-ui/elements/question-flow.tsx",
       "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
     },
     {
@@ -657,8 +697,12 @@
     }
   ],
   "missingTransitiveDependencies": [],
-  "localFacadeFilesChanged": [],
-  "runtimeAdapterFilesChanged": [],
+  "localFacadeFilesChanged": [
+    "packages/react/src/public.tsx"
+  ],
+  "runtimeAdapterFilesChanged": [
+    "packages/runtime-conversation/package.json"
+  ],
   "pluginFilesChanged": [],
   "appUIModelFilesChanged": [],
   "creatorFilesChanged": [],
@@ -675,6 +719,7 @@
       "components/assistant-ui/elements/image.tsx",
       "components/assistant-ui/elements/job-progress.tsx",
       "components/assistant-ui/elements/markdown-text.tsx",
+      "components/assistant-ui/elements/option-list.tsx",
       "components/assistant-ui/elements/reasoning.aui.tsx",
       "components/assistant-ui/elements/reasoning.tsx",
       "components/assistant-ui/elements/sources.aui.tsx",
@@ -719,6 +764,8 @@
       "components/assistant-ui/elements/image.tsx",
       "components/assistant-ui/elements/job-progress.tsx",
       "components/assistant-ui/elements/markdown-text.tsx",
+      "components/assistant-ui/elements/media-player.tsx",
+      "components/assistant-ui/elements/option-list.tsx",
       "components/assistant-ui/elements/reasoning.aui.tsx",
       "components/assistant-ui/elements/reasoning.tsx",
       "components/assistant-ui/elements/sources.aui.tsx",
@@ -732,6 +779,7 @@
       "components/assistant-ui/elements/tool-fallback.aui.tsx",
       "components/assistant-ui/elements/tool-group.aui.tsx",
       "components/assistant-ui/elements/tooltip-icon-button.tsx",
+      "components/assistant-ui/utils/href.ts",
       "components/assistant-ui/utils/range.ts",
       "components/assistant-ui/utils/task.ts",
       "components/ui/avatar.tsx",
@@ -808,13 +856,16 @@
       "components/assistant-ui/elements/flow.tsx",
       "components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
       "components/assistant-ui/elements/generative-ui.tsx",
+      "components/assistant-ui/elements/geo-map.tsx",
       "components/assistant-ui/elements/guardrail-notice.tsx",
       "components/assistant-ui/elements/heat-graph.tsx",
+      "components/assistant-ui/elements/image-gallery.tsx",
       "components/assistant-ui/elements/image-generation.tsx",
       "components/assistant-ui/elements/image.tsx",
       "components/assistant-ui/elements/inline-citation.tsx",
       "components/assistant-ui/elements/job-progress.tsx",
       "components/assistant-ui/elements/launcher-bubble.tsx",
+      "components/assistant-ui/elements/link-preview.tsx",
       "components/assistant-ui/elements/loading-state.tsx",
       "components/assistant-ui/elements/logos.tsx",
       "components/assistant-ui/elements/map-answer.tsx",
@@ -823,6 +874,7 @@
       "components/assistant-ui/elements/mcp-config.aui.radix.tsx",
       "components/assistant-ui/elements/mcp-config.aui.tsx",
       "components/assistant-ui/elements/mcp-server-panel.tsx",
+      "components/assistant-ui/elements/media-player.tsx",
       "components/assistant-ui/elements/memory-chips.tsx",
       "components/assistant-ui/elements/mermaid-diagram.aui.tsx",
       "components/assistant-ui/elements/mermaid-diagram.tsx",
@@ -841,8 +893,10 @@
       "components/assistant-ui/elements/model-selector.tsx",
       "components/assistant-ui/elements/number-ticker.tsx",
       "components/assistant-ui/elements/onboarding.tsx",
+      "components/assistant-ui/elements/option-list.tsx",
       "components/assistant-ui/elements/permission-grant.tsx",
       "components/assistant-ui/elements/prompt-library.tsx",
+      "components/assistant-ui/elements/question-flow.tsx",
       "components/assistant-ui/elements/quota-banner.tsx",
       "components/assistant-ui/elements/quote-reply.tsx",
       "components/assistant-ui/elements/quote.aui.tsx",
@@ -903,23 +957,99 @@
       "components/assistant-ui/elements/web-search.tsx"
     ]
   },
-  "releasePinned": true,
-  "packageRevisions": {
-    "@assistant-ui/react": "f008537f39f0936992b0f6d2433c092935df5faf",
-    "@assistant-ui/react-ag-ui": "da9a624496ae97864ae30e90f85c7533092a228d",
-    "@assistant-ui/react-generative-ui": "da9a624496ae97864ae30e90f85c7533092a228d"
+  "sourceRegistryAssistantUiFilesChanged": [],
+  "portalIntegration": {
+    "status": "CHANGED: recheck Portal container bridge",
+    "seamFiles": [
+      "packages/react/src/internal/vendor/assistant-ui/components/ui/dialog.tsx",
+      "packages/react/src/internal/vendor/assistant-ui/components/ui/popover.tsx",
+      "packages/react/src/internal/vendor/assistant-ui/components/ui/sheet.tsx",
+      "packages/react/src/internal/vendor/assistant-ui/components/ui/tooltip.tsx",
+      "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/image.tsx"
+    ],
+    "changedFiles": [
+      "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/image.tsx"
+    ],
+    "upstreamChangedFiles": []
   },
-  "validation": {
-    "tests": "skipped by user request",
-    "typecheck": "skipped by user request",
-    "build": "skipped by user request",
-    "upstreamChecks": "skipped by user request",
-    "visualAndRuntimeAcceptance": "skipped by user request"
+  "cancellationCompatibility": {
+    "packageName": "@assistant-ui/react-ag-ui",
+    "reactAgUiVersion": "0.0.63",
+    "pinnedClientVersion": "0.0.59",
+    "status": "REVIEW REQUIRED",
+    "compatible": false,
+    "message": "REVIEW REQUIRED:\nUnable to read the target @assistant-ui/react-ag-ui package.json for 0.0.63.\nAgentUICreator pins 0.0.59\nReview CancellationAwareHttpAgent before upgrading.",
+    "guardStatus": "REVIEW REQUIRED",
+    "cancellationShim": "ACTIVE",
+    "nextAgUiCompatibility": {
+      "packageName": "@assistant-ui/react-ag-ui",
+      "reactAgUiVersion": "0.0.63",
+      "pinnedClientVersion": "0.0.59",
+      "status": "REVIEW REQUIRED",
+      "compatible": false,
+      "message": "REVIEW REQUIRED:\nUnable to read the target @assistant-ui/react-ag-ui package.json for 0.0.63.\nAgentUICreator pins 0.0.59\nReview CancellationAwareHttpAgent before upgrading."
+    },
+    "resolvedAgUiClientVersions": [],
+    "duplicateClientVersions": false,
+    "dependencyRangeChanged": false,
+    "agUiPinnedVersionChanged": false,
+    "upstreamChangedFiles": [],
+    "cancellationRelevantUpstreamChanges": [],
+    "transportBaselineChanged": false,
+    "reAuditRequired": true,
+    "reasons": [
+      "react-ag-ui AG-UI dependency is incompatible with the pinned @ag-ui/client"
+    ]
   },
-  "upstreamCapabilityGaps": [
-    "Slider absent from vocabulary and A2UI converter",
-    "CheckboxGroup absent from vocabulary; no ChoicePicker multipleSelection mapping",
-    "$field resolution absent",
-    "Input.defaultValue absent"
+  "historyCompatibility": {
+    "packageName": "@assistant-ui/react-langgraph",
+    "targetVersion": "0.14.29",
+    "converterSeam": "@assistant-ui/react-langgraph.convertLangChainMessages",
+    "externalMessageSeam": "@assistant-ui/react.unstable_convertExternalMessages",
+    "versionChanged": false,
+    "reAuditRequired": true,
+    "reasons": [
+      "LangGraph source API compatibility was not proven by the upgrade run.",
+      "LangGraph published package compatibility was not proven by the upgrade run."
+    ],
+    "status": "REVIEW REQUIRED"
+  },
+  "capabilityAudit": [
+    {
+      "capability": "ThreadComponents.TaskGroup",
+      "status": "NEW UPSTREAM CAPABILITY"
+    },
+    {
+      "capability": "thread.tasks",
+      "status": "NEW UPSTREAM CAPABILITY"
+    },
+    {
+      "capability": "TaskCard / TaskGroup",
+      "status": "NEW UPSTREAM CAPABILITY"
+    },
+    {
+      "capability": "AgentStatus / TaskTray",
+      "status": "NEW UPSTREAM CAPABILITY"
+    },
+    {
+      "capability": "ReasoningGroup / ToolGroup / ToolFallback",
+      "status": "UNCHANGED"
+    },
+    {
+      "capability": "Composer / Message Footer / Thread List / Attachments / Suggestions",
+      "status": "UNCHANGED"
+    },
+    {
+      "capability": "LangChain / LangGraph persisted message conversion",
+      "status": "REVIEW REQUIRED"
+    },
+    {
+      "capability": "ConversationSubagentTool compatibility presentation",
+      "status": "LOCAL COMPATIBILITY NO LONGER NEEDED"
+    },
+    {
+      "capability": "CancellationAwareHttpAgent / AG-UI transport",
+      "status": "REVIEW REQUIRED"
+    }
   ]
 }

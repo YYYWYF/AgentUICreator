@@ -1,209 +1,410 @@
-# assistant-ui Release Upgrade Impact
+# assistant-ui Upgrade Impact Report
 
-Fixed release targets:
+From:
+- packages: packages/mock-agent/package.json, packages/react/package.json, packages/runtime-conversation/package.json, pnpm-lock.yaml, pnpm-workspace.yaml
+- upstream revision: da9a624496ae97864ae30e90f85c7533092a228d
 
-- `@assistant-ui/react`: 0.15.21 → 0.15.22; release `f008537f39f0936992b0f6d2433c092935df5faf`
-- `@assistant-ui/react-ag-ui`: 0.0.60 → 0.0.62
-- `@assistant-ui/react-generative-ui`: 0.0.19 → 0.0.21
-- Shared source and latter two releases: `da9a624496ae97864ae30e90f85c7533092a228d`
+To:
+- @assistant-ui/react 0.15.23
+- @assistant-ui/react-ag-ui 0.0.63
+- @assistant-ui/react-langgraph 0.14.29
+- @assistant-ui/react-markdown 0.14.16
+- @assistant-ui/react-generative-ui 0.0.21
+- upstream revision: 3542d602272a62eddeb8989befc910841c267022
+- Generative UI release revision: da9a624496ae97864ae30e90f85c7533092a228d
 
-AG-UI remains 0.0.59. React Hook Form remains 0.12.34, LangGraph 0.14.29,
-Markdown 0.14.16. The lockfile unifies core 0.3.21, store 0.3.15, tap 0.9.19
-and assistant-stream 0.3.45 through compatible dependency resolution, without
-an override. Local dependencies were installed from the frozen lockfile.
+## AG-UI transport compatibility
 
-The existing vendor sync changed six tracked upstream files, added no vendor
-files and applied no source patches. Generative UI presentation was separately
-adopted through Source Registry, with official source hashes and selector-only
-Host scoping in its own installed `UPSTREAM.json`.
+Pinned @ag-ui/client:
+0.0.59
 
-## Architecture impact
+Previous react-ag-ui range:
+unknown
 
-`integration/generative-ui` owns the official factories and depends on
-`agent-component/assistant-ui-generative-ui`. A2UI depends on that Integration
-and remains only a native protocol/action adapter with a backend render
-projection. Both optional integrations grant no `present` or `prompt_user`
-permission and remain outside default foundations. No AppUIModel change,
-Plugin, local converter, new history persistence contract or OpenUI integration
-is introduced.
+Target react-ag-ui range:
+unknown
 
-## Actual release limitations
+Resolved lockfile versions:
+unknown
 
-The fixed 0.0.21 source lacks Slider, CheckboxGroup, ChoicePicker multiselect
-mapping, `$field` resolution and Input.defaultValue. The user approved keeping
-these as explicit upstream gaps. Fixtures and positive regressions cover the
-released vocabulary and mappings, plus gap regressions. Form value collection
-uses official `$input`; A2UI Save demonstrates continuation only.
+CancellationAwareHttpAgent: ACTIVE
 
-react-ag-ui 0.0.62 carries official A2UI rebuild operations in `artifact.a2ui`
-and preserves other Activity snapshots as scoped data parts. Regression source
-covers these changes. Restored Activity history support upstream does not extend
-the current application LangGraph checkpoint adapter's persistence contract.
+Status:
+REVIEW REQUIRED
 
-## Validation status
+Reasons:
+- react-ag-ui AG-UI dependency is incompatible with the pinned @ag-ui/client
 
-At the user's explicit request, tests, typecheck, build, upstream check scripts,
-visual acceptance and runtime acceptance were **not executed**. Source sync,
-package resolution and installation do not establish behavioral compatibility.
-Existing frontend-tool, React Hook Form, history, cancellation, multi-thread and
-Plugin Tool UI regression suites remain in place, without a new pass claim.
 
-## Multimodal input integration (phase 1)
+## LangGraph history compatibility
 
-The public `ConversationRuntimeProvider.attachmentAdapter` accepts the official
-`@assistant-ui/react` `AttachmentAdapter` type. This deliberate type-only seam is
-allowlisted by the declaration boundary guard; all other upstream declarations
-remain prohibited. Generated `Agent` forwards the same adapter from Host props.
-No second capability flag, attachment store, message converter or transport
-extension is introduced. Runtime attachment capability comes from the adapter.
+Source API seams:
+- @assistant-ui/react-langgraph.convertLangChainMessages
+- @assistant-ui/react-langgraph.LangChainMessage
+- @assistant-ui/react.unstable_convertExternalMessages
 
-| Responsibility | Owner |
+Source status:
+REVIEW REQUIRED
+
+Target package:
+@assistant-ui/react-langgraph 0.14.29
+
+Resolved dependencies:
+unknown
+
+Published package / lockfile compatibility:
+REVIEW REQUIRED
+
+Published package API exports:
+- @assistant-ui/react-langgraph.convertLangChainMessages: REVIEW REQUIRED
+- @assistant-ui/react-langgraph.LangChainMessage: REVIEW REQUIRED
+- @assistant-ui/react.unstable_convertExternalMessages: REVIEW REQUIRED
+
+Overall status:
+REVIEW REQUIRED
+
+Reasons:
+- LangGraph source API compatibility was not proven by the upgrade run.
+- LangGraph published package compatibility was not proven by the upgrade run.
+
+
+## Vendor changes
+
+- changed 10 files
+- added 2 files
+- removed 0 files
+- new transitive dependencies: 1
+
+Portal integration seam: CHANGED: recheck Portal container bridge
+- local bridge files changed: packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/image.tsx
+- upstream Portal files changed: none
+
+## Upstream Element discovery
+
+### NEW UPSTREAM ELEMENTS
+
+- components/assistant-ui/elements/activity-graph.tsx
+- components/assistant-ui/elements/agent-card.tsx
+- components/assistant-ui/elements/agent-handoff.tsx
+- components/assistant-ui/elements/approval-card.tsx
+- components/assistant-ui/elements/artifact-card.tsx
+- components/assistant-ui/elements/assistant-modal.aui.radix.tsx
+- components/assistant-ui/elements/assistant-modal.aui.tsx
+- components/assistant-ui/elements/assistant-sidebar.aui.tsx
+- components/assistant-ui/elements/attachment.aui.radix.tsx
+- components/assistant-ui/elements/background-inbox.tsx
+- components/assistant-ui/elements/canvas-split.tsx
+- components/assistant-ui/elements/chart.tsx
+- components/assistant-ui/elements/chat-panel.tsx
+- components/assistant-ui/elements/checkpoint-history.tsx
+- components/assistant-ui/elements/code-diff.tsx
+- components/assistant-ui/elements/code-runner.tsx
+- components/assistant-ui/elements/command-palette.tsx
+- components/assistant-ui/elements/comparison-card.tsx
+- components/assistant-ui/elements/composer.tsx
+- components/assistant-ui/elements/computer-use.tsx
+- components/assistant-ui/elements/confidence-marker.tsx
+- components/assistant-ui/elements/connection-state.tsx
+- components/assistant-ui/elements/context-breakdown.tsx
+- components/assistant-ui/elements/context-display.aui.tsx
+- components/assistant-ui/elements/context-display.radix.tsx
+- components/assistant-ui/elements/context-display.tsx
+- components/assistant-ui/elements/conversation-map.aui.tsx
+- components/assistant-ui/elements/conversation-map.tsx
+- components/assistant-ui/elements/conversation-search.tsx
+- components/assistant-ui/elements/cost-meter.tsx
+- components/assistant-ui/elements/data-table.tsx
+- components/assistant-ui/elements/day-separator.tsx
+- components/assistant-ui/elements/diagram.tsx
+- components/assistant-ui/elements/directive-text.aui.tsx
+- components/assistant-ui/elements/directive-text.tsx
+- components/assistant-ui/elements/document-reference.tsx
+- components/assistant-ui/elements/draft-restore.tsx
+- components/assistant-ui/elements/edit-message.tsx
+- components/assistant-ui/elements/elicitation-form.tsx
+- components/assistant-ui/elements/empty-state.tsx
+- components/assistant-ui/elements/error-state.tsx
+- components/assistant-ui/elements/feedback-dialog.tsx
+- components/assistant-ui/elements/file-tree.tsx
+- components/assistant-ui/elements/flow-canvas.tsx
+- components/assistant-ui/elements/flow-expand.tsx
+- components/assistant-ui/elements/flow-graph.tsx
+- components/assistant-ui/elements/flow.tsx
+- components/assistant-ui/elements/generative-ui.tsx
+- components/assistant-ui/elements/geo-map.tsx
+- components/assistant-ui/elements/guardrail-notice.tsx
+- components/assistant-ui/elements/heat-graph.tsx
+- components/assistant-ui/elements/image-gallery.tsx
+- components/assistant-ui/elements/image-generation.tsx
+- components/assistant-ui/elements/inline-citation.tsx
+- components/assistant-ui/elements/launcher-bubble.tsx
+- components/assistant-ui/elements/link-preview.tsx
+- components/assistant-ui/elements/loading-state.tsx
+- components/assistant-ui/elements/logos.tsx
+- components/assistant-ui/elements/map-answer.tsx
+- components/assistant-ui/elements/math-block.tsx
+- components/assistant-ui/elements/mcp-config.aui.radix.tsx
+- components/assistant-ui/elements/mcp-config.aui.tsx
+- components/assistant-ui/elements/mcp-server-panel.tsx
+- components/assistant-ui/elements/media-player.tsx
+- components/assistant-ui/elements/memory-chips.tsx
+- components/assistant-ui/elements/mermaid-diagram.aui.tsx
+- components/assistant-ui/elements/mermaid-diagram.tsx
+- components/assistant-ui/elements/message-actions.tsx
+- components/assistant-ui/elements/message-attachment.tsx
+- components/assistant-ui/elements/message-branches.tsx
+- components/assistant-ui/elements/message-pair.tsx
+- components/assistant-ui/elements/message-queue.tsx
+- components/assistant-ui/elements/message-timing.aui.radix.tsx
+- components/assistant-ui/elements/message-timing.aui.tsx
+- components/assistant-ui/elements/message-timing.tsx
+- components/assistant-ui/elements/mobile-composer.tsx
+- components/assistant-ui/elements/model-picker.tsx
+- components/assistant-ui/elements/model-selector.aui.tsx
+- components/assistant-ui/elements/model-selector.radix.tsx
+- components/assistant-ui/elements/model-selector.tsx
+- components/assistant-ui/elements/number-ticker.tsx
+- components/assistant-ui/elements/onboarding.tsx
+- components/assistant-ui/elements/permission-grant.tsx
+- components/assistant-ui/elements/prompt-library.tsx
+- components/assistant-ui/elements/question-flow.tsx
+- components/assistant-ui/elements/quota-banner.tsx
+- components/assistant-ui/elements/quote-reply.tsx
+- components/assistant-ui/elements/quote.aui.tsx
+- components/assistant-ui/elements/read-aloud.tsx
+- components/assistant-ui/elements/reasoning-effort.tsx
+- components/assistant-ui/elements/reasoning-panel.tsx
+- components/assistant-ui/elements/recommendation-card.tsx
+- components/assistant-ui/elements/regenerate-menu.tsx
+- components/assistant-ui/elements/research-report.tsx
+- components/assistant-ui/elements/retrieval-chunks.tsx
+- components/assistant-ui/elements/reviewable-diff.tsx
+- components/assistant-ui/elements/schedule-card.tsx
+- components/assistant-ui/elements/score-breakdown.tsx
+- components/assistant-ui/elements/scroll-anchor.tsx
+- components/assistant-ui/elements/settings-panel.tsx
+- components/assistant-ui/elements/shared-conversation.tsx
+- components/assistant-ui/elements/shiki-highlighter.aui.tsx
+- components/assistant-ui/elements/shiki-highlighter.tsx
+- components/assistant-ui/elements/sources.tsx
+- components/assistant-ui/elements/speaker-identity.tsx
+- components/assistant-ui/elements/spec-sheet.tsx
+- components/assistant-ui/elements/stopped-run.tsx
+- components/assistant-ui/elements/streaming-text.tsx
+- components/assistant-ui/elements/suggestions.tsx
+- components/assistant-ui/elements/syntax-highlighter.tsx
+- components/assistant-ui/elements/terminal-block.tsx
+- components/assistant-ui/elements/thinking-indicator.tsx
+- components/assistant-ui/elements/thread-list.tsx
+- components/assistant-ui/elements/thread-search.tsx
+- components/assistant-ui/elements/threadlist-sidebar.aui.radix.tsx
+- components/assistant-ui/elements/threadlist-sidebar.aui.tsx
+- components/assistant-ui/elements/timeline.tsx
+- components/assistant-ui/elements/todo-list.tsx
+- components/assistant-ui/elements/tool-error.tsx
+- components/assistant-ui/elements/tool-group.tsx
+- components/assistant-ui/elements/tool-timeline.tsx
+- components/assistant-ui/elements/tooltip-icon-button.radix.tsx
+- components/assistant-ui/elements/trace-waterfall.tsx
+- components/assistant-ui/elements/typing-indicator.tsx
+- components/assistant-ui/elements/voice-conversation.aui.tsx
+- components/assistant-ui/elements/voice-conversation.tsx
+- components/assistant-ui/elements/voice.aui.tsx
+- components/assistant-ui/elements/voice.tsx
+- components/assistant-ui/elements/web-preview.tsx
+- components/assistant-ui/elements/web-search.tsx
+
+### Adoption
+
+- newly adopted: components/assistant-ui/elements/media-player.tsx
+- removed upstream Elements: none
+- changed tracked upstream Elements: components/assistant-ui/elements/agent-plan.tsx, components/assistant-ui/elements/file.tsx, components/assistant-ui/elements/image.tsx, components/assistant-ui/elements/job-progress.tsx, components/assistant-ui/elements/option-list.tsx, components/assistant-ui/elements/reasoning.aui.tsx, components/assistant-ui/elements/sources.aui.tsx, components/assistant-ui/elements/task-card.aui.tsx, components/assistant-ui/elements/thread-list.aui.tsx, components/assistant-ui/elements/tool-fallback.aui.tsx
+
+### Explicitly ignored with rationale
+
+- components/assistant-ui/elements/activity-graph.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/agent-card.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/agent-handoff.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/approval-card.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/artifact-card.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/assistant-modal.aui.radix.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/assistant-modal.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/assistant-sidebar.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/attachment.aui.radix.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/background-inbox.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/canvas-split.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/chart.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/chat-panel.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/checkpoint-history.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/code-diff.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/code-runner.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/command-palette.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/comparison-card.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/composer.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/computer-use.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/confidence-marker.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/connection-state.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/context-breakdown.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/context-display.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/context-display.radix.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/context-display.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/conversation-map.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/conversation-map.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/conversation-search.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/cost-meter.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/data-table.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/day-separator.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/diagram.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/directive-text.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/directive-text.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/document-reference.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/draft-restore.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/edit-message.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/elicitation-form.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/empty-state.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/error-state.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/feedback-dialog.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/file-tree.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/flow-canvas.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/flow-expand.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/flow-graph.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/flow.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/generative-ui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/geo-map.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/guardrail-notice.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/heat-graph.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/image-gallery.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/image-generation.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/inline-citation.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/launcher-bubble.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/link-preview.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/loading-state.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/logos.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/map-answer.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/math-block.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/mcp-config.aui.radix.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/mcp-config.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/mcp-server-panel.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/memory-chips.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/mermaid-diagram.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/mermaid-diagram.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/message-actions.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/message-attachment.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/message-branches.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/message-pair.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/message-queue.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/message-timing.aui.radix.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/message-timing.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/message-timing.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/mobile-composer.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/model-picker.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/model-selector.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/model-selector.radix.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/model-selector.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/number-ticker.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/onboarding.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/permission-grant.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/prompt-library.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/question-flow.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/quota-banner.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/quote-reply.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/quote.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/read-aloud.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/reasoning-effort.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/reasoning-panel.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/recommendation-card.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/regenerate-menu.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/research-report.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/retrieval-chunks.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/reviewable-diff.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/schedule-card.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/score-breakdown.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/scroll-anchor.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/settings-panel.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/shared-conversation.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/shiki-highlighter.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/shiki-highlighter.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/sources.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/speaker-identity.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/spec-sheet.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/stopped-run.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/streaming-text.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/suggestions.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/syntax-highlighter.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/terminal-block.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/thinking-indicator.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/thread-list.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/thread-search.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/threadlist-sidebar.aui.radix.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/threadlist-sidebar.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/timeline.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/todo-list.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/tool-error.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/tool-group.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/tool-timeline.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/tooltip-icon-button.radix.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/trace-waterfall.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/typing-indicator.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/voice-conversation.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/voice-conversation.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/voice.aui.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/voice.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/web-preview.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+- components/assistant-ui/elements/web-search.tsx: Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.
+
+## Public facade changes
+
+- 1 files: packages/react/src/public.tsx
+
+## Runtime adapter changes
+
+- 1 files: packages/runtime-conversation/package.json
+
+## Source Registry assistant-ui Resources
+
+- 0 files: none
+
+## Plugin changes
+
+- 0 files across 0 Plugin directories
+- none
+
+## AppUIModel changes
+
+- 0 files: none
+
+## Creator changes
+
+- 0 files: none
+
+## Removed compatibility code
+
+- ConversationSubagentTool
+- ConversationSubagentMessages
+- ConversationNestedToolFallback
+- subagentConversation Slot and subagent-conversation Plugin
+- product-side Array.isArray(tool.messages) renderer routing
+
+## Upstream capability audit
+
+| Capability | Status |
 | --- | --- |
-| Attachment presentation and Composer primitives | assistant-ui (existing canonical components) |
-| Attachment lifecycle | assistant-ui AttachmentAdapter / Composer Runtime |
-| Multimodal AG-UI serialization | @assistant-ui/react-ag-ui |
-| AG-UI transport | @ag-ui/client HttpAgent |
-| File preparation and application storage | application-provided AttachmentAdapter |
-| Integration/configuration/regressions | AgentUICreator |
+| ThreadComponents.TaskGroup | NEW UPSTREAM CAPABILITY |
+| thread.tasks | NEW UPSTREAM CAPABILITY |
+| TaskCard / TaskGroup | NEW UPSTREAM CAPABILITY |
+| AgentStatus / TaskTray | NEW UPSTREAM CAPABILITY |
+| ReasoningGroup / ToolGroup / ToolFallback | UNCHANGED |
+| Composer / Message Footer / Thread List / Attachments / Suggestions | UNCHANGED |
+| LangChain / LangGraph persisted message conversion | REVIEW REQUIRED |
+| ConversationSubagentTool compatibility presentation | LOCAL COMPATIBILITY NO LONGER NEEDED |
+| CancellationAwareHttpAgent / AG-UI transport | REVIEW REQUIRED |
 
-`@agent-ui/mock-agent/attachments` provides `DemoAttachmentAdapter` for development
-only: image/* and application/pdf, at most 5 MiB per file, browser FileReader data
-URLs, no upload server or retained state. Example Hosts inject it only in DEV.
-Production Hosts must supply their own adapter (for example an upload URL adapter).
-The demo is not a production file-storage contract and requires no Creator package.
+## Tests changed
 
-The pinned react-ag-ui 0.0.62 source converts assistant-ui image parts into AG-UI
-`image` input, and file parts with application/pdf into `document` input in core
-0.0.59. It preserves the plain string path for text-only messages. This is source
-inspection evidence, not a behavioral pass. Dependencies are unchanged in version.
-The official LangGraph 0.14.29 history converter accepts multimodal HumanMessage
-parts; regression source exercises image_url and file blocks without forking it.
-Live attachments and persisted checkpoint restoration remain separate contracts.
+- 0 files: none
 
-`multimodal-input` is a standard RunAgentInput scenario with a fixed TEXT_MESSAGE
-confirmation. It deliberately does not infer receipt from a fixed reply. Inspect
-the actual /agent request, or run the added contract tests, to establish receipt.
-The Scenario DSL and HttpAgent remain unchanged.
+## Upgrade cost assessment
 
-Regression source includes provider capability wiring; real installed converter,
-runAgent and HTTP request coverage for text/image/PDF/multiple/removed/image-only
-inputs; official history conversion; canonical Composer file selection, drop,
-paste, deletion and UserMessage attachment rendering; demo adapter bounds/abort.
-These tests, typecheck, builds and browser/runtime acceptance were **not run** at
-the user's request. There is no new runtime compatibility/acceptance claim.
+Medium
 
-On every upstream upgrade, inspect the official AttachmentAdapter type,
-useAgUiRuntime.adapters.attachments, Composer attachment primitives (including
-paste), UserMessage attachment presentation, the real multimodal wire regressions
-and official history restoration. Any unsupported media/history shape must be
-recorded as an upstream gap; never patch converters, hide files in metadata or
-introduce a custom event protocol to work around it.
-
-## Phase 1 upgrade-safety repair
-
-Demo images now use the public `SimpleImageAttachmentAdapter`; the public
-`CompositeAttachmentAdapter` owns routing and the combined accept string.
-`DemoAttachmentAdapter` adds only the 5 MiB entry policy, and
-`DemoPdfAttachmentAdapter` owns only PDF preparation. Local FileReader/abort
-handling is limited to PDFs. Application production storage remains external.
-
-The declaration checker now uses an explicit module/type allowlist without
-rewriting declaration text. The only allowed name is `AttachmentAdapter` in a
-named type import. Both its public react re-export and its official defining
-module `@assistant-ui/core` are recognized (the current workspace declaration
-names core). Other upstream types, value imports, namespace imports, re-exports,
-import() references, react-ag-ui and primitives remain rejected. Multiline imports
-are covered, and an allowed occurrence never exempts another forbidden import.
-The Runtime injection, Agent prop forwarding, wire converter and transport are
-unchanged by this repair.
-
-Automated checks executed on 2026-09-27, without manual/browser acceptance:
-
-- runtime-conversation, mock-agent and react: typecheck and build passed.
-- New demo adapter tests: 6 passed, including real official image/PDF routing,
-  accept, size bounds and pre-read abort.
-- New declaration allowlist tests: 24 passed. The real emitted declaration
-  boundary and consumer typecheck passed during runtime-conversation build.
-- Full runtime-conversation test command failed: 14 failures and 17 unhandled
-  errors, including existing package-policy expectations, wire-test fixture
-  readiness timeouts, history expectations and cancellation errors.
-- Full mock-agent tests (rerun outside the sandbox for local HTTP listening):
-  72 passed, 8 failed, including scenario catalog/count expectations and timing.
-- Full react tests (rerun outside the sandbox for local HTTP listening):
-  220 passed, 45 failed; 49 test files failed, including fixture import paths,
-  theme service declarations, history/tool expectations and the attachment smoke
-  test's missing Remove file button. No full attachment UI pass is claimed.
-- Workspace `pnpm typecheck` was rerun after an initial concurrent Host build
-  race; it failed in project-control/tests/host-public-entry.integration.test.ts
-  on RolldownOutput | RolldownWatcher.output (TS2339).
-- Workspace `pnpm test:ts` failed in existing bootstrap fixture paths
-  (/presets/assistant/app-ui.json and non-file import URLs), so it did not
-  establish a successful workspace regression baseline.
-
-Unrelated dirty worktree changes are preserved outside the repair commit.
-These failures were reported, not suppressed or expanded into an unrelated
-Runtime/UI/fixture redesign. Existing multimodal wire regressions remain intact.
-
-## Final focused multimodal acceptance repair
-
-The wire fixture now exits its mount act after an effect flush, checks that the
-Runtime was captured, and waits for readiness in a later act. No Runtime,
-attachment lifecycle or transport behavior changed. All six real Composer ->
-react-ag-ui -> HttpAgent -> HTTP cases pass: text-only string, text/image,
-text/PDF document, ordered images, removed image and attachment-only send.
-The capability injection regression also passes.
-
-The canonical UI test locates Remove file by button accessible text (including
-upstream sr-only text), rather than assuming aria-label. Draft updates are flushed
-before clicking Send, and completion requires observing the HTTP request. Select,
-preview, remove, send, UserMessage echo, absence of sent-message removal, drop and
-paste all pass without changing canonical presentation.
-
-The official LangChain projector output contains text, image and PDF file parts.
-The original exact text comparison failed because upstream adds Symbol metadata;
-the regression now compares public fields, just as the image/PDF assertions do.
-Image/PDF history restoration passes; there is no media-shape upstream gap for
-this fixture and no converter fork. History remains separate from live input.
-
-### Public type seam investigation and isolated package evidence
-
-Importing AttachmentAdapter from @assistant-ui/react does emit a formal react
-entry in dist/public.d.ts. That route was tried first, but strict consumer
-checking (exactOptionalPropertyTypes: true, skipLibCheck: false) traverses the
-pinned react 0.15.22 declaration surface and fails in upstream Radix declarations:
-@radix-ui/primitive references setImmediate, and @radix-ui/react-select 2.3.7 has
-incompatible onPlaced inheritance (TS2320). Weakening consumer checks, patching
-upstream or upgrading unrelated presentation dependencies is outside this repair.
-
-The supported defining-module fallback therefore remains AttachmentAdapter from
-@assistant-ui/core 0.3.21, which is already a real runtime-conversation dependency
-in package.json/lockfile. The explicit allowlist permits only AttachmentAdapter;
-react-ag-ui, other types, primitives, runtime types and value imports stay rejected.
-Revisit this fallback when the upstream formal entry supports strict consumers.
-
-check-consumer-types.mjs now packs the actual runtime-conversation, react and
-runtime-core publishable tarballs and installs them in a separate temporary
-project. Overrides point only the local unpublished Agent UI packages to their
-real tarballs; external dependencies use the package manager. Copy import mode,
-a local virtual store and empty NODE_PATH prevent borrowing workspace package
-node_modules. Realpath assertions require both Runtime and its core dependency
-to resolve inside the isolated install. The consumer does not directly declare
-core, verifies the packed Runtime's dependency declaration, checks a valid
-AttachmentAdapter and rejects an incomplete adapter via @ts-expect-error.
-Installation prefers the package cache but may need registry access; dependency
-fetches have bounded timeout/retries. Consumer typecheck remains skipLibCheck:false.
-
-### Final focused results (2026-09-27)
-
-- runtime-conversation attachment/wire/history tests: 8 passed.
-- mock-agent demo attachment tests: 6 passed.
-- react canonical attachment UI tests: 3 passed.
-- public declaration allowlist tests: 24 passed.
-- runtime-conversation, mock-agent and react typecheck/build: all passed.
-- Real emitted public boundary and isolated published-package consumer: passed.
-
-The earlier project-control Rolldown, bootstrap fixture paths and other full-suite
-failures are pre-existing/unrelated to this focused repair; their earlier reports
-remain above. Workspace-wide suites were not rerun or repaired in this final
-pass. No production ConversationRuntimeProvider, converter, HttpAgent or
-canonical Attachment UI changes were made for test success.
+Reason: vendor changes are expected; the assessment tracks whether the public facade, runtime adapter, Source Registry assistant-ui Resources, existing Plugins, AppUIModel, or Creator changed.

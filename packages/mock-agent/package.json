@@ -32,7 +32,7 @@
   },
   "peerDependencies": {
     "vite": ">=8",
-    "@assistant-ui/react": "^0.15.22"
+    "@assistant-ui/react": "^0.15.23"
   },
   "peerDependenciesMeta": {
     "vite": {
@@ -50,6 +50,6 @@
     "vite": "^8.2.2",
     "vitest": "^4.1.11",
     "jsdom": "^27.0.0",
-    "@assistant-ui/react": "0.15.22"
+    "@assistant-ui/react": "0.15.23"
   }
 }
