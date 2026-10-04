@@ -12,11 +12,22 @@ export interface ConversationLoadedThread<TState = unknown> {
   resume?: ConversationRunResume | undefined;
 }
 
-/** Optional text resumption capability owned by the loaded thread, not by the active selection.
- * Values are full snapshots of the resumed segment, excluding text already in messages.
- */
+/** A snapshot of the resumed assistant segment. Content excludes parts already in history. */
+export interface ConversationAssistantRunUpdate {
+  readonly content?: ConversationMessage["content"] | undefined;
+  readonly status?:
+    | { readonly type: "running" }
+    | { readonly type: "requires-action"; readonly reason: "tool-calls" | "interrupt" }
+    | { readonly type: "complete"; readonly reason: "stop" | "unknown" }
+    | { readonly type: "incomplete"; readonly reason: "cancelled" | "tool-calls" | "length" | "content-filter" | "other" | "error"; readonly error?: unknown }
+    | undefined;
+  /** Conversation metadata, including state, data, annotations, steps and custom fields. */
+  readonly metadata?: Readonly<Record<string, unknown>> | undefined;
+}
+
+/** Optional capability owned by the loaded thread, not by the active selection. */
 export interface ConversationRunResume {
-  stream(signal: AbortSignal): AsyncGenerator<string, void, unknown>;
+  stream(signal: AbortSignal): AsyncGenerator<ConversationAssistantRunUpdate, void, unknown>;
 }
 
 export interface ConversationThreadListItem<

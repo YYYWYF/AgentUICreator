@@ -202,6 +202,41 @@ function messageIds(messages: readonly { id: string }[]): string[] {
 }
 
 describe("ConversationServiceThreadBinding", () => {
+  it("attaches an application resume capability to the formal loaded thread", async () => {
+    const service = new FakeConversationService(
+      [{ id: "history-1", title: "Durable run" }],
+      new Map([["history-1", {
+        id: "history-1", title: "Durable run",
+        history: { format: "langchain", messages: [
+          { id: "user-1", type: "human", content: "run" },
+          { id: "assistant-1", type: "ai", content: "partial" },
+        ] },
+        agentState: { progress: 1 },
+      }]]),
+    );
+    const resume = { async *stream(_signal: AbortSignal) {
+      yield { content: [{ type: "text", text: " continued" }],
+        status: { type: "complete" as const, reason: "stop" as const } };
+    } };
+    const provider = vi.fn(() => resume);
+    const binding = createConversationServiceThreadBinding(provider);
+    binding.attachConversationService(service);
+
+    const loaded = await binding.loadThread!("history-1");
+    expect(loaded.messages.map(message => message.id)).toEqual(["user-1", "assistant-1"]);
+    expect(loaded.state).toEqual({ progress: 1 });
+    expect(loaded.resume).toBe(resume);
+    expect(provider).toHaveBeenCalledWith(expect.objectContaining({
+      threadId: "history-1", messages: loaded.messages, state: { progress: 1 },
+    }));
+
+    const ordinary = createConversationServiceThreadBinding();
+    ordinary.attachConversationService(service);
+    expect(await ordinary.loadThread!("history-1")).toEqual({
+      messages: loaded.messages, state: { progress: 1 },
+    });
+  });
+
   it("keeps initialization ephemeral until a list snapshot confirms persistence", async () => {
     const { binding, service } = createBindingFixture();
     const id = await binding.createNewThread();

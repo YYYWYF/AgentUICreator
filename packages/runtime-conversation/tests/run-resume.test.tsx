@@ -84,13 +84,39 @@ describe("existing run resumption", () => {
 
   it("continues the original run with snapshot updates and never invokes the Agent", async () => {
     const stream = vi.fn(async function* (_signal: AbortSignal) {
-      yield "、B";
-      yield "、B 和 C";
+      yield { content: [{ type: "text", text: "、B" }] };
+      yield { content: [{ type: "text", text: "、B 和 C" }], status: { type: "complete" as const, reason: "stop" as const } };
     });
     const f = await fixture({ A: { messages: [user("A"), partial("A")], resume: { stream } } });
     try {
       await until(() => f.text("A").includes("和 C"));
       expect(f.text("A")).toBe("正在分析 A、B 和 C");
+      expect(stream).toHaveBeenCalledOnce();
+      expect(f.runAgent).not.toHaveBeenCalled();
+    } finally { await f.dispose(); }
+  });
+
+  it("restores a tool call, its result and text continuation without rerunning or duplicating the tool", async () => {
+    const tool = (result?: string) => ({
+      type: "tool-call", toolCallId: "lookup-1", toolName: "lookup", args: { query: "A" },
+      argsText: '{"query":"A"}', ...(result === undefined ? {} : { result }),
+    });
+    const stream = vi.fn(async function* (_signal: AbortSignal) {
+      yield { content: [tool()], status: { type: "running" as const } };
+      yield { content: [tool("found"), { type: "text", text: "、B" }],
+        status: { type: "complete" as const, reason: "stop" as const },
+        metadata: { unstable_state: { phase: "done" } } };
+    });
+    const f = await fixture({ A: { messages: [user("A"), partial("A")], resume: { stream } } });
+    try {
+      await until(() => f.text("A").includes("、B"));
+      const assistants = f.runtime.threads.getById("A").getState().messages.filter(message => message.role === "assistant");
+      const parts = assistants.flatMap(message => message.content);
+      expect(parts.filter(part => part.type === "tool-call")).toMatchObject([
+        { toolCallId: "lookup-1", result: "found" },
+      ]);
+      expect(f.text("A")).toBe("正在分析 A、B");
+      expect(assistants.at(-1)?.status).toMatchObject({ type: "complete", reason: "stop" });
       expect(stream).toHaveBeenCalledOnce();
       expect(f.runAgent).not.toHaveBeenCalled();
     } finally { await f.dispose(); }
@@ -113,9 +139,9 @@ describe("existing run resumption", () => {
     let stopped = false;
     const stream = vi.fn(async function* (resumeSignal: AbortSignal) {
       signal = resumeSignal;
-      yield "、B";
+      yield { content: [{ type: "text", text: "、B" }] };
       await new Promise<void>(resolve => resumeSignal.addEventListener("abort", () => { stopped = true; resolve(); }, { once: true }));
-      yield "should not render";
+      yield { content: [{ type: "text", text: "should not render" }] };
     });
     const f = await fixture({ A: { messages: [user("A"), partial("A")], resume: { stream } } });
     try {
@@ -132,9 +158,9 @@ describe("existing run resumption", () => {
     let release!: () => void;
     const wait = new Promise<void>(resolve => { release = resolve; });
     const aStream = vi.fn(async function* (signal: AbortSignal) {
-      yield "、B";
+      yield { content: [{ type: "text", text: "、B" }] };
       await wait;
-      if (!signal.aborted) yield "、B 和 C";
+      if (!signal.aborted) yield { content: [{ type: "text", text: "、B 和 C" }] };
     });
     const f = await fixture({
       A: { messages: [user("A"), partial("A")], resume: { stream: aStream } },

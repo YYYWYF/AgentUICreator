@@ -30,7 +30,7 @@ import {
   conversationStarterSuggestions,
 } from "../agent-ui/conversation/config";
 import { ConversationThreadBindingConnector } from "../agent-ui/conversation/threads/ConversationThreadBindingConnector";
-import { createConversationServiceThreadBinding } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
+import { createConversationServiceThreadBinding, type ConversationRunResumeProvider } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
 import { GeneratedConversationIntegrations } from "../agent-ui/conversation/integrations.generated";
 import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
 import { useAgentUIThemeMode } from "../agent-ui/theme/useAgentUITheme";
@@ -60,6 +60,8 @@ export interface AgentProps {
   attachmentAdapter?: ConversationRuntimeProviderProps["attachmentAdapter"];
   /** Application-owned official assistant-ui speech-to-text adapter. */
   dictationAdapter?: ConversationRuntimeProviderProps["dictationAdapter"];
+  /** Optional application-owned durable run capability for persisted conversations. */
+  runResumeProvider?: ConversationRunResumeProvider<AppAgentState>;
 }
 
 function AgentUIStyleSurface({ children }: { children: ReactNode }) {
@@ -156,7 +158,7 @@ function AgentSurface({ composition, observability }: {
   );
 }
 
-export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter }: AgentProps = {}) {
+export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter, runResumeProvider }: AgentProps = {}) {
   const composition = useSyncExternalStore(
     agentCompositionStore.subscribe,
     agentCompositionStore.getSnapshot,
@@ -181,8 +183,8 @@ export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agen
     return unsubscribe;
   }, [observability]);
   const threadBinding = useMemo(
-    () => createConversationServiceThreadBinding<AppAgentState>(),
-    [],
+    () => createConversationServiceThreadBinding<AppAgentState>(runResumeProvider),
+    [runResumeProvider],
   );
   const toolkit = useMemo(() => composition === undefined ? createConversationToolkit()
     : resolvePluginConversationToolkit(composition.runtimeModel, composition.activeRegistry, createConversationToolkit()), [composition]);

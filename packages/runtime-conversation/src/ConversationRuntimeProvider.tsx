@@ -14,6 +14,7 @@ import {
   type DictationAdapter,
   type ThreadHistoryAdapter,
   type ThreadMessage,
+  type ChatModelRunResult,
 } from "@assistant-ui/react";
 import {
   useAgUiRuntime,
@@ -43,6 +44,7 @@ import type {
   ConversationThreadBinding,
   ConversationLoadedThread,
   ConversationRunResume,
+  ConversationAssistantRunUpdate,
 } from "./threads/types.js";
 import { createConversationRemoteThreadListAdapter } from "./threads/conversation-remote-thread-list-adapter.js";
 import { createConversationFrontendToolPort, type ConversationFrontendToolUIRegistry } from "./tools/types.js";
@@ -166,9 +168,9 @@ export function ConversationRuntimeProvider<TState = unknown>({
       async *resume(options) {
         const capability = resumeRef.current;
         if (capability === undefined) throw new Error(`No resumable run for conversation ${ownedId}`);
-        for await (const text of capability.stream(options.abortSignal)) {
+        for await (const update of capability.stream(options.abortSignal)) {
           if (options.abortSignal.aborted) return;
-          yield { content: [{ type: "text", text }] };
+          yield toAssistantRunResult(update);
         }
       },
       async append() { await aui.threadListItem().initialize(); },
@@ -237,6 +239,15 @@ export function ConversationRuntimeProvider<TState = unknown>({
       </CurrentConversationBridge>
     </AssistantRuntimeProvider>
   );
+}
+
+/** Keep the upstream run-result shape inside runtime-conversation. */
+function toAssistantRunResult(update: ConversationAssistantRunUpdate): ChatModelRunResult {
+  return {
+    ...(update.content === undefined ? {} : { content: update.content as unknown as ChatModelRunResult["content"] }),
+    ...(update.status === undefined ? {} : { status: update.status as ChatModelRunResult["status"] }),
+    ...(update.metadata === undefined ? {} : { metadata: update.metadata as ChatModelRunResult["metadata"] }),
+  };
 }
 
 /** Observation registry only: never starts, switches, or keeps runtimes alive. */

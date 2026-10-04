@@ -1,5 +1,5 @@
 import { ConversationRuntimeProvider, useConversationRuntimeBridge,
-  type ConversationLoadedThread, type ConversationThreadBinding } from "@agent-ui/runtime-conversation";
+  type ConversationAssistantRunUpdate, type ConversationLoadedThread, type ConversationThreadBinding } from "@agent-ui/runtime-conversation";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 const API = "/__agent-ui/mock-data/run-resume/threads";
@@ -21,7 +21,7 @@ async function readJson<T>(url: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-async function* continuation(id: string, signal: AbortSignal): AsyncGenerator<string, void, unknown> {
+async function* continuation(id: string, signal: AbortSignal): AsyncGenerator<ConversationAssistantRunUpdate, void, unknown> {
   const response = await fetch(`${API}/${encodeURIComponent(id)}/stream`, { signal });
   if (!response.ok || response.body === null) throw new Error(`Resume stream failed: ${response.status}`);
   const reader = response.body.getReader();
@@ -37,7 +37,7 @@ async function* continuation(id: string, signal: AbortSignal): AsyncGenerator<st
         const frame = buffer.slice(0, boundary);
         buffer = buffer.slice(boundary + 2);
         const data = frame.split("\n").find(line => line.startsWith("data: "))?.slice(6);
-        if (data !== undefined) yield (JSON.parse(data) as { text: string }).text;
+        if (data !== undefined) yield { content: [{ type: "text", text: (JSON.parse(data) as { text: string }).text }] };
         boundary = buffer.indexOf("\n\n");
       }
     }

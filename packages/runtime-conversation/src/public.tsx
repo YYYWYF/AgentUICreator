@@ -20,6 +20,7 @@ import {
 import type { ConversationObservationSnapshot } from "./observation/types.js";
 import type {
   ConversationLoadedThread,
+  ConversationAssistantRunUpdate,
   ConversationMessage,
   ConversationRunResume,
   ConversationThreadBinding,
@@ -141,6 +142,7 @@ export type {
 
 export type {
   ConversationLoadedThread,
+  ConversationAssistantRunUpdate,
   ConversationMessage,
   ConversationRunResume,
   ConversationThreadBinding,
