@@ -1166,6 +1166,8 @@
 .creator-mock-error { margin-top: 0.75rem; padding: 0.7rem; color: #b42318; background: #fff1f0; border-radius: 0.5rem; }
 .creator-mock-error button { display: block; margin-top: 0.5rem; }
 .creator-mock-scenarios { display: grid; gap: 0.6rem; }
+.creator-mock-group-heading { margin: 0.8rem 0 0; color: #344054; font-size: 0.9rem; }
+.creator-mock-group-heading:first-child { margin-top: 0; }
 .creator-mock-scenario { padding: 0.7rem; border: 1px solid #d0d5dd; border-radius: 0.6rem; }
 .creator-mock-scenario[data-selected="true"] { border-color: #84adff; background: #eff4ff; }
 .creator-mock-scenario-choice { display: flex; align-items: flex-start; gap: 0.6rem; cursor: pointer; }
@@ -1196,4 +1198,3 @@
 .creator-mock-panel .creator-mock-copy[data-copied="true"] { color: #027a48; border-color: #abefc6; background: #ecfdf3; }
 .creator-mock-requirement { margin: 0.6rem 0; padding: 0.65rem; border: 1px solid #fedf89; border-radius: 0.5rem; background: #fffaeb; color: #93370d; }
 .creator-mock-panel .creator-mock-requirement p,
-.creator-mock-requirement-label { color: #93370d; }

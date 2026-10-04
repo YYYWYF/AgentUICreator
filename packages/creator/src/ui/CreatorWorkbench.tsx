@@ -1562,11 +1562,10 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     if (agent === null || isRunning || undoRunId !== null || reapplyRunId !== null || hasPendingCreatorQuestion(itemsRef.current)) return;
     setUndoRunId(runId);
     try {
-      const { changedPaths, reapplyable } = await agent.undo(runId);
-      updateItems(current => [...current.map(item => item.kind === "message" && item.receipt?.transaction?.runId === runId
+      const { reapplyable } = await agent.undo(runId);
+      updateItems(current => current.map(item => item.kind === "message" && item.receipt?.transaction?.runId === runId
         ? { ...item, receipt: { ...item.receipt, transaction: { ...item.receipt.transaction, undoable: false, undone: true, reapplyable, reapplied: false } } }
-        : item), { kind: "message", id: crypto.randomUUID(), role: "assistant",
-          content: `已撤销本次修改：${changedPaths.join("、") || "没有文件变更"}。` }]);
+        : item));
       setSetupValidationEpoch(current => current + 1);
     } catch (error) {
       updateItems(current => [...current, { kind: "message", id: crypto.randomUUID(), role: "error",
@@ -1581,11 +1580,10 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     if (agent === null || isRunning || undoRunId !== null || reapplyRunId !== null || hasPendingCreatorQuestion(itemsRef.current)) return;
     setReapplyRunId(runId);
     try {
-      const changedPaths = await agent.reapply(runId);
-      updateItems(current => [...current.map(item => item.kind === "message" && item.receipt?.transaction?.runId === runId
+      await agent.reapply(runId);
+      updateItems(current => current.map(item => item.kind === "message" && item.receipt?.transaction?.runId === runId
         ? { ...item, receipt: { ...item.receipt, transaction: { ...item.receipt.transaction, undoable: true, undone: false, reapplied: true } } }
-        : item), { kind: "message", id: crypto.randomUUID(), role: "assistant",
-          content: `已再次应用本次修改：${changedPaths.join("、") || "没有文件变更"}。请重新验证当前项目。` }]);
+        : item));
       setSetupValidationEpoch(current => current + 1);
     } catch (error) {
       updateItems(current => [...current, { kind: "message", id: crypto.randomUUID(), role: "error",
@@ -1752,6 +1750,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
+      if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
       event.preventDefault();
       void submit();
     }
@@ -1843,8 +1842,6 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
               </h1>
             </div>
             <div className="creator-panel-header-actions">
-              {isRunning ? <button type="button" disabled={!runAccepted || stopBusy}
-                onClick={() => void stopCurrentRun()}>{stopBusy ? "正在停止…" : "停止执行"}</button> : null}
               <button
                 className="creator-panel-mock-toggle"
                 data-creator-mock-entry=""
@@ -2055,9 +2052,15 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
               />
               <div>
                 <small>Enter 发送 · Shift+Enter 换行</small>
-                <button disabled={isRunning || input.trim() === "" || !creatorRuntimeReady || items.some(item => item.kind === "question" && (item.status === "pending" || item.status === "submitting"))} type="submit">
-                  {isRunning ? "处理中…" : "发送"}
-                </button>
+                {isRunning ? (
+                  <button type="button" disabled={!runAccepted || stopBusy} onClick={() => void stopCurrentRun()}>
+                    {stopBusy ? "正在停止…" : "停止执行"}
+                  </button>
+                ) : (
+                  <button disabled={input.trim() === "" || !creatorRuntimeReady || items.some(item => item.kind === "question" && (item.status === "pending" || item.status === "submitting"))} type="submit">
+                    发送
+                  </button>
+                )}
               </div>
             </form> : null}
           </div>

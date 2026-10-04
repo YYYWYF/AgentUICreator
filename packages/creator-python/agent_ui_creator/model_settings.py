@@ -105,6 +105,7 @@ class CreatorModelSettings:
     timeout_seconds: float = 120.0
     max_retries: int = DEFAULT_CREATOR_MODEL_MAX_RETRIES
     raw_trace: bool = False
+    opencode_session_header: bool = False
 
     @classmethod
     def from_environment(
@@ -174,6 +175,9 @@ class CreatorModelSettings:
         raw_trace = _first_value(
             environment, file_values, "CREATOR_MODEL_RAW_TRACE"
         ) == "1"
+        opencode_session_header = _first_value(
+            environment, file_values, "CREATOR_MODEL_OPENCODE_SESSION_HEADER"
+        ) == "1"
         if max_tokens == 0 or timeout_seconds == 0:
             raise CreatorModelConfigurationError(
                 "Creator 模型的最大 token 数和超时时间必须大于 0。"
@@ -187,6 +191,7 @@ class CreatorModelSettings:
             timeout_seconds=float(timeout_seconds),
             max_retries=int(max_retries),
             raw_trace=raw_trace,
+            opencode_session_header=opencode_session_header,
         )
 
 
