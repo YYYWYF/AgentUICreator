@@ -475,11 +475,11 @@ describe("Mock Agent HTTP endpoint", () => {
       });
     expect(body.scenarios.find(({ id }) => id === "agent-plan"))
       .toMatchObject({
-        title: "Application-defined Tool Args → AgentPlan",
+      title: "AG-UI Activity → AgentPlan",
         reference: {
           audience: "frontend",
-          protocol: "AG-UI Tool Call",
-          pattern: "Application-defined Tool Args → AgentPlan",
+          protocol: "AG-UI ACTIVITY_SNAPSHOT / ACTIVITY_DELTA",
+          pattern: "Authoritative Agent Plan Activity",
           presentation: "assistant-ui AgentPlan",
         },
       });

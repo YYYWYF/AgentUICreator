@@ -1,6 +1,6 @@
 # Data Message UI plugins
 
-Data Message UI is message content. A backend sends an ordinary AG-UI `CUSTOM` event with a `name` and `value`. The pinned assistant-ui AG-UI runtime projects it into a named data message part. AgentUI installs the active plugin's renderer once under the assistant-ui runtime; the canonical `AssistantMessage` renders `part.dataRendererUI` without knowing the name.
+Data Message UI renders structured content in the transcript. AG-UI `CUSTOM` appends a named data message part. The pinned assistant-ui AG-UI runtime also projects `ACTIVITY_SNAPSHOT` and `ACTIVITY_DELTA` into a mutable named data part (`agui-activity/{activityType}`). `ACTIVITY_DELTA` updates the part created by a snapshot with the same `messageId`; it does not append another transcript item. AgentUI installs the active plugin's renderer once under the assistant-ui runtime; the canonical `AssistantMessage` renders `part.dataRendererUI` without knowing the name.
 
 ```text
 AG-UI CUSTOM
@@ -22,4 +22,6 @@ Composition validation checks names from all enabled instances before publishing
 
 The example is `plugins/chart-message`, selected as an unmounted `applicationPlugins` entry. The Mock Agent `Data Message / Custom Chart` scenario sends `CUSTOM` with `name: "chart"` between text events.
 
-Data Message UI suits charts, sources, artifact previews, and structured cards that belong in the transcript. [Application Custom Events](../custom-event-protocol.md) are live, transient events consumed through `events.subscribe()`; they do not become message content. The two paths remain separate.
+Data Message UI suits charts, sources, artifact previews, and structured cards that belong in the transcript. `CUSTOM` is append-only structured transcript content; `ACTIVITY_*` is mutable, run-scoped activity UI. `STATE_*` updates shared application or Agent state. `SUBAGENT_*` describes delegated task lifecycle. [Application Custom Events](../custom-event-protocol.md) are live, transient events consumed through `events.subscribe()`; they do not become message content.
+
+The `agent-plan-message` resource is an Activity-backed example. Its AgentUICreator-owned contract validates the complete `agent-plan` payload before the renderer calls the public `AgentPlan` facade. Invalid payloads render nothing. Refresh recovery is a backend/resumable-run responsibility: send the latest complete `ACTIVITY_SNAPSHOT`, then continue with deltas. The frontend does not store or reconstruct Plan progress. See [Authoritative Agent Plan Activity](./authoritative-agent-plan-activity.md).

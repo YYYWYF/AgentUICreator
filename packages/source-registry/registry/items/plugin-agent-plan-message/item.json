@@ -2,7 +2,7 @@
   "id": "plugin/agent-plan-message",
   "version": "0.1.0",
   "kind": "agent-component",
-  "description": "Agent Plan named Tool UI",
+  "description": "Agent Plan Activity Data Message UI",
   "requires": [
     "foundation/core"
   ],

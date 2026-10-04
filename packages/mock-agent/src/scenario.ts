@@ -1,4 +1,8 @@
-import type { ActivitySnapshotEvent, StateDeltaEvent } from "@ag-ui/core";
+import type {
+  ActivityDeltaEvent,
+  ActivitySnapshotEvent,
+  StateDeltaEvent,
+} from "@ag-ui/core";
 
 export type MockScenarioCategory =
   | "basics"
@@ -117,6 +121,9 @@ export type MockScenarioStep =
       & Pick<ActivitySnapshotEvent, "activityType" | "content">
       & Partial<Pick<ActivitySnapshotEvent, "replace" | "subagentRunId">>
       & { messageId?: ActivitySnapshotEvent["messageId"] | undefined })
+  | ({ type: "activity-delta"; delayMs?: number | undefined }
+      & Pick<ActivityDeltaEvent, "activityType" | "messageId" | "patch">
+      & Partial<Pick<ActivityDeltaEvent, "subagentRunId">>)
   | {
       type: "reasoning";
       text: string;
@@ -214,6 +221,20 @@ function validateToolArgs(
   }
 }
 
+function validateJsonValue(
+  scenarioId: string,
+  value: unknown,
+  location: string,
+): void {
+  try {
+    JSON.stringify(value);
+  } catch {
+    throw new Error(
+      `Scenario "${scenarioId}" ${location} must be JSON-serializable.`,
+    );
+  }
+}
+
 interface ScenarioValidationContext {
   subagentRunId?: string | undefined;
 }
@@ -247,6 +268,15 @@ function validateSteps(
     if (step.type === "activity-snapshot") {
       validateToolArgs(scenarioId, step.content, "activity snapshot");
       if (!step.activityType.trim()) throw new Error(`Scenario "${scenarioId}" requires an activityType.`);
+      if (step.messageId !== undefined && !step.messageId.trim()) throw new Error(`Scenario "${scenarioId}" requires a non-empty activity messageId.`);
+      continue;
+    }
+
+    if (step.type === "activity-delta") {
+      if (!step.activityType.trim()) throw new Error(`Scenario "${scenarioId}" requires an activityType.`);
+      if (!step.messageId.trim()) throw new Error(`Scenario "${scenarioId}" requires an activity messageId.`);
+      if (!Array.isArray(step.patch)) throw new Error(`Scenario "${scenarioId}" requires an activity patch array.`);
+      validateJsonValue(scenarioId, step.patch, "activity patch");
       continue;
     }
 

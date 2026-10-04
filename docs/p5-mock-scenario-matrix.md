@@ -58,7 +58,7 @@ correlate resume entries by `interruptId`, not by array position.
 | State | `agent-state-sync` | `STATE_SNAPSHOT / STATE_DELTA` → JobProgress | Backend Reference | Recommended |
 | Multi-Agent | `nested-subagent-conversation` | Standard `SUBAGENT_*` → TaskCard | Backend Reference | Recommended |
 | Multi-Agent | `nested-subagent-task-group` | Sibling Subagents → TaskGroup | Frontend Presentation | Advanced |
-| Presentation | `agent-plan` | Application-defined Tool Args → AgentPlan | Frontend Presentation | |
+| Presentation | `agent-plan` | `ACTIVITY_SNAPSHOT / ACTIVITY_DELTA` → AgentPlan | Frontend Presentation | |
 | Presentation | `agent-status` | Application-defined Tool Args → AgentStatus | Frontend Presentation | |
 | Presentation | `file-output` | Backend Tool Result → named Tool UI → File / Download | Frontend Presentation | Recommended |
 | Advanced | `nested-subagent-recursive` | Recursive Subagent | Frontend Presentation | Advanced |
@@ -97,31 +97,37 @@ is virtual; no file is generated or fetched by the renderer. See
 [Multimodal Output Phase 1](architecture/multimodal-output-phase-1.md) for the
 Tool-local schema, ownership, download contract and AG-UI 1.0 migration boundary.
 
-`agent-plan` and `agent-status` are application-defined frontend tool contracts.
-AG-UI does not define `AgentPlan` or `AgentStatus` events, so these scenarios do
-not invent `PLAN_*` or `AGENT_STATUS` protocol events. Their flow is:
+`agent-plan` uses the standard AG-UI Activity lifecycle. The backend sends a
+complete `agent-plan` snapshot and then JSON Patch deltas to `activeIndex`;
+`react-ag-ui` projects them into one `agui-activity/agent-plan` Data Message
+Part, which the AgentPlan resource renders. Progress is authoritative backend
+activity, not a frontend inference.
+
+`agent-status` remains an application-defined frontend Tool contract. AG-UI
+does not define a dedicated AgentStatus event, so the scenario does not invent
+an `AGENT_STATUS` protocol event. Its flow is:
 
 ```text
 TOOL_CALL_START
 → TOOL_CALL_ARGS (application-defined Tool Args)
-→ application projector → AgentPlan / AgentStatus
+→ application projector → AgentStatus
 → TOOL_CALL_END
 → TOOL_CALL_RESULT (acknowledgement)
 ```
-
-The presentation does not depend on `TOOL_CALL_RESULT`.
-
-`AgentPlan` reads `steps` and `activeIndex` from Tool Args.
 
 `AgentStatus` reads `label` and `elapsed` from Tool Args and derives its state
 from the frontend `ConversationToolCallProps.status` (`running` → `working`,
 `requires-action` → `waiting`, `complete` → `done`). It may therefore render
 while the Tool Call is still running.
 
-`TOOL_CALL_RESULT` only represents the terminal acknowledgement of the
-application-defined tool. `application projector → AgentPlan / AgentStatus` is
-a frontend presentation step, not an AG-UI wire event. The runner wire stream
-remains `TOOL_CALL_START → TOOL_CALL_ARGS → TOOL_CALL_END → TOOL_CALL_RESULT`.
+The AgentPlan event flow is `RUN_STARTED → ACTIVITY_SNAPSHOT → ACTIVITY_DELTA* →
+TEXT_MESSAGE_* → RUN_FINISHED`. Refresh recovery replays the latest complete
+snapshot before subsequent deltas. Old completed history is not guaranteed to
+restore a Plan.
+
+JobProgress remains `ToolCall + STATE_SNAPSHOT / STATE_DELTA`; the CI Tool Result
+must provide an explicit terminal outcome. A completed stage index does not
+imply success.
 
 `tool-error` describes a run failure during a Tool Call. The event is
 `RUN_ERROR`; there is no `TOOL_ERROR` event.

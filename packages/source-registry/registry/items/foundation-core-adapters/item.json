@@ -21,10 +21,6 @@
       "target": "agent-ui/conversation/ScopedRendererBridge.tsx"
     },
     {
-      "source": "files/agent-ui/conversation/agents/agent-plan-projection.ts",
-      "target": "agent-ui/conversation/agents/agent-plan-projection.ts"
-    },
-    {
       "source": "files/agent-ui/conversation/agents/agent-status-projection.ts",
       "target": "agent-ui/conversation/agents/agent-status-projection.ts"
     },

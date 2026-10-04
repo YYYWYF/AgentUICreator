@@ -5,13 +5,12 @@ import { createRoot, type Root } from "react-dom/client";
 import type { ToolCallMessagePartProps } from "@assistant-ui/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { MockAgentPlanToolUI } from "../../../source-registry/registry/items/plugin-agent-plan-message/files/plugins/agent-plan-message/index";
 import { MockAgentStatusToolUI } from "../../../source-registry/registry/items/plugin-agent-status-message/files/plugins/agent-status-message/index";
 import { MockRunCiJobToolUI } from "../../../source-registry/registry/items/plugin-job-progress-message/files/plugins/job-progress-message/index";
-import agentPlanMessagePlugin from "../../../source-registry/registry/items/plugin-agent-plan-message/files/plugins/agent-plan-message/definition";
 import agentStatusMessagePlugin from "../../../source-registry/registry/items/plugin-agent-status-message/files/plugins/agent-status-message/definition";
 import jobProgressMessagePlugin from "../../../source-registry/registry/items/plugin-job-progress-message/files/plugins/job-progress-message/definition";
 import { createConversationToolkit } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
+import { AgentRuntimeProvider } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/context/AgentRuntimeProvider";
 
 type MockToolProps = ToolCallMessagePartProps<Record<string, unknown>, unknown>;
 const mountedRoots: Root[] = [];
@@ -44,6 +43,51 @@ async function renderTool(element: ReactElement) {
   return container;
 }
 
+function runtimeWithState(state: unknown) {
+  const snapshot = {
+    conversation: { id: "test", status: "live" },
+    messages: [],
+    state,
+    run: { status: "idle" },
+    executions: [],
+    interrupts: [],
+  };
+  return {
+    mode: "test",
+    getSnapshot: () => snapshot,
+    subscribe: () => () => undefined,
+    subscribeApplicationEvents: () => () => undefined,
+    sendMessage: async () => undefined,
+    resumeInterrupts: async () => undefined,
+    startNewConversation: async () => undefined,
+    abort: () => undefined,
+    dispose: () => undefined,
+  } as never;
+}
+
+async function renderRunCiJob(
+  result: unknown,
+  state: unknown,
+  overrides: Partial<MockToolProps> = {},
+) {
+  return renderTool(
+    <AgentRuntimeProvider runtime={runtimeWithState(state)}>
+      <MockRunCiJobToolUI {...createProps(result, {
+        toolCallId: "ci-job-1",
+        toolName: "run_ci_job",
+        args: {
+          target: "Verify the current change on CI",
+          stages: [
+            { name: "build", weight: 1, description: "Compile the app." },
+            { name: "test", weight: 1 },
+          ],
+        },
+        ...overrides,
+      })} />
+    </AgentRuntimeProvider>,
+  );
+}
+
 afterEach(async () => {
   await act(async () => {
     for (const root of mountedRoots.splice(0)) root.unmount();
@@ -57,27 +101,16 @@ describe("Mock Agent official element renderers", () => {
     for (const name of ["mock_agent_plan", "mock_agent_status", "delete_generated_artifacts", "run_ci_job"]) {
       expect(production).not.toHaveProperty(name);
     }
-    expect(agentPlanMessagePlugin.toolkit?.mock_agent_plan).toMatchObject({ type: "backend", render: MockAgentPlanToolUI });
     expect(agentStatusMessagePlugin.toolkit?.mock_agent_status).toMatchObject({ type: "backend", render: MockAgentStatusToolUI });
     expect(jobProgressMessagePlugin.toolkit?.run_ci_job).toMatchObject({ type: "backend", render: MockRunCiJobToolUI });
   });
 
-  it("renders the official AgentPlan from the shared projection", async () => {
-    const container = await renderTool(
-      <MockAgentPlanToolUI {...createProps(
-        { applied: true },
-        {
-          args: {
-            steps: ["Inspect", "Compare", "Update"],
-            activeIndex: 1,
-          },
-        },
-      )} />,
-    );
-
-    expect(container.querySelector('[data-slot="agent-plan"]')).not.toBeNull();
-    expect(container.textContent).toContain("Inspect");
-    expect(container.textContent).toContain("1 of 3");
+  it("registers AgentPlan as Activity Data Message UI, not a named Tool", async () => {
+    const { default: agentPlanMessagePlugin } = await import("../../../source-registry/registry/items/plugin-agent-plan-message/files/plugins/agent-plan-message/definition");
+    expect(agentPlanMessagePlugin.toolkit).toBeUndefined();
+    expect(agentPlanMessagePlugin.dataMessageUIs?.map(({ name }) => name))
+      .toEqual(["agui-activity/agent-plan"]);
+    expect(agentPlanMessagePlugin.manifest.data?.messageUI).toBe(true);
   });
 
   it("renders official AgentStatus states from ToolCall status and args", async () => {
@@ -189,19 +222,6 @@ describe("Mock Agent official element renderers", () => {
     expect(secondFrame.classList.contains("my-3")).toBe(false);
   });
 
-  it("falls back to ToolFallback for malformed plan data", async () => {
-    const container = await renderTool(
-      <MockAgentPlanToolUI {...createProps(
-        { applied: true },
-        { args: { steps: ["Inspect"], activeIndex: "not-a-number" } },
-      )} />,
-    );
-
-    expect(container.querySelector('[data-slot="agent-plan"]')).toBeNull();
-    expect(container.querySelector('[data-slot="tool-fallback-root"]'))
-      .not.toBeNull();
-  });
-
   it("falls back to ToolFallback for malformed status data", async () => {
     const container = await renderTool(
       <MockAgentStatusToolUI {...createProps(
@@ -252,5 +272,45 @@ describe("Mock Agent official element renderers", () => {
     expect(container.textContent).toContain("waiting");
     expect(container.textContent).toContain("Waiting for dependency");
     expect(container.textContent).not.toContain("Wrong result state");
+  });
+
+  it("renders a running CI job from STATE and stage descriptions", async () => {
+    const container = await renderRunCiJob(undefined, {
+      jobs: { "ci-job-1": { stageIndex: 0, stageProgress: 0.4, eta: "about 2 min" } },
+    }, { status: { type: "running" } });
+    expect(container.querySelector('[data-slot="job-progress"]')?.getAttribute("data-state"))
+      .toBe("running");
+    expect(container.textContent).toContain("Compile the app.");
+    expect(container.textContent).toContain("about 2 min");
+  });
+
+  it.each([
+    [{ success: true, summary: "All stages passed" }, "success"],
+    [{ success: false, summary: "Build failed" }, "failed"],
+    [{ status: "partial", summary: "Two checks skipped" }, "partial"],
+    [{ status: "cancelled", summary: "Stopped by request" }, "cancelled"],
+  ] as const)("renders an explicit %s Tool Result outcome", async (result, expected) => {
+    const container = await renderRunCiJob(result, {
+      jobs: { "ci-job-1": { stageIndex: 2, stageProgress: 0, eta: "" } },
+    }, { status: { type: "complete" } });
+    expect(container.querySelector('[data-slot="job-progress"]')?.getAttribute("data-state"))
+      .toBe(expected);
+    expect(container.textContent).toContain(result.summary ?? "");
+  });
+
+  it("does not infer success when STATE reaches the end without a Tool Result", async () => {
+    const container = await renderRunCiJob(undefined, {
+      jobs: { "ci-job-1": { stageIndex: 2, stageProgress: 0, eta: "" } },
+    }, { status: { type: "running" } });
+    expect(container.querySelector('[data-slot="job-progress"]')).toBeNull();
+    expect(container.querySelector('[data-slot="tool-fallback-root"]')).not.toBeNull();
+  });
+
+  it("uses canonical Tool cancellation lifecycle when no explicit result exists", async () => {
+    const container = await renderRunCiJob(undefined, {
+      jobs: { "ci-job-1": { stageIndex: 1, stageProgress: 0.5, eta: "" } },
+    }, { status: { type: "incomplete", reason: "cancelled" } });
+    expect(container.querySelector('[data-slot="job-progress"]')?.getAttribute("data-state"))
+      .toBe("cancelled");
   });
 });

@@ -1,13 +1,13 @@
 {
   "id": "agent-plan-message",
   "name": "Agent Plan",
-  "description": "Renders mock_agent_plan tool calls with the conversation UI facade.",
+  "description": "Renders authoritative AG-UI agent-plan activity in assistant messages.",
   "version": "1.0.0",
   "capabilities": [
     "headless"
   ],
   "data": {
-    "messages": true
+    "messageUI": true
   },
   "authoring": {
     "intents": [

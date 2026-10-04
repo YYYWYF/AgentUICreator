@@ -13,6 +13,10 @@
       "target": "agent-contract/agent-state.ts"
     },
     {
+      "source": "files/agent-contract/agent-plan-activity.ts",
+      "target": "agent-contract/agent-plan-activity.ts"
+    },
+    {
       "source": "files/agent-contract/agent-tools.ts",
       "target": "agent-contract/agent-tools.ts"
     },

@@ -1,28 +1,31 @@
-import type {
-  ConversationToolCallComponent,
-  ConversationToolCallProps,
+import {
+  AgentPlan,
+  defineDataMessageUI,
+  type DataMessageUIRenderProps,
 } from "@agent-ui/react";
+import {
+  AGENT_PLAN_ACTIVITY_TYPE,
+  projectAgentPlanActivity,
+} from "../../agent-contract/agent-plan-activity";
 
-import { projectAgentPlan } from "../../agent-ui/conversation/agents/agent-plan-projection";
-import { AgentPlan } from "@agent-ui/react";
-import { ConversationToolFallback } from "@agent-ui/react";
+function AgentPlanActivityMessage({
+  data,
+}: DataMessageUIRenderProps<unknown>) {
+  const plan = projectAgentPlanActivity(data);
+  if (plan === null) return null;
 
-function shouldUseFallback(
-  props: ConversationToolCallProps,
-): boolean {
-  return props.isError === true ||
-    props.status.type === "requires-action" ||
-    props.status.type === "incomplete";
-}
-
-export const MockAgentPlanToolUI: ConversationToolCallComponent = (props) => {
-  const view = projectAgentPlan(props.args);
-  if (shouldUseFallback(props) || view === null) {
-    return <ConversationToolFallback {...props} />;
-  }
   return (
     <div data-agent-ui-composition-part="plan">
-      <AgentPlan steps={view.steps} activeIndex={view.activeIndex} />
+      <AgentPlan
+        {...(plan.title === undefined ? {} : { title: plan.title })}
+        steps={plan.steps}
+        activeIndex={plan.activeIndex}
+      />
     </div>
   );
-};
+}
+
+export const agentPlanActivityMessageUI = defineDataMessageUI<unknown>({
+  name: `agui-activity/${AGENT_PLAN_ACTIVITY_TYPE}`,
+  render: AgentPlanActivityMessage,
+});

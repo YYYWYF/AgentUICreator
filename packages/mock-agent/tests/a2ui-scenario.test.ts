@@ -2,6 +2,7 @@ import { EventType, type AGUIEvent, type RunAgentInput } from "@ag-ui/core";
 import { describe, expect, it } from "vitest";
 import { runMockScenario } from "../src/scenario-runner.js";
 import { a2uiInteractiveOrderScenario } from "../src/builtins/a2ui-interactive-order.js";
+import { agentPlanScenario } from "../src/builtins/agent-plan.js";
 import { defineScenario, validateMockScenario, type MockScenario } from "../src/scenario.js";
 const input: RunAgentInput = { threadId: "thread", runId: "run", messages: [{ id: "user", role: "user", content: "Order" }], tools: [], context: [], state: {}, forwardedProps: {} };
 async function collect(scenario: MockScenario, request = input) {
@@ -18,6 +19,50 @@ describe("standard activity snapshots and generic A2UI action branches", () => {
     const events = await collect(defineScenario({ id: "generated", title: "Generated", steps: [{ type: "activity-snapshot", activityType: "status", content: {} }] }));
     expect(events[1]).toMatchObject({ type: EventType.ACTIVITY_SNAPSHOT, messageId: expect.any(String) });
     expect(events[1]).not.toHaveProperty("replace");
+  });
+  it("serializes Activity Delta steps as standard AG-UI events", async () => {
+    const events = await collect(defineScenario({
+      id: "activity-delta",
+      title: "Activity Delta",
+      steps: [
+        { type: "activity-snapshot", messageId: "plan-1", activityType: "agent-plan", content: { activeIndex: 0 } },
+        { type: "activity-delta", messageId: "plan-1", activityType: "agent-plan", patch: [{ op: "replace", path: "/activeIndex", value: 1 }] },
+      ],
+    }));
+    expect(events[1]).toMatchObject({
+      type: EventType.ACTIVITY_SNAPSHOT,
+      messageId: "plan-1",
+      activityType: "agent-plan",
+    });
+    expect(events[2]).toEqual({
+      type: EventType.ACTIVITY_DELTA,
+      messageId: "plan-1",
+      activityType: "agent-plan",
+      patch: [{ op: "replace", path: "/activeIndex", value: 1 }],
+    });
+    expect(events.some(event => event.type === EventType.CUSTOM)).toBe(false);
+  });
+  it("drives the AgentPlan showcase only with authoritative Activity events", async () => {
+    const events = await collect(agentPlanScenario);
+    const activityEvents = events.filter(event =>
+      event.type === EventType.ACTIVITY_SNAPSHOT || event.type === EventType.ACTIVITY_DELTA,
+    );
+    expect(activityEvents.map(event => event.type)).toEqual([
+      EventType.ACTIVITY_SNAPSHOT,
+      EventType.ACTIVITY_DELTA,
+      EventType.ACTIVITY_DELTA,
+      EventType.ACTIVITY_DELTA,
+      EventType.ACTIVITY_DELTA,
+    ]);
+    expect(activityEvents[0]).toMatchObject({
+      messageId: "agent-plan-1",
+      activityType: "agent-plan",
+      content: { activeIndex: 0, steps: expect.any(Array) },
+    });
+    expect(activityEvents.slice(1).map(event => event.type === EventType.ACTIVITY_DELTA ? event.patch : null))
+      .toEqual([1, 2, 3, 4].map(activeIndex => [{ op: "replace", path: "/activeIndex", value: activeIndex }]));
+    expect(events.some(event => event.type === EventType.TOOL_CALL_START || event.type === EventType.CUSTOM)).toBe(false);
+    expect(agentPlanScenario.resources).toEqual(["agent-plan-message"]);
   });
   it("offers a pluginless Integration resource and emits only the standard surface lifecycle", async () => {
     expect(a2uiInteractiveOrderScenario.resources).toEqual(["a2ui"]);
@@ -44,6 +89,11 @@ describe("standard activity snapshots and generic A2UI action branches", () => {
   });
   it("validates action branches as well as initial steps", () => {
     expect(() => validateMockScenario(defineScenario({ id: "invalid", title: "Invalid", steps: [], a2uiActions: { branches: { bad: [{ type: "activity-snapshot", activityType: " ", content: {} }] } } }))).toThrow("activityType");
+  });
+  it("validates required Activity Delta identity and JSON patches", () => {
+    expect(() => validateMockScenario(defineScenario({ id: "invalid-delta", title: "Invalid", steps: [
+      { type: "activity-delta", activityType: "agent-plan", messageId: " ", patch: [] },
+    ] }))).toThrow("messageId");
   });
 });
 

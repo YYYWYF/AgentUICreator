@@ -8,18 +8,21 @@ import {
 import {
   projectJobProgressState,
   projectRunCiJobArgs,
+  projectRunCiJobResult,
 } from "../../agent-ui/conversation/state/job-progress-projection";
 import {
   useAgentRuntimeActions,
   useAgentState,
 } from "../../runtime/context";
 
-function shouldUseFallback(
+function projectLifecycleOutcome(
   props: ConversationToolCallProps,
-): boolean {
-  return props.isError === true ||
-    props.status.type === "requires-action" ||
-    props.status.type === "incomplete";
+) {
+  if (props.isError === true) return { status: "failed" as const };
+  if (props.status.type !== "incomplete") return null;
+  if (props.status.reason === "cancelled") return { status: "cancelled" as const };
+  if (props.status.reason === "error") return { status: "failed" as const };
+  return null;
 }
 
 export const MockRunCiJobToolUI: ConversationToolCallComponent = (props) => {
@@ -27,8 +30,19 @@ export const MockRunCiJobToolUI: ConversationToolCallComponent = (props) => {
   const { abortRun } = useAgentRuntimeActions();
   const args = projectRunCiJobArgs(props.args);
   const progress = projectJobProgressState(state, props.toolCallId);
+  const result = projectRunCiJobResult(props.result);
+  const outcome = result.outcome ?? projectLifecycleOutcome(props);
 
-  if (shouldUseFallback(props) || args === null || progress === null) {
+  if (
+    props.status.type === "requires-action" ||
+    (props.status.type === "incomplete" && outcome === null) ||
+    args === null ||
+    progress === null ||
+    (outcome === null && (
+      props.status.type === "complete" ||
+      progress.stageIndex >= args.stages.length
+    ))
+  ) {
     return <ConversationToolFallback {...props} />;
   }
 
@@ -39,7 +53,8 @@ export const MockRunCiJobToolUI: ConversationToolCallComponent = (props) => {
       stageIndex={progress.stageIndex}
       stageProgress={progress.stageProgress}
       eta={progress.eta}
-      onCancel={abortRun}
+      {...(outcome === null ? { onCancel: abortRun } : { outcome })}
+      {...(result.elapsedMs === undefined ? {} : { elapsedMs: result.elapsedMs })}
     />
   );
 };

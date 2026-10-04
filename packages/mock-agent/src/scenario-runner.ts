@@ -191,6 +191,17 @@ async function* runSteps(
       continue;
     }
 
+    if (step.type === "activity-delta") {
+      if (!await waitForDelay(normalizeDelay(step.delayMs, 0), signal, timingScale)) return;
+      yield withSubagentRunId({
+        type: EventType.ACTIVITY_DELTA,
+        messageId: step.messageId,
+        activityType: step.activityType,
+        patch: structuredClone(step.patch),
+      }, step.subagentRunId ?? context.subagentRunId) as AGUIEvent;
+      continue;
+    }
+
     if (step.type === "reasoning") {
       const reasoningId = createId("reasoning");
       const messageId = createId("reasoning-message");

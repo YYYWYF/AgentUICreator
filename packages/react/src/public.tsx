@@ -856,8 +856,15 @@ export function ConversationThreadListItemByIndex({
 
 export interface ConversationAgentPlanProps
   extends Omit<React.ComponentProps<"div">, "children" | "steps" | "activeIndex"> {
-  steps: readonly string[];
+  title?: string | undefined;
+  steps: readonly (string | ConversationAgentPlanStep)[];
   activeIndex: number;
+}
+
+export interface ConversationAgentPlanStep {
+  id?: string | undefined;
+  label: string;
+  description?: string | undefined;
 }
 
 export function AgentPlan(props: Readonly<ConversationAgentPlanProps>) {
@@ -944,12 +951,18 @@ export function SubagentList(props: Readonly<ConversationSubagentListProps>) {
 export interface JobProgressStage {
   name: string;
   weight: number;
+  description?: string | undefined;
+}
+
+export interface ConversationJobProgressOutcome {
+  status: "success" | "partial" | "failed" | "cancelled";
+  summary?: string | undefined;
 }
 
 export interface JobProgressProps
   extends Omit<
     React.ComponentProps<"div">,
-    "children" | "title" | "stages" | "stageIndex" | "stageProgress" | "eta" | "onCancel"
+    "children" | "title" | "stages" | "stageIndex" | "stageProgress" | "eta" | "onCancel" | "outcome" | "elapsedMs"
   > {
   title: string;
   stages: readonly JobProgressStage[];
@@ -957,6 +970,8 @@ export interface JobProgressProps
   stageProgress: number;
   eta: string;
   onCancel?: (() => void) | undefined;
+  outcome?: ConversationJobProgressOutcome | undefined;
+  elapsedMs?: number | undefined;
 }
 
 /** Stable facade for the official assistant-ui standalone JobProgress Element. */

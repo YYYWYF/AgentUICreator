@@ -44,12 +44,14 @@ describe("createScenarioRegistry", () => {
       "approval-resume",
       "agent-state-sync",
       "nested-subagent-conversation",
+      "resumable-long-run",
       "cancel-before-first-output",
       "file-output",
       "a2ui-form-controls",
       "a2ui-interactive-order",
       "frontend-tool-open-dialog",
       "frontend-tool-fill-form",
+      "ask-user-question",
       "multi-message-response",
       "data-message-chart",
       "nested-subagent-task-group",
@@ -134,19 +136,24 @@ describe("createScenarioRegistry", () => {
     expect(canonical).not.toHaveProperty("steps");
   });
 
-  it("documents presentation projection before terminal Tool acknowledgement", () => {
+  it("documents authoritative plan Activity projection and separate AgentStatus presentation", () => {
     const registry = createScenarioRegistry({
       scenarios: builtinMockScenarios,
       defaultScenarioId: "reasoning-tool-success",
     });
 
     expect(registry.list().find(({ id }) => id === "agent-plan")?.reference?.eventFlow).toEqual([
-      "TOOL_CALL_START",
-      "TOOL_CALL_ARGS",
-      "application projector → AgentPlan",
-      "TOOL_CALL_END",
-      "TOOL_CALL_RESULT (acknowledgement)",
+      "RUN_STARTED",
+      "ACTIVITY_SNAPSHOT (agent-plan)",
+      "ACTIVITY_DELTA (activeIndex)",
+      "ACTIVITY_DELTA (activeIndex)",
+      "ACTIVITY_DELTA (activeIndex)",
+      "ACTIVITY_DELTA (all done)",
+      "TEXT_MESSAGE_*",
+      "RUN_FINISHED",
     ]);
+    expect(registry.list().find(({ id }) => id === "agent-plan")?.title)
+      .toBe("AG-UI Activity → AgentPlan");
     expect(registry.list().find(({ id }) => id === "agent-status")?.reference?.eventFlow).toEqual([
       "TOOL_CALL_START",
       "TOOL_CALL_ARGS",

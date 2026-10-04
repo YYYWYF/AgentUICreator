@@ -1,24 +1,48 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  projectAgentPlan,
-  projectAgentStatus,
-} from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/agents/index";
+import { projectAgentPlanActivity } from "../../../source-registry/registry/items/foundation-core-application/files/agent-contract/agent-plan-activity";
+import { projectAgentStatus } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/agents/index";
 
 describe("assistant-ui AgentPlan and AgentStatus projections", () => {
-  it("defensively projects plans and preserves empty plans", () => {
-    expect(projectAgentPlan({ steps: ["Inspect", 1, "  ", "Test"], activeIndex: 1.9 })).toEqual({
-      steps: ["Inspect", "Test"],
+  it("projects only complete Agent Plan activity without filling missing data", () => {
+    expect(projectAgentPlanActivity({
+      title: "Workspace update",
+      steps: [
+        { id: "inspect", label: "Inspect", description: "Read the active path." },
+        { label: "Update" },
+      ],
+      activeIndex: 1,
+    })).toEqual({
+      title: "Workspace update",
+      steps: [
+        { id: "inspect", label: "Inspect", description: "Read the active path." },
+        { label: "Update" },
+      ],
       activeIndex: 1,
     });
-    expect(projectAgentPlan({ steps: [], activeIndex: -4 })).toEqual({
+    expect(projectAgentPlanActivity({ steps: [], activeIndex: 0 })).toEqual({
       steps: [],
-      activeIndex: -4,
+      activeIndex: 0,
     });
-    expect(projectAgentPlan({ steps: ["A"], activeIndex: Number.NaN })).toBeNull();
-    expect(projectAgentPlan({ steps: ["A"], activeIndex: Number.POSITIVE_INFINITY })).toBeNull();
-    expect(projectAgentPlan({ steps: ["A"] })).toBeNull();
-    expect(projectAgentPlan(null)).toBeNull();
+    expect(projectAgentPlanActivity({ steps: [{ label: "A" }], activeIndex: 1 }))
+      .toEqual({ steps: [{ label: "A" }], activeIndex: 1 });
+  });
+
+  it.each([
+    null,
+    { steps: ["Inspect"], activeIndex: 0 },
+    { steps: [{ label: "Inspect" }] },
+    { steps: [{ label: "Inspect" }], activeIndex: 1.5 },
+    { steps: [{ label: "Inspect" }], activeIndex: -1 },
+    { steps: [{ label: "Inspect" }], activeIndex: 2 },
+    { steps: [{ description: "missing label" }], activeIndex: 0 },
+    { steps: [{ label: "  " }], activeIndex: 0 },
+    { steps: [{ label: "Inspect", id: 3 }], activeIndex: 0 },
+    { steps: [{ label: "Inspect", id: " " }], activeIndex: 0 },
+    { steps: [{ label: "Inspect", description: 4 }], activeIndex: 0 },
+    { title: 3, steps: [], activeIndex: 0 },
+  ])("returns null for incomplete or invalid Agent Plan activity %#", value => {
+    expect(projectAgentPlanActivity(value)).toBeNull();
   });
 
   it("derives status state from ToolCall lifecycle and keeps args presentation data", () => {

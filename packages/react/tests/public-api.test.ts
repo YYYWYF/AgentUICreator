@@ -22,6 +22,9 @@ describe("@agent-ui/react public API", () => {
     const source = await readFile(path.join(packageRoot, "src/public.tsx"), "utf8");
 
     for (const publicName of [
+      "AgentPlan",
+      "ConversationAgentPlanProps",
+      "ConversationAgentPlanStep",
       "ConversationThread",
       "ConversationSuggestions",
       "ConversationSuggestionTrigger",
@@ -31,6 +34,7 @@ describe("@agent-ui/react public API", () => {
       "ConversationTaskGroup",
       "ConversationTaskGroupRenderScope",
       "JobProgress",
+      "ConversationJobProgressOutcome",
       "JobProgressStage",
       "ConversationAgentStatus",
       "ConversationTaskTray",
