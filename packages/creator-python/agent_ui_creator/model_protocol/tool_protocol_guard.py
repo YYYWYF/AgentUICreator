@@ -23,7 +23,7 @@ from .errors import (
 )
 from .provider_trace import ProviderResponseTrace, ProviderResponseTraceCollector
 from .request_shape import request_shape
-from .textual_tool_intent import has_textual_tool_intent
+from .textual_tool_intent import textual_tool_signals
 from .trace import ModelCallTrace, ToolProtocolMetrics
 
 logger = logging.getLogger(__name__)
@@ -34,6 +34,13 @@ produce a valid structured tool call.
 Re-issue only the intended action using the provided structured tool interface.
 
 Do not explain the error in prose."""
+AMBIGUOUS_QUOTE_REPAIR_PROMPT = """Your previous response mixed ordinary text with a
+quoted, complete tool-call-shaped example. Clarify your intended response for this turn.
+
+If you intend to take an action, use one of the currently offered tools through a
+valid structured tool call. If you are only explaining the protocol, answer in
+clear text that does not resemble a tool call for this turn. Do not repeat the
+ambiguous quoted call."""
 ANSWER_ONLY_REPAIR_PROMPT = """Your previous response contained malformed tool intent.
 
 No tools are available in this turn. Answer the user's request using only text.
@@ -74,7 +81,7 @@ def _trace_keys(value: Mapping[Any, Any]) -> list[str]:
 @dataclass(frozen=True, slots=True)
 class GuardDecision:
     response: ModelResponse[Any]
-    status: Literal["final", "tool_call", "recovered", "repair", "truncated"]
+    status: Literal["final", "tool_call", "recovered", "repair", "repair_ambiguous", "truncated"]
 
 
 def _tool_name(tool: Any) -> str:
@@ -697,8 +704,14 @@ class ToolProtocolGuard:
             )
             return GuardDecision(response, "repair")
 
-        if self._has_textual_tool_intent(message):
+        signals = textual_tool_signals(message.content)
+        if signals.unquoted_call:
             return GuardDecision(response, "repair")
+        if signals.fenced_complete_call:
+            if not signals.outside_fences_text:
+                return GuardDecision(response, "repair")
+            if tools:
+                return GuardDecision(response, "repair_ambiguous")
         if require_tool:
             return GuardDecision(response, "repair")
         if _response_finish_reason(message) == "length":
@@ -728,11 +741,6 @@ class ToolProtocolGuard:
             if index != pseudo_index
         ).strip()
         return len(text) > 160
-
-    @staticmethod
-    def _has_textual_tool_intent(message: AIMessage) -> bool:
-        return has_textual_tool_intent(message.content)
-
 
 class ToolProtocolMiddleware(AgentMiddleware):
     """Trace, validate, recover, and at most once repair each model response."""
@@ -859,12 +867,13 @@ class ToolProtocolMiddleware(AgentMiddleware):
 
     def _repair_request(
         self, request: ModelRequest, response: ModelResponse[Any],
-        expected_tool_name: str | None,
+        expected_tool_name: str | None, *, ambiguous: bool = False,
     ) -> ModelRequest:
-        prompt = PROTOCOL_REPAIR_PROMPT if request.tools else ANSWER_ONLY_REPAIR_PROMPT
+        prompt = (AMBIGUOUS_QUOTE_REPAIR_PROMPT if ambiguous else
+                  PROTOCOL_REPAIR_PROMPT if request.tools else ANSWER_ONLY_REPAIR_PROMPT)
         repair_tools = request.tools
-        repair_tool_choice = request.tool_choice
-        if expected_tool_name is not None and request.tools:
+        repair_tool_choice = "auto" if ambiguous else request.tool_choice
+        if not ambiguous and expected_tool_name is not None and request.tools:
             response_message = _ai_message(response)
             if (response_message is not None
                     and response_message.invalid_tool_calls
@@ -982,21 +991,27 @@ Do not explain the error in prose."""
             recovery_decision = self.guard.inspect(recovered, recovery_request.tools)
             self._observe_protocol_counts()
             return self._finish_truncation_recovery(recovery_decision)
-        if decision.status != "repair":
+        if decision.status not in {"repair", "repair_ambiguous"}:
             return decision.response
+        ambiguous = decision.status == "repair_ambiguous"
         self.metrics.protocolRepairAttempts += 1
         expected_tool_name = _expected_repair_tool_name(response, request.tools)
         self._before_call()
-        repaired_request = self._repair_request(request, response, expected_tool_name)
+        repaired_request = self._repair_request(
+            request, response, expected_tool_name, ambiguous=ambiguous
+        )
         started_at = time.monotonic()
         repaired = handler(repaired_request)
         self._record(repaired, repaired_request, started_at)
         decision = self.guard.inspect(
-            repaired, repaired_request.tools, require_tool=bool(repaired_request.tools)
+            repaired, repaired_request.tools,
+            require_tool=bool(repaired_request.tools) and not ambiguous,
         )
         self._observe_protocol_counts()
-        if _repair_response_matches(
-            decision, expected_tool_name, tools_available=bool(repaired_request.tools)
+        if (ambiguous and decision.status in {"final", "tool_call", "recovered"}) or (
+            not ambiguous and _repair_response_matches(
+                decision, expected_tool_name, tools_available=bool(repaired_request.tools)
+            )
         ):
             self.metrics.protocolRepairSuccesses += 1
             return decision.response
@@ -1029,21 +1044,27 @@ Do not explain the error in prose."""
             recovery_decision = self.guard.inspect(recovered, recovery_request.tools)
             self._observe_protocol_counts()
             return self._finish_truncation_recovery(recovery_decision)
-        if decision.status != "repair":
+        if decision.status not in {"repair", "repair_ambiguous"}:
             return decision.response
+        ambiguous = decision.status == "repair_ambiguous"
         self.metrics.protocolRepairAttempts += 1
         expected_tool_name = _expected_repair_tool_name(response, request.tools)
         self._before_call()
-        repaired_request = self._repair_request(request, response, expected_tool_name)
+        repaired_request = self._repair_request(
+            request, response, expected_tool_name, ambiguous=ambiguous
+        )
         started_at = time.monotonic()
         repaired = await handler(repaired_request)
         self._record(repaired, repaired_request, started_at)
         decision = self.guard.inspect(
-            repaired, repaired_request.tools, require_tool=bool(repaired_request.tools)
+            repaired, repaired_request.tools,
+            require_tool=bool(repaired_request.tools) and not ambiguous,
         )
         self._observe_protocol_counts()
-        if _repair_response_matches(
-            decision, expected_tool_name, tools_available=bool(repaired_request.tools)
+        if (ambiguous and decision.status in {"final", "tool_call", "recovered"}) or (
+            not ambiguous and _repair_response_matches(
+                decision, expected_tool_name, tools_available=bool(repaired_request.tools)
+            )
         ):
             self.metrics.protocolRepairSuccesses += 1
             return decision.response

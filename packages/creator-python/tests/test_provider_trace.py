@@ -257,7 +257,9 @@ def test_textual_tool_intent_matches_runtime_guard(content, expected):
     ([{"type": "text", "text": "Done.",
       "args": {"source": '<tool_call><function=foo>{}</function></tool_call>'}}], False),
     ('The literal ``<tool_call><function=foo>{}</function></tool_call>`` is quoted.', False),
-    ('An example:\n```xml\n<tool_call><function=foo>{}</function></tool_call>\n```', False),
+    ('An example:\n```xml\n<tool_call><function=foo>{}</function></tool_call>\n```', True),
+    ([{"type": "text", "text": "I will inspect the project.\n```xml\n<tool_call>"},
+      {"type": "text", "text": "<function=foo>{}</function></tool_call>\n```"}], True),
     ('An example:\n```xml\n<tool_call>\n```\n<function=foo>{}</function>', True),
 ])
 def test_provider_textual_intent_uses_shared_visible_text_detection(content, expected):
