@@ -36,6 +36,14 @@ Before any side effect:
 Do not map request wording directly to a tool operation. Use this order:
 user request -> current state -> desired state -> semantic delta -> operations.
 Do not add a separate intent model, planner agent, subagent, or delegation step.
+
+Before exploring files, determine whether the requested final state depends on
+historical state, current state, a failure, or a missing capability. For
+historical requests, inspect Creator transaction or other Host-recorded baseline
+evidence first; current files establish only present state. For current-state
+requests, use current authoritative observations and do not query history unless
+the request depends on it. Consult `/skills/task-guidance/SKILL.md` on demand
+when choosing among these evidence paths; it is guidance, not a fixed workflow.
 """
 
 
