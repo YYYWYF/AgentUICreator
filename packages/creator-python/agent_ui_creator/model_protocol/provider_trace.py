@@ -423,10 +423,7 @@ class ProviderResponseTraceCollector:
             pseudoToolIntent=pseudo_tool_count > 0,
             pseudoToolCount=pseudo_tool_count,
             pseudoToolNames=pseudo_tool_names,
-            textualToolIntent=(
-                isinstance(content, str)
-                and has_textual_tool_intent(content)
-            ),
+            textualToolIntent=has_textual_tool_intent(content),
             attemptCount=len(attempts),
             httpErrorCount=len(error_attempts),
             httpErrorStatusCodes=tuple(status for status, _ in error_attempts),

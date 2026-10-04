@@ -16,6 +16,7 @@ from agent_ui_creator.model_protocol import (
     ToolProtocolMetrics,
     ToolProtocolMiddleware,
 )
+from agent_ui_creator.model_protocol.textual_tool_intent import textual_tool_signals
 from agent_ui_creator.source_tools.models import MutateUIPluginSourceInput
 from agent_ui_creator.app_ui_model.mutation_tool import APP_UI_MODEL_MUTATION_TOOL_SCHEMA
 
@@ -668,6 +669,280 @@ def test_discussion_of_literal_tool_call_tag_is_final_text():
     decision, _ = inspect(AIMessage(content='The string `<tool_call>` is just an example.'))
 
     assert decision.status == "final"
+
+
+_XML_CALL = '<tool_call><function=workspace__list_directory>{"path":"."}</function></tool_call>'
+_FENCED_CALL = f"```xml\n{_XML_CALL}\n```"
+_AMBIGUOUS_CALL = f"我先看一下项目结构和修改历史。\n\n{_FENCED_CALL}"
+
+
+def _visible_blocks(value):
+    split = len(value) // 2
+    return [{"type": "text", "text": value[:split]},
+            {"type": "text", "text": value[split:]}]
+
+
+@pytest.mark.parametrize("as_blocks", [False, True])
+def test_shared_signals_keep_quoted_complete_calls_separate_from_literals(as_blocks):
+    for content, unquoted, fenced, literal in [
+        (_XML_CALL, True, False, False),
+        (_AMBIGUOUS_CALL, False, True, True),
+        ("The literal `<tool_call>` names a tag.", False, False, True),
+    ]:
+        signals = textual_tool_signals(_visible_blocks(content) if as_blocks else content)
+        assert signals.unquoted_call is unquoted
+        assert signals.fenced_complete_call is fenced
+        assert signals.quoted_literal is literal
+
+
+@pytest.mark.parametrize("content, expected", [
+    (_XML_CALL, "repair"),
+    ([{"type": "text", "text": _XML_CALL}], "repair"),
+    ([{"type": "text", "text": _XML_CALL[:20]},
+      {"type": "text", "text": _XML_CALL[20:]}], "repair"),
+    (f"The literal `{_XML_CALL}` is quoted.", "final"),
+    (f"The literal ``{_XML_CALL}`` is quoted.", "final"),
+    (f"A quoted protocol example:\n```xml\n{_XML_CALL}\n```\nIt is data.", "repair_ambiguous"),
+    (f"```xml\n{_XML_CALL}\n```", "repair"),
+    (f"A quoted example:\n```xml\n{_XML_CALL}\n```\n{_XML_CALL}", "repair"),
+    ([{"type": "reasoning", "text": _XML_CALL},
+      {"type": "image_url", "image_url": _XML_CALL}], "final"),
+    ([{"type": "text", "name": "unoffered", "args": {"source": _XML_CALL}}], "repair"),
+])
+def test_textual_intent_uses_only_unquoted_visible_text(content, expected):
+    decision, _ = inspect(AIMessage(content=content))
+
+    assert decision.status == expected
+    assert decision.response.result[0].tool_calls == []
+
+
+@pytest.mark.parametrize("as_blocks", [False, True])
+@pytest.mark.parametrize("content, with_tools, status", [
+    (_XML_CALL, True, "repair"),
+    (_FENCED_CALL, True, "repair"),
+    (_AMBIGUOUS_CALL, True, "repair_ambiguous"),
+    (f"This is a protocol example:\n{_FENCED_CALL}\nIt is quoted data.", False, "final"),
+    ("The literal `<tool_call>` names a tag.", True, "final"),
+])
+def test_visible_call_shape_decisions_for_strings_and_continuous_text_blocks(
+    as_blocks, content, with_tools, status
+):
+    message = AIMessage(content=_visible_blocks(content) if as_blocks else content)
+    decision = ToolProtocolGuard(ToolProtocolMetrics()).inspect(
+        ModelResponse(result=[message]), [read_file] if with_tools else []
+    )
+    assert decision.status == status
+    assert decision.response.result[0].tool_calls == []
+
+
+@pytest.mark.parametrize("async_call", [False, True])
+@pytest.mark.parametrize("as_blocks", [False, True])
+@pytest.mark.parametrize("second, expected", [
+    (AIMessage(content="", tool_calls=[{
+        "name": "read_file", "args": {"file_path": "/src/a.ts"}, "id": "fixed",
+    }]), "tool_call"),
+    (AIMessage(content="I have not inspected or modified the project."), "final"),
+    (AIMessage(content=_XML_CALL), "failure"),
+    (AIMessage(content="", tool_calls=[{
+        "name": "unoffered", "args": {}, "id": "bad",
+    }]), "failure"),
+])
+def test_ambiguous_quote_gets_one_optional_tool_repair(
+    async_call, as_blocks, second, expected
+):
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[read_file], tool_choice="required")
+    first = AIMessage(content=(
+        _visible_blocks(_AMBIGUOUS_CALL) if as_blocks else _AMBIGUOUS_CALL
+    ))
+    responses = iter([ModelResponse(result=[first]), ModelResponse(result=[second])])
+    calls = []
+
+    def handler(current_request):
+        calls.append(current_request)
+        return next(responses)
+
+    async def async_handler(current_request):
+        return handler(current_request)
+
+    def invoke():
+        return (asyncio.run(middleware.awrap_model_call(request, async_handler))
+                if async_call else middleware.wrap_model_call(request, handler))
+
+    if expected == "failure":
+        with pytest.raises(ModelToolProtocolError):
+            invoke()
+        assert middleware.metrics.protocolRepairFailures == 1
+    else:
+        result = invoke()
+        assert result.result[0] is second
+        assert middleware.metrics.protocolRepairSuccesses == 1
+        assert bool(result.result[0].tool_calls) is (expected == "tool_call")
+    assert len(calls) == 2
+    assert calls[1].tool_choice == "auto"
+    assert [tool.name for tool in calls[1].tools] == ["read_file"]
+    assert "currently offered tools" in calls[1].messages[-1].content
+    assert middleware.metrics.protocolRepairAttempts == 1
+
+
+@pytest.mark.parametrize("async_call", [False, True])
+@pytest.mark.parametrize("as_blocks", [False, True])
+def test_no_tool_protocol_example_finishes_without_opening_tools(async_call, as_blocks):
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[])
+    content = f"Here is a protocol example:\n{_FENCED_CALL}\nThis is documentation."
+    response = ModelResponse(result=[AIMessage(content=(
+        _visible_blocks(content) if as_blocks else content
+    ))])
+    calls = []
+
+    def handler(current_request):
+        calls.append(current_request)
+        return response
+
+    async def async_handler(current_request):
+        return handler(current_request)
+
+    result = (asyncio.run(middleware.awrap_model_call(request, async_handler))
+              if async_call else middleware.wrap_model_call(request, handler))
+    assert result is response
+    assert len(calls) == 1
+    assert middleware.metrics.protocolRepairAttempts == 0
+
+
+@pytest.mark.parametrize("async_call", [False, True])
+def test_text_block_protocol_repair_returns_only_valid_structured_call(async_call):
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+    first = ModelResponse(result=[AIMessage(content=[
+        {"type": "text", "text": _XML_CALL[:18]},
+        {"type": "text", "text": _XML_CALL[18:]},
+    ])])
+    second = ModelResponse(result=[AIMessage(content="", tool_calls=[{
+        "name": "read_file", "args": {"file_path": "/src/a.ts"}, "id": "fixed",
+    }])])
+    requests = []
+    responses = iter([first, second])
+
+    def handler(current_request):
+        requests.append(current_request)
+        return next(responses)
+
+    async def async_handler(current_request):
+        return handler(current_request)
+
+    result = (
+        asyncio.run(middleware.awrap_model_call(request, async_handler))
+        if async_call else middleware.wrap_model_call(request, handler)
+    )
+
+    assert result is second
+    assert len(requests) == 2
+    assert [tool.name for tool in requests[1].tools] == ["read_file"]
+    assert middleware.metrics.protocolRepairAttempts == 1
+    assert middleware.metrics.protocolRepairSuccesses == 1
+
+
+@pytest.mark.parametrize("async_call", [False, True])
+@pytest.mark.parametrize("second", [
+    AIMessage(content=_XML_CALL),
+    AIMessage(content="", tool_calls=[{"name": "unoffered", "args": {}, "id": "bad"}]),
+])
+def test_textual_repair_fails_closed_after_one_attempt(async_call, second):
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+    responses = iter([
+        ModelResponse(result=[AIMessage(content=_XML_CALL)]),
+        ModelResponse(result=[second]),
+    ])
+    calls = []
+
+    def handler(current_request):
+        calls.append(current_request)
+        return next(responses)
+
+    async def async_handler(current_request):
+        return handler(current_request)
+
+    with pytest.raises(ModelToolProtocolError):
+        if async_call:
+            asyncio.run(middleware.awrap_model_call(request, async_handler))
+        else:
+            middleware.wrap_model_call(request, handler)
+
+    assert len(calls) == 2
+    assert middleware.metrics.protocolRepairAttempts == 1
+    assert middleware.metrics.protocolRepairFailures == 1
+
+
+@pytest.mark.parametrize("async_call", [False, True])
+def test_answer_only_protocol_explanation_keeps_tools_unavailable(async_call):
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[])
+    explanation = AIMessage(content=f"The malformed call was:\n```xml\n{_XML_CALL}\n```\nIt is not executable.")
+    calls = []
+
+    def handler(current_request):
+        calls.append(current_request)
+        return ModelResponse(result=[explanation])
+
+    async def async_handler(current_request):
+        return handler(current_request)
+
+    result = (
+        asyncio.run(middleware.awrap_model_call(request, async_handler))
+        if async_call else middleware.wrap_model_call(request, handler)
+    )
+
+    assert result.result[0] is explanation
+    assert len(calls) == 1
+    assert middleware.metrics.protocolRepairAttempts == 0
+
+
+def test_answer_only_malformed_call_repairs_as_text_without_tools():
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[])
+    responses = iter([
+        ModelResponse(result=[AIMessage(content=_XML_CALL)]),
+        ModelResponse(result=[AIMessage(content="The prior response used malformed protocol text.")]),
+    ])
+    calls = []
+
+    def handler(current_request):
+        calls.append(current_request)
+        return next(responses)
+
+    result = middleware.wrap_model_call(request, handler)
+
+    assert result.result[0].content.startswith("The prior response")
+    assert len(calls) == 2
+    assert calls[1].tools == []
+    assert calls[1].tool_choice == request.tool_choice
+    assert "No tools are available" in calls[1].messages[-1].content
+    assert middleware.metrics.protocolRepairSuccesses == 1
+
+
+def test_answer_only_repair_rejects_unoffered_structured_call():
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[])
+    responses = iter([
+        ModelResponse(result=[AIMessage(content=_XML_CALL)]),
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "read_file", "args": {"file_path": "/src/a.ts"}, "id": "bad",
+        }])]),
+    ])
+    calls = []
+
+    def handler(current_request):
+        calls.append(current_request)
+        return next(responses)
+
+    with pytest.raises(ModelToolProtocolError):
+        middleware.wrap_model_call(request, handler)
+
+    assert len(calls) == 2
+    assert not calls[1].tools
+    assert middleware.metrics.protocolRepairFailures == 1
 
 
 @pytest.mark.parametrize("metadata_key", ["finish_reason", "stop_reason"])
