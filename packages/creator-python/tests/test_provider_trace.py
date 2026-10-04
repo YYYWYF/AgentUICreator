@@ -247,6 +247,31 @@ def test_textual_tool_intent_matches_runtime_guard(content, expected):
     assert trace.toolCallCount == 0
 
 
+@pytest.mark.parametrize("content, expected", [
+    ([{"type": "text", "text": '<tool_call><function=foo>{}</function></tool_call>'}], True),
+    ([{"type": "text", "text": '<tool_call><function=foo>'},
+      {"type": "text", "text": '{}</function></tool_call>'}], True),
+    (["<tool_call><function=foo>", "{}</function></tool_call>"], True),
+    ([{"type": "reasoning", "text": '<tool_call><function=foo>{}</function></tool_call>'},
+      {"type": "image_url", "image_url": '<tool_call>'}], False),
+    ([{"type": "text", "text": "Done.",
+      "args": {"source": '<tool_call><function=foo>{}</function></tool_call>'}}], False),
+    ('The literal ``<tool_call><function=foo>{}</function></tool_call>`` is quoted.', False),
+    ('An example:\n```xml\n<tool_call><function=foo>{}</function></tool_call>\n```', False),
+    ('An example:\n```xml\n<tool_call>\n```\n<function=foo>{}</function>', True),
+])
+def test_provider_textual_intent_uses_shared_visible_text_detection(content, expected):
+    collector = ProviderResponseTraceCollector(enabled=True)
+    collector.on_response(_response({
+        "choices": [{"finish_reason": "stop", "message": {"content": content}}]
+    }))
+
+    trace = collector.pop_successful_completion()
+    assert trace is not None
+    assert trace.textualToolIntent is expected
+    assert trace.toolCallCount == 0
+
+
 def test_retry_attempts_are_attached_only_to_the_following_success():
     collector = ProviderResponseTraceCollector(enabled=True)
     collector.on_response(

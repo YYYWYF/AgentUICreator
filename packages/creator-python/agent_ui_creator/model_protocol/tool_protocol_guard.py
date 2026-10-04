@@ -34,6 +34,10 @@ produce a valid structured tool call.
 Re-issue only the intended action using the provided structured tool interface.
 
 Do not explain the error in prose."""
+ANSWER_ONLY_REPAIR_PROMPT = """Your previous response contained malformed tool intent.
+
+No tools are available in this turn. Answer the user's request using only text.
+Do not emit a tool call or repeat the malformed call as your final answer."""
 TRUNCATION_RECOVERY_PROMPT = """Your previous response reached the output limit before completing the turn.
 
 Do not repeat the analysis.
@@ -440,8 +444,10 @@ def _expected_repair_tool_name(
 
 
 def _repair_response_matches(
-    decision: GuardDecision, expected_tool_name: str | None
+    decision: GuardDecision, expected_tool_name: str | None, *, tools_available: bool = True
 ) -> bool:
+    if not tools_available:
+        return decision.status == "final"
     if decision.status not in {"tool_call", "recovered"}:
         return False
     if expected_tool_name is None:
@@ -725,8 +731,6 @@ class ToolProtocolGuard:
 
     @staticmethod
     def _has_textual_tool_intent(message: AIMessage) -> bool:
-        if not isinstance(message.content, str):
-            return False
         return has_textual_tool_intent(message.content)
 
 
@@ -857,10 +861,10 @@ class ToolProtocolMiddleware(AgentMiddleware):
         self, request: ModelRequest, response: ModelResponse[Any],
         expected_tool_name: str | None,
     ) -> ModelRequest:
-        prompt = PROTOCOL_REPAIR_PROMPT
+        prompt = PROTOCOL_REPAIR_PROMPT if request.tools else ANSWER_ONLY_REPAIR_PROMPT
         repair_tools = request.tools
         repair_tool_choice = request.tool_choice
-        if expected_tool_name is not None:
+        if expected_tool_name is not None and request.tools:
             response_message = _ai_message(response)
             if (response_message is not None
                     and response_message.invalid_tool_calls
@@ -987,9 +991,13 @@ Do not explain the error in prose."""
         started_at = time.monotonic()
         repaired = handler(repaired_request)
         self._record(repaired, repaired_request, started_at)
-        decision = self.guard.inspect(repaired, repaired_request.tools, require_tool=True)
+        decision = self.guard.inspect(
+            repaired, repaired_request.tools, require_tool=bool(repaired_request.tools)
+        )
         self._observe_protocol_counts()
-        if _repair_response_matches(decision, expected_tool_name):
+        if _repair_response_matches(
+            decision, expected_tool_name, tools_available=bool(repaired_request.tools)
+        ):
             self.metrics.protocolRepairSuccesses += 1
             return decision.response
         self._record_repair_drift(
@@ -1030,9 +1038,13 @@ Do not explain the error in prose."""
         started_at = time.monotonic()
         repaired = await handler(repaired_request)
         self._record(repaired, repaired_request, started_at)
-        decision = self.guard.inspect(repaired, repaired_request.tools, require_tool=True)
+        decision = self.guard.inspect(
+            repaired, repaired_request.tools, require_tool=bool(repaired_request.tools)
+        )
         self._observe_protocol_counts()
-        if _repair_response_matches(decision, expected_tool_name):
+        if _repair_response_matches(
+            decision, expected_tool_name, tools_available=bool(repaired_request.tools)
+        ):
             self.metrics.protocolRepairSuccesses += 1
             return decision.response
         self._record_repair_drift(
