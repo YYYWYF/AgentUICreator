@@ -16,10 +16,6 @@
       "target": "agent-ui/conversation/human-tool-uis/ask-user-question.tsx"
     },
     {
-      "source": "files/agent-ui/conversation/human-tool-uis/question-flow.css",
-      "target": "agent-ui/conversation/human-tool-uis/question-flow.css"
-    },
-    {
       "source": "files/plugins/ask-user-question-demo/definition.ts",
       "target": "plugins/ask-user-question-demo/definition.ts"
     },

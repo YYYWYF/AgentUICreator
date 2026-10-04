@@ -8,9 +8,12 @@ export const zhCN = {
     restore: "恢复业务面板",
   },
   humanQuestion: {
+    back: "上一步",
+    next: "下一步",
     submit: "确认选择",
     submitting: "正在提交选择…",
     answered: "已选择",
+    noneSelected: "未选择",
     unavailable: "此问题暂时无法回答",
   },
   conversation: {

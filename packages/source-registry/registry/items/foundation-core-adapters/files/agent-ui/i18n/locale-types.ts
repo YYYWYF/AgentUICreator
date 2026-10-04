@@ -10,9 +10,12 @@ export interface AgentUILocaleMessages {
     restore: string;
   };
   humanQuestion: {
+    back: string;
+    next: string;
     submit: string;
     submitting: string;
     answered: string;
+    noneSelected: string;
     unavailable: string;
   };
   conversation: {
