@@ -462,35 +462,79 @@ async def _domain_write_agent_result(
                     "initialRoute": productized_result.route,
                     "report": report[:500],
                 })
-            reviewed = await engine.run(messages, route_review_context=report)
-            if isinstance(reviewed, CreatorResolveResult) and reviewed.route in {
-                "unscoped_general", "scoped_general_handoff"
-            } and reviewed.selection.taskIntent == "modify" and not productized_result.selection.explicitReadOnly:
+            try:
+                reviewed = await engine.run(messages, route_review_context=report)
+            except Exception as error:
                 if activity.logger is not None:
                     activity.logger.record("creator_route_review_finished", {
-                        "finalRoute": reviewed.route,
-                        "reason": "host_review_confirmed_modify_intent",
-                        "finalTaskIntent": reviewed.selection.taskIntent,
+                        "finalRoute": "failed", "decision": "review_failed",
+                        "completion": "failed", "reason": str(error)[:500],
                     })
-                if development_authority is not None:
-                    development_authority.begin_task(
-                        task_id=activity.run_id, request_id=activity.run_id,
-                        user_message=current_user_message,
-                        intent=reviewed.selection.developmentIntent,
+                raise RuntimeError("Creator 路由复核失败，原只读任务未完成。") from error
+
+            selection = getattr(reviewed, "selection", None)
+            decision = getattr(selection, "decision", None)
+            final_route = getattr(reviewed, "route", "productized")
+            if isinstance(reviewed, ProductizedOperationRun):
+                final_route = {
+                    "needs_clarification": "clarification",
+                    "unsupported_product_action": "unsupported",
+                }.get(decision, "productized")
+            if final_route == "reviewed_action":
+                final_route = "productized"
+            try:
+                if isinstance(reviewed, ProductizedOperationRun):
+                    if reviewed.operation_result is not None:
+                        raise RuntimeError("路由复核在 Host 授权前执行了修改。")
+                    final_result = reviewed
+                elif not isinstance(reviewed, CreatorResolveResult):
+                    raise TypeError("Creator 路由复核返回未知结果。")
+                elif reviewed.route in {"read_only_general", "answer_only"}:
+                    final_result = await _domain_read_agent_result(
+                        settings, messages, activity, thread_id, event_sink, telemetry,
+                        diagnostics=diagnostics, checkpointer=checkpointer,
+                        inspect_read_only=True, answer_only=reviewed.route == "answer_only",
                     )
-                if execution_context is not None:
-                    execution_context.permission = "domain_write"
-                return await _general_domain_write_agent_result(
-                    settings, messages, activity, mutation_coordinator, diagnostics,
-                    thread_id, event_sink, telemetry, handoff=reviewed.handoff,
-                    checkpointer=checkpointer, development_authority=development_authority,
-                )
+                    if isinstance(getattr(final_result, "text", None), str) and final_result.text.startswith(review_marker + "\n"):
+                        raise RuntimeError("路由复核后只读 Agent 未给出最终答复。")
+                elif reviewed.route in {"unscoped_general", "scoped_general_handoff", "reviewed_action"}:
+                    if selection.taskIntent != "modify" or productized_result.selection.explicitReadOnly:
+                        raise RuntimeError("原请求的只读权限不允许路由复核升级为修改。")
+                    if development_authority is not None:
+                        development_authority.begin_task(
+                            task_id=activity.run_id, request_id=activity.run_id,
+                            user_message=current_user_message,
+                            intent=selection.developmentIntent,
+                        )
+                    if execution_context is not None:
+                        execution_context.permission = "domain_write"
+                    if reviewed.route == "reviewed_action":
+                        final_result = await engine.execute_reviewed_action(
+                            reviewed.review_snapshot, reviewed.selected_action,
+                            selection, reviewed.presentation,
+                        )
+                    else:
+                        final_result = await _general_domain_write_agent_result(
+                            settings, messages, activity, mutation_coordinator, diagnostics,
+                            thread_id, event_sink, telemetry, handoff=reviewed.handoff,
+                            checkpointer=checkpointer, development_authority=development_authority,
+                        )
+                else:
+                    raise RuntimeError(f"路由复核返回未支持的路线：{reviewed.route}")
+            except Exception as error:
+                if activity.logger is not None:
+                    activity.logger.record("creator_route_review_finished", {
+                        "finalRoute": "failed", "decision": "review_failed",
+                        "completion": "failed", "reason": str(error)[:500],
+                    })
+                raise
             if activity.logger is not None:
                 activity.logger.record("creator_route_review_finished", {
-                    "finalRoute": getattr(reviewed, "route", "productized"),
-                    "reason": "original_request_does_not_authorize_write",
+                    "finalRoute": final_route, "decision": decision,
+                    "completion": getattr(final_result, "completion", "success"),
+                    "finalTaskIntent": getattr(selection, "taskIntent", None),
                 })
-            return replace(read_result, text=report)
+            return final_result
         return read_result
     if execution_context is not None:
         execution_context.permission = "domain_write"

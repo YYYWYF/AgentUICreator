@@ -18,14 +18,14 @@ from agent_ui_creator.operations import (
 
 @pytest.mark.live_model
 @pytest.mark.skipif(os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1", reason="Set CREATOR_RUN_LIVE_MODEL=1.")
-@pytest.mark.parametrize("request,expected", [
+@pytest.mark.parametrize("user_request,expected", [
     ("把我新增的功能去掉，回到模板原本的样子", "modify"),
     ("先查一下我比模板多了哪些功能，不要修改", "read_only"),
     ("告诉我怎么恢复，暂时别动工程", "read_only"),
     ("先查清楚新增了什么，然后帮我恢复", "modify"),
     ("还是刚装好时那个样子吧，帮我改回去", "modify"),
 ])
-def test_live_final_result_intent_stays_stable_across_candidates_and_history(request, expected):
+def test_live_final_result_intent_stays_stable_across_candidates_and_history(user_request, expected):
     settings = CreatorModelSettings.from_environment()
     base = _conversation_thread_list_context(mounted=True)
     variants = [
@@ -40,13 +40,19 @@ def test_live_final_result_intent_stays_stable_across_candidates_and_history(req
         ),
     ]
     for index, context in enumerate(variants):
-        selector = CreatorActionSelector(model=create_creator_chat_model(settings), max_retries=settings.max_retries)
+        selector = CreatorActionSelector(
+            model=create_creator_chat_model(settings, thread_id=f"live-final-result-{index}"),
+            max_retries=settings.max_retries,
+        )
         result = asyncio.run(selector.select(
-            request, context,
+            user_request, context,
             recent_conversation=([{"role": "user", "content": "之前先看看界面。"}] if index == 1 else None),
         ))
         assert result.taskIntent == expected
-        assert (result.decision in {"read_only_analysis", "answer_only"}) == (expected == "read_only")
+        if expected == "modify":
+            assert result.decision in {"select_action", "select_intent", "general_change", "needs_clarification"}
+        else:
+            assert result.decision in {"read_only_analysis", "answer_only"}
 
 
 def _semantic_action_id(

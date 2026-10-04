@@ -459,8 +459,9 @@ def _parse_selector_response(
         return _parse_route_response(line[len("READ_ONLY_EXPLICIT "):], choices).model_copy(
             update={"taskIntent": "read_only", "explicitReadOnly": True}
         )
-    # Persisted and composition-only callers can still supply the old route line.
-    return _parse_route_response(response, choices)
+    raise _InvalidActionSelection(
+        "protocol_parse_failed", "Selector response must include a task intent."
+    )
 
 
 def _parse_route_response(
@@ -615,7 +616,7 @@ class CreatorIntentSelector:
             if route_review_context is not None:
                 prompt_context["routeReview"] = {
                     "executionAgentReport": route_review_context[:500],
-                    "instruction": "Reassess the original user request's final result and Host choices. The execution agent cannot grant itself write permission. Explicit read-only instructions remain read-only.",
+                    "instruction": "Reassess the original user's final result. A reviewed modification may use GENERAL or a supplied SELECT choice; Host authorization precedes execution. Explicit read-only instructions remain read-only.",
                 }
             context_json = json.dumps(
                 prompt_context,
@@ -685,12 +686,6 @@ class CreatorIntentSelector:
                     selection = _parse_selector_response(response.text, choices)
                     self.metrics.parsedSelection = selection.model_dump(mode="json")
                     self.validate_selection(selection, normalized_context)
-                    if (route_review_context is not None
-                            and selection.decision in {"select_action", "select_intent"}):
-                        raise _InvalidActionSelection(
-                            "intent_route_conflict",
-                            "A reviewed modification must use the General Host authorization path.",
-                        )
                     if (selection.decision == "general_change"
                             and selection.developmentIntent == "explicit"
                             and not explicitly_commissions_plugin_development(user_message)):
@@ -822,6 +817,10 @@ class CreatorIntentSelector:
         context: CreatorActionSelectorContext | Mapping[str, Any],
     ) -> None:
         normalized_context = _coerce_context(context)
+        if selection.taskIntent == "unknown":
+            raise _InvalidActionSelection(
+                "protocol_parse_failed", "Selector selection must include a task intent."
+            )
         if selection.taskIntent == "modify" and selection.decision in {
             "answer_only", "read_only_analysis"
         } or selection.taskIntent == "read_only" and selection.decision in {

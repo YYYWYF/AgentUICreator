@@ -55,15 +55,56 @@ def test_conflicting_modify_output_never_falls_back_to_read_only():
         asyncio.run(selector.select("先检查再恢复", _unified_context()))
     assert selector.metrics.modelCalls == 2
     assert selector.metrics.repairReasonCode == "intent_route_conflict"
+
+
+def test_missing_intent_repairs_inspect_as_read_only():
+    selector = CreatorActionSelector(model=StaticChatModel(["INSPECT", "READ_ONLY INSPECT"]))
+    result = asyncio.run(selector.select("检查工程", _unified_context()))
+    assert (result.taskIntent, result.decision) == ("read_only", "read_only_analysis")
+    assert selector.metrics.repairCalls == 1
+    assert selector.metrics.repairReasonCode == "protocol_parse_failed"
+
+
+@pytest.mark.parametrize("line", ["GENERAL", "SELECT A1"])
+def test_bare_write_route_never_gets_modify_authority(line):
+    selector = CreatorActionSelector(model=StaticChatModel([line, line]))
+    with pytest.raises(CreatorActionSelectionError):
+        asyncio.run(selector.select("请修改项目", _unified_context()))
+    assert selector.metrics.modelCalls == 2
+    assert selector.metrics.repairReasonCode == "protocol_parse_failed"
+
+
+def test_modify_inspect_repaired_to_bare_inspect_never_executes_read_only():
+    selector = CreatorActionSelector(model=StaticChatModel(["MODIFY INSPECT", "INSPECT"]))
+    with pytest.raises(CreatorActionSelectionError):
+        asyncio.run(selector.select("检查后修改", _unified_context()))
+    assert selector.metrics.repairCalls == 1
+
+
+def test_valid_selector_line_needs_one_call():
+    selector = CreatorActionSelector(model=StaticChatModel(["MODIFY GENERAL"]))
+    assert asyncio.run(selector.select("修改项目", _unified_context())).decision == "general_change"
+    assert selector.metrics.modelCalls == 1
+
+
+def test_route_review_accepts_host_action_and_authoring_target():
+    for line, decision in [("MODIFY SELECT A1", "select_action"),
+                           ("MODIFY SELECT A3", "select_intent")]:
+        selector = CreatorActionSelector(model=StaticChatModel([line]))
+        result = asyncio.run(selector.select(
+            "修改项目", _unified_context(), route_review_context="read agent report",
+        ))
+        assert result.decision == decision
+        assert selector.metrics.modelCalls == 1
 from agent_ui_creator.model_settings import CreatorSelectorModelSettings
 
 
 @pytest.mark.parametrize("line,intent", [
-    ("GENERAL", "none"),
-    ("GENERAL DEVELOPMENT_DECISION", "needs_decision"),
-    ("GENERAL DEVELOPMENT_EXPLICIT", "explicit"),
-    ("GENERAL DEVELOPMENT_CONDITIONAL", "conditional"),
-    ("GENERAL DEVELOPMENT_PROHIBITED", "prohibited"),
+    ("MODIFY GENERAL", "none"),
+    ("MODIFY GENERAL DEVELOPMENT_DECISION", "needs_decision"),
+    ("MODIFY GENERAL DEVELOPMENT_EXPLICIT", "explicit"),
+    ("MODIFY GENERAL DEVELOPMENT_CONDITIONAL", "conditional"),
+    ("MODIFY GENERAL DEVELOPMENT_PROHIBITED", "prohibited"),
 ])
 def test_selector_development_intent_protocol(line, intent):
     selection = _parse_selector_response(line, {})
@@ -78,7 +119,7 @@ def test_selector_development_intent_protocol(line, intent):
 ])
 def test_conditional_development_requires_actual_fallback_commission(message, expected):
     selector = CreatorActionSelector(model=StaticChatModel([
-        "GENERAL DEVELOPMENT_CONDITIONAL",
+        "MODIFY GENERAL DEVELOPMENT_CONDITIONAL",
     ]))
 
     result = asyncio.run(selector.select(message, _unified_context()))
@@ -105,7 +146,7 @@ def test_conditional_development_requires_actual_fallback_commission(message, ex
 ])
 def test_explicit_development_requires_real_commission(message, expected):
     selector = CreatorActionSelector(model=StaticChatModel([
-        "GENERAL DEVELOPMENT_EXPLICIT",
+        "MODIFY GENERAL DEVELOPMENT_EXPLICIT",
     ]))
 
     result = asyncio.run(selector.select(message, _unified_context()))
@@ -124,7 +165,7 @@ def test_explicit_development_requires_real_commission(message, expected):
 ])
 def test_unseen_commission_phrasing_cannot_forge_explicit_grant(message, expected):
     selector = CreatorActionSelector(model=StaticChatModel([
-        "GENERAL DEVELOPMENT_EXPLICIT",
+        "MODIFY GENERAL DEVELOPMENT_EXPLICIT",
     ]))
 
     result = asyncio.run(selector.select(message, _unified_context()))
@@ -351,7 +392,7 @@ def _unified_context(*, include_right: bool = True) -> CreatorActionSelectorCont
 def test_unified_selector_routes_each_semantic_highway(
     message, choice, decision, identifier
 ):
-    model = StaticChatModel([f"SELECT {choice}"])
+    model = StaticChatModel([f"MODIFY SELECT {choice}"])
     selector = CreatorActionSelector(model=model)
 
     result = asyncio.run(selector.select(message, _unified_context()))
@@ -372,7 +413,7 @@ def test_unified_selector_routes_each_semantic_highway(
     ],
 )
 def test_preserving_plugin_source_cannot_route_to_plugin_source_handoff(message):
-    model = StaticChatModel(["SELECT A6"])
+    model = StaticChatModel(["MODIFY SELECT A6"])
     selector = CreatorActionSelector(model=model)
 
     result = asyncio.run(selector.select(message, _unified_context()))
@@ -382,7 +423,7 @@ def test_preserving_plugin_source_cannot_route_to_plugin_source_handoff(message)
 
 
 def test_show_existing_default_presentation_does_not_edit_plugin_source():
-    selector = CreatorActionSelector(model=StaticChatModel(["SELECT A6"]))
+    selector = CreatorActionSelector(model=StaticChatModel(["MODIFY SELECT A6"]))
 
     result = asyncio.run(selector.select(
         "把示例问题显示出来，保持我们现在的默认展示方式，其他功能不变。",
@@ -393,7 +434,7 @@ def test_show_existing_default_presentation_does_not_edit_plugin_source():
 
 
 def test_restoring_source_and_changing_composition_cannot_select_one_atomic_action():
-    model = StaticChatModel(["SELECT A1"])
+    model = StaticChatModel(["MODIFY SELECT A1"])
     selector = CreatorActionSelector(model=model)
 
     result = asyncio.run(selector.select(
@@ -418,7 +459,7 @@ def test_current_screen_hide_preserving_source_does_not_remove_instance():
         }],
         pluginSemantics=[],
     )
-    selector = CreatorActionSelector(model=StaticChatModel(["SELECT A1"]))
+    selector = CreatorActionSelector(model=StaticChatModel(["MODIFY SELECT A1"]))
 
     result = asyncio.run(selector.select(
         "只在当前界面隐藏建议展示，保留插件源码和其他功能。",
@@ -429,7 +470,7 @@ def test_current_screen_hide_preserving_source_does_not_remove_instance():
 
 
 def test_unified_selector_routes_unavailable_workspace_action_to_general():
-    model = StaticChatModel(["SELECT A1"])
+    model = StaticChatModel(["MODIFY SELECT A1"])
 
     result = asyncio.run(
         CreatorActionSelector(model=model).select(
@@ -444,7 +485,7 @@ def test_unified_selector_routes_unavailable_workspace_action_to_general():
 
 def test_plugin_slot_theme_control_routes_explicit_workspace_region_to_general():
     context = _unified_context(include_right=True)
-    model = StaticChatModel(["SELECT A2"])
+    model = StaticChatModel(["MODIFY SELECT A2"])
 
     result = asyncio.run(
         CreatorActionSelector(model=model).select(
@@ -504,7 +545,7 @@ def test_domain_snapshot_binds_action_and_authoring_revisions_into_one_catalog()
 
 
 def test_explicit_unavailable_region_cannot_select_default_action():
-    model = StaticChatModel(["SELECT A1"])
+    model = StaticChatModel(["MODIFY SELECT A1"])
     selection = asyncio.run(CreatorActionSelector(model=model).select(
         "我想在右边加入一个历史会话管理的面板", _add_context(include_right=False),
     ))
@@ -513,8 +554,8 @@ def test_explicit_unavailable_region_cannot_select_default_action():
 
 def test_explicit_region_action_and_unplaced_default_have_distinct_selection():
     for message, response, expected in [
-        ("我想在右边加入一个历史会话管理的面板", "SELECT A2", "act_add_right"),
-        ("添加会话管理", "SELECT A1", "act_add_default"),
+        ("我想在右边加入一个历史会话管理的面板", "MODIFY SELECT A2", "act_add_right"),
+        ("添加会话管理", "MODIFY SELECT A1", "act_add_default"),
     ]:
         model = StaticChatModel([response])
         selection = asyncio.run(CreatorActionSelector(model=model).select(message, _add_context()))
@@ -550,7 +591,7 @@ def test_reasoning_renderer_restore_selects_the_plugin_slot_add_action():
             "visualRole": "assistant reasoning presentation",
         }],
     )
-    model = StaticChatModel(["SELECT A1"])
+    model = StaticChatModel(["MODIFY SELECT A1"])
 
     result = asyncio.run(
         CreatorActionSelector(model=model).select(
@@ -561,6 +602,7 @@ def test_reasoning_renderer_restore_selects_the_plugin_slot_add_action():
 
     assert result == CreatorActionSelection(
         decision="select_action",
+        taskIntent="modify",
         actionId="act_reasoning_add_default",
     )
 
@@ -572,7 +614,7 @@ def test_reasoning_renderer_restore_selects_the_plugin_slot_add_action():
     "把会话管理放到下方",
 ])
 def test_explicit_relative_placement_cannot_fall_back_to_default(message):
-    model = StaticChatModel(["SELECT A1"])
+    model = StaticChatModel(["MODIFY SELECT A1"])
 
     selection = asyncio.run(
         CreatorActionSelector(model=model).select(message, _add_context(include_right=False))
@@ -595,7 +637,7 @@ def test_clarification_follow_up_carries_bounded_state_without_question_mark():
         "previousUserRequest": "我不要历史会话管理功能",
         "previousCreatorClarification": "你是只想移除界面上的历史会话管理面板，还是也要禁用底层能力",
     }
-    model = StaticChatModel(["SELECT A1"])
+    model = StaticChatModel(["MODIFY SELECT A1"])
     remove_context = CreatorActionSelectorContext(
         catalogRevision="c" * 64,
         actions=[{
@@ -618,11 +660,11 @@ def test_clarification_follow_up_carries_bounded_state_without_question_mark():
 @pytest.mark.parametrize(
     ("response", "decision", "action_id"),
     [
-        ("SELECT A1\n", "select_action", "act_history_right"),
-        ("SELECT A2", "select_action", "act_history_left"),
-        ("GENERAL", "general_change", None),
-        ("UNSUPPORTED", "unsupported_product_action", None),
-        ("CLARIFY 你指的是哪个会话列表？", "needs_clarification", None),
+        ("MODIFY SELECT A1\n", "select_action", "act_history_right"),
+        ("MODIFY SELECT A2", "select_action", "act_history_left"),
+        ("MODIFY GENERAL", "general_change", None),
+        ("MODIFY UNSUPPORTED", "unsupported_product_action", None),
+        ("MODIFY CLARIFY 你指的是哪个会话列表？", "needs_clarification", None),
     ],
 )
 def test_protocol_parser_accepts_exact_lines(response, decision, action_id):
@@ -638,7 +680,7 @@ def test_protocol_parser_accepts_exact_lines(response, decision, action_id):
 
 def test_protocol_parser_accepts_a10():
     candidate = _context().actions[0]
-    assert _parse_selector_response("SELECT A10", {"A10": candidate}).actionId == (
+    assert _parse_selector_response("MODIFY SELECT A10", {"A10": candidate}).actionId == (
         candidate.actionId
     )
 
@@ -648,16 +690,16 @@ def test_protocol_parser_accepts_a10():
     [
         ("A1", "protocol_parse_failed"),
         ("select A1", "protocol_parse_failed"),
-        ("SELECT act_history_right", "protocol_parse_failed"),
-        ("SELECT A0", "protocol_parse_failed"),
-        ("SELECT A99", "unknown_choice_key"),
+        ("MODIFY SELECT act_history_right", "protocol_parse_failed"),
+        ("MODIFY SELECT A0", "protocol_parse_failed"),
+        ("MODIFY SELECT A99", "unknown_choice_key"),
         ("I choose A1", "protocol_parse_failed"),
-        ("SELECT A1 because it matches", "protocol_parse_failed"),
+        ("MODIFY SELECT A1 because it matches", "protocol_parse_failed"),
         ('{"decision":"select_action"}', "protocol_parse_failed"),
         ("```SELECT A1```", "protocol_parse_failed"),
         ("", "protocol_parse_failed"),
-        ("GENERAL\nSELECT A1", "protocol_parse_failed"),
-        ("CLARIFY " + "x" * 1000, "protocol_parse_failed"),
+        ("MODIFY GENERAL\nSELECT A1", "protocol_parse_failed"),
+        ("MODIFY CLARIFY " + "x" * 1000, "protocol_parse_failed"),
     ],
 )
 def test_protocol_parser_rejects_invalid_lines(response, reason):
@@ -667,13 +709,13 @@ def test_protocol_parser_rejects_invalid_lines(response, reason):
 
 
 def test_selector_maps_ephemeral_choice_to_exact_host_action():
-    model = StaticChatModel(["SELECT A1"])
+    model = StaticChatModel(["MODIFY SELECT A1"])
     selector = CreatorActionSelector(model=model)
 
     result = asyncio.run(selector.select("把会话管理放到右边", _context()))
 
     assert result == CreatorActionSelection(
-        decision="select_action", actionId="act_history_right"
+        decision="select_action", taskIntent="modify", actionId="act_history_right"
     )
     payload = _payload(model)
     assert [choice["choice"] for choice in payload["choices"]] == ["A1", "A2"]
@@ -686,7 +728,7 @@ def test_selector_maps_ephemeral_choice_to_exact_host_action():
 
 
 def test_selector_uses_its_own_generation_policy():
-    model = CopyingChatModel(["GENERAL"])
+    model = CopyingChatModel(["MODIFY GENERAL"])
     selector = CreatorActionSelector(
         model=model,
         selector_settings=CreatorSelectorModelSettings(max_tokens=512, reasoning_effort="low"),
@@ -703,8 +745,8 @@ def test_selector_uses_its_own_generation_policy():
 
 
 def test_selector_recovery_reapplies_generation_policy():
-    original = CopyingChatModel(["GENERAL"])
-    recovered = CopyingChatModel(["GENERAL"])
+    original = CopyingChatModel(["MODIFY GENERAL"])
+    recovered = CopyingChatModel(["MODIFY GENERAL"])
     selector = CreatorActionSelector(
         model=original,
         recovery_factory=lambda: recovered,
@@ -749,7 +791,7 @@ def test_empty_length_response_fails_without_semantic_repair():
 
 def test_complete_choice_is_accepted_even_with_length_finish_reason():
     model = StaticChatModel([AIMessage(
-        content="SELECT A1", response_metadata={"finish_reason": "length"}
+        content="MODIFY SELECT A1", response_metadata={"finish_reason": "length"}
     )])
 
     result = asyncio.run(CreatorActionSelector(model=model).select("移动历史", _context()))
@@ -761,11 +803,11 @@ def test_complete_choice_is_accepted_even_with_length_finish_reason():
     ("first", "reason"),
     [
         ("I choose A1", "protocol_parse_failed"),
-        ("SELECT A99", "unknown_choice_key"),
+        ("MODIFY SELECT A99", "unknown_choice_key"),
     ],
 )
 def test_selector_repairs_once_with_stable_choice_mapping(first, reason):
-    model = StaticChatModel([first, "SELECT A1"])
+    model = StaticChatModel([first, "MODIFY SELECT A1"])
     selector = CreatorActionSelector(model=model)
 
     result = asyncio.run(selector.select("把会话管理放到右边", _context()))
@@ -799,7 +841,7 @@ def test_selector_fails_closed_after_one_invalid_repair():
 
 def test_debug_trace_records_only_bounded_invalid_selector_responses():
     events = []
-    model = StaticChatModel(["x" * 400, "SELECT A1."])
+    model = StaticChatModel(["x" * 400, "MODIFY SELECT A1."])
     traces = StaticTraceCollector([
         SimpleNamespace(
             contentType="string", contentLength=400, contentBlockTypes=(),
@@ -830,14 +872,14 @@ def test_debug_trace_records_only_bounded_invalid_selector_responses():
     assert events[0][1]["responseLength"] == 400
     assert events[0][1]["contentType"] == "string"
     assert events[0][1]["responsePreview"] == "x" * 300
-    assert events[1][1]["responsePreview"] == "SELECT A1."
+    assert events[1][1]["responsePreview"] == "MODIFY SELECT A1."
     assert events[1][1]["finishReason"] == "stop"
     assert all("userMessage" not in data for _, data in events)
 
 
 def test_debug_trace_records_content_blocks_without_text_preview():
     events = []
-    model = StaticChatModel([[{"type": "text", "text": "SELECT A1"}], "SELECT A1"])
+    model = StaticChatModel([[{"type": "text", "text": "MODIFY SELECT A1"}], "MODIFY SELECT A1"])
     selector = CreatorActionSelector(
         model=model,
         provider_trace_collector=StaticTraceCollector([None, None]),
@@ -856,7 +898,7 @@ def test_debug_trace_records_content_blocks_without_text_preview():
 
 
 def test_selector_keeps_first_repair_reason_when_second_is_different():
-    selector = CreatorActionSelector(model=StaticChatModel(["SELECT A99", "garbage"]))
+    selector = CreatorActionSelector(model=StaticChatModel(["MODIFY SELECT A99", "garbage"]))
 
     with pytest.raises(CreatorActionSelectionError) as raised:
         asyncio.run(selector.select("把会话管理放到右边", _context()))
@@ -868,9 +910,9 @@ def test_selector_keeps_first_repair_reason_when_second_is_different():
 @pytest.mark.parametrize(
     ("response", "decision"),
     [
-        ("GENERAL", "general_change"),
-        ("UNSUPPORTED", "unsupported_product_action"),
-        ("CLARIFY 哪个会话列表？", "needs_clarification"),
+        ("MODIFY GENERAL", "general_change"),
+        ("MODIFY UNSUPPORTED", "unsupported_product_action"),
+        ("MODIFY CLARIFY 哪个会话列表？", "needs_clarification"),
     ],
 )
 def test_selector_normalizes_terminal_routes(response, decision):
@@ -881,7 +923,7 @@ def test_selector_normalizes_terminal_routes(response, decision):
 
 
 def test_selector_has_project_read_route_and_keeps_multistep_work_general():
-    selection = _parse_selector_response("INSPECT", {})
+    selection = _parse_selector_response("READ_ONLY INSPECT", {})
     assert selection.decision == "read_only_analysis"
     assert "project-related read-only" in _SELECTOR_SYSTEM_PROMPT
     assert "related implementation steps" in _SELECTOR_SYSTEM_PROMPT
@@ -893,15 +935,15 @@ def test_selector_has_project_read_route_and_keeps_multistep_work_general():
     "我可以让你先给方案再修改吗？",
 ])
 def test_selector_answer_protocol_for_product_guidance(message):
-    selector = CreatorActionSelector(model=StaticChatModel(["ANSWER"]))
+    selector = CreatorActionSelector(model=StaticChatModel(["READ_ONLY ANSWER"]))
     result = asyncio.run(selector.select(message, _context()))
     assert result.decision == "answer_only"
-    assert _parse_selector_response("ANSWER", {}).decision == "answer_only"
-    assert "ANSWER" in _SELECTOR_SYSTEM_PROMPT
+    assert _parse_selector_response("READ_ONLY ANSWER", {}).decision == "answer_only"
+    assert "READ_ONLY ANSWER" in _SELECTOR_SYSTEM_PROMPT
 
 
 def test_selector_uses_one_call_with_recent_navigation_context():
-    model = StaticChatModel(["ANSWER"])
+    model = StaticChatModel(["READ_ONLY ANSWER"])
     selector = CreatorActionSelector(model=model)
     result = asyncio.run(selector.select(
         "你能做什么？", _context(),
@@ -913,7 +955,7 @@ def test_selector_uses_one_call_with_recent_navigation_context():
 
 
 def test_follow_up_can_select_current_source_target_from_recent_context():
-    model = StaticChatModel(["SELECT A6"])
+    model = StaticChatModel(["MODIFY SELECT A6"])
     selector = CreatorActionSelector(model=model)
     result = asyncio.run(selector.select(
         "把刚才那个按钮改成圆角", _unified_context(),
@@ -932,7 +974,7 @@ def test_follow_up_can_select_current_source_target_from_recent_context():
     "先根据当前工程给方案，不要修改",
 ])
 def test_selector_keeps_workspace_questions_on_inspect(message):
-    selector = CreatorActionSelector(model=StaticChatModel(["INSPECT"]))
+    selector = CreatorActionSelector(model=StaticChatModel(["READ_ONLY INSPECT"]))
     assert asyncio.run(selector.select(message, _context())).decision == "read_only_analysis"
 
 
@@ -943,14 +985,14 @@ def test_preserving_source_does_not_authorize_reverting_earlier_changes():
 
 def test_selector_keeps_atomic_disable_and_real_out_of_scope_routes():
     action = _unified_context().intentCatalog.candidates[0]
-    selected = _parse_selector_response("SELECT A1", {"A1": action})
-    unsupported = _parse_selector_response("UNSUPPORTED", {})
+    selected = _parse_selector_response("MODIFY SELECT A1", {"A1": action})
+    unsupported = _parse_selector_response("MODIFY UNSUPPORTED", {})
     assert selected.decision == "select_action"
     assert unsupported.decision == "unsupported_product_action"
 
 
 def test_selector_accepts_already_satisfied_action():
-    selector = CreatorActionSelector(model=StaticChatModel(["SELECT A1"]))
+    selector = CreatorActionSelector(model=StaticChatModel(["MODIFY SELECT A1"]))
     result = asyncio.run(
         selector.select("把会话管理放最右边", _context(right_status="already_satisfied"))
     )
@@ -958,7 +1000,7 @@ def test_selector_accepts_already_satisfied_action():
 
 
 def test_restoring_hidden_entry_does_not_accept_placement_only_action():
-    selector = CreatorActionSelector(model=StaticChatModel(["SELECT A1"]))
+    selector = CreatorActionSelector(model=StaticChatModel(["MODIFY SELECT A1"]))
     result = asyncio.run(
         selector.select(
             "把刚才隐藏的历史会话入口恢复到原来的右侧位置",
@@ -969,7 +1011,7 @@ def test_restoring_hidden_entry_does_not_accept_placement_only_action():
 
 
 def test_restoring_original_workspace_layout_does_not_accept_region_only_add():
-    selector = CreatorActionSelector(model=StaticChatModel(["SELECT A2"]))
+    selector = CreatorActionSelector(model=StaticChatModel(["MODIFY SELECT A2"]))
     result = asyncio.run(
         selector.select(
             "把之前隐藏的会话管理恢复到原来的右侧位置",
@@ -980,7 +1022,7 @@ def test_restoring_original_workspace_layout_does_not_accept_region_only_add():
 
 
 def test_selector_message_excludes_execution_details():
-    model = StaticChatModel(["GENERAL"])
+    model = StaticChatModel(["MODIFY GENERAL"])
     asyncio.run(CreatorActionSelector(model=model).select("模糊搜索", _context()))
     serialized = model.messages[0][1].content
     for forbidden in (

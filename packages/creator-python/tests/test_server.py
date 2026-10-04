@@ -1,5 +1,6 @@
 import asyncio
 import json
+import pytest
 from dataclasses import dataclass
 from fastapi.testclient import TestClient
 from types import SimpleNamespace
@@ -10,7 +11,7 @@ from agent_ui_creator.model_protocol.errors import ModelToolProtocolError
 from agent_ui_creator.app_ui_model import AppUIModelMutationMetrics
 from agent_ui_creator.domain_state import DomainObservationMetrics
 from agent_ui_creator.server import AgUiRunInput, _conversation_messages, create_app
-from agent_ui_creator.operations import CreatorActionSelection, CreatorResolveResult, CreatorIntentPresentation
+from agent_ui_creator.operations import CreatorActionSelection, CreatorResolveResult, CreatorIntentPresentation, ProductizedOperationRun
 from agent_ui_creator.streaming import ToolInvocationFinished, ToolInvocationStarted
 
 
@@ -39,6 +40,7 @@ def test_route_review_requires_host_modify_selection(tmp_path, monkeypatch):
         )
 
     calls = []
+    read_responses = ["ROUTE_REVIEW_REQUESTED\nThis may need a change"]
     reviewed = resolved("modify", "unscoped_general")
     initial = resolved("read_only", "read_only_general", explicit=True)
 
@@ -50,9 +52,13 @@ def test_route_review_requires_host_modify_selection(tmp_path, monkeypatch):
             calls.append(("select", route_review_context))
             return reviewed if route_review_context is not None else initial
 
+        async def execute_reviewed_action(self, snapshot, action, selection, presentation):
+            calls.append(("execute_action", action))
+            return "action completed"
+
     async def fake_read(*_args, **_kwargs):
         calls.append(("read",))
-        return ReadResult("ROUTE_REVIEW_REQUESTED\nThis may need a change")
+        return ReadResult(read_responses.pop(0))
 
     async def fake_write(*_args, **_kwargs):
         calls.append(("write",))
@@ -69,17 +75,104 @@ def test_route_review_requires_host_modify_selection(tmp_path, monkeypatch):
     activity.begin("route-review")
     args = (settings, [{"role": "user", "content": "先查一下，不要修改"}], activity,
             ProjectMutationCoordinator(), RuntimeDiagnosticStore(), "thread-1", None)
-    result = asyncio.run(_domain_write_agent_result(*args))
-    assert result.text == "This may need a change"
+    with pytest.raises(RuntimeError, match="只读权限"):
+        asyncio.run(_domain_write_agent_result(*args))
     assert calls == [("select", None), ("read",), ("select", "This may need a change")]
 
     initial = resolved("read_only", "read_only_general")
     calls.clear()
+    read_responses[:] = ["ROUTE_REVIEW_REQUESTED\nThis may need a change"]
     modify_args = (settings, [{"role": "user", "content": "先查清楚再帮我恢复"}], activity,
                    ProjectMutationCoordinator(), RuntimeDiagnosticStore(), "thread-1", None)
     result = asyncio.run(_domain_write_agent_result(*modify_args))
     assert result == "written"
     assert calls == [("select", None), ("read",), ("select", "This may need a change"), ("write",)]
+
+    reviewed = resolved("read_only", "read_only_general")
+    calls.clear()
+    read_responses[:] = ["ROUTE_REVIEW_REQUESTED\nThis may need a change", "Final project answer"]
+    result = asyncio.run(_domain_write_agent_result(*modify_args))
+    assert result.text == "Final project answer"
+    assert calls == [("select", None), ("read",), ("select", "This may need a change"), ("read",)]
+
+    reviewed = CreatorResolveResult(
+        route="reviewed_action",
+        selection=CreatorActionSelection(
+            decision="select_action", taskIntent="modify", actionId="action-1",
+        ),
+        presentation=CreatorIntentPresentation(
+            label="action", kind="select_action", target_plugin_ids=(),
+            target_instance_ids=(), route="productized",
+        ),
+        selected_action="action-1",
+        review_snapshot=object(),
+    )
+    calls.clear()
+    read_responses[:] = ["ROUTE_REVIEW_REQUESTED\nThis may need a change"]
+    assert asyncio.run(_domain_write_agent_result(*modify_args)) == "action completed"
+    assert calls == [("select", None), ("read",), ("select", "This may need a change"),
+                     ("execute_action", "action-1")]
+
+
+@pytest.mark.parametrize("decision,completion,text", [
+    ("needs_clarification", "success", "请确认要改哪个区域？"),
+    ("unsupported_product_action", "blocked", "当前请求超出支持范围。"),
+])
+def test_route_review_returns_terminal_result(tmp_path, monkeypatch, decision, completion, text):
+    from agent_ui_creator.activity import CreatorActivityRecorder
+    from agent_ui_creator.app_ui_model import ProjectMutationCoordinator
+    from agent_ui_creator.runtime_diagnostics import RuntimeDiagnosticStore
+    from agent_ui_creator.server import _domain_write_agent_result
+
+    initial = CreatorResolveResult(
+        route="read_only_general",
+        selection=CreatorActionSelection(decision="read_only_analysis", taskIntent="read_only"),
+        presentation=CreatorIntentPresentation(label="read", kind="read_only_analysis",
+            target_plugin_ids=(), target_instance_ids=(), route="read_only_general"),
+    )
+    reviewed = object.__new__(ProductizedOperationRun)
+    for name, value in {
+        "text": text, "completion": completion, "operation_result": None,
+        "selection": CreatorActionSelection(
+            decision=decision, taskIntent="modify",
+            **({"clarificationQuestion": text} if decision == "needs_clarification" else {}),
+        ),
+        "blocker": {"code": "PRODUCT_ACTION_UNSUPPORTED", "message": text}
+            if completion == "blocked" else None,
+    }.items():
+        object.__setattr__(reviewed, name, value)
+    calls = []
+
+    class FakeEngine:
+        def __init__(self, **_kwargs):
+            pass
+
+        async def run(self, _messages, *, route_review_context=None):
+            calls.append(("select", route_review_context))
+            return reviewed if route_review_context else initial
+
+    async def fake_read(*_args, **_kwargs):
+        return SimpleNamespace(text="ROUTE_REVIEW_REQUESTED\nreview report")
+
+    async def fake_write(*_args, **_kwargs):
+        calls.append(("write",))
+
+    monkeypatch.setenv("CREATOR_MODEL_BASE_URL", "http://127.0.0.1:9/v1")
+    monkeypatch.setenv("CREATOR_MODEL_API_KEY", "test-only")
+    monkeypatch.setattr("agent_ui_creator.model_factory.create_creator_chat_model", lambda *_args, **_kwargs: object())
+    monkeypatch.setattr("agent_ui_creator.server.ProductizedOperationEngine", FakeEngine)
+    monkeypatch.setattr("agent_ui_creator.server._domain_read_agent_result", fake_read)
+    monkeypatch.setattr("agent_ui_creator.server._general_domain_write_agent_result", fake_write)
+    settings = CreatorServerSettings(project_root=tmp_path, skills_root=tmp_path, auth_token="x" * 32)
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("review-terminal")
+    result = asyncio.run(_domain_write_agent_result(
+        settings, [{"role": "user", "content": "修改项目"}], activity,
+        ProjectMutationCoordinator(), RuntimeDiagnosticStore(), "thread-1", None,
+    ))
+    assert result is reviewed
+    assert (result.text, result.completion) == (text, completion)
+    assert calls == [("select", None), ("select", "review report")]
 
 
 def test_selector_inspect_route_uses_actual_read_only_agent(tmp_path, monkeypatch):
@@ -201,8 +294,8 @@ def test_conversation_messages_keeps_only_nonempty_user_and_assistant_text():
     )
 
     assert _conversation_messages(run_input) == [
-        {"role": "user", "content": "A"},
-        {"role": "assistant", "content": "B"},
+        {"role": "user", "content": "  A  "},
+        {"role": "assistant", "content": " B "},
         {"role": "user", "content": "C"},
     ]
 
@@ -659,6 +752,7 @@ def test_default_mode_runs_domain_write_with_runtime_identity(tmp_path, monkeypa
         _thread_id,
         _event_sink,
         _telemetry,
+        **_kwargs,
     ):
         return SimpleNamespace(
             text="Static composition committed.",

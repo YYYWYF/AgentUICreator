@@ -112,10 +112,12 @@ class ProductizedOperationRun:
 class CreatorResolveResult:
     """Explicit handoff result for a scoped or unscoped General Agent route."""
 
-    route: Literal["scoped_general_handoff", "unscoped_general", "read_only_general", "answer_only"]
+    route: Literal["scoped_general_handoff", "unscoped_general", "read_only_general", "answer_only", "reviewed_action"]
     selection: CreatorActionSelection
     presentation: CreatorIntentPresentation
     handoff: CreatorAuthoringHandoff | None = None
+    selected_action: CreatorActionCandidate | None = None
+    review_snapshot: Any = None
 
 
 def _latest_user_message(messages: list[dict[str, str]]) -> str:
@@ -532,6 +534,20 @@ class ProductizedOperationEngine:
             )
 
         assert selected_action is not None
+        if route_review_context is not None:
+            return CreatorResolveResult(
+                route="reviewed_action", selection=selection, presentation=presentation,
+                selected_action=selected_action, review_snapshot=snapshot,
+            )
+        return await self.execute_reviewed_action(
+            snapshot, selected_action, selection, presentation, selector_metrics
+        )
+
+    async def execute_reviewed_action(
+        self, snapshot, selected_action, selection, presentation, selector_metrics=None
+    ) -> ProductizedOperationRun:
+        """Execute a Host-approved Action after route review has completed."""
+        selector_metrics = selector_metrics or self.selector.metrics
         await self._publish_step_started(
             "creator.productized-operation",
             {
