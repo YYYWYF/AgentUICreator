@@ -28,6 +28,46 @@ async function click(container: HTMLElement, text: string) {
 }
 
 describe("Creator Mock service panel", () => {
+  it("groups related Demos together regardless of service order", async () => {
+    const state = { ...initial, scenarios: [
+      { id: "nested-subagent-error", title: "Subagent Error" },
+      { id: "agent-status", title: "AgentStatus" },
+      { id: "simple-chat", title: "Simple Chat" },
+      { id: "nested-subagent-conversation", title: "Subagent Card" },
+      { id: "data-message-chart", title: "Chart" },
+      { id: "agent-plan", title: "AgentPlan" },
+    ] };
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => json(url.endsWith("/compatibility")
+      ? { projectId: "project", status: "checked", requirements: [] }
+      : state)));
+    const container = await render();
+    expect([...container.querySelectorAll(".creator-mock-group-heading")].map(node => node.textContent)).toEqual([
+      "对话与消息", "状态与计划", "内容组件", "子智能体",
+    ]);
+    expect([...container.querySelectorAll(".creator-mock-scenario-choice strong")].map(node => node.textContent)).toEqual([
+      "纯文本流式回复", "通过工具参数展示执行计划", "通过工具参数展示 Agent 状态",
+      "在消息中展示自定义图表", "子智能体任务卡片", "子智能体运行错误",
+    ]);
+  });
+
+  it("shows descriptive Chinese Demo titles without exposing scenario IDs in cards", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => json(url.endsWith("/compatibility")
+      ? { projectId: "project", status: "checked", requirements: [] }
+      : initial)));
+    const container = await render();
+    const cards = container.querySelectorAll(".creator-mock-scenario");
+    expect(cards[0]?.querySelector("strong")?.textContent).toBe("纯文本流式回复");
+    expect(cards[1]?.querySelector("strong")?.textContent).toBe("思考后回复");
+    expect(cards[0]?.textContent).not.toContain("simple-chat");
+    expect(cards[0]?.querySelector("code")).toBeNull();
+    await act(async () => {
+      const search = container.querySelector<HTMLInputElement>(".creator-mock-search input")!;
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(search, "reasoning-chat");
+      search.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    expect(container.querySelectorAll(".creator-mock-scenario")).toHaveLength(1);
+  });
+
   it("keeps installation errors and retry inside the Demo card without selecting its radio", async () => {
     const state = { ...initial, scenarios: [...initial.scenarios, { id: "data-message-chart", title: "Chart" }] };
     const compatibility = { projectId: "project", canInstall: true, status: "checked", requirements: [{ id: "chart-message", name: "图表", scenarioIds: ["data-message-chart"], status: "missing", installable: true }] };
@@ -42,7 +82,7 @@ describe("Creator Mock service panel", () => {
     expect(actions.textContent).toContain("安装 图表 资源");
     expect(actions.querySelector(".creator-mock-preview img")?.getAttribute("alt")).toBe("图表示意图");
     await click(container, "安装 图表 资源");
-    const card = [...container.querySelectorAll(".creator-mock-scenario")].find(element => element.textContent?.includes("data-message-chart"))!;
+    const card = [...container.querySelectorAll(".creator-mock-scenario")].find(element => element.textContent?.includes("在消息中展示自定义图表"))!;
     expect(card.querySelector('[role="alert"]')?.textContent).toContain("图表 资源安装失败");
     expect(card.textContent).toContain("重试安装");
     expect(container.querySelector(".creator-mock-error")).toBeNull();
@@ -61,7 +101,7 @@ describe("Creator Mock service panel", () => {
     });
     vi.stubGlobal("fetch", fetch);
     const container = await render();
-    expect(container.textContent).toContain("当前项目尚未安装 图表 资源。");
+    expect(container.textContent).not.toContain("当前项目尚未安装 图表 资源。");
     expect(container.textContent).toContain("安装 图表 资源");
     const card = container.querySelector(".creator-mock-scenario")!;
     expect(card.textContent).toContain("安装 图表 资源");
@@ -71,7 +111,7 @@ describe("Creator Mock service panel", () => {
     expect(fetch.mock.calls.some(([url]) => url.includes("/select") || url.includes("/start"))).toBe(false);
     status = "disabled";
     await act(async () => { await vi.advanceTimersByTimeAsync(4000); });
-    expect(container.textContent).toContain("图表 资源未启用或未正确放置。");
+    expect(container.textContent).not.toContain("图表 资源未启用或未正确放置。");
     expect(container.textContent).toContain("修复 图表 资源");
     expect(card.querySelector(".creator-mock-preview")).toBeNull();
     await click(container, "修复 图表 资源");
@@ -85,11 +125,12 @@ describe("Creator Mock service panel", () => {
   });
 
   it("offers every missing resource and installs the clicked resource without selecting the Demo", async () => {
-    const state = { ...initial, scenarios: [{ id: "approval-resume", title: "Approval" }] };
+    const state = { ...initial, scenarios: [{ id: "approval-resume", title: "Approval", resources: ["reasoning", "tool-approval", "tool-group", "ready-resource"] }] };
     const requirements = [
       { id: "reasoning", name: "推理展示", scenarioIds: ["approval-resume"], status: "missing", installable: true },
       { id: "tool-approval", name: "工具调用与审批", scenarioIds: ["approval-resume"], status: "missing", installable: true },
       { id: "tool-group", name: "工具分组", scenarioIds: ["approval-resume"], status: "disabled", installable: true },
+      { id: "ready-resource", name: "已就绪资源", scenarioIds: ["approval-resume"], status: "ready", installable: true },
     ];
     const compatibility = { projectId: "project", canInstall: true, status: "checked", requirements };
     const fetch = vi.fn(async (url: string, init?: RequestInit) => {
@@ -104,12 +145,16 @@ describe("Creator Mock service panel", () => {
     expect(container.textContent).toContain("安装 推理展示 资源");
     expect(container.textContent).toContain("安装 工具调用与审批 资源");
     expect(container.textContent).toContain("修复 工具分组 资源");
+    expect(container.textContent).not.toContain("需要资源：");
+    expect(container.querySelectorAll(".creator-mock-resource-row")).toHaveLength(3);
     expect(container.querySelectorAll(".creator-mock-preview-help")).toHaveLength(2);
     await click(container, "安装 工具调用与审批 资源");
     expect(fetch).toHaveBeenCalledWith(`${CREATOR_MOCK_API_PATH}/install-resources`, expect.objectContaining({
       body: JSON.stringify({ projectId: "project", resourceId: "tool-approval" }),
     }));
     expect(container.textContent).not.toContain("安装 工具调用与审批 资源");
+    expect(container.textContent).not.toContain("需要资源：");
+    expect(container.querySelectorAll(".creator-mock-resource-row")).toHaveLength(2);
     expect(container.textContent).toContain("安装 推理展示 资源");
     expect(fetch.mock.calls.some(([url]) => url.endsWith("/select"))).toBe(false);
   });
@@ -191,9 +236,9 @@ it("shows the A2UI resource installation path and enables Run only after compati
   });
   vi.stubGlobal("fetch", fetch);
   const container = await render();
-  const card = [...container.querySelectorAll<HTMLElement>(".creator-mock-scenario")].find(element => element.textContent?.includes("A2UI · Interactive Order Card"))!;
-  expect(card.textContent).toContain("需要资源：A2UI");
-  expect(card.textContent).toContain("当前项目尚未安装 A2UI 资源。");
+  const card = [...container.querySelectorAll<HTMLElement>(".creator-mock-scenario")].find(element => element.textContent?.includes("A2UI 订单确认卡片"))!;
+  expect(card.textContent).not.toContain("需要资源：");
+  expect(card.textContent).not.toContain("当前项目尚未安装 A2UI 资源。");
   expect(card.textContent).toContain("安装 A2UI 资源");
   expect(card.textContent).not.toContain("Demo 资源已安装");
   await act(async () => card.querySelector<HTMLInputElement>('input[type="radio"]')!.click());
@@ -229,11 +274,11 @@ it("offers resource repair and blocks Run when an installed Form Provider is dis
   });
   vi.stubGlobal("fetch", fetch);
   const container = await render();
-  const card = [...container.querySelectorAll<HTMLElement>(".creator-mock-scenario")].find(element => element.textContent?.includes("frontend-tool-fill-form"))!;
+  const card = [...container.querySelectorAll<HTMLElement>(".creator-mock-scenario")].find(element => element.textContent?.includes("前端工具填写表单"))!;
   await act(async () => card.querySelector<HTMLInputElement>('input[type="radio"]')!.click());
   const run = [...card.querySelectorAll("button")].find(button => button.textContent === "运行场景")!;
   expect(run.disabled).toBe(true);
-  expect(card.textContent).toContain("未启用或未正确放置");
+  expect(card.textContent).not.toContain("未启用或未正确放置");
   expect(card.textContent).not.toContain("所需资源已就绪");
   await click(card, "修复 表单 Frontend Tool Demo 资源");
   expect(fetch).toHaveBeenCalledWith(`${CREATOR_MOCK_API_PATH}/install-resources`, expect.objectContaining({ body: JSON.stringify({ projectId: "project", resourceId: "frontend-tool-form-demo" }) }));
@@ -256,7 +301,7 @@ it("keeps missing A2UI packages installable without exposing implementation deta
   const container = await render();
   const install = [...container.querySelectorAll("button")].find(button => button.textContent === "安装 A2UI 资源")!;
   expect(install.disabled).toBe(false);
-  expect(container.textContent).toContain("当前项目尚未安装 A2UI 资源。");
+  expect(container.textContent).not.toContain("当前项目尚未安装 A2UI 资源。");
   for (const token of ["@assistant-ui", "react-markdown", "remark-gfm", "pnpm add", "integration/a2ui", "A2UI Official Integration"]) expect(container.innerHTML).not.toContain(token);
 });
 
@@ -268,7 +313,7 @@ it("fetches technical details only after the developer opens a conflicting resou
   const fetch = vi.fn(async (url: string) => json(url.endsWith("/resource-diagnostics") ? { technicalDetails: { name: "@assistant-ui/react-generative-ui", installed: "0.0.18", required: "0.0.21" } } : url.endsWith("/compatibility") ? compatibility : state));
   vi.stubGlobal("fetch", fetch);
   const container = await render();
-  expect(container.textContent).toContain("A2UI 资源与当前项目存在兼容性冲突。");
+  expect(container.textContent).not.toContain("A2UI 资源与当前项目存在兼容性冲突。");
   expect([...container.querySelectorAll("button")].find(button => button.textContent === "安装 A2UI 资源")!.disabled).toBe(true);
   expect(container.textContent).not.toContain("@assistant-ui");
   expect(fetch.mock.calls.some(([url]) => url.endsWith("/resource-diagnostics"))).toBe(false);

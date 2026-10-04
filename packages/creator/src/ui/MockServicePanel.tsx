@@ -1,7 +1,56 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { CREATOR_MOCK_API_PATH, type CreatorMockState } from "../mock/types.js";
 import type { MockDemoCompatibility } from "../mock/demo-compatibility.js";
 import { mockResourcePreviews } from "./mock-demo-previews.js";
+
+const demoTitles: Record<string, string> = {
+  "multimodal-input": "发送文字、图片与文件",
+  "file-output": "工具生成文件并提供下载",
+  "a2ui-form-controls": "A2UI 交互表单",
+  "a2ui-interactive-order": "A2UI 订单确认卡片",
+  "frontend-tool-fill-form": "前端工具填写表单",
+  "frontend-tool-open-dialog": "前端工具打开弹窗",
+  "ask-user-question": "向用户提问并继续回答",
+  "concurrent-conversations": "多个会话同时运行",
+  "multi-message-response": "一次回复包含多条消息",
+  "cancel-before-first-output": "首次回复前取消运行",
+  "agent-plan": "通过工具参数展示执行计划",
+  "agent-status": "通过工具参数展示 Agent 状态",
+  "data-message-chart": "在消息中展示自定义图表",
+  "agent-state-sync": "Agent 状态实时更新任务进度",
+  "approval-resume": "工具调用等待人工审批",
+  "multi-tool": "依次调用多个工具",
+  "nested-subagent-conversation": "子智能体任务卡片",
+  "nested-subagent-error": "子智能体运行错误",
+  "nested-subagent-recursive": "子智能体递归委托任务",
+  "nested-subagent-task-group": "多个子智能体组成任务组",
+  "parallel-tools": "并行调用多个工具",
+  "reasoning-chat": "思考后回复",
+  "reasoning-long-preview": "长篇思考内容预览",
+  "reasoning-tool-success": "思考、调用工具并回答",
+  "simple-chat": "纯文本流式回复",
+  "markdown-showcase": "流式展示 Markdown 内容",
+  "subagent-lifecycle": "子智能体运行生命周期",
+  "tool-error": "工具调用期间发生错误",
+  "tool-long-running": "耗时工具运行与等待",
+};
+
+const demoGroups = [
+  { title: "对话与消息", ids: ["simple-chat", "multi-message-response", "markdown-showcase", "multimodal-input"] },
+  { title: "思考与回答", ids: ["reasoning-chat", "reasoning-long-preview", "reasoning-tool-success"] },
+  { title: "工具调用", ids: ["multi-tool", "parallel-tools", "tool-long-running", "tool-error", "file-output"] },
+  { title: "前端工具", ids: ["frontend-tool-open-dialog", "frontend-tool-fill-form"] },
+  { title: "提问与审批", ids: ["ask-user-question", "approval-resume"] },
+  { title: "状态与计划", ids: ["agent-state-sync", "agent-plan", "agent-status"] },
+  { title: "内容组件", ids: ["data-message-chart"] },
+  { title: "A2UI 交互界面", ids: ["a2ui-form-controls", "a2ui-interactive-order"] },
+  { title: "子智能体", ids: ["nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive", "nested-subagent-error", "subagent-lifecycle"] },
+  { title: "运行与会话", ids: ["concurrent-conversations", "cancel-before-first-output"] },
+] as const;
+const demoGroupIndex = new Map<string, number>(demoGroups.flatMap((group, index) => group.ids.map(id => [id, index] as const)));
+const demoOrderIndex = new Map<string, number>(demoGroups.flatMap(group => group.ids.map((id, index) => [id, index] as const)));
+const groupIndexFor = (id: string) => demoGroupIndex.get(id) ?? demoGroups.length;
+const groupTitleFor = (id: string) => demoGroups[groupIndexFor(id)]?.title ?? "其他示例";
 
 async function mockRequest(route = "", body?: unknown, signal?: AbortSignal): Promise<CreatorMockState> {
   const response = await fetch(`${CREATOR_MOCK_API_PATH}${route}`, {
@@ -87,12 +136,6 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
     return () => { controller.abort(); window.clearInterval(timer); };
   }, [projectId, retry]);
 
-  function displayedRequirementsFor(scenarioId: string) {
-    const declared = state?.scenarios.find(scenario => scenario.id === scenarioId)?.resources ?? [];
-    return compatibility?.status === "checked" ? compatibility.requirements.filter(requirement =>
-      requirement.scenarioIds.includes(scenarioId) && (requirement.status !== "ready" || declared.includes(requirement.id))) : [];
-  }
-
   function requirementsFor(scenarioId: string) {
     return compatibility?.status === "checked"
       ? compatibility.requirements.filter(requirement => requirement.scenarioIds.includes(scenarioId) && requirement.status !== "ready")
@@ -151,10 +194,12 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
   }
 
   const selected = state?.scenarios.find((scenario) => scenario.id === (resourceSelection ?? state.scenarioId));
+  const titleFor = (scenario: { id: string; title: string }) => demoTitles[scenario.id] ?? scenario.title;
   const search = query.trim().toLocaleLowerCase();
   const scenarios = state?.scenarios.filter((scenario) =>
-    `${scenario.id} ${scenario.title} ${scenario.description ?? ""}`.toLocaleLowerCase().includes(search),
-  ) ?? [];
+    `${scenario.id} ${titleFor(scenario)} ${scenario.title} ${scenario.description ?? ""}`.toLocaleLowerCase().includes(search),
+  ).sort((first, second) => groupIndexFor(first.id) - groupIndexFor(second.id)
+    || (demoOrderIndex.get(first.id) ?? 0) - (demoOrderIndex.get(second.id) ?? 0)) ?? [];
 
   return (
     <section className="creator-mock-panel" id="creator-mock-panel" aria-label="Mock Agent 开发服务" aria-busy={busy}>
@@ -193,7 +238,7 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
         <section aria-label="选择预置 Demo">
           <h3>预置 Demo</h3>
           <p>部分 Demo 需要额外的 Agent UI 资源，Creator 会在运行前检查并提示安装。</p>
-          <p>当前：<strong>{selected?.title ?? state.scenarioId}</strong>。选择后，在已接入的 Agent UI 中发送一条消息来播放。正在运行的请求保持原场景。</p>
+          <p>当前：<strong>{selected ? titleFor(selected) : state.scenarioId}</strong>。选择后，在已接入的 Agent UI 中发送一条消息来播放。正在运行的请求保持原场景。</p>
           {compatibility?.status !== "checked" ? <p className="creator-mock-requirement" role="status">{compatibility === null ? "正在检查当前项目的 Demo 支持…" : "无法检查当前项目的资源，请确认已选择并初始化项目。"}</p> : null}
           <label className="creator-mock-speed">播放时长倍率
             <select disabled={busy} value={state.speed} onChange={(event) => void act("/select", { scenarioId: state.scenarioId, speed: Number(event.target.value) }, "播放时长已更新，下一次请求生效。") }>
@@ -202,18 +247,17 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
           </label>
           <label className="creator-mock-search">搜索 Demo<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="名称、描述或场景 ID" /></label>
           <div className="creator-mock-scenarios">
-            {scenarios.map((scenario) => <div className="creator-mock-scenario" key={scenario.id} data-selected={scenario.id === state.scenarioId}>
+            {scenarios.map((scenario, index) => <Fragment key={scenario.id}>
+              {index === 0 || groupIndexFor(scenario.id) !== groupIndexFor(scenarios[index - 1]!.id)
+                ? <h4 className="creator-mock-group-heading">{groupTitleFor(scenario.id)}</h4> : null}
+              <div className="creator-mock-scenario" data-selected={scenario.id === state.scenarioId}>
               <label className="creator-mock-scenario-choice">
-              <input type="radio" name="creator-mock-scenario" checked={scenario.id === (resourceSelection ?? state.scenarioId)} disabled={busy} onChange={() => { if (scenario.resources?.length) setResourceSelection(scenario.id); else { setResourceSelection(null); void act("/select", { scenarioId: scenario.id, speed: state.speed }, `已选择 ${scenario.title}，下一次请求生效。`); } }} />
-              <span><strong>{scenario.title}</strong>{scenario.description ? <span>{scenario.description}</span> : null}
+              <input type="radio" name="creator-mock-scenario" checked={scenario.id === (resourceSelection ?? state.scenarioId)} disabled={busy} onChange={() => { if (scenario.resources?.length) setResourceSelection(scenario.id); else { setResourceSelection(null); void act("/select", { scenarioId: scenario.id, speed: state.speed }, `已选择 ${titleFor(scenario)}，下一次请求生效。`); } }} />
+              <span><strong>{titleFor(scenario)}</strong>{scenario.description ? <span>{scenario.description}</span> : null}
               </span></label>
-              <div className="creator-mock-scenario-footer">
-                <code>{scenario.id}</code>
-                {displayedRequirementsFor(scenario.id).map(requirement => <div className="creator-mock-resource-row" key={requirement.id}>
-                  <span className="creator-mock-requirement-label">需要资源：{requirement.name}{requirement.status === "ready" ? " ✓" : ""}</span>
-                  <p>{requirement.status === "ready" ? `${requirement.name} 资源已就绪。` : requirement.issue?.message ??
-                    (requirement.status === "missing" ? `当前项目尚未安装 ${requirement.name} 资源。` : requirement.status === "conflict" ? `${requirement.name} 资源与当前项目存在兼容性冲突。` : `${requirement.name} 资源未启用或未正确放置。`)}</p>
-                  {requirement.status !== "ready" ? <div className="creator-mock-resource-actions">
+              {requirementsFor(scenario.id).length > 0 ? <div className="creator-mock-scenario-footer">
+                {requirementsFor(scenario.id).map(requirement => <div className="creator-mock-resource-row" key={requirement.id}>
+                  <div className="creator-mock-resource-actions">
                     <button type="button" disabled={busy || !requirement.installable} onClick={() => void installRequirement(requirement.id, scenario.id)}>
                       {installation?.scenarioId === scenario.id && installation.resourceId === requirement.id && installation.status === "installing" ? `正在安装 ${requirement.name} 资源…`
                         : installation?.scenarioId === scenario.id && installation.resourceId === requirement.id && installation.status === "error" ? "重试安装"
@@ -227,19 +271,20 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
                         <span>即将引入此资源，实际展示取决于项目样式与 Agent 数据。</span>
                       </span>
                     </span> : null}
-                  </div> : null}
+                  </div>
                   {compatibility?.projectId && (requirement.status === "conflict" || (installation?.resourceId === requirement.id && installation.status === "error")) ?
                     <MockResourceDiagnostics key={`${compatibility.projectId}:${requirement.id}:${installation?.status}`} projectId={compatibility.projectId} resourceId={requirement.id} /> : null}
                 </div>)}
-              </div>
+              </div> : null}
               {scenario.resources?.length && resourceSelection === scenario.id ? <div>
                 <p>{compatibility?.status === "checked" && requirementsFor(scenario.id).length === 0 ? "所需资源已就绪" : "此场景需要额外的 Agent UI 资源，请先安装资源。"}</p>
                 <button type="button" disabled={busy || compatibility?.status !== "checked" || requirementsFor(scenario.id).length > 0}
-                  onClick={() => void act("/select", { scenarioId: scenario.id, speed: state.speed }, `已启用 ${scenario.title}，在 Agent UI 中发送消息运行。`)}>运行场景</button>
+                  onClick={() => void act("/select", { scenarioId: scenario.id, speed: state.speed }, `已启用 ${titleFor(scenario)}，在 Agent UI 中发送消息运行。`)}>运行场景</button>
               </div> : null}
               {installation?.scenarioId === scenario.id ? <div className="creator-mock-install-status" data-status={installation.status} role={installation.status === "error" ? "alert" : "status"}>{installation.message}</div> : null}
               {requirementsFor(scenario.id).some(requirement => !requirement.installable && requirement.status !== "conflict") ? <div className="creator-mock-install-status">当前 Creator 宿主尚未配置一键引入。</div> : null}
-            </div>)}
+              </div>
+            </Fragment>)}
           </div>
           {scenarios.length === 0 ? <p>没有匹配的 Demo。</p> : null}
         </section>

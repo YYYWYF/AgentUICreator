@@ -81,6 +81,10 @@ CREATOR_VERIFICATION_MODE=static_only
 # CREATOR_SELECTOR_REASONING_EFFORT=low
 ```
 
+使用 OpenCode Go 时，在 `.env.creator.local` 设置
+`CREATOR_MODEL_OPENCODE_SESSION_HEADER=1`，Creator 才会把当前会话 ID 作为
+`x-opencode-session` 请求头发送。默认不发送，其他模型服务无需启用。
+
 `CREATOR_VERIFICATION_MODE` 只有两个值：默认的 `static_only` 只以当前 revision 的
 Host 静态验证作为完成门槛，并关闭 Workbench 对 Runtime diagnostics endpoint 的上报；
 设置为 `static_and_runtime` 时同时启用上报和运行时验证。静态模式不会把 Runtime 的

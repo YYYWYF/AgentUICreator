@@ -58,12 +58,13 @@ it("uses the chart Scenario declaration for Compatibility, the UI Run gate and t
   await act(async () => { root!.render(<MockServicePanel projectId="project" />); });
   // The panel's initial HTTP requests outlive the render commit.
   await waitForUI(() => expect(container.querySelectorAll(".creator-mock-scenario").length).toBeGreaterThan(0));
-  const card = [...container.querySelectorAll<HTMLElement>(".creator-mock-scenario")].find(element => element.textContent?.includes("data-message-chart"))!;
+  const card = [...container.querySelectorAll<HTMLElement>(".creator-mock-scenario")].find(element => element.textContent?.includes("在消息中展示自定义图表"))!;
   await act(async () => card.querySelector<HTMLInputElement>('input[type="radio"]')!.click());
   expect(fetch.mock.calls.some(([url]) => url.endsWith("/select"))).toBe(false);
   const run = [...card.querySelectorAll("button")].find(button => button.textContent === "运行场景")!;
   expect(run.disabled).toBe(true);
-  expect(card.textContent).toContain("当前项目尚未安装 图表 资源。");
+  expect(card.textContent).not.toContain("当前项目尚未安装 图表 资源。");
+  expect(card.textContent).toContain("安装 图表 资源");
   const denied = await post("/select", { scenarioId: "data-message-chart", speed: 1 });
   expect(denied.status).toBe(400);
   expect((await denied.json()).error).toContain("请先安装");
@@ -75,7 +76,7 @@ it("uses the chart Scenario declaration for Compatibility, the UI Run gate and t
     expect(install).toHaveBeenCalledWith("project", "chart-message");
     expect(run.disabled).toBe(false);
   });
-  expect(card.textContent).toContain("图表 资源已就绪。");
+  expect(card.querySelector(".creator-mock-resource-row")).toBeNull();
   expect(fetch.mock.calls.some(([url]) => url.endsWith("/select"))).toBe(false);
   await act(async () => run.click());
   await waitForUI(() => expect(service!.getState().scenarioId).toBe("data-message-chart"));

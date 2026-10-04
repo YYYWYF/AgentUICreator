@@ -41,8 +41,13 @@ test("presents answers, inspection, mutation, no-op, and validation by run facts
     await route.fulfill({ contentType: "text/event-stream",
       body: events.map(event => `data: ${JSON.stringify(event)}\n\n`).join("") });
   });
+  let failingAction: "undo" | "reapply" | null = null;
   await page.route("**/__creator/control", route => {
     const { action } = route.request().postDataJSON() as { action: "undo" | "reapply" };
+    if (action === failingAction) {
+      failingAction = null;
+      return route.fulfill({ status: 409, json: { error: `${action} failed` } });
+    }
     return route.fulfill({ json: {
       status: action === "undo" ? "undone" : "reapplied",
       runId: "presentation-run", changedPaths: ["app-ui/app-ui.json"], reapplyable: true,
@@ -79,10 +84,23 @@ test("presents answers, inspection, mutation, no-op, and validation by run facts
   await undoButton.click();
   await expect(page.getByText("已撤销", { exact: true })).toBeVisible();
   await expect(undoButton).toHaveCount(0);
+  await expect(page.locator(".creator-panel-message--assistant")).toHaveCount(3);
   await page.getByRole("button", { name: "再次应用本次修改" }).click();
-  await expect(page.getByText("已再次应用本次修改", { exact: false })).toBeVisible();
   await expect(undoButton).toBeVisible();
   await expect(page.getByText("本次再次应用尚未重新验证。", { exact: false })).toBeVisible();
+  await expect(page.locator(".creator-panel-message--assistant")).toHaveCount(3);
+  failingAction = "undo";
+  await undoButton.click();
+  await expect(page.locator(".creator-panel-message--error").last()).toContainText("undo failed");
+  await expect(undoButton).toBeVisible();
+  await undoButton.click();
+  await expect(page.getByRole("button", { name: "再次应用本次修改" })).toBeVisible();
+  failingAction = "reapply";
+  await page.getByRole("button", { name: "再次应用本次修改" }).click();
+  await expect(page.locator(".creator-panel-message--error").last()).toContainText("reapply failed");
+  await expect(page.getByRole("button", { name: "再次应用本次修改" })).toBeVisible();
+  await page.getByRole("button", { name: "再次应用本次修改" }).click();
+  await expect(undoButton).toBeVisible();
 
   await request.fill("保持会话插件在右侧");
   await page.getByRole("button", { name: "发送" }).click();

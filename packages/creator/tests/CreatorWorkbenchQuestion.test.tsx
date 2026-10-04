@@ -94,6 +94,25 @@ it("sends pending-question abandon through the control route and releases the wo
   expect((container.querySelector('[aria-label="新建 Creator 会话"]') as HTMLButtonElement).disabled).toBe(false);
 });
 
+it("lets the IME confirm text before Enter sends a Creator request", async () => {
+  sessionStorage.clear();
+  const { container } = await mount();
+  const input = container.querySelector("#creator-request") as HTMLTextAreaElement;
+
+  const composingEnter = new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true, isComposing: true });
+  await act(async () => { input.dispatchEvent(composingEnter); });
+  expect(composingEnter.defaultPrevented).toBe(false);
+
+  const imeEnter = new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true });
+  Object.defineProperty(imeEnter, "keyCode", { value: 229 });
+  await act(async () => { input.dispatchEvent(imeEnter); });
+  expect(imeEnter.defaultPrevented).toBe(false);
+
+  const sendEnter = new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true });
+  await act(async () => { input.dispatchEvent(sendEnter); });
+  expect(sendEnter.defaultPrevented).toBe(true);
+});
+
 it.each(["CREATOR_INTERRUPT_NOT_FOUND", "CREATOR_INTERRUPT_CONTEXT_INVALID"])("marks a lost question stale and permits a fresh thread for %s", async code => {
   vi.stubGlobal("fetch", vi.fn(async (_url: string, init: RequestInit) => {
     const body = JSON.parse(String(init.body));

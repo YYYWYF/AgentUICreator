@@ -60,6 +60,41 @@ def test_model_factory_sets_creator_user_agent_without_provider_session_header()
     assert "x-opencode-session" not in requests[0].headers
 
 
+def test_model_factory_sends_opencode_session_header_when_enabled():
+    requests = []
+    transport = httpx.MockTransport(
+        lambda request: (
+            requests.append(request)
+            or httpx.Response(
+                200,
+                json={
+                    "id": "chatcmpl-test",
+                    "object": "chat.completion",
+                    "created": 0,
+                    "model": "mimo-v2.5-pro",
+                    "choices": [{"index": 0, "message": {"role": "assistant", "content": "ok"}, "finish_reason": "stop"}],
+                },
+            )
+        )
+    )
+    model = create_creator_chat_model(
+        CreatorModelSettings(
+            model_name="mimo-v2.5-pro",
+            base_url="https://model.example/v1",
+            api_key="secret",
+            opencode_session_header=True,
+        ),
+        thread_id="creator-thread",
+        http_transport=transport,
+        http_async_transport=transport,
+    )
+
+    model.streaming = False
+    model.invoke("hello")
+
+    assert requests[0].headers["x-opencode-session"] == "creator-thread"
+
+
 def test_model_factory_owns_explicit_chat_completions_configuration():
     model = create_creator_chat_model(
         CreatorModelSettings(
@@ -115,6 +150,21 @@ def test_model_settings_priority_and_compatibility(tmp_path):
     assert settings.api_key == "creator-key"
     assert settings.temperature == 0.2
     assert settings.max_tokens == 2048
+
+
+def test_opencode_session_header_setting_is_opt_in(tmp_path):
+    (tmp_path / ".env.creator.local").write_text(
+        "MODEL_BASE_URL=https://model.example/v1\n"
+        "MODEL_API_KEY=test-key\n"
+        "CREATOR_MODEL_OPENCODE_SESSION_HEADER=1\n",
+        encoding="utf-8",
+    )
+    assert CreatorModelSettings.from_environment(config_root=tmp_path, environment={}).opencode_session_header is True
+    (tmp_path / ".env.creator.local").write_text(
+        "MODEL_BASE_URL=https://model.example/v1\nMODEL_API_KEY=test-key\n",
+        encoding="utf-8",
+    )
+    assert CreatorModelSettings.from_environment(config_root=tmp_path, environment={}).opencode_session_header is False
 
 
 def test_selector_settings_are_independent_of_general_model_settings(tmp_path):
