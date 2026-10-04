@@ -63,6 +63,7 @@ export {
   reasoningLongPreviewScenario,
   reasoningToolSuccessScenario,
   simpleChatScenario,
+  resumableLongRunScenario,
   markdownShowcaseScenario,
   subagentLifecycleScenario,
   toolErrorScenario,

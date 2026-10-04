@@ -24,3 +24,6 @@ and `resume()` API. That API stays inside `runtime-conversation`.
 
 The mock demonstration uses a process-owned run. A production backend can supply
 the same capability without adopting the mock's HTTP routes or replay strategy.
+In the sandbox development server, open `/?run-resume-demo`, send the long task,
+and refresh after its first paragraph. The demo reads the server snapshot and
+shows the server's Agent invocation count beside the resumed conversation.
