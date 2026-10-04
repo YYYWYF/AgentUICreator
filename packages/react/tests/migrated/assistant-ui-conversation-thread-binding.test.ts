@@ -202,6 +202,16 @@ function messageIds(messages: readonly { id: string }[]): string[] {
 }
 
 describe("ConversationServiceThreadBinding", () => {
+  it("uses a host-supplied initial persisted identity without reserving a new conversation", async () => {
+    const { service } = createBindingFixture();
+    const binding = createConversationServiceThreadBinding(undefined, "history-1");
+    expect(binding.getThreadId()).toBe("history-1");
+    binding.attachConversationService(service);
+    const loaded = await binding.loadThread!(binding.getThreadId());
+    expect(messageIds(loaded.messages)).toEqual(["history-user", "history-assistant"]);
+    expect(service.selectConversation).toHaveBeenCalledWith("history-1");
+  });
+
   it("attaches an application resume capability to the formal loaded thread", async () => {
     const service = new FakeConversationService(
       [{ id: "history-1", title: "Durable run" }],
@@ -232,9 +242,10 @@ describe("ConversationServiceThreadBinding", () => {
 
     const ordinary = createConversationServiceThreadBinding();
     ordinary.attachConversationService(service);
-    expect(await ordinary.loadThread!("history-1")).toEqual({
-      messages: loaded.messages, state: { progress: 1 },
-    });
+    const ordinaryLoaded = await ordinary.loadThread!("history-1");
+    expect(messageIds(ordinaryLoaded.messages)).toEqual(messageIds(loaded.messages));
+    expect(ordinaryLoaded.state).toEqual({ progress: 1 });
+    expect(ordinaryLoaded.resume).toBeUndefined();
   });
 
   it("keeps initialization ephemeral until a list snapshot confirms persistence", async () => {

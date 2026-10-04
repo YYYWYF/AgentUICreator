@@ -2,11 +2,11 @@ import { ConversationRuntimeProvider, useConversationRuntimeBridge,
   type ConversationAssistantRunUpdate, type ConversationLoadedThread, type ConversationThreadBinding } from "@agent-ui/runtime-conversation";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
-const API = "/__agent-ui/mock-data/run-resume/threads";
+export const RUN_RESUME_API = "/__agent-ui/mock-data/run-resume/threads";
 const STORAGE_KEY = "agent-ui-run-resume-demo-thread";
 
-interface RunSummary { id: string; title: string; runCount: number }
-interface RunSnapshot {
+export interface RunSummary { id: string; title: string; runCount: number }
+export interface RunSnapshot {
   threadId: string;
   runId: string;
   runCount: number;
@@ -15,14 +15,14 @@ interface RunSnapshot {
   resumable: boolean;
 }
 
-async function readJson<T>(url: string): Promise<T> {
+export async function readJson<T>(url: string): Promise<T> {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Mock run request failed: ${response.status}`);
   return response.json() as Promise<T>;
 }
 
-async function* continuation(id: string, signal: AbortSignal): AsyncGenerator<ConversationAssistantRunUpdate, void, unknown> {
-  const response = await fetch(`${API}/${encodeURIComponent(id)}/stream`, { signal });
+export async function* continuation(id: string, signal: AbortSignal): AsyncGenerator<ConversationAssistantRunUpdate, void, unknown> {
+  const response = await fetch(`${RUN_RESUME_API}/${encodeURIComponent(id)}/stream`, { signal });
   if (!response.ok || response.body === null) throw new Error(`Resume stream failed: ${response.status}`);
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -57,7 +57,7 @@ function createBinding(id: string, summaries: RunSummary[]): ConversationThreadB
     }),
     async loadThread(threadId): Promise<ConversationLoadedThread> {
       if (!persisted.has(threadId)) return { messages: [] };
-      const snapshot = await readJson<RunSnapshot>(`${API}/${encodeURIComponent(threadId)}`);
+      const snapshot = await readJson<RunSnapshot>(`${RUN_RESUME_API}/${encodeURIComponent(threadId)}`);
       const createdAt = new Date(0);
       return {
         messages: [
@@ -81,7 +81,7 @@ function DemoConversation({ id }: { id: string }) {
   const [input, setInput] = useState("执行一个长任务");
   const [runCount, setRunCount] = useState(0);
   useEffect(() => {
-    const refresh = () => { void readJson<{ threads: RunSummary[] }>(API)
+    const refresh = () => { void readJson<{ threads: RunSummary[] }>(RUN_RESUME_API)
       .then(value => setRunCount(value.threads.find(item => item.id === id)?.runCount ?? 0)).catch(() => undefined); };
     refresh();
     const timer = setInterval(refresh, 500);
@@ -114,7 +114,7 @@ export function RunResumeDemo() {
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     let cancelled = false;
-    void readJson<{ threads: RunSummary[] }>(API).then(({ threads }) => {
+    void readJson<{ threads: RunSummary[] }>(RUN_RESUME_API).then(({ threads }) => {
       if (cancelled) return;
       const stored = sessionStorage.getItem(STORAGE_KEY);
       const id = stored ?? crypto.randomUUID();

@@ -26,8 +26,12 @@ and `resume()` API. That API stays inside `runtime-conversation`.
 3. Resume is optional; ordinary history keeps its existing load behavior.
 4. A future assistant-ui API change should be confined to this adapter.
 
-The generated Agent accepts an optional `runResumeProvider`. It receives the
-loaded Conversation detail and projected messages and returns a capability only
+The generated Agent accepts an optional Host-owned `initialThreadId` and
+`runResumeProvider`. With an initial ID, its first history load opens that
+persisted thread directly after refresh; without one it starts with a random
+new conversation as before. The binding remains stable for the mounted Agent
+lifetime, while a changed provider callback is used on the next history load.
+The provider receives the loaded Conversation detail and projected messages and returns a capability only
 for an existing durable run paired with that snapshot. With no provider, history
 loads messages and state as before. All generated Modes share this path. The mock
 demonstration uses a process-owned run; production backends need not adopt its

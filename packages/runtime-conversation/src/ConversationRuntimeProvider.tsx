@@ -244,9 +244,9 @@ export function ConversationRuntimeProvider<TState = unknown>({
 /** Keep the upstream run-result shape inside runtime-conversation. */
 function toAssistantRunResult(update: ConversationAssistantRunUpdate): ChatModelRunResult {
   return {
-    ...(update.content === undefined ? {} : { content: update.content as unknown as ChatModelRunResult["content"] }),
-    ...(update.status === undefined ? {} : { status: update.status as ChatModelRunResult["status"] }),
-    ...(update.metadata === undefined ? {} : { metadata: update.metadata as ChatModelRunResult["metadata"] }),
+    ...(update.content === undefined ? {} : { content: update.content as unknown as NonNullable<ChatModelRunResult["content"]> }),
+    ...(update.status === undefined ? {} : { status: update.status as NonNullable<ChatModelRunResult["status"]> }),
+    ...(update.metadata === undefined ? {} : { metadata: update.metadata as NonNullable<ChatModelRunResult["metadata"]> }),
   };
 }
 
