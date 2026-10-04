@@ -4,6 +4,7 @@ import {
   mockConversationFixtures,
   type MockConversationFixture,
 } from "./fixtures.js";
+import { mockDurableRuns } from "../durable-run-store.js";
 
 export interface MockConversationApiHandlerOptions {
   endpoint?: string | undefined;
@@ -63,6 +64,33 @@ export function createMockConversationApiHandler({
 
   return async (request, response) => {
     const url = new URL(request.url ?? "/", "http://mock-data.local");
+    const resumeBase = `${baseEndpoint}/run-resume`;
+    if (url.pathname === `${resumeBase}/threads` && request.method === "GET") {
+      sendJson(response, 200, { threads: mockDurableRuns.list() });
+      return true;
+    }
+    if (url.pathname.startsWith(`${resumeBase}/threads/`) && request.method === "GET") {
+      const path = url.pathname.slice(`${resumeBase}/threads/`.length).split("/");
+      let id: string;
+      try { id = decodeURIComponent(path[0] ?? ""); }
+      catch { sendJson(response, 400, { error: "Invalid thread id." }); return true; }
+      const snapshot = mockDurableRuns.snapshot(id);
+      if (snapshot === undefined) { sendJson(response, 404, { error: "Unknown run." }); return true; }
+      if (path.length === 1) { sendJson(response, 200, snapshot); return true; }
+      if (path.length === 2 && path[1] === "stream") {
+        response.statusCode = 200;
+        response.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+        response.setHeader("Cache-Control", "no-cache, no-transform");
+        response.flushHeaders();
+        const unsubscribe = mockDurableRuns.subscribeContinuation(id, text => {
+          if (!response.destroyed) { response.write(`data: ${JSON.stringify({ text })}\n\n`); response.end(); }
+        });
+        response.once("close", unsubscribe);
+        return true;
+      }
+      sendJson(response, 404, { error: "Unknown run route." });
+      return true;
+    }
     const isList = url.pathname === conversationsEndpoint;
     const detailPrefix = `${conversationsEndpoint}/`;
     const isDetail = url.pathname.startsWith(detailPrefix);

@@ -4,6 +4,7 @@ import { EventSchemas, RunAgentInputSchema } from "@ag-ui/core";
 
 import type { MockScenarioRegistry } from "./scenario-registry.js";
 import { runMockScenario } from "./scenario-runner.js";
+import { mockDurableRuns } from "./durable-run-store.js";
 
 const MAX_REQUEST_BYTES = 1024 * 1024;
 
@@ -131,6 +132,20 @@ export function createMockAgentHttpHandler({
     const parsedInput = RunAgentInputSchema.safeParse(parsedBody);
     if (!parsedInput.success) {
       sendJsonError(response, 400, "Request body is not a valid RunAgentInput.");
+      return;
+    }
+
+    if (scenario.durableRun) {
+      const run = mockDurableRuns.start(parsedInput.data);
+      response.statusCode = 200;
+      response.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+      response.setHeader("Cache-Control", "no-cache, no-transform");
+      response.flushHeaders();
+      const unsubscribe = mockDurableRuns.subscribeEvents(run.threadId,
+        event => { if (!response.destroyed) response.write(`data: ${JSON.stringify(EventSchemas.parse(event))}\n\n`); },
+        () => { if (!response.destroyed) response.end(); },
+      );
+      response.once("close", unsubscribe);
       return;
     }
 

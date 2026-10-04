@@ -14,6 +14,7 @@ import {
   type DictationAdapter,
   type ThreadHistoryAdapter,
   type ThreadMessage,
+  type ChatModelRunResult,
 } from "@assistant-ui/react";
 import {
   useAgUiRuntime,
@@ -42,6 +43,8 @@ import { ConversationApplicationEventSource } from "./events/conversation-applic
 import type {
   ConversationThreadBinding,
   ConversationLoadedThread,
+  ConversationRunResume,
+  ConversationAssistantRunUpdate,
 } from "./threads/types.js";
 import { createConversationRemoteThreadListAdapter } from "./threads/conversation-remote-thread-list-adapter.js";
 import { createConversationFrontendToolPort, type ConversationFrontendToolUIRegistry } from "./tools/types.js";
@@ -140,8 +143,10 @@ export function ConversationRuntimeProvider<TState = unknown>({
       createNewThread: () => threadBinding.createNewThread(),
     }), [ownedId, threadBinding]);
     const [historyFailed, setHistoryFailed] = useState(false);
+    const resumeRef = useRef<ConversationRunResume | undefined>(undefined);
     const history = useMemo<ThreadHistoryAdapter>(() => ({
       async load() {
+        resumeRef.current = undefined;
         let loaded: ConversationLoadedThread<TState>;
         try {
           loaded = item.remoteId === undefined ? { messages: [] } :
@@ -150,13 +155,30 @@ export function ConversationRuntimeProvider<TState = unknown>({
           setHistoryFailed(true);
           throw error;
         }
+        resumeRef.current = loaded.resume;
+        if (loaded.resumeDiscoveryError !== undefined) {
+          const error = loaded.resumeDiscoveryError;
+          queueMicrotask(() => {
+            bridgeRef.current?.recordError(error);
+            if (outerRuntime.current?.threads.getState().mainThreadId === item.id) onError?.(error);
+          });
+        }
         return {
           messages: loaded.messages.map((message, index) => ({
             parentId: index === 0 ? null : loaded.messages[index - 1]!.id,
             message: message as unknown as ThreadMessage,
           })),
           ...(loaded.state === undefined ? {} : { state: loaded.state as never }),
+          ...(resumeRef.current === undefined ? {} : { unstable_resume: true }),
         };
+      },
+      async *resume(options) {
+        const capability = resumeRef.current;
+        if (capability === undefined) throw new Error(`No resumable run for conversation ${ownedId}`);
+        for await (const update of capability.stream(options.abortSignal)) {
+          if (options.abortSignal.aborted) return;
+          yield toAssistantRunResult(update);
+        }
       },
       async append() { await aui.threadListItem().initialize(); },
     }), [aui, ownedId, threadBinding]);
@@ -224,6 +246,15 @@ export function ConversationRuntimeProvider<TState = unknown>({
       </CurrentConversationBridge>
     </AssistantRuntimeProvider>
   );
+}
+
+/** Keep the upstream run-result shape inside runtime-conversation. */
+function toAssistantRunResult(update: ConversationAssistantRunUpdate): ChatModelRunResult {
+  return {
+    ...(update.content === undefined ? {} : { content: update.content as unknown as NonNullable<ChatModelRunResult["content"]> }),
+    ...(update.status === undefined ? {} : { status: update.status as NonNullable<ChatModelRunResult["status"]> }),
+    ...(update.metadata === undefined ? {} : { metadata: update.metadata as NonNullable<ChatModelRunResult["metadata"]> }),
+  };
 }
 
 /** Observation registry only: never starts, switches, or keeps runtimes alive. */

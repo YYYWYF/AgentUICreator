@@ -202,6 +202,52 @@ function messageIds(messages: readonly { id: string }[]): string[] {
 }
 
 describe("ConversationServiceThreadBinding", () => {
+  it("uses a host-supplied initial persisted identity without reserving a new conversation", async () => {
+    const { service } = createBindingFixture();
+    const binding = createConversationServiceThreadBinding(undefined, "history-1");
+    expect(binding.getThreadId()).toBe("history-1");
+    binding.attachConversationService(service);
+    const loaded = await binding.loadThread!(binding.getThreadId());
+    expect(messageIds(loaded.messages)).toEqual(["history-user", "history-assistant"]);
+    expect(service.selectConversation).toHaveBeenCalledWith("history-1");
+  });
+
+  it("attaches an application resume capability to the formal loaded thread", async () => {
+    const service = new FakeConversationService(
+      [{ id: "history-1", title: "Durable run" }],
+      new Map([["history-1", {
+        id: "history-1", title: "Durable run",
+        history: { format: "langchain", messages: [
+          { id: "user-1", type: "human", content: "run" },
+          { id: "assistant-1", type: "ai", content: "partial" },
+        ] },
+        agentState: { progress: 1 },
+      }]]),
+    );
+    const resume = { async *stream(_signal: AbortSignal) {
+      yield { content: [{ type: "text", text: " continued" }],
+        status: { type: "complete" as const, reason: "stop" as const } };
+    } };
+    const provider = vi.fn(() => resume);
+    const binding = createConversationServiceThreadBinding(provider);
+    binding.attachConversationService(service);
+
+    const loaded = await binding.loadThread!("history-1");
+    expect(loaded.messages.map(message => message.id)).toEqual(["user-1", "assistant-1"]);
+    expect(loaded.state).toEqual({ progress: 1 });
+    expect(loaded.resume).toBe(resume);
+    expect(provider).toHaveBeenCalledWith(expect.objectContaining({
+      threadId: "history-1", messages: loaded.messages, state: { progress: 1 },
+    }));
+
+    const ordinary = createConversationServiceThreadBinding();
+    ordinary.attachConversationService(service);
+    const ordinaryLoaded = await ordinary.loadThread!("history-1");
+    expect(messageIds(ordinaryLoaded.messages)).toEqual(messageIds(loaded.messages));
+    expect(ordinaryLoaded.state).toEqual({ progress: 1 });
+    expect(ordinaryLoaded.resume).toBeUndefined();
+  });
+
   it("keeps initialization ephemeral until a list snapshot confirms persistence", async () => {
     const { binding, service } = createBindingFixture();
     const id = await binding.createNewThread();

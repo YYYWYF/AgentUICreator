@@ -1,5 +1,7 @@
 import type {
   ConversationLoadedThread,
+  ConversationMessage,
+  ConversationRunResume,
   ConversationThreadBinding,
   ConversationThreadListItem,
   ConversationThreadListSnapshot,
@@ -10,9 +12,31 @@ import {
 } from "./conversation-history-projector";
 import type {
   ConversationService,
+  ConversationDetail,
   ConversationSnapshot,
   ConversationSummary,
 } from "../../../services/conversations";
+import { useMemo, useRef } from "react";
+
+/** The application decides whether this exact persisted snapshot has a durable run. */
+export type ConversationRunResumeProvider<TState = unknown> = (snapshot: {
+  threadId: string;
+  detail: ConversationDetail;
+  messages: readonly ConversationMessage[];
+  state?: TState | undefined;
+}) => Promise<ConversationRunResume | undefined> | ConversationRunResume | undefined;
+
+/** The generated Agent owns one binding for its mounted lifetime. */
+export function useConversationServiceThreadBinding<TState = unknown>(
+  resumeProvider?: ConversationRunResumeProvider<TState>,
+  initialThreadId?: string,
+): ConversationServiceThreadBinding<TState> {
+  const providerRef = useRef(resumeProvider);
+  providerRef.current = resumeProvider;
+  return useMemo(() => createConversationServiceThreadBinding<TState>(
+    snapshot => providerRef.current?.(snapshot), initialThreadId,
+  ), []);
+}
 
 export interface ConversationServiceThreadBinding<TState = unknown>
   extends ConversationThreadBinding<TState> {
@@ -107,9 +131,9 @@ function emptyLoadedThread<TState>(): ConversationLoadedThread<TState> {
 
 export function createConversationServiceThreadBinding<
   TState = unknown,
->(): ConversationServiceThreadBinding<TState> {
-  let activeThreadId: string = crypto.randomUUID();
-  const ephemeralThreadIds = new Set<string>([activeThreadId]);
+>(resumeProvider?: ConversationRunResumeProvider<TState>, initialThreadId?: string): ConversationServiceThreadBinding<TState> {
+  let activeThreadId: string = initialThreadId ?? crypto.randomUUID();
+  const ephemeralThreadIds = new Set<string>(initialThreadId === undefined ? [activeThreadId] : []);
   let conversationService: ConversationService | undefined;
   let serviceUnsubscribe: (() => void) | undefined;
   let threadListSnapshot = createListSnapshot(undefined);
@@ -136,9 +160,20 @@ export function createConversationServiceThreadBinding<
     ephemeralThreadIds.delete(id);
     if (conversationService === undefined) throw new Error("Conversation service is unavailable.");
     const detail = await conversationService.loadConversation(id);
+    const messages = projectConversationDetail(detail);
+    const state = detail.agentState as TState | undefined;
+    let resume: ConversationRunResume | undefined;
+    let resumeDiscoveryError: Error | undefined;
+    try {
+      resume = await resumeProvider?.({ threadId: id, detail, messages, state });
+    } catch (error) {
+      resumeDiscoveryError = error instanceof Error ? error : new Error(String(error));
+    }
     return {
-      messages: projectConversationDetail(detail),
-      ...(detail.agentState === undefined ? {} : { state: detail.agentState as TState }),
+      messages,
+      ...(state === undefined ? {} : { state }),
+      ...(resume === undefined ? {} : { resume }),
+      ...(resumeDiscoveryError === undefined ? {} : { resumeDiscoveryError }),
     };
   };
   const activateThread = (id: string) => {

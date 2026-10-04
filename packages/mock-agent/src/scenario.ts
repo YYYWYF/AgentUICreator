@@ -86,6 +86,8 @@ export type MockScenarioResourceId = string;
 export type MockScenarioResourceRequirement = MockScenarioResourceId;
 
 export interface MockScenario {
+  /** Development-only server-owned run used by the refresh recovery demo. */
+  durableRun?: true | undefined;
   resources?: readonly MockScenarioResourceId[] | undefined;
   id: string;
   title: string;
