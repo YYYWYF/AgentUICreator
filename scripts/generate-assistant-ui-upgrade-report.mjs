@@ -100,11 +100,18 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     CANCELLATION_UPSTREAM_PATTERNS.some((pattern) => pattern.test(file)),
   );
   const previousCompatibility = session?.previousAgUiCompatibility;
-  const nextCompatibility = session?.nextAgUiCompatibility ?? session?.agUiCompatibility ?? await checkAssistantUiAgUiCompatibility({
+  const cachedCompatibility = session?.nextAgUiCompatibility ?? session?.agUiCompatibility;
+  let currentCompatibility = await checkAssistantUiAgUiCompatibility({
     repoRoot,
     target,
     fetchRegistry: false,
   });
+  if (!currentCompatibility.reactAgUiClientRange && !cachedCompatibility?.reactAgUiClientRange) {
+    currentCompatibility = await checkAssistantUiAgUiCompatibility({ repoRoot, target });
+  }
+  const nextCompatibility = currentCompatibility.reactAgUiClientRange
+    ? currentCompatibility
+    : cachedCompatibility ?? currentCompatibility;
   const previousAgUi = session?.previousAgUi;
   const previousPinnedClientVersion = previousCompatibility?.pinnedClientVersion ?? previousAgUi?.["@ag-ui/client"];
   const nextPinnedClientVersion = nextCompatibility.pinnedClientVersion ?? target.agUi?.["@ag-ui/client"];
@@ -115,9 +122,9 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
   const dependencyRangeChanged =
     previousCompatibility?.reactAgUiClientRange !== undefined &&
     previousCompatibility.reactAgUiClientRange !== nextCompatibility.reactAgUiClientRange;
-  const resolvedAgUiClientVersions = Array.isArray(session?.resolvedAgUiClientVersions)
-    ? session.resolvedAgUiClientVersions
-    : [];
+  const resolvedAgUiClientVersions = currentCompatibility.resolvedClientVersions.length > 0
+    ? currentCompatibility.resolvedClientVersions
+    : Array.isArray(session?.resolvedAgUiClientVersions) ? session.resolvedAgUiClientVersions : [];
   const duplicateClientVersions = resolvedAgUiClientVersions.length > 1;
   const transportBaselineChanged =
     dependencyRangeChanged ||
@@ -125,7 +132,11 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     duplicateClientVersions;
   const upstreamDiffUnavailable = session?.upstreamChangedFiles === null;
   const reasons = [];
-  if (!nextCompatibility.compatible) reasons.push("react-ag-ui AG-UI dependency is incompatible with the pinned @ag-ui/client");
+  if (!nextCompatibility.compatible) reasons.push(
+    nextCompatibility.reactAgUiClientRange
+      ? "react-ag-ui AG-UI dependency is incompatible with the resolved @ag-ui/client"
+      : "react-ag-ui AG-UI dependency range could not be verified",
+  );
   if (dependencyRangeChanged) reasons.push("react-ag-ui AG-UI dependency range changed");
   if (agUiPinnedVersionChanged) reasons.push("@ag-ui/client pinned version changed");
   if (duplicateClientVersions) reasons.push("multiple @ag-ui/client versions resolved");
@@ -257,6 +268,8 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
   const cost = highRisk ? "High" : mediumRisk ? "Medium" : "Low";
 
   const markdown = `# assistant-ui Upgrade Impact Report
+
+Earlier upgrade and acceptance evidence is retained in [assistant-ui-upgrade-retained-evidence.md](docs/architecture/assistant-ui-upgrade-retained-evidence.md).
 
 From:
 - packages: ${current.packagesChanged.length === 0 ? "unchanged in report metadata" : current.packagesChanged.join(", ")}

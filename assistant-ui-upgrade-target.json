@@ -3,13 +3,13 @@
   "project": "assistant-ui/assistant-ui",
   "source": "https://github.com/assistant-ui/assistant-ui.git#3542d602272a62eddeb8989befc910841c267022",
   "revision": "3542d602272a62eddeb8989befc910841c267022",
-  "generativeUiReleaseRevision": "da9a624496ae97864ae30e90f85c7533092a228d",
+  "generativeUiReleaseRevision": "3542d602272a62eddeb8989befc910841c267022",
   "packages": {
     "@assistant-ui/react": "0.15.23",
     "@assistant-ui/react-ag-ui": "0.0.63",
     "@assistant-ui/react-langgraph": "0.14.29",
     "@assistant-ui/react-markdown": "0.14.16",
-    "@assistant-ui/react-generative-ui": "0.0.21"
+    "@assistant-ui/react-generative-ui": "0.0.22"
   },
   "agUi": {
     "@ag-ui/core": "0.0.59",
@@ -19,6 +19,6 @@
   "packageRevisions": {
     "@assistant-ui/react": "3542d602272a62eddeb8989befc910841c267022",
     "@assistant-ui/react-ag-ui": "3542d602272a62eddeb8989befc910841c267022",
-    "@assistant-ui/react-generative-ui": "da9a624496ae97864ae30e90f85c7533092a228d"
+    "@assistant-ui/react-generative-ui": "3542d602272a62eddeb8989befc910841c267022"
   }
 }

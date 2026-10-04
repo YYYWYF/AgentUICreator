@@ -45,7 +45,7 @@ import {
 // Native TaskCard has no nested transcript override at this fixed revision.
 // When upstream renders reasoning/errors, these gap tests must fail: remove the
 // product composition once positive acceptance works through native TaskCard.
-const PINNED_TASK_CARD_REVISION = "da9a624496ae97864ae30e90f85c7533092a228d";
+const PINNED_TASK_CARD_REVISION = "3542d602272a62eddeb8989befc910841c267022";
 async function expectPinnedTaskCardRevision() {
   const lockPath = "../../src/internal/vendor/assistant-ui/assistant-ui-upstream.lock.json";
   const lock = JSON.parse(await readFile(new URL(lockPath, import.meta.url), "utf8"));

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, type ReactNode } from "react";
+import { act, useState, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ConversationOptionList, ConversationQuestionFlow, type ConversationQuestionStep } from "../../src/index";
@@ -17,12 +17,13 @@ vi.mock("../../../source-registry/registry/items/foundation-core-adapters/files/
 const labels = { back: "Back", next: "Next", submit: "Submit", submitting: "Submitting", answered: "Selected", noneSelected: "No selection", unavailable: "Unavailable" };
 const roots: Root[] = [];
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-function render(element: ReactNode) {
+async function render(element: ReactNode) {
   const host = document.createElement("div");
   document.body.append(host);
   const root = createRoot(host);
   roots.push(root);
-  return act(async () => root.render(element)).then(() => host);
+  await act(async () => root.render(element));
+  return host;
 }
 async function click(element: Element | null) {
   expect(element).not.toBeNull();
@@ -71,6 +72,54 @@ describe("human question public presentation", () => {
     await click([...host.querySelectorAll("button")].find(button => button.textContent === "Submit") ?? null);
     expect(onComplete).toHaveBeenCalledTimes(1);
     expect(onComplete).toHaveBeenCalledWith({ layout: ["dashboard"], features: ["a"] });
+  });
+  it("locks Back while final completion is pending and keeps the receipt handoff locked", async () => {
+    let resolveComplete!: () => void;
+    const onComplete = vi.fn(() => new Promise<void>(resolve => { resolveComplete = resolve; }));
+    const host = await render(<ConversationQuestionFlow steps={steps} labels={labels} onComplete={onComplete} />);
+    await click(option(host, "Dashboard"));
+    await click(option(host, "Alpha"));
+    await click([...host.querySelectorAll("button")].find(button => button.textContent === "Submit") ?? null);
+    const back = [...host.querySelectorAll("button")].find(button => button.textContent === "Back") as HTMLButtonElement;
+    expect(back.disabled).toBe(true);
+    expect(host.textContent).toContain("Submitting");
+    await click(back);
+    expect(host.textContent).toContain("Features?");
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    await act(async () => resolveComplete());
+    expect(back.disabled).toBe(true);
+    expect(host.querySelector('[data-slot="option-list"]')?.getAttribute("data-state")).toBe("pending");
+  });
+  it("keeps completion pending until the Tool Result choice renders the receipt", async () => {
+    let showReceipt!: () => void;
+    function Harness() {
+      const [choice, setChoice] = useState<Readonly<Record<string, readonly string[]>> | undefined>();
+      showReceipt = () => setChoice({ layout: ["dashboard"], features: ["a"] });
+      return <ConversationQuestionFlow steps={steps} labels={labels} choice={choice} onComplete={() => {}} />;
+    }
+    const host = await render(<Harness />);
+    await click(option(host, "Dashboard"));
+    await click(option(host, "Alpha"));
+    await click([...host.querySelectorAll("button")].find(button => button.textContent === "Submit") ?? null);
+    expect(host.querySelector('[data-slot="option-list"]')?.getAttribute("data-state")).toBe("pending");
+    await act(async () => showReceipt());
+    expect(host.querySelector('[data-state="receipt"]')).not.toBeNull();
+    expect(host.querySelector("button")).toBeNull();
+  });
+  it("restores answer controls and Back after final completion rejects", async () => {
+    let rejectComplete!: (error: Error) => void;
+    const onComplete = vi.fn(() => new Promise<void>((_, reject) => { rejectComplete = reject; }));
+    const host = await render(<ConversationQuestionFlow steps={steps} labels={labels} onComplete={onComplete} />);
+    await click(option(host, "Dashboard"));
+    await click(option(host, "Alpha"));
+    await click([...host.querySelectorAll("button")].find(button => button.textContent === "Submit") ?? null);
+    const back = [...host.querySelectorAll("button")].find(button => button.textContent === "Back") as HTMLButtonElement;
+    expect(back.disabled).toBe(true);
+    await act(async () => { rejectComplete(new Error("failed")); await Promise.resolve(); });
+    expect(back.disabled).toBe(false);
+    expect(host.textContent).toContain("Submit");
+    await click(back);
+    expect(host.textContent).toContain("Layout?");
   });
   it("renders a final receipt without answer controls", async () => {
     const host = await render(<ConversationQuestionFlow steps={steps} labels={labels} choice={{ layout: ["dashboard"], features: ["b"] }} />);

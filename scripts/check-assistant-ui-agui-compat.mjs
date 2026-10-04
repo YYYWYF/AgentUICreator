@@ -121,7 +121,7 @@ async function readInstalledPackageManifest(repoRoot, expectedVersion, packageJs
       manifest?.name === PACKAGE_NAME &&
       (expectedVersion === undefined || manifest.version === expectedVersion)
     ) {
-      return { manifest, source: candidate };
+      return { manifest, source: path.relative(repoRoot, candidate) };
     }
   }
   return undefined;
@@ -138,6 +138,24 @@ async function readRegistryPackageManifest(repoRoot, version) {
   return manifest?.name === PACKAGE_NAME ? { manifest, source: "npm registry" } : undefined;
 }
 
+async function readLockResolution(repoRoot, version) {
+  let lock;
+  try {
+    lock = await readFile(path.join(repoRoot, "pnpm-lock.yaml"), "utf8");
+  } catch (error) {
+    if (error?.code === "ENOENT") return { range: undefined, resolvedClientVersions: [] };
+    throw error;
+  }
+  const packageHeader = `  '${PACKAGE_NAME}@${version}':`;
+  const start = lock.indexOf(packageHeader);
+  const packageBlock = start < 0 ? "" : lock.slice(start + packageHeader.length).split(/\n  [^\n]+:\n/u, 1)[0];
+  const range = packageBlock.match(/^      '@ag-ui\/client':\s*(.+)$/mu)?.[1]?.trim();
+  const resolvedClientVersions = [...new Set(
+    [...lock.matchAll(/^  '@ag-ui\/client@(\d+\.\d+\.\d+)':/gmu)].map(match => match[1]),
+  )].sort();
+  return { range, resolvedClientVersions };
+}
+
 export async function checkAssistantUiAgUiCompatibility({
   repoRoot = defaultRepoRoot,
   target,
@@ -147,6 +165,7 @@ export async function checkAssistantUiAgUiCompatibility({
 } = {}) {
   const expectedVersion = target?.packages?.[PACKAGE_NAME];
   const pinnedClientVersion = target?.agUi?.[AG_UI_CLIENT];
+  const lockResolution = await readLockResolution(repoRoot, expectedVersion);
   let resolved = packageManifest === undefined
     ? await readInstalledPackageManifest(repoRoot, expectedVersion, packageJsonPath)
     : { manifest: packageManifest, source: "provided package manifest" };
@@ -155,13 +174,16 @@ export async function checkAssistantUiAgUiCompatibility({
     resolved = await readRegistryPackageManifest(repoRoot, expectedVersion);
   }
 
-  const range = resolved?.manifest?.dependencies?.[AG_UI_CLIENT];
+  const range = resolved?.manifest?.dependencies?.[AG_UI_CLIENT] ?? lockResolution.range;
   const compatible =
     typeof pinnedClientVersion === "string" &&
     typeof range === "string" &&
-    satisfiesRange(pinnedClientVersion, range);
+    satisfiesRange(pinnedClientVersion, range) &&
+    (lockResolution.resolvedClientVersions.length === 0 ||
+      (lockResolution.resolvedClientVersions.length === 1 &&
+        lockResolution.resolvedClientVersions[0] === pinnedClientVersion));
   const status = compatible ? "PASS" : "REVIEW REQUIRED";
-  const detail = resolved === undefined
+  const detail = resolved === undefined && range === undefined
     ? `Unable to read the target ${PACKAGE_NAME} package.json for ${expectedVersion ?? "the requested version"}.`
     : typeof range !== "string"
       ? `${PACKAGE_NAME} does not declare a readable dependencies["${AG_UI_CLIENT}"] range.`
@@ -169,8 +191,9 @@ export async function checkAssistantUiAgUiCompatibility({
   const message = compatible
     ? [
         "assistant-ui AG-UI compatibility: PASS",
-        `${PACKAGE_NAME}@${resolved.manifest.version} expects ${AG_UI_CLIENT} ${range}`,
+        `${PACKAGE_NAME}@${resolved?.manifest.version ?? expectedVersion} expects ${AG_UI_CLIENT} ${range}`,
         `AgentUICreator pins ${pinnedClientVersion}`,
+        `pnpm resolves ${lockResolution.resolvedClientVersions.join(", ")}`,
       ].join("\n")
     : [
         "REVIEW REQUIRED:",
@@ -184,9 +207,10 @@ export async function checkAssistantUiAgUiCompatibility({
     reactAgUiVersion: resolved?.manifest?.version ?? expectedVersion,
     reactAgUiClientRange: typeof range === "string" ? range : undefined,
     pinnedClientVersion,
+    resolvedClientVersions: lockResolution.resolvedClientVersions,
     status,
     compatible,
-    source: resolved?.source,
+    source: resolved?.source ?? (range === undefined ? undefined : "pnpm lockfile"),
     message,
   };
 }

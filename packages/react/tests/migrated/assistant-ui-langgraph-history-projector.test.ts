@@ -50,7 +50,7 @@ describe("assistant-ui LangChain history projector", () => {
       { id: "ai-2", type: "ai", content: "Done" },
     ]));
 
-    expect(messages).toHaveLength(3);
+    expect(messages).toHaveLength(2);
     expect(messages[1]).toMatchObject({
       id: "ai-1",
       role: "assistant",
@@ -61,6 +61,9 @@ describe("assistant-ui LangChain history projector", () => {
         result: '{"files":["runtime.ts"]}',
       })]),
     });
+    expect(messages[1]?.content).toEqual(expect.arrayContaining([
+      expect.objectContaining({ type: "text", text: "Done" }),
+    ]));
   });
 
   it("preserves reasoning only through the official LangChain shape", () => {

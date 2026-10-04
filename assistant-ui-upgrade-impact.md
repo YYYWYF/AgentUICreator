@@ -1,7 +1,9 @@
 # assistant-ui Upgrade Impact Report
 
+Earlier upgrade and acceptance evidence is retained in [assistant-ui-upgrade-retained-evidence.md](docs/architecture/assistant-ui-upgrade-retained-evidence.md).
+
 From:
-- packages: packages/mock-agent/package.json, packages/react/package.json, packages/runtime-conversation/package.json, pnpm-lock.yaml, pnpm-workspace.yaml
+- packages: packages/bootstrap/package.json, packages/project-control/package.json, packages/react/package.json, packages/runtime-react/package.json, pnpm-lock.yaml, pnpm-workspace.yaml
 - upstream revision: da9a624496ae97864ae30e90f85c7533092a228d
 
 To:
@@ -9,9 +11,9 @@ To:
 - @assistant-ui/react-ag-ui 0.0.63
 - @assistant-ui/react-langgraph 0.14.29
 - @assistant-ui/react-markdown 0.14.16
-- @assistant-ui/react-generative-ui 0.0.21
+- @assistant-ui/react-generative-ui 0.0.22
 - upstream revision: 3542d602272a62eddeb8989befc910841c267022
-- Generative UI release revision: da9a624496ae97864ae30e90f85c7533092a228d
+- Generative UI release revision: 3542d602272a62eddeb8989befc910841c267022
 
 ## AG-UI transport compatibility
 
@@ -22,18 +24,15 @@ Previous react-ag-ui range:
 unknown
 
 Target react-ag-ui range:
-unknown
+^0.0.59
 
 Resolved lockfile versions:
-unknown
+0.0.59
 
 CancellationAwareHttpAgent: ACTIVE
 
 Status:
-REVIEW REQUIRED
-
-Reasons:
-- react-ag-ui AG-UI dependency is incompatible with the pinned @ag-ui/client
+SAFE: AG-UI transport baseline unchanged
 
 
 ## LangGraph history compatibility
@@ -75,8 +74,8 @@ Reasons:
 - removed 0 files
 - new transitive dependencies: 1
 
-Portal integration seam: CHANGED: recheck Portal container bridge
-- local bridge files changed: packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/image.tsx
+Portal integration seam: UNCHANGED
+- local bridge files changed: none
 - upstream Portal files changed: none
 
 ## Upstream Element discovery
@@ -354,15 +353,15 @@ Portal integration seam: CHANGED: recheck Portal container bridge
 
 ## Public facade changes
 
-- 1 files: packages/react/src/public.tsx
+- 2 files: packages/react/src/internal/conversation-question-flow.tsx, packages/react/src/public.tsx
 
 ## Runtime adapter changes
 
-- 1 files: packages/runtime-conversation/package.json
+- 4 files: packages/runtime-conversation/src/ConversationRuntimeProvider.tsx, packages/runtime-conversation/src/public.tsx, packages/runtime-conversation/src/threads/types.ts, packages/runtime-conversation/tests/run-resume.test.tsx
 
 ## Source Registry assistant-ui Resources
 
-- 0 files: none
+- 4 files: packages/source-registry/registry/items/agent-component-assistant-ui-generative-ui/files/agent-ui/vendor/assistant-ui/generative-ui/UPSTREAM.json, packages/source-registry/registry/items/agent-component-assistant-ui-generative-ui/files/agent-ui/vendor/assistant-ui/generative-ui/generative-ui.css, packages/source-registry/registry/items/agent-component-assistant-ui-generative-ui/item.json, packages/source-registry/registry/items/integration-generative-ui/item.json
 
 ## Plugin changes
 
@@ -397,11 +396,11 @@ Portal integration seam: CHANGED: recheck Portal container bridge
 | Composer / Message Footer / Thread List / Attachments / Suggestions | UNCHANGED |
 | LangChain / LangGraph persisted message conversion | REVIEW REQUIRED |
 | ConversationSubagentTool compatibility presentation | LOCAL COMPATIBILITY NO LONGER NEEDED |
-| CancellationAwareHttpAgent / AG-UI transport | REVIEW REQUIRED |
+| CancellationAwareHttpAgent / AG-UI transport | SAFE: AG-UI transport baseline unchanged |
 
 ## Tests changed
 
-- 0 files: none
+- 13 files: apps/creator-workbench/tests/run-resume-production-refresh.e2e.spec.ts, apps/creator-workbench/tests/run-resume-refresh.e2e.spec.ts, packages/mock-agent/tests/durable-run-store.test.ts, packages/project-control/tests/migrated/source-content-freshness.test.ts, packages/react/tests/assistant-ui-upgrade-drill.test.mjs, packages/react/tests/migrated/assistant-ui-conversation-thread-binding.test.ts, packages/react/tests/migrated/assistant-ui-langgraph-history-projector.test.ts, packages/react/tests/migrated/assistant-ui-nested-subagent.test.tsx, packages/react/tests/migrated/assistant-ui-run-resume-production.test.tsx, packages/react/tests/migrated/human-question-flow.test.tsx, packages/runtime-conversation/tests/run-resume.test.tsx, packages/source-registry/tests/integration.test.ts, packages/source-registry/tests/managed-version-discipline.test.ts
 
 ## Upgrade cost assessment
 

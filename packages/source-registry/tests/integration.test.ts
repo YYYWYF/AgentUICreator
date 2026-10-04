@@ -38,7 +38,7 @@ it("places official Generative UI presentation before its integration and A2UI a
   expect(ids.indexOf("agent-component/assistant-ui-generative-ui")).toBeLessThan(ids.indexOf("integration/generative-ui"));
   expect(ids.indexOf("integration/generative-ui")).toBeLessThan(ids.indexOf("integration/a2ui"));
   expect(registry.byId.get("integration/a2ui")!.packages).toBeUndefined();
-  expect(registry.byId.get("integration/generative-ui")!.packages).toEqual({ "@assistant-ui/react-generative-ui": "0.0.21" });
+  expect(registry.byId.get("integration/generative-ui")!.packages).toEqual({ "@assistant-ui/react-generative-ui": "0.0.22" });
   for (const item of registry.items.filter(item => item.kind === "foundation")) {
     expect(resolveAgentUISourceItemClosure(registry, item.id).map(dependency => dependency.id)).not.toContain("agent-component/assistant-ui-generative-ui");
   }

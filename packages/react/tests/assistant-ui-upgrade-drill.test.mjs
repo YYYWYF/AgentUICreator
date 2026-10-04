@@ -159,6 +159,65 @@ describe("assistant-ui upgrade drill", () => {
     });
   });
 
+  it("reports the published target range and resolved lock version together", async () => {
+    const root = await createGitFixture();
+    await writeFixtureFile(root, "pnpm-lock.yaml", [
+      "packages:",
+      "  '@ag-ui/client@0.0.59':",
+      "    resolution: {}",
+      "  '@assistant-ui/react-ag-ui@0.0.63':",
+      "    resolution: {}",
+      "snapshots:",
+      "  '@ag-ui/client@0.0.59': {}",
+    ].join("\n"));
+    const result = await checkAssistantUiAgUiCompatibility({
+      repoRoot: root,
+      fetchRegistry: false,
+      packageManifest: {
+        name: "@assistant-ui/react-ag-ui",
+        version: "0.0.63",
+        dependencies: { "@ag-ui/client": "^0.0.59" },
+      },
+      target: {
+        packages: { "@assistant-ui/react-ag-ui": "0.0.63" },
+        agUi: { "@ag-ui/client": "0.0.59" },
+      },
+    });
+    expect(result).toMatchObject({
+      reactAgUiClientRange: "^0.0.59",
+      resolvedClientVersions: ["0.0.59"],
+      compatible: true,
+    });
+  });
+
+  it("replaces stale failed compatibility metadata when generating the current report", async () => {
+    const root = await createGitFixture();
+    const baseGitSha = await createReportFixture(root);
+    const targetPath = path.join(root, "assistant-ui-upgrade-target.json");
+    const target = JSON.parse(await readFile(targetPath, "utf8"));
+    target.packages["@assistant-ui/react-ag-ui"] = "0.0.63";
+    await writeFile(targetPath, JSON.stringify(target));
+    await writeFixtureFile(root, "packages/runtime-conversation/node_modules/@assistant-ui/react-ag-ui/package.json", JSON.stringify({
+      name: "@assistant-ui/react-ag-ui", version: "0.0.63", dependencies: { "@ag-ui/client": "^0.0.59" },
+    }));
+    await writeFixtureFile(root, "pnpm-lock.yaml", "packages:\n  '@ag-ui/client@0.0.59':\n    resolution: {}\n");
+    await writeFixtureFile(root, ".assistant-ui-update-session.json", JSON.stringify({
+      baseGitSha,
+      nextAgUiCompatibility: { compatible: false, reactAgUiVersion: "0.0.63" },
+      resolvedAgUiClientVersions: ["0.0.59"],
+      upstreamChangedFiles: [],
+    }));
+    await generateReport({ repoRoot: root });
+    const report = JSON.parse(await readFile(path.join(root, "assistant-ui-upgrade-report.json"), "utf8"));
+    const impact = await readFile(path.join(root, "assistant-ui-upgrade-impact.md"), "utf8");
+    expect(report.cancellationCompatibility).toMatchObject({
+      reactAgUiClientRange: "^0.0.59", resolvedAgUiClientVersions: ["0.0.59"], compatible: true,
+    });
+    expect(report.cancellationCompatibility.reasons).not.toContain("react-ag-ui AG-UI dependency is incompatible with the resolved @ag-ui/client");
+    expect(impact).toContain("Target react-ag-ui range:\n^0.0.59");
+    expect(impact).toContain("assistant-ui-upgrade-retained-evidence.md");
+  });
+
   it("requires review when react-ag-ui raises the AG-UI dependency floor", async () => {
     const result = await checkAssistantUiAgUiCompatibility({
       fetchRegistry: false,
@@ -538,14 +597,14 @@ describe("assistant-ui upgrade drill", () => {
       `#!/bin/sh
 if [ "$1" = "-C" ] && [ "$3" = "rev-parse" ]; then
   case "$4" in
-    @assistant-ui/react@0.15.22*) printf '%s\\n' 'f008537f39f0936992b0f6d2433c092935df5faf'; exit 0 ;;
-    @assistant-ui/react-ag-ui@0.0.62*) printf '%s\\n' 'da9a624496ae97864ae30e90f85c7533092a228d'; exit 0 ;;
-    @assistant-ui/react-generative-ui@0.0.21*) printf '%s\\n' 'da9a624496ae97864ae30e90f85c7533092a228d'; exit 0 ;;
+    @assistant-ui/react@0.15.23*) printf '%s\\n' '3542d602272a62eddeb8989befc910841c267022'; exit 0 ;;
+    @assistant-ui/react-ag-ui@0.0.63*) printf '%s\\n' '3542d602272a62eddeb8989befc910841c267022'; exit 0 ;;
+    @assistant-ui/react-generative-ui@0.0.22*) printf '%s\\n' '3542d602272a62eddeb8989befc910841c267022'; exit 0 ;;
   esac
 fi
 if [ "$1" = "-C" ] && [ "$3" = "cat-file" ]; then exit 0; fi
 if [ "$1" = "-C" ] && [ "$3" = "ls-remote" ] && [ "$4" = "--tags" ]; then
-  printf '%s\trefs/tags/@assistant-ui/react-generative-ui@0.0.21\n' 'da9a624496ae97864ae30e90f85c7533092a228d'
+  printf '%s\trefs/tags/@assistant-ui/react-generative-ui@0.0.22\n' '3542d602272a62eddeb8989befc910841c267022'
   exit 0
 fi
 if [ "$1" = "ls-remote" ]; then

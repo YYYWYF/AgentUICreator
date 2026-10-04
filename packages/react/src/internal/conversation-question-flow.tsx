@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import { useAuiState } from "@assistant-ui/react";
 import { OptionList } from "./vendor/assistant-ui/components/assistant-ui/elements/option-list.js";
 
@@ -56,7 +56,15 @@ export interface ConversationQuestionFlowProps {
 export function ConversationQuestionFlow({ steps, choice, onComplete, labels }: ConversationQuestionFlowProps): ReactElement | null {
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string[]>>({});
-  const completing = useRef(false);
+  const completingRef = useRef(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const receiptResolveRef = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    if (choice !== undefined) {
+      receiptResolveRef.current?.();
+      receiptResolveRef.current = null;
+    }
+  }, [choice]);
   if (steps.length === 0) return null;
 
   if (choice !== undefined) {
@@ -88,12 +96,15 @@ export function ConversationQuestionFlow({ steps, choice, onComplete, labels }: 
       setStepIndex(stepIndex + 1);
       return;
     }
-    if (completing.current) return;
-    completing.current = true;
+    if (completingRef.current) return;
+    completingRef.current = true;
+    setIsCompleting(true);
     try {
       await onComplete(Object.fromEntries(steps.map(item => [item.id, nextAnswers[item.id] ?? []])));
+      await new Promise<void>(resolve => { receiptResolveRef.current = resolve; });
     } catch (error) {
-      completing.current = false;
+      completingRef.current = false;
+      setIsCompleting(false);
       throw error;
     }
   };
@@ -107,13 +118,15 @@ export function ConversationQuestionFlow({ steps, choice, onComplete, labels }: 
     <h4 className="text-sm font-medium break-words">{step.question}</h4>
     {step.description ? <p className="text-xs text-foreground/60 break-words">{step.description}</p> : null}
     <ConversationOptionList key={`${step.id}:${stepIndex}`} options={step.options} selectionMode={step.selectionMode}
-      defaultValue={answers[step.id]} minSelections={step.minSelections} maxSelections={step.maxSelections}
-      confirmLabel={stepIndex === steps.length - 1 ? labels.submit : labels.next}
+      {...(answers[step.id] === undefined ? {} : { defaultValue: answers[step.id] })}
+      minSelections={step.minSelections} maxSelections={step.maxSelections}
+      confirmLabel={isCompleting ? labels.submitting : stepIndex === steps.length - 1 ? labels.submit : labels.next}
       onConfirm={confirm} />
+    {isCompleting ? <span role="status" className="text-xs text-foreground/60">{labels.submitting}</span> : null}
     {step.selectionMode === "single" && step.minSelections === 0 ?
       <button type="button" className="self-start text-xs text-foreground/60 hover:text-foreground"
-        onClick={() => { void confirm([]); }}>{stepIndex === steps.length - 1 ? labels.submit : labels.next}</button> : null}
+        disabled={isCompleting} onClick={() => { void confirm([]); }}>{isCompleting ? labels.submitting : stepIndex === steps.length - 1 ? labels.submit : labels.next}</button> : null}
     {stepIndex > 0 ? <button type="button" className="self-start text-xs text-foreground/60 hover:text-foreground"
-      onClick={() => setStepIndex(stepIndex - 1)}>{labels.back}</button> : null}
+      disabled={isCompleting} onClick={() => setStepIndex(stepIndex - 1)}>{labels.back}</button> : null}
   </section>;
 }

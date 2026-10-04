@@ -1,16 +1,56 @@
 import { InternalConversationToolkitProvider } from "./internal/conversation-toolkit-provider.js";
-export {
-  ConversationOptionList,
-  ConversationQuestionFlow,
-  useConversationCanAnswerToolCall,
+import {
+  ConversationOptionList as InternalConversationOptionList,
+  ConversationQuestionFlow as InternalConversationQuestionFlow,
+  useConversationCanAnswerToolCall as useInternalConversationCanAnswerToolCall,
 } from "./internal/conversation-question-flow.js";
-export type {
-  ConversationOption,
-  ConversationOptionListProps,
-  ConversationQuestionStep,
-  ConversationQuestionFlowLabels,
-  ConversationQuestionFlowProps,
-} from "./internal/conversation-question-flow.js";
+export interface ConversationOption {
+  id: string;
+  label: string;
+  description?: string;
+  disabled?: boolean;
+}
+export interface ConversationOptionListProps {
+  options: readonly ConversationOption[];
+  selectionMode?: "single" | "multiple";
+  defaultValue?: readonly string[];
+  minSelections?: number;
+  maxSelections?: number;
+  onConfirm?: (ids: string[]) => void | Promise<void>;
+  confirmLabel?: string;
+}
+export interface ConversationQuestionStep {
+  id: string;
+  question: string;
+  description?: string;
+  options: readonly ConversationOption[];
+  selectionMode: "single" | "multiple";
+  minSelections: number;
+  maxSelections: number;
+}
+export interface ConversationQuestionFlowLabels {
+  back: string;
+  next: string;
+  submit: string;
+  submitting: string;
+  answered: string;
+  noneSelected: string;
+}
+export interface ConversationQuestionFlowProps {
+  steps: readonly ConversationQuestionStep[];
+  choice?: Readonly<Record<string, readonly string[]>> | undefined;
+  onComplete?: ((answers: Record<string, string[]>) => void | Promise<void>) | undefined;
+  labels: ConversationQuestionFlowLabels;
+}
+export function ConversationOptionList(props: ConversationOptionListProps): ReactElement {
+  return <InternalConversationOptionList {...props} />;
+}
+export function ConversationQuestionFlow(props: ConversationQuestionFlowProps): ReactElement | null {
+  return <InternalConversationQuestionFlow {...props} />;
+}
+export function useConversationCanAnswerToolCall(): boolean {
+  return useInternalConversationCanAnswerToolCall();
+}
 import { AgentUIRoot as InternalAgentUIRoot, useAgentUIPortalContainer as useInternalAgentUIPortalContainer } from "./internal/style-boundary/AgentUIRoot.js";
 import { AgentUIDialog as InternalAgentUIDialog } from "./internal/style-boundary/AgentUIDialog.js";
 import { DialogContent as InternalAgentUIDialogContent } from "./internal/vendor/assistant-ui/components/ui/dialog.js";

@@ -9,13 +9,13 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - '@assistant-ui/react@0.15.23'
   - '@assistant-ui/react-ag-ui@0.0.63'
-  - '@assistant-ui/react-generative-ui@0.0.21'
+  - '@assistant-ui/react-generative-ui@0.0.22'
   - '@assistant-ui/react-markdown@0.14.16'
   - '@assistant-ui/core@0.3.22'
-  - '@assistant-ui/store@0.3.15'
-  - '@assistant-ui/tap@0.9.19'
-  - assistant-stream@0.3.45
-  - assistant-cloud@0.2.3
+  - '@assistant-ui/store@0.3.16'
+  - '@assistant-ui/tap@0.9.20'
+  - assistant-stream@0.3.46
+  - assistant-cloud@0.2.4
   - safe-content-frame@0.0.31
   - tw-shimmer@0.4.13
 
@@ -24,6 +24,9 @@ minimumReleaseAgeExclude:
 pmOnFail: warn
 verifyDepsBeforeRun: warn
 
-# Keep assistant-ui model context and its AG-UI adapter on one peer instance.
+# Published assistant-ui ranges overlap at these patch releases.
 overrides:
-  assistant-cloud: 0.2.3
+  '@assistant-ui/store': 0.3.16
+  '@assistant-ui/tap': 0.9.20
+  assistant-stream: 0.3.46
+  assistant-cloud: 0.2.4

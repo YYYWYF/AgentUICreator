@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "project": "assistant-ui/assistant-ui",
-  "revision": "da9a624496ae97864ae30e90f85c7533092a228d",
+  "revision": "3542d602272a62eddeb8989befc910841c267022",
   "license": "MIT",
   "packages": {
-    "@assistant-ui/react-generative-ui": "0.0.21"
+    "@assistant-ui/react-generative-ui": "0.0.22"
   },
   "files": [
     {
@@ -17,8 +17,8 @@
     {
       "upstreamPath": "packages/ui/src/lib/generative-ui-vocabulary-css.ts",
       "localPath": "generative-ui.css",
-      "upstreamSha256": "7e50dee5043ce0f62e2dede8a9a5f7b68cc2bb62353c0a28469e543ea3b8d6e7",
-      "installedSha256": "f2d75f359c92ece8e330be09b7c8333dafde36108fa16c8d95dd31c0299033e1",
+      "upstreamSha256": "76902a3fe1dcfb27a519ff41d96f639ff17142a20cf42d1e1bb05d0625ec1b81",
+      "installedSha256": "da59ec3d75acb9d1c1c8888233074383fb3ec8649b706af7f75bbfc287c778c4",
       "adaptations": [
         "official vocabulary CSS serialization",
         "mechanical selector scoping only: .agent-ui-conversation"
