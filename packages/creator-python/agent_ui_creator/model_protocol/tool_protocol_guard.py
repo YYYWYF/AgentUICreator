@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-import re
 import time
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass
@@ -24,6 +23,7 @@ from .errors import (
 )
 from .provider_trace import ProviderResponseTrace, ProviderResponseTraceCollector
 from .request_shape import request_shape
+from .textual_tool_intent import has_textual_tool_intent
 from .trace import ModelCallTrace, ToolProtocolMetrics
 
 logger = logging.getLogger(__name__)
@@ -41,18 +41,6 @@ Do not repeat the analysis.
 If another action is required, emit the next structured tool call now.
 If the task is already complete, return a concise final answer."""
 
-_TOOL_INTENT_NAMES = (
-    "read_file|edit_file|edit_file_from_read|grep|glob|ls|inspect_ui_project|inspect_app_ui_model|"
-    "list_ui_plugins|inspect_ui_slots|inspect_ui_plugin|"
-    "inspect_ui_services|"
-    "inspect_ui_plugin_source_references|inspect_agent_ui_sources|"
-    "apply_agent_ui_source_item|mutate_ui_plugin_source|mutate_app_ui_model"
-)
-_TEXT_TOOL_PATTERNS = (
-    re.compile(r"<function_call\b", re.IGNORECASE),
-    re.compile(rf"\b(?:{_TOOL_INTENT_NAMES})\s*\(\s*[{{\[]", re.IGNORECASE),
-    re.compile(rf"^[`\s]*(?:{_TOOL_INTENT_NAMES})\s*\{{", re.IGNORECASE | re.MULTILINE),
-)
 _MAX_TRACE_ITEMS = 64
 _MAX_TRACE_LABEL_LENGTH = 120
 _MAX_PROTOCOL_DIAGNOSTICS = 32
@@ -438,6 +426,19 @@ def _single_tool_intent_name(response: ModelResponse[Any]) -> str | None:
     return names[0]
 
 
+def _expected_repair_tool_name(
+    response: ModelResponse[Any], tools: Sequence[Any]
+) -> str | None:
+    message = _ai_message(response)
+    if message is None:
+        return None
+    calls = [*message.tool_calls, *message.invalid_tool_calls]
+    if len(calls) != 1:
+        return None
+    name = _call_tool_name(calls[0])
+    return name if name and any(_tool_name(tool) == name for tool in tools) else None
+
+
 def _repair_response_matches(
     decision: GuardDecision, expected_tool_name: str | None
 ) -> bool:
@@ -726,7 +727,7 @@ class ToolProtocolGuard:
     def _has_textual_tool_intent(message: AIMessage) -> bool:
         if not isinstance(message.content, str):
             return False
-        return any(pattern.search(message.content) for pattern in _TEXT_TOOL_PATTERNS)
+        return has_textual_tool_intent(message.content)
 
 
 class ToolProtocolMiddleware(AgentMiddleware):
@@ -980,7 +981,7 @@ Do not explain the error in prose."""
         if decision.status != "repair":
             return decision.response
         self.metrics.protocolRepairAttempts += 1
-        expected_tool_name = _single_tool_intent_name(response)
+        expected_tool_name = _expected_repair_tool_name(response, request.tools)
         self._before_call()
         repaired_request = self._repair_request(request, response, expected_tool_name)
         started_at = time.monotonic()
@@ -1023,7 +1024,7 @@ Do not explain the error in prose."""
         if decision.status != "repair":
             return decision.response
         self.metrics.protocolRepairAttempts += 1
-        expected_tool_name = _single_tool_intent_name(response)
+        expected_tool_name = _expected_repair_tool_name(response, request.tools)
         self._before_call()
         repaired_request = self._repair_request(request, response, expected_tool_name)
         started_at = time.monotonic()

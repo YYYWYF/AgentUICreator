@@ -2,6 +2,7 @@ import asyncio
 import json
 
 import httpx
+import pytest
 from langchain_core.tools import tool
 
 from agent_ui_creator.model_factory import create_creator_chat_model
@@ -218,6 +219,32 @@ def test_ordinary_final_response_has_no_tool_intent():
     assert trace.toolCallCount == 0
     assert trace.pseudoToolIntent is False
     assert trace.textualToolIntent is False
+
+
+@pytest.mark.parametrize("content, expected", [
+    ('<tool_call><function=workspace__list_directory>{}</function></tool_call>', True),
+    ('先检查目录。<tool_call><function=foo>{}</function></tool_call>', True),
+    (
+        '<tool_call><function=foo>{}</function></tool_call>'
+        '<tool_call><function=bar>{}</function></tool_call>',
+        True,
+    ),
+    ('<function=foo>{}</function>', True),
+    ('<function_call name="foo">{}</function_call>', True),
+    ('read_file({"file_path":"/src/a.ts"})', True),
+    ('The string `<tool_call>` is just an example.', False),
+])
+def test_textual_tool_intent_matches_runtime_guard(content, expected):
+    collector = ProviderResponseTraceCollector(enabled=True)
+    collector.on_response(_response({
+        "choices": [{"finish_reason": "stop", "message": {"content": content}}]
+    }))
+
+    trace = collector.pop_successful_completion()
+
+    assert trace is not None
+    assert trace.textualToolIntent is expected
+    assert trace.toolCallCount == 0
 
 
 def test_retry_attempts_are_attached_only_to_the_following_success():

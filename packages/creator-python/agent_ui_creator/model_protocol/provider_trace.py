@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import re
 from collections import deque
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass
@@ -10,19 +9,8 @@ from typing import Any
 
 import httpx
 
-_TEXT_TOOL_PATTERNS = (
-    re.compile(r"<function_call\b", re.IGNORECASE),
-    re.compile(
-        r"\b(?:read_file|edit_file|grep|glob|ls|mutate_ui_plugin_source)"
-        r"\s*\(\s*[{\[]",
-        re.IGNORECASE,
-    ),
-    re.compile(
-        r"^[`\s]*(?:read_file|edit_file|grep|glob|ls|mutate_ui_plugin_source)"
-        r"\s*\{",
-        re.IGNORECASE | re.MULTILINE,
-    ),
-)
+from .textual_tool_intent import has_textual_tool_intent
+
 _MAX_SUMMARY_ITEMS = 64
 _MAX_LABEL_LENGTH = 120
 
@@ -437,7 +425,7 @@ class ProviderResponseTraceCollector:
             pseudoToolNames=pseudo_tool_names,
             textualToolIntent=(
                 isinstance(content, str)
-                and any(pattern.search(content) for pattern in _TEXT_TOOL_PATTERNS)
+                and has_textual_tool_intent(content)
             ),
             attemptCount=len(attempts),
             httpErrorCount=len(error_attempts),

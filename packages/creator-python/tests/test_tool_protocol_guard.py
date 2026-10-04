@@ -641,6 +641,35 @@ def test_ordinary_final_text_is_not_misclassified():
     assert prose_tool.status == "repair"
 
 
+@pytest.mark.parametrize("content", [
+    '<tool_call><function=workspace__list_directory>{"path":"."}</function></tool_call>',
+    (
+        '我先检查目录。<tool_call><function=workspace__list_directory>'
+        '{"path":"."}</function></tool_call>'
+    ),
+    (
+        '<tool_call><function=foo>{}</function></tool_call>\n'
+        '<tool_call><function=bar>{}</function></tool_call>'
+    ),
+    '<function=foo>{}</function>',
+    '<function_call name="foo">{}</function_call>',
+])
+def test_xml_like_textual_calls_request_repair_without_becoming_tool_calls(content):
+    message = AIMessage(content=content)
+
+    decision, _ = inspect(message)
+
+    assert decision.status == "repair"
+    assert decision.response.result[0] is message
+    assert message.tool_calls == []
+
+
+def test_discussion_of_literal_tool_call_tag_is_final_text():
+    decision, _ = inspect(AIMessage(content='The string `<tool_call>` is just an example.'))
+
+    assert decision.status == "final"
+
+
 @pytest.mark.parametrize("metadata_key", ["finish_reason", "stop_reason"])
 def test_length_without_a_tool_call_is_a_truncated_final(metadata_key):
     decision, _ = inspect(
@@ -1068,6 +1097,60 @@ def test_one_repair_can_restore_a_structured_tool_call():
     assert response.result[0].tool_calls[0]["id"] == "repair-1"
     assert "read_file" in requests[1].messages[-1].content
     assert middleware.metrics.protocolRepairAttempts == 1
+    assert middleware.metrics.protocolRepairSuccesses == 1
+
+
+def test_textual_call_repairs_with_only_offered_tools_and_returns_structured_call():
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+    textual = AIMessage(
+        content='<tool_call><function=workspace__list_directory>{"path":"."}</function></tool_call>'
+    )
+    structured = AIMessage(content="", tool_calls=[{
+        "name": "read_file", "args": {"file_path": "/src/a.ts"}, "id": "repair-1",
+    }])
+    responses = iter([
+        ModelResponse(result=[textual]),
+        ModelResponse(result=[structured]),
+    ])
+    requests = []
+
+    def handler(current_request):
+        requests.append(current_request)
+        return next(responses)
+
+    result = middleware.wrap_model_call(request, handler)
+
+    assert result.result[0] is structured
+    assert result.result[0].tool_calls[0]["name"] == "read_file"
+    assert len(requests) == 2
+    assert [tool.name for tool in requests[1].tools] == ["read_file"]
+    assert "Re-issue only the intended action using the provided structured tool interface." in requests[1].messages[-1].content
+    assert "workspace__list_directory" not in requests[1].messages[-1].content
+    assert middleware.metrics.protocolRepairSuccesses == 1
+
+
+def test_unoffered_structured_tool_uses_generic_repair():
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[read_file])
+    responses = iter([
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "foo", "args": {}, "id": "original",
+        }])]),
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name": "read_file", "args": {"file_path": "/src/a.ts"}, "id": "repair-1",
+        }])]),
+    ])
+    requests = []
+
+    def handler(current_request):
+        requests.append(current_request)
+        return next(responses)
+
+    result = middleware.wrap_model_call(request, handler)
+
+    assert result.result[0].tool_calls[0]["name"] == "read_file"
+    assert "`foo`" not in requests[1].messages[-1].content
     assert middleware.metrics.protocolRepairSuccesses == 1
 
 
