@@ -156,6 +156,13 @@ export function ConversationRuntimeProvider<TState = unknown>({
           throw error;
         }
         resumeRef.current = loaded.resume;
+        if (loaded.resumeDiscoveryError !== undefined) {
+          const error = loaded.resumeDiscoveryError;
+          queueMicrotask(() => {
+            bridgeRef.current?.recordError(error);
+            if (outerRuntime.current?.threads.getState().mainThreadId === item.id) onError?.(error);
+          });
+        }
         return {
           messages: loaded.messages.map((message, index) => ({
             parentId: index === 0 ? null : loaded.messages[index - 1]!.id,

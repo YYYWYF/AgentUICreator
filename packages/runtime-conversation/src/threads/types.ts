@@ -10,6 +10,8 @@ export interface ConversationLoadedThread<TState = unknown> {
   state?: TState | undefined;
   /** An existing server run paired with this exact history snapshot. */
   resume?: ConversationRunResume | undefined;
+  /** Capability discovery failed after history was loaded; report without starting a run. */
+  resumeDiscoveryError?: Error | undefined;
 }
 
 /** A snapshot of the resumed assistant segment. Content excludes parts already in history. */

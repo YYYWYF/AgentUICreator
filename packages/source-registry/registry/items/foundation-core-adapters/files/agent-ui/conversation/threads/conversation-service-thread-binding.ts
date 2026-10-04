@@ -162,11 +162,18 @@ export function createConversationServiceThreadBinding<
     const detail = await conversationService.loadConversation(id);
     const messages = projectConversationDetail(detail);
     const state = detail.agentState as TState | undefined;
-    const resume = await resumeProvider?.({ threadId: id, detail, messages, state });
+    let resume: ConversationRunResume | undefined;
+    let resumeDiscoveryError: Error | undefined;
+    try {
+      resume = await resumeProvider?.({ threadId: id, detail, messages, state });
+    } catch (error) {
+      resumeDiscoveryError = error instanceof Error ? error : new Error(String(error));
+    }
     return {
       messages,
       ...(state === undefined ? {} : { state }),
       ...(resume === undefined ? {} : { resume }),
+      ...(resumeDiscoveryError === undefined ? {} : { resumeDiscoveryError }),
     };
   };
   const activateThread = (id: string) => {

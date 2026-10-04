@@ -43,17 +43,19 @@ function Capture({ onRuntime }: { onRuntime: (runtime: AssistantRuntime) => void
   return null;
 }
 
-function Fixture({ provider, conversation, onBinding, onRuntime, runAgent }: {
+function Fixture({ provider, conversation, onBinding, onRuntime, onError, runAgent }: {
   provider: ConversationRunResumeProvider;
   conversation: ConversationService;
   onBinding: (binding: ConversationServiceThreadBinding) => void;
   onRuntime: (runtime: AssistantRuntime) => void;
+  onError?: ((error: Error) => void) | undefined;
   runAgent: ReturnType<typeof vi.fn>;
 }) {
   const binding = useConversationServiceThreadBinding(provider, "running-thread");
   onBinding(binding);
   useEffect(() => binding.attachConversationService(conversation), [binding, conversation]);
   return <ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding}
+    onError={onError}
     unstable_agentFactory={({ threadId }) => ({ threadId, runAgent, abortRun: vi.fn(),
       subscribe: () => ({ unsubscribe: () => {} }) }) as never}>
     <Capture onRuntime={onRuntime} />
@@ -61,6 +63,35 @@ function Fixture({ provider, conversation, onBinding, onRuntime, runAgent }: {
 }
 
 describe("generated Agent thread identity and resume provider lifecycle", () => {
+  it("keeps persisted history and state when resume discovery rejects", async () => {
+    const conversation = service();
+    conversation.loadConversation.mockResolvedValue({ ...detail, agentState: { progress: 1 } });
+    const failure = new Error("resume discovery failed");
+    const provider = vi.fn(async () => { throw failure; });
+    const runAgent = vi.fn();
+    const errors: Error[] = [];
+    let runtime!: AssistantRuntime;
+    let binding!: ConversationServiceThreadBinding;
+    const root = createRoot(document.createElement("div"));
+    try {
+      await act(async () => { root.render(<Fixture provider={provider} conversation={conversation}
+        onBinding={value => { binding = value; }} onRuntime={value => { runtime = value; }}
+        onError={error => errors.push(error)} runAgent={runAgent} />); });
+      await vi.waitFor(() => expect(errors).toContain(failure));
+      const messages = runtime.thread.getState().messages;
+      expect(conversation.loadConversation).toHaveBeenCalledWith("running-thread");
+      expect(messages.filter(message => message.role === "user")).toHaveLength(1);
+      expect(messages.filter(message => message.role === "assistant")).toHaveLength(1);
+      expect(messages.find(message => message.role === "assistant")?.content)
+        .toEqual(expect.arrayContaining([expect.objectContaining({ type: "text", text: "partial" })]));
+      expect(runtime.thread.getState().state).toEqual({ progress: 1 });
+      expect(runtime.thread.getState().isDisabled).toBe(false);
+      expect(binding.getThreadId()).toBe("running-thread");
+      expect(provider).toHaveBeenCalledOnce();
+      expect(runAgent).not.toHaveBeenCalled();
+    } finally { await act(async () => { root.unmount(); }); }
+  });
+
   it("loads the initial persisted thread and consumes its run without a new Agent invocation", async () => {
     const conversation = service();
     const runAgent = vi.fn();
