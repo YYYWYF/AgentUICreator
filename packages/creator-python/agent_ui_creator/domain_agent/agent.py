@@ -821,7 +821,7 @@ def create_domain_write_creator_agent(
         ),
         create_validation_tool(validation),
     ]
-    recovery_queries = CreatorRecoveryQueries(workspace)
+    recovery_queries = CreatorRecoveryQueries(workspace, activity=backend.activity)
     domain_tools.extend((*create_recovery_query_tools(recovery_queries),
                          create_recovery_undo_tool(recovery_queries)))
     if verification_mode == "static_and_runtime":

@@ -68,6 +68,7 @@ _RESOURCE_RESULT_SIDE_EFFECT_TOOLS = frozenset(
         "prepare_ui_service_contract_change",
         "create_ui_service_contract",
         "mutate_ui_service_contract",
+        "undo_creator_run",
     }
 )
 
@@ -192,6 +193,12 @@ def _resource_keys_for_app_ui_operations(
 
 
 def change_layer_for_tool_call(name: str, arguments: Mapping[str, Any]) -> ChangeLayer | None:
+    if name == "undo_creator_run":
+        paths = arguments.get("requested_paths")
+        if not isinstance(paths, list) or not paths:
+            return None
+        layers = {change_layer_for_path(path) for path in paths if isinstance(path, str)}
+        return next(iter(layers)) if len(layers) == 1 else None
     if name in {"edit_file", "edit_file_from_read"}:
         path = arguments.get("file_path")
         return change_layer_for_path(path) if isinstance(path, str) else None
@@ -207,6 +214,15 @@ def resource_keys_for_tool_call(
     if name in {"edit_file", "edit_file_from_read"}:
         path = arguments.get("file_path")
         return resource_keys_for_path(path) if isinstance(path, str) else ()
+    if name == "undo_creator_run":
+        paths = arguments.get("requested_paths")
+        resources: list[ResourceKey] = []
+        if isinstance(paths, list):
+            for path in paths:
+                if isinstance(path, str):
+                    for resource in resource_keys_for_path(path):
+                        _append_resource(resources, resource)
+        return tuple(resources)
     if name == "mutate_app_ui_model":
         return _resource_keys_for_app_ui_operations(arguments.get("operations"))
 

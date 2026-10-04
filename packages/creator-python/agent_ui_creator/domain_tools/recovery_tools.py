@@ -7,6 +7,9 @@ from pathlib import Path
 
 from langchain_core.tools import BaseTool, tool
 
+from ..activity import CreatorActivityRecorder
+from ..files import read_creator_file_state
+from ..project_paths import agent_ui_source_root
 from ..transactions import CreatorTransactionError, CreatorTransactionStore
 from ..transactions.models import CreatorTransactionRecord
 
@@ -34,8 +37,10 @@ def _record_digest(record: CreatorTransactionRecord) -> str:
 
 
 class CreatorRecoveryQueries:
-    def __init__(self, project_root: str | Path) -> None:
-        self.store = CreatorTransactionStore(project_root)
+    def __init__(self, project_root: str | Path,
+                 activity: CreatorActivityRecorder | None = None) -> None:
+        self.activity = activity
+        self.store = activity.transactions if activity is not None else CreatorTransactionStore(project_root)
         self.observed: dict[str, str] = {}
         self.coverage: dict[tuple[str, str], set[int]] = {}
 
@@ -122,21 +127,68 @@ class CreatorRecoveryQueries:
                 "transactionId": _record_digest(record), "diff": diff[:_DETAIL_LIMIT],
                 "truncated": len(diff) > _DETAIL_LIMIT}
 
+    def _source_lock_candidates(self, path: str) -> tuple[str, list[dict[str, object]]]:
+        """Read only the Host's recorded source hashes, never a fresh template."""
+        try:
+            project_config = read_creator_file_state(
+                self.store.project_root, ".agent-ui/project.json"
+            )
+            if not project_config.exists:
+                return "evidence_missing", []
+            source_root = agent_ui_source_root(self.store.project_root)
+            state = read_creator_file_state(
+                self.store.project_root, ".agent-ui/source-lock.json"
+            )
+            if not state.exists or state.content is None:
+                return "evidence_missing", []
+            if len(state.content.encode("utf-8")) > 5_000_000:
+                return "query_error", []
+            lock = json.loads(state.content)
+            if not isinstance(lock, dict) or lock.get("sourceRoot") != source_root:
+                return "query_error", []
+            items = lock.get("items")
+            if not isinstance(items, dict):
+                return "query_error", []
+            candidates: list[dict[str, object]] = []
+            for item_id, item in items.items():
+                if not isinstance(item_id, str) or not isinstance(item, dict):
+                    return "query_error", []
+                files = item.get("files")
+                if not isinstance(files, dict):
+                    return "query_error", []
+                for relative, metadata in files.items():
+                    if (isinstance(relative, str)
+                            and f"{source_root}/{relative}" == path
+                            and isinstance(metadata, dict)
+                            and isinstance(metadata.get("sha256"), str)
+                            and len(metadata["sha256"]) == 64
+                            and all(character in "0123456789abcdef" for character in metadata["sha256"])):
+                        candidates.append({"itemId": item_id,
+                                           "version": item.get("version"),
+                                           "sourceHash": metadata["sha256"]})
+            return "available" if candidates else "evidence_missing", candidates
+        except (OSError, ValueError, CreatorTransactionError):
+            return "query_error", []
+
     def baseline(self, path: str, *, run_id: str | None = None) -> dict[str, object]:
         # A sourceRoot is a location, never proof of an original version.
         # Saved before states are the only content source exposed here.
         listing = self.list()
         if listing["status"] == "query_error":
             return listing
+        lock_status, source_candidates = self._source_lock_candidates(path)
         candidates = ([run_id] if run_id is not None else
                       [str(item["runId"]) for item in listing["transactions"]])
         found = []
+        missing_run_id = None
         for candidate in candidates:
             try:
                 record = self.store.load(candidate)
             except CreatorTransactionError as error:
-                return {"status": "evidence_missing" if error.code == "CREATOR_TRANSACTION_NOT_FOUND" else "query_error",
-                        "error": error.code}
+                if error.code == "CREATOR_TRANSACTION_NOT_FOUND":
+                    missing_run_id = candidate
+                    continue
+                return {"status": "query_error", "error": error.code}
             for file in record.files:
                 if file.path == path:
                     found.append({"runId": candidate, "beforeHash": file.before.hash,
@@ -145,11 +197,29 @@ class CreatorRecoveryQueries:
                                   **({"beforeContent": file.before.content[:_DETAIL_LIMIT],
                                       "contentComplete": len(file.before.content) <= _DETAIL_LIMIT}
                                      if run_id is not None and file.before.content is not None else {})})
-        return {"status": "available" if found else
+        source_hashes = {str(item["sourceHash"]) for item in source_candidates}
+        for candidate in found:
+            candidate["sourceLockMatch"] = candidate["beforeHash"] in source_hashes
+        matched_content = any(candidate["sourceLockMatch"] and candidate["beforeExists"]
+                              for candidate in found)
+        content_partial = run_id is not None and any(
+            candidate.get("contentComplete") is False for candidate in found
+        )
+        return {"status": "partial_coverage" if content_partial else
+                "available" if found else
+                "query_error" if lock_status == "query_error" else
+                "partial_coverage" if source_candidates else
                 "partial_coverage" if listing.get("truncated") and run_id is None else
                 "evidence_missing",
-                "source": "creator_transaction_before" if found else None,
-                "candidates": found, "originalProjectBaseline": "not_implemented",
+                "source": "creator_transaction_before" if found else
+                "source_lock_hash" if source_candidates else None,
+                "candidates": found, "originalProjectBaseline": (
+                    "source_lock_hash_matched_transaction_before"
+                    if matched_content else "not_implemented"
+                ),
+                "sourceLockCandidates": source_candidates,
+                "sourceLockStatus": lock_status,
+                "missingTransactionRunId": missing_run_id,
                 "association": "unavailable" if run_id is None else "explicit_run_id"}
 
     def undo(self, run_id: str, transaction_id: str,
@@ -165,11 +235,21 @@ class CreatorRecoveryQueries:
             if len(requested_paths) != len(paths) or set(requested_paths) != paths:
                 return {"status": "scope_mismatch", "error": "PARTIAL_TRANSACTION_UNDO_UNAVAILABLE",
                         "transactionPaths": sorted(paths)}
-            result = self.store.undo(run_id, expected_transaction_id=transaction_id)
+            if self.activity is not None:
+                for path in sorted(paths):
+                    self.activity.capture_before(path)
+            result = self.store.undo(
+                run_id, expected_transaction_id=transaction_id, require_pending=True,
+            )
         except CreatorTransactionError as error:
-            return {"status": "conflict" if error.code in {"CREATOR_TRANSACTION_CHANGED", "CREATOR_UNDO_CONFLICT"} else "query_error",
+            return {"status": "already_undone" if error.code == "CREATOR_ALREADY_UNDONE" else
+                    "conflict" if error.code in {"CREATOR_TRANSACTION_CHANGED", "CREATOR_UNDO_CONFLICT"} else "query_error",
                     "error": error.code}
-        return {"status": "undone", "runId": run_id,
+        if self.activity is not None:
+            for path in result.changed_paths:
+                self.activity.file_observations.observe(path)
+                self.activity.touch(path)
+        return {"ok": True, "status": "undone", "runId": run_id,
                 "changedPaths": list(result.changed_paths)}
 
 

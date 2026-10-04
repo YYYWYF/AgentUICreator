@@ -409,6 +409,7 @@ class CreatorTransactionStore:
         requested_run_id: str | None = None,
         *,
         expected_transaction_id: str | None = None,
+        require_pending: bool = False,
         simulate_failure_after_write: int | None = None,
     ) -> CreatorUndoResult:
         with _undo_lock(self.project_root):
@@ -427,6 +428,11 @@ class CreatorTransactionStore:
                         "Creator transaction changed after it was inspected.",
                     )
             if read_creator_file_state(self.project_root, self._undo_marker_path(record.run_id)).exists:
+                if require_pending:
+                    raise CreatorTransactionError(
+                        "CREATOR_ALREADY_UNDONE",
+                        f'Creator run "{record.run_id}" was already undone.',
+                    )
                 conflicts = tuple(
                     CreatorTransactionConflict(file.path, file.before.hash,
                         read_creator_file_state(self.project_root, file.path).hash)

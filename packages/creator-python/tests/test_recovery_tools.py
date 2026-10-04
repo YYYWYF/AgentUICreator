@@ -5,10 +5,12 @@ from unittest.mock import Mock
 from langchain.agents.middleware import ModelRequest
 from langchain_core.messages import ToolMessage
 
+from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.domain_tools.recovery_tools import (
     CreatorRecoveryQueries, create_recovery_query_tools,
 )
 from agent_ui_creator.transactions import CreatorTransactionFileInput, CreatorTransactionStore
+from agent_ui_creator.files import creator_content_hash
 from agent_ui_creator.domain_agent.grounding_convergence import CompositionGroundingConvergenceMiddleware
 from agent_ui_creator.domain_agent.source_grounding import SourceGroundingConvergenceMiddleware
 from agent_ui_creator.domain_agent.tool_policy import (
@@ -43,6 +45,44 @@ def test_baseline_query_uses_saved_before_state_without_template(tmp_path):
     assert result["originalProjectBaseline"] == "not_implemented"
     assert queries.baseline("plugins/unknown.ts")["status"] == "evidence_missing"
     assert (tmp_path / "plugins/panel.ts").read_text() == "new panel"
+
+
+def test_source_lock_hash_is_partial_evidence_under_configured_source_root(tmp_path):
+    metadata = tmp_path / ".agent-ui"
+    metadata.mkdir()
+    (metadata / "project.json").write_text(json.dumps({"mode": "platform", "sourceRoot": "src/agent-ui"}))
+    digest = "a" * 64
+    (metadata / "source-lock.json").write_text(json.dumps({
+        "sourceRoot": "src/agent-ui",
+        "items": {"plugin/panel": {"version": "1", "files": {"plugins/panel/index.ts": {"sha256": digest}}}},
+    }))
+    queries = CreatorRecoveryQueries(tmp_path)
+    found = queries.baseline("src/agent-ui/plugins/panel/index.ts")
+    assert found["status"] == "partial_coverage"
+    assert found["source"] == "source_lock_hash"
+    assert found["sourceLockCandidates"][0]["sourceHash"] == digest
+    assert "beforeContent" not in found["sourceLockCandidates"][0]
+    explicit = queries.baseline("src/agent-ui/plugins/panel/index.ts", run_id="missing-run")
+    assert explicit["status"] == "partial_coverage"
+    assert explicit["missingTransactionRunId"] == "missing-run"
+    assert queries.baseline("src/agent-ui/plugins/other.ts")["status"] == "evidence_missing"
+
+
+def test_source_lock_and_transaction_before_can_confirm_saved_content(tmp_path):
+    metadata = tmp_path / ".agent-ui"
+    metadata.mkdir()
+    (metadata / "project.json").write_text(json.dumps({"mode": "assistant", "sourceRoot": "agent-ui"}))
+    (metadata / "source-lock.json").write_text(json.dumps({
+        "sourceRoot": "agent-ui", "items": {"plugin/panel": {"version": "1", "files": {
+            "plugins/panel/index.ts": {"sha256": creator_content_hash("original\n")},
+        }}},
+    }))
+    path = "agent-ui/plugins/panel/index.ts"
+    _record(tmp_path, "r1", [(path, "original\n", "edited\n")])
+    evidence = CreatorRecoveryQueries(tmp_path).baseline(path, run_id="r1")
+    assert evidence["status"] == "available"
+    assert evidence["originalProjectBaseline"] == "source_lock_hash_matched_transaction_before"
+    assert evidence["candidates"][0]["beforeContent"] == "original\n"
 
 
 def test_scope_observation_requires_every_page_and_exact_target(tmp_path):
@@ -104,6 +144,24 @@ def test_partial_feature_scope_never_expands_to_whole_run(tmp_path):
     assert result["status"] == "scope_mismatch"
     assert (tmp_path / "src/plugins/panel.ts").read_text() == "panel after"
     assert (tmp_path / "src/agent-ui/i18n/welcome.ts").read_text() == "hello after"
+
+
+def test_undo_is_recorded_as_current_run_mutation(tmp_path):
+    path = "src/plugins/panel.ts"
+    _record(tmp_path, "old-run", [(path, "before\n", "after\n")])
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("recovery-run")
+    queries = CreatorRecoveryQueries(tmp_path, activity=activity)
+    observed = queries.inspect("old-run")
+    result = queries.undo("old-run", observed["transactionId"], [path])
+    assert result["status"] == "undone"
+    assert activity.revision == 1
+    repeated = queries.undo("old-run", observed["transactionId"], [path])
+    assert repeated == {"status": "already_undone", "error": "CREATOR_ALREADY_UNDONE"}
+    assert activity.revision == 1
+    receipt = activity.finish()
+    assert [entry["path"] for entry in receipt["files"]] == [path]
+    assert receipt["transaction"]["runId"] == "recovery-run"
 
 
 def test_read_only_toolset_has_no_undo(tmp_path):
