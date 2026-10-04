@@ -6,7 +6,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 vi.mock("../src/ui/workspaceClient.js", async importOriginal => ({
   ...await importOriginal<typeof import("../src/ui/workspaceClient.js")>(),
   getWorkspaceState: vi.fn(async () => ({ status: "ready", workspace: { id: "workspace-1", name: "Project", displayPath: "/project" },
-    project: { version: "1", mode: "platform" }, runtime: { status: "ready" } })),
+    project: { mode: "platform", sourceRoot: "agent-ui" }, runtime: { status: "ready" } })),
 }));
 vi.mock("../src/ui/MockServicePanel.js", () => ({ MockServicePanel: () => null }));
 

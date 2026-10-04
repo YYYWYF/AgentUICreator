@@ -18,7 +18,7 @@ async function fixture() {
     expect(await readFile(entry, "utf8")).toBe(source);
   });
   const manager = new CreatorWorkspaceManager({
-    inspectProject: async () => ({ status: "ready", projectConfig: { version: "2", mode: "assistant", sourceRoot: "agent-ui" }, paths: { sourceRoot: "agent-ui" } }),
+    inspectProject: async () => ({ status: "ready", projectConfig: { mode: "assistant", sourceRoot: "agent-ui" }, paths: { sourceRoot: "agent-ui" } }),
     initializeProject: async () => undefined,
     validateProjectSetup: async () => ({ valid: true, sourceRoot: { normalized: "agent-ui", parentExists: true, targetState: "missing" }, issues: [] }),
     suggestSourceRoot: async () => "agent-ui",
@@ -28,16 +28,6 @@ async function fixture() {
 }
 
 describe("ready workspace control upgrade lifecycle", () => {
-  it("upgrades runtime version 0 before Python starts on select and refresh", async () => {
-    const { root, entry, source, manager, start } = await fixture();
-    const old = source.replace("controlRuntimeVersion: 1", "controlRuntimeVersion: 0");
-    await writeFile(entry, old);
-    expect(await manager.selectProject(root)).toMatchObject({ status: "ready", runtime: { status: "ready" } });
-    await writeFile(entry, old);
-    expect(await manager.refresh()).toMatchObject({ runtime: { status: "ready" } });
-    expect(start).toHaveBeenCalledTimes(2);
-    await manager.clear();
-  });
   it("upgrades a relocated tool URL and leaves current entries alone", async () => {
     const { root, entry, source } = await fixture();
     await writeFile(entry, source.replace(/from "file:[^"]+";/, 'from "file:///old-install/project-control-runtime.mjs";'));
@@ -54,10 +44,9 @@ describe("ready workspace control upgrade lifecycle", () => {
     expect(await readFile(entry, "utf8")).toBe(customized);
     await manager.clear();
   });
-  it("keeps missing legacy entries and reinstalls missing managed entries", async () => {
+  it("reinstalls a missing managed entry", async () => {
     const { root, entry } = await fixture();
     await rm(entry);
-    expect(await ensureManagedProjectControl(root)).toEqual([]);
-    expect(await ensureManagedProjectControl(root, { managed: true })).toEqual([MANAGED_CONTROL_ENTRY]);
+    expect(await ensureManagedProjectControl(root)).toEqual([MANAGED_CONTROL_ENTRY]);
   });
 });

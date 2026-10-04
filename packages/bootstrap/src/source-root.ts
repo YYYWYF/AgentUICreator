@@ -5,7 +5,7 @@ export class AgentUISourceRootError extends Error {
   readonly code = "AGENT_UI_SOURCE_ROOT_INVALID";
 }
 
-/** Shared syntax and lexical containment contract for V2 source roots. */
+/** Shared syntax and lexical containment contract for source roots. */
 export function validateAgentUISourceRoot(projectRoot: string, sourceRoot: string): string {
   const segments = sourceRoot.replaceAll("\\", "/").split("/");
   if (
@@ -121,7 +121,7 @@ export async function validateAgentUIProjectSetup(input: {
         if (existingConfig !== undefined) {
           try {
             const config = JSON.parse(await readFile(configPath, "utf8")) as Record<string, unknown>;
-            managed = config.version === "2" && config.sourceRoot === normalized;
+            managed = config.sourceRoot === normalized;
           } catch { /* Invalid config remains a project state issue. */ }
         }
         if (managed) targetState = "managed";

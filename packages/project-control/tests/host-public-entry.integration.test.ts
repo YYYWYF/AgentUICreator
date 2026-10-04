@@ -120,7 +120,6 @@ for (const mode of ["assistant", "embedded", "platform"] as const) {
         }
       }
       const controlResponse = await handleUIProjectControlRequest({
-        schemaVersion: 3,
         operation: "inspect_ui_project",
         input: { view: "composition" },
       }, projectRoot);
@@ -142,7 +141,6 @@ for (const mode of ["assistant", "embedded", "platform"] as const) {
         assert.ok(action, JSON.stringify(inspection.creatorActions.candidates.filter((candidate) =>
           candidate.target.pluginId === roundTripPlugin)));
         const mutation = await handleUIProjectControlRequest({
-          schemaVersion: 3,
           operation: "mutate_app_ui_model",
           input: {
             appUIModelHash: inspection.appUIModel.hash,
@@ -156,7 +154,7 @@ for (const mode of ["assistant", "embedded", "platform"] as const) {
         const verified = await verifyUIProject(projectRoot);
         assert.equal(verified.status, "passed", JSON.stringify(verified.errors));
         const refreshed = await handleUIProjectControlRequest({
-          schemaVersion: 3, operation: "inspect_ui_project", input: { view: "composition" },
+          operation: "inspect_ui_project", input: { view: "composition" },
         }, projectRoot);
         assert.equal(refreshed.ok, true, JSON.stringify(refreshed));
         inspection = refreshed.result as typeof inspection;

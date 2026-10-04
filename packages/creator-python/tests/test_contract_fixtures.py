@@ -78,9 +78,9 @@ def test_project_control_operation_receipt_and_host_fixtures_match_schemas():
     _validate("creator-host-results.schema.json", host_results["fastPath"])
 
 
-def test_schema_version_drift_is_rejected():
+def test_unknown_request_field_is_rejected():
     project_control = _fixture("project-control.json")
-    drifted = {**project_control["request"], "schemaVersion": 999}
+    drifted = {**project_control["request"], "unexpectedField": True}
 
     with pytest.raises(ValidationError):
         _validate("project-control.schema.json", drifted)
@@ -212,12 +212,10 @@ def test_project_control_runtime_composition_accepts_bounded_geometry():
     _validate(
         "project-control.schema.json",
         {
-            "schemaVersion": 3,
             "operation": "verify_runtime_composition",
             "input": {
                 "appUIModelHash": app_hash,
                 "composition": {
-                    "schemaVersion": 1,
                     "appUIModelHash": app_hash,
                     "compositionRevision": "revision-1",
                     "capabilityCatalogRevision": "b" * 64,
@@ -269,7 +267,6 @@ def test_project_control_runtime_composition_accepts_bounded_geometry():
 
 def test_targeted_layout_slot_inspection_requires_snapshot_hash():
     valid_layout_target = {
-        "schemaVersion": 3,
         "operation": "inspect_ui_slots",
         "input": {
             "appUIModelHash": "a" * 64,
@@ -288,7 +285,6 @@ def test_targeted_layout_slot_inspection_requires_snapshot_hash():
         )
 
     _validate("project-control.schema.json", {
-        "schemaVersion": 3,
         "operation": "inspect_ui_slots",
         "input": {
             "target": {

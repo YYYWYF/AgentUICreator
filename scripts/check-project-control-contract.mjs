@@ -16,8 +16,6 @@ export async function checkProjectControlContract() {
   ]);
   const inventory = JSON.parse(inventoryText);
   const schema = JSON.parse(schemaText);
-  assert.equal(inventory.schemaVersion, 1);
-  assert.equal(inventory.protocolVersion, 3);
   const names = inventory.operations.map(entry => entry.name).sort();
   assert.equal(new Set(names).size, names.length, 'Duplicate inventory operation');
   const setEqual = (actual, label) => assert.deepEqual([...new Set(actual)].sort(), names, label);
@@ -47,5 +45,5 @@ export async function checkProjectControlContract() {
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   await checkProjectControlContract();
-  process.stdout.write('ProjectControl v3 inventory is aligned.\n');
+  process.stdout.write('ProjectControl contract inventory is aligned.\n');
 }

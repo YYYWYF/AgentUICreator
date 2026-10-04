@@ -13,7 +13,7 @@ import {
   PLUGIN_REGISTRY_ENTRY_PATH,
   PLUGIN_REGISTRY_ENTRY_SOURCE,
 } from "../../src/project/registry-generator";
-import { collectPluginProjectFacts, generatePluginRegistry } from "../support/legacy-project-paths";
+import { collectPluginProjectFacts, generatePluginRegistry } from "../support/fixture-project-paths";
 import type { UIProjectControlConfig } from "../../src/project/types";
 
 const temporaryProjects: string[] = [];
@@ -642,17 +642,17 @@ describe("verifyUIProject", () => {
 
     const input = { expectedSourceHash: createHash("sha256").update(original).digest("hex") };
     const first = await handleUIProjectControlRequest({
-      schemaVersion: 3, operation: "synchronize_plugin_registry", input,
+      operation: "synchronize_plugin_registry", input,
     }, projectRoot);
     expect(first).toMatchObject({ ok: true, result: { changed: true, path: GENERATED_PLUGIN_REGISTRY_PATH } });
     expect((await verifyUIProject(projectRoot, fixtureConfig)).capabilityCatalog.generatedFileFresh).toBe(true);
     const second = await handleUIProjectControlRequest({
-      schemaVersion: 3, operation: "synchronize_plugin_registry",
+      operation: "synchronize_plugin_registry",
       input: { expectedSourceHash: createHash("sha256").update(await readFile(registryPath)).digest("hex") },
     }, projectRoot);
     expect(second).toMatchObject({ ok: true, result: { changed: false } });
     const stale = await handleUIProjectControlRequest({
-      schemaVersion: 3, operation: "synchronize_plugin_registry", input,
+      operation: "synchronize_plugin_registry", input,
     }, projectRoot);
     expect(stale).toMatchObject({ ok: false, error: { code: "PLUGIN_REGISTRY_HASH_CONFLICT" } });
   });

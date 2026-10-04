@@ -5,9 +5,9 @@ import path from "node:path";
 import type { AppUIModel } from "../../src/framework/contracts/app-ui-model";
 import { resolveAgentUIProjectPaths } from "../../src/project/agent-ui-project-paths";
 
-export async function createV2ProjectFixture() {
-  const projectRoot = await mkdtemp(path.join(tmpdir(), "agent-ui-v2-"));
-  const projectConfig = { version: "2" as const, mode: "assistant" as const, sourceRoot: "src/agent-ui" };
+export async function createSourceRootProjectFixture() {
+  const projectRoot = await mkdtemp(path.join(tmpdir(), "agent-ui-source-root-"));
+  const projectConfig = { mode: "assistant" as const, sourceRoot: "src/agent-ui" };
   const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig);
   const model: AppUIModel = {
     root: { type: "slot", plugins: [{ id: "foo-main", pluginId: "foo", enabled: true }] },
@@ -24,7 +24,7 @@ export async function createV2ProjectFixture() {
     writeFile(paths.projectConfigPath, `${JSON.stringify(projectConfig)}\n`),
     writeFile(paths.appUIModelPath, modelSource),
     writeFile(path.join(paths.pluginsRoot, "foo", "manifest.json"), JSON.stringify({
-      id: "foo", name: "Foo", description: "V2 fixture plugin", version: "1.0.0", capabilities: ["visual"],
+      id: "foo", name: "Foo", description: "Source root fixture plugin", version: "1.0.0", capabilities: ["visual"],
     })),
     writeFile(path.join(paths.pluginsRoot, "foo", "definition.ts"), "const definition = { manifest: {}, Component: () => null };\nexport default definition;\n"),
     writeFile(path.join(projectRoot, "plugins", "root-only", "manifest.json"), JSON.stringify({

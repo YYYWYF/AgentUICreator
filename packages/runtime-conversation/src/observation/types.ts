@@ -16,7 +16,6 @@ export interface ConversationToolCallObservation {
 }
 
 export interface ConversationObservationSnapshot {
-  schemaVersion: 1;
   threadId: string;
   isRunning: boolean;
   toolCalls: ConversationToolCallObservation[];

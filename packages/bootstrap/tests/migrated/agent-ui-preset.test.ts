@@ -16,7 +16,7 @@ import {
   agentUIPresetRegistry,
 } from "../../../project-control/src/framework/presets/index";
 import { agentUIModeRegistry } from "../../../project-control/src/framework/modes/index";
-import { generatePluginRegistry } from "../../../project-control/tests/support/legacy-project-paths";
+import { generatePluginRegistry } from "../../../project-control/tests/support/fixture-project-paths";
 import { projectWorkspaceTopology } from "../../../project-control/src/project/workspace-topology";
 
 function collectLayoutPluginIds(

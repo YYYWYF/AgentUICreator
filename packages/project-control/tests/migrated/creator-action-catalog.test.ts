@@ -32,7 +32,7 @@ import {
 import {
   generatePluginRegistryFromFacts,
 } from "../../src/project/registry-generator";
-import { collectPluginProjectFacts, legacyProjectPaths } from "../support/legacy-project-paths";
+import { collectPluginProjectFacts, fixtureProjectPaths } from "../support/fixture-project-paths";
 import { platformMode } from "../../src/framework/modes/platform";
 import { projectWorkspaceTopology } from "../../src/project/workspace-topology";
 import * as registryGenerator from "../../src/project/registry-generator";
@@ -1261,7 +1261,7 @@ describe("Creator Action Catalog", () => {
     const projectFacts = await registryGenerator.collectPluginProjectFacts(
       projectRoot,
       fixtureConfig,
-      legacyProjectPaths(projectRoot, fixtureConfig),
+      fixtureProjectPaths(projectRoot, fixtureConfig),
     );
     const generation = registryGenerator.generatePluginRegistryFromFacts(
       model,

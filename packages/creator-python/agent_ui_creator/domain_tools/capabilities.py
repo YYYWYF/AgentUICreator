@@ -45,7 +45,6 @@ def capability_navigation(project: dict, sources: dict, root: Path | None) -> di
     # Full ProjectControl inspection is the owner of installed asset identity.
     plugin_ids = [p["pluginId"] for p in plugins if isinstance(p, dict) and isinstance(p.get("pluginId"), str)]
     return {
-        "schemaVersion": 1,
         "authority": "navigation-only; inspect the referenced declaration/source before implementation",
         "appUIModelHash": project.get("appUIModel", {}).get("hash"),
         "sourceStateHash": sources.get("stateHash"),

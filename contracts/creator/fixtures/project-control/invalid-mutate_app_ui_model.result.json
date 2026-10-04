@@ -18,5 +18,5 @@
     "capabilityCatalogSourceHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "capabilityCatalogRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   },
-  "schemaVersionRenamedByMistake": 1
+  "unexpectedField": 1
 }

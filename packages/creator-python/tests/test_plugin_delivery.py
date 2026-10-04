@@ -28,15 +28,17 @@ CONTRACT = {
 
 
 def write(root, path, value):
+    config_path = root / ".agent-ui/project.json"
+    if path.startswith(("plugins/", "app-ui/")) and config_path.is_file():
+        path = json.loads(config_path.read_text())["sourceRoot"] + "/" + path
     file = root / path
     file.parent.mkdir(parents=True, exist_ok=True)
     file.write_text(json.dumps(value) if isinstance(value, dict) else value)
 
 
-def artifacts(root, *, source_root=""):
-    prefix = source_root + "/" if source_root else ""
-    if source_root:
-        write(root, ".agent-ui/project.json", {"version": "2", "sourceRoot": source_root})
+def artifacts(root, *, source_root="agent-ui"):
+    prefix = source_root + "/"
+    write(root, ".agent-ui/project.json", {"mode": "platform", "sourceRoot": source_root})
     for name, text in {"manifest.json": {"id": "checklist"}, "definition.ts": "export default {};",
                        "index.tsx": "export const Checklist = () => null;"}.items():
         write(root, prefix + "plugins/checklist/" + name, text)
@@ -79,7 +81,7 @@ def test_d01_formal_source_discovery_does_not_grant_development(tmp_path):
     assert not list(tmp_path.iterdir())
 
 
-@pytest.mark.parametrize("source_root", ["", "src/custom-agent"])
+@pytest.mark.parametrize("source_root", ["agent-ui", "src/custom-agent"])
 def test_d02_lifecycle_requires_registration_composition_and_current_evidence(tmp_path, source_root):
     prefix = artifacts(tmp_path, source_root=source_root)
     assert report(tmp_path)["delivery"]["lastSuccessfulStage"] == "created"
@@ -233,8 +235,8 @@ def test_completion_gate_overrides_model_success_for_unmounted_plugin(tmp_path):
     artifacts(tmp_path)
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("run")
-    activity.capture_before_content("/plugins/checklist/index.tsx", None)
-    activity.touch("/plugins/checklist/index.tsx")
+    activity.capture_before_content("/agent-ui/plugins/checklist/index.tsx", None)
+    activity.touch("/agent-ui/plugins/checklist/index.tsx")
     authority = SimpleNamespace(active=SimpleNamespace(
         status="authorized", target_plugin_id="checklist", delivery_contract=CONTRACT, scope_hash="scope",
         public_result=lambda: {"status": "authorized", "workKind": "create-plugin"}),
@@ -255,8 +257,8 @@ def test_static_completion_gate_accepts_current_composition_without_runtime_clai
     compose(tmp_path)
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("run")
-    activity.capture_before_content("/plugins/checklist/index.tsx", None)
-    activity.touch("/plugins/checklist/index.tsx")
+    activity.capture_before_content("/agent-ui/plugins/checklist/index.tsx", None)
+    activity.touch("/agent-ui/plugins/checklist/index.tsx")
     authority = SimpleNamespace(active=SimpleNamespace(
         status="authorized", target_plugin_id="checklist", delivery_contract=CONTRACT,
         scope_hash="scope", public_result=lambda: {"status": "authorized",

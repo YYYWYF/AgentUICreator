@@ -492,11 +492,6 @@ class AppUIModelMutationService:
                 "APP_UI_MODEL_MUTATION_RESULT_INCONSISTENT",
                 "Target mutation result must be an object.",
             )
-        if result.get("schemaVersion") != 1:
-            raise AppUIModelMutationError(
-                "APP_UI_MODEL_MUTATION_RESULT_INCONSISTENT",
-                "Target mutation result schemaVersion must be 1.",
-            )
         transaction_id = result.get("transactionId")
         if not isinstance(transaction_id, str) or not transaction_id:
             raise AppUIModelMutationError(

@@ -19,7 +19,6 @@ vi.mock("../src/PythonCreatorProcessManager.js", () => {
         host: "127.0.0.1",
         port: 12345,
         authToken: "test-token",
-        protocolVersion: "1",
         agentMode: "domain-write",
       };
     });
@@ -34,7 +33,6 @@ vi.mock("../src/PythonCreatorProcessManager.js", () => {
   class PythonCreatorRuntimeError extends Error {}
 
   return {
-    CREATOR_PYTHON_PROTOCOL_VERSION: "1",
     CREATOR_PYTHON_START_TIMEOUT_MS: 15_000,
     CREATOR_PYTHON_STOP_TIMEOUT_MS: 3_000,
     PythonCreatorProcessManager,

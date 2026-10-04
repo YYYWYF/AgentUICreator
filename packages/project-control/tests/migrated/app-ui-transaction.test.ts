@@ -18,7 +18,7 @@ import { actionIdFor } from "../../src/project/creator-action-catalog";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
 } from "../../src/project/registry-generator";
-import { generatePluginRegistry } from "../support/legacy-project-paths";
+import { generatePluginRegistry } from "../support/fixture-project-paths";
 
 const temporaryProjects: string[] = [];
 const hash = (source: string) => createHash("sha256").update(source).digest("hex");

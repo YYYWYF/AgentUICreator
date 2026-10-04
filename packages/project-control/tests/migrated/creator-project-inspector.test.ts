@@ -5,7 +5,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { inspectCreatorProject, inspectCreatorProjectStructure } from "../../src/project/creator-project-inspector";
-import { createV2ProjectFixture } from "../support/v2-project-fixture";
+import { createSourceRootProjectFixture } from "../support/source-root-project-fixture";
 
 const projects: string[] = [];
 
@@ -37,7 +37,7 @@ describe("Creator Project Inspector", () => {
     expect(await inspectCreatorProject(await project())).toEqual({ status: "uninitialized" });
   });
 
-  it("recognizes a valid old AppUIModel as legacy platform", async () => {
+  it("requires project configuration even when old root files exist", async () => {
     const root = await project();
     await model(root, "app-ui/app-ui.json");
     await mkdir(path.join(root, "plugins/foo"), { recursive: true });
@@ -49,22 +49,20 @@ describe("Creator Project Inspector", () => {
       compilerOptions: { module: "ESNext", moduleResolution: "Bundler", target: "ES2022" },
       include: ["plugins/**/*.ts"],
     }));
-    expect(await inspectCreatorProject(root)).toMatchObject({
-      status: "legacy", projectConfig: { version: "1", mode: "platform" },
-    });
+    expect(await inspectCreatorProject(root)).toEqual({ status: "uninitialized" });
   });
 
-  it("recognizes a V2 model under sourceRoot as ready", async () => {
-    const { projectRoot, paths } = await createV2ProjectFixture();
+  it("recognizes a model under sourceRoot as ready", async () => {
+    const { projectRoot, paths } = await createSourceRootProjectFixture();
     projects.push(projectRoot);
     expect(await inspectCreatorProject(projectRoot)).toMatchObject({
-      status: "ready", projectConfig: { version: "2", sourceRoot: "src/agent-ui" },
+      status: "ready", projectConfig: { sourceRoot: "src/agent-ui" },
       paths: { appUIModelPath: paths.appUIModelPath },
     });
   });
 
   it("keeps a valid committed project ready with a recovery warning when its journal remains", async () => {
-    const { projectRoot } = await createV2ProjectFixture();
+    const { projectRoot } = await createSourceRootProjectFixture();
     projects.push(projectRoot);
     await writeFile(path.join(projectRoot, ".agent-ui/init-transaction.json"), JSON.stringify({ phase: "committed" }));
     expect(await inspectCreatorProject(projectRoot)).toMatchObject({
@@ -75,7 +73,7 @@ describe("Creator Project Inspector", () => {
 
   it("adds a postcondition issue when committed static inspection is broken", async () => {
     const root = await project();
-    await config(root, { version: "2", mode: "assistant", sourceRoot: "src/agent-ui" });
+    await config(root, { mode: "assistant", sourceRoot: "src/agent-ui" });
     await writeFile(path.join(root, ".agent-ui/init-transaction.json"), JSON.stringify({ phase: "postcondition-failed" }));
     const state = await inspectCreatorProject(root);
     expect(state.status).toBe("broken");
@@ -87,14 +85,14 @@ describe("Creator Project Inspector", () => {
   it("keeps structural inspection separate from static readiness", async () => {
     const root = await project();
     await model(root, "src/agent-ui/app-ui/app-ui.json");
-    await config(root, { version: "2", mode: "assistant", sourceRoot: "src/agent-ui" });
+    await config(root, { mode: "assistant", sourceRoot: "src/agent-ui" });
     expect(await inspectCreatorProjectStructure(root)).toMatchObject({ status: "ready" });
     expect(await inspectCreatorProject(root)).toMatchObject({ status: "broken" });
   });
 
   it("marks a configured project with a missing model as broken", async () => {
     const root = await project();
-    await config(root, { version: "1", mode: "platform" });
+    await config(root, { mode: "platform", sourceRoot: "agent-ui" });
     expect(await inspectCreatorProject(root)).toMatchObject({
       status: "broken", issues: [{ code: "AGENT_UI_APP_UI_MODEL_MISSING" }],
     });
@@ -105,7 +103,7 @@ describe("Creator Project Inspector", () => {
     await model(root, "app-ui/app-ui.json");
     await writeFile(path.join(root, "app-ui/app-ui.json"), "{");
     expect(await inspectCreatorProject(root)).toMatchObject({ status: "broken" });
-    await config(root, { version: "3", mode: "platform" });
+    await config(root, { mode: "platform", sourceRoot: "agent-ui", unexpectedField: true });
     expect(await inspectCreatorProject(root)).toMatchObject({
       status: "broken", issues: [{ code: "AGENT_UI_PROJECT_CONFIG_INVALID" }],
     });

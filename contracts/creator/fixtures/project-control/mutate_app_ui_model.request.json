@@ -1,5 +1,4 @@
 {
-  "schemaVersion": 3,
   "operation": "mutate_app_ui_model",
   "input": {
     "appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",

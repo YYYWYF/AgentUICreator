@@ -122,11 +122,11 @@ def test_mutates_two_existing_files_atomically_and_records_receipt(tmp_path):
     assert receipt["transaction"]["undoable"] is True
 
 
-def test_v2_mutation_uses_source_root_and_preserves_project_root_plugin(tmp_path):
+def test_source_root_mutation_uses_source_root_and_preserves_project_root_plugin(tmp_path):
     metadata = tmp_path / ".agent-ui"
     metadata.mkdir()
     (metadata / "project.json").write_text(
-        json.dumps({"version": "2", "mode": "assistant", "sourceRoot": "src/agent-ui"}),
+        json.dumps({"mode": "assistant", "sourceRoot": "src/agent-ui"}),
         encoding="utf-8",
     )
     make_plugin(tmp_path / "src/agent-ui")

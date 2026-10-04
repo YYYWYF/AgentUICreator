@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://agent-ui.local/contracts/project-control.schema.json",
-  "title": "Creator project control protocol v3",
+  "title": "Creator ProjectControl contract",
   "$defs": {
     "emptyInput": {
       "type": "object",
@@ -50,12 +50,27 @@
     "preflightUIPluginPlacementInput": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["appUIModelHash", "capabilityCatalogRevision", "instanceId", "manifest"],
+      "required": [
+        "appUIModelHash",
+        "capabilityCatalogRevision",
+        "instanceId",
+        "manifest"
+      ],
       "properties": {
-        "appUIModelHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-        "capabilityCatalogRevision": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-        "instanceId": { "$ref": "#/$defs/nonBlankString" },
-        "manifest": { "$ref": "#/$defs/opaqueHostObject" }
+        "appUIModelHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "capabilityCatalogRevision": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "instanceId": {
+          "$ref": "#/$defs/nonBlankString"
+        },
+        "manifest": {
+          "$ref": "#/$defs/opaqueHostObject"
+        }
       }
     },
     "layoutSlotTarget": {
@@ -297,7 +312,6 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "schemaVersion",
         "appUIModelHash",
         "compositionRevision",
         "capabilityCatalogRevision",
@@ -307,9 +321,6 @@
         "slots"
       ],
       "properties": {
-        "schemaVersion": {
-          "const": 1
-        },
         "appUIModelHash": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
@@ -383,14 +394,10 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "schemaVersion",
             "operation",
             "input"
           ],
           "properties": {
-            "schemaVersion": {
-              "const": 3
-            },
             "operation": {
               "const": "inspect_ui_project"
             },
@@ -403,14 +410,10 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "schemaVersion",
             "operation",
             "input"
           ],
           "properties": {
-            "schemaVersion": {
-              "const": 3
-            },
             "operation": {
               "const": "inspect_app_ui_model"
             },
@@ -423,14 +426,10 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "schemaVersion",
             "operation",
             "input"
           ],
           "properties": {
-            "schemaVersion": {
-              "const": 3
-            },
             "operation": {
               "const": "list_ui_plugins"
             },
@@ -443,14 +442,10 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "schemaVersion",
             "operation",
             "input"
           ],
           "properties": {
-            "schemaVersion": {
-              "const": 3
-            },
             "operation": {
               "const": "inspect_ui_services"
             },
@@ -463,14 +458,10 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "schemaVersion",
             "operation",
             "input"
           ],
           "properties": {
-            "schemaVersion": {
-              "const": 3
-            },
             "operation": {
               "const": "inspect_agent_ui_sources"
             },
@@ -483,14 +474,10 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "schemaVersion",
             "operation",
             "input"
           ],
           "properties": {
-            "schemaVersion": {
-              "const": 3
-            },
             "operation": {
               "const": "inspect_ui_slots"
             },
@@ -503,14 +490,10 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "schemaVersion",
             "operation",
             "input"
           ],
           "properties": {
-            "schemaVersion": {
-              "const": 3
-            },
             "operation": {
               "const": "inspect_ui_plugin"
             },
@@ -522,25 +505,27 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["schemaVersion", "operation", "input"],
+          "required": [
+            "operation",
+            "input"
+          ],
           "properties": {
-            "schemaVersion": { "const": 3 },
-            "operation": { "const": "preflight_ui_plugin_placement" },
-            "input": { "$ref": "#/$defs/preflightUIPluginPlacementInput" }
+            "operation": {
+              "const": "preflight_ui_plugin_placement"
+            },
+            "input": {
+              "$ref": "#/$defs/preflightUIPluginPlacementInput"
+            }
           }
         },
         {
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "schemaVersion",
             "operation",
             "input"
           ],
           "properties": {
-            "schemaVersion": {
-              "const": 3
-            },
             "operation": {
               "const": "inspect_ui_plugin_source_references"
             },
@@ -553,14 +538,10 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "schemaVersion",
             "operation",
             "input"
           ],
           "properties": {
-            "schemaVersion": {
-              "const": 3
-            },
             "operation": {
               "const": "verify_runtime_composition"
             },
@@ -572,25 +553,27 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["schemaVersion", "operation", "input"],
+          "required": [
+            "operation",
+            "input"
+          ],
           "properties": {
-            "schemaVersion": { "const": 3 },
-            "operation": { "const": "verify_ui_project" },
-            "input": { "$ref": "#/$defs/emptyInput" }
+            "operation": {
+              "const": "verify_ui_project"
+            },
+            "input": {
+              "$ref": "#/$defs/emptyInput"
+            }
           }
         },
         {
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "schemaVersion",
             "operation",
             "input"
           ],
           "properties": {
-            "schemaVersion": {
-              "const": 3
-            },
             "operation": {
               "const": "mutate_app_ui_model"
             },
@@ -603,14 +586,10 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "schemaVersion",
             "operation",
             "input"
           ],
           "properties": {
-            "schemaVersion": {
-              "const": 3
-            },
             "operation": {
               "const": "apply_agent_ui_source_item"
             },
@@ -623,14 +602,10 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "schemaVersion",
             "operation",
             "input"
           ],
           "properties": {
-            "schemaVersion": {
-              "const": 3
-            },
             "operation": {
               "const": "remove_agent_ui_source_items"
             },
@@ -642,11 +617,17 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["schemaVersion", "operation", "input"],
+          "required": [
+            "operation",
+            "input"
+          ],
           "properties": {
-            "schemaVersion": { "const": 3 },
-            "operation": { "const": "synchronize_plugin_registry" },
-            "input": { "$ref": "#/$defs/synchronizePluginRegistryInput" }
+            "operation": {
+              "const": "synchronize_plugin_registry"
+            },
+            "input": {
+              "$ref": "#/$defs/synchronizePluginRegistryInput"
+            }
           }
         }
       ]
@@ -657,14 +638,10 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "schemaVersion",
             "ok",
             "result"
           ],
           "properties": {
-            "schemaVersion": {
-              "const": 3
-            },
             "ok": {
               "const": true
             },
@@ -723,14 +700,10 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "schemaVersion",
             "ok",
             "error"
           ],
           "properties": {
-            "schemaVersion": {
-              "const": 3
-            },
             "ok": {
               "const": false
             },
@@ -772,7 +745,7 @@
     },
     "opaqueHostObject": {
       "type": "object",
-      "description": "Opaque Host-owned object; its internal grammar is intentionally not frozen by ProjectControl v3."
+      "description": "Opaque Host-owned object; its internal grammar is intentionally not frozen by ProjectControl."
     },
     "projectIssue": {
       "type": "object",
@@ -1055,7 +1028,6 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "schemaVersion",
         "operation",
         "changed",
         "changedItems",
@@ -1065,9 +1037,6 @@
         "stateHash"
       ],
       "properties": {
-        "schemaVersion": {
-          "const": 1
-        },
         "operation": {
           "enum": [
             "apply",
@@ -1128,14 +1097,24 @@
     "synchronizePluginRegistryResult": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["changed", "path", "pluginIds"],
+      "required": [
+        "changed",
+        "path",
+        "pluginIds"
+      ],
       "properties": {
-        "changed": { "type": "boolean" },
-        "path": { "$ref": "#/$defs/path" },
+        "changed": {
+          "type": "boolean"
+        },
+        "path": {
+          "$ref": "#/$defs/path"
+        },
         "pluginIds": {
           "type": "array",
           "maxItems": 1000,
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -1620,16 +1599,41 @@
     "preflightUIPluginPlacementResult": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["eligible", "appUIModelHash"],
+      "required": [
+        "eligible",
+        "appUIModelHash"
+      ],
       "properties": {
-        "eligible": { "type": "boolean" },
-        "appUIModelHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-        "capabilityCatalogRevision": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-        "pluginId": { "$ref": "#/$defs/nonBlankString" },
-        "instanceId": { "$ref": "#/$defs/nonBlankString" },
-        "expectedPlacement": { "$ref": "#/$defs/opaqueHostObject" },
-        "unverified": { "type": "array", "items": { "type": "string" }, "maxItems": 10 },
-        "diagnostic": { "$ref": "#/$defs/opaqueHostObject" }
+        "eligible": {
+          "type": "boolean"
+        },
+        "appUIModelHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "capabilityCatalogRevision": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "pluginId": {
+          "$ref": "#/$defs/nonBlankString"
+        },
+        "instanceId": {
+          "$ref": "#/$defs/nonBlankString"
+        },
+        "expectedPlacement": {
+          "$ref": "#/$defs/opaqueHostObject"
+        },
+        "unverified": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 10
+        },
+        "diagnostic": {
+          "$ref": "#/$defs/opaqueHostObject"
+        }
       }
     },
     "inspectUIPluginResult": {
@@ -1821,18 +1825,31 @@
     "verifyUIProjectResult": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "errors", "warnings"],
+      "required": [
+        "status",
+        "errors",
+        "warnings"
+      ],
       "properties": {
-        "status": { "enum": ["passed", "failed"] },
+        "status": {
+          "enum": [
+            "passed",
+            "failed"
+          ]
+        },
         "errors": {
           "type": "array",
           "maxItems": 1000,
-          "items": { "$ref": "#/$defs/projectIssue" }
+          "items": {
+            "$ref": "#/$defs/projectIssue"
+          }
         },
         "warnings": {
           "type": "array",
           "maxItems": 1000,
-          "items": { "$ref": "#/$defs/projectIssue" }
+          "items": {
+            "$ref": "#/$defs/projectIssue"
+          }
         }
       }
     },
@@ -1942,7 +1959,6 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "schemaVersion",
         "appUIModel",
         "activeComposition",
         "authoringTargetCatalog",
@@ -1957,9 +1973,6 @@
         "agentUI"
       ],
       "properties": {
-        "schemaVersion": {
-          "const": 3
-        },
         "appUIModel": {
           "$ref": "#/$defs/appUIModelSnapshot"
         },
@@ -1980,13 +1993,9 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "legacy",
             "configPath"
           ],
           "properties": {
-            "legacy": {
-              "type": "boolean"
-            },
             "configPath": {
               "$ref": "#/$defs/path"
             }
@@ -2092,7 +2101,6 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "schemaVersion",
         "sourceRoot",
         "appUIModel",
         "activeComposition",
@@ -2108,9 +2116,6 @@
         "hostGuarantees"
       ],
       "properties": {
-        "schemaVersion": {
-          "const": 3
-        },
         "sourceRoot": {
           "$ref": "#/$defs/path"
         },
@@ -2229,7 +2234,6 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "schemaVersion",
         "transactionId",
         "changed",
         "changedPaths",
@@ -2241,9 +2245,6 @@
         "snapshotToken"
       ],
       "properties": {
-        "schemaVersion": {
-          "const": 1
-        },
         "transactionId": {
           "type": "string",
           "minLength": 1,
@@ -2272,13 +2273,27 @@
             "workspaceInfrastructure"
           ],
           "properties": {
-            "appUIModel": { "type": "boolean" },
-            "pluginConfig": { "type": "boolean" },
-            "generatedRegistry": { "type": "boolean" },
-            "sourceFiles": { "type": "boolean" },
-            "runtimeFiles": { "type": "boolean" },
-            "dependencies": { "type": "boolean" },
-            "workspaceInfrastructure": { "type": "boolean" }
+            "appUIModel": {
+              "type": "boolean"
+            },
+            "pluginConfig": {
+              "type": "boolean"
+            },
+            "generatedRegistry": {
+              "type": "boolean"
+            },
+            "sourceFiles": {
+              "type": "boolean"
+            },
+            "runtimeFiles": {
+              "type": "boolean"
+            },
+            "dependencies": {
+              "type": "boolean"
+            },
+            "workspaceInfrastructure": {
+              "type": "boolean"
+            }
           }
         },
         "appUIModel": {
@@ -2439,10 +2454,18 @@
     "synchronizePluginRegistryInput": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["expectedSourceHash"],
+      "required": [
+        "expectedSourceHash"
+      ],
       "properties": {
-        "expectedSourceHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-        "cancelMarker": { "type": "string", "pattern": "^\\.agentuicreator/control/cancel-[a-f0-9-]{36}$" }
+        "expectedSourceHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "cancelMarker": {
+          "type": "string",
+          "pattern": "^\\.agentuicreator/control/cancel-[a-f0-9-]{36}$"
+        }
       }
     },
     "removeAgentUISourceItemsInput": {

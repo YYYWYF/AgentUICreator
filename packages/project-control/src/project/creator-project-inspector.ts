@@ -2,10 +2,8 @@ import { readFile, realpath } from "node:fs/promises";
 import path from "node:path";
 
 import {
-  LEGACY_AGENT_UI_MODE,
   parseAgentUIProjectConfigJson,
   type AgentUIProjectConfig,
-  type AgentUIProjectConfigV1,
 } from "../framework/contracts/agent-ui-project";
 import { parseAppUIModelJson } from "../framework/contracts/app-ui-model";
 import { resolveAgentUIProjectPaths, projectControlConfigForPaths, projectRelativePath, type AgentUIProjectPaths } from "./agent-ui-project-paths";
@@ -23,7 +21,6 @@ export interface CreatorProjectIssue {
 export type CreatorProjectState =
   | { readonly status: "uninitialized" }
   | { readonly status: "ready"; readonly projectConfig: AgentUIProjectConfig; readonly paths: AgentUIProjectPaths; readonly warnings?: CreatorProjectIssue[] }
-  | { readonly status: "legacy"; readonly projectConfig: AgentUIProjectConfigV1; readonly paths: AgentUIProjectPaths; readonly warnings?: CreatorProjectIssue[] }
   | { readonly status: "broken"; readonly issues: CreatorProjectIssue[] };
 
 async function optionalFile(filePath: string): Promise<string | undefined> {
@@ -46,21 +43,12 @@ export async function inspectCreatorProjectStructure(
   const root = path.resolve(projectRoot);
   const configPath = path.join(root, config.agentUI.metadataRoot, "project.json");
   const configSource = await optionalFile(configPath);
-  const legacyConfig: AgentUIProjectConfigV1 = { version: "1", mode: LEGACY_AGENT_UI_MODE };
   if (configSource === undefined) {
     const initJournal = await optionalFile(path.join(root, config.agentUI.metadataRoot, "init-transaction.json"));
     if (initJournal !== undefined) {
       return broken("AGENT_UI_INITIALIZATION_INTERRUPTED", "Agent UI initialization was interrupted before project.json was committed.");
     }
-    const paths = resolveAgentUIProjectPaths(root, legacyConfig, config);
-    const modelSource = await optionalFile(paths.appUIModelPath);
-    if (modelSource === undefined) return { status: "uninitialized" };
-    try {
-      parseAppUIModelJson(modelSource);
-      return { status: "legacy", projectConfig: legacyConfig, paths };
-    } catch (error) {
-      return broken("AGENT_UI_APP_UI_MODEL_INVALID", error);
-    }
+    return { status: "uninitialized" };
   }
 
   let projectConfig: AgentUIProjectConfig;
@@ -72,7 +60,6 @@ export async function inspectCreatorProjectStructure(
   let paths: AgentUIProjectPaths;
   try {
     paths = resolveAgentUIProjectPaths(root, projectConfig, config);
-    if (projectConfig.version === "2") {
       const realProjectRoot = await realpath(root);
       const existingParent = await realpath(path.dirname(paths.sourceRoot));
       const relative = path.relative(realProjectRoot, existingParent);
@@ -88,7 +75,6 @@ export async function inspectCreatorProjectStructure(
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
       }
-    }
   } catch (error) {
     return broken("AGENT_UI_SOURCE_ROOT_INVALID", error);
   }
@@ -101,7 +87,6 @@ export async function inspectCreatorProjectStructure(
   } catch (error) {
     return broken("AGENT_UI_APP_UI_MODEL_INVALID", error);
   }
-  if (projectConfig.version === "2") {
     const lockSource = await optionalFile(paths.sourceLockPath);
     if (lockSource !== undefined) {
       try {
@@ -114,7 +99,6 @@ export async function inspectCreatorProjectStructure(
         return broken("AGENT_UI_SOURCE_LOCK_INVALID", error);
       }
     }
-  }
   return { status: "ready", projectConfig, paths };
 }
 
@@ -123,9 +107,9 @@ async function inspectCreatorProjectCore(
   config: UIProjectControlConfig = uiProjectControlConfig,
 ): Promise<CreatorProjectState> {
   const structure = await inspectCreatorProjectStructure(projectRoot, config);
-  if (structure.status !== "ready" && structure.status !== "legacy") return structure;
+  if (structure.status !== "ready") return structure;
 
-  const { paths, projectConfig } = structure;
+  const { paths } = structure;
   try {
     const model = parseAppUIModelJson(await readFile(paths.appUIModelPath, "utf8"));
     const generation = await generatePluginRegistry(projectRoot, model, {
@@ -163,9 +147,6 @@ async function inspectCreatorProjectCore(
         severity: "warning",
       });
     }
-    if (structure.status === "legacy") {
-      return { ...structure, ...(warnings.length === 0 ? {} : { warnings }) };
-    }
     return { ...structure, ...(warnings.length === 0 ? {} : { warnings }) };
   } catch (error) {
     return broken("AGENT_UI_STATIC_INSPECTION_FAILED", error);
@@ -189,7 +170,7 @@ export async function inspectCreatorProject(
       severity: "error",
     }] };
   }
-  if (state.status === "ready" || state.status === "legacy") {
+  if (state.status === "ready") {
     return { ...state, warnings: [...(state.warnings ?? []), {
       code: "AGENT_UI_INITIALIZATION_RECOVERY_REQUIRED",
       message: "Committed Agent UI initialization left a journal that needs recovery.",

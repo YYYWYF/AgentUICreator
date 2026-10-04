@@ -20,8 +20,8 @@ describe("Agent UI project paths", () => {
     "src/agent-ui",
     "agent-ui",
     "packages/web/agent-ui",
-  ])("resolves V2 sourceRoot %s under Project Root", (sourceRoot) => {
-    const config = parseAgentUIProjectConfig({ version: "2", mode: "assistant", sourceRoot });
+  ])("resolves sourceRoot %s under Project Root", (sourceRoot) => {
+    const config = parseAgentUIProjectConfig({ mode: "assistant", sourceRoot });
     const paths = resolveAgentUIProjectPaths(root, config);
     expect(paths.sourceRoot).toBe(path.join(root, sourceRoot));
     expect(paths.appUIModelPath).toBe(path.join(root, sourceRoot, "app-ui/app-ui.json"));
@@ -36,18 +36,9 @@ describe("Agent UI project paths", () => {
 
   it.each(["/tmp/other", "../agent-ui", ".", "C:\\outside\\agent-ui", "src/../agent-ui"])(
     "rejects unsafe sourceRoot %s", (sourceRoot) => {
-      const config = parseAgentUIProjectConfig({ version: "2", mode: "assistant", sourceRoot });
+      const config = parseAgentUIProjectConfig({ mode: "assistant", sourceRoot });
       expect(() => resolveAgentUIProjectPaths(root, config)).toThrow();
     },
   );
 
-  it("keeps V1 AppUIModel outside its sourceRoot", () => {
-    const paths = resolveAgentUIProjectPaths(root, { version: "1", mode: "platform" });
-    expect(paths.sourceRoot).toBe(path.join(root, "agent-ui"));
-    expect(paths.appUIModelPath).toBe(path.join(root, "app-ui/app-ui.json"));
-    expect(paths.pluginsRoot).toBe(path.join(root, "plugins"));
-    expect(paths.generatedPluginRegistryPath).toBe(path.join(root, "plugins/registry.generated.ts"));
-    expect(paths.pluginRegistryEntryPath).toBe(path.join(root, "plugins/index.ts"));
-    expect(paths.runtimeRoot).toBe(path.join(root, "runtime"));
-  });
 });

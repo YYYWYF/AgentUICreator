@@ -65,7 +65,6 @@ const runtimeLayoutNodeSchema = z.strictObject({
 });
 
 export const runtimeCompositionSnapshotSchema = z.strictObject({
-  schemaVersion: z.literal(1),
   appUIModelHash: appUIModelHashSchema,
   compositionRevision: runtimeIdentifierSchema,
   capabilityCatalogRevision: appUIModelHashSchema,

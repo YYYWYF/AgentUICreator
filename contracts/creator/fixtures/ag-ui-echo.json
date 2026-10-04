@@ -1,14 +1,12 @@
 {
   "handshake": {
     "type": "creator_ready",
-    "port": 43123,
-    "protocolVersion": "1"
+    "port": 43123
   },
   "health": {
     "status": "ok",
     "runtime": "python",
     "agentMode": "echo",
-    "protocolVersion": "1",
     "phase": "sidecar-skeleton"
   },
   "request": {

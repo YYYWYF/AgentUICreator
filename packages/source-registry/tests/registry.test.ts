@@ -77,9 +77,8 @@ describe("Agent UI Source Registry public conversation contract", () => {
   it("parses the canonical generic registry manifest", async () => {
     const manifest = JSON.parse(
       await readFile(path.join(packageRoot, "registry/registry.json"), "utf8"),
-    ) as { schemaVersion: number; items: Array<{ id: string }> };
+    ) as { items: Array<{ id: string }> };
 
-    expect(manifest.schemaVersion).toBe(1);
     expect(manifest.items).toEqual(expect.arrayContaining([{
       id: "foundation/conversation", path: "items/foundation-conversation/item.json",
     }, {
@@ -90,7 +89,6 @@ describe("Agent UI Source Registry public conversation contract", () => {
       id: "demo/ask-user-question", path: "items/demo-ask-user-question/item.json",
     }]));
     expect(parseSourceItem({
-      schemaVersion: 1,
       id: "foundation/conversation",
       version: "0.1.13",
       kind: "foundation",

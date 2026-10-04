@@ -28,7 +28,6 @@ def composition(
         {
             "threadId": thread_id,
             "composition": {
-                "schemaVersion": 1,
                 "appUIModelHash": app_hash,
                 "observedAt": datetime.now(timezone.utc).isoformat(),
                 **(
@@ -58,7 +57,6 @@ def diagnostic(thread_id: str, app_hash: str, status: str = "error"):
         {
             "threadId": thread_id,
             "diagnostic": {
-                "schemaVersion": 1,
                 "kind": "plugin-render",
                 "status": status,
                 "appUIModelHash": app_hash,
@@ -81,7 +79,6 @@ def test_runtime_diagnostic_store_records_forwarded_composition():
         {
             "threadId": "thread-1",
             "composition": {
-                "schemaVersion": 1,
                 "appUIModelHash": "a" * 64,
                 "observedAt": "2026-09-04T00:00:00.000Z",
                 "instances": [
@@ -110,7 +107,6 @@ def test_runtime_diagnostic_store_preserves_resolved_row_track_widths():
     envelope = RuntimeDiagnosticEnvelope.model_validate({
         "threadId": "thread-1",
         "composition": {
-            "schemaVersion": 1,
             "appUIModelHash": "a" * 64,
             "observedAt": datetime.now(timezone.utc).isoformat(),
             "instances": [],
@@ -167,7 +163,6 @@ def test_runtime_diagnostic_store_accepts_width_incompatibility():
         {
             "threadId": "thread-1",
             "diagnostic": {
-                "schemaVersion": 1,
                 "kind": "plugin-width-incompatible",
                 "code": "PLUGIN_WIDTH_INCOMPATIBLE",
                 "status": "error",
@@ -195,7 +190,6 @@ def test_runtime_diagnostic_store_accepts_application_event_diagnostics():
         {
             "threadId": "thread-1",
             "diagnostic": {
-                "schemaVersion": 1,
                 "kind": "application-event-invalid-payload",
                 "status": "error",
                 "appUIModelHash": "a" * 64,
@@ -220,7 +214,6 @@ def test_runtime_diagnostic_store_accepts_and_resolves_application_gate_errors()
         {
             "threadId": "thread-1",
             "diagnostic": {
-                "schemaVersion": 1,
                 "kind": "application-gate",
                 "status": "error",
                 "appUIModelHash": "a" * 64,
@@ -235,7 +228,6 @@ def test_runtime_diagnostic_store_accepts_and_resolves_application_gate_errors()
         {
             "threadId": "thread-1",
             "diagnostic": {
-                "schemaVersion": 1,
                 "kind": "application-gate",
                 "status": "resolved",
                 "appUIModelHash": "a" * 64,
@@ -563,7 +555,6 @@ def test_runtime_diagnostic_agent_surface_contains_only_authoring_semantics(tmp_
             {
                 "threadId": "thread-1",
                 "diagnostic": {
-                    "schemaVersion": 1,
                     "kind": "plugin-width-incompatible",
                     "code": "PLUGIN_WIDTH_INCOMPATIBLE",
                     "status": "error",

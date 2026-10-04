@@ -73,8 +73,8 @@ export default defineConfig({
       installOfficialAgentUIResource,
       // Host adapter calls the same formal protocol as Python Creator tools.
       inspectMockProject: async target => {
-        const composition = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "inspect_ui_project", input: { view: "composition" } }, target.projectRoot);
-        const sources = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "inspect_agent_ui_sources", input: {} }, target.projectRoot);
+        const composition = await handleUIProjectControlRequest({ operation: "inspect_ui_project", input: { view: "composition" } }, target.projectRoot);
+        const sources = await handleUIProjectControlRequest({ operation: "inspect_agent_ui_sources", input: {} }, target.projectRoot);
         if (!composition.ok || !sources.ok) throw new Error("Project inspection failed");
         const result = { composition: composition.result, sources: sources.result } as Awaited<ReturnType<MockProjectInspector>>;
         const resources = await inspectScenarioResources(target.projectRoot);

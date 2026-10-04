@@ -3,7 +3,7 @@ import path from "node:path";
 
 import {
   AgentUIInitializationError,
-  type AgentUIProjectConfigV2,
+  type AgentUIProjectConfig,
 } from "@agent-ui/bootstrap";
 import { installManagedProjectControl, MANAGED_CONTROL_ENTRY } from "../install.mjs";
 import { loadAgentUISourceRegistry } from "@agent-ui/source-registry";
@@ -26,7 +26,7 @@ async function exists(filePath: string): Promise<boolean> {
   }
 }
 
-function context(projectRoot: string, projectConfig: AgentUIProjectConfigV2) {
+function context(projectRoot: string, projectConfig: AgentUIProjectConfig) {
   const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig);
   return { paths, config: projectControlConfigForPaths(paths) };
 }

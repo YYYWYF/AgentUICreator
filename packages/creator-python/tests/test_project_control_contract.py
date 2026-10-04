@@ -55,7 +55,7 @@ def test_invalid_host_result_becomes_protocol_error_before_business_consumption(
     monkeypatch.setattr(client, "_ensure_fixed_runtime", lambda: None)
 
     async def execute(payload):
-        return json.dumps({"schemaVersion": 3, "ok": True, "result": {
+        return json.dumps({"ok": True, "result": {
             "changed": True, "stateHashRenamed": "a" * 64,
         }}).encode(), b"", 0
 

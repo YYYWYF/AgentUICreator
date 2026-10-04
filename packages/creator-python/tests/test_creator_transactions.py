@@ -4,7 +4,6 @@ import pytest
 
 from agent_ui_creator.files import CREATOR_MISSING_FILE_HASH, creator_content_hash
 from agent_ui_creator.transactions import (
-    CREATOR_TRANSACTION_SCHEMA_VERSION,
     MAX_CREATOR_TRANSACTION_BYTES,
     MAX_CREATOR_TRANSACTION_FILES,
     CreatorTransactionError,
@@ -16,11 +15,11 @@ from agent_ui_creator.transactions import (
 
 def valid_record():
     return {
-        "schemaVersion": 1,
         "runId": "run-1",
         "createdAt": "2026-09-05T00:00:00.000Z",
         "mutationRevision": 1,
         "validationRevision": None,
+        "createdDirectories": [],
         "files": [
             {
                 "path": "plugins/foo.ts",
@@ -39,7 +38,7 @@ def valid_record():
 @pytest.mark.parametrize(
     "mutate",
     [
-        lambda value: value.update(schemaVersion=2),
+        lambda value: value.update(unexpectedField=True),
         lambda value: value["files"].append(value["files"][0].copy()),
         lambda value: value["files"][0]["before"].update(hash="bad"),
         lambda value: value["files"][0]["after"].update(content="wrong"),
@@ -55,11 +54,10 @@ def test_transaction_schema_fails_closed(mutate):
 
 
 def test_transaction_schema_constants_remain_stable():
-    assert CREATOR_TRANSACTION_SCHEMA_VERSION == 1
     assert CREATOR_MISSING_FILE_HASH == creator_content_hash("<missing>")
 
 
-def test_transaction_schema_accepts_legacy_record_without_created_directories():
+def test_transaction_schema_accepts_current_record():
     record = parse_transaction_record(valid_record())
 
     assert record.created_directories == ()

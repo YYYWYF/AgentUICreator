@@ -14,8 +14,6 @@ import type {
   RuntimeLayoutNode,
 } from "../../framework/contracts/app-ui-runtime-model";
 import {
-  RUNTIME_COMPOSITION_SCHEMA_VERSION,
-  RUNTIME_DIAGNOSTIC_SCHEMA_VERSION,
   type RuntimeCompositionInstance,
   type RuntimeCompositionApplication,
   type RuntimeCompositionSlot,
@@ -171,7 +169,6 @@ export function PluginDiagnosticProvider<TState = unknown>({
           };
       try {
         onRuntimeDiagnostic({
-          schemaVersion: RUNTIME_DIAGNOSTIC_SCHEMA_VERSION,
           ...event,
           appUIModelHash,
           ...(compositionRevision === undefined
@@ -317,7 +314,6 @@ export function PluginDiagnosticProvider<TState = unknown>({
         .sort((left, right) => left.slotId.localeCompare(right.slotId));
       try {
         reporter({
-          schemaVersion: RUNTIME_COMPOSITION_SCHEMA_VERSION,
           appUIModelHash: currentHash.current,
           ...(currentCompositionRevision.current === undefined
             ? {}

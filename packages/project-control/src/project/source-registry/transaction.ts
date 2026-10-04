@@ -54,7 +54,7 @@ function parseJournal(value: unknown): AgentUISourceTransactionJournal {
   }
   const record = value as Record<string, unknown>;
   if (
-    record.schemaVersion !== 1 ||
+    Object.keys(record).sort().join(",") !== "itemId,lockContentBase64,originals,targetVersion" ||
     typeof record.itemId !== "string" ||
     typeof record.targetVersion !== "string" ||
     !Array.isArray(record.originals) ||
@@ -80,7 +80,6 @@ function parseJournal(value: unknown): AgentUISourceTransactionJournal {
     throw new Error("Journal contains duplicate paths.");
   }
   return {
-    schemaVersion: 1,
     itemId: record.itemId,
     targetVersion: record.targetVersion,
     originals,
@@ -163,7 +162,6 @@ export async function commitAgentUISourceTransaction(
   }
   const previousLock = await readOptionalBuffer(path.join(metadataRoot, AGENT_UI_SOURCE_LOCK_FILE));
   const journal: AgentUISourceTransactionJournal = {
-    schemaVersion: 1,
     itemId,
     targetVersion,
     originals,

@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any, Mapping
 
 
-CREATOR_DIAGNOSTIC_LOG_SCHEMA_VERSION = 1
 _SECRET_KEY = re.compile(
     r"(?:^(?:authorization|cookie|password|secret|token)$|(?:^|[_-])(?:api[_-]?key|access[_-]?token|refresh[_-]?token|password|secret)$)",
     re.IGNORECASE,
@@ -288,7 +287,6 @@ class CreatorRunLogger:
         return {
             "format": "jsonl",
             "path": self.path.relative_to(self.project_root).as_posix(),
-            "schemaVersion": CREATOR_DIAGNOSTIC_LOG_SCHEMA_VERSION,
         }
 
     def record(self, event_type: str, data: Mapping[str, object]) -> None:
@@ -296,7 +294,6 @@ class CreatorRunLogger:
             return
         self.sequence += 1
         entry = {
-            "schemaVersion": CREATOR_DIAGNOSTIC_LOG_SCHEMA_VERSION,
             "sequence": self.sequence,
             "timestamp": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
             "type": event_type,

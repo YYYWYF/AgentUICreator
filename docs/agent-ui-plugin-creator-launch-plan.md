@@ -288,7 +288,7 @@ Plugin 源码继续由通用 Coding Agent 在权限范围内编辑；AppUIModel 
 
 Agent UI 项目支持 `assistant`、`embedded` 和 `platform` 三种 Mode。Mode 声明产品容器形态、Workspace Policy 和初始化时使用的默认 Preset ID；Mode 不创建或持有 AppUIModel。
 
-Mode 保存在 `.agent-ui/project.json`，不进入 AppUIModel。没有该配置的旧项目解析为 `platform`，但项目检查结果必须标记其来自 legacy fallback。Preset Registry 在项目初始化时解析默认组合并返回 fresh AppUIModel；初始化完成后，当前 `app-ui/app-ui.json` 是项目的组合事实源。运行时只读取项目 Mode 和当前 AppUIModel，不加载 Preset，也不根据 Mode 改写组合。
+Mode 保存在 `.agent-ui/project.json`，不进入 AppUIModel。没有该配置的项目需要初始化。Preset Registry 在项目初始化时解析默认组合并返回 fresh AppUIModel；初始化完成后，当前 `app-ui/app-ui.json` 是项目的组合事实源。运行时只读取项目 Mode 和当前 AppUIModel，不加载 Preset，也不根据 Mode 改写组合。
 
 Mode Registry 只负责注册和查找 Mode Definition，不是新的 Plugin 系统。Preset Registry 只负责发现初始化组合，不安装 Plugin 或进入 Runtime。UI Plugin、SlotRegistry、LayoutRenderer、AppUICompiler 和 UIPluginRuntime 均不感知 Mode；第一阶段也不引入 Host、surface、density、`supportsModes`、DOM 注入或 Mode 迁移规则。
 
@@ -1139,14 +1139,14 @@ delete_ui_plugin_source
 
 Capability Catalog 由 Plugin inventory 自动生成，Active Registry 由 published composition 解析，因此不再向模型暴露 `register_plugin` / `unregister_plugin` bookkeeping 工具。
 
-专项工具通过 Agent UI 管理的 Project Control Adapter 使用目标项目自己的 Schema、Registry generator 和验证逻辑。Creator package 负责模型工具、权限、事务编排与回执，不在自身复制一份 AppUIModel 或 Plugin Contract；目标项目也不反向依赖 Creator。初始化在 `.agent-ui/control/project-control.mjs` 安装版本化 Node 入口，正式协议 implementation 由 development-only `@agent-ui/project-control` 提供；不要求 Host 手写脚本或安装 tsx。Adapter 使用固定入口和结构化 JSON 输入输出，不能退化成可由模型传入任意 shell 命令的执行器。
+专项工具通过 Agent UI 管理的 Project Control Adapter 使用目标项目自己的 Schema、Registry generator 和验证逻辑。Creator package 负责模型工具、权限、事务编排与回执，不在自身复制一份 AppUIModel 或 Plugin Contract；目标项目也不反向依赖 Creator。初始化在 `.agent-ui/control/project-control.mjs` 安装 Node 入口，正式协议 implementation 由 development-only `@agent-ui/project-control` 提供；不要求 Host 手写脚本或安装 tsx。Adapter 使用固定入口和结构化 JSON 输入输出，不能退化成可由模型传入任意 shell 命令的执行器。
 
-ProjectControl v3 的 canonical wire contract 是 `contracts/creator/project-control.schema.json`，
+ProjectControl 的 canonical wire contract 是 `contracts/creator/project-control.schema.json`，
 `contracts/creator/project-control.operations.json` 是 operation/input/result/Agent exposure 的单一清单。
 TypeScript Zod request parsing 是 Host 实现细节；Python Literal/client methods 是 transport bindings，
 两者不能独立定义协议。Host 返回前与 Python 接收后均根据请求 operation 校验 canonical Result Schema，
-保持 v3 response envelope 不变。Agent Tool exposure 是独立授权面：内部 remove capability 不开放给模型。
-删除字段、字段改名、改变类型或 response envelope 必须升级协议版本至 v4。
+保持当前 response envelope。Agent Tool exposure 是独立授权面：内部 remove capability 不开放给模型。
+删除字段、字段改名、改变类型或 response envelope 时，同仓更新契约和调用方。
 
 Creator 可以自主选择工具。
 

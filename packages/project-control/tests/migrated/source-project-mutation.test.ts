@@ -91,11 +91,11 @@ afterEach(async () => {
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })));
 });
 const generated = ["plugins/registry.generated.ts", "agent-contract/frontend-tools.generated.ts", "agent-ui/conversation/frontend-tool-uis.generated.ts", "agent-ui/conversation/integrations.generated.tsx"];
-async function fixture(itemId = "integration/a2ui", legacy = false) {
+async function fixture(itemId = "integration/a2ui") {
   const root = await mkdtemp(path.join(tmpdir(), "source-project-")); roots.push(root);
-  const sourceRoot = legacy ? root : path.join(root, "custom-ui");
+  const sourceRoot = path.join(root, "custom-ui");
   await mkdir(path.join(root, ".agent-ui"));
-  await writeFile(path.join(root, ".agent-ui/project.json"), JSON.stringify(legacy ? { version: "1", mode: "platform" } : { version: "2", mode: "platform", sourceRoot: "custom-ui" }));
+  await writeFile(path.join(root, ".agent-ui/project.json"), JSON.stringify({ mode: "platform", sourceRoot: "custom-ui" }));
   const registry = await loadAgentUISourceRegistry();
   const closure = resolveAgentUISourceItemClosure(registry, itemId);
   const dependencies = Object.assign({}, ...closure.map(item => item.packages ?? {})) as Record<string, string>;
@@ -104,10 +104,8 @@ async function fixture(itemId = "integration/a2ui", legacy = false) {
     const directory = path.join(root, "node_modules", name); await mkdir(directory, { recursive: true });
     await writeFile(path.join(directory, "package.json"), JSON.stringify({ name, version: minVersion(required)!.version }));
   }
-  const seededFoundation = legacy
-    ? closure.filter(item => item.kind === "foundation")
-    : resolveAgentUISourceItemClosure(registry, "foundation/core")
-      .filter(item => item.kind === "foundation" && !closure.some(selected => selected.id === item.id));
+  const seededFoundation = resolveAgentUISourceItemClosure(registry, "foundation/core")
+    .filter(item => item.kind === "foundation" && !closure.some(selected => selected.id === item.id));
   for (const file of seededFoundation.flatMap(item => item.loadedFiles)) {
     const target = path.join(sourceRoot, file.target); await mkdir(path.dirname(target), { recursive: true }); await writeFile(target, file.content);
   }
@@ -138,7 +136,7 @@ async function exitedOwnerPid() {
 }
 function journalPath(f: Fixture) { return path.join(f.root, f.config.agentUI.metadataRoot, "source-project-transaction.json"); }
 async function writeOwnerJournal(f: Fixture, originals: Awaited<ReturnType<typeof snapshot>>, ownerPid: number) {
-  await writeFile(journalPath(f), JSON.stringify({ schemaVersion: 2, transactionId: randomUUID(), ownerPid, createdAt: new Date().toISOString(),
+  await writeFile(journalPath(f), JSON.stringify({ transactionId: randomUUID(), ownerPid, createdAt: new Date().toISOString(),
     originals: originals.filter(entry => entry.path !== path.relative(f.root, f.modelPath)) }));
 }
 async function childMessage(child: ChildProcess, message: Record<string, unknown>) {
@@ -160,16 +158,16 @@ async function processControl(f: Fixture, operation: string, input: Record<strin
   children.push(child);
   return (await childMessage(child, { projectRoot: f.root, operation, input })).response;
 }
-it("Mock and ProjectControl install byte-identical V2 source and registries", async () => {
+it("Mock and ProjectControl install byte-identical source and registries", async () => {
   const a = await fixture(); const b = await fixture();
   await installOptionalAgentUIResource(a.root, a.itemId);
-  const result = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "apply_agent_ui_source_item", input: { itemId: b.itemId, expectedStateHash: (await inspectAgentUISources(b.root, b.config)).stateHash } }, b.root);
+  const result = await handleUIProjectControlRequest({ operation: "apply_agent_ui_source_item", input: { itemId: b.itemId, expectedStateHash: (await inspectAgentUISources(b.root, b.config)).stateHash } }, b.root);
   expect(result.ok).toBe(true);
   expect(await snapshot(a)).toEqual(await snapshot(b));
   expect((await verifyUIProject(b.root)).status).toBe("passed");
 });
-it.each([false, true])("installs A2UI and repairs stale generated output without changing composition (legacy=%s)", async legacy => {
-  const f = await fixture("integration/a2ui", legacy); const model = await readFile(f.modelPath);
+it("installs A2UI and repairs stale generated output without changing composition", async () => {
+  const f = await fixture("integration/a2ui"); const model = await readFile(f.modelPath);
   const result = await apply(f);
   expect(result.changedPaths).toEqual([...new Set([...result.sourceChangedPaths, ...result.generatedChangedPaths])].sort());
   const sources = await inspectAgentUISources(f.root, f.config);
@@ -180,7 +178,6 @@ it.each([false, true])("installs A2UI and repairs stale generated output without
   expect(await apply(f)).toMatchObject({ changed: true, sourceChangedPaths: [], generatedChangedPaths: [path.relative(f.root, filename)] });
   expect(await apply(f)).toMatchObject({ changed: false, changedPaths: [] });
   expect(await readFile(f.modelPath)).toEqual(model);
-  if (legacy) expect(Object.keys(JSON.parse(await readFile(path.join(f.root, f.config.agentUI.metadataRoot, "source-lock.json"), "utf8")).items)).not.toContain("foundation/core-runtime");
 });
 it.each(["integration/a2ui", "demo/frontend-tool-form"])("removes %s and its generated imports", async itemId => {
   const f = await fixture(itemId); await apply(f);
@@ -234,9 +231,9 @@ it.each(["recover", "inspect", "apply", "remove"].flatMap(next => ["source", "ge
   if (stage === "source") await applyAgentUISourceItem(f.root, { itemId: f.itemId, expectedStateHash: (await inspectAgentUISources(f.root, f.config)).stateHash }, f.config);
   else await apply(f);
   const journalPath = path.join(f.root, f.config.agentUI.metadataRoot, "source-project-transaction.json");
-  await writeFile(journalPath, JSON.stringify({ schemaVersion: 1, originals: before.filter(entry => entry.path !== path.relative(f.root, f.modelPath)) }));
+  await writeOwnerJournal(f, before, await exitedOwnerPid());
   if (next === "recover") await recoverPendingAgentUISourceProjectMutation(f.root, f.config);
-  else if (next === "inspect") expect((await handleUIProjectControlRequest({ schemaVersion: 3, operation: "inspect_agent_ui_sources", input: {} }, f.root)).ok).toBe(true);
+  else if (next === "inspect") expect((await handleUIProjectControlRequest({ operation: "inspect_agent_ui_sources", input: {} }, f.root)).ok).toBe(true);
   else {
     const hash = (await inspectAgentUISources(f.root, f.config)).stateHash;
     await expect(next === "apply" ? applyAgentUISourceProjectMutation(f.root, { itemId: f.itemId, expectedStateHash: hash }, { config: f.config }) : removeAgentUISourceProjectMutation(f.root, { itemIds: [f.itemId], expectedStateHash: hash }, { config: f.config })).rejects.toMatchObject({ code: "AGENT_UI_SOURCE_STATE_CONFLICT" });
@@ -266,7 +263,7 @@ it("retains a retryable journal and both causes when rollback itself fails", asy
     cause: "Injected failure with blocked rollback", rollbackCause: expect.any(String), journalPath: path.relative(f.root, journal),
   } });
   const retained = JSON.parse(await readFile(journal, "utf8"));
-  expect(retained).toMatchObject({ schemaVersion: 2, ownerPid: process.pid, transactionId: expect.any(String), createdAt: expect.any(String) });
+  expect(retained).toMatchObject({ ownerPid: process.pid, transactionId: expect.any(String), createdAt: expect.any(String) });
   failure.stage = "";
   await rm(path.join(f.sourceRoot, generated[0]!), { recursive: true });
   await expect(recoverPendingAgentUISourceProjectMutation(f.root, f.config)).rejects.toMatchObject({ code: "AGENT_UI_SOURCE_PROJECT_MUTATION_PENDING" });
@@ -284,7 +281,7 @@ it.each(["recover", "inspect", "mock", "apply", "remove"])("does not touch an ac
   const lowJournal = path.join(f.root, f.config.agentUI.metadataRoot, "source-transaction.json");
   await writeFile(lowJournal, "active low-level transaction");
   const active = await snapshot(f); const journal = await readFile(journalPath(f));
-  if (operation === "inspect") expect(await handleUIProjectControlRequest({ schemaVersion: 3, operation: "inspect_agent_ui_sources", input: {} }, f.root)).toMatchObject({ ok: false, error: { code: "AGENT_UI_SOURCE_PROJECT_MUTATION_PENDING" } });
+  if (operation === "inspect") expect(await handleUIProjectControlRequest({ operation: "inspect_agent_ui_sources", input: {} }, f.root)).toMatchObject({ ok: false, error: { code: "AGENT_UI_SOURCE_PROJECT_MUTATION_PENDING" } });
   else {
     const request = operation === "recover" ? recoverPendingAgentUISourceProjectMutation(f.root, f.config)
       : operation === "mock" ? inspectScenarioResources(f.root)
@@ -295,7 +292,7 @@ it.each(["recover", "inspect", "mock", "apply", "remove"])("does not touch an ac
   expect(await readFile(lowJournal, "utf8")).toBe("active low-level transaction");
   expect(await snapshot(f)).toEqual(active);
 });
-it("recovers a V2 journal only after its owner has exited", async () => {
+it("recovers a current journal only after its owner has exited", async () => {
   const f = await fixture(); const before = await snapshot(f); await apply(f);
   await writeOwnerJournal(f, before, await exitedOwnerPid());
   await recoverPendingAgentUISourceProjectMutation(f.root, f.config);
@@ -330,7 +327,7 @@ it("rechecks a living owner that wins the create-only journal race", async () =>
   journalRace.ownerPid = process.pid; journalRace.remaining = 1; journalRace.attempts = 0;
   await expect(apply(f)).rejects.toMatchObject({ code: "AGENT_UI_SOURCE_PROJECT_MUTATION_PENDING" });
   expect(journalRace.attempts).toBe(1); expect(await snapshot(f)).toEqual(before);
-  expect(JSON.parse(await readFile(journalPath(f), "utf8"))).toMatchObject({ schemaVersion: 2, ownerPid: process.pid });
+  expect(JSON.parse(await readFile(journalPath(f), "utf8"))).toMatchObject({ ownerPid: process.pid });
 });
 it("recovers a dead create-only winner and retries fresh admission once", async () => {
   const f = await fixture(); journalRace.ownerPid = await exitedOwnerPid(); journalRace.remaining = 1; journalRace.attempts = 0;

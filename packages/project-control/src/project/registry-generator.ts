@@ -36,9 +36,9 @@ import type {
   UIProjectControlConfig,
 } from "./types";
 
-/** Legacy V1 fixture paths. Production paths come from AgentUIProjectPaths. */
+/** Relative registry path within the configured source root. */
 export const GENERATED_PLUGIN_REGISTRY_PATH = "plugins/registry.generated.ts";
-/** Legacy V1 fixture path. Production paths come from AgentUIProjectPaths. */
+/** Relative registry entry path within the configured source root. */
 export const PLUGIN_REGISTRY_ENTRY_PATH = "plugins/index.ts";
 export const PLUGIN_REGISTRY_ENTRY_SOURCE =
   [

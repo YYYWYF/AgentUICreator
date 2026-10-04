@@ -102,11 +102,11 @@ def test_internal_source_primitive_creates_multiple_files_atomically(tmp_path):
     assert (tmp_path / "plugins/task-status/index.tsx").is_file()
 
 
-def test_v2_source_creation_uses_source_root(tmp_path):
+def test_source_root_source_creation_uses_source_root(tmp_path):
     metadata = tmp_path / ".agent-ui"
     metadata.mkdir()
     (metadata / "project.json").write_text(
-        json.dumps({"version": "2", "mode": "assistant", "sourceRoot": "src/agent-ui"}),
+        json.dumps({"mode": "assistant", "sourceRoot": "src/agent-ui"}),
         encoding="utf-8",
     )
     root_plugin = tmp_path / "plugins/foo/index.ts"
@@ -119,11 +119,11 @@ def test_v2_source_creation_uses_source_root(tmp_path):
     assert root_plugin.read_text(encoding="utf-8") == "host file\n"
 
 
-def test_v2_plugin_creation_uses_source_root(tmp_path):
+def test_source_root_plugin_creation_uses_source_root(tmp_path):
     metadata = tmp_path / ".agent-ui"
     metadata.mkdir()
     (metadata / "project.json").write_text(
-        json.dumps({"version": "2", "mode": "assistant", "sourceRoot": "src/agent-ui"}),
+        json.dumps({"mode": "assistant", "sourceRoot": "src/agent-ui"}),
         encoding="utf-8",
     )
 

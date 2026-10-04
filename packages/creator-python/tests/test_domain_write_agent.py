@@ -60,7 +60,6 @@ class MutationClient:
         self.inspect_calls += 1
         self.metrics.record("inspect_app_ui_model", 1, False)
         return {
-            "schemaVersion": 3,
             "hash": read_creator_file_state(self.root, APP_UI_MODEL_PATH).hash,
             "model": json.loads(
                 (self.root / APP_UI_MODEL_PATH).read_text(encoding="utf-8")
@@ -82,7 +81,6 @@ class MutationClient:
         )
         after_hash = read_creator_file_state(self.root, APP_UI_MODEL_PATH).hash
         return {
-            "schemaVersion": 1,
             "transactionId": "golden-transaction",
             "changed": True,
             "changedPaths": [APP_UI_MODEL_PATH],

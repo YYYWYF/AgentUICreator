@@ -7,7 +7,7 @@ process.on("message", async message => {
     return;
   }
   try {
-    const journal = { schemaVersion: 2, transactionId: randomUUID(), ownerPid: process.pid,
+    const journal = { transactionId: randomUUID(), ownerPid: process.pid,
       createdAt: new Date().toISOString(), originals: message.originals };
     await writeFile(message.journalPath, JSON.stringify(journal));
     process.send({ type: "ready", ownerPid: process.pid });

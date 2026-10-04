@@ -23,7 +23,7 @@ from agent_ui_creator.model_protocol.trace import ToolProtocolMetrics
 from agent_ui_creator.domain_state.observation_context import DomainObservationMetrics
 
 
-REQUEST = {"schemaVersion": 1, "steps": [{
+REQUEST = {"steps": [{
     "id": "layout", "question": "Layout?", "selectionMode": "single",
     "minSelections": 1, "maxSelections": 1,
     "options": [{"id": "dashboard", "label": "Dashboard"}, {"id": "sidebar", "label": "Sidebar"}],

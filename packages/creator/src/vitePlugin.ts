@@ -139,7 +139,7 @@ export function createCreatorDevServerPlugin({
         void handleCreatorMockRequest(request, response, mockService, () => {
           if (workspaceManager !== undefined) {
             const state = workspaceManager.getState();
-            if (state.status !== "ready" && state.status !== "legacy") return undefined;
+            if (state.status !== "ready") return undefined;
             return { id: state.workspace.id, projectRoot: state.workspace.projectRoot,
               ...(state.project.sourceRoot === undefined ? {} : { sourceRoot: state.project.sourceRoot }) };
           }

@@ -68,7 +68,7 @@ describe("fresh user Host architecture regression", () => {
     expect(await readFile(path.join(root, sourceRoot, "index.ts"), "utf8")).toContain("Agent");
     expect((await verifyUIProject(root)).status).toBe("passed");
     const entry = path.join(root, ".agent-ui/control/project-control.mjs");
-    expect(await readFile(entry, "utf8")).toContain("controlProtocolVersion: 3");
+    expect(await readFile(entry, "utf8")).toContain("runUIProjectControlCli");
     await expect(readFile(path.join(root, "node_modules/.bin/tsx"))).rejects.toMatchObject({ code: "ENOENT" });
     await expect(readFile(path.join(root, "scripts/ui-project-control.ts"))).rejects.toMatchObject({ code: "ENOENT" });
     const request = async <T = UICompositionInspection>(operation: string, input: unknown = {}): Promise<T> => {
@@ -87,7 +87,7 @@ describe("fresh user Host architecture regression", () => {
           } catch (error) { reject(error); }
         });
         child.stdin.on("error", reject);
-        child.stdin.end(JSON.stringify({ schemaVersion: 3, operation, input }));
+        child.stdin.end(JSON.stringify({ operation, input }));
       });
       expect(result, JSON.stringify(result)).toMatchObject({ ok: true });
       if (!result.ok) throw new Error(result.error.message);
@@ -118,13 +118,13 @@ describe("fresh user Host architecture regression", () => {
     snapshot = await request("inspect_ui_project", { view: "composition" });
     expect(snapshot.pluginInstances.some(instance => instance.id === "probe")).toBe(false);
     expect((await verifyUIProject(root)).status).toBe("passed");
-    const paths = resolveAgentUIProjectPaths(root, { version: "2", mode, sourceRoot });
+    const paths = resolveAgentUIProjectPaths(root, { mode, sourceRoot });
     const model = parseAppUIModelJson(await readFile(paths.appUIModelPath, "utf8"));
     const registry = await generatePluginRegistry(root, model, { config: projectControlConfigForPaths(paths), paths });
     const runtime = compileAppUIModel(model, registry.activeComposition.compositionCatalog);
     const revision = JSON.parse(await readFile(path.join(root, sourceRoot, "app-ui/composition-revision.generated.json"), "utf8")) as { transactionId: string };
     const verification = await request<{ verified: boolean }>("verify_runtime_composition", { appUIModelHash: snapshot.appUIModel.hash, composition: {
-      schemaVersion: 1, appUIModelHash: snapshot.appUIModel.hash,
+      appUIModelHash: snapshot.appUIModel.hash,
       compositionRevision: revision.transactionId, capabilityCatalogRevision: snapshot.capabilityCatalogRevision,
       publishedAt: "2026-09-26T00:00:00.000Z", observedAt: "2026-09-26T00:00:00.000Z",
       instances: Object.values(runtime.pluginInstances).flatMap(instance => instance.enabled && instance.mount ? [{ instanceId: instance.id, pluginId: instance.pluginId, slotId: instance.mount.slotId }] : []), slots: [],
@@ -149,7 +149,7 @@ describe("fresh user Host architecture regression", () => {
 it("upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIModel", async () => {
   const root = await freshUserHost("src/agent-ui");
   await initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "src/agent-ui" }, initializationHost);
-  const paths = resolveAgentUIProjectPaths(root, { version: "2", mode: "assistant", sourceRoot: "src/agent-ui" });
+  const paths = resolveAgentUIProjectPaths(root, { mode: "assistant", sourceRoot: "src/agent-ui" });
   const config = projectControlConfigForPaths(paths);
   const { inspectAgentUISources } = await import("../../src/project/source-registry/inspector");
   const registry = await loadAgentUISourceRegistry();
@@ -192,20 +192,20 @@ it("upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIM
   const customizedSurface = `${originalSurface}\n// Host customization must survive an automatic upgrade.\n`;
   await writeFile(surfaceEntry, customizedSurface);
   await expect(ensureManagedHostPlugins(request => handleUIProjectControlRequest({
-    schemaVersion: 3, ...request,
+    ...request,
   } as Parameters<typeof handleUIProjectControlRequest>[0], root))).rejects.toThrow("AGENT_UI_SOURCE_CUSTOMIZED_DEPENDENCY");
   await expect(ensureManagedHostPlugins(request => handleUIProjectControlRequest({
-    schemaVersion: 3, ...request,
+    ...request,
   } as Parameters<typeof handleUIProjectControlRequest>[0], root), { preserveCustomized: true })).resolves.toEqual([]);
   expect(await readFile(surfaceEntry, "utf8")).toBe(customizedSurface);
   expect(await readAgentUISourceLock(root, config)).toMatchObject({ lock });
   await writeFile(surfaceEntry, originalSurface);
   const updated = await ensureManagedHostPlugins(request => handleUIProjectControlRequest({
-    schemaVersion: 3, ...request,
+    ...request,
   } as Parameters<typeof handleUIProjectControlRequest>[0], root));
   expect(updated).toEqual(expect.arrayContaining([footerId, surfaceId]));
   expect(await ensureManagedHostPlugins(request => handleUIProjectControlRequest({
-    schemaVersion: 3, ...request,
+    ...request,
   } as Parameters<typeof handleUIProjectControlRequest>[0], root))).toEqual([]);
   const { lock: upgradedLock } = await readAgentUISourceLock(root, config);
   expect(upgradedLock.items[footerId]?.version).toBe("0.1.2");

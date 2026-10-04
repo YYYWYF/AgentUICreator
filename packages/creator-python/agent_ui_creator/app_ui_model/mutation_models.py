@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Literal
 
-from ..project_paths import v2_source_root
+from ..project_paths import agent_ui_source_root
 
 APP_UI_MODEL_PATH = "app-ui/app-ui.json"
 COMPOSITION_REVISION_PATH = "app-ui/composition-revision.generated.json"
@@ -17,10 +17,8 @@ MUTABLE_PATHS = (
 
 
 def resolve_mutable_paths(project_root: Path) -> tuple[str, str, str]:
-    """Resolve the AppUIModel path from project metadata, retaining V1 layout."""
-    raw = v2_source_root(project_root)
-    if raw is None:
-        return MUTABLE_PATHS
+    """Resolve the AppUIModel path from project metadata."""
+    raw = agent_ui_source_root(project_root)
     return (
         f"{raw}/app-ui/app-ui.json",
         f"{raw}/app-ui/composition-revision.generated.json",

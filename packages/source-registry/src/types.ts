@@ -20,7 +20,6 @@ export interface AgentUISourceUpstream {
 }
 
 export interface AgentUISourceItem {
-  schemaVersion: 1;
   id: string;
   version: string;
   kind: AgentUISourceItemKind;
@@ -32,7 +31,6 @@ export interface AgentUISourceItem {
 }
 
 export interface AgentUISourceRegistryManifest {
-  schemaVersion: 1;
   items: Array<{
     id: string;
     path: string;

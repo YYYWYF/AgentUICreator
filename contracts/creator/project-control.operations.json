@@ -1,6 +1,4 @@
 {
-  "schemaVersion": 1,
-  "protocolVersion": 3,
   "operations": [
     {
       "name": "inspect_ui_project",

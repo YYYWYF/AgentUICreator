@@ -22,7 +22,6 @@ import { afterEach, describe, expect, it } from "vitest";
 import { EventSchemas } from "@ag-ui/core";
 
 import {
-  CREATOR_PYTHON_PROTOCOL_VERSION,
   PythonCreatorProcessManager,
 } from "../src/PythonCreatorProcessManager.js";
 import { proxyPythonCreatorRequest } from "../src/PythonCreatorProxy.js";
@@ -463,7 +462,6 @@ afterEach(async () => {
     expect(firstEndpoint).toMatchObject({
       host: "127.0.0.1",
       agentMode: "domain-write",
-      protocolVersion: CREATOR_PYTHON_PROTOCOL_VERSION,
     });
     expect(firstEndpoint.port).toBeGreaterThan(0);
     expect(firstEndpoint.port).not.toBe(secondEndpoint.port);
@@ -478,7 +476,6 @@ afterEach(async () => {
       status: "ok",
       runtime: "python",
       agentMode: "domain-write",
-      protocolVersion: CREATOR_PYTHON_PROTOCOL_VERSION,
     });
 
     const request = (await fixture("ag-ui-echo.json")).request;
@@ -547,7 +544,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(401)
             self.end_headers()
             return
-        body = json.dumps({"status": "ok", "runtime": "python", "agentMode": "domain-write", "protocolVersion": "1"}).encode()
+        body = json.dumps({"status": "ok", "runtime": "python", "agentMode": "domain-write"}).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
@@ -556,7 +553,7 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, _format, *args):
         return
 server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
-print(json.dumps({"type": "creator_ready", "port": server.server_address[1], "protocolVersion": "1"}), flush=True)
+print(json.dumps({"type": "creator_ready", "port": server.server_address[1]}), flush=True)
 server.serve_forever()
 `;
     const fixturePackage = await fakePythonPackage(source);
@@ -645,7 +642,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(401)
             self.end_headers()
             return
-        body = json.dumps({"status": "ok", "runtime": "python", "agentMode": "domain-write", "protocolVersion": "1"}).encode()
+        body = json.dumps({"status": "ok", "runtime": "python", "agentMode": "domain-write"}).encode()
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
@@ -681,7 +678,7 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, _format, *args):
         return
 server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
-print(json.dumps({"type": "creator_ready", "port": server.server_address[1], "protocolVersion": "1"}), flush=True)
+print(json.dumps({"type": "creator_ready", "port": server.server_address[1]}), flush=True)
 server.serve_forever()
 `);
     const processManager = manager({
@@ -1056,7 +1053,7 @@ server.serve_forever()
 import json, os, sys, time
 open(os.environ["CREATOR_TEST_PID_FILE"], "w", encoding="utf-8").write(str(os.getpid()))
 print("fixture stderr before handshake", file=sys.stderr, flush=True)
-print(json.dumps({"type": "creator_ready", "port": 43123, "protocolVersion": "999"}), flush=True)
+print(json.dumps({"type": "creator_ready", "port": 0}), flush=True)
 time.sleep(60)
 `);
     const processManager = manager({
@@ -1089,7 +1086,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(401)
             self.end_headers()
             return
-        body = json.dumps({"status": "ok", "runtime": "python", "agentMode": "domain-write", "protocolVersion": "1"}).encode("utf-8")
+        body = json.dumps({"status": "ok", "runtime": "python", "agentMode": "domain-write"}).encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
@@ -1098,12 +1095,12 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, _format, *args):
         return
 server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
-print(json.dumps({"type": "creator_ready", "port": server.server_address[1], "protocolVersion": "1"}), flush=True)
+print(json.dumps({"type": "creator_ready", "port": server.server_address[1]}), flush=True)
 server.serve_forever()
 `,
     );
     const recovered = await processManager.ensureStarted();
-    expect(recovered.protocolVersion).toBe(CREATOR_PYTHON_PROTOCOL_VERSION);
+    expect(recovered.agentMode).toBe("domain-write");
     expect(processManager.processId).toBeGreaterThan(0);
   }, 10_000);
 

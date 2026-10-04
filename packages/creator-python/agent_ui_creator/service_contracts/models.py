@@ -142,7 +142,6 @@ class ServiceAuthorizationRecord:
 
     def to_dict(self) -> dict[str, object]:
         return {
-            "schemaVersion": 1,
             "proposalId": self.proposal_id,
             "authorizationId": self.authorization_id,
             "spec": self.spec.to_dict(),
@@ -156,7 +155,11 @@ class ServiceAuthorizationRecord:
 
     @classmethod
     def from_dict(cls, value: dict[str, Any]) -> "ServiceAuthorizationRecord":
+        if set(value) != {"proposalId", "authorizationId", "spec", "status", "scopeHash", "timestamps"}:
+            raise ValueError("Invalid service authorization record.")
         timestamps = value["timestamps"]
+        if not isinstance(timestamps, dict) or set(timestamps) != {"createdAt", "updatedAt"}:
+            raise ValueError("Invalid service authorization timestamps.")
         return cls(
             proposal_id=value["proposalId"],
             authorization_id=value.get("authorizationId"),

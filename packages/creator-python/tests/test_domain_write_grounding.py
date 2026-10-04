@@ -307,7 +307,6 @@ class GroundingClient:
             json.dumps(model) + "\n", encoding="utf-8"
         )
         return {
-            "schemaVersion": 1,
             "transactionId": "restore-session",
             "changed": True,
             "changedPaths": [APP_UI_MODEL_PATH],

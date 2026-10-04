@@ -25,7 +25,7 @@ from ..files import (
     replace_creator_file_atomically,
 )
 from ..transactions import CreatorTransactionError
-from ..project_paths import v2_source_root
+from ..project_paths import agent_ui_source_root
 from ..run_cancellation import assert_run_writable
 
 _DENIED_DIRECTORY_NAMES = frozenset(
@@ -164,8 +164,8 @@ class PolicyFilesystemBackend(FilesystemBackend):
         enforce_observations: bool | None = None,
     ):
         super().__init__(root_dir=root_dir, virtual_mode=True)
-        source_root = v2_source_root(root_dir) if policy.mode == "development" else None
-        self.policy = replace(policy, source_root=source_root) if source_root is not None else policy
+        source_root = agent_ui_source_root(root_dir) if policy.mode == "development" else None
+        self.policy = replace(policy, source_root=source_root) if policy.mode == "development" else policy
         self.activity = activity or CreatorActivityRecorder(self.cwd)
         if activity is None:
             self.activity.begin(str(uuid4()))

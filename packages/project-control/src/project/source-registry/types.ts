@@ -8,7 +8,7 @@ export type {
 } from "../types";
 
 export interface AgentUISourceLock {
-  schemaVersion: 1;
+
   sourceRoot: string;
   items: Record<string, AgentUISourceLockItem>;
 }
@@ -24,7 +24,7 @@ export interface AgentUISourceTransactionOriginalEntry {
 }
 
 export interface AgentUISourceTransactionJournal {
-  schemaVersion: 1;
+
   itemId: string;
   targetVersion: string;
   originals: AgentUISourceTransactionOriginalEntry[];
@@ -32,7 +32,7 @@ export interface AgentUISourceTransactionJournal {
 }
 
 export interface AgentUISourceApplyResult {
-  schemaVersion: 1;
+
   itemId: string;
   changed: boolean;
   changedItems: string[];

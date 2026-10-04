@@ -340,7 +340,6 @@ def mutation(
     if expected_workspace_fill is not None:
         semantic["expectedWorkspaceFill"] = expected_workspace_fill
     result = {
-        "schemaVersion": 1,
         "transactionId": "transaction",
         "changed": changed,
         "changedPaths": ["app-ui/app-ui.json"] if changed else [],

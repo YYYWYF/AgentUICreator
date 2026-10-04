@@ -46,10 +46,8 @@ export function resolveAgentUIProjectPaths(
 ): AgentUIProjectPaths {
   const root = path.resolve(projectRoot);
   const metadataRoot = path.resolve(root, config.agentUI.metadataRoot);
-  const sourceRoot = projectConfig.version === "2"
-    ? validateAgentUISourceRoot(root, projectConfig.sourceRoot)
-    : validateAgentUISourceRoot(root, config.agentUI.sourceRoot);
-  const managedRoot = projectConfig.version === "2" ? sourceRoot : root;
+  const sourceRoot = validateAgentUISourceRoot(root, projectConfig.sourceRoot);
+  const managedRoot = sourceRoot;
   const pluginsRoot = path.join(managedRoot, "plugins");
   return {
     projectRoot: root,

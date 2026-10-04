@@ -57,7 +57,6 @@ def snapshot_result(
     candidates: list[dict[str, object]] | None = None,
 ) -> dict[str, object]:
     return {
-        "schemaVersion": 3,
         "view": "composition",
         "observationCoverage": OBSERVATION_COVERAGE,
         "appUIModel": {"hash": "a" * 64, "layout": {}, "slots": []},

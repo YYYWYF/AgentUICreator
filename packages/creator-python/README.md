@@ -1,7 +1,7 @@
 # agent-ui-creator-core
 
 Agent UI Creator 的唯一 Python 控制面。它通过经过鉴权的 FastAPI sidecar 提供
-AG-UI stream、runtime diagnostics、ProjectControl v3 领域读取，以及由 Python Host
+AG-UI stream、runtime diagnostics、ProjectControl 领域读取，以及由 Python Host
 拥有 transaction / receipt / undo 的 AppUIModel semantic mutation，以及 Runtime
 Verification、Host Validation 和 Completion Gate。
 
@@ -50,7 +50,7 @@ packages/creator-python/.venv/bin/python -m agent_ui_creator.server \
   --auth-token development-only-token
 ```
 
-服务启动后，stdout 第一行是版本化的 `creator_ready` JSON handshake；普通
+服务启动后，stdout 第一行是`creator_ready` JSON handshake；普通
 运行日志只写 stderr。
 
 如果工作区根目录已经配置了 `.env.creator.local`，也可以直接运行快捷命令启动
@@ -140,8 +140,8 @@ ProjectControl transaction、真实磁盘 changedPaths 对账、Activity touch�
 `ProjectControlClient` 固定从目标工程的 `node_modules/.bin/tsx`（Windows 为
 `tsx.cmd`）启动该入口，`cwd` 为目标工程，环境固定 `CI=1`、`FORCE_COLOR=0`，
 超时 15 秒，stdout/stderr 合计上限 1,000,000 bytes。请求和响应均通过
-`contracts/creator/project-control.schema.json` 验证，并严格要求 schemaVersion 3。
-Client 保留版本化的 public read operation，并提供 AppUIModel 与 Agent UI Source
+`contracts/creator/project-control.schema.json` 验证。
+Client 保留 public read operation，并提供 AppUIModel 与 Agent UI Source
 domain capability 使用的 bounded mutation transport；Agent 不直接拿到 Client。
 
 `CREATOR_*` 的模型配置优先于兼容的 `MODEL_API_NAME` / `MODEL_NAME`、

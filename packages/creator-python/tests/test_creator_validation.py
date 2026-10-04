@@ -426,7 +426,7 @@ def test_validation_reports_two_round_repair_limit(tmp_path):
 def test_managed_composition_failure_keeps_project_scope(tmp_path):
     (tmp_path / ".agent-ui").mkdir()
     (tmp_path / ".agent-ui/project.json").write_text(json.dumps({
-        "version": "2", "sourceRoot": "src/agent-ui",
+        "mode": "platform", "sourceRoot": "src/agent-ui",
     }))
     runner = FakeValidationRunner([
         CommandExecutionResult("", 0, False),

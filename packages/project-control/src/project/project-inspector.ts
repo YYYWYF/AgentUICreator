@@ -151,10 +151,8 @@ export async function inspectUIProject(
   );
 
   return {
-    schemaVersion: 3,
     mode: projectConfig.config.mode,
     modeResolution: {
-      legacy: projectConfig.legacy,
       configPath: projectConfig.path,
     },
     appUIModel: composition.appUIModel,
@@ -305,7 +303,6 @@ async function inspectUICompositionData(
   });
 
   return {
-    schemaVersion: 3,
     view: "composition",
     sourceRoot: effectiveConfig.agentUI.sourceRoot,
     observationCoverage: [...COMPOSITION_OBSERVATION_COVERAGE],

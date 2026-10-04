@@ -89,10 +89,10 @@ describe("deterministic Agent UI initializer", () => {
     ["assistant", "src/agent-ui", "src"],
     ["embedded", "agent-ui", undefined],
     ["platform", "packages/web/agent-ui", "packages/web"],
-  ] as const)("initializes %s at %s into a ready V2 project", async (mode, sourceRoot, parent) => {
+  ] as const)("initializes %s at %s into a ready project", async (mode, sourceRoot, parent) => {
     const root = await hostProject(parent);
     const result = await initializeAgentUIProject({ projectRoot: root, mode, sourceRoot }, initializationHost);
-    expect(result.projectConfig).toEqual({ version: "2", mode, sourceRoot });
+    expect(result.projectConfig).toEqual({ mode, sourceRoot });
     expect(result.installedSourceItems).toContain("foundation/core");
     expect(result.installedSourceItems).toContain("foundation/conversation");
     expect(result.installedSourceItems).toContain("plugin/conversation-surface");

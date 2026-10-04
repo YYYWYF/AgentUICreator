@@ -18,7 +18,6 @@ import {
   type CreatorPythonAgentMode,
 } from "./shared.js";
 
-export const CREATOR_PYTHON_PROTOCOL_VERSION = "1" as const;
 export const CREATOR_PYTHON_START_TIMEOUT_MS = 15_000;
 export const CREATOR_PYTHON_STOP_TIMEOUT_MS = 3_000;
 const CREATOR_PYTHON_HOT_RELOAD_POLL_INTERVAL_MS = 500;
@@ -27,7 +26,6 @@ export interface PythonCreatorEndpoint {
   host: "127.0.0.1";
   port: number;
   authToken: string;
-  protocolVersion: typeof CREATOR_PYTHON_PROTOCOL_VERSION;
   agentMode: CreatorPythonAgentMode;
 }
 
@@ -171,7 +169,6 @@ export async function resolveCreatorPythonExecutable({
 interface CreatorReadyHandshake {
   type: "creator_ready";
   port: number;
-  protocolVersion: typeof CREATOR_PYTHON_PROTOCOL_VERSION;
 }
 
 function defaultPythonPackageRoot(): string {
@@ -240,23 +237,22 @@ function parseHandshake(source: string): CreatorReadyHandshake {
   }
   const handshake = value as Record<string, unknown>;
   if (
+    Object.keys(handshake).sort().join(",") !== "port,type" ||
     handshake.type !== "creator_ready" ||
     typeof handshake.port !== "number" ||
     !Number.isInteger(handshake.port) ||
     handshake.port < 1 ||
-    handshake.port > 65_535 ||
-    handshake.protocolVersion !== CREATOR_PYTHON_PROTOCOL_VERSION
+    handshake.port > 65_535
   ) {
     throw new PythonCreatorRuntimeError(
       "CREATOR_PYTHON_PROTOCOL_INCOMPATIBLE",
-      `Creator Python runtime must use protocol version ${CREATOR_PYTHON_PROTOCOL_VERSION}.`,
+      "Creator Python handshake does not match the current contract.",
       { handshake },
     );
   }
   return {
     type: "creator_ready",
     port: handshake.port,
-    protocolVersion: CREATOR_PYTHON_PROTOCOL_VERSION,
   };
 }
 
@@ -388,7 +384,6 @@ export class PythonCreatorProcessManager {
     if (this.#externalEndpoint !== undefined) {
       const endpoint = {
         ...this.#externalEndpoint,
-        protocolVersion: CREATOR_PYTHON_PROTOCOL_VERSION,
       };
       const agentMode = await this.#waitForHealth(endpoint);
       const readyEndpoint = { ...endpoint, agentMode };
@@ -516,7 +511,6 @@ export class PythonCreatorProcessManager {
         host: "127.0.0.1",
         port: handshake.port,
         authToken,
-        protocolVersion: handshake.protocolVersion,
       };
       const agentMode = await this.#waitForHealth(endpoint);
       if (child.exitCode !== null) {
@@ -787,9 +781,9 @@ export class PythonCreatorProcessManager {
         if (response.ok) {
           const body = (await response.json()) as Record<string, unknown>;
           if (
+            Object.keys(body).every((key) => ["status", "runtime", "agentMode", "projectRoot", "verificationMode", "phase"].includes(key)) &&
             body.status === "ok" &&
             body.runtime === "python" &&
-            body.protocolVersion === CREATOR_PYTHON_PROTOCOL_VERSION &&
             typeof body.agentMode === "string" &&
             (CREATOR_PYTHON_AGENT_MODES as readonly string[]).includes(
               body.agentMode,

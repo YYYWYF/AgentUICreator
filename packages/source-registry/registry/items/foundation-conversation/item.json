@@ -1,5 +1,4 @@
 {
-  "schemaVersion": 1,
   "id": "foundation/conversation",
   "version": "0.1.13",
   "kind": "foundation",
@@ -9,6 +8,9 @@
     "@agent-ui/runtime-conversation": "^0.1.0"
   },
   "files": [
-    { "source": "files/conversation/index.ts", "target": "conversation/conversation-bridge.ts" }
+    {
+      "source": "files/conversation/index.ts",
+      "target": "conversation/conversation-bridge.ts"
+    }
   ]
 }

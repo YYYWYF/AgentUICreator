@@ -53,7 +53,7 @@ export class CreatorWorkspaceManager {
   runProjectOperation<T>(workspaceId: string, operation: (projectRoot: string) => Promise<T>): Promise<T> {
     return this.#exclusive(async () => {
       const state = this.#state;
-      if ((state.status !== "ready" && state.status !== "legacy") || state.workspace.id !== workspaceId) {
+      if ((state.status !== "ready") || state.workspace.id !== workspaceId) {
         throw new CreatorWorkspaceError("CREATOR_WORKSPACE_CHANGED", "当前项目已改变，请刷新面板后重试。");
       }
       return operation(state.workspace.projectRoot);
@@ -86,12 +86,12 @@ export class CreatorWorkspaceManager {
     } catch (error) {
       inspection = { status: "broken", issues: [{ code: "CREATOR_WORKSPACE_INSPECTION_FAILED", message: error instanceof Error ? error.message : String(error) }] };
     }
-    if (inspection.status === "ready" || inspection.status === "legacy") {
+    if (inspection.status === "ready") {
       const projectState = { status: inspection.status, workspace, project: inspection.projectConfig,
         ...(inspection.warnings === undefined ? {} : { warnings: inspection.warnings }) } as const;
       this.#state = { ...projectState, runtime: { status: "starting" } };
       try {
-        await this.#ensureControl(workspace.projectRoot, { managed: inspection.projectConfig.version === "2" });
+        await this.#ensureControl(workspace.projectRoot);
         this.#python = this.#createPython(workspace.projectRoot);
         await this.#python.ensureStarted();
         this.#state = { ...projectState, runtime: { status: "ready" } };
@@ -166,10 +166,10 @@ export class CreatorWorkspaceManager {
       if (!(await stat(canonicalRoot)).isDirectory()) {
         throw new CreatorWorkspaceError("CREATOR_WORKSPACE_NOT_DIRECTORY", "Project Root must be a directory.");
       }
-      if ((this.#state.status === "ready" || this.#state.status === "legacy") &&
+      if ((this.#state.status === "ready") &&
           this.#state.runtime.status === "ready" && this.#state.workspace.projectRoot === canonicalRoot) {
         try {
-          await this.#ensureControl(canonicalRoot, { managed: this.#state.project.version === "2" });
+          await this.#ensureControl(canonicalRoot);
           return this.#state;
         } catch (error) {
           const previous = this.#state;
@@ -212,7 +212,7 @@ export class CreatorWorkspaceManager {
 
   ensureCreatorRuntime(): PythonCreatorProcessManager {
     const state = this.#state;
-    if (state.status !== "ready" && state.status !== "legacy") {
+    if (state.status !== "ready") {
       const code = state.status === "none" ? "CREATOR_WORKSPACE_REQUIRED"
         : state.status === "uninitialized" ? "CREATOR_WORKSPACE_NOT_INITIALIZED"
         : "CREATOR_WORKSPACE_INVALID";

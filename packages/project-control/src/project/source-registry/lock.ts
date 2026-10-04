@@ -33,7 +33,7 @@ function parseLock(value: unknown, sourceRoot: string): AgentUISourceLock {
     typeof value !== "object" ||
     value === null ||
     Array.isArray(value) ||
-    (value as Record<string, unknown>).schemaVersion !== 1 ||
+    Object.keys(value).sort().join(",") !== "items,sourceRoot" ||
     (value as Record<string, unknown>).sourceRoot !== sourceRoot
   ) {
     throw new AgentUISourceError(
@@ -80,7 +80,7 @@ function parseLock(value: unknown, sourceRoot: string): AgentUISourceLock {
     }
     items[itemId] = { version, files };
   }
-  return { schemaVersion: 1, sourceRoot, items };
+  return { sourceRoot, items };
 }
 
 export async function readAgentUISourceLock(
@@ -92,7 +92,7 @@ export async function readAgentUISourceLock(
   const source = await readOptionalBuffer(lockPath);
   if (source === undefined) {
     return {
-      lock: { schemaVersion: 1, sourceRoot: config.agentUI.sourceRoot, items: {} },
+      lock: { sourceRoot: config.agentUI.sourceRoot, items: {} },
       path: lockPath,
     };
   }
@@ -127,6 +127,6 @@ export function serializeAgentUISourceLock(lock: AgentUISourceLock): Buffer {
       ]),
   );
   return Buffer.from(
-    `${JSON.stringify({ schemaVersion: 1, sourceRoot: lock.sourceRoot, items: sortedItems }, null, 2)}\n`,
+    `${JSON.stringify({ sourceRoot: lock.sourceRoot, items: sortedItems }, null, 2)}\n`,
   );
 }

@@ -126,11 +126,11 @@ export async function ensureManagedPythonEnvironment(options: ManagedPythonEnvir
   const root = path.join(creatorPythonCacheRoot(environment, platform), creatorVersion, `py${pythonMinor}-${platform}-${architecture}`, requirementsSha256);
   const finalEnvironment = path.join(root, "venv");
   const executable = managedPythonExecutable(finalEnvironment, platform);
-  const identity = { schemaVersion: 1, creatorVersion, pythonVersion, requirementsSha256, platform, architecture };
+  const identity = { creatorVersion, pythonVersion, requirementsSha256, platform, architecture };
   async function ready(): Promise<boolean> {
     try {
       const marker = JSON.parse(await readFile(path.join(finalEnvironment, ".ready.json"), "utf8")) as Record<string, unknown>;
-      if (marker.schemaVersion !== 1 || marker.creatorVersion !== creatorVersion || marker.requirementsSha256 !== requirementsSha256 ||
+      if (marker.creatorVersion !== creatorVersion || marker.requirementsSha256 !== requirementsSha256 ||
         marker.platform !== platform || marker.architecture !== architecture || typeof marker.pythonVersion !== "string" ||
         marker.pythonVersion.split(".").slice(0, 2).join(".") !== pythonMinor || typeof marker.createdAt !== "string") return false;
       await access(executable);

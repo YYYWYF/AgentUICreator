@@ -1,4 +1,4 @@
 {
-  "version": "1",
-  "mode": "platform"
+  "mode": "platform",
+  "sourceRoot": "agent-ui"
 }

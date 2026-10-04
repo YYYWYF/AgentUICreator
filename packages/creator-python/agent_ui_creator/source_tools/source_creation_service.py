@@ -16,7 +16,7 @@ from ..files import (
     resolve_creator_project_file,
 )
 from ..minimal_agent.path_policy import MinimalAgentPathPolicy, PathPolicyViolation
-from ..project_paths import agent_ui_source_path, v2_source_root
+from ..project_paths import agent_ui_source_path, agent_ui_source_root
 from ..run_cancellation import assert_run_writable
 from ..transactions import CreatorTransactionError
 from .models import (
@@ -42,8 +42,8 @@ class UISourceCreationService:
         self.activity = activity
         self.mutation_coordinator = mutation_coordinator
         base_policy = path_policy or MinimalAgentPathPolicy.development()
-        source_root = v2_source_root(self.project_root)
-        self.policy = replace(base_policy, source_root=source_root) if source_root is not None else base_policy
+        source_root = agent_ui_source_root(self.project_root)
+        self.policy = replace(base_policy, source_root=source_root)
 
     def _authorize(self, path: str) -> tuple[str, str]:
         logical_path = path[1:] if path.startswith("/") else path

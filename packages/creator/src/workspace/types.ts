@@ -40,14 +40,13 @@ export interface CreatorWorkspaceSetupInfo {
 }
 
 export interface CreatorProjectConfig {
-  readonly version: "1" | "2";
   readonly mode: CreatorProjectMode;
-  readonly sourceRoot?: string;
+  readonly sourceRoot: string;
 }
 
 export type CreatorProjectInspection =
   | { readonly status: "uninitialized" }
-  | { readonly status: "ready" | "legacy"; readonly projectConfig: CreatorProjectConfig; readonly paths: { readonly sourceRoot: string }; readonly warnings?: readonly CreatorProjectIssue[] }
+  | { readonly status: "ready"; readonly projectConfig: CreatorProjectConfig; readonly paths: { readonly sourceRoot: string }; readonly warnings?: readonly CreatorProjectIssue[] }
   | { readonly status: "broken"; readonly issues: CreatorProjectIssue[] };
 
 export type CreatorRuntimeState =
@@ -57,19 +56,19 @@ export type CreatorRuntimeState =
 export type CreatorWorkspaceState =
   | { readonly status: "none" }
   | { readonly status: "uninitialized"; readonly workspace: CreatorWorkspaceDescriptor }
-  | { readonly status: "ready" | "legacy"; readonly workspace: CreatorWorkspaceDescriptor; readonly project: CreatorProjectConfig; readonly runtime: CreatorRuntimeState; readonly warnings?: readonly CreatorProjectIssue[] }
+  | { readonly status: "ready"; readonly workspace: CreatorWorkspaceDescriptor; readonly project: CreatorProjectConfig; readonly runtime: CreatorRuntimeState; readonly warnings?: readonly CreatorProjectIssue[] }
   | { readonly status: "broken"; readonly workspace: CreatorWorkspaceDescriptor; readonly issues: CreatorProjectIssue[] };
 
 export type CreatorWorkspacePublicState =
   | { readonly status: "none" }
   | { readonly status: "uninitialized"; readonly workspace: Omit<CreatorWorkspaceDescriptor, "projectRoot"> }
-  | { readonly status: "ready" | "legacy"; readonly workspace: Omit<CreatorWorkspaceDescriptor, "projectRoot">; readonly project: CreatorProjectConfig; readonly runtime: CreatorRuntimeState; readonly warnings?: readonly CreatorProjectIssue[] }
+  | { readonly status: "ready"; readonly workspace: Omit<CreatorWorkspaceDescriptor, "projectRoot">; readonly project: CreatorProjectConfig; readonly runtime: CreatorRuntimeState; readonly warnings?: readonly CreatorProjectIssue[] }
   | { readonly status: "broken"; readonly workspace: Omit<CreatorWorkspaceDescriptor, "projectRoot">; readonly issues: CreatorProjectIssue[] };
 
 export function publicWorkspaceState(state: CreatorWorkspaceState): CreatorWorkspacePublicState {
   if (state.status === "none") return state;
   const { projectRoot: _projectRoot, ...workspace } = state.workspace;
-  if (state.status === "ready" || state.status === "legacy") {
+  if (state.status === "ready") {
     return { status: state.status, workspace, project: state.project, runtime: state.runtime, ...(state.warnings === undefined ? {} : { warnings: state.warnings }) };
   }
   if (state.status === "broken") return { status: "broken", workspace, issues: state.issues };

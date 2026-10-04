@@ -38,7 +38,7 @@ def _success(result: str | None = None) -> str:
         "import json\n"
         "import sys\n"
         "request = json.loads(sys.stdin.read())\n"
-        f"print(json.dumps({{'schemaVersion': 3, 'ok': True, 'result': {result}}}))\n"
+        f"print(json.dumps({{'ok': True, 'result': {result}}}))\n"
     )
 
 
@@ -50,7 +50,7 @@ def _echo():
         "request = json.loads(sys.stdin.read())\n"
         "pathlib.Path(__file__).with_name('request.json').write_text(json.dumps(request))\n"
         f"results = {results!r}\n"
-        "print(json.dumps({'schemaVersion': 3, 'ok': True, 'result': results[request['operation']]}))\n"
+        "print(json.dumps({'ok': True, 'result': results[request['operation']]}))\n"
     )
 
 
@@ -71,10 +71,10 @@ def _captured(root):
     ("apply_agent_ui_source_item", {"itemId": "primitive/tooltip", "expectedStateHash": "a" * 64}, "apply_agent_ui_source_item", {"item_id": "primitive/tooltip", "expected_state_hash": "a" * 64}),
     ("remove_agent_ui_source_items", {"itemIds": ["primitive/tooltip"], "expectedStateHash": "a" * 64}, "remove_agent_ui_source_items", {"item_ids": ["primitive/tooltip"], "expected_state_hash": "a" * 64}),
 ])
-def test_transport_sends_exact_versioned_requests_and_validates_result(tmp_path, operation, input, method, kwargs):
+def test_transport_sends_exact_requests_and_validates_result(tmp_path, operation, input, method, kwargs):
     root, client = _control_project(tmp_path, _echo())
     assert asyncio.run(getattr(client, method)(**kwargs)) == _fixture(operation)
-    assert _captured(root) == {"schemaVersion": 3, "operation": operation, "input": input}
+    assert _captured(root) == {"operation": operation, "input": input}
     assert client.metrics.to_dict()["byOperation"] == {operation: 1}
 
 
@@ -86,7 +86,7 @@ def test_mutation_transport_accepts_productized_plugin_move_placements(tmp_path,
     root, client = _control_project(tmp_path, _echo())
     input = {"appUIModelHash": "a" * 64, "operations": [{"type": "move_plugin_to", "instanceId": "history-main", "placement": placement}]}
     assert asyncio.run(client.request_app_ui_model_mutation(input)) == _fixture("mutate_app_ui_model")
-    assert _captured(root) == {"schemaVersion": 3, "operation": "mutate_app_ui_model", "input": input}
+    assert _captured(root) == {"operation": "mutate_app_ui_model", "input": input}
 
 
 @pytest.mark.parametrize("extra", ["anchorPluginId", "parentPluginId", "layoutRef", "index"])
@@ -166,15 +166,15 @@ time.sleep(60)
     [
         ("print('not json')\n", "CONTROL_PROTOCOL_INVALID_JSON"),
         (
-            "import json\nprint(json.dumps({'schemaVersion': 2, 'ok': True, 'result': {}}))\n",
+            "import json\nprint(json.dumps({'ok': True, 'result': {}}))\n",
             "CONTROL_PROTOCOL_INCOMPATIBLE",
         ),
         (
-            "import json\nprint(json.dumps({'schemaVersion': 3, 'ok': False, 'error': {'code': 'UI_PLUGIN_NOT_FOUND', 'message': 'missing'}}))\n",
+            "import json\nprint(json.dumps({'ok': False, 'error': {'code': 'UI_PLUGIN_NOT_FOUND', 'message': 'missing'}}))\n",
             "UI_PLUGIN_NOT_FOUND",
         ),
         (
-            "import json, sys\nprint(json.dumps({'schemaVersion': 3, 'ok': True, 'result': {}})); sys.exit(7)\n",
+            "import json, sys\nprint(json.dumps({'ok': True, 'result': {}})); sys.exit(7)\n",
             "CONTROL_ENTRY_FAILED",
         ),
     ],

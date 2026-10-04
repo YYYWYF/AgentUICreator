@@ -8,7 +8,7 @@ afterEach(async () => { await Promise.all(roots.splice(0).map(root => rm(root, {
 async function fixture() {
   const root = await mkdtemp(path.join(tmpdir(), "conversation-integration-")); roots.push(root);
   await mkdir(path.join(root, ".agent-ui"));
-  await writeFile(path.join(root, ".agent-ui/project.json"), JSON.stringify({ version: "2", mode: "platform", sourceRoot: "custom-ui" }));
+  await writeFile(path.join(root, ".agent-ui/project.json"), JSON.stringify({ mode: "platform", sourceRoot: "custom-ui" }));
   const directory = path.join(root, "custom-ui/agent-ui/conversation/integrations"); await mkdir(directory, { recursive: true });
   return { root, directory, output: path.join(root, "custom-ui/agent-ui/conversation/integrations.generated.tsx") };
 }

@@ -51,7 +51,6 @@ def _create_project(tmp_path: Path) -> Path:
 def _result(root: Path, before_hash: str, changed_paths: list[str]) -> dict:
     app_path, _, registry_path = resolve_mutable_paths(root)
     return {
-        "schemaVersion": 1,
         "transactionId": "transaction-1",
         "changed": bool(changed_paths),
         "changedPaths": changed_paths,
@@ -148,7 +147,6 @@ def test_mutation_forwards_current_runtime_slot_widths(tmp_path):
             {
                 "threadId": "thread-1",
                 "composition": {
-                    "schemaVersion": 1,
                     "appUIModelHash": app_hash,
                     "observedAt": "2026-09-10T00:00:00.000Z",
                     "instances": [],
@@ -345,7 +343,7 @@ def test_malformed_post_response_still_records_real_mutation(tmp_path):
         FakeMutationClient(
             root,
             changed_paths=(APP_UI_MODEL_PATH,),
-            result={"schemaVersion": 1},
+            result={},
         ),
         run_id="malformed-run",
     )
@@ -1029,7 +1027,6 @@ def test_conflict_then_inspect_allows_retry_with_new_host_hash(tmp_path):
 
         async def inspect_app_ui_model(self):
             return {
-                "schemaVersion": 3,
                 "hash": read_creator_file_state(root, APP_UI_MODEL_PATH).hash,
                 "model": {},
             }
@@ -1097,7 +1094,7 @@ def test_mutation_validates_project_resolved_artifact_paths(tmp_path, source_roo
     if source_root is not None:
         (root / ".agent-ui").mkdir()
         (root / ".agent-ui/project.json").write_text(json.dumps({
-            "version": "2", "mode": "platform", "sourceRoot": source_root,
+            "mode": "platform", "sourceRoot": source_root,
         }))
         managed = root / source_root
         managed.mkdir(parents=True)

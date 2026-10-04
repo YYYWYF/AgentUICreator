@@ -9,11 +9,11 @@ from agent_ui_creator.minimal_agent.path_policy import (
 )
 
 
-def test_v2_project_writes_stay_inside_declared_source_root(tmp_path):
+def test_project_writes_stay_inside_declared_source_root(tmp_path):
     metadata = tmp_path / ".agent-ui"
     metadata.mkdir()
     (metadata / "project.json").write_text(
-        json.dumps({"version": "2", "mode": "assistant", "sourceRoot": "src/agent-ui"}),
+        json.dumps({"mode": "assistant", "sourceRoot": "src/agent-ui"}),
         encoding="utf-8",
     )
     managed = tmp_path / "src" / "agent-ui" / "plugins" / "example.ts"

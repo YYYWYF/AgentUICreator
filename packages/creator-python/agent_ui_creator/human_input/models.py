@@ -36,7 +36,6 @@ class QuestionStep(BaseModel):
 
 class QuestionRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    schemaVersion: Literal[1]
     steps: list[QuestionStep] = Field(min_length=1, max_length=3)
 
     @model_validator(mode="after")

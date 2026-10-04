@@ -346,11 +346,11 @@ def test_source_discovery_after_composition_exits_fast_path_in_one_read(tmp_path
     assert observations.composition_grounding_status(current_revision=0) == "unobserved"
 
 
-def test_v2_managed_source_read_exits_composition_lane(tmp_path):
+def test_source_root_managed_source_read_exits_composition_lane(tmp_path):
     config = tmp_path / ".agent-ui"
     config.mkdir()
     (config / "project.json").write_text(
-        '{"version":"2","mode":"platform","sourceRoot":"src/agent-ui"}',
+        '{"mode":"platform","sourceRoot":"src/agent-ui"}',
         encoding="utf-8",
     )
     backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())

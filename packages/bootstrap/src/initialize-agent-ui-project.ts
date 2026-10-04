@@ -6,8 +6,7 @@ import { agentUIModeRegistry, type AgentUIMode } from "./project-definition.js";
 import { createDefaultAgentUIPresetRegistry } from "./default-presets.js";
 import { validateAgentUIProjectSetup } from "./source-root.js";
 
-export interface AgentUIProjectConfigV2 {
-  readonly version: "2";
+export interface AgentUIProjectConfig {
   readonly mode: AgentUIMode;
   readonly sourceRoot: string;
 }
@@ -19,7 +18,7 @@ export interface InitializeAgentUIProjectInput {
 }
 
 export interface InitializeAgentUIProjectResult {
-  readonly projectConfig: AgentUIProjectConfigV2;
+  readonly projectConfig: AgentUIProjectConfig;
   readonly presetId: string;
   readonly createdPaths: readonly string[];
   readonly installedSourceItems: readonly string[];
@@ -29,18 +28,18 @@ export interface AgentUIInitializationHost<TModel> {
   inspectProject(projectRoot: string): Promise<{ status: string }>;
   parseAppUIModel(input: unknown): TModel;
   /** Resolve all Source Registry requirements and package dependencies before mutation. */
-  preflightSources(projectRoot: string, itemIds: readonly string[], config: AgentUIProjectConfigV2): Promise<{
+  preflightSources(projectRoot: string, itemIds: readonly string[], config: AgentUIProjectConfig): Promise<{
     readonly plannedPaths: readonly string[];
   }>;
-  installSources(projectRoot: string, itemIds: readonly string[], config: AgentUIProjectConfigV2): Promise<{
+  installSources(projectRoot: string, itemIds: readonly string[], config: AgentUIProjectConfig): Promise<{
     readonly installedSourceItems: readonly string[];
     readonly createdPaths: readonly string[];
   }>;
-  writeAppUIModel(projectRoot: string, model: TModel, config: AgentUIProjectConfigV2): Promise<string>;
-  writeGeneratedRuntimeConfig(projectRoot: string, config: AgentUIProjectConfigV2): Promise<string>;
-  writeGeneratedRegistry(projectRoot: string, config: AgentUIProjectConfigV2): Promise<string>;
-  verifyProject(projectRoot: string, config: AgentUIProjectConfigV2): Promise<{ status: "passed" | "failed"; errors: readonly { code: string; message: string }[] }>;
-  rollbackCreatedPaths(projectRoot: string, paths: readonly string[], config: AgentUIProjectConfigV2, plannedPaths: readonly string[], sourceRootWasMissing: boolean): Promise<void>;
+  writeAppUIModel(projectRoot: string, model: TModel, config: AgentUIProjectConfig): Promise<string>;
+  writeGeneratedRuntimeConfig(projectRoot: string, config: AgentUIProjectConfig): Promise<string>;
+  writeGeneratedRegistry(projectRoot: string, config: AgentUIProjectConfig): Promise<string>;
+  verifyProject(projectRoot: string, config: AgentUIProjectConfig): Promise<{ status: "passed" | "failed"; errors: readonly { code: string; message: string }[] }>;
+  rollbackCreatedPaths(projectRoot: string, paths: readonly string[], config: AgentUIProjectConfig, plannedPaths: readonly string[], sourceRootWasMissing: boolean): Promise<void>;
   /** Install the development control plane before committing project.json. */
   installControlPlane(projectRoot: string): Promise<readonly string[]>;
   /** Optional persistence seam for failure-path tests. */
@@ -55,7 +54,6 @@ export class AgentUIInitializationError extends Error {
 }
 
 interface AgentUIInitializationJournal {
-  readonly version: 1;
   readonly transactionId: string;
   readonly mode: AgentUIMode;
   readonly sourceRoot: string;
@@ -99,7 +97,7 @@ export async function initializeAgentUIProject<TModel>(
   const initial = await host.inspectProject(projectRoot);
   if (initial.status !== "uninitialized") {
     throw new AgentUIInitializationError(
-      initial.status === "ready" || initial.status === "legacy"
+      initial.status === "ready"
         ? "AGENT_UI_PROJECT_ALREADY_INITIALIZED" : "AGENT_UI_PROJECT_INVALID_STATE",
       `Cannot initialize Agent UI from project status ${initial.status}.`,
     );
@@ -109,8 +107,8 @@ export async function initializeAgentUIProject<TModel>(
     const issue = setup.issues[0]!;
     throw new AgentUIInitializationError(issue.code, issue.message, setup.issues);
   }
-  const projectConfig: AgentUIProjectConfigV2 = {
-    version: "2", mode: input.mode, sourceRoot: setup.sourceRoot.normalized,
+  const projectConfig: AgentUIProjectConfig = {
+    mode: input.mode, sourceRoot: setup.sourceRoot.normalized,
   };
   const preset = createDefaultAgentUIPresetRegistry(host.parseAppUIModel)
     .getDefaultForMode(input.mode, agentUIModeRegistry);
@@ -125,7 +123,7 @@ export async function initializeAgentUIProject<TModel>(
   const createdPaths = new Set<string>();
   let journalCreated = false;
   const journal: AgentUIInitializationJournal = {
-    version: 1, transactionId: randomUUID(), mode: input.mode,
+    transactionId: randomUUID(), mode: input.mode,
     sourceRoot: projectConfig.sourceRoot,
     plannedPaths: [...preflight.plannedPaths].sort(), createdPaths: [], phase: "preparing",
   };

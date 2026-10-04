@@ -5,7 +5,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import type { AppUIModel } from "../../src/framework/contracts/app-ui-model";
-import { generatePluginRegistry } from "../support/legacy-project-paths";
+import { generatePluginRegistry } from "../support/fixture-project-paths";
 import type { UIProjectControlConfig } from "../../src/project/types";
 
 const temporaryProjects: string[] = [];

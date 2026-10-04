@@ -100,8 +100,6 @@ class ServiceContractAuthorizationStore:
     def _read_path(self, path: Path) -> ServiceAuthorizationRecord | None:
         try:
             value = json.loads(path.read_text(encoding="utf-8"))
-            if value.get("schemaVersion") != 1:
-                return None
             record = ServiceAuthorizationRecord.from_dict(value)
         except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError):
             return None

@@ -8,15 +8,14 @@ export interface HumanQuestionStep {
   minSelections: number;
   maxSelections: number;
 }
-export interface HumanQuestionRequest { schemaVersion: 1; steps: HumanQuestionStep[] }
+export interface HumanQuestionRequest { steps: HumanQuestionStep[] }
 export interface HumanQuestionResult { answers: Record<string, string[]> }
 
 export const askUserQuestionParameters = {
   type: "object",
   additionalProperties: false,
-  required: ["schemaVersion", "steps"],
+  required: ["steps"],
   properties: {
-    schemaVersion: { const: 1 },
     steps: { type: "array", minItems: 1, maxItems: 3, items: {
       type: "object", additionalProperties: false,
       required: ["id", "question", "options", "selectionMode", "minSelections", "maxSelections"],
@@ -32,9 +31,9 @@ export const askUserQuestionParameters = {
 } as const;
 
 export function parseHumanQuestionRequest(value: unknown): HumanQuestionRequest | undefined {
-  if (typeof value !== "object" || value === null) return undefined;
+  if (typeof value !== "object" || value === null || Array.isArray(value) || Object.keys(value).join(",") !== "steps") return undefined;
   const raw = value as Partial<HumanQuestionRequest>;
-  if (raw.schemaVersion !== 1 || !Array.isArray(raw.steps) || raw.steps.length < 1 || raw.steps.length > 3) return undefined;
+  if (!Array.isArray(raw.steps) || raw.steps.length < 1 || raw.steps.length > 3) return undefined;
   const ids = new Set<string>();
   for (const step of raw.steps) {
     if (!step || typeof step.id !== "string" || !step.id || ids.has(step.id) || typeof step.question !== "string" || !step.question ||

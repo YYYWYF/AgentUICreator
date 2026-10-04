@@ -54,7 +54,7 @@ describe("CreatorWorkspaceManager", () => {
     const manager = new CreatorWorkspaceManager({
       ...setupDependencies(),
       inspectProject: async () => ({
-        status: "ready", projectConfig: { version: "1", mode: "platform" },
+        status: "ready", projectConfig: { mode: "platform", sourceRoot: "agent-ui" },
         paths: { sourceRoot: "agent-ui" },
       }),
       createPythonManager,
@@ -82,7 +82,7 @@ describe("CreatorWorkspaceManager", () => {
     const manager = new CreatorWorkspaceManager({
       ...setupDependencies(),
       inspectProject: async () => ({
-        status: "ready", projectConfig: { version: "2", mode: "assistant", sourceRoot: "src/agent-ui" },
+        status: "ready", projectConfig: { mode: "assistant", sourceRoot: "src/agent-ui" },
         paths: { sourceRoot: "src/agent-ui" },
       }),
       createPythonManager,
@@ -117,7 +117,7 @@ describe("CreatorWorkspaceManager", () => {
     const manager = new CreatorWorkspaceManager({
       ...setupDependencies(),
       inspectProject: async () => ({
-        status: "ready", projectConfig: { version: "2", mode: "assistant", sourceRoot: "src/agent-ui" },
+        status: "ready", projectConfig: { mode: "assistant", sourceRoot: "src/agent-ui" },
         paths: { sourceRoot: "src/agent-ui" },
       }),
       createPythonManager,
@@ -148,7 +148,7 @@ describe("CreatorWorkspaceManager", () => {
       ...setup,
       inspectProject: async () => initialized ? {
         status: "ready" as const,
-        projectConfig: { version: "2" as const, mode: "assistant" as const, sourceRoot: "agent-ui" },
+        projectConfig: { mode: "assistant" as const, sourceRoot: "agent-ui" },
         paths: { sourceRoot: "agent-ui" },
         warnings: [{ code: "RECOVERY", message: "refresh required", severity: "warning" as const }],
       } : { status: "uninitialized" as const },
@@ -171,7 +171,7 @@ describe("CreatorWorkspaceManager", () => {
       initializeProject: async () => { initialized = true; },
       inspectProject: async () => initialized ? {
         status: "ready" as const,
-        projectConfig: { version: "2" as const, mode: "assistant" as const, sourceRoot: "agent-ui" },
+        projectConfig: { mode: "assistant" as const, sourceRoot: "agent-ui" },
         paths: { sourceRoot: "agent-ui" },
       } : { status: "uninitialized" as const },
       createPythonManager: () => ({ ensureStarted: async () => { throw new Error("Python unavailable"); }, dispose: async () => undefined }) as unknown as PythonCreatorProcessManager,
@@ -193,7 +193,7 @@ describe("CreatorWorkspaceManager", () => {
       ...setup,
       inspectProject: async () => initialized ? {
         status: "ready" as const,
-        projectConfig: { version: "2" as const, mode: "assistant" as const, sourceRoot: "agent-ui" },
+        projectConfig: { mode: "assistant" as const, sourceRoot: "agent-ui" },
         paths: { sourceRoot: "agent-ui" },
       } : { status: "uninitialized" as const },
       createPythonManager: () => ({ ensureStarted: async () => undefined, dispose: async () => undefined }) as unknown as PythonCreatorProcessManager,
@@ -210,13 +210,13 @@ describe("CreatorWorkspaceManager", () => {
     expect(manager.getState()).toEqual({ status: "none" });
   });
 
-  it.each(["ready", "legacy", "broken"] as const)("rejects initialization from %s", async (status) => {
+  it.each(["ready", "broken"] as const)("rejects initialization from %s", async (status) => {
     const setup = setupDependencies();
     const manager = new CreatorWorkspaceManager({
       ...setup,
       inspectProject: async () => status === "broken"
         ? { status: "broken", issues: [{ code: "BAD_CONFIG", message: "invalid" }] }
-        : { status, projectConfig: { version: "1", mode: "platform" }, paths: { sourceRoot: "agent-ui" } },
+        : { status, projectConfig: { mode: "platform", sourceRoot: "agent-ui" }, paths: { sourceRoot: "agent-ui" } },
       createPythonManager: () => ({ ensureStarted: async () => undefined, dispose: async () => undefined }) as unknown as PythonCreatorProcessManager,
     });
     await manager.selectProject(await root());

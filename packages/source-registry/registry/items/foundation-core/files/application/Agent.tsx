@@ -168,7 +168,7 @@ export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agen
       const candidate = agentCompositionStore.getCandidateDiagnostic();
       if (candidate?.appUIModelHash === undefined) return;
       const diagnostic: RuntimeDiagnostic = {
-        schemaVersion: 1, kind: "runtime-composition", status: candidate.status,
+        kind: "runtime-composition", status: candidate.status,
         appUIModelHash: candidate.appUIModelHash, compositionRevision: candidate.revision,
         capabilityCatalogRevision: candidate.capabilityCatalogRevision, occurredAt: candidate.occurredAt,
         ...(candidate.errorMessage === undefined ? {} : { errorMessage: candidate.errorMessage }),

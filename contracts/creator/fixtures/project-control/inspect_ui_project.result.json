@@ -1,5 +1,4 @@
 {
-  "schemaVersion": 3,
   "appUIModel": {
     "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "layout": {},
@@ -13,7 +12,6 @@
   "authoringTargetCatalog": {},
   "mode": "assistant",
   "modeResolution": {
-    "legacy": false,
     "configPath": "fixture"
   },
   "plugins": [],

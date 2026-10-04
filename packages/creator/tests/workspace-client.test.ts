@@ -14,7 +14,7 @@ const setup = { suggestedSourceRoot: "src/agent-ui", modes: [
 ] };
 const valid = { valid: true, sourceRoot: { normalized: "src/agent-ui", parentExists: true, targetState: "missing" }, issues: [] };
 const ready = { status: "ready", workspace: { id: "A", name: "A", displayPath: "/A" },
-  project: { version: "2", mode: "assistant", sourceRoot: "src/agent-ui" }, runtime: { status: "ready" } };
+  project: { mode: "assistant", sourceRoot: "src/agent-ui" }, runtime: { status: "ready" } };
 
 function respond(body: unknown, ok = true): Response {
   return { ok, json: async () => body } as Response;

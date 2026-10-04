@@ -44,17 +44,17 @@ print(json.dumps(verify_expected_workspace_fill(r,[{"instanceId":"agent-conversa
 }
 
 test("deleted sidebar reflows the real Preview and uploads its afterHash screenshot", async ({ page }) => {
-  const sourceResponse = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "inspect_agent_ui_sources", input: {} }, frontendRoot);
+  const sourceResponse = await handleUIProjectControlRequest({ operation: "inspect_agent_ui_sources", input: {} }, frontendRoot);
   if (!sourceResponse.ok) throw new Error("Could not inspect Host test sources");
   const sourceInspection = sourceResponse.result as AgentUISourceInspection;
   const installedThemeSwitch = sourceInspection.items.find(item => item.id === "plugin/theme-switch")?.status === "not-installed";
   if (installedThemeSwitch) {
-    const install = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "apply_agent_ui_source_item", input: {
+    const install = await handleUIProjectControlRequest({ operation: "apply_agent_ui_source_item", input: {
       itemId: "plugin/theme-switch", expectedStateHash: sourceInspection.stateHash,
     } }, frontendRoot);
     if (!install.ok) throw new Error("Could not install the test's theme-switch source");
   }
-  const compositionResponse = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "inspect_ui_project", input: { view: "composition" } }, frontendRoot);
+  const compositionResponse = await handleUIProjectControlRequest({ operation: "inspect_ui_project", input: { view: "composition" } }, frontendRoot);
   if (!compositionResponse.ok) throw new Error("Could not inspect Host test composition");
   const capabilityCatalogRevision = (compositionResponse.result as UICompositionInspection).capabilityCatalogRevision;
   const originalAppUI = await readFile(appUIPath, "utf8");
@@ -188,9 +188,9 @@ test("deleted sidebar reflows the real Preview and uploads its afterHash screens
     if (originalRevision === undefined) await unlink(revisionPath).catch(() => undefined);
     else await writeFile(revisionPath, originalRevision);
     if (installedThemeSwitch) {
-      const inspection = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "inspect_agent_ui_sources", input: {} }, frontendRoot);
+      const inspection = await handleUIProjectControlRequest({ operation: "inspect_agent_ui_sources", input: {} }, frontendRoot);
       if (!inspection.ok) throw new Error("Could not inspect test cleanup state");
-      const removed = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "remove_agent_ui_source_items", input: {
+      const removed = await handleUIProjectControlRequest({ operation: "remove_agent_ui_source_items", input: {
         itemIds: ["plugin/theme-switch"], expectedStateHash: (inspection.result as AgentUISourceInspection).stateHash,
       } }, frontendRoot);
       if (!removed.ok) throw new Error("Could not remove test-only theme-switch source");

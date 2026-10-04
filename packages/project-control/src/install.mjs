@@ -2,8 +2,6 @@ import { access, lstat, mkdir, readFile, rename, unlink, writeFile } from "node:
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 export const MANAGED_CONTROL_ENTRY = ".agent-ui/control/project-control.mjs";
-export const CONTROL_PROTOCOL_VERSION = 3;
-export const CONTROL_RUNTIME_VERSION = 1;
 const runtime = new URL("../dist/runtime/project-control-runtime.mjs", import.meta.url);
 
 /** A control entry references the installed development tool, not Host source.
@@ -33,10 +31,9 @@ export async function installManagedProjectControl(projectRoot, { upgrade = fals
   return [MANAGED_CONTROL_ENTRY];
 }
 
-function controlEntrySource(runtimeUrl, protocolVersion = CONTROL_PROTOCOL_VERSION, runtimeVersion = CONTROL_RUNTIME_VERSION) {
+function controlEntrySource(runtimeUrl) {
   return [
     "// Agent UI managed control plane; development only. Reinstall on tool upgrade.",
-    `export const controlMetadata = { controlProtocolVersion: ${protocolVersion}, controlRuntimeVersion: ${runtimeVersion} };`,
     'import path from "node:path";',
     'import { fileURLToPath } from "node:url";',
     `import { runUIProjectControlCli } from ${JSON.stringify(runtimeUrl)};`,
@@ -47,23 +44,20 @@ function controlEntrySource(runtimeUrl, protocolVersion = CONTROL_PROTOCOL_VERSI
 
 /** Validate the entire generated template without executing the old import. */
 function assertManagedEntry(info, source) {
-  const metadata = source.match(/export const controlMetadata = \{ controlProtocolVersion: (\d+), controlRuntimeVersion: (\d+) \};/);
   const runtimeImport = source.match(/import \{ runUIProjectControlCli \} from ("[^"\n]+");/);
-  if (!info.isFile() || !metadata || !runtimeImport ||
-      source !== controlEntrySource(JSON.parse(runtimeImport[1]), Number(metadata[1]), Number(metadata[2]))) {
+  if (!info.isFile() || !runtimeImport ||
+      source !== controlEntrySource(JSON.parse(runtimeImport[1]))) {
     throw new Error("Refusing to replace an unmanaged or user-modified control entry.");
   }
-  if (Number(metadata[1]) > CONTROL_PROTOCOL_VERSION || Number(metadata[2]) > CONTROL_RUNTIME_VERSION)
-    throw new Error("Control entry requires a newer Creator runtime.");
 }
 
-export async function ensureManagedProjectControl(projectRoot, { managed = false } = {}) {
+export async function ensureManagedProjectControl(projectRoot) {
   const entry = path.join(projectRoot, MANAGED_CONTROL_ENTRY);
   let info;
   try { info = await lstat(entry); }
   catch (error) {
     if (error.code !== "ENOENT") throw error;
-    return managed ? installManagedProjectControl(projectRoot) : [];
+    return installManagedProjectControl(projectRoot);
   }
   const current = await readFile(entry, "utf8");
   assertManagedEntry(info, current);

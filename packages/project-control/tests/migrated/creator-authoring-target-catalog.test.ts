@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
-import { legacyProjectPaths } from "../support/legacy-project-paths";
+import { fixtureProjectPaths } from "../support/fixture-project-paths";
 
 import {
   creatorApplicationAuthoringTargets,
@@ -81,7 +81,7 @@ describe("Creator Authoring Target Catalog", () => {
     const catalog = await buildCreatorAuthoringTargetCatalog({
       projectRoot: root,
       config,
-      paths: legacyProjectPaths(root, config),
+      paths: fixtureProjectPaths(root, config),
       projectFacts: emptyFacts(pluginIds.map(pluginId => ({ pluginId, manifestPath: `plugins/${pluginId}/manifest.json`, definitionPath: `plugins/${pluginId}/definition.ts` }) as PluginAsset)),
     });
 
@@ -122,7 +122,7 @@ describe("Creator Authoring Target Catalog", () => {
     const catalog = await buildCreatorAuthoringTargetCatalog({
       projectRoot: root,
       config,
-      paths: legacyProjectPaths(root, config),
+      paths: fixtureProjectPaths(root, config),
       projectFacts: emptyFacts([asset]),
       applicationTargets: [],
     });
@@ -157,7 +157,7 @@ describe("Creator Authoring Target Catalog", () => {
     await expect(buildCreatorAuthoringTargetCatalog({
       projectRoot: root,
       config,
-      paths: legacyProjectPaths(root, config),
+      paths: fixtureProjectPaths(root, config),
       projectFacts: emptyFacts(),
       applicationTargets: [duplicate, duplicate],
     })).rejects.toThrow(/Duplicate authoring target id/);
@@ -165,7 +165,7 @@ describe("Creator Authoring Target Catalog", () => {
     await expect(buildCreatorAuthoringTargetCatalog({
       projectRoot: root,
       config,
-      paths: legacyProjectPaths(root, config),
+      paths: fixtureProjectPaths(root, config),
       projectFacts: emptyFacts(),
       applicationTargets: [applicationTarget({ relatedPluginIds: ["missing-plugin"] })],
     })).rejects.toThrow(/unknown Plugin/);
@@ -177,7 +177,7 @@ describe("Creator Authoring Target Catalog", () => {
     await expect(buildCreatorAuthoringTargetCatalog({
       projectRoot: root,
       config,
-      paths: legacyProjectPaths(root, config),
+      paths: fixtureProjectPaths(root, config),
       projectFacts: emptyFacts(),
       applicationTargets: [applicationTarget({ ownerPath: "agent-ui/../outside.ts" })],
     })).rejects.toThrow(/normalized project-relative path/);

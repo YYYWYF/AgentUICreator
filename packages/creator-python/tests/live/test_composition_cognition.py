@@ -335,7 +335,6 @@ class _LiveValidationRunner:
                     {
                         "threadId": self.thread_id,
                         "composition": {
-                            "schemaVersion": 1,
                             "appUIModelHash": app_ui_model_hash,
                             "observedAt": datetime.now(timezone.utc).isoformat(),
                             "application": {"phase": "ready"},

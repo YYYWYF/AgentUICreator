@@ -6,7 +6,7 @@ from pathlib import Path, PurePosixPath
 from string import ascii_letters, digits
 from typing import Any, Literal, TypeAlias
 
-from .project_paths import v2_source_root
+from .project_paths import agent_ui_source_root
 
 
 ChangeLayer = Literal[
@@ -41,9 +41,9 @@ def project_logical_path(path: str, project_root: str | Path | None = None) -> s
     root = Path(project_root).resolve().as_posix()
     if normalized.startswith(root + "/"):
         normalized = normalized[len(root):]
-    source_root = v2_source_root(project_root)
-    prefix = f"/{source_root}/" if source_root is not None else None
-    if prefix is not None and normalized.startswith(prefix):
+    source_root = agent_ui_source_root(project_root)
+    prefix = f"/{source_root}/"
+    if normalized.startswith(prefix):
         return "/" + normalized[len(prefix):]
     return normalized
 

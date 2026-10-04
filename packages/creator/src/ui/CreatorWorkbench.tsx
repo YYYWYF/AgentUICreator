@@ -294,9 +294,9 @@ function isCreatorRunReceipt(value: unknown): value is CreatorRunReceipt {
       ))) &&
     (value.diagnosticLog === undefined ||
       (isRecord(value.diagnosticLog) &&
+        Object.keys(value.diagnosticLog).sort().join(",") === "format,path" &&
         value.diagnosticLog.format === "jsonl" &&
-        typeof value.diagnosticLog.path === "string" &&
-        value.diagnosticLog.schemaVersion === 1)) &&
+        typeof value.diagnosticLog.path === "string")) &&
     (value.transaction === undefined ||
       (isRecord(value.transaction) &&
         typeof value.transaction.runId === "string" &&
@@ -1067,7 +1067,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     workspaceIdRef.current = id;
     const conversation = id === undefined || next.status === "uninitialized" || next.status === "broken"
       ? emptyConversation() : storedConversation(id);
-    agentRef.current = (next.status === "ready" || next.status === "legacy") && next.runtime.status === "ready"
+    agentRef.current = (next.status === "ready") && next.runtime.status === "ready"
       ? new CreatorAgentClient(id!, conversation.threadId, conversation.agentMessages)
       : null;
     itemsRef.current = conversation.items;
@@ -1189,7 +1189,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
       saveConversation(agent, items, workspaceIdRef.current);
     }
     messageList.current?.scrollTo({
-      top: workspaceState?.status === "ready" && workspaceState.project.version === "2" && items.length === 0
+      top: workspaceState?.status === "ready" && items.length === 0
         ? 0 : messageList.current.scrollHeight,
       behavior: "smooth",
     });
@@ -1239,7 +1239,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     event?.preventDefault();
     const request = input.trim();
     if ((response === undefined && (request === "" || hasPendingCreatorQuestion(itemsRef.current))) ||
-      isRunning || runInFlightRef.current || !((workspaceState?.status === "ready" || workspaceState?.status === "legacy") && workspaceState.runtime.status === "ready")) {
+      isRunning || runInFlightRef.current || !((workspaceState?.status === "ready") && workspaceState.runtime.status === "ready")) {
       return;
     }
     if (response !== undefined && !itemsRef.current.some(item => item.kind === "question" && item.id === response.question.id && item.status === "pending")) return;
@@ -1597,7 +1597,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
 
   const startNewConversation = () => {
     if (isRunning || hasPendingCreatorQuestion(itemsRef.current) ||
-      !((workspaceState?.status === "ready" || workspaceState?.status === "legacy") && workspaceState.runtime.status === "ready")) {
+      !((workspaceState?.status === "ready") && workspaceState.runtime.status === "ready")) {
       return;
     }
     const nextThreadId = crypto.randomUUID();
@@ -1789,7 +1789,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     );
   };
 
-  const creatorRuntimeReady = (workspaceState?.status === "ready" || workspaceState?.status === "legacy") && workspaceState.runtime.status === "ready";
+  const creatorRuntimeReady = (workspaceState?.status === "ready") && workspaceState.runtime.status === "ready";
   const questionPending = hasPendingCreatorQuestion(items);
   const pendingQuestionHint = "请先回答当前问题";
 
@@ -1808,7 +1808,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
             } as CSSProperties)
       }
     >
-      {layout === "dock" ? null : workspaceState !== null && (workspaceState.status === "ready" || workspaceState.status === "legacy") && workspaceState.workspace.id === previewWorkspaceId ? (
+      {layout === "dock" ? null : workspaceState !== null && (workspaceState.status === "ready") && workspaceState.workspace.id === previewWorkspaceId ? (
         <CreatorWorkbenchPreview threadId={threadId} workspaceId={workspaceState.workspace.id}>{children}</CreatorWorkbenchPreview>
       ) : (
         <section className="creator-workbench-preview creator-workbench-preview-placeholder" aria-label="项目预览">
@@ -1894,16 +1894,15 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                 onInitialize={() => void initializeWorkspaceProject()}
                 onRetryInfo={() => { if (setupWorkspaceId !== undefined) loadSetupInfo(setupWorkspaceId); }} />
             ) : <div className="creator-panel-messages" ref={messageList}>
-              {workspaceState?.status === "ready" && workspaceState.project.version === "2" &&
-                workspaceState.project.sourceRoot !== undefined ? (
+              {workspaceState?.status === "ready" ? (
                 <CreatorProjectIntegrationGuide key={workspaceState.workspace.id} mode={workspaceState.project.mode}
                   sourceRoot={workspaceState.project.sourceRoot} />
               ) : null}
               {workspaceState?.status === "broken" ? (
                 <div className="creator-panel-empty"><strong>项目配置需要修复</strong>{workspaceState.issues.map((issue) => <p key={issue.code}>{issue.code}: {issue.message}</p>)}</div>
-              ) : (workspaceState?.status === "ready" || workspaceState?.status === "legacy") && workspaceState.runtime.status === "unavailable" ? (
+              ) : (workspaceState?.status === "ready") && workspaceState.runtime.status === "unavailable" ? (
                 <div className="creator-panel-empty"><strong>Agent UI 项目已识别，但 Creator Runtime 暂不可用。</strong><p>{workspaceState.runtime.code}: {workspaceState.runtime.message}</p></div>
-              ) : workspaceState?.status !== "ready" && workspaceState?.status !== "legacy" ? (
+              ) : workspaceState?.status !== "ready" ? (
                 <div className="creator-panel-empty"><strong>选择项目后才能使用 Creator。</strong></div>
               ) : items.filter(
                 (item) => item.kind !== "stage" || shouldPresentStage(item, creatorDebug),
@@ -1987,7 +1986,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                 </svg>
                 <span>{workspaceState !== null && workspaceState.status !== "none"
                   ? workspaceState.workspace.name : "选择项目"}</span>
-                {workspaceState !== null && (workspaceState.status === "ready" || workspaceState.status === "legacy") &&
+                {workspaceState !== null && (workspaceState.status === "ready") &&
                   workspaceState.warnings?.length ? <span aria-label="项目有提示" className="creator-workspace-warning-dot">!</span> : null}
                 <svg aria-hidden="true" className="creator-workspace-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="m6 9 6 6 6-6" />
@@ -1999,12 +1998,12 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                     <div className="creator-workspace-current">
                       <strong>{workspaceState.workspace.name}</strong>
                       <code title={workspaceState.workspace.displayPath}>{workspaceState.workspace.displayPath}</code>
-                      {workspaceState.status === "ready" || workspaceState.status === "legacy" ? (
-                        <span>Mode: {workspaceState.project.mode} · Agent UI: {workspaceState.project.sourceRoot ?? "agent-ui (V1)"}</span>
+                      {workspaceState.status === "ready" ? (
+                        <span>Mode: {workspaceState.project.mode} · Agent UI: {workspaceState.project.sourceRoot}</span>
                       ) : workspaceState.status === "uninitialized" ? (
                         <span>Agent UI: 未初始化</span>
                       ) : <span>Agent UI: 配置异常</span>}
-                      {(workspaceState.status === "ready" || workspaceState.status === "legacy") && workspaceState.warnings?.length ? (
+                      {(workspaceState.status === "ready") && workspaceState.warnings?.length ? (
                         <div className="creator-workspace-warnings" role="status">
                           <strong>⚠ Agent UI 初始化需要恢复检查</strong>
                           {workspaceState.warnings.map((issue, index) => (
@@ -2043,7 +2042,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                 </section>
               ) : null}
             </div>
-            {workspaceState?.status === "ready" || workspaceState?.status === "legacy" ? <form className="creator-panel-composer" onSubmit={submit}>
+            {workspaceState?.status === "ready" ? <form className="creator-panel-composer" onSubmit={submit}>
               <label htmlFor="creator-request">告诉 Creator</label>
               <textarea
                 disabled={isRunning || !creatorRuntimeReady || questionPending}

@@ -217,11 +217,11 @@ def test_pending_requires_bound_question_and_explicit_choice(tmp_path):
     assert prepared["status"] == "pending"
     with pytest.raises(PluginDevelopmentError):
         state.require_create("task-list")
-    question = {"schemaVersion": 1, "steps": [{"id": "development-decision"}]}
+    question = {"steps": [{"id": "development-decision"}]}
     state.register_decision_question(prepared["proposalId"], question)
     with pytest.raises(PluginDevelopmentError):
         state.bind_question(prepared["proposalId"], question_id="q1", checkpoint_id="c1",
-                            question={"schemaVersion": 1, "steps": [{"id": "ordinary"}]})
+                            question={"steps": [{"id": "ordinary"}]})
     state.bind_question(prepared["proposalId"], question_id="q1", checkpoint_id="c1",
                         question=question)
     with pytest.raises(PluginDevelopmentError):
@@ -241,7 +241,7 @@ def test_decline_does_not_grant_or_change_project(tmp_path, choice):
         desired_outcome="本地任务清单", missing_capabilities=["清单交互"],
         reuse_evidence_refs=[],
     )
-    question = {"schemaVersion": 1, "steps": [{"id": "development-decision"}]}
+    question = {"steps": [{"id": "development-decision"}]}
     state.register_decision_question(prepared["proposalId"], question)
     state.bind_question(prepared["proposalId"], question_id="q1", checkpoint_id="c1",
                         question=question)
@@ -371,7 +371,7 @@ def test_unselected_customized_source_cannot_be_directly_edited_for_capability_r
     metadata = tmp_path / ".agent-ui"
     metadata.mkdir()
     (metadata / "project.json").write_text(json.dumps({
-        "version": "2", "mode": "platform", "sourceRoot": "src/agent-ui",
+        "mode": "platform", "sourceRoot": "src/agent-ui",
     }), encoding="utf-8")
     source = tmp_path / "src/agent-ui"
     plugin_file = source / "plugins/generated-file-message/generated-file-result.ts"
@@ -382,7 +382,7 @@ def test_unselected_customized_source_cannot_be_directly_edited_for_capability_r
     model_path.write_text(json.dumps({"applicationPlugins": [], "root": {"type": "slot", "plugins": []}}), encoding="utf-8")
     relative = "plugins/generated-file-message/generated-file-result.ts"
     (metadata / "source-lock.json").write_text(json.dumps({
-        "schemaVersion": 1, "sourceRoot": "src/agent-ui", "items": {
+        "sourceRoot": "src/agent-ui", "items": {
             "plugin/generated-file-message": {"version": "0.1.0", "files": {
                 relative: {"sha256": hashlib.sha256(b"official").hexdigest()},
             }},
@@ -587,7 +587,7 @@ def test_approved_plugin_grant_allows_only_canonical_locale_edits(tmp_path, sour
         config = tmp_path / ".agent-ui"
         config.mkdir()
         (config / "project.json").write_text(json.dumps({
-            "version": "2", "mode": "platform", "sourceRoot": source_root,
+            "mode": "platform", "sourceRoot": source_root,
         }), encoding="utf-8")
     state = authority(tmp_path, "explicit")
     state.prepare(
@@ -637,7 +637,7 @@ def test_related_plugin_change_invalidates_plan_but_own_write_can_continue(tmp_p
         desired_outcome="扩展现有交互", missing_capabilities=["新交互"],
         reuse_evidence_refs=[],
     )
-    question = {"schemaVersion": 1, "steps": [{"id": "development-decision"}]}
+    question = {"steps": [{"id": "development-decision"}]}
     state.register_decision_question(plan["proposalId"], question)
     state.bind_question(plan["proposalId"], question_id="q1", checkpoint_id="c1",
                         question=question)
@@ -719,7 +719,7 @@ def test_decision_rejects_wrong_project_thread_or_task(tmp_path, changed):
         desired_outcome="本地任务清单", missing_capabilities=["清单交互"],
         reuse_evidence_refs=[],
     )
-    question = {"schemaVersion": 1, "steps": [{"id": "development-decision"}]}
+    question = {"steps": [{"id": "development-decision"}]}
     state.register_decision_question(plan["proposalId"], question)
     state.bind_question(plan["proposalId"], question_id="q1", checkpoint_id="c1",
                         question=question)

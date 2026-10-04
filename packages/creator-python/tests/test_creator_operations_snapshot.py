@@ -45,7 +45,6 @@ OBSERVATION_COVERAGE = [
 
 def snapshot_result() -> dict[str, object]:
     return {
-        "schemaVersion": 3,
         "view": "composition",
         "observationCoverage": OBSERVATION_COVERAGE,
         "appUIModel": {"hash": "a" * 64, "layout": {}, "slots": []},

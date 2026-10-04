@@ -37,7 +37,7 @@ PREPARE = {
     "uiScope": "聊天区旁边", "dataScope": "页面内存",
     "excludedOperations": ["真实后端", "Agent 工具"],
 }
-ORDINARY_QUESTION = {"schemaVersion": 1, "steps": [{
+ORDINARY_QUESTION = {"steps": [{
     "id": "ordinary", "question": "使用哪种标签？", "selectionMode": "single",
     "minSelections": 1, "maxSelections": 1,
     "options": [{"id": "short", "label": "简短"}, {"id": "long", "label": "详细"}],

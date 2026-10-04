@@ -165,7 +165,6 @@ def test_health_and_ag_ui_echo(tmp_path, monkeypatch):
 
     health = client.get("/health")
     assert health.status_code == 200
-    assert health.json()["protocolVersion"] == "1"
     assert health.json()["runtime"] == "python"
     assert health.json()["agentMode"] == "echo"
 
@@ -204,7 +203,6 @@ def test_runtime_diagnostics_are_authenticated_and_accepted(tmp_path):
         json={
             "threadId": "thread-1",
             "composition": {
-                "schemaVersion": 1,
                 "appUIModelHash": "a" * 64,
                 "observedAt": "2026-09-04T00:00:00.000Z",
                 "application": {
@@ -230,7 +228,6 @@ def test_runtime_diagnostics_accept_and_resolve_application_gate_errors(tmp_path
         app, headers={"Authorization": f"Bearer {settings.auth_token}"}
     )
     diagnostic = {
-        "schemaVersion": 1,
         "kind": "application-gate",
         "status": "error",
         "appUIModelHash": "a" * 64,

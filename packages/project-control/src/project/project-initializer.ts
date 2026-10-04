@@ -2,8 +2,7 @@ import { access, mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
-  AGENT_UI_PROJECT_CONFIG_VERSION,
-  type AgentUIProjectConfigV1,
+  type AgentUIProjectConfig,
 } from "../framework/contracts/agent-ui-project";
 import {
   parseAgentUIMode,
@@ -14,18 +13,19 @@ import {
   type AppUIModel,
 } from "../framework/contracts/app-ui-model";
 import { AGENT_UI_PROJECT_CONFIG_FILE } from "./project-mode";
-import { resolveAgentUIProjectPaths } from "./agent-ui-project-paths";
+import { resolveAgentUIProjectPaths, validateAgentUISourceRoot } from "./agent-ui-project-paths";
 
 export interface CreateUIProjectOptions {
   readonly projectRoot: string;
   readonly mode: AgentUIMode;
+  readonly sourceRoot: string;
   readonly appUIModel: AppUIModel;
   readonly metadataRoot?: string;
 }
 
 export interface CreateUIProjectResult {
   readonly mode: AgentUIMode;
-  readonly projectConfig: AgentUIProjectConfigV1;
+  readonly projectConfig: AgentUIProjectConfig;
   readonly appUIModel: AppUIModel;
   readonly projectConfigPath: string;
   readonly appUIModelPath: string;
@@ -47,14 +47,16 @@ async function assertPathDoesNotExist(filePath: string): Promise<void> {
 export async function createUIProject({
   projectRoot,
   mode,
+  sourceRoot,
   appUIModel: initialAppUIModel,
   metadataRoot = ".agent-ui",
 }: CreateUIProjectOptions): Promise<CreateUIProjectResult> {
   const resolvedMode = parseAgentUIMode(mode);
+  validateAgentUISourceRoot(projectRoot, sourceRoot);
   const appUIModel = parseAppUIModel(initialAppUIModel);
-  const projectConfig: AgentUIProjectConfigV1 = {
-    version: AGENT_UI_PROJECT_CONFIG_VERSION,
+  const projectConfig: AgentUIProjectConfig = {
     mode: resolvedMode,
+    sourceRoot,
   };
   const projectConfigPath = path.posix.join(
     metadataRoot,
@@ -68,7 +70,7 @@ export async function createUIProject({
   await assertPathDoesNotExist(absoluteAppUIModelPath);
 
   await mkdir(path.join(projectRoot, metadataRoot), { recursive: true });
-  await mkdir(path.join(projectRoot, "app-ui"), { recursive: true });
+  await mkdir(path.dirname(absoluteAppUIModelPath), { recursive: true });
   const writes = await Promise.allSettled([
     writeFile(
       absoluteProjectConfigPath,

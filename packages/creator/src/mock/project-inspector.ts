@@ -32,11 +32,11 @@ async function inspect(target: MockProjectTarget, operation: string, input: obje
       clearTimeout(timer);
       try {
         const response = JSON.parse(Buffer.concat(output).toString("utf8"));
-        if (code !== 0 || response.schemaVersion !== 3 || response.ok !== true) throw new Error(response.error?.message ?? errorText ?? "Project inspection failed");
+        if (code !== 0 || response.ok !== true) throw new Error(response.error?.message ?? errorText ?? "Project inspection failed");
         resolve(response.result);
       } catch (error) { reject(error); }
     });
-    child.stdin.end(JSON.stringify({ schemaVersion: 3, operation, input }));
+    child.stdin.end(JSON.stringify({ operation, input }));
   });
 }
 

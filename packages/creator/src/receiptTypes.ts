@@ -39,7 +39,6 @@ export interface CreatorVerificationReceipt {
 export interface CreatorDiagnosticLogReceipt {
   format: "jsonl";
   path: string;
-  schemaVersion: 1;
 }
 
 export interface CreatorPluginDeliveryReceipt {

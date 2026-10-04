@@ -11,7 +11,6 @@ from .verification_policy import (
     resolve_creator_verification_mode,
 )
 
-CREATOR_PYTHON_PROTOCOL_VERSION = "1"
 
 
 class CreatorConfigurationError(ValueError):

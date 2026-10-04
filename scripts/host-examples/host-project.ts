@@ -48,7 +48,7 @@ async function main() {
     if (before.projectConfig.mode !== mode || before.projectConfig.version !== "2" || before.projectConfig.sourceRoot !== sourceRoot) {
       throw new Error(`Project is already initialized with a different configuration: ${JSON.stringify(describeState(before))}`);
     }
-    const sources = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "inspect_agent_ui_sources", input: {} }, projectRoot);
+    const sources = await handleUIProjectControlRequest({ operation: "inspect_agent_ui_sources", input: {} }, projectRoot);
     if (!sources.ok) throw new Error("Could not inspect managed Host sources");
     const inspection = sources.result as import("../../packages/project-control/src/dev").AgentUISourceInspection;
     const core = inspection.items.find(item => item.id === "foundation/core");
@@ -56,7 +56,7 @@ async function main() {
       if (core.status === "customized" || core.status === "blocked") {
         console.warn("Preserving the Host's customized foundation; automatic source upgrades are skipped.");
       } else {
-        const upgraded = await handleUIProjectControlRequest({ schemaVersion: 3, operation: "apply_agent_ui_source_item", input: {
+        const upgraded = await handleUIProjectControlRequest({ operation: "apply_agent_ui_source_item", input: {
           itemId: "foundation/core", expectedStateHash: inspection.stateHash,
         } }, projectRoot);
         if (!upgraded.ok) {
@@ -65,7 +65,7 @@ async function main() {
         }
       }
     }
-    await ensureManagedHostPlugins(request => handleUIProjectControlRequest({ schemaVersion: 3, ...request }, projectRoot), { preserveCustomized: true });
+    await ensureManagedHostPlugins(request => handleUIProjectControlRequest({ ...request }, projectRoot), { preserveCustomized: true });
     return;
   }
   if (before.status !== "uninitialized") {

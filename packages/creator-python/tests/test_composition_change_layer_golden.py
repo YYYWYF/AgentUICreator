@@ -183,7 +183,6 @@ class CompositionClient:
             encoding="utf-8",
         )
         return {
-            "schemaVersion": 1,
             "transactionId": "composition-golden",
             "changed": before_hash != self.hash(),
             "changedPaths": [APP_UI_MODEL_PATH],
@@ -253,7 +252,6 @@ class PassingValidation:
                     {
                         "threadId": "composition-golden",
                         "composition": {
-                            "schemaVersion": 1,
                             "appUIModelHash": self.client.hash(),
                             "observedAt": datetime.now(timezone.utc).isoformat(),
                             "instances": instances,

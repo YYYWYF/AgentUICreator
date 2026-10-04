@@ -1,5 +1,4 @@
 {
-  "schemaVersion": 3,
   "operation": "remove_agent_ui_source_items",
   "input": {
     "itemIds": "fixture",

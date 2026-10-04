@@ -133,7 +133,6 @@ No legacy transport is retained in assistant-ui mode to emulate Frontend Tools.
 
 `ConversationObservationSnapshot` is AgentUICreator-owned and contains:
 
-- `schemaVersion`;
 - `threadId`;
 - `isRunning`;
 - tool calls with `toolCallId`, `toolName`, `state`, `args`, optional `result`,

@@ -314,7 +314,6 @@ class PluginProjectControl:
         plugin = copy.deepcopy(operation["plugin"])
         if any(current == plugin for current in model_plugins(model)):
             return {
-                "schemaVersion": 1,
                 "transactionId": "plugin-golden-noop",
                 "changed": False,
                 "changedPaths": [],
@@ -346,7 +345,6 @@ class PluginProjectControl:
         )
         after_hash = self.hash()
         return {
-            "schemaVersion": 1,
             "transactionId": "plugin-golden",
             "changed": True,
             "changedPaths": [APP_UI_MODEL_PATH, REGISTRY_PATH],
@@ -433,7 +431,6 @@ class GateProjectControl(PluginProjectControl):
         )
         after_hash = self.hash()
         return {
-            "schemaVersion": 1,
             "transactionId": "application-gate-golden",
             "changed": True,
             "changedPaths": [APP_UI_MODEL_PATH, REGISTRY_PATH],
@@ -452,7 +449,6 @@ def runtime_diagnostic(app_hash: str, status: str):
         {
             "threadId": "golden-thread",
             "diagnostic": {
-                "schemaVersion": 1,
                 "kind": "plugin-render",
                 "status": status,
                 "appUIModelHash": app_hash,
@@ -687,7 +683,6 @@ def make_agent(
                     {
                         "threadId": "golden-thread",
                         "composition": {
-                            "schemaVersion": 1,
                             "appUIModelHash": current_hash,
                             "observedAt": datetime.now(timezone.utc).isoformat(),
                             "instances": [
@@ -753,7 +748,6 @@ def make_gate_agent(tmp_path, responses):
                     {
                         "threadId": "golden-thread",
                         "composition": {
-                            "schemaVersion": 1,
                             "appUIModelHash": client.hash(),
                             "observedAt": datetime.now(timezone.utc).isoformat(),
                             "application": {
@@ -800,7 +794,6 @@ def make_service_agent(
                     {
                         "threadId": "golden-thread",
                         "composition": {
-                            "schemaVersion": 1,
                             "appUIModelHash": client.hash(),
                             "observedAt": datetime.now(timezone.utc).isoformat(),
                             "instances": [],
@@ -852,7 +845,7 @@ def authorize_golden_development(agent, *, plugin_id, work_kind, intent="explici
         ),
     )
     if plan["status"] == "pending":
-        question = {"schemaVersion": 1, "steps": [{"id": "development-decision"}]}
+        question = {"steps": [{"id": "development-decision"}]}
         authority.register_decision_question(plan["proposalId"], question)
         authority.bind_question(plan["proposalId"], question_id="golden-q", checkpoint_id="golden-c",
                                 question=question)

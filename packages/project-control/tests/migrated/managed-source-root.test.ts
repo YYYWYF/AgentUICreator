@@ -12,7 +12,7 @@ import { collectPluginAssets } from "../../src/project/plugin-assets";
 import { inspectUIProject } from "../../src/project/project-inspector";
 import { PLUGIN_REGISTRY_ENTRY_SOURCE } from "../../src/project/registry-generator";
 import { uiProjectControlConfig } from "../../src/project/project-config";
-import { createV2ProjectFixture } from "../support/v2-project-fixture";
+import { createSourceRootProjectFixture } from "../support/source-root-project-fixture";
 
 const roots: string[] = [];
 
@@ -21,12 +21,12 @@ afterEach(async () => {
 });
 
 async function fixture() {
-  const project = await createV2ProjectFixture();
+  const project = await createSourceRootProjectFixture();
   roots.push(project.projectRoot);
   return project;
 }
 
-describe("V2 managed source paths", () => {
+describe("Managed source paths", () => {
   it("discovers only sourceRoot plugins and reports project-relative asset paths", async () => {
     const { projectRoot, paths } = await fixture();
     const inventory = await collectPluginAssets(projectRoot, paths, uiProjectControlConfig);
@@ -38,7 +38,7 @@ describe("V2 managed source paths", () => {
     });
   });
 
-  it("writes the generated registry under sourceRoot and reads the V2 entry", async () => {
+  it("writes the generated registry under sourceRoot and reads the configured entry", async () => {
     const { projectRoot, paths } = await fixture();
     await writeFile(paths.pluginRegistryEntryPath, PLUGIN_REGISTRY_ENTRY_SOURCE);
     const result = await writeGeneratedPluginRegistry(projectRoot);
@@ -49,7 +49,7 @@ describe("V2 managed source paths", () => {
     expect((await inspectUIProject(projectRoot)).capabilityCatalog.generatedFileFresh).toBe(true);
   });
 
-  it("commits AppUIModel, composition revision, and registry at V2 paths", async () => {
+  it("commits AppUIModel, composition revision, and registry at configured paths", async () => {
     const { projectRoot, paths, modelSource } = await fixture();
     const result = await mutateAppUIModel(projectRoot, {
       appUIModelHash: createHash("sha256").update(modelSource).digest("hex"),

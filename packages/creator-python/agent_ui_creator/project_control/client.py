@@ -19,8 +19,6 @@ from .errors import ProjectControlError
 from .models import (
     MAX_PROJECT_CONTROL_OUTPUT_BYTES,
     PROJECT_CONTROL_ENTRY_PATH,
-    LEGACY_PROJECT_CONTROL_ENTRY_PATH,
-    PROJECT_CONTROL_SCHEMA_VERSION,
     PROJECT_CONTROL_TIMEOUT_SECONDS,
     ProjectControlMetrics,
     ProjectControlOperation,
@@ -61,8 +59,7 @@ class ProjectControlClient:
         self.max_output_bytes = max_output_bytes
         self._node_executable = node_executable or os.environ.get("CREATOR_NODE_EXECUTABLE") or shutil.which("node")
         self.entry_path = self.project_root / PROJECT_CONTROL_ENTRY_PATH
-        runtime_name = "tsx.cmd" if os.name == "nt" else "tsx"
-        self.executable_path = self.project_root / "node_modules" / ".bin" / runtime_name
+        self.executable_path = Path(self._node_executable) if self._node_executable else self.entry_path
         self.metrics = ProjectControlMetrics()
         self._validator = _load_protocol_validator()
         self._result_defs = {
@@ -188,7 +185,6 @@ class ProjectControlClient:
                 if marker is not None:
                     input = {**input, "cancelMarker": marker}
             request = {
-                "schemaVersion": PROJECT_CONTROL_SCHEMA_VERSION,
                 "operation": operation,
                 "input": input,
             }
@@ -238,27 +234,16 @@ class ProjectControlClient:
 
     def _ensure_fixed_runtime(self) -> None:
         managed = self.project_root / PROJECT_CONTROL_ENTRY_PATH
-        legacy = self.project_root / LEGACY_PROJECT_CONTROL_ENTRY_PATH
-        if managed.is_file():
-            self.entry_path = managed
-            if not self._node_executable:
-                raise ProjectControlError("CONTROL_RUNTIME_MISSING", "Creator Node runtime is unavailable.")
-            self.executable_path = Path(self._node_executable)
-        elif legacy.is_file():
-            self.entry_path = legacy
-            runtime_name = "tsx.cmd" if os.name == "nt" else "tsx"
-            self.executable_path = self.project_root / "node_modules" / ".bin" / runtime_name
-        else:
-            raise ProjectControlError("CONTROL_ENTRY_MISSING", f"Neither {PROJECT_CONTROL_ENTRY_PATH} nor {LEGACY_PROJECT_CONTROL_ENTRY_PATH} exists.")
+        if not managed.is_file():
+            raise ProjectControlError("CONTROL_ENTRY_MISSING", f"Missing {PROJECT_CONTROL_ENTRY_PATH}.")
+        self.entry_path = managed
+        if not self._node_executable:
+            raise ProjectControlError("CONTROL_RUNTIME_MISSING", "Creator Node runtime is unavailable.")
+        self.executable_path = Path(self._node_executable)
         if not self.executable_path.is_file():
             raise ProjectControlError("CONTROL_RUNTIME_MISSING", f"Project control runtime is unavailable: {self.executable_path}.")
 
     def _validate_protocol(self, value: Any, *, request: bool) -> None:
-        if not isinstance(value, dict) or value.get("schemaVersion") != PROJECT_CONTROL_SCHEMA_VERSION:
-            raise ProjectControlError(
-                "CONTROL_PROTOCOL_INCOMPATIBLE",
-                f"The target project control {'request' if request else 'response'} is incompatible with schema version {PROJECT_CONTROL_SCHEMA_VERSION}.",
-            )
         definition = "request" if request else "response"
         schema = {
             "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -270,7 +255,7 @@ class ProjectControlClient:
         except ValidationError as error:
             raise ProjectControlError(
                 "CONTROL_PROTOCOL_INCOMPATIBLE",
-                f"The target project control {definition} is incompatible with schema version {PROJECT_CONTROL_SCHEMA_VERSION}.",
+                f"ProjectControl {definition} does not match the current contract.",
                 {"cause": error.message},
             ) from error
 
@@ -287,7 +272,7 @@ class ProjectControlClient:
             cause = error.message if isinstance(error, ValidationError) else "Unknown operation."
             raise ProjectControlError(
                 "CONTROL_PROTOCOL_INCOMPATIBLE",
-                "The target project control result is incompatible with protocol v3.",
+                "ProjectControl result does not match the current operation contract.",
                 {"operation": operation, "cause": cause[:_ERROR_DETAIL_LIMIT]},
             ) from error
 

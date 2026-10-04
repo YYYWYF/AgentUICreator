@@ -45,13 +45,13 @@ describe("ProjectControl canonical wire contract", () => {
     });
     try {
       const response = await handleUIProjectControlRequest({
-        schemaVersion: 3, operation: "inspect_agent_ui_sources", input: {},
+        operation: "inspect_agent_ui_sources", input: {},
       }, path.join(root, "examples/creator-host-sandbox"));
       expect(response).toEqual({
-        schemaVersion: 3, ok: false,
+        ok: false,
         error: {
           code: "CONTROL_RESULT_CONTRACT_VIOLATION",
-          message: "ProjectControl produced a result that does not match protocol v3.",
+          message: "ProjectControl produced a result that does not match the current contract.",
         },
       });
     } finally { spy.mockRestore(); }
@@ -60,7 +60,7 @@ describe("ProjectControl canonical wire contract", () => {
   it("rejects source result drift and a swapped apply/remove result", () => {
     expect(() => validateProjectControlResult("apply_agent_ui_source_item", { changed: true, stateHashRenamed: "a".repeat(64) })).toThrow();
     expect(() => validateProjectControlResult("apply_agent_ui_source_item", {
-      schemaVersion: 1, operation: "remove", changed: false, changedItems: [],
+      operation: "remove", changed: false, changedItems: [],
       sourceChangedPaths: [], generatedChangedPaths: [], changedPaths: [], stateHash: "a".repeat(64),
     })).toThrow();
   });

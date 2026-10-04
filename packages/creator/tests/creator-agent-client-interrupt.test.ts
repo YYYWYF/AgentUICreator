@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { CreatorAgentClient } from "../src/agent/CreatorAgentClient.js";
 
 const question = { id: "interrupt-1", reason: "human_input", metadata: {
-  kind: "ask_user_question", schemaVersion: 1, steps: [{
+  kind: "ask_user_question", steps: [{
     id: "layout", question: "Layout?", selectionMode: "single", minSelections: 1, maxSelections: 1,
     options: [{ id: "dashboard", label: "Dashboard" }, { id: "sidebar", label: "Sidebar" }],
   }],

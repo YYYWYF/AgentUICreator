@@ -1,6 +1,5 @@
 {
   "request": {
-    "schemaVersion": 3,
     "operation": "mutate_app_ui_model",
     "input": {
       "appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -17,10 +16,8 @@
     }
   },
   "success": {
-    "schemaVersion": 3,
     "ok": true,
     "result": {
-      "schemaVersion": 1,
       "transactionId": "fixture",
       "changed": false,
       "changedPaths": [],
@@ -43,7 +40,6 @@
     }
   },
   "failure": {
-    "schemaVersion": 3,
     "ok": false,
     "error": {
       "code": "APP_UI_MODEL_STALE",

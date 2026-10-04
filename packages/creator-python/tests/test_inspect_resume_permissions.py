@@ -22,7 +22,7 @@ from agent_ui_creator.operations import (
 from agent_ui_creator.server import create_app
 
 
-QUESTION = {"schemaVersion": 1, "steps": [{
+QUESTION = {"steps": [{
     "id": "choice", "question": "Continue?", "selectionMode": "single",
     "minSelections": 1, "maxSelections": 1,
     "options": [{"id": "yes", "label": "Yes"}, {"id": "no", "label": "No"}],

@@ -30,7 +30,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from langgraph.checkpoint.memory import InMemorySaver
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from .config import CREATOR_PYTHON_PROTOCOL_VERSION, CreatorServerSettings
+from .config import CreatorServerSettings
 from .activity import CreatorActivityRecorder
 from .transactions import CreatorTransactionStore, CreatorTransactionError
 from .app_ui_model import ProjectMutationCoordinator
@@ -857,7 +857,6 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
         return {
             "status": "ok",
             "runtime": "python",
-            "protocolVersion": CREATOR_PYTHON_PROTOCOL_VERSION,
             "projectRoot": str(settings.project_root),
             "verificationMode": settings.verification_mode,
             "phase": (
@@ -1432,7 +1431,6 @@ async def _serve(settings: CreatorServerSettings) -> None:
         handshake = {
             "type": "creator_ready",
             "port": port,
-            "protocolVersion": CREATOR_PYTHON_PROTOCOL_VERSION,
         }
         print(json.dumps(handshake, separators=(",", ":")), flush=True)
         config = uvicorn.Config(

@@ -25,7 +25,6 @@ MAX_RUNTIME_HASH_EVIDENCE_PER_SCOPE = (
 class RuntimeDiagnostic(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    schemaVersion: Literal[1]
     kind: Literal[
         "runtime-composition",
         "preview-runtime",
@@ -185,7 +184,6 @@ class RuntimeCompositionSlot(BaseModel):
 class RuntimeComposition(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    schemaVersion: Literal[1]
     appUIModelHash: str = Field(pattern=r"^[a-f0-9]{64}$")
     compositionRevision: str | None = Field(default=None, min_length=1, max_length=200)
     capabilityCatalogRevision: str | None = Field(

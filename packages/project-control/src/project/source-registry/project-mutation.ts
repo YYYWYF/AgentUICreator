@@ -20,7 +20,7 @@ import { recoverPendingAgentUISourceTransaction } from "./transaction";
 
 export interface AgentUISourceProjectMutationOptions { config?: UIProjectControlConfig; cancelMarker?: string | undefined }
 export interface AgentUISourceProjectMutationResult {
-  schemaVersion: 1;
+
   operation: "apply" | "remove";
   changed: boolean;
   changedItems: string[];
@@ -30,15 +30,12 @@ export interface AgentUISourceProjectMutationResult {
   stateHash: string;
 }
 interface Original { path: string; beforeContentBase64: string | null }
-interface JournalV1 { schemaVersion: 1; originals: Original[] }
-interface JournalV2 {
-  schemaVersion: 2;
+interface SourceMutationJournal {
   transactionId: string;
   ownerPid: number;
   createdAt: string;
   originals: Original[];
 }
-type Journal = JournalV1 | JournalV2;
 const JOURNAL = "source-project-transaction.json";
 const generatedTargets = ["plugins/registry.generated.ts", "agent-contract/frontend-tools.generated.ts", "agent-ui/conversation/frontend-tool-uis.generated.ts", "agent-ui/conversation/integrations.generated.tsx"];
 const ordered = (paths: string[]) => [...new Set(paths)].sort();
@@ -92,24 +89,26 @@ async function pruneEmptySourceDirectories(projectRoot: string, sourceRoot: stri
     });
   }
 }
-function parseJournal(source: Buffer): Journal {
+function parseJournal(source: Buffer): SourceMutationJournal {
   const value = JSON.parse(source.toString("utf8"));
-  if (![1, 2].includes(value?.schemaVersion) || !Array.isArray(value.originals)) throw new Error("Invalid Host source mutation journal.");
+  if (!value || typeof value !== "object" || Array.isArray(value) ||
+      Object.keys(value).sort().join(",") !== "createdAt,originals,ownerPid,transactionId" ||
+      !Array.isArray(value.originals)) throw new Error("Invalid Host source mutation journal.");
   const originals: Original[] = value.originals.map((entry: Original) => {
-    if (!entry || typeof entry.path !== "string" || !(entry.beforeContentBase64 === null || typeof entry.beforeContentBase64 === "string")) throw new Error("Invalid Host snapshot.");
+    if (!entry || Object.keys(entry).sort().join(",") !== "beforeContentBase64,path" ||
+        typeof entry.path !== "string" || !(entry.beforeContentBase64 === null || typeof entry.beforeContentBase64 === "string")) throw new Error("Invalid Host snapshot.");
     assertSafeProjectRelativePath(entry.path, "Host snapshot path");
     if (entry.beforeContentBase64 !== null && Buffer.from(entry.beforeContentBase64, "base64").toString("base64") !== entry.beforeContentBase64) throw new Error("Invalid Host snapshot content.");
     return { path: entry.path, beforeContentBase64: entry.beforeContentBase64 };
   });
   if (new Set(originals.map(entry => entry.path)).size !== originals.length) throw new Error("Duplicate Host snapshot paths.");
-  if (value.schemaVersion === 1) return { schemaVersion: 1, originals };
   if (
     typeof value.transactionId !== "string" ||
     !/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(value.transactionId) ||
     !Number.isSafeInteger(value.ownerPid) || value.ownerPid <= 0 || value.ownerPid > 0x7fffffff ||
     typeof value.createdAt !== "string" || !Number.isFinite(Date.parse(value.createdAt))
   ) throw new Error("Invalid Host source mutation owner.");
-  return { schemaVersion: 2, transactionId: value.transactionId, ownerPid: value.ownerPid, createdAt: value.createdAt, originals };
+  return { transactionId: value.transactionId, ownerPid: value.ownerPid, createdAt: value.createdAt, originals };
 }
 function isProcessAlive(pid: number): boolean {
   try {
@@ -122,7 +121,7 @@ function isProcessAlive(pid: number): boolean {
     throw error;
   }
 }
-function mutationPending(journal?: JournalV2): AgentUISourceError {
+function mutationPending(journal?: SourceMutationJournal): AgentUISourceError {
   return new AgentUISourceError("AGENT_UI_SOURCE_PROJECT_MUTATION_PENDING", "A Host source mutation is active; inspect again after it finishes.",
     journal === undefined ? undefined : { transactionId: journal.transactionId, ownerPid: journal.ownerPid, createdAt: journal.createdAt });
 }
@@ -141,8 +140,8 @@ async function recover(projectRoot: string, ctx: Awaited<ReturnType<typeof conte
   if (rollbackTransactionId !== undefined) {
     // Only the mutation that created this exact journal may roll itself back
     // while its process is alive. A public recovery call has no such authority.
-    if (journal.schemaVersion !== 2 || journal.transactionId !== rollbackTransactionId || journal.ownerPid !== process.pid) throw mutationPending();
-  } else if (journal.schemaVersion === 2 && isProcessAlive(journal.ownerPid)) {
+    if (journal.transactionId !== rollbackTransactionId || journal.ownerPid !== process.pid) throw mutationPending();
+  } else if (isProcessAlive(journal.ownerPid)) {
     // Stop before touching even the low-level journal of the active owner.
     throw mutationPending(journal);
   }
@@ -214,7 +213,7 @@ async function mutateAttempt(projectRoot: string, operation: "apply" | "remove",
     originals.push({ path: relative, beforeContentBase64: (await readOptionalBuffer(path.join(projectRoot, relative)))?.toString("base64") ?? null });
   }
   await assertNoSymbolicLinkTraversal(projectRoot, projectRelativePath(projectRoot, ctx.journalPath));
-  const journal: JournalV2 = { schemaVersion: 2, transactionId: randomUUID(), ownerPid: process.pid, createdAt: new Date().toISOString(), originals };
+  const journal: SourceMutationJournal = { transactionId: randomUUID(), ownerPid: process.pid, createdAt: new Date().toISOString(), originals };
   try { await atomicWrite(ctx.journalPath, Buffer.from(`${JSON.stringify(journal, null, 2)}\n`), true); }
   catch (error) {
     if ((error as NodeJS.ErrnoException).code === "EEXIST") {
@@ -247,7 +246,7 @@ async function mutateAttempt(projectRoot: string, operation: "apply" | "remove",
     const generatedChangedPaths = ordered([...(plugin.changed ? [plugin.path] : []), ...tools.changedPaths, ...integrations.changedPaths]);
     const changedPaths = ordered([...sourceChangedPaths, ...generatedChangedPaths]);
     await removeOptional(ctx.journalPath);
-    return { schemaVersion: 1, operation, changed: changedPaths.length > 0, changedItems: ordered(result.changedItems), sourceChangedPaths, generatedChangedPaths, changedPaths, stateHash: after.stateHash };
+    return { operation, changed: changedPaths.length > 0, changedItems: ordered(result.changedItems), sourceChangedPaths, generatedChangedPaths, changedPaths, stateHash: after.stateHash };
   } catch (error) {
     try { await recover(projectRoot, ctx, journal.transactionId); }
     catch (rollbackError) { throw new AgentUISourceError("AGENT_UI_SOURCE_PROJECT_ROLLBACK_FAILED", "Host source mutation failed and rollback did not complete.", { cause: message(error), rollbackCause: message(rollbackError), journalPath: projectRelativePath(projectRoot, ctx.journalPath) }); }

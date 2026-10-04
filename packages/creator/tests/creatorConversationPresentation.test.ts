@@ -7,7 +7,7 @@ const emptyReceipt: CreatorRunReceipt = {
   files: [],
   validations: [],
   verification: { status: "no-project-change", projectRevision: 0, auditAttempts: 0, checks: [] },
-  diagnosticLog: { format: "jsonl", path: ".agentuicreator/logs/run.jsonl", schemaVersion: 1 },
+  diagnosticLog: { format: "jsonl", path: ".agentuicreator/logs/run.jsonl" },
 };
 
 describe("Creator receipt presentation", () => {

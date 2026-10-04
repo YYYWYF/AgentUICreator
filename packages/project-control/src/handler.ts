@@ -30,7 +30,6 @@ import {
   verifyRuntimeCompositionInputSchema,
 } from "./project/runtime-composition-verifier";
 
-export const UI_PROJECT_CONTROL_SCHEMA_VERSION = 3 as const;
 export const MAX_UI_PROJECT_CONTROL_INPUT_BYTES = 64_000;
 export const MAX_UI_PROJECT_CONTROL_OUTPUT_BYTES = 512_000;
 export const MAX_APP_UI_MODEL_CHARACTERS = 120_000;
@@ -66,37 +65,30 @@ const inspectUISlotsInputSchema = z.union([
 ]);
 export const requestSchema = z.discriminatedUnion("operation", [
   z.strictObject({
-    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("inspect_ui_project"),
     input: inspectUIProjectInputSchema,
   }),
   z.strictObject({
-    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("inspect_app_ui_model"),
     input: emptyInputSchema,
   }),
   z.strictObject({
-    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("inspect_ui_slots"),
     input: inspectUISlotsInputSchema,
   }),
   z.strictObject({
-    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("list_ui_plugins"),
     input: emptyInputSchema,
   }),
   z.strictObject({
-    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("inspect_ui_services"),
     input: emptyInputSchema,
   }),
   z.strictObject({
-    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("inspect_ui_plugin"),
     input: z.strictObject({ pluginId: z.string().min(1).max(200).regex(/\S/u).transform((value) => value.trim()) }),
   }),
   z.strictObject({
-    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("preflight_ui_plugin_placement"),
     input: z.strictObject({
       appUIModelHash: appUIModelHashSchema,
@@ -106,32 +98,26 @@ export const requestSchema = z.discriminatedUnion("operation", [
     }),
   }),
   z.strictObject({
-    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("inspect_ui_plugin_source_references"),
     input: z.strictObject({ pluginId: z.string().min(1).max(200).regex(/\S/u).transform((value) => value.trim()) }),
   }),
   z.strictObject({
-    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("verify_runtime_composition"),
     input: verifyRuntimeCompositionInputSchema,
   }),
   z.strictObject({
-    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("verify_ui_project"),
     input: emptyInputSchema,
   }),
   z.strictObject({
-    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("mutate_app_ui_model"),
     input: appUITransactionInputSchema,
   }),
   z.strictObject({
-    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("inspect_agent_ui_sources"),
     input: emptyInputSchema,
   }),
   z.strictObject({
-    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("apply_agent_ui_source_item"),
     input: z.strictObject({
       itemId: z.string().min(1).max(200).regex(/\S/u).transform((value) => value.trim()),
@@ -140,7 +126,6 @@ export const requestSchema = z.discriminatedUnion("operation", [
     }),
   }),
   z.strictObject({
-    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("remove_agent_ui_source_items"),
     input: z.strictObject({
       itemIds: z.array(z.string().min(1).max(200).regex(/\S/u).transform((value) => value.trim())).min(1).max(100),
@@ -149,7 +134,6 @@ export const requestSchema = z.discriminatedUnion("operation", [
     }),
   }),
   z.strictObject({
-    schemaVersion: z.literal(UI_PROJECT_CONTROL_SCHEMA_VERSION),
     operation: z.literal("synchronize_plugin_registry"),
     input: z.strictObject({ expectedSourceHash: appUIModelHashSchema,
       cancelMarker: z.string().regex(creatorCancelMarkerSchemaPattern).optional() }),
@@ -159,13 +143,13 @@ export const requestSchema = z.discriminatedUnion("operation", [
 type UIProjectControlRequest = z.infer<typeof requestSchema>;
 
 export interface UIProjectControlSuccess {
-  schemaVersion: typeof UI_PROJECT_CONTROL_SCHEMA_VERSION;
+
   ok: true;
   result: unknown;
 }
 
 export interface UIProjectControlFailure {
-  schemaVersion: typeof UI_PROJECT_CONTROL_SCHEMA_VERSION;
+
   ok: false;
   error: {
     code: string;
@@ -486,7 +470,6 @@ function failure(error: unknown): UIProjectControlFailure {
       details?: unknown;
     };
     return {
-      schemaVersion: UI_PROJECT_CONTROL_SCHEMA_VERSION,
       ok: false,
       error: {
         code: codedError.code.slice(0, 200) || "CONTROL_OPERATION_FAILED",
@@ -499,7 +482,6 @@ function failure(error: unknown): UIProjectControlFailure {
   }
   if (error instanceof z.ZodError) {
     return {
-      schemaVersion: UI_PROJECT_CONTROL_SCHEMA_VERSION,
       ok: false,
       error: {
         code: "INVALID_REQUEST",
@@ -508,7 +490,6 @@ function failure(error: unknown): UIProjectControlFailure {
     };
   }
   return {
-    schemaVersion: UI_PROJECT_CONTROL_SCHEMA_VERSION,
     ok: false,
     error: {
       code: "CONTROL_OPERATION_FAILED",
@@ -538,13 +519,13 @@ export async function handleUIProjectControlRequest(
     } catch (error) {
       throw new UIProjectControlError(
         "CONTROL_RESULT_CONTRACT_VIOLATION",
-        "ProjectControl produced a result that does not match protocol v3.",
+        "ProjectControl produced a result that does not match the current contract.",
         process.env.NODE_ENV === "development"
           ? { operation: request.operation, cause: error instanceof Error ? error.message.slice(0, 2000) : "Invalid result." }
           : undefined,
       );
     }
-    return { schemaVersion: UI_PROJECT_CONTROL_SCHEMA_VERSION, ok: true, result };
+    return { ok: true, result };
   } catch (error) {
     return failure(error);
   }

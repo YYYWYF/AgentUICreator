@@ -1,5 +1,4 @@
 {
-  "schemaVersion": 3,
   "operation": "list_ui_plugins",
   "input": {}
 }

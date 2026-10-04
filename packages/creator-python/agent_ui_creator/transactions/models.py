@@ -45,7 +45,6 @@ class CreatorTransactionFileRecord:
 
 @dataclass(frozen=True, slots=True)
 class CreatorTransactionRecord:
-    schema_version: int
     run_id: str
     created_at: str
     mutation_revision: int
@@ -59,7 +58,6 @@ class CreatorTransactionRecord:
 
     def to_dict(self) -> dict[str, object]:
         return {
-            "schemaVersion": self.schema_version,
             "runId": self.run_id,
             "createdAt": self.created_at,
             "mutationRevision": self.mutation_revision,

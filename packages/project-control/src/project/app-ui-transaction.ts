@@ -107,7 +107,7 @@ interface JournalFile {
 }
 
 interface AppUITransactionJournal {
-  schemaVersion: 1;
+
   transactionId: string;
   files: JournalFile[];
 }
@@ -119,7 +119,7 @@ export interface AppUITransactionTestOptions {
 }
 
 export interface AppUITransactionResult {
-  schemaVersion: 1;
+
   transactionId: string;
   changed: boolean;
   changedPaths: string[];
@@ -403,7 +403,6 @@ function parseJournal(input: unknown, appUIModelPath: string, compositionRevisio
     hash: z.string().regex(SHA256_PATTERN),
   });
   const journal = z.strictObject({
-    schemaVersion: z.literal(1),
     transactionId: z.string().uuid(),
     files: z.array(
       z.strictObject({
@@ -584,7 +583,6 @@ async function commitFiles(
     after: fileState(change.after),
   }));
   const journal: AppUITransactionJournal = {
-    schemaVersion: 1,
     transactionId,
     files,
   };
@@ -1366,7 +1364,6 @@ async function runTransaction(
   const beforeCapabilityPluginSet = new Set(beforeCapabilityPluginIds);
   const afterCapabilityPluginSet = new Set(afterCapabilityPluginIds);
   return {
-    schemaVersion: 1,
     transactionId,
     changed: changes.length > 0,
     changedPaths: changes.map((change) => change.relativePath).sort(),

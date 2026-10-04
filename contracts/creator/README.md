@@ -22,13 +22,13 @@ Creator transport 使用的 envelope 和 Phase 1 echo lifecycle，不复制完�
 这些值执行 Draft 2020-12 JSON Schema validation；fixture 与 schema 任一侧漂移
 都必须使统一测试门禁失败。
 
-ProjectControl v3 的唯一 canonical wire contract 是
+ProjectControl 的唯一 canonical wire contract 是
 `contracts/creator/project-control.schema.json`，operation inventory 是同目录下的
 `project-control.operations.json`。TypeScript Zod request parsing 是 Host 实现细节，
 Python Literal/client methods 是 transport bindings；两者均不独立定义协议。
 Agent Tool exposure 是单独的授权面：remove transport capability 不代表模型删除权限。
 
-成功 envelope 保持 v3，不增加 operation 字段。Host 与 Python 根据请求 operation
+成功 envelope 保持当前结构，不增加 operation 字段。Host 与 Python 根据请求 operation
 使用同一份 operation-specific Result `$defs`；envelope 的 Result union 不能替代
 request-scoped validation。内部复杂对象仅在显式标记 opaque 的局部放宽，
 AppUIModel model/layout/slot 继续由现有目标项目 Zod grammar 管理，不复制新的 grammar。

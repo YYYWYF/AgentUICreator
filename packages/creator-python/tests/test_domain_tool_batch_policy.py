@@ -138,7 +138,6 @@ class BatchClient(GroundingClient):
         (self.root / APP_UI_MODEL_PATH).write_text(json.dumps(model) + "\n", encoding="utf-8")
         changed = before_hash != self.hash()
         return {
-            "schemaVersion": 1,
             "transactionId": "batch-restore",
             "changed": changed,
             "changedPaths": [APP_UI_MODEL_PATH] if changed else [],

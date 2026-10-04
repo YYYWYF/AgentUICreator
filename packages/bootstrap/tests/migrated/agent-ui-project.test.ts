@@ -6,7 +6,6 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   parseAgentUIProjectConfig,
-  resolveAgentUIProjectConfig,
 } from "../../../project-control/src/framework/contracts/agent-ui-project";
 import { parseAppUIModelJson } from "../../../project-control/src/framework/contracts/app-ui-model";
 import { agentUIModeRegistry } from "../../../project-control/src/framework/modes/index";
@@ -33,32 +32,22 @@ async function temporaryProject(): Promise<string> {
 describe("Agent UI project Mode persistence", () => {
   it("parses a strict project config and rejects invalid Modes", () => {
     expect(
-      parseAgentUIProjectConfig({ version: "1", mode: "platform" }),
-    ).toEqual({ version: "1", mode: "platform" });
+      parseAgentUIProjectConfig({ mode: "platform", sourceRoot: "agent-ui" }),
+    ).toEqual({ mode: "platform", sourceRoot: "agent-ui" });
     expect(() =>
-      parseAgentUIProjectConfig({ version: "1", mode: "floating" }),
+      parseAgentUIProjectConfig({ mode: "floating", sourceRoot: "agent-ui" }),
     ).toThrow();
     expect(() =>
       parseAgentUIProjectConfig({
-        version: "1",
-        mode: "platform",
+        mode: "platform", sourceRoot: "agent-ui",
         surface: "desktop",
       }),
     ).toThrow();
   });
 
-  it("resolves a project without Mode metadata as legacy platform", async () => {
-    expect(resolveAgentUIProjectConfig(undefined)).toEqual({
-      config: { version: "1", mode: "platform" },
-      legacy: true,
-    });
-
+  it("rejects a project without configuration", async () => {
     const projectRoot = await temporaryProject();
-    await expect(readAgentUIProjectConfig(projectRoot)).resolves.toEqual({
-      config: { version: "1", mode: "platform" },
-      legacy: true,
-      path: ".agent-ui/project.json",
-    });
+    await expect(readAgentUIProjectConfig(projectRoot)).rejects.toThrow("Invalid Agent UI project configuration.");
   });
 
   it("persists each explicitly supplied Mode and independent AppUIModel", async () => {
@@ -67,24 +56,23 @@ describe("Agent UI project Mode persistence", () => {
       const appUIModel = agentUIPresetRegistry
         .getDefaultForMode(mode, agentUIModeRegistry)
         .createAppUIModel();
-      const result = await createUIProject({ projectRoot, mode, appUIModel });
+      const result = await createUIProject({ projectRoot, mode, sourceRoot: "src/agent-ui", appUIModel });
       const projectConfigSource = await readFile(
         path.join(projectRoot, ".agent-ui", "project.json"),
         "utf8",
       );
       const appUIModelSource = await readFile(
-        path.join(projectRoot, "app-ui", "app-ui.json"),
+        path.join(projectRoot, "src", "agent-ui", "app-ui", "app-ui.json"),
         "utf8",
       );
 
-      expect(JSON.parse(projectConfigSource)).toEqual({ version: "1", mode });
+      expect(JSON.parse(projectConfigSource)).toEqual({ mode, sourceRoot: "src/agent-ui" });
       expect(parseAppUIModelJson(appUIModelSource)).toEqual(appUIModel);
       expect(JSON.parse(appUIModelSource)).not.toHaveProperty("mode");
       expect(result.appUIModel).toEqual(appUIModel);
 
       await expect(readAgentUIProjectConfig(projectRoot)).resolves.toEqual({
-        config: { version: "1", mode },
-        legacy: false,
+        config: { mode, sourceRoot: "src/agent-ui" },
         path: ".agent-ui/project.json",
       });
     }
@@ -92,28 +80,29 @@ describe("Agent UI project Mode persistence", () => {
 
   it("does not overwrite an existing composition", async () => {
     const existingRoot = await temporaryProject();
-    await mkdir(path.join(existingRoot, "app-ui"), { recursive: true });
+    await mkdir(path.join(existingRoot, "src", "agent-ui", "app-ui"), { recursive: true });
     const existingSource = '{"userLayout":true}\n';
     await writeFile(
-      path.join(existingRoot, "app-ui", "app-ui.json"),
+      path.join(existingRoot, "src", "agent-ui", "app-ui", "app-ui.json"),
       existingSource,
     );
-    await readAgentUIProjectConfig(existingRoot);
+    await expect(readAgentUIProjectConfig(existingRoot)).rejects.toThrow();
     await expect(
-      readFile(path.join(existingRoot, "app-ui", "app-ui.json"), "utf8"),
+      readFile(path.join(existingRoot, "src", "agent-ui", "app-ui", "app-ui.json"), "utf8"),
     ).resolves.toBe(existingSource);
 
     await expect(
       createUIProject({
         projectRoot: existingRoot,
         mode: "platform",
+        sourceRoot: "src/agent-ui",
         appUIModel: agentUIPresetRegistry
           .getDefaultForMode("platform", agentUIModeRegistry)
           .createAppUIModel(),
       }),
     ).rejects.toThrow("Refusing to overwrite");
     await expect(
-      readFile(path.join(existingRoot, "app-ui", "app-ui.json"), "utf8"),
+      readFile(path.join(existingRoot, "src", "agent-ui", "app-ui", "app-ui.json"), "utf8"),
     ).resolves.toBe(existingSource);
     await expect(
       readFile(path.join(existingRoot, ".agent-ui", "project.json"), "utf8"),
@@ -123,7 +112,7 @@ describe("Agent UI project Mode persistence", () => {
   it("refuses to overwrite an existing project config before writing composition", async () => {
     const existingRoot = await temporaryProject();
     await mkdir(path.join(existingRoot, ".agent-ui"), { recursive: true });
-    const existingSource = '{"version":"1","mode":"platform"}\n';
+    const existingSource = '{"mode":"platform","sourceRoot":"src/agent-ui"}\n';
     await writeFile(
       path.join(existingRoot, ".agent-ui", "project.json"),
       existingSource,
@@ -133,6 +122,7 @@ describe("Agent UI project Mode persistence", () => {
       createUIProject({
         projectRoot: existingRoot,
         mode: "assistant",
+        sourceRoot: "src/agent-ui",
         appUIModel: agentUIPresetRegistry
           .getDefaultForMode("assistant", agentUIModeRegistry)
           .createAppUIModel(),
@@ -142,7 +132,7 @@ describe("Agent UI project Mode persistence", () => {
       readFile(path.join(existingRoot, ".agent-ui", "project.json"), "utf8"),
     ).resolves.toBe(existingSource);
     await expect(
-      readFile(path.join(existingRoot, "app-ui", "app-ui.json"), "utf8"),
+      readFile(path.join(existingRoot, "src", "agent-ui", "app-ui", "app-ui.json"), "utf8"),
     ).rejects.toMatchObject({ code: "ENOENT" });
   });
 });

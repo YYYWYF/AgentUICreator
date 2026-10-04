@@ -12,7 +12,6 @@
   "authoringTargetCatalog": {},
   "mode": "assistant",
   "modeResolution": {
-    "legacy": false,
     "configPath": "fixture"
   },
   "plugins": [],
@@ -33,5 +32,5 @@
     "customizedItems": 0,
     "issues": []
   },
-  "schemaVersionRenamedByMistake": 3
+  "unexpectedField": 3
 }

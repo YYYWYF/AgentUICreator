@@ -216,7 +216,6 @@ export async function applyAgentUISourceItem(
 
   if (changedItems.length === 0) {
     return {
-      schemaVersion: 1,
       itemId: input.itemId,
       changed: false,
       changedItems: [],
@@ -238,7 +237,6 @@ export async function applyAgentUISourceItem(
   );
   const after = await inspectAgentUISources(projectRoot, config, loadedRegistry);
   return {
-    schemaVersion: 1,
     itemId: input.itemId,
     changed: true,
     changedItems,
@@ -328,7 +326,6 @@ export async function removeAgentUISourceItems(
   );
   const after = await inspectAgentUISources(projectRoot, config, loadedRegistry);
   return {
-    schemaVersion: 1,
     itemId: "cleanup",
     changed: true,
     changedItems: removeIds,

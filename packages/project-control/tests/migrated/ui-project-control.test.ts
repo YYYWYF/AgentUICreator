@@ -15,7 +15,7 @@ import {
   PLUGIN_REGISTRY_ENTRY_PATH,
   PLUGIN_REGISTRY_ENTRY_SOURCE,
 } from "../../src/project/registry-generator";
-import { generatePluginRegistry } from "../support/legacy-project-paths";
+import { generatePluginRegistry } from "../support/fixture-project-paths";
 import {
   resolveRuntimeLayoutSlotId,
   resolveRuntimePluginSlotId,
@@ -147,17 +147,16 @@ afterEach(async () => {
 });
 
 describe("ui-project-control", () => {
-  it("returns the target-owned project inspection through the versioned protocol", async () => {
+  it("returns the target-owned project inspection through the current contract", async () => {
     const { projectRoot } = await createProject();
 
     const response = await handleUIProjectControlRequest(
-      { schemaVersion: 3, operation: "inspect_ui_project", input: {} },
+      { operation: "inspect_ui_project", input: {} },
       projectRoot,
     );
 
     expect(response.ok).toBe(true);
     expect(response).toMatchObject({
-      schemaVersion: 3,
       result: {
         appUIModel: {
           slots: [expect.objectContaining({ nodeRef: "l0" })],
@@ -172,7 +171,6 @@ describe("ui-project-control", () => {
 
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "inspect_ui_project",
         input: { view: "composition" },
       },
@@ -223,7 +221,6 @@ describe("ui-project-control", () => {
     ]);
     const inspection = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "inspect_ui_project",
         input: { view: "composition" },
       },
@@ -253,7 +250,6 @@ describe("ui-project-control", () => {
 
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "mutate_app_ui_model",
         input: {
           appUIModelHash: composition.appUIModel.hash,
@@ -301,7 +297,6 @@ describe("ui-project-control", () => {
     const { projectRoot, appUIModelSource } = await createProject();
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "mutate_app_ui_model",
         input: {
           appUIModelHash: createHash("sha256")
@@ -326,7 +321,6 @@ describe("ui-project-control", () => {
     const { projectRoot, appUIModelSource } = await createProject();
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "mutate_app_ui_model",
         input: {
           appUIModelHash: createHash("sha256")
@@ -358,7 +352,6 @@ describe("ui-project-control", () => {
     const { projectRoot } = await createProject();
     const inspection = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "inspect_ui_project",
         input: { view: "composition" },
       },
@@ -387,7 +380,6 @@ describe("ui-project-control", () => {
 
     const replacement = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "mutate_app_ui_model",
         input: {
           appUIModelHash: composition.appUIModel.hash,
@@ -412,7 +404,6 @@ describe("ui-project-control", () => {
 
     const staleAction = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "mutate_app_ui_model",
         input: {
           appUIModelHash: createHash("sha256")
@@ -445,7 +436,7 @@ describe("ui-project-control", () => {
     } = await createProject();
 
     const response = await handleUIProjectControlRequest(
-      { schemaVersion: 3, operation: "inspect_app_ui_model", input: {} },
+      { operation: "inspect_app_ui_model", input: {} },
       projectRoot,
     );
 
@@ -462,7 +453,7 @@ describe("ui-project-control", () => {
     const { projectRoot } = await createProject();
 
     const response = await handleUIProjectControlRequest(
-      { schemaVersion: 3, operation: "list_ui_plugins", input: {} },
+      { operation: "list_ui_plugins", input: {} },
       projectRoot,
     );
 
@@ -485,7 +476,6 @@ describe("ui-project-control", () => {
 
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "inspect_ui_slots",
         input: {
           appUIModelHash: createHash("sha256")
@@ -539,7 +529,6 @@ describe("ui-project-control", () => {
 
     const staleResponse = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "inspect_ui_slots",
         input: {
           appUIModelHash: staleHash,
@@ -556,7 +545,6 @@ describe("ui-project-control", () => {
 
     const freshResponse = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "inspect_ui_slots",
         input: {
           appUIModelHash: createHash("sha256")
@@ -590,7 +578,6 @@ describe("ui-project-control", () => {
 
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "inspect_ui_slots",
         input: {
           target: {
@@ -628,12 +615,10 @@ describe("ui-project-control", () => {
       .digest("hex");
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "verify_runtime_composition",
         input: {
           appUIModelHash,
           composition: {
-            schemaVersion: 1,
             appUIModelHash,
             compositionRevision: `manual:${appUIModelHash}:${capabilityCatalogRevision}`,
             capabilityCatalogRevision,
@@ -670,12 +655,10 @@ describe("ui-project-control", () => {
 
     const wrongPluginSlotResponse = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "verify_runtime_composition",
         input: {
           appUIModelHash,
           composition: {
-            schemaVersion: 1,
             appUIModelHash,
             compositionRevision: `manual:${appUIModelHash}:${capabilityCatalogRevision}`,
             capabilityCatalogRevision,
@@ -709,7 +692,6 @@ describe("ui-project-control", () => {
       .update(appUIModelSource)
       .digest("hex");
     const composition = (instances: Array<Record<string, string>>) => ({
-      schemaVersion: 1,
       appUIModelHash,
       compositionRevision: `manual:${appUIModelHash}:${capabilityCatalogRevision}`,
       capabilityCatalogRevision,
@@ -721,7 +703,6 @@ describe("ui-project-control", () => {
     const request = (value: unknown) =>
       handleUIProjectControlRequest(
         {
-          schemaVersion: 3,
           operation: "verify_runtime_composition",
           input: { appUIModelHash, composition: value },
         },
@@ -784,12 +765,10 @@ describe("ui-project-control", () => {
       .digest("hex");
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "verify_runtime_composition",
         input: {
           appUIModelHash,
           composition: {
-            schemaVersion: 1,
             appUIModelHash,
             compositionRevision: `manual:${appUIModelHash}:${capabilityCatalogRevision}`,
             capabilityCatalogRevision,
@@ -848,12 +827,10 @@ describe("ui-project-control", () => {
 
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "verify_runtime_composition",
         input: {
           appUIModelHash: staleHash,
           composition: {
-            schemaVersion: 1,
             appUIModelHash: staleHash,
             compositionRevision: `manual:${staleHash}:${capabilityCatalogRevision}`,
             capabilityCatalogRevision,
@@ -878,7 +855,6 @@ describe("ui-project-control", () => {
 
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "mutate_app_ui_model",
         input: {
           appUIModelHash: createHash("sha256")
@@ -916,7 +892,6 @@ describe("ui-project-control", () => {
 
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "inspect_ui_plugin",
         input: { pluginId: "sample" },
       },
@@ -947,7 +922,6 @@ describe("ui-project-control", () => {
 
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "inspect_ui_plugin",
         input: { pluginId: "sample" },
       },
@@ -974,7 +948,7 @@ describe("ui-project-control", () => {
     );
 
     const response = await handleUIProjectControlRequest(
-      { schemaVersion: 3, operation: "inspect_ui_services", input: {} },
+      { operation: "inspect_ui_services", input: {} },
       projectRoot,
     );
 
@@ -1010,7 +984,6 @@ describe("ui-project-control", () => {
 
     const response = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "inspect_ui_plugin_source_references",
         input: { pluginId: "sample" },
       },
@@ -1036,12 +1009,11 @@ describe("ui-project-control", () => {
     const { projectRoot } = await createProject();
 
     const incompatible = await handleUIProjectControlRequest(
-      { schemaVersion: 2, operation: "inspect_ui_project", input: {} },
+      { operation: "inspect_ui_project", input: {}, unexpectedField: true },
       projectRoot,
     );
     const missing = await handleUIProjectControlRequest(
       {
-        schemaVersion: 3,
         operation: "inspect_ui_plugin",
         input: { pluginId: "missing" },
       },

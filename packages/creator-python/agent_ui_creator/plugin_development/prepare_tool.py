@@ -105,7 +105,6 @@ def create_prepare_ui_plugin_development_tool(
                 gap = "、".join(missingCapabilities)
                 exclusions = "、".join(excludedOperations or []) or "未获授权的后端、Service 和 Agent 操作"
                 question = QuestionRequest.model_validate({
-                    "schemaVersion": 1,
                     "steps": [{
                         "id": DEVELOPMENT_DECISION_STEP_ID,
                         "question": f"现有能力不能直接完成：{gap}。是否按此方案开发？",

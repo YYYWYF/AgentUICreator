@@ -235,10 +235,9 @@ export interface InspectedPlugin extends AppUIPluginNode {
 }
 
 export interface UIProjectInspection {
-  schemaVersion: 3;
+
   mode: AgentUIMode;
   modeResolution: {
-    legacy: boolean;
     configPath: string;
   };
   appUIModel: {
@@ -320,7 +319,7 @@ export interface CompositionPluginCapabilitySummary {
 }
 
 export interface UICompositionInspection {
-  schemaVersion: 3;
+
   view: "composition";
   sourceRoot: string;
   observationCoverage: CompositionObservationCoverage[];

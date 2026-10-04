@@ -35,7 +35,7 @@ class StubClient:
         return {"project": True, "appUIModel": {"hash": "a" * 64}}
 
     async def inspect_app_ui_model(self):
-        return {"schemaVersion": 3, "hash": "b" * 64, "model": {}}
+        return {"hash": "b" * 64, "model": {}}
 
     async def list_ui_plugins(self):
         return {"plugins": [], "appUIModelHash": "c" * 64}
@@ -73,7 +73,6 @@ class StubClient:
 
     async def apply_agent_ui_source_item(self, *, item_id, expected_state_hash):
         return {
-            "schemaVersion": 1,
             "itemId": item_id,
             "changed": False,
             "changedItems": [],

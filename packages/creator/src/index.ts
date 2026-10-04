@@ -5,7 +5,6 @@ export {
   type PythonCreatorRunResult,
 } from "./PythonCreatorClient.js";
 export {
-  CREATOR_PYTHON_PROTOCOL_VERSION,
   CREATOR_PYTHON_START_TIMEOUT_MS,
   CREATOR_PYTHON_STOP_TIMEOUT_MS,
   PythonCreatorProcessManager,

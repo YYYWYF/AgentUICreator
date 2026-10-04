@@ -107,7 +107,6 @@ def test_real_target_project_read_operations_execute_through_tsx():
     services = asyncio.run(client.inspect_ui_services())
     references = asyncio.run(client.inspect_ui_plugin_source_references(plugin_id))
     sources = asyncio.run(client.inspect_agent_ui_sources())
-    assert project["schemaVersion"] == 3
     assert composition["view"] == "composition"
     assert composition["appUIModel"]["hash"] == project["appUIModel"]["hash"]
     assert composition["capabilityCatalogRevision"] == (
@@ -509,7 +508,7 @@ def test_real_managed_host_source_apply_and_internal_remove_contract(tmp_path):
     metadata.mkdir(parents=True)
     (source / "plugins").mkdir(parents=True)
     (source / "app-ui").mkdir()
-    (metadata / "project.json").write_text(json.dumps({"version": "2", "mode": "platform", "sourceRoot": "custom-ui"}))
+    (metadata / "project.json").write_text(json.dumps({"mode": "platform", "sourceRoot": "custom-ui"}))
     (source / "app-ui/app-ui.json").write_text(json.dumps({"root": {"type": "slot", "plugins": []}}))
     runtime = REPOSITORY_ROOT / "packages/project-control/dist/runtime/project-control-runtime.mjs"
     assert runtime.is_file(), "Build @agent-ui/project-control before cross-language integration tests."
@@ -563,7 +562,6 @@ for (const [name, range] of Object.entries(dependencies)) {
         item_ids=["integration/a2ui"], expected_state_hash=installed["stateHash"],
     ))
     for operation, result in (("apply", applied), ("remove", removed)):
-        assert result["schemaVersion"] == 1
         assert result["operation"] == operation
         assert type(result["changed"]) is bool
         assert result["changed"] is True

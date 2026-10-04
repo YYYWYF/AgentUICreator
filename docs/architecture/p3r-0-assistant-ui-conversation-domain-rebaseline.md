@@ -313,11 +313,10 @@ Current read-only history behavior remains the compatibility baseline. P3R-4 mus
 
 `workspace-inspector` and `agent-tool-detail` remain AgentUICreator capabilities. They must consume an AgentUICreator-owned observation model, not `useAuiState()` or private assistant-ui store types directly.
 
-Recommended versioned seam:
+Recommended observation seam:
 
 ```ts
 interface ConversationObservationSnapshot {
-  schemaVersion: 1;
   thread: {
     id: string;
     mode: "live" | "history";

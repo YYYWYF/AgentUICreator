@@ -33,7 +33,6 @@ from .models import (
 )
 
 
-CREATOR_TRANSACTION_SCHEMA_VERSION = 1
 CREATOR_TRANSACTION_DIRECTORY = ".agentuicreator/transactions"
 MAX_CREATOR_TRANSACTION_BYTES = 5_000_000
 MAX_CREATOR_TRANSACTION_FILES = 500
@@ -123,7 +122,10 @@ def _file_state(
 def parse_transaction_record(
     value: Any, *, expected_run_id: str | None = None
 ) -> CreatorTransactionRecord:
-    if not isinstance(value, dict) or value.get("schemaVersion") != 1:
+    if not isinstance(value, dict) or set(value) != {
+        "runId", "createdAt", "mutationRevision", "validationRevision",
+        "files", "createdDirectories",
+    }:
         raise _invalid("Creator transaction schema is invalid.")
     run_id = _required_string(value.get("runId"), "transaction.runId")
     if expected_run_id is not None and run_id != expected_run_id:
@@ -180,7 +182,6 @@ def parse_transaction_record(
             validation_revision, "transaction.validationRevision"
         )
     return CreatorTransactionRecord(
-        schema_version=CREATOR_TRANSACTION_SCHEMA_VERSION,
         run_id=run_id,
         created_at=_required_string(value.get("createdAt"), "transaction.createdAt"),
         mutation_revision=_required_revision(
@@ -275,7 +276,6 @@ class CreatorTransactionStore:
                 "Creator transaction contains duplicate created directories."
             )
         record = CreatorTransactionRecord(
-            CREATOR_TRANSACTION_SCHEMA_VERSION,
             run_id,
             datetime.now(timezone.utc)
             .isoformat(timespec="milliseconds")

@@ -4,7 +4,7 @@ import path from "node:path";
 import { afterEach, expect, it, vi } from "vitest";
 import { installScenarioResources, installMockResource } from "../../src/project/install-scenario-resources";
 vi.mock("../../src/verify-ui", () => ({ verifyUIProject: vi.fn(async () => ({ status: "passed" })) }));
-vi.mock("../../src/project/project-mode", () => ({ readAgentUIProjectConfig: vi.fn(async () => ({ config: { version: "2" } })) }));
+vi.mock("../../src/project/project-mode", () => ({ readAgentUIProjectConfig: vi.fn(async () => ({ config: { mode: "platform", sourceRoot: "agent-ui" } })) }));
 vi.mock("../../src/project/agent-ui-project-paths", () => ({
   resolveAgentUIProjectPaths: (root: string) => ({ appUIModelPath: path.join(root, "model.json") }),
   projectControlConfigForPaths: () => ({}),

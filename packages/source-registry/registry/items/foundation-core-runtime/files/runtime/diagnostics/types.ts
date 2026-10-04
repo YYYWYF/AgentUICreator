@@ -1,5 +1,3 @@
-export const RUNTIME_DIAGNOSTIC_SCHEMA_VERSION = 1 as const;
-export const RUNTIME_COMPOSITION_SCHEMA_VERSION = 1 as const;
 
 export type RuntimeDiagnosticKind =
   | "runtime-composition"
@@ -15,7 +13,6 @@ export type RuntimeDiagnosticKind =
 export type RuntimeDiagnosticStatus = "error" | "resolved";
 
 export interface RuntimeDiagnostic {
-  schemaVersion: typeof RUNTIME_DIAGNOSTIC_SCHEMA_VERSION;
   kind: RuntimeDiagnosticKind;
   code?: "PLUGIN_WIDTH_INCOMPATIBLE" | undefined;
   status: RuntimeDiagnosticStatus;
@@ -94,7 +91,6 @@ export interface RuntimeCompositionSlot {
 }
 
 export interface RuntimeCompositionSnapshot {
-  schemaVersion: typeof RUNTIME_COMPOSITION_SCHEMA_VERSION;
   appUIModelHash: string;
   compositionRevision?: string | undefined;
   capabilityCatalogRevision?: string | undefined;
@@ -113,7 +109,6 @@ export type RuntimeCompositionReporter = (
 
 export type RuntimeDiagnosticEvent = Omit<
   RuntimeDiagnostic,
-  | "schemaVersion"
   | "appUIModelHash"
   | "occurredAt"
 >;

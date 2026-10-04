@@ -1,5 +1,4 @@
 {
-  "schemaVersion": 1,
   "id": "plugin/assistant-ui-message-footer",
   "version": "0.1.2",
   "kind": "agent-component",

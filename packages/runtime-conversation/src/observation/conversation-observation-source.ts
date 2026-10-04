@@ -81,7 +81,6 @@ export class ConversationObservationSourceImpl
   private projectSnapshot(): ConversationObservationSnapshot {
     const state = this.thread.getState();
     return {
-      schemaVersion: 1,
       threadId: this.getThreadId(),
       isRunning: state.isRunning,
       toolCalls: state.messages.flatMap((message) => {

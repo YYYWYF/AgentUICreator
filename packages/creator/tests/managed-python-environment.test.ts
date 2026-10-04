@@ -40,7 +40,7 @@ describe("managed Creator Python environment", () => {
     expect(executable).toContain("/0.1.0/py3.12-linux-x64/");
     expect(calls.filter((call) => call[2] === "venv")).toHaveLength(1);
     expect(calls.filter((call) => call[2] === "pip")).toHaveLength(1);
-    expect(JSON.parse(await readFile(path.join(path.dirname(path.dirname(executable)), ".ready.json"), "utf8"))).toMatchObject({ schemaVersion: 1, creatorVersion: "0.1.0", pythonVersion: "3.12.4" });
+    expect(JSON.parse(await readFile(path.join(path.dirname(path.dirname(executable)), ".ready.json"), "utf8"))).toMatchObject({ creatorVersion: "0.1.0", pythonVersion: "3.12.4" });
     expect(await ensureManagedPythonEnvironment(options)).toBe(executable);
     expect(calls.filter((call) => call[2] === "pip")).toHaveLength(1);
   });

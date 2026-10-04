@@ -13,7 +13,7 @@ export const askUserQuestionScenario = defineScenario({
     eventFlow: ["TOOL_CALL_START/ARGS/END", "RUN_FINISHED", "Human Tool addResult", "ToolMessage", "continuation"],
   },
   steps: [{ type: "tool", human: true, name: "ask_user_question", result: null,
-    args: { schemaVersion: 1, steps: [{ id: "layout", question: "你希望采用哪种首页布局？",
+    args: { steps: [{ id: "layout", question: "你希望采用哪种首页布局？",
       description: "这个选择会影响首页的整体结构。", selectionMode: "single", minSelections: 1, maxSelections: 1,
       options: [{ id: "dashboard", label: "Dashboard", description: "适合信息密度较高的首页" },
         { id: "sidebar", label: "Sidebar", description: "适合有持续导航的首页" }] }] } }],

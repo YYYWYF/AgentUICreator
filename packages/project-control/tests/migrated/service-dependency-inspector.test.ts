@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import type { AppUIModel } from "../../src/framework/contracts/app-ui-model";
 import { collectPluginAssets } from "../../src/project/plugin-assets";
 import { projectControlConfigForPaths, resolveAgentUIProjectPaths } from "../../src/project/agent-ui-project-paths";
-import { legacyProjectPaths } from "../support/legacy-project-paths";
+import { fixtureProjectPaths } from "../support/fixture-project-paths";
 import { inspectUIServiceDependencies } from "../../src/project/service-dependency-inspector";
 
 const temporaryProjects: string[] = [];
@@ -68,8 +68,8 @@ async function createServiceProject(sourceRoot?: string) {
       source,
     );
   }
-  const paths = sourceRoot === undefined ? legacyProjectPaths(projectRoot, config)
-    : resolveAgentUIProjectPaths(projectRoot, { version: "2", mode: "assistant", sourceRoot }, config);
+  const paths = sourceRoot === undefined ? fixtureProjectPaths(projectRoot, config)
+    : resolveAgentUIProjectPaths(projectRoot, { mode: "assistant", sourceRoot }, config);
   const inventory = await collectPluginAssets(projectRoot, paths, projectControlConfigForPaths(paths, config));
   return { projectRoot, managedSourceRoot, assets: inventory.assets };
 }
@@ -128,7 +128,7 @@ async function createDependencyGraphProject(
       enabled: true,
     });
   }
-  const inventory = await collectPluginAssets(projectRoot, legacyProjectPaths(projectRoot, config), config);
+  const inventory = await collectPluginAssets(projectRoot, fixtureProjectPaths(projectRoot, config), config);
   const graphModel: AppUIModel = {
     applicationPlugins,
     root: { type: "slot", plugins: [] },
@@ -167,7 +167,7 @@ afterEach(async () => {
 });
 
 describe("service dependency inspector", () => {
-  it("recognizes shared Service seams under a V2 sourceRoot", async () => {
+  it("recognizes shared Service seams under a sourceRoot", async () => {
     const { projectRoot, managedSourceRoot, assets } = await createServiceProject("src/agent-ui");
     const inspection = inspectUIServiceDependencies(projectRoot, model(), assets, managedSourceRoot);
 

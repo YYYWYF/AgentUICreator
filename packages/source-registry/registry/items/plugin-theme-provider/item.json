@@ -1,5 +1,4 @@
 {
-  "schemaVersion": 1,
   "id": "plugin/theme-provider",
   "version": "0.1.0",
   "kind": "agent-component",

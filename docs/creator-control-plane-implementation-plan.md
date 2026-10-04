@@ -139,10 +139,8 @@ Creator 修复源码或组合
 
 ```ts
 interface CreatorProjectSnapshot {
-  schemaVersion: 1
   appUIModel: {
     hash: string
-    version: string
     layout: CompactLayoutNode
     slots: Array<{
       target:
@@ -274,7 +272,6 @@ generatePluginRegistry(projectRoot, appUIModel): Promise<GeneratePluginCatalogRe
 
 ```ts
 interface CreatorTransactionRecord {
-  schemaVersion: 1
   runId: string
   createdAt: string
   mutationRevision: number

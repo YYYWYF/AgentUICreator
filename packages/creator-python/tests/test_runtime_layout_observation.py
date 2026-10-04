@@ -48,7 +48,6 @@ def layout_envelope(*, app_hash: str = APP_HASH) -> RuntimeDiagnosticEnvelope:
         {
             "threadId": "layout-thread",
             "composition": {
-                "schemaVersion": 1,
                 "appUIModelHash": app_hash,
                 "observedAt": datetime.now(timezone.utc).isoformat(),
                 "instances": [

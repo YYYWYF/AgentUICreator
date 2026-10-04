@@ -35,7 +35,7 @@ function fixture() {
     suggestSourceRoot: async () => "src/agent-ui",
     inspectProject: async () => initialized ? {
       status: "ready" as const,
-      projectConfig: { version: "2" as const, mode: "assistant" as const, sourceRoot: "src/agent-ui" },
+      projectConfig: { mode: "assistant" as const, sourceRoot: "src/agent-ui" },
       paths: { sourceRoot: "src/agent-ui" },
     } : { status: "uninitialized" as const },
     createPythonManager: () => ({ ensureStarted: async () => undefined, dispose: async () => undefined }) as unknown as PythonCreatorProcessManager,

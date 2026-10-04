@@ -5,7 +5,7 @@ import { expect, test } from "@playwright/test";
 test("presents answers, inspection, mutation, no-op, and validation by run facts", async ({ page }) => {
   await page.route("**/__agent-ui/creator/workspace", route => route.fulfill({ json: {
     status: "ready", workspace: { id: "presentation-workspace", name: "Project", displayPath: "/project" },
-    project: { version: "1", mode: "platform" }, runtime: { status: "ready" },
+    project: { mode: "platform", sourceRoot: "agent-ui" }, runtime: { status: "ready" },
   } }));
   let turn = 0;
   await page.route("**/__creator/run", async route => {
@@ -25,7 +25,7 @@ test("presents answers, inspection, mutation, no-op, and validation by run facts
       validations: turnIndex === 4
         ? [{ command: "pnpm typecheck", status: "passed", exitCode: 0, output: "", truncated: false }] : [],
       ...(turnIndex === 2 ? { transaction: { runId: "presentation-run", undoable: true } } : {}),
-      diagnosticLog: { format: "jsonl", path: ".agentuicreator/logs/run.jsonl", schemaVersion: 1 },
+      diagnosticLog: { format: "jsonl", path: ".agentuicreator/logs/run.jsonl" },
       verification: { status: turnIndex === 2 ? "changed-and-statically-verified" : "no-project-change",
         projectRevision: turnIndex === 2 ? 1 : 0, auditAttempts: 0, checks: [] } };
     const messageId = `assistant-${turn}`;

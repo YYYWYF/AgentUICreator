@@ -408,7 +408,7 @@ def test_managed_source_paths_preserve_scope_identity(tmp_path, source_root):
 
     (tmp_path / ".agent-ui").mkdir()
     (tmp_path / ".agent-ui/project.json").write_text(json.dumps({
-        "version": "2", "sourceRoot": source_root,
+        "mode": "platform", "sourceRoot": source_root,
     }))
     app_path = f"{source_root}/app-ui/app-ui.json"
     plugin_path = f"{source_root}/plugins/sample/index.tsx"

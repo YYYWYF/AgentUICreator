@@ -3,14 +3,13 @@ import path from "node:path";
 
 import {
   parseAgentUIProjectConfigJson,
-  resolveAgentUIProjectConfig,
-  type ResolvedAgentUIProjectConfig,
+  type AgentUIProjectConfig,
 } from "../framework/contracts/agent-ui-project";
 
 export const AGENT_UI_PROJECT_CONFIG_FILE = "project.json";
 
-export interface ReadAgentUIProjectConfigResult
-  extends ResolvedAgentUIProjectConfig {
+export interface ReadAgentUIProjectConfigResult {
+  readonly config: AgentUIProjectConfig;
   readonly path: string;
 }
 
@@ -25,16 +24,12 @@ export async function readAgentUIProjectConfig(
     const source = await readFile(absolutePath, "utf8");
     return {
       config: parseAgentUIProjectConfigJson(source),
-      legacy: false,
       path: relativePath,
     };
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
       throw error;
     }
-    return {
-      ...resolveAgentUIProjectConfig(undefined),
-      path: relativePath,
-    };
+    throw new Error("Invalid Agent UI project configuration.");
   }
 }

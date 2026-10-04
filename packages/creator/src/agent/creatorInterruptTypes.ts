@@ -62,7 +62,7 @@ export function parseCreatorQuestion(value: unknown): CreatorQuestionActivity | 
 
 export function questionFromInterrupt(value: unknown): CreatorQuestionActivity | undefined {
   if (!record(value) || typeof value.id !== "string" || !record(value.metadata) ||
-      value.metadata.kind !== "ask_user_question" || value.metadata.schemaVersion !== 1) return undefined;
+      value.metadata.kind !== "ask_user_question") return undefined;
   return parseCreatorQuestion({ kind: "question", id: `question-${value.id}`, interruptId: value.id,
     status: "pending", steps: value.metadata.steps });
 }

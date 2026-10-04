@@ -20,14 +20,14 @@ Keep legacy scripts/tsx fallback for at least one full migration cycle. Remove
 it only after managed-path tests and all three Host modes have passed. No legacy
 Host entry is removed in this migration.
 
-ProjectControl v3's canonical wire contract is
+ProjectControl's canonical wire contract is
 `contracts/creator/project-control.schema.json`. The adjacent
 `project-control.operations.json` inventories operation names, read/mutation kinds,
 input/result definitions, and Agent exposure. TypeScript Zod request parsing is a
 Host implementation detail. Python literals/client methods are transport bindings.
 Neither is independently authoritative.
 
-The v3 response envelope stays `{schemaVersion: 3, ok: true, result: {...}}`.
+The response envelope is `{ok: true, result: {...}}`.
 The Host validates results before returning them; Python validates the envelope
 and the result definition selected by its original request operation. A producer
 violation returns `CONTROL_RESULT_CONTRACT_VIOLATION`; a consumer violation becomes
@@ -51,5 +51,4 @@ Python Draft 2020-12 validator as the canonical differential oracle. Python test
 also check actual tool objects and run apply/remove through an isolated real Node
 Host. Build the control package before running these integration tests.
 
-Removing or renaming protocol fields, changing their types, or changing the
-response envelope requires protocol v4. Do not silently repurpose v3.
+When changing protocol fields or the response envelope, update the canonical contract and both language bindings in the same change.

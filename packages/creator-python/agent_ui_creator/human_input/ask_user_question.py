@@ -9,9 +9,9 @@ from .models import QuestionAnswers, QuestionRequest, QuestionStep
 
 
 @tool("ask_user_question", args_schema=QuestionRequest)
-def ask_user_question(steps: list[QuestionStep], schemaVersion: int = 1) -> dict[str, Any]:
+def ask_user_question(steps: list[QuestionStep]) -> dict[str, Any]:
     """Ask the user to decide a material ambiguity before continuing work."""
-    request = QuestionRequest(schemaVersion=schemaVersion, steps=steps)
+    request = QuestionRequest(steps=steps)
     answer = interrupt({
         "kind": "ask_user_question",
         **request.model_dump(mode="json", exclude_none=True),

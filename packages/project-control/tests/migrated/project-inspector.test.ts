@@ -1,5 +1,5 @@
 import { generatedProjectFixture } from "../support/generated-project";
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { cp, mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,7 +17,7 @@ import {
   PLUGIN_REGISTRY_ENTRY_PATH,
   PLUGIN_REGISTRY_ENTRY_SOURCE,
 } from "../../src/project/registry-generator";
-import { generatePluginRegistry } from "../support/legacy-project-paths";
+import { generatePluginRegistry } from "../support/fixture-project-paths";
 import type { UIProjectControlConfig } from "../../src/project/types";
 
 const temporaryProjects: string[] = [];
@@ -43,7 +43,6 @@ describe("inspectUIProject", () => {
 
     expect(result.mode).toBe("platform");
     expect(result.modeResolution).toEqual({
-      legacy: false,
       configPath: ".agent-ui/project.json",
     });
     for (const slot of [
@@ -229,22 +228,17 @@ describe("inspectUIProject", () => {
       PLUGIN_REGISTRY_ENTRY_SOURCE,
     );
 
-    const legacyResult = await inspectUIProject(projectRoot, fixtureConfig);
-
-    expect(legacyResult.mode).toBe("platform");
-    expect(legacyResult.modeResolution).toEqual({
-      legacy: true,
-      configPath: ".agent-ui/project.json",
-    });
     await mkdir(path.join(projectRoot, ".agent-ui"));
     await writeFile(
       path.join(projectRoot, ".agent-ui", "project.json"),
-      JSON.stringify({ version: "1", mode: "platform" }),
+      JSON.stringify({ mode: "platform", sourceRoot: "agent-ui" }),
     );
+    await mkdir(path.join(projectRoot, "agent-ui"));
+    await cp(path.join(projectRoot, "app-ui"), path.join(projectRoot, "agent-ui", "app-ui"), { recursive: true });
+    await cp(path.join(projectRoot, "plugins"), path.join(projectRoot, "agent-ui", "plugins"), { recursive: true });
     const result = await inspectUIProject(projectRoot, fixtureConfig);
     expect(result.mode).toBe("platform");
     expect(result.modeResolution).toEqual({
-      legacy: false,
       configPath: ".agent-ui/project.json",
     });
     expect(result.appUIModel.hash).toMatch(/^[a-f0-9]{64}$/u);
@@ -297,7 +291,6 @@ describe("inspectUIProject", () => {
 
     const composition = await inspectUIComposition(projectRoot, fixtureConfig);
     expect(composition).toMatchObject({
-      schemaVersion: 3,
       view: "composition",
       appUIModel: {
         hash: result.appUIModel.hash,

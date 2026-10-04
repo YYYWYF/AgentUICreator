@@ -50,7 +50,6 @@ vi.mock("../src/PythonCreatorProcessManager.js", () => ({
       host: "127.0.0.1",
       port: 4321,
       authToken: "python-token",
-      protocolVersion: "1",
       agentMode: "domain-write",
     }));
     readonly dispose = vi.fn(async () => undefined);

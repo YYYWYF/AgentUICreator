@@ -69,10 +69,10 @@ export function assertSafeRegistryRelativePath(
 export function parseRegistryManifest(
   value: unknown,
 ): AgentUISourceRegistryManifest {
-  if (!isRecord(value) || value.schemaVersion !== 1 || !Array.isArray(value.items)) {
+  if (!isRecord(value) || Object.keys(value).some((key) => !["items"].includes(key)) || !Array.isArray(value.items)) {
     throw new AgentUISourceRegistryError(
       "AGENT_UI_SOURCE_REGISTRY_INVALID",
-      "registry.json must use schemaVersion 1 and declare items.",
+      "registry.json must declare items.",
     );
   }
   const items = value.items.map((entry, index) => {
@@ -85,14 +85,14 @@ export function parseRegistryManifest(
     assertSafeRegistryRelativePath(entry.path, `registry.json items[${index}].path`);
     return { id: entry.id, path: entry.path };
   });
-  return { schemaVersion: 1, items };
+  return { items };
 }
 
 export function parseSourceItem(value: unknown, manifestPath: string): AgentUISourceItem {
-  if (!isRecord(value) || value.schemaVersion !== 1) {
+  if (!isRecord(value) || Object.keys(value).some((key) => !["id", "version", "kind", "description", "upstream", "requires", "packages", "files"].includes(key))) {
     throw new AgentUISourceRegistryError(
       "AGENT_UI_SOURCE_ITEM_INVALID",
-      `${manifestPath} must use schemaVersion 1.`,
+      `${manifestPath} is invalid.`,
     );
   }
   if (typeof value.id !== "string" || !ITEM_ID.test(value.id)) {
@@ -237,7 +237,6 @@ export function parseSourceItem(value: unknown, manifestPath: string): AgentUISo
     }
   }
   return {
-    schemaVersion: 1,
     id: value.id,
     version: value.version,
     kind: value.kind as AgentUISourceItem["kind"],
