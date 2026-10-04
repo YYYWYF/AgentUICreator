@@ -11,14 +11,6 @@ const componentPath = "packages/ui/src/components/react/assistant-ui/elements/ge
 const cssPath = "packages/ui/src/lib/generative-ui-vocabulary-css.ts";
 const tscPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../node_modules/.bin/tsc");
 
-function nextPatch(version) {
-  const match = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u.exec(version ?? "");
-  if (!match || !Number.isSafeInteger(Number(match[3])) || Number(match[3]) === Number.MAX_SAFE_INTEGER) {
-    throw new Error(`Generative UI Source Item requires a stable patch version; got ${version}.`);
-  }
-  return `${match[1]}.${match[2]}.${Number(match[3]) + 1}`;
-}
-
 async function previousContent(filename) {
   return readFile(filename).catch(error => {
     if (error.code === "ENOENT") return undefined;
@@ -102,12 +94,7 @@ export async function main({
     const itemPath = path.join(itemRoot, id, "item.json");
     return { id, itemPath, item: JSON.parse(await readFile(itemPath, "utf8")) };
   }));
-  const generatedChanged = (await Promise.all([...generated].map(async ([filename, content]) =>
-    !(await previousContent(filename))?.equals(Buffer.from(content))))).some(Boolean);
   for (const { id, itemPath, item } of items) {
-    const changed = item.packages?.[packageName] !== version || item.upstream?.revision !== revision ||
-      (id === "agent-component-assistant-ui-generative-ui" && generatedChanged);
-    if (changed) item.version = nextPatch(item.version);
     item.packages[packageName] = version;
     item.upstream.revision = revision;
     await writeChanged(itemPath, JSON.stringify(item, null, 2) + "\n");
