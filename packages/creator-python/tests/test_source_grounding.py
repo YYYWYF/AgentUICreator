@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -10,12 +11,14 @@ from agent_ui_creator.domain_agent.source_grounding import (
     SourceGroundingConvergenceMiddleware,
     create_edit_file_from_read_tool,
 )
+from agent_ui_creator.domain_agent.change_scope import ScopeAwareRecoveryGuard
 from agent_ui_creator.minimal_agent.path_policy import (
     MinimalAgentPathPolicy,
     PolicyFilesystemBackend,
 )
 from agent_ui_creator.model_protocol.trace import ToolProtocolMetrics
 from agent_ui_creator.operations.models import CreatorAuthoringHandoff
+from agent_ui_creator.validation import CommandExecutionResult, CreatorValidationService
 
 
 def _grounding(tmp_path: Path):
@@ -89,3 +92,81 @@ def test_missing_handoff_file_leaves_search_and_expansion_available(tmp_path):
     assert grounding.metrics.sourceFastPathActivated is True
     assert grounding.metrics.sourceFastPathExited is False
     assert backend.ls("/src/plugins/conversation-thread-list").error is None
+
+
+def test_first_source_read_does_not_claim_grounding_is_sufficient(tmp_path):
+    backend, grounding, _path, virtual = _grounding(tmp_path)
+    _read(backend, grounding, virtual)
+    tools = [SimpleNamespace(name=name) for name in (
+        "read_file", "grep", "inspect_ui_services", "edit_file_from_read",
+    )]
+    request = SimpleNamespace(
+        messages=[], tools=tools,
+        override=lambda **kwargs: SimpleNamespace(**kwargs),
+    )
+
+    next_request = grounding._request(request)
+
+    assert [item.name for item in next_request.tools] == [item.name for item in tools]
+    control = next_request.messages[-1].content
+    assert "Once the files and dependencies actually required" in control
+    assert "Fresh source evidence is available" not in control
+    assert "Prefer the mutation now" not in control
+
+
+def test_range_edit_uses_host_baseline_scope_transaction_and_current_validation(tmp_path):
+    backend, grounding, path, virtual = _grounding(tmp_path)
+    _read(backend, grounding, virtual)
+
+    class Runner:
+        def __init__(self):
+            self.calls = []
+
+        async def execute_known_command(self, command):
+            self.calls.append((command, backend.activity.revision))
+            return CommandExecutionResult("", 0, False)
+
+    runner = Runner()
+    scope = ScopeAwareRecoveryGuard(project_root=str(tmp_path))
+    validation = CreatorValidationService(
+        project_root=tmp_path, activity=backend.activity,
+        runner=runner, scope=scope.metrics,
+    )
+    scope.set_baseline_capture(validation.ensure_baseline)
+    edit = create_edit_file_from_read_tool(backend, grounding)
+    arguments = {
+        "file_path": virtual, "mode": "replace_lines", "start_line": 2,
+        "replacement": "  my agent",
+    }
+    request = SimpleNamespace(tool_call={
+        "id": "edit-1", "name": "edit_file_from_read", "args": arguments,
+    })
+
+    async def scenario():
+        async def perform(_request):
+            return ToolMessage(
+                content=edit.invoke(arguments), tool_call_id="edit-1", status="success",
+            )
+
+        mutation = await scope.awrap_tool_call(request, perform)
+        revision_after_mutation = backend.activity.revision
+        current = await validation.validate()
+        receipt = backend.activity.finish()
+        return mutation, revision_after_mutation, current, receipt
+
+    mutation, revision, current, receipt = asyncio.run(scenario())
+    assert json.loads(mutation.content)["ok"] is True
+    assert runner.calls[0] == ("pnpm typecheck", 0)
+    assert validation.has_pre_mutation_baseline is True
+    assert revision == 1
+    assert path.read_text(encoding="utf-8") == "first\n  my agent\nlast\n"
+    assert receipt["files"][0]["path"] == "src/plugins/conversation-thread-list/index.ts"
+    assert receipt["transaction"]["undoable"] is True
+    assert scope.metrics.task_scope.to_dict() == {
+        "layers": ["plugin_behavior"],
+        "resources": ["plugin:conversation-thread-list"],
+    }
+    assert current.evidence.revision == 1
+    assert current.status == "passed"
+    assert ("pnpm verify:ui", 1) in runner.calls
+    assert ("pnpm typecheck", 1) in runner.calls

@@ -38,10 +38,9 @@ reads establish current content; prior conversation and handoff do not.
 Prefer edit_file_from_read for a stable read range. Its line numbers refer to
 the current fresh read. edit_file remains available for other edits. If another
 authoring layer is needed, call its inspection tool; it executes normally and
-the full General Agent tool surface returns on the next model call."""
-SOURCE_CONVERGENCE_CONTROL = """Fresh source evidence is available for this
-scoped change. Prefer the mutation now. Continue discovery only for a specific
-missing fact or another authoring-layer dependency."""
+the full General Agent tool surface returns on the next model call. Once the
+files and dependencies actually required for the requested mutation have been
+freshly read, proceed with the mutation instead of confirmation-only discovery."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -99,11 +98,8 @@ class SourceGroundingConvergenceMiddleware(AgentMiddleware):
     def _request(self, request: ModelRequest) -> ModelRequest:
         if not self.metrics.sourceFastPathActivated or self.metrics.sourceFastPathExited:
             return request
-        control = SOURCE_CONTROL
-        if self.reads:
-            control += "\n" + SOURCE_CONVERGENCE_CONTROL
         return request.override(
-            messages=[*request.messages, SystemMessage(content=control)],
+            messages=[*request.messages, SystemMessage(content=SOURCE_CONTROL)],
             tools=[candidate for candidate in request.tools
                    if tool_name(candidate) in SOURCE_LANE_TOOLS],
         )

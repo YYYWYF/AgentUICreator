@@ -1,5 +1,7 @@
 import json
 
+from langchain_core.messages import ToolMessage
+
 from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.observability import CreatorRunLogger
 
@@ -138,7 +140,9 @@ def test_run_logger_records_bounded_tool_trajectory(tmp_path):
     observations = [
         entry for entry in entries if entry["type"] == "creator_tool_observation"
     ]
-    assert observations[0]["data"] == {
+    assert {key: observations[0]["data"][key] for key in (
+        "modelCallSequence", "toolName", "phase", "arguments", "result",
+    )} == {
         "modelCallSequence": 2,
         "toolName": "inspect_ui_project",
         "phase": "before_first_mutation",
@@ -162,3 +166,28 @@ def test_run_logger_records_bounded_tool_trajectory(tmp_path):
         "code": "APP_UI_MODEL_HASH_CONFLICT",
         "factKinds": ["composition.commit"],
     }
+
+
+def test_native_edit_error_records_bounded_reason_without_edit_arguments(tmp_path):
+    logger = CreatorRunLogger(tmp_path)
+    logger.begin(run_id="native-edit-error")
+    logger.record_tool_observation(
+        model_call_sequence=2,
+        tool_name="edit_file",
+        tool_call_id="edit-1",
+        phase="before_first_mutation",
+        arguments={
+            "file_path": "/plugins/example/index.tsx",
+            "old_string": "secret oldText",
+            "new_string": "secret newText",
+        },
+        result=ToolMessage(
+            content="Error: String not found in file: 'secret oldText'",
+            tool_call_id="edit-1", status="error",
+        ),
+    )
+    observation = json.loads(logger.path.read_text(encoding="utf-8").splitlines()[-1])["data"]
+    assert observation["toolCallId"] == "edit-1"
+    assert observation["structuredErrorReason"] == "Error: String not found in file"
+    assert observation["arguments"] == {"file_path": "/plugins/example/index.tsx"}
+    assert "secret" not in json.dumps(observation)

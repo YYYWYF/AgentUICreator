@@ -342,6 +342,13 @@ class CreatorRunLogger:
                         message = structured_error.get("message")
                         if isinstance(message, str):
                             reason = message[:300]
+                elif status in {"error", "rejected"}:
+                    # Native filesystem failures are plain text. Keep the
+                    # reason, but never include a quoted replacement snippet.
+                    if tool_name == "edit_file" and "String not found in file" in content:
+                        content = content[:content.index("String not found in file")
+                                          + len("String not found in file")]
+                    reason = _redact(content[:300])
         self.record(
             _TOOL_OBSERVATION_EVENT,
             {
