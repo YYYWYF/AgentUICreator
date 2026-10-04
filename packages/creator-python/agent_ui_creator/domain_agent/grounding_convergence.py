@@ -23,10 +23,13 @@ from ..verification_policy import (
     CreatorVerificationMode,
     DEFAULT_CREATOR_VERIFICATION_MODE,
 )
+from ..domain_tools import RECOVERY_READ_TOOL_NAMES, RECOVERY_WRITE_TOOL_NAMES
 from .tool_policy import READ_ONLY_TOOL_NAMES, RUNTIME_VERIFICATION_TOOL_NAMES
 
 
 COMPOSITION_PRE_MUTATION_TOOL_NAMES = (
+    *RECOVERY_READ_TOOL_NAMES,
+    *RECOVERY_WRITE_TOOL_NAMES,
     "read_file",
     "inspect_ui_project",
     "inspect_agent_ui_sources",
@@ -37,6 +40,8 @@ COMPOSITION_PRE_MUTATION_TOOL_NAMES = (
     "inspect_runtime_layout",
 )
 COMPOSITION_POST_MUTATION_TOOL_NAMES = (
+    *RECOVERY_READ_TOOL_NAMES,
+    *RECOVERY_WRITE_TOOL_NAMES,
     "read_file",
     "inspect_ui_project",
     "mutate_app_ui_model",
@@ -47,6 +52,8 @@ COMPOSITION_POST_MUTATION_TOOL_NAMES = (
     "verify_ui_plugin_behavior",
 )
 SOURCE_INSTALLED_TOOL_NAMES = (
+    *RECOVERY_READ_TOOL_NAMES,
+    *RECOVERY_WRITE_TOOL_NAMES,
     "inspect_ui_project",
     "inspect_ui_capabilities",
     "inspect_ui_plugin",
@@ -76,6 +83,8 @@ existing Plugins and Source Items before proposing new development.
 For conditional development, list_ui_plugins must also complete the installed
 Plugin inventory before preparation; a Composition summary does not substitute
 for that inventory.
+If restoration needs history, inspect_creator_transactions and then inspect
+the identified transaction; those queries execute directly in this lane.
 Expand grounding for a missing decisive fact or another-layer requirement."""
 
 COMPOSITION_POST_MUTATION_CONTROL = """The AppUIModel mutation succeeded on the
@@ -113,6 +122,7 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         self.protocol_metrics = protocol_metrics or ToolProtocolMetrics()
         self.verification_mode = verification_mode
         self.development_authority = development_authority
+        self._recovery_query_exited = False
 
     @staticmethod
     def _composition_lane_tools(
@@ -166,6 +176,7 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
             self.development_authority is not None
             and self.development_authority.installed_source_plugin_ids
             and not metrics.first_mutation_started
+            and not self._recovery_query_exited
             and not (
                 self.development_authority.active is not None
                 and self.development_authority.active.status == "authorized"
@@ -312,6 +323,12 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         result: object,
     ) -> None:
         metrics = self.observations.composition_fast_path_metrics
+        if name in (*RECOVERY_READ_TOOL_NAMES, *RECOVERY_WRITE_TOOL_NAMES):
+            self._recovery_query_exited = True
+            self.observations.clear_composition_grounding(
+                reason="recovery_evidence",
+                current_revision=self.backend.mutation_revision,
+            )
         if (
             name == "prepare_ui_plugin_development"
             and self._prepare_succeeded(result)

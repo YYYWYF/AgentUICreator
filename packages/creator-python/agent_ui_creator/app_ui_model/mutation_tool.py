@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import json
 import logging
-from pathlib import Path
 from typing import Any
 
 from langchain_core.tools import BaseTool, tool
 
+from ..contract_resources import read_creator_contract
 from ..domain_state import DomainObservationContext, DomainObservationError
 from ..verification_policy import (
     CreatorVerificationMode,
@@ -25,14 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def load_app_ui_model_mutation_tool_schema() -> dict[str, Any]:
-    repository_root = Path(__file__).resolve().parents[4]
-    contract_path = (
-        repository_root / "contracts" / "creator" / "app-ui-model-operation.schema.json"
-    )
-    try:
-        operation_contract = json.loads(contract_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
-        raise RuntimeError("AppUIModel operation contract is unavailable.") from error
+    operation_contract = read_creator_contract("app-ui-model-operation.schema.json")
     operation_schema = {
         key: value
         for key, value in operation_contract.items()

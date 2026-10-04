@@ -723,8 +723,26 @@ async def _execute_agent_run(
         result = await agent_result
         receipt = activity.finish()
         if isinstance(result, DeepAgentInterrupted):
-            logger.finish("interrupted", verification_mode=verification_mode,
-                          runtime_verification_status="not-run")
+            logger.finish(
+                "interrupted", verification_mode=verification_mode,
+                runtime_verification_status="not-run",
+                metrics=run_telemetry.model_tool_metrics(),
+                mutation_metrics=run_telemetry.mutation_metrics(),
+                change_layer_metrics=run_telemetry.change_layer_metrics(),
+                composition_fast_path_metrics=run_telemetry.composition_fast_path_metrics(),
+                source_grounding_metrics=(
+                    run_telemetry.source_grounding.to_dict()
+                    if run_telemetry.source_grounding is not None else None
+                ),
+                project_control_metrics=run_telemetry.project_control_metrics(),
+                validation_metrics=run_telemetry.validation_metrics(),
+                action_selector_metrics=run_telemetry.action_selector,
+                action_selection=run_telemetry.action_selection,
+                selected_creator_action=run_telemetry.selected_creator_action,
+                selected_creator_intent=run_telemetry.selected_creator_intent,
+                authoring_handoff=run_telemetry.authoring_handoff,
+                creator_intent=run_telemetry.operation_presentation,
+            )
             return _AgentExecution(result=result, receipt=receipt)
         completion = str(getattr(result, "completion", "success"))
         outcome = (

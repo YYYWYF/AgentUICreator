@@ -408,6 +408,7 @@ class CreatorTransactionStore:
         self,
         requested_run_id: str | None = None,
         *,
+        expected_transaction_id: str | None = None,
         simulate_failure_after_write: int | None = None,
     ) -> CreatorUndoResult:
         with _undo_lock(self.project_root):
@@ -416,6 +417,15 @@ class CreatorTransactionStore:
                 if requested_run_id is None
                 else self.load(requested_run_id)
             )
+            if expected_transaction_id is not None:
+                current_id = hashlib.sha256(json.dumps(
+                    record.to_dict(), ensure_ascii=False, sort_keys=True,
+                ).encode("utf-8")).hexdigest()
+                if current_id != expected_transaction_id:
+                    raise CreatorTransactionError(
+                        "CREATOR_TRANSACTION_CHANGED",
+                        "Creator transaction changed after it was inspected.",
+                    )
             if read_creator_file_state(self.project_root, self._undo_marker_path(record.run_id)).exists:
                 conflicts = tuple(
                     CreatorTransactionConflict(file.path, file.before.hash,

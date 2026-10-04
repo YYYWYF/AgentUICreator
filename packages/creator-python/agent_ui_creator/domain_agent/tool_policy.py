@@ -5,7 +5,7 @@ from typing import Any
 
 from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResponse
 
-from ..domain_tools import DOMAIN_READ_TOOL_NAMES
+from ..domain_tools import DOMAIN_READ_TOOL_NAMES, RECOVERY_READ_TOOL_NAMES, RECOVERY_WRITE_TOOL_NAMES
 from ..minimal_agent.tool_policy import ALLOWED_MINIMAL_TOOLS, tool_name
 from ..verification_policy import (
     CreatorVerificationMode,
@@ -15,12 +15,15 @@ from ..verification_policy import (
 ALLOWED_DOMAIN_READ_TOOLS = (
     *ALLOWED_MINIMAL_TOOLS,
     *DOMAIN_READ_TOOL_NAMES,
+    *RECOVERY_READ_TOOL_NAMES,
     "inspect_runtime_layout",
     "ask_user_question",
 )
 _ALLOWED_DOMAIN_READ_TOOL_SET = frozenset(ALLOWED_DOMAIN_READ_TOOLS)
 DOMAIN_WRITE_TOOL_NAMES = (
     *DOMAIN_READ_TOOL_NAMES,
+    *RECOVERY_READ_TOOL_NAMES,
+    *RECOVERY_WRITE_TOOL_NAMES,
     "inspect_runtime_layout",
     "ask_user_question",
     "create_ui_plugin",
@@ -60,6 +63,7 @@ SIDE_EFFECT_TOOL_NAMES = frozenset(
         "mutate_app_ui_model",
         "apply_agent_ui_source_item",
         "verify_ui_plugin_behavior",
+        *RECOVERY_WRITE_TOOL_NAMES,
     }
 )
 ALLOWED_INSPECT_READ_ONLY_TOOLS = tuple(

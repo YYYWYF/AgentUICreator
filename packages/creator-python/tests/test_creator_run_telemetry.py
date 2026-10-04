@@ -29,6 +29,36 @@ from agent_ui_creator.project_control import ProjectControlMetrics
 from agent_ui_creator.run_control import CreatorRunControlState
 from agent_ui_creator.server import _execute_agent_run
 from agent_ui_creator.streaming import CreatorEventBus
+from agent_ui_creator.streaming.deepagent_v3_runner import DeepAgentInterrupted
+
+
+@pytest.mark.parametrize("model_calls,tool_calls", [(3, 2), (1, 0)])
+def test_interrupt_records_existing_metrics_without_extra_call(tmp_path, model_calls, tool_calls):
+    logger = CreatorRunLogger(tmp_path)
+    logger.begin(run_id=f"interrupt-{model_calls}", agent_mode="domain-write")
+    activity = CreatorActivityRecorder(tmp_path, logger=logger)
+    activity.begin(f"interrupt-{model_calls}")
+    telemetry = CreatorRunTelemetry(
+        activity=activity,
+        protocol=ToolProtocolMetrics(modelCalls=model_calls, toolCalls=tool_calls),
+        project_control=ProjectControlMetrics(),
+        mutation=AppUIModelMutationMetrics(),
+        action_selector={"actionSelectorCalls": 1},
+    )
+
+    async def interrupted():
+        return DeepAgentInterrupted(interrupts=({"id": "ask-1", "value": {"kind": "ask_user_question"}},))
+
+    asyncio.run(_execute_agent_run(interrupted(), activity=activity, logger=logger,
+                                   event_bus=CreatorEventBus(), telemetry=telemetry))
+    entries = [json.loads(line) for line in logger.path.read_text().splitlines()]
+    data = next(item["data"] for item in entries if item["type"] == "run_finished")
+    assert data["status"] == "interrupted"
+    assert data["modelToolMetrics"]["modelCalls"] == model_calls
+    assert data["modelToolMetrics"]["toolCalls"] == tool_calls
+    assert data["modelToolMetrics"]["totalModelCalls"] == model_calls + 1
+    assert "projectControlMetrics" in data
+    assert "mutationMetrics" in data
 
 
 class NoProgressModel(FakeMessagesListChatModel):

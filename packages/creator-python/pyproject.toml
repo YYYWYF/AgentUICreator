@@ -30,6 +30,7 @@ packages = ["agent_ui_creator"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "../../contracts/creator" = "agent_ui_creator/_contracts/creator"
+"../creator/skills" = "agent_ui_creator/_skills"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

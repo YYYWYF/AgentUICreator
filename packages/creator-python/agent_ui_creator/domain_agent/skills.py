@@ -58,4 +58,7 @@ def create_domain_skills_backend(
 
 
 def default_creator_skills_root() -> Path:
-    return Path(__file__).resolve().parents[3] / "creator" / "skills"
+    workspace_skills = Path(__file__).resolve().parents[3] / "creator" / "skills"
+    if workspace_skills.is_dir():
+        return workspace_skills
+    return Path(__file__).resolve().parents[1] / "_skills"

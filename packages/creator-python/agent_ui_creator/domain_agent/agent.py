@@ -21,7 +21,7 @@ from ..app_ui_model import (
     ProjectMutationCoordinator,
 )
 from ..app_ui_model.mutation_tool import create_app_ui_model_mutation_tool
-from ..domain_tools import create_project_control_tools
+from ..domain_tools import CreatorRecoveryQueries, create_project_control_tools, create_recovery_query_tools, create_recovery_undo_tool
 from ..domain_state import (
     CompositionFastPathMetrics,
     DomainObservationContext,
@@ -131,6 +131,19 @@ class DomainWriteAgentResult(DomainReadAgentResult):
     change_layer_metrics: dict[str, object]
     composition_fast_path_metrics: CompositionFastPathMetrics
     source_grounding_metrics: SourceGroundingMetrics | None = None
+
+
+def _completion_from_verification(
+    completion: CompletionStatus, receipt: dict[str, Any]
+) -> CompletionStatus:
+    if not receipt.get("files"):
+        return completion
+    status = receipt.get("verification", {}).get("status")
+    if status == "changed-unverified":
+        return "committed_unverified" if completion != "blocked" else completion
+    if status not in {"changed-and-verified", "changed-and-statically-verified"}:
+        return "blocked"
+    return completion
 
 
 class CreatorDomainReadAgent:
@@ -292,6 +305,9 @@ class CreatorDomainReadAgent:
         )
         if completion_decision is not None and not completion_decision.accepted:
             completion = "blocked"
+        completion = _completion_from_verification(
+            completion, self.activity.snapshot()
+        )
         if self.completion_gate is not None and any(
             not delivery_status_satisfies_mode(
                 report["delivery"]["status"], self.completion_gate.verification_mode,
@@ -503,11 +519,15 @@ def create_domain_read_creator_agent(
         observations=observations,
         activity=backend.activity,
     )
-    domain_tools = () if answer_only else (*create_project_control_tools(
-        client,
-        observations=observations,
-        activity=backend.activity,
-    ), ask_user_question)
+    domain_tools = () if answer_only else (
+        *create_recovery_query_tools(CreatorRecoveryQueries(workspace)),
+        *create_project_control_tools(
+            client,
+            observations=observations,
+            activity=backend.activity,
+        ),
+        ask_user_question,
+    )
     if verification_mode == "static_and_runtime" and not answer_only:
         domain_tools = (*domain_tools, create_runtime_layout_tool(runtime_inspection))
     if permission_scope == "inspect_read_only":
@@ -801,6 +821,9 @@ def create_domain_write_creator_agent(
         ),
         create_validation_tool(validation),
     ]
+    recovery_queries = CreatorRecoveryQueries(workspace)
+    domain_tools.extend((*create_recovery_query_tools(recovery_queries),
+                         create_recovery_undo_tool(recovery_queries)))
     if verification_mode == "static_and_runtime":
         domain_tools.extend(
             [

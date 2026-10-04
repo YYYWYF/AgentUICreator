@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass
 from typing import Any, Literal, Mapping
 
 
-CompletionStatus = Literal["success", "already_satisfied", "blocked", "failed"]
+CompletionStatus = Literal["success", "already_satisfied", "committed_unverified", "blocked", "failed"]
 RunStatus = Literal["running", "blocked"]
 
 

@@ -14,6 +14,7 @@ from ..minimal_agent.path_policy import PathPolicyViolation, PolicyFilesystemBac
 from ..minimal_agent.tool_policy import tool_name
 from ..operations.models import CreatorAuthoringHandoff
 from ..model_protocol.trace import ToolProtocolMetrics
+from ..domain_tools import RECOVERY_READ_TOOL_NAMES, RECOVERY_WRITE_TOOL_NAMES
 
 
 SOURCE_LANE_TOOLS = frozenset({
@@ -23,18 +24,20 @@ SOURCE_LANE_TOOLS = frozenset({
     "inspect_agent_ui_sources", "inspect_ui_capabilities",
     "prepare_ui_plugin_development", "inspect_ui_plugin",
     "inspect_ui_plugin_source_references", "mutate_ui_plugin_source",
-})
+}) | frozenset((*RECOVERY_READ_TOOL_NAMES, *RECOVERY_WRITE_TOOL_NAMES))
 SOURCE_EXPANSION_TOOLS = frozenset({
     "inspect_ui_project", "inspect_ui_services", "inspect_runtime_layout",
     "inspect_agent_ui_sources", "inspect_ui_capabilities",
     "prepare_ui_plugin_development", "inspect_ui_plugin",
     "inspect_ui_plugin_source_references",
-})
+}) | frozenset((*RECOVERY_READ_TOOL_NAMES, *RECOVERY_WRITE_TOOL_NAMES))
 SOURCE_CONTROL = """The Host has resolved the source owner. Read its supplied source
 directly; do not rediscover the target through Composition or capability catalogs.
 If an exact file path is known, prefer read_file. Use ls or grep when a path or
 symbol is unknown or a direct read contradicts the navigation context. Fresh
 reads establish current content; prior conversation and handoff do not.
+For restoration history, inspect_creator_transactions and the relevant saved
+transaction directly; the query exits this lane for the next model call.
 Prefer edit_file_from_read for a stable read range. Its line numbers refer to
 the current fresh read. edit_file remains available for other edits. If another
 authoring layer is needed, call its inspection tool; it executes normally and
