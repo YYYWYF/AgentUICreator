@@ -15,6 +15,8 @@ interface StoredPlan { projectRoot: string; release: ResolvedSourceRelease; stat
 /** Development Host owns provider, admission, authorization tokens and exact historical releases. */
 export class AgentUIUpdateService {
   private readonly plans = new Map<string, StoredPlan>();
+  // TODO before the first real release: production Hosts must explicitly supply
+  // UpdateSourceProvider and must never fall back to Mock when unconfigured.
   constructor(readonly provider: UpdateSourceProvider = new MockUpdateSourceProvider(), readonly creatorVersion = "0.1.0", readonly supportedContractVersion = 1) {}
   private compatibility(release: ResolvedSourceRelease): UpdateCompatibility {
     if (release.descriptor.contractVersion > this.supportedContractVersion || (release.descriptor.minimumCreatorVersion && comparePluginVersions(this.creatorVersion, release.descriptor.minimumCreatorVersion) < 0)) return "creator-upgrade-required";
@@ -65,6 +67,7 @@ export class AgentUIUpdateService {
       const inspected = ctx.inspection.items.find(entry => entry.id === item.id)!;
       const locked = ctx.lock.items[item.id];
       const provided = ctx.config.agentUI.providedSourceItems?.includes(item.id) ?? false;
+      if (locked?.sourceRelease && comparePluginVersions(releaseVersion, locked.sourceRelease) < 0) issues.push(`AGENT_UI_UPDATE_RELEASE_REGRESSION: ${item.id}: 目标 Release ${releaseVersion} 低于当前基线 ${locked.sourceRelease}，禁止降级`);
       const targetPluginVersion = item.id.startsWith("plugin/") ? release.descriptor.plugins[item.id.slice(7)]!.version : null;
       if (locked?.pluginVersion && targetPluginVersion && comparePluginVersions(targetPluginVersion, locked.pluginVersion) < 0) issues.push(`${item.id}: 目标依赖版本低于项目当前基线，禁止降级`);
       const changed = provided ? inspected.status !== "managed" : inspected.updateAvailable || !locked;

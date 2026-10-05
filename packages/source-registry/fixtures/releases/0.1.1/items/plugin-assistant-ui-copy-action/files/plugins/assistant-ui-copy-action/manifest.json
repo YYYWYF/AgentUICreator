@@ -1,0 +1,21 @@
+{
+  "id": "assistant-ui-copy-action",
+  "name": "Assistant UI Copy Action",
+  "description": "Copies text from the complete assistant response.",
+  "version": "0.0.1",
+  "capabilities": [
+    "conversation-assistant-response-action",
+    "conversation-message-action"
+  ],
+  "authoring": {
+    "intents": [
+      "copy assistant response content"
+    ],
+    "visualRole": "assistant response copy action",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "assistant-ui-response-footer",
+      "slot": "actions"
+    }
+  }
+}

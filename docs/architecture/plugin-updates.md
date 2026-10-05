@@ -3,10 +3,11 @@
 Creator checks installed Source-lock plugins asynchronously after a ready project
 opens. The development Host uses `UpdateSourceProvider`; its default
 `MockUpdateSourceProvider` retains immutable local Registry snapshots at
-`packages/source-registry/fixtures/releases`. Release `0.0.1` is the initial
-baseline; `0.0.2` changes Conversation Surface and Web Search. `0.1.0` retains the
-initial published package's baseline for projects installed by the current
-Registry. Mock descriptions deliberately describe development fixtures, rather
+`packages/source-registry/fixtures/releases`. The current Registry baseline is
+Release `0.1.0`; the default Mock latest is `0.1.1`, advancing Conversation Surface
+and Web Search from Plugin `0.0.1` to `0.0.2`. The new fixture also changes the
+Conversation Surface manifest and definition to exercise derived registry sync.
+Historical `0.0.1` / `0.0.2` fixtures remain available for existing unit coverage. Mock descriptions deliberately describe development fixtures, rather
 than claiming production fixes. No remote Registry is contacted.
 
 Four independent identities remain: package release version, Plugin manifest
@@ -51,7 +52,10 @@ Host-provided foundations cannot be overwritten by this flow.
 Contract incompatibility yields `creator-upgrade-required` or `unsupported`,
 blocks mutation, and stays visible in inspection. Partial sources, occupied paths,
 missing packages, and changed Host-provided foundations also block a plan.
-Customized sources are never available through a force-overwrite action.
+Customized sources are never available through a force-overwrite action. A target
+package release older than any installed Plugin baseline in the dependency
+closure blocks the plan with `AGENT_UI_UPDATE_RELEASE_REGRESSION`, independently
+of Plugin version comparisons.
 
 ## Creator UI and merge authorization
 
@@ -66,10 +70,16 @@ For a customized closure, the user chooses model merge or manual merge. Host
 resolves historical BASE using lock provenance, reads LOCAL and resolves TARGET.
 The model receives these file contents through the existing Creator request and
 edits source with existing tools. The user can inspect BASE/TARGET and edit in an
-IDE instead. Completing a merge is a separate explicit action: Host verifies the
-current project, checks target file existence and removals, verifies unchanged
-lock provenance, and updates only the official hashes and Plugin/release baseline.
-User file bytes are untouched by adoption. Retained local changes therefore remain
+IDE instead. Completing a merge is a separate explicit action: Host verifies
+unchanged lock provenance, opens the existing owner journal and snapshots Source,
+lock and derived outputs, regenerates Plugin / frontend tool / conversation
+integration registries with the canonical generators, then verifies the current
+project and target file existence/removals. Only after successful verification
+does it commit official hashes and the Plugin/release baseline. Generation or
+verification failure restores the entire before-state and keeps the plan retryable.
+User Source bytes are untouched by successful adoption; generated artifacts may
+change. Host checks that non-generated snapshot bytes stayed unchanged, while
+allowing expected inspection fingerprint changes caused by generation. Retained local changes therefore remain
 customized against the new official baseline. Verification failure does not
 advance the baseline. If merged bytes exactly match official bytes, hash inspection
 truthfully reports managed.
@@ -102,3 +112,17 @@ existing Source mutation suite passed 40 tests. The new UI unit suite passed
 expectation failures (reproduced with HEAD code), a Source architecture guard
 violation in unchanged `plugin-purge.ts`, and Creator test-fixture type errors
 about missing `owned` fields. These do not constitute behavioral acceptance.
+
+## Follow-up repairs
+
+The default Mock package timeline is now `0.1.0 → 0.1.1`. Focused unit tests start
+from the current Registry rather than only a historical fixture, reject package
+release regression, and exercise manual adoption with real generators and the
+real project verifier. An injected verification failure occurs after generated
+Plugin metadata changes, proving artifact/lock rollback and preservation of
+merged Source. Exact target bytes naturally report managed; retained user edits
+report customized. No browser or real-model acceptance is performed.
+
+TODO before the first real release: production Hosts must explicitly configure
+`UpdateSourceProvider`; an absent provider must not silently select Mock. This
+production policy is deferred and does not block the current development flow.

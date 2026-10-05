@@ -1,0 +1,105 @@
+{
+  "releaseVersion": "0.1.1",
+  "contractVersion": 1,
+  "plugins": {
+    "conversation-command-source": {
+      "version": "0.0.1"
+    },
+    "assistant-ui-copy-action": {
+      "version": "0.0.1"
+    },
+    "assistant-ui-tool-fallback": {
+      "version": "0.0.1"
+    },
+    "agent-status-message": {
+      "version": "0.0.1"
+    },
+    "assistant-ui-add-attachment-action": {
+      "version": "0.0.1"
+    },
+    "assistant-ui-reasoning": {
+      "version": "0.0.1"
+    },
+    "conversation-quote": {
+      "version": "0.0.1"
+    },
+    "conversation-service": {
+      "version": "0.0.1"
+    },
+    "chart-message": {
+      "version": "0.0.1"
+    },
+    "theme-provider": {
+      "version": "0.0.1"
+    },
+    "conversation-thread-list": {
+      "version": "0.0.1"
+    },
+    "assistant-ui-composer": {
+      "version": "0.0.1"
+    },
+    "generated-file-message": {
+      "version": "0.0.1"
+    },
+    "assistant-ui-message-footer": {
+      "version": "0.0.1"
+    },
+    "assistant-ui-response-footer": {
+      "version": "0.0.1"
+    },
+    "job-progress-message": {
+      "version": "0.0.1"
+    },
+    "conversation-suggestions": {
+      "version": "0.0.1"
+    },
+    "web-search": {
+      "version": "0.0.2"
+    },
+    "assistant-ui-export-markdown-action": {
+      "version": "0.0.1"
+    },
+    "assistant-ui-reload-action": {
+      "version": "0.0.1"
+    },
+    "locale-provider": {
+      "version": "0.0.1"
+    },
+    "theme-switch": {
+      "version": "0.0.1"
+    },
+    "assistant-ui-slash-command-trigger": {
+      "version": "0.0.1"
+    },
+    "assistant-ui-tool-group": {
+      "version": "0.0.1"
+    },
+    "assistant-ui-mention-trigger": {
+      "version": "0.0.1"
+    },
+    "task-group": {
+      "version": "0.0.1"
+    },
+    "assistant-ui-submit-action": {
+      "version": "0.0.1"
+    },
+    "assistant-ui-dictation-action": {
+      "version": "0.0.1"
+    },
+    "retrieval-chunks": {
+      "version": "0.0.1"
+    },
+    "source-citations-message": {
+      "version": "0.0.1"
+    },
+    "conversation-data-source": {
+      "version": "0.0.1"
+    },
+    "conversation-surface": {
+      "version": "0.0.2"
+    },
+    "agent-plan-message": {
+      "version": "0.0.1"
+    }
+  }
+}

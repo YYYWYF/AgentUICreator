@@ -1,0 +1,21 @@
+{
+  "id": "assistant-ui-reload-action",
+  "name": "Assistant UI Reload Action",
+  "description": "Regenerates the current assistant response through assistant-ui.",
+  "version": "0.0.1",
+  "capabilities": [
+    "conversation-assistant-response-action",
+    "conversation-message-action"
+  ],
+  "authoring": {
+    "intents": [
+      "regenerate an assistant response"
+    ],
+    "visualRole": "assistant response reload action",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "assistant-ui-response-footer",
+      "slot": "actions"
+    }
+  }
+}

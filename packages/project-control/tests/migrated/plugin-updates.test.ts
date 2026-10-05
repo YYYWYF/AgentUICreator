@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, expect, it, vi } from "vitest";
 import { minVersion } from "semver";
-import { MockUpdateSourceProvider, resolveAgentUISourceItemClosure } from "@agent-ui/source-registry";
+import { MockUpdateSourceProvider, resolveAgentUISourceItemClosure, resolveSourceRelease, DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT } from "@agent-ui/source-registry";
 import { AgentUIUpdateService } from "../../src/project/source-registry/updates";
 import { installAgentUISourceItems } from "../../src/project/source-registry/installer";
 import { readAgentUIProjectConfig } from "../../src/project/project-mode";
@@ -17,12 +17,12 @@ vi.mock("../../src/generate-frontend-tool-registry", () => ({ writeGeneratedFron
 vi.mock("../../src/generate-conversation-integration-registry", () => ({ writeGeneratedConversationIntegrationRegistry: vi.fn(async () => ({ changedPaths: [] })) }));
 const roots: string[] = [];
 afterEach(async () => { verification.status = "passed"; await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
-async function fixture() {
+async function fixture(currentRegistry = false) {
   const root = await mkdtemp(path.join(tmpdir(), "plugin-updates-")); roots.push(root);
   await mkdir(path.join(root, ".agent-ui"));
   await writeFile(path.join(root, ".agent-ui/project.json"), JSON.stringify({ mode: "platform", sourceRoot: "agent-ui" }));
   const provider = new MockUpdateSourceProvider();
-  const release = await provider.resolveRelease("0.0.1");
+  const release = currentRegistry ? await resolveSourceRelease(DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT) : await provider.resolveRelease("0.0.1");
   const items = resolveAgentUISourceItemClosure(release.registry, "plugin/conversation-surface");
   const packages = Object.assign({}, ...items.map(item => item.packages));
   await writeFile(path.join(root, "package.json"), JSON.stringify({ dependencies: packages }));
@@ -107,4 +107,24 @@ it("includes changed foundations and a newly required plugin in one atomic plan"
   const lock = (await readAgentUISourceLock(f.root, f.config)).lock;
   expect(lock.items["plugin/theme-provider"]).toMatchObject({ pluginVersion: "0.0.1", sourceRelease: "0.0.2" });
   expect(await readFile(path.join(f.root, "agent-ui/index.ts"), "utf8")).toContain("upgraded foundation");
+});
+it("upgrades a project initialized from the current Registry along the default Mock release chain", async () => {
+  const f = await fixture(true);
+  expect((await readAgentUISourceLock(f.root, f.config)).lock.items["plugin/conversation-surface"]).toMatchObject({ pluginVersion: "0.0.1", sourceRelease: "0.1.0" });
+  const inspection = await f.service.inspect(f.root);
+  expect(inspection.releaseVersion).toBe("0.1.1");
+  expect(inspection.plugins.find(plugin => plugin.pluginId === "conversation-surface")).toMatchObject({ currentVersion: "0.0.1", targetVersion: "0.0.2" });
+  const plan = await f.service.plan(f.root, ["conversation-surface"], inspection.releaseVersion);
+  expect(plan.blocked).toBe(false);
+  await f.service.execute(f.root, plan.id);
+  expect((await readAgentUISourceLock(f.root, f.config)).lock.items["plugin/conversation-surface"]).toMatchObject({ pluginVersion: "0.0.2", sourceRelease: "0.1.1" });
+});
+it("blocks an older package release even when its Plugin version would advance", async () => {
+  const f = await fixture(true);
+  const before = (await readAgentUISourceLock(f.root, f.config)).source;
+  const plan = await f.service.plan(f.root, ["conversation-surface"], "0.0.2");
+  expect(plan.blocked).toBe(true);
+  expect(plan.issues.some(issue => issue.includes("AGENT_UI_UPDATE_RELEASE_REGRESSION"))).toBe(true);
+  await expect(f.service.execute(f.root, plan.id)).rejects.toThrow(/阻塞/);
+  expect((await readAgentUISourceLock(f.root, f.config)).source).toEqual(before);
 });

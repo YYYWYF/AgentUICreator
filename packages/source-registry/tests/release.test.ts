@@ -21,3 +21,8 @@ describe("release contract", () => {
     expect(comparePluginVersions("0.0.10", "0.0.2")).toBeGreaterThan(0);
   });
 });
+it("uses the current Registry baseline and the next Mock package release by default", async () => {
+  const provider = new MockUpdateSourceProvider();
+  expect((await provider.getLatestRelease()).releaseVersion).toBe("0.1.1");
+  verifySourceRelease(await provider.resolveRelease("0.1.1"), await provider.resolveRelease("0.1.0"));
+});

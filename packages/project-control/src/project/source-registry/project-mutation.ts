@@ -312,10 +312,24 @@ export async function commitAgentUISourceUpgrade(projectRoot: string, input: {
     await atomicWrite(ctx.journalPath, Buffer.from(JSON.stringify(journal)), true);
     try {
       await recoverPendingAgentUISourceTransaction(projectRoot, ctx.config);
+      const regenerate = async () => {
+        await writeGeneratedPluginRegistry(projectRoot);
+        await writeGeneratedFrontendToolRegistries(projectRoot);
+        await writeGeneratedConversationIntegrationRegistry(projectRoot);
+      };
       if (input.adoptOnly) {
+        await regenerate();
+        const regenerated = await inspectAgentUISources(projectRoot, ctx.config, input.registry);
         await verify();
         const verified = await inspectAgentUISources(projectRoot, ctx.config, input.registry);
-        if (verified.stateHash !== before.stateHash) throw new Error("合并源码在验证期间发生变化，请重新确认。");
+        if (verified.stateHash !== regenerated.stateHash) throw new Error("合并源码在验证期间发生变化，请重新确认。");
+        // Derived outputs may legitimately change Source inspection fingerprints.
+        // Every other snapshotted byte, including the lock, must stay untouched
+        // until the verified official baseline is committed below.
+        for (const original of originals.filter(entry => !ctx.generatedPaths.includes(entry.path))) {
+          const current = await readOptionalBuffer(path.join(projectRoot, original.path));
+          if ((current?.toString("base64") ?? null) !== original.beforeContentBase64) throw new Error("基线推进不能修改用户源码，请重新确认。");
+        }
       }
       const next = structuredClone(lock);
       const mutations = new Map<string, AgentUISourceFileMutation>();
@@ -328,9 +342,7 @@ export async function commitAgentUISourceUpgrade(projectRoot: string, input: {
       }
       await commitAgentUISourceTransaction(projectRoot, ctx.config, "plugin-upgrade", [...mutations.values()], serializeAgentUISourceLock(next));
       if (!input.adoptOnly) {
-        await writeGeneratedPluginRegistry(projectRoot);
-        await writeGeneratedFrontendToolRegistries(projectRoot);
-        await writeGeneratedConversationIntegrationRegistry(projectRoot);
+        await regenerate();
         await verify();
         const after = await inspectAgentUISources(projectRoot, ctx.config, input.registry);
         const invalid = after.items.filter(item => input.itemIds.includes(item.id) && (item.status !== "managed" || item.dependencyIssues.length || item.resolvedRequirements.some(requirement => !requirement.compatible)));

@@ -1,0 +1,21 @@
+{
+  "id": "assistant-ui-export-markdown-action",
+  "name": "Assistant UI Export Markdown Action",
+  "description": "Exports the complete assistant response as Markdown.",
+  "version": "0.0.1",
+  "capabilities": [
+    "conversation-assistant-response-action",
+    "conversation-message-action"
+  ],
+  "authoring": {
+    "intents": [
+      "export an assistant response as Markdown"
+    ],
+    "visualRole": "assistant response Markdown export action",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "assistant-ui-response-footer",
+      "slot": "actions"
+    }
+  }
+}

@@ -76,7 +76,7 @@ export function verifySourceRelease(target: ResolvedSourceRelease, previous?: Re
   }
 }
 export class MockUpdateSourceProvider implements UpdateSourceProvider {
-  constructor(readonly root = path.join(DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT, "../fixtures/releases"), readonly latest = "0.0.2") {}
+  constructor(readonly root = path.join(DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT, "../fixtures/releases"), readonly latest = "0.1.1") {}
   async getLatestRelease(): Promise<ReleaseDescriptor> { return (await this.resolveRelease(this.latest)).descriptor; }
   async resolveRelease(version: string): Promise<ResolvedSourceRelease> {
     if (!releaseVersionPattern.test(version)) throw new Error("Invalid exact release version");

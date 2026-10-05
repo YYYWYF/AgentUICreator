@@ -1,0 +1,17 @@
+{
+  "id": "agent-plan-message",
+  "name": "Agent Plan",
+  "description": "Renders authoritative AG-UI agent-plan activity in assistant messages.",
+  "version": "0.0.1",
+  "capabilities": [
+    "headless"
+  ],
+  "data": {
+    "messageUI": true
+  },
+  "authoring": {
+    "intents": [
+      "render agent plan in assistant messages"
+    ]
+  }
+}

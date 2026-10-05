@@ -1,0 +1,14 @@
+{
+  "id": "retrieval-chunks",
+  "name": "RetrievalChunks",
+  "description": "Render search_docs backend tool calls with the official assistant-ui Element.",
+  "version": "0.0.1",
+  "capabilities": [
+    "headless"
+  ],
+  "authoring": {
+    "intents": [
+      "display retrieval-chunks tool results"
+    ]
+  }
+}
