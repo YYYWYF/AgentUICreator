@@ -49,8 +49,8 @@ def create_validation_tool(service: CreatorValidationService) -> BaseTool:
         differential = result.differential
         if differential is not None:
             evidence["diagnosticIdentities"] = [
-                {**service.debugging.static_identity(item),
-                 "debuggingTargetId": "ts:" + service.debugging.static_key(item)} for item in differential.current_diagnostics[:8]
+                {**service.debugging.static_identity(item), "message": item.message}
+                for item in differential.current_diagnostics[:8]
             ]
         evidence["debuggingMetrics"] = service.metrics()["debuggingMetrics"]
         priority = (
@@ -111,11 +111,14 @@ def create_static_diagnostic_tool(service: CreatorValidationService) -> BaseTool
         current = service.current_result()
         differential = None if current is None else current.differential
         if differential is not None and differential.current_available:
-            delivered = json.dumps(payload["result"])
-            service.debugging.observe_static_targets(
-                [item for item in differential.current_diagnostics
-                 if "ts:" + service.debugging.static_key(item) in delivered], current.revision,
-            )
+            diagnostics = [item for item in differential.current_diagnostics[:8]
+                           if not item.path.startswith("<")]
+            service.debugging.observe_static_targets(diagnostics, current.revision)
+            payload["result"]["diagnosticIdentities"] = [
+                {**service.debugging.static_identity(item), "message": item.message,
+                 "debuggingTargetId": "ts:" + service.debugging.static_key(item)}
+                for item in diagnostics
+            ]
         payload["result"]["debuggingMetrics"] = service.metrics()["debuggingMetrics"]
         return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
 

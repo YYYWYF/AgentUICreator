@@ -253,7 +253,9 @@ def test_ordinary_delta_does_not_inject_debugging(tmp_path):
     validation, _, _, tool = session(tmp_path, ts(BAR), '', ts(BAR))
     middleware = DebuggingEvidenceConvergenceMiddleware(validation, SimpleNamespace(current_result=lambda: None))
     request = ModelRequest(model=Mock(), messages=[HumanMessage(content='hide right panel')], tools=[])
-    call(tool)
+    payload = call(tool)
+    assert '"debuggingTargetId":' not in json.dumps(payload)
+    assert payload['result']['diagnosticIdentities'][0]['message'] == 'Wrong argument'
     assert middleware._request(request) is request
     assert not validation.debugging.diagnostic_scope_pending
     assert not validation.debugging.active
@@ -428,8 +430,10 @@ def test_runtime_baseline_is_not_captured_after_a_mutation(tmp_path):
     validation, activity, _, _ = session(tmp_path)
     mutate(tmp_path, activity, 'changed before diagnosis')
     service, _, _ = runtime_service(activity, validation.debugging, runtime_errors(runtime_error()))
-    result = select_runtime(validation, service, create_runtime_diagnostic_tool(service), "diagnostic-foo-main")
-    assert result['error']['code'] == 'DEBUGGING_BASELINE_REQUIRED'
+    payload = call(create_runtime_diagnostic_tool(service))
+    assert payload['result']['currentErrors'][0]['pluginId'] == 'foo'
+    assert not validation.debugging.observed_targets
+    assert not validation.debugging.diagnostic_scope_pending
     assert validation.debugging.runtime_baseline is None
 
 
@@ -447,6 +451,7 @@ def test_static_string_target_selection_resolves_requested_error(tmp_path):
     select, _ = selection_tools(validation)
     assert set(select.args_schema.model_json_schema()['properties']) == {'target_id'}
     assert validation.debugging.diagnostic_scope_pending
+    assert target_id in validation.debugging.observed_targets
     result = call(select, target_id=target_id)
     assert result['result']['owner'] == {'path': FOO}
     assert validation.debugging.targets and not validation.debugging.diagnostic_scope_pending
@@ -497,6 +502,8 @@ def test_runtime_string_target_baseline_and_differential(tmp_path):
     store.result = runtime_errors(b)
     call(runtime)
     difference = validation.debugging.runtime_differential(gate.runtime.current_result(), activity.revision)
+    assert not validation.debugging.diagnostic_scope_pending
+    assert 'runtime:' + validation.debugging.runtime_key(b) in validation.debugging.observed_targets
     assert difference['targetResolved'][0]['pluginId'] == 'foo'
     assert difference['unchangedPreexistingRuntimeDiagnostics'][0]['pluginId'] == 'bar'
     assert not difference['introducedRuntimeDiagnostics']
@@ -577,7 +584,8 @@ def test_target_ids_ignore_evidence_only_fields():
     from agent_ui_creator.validation.diagnostics import TypeScriptDiagnostic
     first = TypeScriptDiagnostic(FOO, 'TS2322', 'Wrong type', 1, 2)
     moved = TypeScriptDiagnostic(FOO, 'TS2322', 'Wrong type', 90, 8)
-    assert first.to_dict()['debuggingTargetId'] == moved.to_dict()['debuggingTargetId']
+    assert DebuggingEvidence.static_key(first) == DebuggingEvidence.static_key(moved)
+    assert 'debuggingTargetId' not in first.to_dict()
     a = runtime_error()
     b = {**a, 'id': 'new-report', 'errorMessage': 'different message',
          'stack': 'new stack', 'timestamp': 'later', 'appUIModelHash': 'b' * 64}
@@ -695,3 +703,57 @@ def test_undeclared_subscription_repairs_only_consuming_manifest(tmp_path):
     assert guard._debugging_selection_guard({'args': {'file_path': 'plugins/foo/manifest.json'}}, 'edit_file') is None
     assert guard._debugging_selection_guard({'args': {'file_path': FOO}}, 'edit_file') is not None
     assert guard._debugging_selection_guard({'args': {'file_path': 'plugins/bar/manifest.json'}}, 'edit_file') is not None
+
+
+def test_ordinary_post_mutation_runtime_error_allows_scoped_repair(tmp_path):
+    scope = ChangeScopeMetrics(taskChangeLayers=['plugin_behavior'], scopeResources=['plugin:foo'])
+    validation, activity, gate, static = session(tmp_path, '', '', '', '', '',
+        mode='static_and_runtime', scope=scope)
+    mutate(tmp_path, activity, 'ordinary Plugin A modification')
+    assert call(static)['result']['status'] == 'passed'
+    service, store, _ = runtime_service(activity, validation.debugging,
+        runtime_errors(runtime_error()), validation.repair_state)
+    gate.runtime = service
+    runtime = create_runtime_diagnostic_tool(service)
+    payload = call(runtime)
+    assert payload['result']['runtimeStatus'] == 'failed'
+    assert payload['result']['currentErrors'][0]['pluginId'] == 'foo'
+    assert '"debuggingTargetId":' not in json.dumps(payload)
+    assert 'select_debugging_target' not in payload['result']['debuggingGuidance']
+    assert payload['result']['runtimeDebuggingDifferential'] is None
+    assert not validation.debugging.observed_targets
+    assert not validation.debugging.runtime_targets
+    assert validation.debugging.runtime_baseline is None
+    assert not validation.debugging.diagnostic_scope_pending
+
+    guard = ScopeAwareRecoveryGuard(project_root=str(tmp_path), run_control=CreatorRunControlState())
+    guard.metrics = scope
+    guard.debugging = validation.debugging
+    guard._observe_result('inspect_runtime_errors', {}, json.dumps(payload))
+    assert not guard.run_control.blocked
+    request = SimpleNamespace(tool_call={'id': 'repair', 'name': 'edit_file_from_read',
+                                        'args': {'file_path': FOO}})
+    def repair(_):
+        mutate(tmp_path, activity, 'repaired Plugin A')
+        return '{"ok": true}'
+    handler = Mock(side_effect=repair)
+    guard.wrap_tool_call(request, handler)
+    handler.assert_called_once()
+    assert activity.revision == 2
+    assert call(static)['result']['status'] == 'passed'
+    store.result = runtime_errors()
+    assert call(runtime)['result']['runtimeStatus'] == 'passed'
+    assert gate.review('repaired').completion == 'success'
+    assert validation.debugging.target_selection_calls == 0
+
+
+def test_static_discovery_enriches_same_validation_diagnostic_with_selectable_id(tmp_path):
+    validation, _, _, static = session(tmp_path, ts(BAR), '', ts(BAR))
+    ordinary = call(static)
+    assert '"debuggingTargetId":' not in json.dumps(ordinary)
+    assert not validation.debugging.diagnostic_scope_pending
+    discovered = call(create_static_diagnostic_tool(validation))
+    diagnostic = discovered['result']['diagnosticIdentities'][0]
+    assert diagnostic['path'] == ordinary['result']['diagnosticIdentities'][0]['path']
+    assert validation.debugging.diagnostic_scope_pending
+    assert call(selection_tools(validation)[0], target_id=diagnostic['debuggingTargetId'])['ok']

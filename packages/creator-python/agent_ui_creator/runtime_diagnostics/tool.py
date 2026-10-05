@@ -269,7 +269,11 @@ class RuntimeDiagnosticInspectionService:
         result["debuggingGuidance"] = (
             "Use only fresh current-hash source attribution. Read the implicated owner "
             "and nearest contract; do not rediscover all Plugins or scan the workspace. "
-            "Select the requested debuggingTargetId with select_debugging_target before mutation; ask the user when candidates are ambiguous. Scope still controls repair."
+            + (
+                "Select the requested debuggingTargetId with select_debugging_target before mutation; ask the user when candidates are ambiguous. Scope still controls repair."
+                if self.debugging.should_discover_runtime_targets(self.activity.revision)
+                else "Repair only causally in-scope failures from the current mutation within the existing repair limit, then validate and inspect fresh Runtime evidence."
+            )
         )
         self.latest_result = result
         self.last_inspected_revision = self.activity.revision
@@ -542,10 +546,15 @@ def create_runtime_diagnostic_tool(
     async def inspect_runtime_errors(
         includeStale: bool = False,
     ) -> str:
-        """Inspect current-hash Runtime diagnostics and freshness. Select the requested debuggingTargetId with select_debugging_target before repair. Selection does not grant write permission. By default historical errors from older AppUIModel hashes are summarized but omitted. A passed result requires Runtime evidence received after the latest Creator source or composition mutation."""
+        """Inspect current-hash Runtime diagnostics and freshness. For pre-mutation debugging discovery, select the requested debuggingTargetId before repair. Ordinary post-mutation verification uses existing task scope and repair limits without target selection. Selection does not grant write permission. By default historical errors from older AppUIModel hashes are summarized but omitted. A passed result requires Runtime evidence received after the latest Creator source or composition mutation."""
         try:
             result = await service.inspect(include_stale=includeStale)
             service.debugging.observe_runtime_targets(result, service.activity.revision)
+            if not service.debugging.should_discover_runtime_targets(service.activity.revision):
+                result = {**result, "currentErrors": [
+                    {key: value for key, value in item.items() if key != "debuggingTargetId"}
+                    for item in result.get("currentErrors", [])
+                ]}
             result["targetDiagnosticCount"] = len(service.debugging.runtime_targets)
             result["runtimeDebuggingDifferential"] = service.debugging.runtime_differential(result, service.activity.revision)
             return json.dumps(

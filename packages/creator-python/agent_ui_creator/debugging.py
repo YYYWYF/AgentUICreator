@@ -82,7 +82,14 @@ class DebuggingEvidence:
                 "summary": f"{item.path} / {item.code}",
             }
 
+    def should_discover_runtime_targets(self, revision: int) -> bool:
+        return revision == 0 or bool(self.runtime_targets) or self.runtime_baseline is not None
+
     def observe_runtime_targets(self, result: dict[str, Any], revision: int) -> None:
+        # Ordinary post-mutation verification is repair evidence, not discovery.
+        # Existing targeted debugging continues refreshing its evidence.
+        if not self.should_discover_runtime_targets(revision):
+            return
         if result.get("diagnosticFresh") is not True or result.get("compositionFresh") is not True:
             return
         for item in result.get("currentErrors", []):
