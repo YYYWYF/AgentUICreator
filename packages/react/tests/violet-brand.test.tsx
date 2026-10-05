@@ -31,7 +31,7 @@ describe("Adaptable Violet brand boundary", () => {
     expect(createHash("sha256").update(palette).digest("hex")).toBe("b00390364b91b675c6d8144b8588592dc766b493d2cc1737bd8d4043bfab4f4b");
     expect(palette).not.toContain('[data-theme="violet"]');
     const brand = await read(brandPath);
-    expect(brand).toContain("--agent-brand: oklch(0.541 0.281 293.009);");
+    expect(brand).toContain("--agent-brand: oklch(0.612313 0.217364 287.489976);");
     expect(brand).toContain("--primary: var(--agent-brand);");
     expect(brand).not.toContain("var(--primary)");
     for (const state of ["subtle", "surface", "hover", "selected", "border", "hover-border", "focus-border", "focus-ring", "active"]) {
