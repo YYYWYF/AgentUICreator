@@ -1,6 +1,5 @@
 {
   "id": "foundation/core-adapters",
-  "version": "0.1.8",
   "kind": "foundation",
   "description": "Managed Agent UI foundation-core-adapters source",
   "files": [

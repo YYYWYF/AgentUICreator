@@ -14,7 +14,6 @@ export interface AgentUISourceLock {
 }
 
 export interface AgentUISourceLockItem {
-  version: string;
   files: Record<string, { sha256: string }>;
 }
 
@@ -26,7 +25,6 @@ export interface AgentUISourceTransactionOriginalEntry {
 export interface AgentUISourceTransactionJournal {
 
   itemId: string;
-  targetVersion: string;
   originals: AgentUISourceTransactionOriginalEntry[];
   lockContentBase64: string | null;
 }

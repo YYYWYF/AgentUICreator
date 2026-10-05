@@ -1,6 +1,5 @@
 {
   "id": "demo/composer-triggers",
-  "version": "0.1.0",
   "kind": "demo",
   "description": "Explicit development-only Mention roster and mixed Slash commands",
   "requires": [

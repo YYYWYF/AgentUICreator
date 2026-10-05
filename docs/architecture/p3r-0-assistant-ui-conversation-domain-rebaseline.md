@@ -377,7 +377,7 @@ It maps AgentUICreator Theme Service mode to assistant-ui variables/classes. Pre
 
 The pinned upstream reference is `assistant-ui@97bd4b39fce83163354c9ec8d9d4fb2c9bd1aac7`; Runtime packages are currently pinned to `@assistant-ui/react@0.15.19` and `@assistant-ui/react-ag-ui@0.0.59`.
 
-Reuse and extend the existing Source Registry rather than creating an unmanaged copy. The Registry already records project/mode/component/revision/license and the project lock records installed item versions and file hashes. The assistant-ui vendor item additionally needs `UPSTREAM.json` (or an equivalent schema extension) recording:
+Reuse and extend the existing Source Registry rather than creating an unmanaged copy. The Registry already records project/mode/component/revision/license and the project lock records source ownership and per-file SHA256 hashes. The assistant-ui vendor item additionally needs `UPSTREAM.json` (or an equivalent schema extension) recording:
 
 - upstream project, exact commit/package versions and license;
 - original path -> local path;

@@ -1,6 +1,5 @@
 {
   "id": "plugin/agent-status-message",
-  "version": "0.1.0",
   "kind": "agent-component",
   "description": "Agent Status named Tool UI",
   "requires": [

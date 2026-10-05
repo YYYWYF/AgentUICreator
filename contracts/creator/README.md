@@ -32,7 +32,7 @@ Agent Tool exposure 是单独的授权面：remove transport capability 不代�
 使用同一份 operation-specific Result `$defs`；envelope 的 Result union 不能替代
 request-scoped validation。内部复杂对象仅在显式标记 opaque 的局部放宽，
 AppUIModel model/layout/slot 继续由现有目标项目 Zod grammar 管理，不复制新的 grammar。
-Source inspection 使用现有 `availableVersion` / optional `installedVersion`，不新增
+Source inspection 使用显式 `owned` / 内容 SHA 驱动的 `updateAvailable`，不新增
 Host 没有返回的 `kind` 字段。
 
 `fixtures/project-control/manifest.json` 列出所有合法与非法 request/result fixtures；

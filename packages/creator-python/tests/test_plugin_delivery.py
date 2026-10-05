@@ -66,7 +66,7 @@ class CatalogClient:
                 "authoringTargetCatalog": {"candidates": [{"id": "right-panel"}]}}
     async def inspect_agent_ui_sources(self):
         return {"stateHash": "b" * 64, "items": [{"id": "plugin/generated-file-message",
-                "description": "File output display", "status": "available", "availableVersion": "1"}]}
+                "description": "File output display", "status": "available", "owned": False, "updateAvailable": False}]}
 
 
 def test_d01_formal_source_discovery_does_not_grant_development(tmp_path):

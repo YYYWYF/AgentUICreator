@@ -1,6 +1,5 @@
 {
   "id": "plugin/task-group",
-  "version": "0.1.0",
   "kind": "agent-component",
   "description": "Managed Agent UI plugin-task-group source",
   "files": [

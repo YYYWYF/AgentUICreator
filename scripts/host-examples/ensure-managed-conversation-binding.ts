@@ -34,6 +34,6 @@ export async function ensureManagedConversationBinding(projectRoot: string): Pro
 
   const nextLock = structuredClone(lock);
   nextLock.items[itemId]!.files[target] = { sha256: nextHash };
-  await commitAgentUISourceTransaction(projectRoot, config, itemId, item.version,
+  await commitAgentUISourceTransaction(projectRoot, config, itemId,
     [{ target, content: source.content }], serializeAgentUISourceLock(nextLock));
 }

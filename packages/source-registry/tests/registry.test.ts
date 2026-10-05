@@ -90,7 +90,6 @@ describe("Agent UI Source Registry public conversation contract", () => {
     }]));
     expect(parseSourceItem({
       id: "foundation/conversation",
-      version: "0.1.13",
       kind: "foundation",
       description: "canonical Conversation foundation",
       files: [{ source: "files/conversation/index.ts", target: "conversation/conversation-bridge.ts" }],

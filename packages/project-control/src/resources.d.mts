@@ -16,7 +16,8 @@ export interface ResourceCompositionInspection {
 export interface ResourceSourceItemInspection {
   id: string;
   status: string;
-  installedVersion?: string;
+  owned: boolean;
+  updateAvailable?: boolean;
   resolvedRequirements?: readonly ResourcePackageRequirement[];
   dependencies?: readonly string[];
   dependencyIssues?: readonly { code: string }[];

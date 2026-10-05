@@ -1,6 +1,5 @@
 {
   "id": "plugin/assistant-ui-submit-action",
-  "version": "0.1.0",
   "kind": "agent-component",
   "description": "Managed Agent UI plugin-assistant-ui-submit-action source",
   "files": [

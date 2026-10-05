@@ -25,14 +25,6 @@ async function put(root: string, relative: string, content: string | Buffer) {
   await writeFile(filename, content);
 }
 
-async function item(root: string, directory: string) {
-  return JSON.parse(await readFile(path.join(root, "packages/source-registry/registry/items", directory, "item.json"), "utf8"));
-}
-
-async function setItem(root: string, directory: string, value: Record<string, unknown>) {
-  await put(root, `packages/source-registry/registry/items/${directory}/item.json`, `${JSON.stringify(value, null, 2)}\n`);
-}
-
 it("upgrades installed Generative UI dependency source and lock without rewriting A2UI", async () => {
   const registryHost = await mkdtemp(path.join(tmpdir(), "generative-registry-upgrade-"));
   const upstream = await mkdtemp(path.join(tmpdir(), "generative-upstream-upgrade-"));
@@ -65,9 +57,6 @@ it("upgrades installed Generative UI dependency source and lock without rewritin
   })}\n`);
   await target("0.0.21", oldRevision);
   await syncGenerativeUi({ root: registryHost, repo: upstream, revision: oldRevision });
-  for (const [directory, version] of [["agent-component-assistant-ui-generative-ui", "0.1.0"], ["integration-generative-ui", "0.2.0"]] as const) {
-    await setItem(registryHost, directory, { ...await item(registryHost, directory), version });
-  }
   const oldRegistry = await loadAgentUISourceRegistry(registryRoot);
   const { config } = await resourcePaths(project);
   const apply = async (registry: typeof oldRegistry) => applyAgentUISourceItem(project, {
@@ -77,9 +66,9 @@ it("upgrades installed Generative UI dependency source and lock without rewritin
   await writeGeneratedConversationIntegrationRegistry(project);
   const lockPath = path.join(project, config.agentUI.metadataRoot, "source-lock.json");
   const oldLock = JSON.parse(await readFile(lockPath, "utf8"));
-  expect(oldLock.items["agent-component/assistant-ui-generative-ui"].version).toBe("0.1.0");
-  expect(oldLock.items["integration/generative-ui"].version).toBe("0.2.0");
-  expect(oldLock.items["integration/a2ui"].version).toBe("0.2.0");
+  expect(oldLock.items["agent-component/assistant-ui-generative-ui"]).not.toHaveProperty("version");
+  expect(oldLock.items["integration/generative-ui"]).not.toHaveProperty("version");
+  expect(oldLock.items["integration/a2ui"]).not.toHaveProperty("version");
   const a2uiFiles = oldRegistry.byId.get("integration/a2ui")!.loadedFiles;
   const a2uiBefore = await Promise.all(a2uiFiles.map(file => readFile(path.join(project, file.target))));
   const generatedPath = path.join(project, "agent-ui/conversation/integrations.generated.tsx");
@@ -89,9 +78,9 @@ it("upgrades installed Generative UI dependency source and lock without rewritin
   await target("0.0.22", nextRevision);
   await syncGenerativeUi({ root: registryHost, repo: upstream, revision: nextRevision });
   const upgradedRegistry = await loadAgentUISourceRegistry(registryRoot);
-  expect(upgradedRegistry.byId.get("agent-component/assistant-ui-generative-ui")!.version).toBe("0.1.1");
-  expect(upgradedRegistry.byId.get("integration/generative-ui")!.version).toBe("0.2.1");
-  expect(upgradedRegistry.byId.get("integration/a2ui")!.version).toBe("0.2.0");
+  expect(upgradedRegistry.byId.get("agent-component/assistant-ui-generative-ui")!).not.toHaveProperty("version");
+  expect(upgradedRegistry.byId.get("integration/generative-ui")!).not.toHaveProperty("version");
+  expect(upgradedRegistry.byId.get("integration/a2ui")!).not.toHaveProperty("version");
 
   const manifestPath = path.join(project, "package.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
@@ -109,8 +98,8 @@ it("upgrades installed Generative UI dependency source and lock without rewritin
   expect(upgraded.changedItems).not.toContain("integration/a2ui");
   expect(upgraded.changedPaths.some(changed => a2uiFiles.some(file => changed.endsWith(file.target)))).toBe(false);
   const upgradedLock = JSON.parse(await readFile(lockPath, "utf8"));
-  expect(upgradedLock.items["agent-component/assistant-ui-generative-ui"].version).toBe("0.1.1");
-  expect(upgradedLock.items["integration/generative-ui"].version).toBe("0.2.1");
+  expect(upgradedLock.items["agent-component/assistant-ui-generative-ui"]).not.toHaveProperty("version");
+  expect(upgradedLock.items["integration/generative-ui"]).not.toHaveProperty("version");
   expect(upgradedLock.items["integration/a2ui"]).toEqual(oldLock.items["integration/a2ui"]);
   const changedVendor = upgradedRegistry.byId.get("agent-component/assistant-ui-generative-ui")!.loadedFiles;
   for (const file of changedVendor) {

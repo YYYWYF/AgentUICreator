@@ -1,6 +1,5 @@
 {
   "id": "plugin/theme-switch",
-  "version": "0.1.0",
   "kind": "agent-component",
   "description": "Managed Agent UI plugin-theme-switch source",
   "files": [

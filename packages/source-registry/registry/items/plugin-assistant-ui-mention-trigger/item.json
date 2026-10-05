@@ -1,6 +1,5 @@
 {
   "id": "plugin/assistant-ui-mention-trigger",
-  "version": "0.1.0",
   "kind": "agent-component",
   "description": "Optional independent composer trigger",
   "requires": [

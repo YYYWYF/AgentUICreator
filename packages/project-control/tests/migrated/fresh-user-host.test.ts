@@ -169,7 +169,7 @@ it("upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIM
     await writeFile(target, content);
     oldFiles[file.target] = { sha256: sha256(content) };
   }
-  lock.items[footerId] = { version: "0.1.0", files: oldFiles };
+  lock.items[footerId] = { files: oldFiles };
   const surfaceId = "plugin/conversation-surface";
   const surfaceFiles: Record<string, { sha256: string }> = {};
   for (const file of registry.byId.get(surfaceId)!.files) {
@@ -177,14 +177,14 @@ it("upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIM
     await writeFile(path.join(paths.sourceRoot, file.target), content);
     surfaceFiles[file.target] = { sha256: sha256(content) };
   }
-  lock.items[surfaceId] = { version: "0.1.0", files: surfaceFiles };
+  lock.items[surfaceId] = { files: surfaceFiles };
   await writeFile(lockPath, serializeAgentUISourceLock(lock));
   const source = await readFile(new URL("../../../project-control/tests/fixtures/assistant-app-ui-7a31b5f.json", import.meta.url), "utf8");
   await writeFile(paths.appUIModelPath, source);
   const beforeAppUIModel = await readFile(paths.appUIModelPath, "utf8");
   const before = await inspectAgentUISources(root, config);
   expect(before.items.find(item => item.id === footerId)).toMatchObject({
-    installedVersion: "0.1.0", availableVersion: "0.1.2", status: "managed",
+    owned: true, updateAvailable: true, status: "managed",
   });
   expect(before.items.find(item => item.id === responseId)).toMatchObject({ status: "not-installed" });
   const surfaceEntry = path.join(paths.sourceRoot, "plugins/conversation-surface/index.tsx");
@@ -208,8 +208,8 @@ it("upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIM
     ...request,
   } as Parameters<typeof handleUIProjectControlRequest>[0], root))).toEqual([]);
   const { lock: upgradedLock } = await readAgentUISourceLock(root, config);
-  expect(upgradedLock.items[footerId]?.version).toBe("0.1.2");
-  expect(upgradedLock.items[responseId]?.version).toBe(response.version);
+  expect(upgradedLock.items[footerId]).not.toHaveProperty("version");
+  expect(upgradedLock.items[responseId]).not.toHaveProperty("version");
   for (const id of [footerId, responseId, surfaceId]) {
     for (const file of registry.byId.get(id)!.loadedFiles) {
       expect(upgradedLock.items[id]?.files[file.target]?.sha256).toBe(sha256(file.content));
@@ -218,7 +218,7 @@ it("upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIM
   }
   const after = await inspectAgentUISources(root, config);
   expect(after.items.find(item => item.id === footerId)).toMatchObject({
-    installedVersion: "0.1.2", availableVersion: "0.1.2", status: "managed",
+    owned: true, updateAvailable: false, status: "managed",
   });
   expect(after.items.find(item => item.id === responseId)?.status).toBe("managed");
   expect(await readFile(paths.appUIModelPath, "utf8")).toBe(beforeAppUIModel);

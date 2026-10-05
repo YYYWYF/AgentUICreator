@@ -390,8 +390,8 @@ export interface AgentUISourceFileInspection {
 export interface AgentUISourceItemInspection {
   id: string;
   description?: string;
-  installedVersion?: string;
-  availableVersion: string;
+  owned: boolean;
+  updateAvailable: boolean;
   status: AgentUISourceStatus;
   files: AgentUISourceFileInspection[];
   /** Packages declared directly by this item. */

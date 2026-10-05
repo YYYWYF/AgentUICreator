@@ -1,6 +1,5 @@
 {
   "id": "integration/react-hook-form",
-  "version": "0.1.0",
   "kind": "integration",
   "description": "AgentUICreator integration for assistant-ui React Hook Form frontend-tool semantics",
   "requires": [

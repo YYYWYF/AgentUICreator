@@ -1,6 +1,5 @@
 {
   "id": "foundation/conversation",
-  "version": "0.1.13",
   "kind": "foundation",
   "description": "Generic Conversation bridge sources backed by the public Agent UI packages",
   "packages": {

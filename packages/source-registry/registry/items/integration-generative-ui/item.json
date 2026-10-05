@@ -1,6 +1,5 @@
 {
   "id": "integration/generative-ui",
-  "version": "0.2.0",
   "kind": "integration",
   "description": "Official assistant-ui Generative UI vocabulary, renderer and action capabilities; no automatic Tool permission",
   "requires": [

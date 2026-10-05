@@ -1,6 +1,5 @@
 {
   "id": "plugin/conversation-service",
-  "version": "0.1.0",
   "kind": "agent-component",
   "description": "Managed Agent UI plugin-conversation-service source",
   "files": [

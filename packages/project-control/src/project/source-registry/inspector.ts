@@ -26,6 +26,19 @@ import {
   resolveAgentUISourceRoots,
 } from "./path-policy";
 
+function registryFingerprint(item: LoadedAgentUISourceItem): string {
+  return sha256(JSON.stringify({
+    id: item.id,
+    kind: item.kind,
+    description: item.description,
+    upstream: Object.fromEntries(Object.entries(item.upstream ?? {}).sort(([a], [b]) => a.localeCompare(b))),
+    requires: [...(item.requires ?? [])].sort(),
+    packages: Object.fromEntries(Object.entries(item.packages ?? {}).sort(([a], [b]) => a.localeCompare(b))),
+    files: item.loadedFiles.map(file => ({ source: file.source, target: file.target, sha256: sha256(file.content) }))
+      .sort((a, b) => a.target.localeCompare(b.target)),
+  }));
+}
+
 async function inspectFile(
   sourceRoot: string,
   sourceRootName: string,
@@ -231,8 +244,11 @@ export async function inspectAgentUISources(
     items.push({
       id: item.id,
       description: item.description,
-      ...(locked === undefined ? (provided ? { installedVersion: item.version } : {}) : { installedVersion: locked.version }),
-      availableVersion: item.version,
+      owned: locked !== undefined || provided,
+      updateAvailable: locked !== undefined && (
+        Object.keys(locked.files).length !== item.loadedFiles.length ||
+        item.loadedFiles.some(file => locked.files[file.target]?.sha256 !== sha256(file.content))
+      ),
       status,
       files,
       requirements: packageInspection.packages,
@@ -283,7 +299,11 @@ export async function inspectAgentUISources(
     packages: packageInspection.packages,
     issues,
   };
-  return { stateHash: sha256(JSON.stringify(body)), ...body };
+  // Registry edits between inspect and apply must invalidate the old stateHash.
+  const registryFingerprints = loadedRegistry.items
+    .map(item => [item.id, registryFingerprint(item)] as const)
+    .sort(([left], [right]) => left.localeCompare(right));
+  return { stateHash: sha256(JSON.stringify({ ...body, registryFingerprints })), ...body };
 }
 
 export function agentUISourceSummary(inspection: AgentUISourceInspection) {

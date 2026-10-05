@@ -125,7 +125,7 @@ It always installs source first and composes a Plugin only for entries in the De
 composition map. `installScenarioResources` remains a compatibility alias, and the
 Creator Dev Server prefers `installMockResource` over the deprecated option.
 Workbench inspection uses optional-resource inspection for every lock-owned or
-provided item, identified by `installedVersion`, regardless of Source kind.
+provided item, identified by `owned: true`, regardless of Source kind.
 Unowned items retain normal inspection; Demo/Integration remain the only optional
 installation roots. Legacy Host foundations are provided rather than adopted. The active
 legacy readiness regression covers installation, composition, this merge, and

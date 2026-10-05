@@ -109,13 +109,12 @@ export async function installAgentUISourceItems(
       mutations.push({ target: file.target, content: file.content });
     }
     nextLock.items[item.id] = {
-      version: item.version,
       files: Object.fromEntries(item.loadedFiles.map((file) => [file.target, { sha256: sha256(file.content) }])),
     };
   }
   mutations.sort((left, right) => left.target.localeCompare(right.target));
   await commitAgentUISourceTransaction(
-    projectRoot, config, "initialization", "0.1.0", mutations,
+    projectRoot, config, "initialization", mutations,
     serializeAgentUISourceLock(nextLock),
   );
   const after = await inspectAgentUISources(projectRoot, config, loadedRegistry);
@@ -209,7 +208,6 @@ export async function applyAgentUISourceItem(
       mutations.set(file.target, { target: file.target, content: file.content });
     }
     nextLock.items[item.id] = {
-      version: item.version,
       files: Object.fromEntries(
         item.loadedFiles
           .map((file) => [file.target, { sha256: sha256(file.content) }] as const)
@@ -235,7 +233,6 @@ export async function applyAgentUISourceItem(
     projectRoot,
     config,
     input.itemId,
-    loadedRegistry.byId.get(input.itemId)!.version,
     orderedMutations,
     serializeAgentUISourceLock(nextLock),
     testOptions,
@@ -324,7 +321,6 @@ export async function removeAgentUISourceItems(
     projectRoot,
     config,
     "cleanup",
-    "0.0.0",
     mutations,
     serializeAgentUISourceLock(nextLock),
     testOptions,

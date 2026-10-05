@@ -1,6 +1,5 @@
 {
   "id": "plugin/generated-file-message",
-  "version": "0.1.0",
   "kind": "agent-component",
   "description": "Generated File named backend Tool UI",
   "requires": [

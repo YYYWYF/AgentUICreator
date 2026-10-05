@@ -79,7 +79,7 @@ Nothing adds `present` or `prompt_user` to `RunAgentInput.tools`.
 
 For legacy v1 projects, the separate scenario-resource lock owns every installed
 dependency, including the styled agent-component. Workbench merges resource
-inspection for entries with `installedVersion`, representing lock-owned source
+inspection for entries with `owned: true`, representing lock-owned source
 or provided Host foundations, regardless of Source kind or inspection status.
 Unowned entries keep normal inspection. The installation root allowlist remains
 demo/integration; Host foundations remain provided, unadopted and unwritten.

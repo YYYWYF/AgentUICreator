@@ -1,6 +1,5 @@
 {
   "id": "plugin/source-citations-message",
-  "version": "0.1.0",
   "kind": "agent-component",
   "description": "Source Citations named backend Tool UI",
   "requires": [

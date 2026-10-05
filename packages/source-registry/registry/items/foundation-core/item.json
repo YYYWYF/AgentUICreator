@@ -1,6 +1,5 @@
 {
   "id": "foundation/core",
-  "version": "0.1.12",
   "kind": "foundation",
   "description": "Public Agent UI entry and generated Plugin Registry entry",
   "requires": [

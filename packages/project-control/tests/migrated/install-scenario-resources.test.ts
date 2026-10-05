@@ -40,7 +40,7 @@ it("delegates bundle installation to the Host and places a visible Form beside t
   })] }));
 });
 it("reports missing dependencies before any source or composition mutation", async () => {
-  vi.mocked(inspectAgentUISources).mockResolvedValueOnce({ stateHash: "hash", sourceRoot: ".", metadataRoot: ".agent-ui", packages: [], issues: [], items: [{ id: "demo/frontend-tool-form", availableVersion: "0.1.0", status: "not-installed", files: [], requirements: [], issues: [], dependencies: [], dependencyIssues: [], resolvedRequirements: [{ name: "react-hook-form", required: "^7", compatible: false }] }] });
+  vi.mocked(inspectAgentUISources).mockResolvedValueOnce({ stateHash: "hash", sourceRoot: ".", metadataRoot: ".agent-ui", packages: [], issues: [], items: [{ id: "demo/frontend-tool-form", owned: false, updateAvailable: false, status: "not-installed", files: [], requirements: [], issues: [], dependencies: [], dependencyIssues: [], resolvedRequirements: [{ name: "react-hook-form", required: "^7", compatible: false }] }] });
   await expect(installScenarioResources(await project(), "demo/frontend-tool-form")).rejects.toThrow("react-hook-form ^7");
   expect(applyAgentUISourceProjectMutation).not.toHaveBeenCalled();
   expect(mutateAppUIModel).not.toHaveBeenCalled();

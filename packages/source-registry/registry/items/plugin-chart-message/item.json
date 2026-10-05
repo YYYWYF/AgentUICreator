@@ -1,6 +1,5 @@
 {
   "id": "plugin/chart-message",
-  "version": "0.1.0",
   "kind": "agent-component",
   "description": "Named chart Data Message UI for assistant messages",
   "files": [

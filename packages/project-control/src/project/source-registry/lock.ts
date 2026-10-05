@@ -53,10 +53,8 @@ function parseLock(value: unknown, sourceRoot: string): AgentUISourceLock {
     if (typeof rawItem !== "object" || rawItem === null || Array.isArray(rawItem)) {
       throw new AgentUISourceError("AGENT_UI_SOURCE_LOCK_INVALID", `Invalid lock item ${itemId}.`);
     }
-    const version = (rawItem as Record<string, unknown>).version;
     const rawFiles = (rawItem as Record<string, unknown>).files;
     if (
-      typeof version !== "string" ||
       typeof rawFiles !== "object" ||
       rawFiles === null ||
       Array.isArray(rawFiles)
@@ -78,7 +76,7 @@ function parseLock(value: unknown, sourceRoot: string): AgentUISourceLock {
       }
       files[filePath] = { sha256: digest };
     }
-    items[itemId] = { version, files };
+    items[itemId] = { files };
   }
   return { sourceRoot, items };
 }
@@ -119,7 +117,6 @@ export function serializeAgentUISourceLock(lock: AgentUISourceLock): Buffer {
       .map(([itemId, item]) => [
         itemId,
         {
-          version: item.version,
           files: Object.fromEntries(
             Object.entries(item.files).sort(([left], [right]) => left.localeCompare(right)),
           ),

@@ -5,7 +5,6 @@
   "items": [
     {
       "id": "primitive/tooltip",
-      "availableVersion": "1.0.0",
       "status": "managed",
       "files": [
         {
@@ -36,7 +35,8 @@
       ],
       "dependencyIssues": [],
       "issues": [],
-      "installedVersion": "1.0.0"
+      "owned": true,
+      "updateAvailable": false
     }
   ],
   "packages": [],

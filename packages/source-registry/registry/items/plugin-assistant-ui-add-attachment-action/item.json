@@ -1,6 +1,5 @@
 {
   "id": "plugin/assistant-ui-add-attachment-action",
-  "version": "0.1.0",
   "kind": "agent-component",
   "description": "Managed Agent UI plugin-assistant-ui-add-attachment-action source",
   "files": [

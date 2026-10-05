@@ -11,7 +11,6 @@ export const MAX_AGENT_UI_SOURCE_ITEM_BYTES = 2 * 1024 * 1024;
 
 const ITEM_ID = /^[a-z0-9]+(?:[/-][a-z0-9]+)*$/;
 const PACKAGE_NAME = /^(?:@[a-z0-9._-]+\/[a-z0-9._-]+|[a-z0-9._-]+)$/i;
-const SEMVER = /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 const SEMVER_RANGE = /^(?:[~^]|>=?|<=?)?\s*(?:0|[1-9]\d*)(?:\.(?:0|[1-9]\d*))?(?:\.(?:0|[1-9]\d*))?(?:-[0-9A-Za-z.-]+)?(?:\s+(?:>=?|<=?)\s*(?:0|[1-9]\d*)(?:\.(?:0|[1-9]\d*))?(?:\.(?:0|[1-9]\d*))?(?:-[0-9A-Za-z.-]+)?)*$/;
 const GIT_COMMIT_SHA = /^[a-f0-9]{40}$/;
 const FORBIDDEN_UPSTREAM_REVISIONS = new Set(["latest", "main", "master"]);
@@ -89,7 +88,7 @@ export function parseRegistryManifest(
 }
 
 export function parseSourceItem(value: unknown, manifestPath: string): AgentUISourceItem {
-  if (!isRecord(value) || Object.keys(value).some((key) => !["id", "version", "kind", "description", "upstream", "requires", "packages", "files"].includes(key))) {
+  if (!isRecord(value) || Object.keys(value).some((key) => !["id", "kind", "description", "upstream", "requires", "packages", "files"].includes(key))) {
     throw new AgentUISourceRegistryError(
       "AGENT_UI_SOURCE_ITEM_INVALID",
       `${manifestPath} is invalid.`,
@@ -99,12 +98,6 @@ export function parseSourceItem(value: unknown, manifestPath: string): AgentUISo
     throw new AgentUISourceRegistryError(
       "AGENT_UI_SOURCE_ITEM_INVALID",
       `${manifestPath} has an invalid item id.`,
-    );
-  }
-  if (typeof value.version !== "string" || !SEMVER.test(value.version)) {
-    throw new AgentUISourceRegistryError(
-      "AGENT_UI_SOURCE_ITEM_INVALID",
-      `${manifestPath} has an invalid semantic version.`,
     );
   }
   if (!(["foundation", "primitive", "agent-component", "integration", "demo"] as const).includes(value.kind as never)) {
@@ -238,7 +231,6 @@ export function parseSourceItem(value: unknown, manifestPath: string): AgentUISo
   }
   return {
     id: value.id,
-    version: value.version,
     kind: value.kind as AgentUISourceItem["kind"],
     description: value.description,
     ...(upstream === undefined ? {} : { upstream }),

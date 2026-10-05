@@ -22,8 +22,7 @@ export async function ensureManagedHostPlugins(
     const inspection = response.result as AgentUISourceInspection;
     const item = inspection.items.find(item => item.id.startsWith("plugin/") &&
       !preserved.has(item.id) &&
-      item.status === "managed" && item.installedVersion !== undefined &&
-      item.installedVersion !== item.availableVersion);
+      item.status === "managed" && item.owned && item.updateAvailable);
     if (!item) return updated;
     if (attempted.has(item.id)) throw new Error(`Managed plugin upgrade did not advance ${item.id}`);
     attempted.add(item.id);

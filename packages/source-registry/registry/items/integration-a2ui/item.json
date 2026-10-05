@@ -1,6 +1,5 @@
 {
   "id": "integration/a2ui",
-  "version": "0.2.0",
   "kind": "integration",
   "description": "Official AgentUICreator integration for A2UI over AG-UI",
   "requires": [

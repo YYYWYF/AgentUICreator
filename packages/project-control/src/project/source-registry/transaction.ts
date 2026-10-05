@@ -54,9 +54,8 @@ function parseJournal(value: unknown): AgentUISourceTransactionJournal {
   }
   const record = value as Record<string, unknown>;
   if (
-    Object.keys(record).sort().join(",") !== "itemId,lockContentBase64,originals,targetVersion" ||
+    Object.keys(record).filter(key => key !== "targetVersion").sort().join(",") !== "itemId,lockContentBase64,originals" ||
     typeof record.itemId !== "string" ||
-    typeof record.targetVersion !== "string" ||
     !Array.isArray(record.originals) ||
     !(typeof record.lockContentBase64 === "string" || record.lockContentBase64 === null)
   ) {
@@ -81,7 +80,6 @@ function parseJournal(value: unknown): AgentUISourceTransactionJournal {
   }
   return {
     itemId: record.itemId,
-    targetVersion: record.targetVersion,
     originals,
     lockContentBase64: record.lockContentBase64,
   };
@@ -136,7 +134,6 @@ export async function commitAgentUISourceTransaction(
   projectRoot: string,
   config: UIProjectControlConfig,
   itemId: string,
-  targetVersion: string,
   mutations: AgentUISourceFileMutation[],
   nextLock: Buffer,
   options: AgentUISourceTransactionTestOptions = {},
@@ -163,7 +160,6 @@ export async function commitAgentUISourceTransaction(
   const previousLock = await readOptionalBuffer(path.join(metadataRoot, AGENT_UI_SOURCE_LOCK_FILE));
   const journal: AgentUISourceTransactionJournal = {
     itemId,
-    targetVersion,
     originals,
     lockContentBase64: previousLock?.toString("base64") ?? null,
   };

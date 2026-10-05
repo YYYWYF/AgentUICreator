@@ -1,6 +1,5 @@
 {
   "id": "agent-component/assistant-ui-generative-ui",
-  "version": "0.1.0",
   "kind": "agent-component",
   "description": "Official assistant-ui styled Generative UI vocabulary and Host-scoped vocabulary CSS",
   "requires": [

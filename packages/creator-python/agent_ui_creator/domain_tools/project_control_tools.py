@@ -112,8 +112,8 @@ def _source_inventory(result: dict[str, Any]) -> dict[str, Any]:
                 "id": item["id"],
                 **({"description": item["description"]} if "description" in item else {}),
                 "status": item["status"],
-                "availableVersion": item["availableVersion"],
-                **({"installedVersion": item["installedVersion"]} if "installedVersion" in item else {}),
+                "owned": item["owned"],
+                "updateAvailable": item["updateAvailable"],
                 "fileCount": len(item.get("files", [])),
                 "dependencyIssueCodes": sorted({issue["code"] for issue in item.get("dependencyIssues", [])}),
                 "issueCodes": sorted({issue["code"] for issue in item.get("issues", [])}),
@@ -537,7 +537,7 @@ def create_project_control_tools(
 
     @tool("inspect_agent_ui_sources")
     async def inspect_agent_ui_sources() -> str:
-        """List all available and installed Agent UI Source Items with current stateHash, status, versions, and issue codes. The inventory is complete; file and dependency details are omitted. apply_agent_ui_source_item reports checked dependency and path conflicts without overwriting user files."""
+        """List all available and installed Agent UI Source Items with current stateHash, status, ownership, content update availability, and issue codes. The inventory is complete; file and dependency details are omitted. apply_agent_ui_source_item reports checked dependency and path conflicts without overwriting user files."""
         prohibited = cross_layer_read_prohibited("inspect_agent_ui_sources")
         if prohibited is not None:
             return prohibited

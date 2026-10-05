@@ -1,6 +1,5 @@
 {
   "id": "plugin/conversation-surface",
-  "version": "0.1.2",
   "kind": "agent-component",
   "description": "Managed Agent UI plugin-conversation-surface source",
   "files": [

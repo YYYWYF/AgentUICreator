@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -10,7 +10,8 @@ import {
 import { afterEach, describe, expect, it } from "vitest";
 
 import { applyAgentUISourceItem, inspectAgentUISources } from "../../src/project/source-registry/index";
-import { readAgentUISourceLock, sha256 } from "../../src/project/source-registry/lock";
+import { readAgentUISourceLock, serializeAgentUISourceLock, sha256 } from "../../src/project/source-registry/lock";
+import { commitAgentUISourceTransaction, recoverPendingAgentUISourceTransaction } from "../../src/project/source-registry/transaction";
 import { uiProjectControlConfig } from "../../src/project/project-config";
 
 const projects: string[] = [];
@@ -34,7 +35,6 @@ function item(id: string, files: Record<string, string>, requires: string[] = []
   }));
   return {
     id,
-    version: "0.1.0",
     kind: "foundation",
     description: id,
     requires,
@@ -60,7 +60,7 @@ async function lockedFiles(root: string, itemId: string) {
 }
 
 describe("managed Source freshness uses target set and content hashes", () => {
-  it("synchronizes changed content at the same legacy version and updates the lock", async () => {
+  it("synchronizes changed content without a version and updates the lock", async () => {
     const root = await projectRoot();
     const old = registry(item("foundation/example", { "example.ts": "old" }));
     const current = registry(item("foundation/example", { "example.ts": "new" }));
@@ -75,7 +75,7 @@ describe("managed Source freshness uses target set and content hashes", () => {
     });
   });
 
-  it("keeps identical targets and hashes as a no-op at the same version", async () => {
+  it("keeps identical targets and hashes as a no-op without a version", async () => {
     const root = await projectRoot();
     const sourceRegistry = registry(item("foundation/example", { "example.ts": "unchanged" }));
     await apply(root, sourceRegistry, "foundation/example");
@@ -120,7 +120,7 @@ describe("managed Source freshness uses target set and content hashes", () => {
     expect(await readFile(path.join(root, "agent-ui/dependency.ts"), "utf8")).toBe("project customization");
   });
 
-  it("adds and removes managed targets at the same version", async () => {
+  it("adds and removes managed targets without a version", async () => {
     const root = await projectRoot();
     const old = registry(item("foundation/example", { "keep.ts": "keep", "remove.ts": "remove" }));
     const current = registry(item("foundation/example", { "keep.ts": "keep", "add.ts": "add" }));
@@ -177,4 +177,103 @@ describe("managed Source freshness uses target set and content hashes", () => {
       ])));
     }
   });
+});
+
+
+it("invalidates stale inspections when uninstalled or installed Registry content changes", async () => {
+  const root = await projectRoot();
+  const old = registry(item("foundation/example", { "example.ts": "old" }));
+  const current = registry(item("foundation/example", { "example.ts": "new" }));
+  for (const installed of [false, true]) {
+    if (installed) await apply(root, old, "foundation/example");
+    const before = await inspectAgentUISources(root, uiProjectControlConfig, old);
+    const after = await inspectAgentUISources(root, uiProjectControlConfig, current);
+    expect(after.stateHash).not.toBe(before.stateHash);
+    expect(after.items[0]).toMatchObject({ owned: installed, updateAvailable: installed });
+    await expect(applyAgentUISourceItem(root, {
+      itemId: "foundation/example", expectedStateHash: before.stateHash,
+    }, uiProjectControlConfig, current)).rejects.toMatchObject({ code: "AGENT_UI_SOURCE_STATE_CONFLICT" });
+  }
+  await apply(root, current, "foundation/example");
+  expect((await apply(root, current, "foundation/example")).changed).toBe(false);
+});
+
+it("includes Registry manifest requirements in the optimistic state hash", async () => {
+  const root = await projectRoot();
+  const source = item("foundation/example", { "example.ts": "same" });
+  const before = await inspectAgentUISources(root, uiProjectControlConfig, registry(source));
+  const after = await inspectAgentUISources(root, uiProjectControlConfig, registry({
+    ...source, upstream: { project: "example", mode: "adapted", revision: "changed" },
+  }));
+  expect(after.stateHash).not.toBe(before.stateHash);
+});
+
+it("reads legacy locks and drops version when serializing the next mutation", async () => {
+  const root = await projectRoot();
+  const sources = registry(item("foundation/example", { "example.ts": "old" }));
+  await apply(root, sources, "foundation/example");
+  const lockPath = path.join(root, ".agent-ui/source-lock.json");
+  const legacy = JSON.parse(await readFile(lockPath, "utf8"));
+  legacy.items["foundation/example"].version = "0.1.6";
+  await writeFile(lockPath, JSON.stringify(legacy));
+  const { lock } = await readAgentUISourceLock(root, uiProjectControlConfig);
+  expect(lock.items["foundation/example"]).not.toHaveProperty("version");
+  expect(JSON.parse(serializeAgentUISourceLock(lock).toString()).items["foundation/example"])
+    .not.toHaveProperty("version");
+  await apply(root, registry(item("foundation/example", { "example.ts": "new" })), "foundation/example");
+  expect(JSON.parse(await readFile(lockPath, "utf8")).items["foundation/example"])
+    .not.toHaveProperty("version");
+});
+
+it("preserves explicit ownership for managed, customized, partial and provided sources", async () => {
+  const root = await projectRoot();
+  const sources = registry(item("foundation/example", { "example.ts": "managed" }));
+  const inspect = () => inspectAgentUISources(root, uiProjectControlConfig, sources);
+  expect((await inspect()).items[0]).toMatchObject({ owned: false, status: "not-installed" });
+  await apply(root, sources, "foundation/example");
+  expect((await inspect()).items[0]).toMatchObject({ owned: true, status: "managed" });
+  await writeFile(path.join(root, "agent-ui/example.ts"), "customized");
+  expect((await inspect()).items[0]).toMatchObject({ owned: true, status: "customized" });
+  await rm(path.join(root, "agent-ui/example.ts"));
+  expect((await inspect()).items[0]).toMatchObject({ owned: true, status: "partial" });
+  await rm(path.join(root, ".agent-ui/source-lock.json"));
+  const providedConfig = { ...uiProjectControlConfig, agentUI: {
+    ...uiProjectControlConfig.agentUI, providedSourceItems: ["foundation/example"],
+  } };
+  expect((await inspectAgentUISources(root, providedConfig, sources)).items[0]).toMatchObject({ owned: true });
+});
+
+it.each([false, true])("recovers interrupted transactions with legacy targetVersion=%s", async legacy => {
+  const root = await projectRoot();
+  await mkdir(path.join(root, "agent-ui"), { recursive: true });
+  await writeFile(path.join(root, "agent-ui/example.ts"), "original");
+  const nextLock = serializeAgentUISourceLock({ sourceRoot: "agent-ui", items: {} });
+  await expect(commitAgentUISourceTransaction(root, uiProjectControlConfig, "foundation/example",
+    [{ target: "example.ts", content: Buffer.from("changed") }], nextLock,
+    { simulateCrashAfterMutation: 1 })).rejects.toThrow("Simulated");
+  const journalPath = path.join(root, ".agent-ui/source-transaction.json");
+  const journal = JSON.parse(await readFile(journalPath, "utf8"));
+  expect(journal).not.toHaveProperty("targetVersion");
+  if (legacy) {
+    journal.targetVersion = "0.1.0";
+    await writeFile(journalPath, JSON.stringify(journal));
+  }
+  await recoverPendingAgentUISourceTransaction(root, uiProjectControlConfig);
+  expect(await readFile(path.join(root, "agent-ui/example.ts"), "utf8")).toBe("original");
+  await expect(readFile(journalPath)).rejects.toMatchObject({ code: "ENOENT" });
+  await expect(readFile(path.join(root, ".agent-ui/source-lock.json"))).rejects.toMatchObject({ code: "ENOENT" });
+});
+
+
+it("synchronizes changed dependency content without changing stable IDs", async () => {
+  const root = await projectRoot();
+  const consumer = item("foundation/consumer", { "consumer.ts": "same" }, ["foundation/dependency"]);
+  const old = registry(item("foundation/dependency", { "dependency.ts": "old" }), consumer);
+  const current = registry(item("foundation/dependency", { "dependency.ts": "new" }), consumer);
+  await apply(root, old, consumer.id);
+  const result = await apply(root, current, consumer.id);
+  expect(result.changedItems).toEqual(["foundation/dependency"]);
+  expect(await readFile(path.join(root, "agent-ui/dependency.ts"), "utf8")).toBe("new");
+  expect(await lockedFiles(root, "foundation/dependency")).toEqual({ "dependency.ts": { sha256: sha256("new") } });
+  expect((await apply(root, current, consumer.id)).changed).toBe(false);
 });

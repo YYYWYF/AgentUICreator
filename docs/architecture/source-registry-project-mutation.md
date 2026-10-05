@@ -95,3 +95,31 @@ Owner regressions cover live/dead PIDs, v1 compatibility, permission failures,
 create-only publication races, bounded admission retry, and real child processes:
 one process holds the journal while a separate ProjectControl process refuses
 inspect/apply/remove without changing its files, then recovers after owner exit.
+
+
+## Source identity and content ownership
+
+Source Registry items have stable IDs and no manually maintained item version.
+The current Registry manifest and files declare the desired source. npm package
+versions/ranges, upstream revisions/provenance, and UI Plugin manifest contract
+versions retain their existing meaning.
+
+Source locks own files through per-file SHA256 hashes. The reader accepts legacy
+`{ version, files }` entries and ignores `version`; the serializer emits only
+`{ files }`. The next legal mutation naturally rewrites the lock. Inspection
+reports `owned` for any locked or Host-provided item, including customized and
+partial sources. `updateAvailable` compares locked file hashes and target sets
+with current Registry files; it does not grant permission to overwrite user
+customization. Optional resource inspection uses `owned` for its merge.
+
+The optimistic `stateHash` includes deterministic Registry fingerprints over
+manifest metadata, sorted requirements/package entries and file targets/content
+SHA256. A Registry edit invalidates an earlier inspection even for uninstalled
+items. Installation and dependency synchronization continue to compare content
+hashes and preserve customized source protection.
+
+New storage transaction journals omit `targetVersion`. Recovery accepts legacy
+journals carrying that field and ignores it; original bytes and lock backups
+still determine rollback. Registry schema and architecture guards reject item
+manifests declaring `version`, so developers only edit source and never bump an
+item version.

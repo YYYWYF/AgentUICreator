@@ -1,6 +1,5 @@
 {
   "id": "demo/frontend-tool-form",
-  "version": "0.1.1",
   "kind": "demo",
   "description": "Optional form frontend tool scenario resources",
   "files": [

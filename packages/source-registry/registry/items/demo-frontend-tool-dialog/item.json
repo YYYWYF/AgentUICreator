@@ -1,6 +1,5 @@
 {
   "id": "demo/frontend-tool-dialog",
-  "version": "0.1.0",
   "kind": "demo",
   "description": "Optional dialog frontend tool scenario resources",
   "packages": {

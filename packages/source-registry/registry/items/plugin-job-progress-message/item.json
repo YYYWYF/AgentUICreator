@@ -1,6 +1,5 @@
 {
   "id": "plugin/job-progress-message",
-  "version": "0.1.0",
   "kind": "agent-component",
   "description": "Job Progress named Tool UI",
   "requires": [

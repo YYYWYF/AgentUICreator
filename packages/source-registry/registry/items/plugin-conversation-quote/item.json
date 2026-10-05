@@ -1,6 +1,5 @@
 {
   "id": "plugin/conversation-quote",
-  "version": "0.1.0",
   "kind": "agent-component",
   "description": "Optional assistant-ui Quote creation UX; history and outbound semantics belong to the canonical Conversation.",
   "files": [

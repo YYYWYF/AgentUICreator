@@ -3,7 +3,7 @@ import { loadAgentUISourceRegistry, isOptionalAgentUISourceItem, parseSourceItem
 
 describe("official integration resources", () => {
   it("accepts pluginless, tool-less bridges", () => {
-    const item = parseSourceItem({ id: "integration/example", version: "0.1.0", kind: "integration", description: "Renderer bridge", files: [{ source: "files/bridge.ts", target: "integrations/example/bridge.ts" }] }, "item.json");
+    const item = parseSourceItem({ id: "integration/example",kind: "integration", description: "Renderer bridge", files: [{ source: "files/bridge.ts", target: "integrations/example/bridge.ts" }] }, "item.json");
     expect(item.kind).toBe("integration");
     expect(isOptionalAgentUISourceItem(item)).toBe(true);
     expect(isOptionalAgentUISourceItem({ kind: "demo" })).toBe(true);

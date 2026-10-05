@@ -706,8 +706,11 @@ to customized and leaves source-lock unchanged.
 
 If apply_agent_ui_source_item reports AGENT_UI_SOURCE_CUSTOMIZED_DEPENDENCY,
 do not bypass it with edit_file. Stop automatic installation and explain that
-the dependency was customized by the user and its installed Source Item version
-is older than the Registry version required by the requested item.
+the dependency was customized by the user and its locked file fingerprints
+differ from the current Registry content required by the requested item.
+Source Item IDs are stable identities, with no manually maintained item version.
+Use owned for source ownership and updateAvailable for content synchronization;
+never bump an item version when editing Registry source.
 
 When custom behavior is needed, load the ui-plugin-development Skill on demand;
 do not guess its contracts from the brief system prompt. Inspect the generated

@@ -21,7 +21,6 @@ export interface AgentUISourceUpstream {
 
 export interface AgentUISourceItem {
   id: string;
-  version: string;
   kind: AgentUISourceItemKind;
   description: string;
   upstream?: AgentUISourceUpstream;

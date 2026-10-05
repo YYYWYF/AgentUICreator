@@ -53,7 +53,7 @@ async function main() {
     if (!sources.ok) throw new Error("Could not inspect managed Host sources");
     const inspection = sources.result as import("../../packages/project-control/src/dev").AgentUISourceInspection;
     const core = inspection.items.find(item => item.id === "foundation/core");
-    if (core && core.installedVersion !== core.availableVersion) {
+    if (core && (core.updateAvailable || core.dependencies.some(id => inspection.items.some(item => item.id === id && item.updateAvailable)))) {
       if (core.status === "customized" || core.status === "blocked") {
         console.warn("Preserving the Host's customized foundation; automatic source upgrades are skipped.");
       } else {
