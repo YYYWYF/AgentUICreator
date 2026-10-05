@@ -1,3 +1,4 @@
+import type { ConversationToolkit } from "@agent-ui/react";
 import {
   collectAppUIPluginLocations,
   parseAppUIModelJson,
@@ -18,12 +19,16 @@ import { resolvePluginConversationToolkit } from "../plugins/plugin-conversation
 import type { PluginCapabilityCatalog } from "./PluginCapabilityCatalog";
 
 export interface RuntimeCompositionBuildInput<TState = unknown> {
+  /** Application-owned base entries, validated together with Plugin contributions. */
+  baseConversationToolkit?: ConversationToolkit | undefined;
   appUIModelSource: string;
   capabilityCatalog: PluginCapabilityCatalog<TState>;
   capabilityCatalogRevision: string;
 }
 
 export interface RuntimeCompositionBuildResult<TState = unknown> {
+  /** Final toolkit validated before this candidate can be published. */
+  conversationToolkit: ConversationToolkit;
   appUIModelHash: string;
   appUIModel: AppUIModel;
   activeRegistry: PluginRegistry<TState>;
@@ -111,9 +116,10 @@ export async function buildRuntimeComposition<TState = unknown>(
   const compositionCatalog = createPluginCompositionCatalog(activeRegistry);
   const runtimeModel = compileAppUIModel(appUIModel, compositionCatalog);
   validateDataMessageUIDefinitions(runtimeModel, activeRegistry);
-  resolvePluginConversationToolkit(runtimeModel, activeRegistry);
+  const conversationToolkit = resolvePluginConversationToolkit(runtimeModel, activeRegistry, input.baseConversationToolkit);
 
   return {
+    conversationToolkit,
     appUIModelHash,
     appUIModel,
     activeRegistry,

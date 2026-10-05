@@ -186,10 +186,11 @@
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/retrieval-chunks.tsx",
       "localPath": "components/assistant-ui/elements/retrieval-chunks.tsx",
       "upstreamSha256": "4d5865907f9451cc44ef66469cd71c3e19fc090d60ca0a055b75d2cabab49131",
-      "installedSha256": "48ec963d0e43af96fc747f9b7e9fe271196b9e867c0d0c956e60d5e3d8e1ac5f",
+      "installedSha256": "4b8169f1923e2b2d199f30be0bd1f0cc76c48a74c1b3a9238139e03d331f486c",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative"
+        "import-alias-to-relative",
+        "agent-ui-search-presentation-labels-seam"
       ]
     },
     {
@@ -306,10 +307,11 @@
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/web-search.tsx",
       "localPath": "components/assistant-ui/elements/web-search.tsx",
       "upstreamSha256": "8bc68f323de40625934a313bdd248c23e6317b2ade5f52f33caa57609c277229",
-      "installedSha256": "17dc54e958e5c316f3b2d79d91a6cc9ba374b1113f3af8f62b78252d7665a3ee",
+      "installedSha256": "d42b077d925ac64ec50a7b9885c7a2f524dcdaf86e929e223828fa22b4f26413",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative"
+        "import-alias-to-relative",
+        "agent-ui-search-presentation-labels-seam"
       ]
     },
     {
@@ -521,6 +523,14 @@
       "reason": "Provide a generic child seam for public trigger selection overrides; behavior remains in the adapter.",
       "files": [
         "components/assistant-ui/elements/composer-trigger-popover.aui.tsx"
+      ]
+    },
+    {
+      "id": "agent-ui-search-presentation-labels-seam",
+      "reason": "Expose optional presentation labels for status/count and relevance meter copy; no behavior or tree rewriting.",
+      "files": [
+        "components/assistant-ui/elements/retrieval-chunks.tsx",
+        "components/assistant-ui/elements/web-search.tsx"
       ]
     }
   ]

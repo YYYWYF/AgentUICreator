@@ -32,9 +32,8 @@ import {
 import { ConversationThreadBindingConnector } from "../agent-ui/conversation/threads/ConversationThreadBindingConnector";
 import { useConversationServiceThreadBinding, type ConversationRunResumeProvider } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
 import { GeneratedConversationIntegrations } from "../agent-ui/conversation/integrations.generated";
-import { createConversationToolkit } from "../agent-ui/conversation/toolkit";
+import { conversationToolkit as baseConversationToolkit } from "../agent-ui/conversation/toolkit";
 import { useAgentUIThemeMode } from "../agent-ui/theme/useAgentUITheme";
-import { resolvePluginConversationToolkit } from "../runtime/plugins/plugin-conversation-toolkit";
 import { agentCompositionStore } from "./composition-store";
 import { agentUIRuntimeConfig as generatedAgentUIRuntimeConfig } from "./runtime-config.generated";
 import type { AgentUIMode } from "../framework/contracts/agent-ui-mode";
@@ -185,17 +184,17 @@ export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agen
     return unsubscribe;
   }, [observability]);
   const threadBinding = useConversationServiceThreadBinding<AppAgentState>(runResumeProvider, initialThreadId);
-  const toolkit = useMemo(() => composition === undefined ? createConversationToolkit()
-    : resolvePluginConversationToolkit(composition.runtimeModel, composition.activeRegistry, createConversationToolkit()), [composition]);
+  const toolkit = composition?.conversationToolkit ?? baseConversationToolkit;
 
   useEffect(() => {
     agentCompositionStore.stageCandidate({
+      baseConversationToolkit,
       appUIModelSource,
       revisionDescriptorSource,
       capabilityCatalog: pluginCapabilityCatalog,
       capabilityCatalogRevision,
     });
-  }, [appUIModelSource, revisionDescriptorSource, capabilityCatalogRevision, pluginCapabilityCatalog]);
+  }, [appUIModelSource, revisionDescriptorSource, capabilityCatalogRevision, pluginCapabilityCatalog, baseConversationToolkit]);
 
   return (
     <ConversationRuntimeProvider<AppAgentState>

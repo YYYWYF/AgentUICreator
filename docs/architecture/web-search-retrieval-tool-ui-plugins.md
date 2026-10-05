@@ -14,9 +14,11 @@ AppUIModel `applicationPlugins`. Installation does not depend on selecting a
 Mock endpoint. Each plugin can be disabled or removed independently using the
 existing AppUIModel/plugin management operations.
 
-The existing generated Application memoizes `resolvePluginConversationToolkit`
-against its active composition, combines the selected Plugin entries with the
-base toolkit, and passes the result to the single Conversation Runtime's
+The generated Application supplies its authoritative base toolkit to candidate
+staging. `buildRuntimeComposition` combines it with selected Plugin entries via
+`resolvePluginConversationToolkit` before publication. The resulting final
+toolkit is retained in the published snapshot, and Agent passes that stable
+object directly to the single Conversation Runtime's
 `Tools({ toolkit })` / `AuiConfig` registration. The public
 `createConversationToolkit` facade uses assistant-ui `defineToolkit`.
 No additional provider or renderer dispatcher is introduced. Duplicate names,
@@ -44,15 +46,15 @@ or retrieving; completed calls show all returned entries.
 {"chunks":[{"id":"chunk-1","source":"policy.pdf","locator":"p.14","score":0.91,"text":"退款申请需在30天内提交。"}]}
 ```
 
-Both official Elements are adopted from the existing pinned assistant-ui commit
-`3542d602272a62eddeb8989befc910841c267022` with the normal vendor sync and
-provenance records. Vendor source is unchanged except for existing import
-adaptations. The product facade localizes the pure Elements' returned status
-and meter presentation; the `searchTools` locale namespace supplies English
-and Chinese labels. The WebSearch completion count reflects the actual result
-count rather than the upstream demonstration's fixed three sources. This
-presentation adapter relies on the pinned Elements' status/meter structure and
-must be reviewed when those Elements are upgraded.
+Both official Elements are adopted from the pinned assistant-ui commit
+`3542d602272a62eddeb8989befc910841c267022`. The explicit
+`agent-ui-search-presentation-labels-seam` adds optional presentation labels;
+UPSTREAM.json records the two-file patch and per-file adaptation, and installed
+hashes are recorded in the lock. The sync script requires each upstream anchor
+to match exactly once and fails for review if it changes. Product code passes
+labels through JSX props, with no React child indexing, tree traversal, or
+parsing of English aria copy. `searchTools` supplies English and Chinese labels.
+The WebSearch completion count reflects the actual result count.
 
 ## Mock scenes and future acceptance
 
@@ -61,10 +63,13 @@ Each uses the existing Mock `tool` step and standard AG-UI lifecycle, with a
 visible delay for its running state. Resource requirements refer to the two
 independently installable official resources.
 
-Per the implementation request, behavioral acceptance was not run. Future
-acceptance should check running/completed states, all result fields, and removal
-of each enabled Plugin returning its tool calls to the existing fallback without
-changing the Mock, AssistantMessage, Runtime, or the other Plugin. No aliases,
+Behavioral test code now covers both standard Mock SSE lifecycles through
+HttpAgent and the Conversation Runtime; running/completed state, result fields,
+localized meter labels, malformed and empty completions, disable/remove/re-enable,
+and independence. Candidate-store tests cover plugin/plugin and base/plugin
+collisions retaining the previous published snapshot without notifying render
+consumers. Sync tests cover seam replay, provenance and failure on changed anchors.
+Per the request, these tests and behavioral acceptance were not executed. No aliases,
 shape-based routing, private events, citations, backend implementation, or new
 version mechanism are added. Manifest metadata follows the existing required
 Plugin schema.

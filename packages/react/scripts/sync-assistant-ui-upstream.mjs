@@ -379,6 +379,36 @@ function applyAgentUIPortalContainerBridge(source, localPath) {
   return installed;
 }
 
+export const SEARCH_LABELS_SEAM_ID = "agent-ui-search-presentation-labels-seam";
+export const SEARCH_LABELS_SEAM_FILES = [
+  "components/assistant-ui/elements/retrieval-chunks.tsx",
+  "components/assistant-ui/elements/web-search.tsx",
+];
+
+/** Explicit presentation-only seam; changed upstream source requires review. */
+export function applySearchPresentationLabels(source, localPath) {
+  if (!SEARCH_LABELS_SEAM_FILES.includes(localPath)) return source;
+  const replace = (before, after) => {
+    if (source.split(before).length !== 2) {
+      throw new Error(`${SEARCH_LABELS_SEAM_ID}: cannot safely adapt ${localPath}; expected exactly one ${JSON.stringify(before)}. Review the upstream labels seam.`);
+    }
+    source = source.replace(before, after);
+  };
+  replace('  searching,\n', '  searching,\n  labels,\n');
+  if (localPath.endsWith("web-search.tsx")) {
+    replace('  cycle: number;\n', '  cycle: number;\n  labels?: { searching: string; complete: string };\n');
+    replace('            Searching\n', '            {labels?.searching ?? "Searching"}\n');
+    replace('            Read 3 sources\n', '            {labels?.complete.replace("{count}", String(results.length)) ?? "Read 3 sources"}\n');
+  } else {
+    replace('  searching: boolean;\n', '  searching: boolean;\n  labels?: { retrieving: string; complete: string; relevance: string; score: string };\n');
+    replace('            Retrieving\n', '            {labels?.retrieving ?? "Retrieving"}\n');
+    replace('            {chunks.length} passages above threshold\n', '            {labels?.complete.replace("{count}", String(chunks.length)) ?? `${chunks.length} passages above threshold`}\n');
+    replace('aria-label={`${chunk.source} relevance score`}', 'aria-label={labels?.relevance.replace("{source}", chunk.source) ?? `${chunk.source} relevance score`}');
+    replace('aria-valuetext={`${chunk.score.toFixed(2)} of 1.00`}', 'aria-valuetext={labels?.score.replace("{score}", chunk.score.toFixed(2)) ?? `${chunk.score.toFixed(2)} of 1.00`}');
+  }
+  return source;
+}
+
 export function applyApprovedAdaptations(source, localPath) {
   let installed = applyAgentUIPortalContainerBridge(adaptImports(source, localPath), localPath);
   if (localPath === "components/assistant-ui/elements/quote.aui.tsx") {
@@ -391,7 +421,7 @@ export function applyApprovedAdaptations(source, localPath) {
     installed = replaceExactlyOnce(installed, '  directive,\n  action,', '  directive,\n  action,\n  children,', localPath);
     installed = replaceExactlyOnce(installed, '      <Categories\n', '      {children}\n      <Categories\n', localPath);
   }
-  return installed;
+  return applySearchPresentationLabels(installed, localPath);
 }
 
 export function portalBridgePatch(files) {
@@ -419,6 +449,7 @@ export function installedVendorEntry({ source, localPath, upstreamPath, previous
         ...adaptationsFor({ localPath, source, previous }),
         ...(localPath === "components/assistant-ui/elements/quote.aui.tsx" ? ["agent-ui-quote-selection-portal-bridge"] : []),
         ...(localPath === "components/assistant-ui/elements/composer-trigger-popover.aui.tsx" ? ["agent-ui-trigger-content-seam"] : []),
+        ...(SEARCH_LABELS_SEAM_FILES.includes(localPath) ? [SEARCH_LABELS_SEAM_ID] : []),
         ...(PORTAL_BRIDGE_FILES.includes(localPath) ? [PORTAL_BRIDGE_ID] : []),
       ])],
     },
@@ -621,7 +652,11 @@ async function main() {
     }] : []), ... (files.some(file => file.localPath === "components/assistant-ui/elements/composer-trigger-popover.aui.tsx") ? [{
       id: "agent-ui-trigger-content-seam", reason: "Provide a generic child seam for public trigger selection overrides; behavior remains in the adapter.",
       files: ["components/assistant-ui/elements/composer-trigger-popover.aui.tsx"],
-    }] : [])],
+    }] : []), {
+      id: SEARCH_LABELS_SEAM_ID,
+      reason: "Expose optional presentation labels for status/count and relevance meter copy; no behavior or tree rewriting.",
+      files: [...SEARCH_LABELS_SEAM_FILES],
+    }],
   };
   const nextLock = {
     schemaVersion: 1,

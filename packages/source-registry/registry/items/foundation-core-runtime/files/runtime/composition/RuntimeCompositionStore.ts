@@ -1,3 +1,4 @@
+import type { ConversationToolkit } from "@agent-ui/react";
 import type { AppUIModel } from "../../framework/contracts/app-ui-model";
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";
 import type { PluginCompositionCatalog } from "../../framework/contracts/app-ui-composition";
@@ -13,6 +14,7 @@ export interface CompositionRevisionDescriptor {
 }
 
 export interface RuntimeCompositionSnapshot<TState = unknown> {
+  conversationToolkit: ConversationToolkit;
   revision: string;
   transactionId?: string | undefined;
   appUIModelHash: string;
@@ -35,6 +37,7 @@ export interface CandidateCompositionDiagnostic {
 }
 
 export interface RuntimeCompositionCandidate<TState = unknown> {
+  baseConversationToolkit?: ConversationToolkit | undefined;
   appUIModelSource: string;
   capabilityCatalog: PluginCapabilityCatalog<TState>;
   capabilityCatalogRevision: string;
@@ -162,6 +165,7 @@ class TransactionalRuntimeCompositionStore<TState = unknown>
       candidateRevision = transactionId ??
         `manual:${appUIModelHash}:${candidate.capabilityCatalogRevision}`;
       const published: RuntimeCompositionSnapshot<TState> = {
+        conversationToolkit: built.conversationToolkit,
         revision: candidateRevision,
         ...(transactionId === undefined ? {} : { transactionId }),
         appUIModelHash,

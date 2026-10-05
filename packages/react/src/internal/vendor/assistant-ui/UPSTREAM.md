@@ -16,7 +16,7 @@ Source form: official Base UI registry output plus declared mechanical import ad
 
 ## Ownership
 
-The files below are copied from the frozen revision above. Vendor sync may adapt only upstream import aliases, registry base-ui relative paths, the five recorded Agent UI Portal container bridges, and the recorded Quote selection primitive import bridge. Product presentation and policy stay in the Agent UI facade and Plugin layers.
+The files below are copied from the frozen revision above. Vendor sync may adapt only upstream import aliases, registry base-ui relative paths, the five recorded Agent UI Portal container bridges, the recorded Quote selection primitive import bridge, the generic Composer trigger child seam, and the explicit search presentation labels seam. Product presentation and policy stay in the Agent UI facade and Plugin layers.
 
 - 50 tracked vendor files
 - 30 tracked official Element files
@@ -32,4 +32,4 @@ Quote Elements are adopted from the frozen revision. The internal selection prim
 
 Composer triggers adopt the official Directive Text Elements. Trigger Popover has one generic children seam for the adapter to register the official selection override. The pure matcher is unchanged upstream source and is synchronized with `composer-trigger-UPSTREAM.json`.
 
-WebSearch and RetrievalChunks are adopted unchanged from the same pinned revision. Product localization of their status and meter labels belongs to the public facade; their Tool UI registration belongs to independent headless Plugins.
+WebSearch and RetrievalChunks use the explicit `agent-ui-search-presentation-labels-seam` adaptation at the same pinned revision. Optional labels cover status/completion counts and relevance meter labels; defaults preserve official English copy. Sync applies exact, unique source replacements and stops for review when an anchor changes. UPSTREAM.json records both file adaptations and the two-file patch; the lock stores installed hashes. Product locale selection stays in the Plugins and public facade, with no React tree traversal or English aria parsing.

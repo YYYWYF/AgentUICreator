@@ -117,7 +117,9 @@
       "../source-registry/registry/items/plugin-conversation-data-source/files",
       "../source-registry/registry/items/plugin-conversation-surface/files",
       "../source-registry/registry/items/plugin-agent-plan-message/files",
-      "../project-control/tests/support/typecheck-project"
+      "../project-control/tests/support/typecheck-project",
+      "../source-registry/registry/items/plugin-web-search/files",
+      "../source-registry/registry/items/plugin-retrieval-chunks/files"
     ]
   },
   "exclude": [

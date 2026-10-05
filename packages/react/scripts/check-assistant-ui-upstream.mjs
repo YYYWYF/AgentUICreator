@@ -3,7 +3,7 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { QUOTE_SELECTION_FILES } from "./sync-assistant-ui-upstream.mjs";
+import { QUOTE_SELECTION_FILES, SEARCH_LABELS_SEAM_ID, SEARCH_LABELS_SEAM_FILES } from "./sync-assistant-ui-upstream.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const defaultVendorRoot = path.join(
@@ -315,6 +315,10 @@ export async function collectAssistantUiUpstreamErrors(
         JSON.stringify(["components/assistant-ui/elements/quote.aui.tsx"])) {
       errors.push(`${PROVENANCE_FILE} must declare exactly the separate Quote selection bridge file.`);
     }
+    const searchPatches = provenance.patches.filter(patch => patch?.id === SEARCH_LABELS_SEAM_ID);
+    if (searchPatches.length !== 1 || JSON.stringify(searchPatches[0]?.files) !== JSON.stringify(SEARCH_LABELS_SEAM_FILES)) {
+      errors.push(`${PROVENANCE_FILE} must declare exactly the two approved search presentation labels files.`);
+    }
     for (const patch of provenance.patches) {
       const patchFiles = isRecord(patch) && Array.isArray(patch.files)
         ? patch.files
@@ -322,6 +326,7 @@ export async function collectAssistantUiUpstreamErrors(
       if (patchFiles.some((file) => typeof file === "string" && file.startsWith(ELEMENT_PATH_PREFIX) &&
         !(patch.id === "agent-ui-portal-container-bridge" && file === IMAGE_ZOOM_PORTAL_PATH) &&
         !(patch.id === "agent-ui-quote-selection-portal-bridge" && file === "components/assistant-ui/elements/quote.aui.tsx") &&
+        !(patch.id === SEARCH_LABELS_SEAM_ID && SEARCH_LABELS_SEAM_FILES.includes(file)) &&
         !(patch.id === "agent-ui-trigger-content-seam" && file === "components/assistant-ui/elements/composer-trigger-popover.aui.tsx"))) {
         errors.push(`${PROVENANCE_FILE} must not contain Element-targeted product patches.`);
       }

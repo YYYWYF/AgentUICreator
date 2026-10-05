@@ -21,7 +21,7 @@
     "components/assistant-ui/elements/quote.aui.tsx": "f24f31dc1c6b518134a4e1284e19828f8fb6f6fdfbc9e5534d90da66b8b10131",
     "components/assistant-ui/elements/reasoning.aui.tsx": "d695ed0a776b664cb8c620c94598ad10b0c93181079a7abec054884503c53443",
     "components/assistant-ui/elements/reasoning.tsx": "6e629d6cab9204b903120f7195b3d3126ed48d5ecd7191dbb0174ad9ccf8dfb0",
-    "components/assistant-ui/elements/retrieval-chunks.tsx": "48ec963d0e43af96fc747f9b7e9fe271196b9e867c0d0c956e60d5e3d8e1ac5f",
+    "components/assistant-ui/elements/retrieval-chunks.tsx": "4b8169f1923e2b2d199f30be0bd1f0cc76c48a74c1b3a9238139e03d331f486c",
     "components/assistant-ui/elements/sources.aui.tsx": "161febf1347a7c717b275d246d235ba8a89c327ac314448c94873ba27d2fdde0",
     "components/assistant-ui/elements/subagent-list.tsx": "0abc5933a9b27ceb24e179d6d6307e4c8980d49c8c58903ecbada8e558ccca0b",
     "components/assistant-ui/elements/surfaces.tsx": "fcc704686fc4bf3a15dc40f2600da759ba46a796d6d8a9c97eb37b2d21907885",
@@ -33,6 +33,6 @@
     "components/assistant-ui/elements/tool-fallback.aui.tsx": "e22c55485613936018a831773d6b4495d636d48148a02ac5345fa63e1d32ccf8",
     "components/assistant-ui/elements/tool-group.aui.tsx": "50e5d21a865de8bead130bd9bcfa968ab1a330c4b0082374bf3d1a84951a9b08",
     "components/assistant-ui/elements/tooltip-icon-button.tsx": "94e64103f5e1faad3ad82502b94c298158126e70ceef138e88e28117f62dd77d",
-    "components/assistant-ui/elements/web-search.tsx": "17dc54e958e5c316f3b2d79d91a6cc9ba374b1113f3af8f62b78252d7665a3ee"
+    "components/assistant-ui/elements/web-search.tsx": "d42b077d925ac64ec50a7b9885c7a2f524dcdaf86e929e223828fa22b4f26413"
   }
 }
