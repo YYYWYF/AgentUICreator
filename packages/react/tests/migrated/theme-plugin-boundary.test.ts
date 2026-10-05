@@ -8,6 +8,13 @@ import { parseAppUIModel } from "../../../project-control/src/framework/contract
 import { collectAppUIPluginLocations } from "../../../project-control/src/framework/contracts/app-ui-model";
 
 describe("theme plugin boundary", () => {
+  it("keeps public component implementation dependencies out of the picker item", async () => {
+    const item = JSON.parse(await readFile(new URL(
+      "../../../source-registry/registry/items/plugin-theme-switch/item.json", import.meta.url,
+    ), "utf8")) as { packages: Record<string, string> };
+    expect(item.packages).toHaveProperty("react");
+    expect(item.packages).not.toHaveProperty("lucide-react");
+  });
   it("keeps the provider headless and the switch independent from Ant Design", async () => {
     const [providerDefinition, providerComponent, providerManifest, switchDefinition, switchComponent, switchManifest, registry] = await Promise.all([
       readFile(new URL("plugins/theme-provider/definition.ts", `file://${await generatedProjectFixture()}/`), "utf8"),
@@ -21,6 +28,8 @@ describe("theme plugin boundary", () => {
     const provider = JSON.parse(providerManifest) as {
       id?: string;
       capabilities?: string[];
+      description?: string;
+      authoring?: { intents: string[] };
     };
     const themeSwitch = JSON.parse(switchManifest) as { id?: string };
     const switchSource = `${switchDefinition}\n${switchComponent}`;
@@ -33,6 +42,8 @@ describe("theme plugin boundary", () => {
       id: "theme-provider",
       capabilities: expect.arrayContaining(["plugin-service-provider", "theme", "headless"]),
     });
+    expect(provider.description).toContain("theme preset");
+    expect(provider.authoring?.intents.join(" ")).toMatch(/light, dark, and violet theme preset/u);
     expect(providerDefinition).toContain("provides: [AGENT_UI_THEME_SERVICE]");
     expect(providerDefinition).toContain("agentUIThemeConfig.theme");
     expect(providerDefinition).not.toContain("updateInstanceProps");

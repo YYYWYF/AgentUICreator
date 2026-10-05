@@ -51,6 +51,20 @@ describe("ModeShell", () => {
     },
   );
 
+  it("keeps Platform filling its theme root without depending on a direct Host child selector", async () => {
+    const css = await readFile(
+      new URL("runtime/mode-shell/mode-shell.css", `file://${await generatedProjectFixture()}/`), "utf8",
+    );
+    expect(css).toContain("@layer components {");
+    for (const selector of ["\\.agent-ui-platform-shell", "\\.agent-ui-platform-shell\\s*>\\s*\\.development-preview"]) {
+      const declarations = css.match(new RegExp(`${selector}\\s*\\{([^}]*)\\}`, "u"))?.[1];
+      expect(declarations).toMatch(/height:\s*100%;/u);
+      expect(declarations).toMatch(/width:\s*100%;/u);
+      expect(declarations).toMatch(/min-height:\s*0;/u);
+      expect(declarations).not.toMatch(/\d+(?:d?vh|px)/u);
+    }
+  });
+
   it("keeps Embedded sizing scoped to its host container", async () => {
     const modeShellCss = await readFile(
       new URL("runtime/mode-shell/mode-shell.css", `file://${await generatedProjectFixture()}/`),
