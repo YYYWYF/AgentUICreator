@@ -459,7 +459,7 @@ def test_current_screen_hide_preserving_source_does_not_remove_instance():
         }],
         pluginSemantics=[],
     )
-    selector = CreatorActionSelector(model=StaticChatModel(["MODIFY SELECT A1"]))
+    selector = CreatorActionSelector(model=StaticChatModel(["MODIFY SELECT A1", "MODIFY GENERAL HIDE"]))
 
     result = asyncio.run(selector.select(
         "只在当前界面隐藏建议展示，保留插件源码和其他功能。",
@@ -467,6 +467,7 @@ def test_current_screen_hide_preserving_source_does_not_remove_instance():
     ))
 
     assert result.decision == "general_change"
+    assert result.removalIntent == "hide"
 
 
 def test_unified_selector_routes_unavailable_workspace_action_to_general():
@@ -637,7 +638,7 @@ def test_clarification_follow_up_carries_bounded_state_without_question_mark():
         "previousUserRequest": "我不要历史会话管理功能",
         "previousCreatorClarification": "你是只想移除界面上的历史会话管理面板，还是也要禁用底层能力",
     }
-    model = StaticChatModel(["MODIFY SELECT A1"])
+    model = StaticChatModel(["MODIFY GENERAL HIDE"])
     remove_context = CreatorActionSelectorContext(
         catalogRevision="c" * 64,
         actions=[{
@@ -653,7 +654,8 @@ def test_clarification_follow_up_carries_bounded_state_without_question_mark():
     selection = asyncio.run(CreatorActionSelector(model=model).select(
         "只去掉界面上的面板", remove_context, clarification_context=context,
     ))
-    assert selection.actionId == "act_remove"
+    assert selection.removalIntent == "hide"
+    assert selection.actionId is None
     assert _payload(model)["recentClarification"] == context
 
 
@@ -1048,3 +1050,18 @@ def test_selector_message_excludes_execution_details():
 def test_host_normalized_selection_schema_remains_strict(selection):
     with pytest.raises(ValidationError):
         CreatorActionSelection.model_validate(selection)
+
+
+@pytest.mark.parametrize(("message", "response", "intent", "decision"), [
+    ("先把 Slash Command 隐藏掉", "MODIFY GENERAL HIDE", "hide", "general_change"),
+    ("彻底删除 Slash Command，源码也不要", "MODIFY GENERAL PURGE", "purge", "general_change"),
+    ("把 Slash Command 去掉", "MODIFY GENERAL REMOVAL_UNCERTAIN", "uncertain", "needs_clarification"),
+])
+def test_plugin_removal_semantics_from_model_fixture(message, response, intent, decision):
+    selector = CreatorActionSelector(model=StaticChatModel([response]))
+    result = asyncio.run(selector.select(message, _unified_context()))
+    assert result.removalIntent == intent
+    assert result.decision == decision
+    if intent == "uncertain":
+        assert "隐藏" in result.clarificationQuestion
+        assert "彻底删除" in result.clarificationQuestion

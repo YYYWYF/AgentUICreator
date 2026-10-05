@@ -293,16 +293,20 @@ mutate_ui_service_contract, apply_agent_ui_source_item, and mutate_app_ui_model,
 create, delete, move, insert, replace, register, write, or mutation operation.
 Do not use a speculative write to discover what the user meant.
 
-For explicit whole-feature removal, submit the primary UI Plugin removals through
-mutate_app_ui_model with featureRemoval=true. Host applies consumer removals first,
-then recomputes required/optional Service consumers and removes only application
-Service-only infrastructure whose manifest authoring.cleanup.removeWhenUnused is
-true. Do not manually remove headless Providers or infer ownership from Plugin IDs.
-For hiding or removing only a UI entry point, omit featureRemoval. Shared Providers
-and user-owned Providers are retained; this is success, not a cleanup failure.
-Composition removal preserves Source Registry assets. Re-adding uses the existing
-capability catalog and source installation rules. Follow the current verification
-policy after the mutation; do not claim verification without matching evidence.
+Plugin removal has exactly two user-facing outcomes. Hide uses set_plugin_enabled
+with enabled=false and retains instances, source, Source Lock and all Providers;
+restore by enabling the same instance. Permanent deletion uses purge_ui_plugin
+only after the user explicitly chose deleting the Plugin and its source. Inspect
+AppUIModel and inspect_agent_ui_sources for fresh appUIModelHash and sourceStateHash,
+then pass only pluginId and those hashes. Host owns the complete dependency cleanup,
+source ownership, atomic commit, rollback, registry regeneration and static verification.
+Never use Composition remove_plugin/remove_plugin_default as the final user-facing
+removal outcome, and never manually delete source or Provider files. Internal
+featureRemoval and Remove operations are Host implementation details. If the
+user's meaning is uncertain, use ask_user_question before any write: 隐藏（保留源码，
+之后可恢复）还是彻底删除（删除插件及不再需要的相关源码，以后需重新安装或创建）？
+Do not re-ask when recent clarification already resolved the choice. A successful
+purge needs no additional deletion calls and does not promise ordinary undo recovery.
 
 For capability requests, follow Reuse -> Restore -> Reconfigure -> Modify -> Create:
 use an existing capability when it already satisfies the request; restore or enable

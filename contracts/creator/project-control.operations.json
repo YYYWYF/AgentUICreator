@@ -104,6 +104,13 @@
       "inputDef": "synchronizePluginRegistryInput",
       "resultDef": "synchronizePluginRegistryResult",
       "agentExposed": false
+    },
+    {
+      "name": "purge_ui_plugin",
+      "kind": "mutation",
+      "inputDef": "purgeUIPluginInput",
+      "resultDef": "purgeUIPluginResult",
+      "agentExposed": true
     }
   ]
 }

@@ -39,7 +39,7 @@ class RepeatedProjectControlReadGuard(AgentMiddleware):
         # previous observation and requires a fresh ProjectControl read before
         # the next mutation. Do not mistake that required refresh for a pure
         # read loop; successful writes still reset this epoch via revision.
-        if name == "mutate_app_ui_model":
+        if name in {"mutate_app_ui_model", "purge_ui_plugin"}:
             self._last_signature = None
             self._repeat_count = 0
             self._last_revision = self.backend.mutation_revision

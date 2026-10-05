@@ -65,3 +65,14 @@ def test_invalid_host_result_becomes_protocol_error_before_business_consumption(
     assert raised.value.code == "CONTROL_PROTOCOL_INCOMPATIBLE"
     assert raised.value.details["operation"] == "apply_agent_ui_source_item"
     assert "cause" in raised.value.details
+
+
+def test_purge_contract_accepts_only_plugin_identity_and_fresh_hashes():
+    client = ProjectControlClient(project_root=ROOT)
+    request = {"operation": "purge_ui_plugin", "input": {
+        "pluginId": "assistant-ui-slash-command-trigger",
+        "appUIModelHash": "a" * 64, "sourceStateHash": "b" * 64,
+    }}
+    client._validate_protocol(request, request=True)
+    with pytest.raises(ProjectControlError):
+        client._validate_protocol({**request, "input": {**request["input"], "files": ["plugins/any/file.ts"]}}, request=True)

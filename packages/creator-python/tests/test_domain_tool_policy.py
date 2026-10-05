@@ -108,3 +108,15 @@ def test_explicit_runtime_mode_restores_runtime_verification_tools():
 
     assert observed == list(ALLOWED_DOMAIN_WRITE_TOOLS)
     assert RUNTIME_VERIFICATION_TOOL_NAMES.issubset(observed)
+
+
+def test_uncertain_plugin_removal_exposes_only_existing_question_tool():
+    request = ModelRequest(model=Mock(), messages=[], tools=[
+        SimpleNamespace(name=name) for name in ALLOWED_DOMAIN_WRITE_TOOLS
+    ])
+    observed = []
+    def handler(filtered):
+        observed.extend(item.name for item in filtered.tools)
+        return ModelResponse(result=[AIMessage(content="question")])
+    DomainWriteToolPolicyMiddleware(require_removal_choice=True).wrap_model_call(request, handler)
+    assert observed == ["ask_user_question"]

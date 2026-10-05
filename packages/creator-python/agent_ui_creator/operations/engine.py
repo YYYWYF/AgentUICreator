@@ -512,6 +512,9 @@ class ProductizedOperationEngine:
         if selection.decision == "needs_clarification":
             clarification_question = selection.clarificationQuestion
             assert clarification_question is not None
+            if selection.removalIntent == "uncertain":
+                return CreatorResolveResult(route="unscoped_general", selection=selection,
+                                            presentation=presentation)
             return self._terminal_run(
                 text=clarification_question,
                 selection=selection,

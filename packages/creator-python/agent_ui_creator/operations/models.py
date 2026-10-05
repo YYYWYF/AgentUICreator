@@ -625,10 +625,15 @@ class CreatorActionSelection(BaseModel):
     actionId: BoundedActionId | None = None
     targetId: BoundedAuthoringTargetId | None = None
     clarificationQuestion: BoundedClarificationQuestion | None = None
+    removalIntent: Literal["none", "hide", "purge", "uncertain"] = "none"
     developmentIntent: Literal["none", "needs_decision", "explicit", "conditional", "prohibited"] = "none"
 
     @model_validator(mode="after")
     def validate_decision_fields(self) -> "CreatorActionSelection":
+        if self.removalIntent in {"hide", "purge"} and self.decision != "general_change":
+            raise ValueError("hide/purge require General handoff.")
+        if self.removalIntent == "uncertain" and self.decision != "needs_clarification":
+            raise ValueError("Uncertain removal requires clarification.")
         if self.explicitReadOnly and self.taskIntent != "read_only":
             raise ValueError("explicitReadOnly requires read_only taskIntent.")
         if self.decision != "general_change" and self.developmentIntent != "none":

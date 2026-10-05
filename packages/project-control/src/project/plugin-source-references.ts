@@ -66,7 +66,7 @@ function sourceScope(
   if (isWithin(targetPluginRoot, resolved)) {
     return false;
   }
-  return [paths.pluginsRoot, path.join(projectRoot, "services"), path.join(projectRoot, "src")]
+  return [paths.sourceRoot, path.join(projectRoot, "src")]
     .some((root) => isWithin(root, resolved));
 }
 
@@ -229,7 +229,7 @@ export async function inspectPluginSourceReferences(
   const targetPluginRoot = path.join(paths.pluginsRoot, directory);
   const scopedFiles = (
     await Promise.all(
-      [paths.pluginsRoot, path.join(resolvedProjectRoot, "services"), path.join(resolvedProjectRoot, "src")].map((scopeRoot) =>
+      [paths.sourceRoot, path.join(resolvedProjectRoot, "src")].map((scopeRoot) =>
         collectFiles(
           scopeRoot,
           (filePath) => SOURCE_EXTENSIONS.includes(path.extname(filePath)),
@@ -319,7 +319,7 @@ export async function inspectPluginSourceReferences(
 
   const styleFiles = (
     await Promise.all(
-      [paths.pluginsRoot, path.join(resolvedProjectRoot, "src")].map((scopeRoot) =>
+      [paths.sourceRoot, path.join(resolvedProjectRoot, "src")].map((scopeRoot) =>
         collectFiles(
           scopeRoot,
           (filePath) => STYLE_EXTENSIONS.includes(path.extname(filePath)),

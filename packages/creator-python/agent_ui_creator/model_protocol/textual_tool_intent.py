@@ -10,7 +10,7 @@ _TOOL_NAMES = (
     "inspect_app_ui_model|list_ui_plugins|inspect_ui_slots|inspect_ui_plugin|"
     "inspect_ui_services|inspect_ui_plugin_source_references|"
     "inspect_agent_ui_sources|apply_agent_ui_source_item|"
-    "mutate_ui_plugin_source|mutate_app_ui_model"
+    "mutate_ui_plugin_source|mutate_app_ui_model|purge_ui_plugin"
 )
 _PATTERNS = (
     re.compile(r"<tool_call\b", re.IGNORECASE),

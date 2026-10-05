@@ -1037,3 +1037,16 @@ def test_server_serializes_new_action_result_without_legacy_resolver_fields(
         "bindings",
     ):
         assert forbidden not in response.text
+
+
+def test_uncertain_plugin_removal_hands_off_to_question_tool_without_composition_write():
+    engine, _selector, playbook, _telemetry = _engine(CreatorActionSelection(
+        decision="needs_clarification", taskIntent="modify", removalIntent="uncertain",
+        clarificationQuestion="隐藏还是彻底删除？",
+    ))
+    engine.verification_mode = "static_only"
+    result = asyncio.run(engine.run([{"role": "user", "content": "把 Slash Command 去掉"}]))
+    assert isinstance(result, CreatorResolveResult)
+    assert result.selection.removalIntent == "uncertain"
+    assert result.route == "unscoped_general"
+    assert playbook.calls == []

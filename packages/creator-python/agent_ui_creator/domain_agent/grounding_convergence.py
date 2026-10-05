@@ -41,6 +41,7 @@ COMPOSITION_PRE_MUTATION_TOOL_NAMES = (
     "inspect_ui_plugin_delivery",
     "prepare_ui_plugin_development",
     "mutate_app_ui_model",
+    "purge_ui_plugin",
     "inspect_runtime_layout",
 )
 COMPOSITION_POST_MUTATION_TOOL_NAMES = (
@@ -52,6 +53,7 @@ COMPOSITION_POST_MUTATION_TOOL_NAMES = (
     "read_file",
     "inspect_ui_project",
     "mutate_app_ui_model",
+    "purge_ui_plugin",
     "inspect_runtime_layout",
     "validate_creator_changes",
     "inspect_runtime_errors",
@@ -73,6 +75,7 @@ SOURCE_INSTALLED_TOOL_NAMES = (
     "list_ui_plugins",
     "prepare_ui_plugin_development",
     "mutate_app_ui_model",
+    "purge_ui_plugin",
     "inspect_ui_plugin_delivery",
     "validate_creator_changes",
 )

@@ -434,6 +434,21 @@ async def _domain_write_agent_result(
             user_message=current_user_message,
             intent=productized_result.selection.developmentIntent,
         )
+    if productized_result.selection.removalIntent in {"hide", "purge"}:
+        messages = [*messages, {"role": "system", "content": (
+            "Creator Intent Selector removal decision: " + productized_result.selection.removalIntent
+            + ". Hide only disables Composition and keeps source/providers. Purge uses purge_ui_plugin "
+            "after fresh AppUIModel and source inspection; Host owns all deletion closure."
+        )}]
+    if productized_result.selection.removalIntent == "uncertain":
+        messages = [*messages, {"role": "system", "content": (
+            "Plugin removal intent is uncertain. Before any write, call ask_user_question "
+            "with a single step id plugin-removal, question 你希望隐藏还是彻底删除这个插件？, "
+            "selectionMode single, minSelections 1, maxSelections 1, options "
+            "hide: 隐藏, description 保留插件源码，之后可以恢复; "
+            "purge: 彻底删除, description 从项目删除这个插件及不再需要的相关源码。 "
+            "After the user answers, hide only disables Composition; purge uses purge_ui_plugin."
+        )}]
     if productized_result.route in {"read_only_general", "answer_only"}:
         if execution_context is not None:
             execution_context.permission = "inspect_read_only"
@@ -548,6 +563,7 @@ async def _domain_write_agent_result(
         event_sink,
         telemetry,
         handoff=productized_result.handoff,
+        require_removal_choice=productized_result.selection.removalIntent == "uncertain",
         checkpointer=checkpointer,
         development_authority=development_authority,
     )
@@ -563,6 +579,7 @@ async def _general_domain_write_agent_result(
     event_sink: CreatorEventSink,
     telemetry: CreatorRunTelemetry | None = None,
     handoff: CreatorAuthoringHandoff | None = None,
+    require_removal_choice: bool = False,
     checkpointer: Any = None,
     resume: dict[str, Any] | None = None,
     development_authority: PluginDevelopmentAuthority | None = None,
@@ -610,6 +627,7 @@ async def _general_domain_write_agent_result(
         verification_mode=settings.verification_mode,
         plugin_development_authority=development_authority,
         authoring_handoff=handoff,
+        require_removal_choice=require_removal_choice,
     )
     if (resume is None and handoff is not None and handoff.kind == "plugin_source"
             and handoff.pluginId is not None and development_authority is not None
@@ -1096,6 +1114,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             raise ValueError("interruptId does not match the pending question")
                         request = QuestionRequest.model_validate({key: value for key, value in pending.envelope.metadata.items() if key != "kind"})
                         resume_answers = QuestionAnswers.model_validate({"answers": payload.get("answers")}).validate_for(request).model_dump(mode="json")
+                        if any(step.id == "plugin-removal" for step in request.steps):
+                            pending_clarifications.clear(run_input.threadId)
                         active = development_authority.active
                         if active is not None and active.status == "pending" and active.question_id is not None:
                             if not is_development_decision_question(pending.envelope.metadata):

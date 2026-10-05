@@ -23,6 +23,7 @@ MutationProjectControlOperation: TypeAlias = Literal[
     "mutate_app_ui_model",
     "apply_agent_ui_source_item",
     "remove_agent_ui_source_items",
+    "purge_ui_plugin",
     "synchronize_plugin_registry",
 ]
 InternalProjectControlOperation: TypeAlias = Literal[

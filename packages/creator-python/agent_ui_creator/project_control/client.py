@@ -145,6 +145,13 @@ class ProjectControlClient:
             {"itemId": item_id, "expectedStateHash": expected_state_hash},
         )
 
+    async def purge_ui_plugin(self, *, plugin_id: str, app_ui_model_hash: str,
+                              source_state_hash: str) -> dict[str, Any]:
+        return await self._request("purge_ui_plugin", {
+            "pluginId": plugin_id, "appUIModelHash": app_ui_model_hash,
+            "sourceStateHash": source_state_hash,
+        })
+
     async def remove_agent_ui_source_items(
         self, *, item_ids: list[str], expected_state_hash: str
     ) -> dict[str, Any]:
@@ -179,7 +186,7 @@ class ProjectControlClient:
         try:
             self._ensure_fixed_runtime()
             if operation in {"mutate_app_ui_model", "apply_agent_ui_source_item",
-                             "remove_agent_ui_source_items", "synchronize_plugin_registry"}:
+                             "remove_agent_ui_source_items", "synchronize_plugin_registry", "purge_ui_plugin"}:
                 assert_run_writable()
                 marker = current_cancel_marker(self.project_root)
                 if marker is not None:

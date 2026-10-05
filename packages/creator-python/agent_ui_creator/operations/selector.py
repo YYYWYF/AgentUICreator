@@ -89,11 +89,6 @@ _ORIGINAL_VISUAL_STATE = re.compile(
     r"原来|原有|原位置|之前|此前|\b(?:original|previous|prior)\b",
     re.I,
 )
-_CURRENT_VISUAL_SCOPE = re.compile(
-    r"只在\s*(?:当前|这个|本)\s*(?:界面|页面)"
-    r"|\bonly\s+(?:on|in)\s+(?:the\s+)?(?:current|this)\s+(?:screen|view|interface)\b",
-    re.I,
-)
 
 
 def _explicit_workspace_region(message: str) -> str | None:
@@ -119,7 +114,7 @@ requested final result is only an answer or inspection. Use READ_ONLY_EXPLICIT
 when the current user explicitly forbids modifying the project. Routes are SELECT A<n>,
 ANSWER, INSPECT, GENERAL, GENERAL DEVELOPMENT_DECISION,
 GENERAL DEVELOPMENT_EXPLICIT, GENERAL DEVELOPMENT_CONDITIONAL,
-GENERAL DEVELOPMENT_PROHIBITED, UNSUPPORTED, or CLARIFY <question>.
+GENERAL DEVELOPMENT_PROHIBITED, GENERAL HIDE, GENERAL PURGE, GENERAL REMOVAL_UNCERTAIN, UNSUPPORTED, or CLARIFY <question>.
 Examples: MODIFY GENERAL; READ_ONLY INSPECT; READ_ONLY_EXPLICIT INSPECT;
 MODIFY SELECT A1.
 Determine task intent from the final deliverable before choosing a route.
@@ -199,19 +194,17 @@ plugin_slot control may still be selected for a plain directional phrase when
 its supplied semantic description matches that control. If an exact requested
 placement is unavailable, return GENERAL or CLARIFY; never select another
 placement or add_default as a fallback.
-For explicit whole-feature removal (rather than only its visible entry point),
-return MODIFY GENERAL so the Creator can use mutate_app_ui_model with
-featureRemoval=true and a primary Plugin removal. The Host determines safe
-Service-provider cleanup from declarations and explicit manifest ownership;
-do not select a visual Remove Action for that broader goal.
-Visual Remove Actions remove only UI Plugin instances. If the user clearly asks
-to remove a visible panel or list, select its visual Remove Action. If the user
-clearly asks to change an authorized frontend capability or Service, use GENERAL
-to inspect its owner and authorization. Backend work remains UNSUPPORTED. If
-their wording could mean either visual UI removal or underlying
-capability removal, use CLARIFY to ask which scope they mean. A brief answer to
-a previous Creator clarification may resolve the target using the bounded
-previous request and clarification supplied in context.
+Plugin removal has two outcomes, determined semantically from the user's final
+result, current Plugin context and recent clarification. Do not select ordinary
+visual Remove Actions as a final user outcome. Explicit hiding, disabling or
+keeping the implementation for later restoration means hide: return MODIFY GENERAL
+HIDE. Explicit permanent deletion, uninstalling or deleting source means purge:
+return MODIFY GENERAL PURGE. Uncertain removal such as “把 Slash Command 去掉”
+means uncertain: return MODIFY GENERAL REMOVAL_UNCERTAIN. This asks the user to
+choose 隐藏（保留插件源码，之后可以恢复） or 彻底删除（删除插件及不再需要的相关源码）
+before writes. “先把 Slash Command 隐藏掉” means hide; “彻底删除 Slash Command，
+源码也不要” means purge. Host owns cleanup; never construct file or Provider lists.
+A brief answer to the previous clarification resolves the choice using context.
 Select an application_config or plugin_source choice when the requested change
 is a supplied, scoped authoring target. Use GENERAL for broader or unscoped
 implementation changes, such as a new capability with no supplied owner. Use
@@ -405,7 +398,7 @@ def _repair_feedback(
     return (
         "Your previous response did not match the Creator Action Selector protocol.\n\n"
         "Return exactly ONE line: MODIFY, READ_ONLY, or READ_ONLY_EXPLICIT followed by one route:\n"
-        "SELECT <choice>\nANSWER\nINSPECT\nGENERAL\nGENERAL DEVELOPMENT_DECISION\nGENERAL DEVELOPMENT_EXPLICIT\nGENERAL DEVELOPMENT_CONDITIONAL\nGENERAL DEVELOPMENT_PROHIBITED\nUNSUPPORTED\nCLARIFY <question>\n\n"
+        "SELECT <choice>\nANSWER\nINSPECT\nGENERAL\nGENERAL DEVELOPMENT_DECISION\nGENERAL DEVELOPMENT_EXPLICIT\nGENERAL DEVELOPMENT_CONDITIONAL\nGENERAL DEVELOPMENT_PROHIBITED\nGENERAL HIDE\nGENERAL PURGE\nGENERAL REMOVAL_UNCERTAIN\nUNSUPPORTED\nCLARIFY <question>\n\n"
         "When using CLARIFY, write the question in Simplified Chinese by default.\n"
         f"Valid choices are: {valid}.\n"
         "Do not return JSON, Markdown, or explanation.\n"
@@ -501,6 +494,12 @@ def _parse_route_response(
                 "The selected authoring choice has no target id.",
             )
         return CreatorActionSelection(decision="select_intent", targetId=target_id)
+    if line in {"GENERAL HIDE", "GENERAL PURGE"}:
+        return CreatorActionSelection(decision="general_change", removalIntent=(
+            "hide" if line == "GENERAL HIDE" else "purge"))
+    if line == "GENERAL REMOVAL_UNCERTAIN":
+        return CreatorActionSelection(decision="needs_clarification", removalIntent="uncertain",
+            clarificationQuestion="你希望隐藏（保留插件源码，之后可以恢复），还是彻底删除（从项目删除插件及不再需要的相关源码，以后需重新安装或创建）？")
     if line == "GENERAL":
         return CreatorActionSelection(decision="general_change")
     development_intents = {
@@ -736,10 +735,9 @@ class CreatorIntentSelector:
                                 and _RESTORE_VISUAL_STATE.search(user_message)
                                 and _ORIGINAL_VISUAL_STATE.search(user_message)):
                             return self._general_adjustment(selection)
-                        if (selected.kind == "remove_plugin"
-                                and _CURRENT_VISUAL_SCOPE.search(user_message)
-                                and _PRESERVE_PLUGIN_SOURCE.search(user_message)):
-                            return self._general_adjustment(selection)
+                        if selected.kind == "remove_plugin":
+                            raise _InvalidActionSelection("protocol_parse_failed",
+                                "Remove Actions are internal. Return GENERAL HIDE, GENERAL PURGE, or GENERAL REMOVAL_UNCERTAIN according to the user intent.")
                         requested_region = _explicit_workspace_region(user_message)
                         if selected.kind == "add_existing_plugin" and requested_region is not None:
                             if selected.effect.type == "workspace_region":

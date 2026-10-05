@@ -609,6 +609,24 @@ def create_project_control_tools(
         except ProjectControlError as error:
             return _render_error(error)
 
+    @tool("purge_ui_plugin")
+    async def purge_ui_plugin(pluginId: str, appUIModelHash: str, sourceStateHash: str) -> str:
+        """Permanently removes a UI Plugin, all Composition instances, safely orphaned removable Service infrastructure and exclusively owned source. Use only when the user explicitly chose permanent deletion, never for hiding. Host determines all dependencies, ownership, files and cleanup closure. Inspect AppUIModel and Sources for both hashes first. Success includes static verification; do not call deletion tools afterward."""
+        try:
+            result = await client.purge_ui_plugin(
+                plugin_id=pluginId, app_ui_model_hash=appUIModelHash,
+                source_state_hash=sourceStateHash,
+            )
+            if activity is not None:
+                for changed_path in result.get("changedPaths", []):
+                    activity.file_observations.observe(changed_path)
+                    activity.touch(changed_path)
+            if observations is not None:
+                observations.invalidate_app_ui_model(reason="plugin_purged")
+            return _render_result(result)
+        except ProjectControlError as error:
+            return _render_error(error)
+
     return (
         inspect_ui_project,
         inspect_app_ui_model,
@@ -621,4 +639,5 @@ def create_project_control_tools(
         inspect_agent_ui_sources,
         inspect_ui_capabilities,
         apply_agent_ui_source_item,
+        purge_ui_plugin,
     )

@@ -115,6 +115,8 @@ def _sanitized_tool_arguments(
             key = "pattern"
         value = arguments.get(key)
         return {key: value} if isinstance(value, str) else {}
+    if tool_name == "purge_ui_plugin":
+        return {"pluginId": arguments.get("pluginId")}
     if tool_name == "mutate_app_ui_model":
         operations = arguments.get("operations")
         operation_types = [
@@ -191,6 +193,7 @@ def _tool_fact_kinds(
         "verify_runtime_composition": ["runtime.verification"],
         "inspect_runtime_layout": ["runtime.layout.observation"],
         "mutate_app_ui_model": ["composition.commit"],
+        "purge_ui_plugin": ["composition.commit", "agent-ui.source.removal"],
     }.get(tool_name, _filesystem_fact_kinds(arguments) if tool_name in _FILESYSTEM_TOOL_NAMES else [])
 
 

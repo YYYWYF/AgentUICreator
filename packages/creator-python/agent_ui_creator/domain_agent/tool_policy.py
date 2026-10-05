@@ -36,6 +36,7 @@ DOMAIN_WRITE_TOOL_NAMES = (
     "mutate_app_ui_model",
     "edit_file_from_read",
     "apply_agent_ui_source_item",
+    "purge_ui_plugin",
     "validate_creator_changes",
     "inspect_static_diagnostics",
     *DEBUGGING_SELECTION_TOOL_NAMES,
@@ -66,6 +67,7 @@ SIDE_EFFECT_TOOL_NAMES = frozenset(
         "mutate_ui_service_contract",
         "mutate_app_ui_model",
         "apply_agent_ui_source_item",
+        "purge_ui_plugin",
         "verify_ui_plugin_behavior",
         *RECOVERY_WRITE_TOOL_NAMES,
     }
@@ -176,8 +178,10 @@ class DomainWriteToolPolicyMiddleware(AgentMiddleware):
     def __init__(
         self,
         verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
+        *, require_removal_choice: bool = False,
     ) -> None:
         self.verification_mode = verification_mode
+        self.require_removal_choice = require_removal_choice
 
     def wrap_model_call(
         self,
@@ -187,7 +191,8 @@ class DomainWriteToolPolicyMiddleware(AgentMiddleware):
         return handler(
             request.override(
                 tools=filter_domain_write_tools(
-                    request.tools,
+                    [item for item in request.tools if tool_name(item) == "ask_user_question"]
+                    if self.require_removal_choice else request.tools,
                     verification_mode=self.verification_mode,
                 )
             )
@@ -201,7 +206,8 @@ class DomainWriteToolPolicyMiddleware(AgentMiddleware):
         return await handler(
             request.override(
                 tools=filter_domain_write_tools(
-                    request.tools,
+                    [item for item in request.tools if tool_name(item) == "ask_user_question"]
+                    if self.require_removal_choice else request.tools,
                     verification_mode=self.verification_mode,
                 )
             )

@@ -629,6 +629,22 @@
               "$ref": "#/$defs/synchronizePluginRegistryInput"
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation",
+            "input"
+          ],
+          "properties": {
+            "operation": {
+              "const": "purge_ui_plugin"
+            },
+            "input": {
+              "$ref": "#/$defs/purgeUIPluginInput"
+            }
+          }
         }
       ]
     },
@@ -691,6 +707,9 @@
                 },
                 {
                   "$ref": "#/$defs/synchronizePluginRegistryResult"
+                },
+                {
+                  "$ref": "#/$defs/purgeUIPluginResult"
                 }
               ]
             }
@@ -2494,6 +2513,90 @@
         "cancelMarker": {
           "type": "string",
           "pattern": "^\\.agentuicreator/control/cancel-[a-f0-9-]{36}$"
+        }
+      }
+    },
+    "purgeUIPluginInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pluginId",
+        "appUIModelHash",
+        "sourceStateHash"
+      ],
+      "properties": {
+        "pluginId": {
+          "$ref": "#/$defs/nonBlankString"
+        },
+        "appUIModelHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "sourceStateHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "cancelMarker": {
+          "type": "string",
+          "pattern": "^\\.agentuicreator/control/cancel-[a-f0-9-]{36}$"
+        }
+      }
+    },
+    "purgeUIPluginResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pluginId",
+        "changed",
+        "removedPluginIds",
+        "removedInstanceIds",
+        "removedSourceItems",
+        "changedPaths",
+        "appUIModelHash",
+        "sourceStateHash",
+        "verification"
+      ],
+      "properties": {
+        "pluginId": {
+          "type": "string"
+        },
+        "changed": {
+          "const": true
+        },
+        "removedPluginIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "removedInstanceIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "removedSourceItems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "changedPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "appUIModelHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "sourceStateHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "verification": {
+          "const": "passed"
         }
       }
     }

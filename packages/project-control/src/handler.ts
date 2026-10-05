@@ -1,3 +1,6 @@
+import { acquireProjectControlLock } from "./project/project-control-lock";
+import { pluginPurgeInputSchema, purgeUIPlugin } from "./project/plugin-purge";
+import { recoverPendingPluginPurge } from "./project/plugin-purge-transaction";
 import { createHash } from "node:crypto";
 import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
@@ -64,6 +67,7 @@ const inspectUISlotsInputSchema = z.union([
   }),
 ]);
 export const requestSchema = z.discriminatedUnion("operation", [
+  z.strictObject({ operation: z.literal("purge_ui_plugin"), input: pluginPurgeInputSchema }),
   z.strictObject({
     operation: z.literal("inspect_ui_project"),
     input: inspectUIProjectInputSchema,
@@ -431,6 +435,8 @@ async function executeRequest(
       const result = await verifyUIProject(projectRoot);
       return { status: result.status, errors: result.errors, warnings: result.warnings };
     }
+    case "purge_ui_plugin":
+      return purgeUIPlugin(projectRoot, request.input);
     case "mutate_app_ui_model":
       return mutateAppUIModel(projectRoot, request.input);
     case "inspect_agent_ui_sources":
@@ -502,11 +508,14 @@ export async function handleUIProjectControlRequest(
   input: unknown,
   projectRoot = defaultProjectRoot,
 ): Promise<UIProjectControlResponse> {
+  let release: (() => Promise<void>) | undefined;
   try {
+    release = await acquireProjectControlLock(projectRoot);
     const projectConfig = await readAgentUIProjectConfig(projectRoot);
     const effectiveConfig = projectControlConfigForPaths(
       resolveAgentUIProjectPaths(projectRoot, projectConfig.config),
     );
+    await recoverPendingPluginPurge(projectRoot);
     await recoverPendingAppUITransaction(projectRoot);
     await recoverPendingAgentUISourceProjectMutation(
       projectRoot,
@@ -528,7 +537,7 @@ export async function handleUIProjectControlRequest(
     return { ok: true, result };
   } catch (error) {
     return failure(error);
-  }
+  } finally { await release?.(); }
 }
 
 async function readStandardInput(): Promise<string> {

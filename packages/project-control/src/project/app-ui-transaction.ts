@@ -115,6 +115,8 @@ interface AppUITransactionJournal {
 }
 
 export interface AppUITransactionTestOptions {
+  /** Host-only permanent-deletion authority. Never accepted in the Tool input schema. */
+  purgePluginId?: string;
   simulateCrashAfterRename?: number | undefined;
   beforeCommit?: (() => Promise<void>) | undefined;
   afterCommitStarted?: (() => Promise<void>) | undefined;
@@ -818,6 +820,7 @@ async function assertHeadlessPluginLifecycleProtected(
   model: AppUIModel,
   operations: readonly AppUIOperation[],
   generation?: GeneratePluginCatalogResult,
+  purgePluginId?: string,
 ): Promise<GeneratePluginCatalogResult | undefined> {
   const lifecycleOperations = operations.filter(isHeadlessLifecycleOperation);
   if (lifecycleOperations.length === 0) return generation;
@@ -836,6 +839,7 @@ async function assertHeadlessPluginLifecycleProtected(
     if (operation.type === "set_plugin_enabled" && operation.enabled) continue;
     const location = locations.get(operation.instanceId);
     const targetPluginId = location?.plugin.pluginId;
+    if (targetPluginId === purgePluginId && (operation.type === "remove_plugin" || operation.type === "remove_plugin_default")) continue;
     const targetIsHeadless = targetPluginId !== undefined && headlessPluginIds.has(targetPluginId);
     const replacementIsHeadless = operation.type === "replace_plugin" &&
       headlessPluginIds.has(operation.replacement.pluginId);
@@ -1108,6 +1112,8 @@ async function runTransaction(
         generateCurrentRegistry,
         beforeModel,
         loweredOperations,
+        undefined,
+        options.purgePluginId,
       );
     }
 
@@ -1211,6 +1217,7 @@ async function runTransaction(
       beforeModel,
       loweredOperations,
       currentGeneration,
+      options.purgePluginId,
     );
     afterModel = parseAppUIModel(
       applyAppUIOperations(

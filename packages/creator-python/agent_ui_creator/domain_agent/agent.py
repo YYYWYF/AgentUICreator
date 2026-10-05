@@ -672,6 +672,7 @@ def create_domain_write_creator_agent(
     verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
     plugin_development_authority: PluginDevelopmentAuthority | None = None,
     authoring_handoff: CreatorAuthoringHandoff | None = None,
+    require_removal_choice: bool = False,
 ) -> CreatorDomainWriteAgent:
     _register_minimal_harness_profile(model)
     policy = (
@@ -910,7 +911,7 @@ def create_domain_write_creator_agent(
         memory=None,
         middleware=[
             filesystem,
-            DomainWriteToolPolicyMiddleware(verification_mode),
+            DomainWriteToolPolicyMiddleware(verification_mode, require_removal_choice=require_removal_choice),
             PluginDevelopmentAdmissionMiddleware(development_authority),
             CompositionGroundingConvergenceMiddleware(
                 observations,

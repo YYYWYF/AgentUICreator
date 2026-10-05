@@ -2,7 +2,7 @@
 name: app-ui-model
 description: Load for low-level AppUIModel composition changes, including custom add, remove, hide, move, resize, placement, Layout, or nested Plugin Slot changes. The Host-owned insert_plugin_default semantic fast path does not require this Skill.
 compatibility: Agent UI Plugin Creator authoring model.
-allowed-tools: read_file ls glob grep inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin mutate_app_ui_model execute
+allowed-tools: read_file ls glob grep inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin inspect_agent_ui_sources mutate_app_ui_model purge_ui_plugin ask_user_question
 ---
 
 # AppUIModel Composition Manual
@@ -120,12 +120,10 @@ Composition revision; it does not need a separate Service scan.
   an anchor instance and `before`/`after`; Plugin child Slot destinations use a
   parent instance and declared Slot name. Do not replace this with remove plus
   insert or expose Layout refs to the Resolver.
-- `remove_plugin`: remove an instance subtree while preserving Plugin source.
-  When removing a Plugin that owns an entire visible Layout region and the user
-  wants that region gone, prefer `reflow: "collapse-empty-region"`. Use the
-  ordinary operation (or `reflow: "preserve"`) for an existing/shared Slot.
-  Do not manually update Row/Column sizes when deterministic reflow expresses
-  the requested result.
+- `remove_plugin` / `remove_plugin_default`: Host internal Composition removal
+  primitives. Never use them as the final user-facing Plugin removal result.
+  Permanent removal uses `purge_ui_plugin`; temporary removal uses
+  `set_plugin_enabled(false)`.
 - `replace_plugin`: replace an instance subtree in place.
 - `set_plugin_enabled`: hide or restore an existing instance.
 - Layout operations use snapshot-scoped refs. All refs in a transaction are
@@ -138,33 +136,25 @@ and commits atomically only when its gates succeed.
 
 ## Canonical patterns
 
-### Remove a visual region
+### Hide or permanently delete a Plugin
 
-1. Resolve the visible feature to its Plugin instance.
-2. Inspect its authoring target and containing Layout structure.
-3. Derive the desired final Layout tree.
-4. Remove the Plugin instance.
-5. If its containing Layout region is now unnecessary, collapse or remove that
-   Layout structure in the same transaction.
+- Explicit hiding or temporarily disabling: `set_plugin_enabled(false)`. Keep
+  the instance, Layout, source, Source Lock and all Service Providers. Restore
+  with `enabled=true`.
+- Explicit permanent deletion including source: inspect the AppUIModel and
+  Source inventory, then call `purge_ui_plugin(pluginId, appUIModelHash,
+  sourceStateHash)`. Host computes all instances, orphan Provider cleanup,
+  Source ownership and dependencies, final registry, verification and one atomic
+  transaction. Never supply paths, dependencies or cleanup lists.
+- Ambiguous “去掉/删除”: use `ask_user_question` to choose hiding (source kept,
+  directly restorable) or permanent deletion (source deleted, later reinstall
+  or recreation). Make no writes before the choice; reuse recent clarification.
 
-Do not edit either the removed Plugin source or neighboring Plugin source, and
-do not remove a Service merely because its visual consumer was removed.
+### Hide or purge a child Plugin
 
-### Hide versus remove versus remove capability
-
-- “先隐藏/先不要显示” -> `set_plugin_enabled(false)` and retain Layout.
-- “去掉这个 UI/区域” -> `remove_plugin` with
-  `reflow: "collapse-empty-region"` when the Plugin owns a dedicated visible
-  region; otherwise use ordinary `remove_plugin` and preserve the Slot.
-- “彻底删除能力” -> analyze Runtime Capability ownership and consumers; this
-  is not automatically a Composition-only request.
-
-### Remove a child Plugin
-
-When a parent Plugin contributes a child Slot and the user removes the visual
-feature occupying it, remove the child Plugin instance. Do not delete the
-Parent Plugin's Slot declaration. Slot declaration is capability; occupant is
-composition.
+Hide disables the child instance and preserves the parent Slot declaration.
+Permanent deletion uses the Host purge tool and removes all instances of the
+chosen pluginId. Clarify when the destructive outcome is uncertain.
 
 ### Reuse an optional capability
 
@@ -206,19 +196,16 @@ not allowed. Stale-state refreshes do not consume the one semantic replan.
 Each example shows the reasoning contract; ids and refs must come from current
 inspection, never from these examples.
 
-### 1. Remove left conversation history
+### 1. Ambiguous removal of left conversation history
 
 ```text
 User request: Remove the left conversation history.
 Current composition: row(left panel -> thread-list, main panel -> surface).
-Desired state: conversation surface only; ConversationService remains.
-Owning layer: Composition.
-Semantic delta: remove thread-list instance and collapse its dedicated left
-Layout region.
-Correct tool: one mutate_app_ui_model transaction with
-`remove_plugin(reflow="collapse-empty-region")`.
-Incorrect: edit thread-list source, edit conversation-surface source, remove
-ConversationService, or submit layout removal first as a probing mutation.
+Desired state: unclear whether source should remain for direct restoration.
+Correct tool: ask_user_question with Hide and Permanently delete choices.
+After Hide: set_plugin_enabled(false), keep source and Providers.
+After permanent deletion: inspect both hashes and use purge_ui_plugin.
+Incorrect: ordinary Composition removal as the final outcome or deleting files.
 ```
 
 ### 2. Hide left conversation history
@@ -236,13 +223,13 @@ Incorrect: remove the instance, delete the left Layout, or edit CSS/source.
 ### 3. Remove Suggestions
 
 ```text
-User request: Remove suggested questions.
+User request: Hide suggested questions.
 Current composition: conversation-surface.emptySuggestions contains a
 conversation-suggestions instance.
-Desired state: the child Slot remains declared but has no Suggestions occupant.
+Desired state: the Suggestions occupant is disabled; its source remains.
 Owning layer: Composition.
-Semantic delta: remove the Suggestions child Plugin instance.
-Correct tool: remove_plugin.
+Semantic delta: disable the Suggestions child Plugin instance.
+Correct tool: set_plugin_enabled(false).
 Incorrect: delete emptySuggestions from the parent manifest or edit the parent.
 ```
 
@@ -330,15 +317,14 @@ Current composition: conversation-surface.reasoningGroup contains the selected
 assistant-ui-reasoning Renderer Plugin.
 Desired state: reasoning presentation absent while conversation text remains.
 Owning layer: Composition.
-Semantic delta: remove the reasoningGroup occupant.
-Correct tool: remove_plugin(assistant-ui-reasoning-main).
-Result: reasoningGroup is empty and renders nothing; the Host does not reveal a
+Semantic delta: disable the reasoningGroup occupant.
+Correct tool: set_plugin_enabled(assistant-ui-reasoning-main, false).
+Result: reasoningGroup renders nothing; the Host does not reveal a
 hidden canonical fallback or modify the assistant-ui Thread.
 Incorrect: edit ConversationAdapter, edit assistant-ui Thread/grouping, create
 a hidden Renderer Plugin, or modify reasoning Runtime state.
 
 User request: Restore the reasoning process.
-Semantic delta: insert the existing assistant-ui-reasoning capability into
-conversation-surface.reasoningGroup.
+Semantic delta: enable the existing assistant-ui-reasoning instance.
 Correct tool: insert the existing Plugin instance through Composition.
 ```
