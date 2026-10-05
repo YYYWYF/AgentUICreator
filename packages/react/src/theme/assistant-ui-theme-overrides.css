@@ -1,0 +1,22 @@
+/* Removable compatibility seams only. No vendor class matching or step/icon
+ * overrides; light/dark retain their upstream presentation. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_composer-shell"] {
+  background: var(--card);
+  background-image: none;
+  border-color: var(--input);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_composer-shell"]:focus-within {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--ring) 16%, transparent);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-plan"] [role="progressbar"] {
+  background-color: var(--agent-brand-subtle);
+}
+
+/* The pinned upstream progressbar has one direct aria-hidden span for its fill.
+ * The contract test guards that narrow dependency; width/animation stay upstream. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-plan"] [role="progressbar"] > span[aria-hidden="true"] {
+  background-color: var(--primary);
+}

@@ -1,0 +1,21 @@
+/* Product brand layer over the untouched shadcn snapshot. Derive tints from
+ * primary so a future brand can reuse these semantics without component forks.
+ * Keep background/card and semantic success/warning/destructive upstream-owned. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] {
+  --agent-brand: var(--primary);
+  --agent-brand-subtle: color-mix(in oklch, var(--background) 96%, var(--primary));
+  --agent-brand-surface: color-mix(in oklch, var(--background) 92%, var(--primary));
+  --agent-brand-border: color-mix(in oklch, var(--background) 86%, var(--primary));
+
+  --accent: var(--agent-brand-surface);
+  --accent-foreground: var(--foreground);
+  --muted: var(--agent-brand-surface);
+  --muted-foreground: color-mix(in oklch, var(--foreground) 64%, var(--background));
+  --border: var(--agent-brand-border);
+  --input: var(--agent-brand-border);
+  --ring: var(--agent-brand);
+  --sidebar-accent: var(--agent-brand-surface);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--agent-brand-border);
+  --sidebar-ring: var(--agent-brand);
+}

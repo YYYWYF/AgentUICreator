@@ -11,6 +11,8 @@
 @import "tw-shimmer";
 @import "./theme/shadcn-theme-presets.css";
 @import "./theme/agent-ui-theme-extensions.css";
+@import "./theme/agent-ui-violet-brand.css";
+@import "./theme/assistant-ui-theme-overrides.css";
 
 @custom-variant dark (&:is(.dark *));
 
