@@ -16,7 +16,7 @@ Source form: official Base UI registry output plus declared mechanical import ad
 
 ## Ownership
 
-The files below are copied from the frozen revision above. Vendor sync may adapt only upstream import aliases, registry base-ui relative paths, the five recorded Agent UI Portal container bridges, the recorded Quote selection primitive import bridge, the generic Composer trigger child seam, and the explicit search presentation labels seam. Product presentation and policy stay in the Agent UI facade and Plugin layers.
+The files below are copied from the frozen revision above. Vendor sync may adapt only upstream import aliases, registry base-ui relative paths, the seven recorded Agent UI Portal container bridges, the recorded Quote selection primitive import bridge, the generic Composer trigger child seam, and the explicit search presentation labels seam. Product presentation and policy stay in the Agent UI facade and Plugin layers.
 
 - 50 tracked vendor files
 - 30 tracked official Element files

@@ -24,6 +24,8 @@ const ELEMENT_PATH_PREFIX = `${ELEMENTS_DIRECTORY}/`;
 const IMAGE_ZOOM_PORTAL_PATH = "components/assistant-ui/elements/image.tsx";
 const PORTAL_BRIDGE_FILES = [
   IMAGE_ZOOM_PORTAL_PATH,
+  "components/assistant-ui/elements/thread-list.aui.tsx",
+  "components/assistant-ui/elements/thread.aui.tsx",
   "components/ui/dialog.tsx",
   "components/ui/popover.tsx",
   "components/ui/sheet.tsx",
@@ -267,7 +269,7 @@ export async function collectAssistantUiUpstreamErrors(
   for (const entry of Array.isArray(provenance.files) ? provenance.files : []) {
     if ((Array.isArray(entry?.adaptations) && entry.adaptations.includes("agent-ui-portal-container-bridge")) !==
         PORTAL_BRIDGE_FILES.includes(entry?.localPath)) {
-      errors.push(`${PROVENANCE_FILE} Portal bridge adaptation is allowed only for the five approved files: ${entry?.localPath}.`);
+      errors.push(`${PROVENANCE_FILE} Portal bridge adaptation is allowed only for the seven approved files: ${entry?.localPath}.`);
     }
   }
 
@@ -308,7 +310,7 @@ export async function collectAssistantUiUpstreamErrors(
     const portalPatches = provenance.patches.filter((patch) => patch?.id === "agent-ui-portal-container-bridge");
     if (portalPatches.length !== 1 ||
         JSON.stringify(portalPatches[0]?.files) !== JSON.stringify(PORTAL_BRIDGE_FILES)) {
-      errors.push(`${PROVENANCE_FILE} must declare exactly the five approved Portal bridge files.`);
+      errors.push(`${PROVENANCE_FILE} must declare exactly the seven approved Portal bridge files.`);
     }
     const quotePatches = provenance.patches.filter(patch => patch?.id === "agent-ui-quote-selection-portal-bridge");
     if (quotePatches.length !== 1 || JSON.stringify(quotePatches[0]?.files) !==
@@ -324,7 +326,7 @@ export async function collectAssistantUiUpstreamErrors(
         ? patch.files
         : [];
       if (patchFiles.some((file) => typeof file === "string" && file.startsWith(ELEMENT_PATH_PREFIX) &&
-        !(patch.id === "agent-ui-portal-container-bridge" && file === IMAGE_ZOOM_PORTAL_PATH) &&
+        !(patch.id === "agent-ui-portal-container-bridge" && PORTAL_BRIDGE_FILES.includes(file)) &&
         !(patch.id === "agent-ui-quote-selection-portal-bridge" && file === "components/assistant-ui/elements/quote.aui.tsx") &&
         !(patch.id === SEARCH_LABELS_SEAM_ID && SEARCH_LABELS_SEAM_FILES.includes(file)) &&
         !(patch.id === "agent-ui-trigger-content-seam" && file === "components/assistant-ui/elements/composer-trigger-popover.aui.tsx"))) {

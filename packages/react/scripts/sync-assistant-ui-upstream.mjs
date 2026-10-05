@@ -28,6 +28,8 @@ const UNADOPTED_ELEMENT_RATIONALE =
 const PORTAL_BRIDGE_ID = "agent-ui-portal-container-bridge";
 const PORTAL_BRIDGE_FILES = [
   "components/assistant-ui/elements/image.tsx",
+  "components/assistant-ui/elements/thread-list.aui.tsx",
+  "components/assistant-ui/elements/thread.aui.tsx",
   "components/ui/dialog.tsx",
   "components/ui/popover.tsx",
   "components/ui/sheet.tsx",
@@ -355,6 +357,18 @@ function applyAgentUIPortalContainerBridge(source, localPath) {
     ? 'import { cn } from "../../lib/utils";\n'
     : 'import { cn } from "../../../lib/utils";\n';
   let installed = replaceExactlyOnce(source, utilsImport, utilsImport + hookImport, localPath);
+  if (localPath.endsWith("/thread-list.aui.tsx") || localPath.endsWith("/thread.aui.tsx")) {
+    const threadList = localPath.endsWith("/thread-list.aui.tsx");
+    const primitive = threadList ? "ThreadListItemMorePrimitive" : "ActionBarMorePrimitive";
+    const functionStart = threadList
+      ? "const ThreadListItemMore: FC<{ onRename: () => void }> = ({ onRename }) => {\n"
+      : "const AssistantActionBar: FC = () => {\n";
+    installed = replaceExactlyOnce(installed, functionStart,
+      functionStart + "  const portalContainer = useAgentUIPortalContainer();\n", localPath);
+    installed = replaceExactlyOnce(installed, `<${primitive}.Content\n`,
+      `{portalContainer !== null && <${primitive}.Content\n          portalProps={portalContainer === undefined ? undefined : { container: portalContainer }}\n`, localPath);
+    return replaceExactlyOnce(installed, `</${primitive}.Content>`, `</${primitive}.Content>}`, localPath);
+  }
   if (localPath === "components/assistant-ui/elements/image.tsx") {
     installed = replaceExactlyOnce(installed,
       '  const [isOpen, setIsOpen] = useState(false);\n',
@@ -427,11 +441,11 @@ export function applyApprovedAdaptations(source, localPath) {
 export function portalBridgePatch(files) {
   const present = PORTAL_BRIDGE_FILES.filter((localPath) => files.some((file) => file.localPath === localPath));
   if (present.length !== PORTAL_BRIDGE_FILES.length) {
-    throw new Error(`${PORTAL_BRIDGE_ID}: expected all five approved Portal files in the vendor set; missing ${PORTAL_BRIDGE_FILES.filter((file) => !present.includes(file)).join(", ")}.`);
+    throw new Error(`${PORTAL_BRIDGE_ID}: expected all seven approved Portal files in the vendor set; missing ${PORTAL_BRIDGE_FILES.filter((file) => !present.includes(file)).join(", ")}.`);
   }
   return {
     id: PORTAL_BRIDGE_ID,
-    reason: "Mount Base UI overlays inside AgentUIRoot without changing presentation or runtime behavior.",
+    reason: "Mount upstream overlays inside AgentUIRoot without changing presentation or runtime behavior.",
     files: [...PORTAL_BRIDGE_FILES],
   };
 }
@@ -491,7 +505,7 @@ function upstreamMarkdown({ revision, oldRevision, target, files, inventory, new
     Object.entries(packageVersions).map(([name, version]) => `- \`${name}\` = \`${version}\``).join("\n") +
     `\n\n## Ownership\n\n` +
     `The files below are copied from the frozen revision above. Vendor sync may adapt ` +
-    `only upstream import aliases, registry base-ui relative paths, and the five ` +
+    `only upstream import aliases, registry base-ui relative paths, and the seven ` +
     `recorded Agent UI Portal container bridges, the Quote selection import bridge, and the generic Composer trigger child seam. Product ` +
     `presentation and policy stay in the Agent UI facade and Plugin layers.\n\n` +
     `- ${files.length} tracked vendor files\n` +

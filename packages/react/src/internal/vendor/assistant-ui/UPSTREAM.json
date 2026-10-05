@@ -247,20 +247,22 @@
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/thread-list.aui.tsx",
       "localPath": "components/assistant-ui/elements/thread-list.aui.tsx",
       "upstreamSha256": "0d0bf30eef4d96e076df5c85915cd2ef92067178579a48be33b70ab904fab4cf",
-      "installedSha256": "dba97aed1ac096e2fbaaebb92e334ec877716e430e7157929d38e8311d358364",
+      "installedSha256": "a131579a0c7d111f0ad082384c84786057f75aee99075a678c50a80b490b1ee2",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative"
+        "import-alias-to-relative",
+        "agent-ui-portal-container-bridge"
       ]
     },
     {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/thread.aui.tsx",
       "localPath": "components/assistant-ui/elements/thread.aui.tsx",
       "upstreamSha256": "64cb85b4076644dd319325b319264ec8e998e619a97c19e0f001d3fa5a03a016",
-      "installedSha256": "672ab839f38f282293e70de66f81e397750bf8bec706f5b474596a6708f89b0b",
+      "installedSha256": "9354aa6b43983f45ba6a4e4df9d3c335939fbbeb5406edf269c5e82bf7c90f4a",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative"
+        "import-alias-to-relative",
+        "agent-ui-portal-container-bridge"
       ]
     },
     {
@@ -502,9 +504,11 @@
   "patches": [
     {
       "id": "agent-ui-portal-container-bridge",
-      "reason": "Mount Base UI overlays inside AgentUIRoot without changing presentation or runtime behavior.",
+      "reason": "Mount upstream overlays inside AgentUIRoot without changing presentation or runtime behavior.",
       "files": [
         "components/assistant-ui/elements/image.tsx",
+        "components/assistant-ui/elements/thread-list.aui.tsx",
+        "components/assistant-ui/elements/thread.aui.tsx",
         "components/ui/dialog.tsx",
         "components/ui/popover.tsx",
         "components/ui/sheet.tsx",

@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "./vendor/assistant-ui/components/ui/button.js";
 import { Input } from "./vendor/assistant-ui/components/ui/input.js";
 import { ThreadListItem } from "./vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.js";
+import { useAgentUIPortalContainer } from "./style-boundary/AgentUIRoot.js";
 
 export interface ConversationThreadListItemActions {
   rename?: boolean;
@@ -44,6 +45,7 @@ function ConfiguredThreadListItem({ actions, labels }: {
   actions: ConversationThreadListItemActions;
   labels: ConversationThreadListItemLabels;
 }) {
+  const portalContainer = useAgentUIPortalContainer();
   const isRunning = useAuiState(s => s.threadListItem.isRunning);
   const [isRenaming, setIsRenaming] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -65,7 +67,7 @@ function ConfiguredThreadListItem({ actions, labels }: {
         <ThreadListItemPrimitive.Trigger
           ref={triggerRef}
           data-slot="aui_thread-list-item-trigger"
-          className="focus-visible:ring-ring/50 flex h-full min-w-0 flex-1 items-center rounded-md px-2.5 text-start text-sm outline-none group-hover:pe-9 group-has-focus-visible:pe-9 group-data-active:pe-9 focus-visible:ring-1"
+          className="focus-visible:ring-ring/50 flex h-full min-w-0 flex-1 items-center rounded-md px-2.5 text-start text-sm outline-none group-hover:pe-9 group-has-focus-visible:pe-9 group-has-data-[state=open]:pe-9 group-data-active:pe-9 focus-visible:ring-1"
         >
           {isRunning && <Loader2Icon aria-hidden className="text-muted-foreground me-1.5 size-3.5 shrink-0 animate-spin" />}
           <span data-slot="aui_thread-list-item-title" className="min-w-0 flex-1 truncate">
@@ -83,9 +85,10 @@ function ConfiguredThreadListItem({ actions, labels }: {
               <span className="sr-only">{labels.moreOptions}</span>
             </Button>
           </ThreadListItemMorePrimitive.Trigger>
-          <ThreadListItemMorePrimitive.Content side="right" align="start" sideOffset={6}
+          {portalContainer !== null && <ThreadListItemMorePrimitive.Content side="right" align="start" sideOffset={6}
+            portalProps={portalContainer === undefined ? undefined : { container: portalContainer }}
             data-slot="agent-ui-thread-action-menu"
-            className="bg-popover text-popover-foreground z-50 min-w-32 overflow-hidden rounded-xl border p-1.5">
+            className="bg-popover text-popover-foreground data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:animate-in data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:animate-out data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-32 overflow-hidden rounded-xl border p-1.5">
             {actions.rename && (
               <ThreadListItemMorePrimitive.Item data-slot="agent-ui-thread-action-rename" className={itemClass} onSelect={() => setIsRenaming(true)}>
                 <PencilIcon aria-hidden className="size-4" />{labels.rename}
@@ -106,7 +109,7 @@ function ConfiguredThreadListItem({ actions, labels }: {
                 </ThreadListItemMorePrimitive.Item>
               </ThreadListItemPrimitive.Delete>
             )}
-          </ThreadListItemMorePrimitive.Content>
+          </ThreadListItemMorePrimitive.Content>}
         </ThreadListItemMorePrimitive.Root>
       )}
     </ThreadListItemPrimitive.Root>

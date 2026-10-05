@@ -8,7 +8,7 @@ import { expect, it } from "vitest";
 const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
 const reactSource = path.join(repositoryRoot, "packages/react/src");
 const vendorRoot = path.join(reactSource, "internal/vendor/assistant-ui");
-const portalFiles = ["components/assistant-ui/elements/image.tsx", ...["dialog", "popover", "sheet", "tooltip"]
+const portalFiles = ["components/assistant-ui/elements/image.tsx", "components/assistant-ui/elements/thread-list.aui.tsx", "components/assistant-ui/elements/thread.aui.tsx", ...["dialog", "popover", "sheet", "tooltip"]
   .map((name) => `components/ui/${name}.tsx`)];
 
 async function sourceFiles(directory: string): Promise<string[]> {
@@ -34,7 +34,7 @@ it("keeps the canonical theme and Preflight scoped to AgentUIRoot", async () => 
   expect(agent).toContain("<AgentUIRoot theme={theme}>");
 });
 
-it("records five Portal target bridges and a separate Quote primitive bridge", async () => {
+it("records seven Portal target bridges and a separate Quote primitive bridge", async () => {
   const provenance = JSON.parse(await readFile(path.join(vendorRoot, "UPSTREAM.json"), "utf8")) as {
     files: { localPath: string; installedSha256: string; adaptations: string[] }[];
     patches: { id: string; files: string[] }[];

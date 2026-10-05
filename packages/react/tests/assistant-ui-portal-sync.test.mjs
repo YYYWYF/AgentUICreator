@@ -25,10 +25,18 @@ const fixtures = [
     localPath: "components/assistant-ui/elements/image.tsx",
     source: 'import { cn } from "../../../lib/utils";\nfunction ImageZoom() {\n  const [isOpen, setIsOpen] = useState(false);\n  return (\n    <>\n      {isOpen &&\n        createPortal(\n          <div data-slot="image-zoom-overlay" />,\n          document.body,\n        )}\n    </>\n  );\n}\n',
   },
+  {
+    localPath: "components/assistant-ui/elements/thread-list.aui.tsx",
+    source: 'import { cn } from "../../../lib/utils";\nconst ThreadListItemMore: FC<{ onRename: () => void }> = ({ onRename }) => {\n  return <ThreadListItemMorePrimitive.Content\n    side="right">menu</ThreadListItemMorePrimitive.Content>;\n};\n',
+  },
+  {
+    localPath: "components/assistant-ui/elements/thread.aui.tsx",
+    source: 'import { cn } from "../../../lib/utils";\nconst AssistantActionBar: FC = () => {\n  return <ActionBarMorePrimitive.Content\n    side="bottom">menu</ActionBarMorePrimitive.Content>;\n};\n',
+  },
 ];
 const sha256 = (source) => createHash("sha256").update(source).digest("hex");
 
-it("reapplies all five approved Portal bridges and records final installed hashes in sync provenance", () => {
+it("reapplies all seven approved Portal bridges and records final installed hashes in sync provenance", () => {
   const entries = fixtures.map(({ localPath, source }) => installedVendorEntry({
     localPath, source, upstreamPath: `upstream/${localPath}`,
   }));
@@ -58,5 +66,5 @@ it("fails loudly if an upstream Portal changes shape or a bridge file goes missi
     source: changed.source.replace("DialogPrimitive.Portal", "ChangedPortal"),
     upstreamPath: "upstream/dialog.tsx",
   })).toThrow(/cannot safely adapt.*changed upstream Portal structure/u);
-  expect(() => portalBridgePatch(fixtures.slice(1))).toThrow(/expected all five approved Portal files/u);
+  expect(() => portalBridgePatch(fixtures.slice(1))).toThrow(/expected all seven approved Portal files/u);
 });

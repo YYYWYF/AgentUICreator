@@ -1,5 +1,13 @@
 /* Agent UI owns only semantics missing from the shadcn palette. */
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme] {
+  /* Upstream arbitrary radius utilities read these variables directly. Inline
+   * Tailwind theme mappings alone do not emit them at the scoped boundary. */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: 1.5rem;
   --success: #16865b;
   --success-foreground: oklch(0.985 0 0);
   --warning: #a86308;
