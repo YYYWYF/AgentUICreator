@@ -3,6 +3,8 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { QUOTE_SELECTION_FILES } from "./sync-assistant-ui-upstream.mjs";
+
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const defaultVendorRoot = path.join(
   scriptDirectory,
@@ -146,8 +148,51 @@ async function collectElementInventory(vendorRoot, errors) {
   }
 }
 
+export async function collectQuoteSelectionErrors(internalRoot, revision) {
+  const errors = [];
+  const label = "quote-selection-UPSTREAM.json";
+  let record;
+  try {
+    record = await readJson(path.join(internalRoot, label), label);
+  } catch (error) {
+    return [error.message];
+  }
+  if (!isRecord(record) || !/^[a-f0-9]{40}$/u.test(record.revision ?? "") || record.revision !== revision) {
+    errors.push(`${label}.revision must match UPSTREAM.json.revision.`);
+  }
+  const expectedPaths = QUOTE_SELECTION_FILES.map(({ upstreamPath, localPath }) => ({ upstreamPath, localPath }));
+  const actualPaths = Array.isArray(record?.files)
+    ? record.files.map(entry => ({ upstreamPath: entry?.upstreamPath, localPath: entry?.localPath }))
+    : [];
+  if (JSON.stringify(actualPaths) !== JSON.stringify(expectedPaths)) {
+    errors.push(`${label}.files must contain exactly the three approved Quote selection upstream/local paths.`);
+  }
+  // Read only fixed approved paths; metadata cannot redirect the guard elsewhere.
+  for (const mapping of QUOTE_SELECTION_FILES) {
+    const entry = (Array.isArray(record?.files) ? record.files : []).find(file => file?.localPath === mapping.localPath && file?.upstreamPath === mapping.upstreamPath);
+    if (!entry || !/^[a-f0-9]{64}$/u.test(entry.upstreamSha256 ?? "") ||
+        !/^[a-f0-9]{64}$/u.test(entry.installedSha256 ?? "")) {
+      errors.push(`${label} requires valid upstream and installed hashes: ${mapping.localPath}.`);
+    }
+    try {
+      const source = await readFile(path.join(internalRoot, mapping.localPath));
+      if (sha256(source) !== entry?.installedSha256) {
+        errors.push(`Quote selection adapter modified: ${mapping.localPath}.`);
+      }
+    } catch (error) {
+      if (error?.code === "ENOENT") errors.push(`Quote selection adapter missing: ${mapping.localPath}.`);
+      else throw error;
+    }
+    if (mapping.localPath === "quote-selection-message-id.ts" && entry?.upstreamSha256 !== entry?.installedSha256) {
+      errors.push("Quote selection message-id source must remain identical to upstream.");
+    }
+  }
+  return errors;
+}
+
 export async function collectAssistantUiUpstreamErrors(
   vendorRoot = defaultVendorRoot,
+  internalRoot = path.resolve(vendorRoot, "../.."),
 ) {
   const errors = [];
   let manifest;
@@ -208,11 +253,19 @@ export async function collectAssistantUiUpstreamErrors(
   if (typeof provenance?.revision !== "string" || !/^[a-f0-9]{40}$/.test(provenance.revision)) {
     errors.push(`${PROVENANCE_FILE}.revision must be a 40-character commit hash.`);
   }
+  errors.push(...await collectQuoteSelectionErrors(internalRoot, provenance?.revision));
   const provenanceElementPaths = elementPathsFromProvenance(provenance, errors);
   for (const entry of Array.isArray(provenance.files) ? provenance.files : []) {
     if ((Array.isArray(entry?.adaptations) && entry.adaptations.includes("agent-ui-portal-container-bridge")) !==
         PORTAL_BRIDGE_FILES.includes(entry?.localPath)) {
       errors.push(`${PROVENANCE_FILE} Portal bridge adaptation is allowed only for the five approved files: ${entry?.localPath}.`);
+    }
+  }
+
+  for (const entry of Array.isArray(provenance.files) ? provenance.files : []) {
+    if ((Array.isArray(entry?.adaptations) && entry.adaptations.includes("agent-ui-quote-selection-portal-bridge")) !==
+        (entry?.localPath === "components/assistant-ui/elements/quote.aui.tsx")) {
+      errors.push(`${PROVENANCE_FILE} Quote selection bridge adaptation is allowed only for quote.aui.tsx: ${entry?.localPath}.`);
     }
   }
 
@@ -247,6 +300,11 @@ export async function collectAssistantUiUpstreamErrors(
     if (portalPatches.length !== 1 ||
         JSON.stringify(portalPatches[0]?.files) !== JSON.stringify(PORTAL_BRIDGE_FILES)) {
       errors.push(`${PROVENANCE_FILE} must declare exactly the five approved Portal bridge files.`);
+    }
+    const quotePatches = provenance.patches.filter(patch => patch?.id === "agent-ui-quote-selection-portal-bridge");
+    if (quotePatches.length !== 1 || JSON.stringify(quotePatches[0]?.files) !==
+        JSON.stringify(["components/assistant-ui/elements/quote.aui.tsx"])) {
+      errors.push(`${PROVENANCE_FILE} must declare exactly the separate Quote selection bridge file.`);
     }
     for (const patch of provenance.patches) {
       const patchFiles = isRecord(patch) && Array.isArray(patch.files)

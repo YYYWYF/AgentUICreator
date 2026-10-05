@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
@@ -11,6 +11,20 @@ const vendorRoot = path.join(packageRoot, "src/internal/vendor/assistant-ui");
 const guardScript = path.join(packageRoot, "scripts/check-assistant-ui-upstream.mjs");
 const execFileAsync = promisify(execFile);
 const temporaryRoots: string[] = [];
+
+async function copyGuardFixture(prefix: string): Promise<string> {
+  const root = await mkdtemp(path.join(packageRoot, prefix));
+  temporaryRoots.push(root);
+  const internalRoot = path.join(root, "internal");
+  const fixtureVendorRoot = path.join(internalRoot, "vendor/assistant-ui");
+  await mkdir(path.dirname(fixtureVendorRoot), { recursive: true });
+  await cp(vendorRoot, fixtureVendorRoot, { recursive: true });
+  for (const file of ["quote-selection-UPSTREAM.json", "quote-selection-root.tsx",
+    "quote-selection-action.tsx", "quote-selection-message-id.ts"]) {
+    await cp(path.join(packageRoot, "src/internal", file), path.join(internalRoot, file));
+  }
+  return fixtureVendorRoot;
+}
 
 afterEach(async () => {
   await Promise.all(temporaryRoots.splice(0).map((root) => rm(root, {
@@ -53,9 +67,7 @@ describe("assistant-ui upstream ownership guard", () => {
     "task-card.aui.tsx",
     "task-card.tsx",
   ])("fails when an upstream-owned Element is modified: %s", async (fileName) => {
-    const temporaryRoot = await mkdtemp(path.join(packageRoot, ".tmp-upstream-element-guard-"));
-    temporaryRoots.push(temporaryRoot);
-    await cp(vendorRoot, temporaryRoot, { recursive: true });
+    const temporaryRoot = await copyGuardFixture(".tmp-upstream-element-guard-");
 
     const target = path.join(
       temporaryRoot,
@@ -76,9 +88,7 @@ describe("assistant-ui upstream ownership guard", () => {
   });
 
   it("fails when the upstream-owned Thread is modified", async () => {
-    const temporaryRoot = await mkdtemp(path.join(packageRoot, ".tmp-upstream-thread-guard-"));
-    temporaryRoots.push(temporaryRoot);
-    await cp(vendorRoot, temporaryRoot, { recursive: true });
+    const temporaryRoot = await copyGuardFixture(".tmp-upstream-thread-guard-");
 
     const target = path.join(
       temporaryRoot,
@@ -98,9 +108,7 @@ describe("assistant-ui upstream ownership guard", () => {
   });
 
   it("fails when an approved non-Element Portal bridge drifts from its installed hash", async () => {
-    const temporaryRoot = await mkdtemp(path.join(packageRoot, ".tmp-upstream-portal-guard-"));
-    temporaryRoots.push(temporaryRoot);
-    await cp(vendorRoot, temporaryRoot, { recursive: true });
+    const temporaryRoot = await copyGuardFixture(".tmp-upstream-portal-guard-");
     const target = path.join(temporaryRoot, "components/ui/dialog.tsx");
     await writeFile(target, `${await readFile(target, "utf8")}\n// product drift\n`);
     await expect(execFileAsync("node", [guardScript, "--vendor-root", temporaryRoot]))
@@ -124,9 +132,7 @@ describe("assistant-ui upstream ownership guard", () => {
   });
 
   it("fails when an Element is added without an ownership declaration", async () => {
-    const temporaryRoot = await mkdtemp(path.join(packageRoot, ".tmp-upstream-unclassified-"));
-    temporaryRoots.push(temporaryRoot);
-    await cp(vendorRoot, temporaryRoot, { recursive: true });
+    const temporaryRoot = await copyGuardFixture(".tmp-upstream-unclassified-");
 
     await writeFile(
       path.join(
@@ -147,9 +153,7 @@ describe("assistant-ui upstream ownership guard", () => {
   });
 
   it("fails when an upstream-owned Element is removed from the lock", async () => {
-    const temporaryRoot = await mkdtemp(path.join(packageRoot, ".tmp-upstream-lock-"));
-    temporaryRoots.push(temporaryRoot);
-    await cp(vendorRoot, temporaryRoot, { recursive: true });
+    const temporaryRoot = await copyGuardFixture(".tmp-upstream-lock-");
 
     const lockPath = path.join(temporaryRoot, "assistant-ui-upstream.lock.json");
     const lock = JSON.parse(await readFile(lockPath, "utf8")) as {

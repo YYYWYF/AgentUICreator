@@ -34,6 +34,79 @@ const PORTAL_BRIDGE_FILES = [
   "components/ui/tooltip.tsx",
 ];
 
+export const QUOTE_SELECTION_FILES = [
+  { upstreamPath: "packages/react/src/primitives/selectionToolbar/SelectionToolbarRoot.tsx", localPath: "quote-selection-root.tsx" },
+  { upstreamPath: "packages/react/src/primitives/selectionToolbar/SelectionToolbarQuote.tsx", localPath: "quote-selection-action.tsx" },
+  { upstreamPath: "packages/react/src/utils/getSelectionMessageId.ts", localPath: "quote-selection-message-id.ts" },
+];
+const QUOTE_SELECTION_ADAPTATIONS = [
+  "Public React DOM elements replace the private Primitive helper (no asChild API is exposed).",
+  "Public useAui import and local context preserve captured selection/setQuote semantics.",
+  "Canonical Thread supplies the identical DOM root ref without importing a private upstream context.",
+  "Only selection behavior change: portal target is AgentUIRoot; absence of its container renders nothing.",
+];
+const COMPOSE_EVENT_HANDLERS = `function composeEventHandlers<E extends { defaultPrevented: boolean }>(first: ((event: E) => void) | undefined, second: (event: E) => void) {
+  return (event: E) => { first?.(event); if (!event.defaultPrevented) second(event); };
+}`;
+
+// Only the approved import/DOM/context/Portal substitutions are replayed.
+// Selection listeners, range geometry and composer.setQuote remain upstream source.
+export function adaptQuoteSelectionSource(source, localPath) {
+  if (!QUOTE_SELECTION_FILES.some(file => file.localPath === localPath)) {
+    throw new Error(`Quote selection upstream adaptation requires review: unknown file ${localPath}.`);
+  }
+  if (localPath === "quote-selection-message-id.ts") return source;
+  const replace = (before, after) => {
+    if (source.split(before).length !== 2) {
+      throw new Error(`Quote selection upstream adaptation requires review: ${localPath}; expected exactly one ${JSON.stringify(before)}.`);
+    }
+    source = source.replace(before, after);
+  };
+  const root = localPath === "quote-selection-root.tsx";
+  replace('import { Primitive } from "../../utils/Primitive";\n',
+    root ? 'const Primitive = { div: "div" } as const;\n\n' : 'const Primitive = { button: "button" } as const;\n');
+  replace('import { composeEventHandlers } from "radix-ui/internal";\n',
+    root ? '' : COMPOSE_EVENT_HANDLERS + '\n');
+  if (root) {
+    replace('import { getSelectionMessageId } from "../../utils/getSelectionMessageId";',
+      'import { getSelectionMessageId } from "./quote-selection-message-id.js";');
+    replace('import { useThreadRootElementRef } from "../thread/ThreadRootElementContext";\n',
+      'import { useThreadRootElementRef } from "./quote-thread-root.js";\n\n' +
+      'import { useAgentUIPortalContainer } from "./style-boundary/AgentUIRoot.js";\n\n' + COMPOSE_EVENT_HANDLERS + '\n');
+    replace('  const [info, setInfo] = useState<SelectionInfo | null>(null);',
+      '  const portalContainer = useAgentUIPortalContainer();\n  const [info, setInfo] = useState<SelectionInfo | null>(null);');
+    replace('  if (!info) return null;', '  if (!info || !portalContainer) return null;');
+    replace('    document.body,', '    portalContainer,');
+  } else {
+    replace('import { useAui } from "@assistant-ui/store";', 'import { useAui } from "@assistant-ui/react";');
+    replace('import { useSelectionToolbarInfo } from "./SelectionToolbarRoot";',
+      'import { useSelectionToolbarInfo } from "./quote-selection-root.js";');
+  }
+  const primitiveNames = [...source.matchAll(/\bPrimitive\.([A-Za-z_]+)/gu)].map(match => match[1]);
+  if (primitiveNames.some(name => name !== (root ? "div" : "button")) ||
+      /\basChild\b|from ["'](?:\.\.\/|@assistant-ui\/store|radix-ui\/internal)/u.test(source)) {
+    throw new Error(`Quote selection upstream adaptation requires review: unsupported private API in ${localPath}.`);
+  }
+  return source;
+}
+
+export async function prepareQuoteSelectionSync(repo, revision) {
+  const installations = [];
+  const files = [];
+  for (const mapping of QUOTE_SELECTION_FILES) {
+    let source;
+    try {
+      source = await gitShow(repo, revision, mapping.upstreamPath);
+    } catch (error) {
+      throw new Error(`Quote selection upstream adaptation requires review: cannot read ${mapping.upstreamPath} at ${revision}.`, { cause: error });
+    }
+    const installed = adaptQuoteSelectionSource(source, mapping.localPath);
+    installations.push({ destination: path.join(packageRoot, "src/internal", mapping.localPath), installed });
+    files.push({ ...mapping, upstreamSha256: sha256(source), installedSha256: sha256(installed) });
+  }
+  return { installations, provenance: { revision, license: "MIT", files, adaptations: QUOTE_SELECTION_ADAPTATIONS } };
+}
+
 function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
 }
@@ -369,7 +442,7 @@ function upstreamMarkdown({ revision, oldRevision, target, files, inventory, new
     `\n\n## Ownership\n\n` +
     `The files below are copied from the frozen revision above. Vendor sync may adapt ` +
     `only upstream import aliases, registry base-ui relative paths, and the five ` +
-    `recorded Agent UI Portal container bridges. Product ` +
+    `recorded Agent UI Portal container bridges and the separate Quote selection import bridge. Product ` +
     `presentation and policy stay in the Agent UI facade and Plugin layers.\n\n` +
     `- ${files.length} tracked vendor files\n` +
     `- ${files.filter((file) => file.localPath.startsWith(ELEMENT_PREFIX)).length} tracked official Element files\n` +
@@ -487,6 +560,8 @@ async function main() {
     files.push(provenance);
   }
   const portalPatch = portalBridgePatch(files);
+  const quoteSelection = await prepareQuoteSelectionSync(repo, revision);
+  installations.push(...quoteSelection.installations);
   for (const { destination, installed } of installations) {
     await mkdir(path.dirname(destination), { recursive: true });
     await writeFile(destination, installed, "utf8");
@@ -536,6 +611,8 @@ async function main() {
     ),
   };
 
+  await writeFile(path.join(packageRoot, "src/internal/quote-selection-UPSTREAM.json"),
+    `${JSON.stringify(quoteSelection.provenance, null, 2)}\n`, "utf8");
   await writeFile(manifestPath, `${JSON.stringify(nextManifest, null, 2)}\n`, "utf8");
   await writeFile(provenancePath, `${JSON.stringify(nextProvenance, null, 2)}\n`, "utf8");
   await writeFile(lockPath, `${JSON.stringify(nextLock, null, 2)}\n`, "utf8");

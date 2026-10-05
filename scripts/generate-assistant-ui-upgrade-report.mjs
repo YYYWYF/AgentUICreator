@@ -15,6 +15,33 @@ const CANCELLATION_UPSTREAM_PATTERNS = [
   /(^|\/)packages\/react-ag-ui\/src\/useAgUiRuntime\./u,
   /(^|\/)(?:run[-/]?http[-/]?request|transform[-/]?http|httpagent|cancell?ation)/iu,
 ];
+const QUOTE_SELECTION_SEAM_FILES = [
+  "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
+  "packages/react/src/internal/quote-selection-root.tsx",
+  "packages/react/src/internal/quote-selection-action.tsx",
+  "packages/react/src/internal/quote-selection-message-id.ts",
+  "packages/react/src/internal/quote-selection-UPSTREAM.json",
+];
+const QUOTE_SELECTION_UPSTREAM_FILES = [
+  "packages/ui/src/components/react/assistant-ui/elements/quote.aui.tsx",
+  "packages/react/src/primitives/selectionToolbar/SelectionToolbarRoot.tsx",
+  "packages/react/src/primitives/selectionToolbar/SelectionToolbarQuote.tsx",
+  "packages/react/src/utils/getSelectionMessageId.ts",
+];
+
+export function quoteSelectionIntegrationReport(files, upstreamChangedFiles) {
+  const changedFiles = QUOTE_SELECTION_SEAM_FILES.filter(file => files.includes(file));
+  const upstream = (upstreamChangedFiles ?? []).filter(file => QUOTE_SELECTION_UPSTREAM_FILES.includes(file));
+  return {
+    status: upstreamChangedFiles == null || changedFiles.length > 0 || upstream.length > 0
+      ? "REVIEW REQUIRED" : "UNCHANGED",
+    seamFiles: QUOTE_SELECTION_SEAM_FILES,
+    changedFiles,
+    upstreamChangedFiles: upstream,
+    upstreamDiffUnavailable: upstreamChangedFiles == null,
+  };
+}
+
 const PORTAL_BRIDGE_FILES = ["dialog", "popover", "sheet", "tooltip"]
   .map((name) => `packages/react/src/internal/vendor/assistant-ui/components/ui/${name}.tsx`)
   .concat("packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/image.tsx");
@@ -96,6 +123,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     changedFiles: portalChangedFiles,
     upstreamChangedFiles: portalUpstreamChangedFiles,
   };
+  const quoteSelectionIntegration = quoteSelectionIntegrationReport(files, session?.upstreamChangedFiles);
   const cancellationRelevantUpstreamChanges = upstreamChangedFiles.filter((file) =>
     CANCELLATION_UPSTREAM_PATTERNS.some((pattern) => pattern.test(file)),
   );
@@ -250,6 +278,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     changedUpstreamElements,
     ignoredUpstreamElements,
     portalIntegration,
+    quoteSelectionIntegration,
     cancellationCompatibility,
     historyCompatibility,
     capabilityAudit,
@@ -346,6 +375,10 @@ ${langGraphReasons.length === 0 ? "" : `\nReasons:\n${langGraphReasons.map((reas
 Portal integration seam: ${portalIntegration.status}
 - local bridge files changed: ${portalChangedFiles.join(", ") || "none"}
 - upstream Portal files changed: ${portalUpstreamChangedFiles.join(", ") || "none"}
+
+Quote selection integration seam: ${quoteSelectionIntegration.status}
+- local Quote seam files changed: ${quoteSelectionIntegration.changedFiles.join(", ") || "none"}
+- upstream Quote selection files changed: ${quoteSelectionIntegration.upstreamChangedFiles.join(", ") || "none"}
 
 ## Upstream Element discovery
 

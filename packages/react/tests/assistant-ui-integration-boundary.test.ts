@@ -34,13 +34,17 @@ it("keeps the canonical theme and Preflight scoped to AgentUIRoot", async () => 
   expect(agent).toContain("<AgentUIRoot theme={theme}>");
 });
 
-it("records only five thin vendor Portal bridges and reports their upgrade impact", async () => {
+it("records five Portal target bridges and a separate Quote primitive bridge", async () => {
   const provenance = JSON.parse(await readFile(path.join(vendorRoot, "UPSTREAM.json"), "utf8")) as {
     files: { localPath: string; installedSha256: string; adaptations: string[] }[];
     patches: { id: string; files: string[] }[];
   };
   expect(provenance.patches).toEqual([{ id: "agent-ui-portal-container-bridge", files: portalFiles,
-    reason: expect.any(String) }]);
+    reason: expect.any(String) }, {
+    id: "agent-ui-quote-selection-portal-bridge",
+    files: ["components/assistant-ui/elements/quote.aui.tsx"],
+    reason: expect.any(String),
+  }]);
   const uses: string[] = [];
   for (const filePath of await sourceFiles(path.join(vendorRoot, "components"))) {
     if ((await readFile(filePath, "utf8")).includes("useAgentUIPortalContainer")) {
@@ -56,9 +60,18 @@ it("records only five thin vendor Portal bridges and reports their upgrade impac
     expect(content.toString()).toContain(relativePath.endsWith("/image.tsx")
       ? "portalContainer ?? document.body" : "container: portalContainer");
   }
+  const quotePath = "components/assistant-ui/elements/quote.aui.tsx";
+  const quote = await readFile(path.join(vendorRoot, quotePath), "utf8");
+  const quoteEntry = provenance.files.find(item => item.localPath === quotePath);
+  expect(quoteEntry?.adaptations).toContain("agent-ui-quote-selection-portal-bridge");
+  expect(quoteEntry?.adaptations).not.toContain("agent-ui-portal-container-bridge");
+  expect(quote).toContain('from "../../../../../quote-selection-adapter.js"');
+  expect(quoteEntry?.installedSha256).toBe(createHash("sha256").update(quote).digest("hex"));
   const report = await readFile(path.join(repositoryRoot, "scripts/generate-assistant-ui-upgrade-report.mjs"), "utf8");
   expect(report).toContain("portalIntegration");
   expect(report).toContain("Portal integration seam:");
+  expect(report).toContain("quoteSelectionIntegration");
+  expect(report).toContain("Quote selection integration seam:");
 });
 
 it("keeps product Plugin and application code off Base UI Portal imports", async () => {
