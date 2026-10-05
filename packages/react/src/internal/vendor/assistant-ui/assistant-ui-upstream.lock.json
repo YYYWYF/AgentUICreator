@@ -16,6 +16,7 @@
     "components/assistant-ui/elements/markdown-text.tsx": "b041132faa98790395e4161329249eb1a38642ce7a5603042a67e7ab7ff72808",
     "components/assistant-ui/elements/media-player.tsx": "ea7006322eb54ca921872ef45162f25d6a06528da6fbbcc28b007509c2982b35",
     "components/assistant-ui/elements/option-list.tsx": "d719248c17473c7bea429bfe38e009bf9d092f96c1dc6664152c4c44a62c133d",
+    "components/assistant-ui/elements/quote.aui.tsx": "f24f31dc1c6b518134a4e1284e19828f8fb6f6fdfbc9e5534d90da66b8b10131",
     "components/assistant-ui/elements/reasoning.aui.tsx": "d695ed0a776b664cb8c620c94598ad10b0c93181079a7abec054884503c53443",
     "components/assistant-ui/elements/reasoning.tsx": "6e629d6cab9204b903120f7195b3d3126ed48d5ecd7191dbb0174ad9ccf8dfb0",
     "components/assistant-ui/elements/sources.aui.tsx": "161febf1347a7c717b275d246d235ba8a89c327ac314448c94873ba27d2fdde0",

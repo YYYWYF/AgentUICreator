@@ -18,6 +18,10 @@ export interface AgentUILocaleMessages {
     noneSelected: string;
     unavailable: string;
   };
+  conversationQuote: {
+    quote: string;
+    dismiss: string;
+  };
   conversation: {
     generationStopped: string;
   };

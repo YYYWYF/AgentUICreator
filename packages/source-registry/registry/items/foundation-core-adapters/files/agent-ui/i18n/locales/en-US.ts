@@ -16,6 +16,10 @@ export const enUS = {
     noneSelected: "No selection",
     unavailable: "This question cannot be answered right now",
   },
+  conversationQuote: {
+    quote: "Quote",
+    dismiss: "Dismiss quote",
+  },
   conversation: {
     generationStopped: "Generation stopped",
   },

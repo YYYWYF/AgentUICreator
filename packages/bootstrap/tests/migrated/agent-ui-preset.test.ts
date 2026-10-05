@@ -43,6 +43,7 @@ describe("Agent UI Preset", () => {
       expect(preset.mode).toBe(mode);
       expect(preset.id).toBe(agentUIModeRegistry.get(mode).defaultPresetId);
       expect(preset.sourceItems).toContain("foundation/conversation");
+      expect(preset.sourceItems).toContain("plugin/conversation-quote");
       expect(preset.sourceItems).toContain("plugin/assistant-ui-dictation-action");
     }
   });
@@ -52,6 +53,9 @@ describe("Agent UI Preset", () => {
     (mode) => {
       const model = agentUIPresetRegistry.getDefaultForMode(mode, agentUIModeRegistry).createAppUIModel();
       const locations = collectAppUIPluginLocations(model);
+      expect(locations.find(({ plugin }) => plugin.pluginId === "conversation-quote"))?.toMatchObject({
+        target: { type: "plugin_slot", parentInstanceId: "assistant-ui-composer-main", slot: "beforeInput" },
+      });
       expect(locations.find(({ plugin }) => plugin.pluginId === "assistant-ui-dictation-action"))
         ?.toMatchObject({
           plugin: { enabled: true },

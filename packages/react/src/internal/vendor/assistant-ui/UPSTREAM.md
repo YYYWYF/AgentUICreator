@@ -16,7 +16,7 @@ Source form: official Base UI registry output plus declared mechanical import ad
 
 ## Ownership
 
-The files below are copied from the frozen revision above. Vendor sync may adapt only upstream import aliases, registry base-ui relative paths, and the five recorded Agent UI Portal container bridges. Product presentation and policy stay in the Agent UI facade and Plugin layers.
+The files below are copied from the frozen revision above. Vendor sync may adapt only upstream import aliases, registry base-ui relative paths, the five recorded Agent UI Portal container bridges, and the recorded Quote selection primitive import bridge. Product presentation and policy stay in the Agent UI facade and Plugin layers.
 
 - 45 tracked vendor files
 - 25 tracked official Element files
@@ -27,3 +27,5 @@ The files below are copied from the frozen revision above. Vendor sync may adapt
 ## Upgrade command
 
 `pnpm assistant-ui:update` resolves versions from npm, freezes the official remote main SHA, syncs the vendor, and writes the impact report.
+
+Quote Elements are adopted from the frozen revision. The internal selection primitive adaptation is tracked separately in `../../quote-selection-UPSTREAM.json`; its algorithm is unchanged and its Portal uses AgentUIRoot.

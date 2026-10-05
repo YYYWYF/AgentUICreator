@@ -132,6 +132,17 @@
       ]
     },
     {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/quote.aui.tsx",
+      "localPath": "components/assistant-ui/elements/quote.aui.tsx",
+      "upstreamSha256": "4fa31736910936811a5fa1244cf2e7c49ea2e0524da2a4156ade5dc8d3cf8ec8",
+      "installedSha256": "f24f31dc1c6b518134a4e1284e19828f8fb6f6fdfbc9e5534d90da66b8b10131",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative",
+        "agent-ui-quote-selection-portal-bridge"
+      ]
+    },
+    {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/reasoning.aui.tsx",
       "localPath": "components/assistant-ui/elements/reasoning.aui.tsx",
       "upstreamSha256": "af46e4d5c13cbb2cf584b9f7212d95b9cd97b6e08c741bc829227e40dff65b4e",
@@ -456,6 +467,13 @@
         "components/ui/popover.tsx",
         "components/ui/sheet.tsx",
         "components/ui/tooltip.tsx"
+      ]
+    },
+    {
+      "id": "agent-ui-quote-selection-portal-bridge",
+      "reason": "Route only Quote selection primitives through the scoped upstream adapter.",
+      "files": [
+        "components/assistant-ui/elements/quote.aui.tsx"
       ]
     }
   ]

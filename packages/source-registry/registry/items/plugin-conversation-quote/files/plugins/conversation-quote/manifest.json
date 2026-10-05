@@ -1,0 +1,24 @@
+{
+  "id": "conversation-quote",
+  "name": "Conversation Quote",
+  "description": "Quote assistant passages with an optional composer preview and selection toolbar. Sent quotes remain conversation history.",
+  "version": "1.0.0",
+  "capabilities": [
+    "conversation-quote",
+    "conversation-composer-before-input"
+  ],
+  "authoring": {
+    "intents": [
+      "quote part of an assistant response",
+      "reply to a specific passage",
+      "引用回答中的一段内容",
+      "加上引用功能"
+    ],
+    "visualRole": "conversation quote creation",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "assistant-ui-composer",
+      "slot": "beforeInput"
+    }
+  }
+}

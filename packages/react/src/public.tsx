@@ -1181,3 +1181,22 @@ export interface ConversationResponseRuntime {
   switchToNextBranch(): void;
 }
 export const useConversationResponseRuntime: () => ConversationResponseRuntime = useAssistantResponseRuntime;
+
+import {
+  InternalConversationQuoteBlock,
+  InternalConversationComposerQuotePreview,
+  InternalConversationQuoteSelectionToolbar,
+  useInternalConversationQuoteLifecycle,
+} from "./internal/conversation-quote.js";
+export function ConversationQuoteBlock(props: { text: string; messageId: string }): ReactElement {
+  return <InternalConversationQuoteBlock {...props} />;
+}
+export function ConversationComposerQuotePreview(props: { dismissLabel: string }): ReactElement {
+  return <InternalConversationComposerQuotePreview {...props} />;
+}
+export function ConversationQuoteSelectionToolbar(props: { quoteLabel: string }): ReactElement | null {
+  return <InternalConversationQuoteSelectionToolbar {...props} />;
+}
+export function useConversationQuoteLifecycle(): void {
+  useInternalConversationQuoteLifecycle();
+}

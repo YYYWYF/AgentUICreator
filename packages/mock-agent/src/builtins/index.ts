@@ -1,3 +1,4 @@
+import { quoteReplyScenario } from "./quote-reply.js";
 import { sourceCitationsScenario } from "./source-citations.js";
 import { multimodalInputScenario } from "./multimodal-input.js";
 import { fileOutputScenario } from "./file-output.js";
@@ -33,6 +34,7 @@ import { toolLongRunningScenario } from "./tool-long-running.js";
 import type { MockScenario } from "../scenario.js";
 
 export {
+  quoteReplyScenario,
   sourceCitationsScenario,
   cancelBeforeFirstOutputScenario,
   fileOutputScenario,
@@ -83,6 +85,7 @@ export const backendReferenceMockScenarios: MockScenario[] = [
 ];
 
 export const frontendPresentationMockScenarios: MockScenario[] = [
+  quoteReplyScenario,
   resumableLongRunScenario,
   resumableAgentPlanScenario,
   cancelBeforeFirstOutputScenario,

@@ -16,6 +16,7 @@
     "components/assistant-ui/elements/markdown-text.tsx",
     "components/assistant-ui/elements/media-player.tsx",
     "components/assistant-ui/elements/option-list.tsx",
+    "components/assistant-ui/elements/quote.aui.tsx",
     "components/assistant-ui/elements/reasoning.aui.tsx",
     "components/assistant-ui/elements/reasoning.tsx",
     "components/assistant-ui/elements/sources.aui.tsx",

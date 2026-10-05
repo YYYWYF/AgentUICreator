@@ -67,6 +67,13 @@
                           "pluginId": "assistant-ui-submit-action",
                           "enabled": true
                         }
+                      ],
+                      "beforeInput": [
+                        {
+                          "id": "conversation-quote-main",
+                          "pluginId": "conversation-quote",
+                          "enabled": true
+                        }
                       ]
                     }
                   }

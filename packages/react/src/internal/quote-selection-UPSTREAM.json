@@ -1,0 +1,30 @@
+{
+  "revision": "3542d602272a62eddeb8989befc910841c267022",
+  "license": "MIT",
+  "files": [
+    {
+      "upstreamPath": "packages/react/src/primitives/selectionToolbar/SelectionToolbarRoot.tsx",
+      "localPath": "quote-selection-root.tsx",
+      "upstreamSha256": "8f82f5616cceb210fc96dec420d6303e8203d98ec8ec6a3214f47c4bef359b9f",
+      "installedSha256": "27bde74764f4925a490c365b7a2649df7a4c541f7972d8f23efb44a0ca0fff36"
+    },
+    {
+      "upstreamPath": "packages/react/src/primitives/selectionToolbar/SelectionToolbarQuote.tsx",
+      "localPath": "quote-selection-action.tsx",
+      "upstreamSha256": "fe4e6dd3ce409d3262e399c8355d0a75c246723061836be32437a3f4459d8c1b",
+      "installedSha256": "ec09058e96696df030ad1c21b26ad180716a741c70205ceb714a913aec1a7a52"
+    },
+    {
+      "upstreamPath": "packages/react/src/utils/getSelectionMessageId.ts",
+      "localPath": "quote-selection-message-id.ts",
+      "upstreamSha256": "a4f52c760356d34f5b62a8b2d1b019a8f98c2dd36f9967f2ab26c6239a49915a",
+      "installedSha256": "a4f52c760356d34f5b62a8b2d1b019a8f98c2dd36f9967f2ab26c6239a49915a"
+    }
+  ],
+  "adaptations": [
+    "Public React DOM elements replace the private Primitive helper (no asChild API is exposed).",
+    "Public useAui import and local context preserve captured selection/setQuote semantics.",
+    "Canonical Thread supplies the identical DOM root ref without importing a private upstream context.",
+    "Only selection behavior change: portal target is AgentUIRoot; absence of its container renders nothing."
+  ]
+}

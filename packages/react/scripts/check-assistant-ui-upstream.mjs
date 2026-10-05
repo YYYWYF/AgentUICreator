@@ -253,7 +253,8 @@ export async function collectAssistantUiUpstreamErrors(
         ? patch.files
         : [];
       if (patchFiles.some((file) => typeof file === "string" && file.startsWith(ELEMENT_PATH_PREFIX) &&
-        !(patch.id === "agent-ui-portal-container-bridge" && file === IMAGE_ZOOM_PORTAL_PATH))) {
+        !(patch.id === "agent-ui-portal-container-bridge" && file === IMAGE_ZOOM_PORTAL_PATH) &&
+        !(patch.id === "agent-ui-quote-selection-portal-bridge" && file === "components/assistant-ui/elements/quote.aui.tsx"))) {
         errors.push(`${PROVENANCE_FILE} must not contain Element-targeted product patches.`);
       }
       if (JSON.stringify(patch).includes("p3r4d-thread-list-policy-seam")) {

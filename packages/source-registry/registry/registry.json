@@ -159,6 +159,10 @@
     {
       "id": "plugin/source-citations-message",
       "path": "items/plugin-source-citations-message/item.json"
+    },
+    {
+      "id": "plugin/conversation-quote",
+      "path": "items/plugin-conversation-quote/item.json"
     }
   ]
 }

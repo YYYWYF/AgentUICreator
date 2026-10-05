@@ -1,3 +1,4 @@
+import { installConversationQuoteContext } from "./compatibility/conversation-quote-context-agent.js";
 import type { AbstractAgent } from "@ag-ui/client";
 import type { ConversationToolkit } from "@agent-ui/react";
 import type { AgentFrontendToolSource } from "@agent-ui/runtime-core";
@@ -135,7 +136,10 @@ export function ConversationRuntimeProvider<TState = unknown>({
     const item = aui.threadListItem().getState();
     // Pin ownership at mount. Optimistic assistant-ui IDs never become backend IDs.
     const [ownedId] = useState(() => persistence.identity(item.id, item.remoteId));
-    const agent = useMemo(() => unstable_agentFactory({ endpoint, threadId: ownedId }), [endpoint, ownedId, unstable_agentFactory]);
+    const quoteRuntimeRef = useRef<AssistantRuntime | null>(null);
+    const agent = useMemo(() => installConversationQuoteContext(unstable_agentFactory({ endpoint, threadId: ownedId }),
+      () => quoteRuntimeRef.current?.thread.getState().messages ?? [],
+    ), [endpoint, ownedId, unstable_agentFactory]);
     const bridgeRef = useRef<ConversationAgentRuntimeBridge<TState> | null>(null);
     const ownedBinding = useMemo<ConversationThreadBinding<TState>>(() => ({
       getThreadId: () => ownedId,
@@ -201,6 +205,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
         if (outerRuntime.current?.threads.getState().mainThreadId === item.id) onError?.(error);
       },
     });
+    quoteRuntimeRef.current = runtime;
     const applicationEvents = useMemo(() => new ConversationApplicationEventSource(agent), [agent]);
     const agentRuntime = useMemo(() => createConversationAgentRuntimeBridge<TState>({
       runtime, threadBinding: ownedBinding, applicationEvents,

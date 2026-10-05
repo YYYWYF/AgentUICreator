@@ -185,5 +185,8 @@
   "plugins/source-citations-message/definition.ts": "packages/source-registry/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/definition.ts",
   "plugins/source-citations-message/index.tsx": "packages/source-registry/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/index.tsx",
   "plugins/source-citations-message/source-citations-result.ts": "packages/source-registry/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/source-citations-result.ts",
-  "plugins/source-citations-message/manifest.json": "packages/source-registry/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/manifest.json"
+  "plugins/source-citations-message/manifest.json": "packages/source-registry/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/manifest.json",
+  "plugins/conversation-quote/definition.ts": "packages/source-registry/registry/items/plugin-conversation-quote/files/plugins/conversation-quote/definition.ts",
+  "plugins/conversation-quote/index.tsx": "packages/source-registry/registry/items/plugin-conversation-quote/files/plugins/conversation-quote/index.tsx",
+  "plugins/conversation-quote/manifest.json": "packages/source-registry/registry/items/plugin-conversation-quote/files/plugins/conversation-quote/manifest.json"
 }

@@ -16,6 +16,10 @@ export const zhCN = {
     noneSelected: "未选择",
     unavailable: "此问题暂时无法回答",
   },
+  conversationQuote: {
+    quote: "引用",
+    dismiss: "取消引用",
+  },
   conversation: {
     generationStopped: "已停止生成",
   },

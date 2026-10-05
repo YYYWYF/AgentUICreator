@@ -295,7 +295,12 @@ function applyAgentUIPortalContainerBridge(source, localPath) {
 }
 
 export function applyApprovedAdaptations(source, localPath) {
-  return applyAgentUIPortalContainerBridge(adaptImports(source, localPath), localPath);
+  let installed = applyAgentUIPortalContainerBridge(adaptImports(source, localPath), localPath);
+  if (localPath === "components/assistant-ui/elements/quote.aui.tsx") {
+    installed = replaceExactlyOnce(installed, '  SelectionToolbarPrimitive,\n', '', localPath);
+    installed = replaceExactlyOnce(installed, 'import { QuoteIcon', 'import { SelectionToolbarPrimitive } from "../../../../../quote-selection-adapter.js";\nimport { QuoteIcon', localPath);
+  }
+  return installed;
 }
 
 export function portalBridgePatch(files) {
@@ -321,6 +326,7 @@ export function installedVendorEntry({ source, localPath, upstreamPath, previous
       installedSha256: sha256(installed),
       adaptations: [...new Set([
         ...adaptationsFor({ localPath, source, previous }),
+        ...(localPath === "components/assistant-ui/elements/quote.aui.tsx" ? ["agent-ui-quote-selection-portal-bridge"] : []),
         ...(PORTAL_BRIDGE_FILES.includes(localPath) ? [PORTAL_BRIDGE_ID] : []),
       ])],
     },
@@ -511,7 +517,11 @@ async function main() {
     sourceForm: "official Base UI registry output",
     packages: packageVersions,
     files,
-    patches: [portalPatch],
+    patches: [portalPatch, ... (files.some(file => file.localPath === "components/assistant-ui/elements/quote.aui.tsx") ? [{
+      id: "agent-ui-quote-selection-portal-bridge",
+      reason: "Route only Quote selection primitives through the scoped upstream adapter.",
+      files: ["components/assistant-ui/elements/quote.aui.tsx"],
+    }] : [])],
   };
   const nextLock = {
     schemaVersion: 1,

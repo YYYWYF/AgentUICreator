@@ -1,5 +1,8 @@
 "use client";
 
+import { QuoteThreadRootContext } from "./quote-thread-root.js";
+import { QuoteSelectableText } from "./quote-selectable-text.js";
+import { InternalConversationQuoteBlock } from "./conversation-quote.js";
 import {
   ComposerAddAttachment as UpstreamComposerAddAttachment,
   ComposerAttachments,
@@ -9,7 +12,6 @@ import { Sources } from "./vendor/assistant-ui/components/assistant-ui/elements/
 import { File } from "./vendor/assistant-ui/components/assistant-ui/elements/file.js";
 import { ThreadFollowupSuggestions } from "./vendor/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.js";
 import { Image } from "./vendor/assistant-ui/components/assistant-ui/elements/image.js";
-import { MarkdownText } from "./vendor/assistant-ui/components/assistant-ui/elements/markdown-text.js";
 import {
   Reasoning,
   ReasoningContent,
@@ -214,10 +216,13 @@ const ThreadRoot: FC<{
   isEmpty,
   composer,
 }) => {
+  const quoteRootRef = useRef<HTMLDivElement | null>(null);
   const { Welcome = ThreadWelcome } = useContext(ThreadComponentsContext);
 
   return (
+    <QuoteThreadRootContext.Provider value={quoteRootRef}>
     <ThreadPrimitive.Root
+      ref={quoteRootRef}
       className="aui-root aui-thread-root bg-background @container flex h-full flex-col"
       style={{
         ["--thread-max-width" as string]: "44rem",
@@ -270,6 +275,7 @@ const ThreadRoot: FC<{
         </div>
       </ThreadPrimitive.Viewport>
     </ThreadPrimitive.Root>
+    </QuoteThreadRootContext.Provider>
   );
 };
 
@@ -570,6 +576,7 @@ const AssistantMessage: FC = () => {
     <MessagePrimitive.Root
       data-slot="aui_assistant-message-root"
       data-role="assistant"
+      data-aui-quote-selectable="false"
       className="fade-in slide-in-from-bottom-1 animate-in relative duration-150"
     >
       <div
@@ -630,7 +637,7 @@ const AssistantMessage: FC = () => {
                     );
                   }
                   case "text":
-                    return <MarkdownText />;
+                    return <QuoteSelectableText />;
                   case "reasoning":
                     return <Reasoning {...part} />;
                   case "tool-call":
@@ -808,8 +815,10 @@ const UserMessage: FC = () => {
       data-slot="aui_user-message-root"
       className="fade-in slide-in-from-bottom-1 animate-in grid auto-rows-auto grid-cols-[minmax(72px,1fr)_auto] content-start gap-y-2 px-2 duration-150 [contain-intrinsic-size:auto_200px] [content-visibility:auto] [&:where(>*)]:col-start-2"
       data-role="user"
+      data-aui-quote-selectable="false"
     >
       <UserMessageAttachments />
+      <MessagePrimitive.Quote>{quote => <InternalConversationQuoteBlock text={quote.text} messageId={quote.messageId} />}</MessagePrimitive.Quote>
 
       <div className="aui-user-message-content-wrapper relative col-start-2 min-w-0">
         <div className="aui-user-message-content peer bg-muted text-foreground rounded-xl px-4 py-2 wrap-break-word empty:hidden">
