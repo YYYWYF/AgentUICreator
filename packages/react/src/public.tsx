@@ -1,3 +1,6 @@
+import type { AgentUITheme } from "./theme/theme-contract.js";
+export { AGENT_UI_THEME_PRESETS, getAgentUIThemeColorScheme, isAgentUITheme } from "./theme/theme-contract.js";
+export type { AgentUITheme, AgentUIColorScheme, AgentUIThemeConfig } from "./theme/theme-contract.js";
 import { InternalConversationToolkitProvider } from "./internal/conversation-toolkit-provider.js";
 import {
   ConversationOptionList as InternalConversationOptionList,
@@ -154,7 +157,7 @@ import type {
   ReactElement,
   ReactNode,
 } from "react";
-export function AgentUIRoot({ theme, children }: { theme: "light" | "dark"; children: ReactNode }): ReactElement {
+export function AgentUIRoot({ theme, children }: { theme: AgentUITheme; children: ReactNode }): ReactElement {
   return <InternalAgentUIRoot theme={theme}>{children}</InternalAgentUIRoot>;
 }
 export function useAgentUIPortalContainer(): HTMLElement | null {
@@ -767,7 +770,7 @@ export function ConversationBranchPicker({
 export function ConversationCanonicalMessageError() {
   return (
     <MessagePrimitive.Error>
-      <ErrorPrimitive.Root className="aui-message-error-root border-destructive bg-destructive/10 text-destructive dark:bg-destructive/5 mt-2 rounded-md border p-3 text-sm dark:text-red-200">
+      <ErrorPrimitive.Root className="aui-message-error-root border-destructive bg-destructive/10 text-destructive dark:bg-destructive/5 mt-2 rounded-md border p-3 text-sm">
         <ErrorPrimitive.Message className="aui-message-error-message line-clamp-2" />
       </ErrorPrimitive.Root>
     </MessagePrimitive.Error>
@@ -1256,3 +1259,13 @@ export function ConversationComposerCommandTrigger(props: ConversationCommandTri
 }
 
 export { WebSearch, RetrievalChunks, type WebSearchResult, type WebSearchProps, type RetrievalChunk, type RetrievalChunksProps } from "./internal/search-elements.js";
+
+import { NativeSelect as InternalNativeSelect, NativeSelectOption as InternalNativeSelectOption } from "./internal/primitives/native-select.js";
+
+/** Official shadcn native select; native menus stay within the browser. */
+export function NativeSelect(props: Omit<React.ComponentProps<"select">, "size"> & { size?: "sm" | "default" }) {
+  return <InternalNativeSelect {...props} />;
+}
+export function NativeSelectOption(props: React.ComponentProps<"option">) {
+  return <InternalNativeSelectOption {...props} />;
+}

@@ -219,7 +219,7 @@ Plugin needs capability X
 5. Create `index.tsx` with a named React component. When an existing project component implements the requested UI, this may be a thin adapter importing it; do not recreate that UI for Plugin self-containment. Accept `UIPluginComponentProps` only when it needs `renderSlot`; read Agent and instance data through Runtime Context hooks in the adapter and narrow unknown state safely.
 6. Create `definition.ts` that validates the manifest and exports a `UIPluginDefinition`.
    Import the component with `from "./index"` when it lives in the required `index.tsx`. Do not also create `index.ts` as a barrel: TypeScript resolves `./index` to that file first and can make the component import circular. Do not add a `.tsx` extension to the import; the Host TypeScript configuration does not enable that syntax.
-   Declare every service a built-in hook consumes. `useAgentUILocale` needs `AGENT_UI_LOCALE_SERVICE`; `useAgentUIThemeMode` needs `AGENT_UI_THEME_SERVICE`, each in `inject` or `optionalInject` as appropriate. Theme CSS tokens alone do not need the theme hook.
+   Declare every service a built-in hook consumes. `useAgentUILocale` needs `AGENT_UI_LOCALE_SERVICE`; `useAgentUITheme` needs `AGENT_UI_THEME_SERVICE`, each in `inject` or `optionalInject` as appropriate. Theme CSS tokens alone do not need the theme hook.
 7. Add styles using the generated project's existing styling approach; do not introduce a UI library or dependency without project support.
    Import a Plugin stylesheet once. For ordinary action buttons, use the
    project's inspected public Button facade when one exists.

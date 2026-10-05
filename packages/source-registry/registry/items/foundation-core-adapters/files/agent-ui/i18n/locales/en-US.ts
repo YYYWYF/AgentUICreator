@@ -88,7 +88,8 @@ export const enUS = {
   },
   theme: {
     settings: "Theme settings",
-    switchToLight: "Switch to light mode",
-    switchToDark: "Switch to dark mode",
+    light: "Light",
+    dark: "Dark",
+    violet: "Violet",
   },
 } satisfies AgentUILocaleMessages;

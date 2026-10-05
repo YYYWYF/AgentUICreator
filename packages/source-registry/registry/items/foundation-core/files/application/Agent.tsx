@@ -33,7 +33,7 @@ import { ConversationThreadBindingConnector } from "../agent-ui/conversation/thr
 import { useConversationServiceThreadBinding, type ConversationRunResumeProvider } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
 import { GeneratedConversationIntegrations } from "../agent-ui/conversation/integrations.generated";
 import { conversationToolkit as baseConversationToolkit } from "../agent-ui/conversation/toolkit";
-import { useAgentUIThemeMode } from "../agent-ui/theme/useAgentUITheme";
+import { useAgentUITheme } from "../agent-ui/theme/useAgentUITheme";
 import { agentCompositionStore } from "./composition-store";
 import { agentUIRuntimeConfig as generatedAgentUIRuntimeConfig } from "./runtime-config.generated";
 import type { AgentUIMode } from "../framework/contracts/agent-ui-mode";
@@ -66,7 +66,7 @@ export interface AgentProps {
 }
 
 function AgentUIStyleSurface({ children }: { children: ReactNode }) {
-  const theme = useAgentUIThemeMode();
+  const theme = useAgentUITheme();
   return <AgentUIRoot theme={theme}>{children}</AgentUIRoot>;
 }
 

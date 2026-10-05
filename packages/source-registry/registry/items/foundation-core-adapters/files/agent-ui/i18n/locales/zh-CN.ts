@@ -88,7 +88,8 @@ export const zhCN = {
   },
   theme: {
     settings: "主题设置",
-    switchToLight: "切换到浅色模式",
-    switchToDark: "切换到深色模式",
+    light: "浅色",
+    dark: "深色",
+    violet: "紫色",
   },
 } satisfies AgentUILocaleMessages;

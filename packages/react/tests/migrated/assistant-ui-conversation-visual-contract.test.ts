@@ -17,6 +17,14 @@ const threadUrl = new URL("../../../../packages/react/src/internal/vendor/assist
 const composableThreadUrl = new URL("../../../../packages/react/src/internal/composable-thread.tsx", import.meta.url);
 const publicUrl = new URL("../../../../packages/react/src/public.tsx", import.meta.url);
 
+async function readThemeStyles(): Promise<string> {
+  const parts = await Promise.all([
+    readFile(globalsUrl, "utf8"),
+    readFile(new URL("../../src/theme/shadcn-theme-presets.css", import.meta.url), "utf8"),
+  ]);
+  return parts.join("\n");
+}
+
 describe("assistant-ui conversation visual contract", () => {
   it("keeps theme ownership and root class mapping explicit", async () => {
     const [surface, themeHook, surfaceDefinition] = await Promise.all([
@@ -26,16 +34,16 @@ describe("assistant-ui conversation visual contract", () => {
     ]);
 
     expect(surface).toContain(
-      'export type ConversationTheme = "light" | "dark"',
+      'export type ConversationTheme = AgentUITheme',
     );
     expect(surface).toContain('theme = "light"');
     expect(surface).toContain(
-      'theme === "dark" ? "dark" : undefined',
+      'colorScheme === "dark" ? "dark" : undefined',
     );
     expect(surface).toContain("data-theme={theme}");
     expect(themeHook).toContain("AGENT_UI_THEME_SERVICE");
     expect(themeHook).toContain("useSyncExternalStore");
-    expect(themeHook).toContain('getDefaultThemeMode = (): AgentUIThemeMode => "light"');
+    expect(themeHook).toContain('getDefaultTheme = (): AgentUITheme => agentUIThemeConfig.theme');
     expect(surfaceDefinition).toContain("AGENT_UI_CONVERSATION_SERVICE");
     expect(surfaceDefinition).toContain("inject");
     expect(surfaceDefinition).toContain("AGENT_UI_THEME_SERVICE");
@@ -45,13 +53,13 @@ describe("assistant-ui conversation visual contract", () => {
 
   it("keeps the upstream semantic token and layout invariants", async () => {
     const [globals, thread] = await Promise.all([
-      readFile(globalsUrl, "utf8"),
+      readThemeStyles(),
       readFile(threadUrl, "utf8"),
     ]);
 
     for (const selector of [
-      '.agent-ui-conversation[data-theme="light"]',
-      '.agent-ui-conversation[data-theme="dark"]',
+      ':is(.agent-ui-root, .agent-ui-conversation)[data-theme="light"]',
+      ':is(.agent-ui-root, .agent-ui-conversation)[data-theme="dark"]',
     ]) {
       expect(globals).toContain(selector);
     }
@@ -110,7 +118,7 @@ describe("assistant-ui conversation visual contract", () => {
   it("keeps fill child Slots and Conversation surfaces at full size", async () => {
     const [pluginRuntimeStyles, globals] = await Promise.all([
       readFile(pluginRuntimeStylesUrl, "utf8"),
-      readFile(globalsUrl, "utf8"),
+      readThemeStyles(),
     ]);
 
     expect(pluginRuntimeStyles).toMatch(
@@ -141,7 +149,7 @@ describe("assistant-ui conversation visual contract", () => {
     const [composableThread, publicSource, globals] = await Promise.all([
       readFile(composableThreadUrl, "utf8"),
       readFile(publicUrl, "utf8"),
-      readFile(globalsUrl, "utf8"),
+      readThemeStyles(),
     ]);
 
     expect(composableThread).toContain('data-slot="aui_assistant-message-parts"');

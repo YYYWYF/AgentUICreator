@@ -1,7 +1,6 @@
-import type { AgentUIThemeMode } from "../../services/agent-ui-theme";
+import type { AgentUIThemeConfig } from "@agent-ui/react";
 
-export const DEFAULT_AGENT_UI_THEME_MODE: AgentUIThemeMode = "light";
-
+/** The project's single default theme setting; the picker is optional. */
 export const agentUIThemeConfig = {
-  defaultMode: DEFAULT_AGENT_UI_THEME_MODE,
-} as const;
+  theme: "light",
+} satisfies AgentUIThemeConfig;

@@ -8,7 +8,7 @@ import {
 import type { ConversationThreadComponents, ConversationThreadLabels } from "@agent-ui/react";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { useConversationPresentationConfig } from "./config";
-import { useAgentUIThemeMode } from "../theme/useAgentUITheme";
+import { useAgentUITheme } from "../theme/useAgentUITheme";
 import { ConversationSurface } from "./ConversationSurface";
 import {
   ScopedReasoningGroup,
@@ -79,7 +79,7 @@ export function ConversationAdapter({
   labels?: ConversationThreadLabels;
   renderScopedSlot?: UIPluginComponentProps["renderScopedSlot"];
 } = {}) {
-  const theme = useAgentUIThemeMode();
+  const theme = useAgentUITheme();
   const components = useMemo(() => createConversationSemanticThreadComponents(), []);
   const emptyState = useMemo(
     () => ({ welcome, suggestions }),

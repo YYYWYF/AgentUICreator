@@ -201,7 +201,7 @@ describe("assistant-ui default composition", () => {
     expect(app).not.toMatch(/XProvider|antdTheme|agentFrontendThemes|sharedThemeTokens/u);
     expect(app).toContain("<UIPluginRuntime");
     expect(shell).not.toMatch(/radial-gradient|ui-grid-color|ui-shell-shadow|purple|teal/u);
-    expect(threadList).toContain("useAgentUIThemeMode");
+    expect(threadList).toContain("useAgentUITheme");
     expect(threadList).not.toContain('data-theme="dark"');
     expect(threadList).not.toContain('className="conversation-thread-list-plugin agent-ui-conversation dark"');
   });

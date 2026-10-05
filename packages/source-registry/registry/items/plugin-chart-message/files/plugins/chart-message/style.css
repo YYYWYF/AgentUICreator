@@ -2,7 +2,7 @@
   width: min(100%, 26rem);
   margin: 0.75rem 0;
   padding: 0.85rem 1rem;
-  border: 1px solid var(--border, #d8dee7);
+  border: 1px solid var(--border);
   border-radius: 0.75rem;
 }
 
@@ -31,12 +31,12 @@
   height: 0.55rem;
   overflow: hidden;
   border-radius: 999px;
-  background: var(--muted, #e8edf3);
+  background: var(--muted);
 }
 
 .agent-ui-chart-message__bar > span {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--primary, #4678d8);
+  background: var(--chart-1);
 }

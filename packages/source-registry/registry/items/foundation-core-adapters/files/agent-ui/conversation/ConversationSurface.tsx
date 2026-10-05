@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 
 import {
+  getAgentUIThemeColorScheme,
+  type AgentUITheme,
   ConversationThread,
   type ConversationThreadComponents,
   type ConversationThreadLabels,
@@ -17,7 +19,7 @@ export interface ConversationSurfaceProps {
   theme?: ConversationTheme;
 }
 
-export type ConversationTheme = "light" | "dark";
+export type ConversationTheme = AgentUITheme;
 
 export function ConversationSurface({
   autoFocus = false,
@@ -28,16 +30,18 @@ export function ConversationSurface({
   composer = null,
   theme = "light",
 }: ConversationSurfaceProps) {
+  const colorScheme = getAgentUIThemeColorScheme(theme);
   return (
     <div
       className={[
         "agent-ui-conversation",
         "bg-background",
-        theme === "dark" ? "dark" : undefined,
+        colorScheme === "dark" ? "dark" : undefined,
         className,
       ].filter(Boolean).join(" ")}
       data-agent-ui-conversation="true"
       data-theme={theme}
+      data-color-scheme={colorScheme}
     >
       <TooltipProvider>
         <ConversationThread

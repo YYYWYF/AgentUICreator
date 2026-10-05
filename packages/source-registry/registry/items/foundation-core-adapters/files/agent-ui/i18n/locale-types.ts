@@ -72,7 +72,8 @@ export interface AgentUILocaleMessages {
   };
   theme: {
     settings: string;
-    switchToLight: string;
-    switchToDark: string;
+    light: string;
+    dark: string;
+    violet: string;
   };
 }

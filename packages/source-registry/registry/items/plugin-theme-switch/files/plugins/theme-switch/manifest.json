@@ -6,7 +6,7 @@
   "capabilities": ["theme-control", "plugin-service-consumer"],
   "authoring": {
     "intents": [
-      "let the user switch between light and dark themes"
+      "let the user select light, dark, or violet theme presets"
     ],
     "visualRole": "theme control",
     "defaultPlacement": {

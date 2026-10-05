@@ -725,7 +725,7 @@ definition imports the component from the required index.tsx as
 `from "./index"`; do not create an index.ts barrel alongside index.tsx or import
 using a .tsx extension, which the Host TypeScript configuration rejects. The
 definition must declare services consumed by built-in hooks: useAgentUILocale
-requires AGENT_UI_LOCALE_SERVICE and useAgentUIThemeMode requires
+requires AGENT_UI_LOCALE_SERVICE and useAgentUITheme requires
 AGENT_UI_THEME_SERVICE in inject or optionalInject. CSS theme tokens alone do
 not require the theme hook. Modify an existing file only after read_file. For an
 existing Plugin, use edit_file_from_read for a stable fresh-read range or

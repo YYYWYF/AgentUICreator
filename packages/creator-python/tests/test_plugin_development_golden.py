@@ -1156,7 +1156,7 @@ def test_existing_optional_service_is_reused_without_ownership_question(tmp_path
                                     'import { usePluginService } from "../../runtime/plugins";\n'
                                     'import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService } from "../../services/agent-ui-theme";\n'
                                     "export function TaskStatus() { const theme = usePluginService<AgentUIThemeService>(AGENT_UI_THEME_SERVICE); "
-                                    'return <section data-theme={theme?.getMode() ?? "default"}>Ready</section>; }'
+                                    'return <section data-theme={theme?.getTheme() ?? "default"}>Ready</section>; }'
                                 ),
                             }
                         ],

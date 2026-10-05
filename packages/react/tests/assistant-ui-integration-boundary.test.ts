@@ -23,7 +23,7 @@ async function sourceFiles(directory: string): Promise<string[]> {
 
 it("keeps the canonical theme and Preflight scoped to AgentUIRoot", async () => {
   const [styles, preflight, agent] = await Promise.all([
-    readFile(path.join(reactSource, "styles.css"), "utf8"),
+    readFile(path.join(reactSource, "theme/shadcn-theme-presets.css"), "utf8"),
     readFile(path.join(reactSource, "preflight.scoped.css"), "utf8"),
     readFile(path.join(repositoryRoot, "packages/source-registry/registry/items/foundation-core/files/application/Agent.tsx"), "utf8"),
   ]);

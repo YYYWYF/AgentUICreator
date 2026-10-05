@@ -407,8 +407,8 @@ def test_create_ui_plugin_declares_builtin_hook_services_before_writing(tmp_path
     files = plugin_sources()
     files[2] = plugin_source(
         "index.tsx",
-        'import { useAgentUIThemeMode } from "../../agent-ui/theme/useAgentUITheme";\n'
-        'export function TaskStatus() { useAgentUIThemeMode(); return null; }\n',
+        'import { useAgentUITheme } from "../../agent-ui/theme/useAgentUITheme";\n'
+        'export function TaskStatus() { useAgentUITheme(); return null; }\n',
     )
 
     with pytest.raises(SourceCreationError) as captured:

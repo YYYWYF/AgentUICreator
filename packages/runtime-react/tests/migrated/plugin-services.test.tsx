@@ -16,7 +16,7 @@ import type {
 } from "../../../project-control/src/framework/contracts/ui-plugin";
 import {
   createAgentUIThemeService,
-  readAgentUIThemeMode,
+  readAgentUITheme,
 } from "../../../source-registry/registry/items/plugin-theme-provider/files/plugins/theme-provider/theme-service";
 import { themeProviderPlugin } from "../../../source-registry/registry/items/plugin-theme-provider/files/plugins/theme-provider/definition";
 import {
@@ -156,10 +156,10 @@ describe("PluginServiceRuntime", () => {
 
     expect(runtime.getActivation("theme-provider-main")?.status).toBe("active");
     expect(runtime.getActivation("theme-consumer-main")?.status).toBe("active");
-    expect(observed?.getMode()).toBe("light");
+    expect(observed?.getTheme()).toBe("light");
 
-    observed?.setMode("dark");
-    expect(observed?.getMode()).toBe("dark");
+    observed?.setTheme("dark");
+    expect(observed?.getTheme()).toBe("dark");
   });
 
   it("rejects contributions to an undeclared Slot deterministically", () => {
@@ -1271,8 +1271,9 @@ describe("AgentUIThemeService", () => {
     ["invalid", "light"],
     ["light", "light"],
     ["dark", "dark"],
+    ["violet", "violet"],
   ] as const)("normalizes %s to %s", (value, expected) => {
-    expect(readAgentUIThemeMode(value)).toBe(expected);
+    expect(readAgentUITheme(value)).toBe(expected);
   });
 
   it("exposes callable theme functions and notifies subscribers", () => {
@@ -1280,23 +1281,24 @@ describe("AgentUIThemeService", () => {
     const theme = createAgentUIThemeService("dark");
     const unsubscribe = theme.subscribe(subscriber);
 
-    theme.setMode("light");
-    theme.toggle();
+    theme.setTheme("light");
+    theme.setTheme("dark");
+    theme.setTheme("violet");
     unsubscribe();
-    theme.setMode("light");
+    theme.setTheme("light");
 
-    expect(subscriber).toHaveBeenCalledTimes(2);
-    expect(theme.getMode()).toBe("light");
+    expect(subscriber).toHaveBeenCalledTimes(3);
+    expect(theme.getTheme()).toBe("light");
   });
 
-  it("does not notify or persist when setMode receives the current mode", () => {
+  it("does not notify or persist when setTheme receives the current mode", () => {
     const subscriber = vi.fn();
     const theme = createAgentUIThemeService("light");
     theme.subscribe(subscriber);
 
-    theme.setMode("light");
+    theme.setTheme("light");
 
     expect(subscriber).not.toHaveBeenCalled();
-    expect(theme.getMode()).toBe("light");
+    expect(theme.getTheme()).toBe("light");
   });
 });

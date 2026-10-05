@@ -368,10 +368,10 @@ The host loads one Tailwind engine and scans the stable vendor path. No Plugin i
 The adapter renders one scoped theme root, for example:
 
 ```text
-.agent-ui-assistant-ui[data-theme="light|dark"]
+.agent-ui-assistant-ui[data-theme="light|dark|violet"]
 ```
 
-It maps AgentUICreator Theme Service mode to assistant-ui variables/classes. Preflight and CSS variables are scoped to that root; global Workspace selectors and unscoped resets are forbidden. The Spike-only hard-coded `<div className="assistant-ui-spike dark">` is not carried into canonical architecture. Upstream utility classes remain unchanged.
+It maps AgentUICreator Theme Service preset to assistant-ui variables/classes through its color scheme (only a dark color scheme applies `.dark`). Preflight and CSS variables are scoped to that root; global Workspace selectors and unscoped resets are forbidden. The Spike-only hard-coded `<div className="assistant-ui-spike dark">` is not carried into canonical architecture. Upstream utility classes remain unchanged.
 
 ## 16. Upstream Upgrade Strategy
 

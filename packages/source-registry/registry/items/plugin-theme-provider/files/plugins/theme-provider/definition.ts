@@ -13,7 +13,7 @@ export const themeProviderPlugin: UIPluginDefinition = {
   provides: [AGENT_UI_THEME_SERVICE],
   setup: ({ services }) => {
     const theme = createAgentUIThemeService(
-      agentUIThemeConfig.defaultMode,
+      agentUIThemeConfig.theme,
     );
 
     services.provide(AGENT_UI_THEME_SERVICE, theme);

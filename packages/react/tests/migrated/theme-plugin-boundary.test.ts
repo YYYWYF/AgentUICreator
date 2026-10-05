@@ -34,17 +34,17 @@ describe("theme plugin boundary", () => {
       capabilities: expect.arrayContaining(["plugin-service-provider", "theme", "headless"]),
     });
     expect(providerDefinition).toContain("provides: [AGENT_UI_THEME_SERVICE]");
-    expect(providerDefinition).toContain("agentUIThemeConfig.defaultMode");
+    expect(providerDefinition).toContain("agentUIThemeConfig.theme");
     expect(providerDefinition).not.toContain("updateInstanceProps");
     expect(providerComponent).toMatch(/ThemeProviderPlugin\(\)\s*\{\s*return null;/u);
 
     expect(themeSwitch).toMatchObject({ id: "theme-switch" });
     expect(switchDefinition).toContain("inject: [AGENT_UI_THEME_SERVICE]");
     expect(switchSource).toContain('from "@agent-ui/react"');
-    expect(switchSource).toContain("<Button");
-    expect(switchSource).toContain('from "lucide-react"');
-    expect(switchSource).toContain("theme.toggle()");
-    expect(switchSource).toContain("aria-pressed");
+    expect(switchSource).toContain("<NativeSelect");
+    expect(switchSource).toContain("service.setTheme(nextTheme)");
+    expect(switchSource).not.toContain("toggle()");
+    expect(switchSource).toContain("value={theme}");
     expect(switchSource).not.toMatch(/@ant-design\/icons|from\s+["']antd["']/u);
     expect(switchSource).not.toContain("ant-switch");
     expect(switchSource).not.toContain("ant-btn");

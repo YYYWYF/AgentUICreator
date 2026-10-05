@@ -708,8 +708,9 @@ interface UIPluginDefinition {
 ```ts
 setup({ services }) {
   services.provide("agent-ui.theme", {
-    setMode(mode) {},
-    toggle() {}
+    setTheme(theme) {},
+    getTheme() {},
+    subscribe(listener) {}
   })
 }
 ```
@@ -720,7 +721,7 @@ setup({ services }) {
 inject: ["agent-ui.theme"]
 
 const theme = usePluginService("agent-ui.theme")
-theme?.toggle()
+theme?.setTheme("violet")
 ```
 
 如果能力只是增强而不是运行前提，显式声明 `optionalInject` 并在使用处提供 fallback：

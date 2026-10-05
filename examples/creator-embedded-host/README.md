@@ -15,3 +15,22 @@ VITE_AGENT_ENDPOINT=你的真实后端或Mock面板复制的完整地址
 替换占位文字后，重启 `pnpm dev:embedded-host`。不要把配置写到仓库根目录或 Creator 的 `.env.creator.local`。`src/AgentMount.tsx` 中显式传入的 `endpoint` 参数优先于环境变量。
 
 Mock 服务由 Creator 面板启动，重新启动 Mock 后需复制新地址。详细步骤见 [Platform 示例配置说明](../creator-host-sandbox/README.md)。
+
+### Theme showcase
+
+With the development server running, open `/theme-showcase.html` to explore Light,
+Dark and Violet without modifying the installed Agent project. The gallery includes
+message samples, semantic buttons/status/chart colors, Tool/Source surfaces and
+scoped Dialog/Popover portals. The live Mock conversation exercises the canonical
+Composer, Mention (`@`), Slash (`/`), messages, reasoning and tool rendering; the
+thread list uses the shared conversation runtime.
+
+Generated projects set their default through `agent-ui/theme/theme-config.ts`:
+
+```ts
+export const agentUIThemeConfig = { theme: "violet" } satisfies AgentUIThemeConfig;
+```
+
+The headless Theme Provider supplies `getTheme/setTheme/subscribe`; the optional
+`theme-switch` plugin is a three-preset picker. Upstream snapshot and maintenance
+instructions live in `packages/react/src/theme/UPSTREAM.md`.

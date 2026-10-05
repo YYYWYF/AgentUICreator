@@ -8,7 +8,7 @@ import {
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { Button } from "@agent-ui/react";
+import { NativeSelect } from "@agent-ui/react";
 import {
   ConversationRuntimeProvider,
   type ConversationAgentFactory,
@@ -88,7 +88,7 @@ afterEach(() => {
 });
 
 describe("theme-switch plugin", () => {
-  it("toggles the shared theme service and exposes accessible Button state", async () => {
+  it("selects all presets through the shared theme service with localized labels", async () => {
     const actions = {
       sendMessage: vi.fn(async () => undefined),
       resumeInterrupts: vi.fn(async () => undefined),
@@ -122,54 +122,27 @@ describe("theme-switch plugin", () => {
     if (renderer === undefined) throw new Error("Theme switch was not rendered");
     mountedRenderers.push(renderer);
 
-    const control = () => renderer!.root.findByType(Button);
+    const control = () => renderer!.root.findByType(NativeSelect);
     const root = () => renderer!.root.findByProps({ "data-ui-plugin": "theme-switch" });
 
-    expect(control().props).toMatchObject({
-      "aria-label": "切换到深色模式",
-      "aria-pressed": false,
-      title: "切换到深色模式",
-    });
-    expect(root().props["aria-label"]).toBe("主题设置");
-    expect(root().props).toMatchObject({
-      className: "theme-switch-plugin agent-ui-conversation",
-      "data-theme": "light",
-    });
-
-    await act(async () => {
-      control().props.onClick();
-      await Promise.resolve();
-    });
-
-    expect(control().props).toMatchObject({
-      "aria-label": "切换到浅色模式",
-      "aria-pressed": true,
-      title: "切换到浅色模式",
-    });
-    expect(root().props).toMatchObject({
-      className: "theme-switch-plugin agent-ui-conversation dark",
-      "data-theme": "dark",
-    });
-
+    expect(control().props).toMatchObject({ "aria-label": "主题设置", value: "light" });
+    expect(root().props).toMatchObject({ "data-theme": "light", "data-color-scheme": "light" });
+    const options = () => renderer!.root.findAllByType("option");
+    expect(options().map((option) => option.children.join(""))).toEqual(["浅色", "深色", "紫色"]);
+    for (const preset of ["dark", "violet", "light"] as const) {
+      await act(async () => { control().props.onChange({ currentTarget: { value: preset } }); });
+      expect(control().props.value).toBe(preset);
+      expect(root().props["data-theme"]).toBe(preset);
+      expect(root().props.className.includes(" dark")).toBe(preset === "dark");
+    }
     await act(async () => {
       runtime.get<AgentUILocaleService>(AGENT_UI_LOCALE_SERVICE)?.setLocale("en-US");
     });
-    expect(root().props["aria-label"]).toBe("Theme settings");
-    expect(control().props).toMatchObject({
-      "aria-label": "Switch to light mode",
-      title: "Switch to light mode",
-    });
-
-    await act(async () => {
-      control().props.onClick();
-    });
-    expect(control().props).toMatchObject({
-      "aria-label": "Switch to dark mode",
-      title: "Switch to dark mode",
-    });
+    expect(control().props["aria-label"]).toBe("Theme settings");
+    expect(options().map((option) => option.children.join(""))).toEqual(["Light", "Dark", "Violet"]);
   });
 
-  it("renders in the production Conversation header Slot and toggles the shared Runtime theme", async () => {
+  it("renders a preset picker in the production Conversation header Slot", async () => {
     const appUIModel: AppUIModel = {
       applicationPlugins: [
         {
@@ -253,18 +226,18 @@ describe("theme-switch plugin", () => {
     const header = container.querySelector(
       '[data-conversation-surface-slot="headerActions"]',
     );
-    const control = header?.querySelector("button") as HTMLButtonElement | null;
+    const control = header?.querySelector("select") as HTMLSelectElement | null;
     expect(control).not.toBeNull();
-    expect(control?.getAttribute("aria-pressed")).toBe("false");
+    expect(control?.value).toBe("light");
     expect(header?.querySelector('[data-ui-plugin="theme-switch"]')).not.toBeNull();
 
     await act(async () => {
-      control?.click();
+      if (control) { control.value = "violet"; control.dispatchEvent(new Event("change", { bubbles: true })); }
       await Promise.resolve();
     });
 
-    expect(control?.getAttribute("aria-pressed")).toBe("true");
+    expect(control?.value).toBe("violet");
     expect(header?.querySelector('[data-ui-plugin="theme-switch"]')?.getAttribute("data-theme"))
-      .toBe("dark");
+      .toBe("violet");
   });
 });

@@ -15,7 +15,7 @@ async function removeInternalDeclarations(root, relativeRoot = "") {
       continue;
     }
     const isPublicDeclaration = relativePath === "index.d.ts" ||
-      relativePath === "public.d.ts";
+      relativePath === "public.d.ts" || relativePath === "theme/theme-contract.d.ts";
     if (!isPublicDeclaration &&
       (entry.name.endsWith(".d.ts") || entry.name.endsWith(".d.ts.map"))) {
       await rm(entryPath);
@@ -52,4 +52,5 @@ await copyFile(
   path.join(packageRoot, "THIRD_PARTY_NOTICES.md"),
   path.join(distRoot, "THIRD_PARTY_NOTICES.md"),
 );
+await cp(path.join(sourceRoot, "theme"), path.join(distRoot, "theme"), { recursive: true, filter: (source) => !source.endsWith(".ts") });
 await removeInternalDeclarations(distRoot);

@@ -35,7 +35,7 @@ _BUILTIN_SERVICE_MODULES = {
 }
 _BUILTIN_HOOK_SERVICES = {
     "useAgentUILocale": "AGENT_UI_LOCALE_SERVICE",
-    "useAgentUIThemeMode": "AGENT_UI_THEME_SERVICE",
+    "useAgentUITheme": "AGENT_UI_THEME_SERVICE",
 }
 
 

@@ -1,6 +1,6 @@
-import { Button, useConversationNavigation } from "@agent-ui/react";
+import { getAgentUIThemeColorScheme, Button, useConversationNavigation } from "@agent-ui/react";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
-import { useAgentUIThemeMode } from "../../agent-ui/theme/useAgentUITheme";
+import { useAgentUITheme } from "../../agent-ui/theme/useAgentUITheme";
 import { useAgentRun } from "../../runtime/context";
 import {
   usePluginService,
@@ -19,7 +19,7 @@ import "./styles.css";
 export function ConversationThreadListPlugin(_props: UIPluginComponentProps) {
   const labels = useAgentUILocale("threadList");
   const conversationNavigation = useConversationNavigation();
-  const theme = useAgentUIThemeMode();
+  const theme = useAgentUITheme();
   const run = useAgentRun();
   const conversation = usePluginService<ConversationService>(
     AGENT_UI_CONVERSATION_SERVICE,
@@ -34,12 +34,13 @@ export function ConversationThreadListPlugin(_props: UIPluginComponentProps) {
     <aside
       className={[
         "conversation-thread-list-plugin agent-ui-conversation",
-        theme === "dark" ? "dark" : undefined,
+        getAgentUIThemeColorScheme(theme) === "dark" ? "dark" : undefined,
       ].filter(Boolean).join(" ")}
       data-agent-run-status={run.status}
       data-conversation-list-status={snapshot.listStatus}
       data-conversation-detail-status={snapshot.detailStatus}
       data-theme={theme}
+      data-color-scheme={getAgentUIThemeColorScheme(theme)}
       data-ui-plugin="conversation-thread-list"
     >
       <PolicyThreadList labels={labels} />

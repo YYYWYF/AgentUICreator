@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
 
+import { AgentUIRoot, type AgentUIThemeConfig } from "@agent-ui/react";
+import { agentUIThemeConfig } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/theme/theme-config";
 import { useEffect } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { useAgentUIThemeMode } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/theme/useAgentUITheme";
+import { useAgentUITheme } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/theme/useAgentUITheme";
 import { themeProviderPlugin } from "../../../source-registry/registry/items/plugin-theme-provider/files/plugins/theme-provider/definition";
 import {
   createPluginRegistry,
@@ -39,17 +41,13 @@ const model: AppUIRuntimeModel = {
   },
 };
 
-function ThemeProbe({ onMount }: { onMount: () => void }) {
-  const theme = useAgentUIThemeMode();
-
+function ConversationConsumer({ onMount }: { onMount: () => void }) {
   useEffect(() => onMount(), [onMount]);
-
-  return (
-    <div
-      className={theme === "dark" ? "dark" : undefined}
-      data-theme={theme}
-    />
-  );
+  return <span data-conversation-consumer="" />;
+}
+function ThemeProbe({ onMount }: { onMount: () => void }) {
+  const theme = useAgentUITheme();
+  return <AgentUIRoot theme={theme}><ConversationConsumer onMount={onMount} /></AgentUIRoot>;
 }
 
 const mountedRenderers: ReactTestRenderer[] = [];
@@ -62,6 +60,22 @@ afterEach(() => {
 });
 
 describe("assistant-ui theme bridge", () => {
+  it("uses the project default when the optional provider is removed", async () => {
+    const runtime = new PluginServiceRuntime();
+    serviceRuntimes.push(runtime);
+    const config: AgentUIThemeConfig = agentUIThemeConfig;
+    const previous = config.theme;
+    let renderer: ReactTestRenderer | undefined;
+    try {
+      config.theme = "violet";
+      await act(async () => {
+        renderer = create(<PluginServiceRuntimeContext.Provider value={runtime}><ThemeProbe onMount={() => undefined} /></PluginServiceRuntimeContext.Provider>);
+      });
+      if (renderer === undefined) throw new Error("Theme renderer was not created.");
+      mountedRenderers.push(renderer);
+      expect(renderer.root.findByProps({ "data-agent-ui-root": "" }).props).toMatchObject({ "data-theme": "violet", "data-color-scheme": "light" });
+    } finally { config.theme = previous; }
+  });
   it("updates the theme without remounting its conversation consumer", async () => {
     const serviceRuntime = new PluginServiceRuntime();
     serviceRuntime.reconcile(
@@ -88,22 +102,27 @@ describe("assistant-ui theme bridge", () => {
     if (renderer === undefined) throw new Error("Theme renderer was not created.");
     mountedRenderers.push(renderer);
 
-    const root = () => renderer!.root.findByType("div");
+    const root = () => renderer!.root.findByProps({ "data-agent-ui-root": "" });
     expect(root().props).toMatchObject({
-      className: undefined,
+      className: "agent-ui-root",
       "data-theme": "light",
     });
     expect(onMount).toHaveBeenCalledTimes(1);
 
     await act(async () => {
-      themeService.setMode("dark");
+      themeService.setTheme("dark");
       await Promise.resolve();
     });
 
     expect(root().props).toMatchObject({
-      className: "dark",
+      className: "agent-ui-root dark",
       "data-theme": "dark",
     });
     expect(onMount).toHaveBeenCalledTimes(1);
+    for (const theme of ["violet", "light"] as const) {
+      await act(async () => { themeService.setTheme(theme); });
+      expect(root().props).toMatchObject({ "data-theme": theme, "data-color-scheme": "light", className: "agent-ui-root" });
+      expect(onMount).toHaveBeenCalledTimes(1);
+    }
   });
 });

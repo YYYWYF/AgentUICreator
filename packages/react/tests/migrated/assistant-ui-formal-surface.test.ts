@@ -18,10 +18,10 @@ describe("formal Conversation surface", () => {
     expect(surface).toContain("ConversationThread");
     expect(surface).toContain("TooltipProvider");
     expect(surface).toContain('data-agent-ui-conversation="true"');
-    expect(surface).toContain('export type ConversationTheme = "light" | "dark"');
+    expect(surface).toContain('export type ConversationTheme = AgentUITheme');
     expect(surface).toContain("theme?: ConversationTheme");
     expect(surface).toContain('theme = "light"');
-    expect(surface).toContain('theme === "dark" ? "dark" : undefined');
+    expect(surface).toContain('colorScheme === "dark" ? "dark" : undefined');
     expect(surface).toContain("data-theme={theme}");
     expect(surface).not.toMatch(
       /@ag-ui\/client|@assistant-ui\/|AgentRuntime|AppUIModel|PluginRegistry|internal\/vendor/u,

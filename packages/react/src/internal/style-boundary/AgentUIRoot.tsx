@@ -1,15 +1,18 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 
+import { getAgentUIThemeColorScheme, type AgentUITheme } from "../../theme/theme-contract.js";
+
 const AgentUIPortalContext = createContext<HTMLElement | null | undefined>(undefined);
 
 /** The single style and overlay boundary for one mounted Agent UI. */
 export function AgentUIRoot({ theme, children }: {
-  theme: "light" | "dark";
+  theme: AgentUITheme;
   children: ReactNode;
 }) {
   const [portalContainer, setPortalContainer] = useState<HTMLDivElement | null>(null);
+  const colorScheme = getAgentUIThemeColorScheme(theme);
   return (
-    <div className={theme === "dark" ? "agent-ui-root dark" : "agent-ui-root"} data-agent-ui-root="" data-theme={theme}>
+    <div className={colorScheme === "dark" ? "agent-ui-root dark" : "agent-ui-root"} data-agent-ui-root="" data-theme={theme} data-color-scheme={colorScheme}>
       <AgentUIPortalContext.Provider value={portalContainer}>
         {children}
       </AgentUIPortalContext.Provider>
