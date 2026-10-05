@@ -1,6 +1,6 @@
 {
   "id": "plugin/conversation-command-source",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "kind": "agent-component",
   "description": "Default slash command source with a frontend new-conversation action",
   "requires": [

@@ -200,6 +200,7 @@ class AppUIModelMutationService:
         *,
         app_ui_model_hash: str,
         operations: list[dict[str, Any]],
+        feature_removal: bool = False,
     ) -> AppUIModelMutationResult:
         request_index = self.metrics.begin_request(len(operations))
         semantic_replan_attempt = False
@@ -222,7 +223,9 @@ class AppUIModelMutationService:
             self._semantic_replan_pending = False
         try:
             result = await self._mutate(
-                app_ui_model_hash=app_ui_model_hash, operations=operations
+                app_ui_model_hash=app_ui_model_hash,
+                operations=operations,
+                feature_removal=feature_removal
             )
         except BaseException as error:
             if semantic_replan_attempt:
@@ -335,9 +338,10 @@ class AppUIModelMutationService:
         *,
         app_ui_model_hash: str,
         operations: list[dict[str, Any]],
+        feature_removal: bool = False,
     ) -> AppUIModelMutationResult:
         signature = json.dumps(
-            [app_ui_model_hash, operations],
+            [app_ui_model_hash, operations, feature_removal],
             ensure_ascii=False,
             sort_keys=True,
             separators=(",", ":"),
@@ -353,6 +357,7 @@ class AppUIModelMutationService:
             result = await self._mutate_once(
                 app_ui_model_hash=app_ui_model_hash,
                 operations=operations,
+                feature_removal=feature_removal,
             )
         except Exception:
             if signature == self._last_failed_signature:
@@ -370,6 +375,7 @@ class AppUIModelMutationService:
         *,
         app_ui_model_hash: str,
         operations: list[dict[str, Any]],
+        feature_removal: bool = False,
     ) -> AppUIModelMutationResult:
         async with self.mutation_coordinator.transaction(self.project_root):
             for path in self.mutable_paths:
@@ -390,6 +396,7 @@ class AppUIModelMutationService:
                     {
                         "appUIModelHash": app_ui_model_hash,
                         "operations": operations,
+                        **({"featureRemoval": True} if feature_removal else {}),
                         **({"cancelMarker": cancel_marker} if cancel_marker is not None else {}),
                         **(
                             {"runtimeSlotWidths": runtime_slot_widths}

@@ -483,3 +483,54 @@ export function inspectUIServiceDependencies(
     declarations,
   );
 }
+
+export interface OrphanedServiceProvider {
+  providerInstanceId: string;
+  providerPluginId: string;
+  services: string[];
+}
+
+/** Pure analysis only. Consider infrastructure affected by this removal, never all orphans.
+ * Every remaining composition instance counts as a consumer, including disabled or
+ * dependency-blocked instances, so cleanup cannot break a later reactivation.
+ */
+export function findOrphanedServiceProvidersAfterRemoval(
+  model: AppUIModel,
+  assets: readonly PluginAsset[],
+  declarations: AnalyzedDeclarations,
+  removedInstanceIds: ReadonlySet<string>,
+): OrphanedServiceProvider[] {
+  if (removedInstanceIds.size === 0 || declarations.issues.length > 0) return [];
+  const locations = collectAppUIPluginLocations(model);
+  const byId = new Map(declarations.plugins.map((entry) => [entry.pluginId, entry]));
+  // Unknown declarations or assets must never be interpreted as no consumers.
+  const assetsById = new Map(assets.map((asset) => [asset.pluginId, asset]));
+  if (locations.some(({ plugin }) => !byId.has(plugin.pluginId) || !assetsById.has(plugin.pluginId))) return [];
+  const affectedServices = new Set(locations
+    .filter(({ plugin }) => removedInstanceIds.has(plugin.id))
+    .flatMap(({ plugin }) => {
+      const entry = byId.get(plugin.pluginId)!;
+      return [...entry.inject, ...entry.optionalInject];
+    }));
+  const remaining = locations.filter(({ plugin }) => !removedInstanceIds.has(plugin.id));
+  return remaining.flatMap(({ plugin, target }) => {
+    const asset = assetsById.get(plugin.pluginId)!;
+    const entry = byId.get(plugin.pluginId)!;
+    if (target.type !== "application" || asset.authoring?.cleanup?.removeWhenUnused !== true ||
+        !asset.capabilities.includes("headless") ||
+        asset.capabilities.some((capability) => !["headless", "plugin-service-provider"].includes(capability)) ||
+        asset.applicationGate !== undefined || asset.manifest.data !== undefined ||
+        asset.manifest.requiresRenderScope === true ||
+        Object.keys(asset.childSlots ?? {}).length > 0 || Object.keys(plugin.slots ?? {}).length > 0 ||
+        entry.provides.length === 0 || !entry.provides.some((service) => affectedServices.has(service))) return [];
+    const hasConsumer = remaining.some(({ plugin: consumer }) => {
+      const consumerEntry = byId.get(consumer.pluginId)!;
+      return entry.provides.some((service) => consumerEntry.inject.includes(service) || consumerEntry.optionalInject.includes(service));
+    });
+    return hasConsumer ? [] : [{
+      providerInstanceId: plugin.id,
+      providerPluginId: plugin.pluginId,
+      services: [...entry.provides].sort(),
+    }];
+  }).sort((left, right) => left.providerInstanceId.localeCompare(right.providerInstanceId));
+}

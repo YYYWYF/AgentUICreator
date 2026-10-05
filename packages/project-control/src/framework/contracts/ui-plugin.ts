@@ -41,6 +41,8 @@ export interface UIPluginManifest {
   authoring?:
     | {
         intents: string[];
+        /** Opt-in: this Plugin exists solely as removable feature Service infrastructure. */
+        cleanup?: { removeWhenUnused: boolean } | undefined;
         visualRole?: string | undefined;
         defaultPlacement?: PluginDefaultPlacement | undefined;
         recommendedSize?:
@@ -296,6 +298,7 @@ const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
   authoring: z
     .strictObject({
       intents: authoringIntentListSchema,
+      cleanup: z.strictObject({ removeWhenUnused: z.boolean() }).optional(),
       visualRole: authoringTextSchema.optional(),
       defaultPlacement: z.discriminatedUnion("type", [
         z.strictObject({

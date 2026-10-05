@@ -266,6 +266,18 @@ Plugin 源码继续由通用 Coding Agent 在权限范围内编辑；AppUIModel 
 
 ---
 
+明确移除整个功能时，Creator 使用 `mutate_app_ui_model` 的
+`featureRemoval: true`，提交 primary Plugin removal。Host 在同一个原子事务中先
+移除 consumer composition，再重新分析 Service 声明，只清理本次移除影响到的
+application Service Provider。Provider 必须显式声明
+`authoring.cleanup.removeWhenUnused: true`（默认不启用），表示其唯一职责是可移除的
+feature Service infrastructure；还必须是无额外能力、无 application gate、无 data
+职责、无 child Slots 的 headless Provider。所有 provided Services 都不得有剩余
+required 或 optional consumer；disabled 或 dependency-blocked consumer 也阻止清理。
+分析不完整时不清理。纯分析 helper 只返回候选，只有明确 Feature Removal 的 Host
+事务可以执行有界 cleanup closure，普通入口移除不会触发。默认 command source
+声明该 ownership；用户业务 Provider 默认保留。这里不删除任何 Plugin 源文件。
+
 ## 3.9 观察后写入与安全撤销
 
 对通用文件编辑启用 read-before-edit 与内容 hash 检查：已有文件未被当前 run 观察时不得覆盖；文件在读取后被外部修改时，写入以 stale-version 冲突失败并要求重新读取。

@@ -44,6 +44,10 @@ def load_app_ui_model_mutation_tool_schema() -> dict[str, Any]:
                     "observed hash and verifies this value against its observation."
                 ),
             },
+            "featureRemoval": {
+                "type": "boolean",
+                "description": "Explicit whole-feature removal only. Host removes opted-in Service-only infrastructure when no remaining required/optional consumer exists. Omit for hiding or removing just an entry point.",
+            },
             "operations": {
                 "type": "array",
                 "description": (
@@ -167,7 +171,8 @@ def create_app_ui_model_mutation_tool(
         ),
     )
     async def mutate_app_ui_model(
-        operations: list[dict[str, Any]], appUIModelHash: str | None = None
+        operations: list[dict[str, Any]], appUIModelHash: str | None = None,
+        featureRemoval: bool = False
     ) -> str:
         try:
             observed_hash = observations.require_app_ui_model_hash(
@@ -181,6 +186,7 @@ def create_app_ui_model_mutation_tool(
             result = await service.mutate(
                 app_ui_model_hash=observed_hash,
                 operations=operations,
+                **({"feature_removal": True} if featureRemoval else {}),
             )
             semantic_composition = result.target_result.get("semanticComposition")
             if isinstance(semantic_composition, dict):

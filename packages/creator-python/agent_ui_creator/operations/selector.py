@@ -199,6 +199,11 @@ plugin_slot control may still be selected for a plain directional phrase when
 its supplied semantic description matches that control. If an exact requested
 placement is unavailable, return GENERAL or CLARIFY; never select another
 placement or add_default as a fallback.
+For explicit whole-feature removal (rather than only its visible entry point),
+return MODIFY GENERAL so the Creator can use mutate_app_ui_model with
+featureRemoval=true and a primary Plugin removal. The Host determines safe
+Service-provider cleanup from declarations and explicit manifest ownership;
+do not select a visual Remove Action for that broader goal.
 Visual Remove Actions remove only UI Plugin instances. If the user clearly asks
 to remove a visible panel or list, select its visual Remove Action. If the user
 clearly asks to change an authorized frontend capability or Service, use GENERAL

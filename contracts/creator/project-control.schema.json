@@ -2407,6 +2407,9 @@
             "$ref": "app-ui-model-operation.schema.json"
           }
         },
+        "featureRemoval": {
+          "type": "boolean"
+        },
         "runtimeSlotWidths": {
           "type": "object",
           "propertyNames": {

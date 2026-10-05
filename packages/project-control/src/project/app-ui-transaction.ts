@@ -60,6 +60,7 @@ import type {
   ProjectIssue,
   UIProjectControlConfig,
 } from "./types";
+import { analyzePluginServiceDeclarations, findOrphanedServiceProvidersAfterRemoval } from "./service-dependency-inspector";
 import { projectWorkspaceTopology, WorkspaceTopologyError } from "./workspace-topology";
 import { assertCreatorCommitAllowed, creatorCancelMarkerSchemaPattern } from "./creator-cancel-marker";
 
@@ -82,6 +83,7 @@ export const APP_UI_MUTATION_ADMISSION_GUARANTEES = [
 export const appUITransactionInputSchema = z.strictObject({
   appUIModelHash: z.string().regex(SHA256_PATTERN),
   operations: appUIOperationsSchema,
+  featureRemoval: z.boolean().optional(),
   runtimeSlotWidths: z
     .record(
       z.string().trim().min(1).max(200),
@@ -1217,6 +1219,32 @@ async function runTransaction(
         operationApplyOptions ?? { workspacePolicy },
       ),
     );
+    if (input.featureRemoval === true) {
+      if (loweredOperations.some((operation) => operation.type !== "remove_plugin" && operation.type !== "remove_plugin_default")) {
+        throw new AppUITransactionError("FEATURE_REMOVAL_OPERATION_INVALID", "Feature cleanup requires only Plugin composition removals.");
+      }
+      const assets = currentGeneration !== undefined && currentGeneration.errors.length === 0
+        ? currentGeneration.assets : [];
+      const declarations = analyzePluginServiceDeclarations(projectRoot, assets, paths.sourceRoot);
+      const remainingIds = new Set(collectAppUIPluginLocations(afterModel).map(({ plugin }) => plugin.id));
+      const removedIds = new Set(collectAppUIPluginLocations(beforeModel)
+        .filter(({ plugin }) => !remainingIds.has(plugin.id)).map(({ plugin }) => plugin.id));
+      // Recompute after every cleanup round. Explicit opt-in is the lifecycle
+      // authority here; generic headless removal remains protected above.
+      while (true) {
+        const candidates = findOrphanedServiceProvidersAfterRemoval(beforeModel, assets, declarations, removedIds);
+        if (candidates.length === 0) break;
+        const cleanupOperations: AppUIOperation[] = candidates.map((candidate) => ({
+          type: "remove_plugin", instanceId: candidate.providerInstanceId,
+        }));
+        afterModel = parseAppUIModel(applyAppUIOperations(afterModel, cleanupOperations, { workspacePolicy }));
+        candidates.forEach((candidate) => removedIds.add(candidate.providerInstanceId));
+        loweredOperations.push(...cleanupOperations);
+      }
+      if (semanticComposition !== undefined) {
+        semanticComposition.expectedRuntime.absentInstanceIds = [...removedIds].sort();
+      }
+    }
     const workspaceInsert = requestedWorkspaceInsert;
     if (workspaceInsert !== undefined) {
       const actual = projectWorkspaceTopology(afterModel, workspacePolicy).regions[workspaceInsert.region];

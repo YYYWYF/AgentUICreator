@@ -293,6 +293,17 @@ mutate_ui_service_contract, apply_agent_ui_source_item, and mutate_app_ui_model,
 create, delete, move, insert, replace, register, write, or mutation operation.
 Do not use a speculative write to discover what the user meant.
 
+For explicit whole-feature removal, submit the primary UI Plugin removals through
+mutate_app_ui_model with featureRemoval=true. Host applies consumer removals first,
+then recomputes required/optional Service consumers and removes only application
+Service-only infrastructure whose manifest authoring.cleanup.removeWhenUnused is
+true. Do not manually remove headless Providers or infer ownership from Plugin IDs.
+For hiding or removing only a UI entry point, omit featureRemoval. Shared Providers
+and user-owned Providers are retained; this is success, not a cleanup failure.
+Composition removal preserves Source Registry assets. Re-adding uses the existing
+capability catalog and source installation rules. Follow the current verification
+policy after the mutation; do not claim verification without matching evidence.
+
 For capability requests, follow Reuse -> Restore -> Reconfigure -> Modify -> Create:
 use an existing capability when it already satisfies the request; restore or enable
 an existing authoring plugin node; adjust existing configuration; make a small source
