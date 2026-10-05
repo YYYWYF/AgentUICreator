@@ -233,3 +233,22 @@ def test_broken_managed_runtime_does_not_fall_back_to_legacy(tmp_path):
     with pytest.raises(ProjectControlError) as failure:
         asyncio.run(client.inspect_ui_project())
     assert failure.value.code == "CONTROL_RUNTIME_MISSING"
+
+
+@pytest.mark.parametrize("intent,operation,input", [
+    ("purge", "mutate_app_ui_model", {"operations": [{"type": "remove_plugin_default", "instanceId": "fixture"}]}),
+    ("hide", "purge_ui_plugin", {"pluginId": "fixture"}),
+    ("hide", "apply_agent_ui_source_item", {"itemId": "plugin/fixture"}),
+    ("hide", "mutate_app_ui_model", {"operations": [{"type": "set_plugin_enabled", "instanceId": "fixture", "enabled": True}]}),
+    ("uncertain", "synchronize_plugin_registry", {}),
+])
+def test_removal_authority_rejects_direct_transport_bypass(tmp_path, monkeypatch, intent, operation, input):
+    from agent_ui_creator.removal_intent import RemovalIntentViolation, bind_removal_intent
+
+    client = ProjectControlClient(project_root=tmp_path)
+    monkeypatch.setattr(client, "_ensure_fixed_runtime", lambda: None)
+    async def forbidden_execute(_request):
+        pytest.fail("Forbidden removal mutation reached the Host transport")
+    monkeypatch.setattr(client, "_execute", forbidden_execute)
+    with bind_removal_intent(intent), pytest.raises(RemovalIntentViolation):
+        asyncio.run(client._request(operation, input))

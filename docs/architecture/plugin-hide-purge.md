@@ -10,7 +10,14 @@ The existing Intent Selector emits `GENERAL HIDE`, `GENERAL PURGE` or
 `GENERAL REMOVAL_UNCERTAIN`. Uncertain removal hands off to the existing
 `ask_user_question` interrupt flow. Before an answer, the write agent exposes only
 the question tool. Server validation of the interrupt answer precedes resuming
-the normal write agent. No natural-language removal regex is used.
+the write agent with the chosen removal authority. Hide exposes read/inspect,
+questions and Composition mutation, and execution permits only nonempty batches
+of `set_plugin_enabled(false)`. Purge exposes read/inspect, questions and
+`purge_ui_plugin`. Source edits and other mutation tools are unavailable. The
+execution middleware and ProjectControl transport also reject forbidden calls,
+including calls synthesized without advertised tools. Removal authority persists
+through subsequent interrupts, and answering the removal question clears pending
+clarification. No natural-language removal regex is used.
 
 ## Host preparation and commit
 
@@ -33,6 +40,12 @@ manifest in their own `sourceRoot/plugins/pluginId` directory and no managed
 ownership; the complete directory is deleted. Symlink traversal, retained source
 references, unprovable declarations, shared-item Plugin ownership and dependencies
 still in use cause refusal before live file effects.
+
+External TS/JS consumers come from the root tsconfig Project and its referenced
+Projects, using compiler source membership and module resolution across all
+project directories. Managed Plugin files supplement configs that exclude them;
+styles are inspected across the project with dependency/output exclusions. The
+target Plugin itself is excluded. Unsafe references refuse deletion before changes.
 
 The final source inventory produces the generated Plugin, frontend-tool and
 conversation-integration registries. The Host compiles the final AppUIModel,
@@ -59,5 +72,7 @@ Regression coverage includes hiding, managed and user-authored deletion, optiona
 disabled consumer protection, shared files, customized ownership, hash conflicts,
 unprovable installed dependencies, symlinks, rollback and crash recovery. Selector
 fixtures cover hide/purge/uncertain; policy and routing tests cover the no-write
-question handoff. Interactive or real-model acceptance is separate from these
+question handoff and execution bypass refusal. HTTP regressions exercise the
+real Selector, question interrupt, answer/resume, actual Host hide/purge and
+pending clarification cleanup with a fixture model. Interactive or real-model acceptance is separate from these
 checks.

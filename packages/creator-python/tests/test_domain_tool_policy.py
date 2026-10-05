@@ -120,3 +120,48 @@ def test_uncertain_plugin_removal_exposes_only_existing_question_tool():
         return ModelResponse(result=[AIMessage(content="question")])
     DomainWriteToolPolicyMiddleware(require_removal_choice=True).wrap_model_call(request, handler)
     assert observed == ["ask_user_question"]
+
+
+def test_removal_intent_filters_model_tool_surface():
+    for intent, permitted_write in [("hide", "mutate_app_ui_model"), ("purge", "purge_ui_plugin")]:
+        request = ModelRequest(model=Mock(), messages=[], tools=[SimpleNamespace(name=name) for name in ALLOWED_DOMAIN_WRITE_TOOLS])
+        observed = []
+        DomainWriteToolPolicyMiddleware(removal_intent=intent).wrap_model_call(request,
+            lambda filtered: observed.extend(tool.name for tool in filtered.tools) or ModelResponse(result=[AIMessage(content="done")]))
+        assert permitted_write in observed
+        assert "ask_user_question" in observed
+        assert "inspect_app_ui_model" in observed
+        assert not {"edit_file", "edit_file_from_read", "mutate_ui_plugin_source", "apply_agent_ui_source_item", "create_ui_plugin", "undo_creator_transaction"}.intersection(observed)
+        assert ({"purge_ui_plugin", "mutate_app_ui_model"} - {permitted_write}).isdisjoint(observed)
+
+
+def test_removal_tool_execution_guard_rejects_bypass_and_non_hide_operations():
+    import pytest
+    from agent_ui_creator.removal_intent import RemovalIntentViolation
+
+    for intent, name, args in [
+        ("hide", "purge_ui_plugin", {}),
+        ("purge", "mutate_app_ui_model", {"operations": [{"type": "remove_plugin_default", "instanceId": "slash"}]}),
+        ("hide", "edit_file", {}),
+        ("purge", "edit_file_from_read", {}),
+        ("hide", "mutate_app_ui_model", {"operations": [{"type": "set_plugin_enabled", "instanceId": "slash", "enabled": True}]}),
+        ("hide", "mutate_app_ui_model", {"operations": [{"type": "set_plugin_enabled", "instanceId": "slash", "enabled": False}, {"type": "remove_plugin", "instanceId": "other"}]}),
+        ("hide", "mutate_app_ui_model", {"operations": []}),
+        ("hide", "mutate_app_ui_model", {"operations": [{"type": "set_plugin_enabled", "instanceId": "slash", "enabled": False}], "featureRemoval": True}),
+        ("uncertain", "mutate_app_ui_model", {}),
+        ("uncertain", "ask_user_question", {"steps": []}),
+    ]:
+        handler = Mock()
+        with pytest.raises(RemovalIntentViolation):
+            DomainWriteToolPolicyMiddleware(removal_intent=intent).wrap_tool_call(
+                SimpleNamespace(tool_call={"name": name, "args": args}), handler)
+        handler.assert_not_called()
+
+
+def test_hide_execution_guard_allows_only_disabling_instances():
+    request = SimpleNamespace(tool_call={"name": "mutate_app_ui_model", "args": {
+        "operations": [{"type": "set_plugin_enabled", "instanceId": "slash", "enabled": False}],
+    }})
+    handler = Mock(return_value="committed")
+    assert DomainWriteToolPolicyMiddleware(removal_intent="hide").wrap_tool_call(request, handler) == "committed"
+    handler.assert_called_once()

@@ -115,4 +115,30 @@ describe("inspectPluginSourceReferences", () => {
       ),
     ).toBe(false);
   });
+  it("inspects a referenced tsconfig Project", async () => {
+    const root = await createProject();
+    await mkdir(path.join(root, "app"));
+    await writeFile(path.join(root, "app/page.tsx"), 'import "../plugins/target/index";');
+    await writeFile(path.join(root, "app/tsconfig.json"), JSON.stringify({
+      compilerOptions: { composite: true, module: "ESNext", moduleResolution: "Bundler" },
+      include: ["page.tsx"],
+    }));
+    await writeFile(path.join(root, "tsconfig.json"), '{ // solution project\n "files": [], "references": [{"path": "./app"},], }');
+    const result = await inspectPluginSourceReferences(root, fixtureProjectPaths(root), "target-plugin", "target");
+    expect(result.references).toContainEqual(expect.objectContaining({ path: "app/page.tsx", kind: "module" }));
+  });
+
+  it.each(["app", "pages", "apps", "packages", "client", "frontend"])("inspects tsconfig consumers in %s outside sourceRoot", async folder => {
+    const root = await createProject();
+    const file = path.join(root, folder, "page.tsx");
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, 'import { targetService } from "../plugins/target/index"; export default targetService;');
+    await writeFile(path.join(root, "tsconfig.json"), JSON.stringify({ compilerOptions: {
+      module: "ESNext", moduleResolution: "Bundler", target: "ES2022", jsx: "react-jsx",
+    }, include: [folder, "plugins"] }));
+    const paths = { ...fixtureProjectPaths(root), sourceRoot: path.join(root, "agent-ui") };
+    const result = await inspectPluginSourceReferences(root, paths, "target-plugin", "target");
+    expect(result.references).toContainEqual(expect.objectContaining({ path: `${folder}/page.tsx`, kind: "module" }));
+  });
+
 });

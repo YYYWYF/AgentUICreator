@@ -30,6 +30,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from langgraph.checkpoint.memory import InMemorySaver
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from .removal_intent import RemovalIntent, bind_removal_intent
 from .config import CreatorServerSettings
 from .activity import CreatorActivityRecorder
 from .transactions import CreatorTransactionStore, CreatorTransactionError
@@ -110,6 +111,7 @@ CreatorExecutionPermission = Literal[
 @dataclass(slots=True)
 class CreatorExecutionContext:
     permission: CreatorExecutionPermission | None = None
+    removal_intent: RemovalIntent = "none"
 
 
 @dataclass(frozen=True, slots=True)
@@ -121,6 +123,7 @@ class PendingCreatorQuestion:
     permission: CreatorExecutionPermission
     checkpoint_id: str
     run_id: str
+    removal_intent: RemovalIntent = "none"
 
 
 def _question_envelope(interrupted: DeepAgentInterrupted) -> CreatorInterruptEnvelope:
@@ -434,6 +437,8 @@ async def _domain_write_agent_result(
             user_message=current_user_message,
             intent=productized_result.selection.developmentIntent,
         )
+    if execution_context is not None:
+        execution_context.removal_intent = productized_result.selection.removalIntent
     if productized_result.selection.removalIntent in {"hide", "purge"}:
         messages = [*messages, {"role": "system", "content": (
             "Creator Intent Selector removal decision: " + productized_result.selection.removalIntent
@@ -564,6 +569,7 @@ async def _domain_write_agent_result(
         telemetry,
         handoff=productized_result.handoff,
         require_removal_choice=productized_result.selection.removalIntent == "uncertain",
+        removal_intent=productized_result.selection.removalIntent,
         checkpointer=checkpointer,
         development_authority=development_authority,
     )
@@ -580,6 +586,7 @@ async def _general_domain_write_agent_result(
     telemetry: CreatorRunTelemetry | None = None,
     handoff: CreatorAuthoringHandoff | None = None,
     require_removal_choice: bool = False,
+    removal_intent: RemovalIntent = "none",
     checkpointer: Any = None,
     resume: dict[str, Any] | None = None,
     development_authority: PluginDevelopmentAuthority | None = None,
@@ -628,6 +635,7 @@ async def _general_domain_write_agent_result(
         plugin_development_authority=development_authority,
         authoring_handoff=handoff,
         require_removal_choice=require_removal_choice,
+        removal_intent=removal_intent,
     )
     if (resume is None and handoff is not None and handoff.kind == "plugin_source"
             and handoff.pluginId is not None and development_authority is not None
@@ -646,7 +654,8 @@ async def _general_domain_write_agent_result(
         return agent._build_result(text=decision.text, completion="success")
     input_messages = _authoring_handoff_messages(messages, handoff)
     graph_messages = await _checkpoint_input_messages(checkpointer, thread_id, input_messages) if resume is None else input_messages
-    return await agent.run_messages(graph_messages) if resume is None else await agent.run_messages(input_messages, resume=resume)
+    with bind_removal_intent("uncertain" if require_removal_choice else removal_intent):
+        return await agent.run_messages(graph_messages) if resume is None else await agent.run_messages(input_messages, resume=resume)
 
 
 def _error_code(error: Exception) -> str:
@@ -1082,6 +1091,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                 development_authority = development_authority_for(run_input.threadId)
                 resume_answers: dict[str, Any] | None = None
                 development_decision: str | None = None
+                removal_intent: RemovalIntent = pending.removal_intent if pending is not None else "none"
                 if resume_requested:
                     if pending is None:
                         resume_payload = command["resume"] if isinstance(command, dict) else None
@@ -1114,7 +1124,11 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             raise ValueError("interruptId does not match the pending question")
                         request = QuestionRequest.model_validate({key: value for key, value in pending.envelope.metadata.items() if key != "kind"})
                         resume_answers = QuestionAnswers.model_validate({"answers": payload.get("answers")}).validate_for(request).model_dump(mode="json")
-                        if any(step.id == "plugin-removal" for step in request.steps):
+                        if pending.removal_intent == "uncertain":
+                            selected = resume_answers["answers"].get("plugin-removal")
+                            if selected not in (["hide"], ["purge"]):
+                                raise ValueError("Removal requires a hide/purge decision.")
+                            removal_intent = selected[0]
                             pending_clarifications.clear(run_input.threadId)
                         active = development_authority.active
                         if active is not None and active.status == "pending" and active.question_id is not None:
@@ -1186,6 +1200,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             messages = pending.messages if pending is not None else _conversation_messages(run_input)
                             if resume_requested:
                                 execution_context.permission = pending.permission
+                                execution_context.removal_intent = removal_intent
                                 if pending.permission == "inspect_read_only":
                                     agent_result = _domain_read_agent_result(
                                         settings, messages, activity, run_input.threadId,
@@ -1198,6 +1213,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                         settings, messages, activity, mutation_coordinator,
                                         diagnostics, run_input.threadId, event_bus, telemetry,
                                         checkpointer=checkpointer, resume=resume_answers,
+                                        removal_intent=removal_intent,
                                         development_authority=development_authority,
                                     )
                             else:
@@ -1344,6 +1360,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             permission=execution_context.permission,
                             checkpoint_id=checkpoint_id,
                             run_id=run_input.runId,
+                            removal_intent=execution_context.removal_intent,
                         )
                         active = development_authority.active
                         if (agent_mode == "domain-write" and execution_context.permission == "domain_write"

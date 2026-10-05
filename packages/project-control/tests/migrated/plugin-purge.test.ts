@@ -19,14 +19,13 @@ import { commitPluginPurge, recoverPendingPluginPurge, PURGE_JOURNAL } from "../
 import { readOptionalBuffer } from "../../src/project/source-registry/lock";
 const roots: string[] = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
-const sourceRoot = "custom-ui";
 const slash = "assistant-ui-slash-command-trigger-main";
 const commands = "conversation-command-source-main";
 const mention = "assistant-ui-mention-trigger-main";
 const preserved = ["assistant-ui-composer-main", mention, "conversation-quote-main"];
 const hash = (source: string | Buffer) => createHash("sha256").update(source).digest("hex");
 
-async function project(mode: "assistant" | "embedded" | "platform") {
+async function project(mode: "assistant" | "embedded" | "platform", sourceRoot = "custom-ui") {
   const root = await mkdtemp(path.join(tmpdir(), "real-preset-feature-removal-"));
   roots.push(root);
   const registry = await loadAgentUISourceRegistry();
@@ -227,6 +226,25 @@ export default { manifest, Component: () => null, optionalInject: [CONVERSATION_
     const before = await sourceHashes(f);
     await expect(purgeUIPlugin(f.root, await input(f))).rejects.toMatchObject({ code: "AGENT_UI_SOURCE_DEPENDENCY_IN_USE" });
     await unchanged(before);
+  });
+
+  it("refuses purge when a tsconfig application imports Plugin source outside sourceRoot", async () => {
+    const f = await project("assistant", "agent-ui");
+    const directory = path.join(f.paths.pluginsRoot, "business-card");
+    await mkdir(directory);
+    await writeFile(path.join(directory, "manifest.json"), JSON.stringify({ id: "business-card", name: "Card", description: "Test card", version: "1.0.0", capabilities: ["headless"] }));
+    await writeFile(path.join(directory, "definition.ts"), 'import manifest from "./manifest.json"; export default { manifest, Component: () => null };');
+    await writeFile(path.join(directory, "index.tsx"), "export const businessCard = true;");
+    await mutateAppUIModel(f.root, { appUIModelHash: hash(await readFile(f.paths.appUIModelPath)), operations: [{ type: "insert_plugin", plugin: { id: "card", pluginId: "business-card", enabled: true }, target: { type: "application" } }] });
+    await mkdir(path.join(f.root, "app"));
+    const consumer = path.join(f.root, "app/page.tsx");
+    await writeFile(consumer, 'import { businessCard } from "../agent-ui/plugins/business-card"; export default businessCard;');
+    await writeFile(path.join(f.root, "tsconfig.json"), JSON.stringify({ compilerOptions: { target: "ES2022", module: "ESNext", moduleResolution: "Bundler", jsx: "react-jsx", resolveJsonModule: true }, include: ["agent-ui", "app"] }));
+    const before = new Map<string, Buffer>();
+    for (const file of [f.paths.appUIModelPath, f.paths.sourceLockPath, f.paths.generatedPluginRegistryPath, consumer, path.join(directory, "index.tsx"), path.join(directory, "manifest.json"), path.join(directory, "definition.ts")]) before.set(file, await readFile(file));
+    await expect(purgeUIPlugin(f.root, await input(f, "business-card"))).rejects.toMatchObject({ code: "PLUGIN_PURGE_UNSAFE" });
+    for (const [file, original] of before) expect(await readFile(file)).toEqual(original);
+    expect(await exists(path.join(f.root, PURGE_JOURNAL))).toBe(false);
   });
 
 });

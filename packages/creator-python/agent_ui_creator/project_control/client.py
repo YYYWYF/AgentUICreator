@@ -13,6 +13,7 @@ from jsonschema.exceptions import ValidationError
 from referencing import Registry, Resource
 
 from ..contract_resources import read_creator_contract
+from ..removal_intent import assert_current_removal_mutation
 from ..run_cancellation import assert_run_writable, current_cancel_marker
 
 from .errors import ProjectControlError
@@ -187,6 +188,7 @@ class ProjectControlClient:
             self._ensure_fixed_runtime()
             if operation in {"mutate_app_ui_model", "apply_agent_ui_source_item",
                              "remove_agent_ui_source_items", "synchronize_plugin_registry", "purge_ui_plugin"}:
+                assert_current_removal_mutation(operation, input)
                 assert_run_writable()
                 marker = current_cancel_marker(self.project_root)
                 if marker is not None:

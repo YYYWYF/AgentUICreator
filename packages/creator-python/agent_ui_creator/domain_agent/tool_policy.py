@@ -5,6 +5,7 @@ from typing import Any
 
 from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResponse
 
+from ..removal_intent import RemovalIntent, assert_removal_mutation, assert_removal_question
 from ..debugging import DEBUGGING_SELECTION_TOOL_NAMES
 from ..domain_tools import DOMAIN_READ_TOOL_NAMES, RECOVERY_READ_TOOL_NAMES, RECOVERY_WRITE_TOOL_NAMES
 from ..minimal_agent.tool_policy import ALLOWED_MINIMAL_TOOLS, tool_name
@@ -178,10 +179,38 @@ class DomainWriteToolPolicyMiddleware(AgentMiddleware):
     def __init__(
         self,
         verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
-        *, require_removal_choice: bool = False,
+        *, require_removal_choice: bool = False, removal_intent: RemovalIntent = "none",
     ) -> None:
         self.verification_mode = verification_mode
-        self.require_removal_choice = require_removal_choice
+        self.removal_intent = "uncertain" if require_removal_choice else removal_intent
+
+    def _tools(self, tools: Sequence[Any]) -> list[Any]:
+        if self.removal_intent == "uncertain":
+            return [item for item in tools if tool_name(item) == "ask_user_question"]
+        if self.removal_intent in {"hide", "purge"}:
+            mutation = "mutate_app_ui_model" if self.removal_intent == "hide" else "purge_ui_plugin"
+            return [item for item in tools if tool_name(item) in READ_ONLY_TOOL_NAMES | {"ask_user_question", mutation}]
+        return list(tools)
+
+    def _assert_call(self, request: Any) -> None:
+        call = request.tool_call
+        name = str(call.get("name") or "")
+        if self.removal_intent == "none":
+            return
+        if self.removal_intent != "uncertain" and name in READ_ONLY_TOOL_NAMES | {"ask_user_question"}:
+            return
+        if self.removal_intent == "uncertain" and name == "ask_user_question":
+            assert_removal_question(call.get("args") or {})
+            return
+        assert_removal_mutation(self.removal_intent, name, call.get("args") or {})
+
+    def wrap_tool_call(self, request: Any, handler: Callable[[Any], Any]) -> Any:
+        self._assert_call(request)
+        return handler(request)
+
+    async def awrap_tool_call(self, request: Any, handler: Callable[[Any], Awaitable[Any]]) -> Any:
+        self._assert_call(request)
+        return await handler(request)
 
     def wrap_model_call(
         self,
@@ -191,8 +220,7 @@ class DomainWriteToolPolicyMiddleware(AgentMiddleware):
         return handler(
             request.override(
                 tools=filter_domain_write_tools(
-                    [item for item in request.tools if tool_name(item) == "ask_user_question"]
-                    if self.require_removal_choice else request.tools,
+                    self._tools(request.tools),
                     verification_mode=self.verification_mode,
                 )
             )
@@ -206,8 +234,7 @@ class DomainWriteToolPolicyMiddleware(AgentMiddleware):
         return await handler(
             request.override(
                 tools=filter_domain_write_tools(
-                    [item for item in request.tools if tool_name(item) == "ask_user_question"]
-                    if self.require_removal_choice else request.tools,
+                    self._tools(request.tools),
                     verification_mode=self.verification_mode,
                 )
             )

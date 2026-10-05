@@ -16,6 +16,8 @@ import {
   isLiteralTypeNode,
   isStringLiteralLikeNode,
 } from "typescript/unstable/ast/is";
+import { createScanner } from "typescript/unstable/ast/scanner";
+import { SyntaxKind } from "typescript/unstable/ast";
 import { API, SymbolFlags, type Project } from "typescript/unstable/sync";
 import type { AgentUIProjectPaths } from "./agent-ui-project-paths";
 
@@ -56,18 +58,11 @@ function isWithin(root: string, candidate: string): boolean {
   return candidate === root || candidate.startsWith(`${root}${path.sep}`);
 }
 
-function sourceScope(
-  projectRoot: string,
-  paths: AgentUIProjectPaths,
-  targetPluginRoot: string,
-  filePath: string,
-): boolean {
+function sourceScope(projectRoot: string, targetPluginRoot: string, filePath: string): boolean {
   const resolved = path.resolve(filePath);
-  if (isWithin(targetPluginRoot, resolved)) {
-    return false;
-  }
-  return [paths.sourceRoot, path.join(projectRoot, "src")]
-    .some((root) => isWithin(root, resolved));
+  if (!isWithin(projectRoot, resolved) || isWithin(targetPluginRoot, resolved)) return false;
+  const parts = path.relative(projectRoot, resolved).split(path.sep);
+  return !parts.some(part => ["node_modules", "dist", "build", ".git", ".agentuicreator"].includes(part));
 }
 
 function moduleReference(node: StringLiteralLikeNode): boolean {
@@ -115,7 +110,7 @@ async function collectFiles(
   }
   const files: string[] = [];
   for (const entry of entries) {
-    if (entry.name === "node_modules" || entry.name === "dist") {
+    if (["node_modules", "dist", "build", ".git", ".agentuicreator"].includes(entry.name)) {
       continue;
     }
     const entryPath = path.join(directoryPath, entry.name);
@@ -219,6 +214,27 @@ function configuredPaths(value: unknown): Record<string, string[]> {
   );
 }
 
+// The compiler API currently does not expose project references in its parsed
+// config response. Read only that metadata with the compiler's JSONC scanner;
+// source membership and module resolution remain owned by compiler Projects.
+async function projectConfigs(configFile: string, seen = new Set<string>()): Promise<string[]> {
+  const resolved = path.resolve(configFile);
+  if (seen.has(resolved)) return [];
+  seen.add(resolved);
+  const scanner = createScanner(true, undefined, await readFile(resolved, "utf8"));
+  const tokens: string[] = [];
+  while (scanner.scan() !== SyntaxKind.EndOfFile) tokens.push(scanner.getTokenText());
+  const config = JSON.parse(tokens.filter((token, index) =>
+    token !== "," || !["}", "]"].includes(tokens[index + 1] ?? "")).join(" ")) as { references?: { path: string }[] };
+  const configs = [resolved];
+  for (const reference of config.references ?? []) {
+    if (typeof reference.path !== "string") throw new Error(`Invalid project reference in ${resolved}`);
+    const target = path.resolve(path.dirname(resolved), reference.path);
+    configs.push(...await projectConfigs(target.endsWith(".json") ? target : path.join(target, "tsconfig.json"), seen));
+  }
+  return configs;
+}
+
 export async function inspectPluginSourceReferences(
   projectRoot: string,
   paths: AgentUIProjectPaths,
@@ -227,25 +243,16 @@ export async function inspectPluginSourceReferences(
 ): Promise<PluginSourceReferenceInspection> {
   const resolvedProjectRoot = path.resolve(projectRoot);
   const targetPluginRoot = path.join(paths.pluginsRoot, directory);
-  const scopedFiles = (
-    await Promise.all(
-      [paths.sourceRoot, path.join(resolvedProjectRoot, "src")].map((scopeRoot) =>
-        collectFiles(
-          scopeRoot,
-          (filePath) => SOURCE_EXTENSIONS.includes(path.extname(filePath)),
-        ),
-      ),
-    )
-  ).flat();
-  const uniqueScopedFiles = [...new Set(scopedFiles)];
-  const api = new API();
+  // Plugin files are supplemental open files for projects which exclude managed
+  // source from their include list. All application consumers come from the
+  // compiler's Project programs, independent of sourceRoot or directory names.
+  const pluginFiles = await collectFiles(paths.pluginsRoot,
+    filePath => SOURCE_EXTENSIONS.includes(path.extname(filePath)));
   const configFilePath = path.join(resolvedProjectRoot, "tsconfig.json");
-  const config = api.parseConfigFile(configFilePath);
-  const pathMappings = configuredPaths(config.options.paths);
-  const snapshot = api.updateSnapshot({
-    openProjects: [configFilePath],
-    openFiles: uniqueScopedFiles,
-  });
+  const configFiles = await projectConfigs(configFilePath);
+  const api = new API();
+  const rootConfig = api.parseConfigFile(configFilePath);
+  const snapshot = api.updateSnapshot({ openProjects: configFiles, openFiles: pluginFiles });
   const references: PluginSourceReference[] = [];
   const seen = new Set<string>();
   const add = (reference: PluginSourceReference): void => {
@@ -257,78 +264,77 @@ export async function inspectPluginSourceReferences(
   };
 
   try {
-    for (const fileName of uniqueScopedFiles) {
-      if (!sourceScope(resolvedProjectRoot, paths, targetPluginRoot, fileName)) {
-        continue;
-      }
-      const project = snapshot.getDefaultProjectForFile(fileName);
-      const sourceFile = project?.program.getSourceFile(fileName);
-      if (project === undefined || sourceFile === undefined) {
-        throw new Error(
-          `${projectPath(resolvedProjectRoot, fileName)} is not part of a TypeScript project.`,
-        );
-      }
-      const relativePath = projectPath(resolvedProjectRoot, fileName);
-      const visit = (node: Node): void => {
-        if (isStringLiteralLikeNode(node)) {
-          const location = sourceFile.getLineAndCharacterOfPosition(
-            node.getStart(),
-          );
-          if (node.text === pluginId) {
-            add({
-              path: relativePath,
-              line: location.line + 1,
-              column: location.character + 1,
-              kind: "plugin-id-literal",
-              value: node.text,
-            });
-          }
-          if (moduleReference(node)) {
-            const directPath = node.text.startsWith(".")
-              ? path.resolve(path.dirname(sourceFile.fileName), node.text)
-              : undefined;
-            if (
-              compilerResolvesInside(project, node, targetPluginRoot) ||
-              compilerPathMappingInside(
-                pathMappings,
-                path.dirname(configFilePath),
-                node.text,
-                targetPluginRoot,
-              ) ||
-              (directPath !== undefined &&
-                isWithin(targetPluginRoot, directPath))
-            ) {
+    const supplemental = new Map<Project, string[]>();
+    for (const file of pluginFiles) {
+      const project = snapshot.getDefaultProjectForFile(file);
+      if (!project) throw new Error(`Cannot resolve Plugin source Project: ${file}`);
+      supplemental.set(project, [...(supplemental.get(project) ?? []), file]);
+    }
+    const projects = [...new Set([...snapshot.getProjects(), ...supplemental.keys()])];
+    if (projects.length === 0) throw new Error("No TypeScript Project is available for reference inspection.");
+    for (const project of projects) {
+      const pathMappings = configuredPaths(project.compilerOptions.paths ?? rootConfig.options.paths);
+      const configDirectory = project.compilerOptions.paths === undefined ? path.dirname(configFilePath) : path.dirname(project.configFileName);
+      for (const fileName of new Set([...project.program.getSourceFileNames(), ...(supplemental.get(project) ?? [])])) {
+        if (!SOURCE_EXTENSIONS.includes(path.extname(fileName)) || !sourceScope(resolvedProjectRoot, targetPluginRoot, fileName)) continue;
+        const sourceFile = project.program.getSourceFile(fileName);
+        if (!sourceFile) throw new Error(`Cannot inspect Project source: ${fileName}`);
+        const relativePath = projectPath(resolvedProjectRoot, fileName);
+        const visit = (node: Node): void => {
+          if (isStringLiteralLikeNode(node)) {
+            const location = sourceFile.getLineAndCharacterOfPosition(
+              node.getStart(),
+            );
+            if (node.text === pluginId) {
               add({
                 path: relativePath,
                 line: location.line + 1,
                 column: location.character + 1,
-                kind: "module",
+                kind: "plugin-id-literal",
                 value: node.text,
               });
             }
+            if (moduleReference(node)) {
+              const directPath = node.text.startsWith(".")
+                ? path.resolve(path.dirname(sourceFile.fileName), node.text)
+                : undefined;
+              if (
+                compilerResolvesInside(project, node, targetPluginRoot) ||
+                compilerPathMappingInside(
+                  pathMappings,
+                  configDirectory,
+                  node.text,
+                  targetPluginRoot,
+                ) ||
+                (directPath !== undefined &&
+                  isWithin(targetPluginRoot, directPath))
+              ) {
+                add({
+                  path: relativePath,
+                  line: location.line + 1,
+                  column: location.character + 1,
+                  kind: "module",
+                  value: node.text,
+                });
+              }
+            }
           }
-        }
-        node.forEachChild(visit);
-      };
-      visit(sourceFile);
+          node.forEachChild(visit);
+        };
+        visit(sourceFile);
+      }
     }
   } finally {
     snapshot.dispose();
     api.close();
   }
 
-  const styleFiles = (
-    await Promise.all(
-      [paths.sourceRoot, path.join(resolvedProjectRoot, "src")].map((scopeRoot) =>
-        collectFiles(
-          scopeRoot,
-          (filePath) => STYLE_EXTENSIONS.includes(path.extname(filePath)),
-        ),
-      ),
-    )
-  ).flat();
+  // Styles need filesystem inspection because they are not TypeScript program
+  // sources. Scope to the project, with the same dependency/output exclusions.
+  const styleFiles = await collectFiles(resolvedProjectRoot,
+    filePath => STYLE_EXTENSIONS.includes(path.extname(filePath)));
   for (const styleFile of new Set(styleFiles)) {
-    if (!sourceScope(resolvedProjectRoot, paths, targetPluginRoot, styleFile)) {
+    if (!sourceScope(resolvedProjectRoot, targetPluginRoot, styleFile)) {
       continue;
     }
     const source = await readFile(styleFile, "utf8");
