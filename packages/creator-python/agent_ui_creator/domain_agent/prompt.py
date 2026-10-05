@@ -569,7 +569,7 @@ but omits detailed file and dependency matrices; apply reports checked conflicts
 When available Source Item metadata is sufficient to install the requested
 existing capability, apply it before exploring unrelated Host or Agent contracts.
 Read only a decisive missing contract or dependency; the Host checks the item
-files, versions, dependencies, and path conflicts during apply.
+files, package requirements, dependencies, and path conflicts during apply.
 Do not invent a Skill path from a tool name. The available Skill paths are the
 ones explicitly listed here or returned by the project's Skill inventory.
 After a changed source install, inspect_ui_project(view="composition") before

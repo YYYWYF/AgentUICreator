@@ -20,7 +20,7 @@ Commit, or restore the previous project-owned files
 
 `applyAgentUISourceItem`, `removeAgentUISourceItems`, and
 `commitAgentUISourceTransaction` remain storage-layer APIs. They own Source files,
-lock versions, dependency closure, optimistic state hashes, and existing ownership
+lock file hashes, dependency closure, optimistic state hashes, and existing ownership
 protections. They have no knowledge of derived registries or AppUIModel.
 Initialization retains its separate clean-install transaction.
 
