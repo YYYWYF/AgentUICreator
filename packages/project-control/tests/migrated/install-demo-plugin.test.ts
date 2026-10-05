@@ -13,11 +13,19 @@ vi.mock("../../src/project/source-registry/index", () => ({
   inspectAgentUISources: vi.fn(async () => ({ stateHash: "hash", items: [
     { id: "plugin/assistant-ui-reasoning", status: "missing" },
     { id: "plugin/assistant-ui-tool-fallback", status: "customized" },
+    { id: "plugin/conversation-quote", status: "missing" },
   ] })),
 }));
 vi.mock("../../src/project/source-registry/project-mutation", () => ({
   applyAgentUISourceProjectMutation: vi.fn(),
   recoverPendingAgentUISourceProjectMutation: vi.fn(),
+}));
+vi.mock("../../src/project/plugin-assets", () => ({
+  collectPluginAssets: vi.fn(async () => ({ errors: [], assets: [
+    { pluginId: "assistant-ui-reasoning", authoring: { defaultPlacement: { type: "plugin_slot", parentPluginId: "conversation-surface", slot: "reasoningGroup" } } },
+    { pluginId: "assistant-ui-tool-fallback", authoring: { defaultPlacement: { type: "plugin_slot", parentPluginId: "conversation-surface", slot: "toolFallback" } } },
+    { pluginId: "conversation-quote", authoring: { defaultPlacement: { type: "plugin_slot", parentPluginId: "assistant-ui-composer", slot: "beforeInput" } } },
+  ] })),
 }));
 vi.mock("../../src/project/app-ui-transaction", () => ({ mutateAppUIModel: vi.fn() }));
 import { mutateAppUIModel } from "../../src/project/app-ui-transaction";
@@ -47,7 +55,35 @@ it("preserves customized tool source while moving and enabling its existing inst
   await installDemoPlugin(root, "assistant-ui-tool-fallback");
   expect(applyAgentUISourceProjectMutation).not.toHaveBeenCalled();
   expect(mutateAppUIModel).toHaveBeenCalledWith(root, expect.objectContaining({ operations: [
-    { type: "move_plugin", instanceId: "existing-tool", target: { type: "plugin_slot", parentInstanceId: "surface", slot: "toolFallback" } },
+    { type: "move_plugin_to", instanceId: "existing-tool", placement: { type: "plugin_slot", parentInstanceId: "surface", slot: "toolFallback" } },
     { type: "set_plugin_enabled", instanceId: "existing-tool", enabled: true },
+  ] }));
+});
+
+it("inserts a missing Quote using manifest default placement", async () => {
+  const root = await project([{ id: "assistant-ui-composer-main", pluginId: "assistant-ui-composer", enabled: true }]);
+  await installDemoPlugin(root, "conversation-quote");
+  expect(mutateAppUIModel).toHaveBeenCalledWith(root, expect.objectContaining({ operations: [
+    { type: "insert_plugin_default", plugin: { id: "conversation-quote-main", pluginId: "conversation-quote", enabled: true } },
+  ] }));
+});
+it("leaves an already correctly installed Quote in place", async () => {
+  const root = await project([{ id: "assistant-ui-composer-main", pluginId: "assistant-ui-composer", enabled: true, slots: {
+    beforeInput: [{ id: "quote", pluginId: "conversation-quote", enabled: true }],
+  } }]);
+  await installDemoPlugin(root, "conversation-quote");
+  expect(mutateAppUIModel).not.toHaveBeenCalled();
+});
+it("repairs a misplaced Quote and enables its manifest parent", async () => {
+  const root = await project([
+    { id: "assistant-ui-composer-main", pluginId: "assistant-ui-composer", enabled: false },
+    { id: "surface", pluginId: "conversation-surface", enabled: true, slots: {
+      beforeInput: [{ id: "quote", pluginId: "conversation-quote", enabled: true }],
+    } },
+  ]);
+  await installDemoPlugin(root, "conversation-quote");
+  expect(mutateAppUIModel).toHaveBeenCalledWith(root, expect.objectContaining({ operations: [
+    { type: "move_plugin_to", instanceId: "quote", placement: { type: "plugin_slot", parentInstanceId: "assistant-ui-composer-main", slot: "beforeInput" } },
+    { type: "set_plugin_enabled", instanceId: "assistant-ui-composer-main", enabled: true },
   ] }));
 });

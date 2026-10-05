@@ -7,7 +7,7 @@ export function injectConversationQuoteContext(input: RunAgentInput, snapshot: r
   for (const message of snapshot) {
     if (message.role !== "user") continue;
     const quote = message.metadata.custom.quote;
-    if (typeof quote !== "object" || quote === null || !("text" in quote) || typeof quote.text !== "string" || !("messageId" in quote) || typeof quote.messageId !== "string") continue;
+    if (typeof quote !== "object" || quote === null || !("text" in quote) || typeof quote.text !== "string" || quote.text.trim().length === 0 || !("messageId" in quote) || typeof quote.messageId !== "string" || quote.messageId.trim().length === 0) continue;
     quotes.set(message.id, quote.text.split("\n").map(line => `> ${line}`).join("\n"));
   }
   let changed = false;
@@ -29,7 +29,7 @@ export function injectConversationQuoteContext(input: RunAgentInput, snapshot: r
 /** Public AG-UI middleware wraps the real agent without a second lifecycle. */
 export class ConversationQuoteContextAgent extends Middleware {
   constructor(public getMessages: () => readonly ThreadMessage[]) { super(); }
-  override run(input: RunAgentInput, next: AbstractAgent) {
+  override run(input: RunAgentInput, next: AbstractAgent): ReturnType<AbstractAgent["run"]> {
     return next.run(injectConversationQuoteContext(input, this.getMessages()));
   }
 }

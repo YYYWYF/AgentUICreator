@@ -85,3 +85,21 @@ it("keeps readonly history selectable without an actionable Quote toolbar", asyn
   const { host, select } = await mount(true); await select();
   expect(host.querySelector('[data-slot="selection-toolbar"]')).toBeNull();
 });
+
+it("clears the captured Thread A composer on switching to B without clearing B's quote", async () => {
+  const { runtime } = await mount();
+  await act(async () => { await runtime.threads.switchToThread("B"); });
+  await act(async () => until(() => !runtime.thread.getState().isLoading));
+  const composerB = runtime.threads.getById("B").composer;
+  await act(async () => { await runtime.threads.switchToThread("history"); });
+  await act(async () => until(() => !runtime.thread.getState().isLoading));
+  const composerA = runtime.threads.getById("history").composer;
+  const quoteB = { text: "Pending B", messageId: "assistant" };
+  await act(async () => {
+    composerA.setQuote({ text: "Pending A", messageId: "assistant" });
+    composerB.setQuote(quoteB);
+  });
+  await act(async () => { await runtime.threads.switchToThread("B"); });
+  expect(composerA.getState().quote).toBeUndefined();
+  expect(composerB.getState().quote).toEqual(quoteB);
+});

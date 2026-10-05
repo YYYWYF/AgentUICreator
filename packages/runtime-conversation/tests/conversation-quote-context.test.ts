@@ -30,6 +30,15 @@ describe("outbound Quote context", () => {
     expect(result.messages[0]!.content).toEqual([{ type: "text", text: "> Passage\n\n" }, ...parts]);
     expect(wire.messages[0]!.content).toBe(parts);
   });
+  it.each([
+    { text: "", messageId: "assistant" },
+    { text: "Passage", messageId: "" },
+    { text: "   ", messageId: "assistant" },
+    { text: "Passage", messageId: "   " },
+  ])("ignores blank quote metadata %j without changing the outgoing input", quote => {
+    const wire = input([{ id: "user", role: "user", content: "Question" }]);
+    expect(injectConversationQuoteContext(wire, [message("user", "Question", quote)])).toBe(wire);
+  });
   it("is an identity operation without quote metadata and never guesses from text", () => {
     const wire = input([{ id: "plain", role: "user", content: "> just text\n\nWhy?" }]);
     expect(injectConversationQuoteContext(wire, [message("plain", "> just text\n\nWhy?")])).toBe(wire);

@@ -44,7 +44,7 @@ export const officialResourceRegistry = createOfficialResourceRegistry([
   { id: "frontend-tool-dialog-demo", label: "弹窗 Frontend Tool Demo", implementation: { type: "source-plugin", sourceItemId: "demo/frontend-tool-dialog", pluginId: "frontend-tool-dialog-demo", placement: "layout", layoutSize: "0px" } },
   { id: "source-citations-message", label: "来源引用", implementation: { type: "plugin", pluginId: "source-citations-message" } },
   { id: "generated-file-message", label: "文件输出", implementation: { type: "plugin", pluginId: "generated-file-message" } },
-  { id: "conversation-quote", label: "引用回复", implementation: { type: "plugin", pluginId: "conversation-quote", slot: "beforeInput" } },
+  { id: "conversation-quote", label: "引用回复", implementation: { type: "plugin", pluginId: "conversation-quote" } },
   { id: "reasoning", label: "推理展示", implementation: { type: "plugin", pluginId: "assistant-ui-reasoning", slot: "reasoningGroup" } },
   { id: "tool-group", label: "工具分组", implementation: { type: "plugin", pluginId: "assistant-ui-tool-group", slot: "toolGroup" } },
   { id: "tool-approval", label: "工具调用与审批", implementation: { type: "plugin", pluginId: "assistant-ui-tool-fallback", slot: "toolFallback" } },

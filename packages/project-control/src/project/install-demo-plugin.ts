@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { officialResourceRegistry } from "@agent-ui/source-registry";
 import { readFile } from "node:fs/promises";
+import { collectPluginAssets } from "./plugin-assets";
 import { collectAppUIPluginLocations, parseAppUIModelJson } from "../framework/contracts/app-ui-model";
 import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./agent-ui-project-paths";
 import { readAgentUIProjectConfig } from "./project-mode";
@@ -33,14 +34,18 @@ export async function installDemoPlugin(projectRoot: string, pluginId: string): 
   const matches = locations.filter(entry => entry.plugin.pluginId === pluginId);
   if (matches.length > 1) throw new Error("项目中存在多个对应插件实例，请先处理重复实例。");
   const operations: AppUIOperation[] = [];
-  const slot = resource.implementation.slot;
-  if (slot) {
-    const parents = locations.filter(entry => entry.plugin.pluginId === "conversation-surface");
+  const inventory = await collectPluginAssets(projectRoot, paths, config);
+  const assets = inventory.assets.filter(asset => asset.pluginId === pluginId);
+  if (assets.length !== 1) throw new Error("无法唯一确定插件 Manifest。");
+  const placement = assets[0]!.authoring?.defaultPlacement;
+  const slot = placement?.type === "plugin_slot" ? placement.slot : undefined;
+  if (placement?.type === "plugin_slot") {
+    const parents = locations.filter(entry => entry.plugin.pluginId === placement.parentPluginId);
     if (parents.length !== 1) throw new Error("无法唯一确定会话展示位置，请先恢复会话区域。");
-    const target = { type: "plugin_slot" as const, parentInstanceId: parents[0]!.plugin.id, slot };
+    const target = { type: "plugin_slot" as const, parentInstanceId: parents[0]!.plugin.id, slot: placement.slot };
     const current = matches[0]?.target;
     if (current && (current.type !== "plugin_slot" || current.parentInstanceId !== target.parentInstanceId || current.slot !== slot)) {
-      operations.push({ type: "move_plugin", instanceId: matches[0]!.plugin.id, target });
+      operations.push({ type: "move_plugin_to", instanceId: matches[0]!.plugin.id, placement: target });
     }
     let parent = parents[0];
     while (parent) {
@@ -60,7 +65,7 @@ export async function installDemoPlugin(projectRoot: string, pluginId: string): 
     const ids = new Set(locations.map(entry => entry.plugin.id));
     let id = `${pluginId}-main`;
     for (let suffix = 2; ids.has(id); suffix++) id = `${pluginId}-main-${suffix}`;
-    operations.push(!slot
+    operations.push(!placement
       ? { type: "insert_plugin", target: { type: "application" }, plugin: { id, pluginId, enabled: true } }
       : { type: "insert_plugin_default", plugin: { id, pluginId, enabled: true } });
   }

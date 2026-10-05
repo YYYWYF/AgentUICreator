@@ -1,12 +1,11 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { execFileSync } from "node:child_process";
 import { expect, it } from "vitest";
 import { installedVendorEntry } from "../scripts/sync-assistant-ui-upstream.mjs";
 const internal = new URL("../src/internal/", import.meta.url);
 const record = JSON.parse(readFileSync(new URL("quote-selection-UPSTREAM.json", internal), "utf8"));
 const sha = value => createHash("sha256").update(value).digest("hex");
-const upstream = source => execFileSync("git", ["-C", "/Users/yifei/Coding/assistant-ui", "show", `${record.revision}:${source}`], { encoding: "utf8" });
+const upstream = source => readFileSync(new URL(`fixtures/quote-upstream/${source.split("/").at(-1)}`, import.meta.url), "utf8");
 it("retains the frozen selection algorithm and records the exact primitive adaptation", () => {
   for (const entry of record.files) {
     const source = upstream(entry.upstreamPath);
@@ -28,6 +27,8 @@ it("sync replays the Quote Element import adaptation and fails on upstream drift
   const source = upstream(upstreamPath);
   const entry = installedVendorEntry({ source, localPath, upstreamPath });
   expect(entry.installed).toBe(readFileSync(new URL(`vendor/assistant-ui/${localPath}`, internal), "utf8"));
+  expect(entry.installed).toContain('import { SelectionToolbarPrimitive } from "../../../../../quote-selection-adapter.js";');
   expect(entry.provenance.adaptations).toContain("agent-ui-quote-selection-portal-bridge");
+  expect(() => installedVendorEntry({ source: source + "\n  SelectionToolbarPrimitive,\n", localPath, upstreamPath })).toThrow();
   expect(() => installedVendorEntry({ source: source.replace("  SelectionToolbarPrimitive,", "  ChangedSelectionPrimitive,"), localPath, upstreamPath })).toThrow();
 });
