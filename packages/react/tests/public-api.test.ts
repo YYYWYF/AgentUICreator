@@ -31,6 +31,8 @@ describe("@agent-ui/react public API", () => {
       "ConversationSuggestionTitle",
       "ConversationSuggestionDescription",
       "ConversationToolCall",
+      "ConversationSource",
+      "ConversationSourcePart",
       "ConversationTaskGroup",
       "ConversationTaskGroupRenderScope",
       "JobProgress",
@@ -68,6 +70,7 @@ describe("@agent-ui/react public API", () => {
       "ConversationCanonicalResponseExportMarkdownAction", "useConversationResponseRuntime",
     ]) expect(source).toMatch(new RegExp(`export const ${name}\\b`, "u"));
     for (const forbiddenName of [
+      "SourceMessagePart",
       "ThreadPrimitive",
       "useAui",
       "AuiConfig",

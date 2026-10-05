@@ -77,6 +77,7 @@
       ]
     },
     "rootDirs": [
+      "../source-registry/registry/items/plugin-source-citations-message/files",
       "../source-registry/registry/items/plugin-generated-file-message/files",
       ".",
       "../source-registry/registry/items/plugin-assistant-ui-copy-action/files",

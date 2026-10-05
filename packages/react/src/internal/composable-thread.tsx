@@ -5,6 +5,7 @@ import {
   ComposerAttachments,
   UserMessageAttachments,
 } from "./vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.js";
+import { Sources } from "./vendor/assistant-ui/components/assistant-ui/elements/sources.aui.js";
 import { File } from "./vendor/assistant-ui/components/assistant-ui/elements/file.js";
 import { ThreadFollowupSuggestions } from "./vendor/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.js";
 import { Image } from "./vendor/assistant-ui/components/assistant-ui/elements/image.js";
@@ -634,6 +635,8 @@ const AssistantMessage: FC = () => {
                     return <Reasoning {...part} />;
                   case "tool-call":
                     return part.toolUI ?? <ToolFallbackComponent {...part} />;
+                  case "source":
+                    return <Sources {...part} />;
                   case "data":
                     return part.dataRendererUI;
                   case "file":

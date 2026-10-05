@@ -293,3 +293,7 @@ used to accelerate long-running showcase steps.
 
 Mock scenarios do not change AppUIModel, Workspace Shell composition, runtime
 ownership, or the LangGraph StateSnapshot history contract.
+
+## Sources / Citations reference
+
+`source-citations`: AG-UI Tool Call → application-defined `search_sources` Tool Result → assistant-ui Sources。AG-UI 没有 citation/source event；SourceMessagePart 是 frontend/runtime presentation contract。资源为 `source-citations-message`，详细 contract 见 [Sources / Citations](./source-citations.md)。

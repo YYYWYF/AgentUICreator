@@ -89,6 +89,7 @@ import {
   ComposableThread as InternalConversationThread,
   type ThreadComponents as InternalThreadComponents,
 } from "./internal/composable-thread.js";
+import { Sources as InternalSources } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.js";
 import { File as InternalFile } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/file.js";
 import { Image as InternalImage } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/image.js";
 import { ToolCall as InternalToolCall } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.js";
@@ -607,6 +608,16 @@ export function ConversationToolFallback(
   props: Readonly<ConversationToolCallProps>,
 ) {
   return <InternalToolFallback {...(props as ComponentProps<typeof InternalToolFallback>)} />;
+}
+
+/** Product source presentation contract; not an AG-UI wire event. */
+export type ConversationSourcePart =
+  | { sourceType: "url"; id: string; url: string; title?: string }
+  | { sourceType: "document"; id: string; title: string; mediaType: string; filename?: string };
+
+/** Delegate source presentation to the official assistant-ui Sources element. */
+export function ConversationSource(props: Readonly<ConversationSourcePart>) {
+  return <InternalSources type="source" status={{ type: "complete" }} {...props} />;
 }
 
 export interface ConversationFileProps {

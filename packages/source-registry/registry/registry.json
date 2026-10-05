@@ -155,6 +155,10 @@
     {
       "id": "agent-component/assistant-ui-generative-ui",
       "path": "items/agent-component-assistant-ui-generative-ui/item.json"
+    },
+    {
+      "id": "plugin/source-citations-message",
+      "path": "items/plugin-source-citations-message/item.json"
     }
   ]
 }

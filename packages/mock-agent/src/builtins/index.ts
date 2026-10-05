@@ -1,3 +1,4 @@
+import { sourceCitationsScenario } from "./source-citations.js";
 import { multimodalInputScenario } from "./multimodal-input.js";
 import { fileOutputScenario } from "./file-output.js";
 import { a2uiFormControlsScenario } from "./a2ui-form-controls.js";
@@ -32,6 +33,7 @@ import { toolLongRunningScenario } from "./tool-long-running.js";
 import type { MockScenario } from "../scenario.js";
 
 export {
+  sourceCitationsScenario,
   cancelBeforeFirstOutputScenario,
   fileOutputScenario,
   multimodalInputScenario,
@@ -66,6 +68,7 @@ export {
 };
 
 export const backendReferenceMockScenarios: MockScenario[] = [
+  sourceCitationsScenario,
   multimodalInputScenario,
   concurrentConversationsScenario,
   simpleChatScenario,

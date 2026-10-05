@@ -39,6 +39,7 @@ export {
   builtinMockScenarios,
   cancelBeforeFirstOutputScenario,
   fileOutputScenario,
+  sourceCitationsScenario,
   multimodalInputScenario,
   a2uiInteractiveOrderScenario,
   frontendToolOpenDialogScenario,
