@@ -50,7 +50,8 @@ describe("Adaptable Violet brand boundary", () => {
     expect(shell[2]).toContain("background: var(--card);");
     expect(shell[2]).toContain("background-image: none;");
     expect(shell[2]).toContain("border-color: var(--input);");
-    expect(css).toContain("border-color: var(--ring);");
+    expect(css).toContain("border-color: color-mix(in oklab, var(--ring) 65%, var(--border));");
+    expect(css).toContain("color-mix(in oklab, var(--ring) 11%, transparent)");
     expect(css).not.toContain("gradient");
   });
 
