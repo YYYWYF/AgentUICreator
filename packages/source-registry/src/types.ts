@@ -48,6 +48,7 @@ export interface LoadedAgentUISourceItem extends AgentUISourceItem {
 }
 
 export interface LoadedAgentUISourceRegistry {
+  sourceRelease?: string;
   root: string;
   items: LoadedAgentUISourceItem[];
   byId: ReadonlyMap<string, LoadedAgentUISourceItem>;

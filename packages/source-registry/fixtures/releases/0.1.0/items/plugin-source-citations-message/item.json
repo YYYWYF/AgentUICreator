@@ -1,0 +1,30 @@
+{
+  "id": "plugin/source-citations-message",
+  "kind": "agent-component",
+  "description": "Source Citations named backend Tool UI",
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0",
+    "@agent-ui/react": "^0.1.0"
+  },
+  "files": [
+    {
+      "source": "files/plugins/source-citations-message/definition.ts",
+      "target": "plugins/source-citations-message/definition.ts"
+    },
+    {
+      "source": "files/plugins/source-citations-message/index.tsx",
+      "target": "plugins/source-citations-message/index.tsx"
+    },
+    {
+      "source": "files/plugins/source-citations-message/source-citations-result.ts",
+      "target": "plugins/source-citations-message/source-citations-result.ts"
+    },
+    {
+      "source": "files/plugins/source-citations-message/manifest.json",
+      "target": "plugins/source-citations-message/manifest.json"
+    }
+  ]
+}

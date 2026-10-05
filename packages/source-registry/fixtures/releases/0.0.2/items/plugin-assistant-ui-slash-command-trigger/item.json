@@ -1,0 +1,26 @@
+{
+  "id": "plugin/assistant-ui-slash-command-trigger",
+  "kind": "agent-component",
+  "description": "Optional independent composer trigger",
+  "requires": [
+    "foundation/core",
+    "plugin/assistant-ui-composer"
+  ],
+  "files": [
+    {
+      "source": "files/plugins/assistant-ui-slash-command-trigger/definition.ts",
+      "target": "plugins/assistant-ui-slash-command-trigger/definition.ts"
+    },
+    {
+      "source": "files/plugins/assistant-ui-slash-command-trigger/index.tsx",
+      "target": "plugins/assistant-ui-slash-command-trigger/index.tsx"
+    },
+    {
+      "source": "files/plugins/assistant-ui-slash-command-trigger/manifest.json",
+      "target": "plugins/assistant-ui-slash-command-trigger/manifest.json"
+    }
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

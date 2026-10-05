@@ -50,6 +50,8 @@ export class CreatorWorkspaceManager {
 
   getState(): CreatorWorkspaceState { return this.#state; }
 
+  hasActiveCreatorRequests(): boolean { return this.#activeRequests.size > 0; }
+
   runProjectOperation<T>(workspaceId: string, operation: (projectRoot: string) => Promise<T>): Promise<T> {
     return this.#exclusive(async () => {
       const state = this.#state;

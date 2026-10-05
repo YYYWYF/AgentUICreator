@@ -16,7 +16,8 @@
     "dist",
     "registry/**",
     "THIRD_PARTY_NOTICES.md",
-    "UPSTREAM_ADAPTATION.md"
+    "UPSTREAM_ADAPTATION.md",
+    "fixtures/releases/**"
   ],
   "publishConfig": {
     "access": "public"
@@ -25,12 +26,16 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "sync:generative-ui-upstream": "node scripts/sync-generative-ui-upstream.mjs"
+    "sync:generative-ui-upstream": "node scripts/sync-generative-ui-upstream.mjs",
+    "release:verify": "node --import tsx scripts/prepare-release.mjs --verify",
+    "release:prepare": "node --import tsx scripts/prepare-release.mjs",
+    "prepublishOnly": "node --import tsx scripts/prepare-release.mjs --verify --publish"
   },
   "devDependencies": {
     "@types/node": "^20.19.43",
     "typescript": "^7.0.2",
     "vitest": "^4.1.11",
-    "zod": "^4.5.4"
+    "zod": "^4.5.4",
+    "tsx": "4.20.6"
   }
 }

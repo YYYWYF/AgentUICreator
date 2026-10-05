@@ -105,8 +105,9 @@ versions/ranges, upstream revisions/provenance, and UI Plugin manifest contract
 versions retain their existing meaning.
 
 Source locks own files through per-file SHA256 hashes. The reader accepts legacy
-`{ version, files }` entries and ignores `version`; the serializer emits only
-`{ files }`. The next legal mutation naturally rewrites the lock. Inspection
+`{ version, files }` entries and ignores `version`; the serializer emits `{ files }` for non-Plugin items and preserves optional
+`pluginVersion` / `sourceRelease` provenance for Plugin items. These fields belong
+to Plugin manifests and package releases, never Source Item versions. The next legal mutation naturally rewrites the lock. Inspection
 reports `owned` for any locked or Host-provided item, including customized and
 partial sources. `updateAvailable` compares locked file hashes and target sets
 with current Registry files; it does not grant permission to overwrite user
@@ -123,3 +124,6 @@ journals carrying that field and ignores it; original bytes and lock backups
 still determine rollback. Registry schema and architecture guards reject item
 manifests declaring `version`, so developers only edit source and never bump an
 item version.
+
+Plugin upgrades and verified customized baseline adoption reuse the storage
+transaction under the Host owner journal. See [plugin-updates.md](plugin-updates.md).

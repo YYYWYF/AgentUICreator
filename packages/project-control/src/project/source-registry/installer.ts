@@ -66,6 +66,13 @@ function stateError(itemId: string, status: string): AgentUISourceError {
   );
 }
 
+export function sourceItemLock(item: LoadedAgentUISourceItem, registry: LoadedAgentUISourceRegistry): AgentUISourceLockItem {
+  const manifest = item.id.startsWith("plugin/") ? item.loadedFiles.find(file => file.target === `plugins/${item.id.slice(7)}/manifest.json`) : undefined;
+  const pluginVersion = manifest ? JSON.parse(manifest.content.toString()).version as string : undefined;
+  return { files: Object.fromEntries(item.loadedFiles.map(file => [file.target, { sha256: sha256(file.content) }])),
+    ...(pluginVersion && registry.sourceRelease ? { pluginVersion, sourceRelease: registry.sourceRelease } : {}) };
+}
+
 function lockedSourceMatchesRegistry(
   item: LoadedAgentUISourceItem,
   locked: AgentUISourceLockItem | undefined,
@@ -108,9 +115,7 @@ export async function installAgentUISourceItems(
     for (const file of item.loadedFiles) {
       mutations.push({ target: file.target, content: file.content });
     }
-    nextLock.items[item.id] = {
-      files: Object.fromEntries(item.loadedFiles.map((file) => [file.target, { sha256: sha256(file.content) }])),
-    };
+    nextLock.items[item.id] = sourceItemLock(item, loadedRegistry);
   }
   mutations.sort((left, right) => left.target.localeCompare(right.target));
   await commitAgentUISourceTransaction(
@@ -207,13 +212,7 @@ export async function applyAgentUISourceItem(
       if (previous?.files[file.target]?.sha256 === sha256(file.content)) continue;
       mutations.set(file.target, { target: file.target, content: file.content });
     }
-    nextLock.items[item.id] = {
-      files: Object.fromEntries(
-        item.loadedFiles
-          .map((file) => [file.target, { sha256: sha256(file.content) }] as const)
-          .sort(([left], [right]) => left.localeCompare(right)),
-      ),
-    };
+    nextLock.items[item.id] = sourceItemLock(item, loadedRegistry);
     changedItems.push(item.id);
   }
 

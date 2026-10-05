@@ -10,3 +10,7 @@ export type { ResourceCompositionInspection, ResourceSourceInspection } from "./
 export { officialResourceRegistry, resolveOfficialResource, OfficialResourceError } from "@agent-ui/source-registry";
 export { mergeOptionalResourceInspection } from "./project/optional-resource-paths";
 export type { AgentUISourceInspection, UICompositionInspection } from "./project/types";
+export { AgentUIUpdateService } from "./project/source-registry/updates";
+export type { UpdateInspection, PluginUpdate, UpgradePlan, UpdateCompatibility } from "./project/source-registry/updates";
+export { MockUpdateSourceProvider } from "@agent-ui/source-registry";
+export type { UpdateSourceProvider, ReleaseDescriptor, ResolvedSourceRelease } from "@agent-ui/source-registry";

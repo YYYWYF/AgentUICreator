@@ -8,6 +8,7 @@ vi.mock("../src/ui/workspaceClient.js", async importOriginal => ({
   getWorkspaceState: vi.fn(async () => ({ status: "ready", workspace: { id: "workspace-1", name: "Project", displayPath: "/project" },
     project: { mode: "platform", sourceRoot: "agent-ui" }, runtime: { status: "ready" } })),
 }));
+vi.mock("../src/ui/CreatorPluginUpdates.js", () => ({ CreatorPluginUpdates: () => null }));
 vi.mock("../src/ui/MockServicePanel.js", () => ({ MockServicePanel: () => null }));
 
 import { CreatorWorkbench } from "../src/ui/CreatorWorkbench.js";

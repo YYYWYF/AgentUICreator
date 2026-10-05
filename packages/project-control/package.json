@@ -19,6 +19,10 @@
     "./dev": {
       "types": "./src/dev.ts",
       "import": "./dist/runtime/project-control-runtime.mjs"
+    },
+    "./updates": {
+      "types": "./src/updates.d.mts",
+      "import": "./dist/runtime/project-control-runtime.mjs"
     }
   },
   "files": [

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { link, mkdir, rename, unlink, writeFile, readFile, rmdir } from "node:fs/promises";
 import path from "node:path";
-import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure } from "@agent-ui/source-registry";
+import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure, type LoadedAgentUISourceRegistry } from "@agent-ui/source-registry";
 import { collectAppUIPluginLocations, parseAppUIModelJson } from "../../framework/contracts/app-ui-model";
 import { writeGeneratedPluginRegistry } from "../../generate-plugin-registry";
 import { writeGeneratedFrontendToolRegistries } from "../../generate-frontend-tool-registry";
@@ -13,10 +13,11 @@ import { readAgentUIProjectConfig } from "../project-mode";
 import { resolveAgentUIProjectPaths, projectControlConfigForPaths, projectRelativePath } from "../agent-ui-project-paths";
 import type { UIProjectControlConfig } from "../types";
 import { applyAgentUISourceItem, removeAgentUISourceItems, preflightAgentUISourceApply, preflightAgentUISourceRemove, type ApplyAgentUISourceItemInput, type RemoveAgentUISourceItemsInput } from "./installer";
+import { sourceItemLock } from "./installer";
 import { inspectAgentUISources } from "./inspector";
-import { readAgentUISourceLock, readOptionalBuffer } from "./lock";
+import { readAgentUISourceLock, readOptionalBuffer, serializeAgentUISourceLock, sha256 } from "./lock";
 import { AgentUISourceError, assertNoSymbolicLinkTraversal, assertSafeProjectRelativePath, resolveAgentUISourceRoots } from "./path-policy";
-import { recoverPendingAgentUISourceTransaction } from "./transaction";
+import { commitAgentUISourceTransaction, type AgentUISourceFileMutation, recoverPendingAgentUISourceTransaction } from "./transaction";
 
 export interface AgentUISourceProjectMutationOptions { config?: UIProjectControlConfig; cancelMarker?: string | undefined }
 export interface AgentUISourceProjectMutationResult {
@@ -31,6 +32,7 @@ export interface AgentUISourceProjectMutationResult {
 }
 interface Original { path: string; beforeContentBase64: string | null }
 interface SourceMutationJournal {
+  sourceTargets?: string[];
   transactionId: string;
   ownerPid: number;
   createdAt: string;
@@ -92,7 +94,7 @@ async function pruneEmptySourceDirectories(projectRoot: string, sourceRoot: stri
 function parseJournal(source: Buffer): SourceMutationJournal {
   const value = JSON.parse(source.toString("utf8"));
   if (!value || typeof value !== "object" || Array.isArray(value) ||
-      Object.keys(value).sort().join(",") !== "createdAt,originals,ownerPid,transactionId" ||
+      !["createdAt,originals,ownerPid,transactionId", "createdAt,originals,ownerPid,sourceTargets,transactionId"].includes(Object.keys(value).sort().join(",")) ||
       !Array.isArray(value.originals)) throw new Error("Invalid Host source mutation journal.");
   const originals: Original[] = value.originals.map((entry: Original) => {
     if (!entry || Object.keys(entry).sort().join(",") !== "beforeContentBase64,path" ||
@@ -108,7 +110,12 @@ function parseJournal(source: Buffer): SourceMutationJournal {
     !Number.isSafeInteger(value.ownerPid) || value.ownerPid <= 0 || value.ownerPid > 0x7fffffff ||
     typeof value.createdAt !== "string" || !Number.isFinite(Date.parse(value.createdAt))
   ) throw new Error("Invalid Host source mutation owner.");
-  return { transactionId: value.transactionId, ownerPid: value.ownerPid, createdAt: value.createdAt, originals };
+  if (value.sourceTargets !== undefined) {
+    if (!Array.isArray(value.sourceTargets) || value.sourceTargets.some((target: unknown) => typeof target !== "string")) throw new Error("Invalid Host source targets.");
+    for (const target of value.sourceTargets) assertSafeProjectRelativePath(target, "Host update source target");
+  }
+  return { transactionId: value.transactionId, ownerPid: value.ownerPid, createdAt: value.createdAt, originals,
+    ...(value.sourceTargets ? { sourceTargets: value.sourceTargets } : {}) };
 }
 function isProcessAlive(pid: number): boolean {
   try {
@@ -148,7 +155,7 @@ async function recover(projectRoot: string, ctx: Awaited<ReturnType<typeof conte
   // Validate the entire journal before restoring any path. Source ownership is
   // derived from registry targets and the snapshotted lock, never arbitrary paths.
   const registry = await loadAgentUISourceRegistry();
-  const targets = registry.items.flatMap(item => item.loadedFiles.map(file => file.target));
+  const targets = [...registry.items.flatMap(item => item.loadedFiles.map(file => file.target)), ...(journal.sourceTargets ?? [])];
   const lockOriginal = journal.originals.find(entry => entry.path === ctx.lockPath);
   if (!lockOriginal) throw new Error("Host snapshot is missing its Source lock.");
   if (lockOriginal.beforeContentBase64 !== null) {
@@ -258,4 +265,82 @@ export async function applyAgentUISourceProjectMutation(projectRoot: string, inp
 }
 export async function removeAgentUISourceProjectMutation(projectRoot: string, input: RemoveAgentUISourceItemsInput, options: AgentUISourceProjectMutationOptions = {}): Promise<AgentUISourceProjectMutationResult> {
   return mutate(projectRoot, "remove", input, options);
+}
+
+/** Host-only upgrade: a whole confirmed closure shares the existing storage journal. */
+export async function commitAgentUISourceUpgrade(projectRoot: string, input: {
+  registry: LoadedAgentUISourceRegistry; itemIds: string[]; expectedStateHash: string; adoptOnly?: boolean;
+}) {
+  return exclusive(projectRoot, async () => {
+    const ctx = await context(projectRoot);
+    await recover(projectRoot, ctx);
+    const before = await inspectAgentUISources(projectRoot, ctx.config, input.registry);
+    const { lock } = await readAgentUISourceLock(projectRoot, ctx.config);
+    if (sha256(before.stateHash + serializeAgentUISourceLock(lock).toString()) !== input.expectedStateHash) throw new Error("升级计划已过期，请重新检查。");
+    const items = input.itemIds.map(id => {
+      const item = input.registry.byId.get(id);
+      if (!item) throw new Error(`Unknown update item ${id}`);
+      const inspection = before.items.find(entry => entry.id === id)!;
+      if ((!input.adoptOnly && !["managed", "not-installed"].includes(inspection.status)) ||
+          (input.adoptOnly && !["managed", "customized", "not-installed", "partial"].includes(inspection.status)) ||
+          inspection.resolvedRequirements.some(requirement => !requirement.compatible) || ctx.config.agentUI.providedSourceItems?.includes(id)) throw new Error(`Unsafe upgrade item ${id}`);
+      return item;
+    });
+    const verify = async () => {
+      const result = await verifyUIProject(projectRoot, projectControlConfigForPaths(ctx.paths, ctx.config), { projectConfigOverride: ctx.project.config });
+      if (result.status !== "passed") throw new AgentUISourceError("AGENT_UI_SOURCE_PROJECT_VERIFICATION_FAILED", "插件升级验证失败，基线没有推进。", { errors: result.errors });
+      // Verify every target file before adoption, including additions and removals.
+      if (input.adoptOnly) for (const item of items) {
+        for (const file of item.loadedFiles) {
+          const relative = projectRelativePath(projectRoot, path.join(ctx.sourceRoot, file.target));
+          await assertNoSymbolicLinkTraversal(projectRoot, relative);
+          if (!(await readOptionalBuffer(path.join(projectRoot, relative)))) throw new Error(`合并缺少文件：${relative}`);
+        }
+        for (const target of Object.keys(lock.items[item.id]?.files ?? {})) {
+          if (!item.loadedFiles.some(file => file.target === target) && await readOptionalBuffer(path.join(ctx.sourceRoot, target))) throw new Error(`合并尚未处理移除文件：${target}`);
+        }
+      }
+    };
+    const targets = items.flatMap(item => [...item.loadedFiles.map(file => file.target), ...Object.keys(lock.items[item.id]?.files ?? {})]);
+    const originals: Original[] = [];
+    for (const relative of ordered([ctx.lockPath, ...ctx.generatedPaths, ...targets.map(target => projectRelativePath(projectRoot, path.join(ctx.sourceRoot, target)))])) {
+      await assertNoSymbolicLinkTraversal(projectRoot, relative);
+      originals.push({ path: relative, beforeContentBase64: (await readOptionalBuffer(path.join(projectRoot, relative)))?.toString("base64") ?? null });
+    }
+    await assertNoSymbolicLinkTraversal(projectRoot, projectRelativePath(projectRoot, ctx.journalPath));
+    const journal = { transactionId: randomUUID(), ownerPid: process.pid, createdAt: new Date().toISOString(), originals, sourceTargets: ordered(targets) };
+    await atomicWrite(ctx.journalPath, Buffer.from(JSON.stringify(journal)), true);
+    try {
+      await recoverPendingAgentUISourceTransaction(projectRoot, ctx.config);
+      if (input.adoptOnly) {
+        await verify();
+        const verified = await inspectAgentUISources(projectRoot, ctx.config, input.registry);
+        if (verified.stateHash !== before.stateHash) throw new Error("合并源码在验证期间发生变化，请重新确认。");
+      }
+      const next = structuredClone(lock);
+      const mutations = new Map<string, AgentUISourceFileMutation>();
+      for (const item of items) {
+        if (!input.adoptOnly) {
+          for (const old of Object.keys(lock.items[item.id]?.files ?? {})) if (!item.loadedFiles.some(file => file.target === old)) mutations.set(old, { target: old });
+          for (const file of item.loadedFiles) if (lock.items[item.id]?.files[file.target]?.sha256 !== sha256(file.content)) mutations.set(file.target, { target: file.target, content: file.content });
+        }
+        next.items[item.id] = sourceItemLock(item, input.registry);
+      }
+      await commitAgentUISourceTransaction(projectRoot, ctx.config, "plugin-upgrade", [...mutations.values()], serializeAgentUISourceLock(next));
+      if (!input.adoptOnly) {
+        await writeGeneratedPluginRegistry(projectRoot);
+        await writeGeneratedFrontendToolRegistries(projectRoot);
+        await writeGeneratedConversationIntegrationRegistry(projectRoot);
+        await verify();
+        const after = await inspectAgentUISources(projectRoot, ctx.config, input.registry);
+        const invalid = after.items.filter(item => input.itemIds.includes(item.id) && (item.status !== "managed" || item.dependencyIssues.length || item.resolvedRequirements.some(requirement => !requirement.compatible)));
+        if (invalid.length) throw new AgentUISourceError("AGENT_UI_SOURCE_INTEGRITY_FAILED", "升级后的源码闭包不完整。", invalid);
+      }
+      await removeOptional(ctx.journalPath);
+      return { updatedItems: input.itemIds, adopted: !!input.adoptOnly };
+    } catch (error) {
+      await recover(projectRoot, ctx, journal.transactionId);
+      throw error;
+    }
+  });
 }

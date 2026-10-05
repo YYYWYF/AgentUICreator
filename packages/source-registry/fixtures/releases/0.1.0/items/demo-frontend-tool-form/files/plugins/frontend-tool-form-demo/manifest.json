@@ -1,0 +1,10 @@
+{
+  "id": "frontend-tool-form-demo",
+  "name": "Frontend Tool Form Demo",
+  "description": "Visible React Hook Form with application-owned frontend tool capability.",
+  "version": "1.0.0",
+  "capabilities": [
+    "plugin-service-provider",
+    "form"
+  ]
+}

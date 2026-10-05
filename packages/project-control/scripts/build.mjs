@@ -27,3 +27,4 @@ await build({
 });
 // The registry loader resolves ../registry from the compiled runtime.
 await cp(`${root}packages/source-registry/registry`, `${packageRoot}dist/registry`, { recursive: true });
+await cp(`${root}packages/source-registry/fixtures`, `${packageRoot}dist/fixtures`, { recursive: true });

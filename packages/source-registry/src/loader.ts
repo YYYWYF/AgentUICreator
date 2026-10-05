@@ -156,5 +156,11 @@ export async function loadAgentUISourceRegistry(
 
   assertNoCycles(items);
   items.sort((left, right) => left.id.localeCompare(right.id));
-  return { root, items, byId: new Map(items.map((item) => [item.id, item])) };
+  let sourceRelease: string | undefined;
+  try {
+    const release = JSON.parse(await readFile(path.join(root, "release.json"), "utf8"));
+    if (typeof release.releaseVersion !== "string" || !/^\d+\.\d+\.\d+$/.test(release.releaseVersion)) throw new Error("Invalid Source release");
+    sourceRelease = release.releaseVersion;
+  } catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; }
+  return { root, items, byId: new Map(items.map((item) => [item.id, item])), ...(sourceRelease ? { sourceRelease } : {}) };
 }

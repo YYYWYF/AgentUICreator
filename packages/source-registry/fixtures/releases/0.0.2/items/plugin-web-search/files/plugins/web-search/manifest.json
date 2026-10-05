@@ -1,0 +1,14 @@
+{
+  "id": "web-search",
+  "name": "WebSearch",
+  "description": "Render web_search backend tool calls with the official assistant-ui Element.",
+  "version": "0.0.2",
+  "capabilities": [
+    "headless"
+  ],
+  "authoring": {
+    "intents": [
+      "display web-search tool results"
+    ]
+  }
+}

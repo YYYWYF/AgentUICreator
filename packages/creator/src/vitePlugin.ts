@@ -1,3 +1,5 @@
+import { createCreatorUpdateHandler, CREATOR_UPDATES_API_PATH } from "./updates/update-api.js";
+import type { UpdateSourceProvider } from "@agent-ui/project-control/updates";
 import type { Plugin } from "vite";
 import type { ServerResponse } from "node:http";
 
@@ -45,6 +47,7 @@ export {
 } from "./PythonCreatorProcessManager.js";
 
 export interface CreatorDevServerPluginOptions {
+  updateSourceProvider?: UpdateSourceProvider | undefined;
   inspectMockProject?: MockProjectInspector | undefined;
   installOfficialAgentUIResource?: ((projectRoot: string, resourceId: string) => Promise<void>) | undefined;
   /** @deprecated Internal compatibility adapter. Use installOfficialAgentUIResource. */
@@ -73,6 +76,7 @@ export function createCreatorDevServerPlugin({
   installMockResource,
   installScenarioResources,
   inspectMockProject,
+  updateSourceProvider,
 }: CreatorDevServerPluginOptions): Plugin {
   const legacyInstaller = installMockResource ?? installScenarioResources;
   const installResource = installOfficialAgentUIResource ?? (legacyInstaller === undefined ? undefined : async (root: string, resourceId: string) => {
@@ -125,6 +129,7 @@ export function createCreatorDevServerPlugin({
       };
     },
     configureServer(server) {
+      server.middlewares.use(CREATOR_UPDATES_API_PATH, createCreatorUpdateHandler(workspaceManager, projectRoot, updateSourceProvider));
       server.httpServer?.once("close", () => {
         void mockService.dispose();
         void workspaceManager?.clear();

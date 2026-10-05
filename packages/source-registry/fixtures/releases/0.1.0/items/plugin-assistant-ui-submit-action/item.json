@@ -1,0 +1,25 @@
+{
+  "id": "plugin/assistant-ui-submit-action",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-assistant-ui-submit-action source",
+  "files": [
+    {
+      "source": "files/plugins/assistant-ui-submit-action/definition.ts",
+      "target": "plugins/assistant-ui-submit-action/definition.ts"
+    },
+    {
+      "source": "files/plugins/assistant-ui-submit-action/index.tsx",
+      "target": "plugins/assistant-ui-submit-action/index.tsx"
+    },
+    {
+      "source": "files/plugins/assistant-ui-submit-action/manifest.json",
+      "target": "plugins/assistant-ui-submit-action/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

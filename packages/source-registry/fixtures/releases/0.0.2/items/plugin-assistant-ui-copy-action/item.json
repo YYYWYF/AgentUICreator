@@ -1,0 +1,26 @@
+{
+  "id": "plugin/assistant-ui-copy-action",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-assistant-ui-copy-action source",
+  "files": [
+    {
+      "source": "files/plugins/assistant-ui-copy-action/definition.ts",
+      "target": "plugins/assistant-ui-copy-action/definition.ts"
+    },
+    {
+      "source": "files/plugins/assistant-ui-copy-action/index.tsx",
+      "target": "plugins/assistant-ui-copy-action/index.tsx"
+    },
+    {
+      "source": "files/plugins/assistant-ui-copy-action/manifest.json",
+      "target": "plugins/assistant-ui-copy-action/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core",
+    "plugin/assistant-ui-response-footer"
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

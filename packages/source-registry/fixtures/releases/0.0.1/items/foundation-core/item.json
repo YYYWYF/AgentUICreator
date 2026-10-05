@@ -1,0 +1,34 @@
+{
+  "id": "foundation/core",
+  "kind": "foundation",
+  "description": "Public Agent UI entry and generated Plugin Registry entry",
+  "requires": [
+    "foundation/core-application"
+  ],
+  "files": [
+    {
+      "source": "files/index.ts",
+      "target": "index.ts"
+    },
+    {
+      "source": "files/application/Agent.tsx",
+      "target": "application/Agent.tsx"
+    },
+    {
+      "source": "files/application/composition-store.ts",
+      "target": "application/composition-store.ts"
+    },
+    {
+      "source": "files/plugins/index.ts",
+      "target": "plugins/index.ts"
+    },
+    {
+      "source": "files/agent-ui/conversation/integrations.generated.tsx",
+      "target": "agent-ui/conversation/integrations.generated.tsx"
+    },
+    {
+      "source": "files/application/observability.ts",
+      "target": "application/observability.ts"
+    }
+  ]
+}

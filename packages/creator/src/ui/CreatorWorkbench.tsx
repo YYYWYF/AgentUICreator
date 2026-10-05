@@ -28,6 +28,7 @@ import { type CreatorProjectMode, type CreatorWorkspacePublicState } from "../wo
 import { resolveCreatorDebugMode } from "./creatorDebug.js";
 import { CreatorProjectSetup, type CreatorSetupDraft, type CreatorSetupError, type CreatorSetupInfoState, setupIssueMessage } from "./setup/CreatorProjectSetup.js";
 import { CreatorProjectIntegrationGuide } from "./setup/CreatorProjectIntegrationGuide.js";
+import { CreatorPluginUpdates } from "./CreatorPluginUpdates.js";
 import { MockServicePanel } from "./MockServicePanel.js";
 import { canInitializeCreatorProject, createEmptyCreatorSetupDraft, isCreatorSetupValidationUsable, isSetupRequestCurrent, shouldRefreshAfterInitializeError } from "./setup/creatorSetupState.js";
 import { CreatorWorkspaceRequestError, chooseWorkspaceProject, clearWorkspaceProject, getWorkspaceSetup, getWorkspaceState, initializeWorkspaceProjectRequest, refreshWorkspaceProject, selectWorkspaceProject, validateWorkspaceSetup } from "./workspaceClient.js";
@@ -1007,6 +1008,8 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
   const [workspaceBusy, setWorkspaceBusy] = useState(false);
   const [stopBusy, setStopBusy] = useState(false);
   const [undoRunId, setUndoRunId] = useState<string | null>(null);
+  const [updateCheckRequest, setUpdateCheckRequest] = useState(0);
+  const [updatePageOpen, setUpdatePageOpen] = useState(false);
   const [reapplyRunId, setReapplyRunId] = useState<string | null>(null);
   const [runAccepted, setRunAccepted] = useState(false);
   const [workspacePicking, setWorkspacePicking] = useState(false);
@@ -1238,9 +1241,9 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     };
   }, []);
 
-  const submit = async (event?: FormEvent<HTMLFormElement>, response?: { question: CreatorQuestionActivity; answers: Record<string, string[]> }) => {
+  const submit = async (event?: FormEvent<HTMLFormElement>, response?: { question: CreatorQuestionActivity; answers: Record<string, string[]> }, requestOverride?: string) => {
     event?.preventDefault();
-    const request = input.trim();
+    const request = (requestOverride ?? input).trim();
     if ((response === undefined && (request === "" || hasPendingCreatorQuestion(itemsRef.current))) ||
       isRunning || runInFlightRef.current || !((workspaceState?.status === "ready") && workspaceState.runtime.status === "ready")) {
       return;
@@ -1845,6 +1848,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
               </h1>
             </div>
             <div className="creator-panel-header-actions">
+              {workspaceState?.status === "ready" ? <details><summary>设置 / 更多</summary><button type="button" disabled={isRunning || questionPending} onClick={() => setUpdateCheckRequest(value => value + 1)}>检查更新</button></details> : null}
               <button
                 className="creator-panel-mock-toggle"
                 data-creator-mock-entry=""
@@ -1882,6 +1886,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
           </header>
 
           <div className="creator-panel-body">
+            {workspaceState?.status === "ready" ? <CreatorPluginUpdates key={workspaceState.workspace.id} workspaceId={workspaceState.workspace.id} busy={isRunning || questionPending} modelReady={creatorRuntimeReady} checkRequest={updateCheckRequest} onPageChange={setUpdatePageOpen} onModelMerge={prompt => { void submit(undefined, undefined, prompt); }} /> : null}
             {mockPanelOpen ? <MockServicePanel {...(workspaceState && workspaceState.status !== "none" ? { projectId: workspaceState.workspace.id } : {})} /> : null}
             <div
               className="creator-panel-dev-studio-panel"
@@ -1893,7 +1898,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                 debug={creatorDebug} onModeChange={changeSetupMode} onSourceRootChange={changeSetupSourceRoot}
                 onInitialize={() => void initializeWorkspaceProject()}
                 onRetryInfo={() => { if (setupWorkspaceId !== undefined) loadSetupInfo(setupWorkspaceId); }} />
-            ) : <div className="creator-panel-messages" ref={messageList}>
+            ) : <div className="creator-panel-messages" ref={messageList} style={updatePageOpen ? { display: "none" } : undefined}>
               {workspaceState?.status === "ready" ? (
                 <CreatorProjectIntegrationGuide key={workspaceState.workspace.id} mode={workspaceState.project.mode}
                   sourceRoot={workspaceState.project.sourceRoot} />
@@ -2042,7 +2047,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                 </section>
               ) : null}
             </div>
-            {workspaceState?.status === "ready" ? <form className="creator-panel-composer" onSubmit={submit}>
+            {workspaceState?.status === "ready" ? <form className="creator-panel-composer" style={updatePageOpen ? { display: "none" } : undefined} onSubmit={submit}>
               <label htmlFor="creator-request">告诉 Creator</label>
               <textarea
                 disabled={isRunning || !creatorRuntimeReady || questionPending}

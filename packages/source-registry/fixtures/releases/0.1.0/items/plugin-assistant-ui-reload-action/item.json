@@ -1,0 +1,26 @@
+{
+  "id": "plugin/assistant-ui-reload-action",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-assistant-ui-reload-action source",
+  "files": [
+    {
+      "source": "files/plugins/assistant-ui-reload-action/definition.ts",
+      "target": "plugins/assistant-ui-reload-action/definition.ts"
+    },
+    {
+      "source": "files/plugins/assistant-ui-reload-action/index.tsx",
+      "target": "plugins/assistant-ui-reload-action/index.tsx"
+    },
+    {
+      "source": "files/plugins/assistant-ui-reload-action/manifest.json",
+      "target": "plugins/assistant-ui-reload-action/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core",
+    "plugin/assistant-ui-response-footer"
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

@@ -1,0 +1,4 @@
+.frontend-tool-form { display: grid; gap: 16px; padding: 24px; min-width: 240px; }
+.frontend-tool-form label { display: grid; gap: 6px; }
+.frontend-tool-form input, .frontend-tool-form textarea { padding: 8px; border: 1px solid currentColor; border-radius: 6px; background: transparent; color: inherit; }
+.frontend-tool-form > div { display: flex; gap: 12px; }

@@ -1,0 +1,25 @@
+{
+  "id": "plugin/conversation-quote",
+  "kind": "agent-component",
+  "description": "Optional assistant-ui Quote creation UX; history and outbound semantics belong to the canonical Conversation.",
+  "files": [
+    {
+      "source": "files/plugins/conversation-quote/definition.ts",
+      "target": "plugins/conversation-quote/definition.ts"
+    },
+    {
+      "source": "files/plugins/conversation-quote/index.tsx",
+      "target": "plugins/conversation-quote/index.tsx"
+    },
+    {
+      "source": "files/plugins/conversation-quote/manifest.json",
+      "target": "plugins/conversation-quote/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

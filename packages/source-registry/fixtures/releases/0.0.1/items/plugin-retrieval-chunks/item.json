@@ -1,0 +1,26 @@
+{
+  "id": "plugin/retrieval-chunks",
+  "kind": "agent-component",
+  "description": "Render search_docs backend tool calls with the official assistant-ui Element.",
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0",
+    "@agent-ui/react": "^0.1.0"
+  },
+  "files": [
+    {
+      "source": "files/plugins/retrieval-chunks/definition.ts",
+      "target": "plugins/retrieval-chunks/definition.ts"
+    },
+    {
+      "source": "files/plugins/retrieval-chunks/index.tsx",
+      "target": "plugins/retrieval-chunks/index.tsx"
+    },
+    {
+      "source": "files/plugins/retrieval-chunks/manifest.json",
+      "target": "plugins/retrieval-chunks/manifest.json"
+    }
+  ]
+}

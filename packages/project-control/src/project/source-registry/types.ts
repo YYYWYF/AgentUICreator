@@ -14,6 +14,8 @@ export interface AgentUISourceLock {
 }
 
 export interface AgentUISourceLockItem {
+  pluginVersion?: string;
+  sourceRelease?: string;
   files: Record<string, { sha256: string }>;
 }
 

@@ -1,0 +1,30 @@
+{
+  "id": "integration/generative-ui",
+  "kind": "integration",
+  "description": "Official assistant-ui Generative UI vocabulary, renderer and action capabilities; no automatic Tool permission",
+  "requires": [
+    "foundation/core",
+    "agent-component/assistant-ui-generative-ui"
+  ],
+  "packages": {
+    "@assistant-ui/react-generative-ui": "0.0.22"
+  },
+  "upstream": {
+    "project": "assistant-ui/assistant-ui",
+    "component": "JSONGenerativeUI and official vocabulary",
+    "implementation": "public renderer and Action Registry factories",
+    "revision": "3542d602272a62eddeb8989befc910841c267022",
+    "mode": "adapted",
+    "license": "MIT"
+  },
+  "files": [
+    {
+      "source": "files/integrations/generative-ui/index.ts",
+      "target": "integrations/generative-ui/index.ts"
+    },
+    {
+      "source": "files/integrations/generative-ui/create-generative-ui.ts",
+      "target": "integrations/generative-ui/create-generative-ui.ts"
+    }
+  ]
+}

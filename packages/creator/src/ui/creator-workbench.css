@@ -1198,3 +1198,14 @@
 .creator-mock-panel .creator-mock-copy[data-copied="true"] { color: #027a48; border-color: #abefc6; background: #ecfdf3; }
 .creator-mock-requirement { margin: 0.6rem 0; padding: 0.65rem; border: 1px solid #fedf89; border-radius: 0.5rem; background: #fffaeb; color: #93370d; }
 .creator-mock-panel .creator-mock-requirement p,
+
+.creator-plugin-updates { position: relative; padding: 0 16px; }
+.creator-update-controls { display: flex; justify-content: flex-end; padding: 6px 0; }
+.creator-update-controls summary { cursor: pointer; }
+.creator-update-banner { display: flex; align-items: center; gap: 8px; padding: 10px; border: 1px solid #93c5fd; border-radius: 8px; background: #eff6ff; color: #1e3a8a; }
+.creator-update-banner span { flex: 1; }
+.creator-update-page { max-height: 65vh; overflow: auto; padding-bottom: 16px; }
+.creator-update-page header { display: flex; align-items: center; gap: 16px; }
+.creator-update-page article, .creator-upgrade-plan { border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.creator-update-page button { margin: 4px; }
+.creator-update-page pre { max-height: 220px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }

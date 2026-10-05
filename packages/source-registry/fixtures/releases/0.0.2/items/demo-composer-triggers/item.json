@@ -1,0 +1,30 @@
+{
+  "id": "demo/composer-triggers",
+  "kind": "demo",
+  "description": "Explicit development-only Mention roster and mixed Slash commands",
+  "requires": [
+    "foundation/core",
+    "plugin/conversation-command-source"
+  ],
+  "files": [
+    {
+      "source": "files/plugins/composer-trigger-demo/definition.ts",
+      "target": "plugins/composer-trigger-demo/definition.ts"
+    },
+    {
+      "source": "files/plugins/composer-trigger-demo/index.tsx",
+      "target": "plugins/composer-trigger-demo/index.tsx"
+    },
+    {
+      "source": "files/plugins/composer-trigger-demo/manifest.json",
+      "target": "plugins/composer-trigger-demo/manifest.json"
+    },
+    {
+      "source": "files/plugins/composer-trigger-demo/source.ts",
+      "target": "plugins/composer-trigger-demo/source.ts"
+    }
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

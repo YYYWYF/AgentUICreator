@@ -1,0 +1,10 @@
+{
+  "id": "composer-trigger-demo",
+  "name": "Composer Trigger Demo Sources",
+  "description": "Explicit mock roster and summarize directive for frontend trigger demonstrations.",
+  "version": "1.0.0",
+  "capabilities": [
+    "headless",
+    "plugin-service-provider"
+  ]
+}
