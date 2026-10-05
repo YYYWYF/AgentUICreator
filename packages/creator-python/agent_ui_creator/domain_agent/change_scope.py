@@ -18,6 +18,7 @@ from ..resource_scope import (
     change_layer_for_path,
     project_logical_path,
     resource_keys_for_path,
+    runtime_failure_layer,
 )
 from ..run_control import CreatorRunControlState
 from .tool_policy import SIDE_EFFECT_TOOL_NAMES, tool_name
@@ -275,20 +276,10 @@ def resource_keys_for_tool_result(name: str, result: Mapping[str, Any]) -> tuple
 
 def runtime_failure_layers(result: Mapping[str, Any]) -> tuple[ChangeLayer, ...]:
     layers: list[ChangeLayer] = []
-    kind_layers: dict[str, ChangeLayer] = {
-        "plugin-width-incompatible": "composition",
-        "plugin-render": "plugin_behavior",
-        "plugin-activation": "plugin_behavior",
-        "application-gate": "runtime_capability",
-        "application-event-unknown": "agent_integration",
-        "application-event-invalid-payload": "agent_integration",
-        "plugin-event-undeclared-subscription": "agent_integration",
-        "plugin-event-handler-error": "plugin_behavior",
-    }
     for error in result.get("currentErrors", []):
         if not isinstance(error, Mapping):
             continue
-        layer = kind_layers.get(str(error.get("kind") or ""))
+        layer = runtime_failure_layer(error)
         if layer is not None and layer not in layers:
             layers.append(layer)
     if any(
@@ -544,6 +535,9 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
         payload = self._json_object(self._content(result))
         if payload is None:
             return
+        if (name == "inspect_ui_services" and payload.get("ok") is True
+                and self.debugging is not None and isinstance(payload.get("result"), dict)):
+            self.debugging.enrich_runtime_owners(payload["result"])
         if name == "mutate_app_ui_model":
             error = payload.get("error")
             if (
@@ -870,18 +864,33 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
                             if not (debugging.clean_requested and target_id.startswith("ts:"))}
             if not selected_ids or not self._is_side_effect_tool(name):
                 return None
-            allowed = set()
-            for target_id in selected_ids:
-                owner = debugging.observed_targets[target_id]["owner"]
-                if owner.get("path"):
-                    allowed.update(resource_keys_for_path(owner["path"], project_root=self.project_root))
-                for key, prefix in (("pluginId", "plugin"), ("instanceId", "plugin-instance")):
-                    if owner.get(key):
-                        allowed.add(f"{prefix}:{owner[key]}")
             arguments = call.get("args") or {}
+            layer = change_layer_for_tool_call(name, self._logical_arguments(arguments))
             resources = set(self._resources_for_call(name, arguments))
+            allowed = set()
+            unresolved = False
+            for target_id in selected_ids:
+                target = debugging.observed_targets[target_id]
+                owner = target["owner"]
+                repair_layer = target.get("repairLayer")
+                target_resources = set(target.get("repairResources", []))
+                if owner.get("path"):
+                    target_resources.update(resource_keys_for_path(owner["path"], project_root=self.project_root))
+                    repair_layer = change_layer_for_path(owner["path"], project_root=self.project_root)
+                if not target_resources:
+                    unresolved = True
+                if repair_layer == layer:
+                    allowed.update(target_resources)
+                # Subscription declarations belong to the consuming manifest;
+                # their semantic failure layer remains Agent Integration.
+                if (target.get("ownerEvidence", {}).get("kind") == "plugin-event-undeclared-subscription"
+                        and name in {"edit_file", "edit_file_from_read"}
+                        and isinstance(arguments.get("file_path"), str)
+                        and PurePosixPath(arguments["file_path"]).name == "manifest.json"):
+                    allowed.update(resource for resource in target_resources if resource.startswith("plugin:"))
             specific = resources - {_APP_UI_MODEL_RESOURCE}
-            if specific and specific.issubset(allowed):
+            checked = specific or resources
+            if checked and checked.issubset(allowed):
                 return None
             path = arguments.get("file_path")
             if name in {"edit_file", "edit_file_from_read"} and isinstance(path, str):
@@ -892,7 +901,7 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
                        if debugging.observed_targets[target_id]["owner"].get("path")):
                     return None
             return ToolMessage(
-                content=json.dumps({"ok": False, "error": {"code": "DEBUGGING_TARGET_OWNER_REQUIRED"},
+                content=json.dumps({"ok": False, "error": {"code": "DEBUGGING_OWNER_EVIDENCE_REQUIRED" if unresolved else "DEBUGGING_TARGET_OWNER_REQUIRED"},
                                     "candidateTargets": debugging.candidate_targets(),
                                     "nextAction": "inspect_selected_owner_or_ask_user"}),
                 tool_call_id=str(call.get("id") or "debugging-owner-guard"), name=name,

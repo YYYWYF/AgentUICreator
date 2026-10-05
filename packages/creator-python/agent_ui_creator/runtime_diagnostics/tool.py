@@ -540,32 +540,11 @@ def create_runtime_diagnostic_tool(
 ) -> BaseTool:
     @tool("inspect_runtime_errors")
     async def inspect_runtime_errors(
-        includeStale: bool = False, targetDiagnosticIds: list[str] | None = None,
+        includeStale: bool = False,
     ) -> str:
-        """Inspect current-hash Runtime diagnostics and freshness. Select the requested debuggingTargetId with select_debugging_target before repair; targetDiagnosticIds is an internal compatibility interface. Selection does not grant write permission. By default historical errors from older AppUIModel hashes are summarized but omitted. A passed result requires Runtime evidence received after the latest Creator source or composition mutation."""
+        """Inspect current-hash Runtime diagnostics and freshness. Select the requested debuggingTargetId with select_debugging_target before repair. Selection does not grant write permission. By default historical errors from older AppUIModel hashes are summarized but omitted. A passed result requires Runtime evidence received after the latest Creator source or composition mutation."""
         try:
-            result = await service.inspect(include_stale=includeStale, target_ids=tuple(sorted(targetDiagnosticIds or [])))
-            if targetDiagnosticIds:
-                if result.get("diagnosticFresh") is not True or result.get("compositionFresh") is not True:
-                    return json.dumps({"ok": False, "error": {"code": "DEBUGGING_EVIDENCE_STALE",
-                        "message": "No fresh current-hash diagnostics are available; no targets were bound."}})
-                selected = [item for item in result.get("currentErrors", [])
-                            if item.get("id") in targetDiagnosticIds]
-                if {item.get("id") for item in selected} != set(targetDiagnosticIds):
-                    return json.dumps({"ok": False, "error": {"code": "DEBUGGING_TARGET_INVALID",
-                        "message": "Select IDs from currentErrors; no targets were bound."}})
-                identities = service.debugging.runtime_identities(result)
-                if identities is None:
-                    return json.dumps({"ok": False, "error": {"code": "DEBUGGING_EVIDENCE_INCOMPLETE",
-                        "message": "Runtime diagnostics are incomplete; no baseline or targets were bound."}})
-                if service.debugging.runtime_baseline is None:
-                    if service.activity.revision != 0:
-                        return json.dumps({"ok": False, "error": {"code": "DEBUGGING_BASELINE_REQUIRED",
-                            "message": "Bind fresh Runtime targets before the first mutation to establish a baseline."}})
-                    service.debugging.runtime_baseline = identities
-                for item in selected:
-                    key = service.debugging.runtime_key(item)
-                    service.debugging.runtime_targets[key] = identities[key]
+            result = await service.inspect(include_stale=includeStale)
             service.debugging.observe_runtime_targets(result, service.activity.revision)
             result["targetDiagnosticCount"] = len(service.debugging.runtime_targets)
             result["runtimeDebuggingDifferential"] = service.debugging.runtime_differential(result, service.activity.revision)

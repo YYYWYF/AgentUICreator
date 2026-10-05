@@ -7,7 +7,6 @@ from langchain_core.tools import BaseTool, tool
 
 from ..project_control.errors import ProjectControlError
 from .service import CreatorValidationService
-from ..debugging import evidence_hash
 
 
 def create_validation_tool(service: CreatorValidationService) -> BaseTool:
@@ -16,19 +15,16 @@ def create_validation_tool(service: CreatorValidationService) -> BaseTool:
     @tool("validate_creator_changes")
     async def validate_creator_changes(
         mode: Literal["delta", "clean"] = "delta",
-        targetDiagnostics: list[dict[str, str]] | None = None,
     ) -> str:
-        """Read current Host diagnostics and validate. Delta rejects introduced errors; clean requires zero TypeScript errors and is only for an explicit clean-workspace request. Select the requested debuggingTargetId with select_debugging_target before repair. targetDiagnostics is an internal compatibility interface. Targets persist across revisions and do not authorize writes or expand scope."""
+        """Validate current revision completion and regressions. Unrelated pre-existing diagnostics remain workspace warnings. Use inspect_static_diagnostics for explicit static debugging discovery. Delta rejects introduced errors; clean requires zero TypeScript errors and is only for an explicit clean-workspace request. For an explicit existing-error repair, discover and select the requested debuggingTargetId first. Targets persist across revisions and do not authorize writes or expand scope."""
         nonlocal last_key
         service._synchronize_run_state()
         service.debugging.validation_reads += 1
         previous = service.current_result()
-        key = (service.activity.run_id, service.activity.revision, mode, evidence_hash(targetDiagnostics))
+        key = (service.activity.run_id, service.activity.revision, mode)
         duplicate = previous is not None and previous.status != "stale" and key == last_key
         try:
             result = previous if duplicate else await service.validate(mode=mode)
-            if targetDiagnostics:
-                service.bind_debugging_targets(targetDiagnostics)
             if mode == "clean":
                 service.debugging.clean_requested = True
         except ValueError as error:
@@ -44,7 +40,7 @@ def create_validation_tool(service: CreatorValidationService) -> BaseTool:
                     "details": error.details,
                 },
             }, ensure_ascii=False, separators=(",", ":"))
-        last_key = (service.activity.run_id, result.revision, mode, evidence_hash(targetDiagnostics))
+        last_key = (service.activity.run_id, result.revision, mode)
         if duplicate:
             service.debugging.duplicates += 1
         evidence = result.to_dict()
@@ -56,13 +52,6 @@ def create_validation_tool(service: CreatorValidationService) -> BaseTool:
                 {**service.debugging.static_identity(item),
                  "debuggingTargetId": "ts:" + service.debugging.static_key(item)} for item in differential.current_diagnostics[:8]
             ]
-        if differential is not None and differential.current_available:
-            # Register only current identities actually included in this tool response.
-            delivered = json.dumps(evidence)
-            service.debugging.observe_static_targets(
-                [item for item in differential.current_diagnostics
-                 if "ts:" + service.debugging.static_key(item) in delivered], result.revision,
-            )
         evidence["debuggingMetrics"] = service.metrics()["debuggingMetrics"]
         priority = (
             "revision", "status", "validationMode", "differentialStatus",
@@ -83,7 +72,7 @@ def create_validation_tool(service: CreatorValidationService) -> BaseTool:
             )
         ordered["debuggingGuidance"] = (
             "Use current diagnostics and named owner files before broader discovery. "
-            "Delta pass alone does not resolve a requested existing error: bind only "
+            "Delta pass alone does not resolve a requested existing error: use inspect_static_diagnostics and select only "
             "the requested debuggingTargetId with select_debugging_target before mutation. If multiple targets are plausible, ask_user_question. Confirm selected targets disappear. "
             "Unrelated unchanged errors remain workspace warnings. Scope Guard still controls writes."
         ) if differential is not None and differential.current_diagnostics else (
@@ -108,3 +97,26 @@ def create_validation_tool(service: CreatorValidationService) -> BaseTool:
         )
 
     return validate_creator_changes
+
+
+def create_static_diagnostic_tool(service: CreatorValidationService) -> BaseTool:
+    validation = create_validation_tool(service)
+
+    @tool("inspect_static_diagnostics")
+    async def inspect_static_diagnostics() -> str:
+        """Discover current static debugging targets using Host TypeScript validation evidence. Select the requested debuggingTargetId before repair; read the owner before or after selection. If several targets are plausible, ask_user_question. Discovery grants no write permission."""
+        payload = json.loads(await validation.ainvoke({"mode": "delta"}))
+        if payload.get("ok") is not True:
+            return json.dumps(payload, ensure_ascii=False)
+        current = service.current_result()
+        differential = None if current is None else current.differential
+        if differential is not None and differential.current_available:
+            delivered = json.dumps(payload["result"])
+            service.debugging.observe_static_targets(
+                [item for item in differential.current_diagnostics
+                 if "ts:" + service.debugging.static_key(item) in delivered], current.revision,
+            )
+        payload["result"]["debuggingMetrics"] = service.metrics()["debuggingMetrics"]
+        return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+
+    return inspect_static_diagnostics

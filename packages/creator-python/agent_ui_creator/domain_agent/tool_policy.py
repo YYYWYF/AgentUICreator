@@ -5,6 +5,7 @@ from typing import Any
 
 from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResponse
 
+from ..debugging import DEBUGGING_SELECTION_TOOL_NAMES
 from ..domain_tools import DOMAIN_READ_TOOL_NAMES, RECOVERY_READ_TOOL_NAMES, RECOVERY_WRITE_TOOL_NAMES
 from ..minimal_agent.tool_policy import ALLOWED_MINIMAL_TOOLS, tool_name
 from ..verification_policy import (
@@ -36,8 +37,8 @@ DOMAIN_WRITE_TOOL_NAMES = (
     "edit_file_from_read",
     "apply_agent_ui_source_item",
     "validate_creator_changes",
-    "select_debugging_target",
-    "select_all_current_runtime_diagnostics",
+    "inspect_static_diagnostics",
+    *DEBUGGING_SELECTION_TOOL_NAMES,
     "inspect_runtime_errors",
     "verify_ui_plugin_behavior",
     "inspect_ui_plugin_delivery",
@@ -74,7 +75,7 @@ ALLOWED_INSPECT_READ_ONLY_TOOLS = tuple(
     if name not in SIDE_EFFECT_TOOL_NAMES
 )
 READ_ONLY_TOOL_NAMES = _ALLOWED_DOMAIN_WRITE_TOOL_SET - SIDE_EFFECT_TOOL_NAMES - frozenset(
-    {"select_debugging_target", "select_all_current_runtime_diagnostics"}
+    DEBUGGING_SELECTION_TOOL_NAMES
 )
 
 

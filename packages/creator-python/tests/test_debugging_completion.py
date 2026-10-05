@@ -17,7 +17,7 @@ from agent_ui_creator.domain_state import DomainObservationContext
 from agent_ui_creator.repair import CreatorRepairState
 from agent_ui_creator.run_control import CreatorRunControlState
 from agent_ui_creator.runtime_diagnostics.tool import RuntimeDiagnosticInspectionService, create_runtime_diagnostic_tool
-from agent_ui_creator.validation import CommandExecutionResult, CreatorValidationService, create_validation_tool
+from agent_ui_creator.validation import CommandExecutionResult, CreatorValidationService, create_validation_tool, create_static_diagnostic_tool
 
 
 FOO = 'plugins/foo/index.tsx'
@@ -56,6 +56,22 @@ def call(tool, **args):
     return json.loads(asyncio.run(tool.ainvoke(args)))
 
 
+def bind_static(validation, tool, targets):
+    result = call(tool)
+    validation.bind_debugging_targets(targets)
+    return result
+
+
+def select_runtime(validation, service, tool, diagnostic_id):
+    payload = call(tool)
+    record = next(item for item in payload["result"]["currentErrors"] if item["id"] == diagnostic_id)
+    selected = call(selection_tools(validation, service)[0], target_id=record["debuggingTargetId"])
+    if not selected["ok"]:
+        return selected
+    payload["result"]["targetDiagnosticCount"] = len(validation.debugging.runtime_targets)
+    return payload
+
+
 def mutate(root, activity, version):
     path = root / FOO
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -67,7 +83,7 @@ def mutate(root, activity, version):
 def test_targeted_existing_error_requires_resolution_not_just_delta_pass(tmp_path):
     baseline = ts() + '\n' + ts(BAR)
     validation, activity, gate, tool = session(tmp_path, baseline, '', baseline, '', ts(BAR))
-    first = call(tool, targetDiagnostics=[TARGET])
+    first = bind_static(validation, tool, [TARGET])
     assert first['result']['status'] == 'passed'
     assert first['result']['diagnosticIdentities'][0]['line'] == 42
     pending = gate.review('fixed')
@@ -87,7 +103,7 @@ def test_targeted_existing_error_requires_resolution_not_just_delta_pass(tmp_pat
 def test_moved_diagnostic_is_still_unresolved_and_existing_repair_limit_applies(tmp_path):
     validation, activity, gate, tool = session(tmp_path,
         ts(), '', ts(), '', ts(line=80), '', ts(line=120))
-    call(tool, targetDiagnostics=[TARGET])
+    bind_static(validation, tool, [TARGET])
     assert not gate.review('done').accepted
     mutate(tmp_path, activity, 'attempt one')
     call(tool)
@@ -109,7 +125,7 @@ def test_clean_goal_cannot_be_downgraded_to_delta(tmp_path):
 
 def test_already_absent_target_can_finish_without_noop_mutation(tmp_path):
     validation, activity, gate, tool = session(tmp_path, '', '', '')
-    call(tool, targetDiagnostics=[TARGET])
+    bind_static(validation, tool, [TARGET])
     decision = gate.review('当前诊断已消失')
     assert decision.accepted and decision.completion == 'already_satisfied'
     assert validation.debugging.final_state == 'unchanged_preexisting'
@@ -118,9 +134,9 @@ def test_already_absent_target_can_finish_without_noop_mutation(tmp_path):
 
 def test_duplicate_validation_reuses_successful_evidence_and_invalidates(tmp_path):
     validation, activity, _, tool = session(tmp_path, ts(), '', ts(), '', ts(), '', ts())
-    call(tool, targetDiagnostics=[TARGET])
+    bind_static(validation, tool, [TARGET])
     count = len(validation.runner.calls)
-    repeated = call(tool, targetDiagnostics=[TARGET])
+    repeated = bind_static(validation, tool, [TARGET])
     assert repeated['result']['code'] == 'DIAGNOSTIC_ALREADY_OBSERVED'
     assert len(validation.runner.calls) == count
     # Different arguments may bind another target; they are not permanent bans.
@@ -162,14 +178,14 @@ def test_runtime_target_binding_freshness_duplicates_and_changed_evidence(tmp_pa
     service, store, client = runtime_service(activity, validation.debugging, runtime_result())
     gate.runtime = service
     runtime = create_runtime_diagnostic_tool(service)
-    bound = call(runtime, targetDiagnosticIds=['diagnostic-foo'])
+    bound = select_runtime(validation, service, runtime, "diagnostic-foo")
     assert bound['ok'] and bound['result']['targetDiagnosticCount'] == 1
     assert FOO in bound['result']['currentErrors'][0]['componentStack']
-    repeated = call(runtime, targetDiagnosticIds=['diagnostic-foo'])
+    repeated = select_runtime(validation, service, runtime, "diagnostic-foo")
     assert repeated['result']['reusePreviousResult'] is True and client.verifications == 1
     store.result = runtime_result(message='Updated error')
     assert service.current_result() is None  # A new report invalidates old evidence.
-    assert 'reusePreviousResult' not in call(runtime, targetDiagnosticIds=['diagnostic-foo'])['result']
+    assert 'reusePreviousResult' not in select_runtime(validation, service, runtime, "diagnostic-foo")['result']
     assert client.verifications == 2
     call(static)  # Capture pre-mutation baseline and current static evidence.
     mutate(tmp_path, activity, 'fixed render')
@@ -183,8 +199,9 @@ def test_runtime_target_binding_freshness_duplicates_and_changed_evidence(tmp_pa
 def test_stale_runtime_does_not_bind_targets_or_authorize_repair(tmp_path):
     validation, activity, _, _ = session(tmp_path)
     service, _, _ = runtime_service(activity, validation.debugging, runtime_result(status='stale', fresh=False))
-    result = call(create_runtime_diagnostic_tool(service), targetDiagnosticIds=['diagnostic-foo'])
-    assert result['error']['code'] == 'DEBUGGING_EVIDENCE_STALE'
+    call(create_runtime_diagnostic_tool(service))
+    result = call(selection_tools(validation, service)[0], target_id="runtime:" + validation.debugging.runtime_key(runtime_result()["currentErrors"][0]))
+    assert result['error']['code'] == 'DEBUGGING_TARGET_NOT_OBSERVED'
     assert not validation.debugging.runtime_targets and activity.revision == 0
 
 
@@ -203,7 +220,7 @@ def test_composition_only_runtime_failure_ends_structured_blocked(tmp_path):
     scope = ChangeScopeMetrics(taskChangeLayers=['composition'])
     runtime = SimpleNamespace(current_result=lambda: runtime_result())
     validation, _, gate, tool = session(tmp_path, '', '', '', mode='static_and_runtime', scope=scope, runtime=runtime)
-    call(tool, targetDiagnostics=[TARGET])
+    bind_static(validation, tool, [TARGET])
     decision = gate.review('fixed')
     assert decision.accepted and decision.completion == 'blocked'
     assert validation.debugging.reason == 'runtime_failure_outside_scope'
@@ -215,7 +232,7 @@ def test_current_diagnostic_convergence_and_ordinary_change_is_unaffected(tmp_pa
     middleware = DebuggingEvidenceConvergenceMiddleware(validation, runtime)
     request = ModelRequest(model=Mock(), messages=[HumanMessage(content='hide right panel')], tools=[])
     assert middleware._request(request) is request
-    call(tool, targetDiagnostics=[TARGET])
+    bind_static(validation, tool, [TARGET])
     focused = middleware._request(request)
     assert FOO in focused.messages[-1].content
     assert 'nearest contract' in focused.messages[-1].content
@@ -232,14 +249,17 @@ def test_explicit_clean_goal_resolves_all_current_errors(tmp_path):
     assert validation.metrics()['currentTypecheckDiagnostics'] == 0
 
 
-def test_observed_static_diagnostics_require_scope_without_activating_repair(tmp_path):
+def test_ordinary_delta_does_not_inject_debugging(tmp_path):
     validation, _, _, tool = session(tmp_path, ts(BAR), '', ts(BAR))
     middleware = DebuggingEvidenceConvergenceMiddleware(validation, SimpleNamespace(current_result=lambda: None))
     request = ModelRequest(model=Mock(), messages=[HumanMessage(content='hide right panel')], tools=[])
     call(tool)
-    assert middleware._request(request) is not request
-    assert validation.debugging.diagnostic_scope_pending
+    assert middleware._request(request) is request
+    assert not validation.debugging.diagnostic_scope_pending
     assert not validation.debugging.active
+    guard = ScopeAwareRecoveryGuard(project_root=str(tmp_path))
+    guard.debugging = validation.debugging
+    assert guard._debugging_selection_guard({"args": {"file_path": FOO}}, "edit_file") is None
 
 
 # Runtime target completion must share its differential with the ordinary Host
@@ -265,7 +285,10 @@ def targeted_runtime_session(tmp_path, *, bind=True):
     gate.runtime = service
     tool = create_runtime_diagnostic_tool(service)
     call(static)
-    call(tool, **({'targetDiagnosticIds': [a['id']]} if bind else {}))
+    if bind:
+        select_runtime(validation, service, tool, a["id"])
+    else:
+        call(tool)
     guard = ScopeAwareRecoveryGuard(project_root=str(tmp_path), run_control=CreatorRunControlState())
     guard.metrics = scope
     guard.debugging = validation.debugging
@@ -301,7 +324,7 @@ def test_unrelated_baseline_runtime_failure_does_not_lock_another_layer(tmp_path
     b['eventName'] = 'legacy.event'
     store.result = runtime_errors(a, b)
     validation.debugging.runtime_baseline = None
-    call(tool, targetDiagnosticIds=[a['id']])
+    select_runtime(validation, gate.runtime, tool, a["id"])
     mutate(tmp_path, activity, 'fixed A')
     call(static)
     store.result = runtime_errors(b)
@@ -396,7 +419,7 @@ def test_incomplete_runtime_evidence_cannot_establish_a_baseline(tmp_path):
     initial = runtime_errors(runtime_error())
     initial['summary']['truncated'] = True
     service, _, _ = runtime_service(activity, validation.debugging, initial)
-    result = call(create_runtime_diagnostic_tool(service), targetDiagnosticIds=['diagnostic-foo-main'])
+    result = select_runtime(validation, service, create_runtime_diagnostic_tool(service), "diagnostic-foo-main")
     assert result['error']['code'] == 'DEBUGGING_EVIDENCE_INCOMPLETE'
     assert validation.debugging.runtime_baseline is None and not validation.debugging.runtime_targets
 
@@ -405,7 +428,7 @@ def test_runtime_baseline_is_not_captured_after_a_mutation(tmp_path):
     validation, activity, _, _ = session(tmp_path)
     mutate(tmp_path, activity, 'changed before diagnosis')
     service, _, _ = runtime_service(activity, validation.debugging, runtime_errors(runtime_error()))
-    result = call(create_runtime_diagnostic_tool(service), targetDiagnosticIds=['diagnostic-foo-main'])
+    result = select_runtime(validation, service, create_runtime_diagnostic_tool(service), "diagnostic-foo-main")
     assert result['error']['code'] == 'DEBUGGING_BASELINE_REQUIRED'
     assert validation.debugging.runtime_baseline is None
 
@@ -419,7 +442,7 @@ def selection_tools(validation, runtime=None):
 
 def test_static_string_target_selection_resolves_requested_error(tmp_path):
     validation, activity, gate, static = session(tmp_path, ts(), '', ts(), '', '')
-    observed = call(static)
+    observed = call(create_static_diagnostic_tool(validation))
     target_id = observed['result']['diagnosticIdentities'][0]['debuggingTargetId']
     select, _ = selection_tools(validation)
     assert set(select.args_schema.model_json_schema()['properties']) == {'target_id'}
@@ -435,7 +458,7 @@ def test_static_string_target_selection_resolves_requested_error(tmp_path):
 
 def test_unobserved_and_previous_run_ids_are_rejected(tmp_path):
     validation, activity, _, static = session(tmp_path, ts(), '', ts())
-    target_id = call(static)['result']['diagnosticIdentities'][0]['debuggingTargetId']
+    target_id = call(create_static_diagnostic_tool(validation))['result']['diagnosticIdentities'][0]['debuggingTargetId']
     select, _ = selection_tools(validation)
     assert call(select, target_id='ts:invented')['error']['code'] == 'DEBUGGING_TARGET_NOT_OBSERVED'
     activity.begin('next-run')
@@ -445,7 +468,7 @@ def test_unobserved_and_previous_run_ids_are_rejected(tmp_path):
 
 def test_static_mutation_requires_target_without_touching_files(tmp_path):
     validation, activity, _, static = session(tmp_path, ts(), '', ts())
-    call(static)
+    call(create_static_diagnostic_tool(validation))
     guard = ScopeAwareRecoveryGuard(project_root=str(tmp_path))
     guard.debugging = validation.debugging
     for name, args in (
@@ -573,7 +596,7 @@ def test_truncated_runtime_cannot_bind_baseline(tmp_path):
 
 def test_async_mutation_boundary_also_requires_target(tmp_path):
     validation, _, _, static = session(tmp_path, ts(), '', ts())
-    call(static)
+    call(create_static_diagnostic_tool(validation))
     guard = ScopeAwareRecoveryGuard(project_root=str(tmp_path))
     guard.debugging = validation.debugging
     request = SimpleNamespace(tool_call={'id': 'edit', 'name': 'edit_file',
@@ -582,3 +605,93 @@ def test_async_mutation_boundary_also_requires_target(tmp_path):
         raise AssertionError('pending target must not execute mutation')
     result = asyncio.run(guard.awrap_tool_call(request, handler))
     assert json.loads(result.content)['error']['code'] == 'DEBUGGING_TARGET_REQUIRED'
+
+
+def test_model_facing_debugging_schemas_hide_legacy_complex_arguments(tmp_path):
+    validation, activity, _, static = session(tmp_path)
+    service, _, _ = runtime_service(activity, validation.debugging, runtime_result())
+    select, select_all = selection_tools(validation, service)
+    expected = [(static, {'mode'}), (create_runtime_diagnostic_tool(service), {'includeStale'}),
+                (select, {'target_id'}), (select_all, set()),
+                (create_static_diagnostic_tool(validation), set())]
+    for tool, properties in expected:
+        assert set(tool.args_schema.model_json_schema()['properties']) == properties
+
+
+def test_old_static_warning_does_not_block_current_task_runtime_tail_repair(tmp_path):
+    validation, activity, _, tool = session(tmp_path, ts(BAR), '', ts(BAR))
+    mutate(tmp_path, activity, 'ordinary button change')
+    assert call(tool)['result']['status'] == 'passed'
+    assert validation.current_result().workspace_warning['diagnosticCount'] == 1
+    service, _, _ = runtime_service(activity, validation.debugging, runtime_result())
+    # The verification tail reads evidence directly; only discovery tools enter
+    # pending target selection. Old B must not turn the current task into Debugging.
+    asyncio.run(service.inspect_host())
+    guard = ScopeAwareRecoveryGuard(project_root=str(tmp_path))
+    guard.debugging = validation.debugging
+    assert not validation.debugging.diagnostic_scope_pending
+    assert not validation.debugging.active
+    assert guard._debugging_selection_guard({'args': {'file_path': FOO}}, 'edit_file') is None
+
+
+def test_runtime_non_plugin_targets_use_semantic_layers_and_resources(tmp_path):
+    validation, activity, _, _ = session(tmp_path)
+    width = {**runtime_error(kind='plugin-width-incompatible'),
+             'target': {'type': 'layout_slot', 'slotRef': 'slot:main'}}
+    event = {'id': 'unknown-event', 'kind': 'application-event-unknown',
+             'eventName': 'app.progress', 'errorMessage': 'Unknown event'}
+    gate = {**runtime_error(kind='application-gate'),
+            'errorMessage': 'Missing service:app-session'}
+    for record, layer, resource, tool_name, args in (
+        (width, 'composition', 'plugin-instance:foo-main', 'mutate_app_ui_model',
+         {'operations': [{'type': 'set_plugin_enabled', 'instanceId': 'foo-main', 'enabled': True}]}),
+        (event, 'agent_integration', 'agent-contract:agent-events', 'edit_file',
+         {'file_path': 'agent-contract/agent-events.ts'}),
+        (gate, 'runtime_capability', 'service:app-session', 'mutate_ui_service_contract',
+         {'serviceName': 'app-session'}),
+    ):
+        validation.debugging.reset(activity.run_id)
+        service, _, _ = runtime_service(activity, validation.debugging, runtime_errors(record))
+        runtime = create_runtime_diagnostic_tool(service)
+        target_id = call(runtime)['result']['currentErrors'][0]['debuggingTargetId']
+        selected = call(selection_tools(validation, service)[0], target_id=target_id)['result']
+        assert selected['repairLayer'] == layer
+        assert resource in selected['repairResources']
+        guard = ScopeAwareRecoveryGuard(project_root=str(tmp_path))
+        guard.debugging = validation.debugging
+        assert guard._debugging_selection_guard({'args': args}, tool_name) is None
+        assert guard._debugging_selection_guard({'args': {'file_path': BAR}}, 'edit_file') is not None
+
+
+def test_gate_missing_owner_evidence_allows_targeted_service_inspection(tmp_path):
+    validation, activity, _, _ = session(tmp_path)
+    record = {**runtime_error(kind='application-gate'), 'errorMessage': 'Service app-session unavailable'}
+    service, _, _ = runtime_service(activity, validation.debugging, runtime_errors(record))
+    target_id = call(create_runtime_diagnostic_tool(service))['result']['currentErrors'][0]['debuggingTargetId']
+    call(selection_tools(validation, service)[0], target_id=target_id)
+    guard = ScopeAwareRecoveryGuard(project_root=str(tmp_path))
+    guard.debugging = validation.debugging
+    args = {'serviceName': 'app-session'}
+    blocked = guard._debugging_selection_guard({'args': args}, 'mutate_ui_service_contract')
+    assert json.loads(blocked.content)['error']['code'] == 'DEBUGGING_OWNER_EVIDENCE_REQUIRED'
+    assert guard._debugging_selection_guard({'args': {}}, 'inspect_ui_services') is None
+    guard._observe_result('inspect_ui_services', {}, json.dumps({'ok': True, 'result': {'services': [
+        {'name': 'unrelated', 'providers': [{'pluginId': 'foo'}]},
+        {'name': 'app-session', 'providers': [{'pluginId': 'foo'}]},
+    ]}}))
+    target = validation.debugging.observed_targets[target_id]
+    assert target['repairResources'] == ['service:app-session']
+    assert guard._debugging_selection_guard({'args': args}, 'mutate_ui_service_contract') is None
+
+
+def test_undeclared_subscription_repairs_only_consuming_manifest(tmp_path):
+    validation, activity, _, _ = session(tmp_path)
+    record = {**runtime_error(kind='plugin-event-undeclared-subscription'), 'eventName': 'app.progress'}
+    service, _, _ = runtime_service(activity, validation.debugging, runtime_errors(record))
+    target_id = call(create_runtime_diagnostic_tool(service))['result']['currentErrors'][0]['debuggingTargetId']
+    call(selection_tools(validation, service)[0], target_id=target_id)
+    guard = ScopeAwareRecoveryGuard(project_root=str(tmp_path))
+    guard.debugging = validation.debugging
+    assert guard._debugging_selection_guard({'args': {'file_path': 'plugins/foo/manifest.json'}}, 'edit_file') is None
+    assert guard._debugging_selection_guard({'args': {'file_path': FOO}}, 'edit_file') is not None
+    assert guard._debugging_selection_guard({'args': {'file_path': 'plugins/bar/manifest.json'}}, 'edit_file') is not None

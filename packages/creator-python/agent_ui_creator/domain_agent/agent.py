@@ -84,6 +84,7 @@ from ..validation import (
     CreatorValidationService,
     ValidationCommandRunner,
     create_validation_tool,
+    create_static_diagnostic_tool,
 )
 from ..verification_policy import (
     CreatorVerificationMode,
@@ -839,6 +840,7 @@ def create_domain_write_creator_agent(
             verification_mode=verification_mode,
         ),
         create_validation_tool(validation),
+        create_static_diagnostic_tool(validation),
         *create_debugging_target_tools(validation, runtime_inspection),
     ]
     domain_tools.extend((*create_recovery_query_tools(recovery_queries),

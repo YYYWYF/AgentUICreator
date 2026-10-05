@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path, PurePosixPath
 from string import ascii_letters, digits
 from typing import Any, Literal, TypeAlias
@@ -174,3 +174,19 @@ def resource_keys_for_evidence(
         if contains_identifier(evidence, suffix):
             _append_resource(resources, resource)
     return tuple(resources)
+
+
+RUNTIME_DIAGNOSTIC_LAYERS: dict[str, ChangeLayer] = {
+    "plugin-width-incompatible": "composition",
+    "plugin-render": "plugin_behavior",
+    "plugin-activation": "plugin_behavior",
+    "application-gate": "runtime_capability",
+    "application-event-unknown": "agent_integration",
+    "application-event-invalid-payload": "agent_integration",
+    "plugin-event-undeclared-subscription": "agent_integration",
+    "plugin-event-handler-error": "plugin_behavior",
+}
+
+
+def runtime_failure_layer(error: Mapping[str, Any]) -> ChangeLayer | None:
+    return RUNTIME_DIAGNOSTIC_LAYERS.get(str(error.get("kind") or ""))

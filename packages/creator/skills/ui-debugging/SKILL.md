@@ -16,8 +16,8 @@ Broader investigation is justified only by a concrete uncertainty left by that
 evidence. For `TS2345 src/plugins/foo/index.tsx:42`, read that file first; do not
 list the root, glob the workspace, or rediscover every Plugin.
 
-When static failure details are missing, use `validate_creator_changes` to
-obtain current diagnostics. Delta can pass while a requested pre-existing error
+When static failure details are missing, use `inspect_static_diagnostics()` to
+obtain current debugging diagnostics. Delta can pass while a requested pre-existing error
 remains: select its `debuggingTargetId` with `select_debugging_target` from current Host evidence
 before repair. Targets persist through revisions; they do not authorize writes.
 Use clean mode only when the user asks to clean the entire typecheck.
@@ -73,3 +73,10 @@ Read [validation-debugging](references/validation-debugging.md) for complex
 static diagnostics or target completion, and
 [runtime-debugging](references/runtime-debugging.md) for Runtime freshness,
 attribution, and layout boundaries.
+
+Ordinary `validate_creator_changes` reports completion/regression evidence and
+workspace warnings without activating target selection. Static discovery uses
+`inspect_static_diagnostics()` and reuses the same parser, baseline and differential.
+The owner may be read before or after selection; selection stays available in
+Source and Composition lanes. Runtime targets expose semantic repair resources;
+`DEBUGGING_OWNER_EVIDENCE_REQUIRED` calls for targeted Service/contract inspection.

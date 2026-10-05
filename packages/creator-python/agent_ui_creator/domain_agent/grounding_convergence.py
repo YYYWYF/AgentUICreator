@@ -9,6 +9,7 @@ from typing import Any
 from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResponse
 from langchain_core.messages import SystemMessage, ToolMessage
 
+from ..debugging import DEBUGGING_SELECTION_TOOL_NAMES
 from ..domain_state import (
     DomainObservationContext,
     composition_fast_path_error,
@@ -28,6 +29,9 @@ from .tool_policy import READ_ONLY_TOOL_NAMES, RUNTIME_VERIFICATION_TOOL_NAMES
 
 
 COMPOSITION_PRE_MUTATION_TOOL_NAMES = (
+    *DEBUGGING_SELECTION_TOOL_NAMES,
+    "inspect_static_diagnostics",
+    "ask_user_question",
     *RECOVERY_READ_TOOL_NAMES,
     *RECOVERY_WRITE_TOOL_NAMES,
     "read_file",
@@ -40,6 +44,9 @@ COMPOSITION_PRE_MUTATION_TOOL_NAMES = (
     "inspect_runtime_layout",
 )
 COMPOSITION_POST_MUTATION_TOOL_NAMES = (
+    *DEBUGGING_SELECTION_TOOL_NAMES,
+    "inspect_static_diagnostics",
+    "ask_user_question",
     *RECOVERY_READ_TOOL_NAMES,
     *RECOVERY_WRITE_TOOL_NAMES,
     "read_file",
@@ -52,6 +59,9 @@ COMPOSITION_POST_MUTATION_TOOL_NAMES = (
     "verify_ui_plugin_behavior",
 )
 SOURCE_INSTALLED_TOOL_NAMES = (
+    *DEBUGGING_SELECTION_TOOL_NAMES,
+    "inspect_static_diagnostics",
+    "ask_user_question",
     *RECOVERY_READ_TOOL_NAMES,
     *RECOVERY_WRITE_TOOL_NAMES,
     "inspect_ui_project",
@@ -85,6 +95,9 @@ Plugin inventory before preparation; a Composition summary does not substitute
 for that inventory.
 If restoration needs history, inspect_creator_transactions and then inspect
 the identified transaction; those queries execute directly in this lane.
+Debugging selection and ask_user_question remain available in this lane.
+If diagnostics are pending, select the requested target before a side effect;
+reading its owner before selection is also allowed.
 Expand grounding for a missing decisive fact or another-layer requirement."""
 
 COMPOSITION_POST_MUTATION_CONTROL = """The AppUIModel mutation succeeded on the
@@ -184,7 +197,9 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         ):
             allowed = frozenset(SOURCE_INSTALLED_TOOL_NAMES)
             by_name = {tool_name(candidate): candidate for candidate in request.tools
-                       if tool_name(candidate) in allowed}
+                       if tool_name(candidate) in allowed
+                       and (self.verification_mode != "static_only"
+                            or tool_name(candidate) not in RUNTIME_VERIFICATION_TOOL_NAMES)}
             return request.override(
                 messages=[*request.messages, SystemMessage(content=SOURCE_INSTALLED_CONTROL)],
                 tools=[by_name[name] for name in SOURCE_INSTALLED_TOOL_NAMES if name in by_name],

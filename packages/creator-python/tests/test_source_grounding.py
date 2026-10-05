@@ -170,3 +170,35 @@ def test_range_edit_uses_host_baseline_scope_transaction_and_current_validation(
     assert current.status == "passed"
     assert ("pnpm verify:ui", 1) in runner.calls
     assert ("pnpm typecheck", 1) in runner.calls
+
+
+def test_diagnostic_read_select_edit_remains_in_source_lane(tmp_path):
+    from agent_ui_creator.debugging import DebuggingEvidence
+    from agent_ui_creator.validation.diagnostics import parse_typescript_diagnostics
+    from agent_ui_creator.domain_tools.debugging_tools import create_debugging_target_tools
+
+    backend, grounding, path, virtual = _grounding(tmp_path)
+    relative = virtual.lstrip('/')
+    diagnostic = parse_typescript_diagnostics(f'{relative}(2,1): error TS2345: Wrong argument', exit_code=1).diagnostics[0]
+    debugging = DebuggingEvidence()
+    debugging.ensure_run(backend.activity.run_id)
+    debugging.observe_static_targets([diagnostic], backend.activity.revision)
+    _read(backend, grounding, virtual)
+    current = SimpleNamespace(status='passed', revision=backend.activity.revision,
+                              differential=SimpleNamespace(current_available=True, current_diagnostics=[diagnostic]))
+    validation = SimpleNamespace(debugging=debugging, _synchronize_run_state=lambda: None,
+                                 current_result=lambda: current)
+    select, select_all = create_debugging_target_tools(validation, SimpleNamespace(current_result=lambda: None))
+    tools = [select, select_all, SimpleNamespace(name='ask_user_question'),
+             create_edit_file_from_read_tool(backend, grounding)]
+    request = SimpleNamespace(messages=[], tools=tools, override=lambda **kwargs: SimpleNamespace(**kwargs))
+    offered = grounding._request(request)
+    assert {tool.name for tool in offered.tools} >= {'select_debugging_target', 'ask_user_question'}
+    assert json.loads(asyncio.run(select.ainvoke({'target_id': 'ts:' + debugging.static_key(diagnostic)})))['ok']
+    guard = ScopeAwareRecoveryGuard(project_root=str(tmp_path))
+    guard.debugging = debugging
+    args = {'file_path': virtual, 'mode': 'replace_lines', 'start_line': 2, 'replacement': 'fixed'}
+    assert guard._debugging_selection_guard({'args': args}, 'edit_file_from_read') is None
+    assert json.loads(tools[-1].invoke(args))['ok']
+    assert not grounding.metrics.sourceFastPathExited
+    assert 'fixed' in path.read_text()

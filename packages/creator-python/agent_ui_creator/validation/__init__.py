@@ -20,7 +20,7 @@ from .diagnostics import (
     parse_typescript_diagnostics,
 )
 from .service import CreatorValidationService, ValidationCommandRunner
-from .tool import create_validation_tool
+from .tool import create_validation_tool, create_static_diagnostic_tool
 
 __all__ = [
     "COMMAND_TIMEOUT_SECONDS",
@@ -40,5 +40,6 @@ __all__ = [
     "ValidationEvidence",
     "ValidationCommandRunner",
     "create_validation_tool",
+    "create_static_diagnostic_tool",
     "parse_typescript_diagnostics",
 ]

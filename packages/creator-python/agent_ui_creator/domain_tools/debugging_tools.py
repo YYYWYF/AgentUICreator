@@ -64,7 +64,13 @@ def create_debugging_target_tools(
         debugging.selected_target_ids.add(target_id)
         return json.dumps({"ok": True, "result": {
             "status": "selected", "targetId": target_id, "kind": observed["kind"],
-            "owner": observed["owner"], "nextAction": "inspect_owner_before_repair",
+            "owner": observed["owner"],
+            "repairLayer": observed.get("repairLayer"),
+            "repairResources": observed.get("repairResources", []),
+            "ownerEvidence": observed.get("ownerEvidence", {}),
+            "ownerResolution": ("resolved" if observed.get("repairResources")
+                                else "DEBUGGING_OWNER_EVIDENCE_REQUIRED"),
+            "nextAction": "inspect_owner_before_repair",
         }})
 
     @tool("select_all_current_runtime_diagnostics")

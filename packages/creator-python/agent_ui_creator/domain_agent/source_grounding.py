@@ -10,6 +10,7 @@ from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResp
 from langchain_core.messages import SystemMessage
 from langchain_core.tools import BaseTool, tool
 
+from ..debugging import DEBUGGING_SELECTION_TOOL_NAMES
 from ..minimal_agent.path_policy import PathPolicyViolation, PolicyFilesystemBackend
 from ..minimal_agent.tool_policy import tool_name
 from ..operations.models import CreatorAuthoringHandoff
@@ -18,6 +19,7 @@ from ..domain_tools import RECOVERY_READ_TOOL_NAMES, RECOVERY_WRITE_TOOL_NAMES
 
 
 SOURCE_LANE_TOOLS = frozenset({
+    *DEBUGGING_SELECTION_TOOL_NAMES, "inspect_static_diagnostics",
     "read_file", "ls", "grep", "glob", "edit_file_from_read", "edit_file",
     "ask_user_question", "validate_creator_changes",
     "inspect_ui_project", "inspect_ui_services", "inspect_runtime_layout",

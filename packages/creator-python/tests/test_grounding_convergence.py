@@ -649,3 +649,28 @@ def test_grounding_middleware_emits_bounded_tool_trajectory(tmp_path):
         "creator.authoring-targets",
     ]
     assert entries[1]["data"]["result"]["status"] == "rejected"
+
+
+@pytest.mark.parametrize('verification_mode', ['static_only', 'static_and_runtime'])
+@pytest.mark.parametrize('after_mutation', [False, True])
+def test_debugging_selection_survives_grounded_composition(verification_mode, after_mutation):
+    tools = [SimpleNamespace(name=name) for name in ALLOWED_DOMAIN_WRITE_TOOLS]
+    offered = CompositionGroundingConvergenceMiddleware._composition_lane_tools(
+        tools, after_mutation=after_mutation, verification_mode=verification_mode)
+    names = {tool.name for tool in offered}
+    assert {'select_debugging_target', 'ask_user_question', 'inspect_static_diagnostics'} <= names
+    assert ('select_all_current_runtime_diagnostics' in names) == (verification_mode == 'static_and_runtime')
+
+
+@pytest.mark.parametrize('verification_mode', ['static_only', 'static_and_runtime'])
+def test_debugging_selection_survives_installed_source_lane(tmp_path, verification_mode):
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+    authority = SimpleNamespace(installed_source_plugin_ids={'foo'}, active=None)
+    middleware = CompositionGroundingConvergenceMiddleware(
+        DomainObservationContext(), backend, verification_mode=verification_mode,
+        development_authority=authority)
+    request = ModelRequest(model=Mock(), messages=[],
+                           tools=[SimpleNamespace(name=name) for name in ALLOWED_DOMAIN_WRITE_TOOLS])
+    names = {tool.name for tool in middleware._request(request).tools}
+    assert {'select_debugging_target', 'ask_user_question', 'inspect_static_diagnostics'} <= names
+    assert ('select_all_current_runtime_diagnostics' in names) == (verification_mode == 'static_and_runtime')

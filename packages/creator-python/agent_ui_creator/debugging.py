@@ -4,6 +4,19 @@ import hashlib
 import json
 from typing import Any
 
+from .resource_scope import (
+    contains_identifier,
+    resource_keys_for_evidence,
+    resource_keys_for_path,
+    runtime_failure_layer,
+)
+
+
+DEBUGGING_SELECTION_TOOL_NAMES = (
+    "select_debugging_target",
+    "select_all_current_runtime_diagnostics",
+)
+
 
 def evidence_hash(value: object) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, default=str).encode()).hexdigest()
@@ -64,6 +77,8 @@ class DebuggingEvidence:
             self.observed_targets[target_id] = {
                 "kind": "static", "identity": self.static_identity(item),
                 "revision": revision, "owner": {"path": item.path},
+                "repairLayer": None, "repairResources": list(resource_keys_for_path(item.path)),
+                "ownerEvidence": {"path": item.path},
                 "summary": f"{item.path} / {item.code}",
             }
 
@@ -71,13 +86,72 @@ class DebuggingEvidence:
         if result.get("diagnosticFresh") is not True or result.get("compositionFresh") is not True:
             return
         for item in result.get("currentErrors", []):
+            layer, resources, owner_evidence = self.runtime_owner(item)
             target_id = "runtime:" + self.runtime_key(item)
+            previous = self.observed_targets.get(target_id)
+            if (previous is not None and previous.get("revision") == revision
+                    and previous.get("ownerEvidence", {}).get("message") == owner_evidence.get("message")):
+                resources = sorted(set(resources) | set(previous.get("repairResources", [])))
             self.observed_targets[target_id] = {
                 "kind": "runtime", "identity": self.runtime_identity(item),
                 "revision": revision,
                 "owner": {key: item.get(key) for key in ("pluginId", "instanceId")},
+                "repairLayer": layer, "repairResources": resources,
+                "ownerEvidence": owner_evidence,
                 "summary": f"{item.get('pluginId')} / {item.get('kind')}",
             }
+
+    @staticmethod
+    def runtime_owner(item: dict[str, Any]) -> tuple[str | None, list[str], dict[str, Any]]:
+        layer = runtime_failure_layer(item)
+        evidence = {key: item[key] for key in (
+            "kind", "pluginId", "instanceId", "target", "eventName", "issuePaths",
+        ) if item.get(key) is not None}
+        resources: set[str] = set()
+        if layer == "plugin_behavior" and item.get("pluginId"):
+            resources.add("plugin:" + item["pluginId"])
+        elif layer == "composition" and item.get("instanceId"):
+            resources.add("plugin-instance:" + item["instanceId"])
+            if isinstance(item.get("target"), dict):
+                resources.add("app-ui-model")
+        elif layer == "agent_integration" and item.get("eventName"):
+            # The application owns the event registry, including payload schemas.
+            resources.update(resource_keys_for_path("agent-contract/agent-events.ts"))
+            if item.get("kind") == "plugin-event-undeclared-subscription" and item.get("pluginId"):
+                resources.add("plugin:" + item["pluginId"])
+        elif layer == "runtime_capability":
+            resources.update(resource for resource in resource_keys_for_evidence(
+                item.get("errorMessage") or "") if resource.startswith("service:"))
+        if layer == "runtime_capability":
+            evidence["message"] = item.get("errorMessage") or ""
+        if resources:
+            evidence["resolvedResources"] = sorted(resources)
+        return layer, sorted(resources), evidence
+
+    def enrich_runtime_owners(self, service_inspection: dict[str, Any]) -> None:
+        """Resolve a gate's named Service from targeted Host contract evidence.
+
+        Reading an unrelated Service never binds it to a diagnostic. The named
+        Service must also list the implicated Plugin as a participant.
+        """
+        for target in self.observed_targets.values():
+            if target.get("repairLayer") != "runtime_capability":
+                continue
+            evidence = target["ownerEvidence"]
+            for service in service_inspection.get("services", []):
+                name = service.get("name")
+                participants = [participant for key in ("providers", "requiredConsumers", "optionalConsumers")
+                                for participant in service.get(key, [])]
+                if (not isinstance(name, str)
+                        or not contains_identifier(evidence.get("message", ""), name)
+                        or not any(participant.get("pluginId") == evidence.get("pluginId")
+                                   for participant in participants)):
+                    continue
+                resource = "service:" + name
+                if resource not in target["repairResources"]:
+                    target["repairResources"].append(resource)
+                evidence["serviceName"] = name
+                evidence["resolvedResources"] = sorted(target["repairResources"])
 
     def candidate_targets(self) -> list[dict[str, Any]]:
         return [{"targetId": key, "summary": value["summary"]}

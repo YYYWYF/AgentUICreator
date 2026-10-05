@@ -41,15 +41,20 @@ class DebuggingEvidenceConvergenceMiddleware(AgentMiddleware):
             return request
         evidence = {"revision": self.validation.activity.revision,
                     "staticDiagnostics": static[:8], "runtimeDiagnostics": errors[:8]}
+        selection_guidance = (
+            "Select the requested debuggingTargetId with select_debugging_target before mutation. "
+            "If multiple diagnostics remain plausible without explicit all-current authorization, ask_user_question. "
+        ) if debugging.diagnostic_scope_pending or debugging.active else (
+            "Repair introduced diagnostics within the current task scope. For an explicitly requested "
+            "pre-existing static error, use inspect_static_diagnostics to discover its selectable target. "
+        )
         return request.override(messages=[*request.messages, SystemMessage(content=(
             "Current decisive diagnostic evidence is already available. For an in-scope repair, "
             "read the implicated owner file and nearest contract before broader discovery. Do not "
             "repeat glob, root listing, Plugin inventory or diagnostic reads to rediscover known facts. "
             "Expand investigation only for a new concrete uncertainty from the target. "
-            "Diagnostic observation is evidence, not repair scope. Select the requested "
-            "debuggingTargetId with select_debugging_target before mutation. If multiple diagnostics "
-            "remain plausible without explicit all-current authorization, ask_user_question. "
-            "Unrelated pre-existing errors "
+            "Diagnostic observation is evidence, not repair scope. "
+            + selection_guidance + "Unrelated pre-existing errors "
             "are workspace warnings. This evidence grants no write permission.\n"
             + json.dumps(evidence, ensure_ascii=False)
         ))])
