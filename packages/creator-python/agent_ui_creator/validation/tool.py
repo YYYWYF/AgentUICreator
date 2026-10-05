@@ -18,7 +18,7 @@ def create_validation_tool(service: CreatorValidationService) -> BaseTool:
         mode: Literal["delta", "clean"] = "delta",
         targetDiagnostics: list[dict[str, str]] | None = None,
     ) -> str:
-        """Read current Host diagnostics and validate. Delta rejects introduced errors; clean requires zero TypeScript errors and is only for an explicit clean-workspace request. Bind a user-requested existing error with targetDiagnostics [{path, code, messageHash?}] from current evidence. Targets persist across revisions and do not authorize writes or expand scope."""
+        """Read current Host diagnostics and validate. Delta rejects introduced errors; clean requires zero TypeScript errors and is only for an explicit clean-workspace request. Select the requested debuggingTargetId with select_debugging_target before repair. targetDiagnostics is an internal compatibility interface. Targets persist across revisions and do not authorize writes or expand scope."""
         nonlocal last_key
         service._synchronize_run_state()
         service.debugging.validation_reads += 1
@@ -53,8 +53,16 @@ def create_validation_tool(service: CreatorValidationService) -> BaseTool:
         differential = result.differential
         if differential is not None:
             evidence["diagnosticIdentities"] = [
-                service.debugging.static_identity(item) for item in differential.current_diagnostics[:8]
+                {**service.debugging.static_identity(item),
+                 "debuggingTargetId": "ts:" + service.debugging.static_key(item)} for item in differential.current_diagnostics[:8]
             ]
+        if differential is not None and differential.current_available:
+            # Register only current identities actually included in this tool response.
+            delivered = json.dumps(evidence)
+            service.debugging.observe_static_targets(
+                [item for item in differential.current_diagnostics
+                 if "ts:" + service.debugging.static_key(item) in delivered], result.revision,
+            )
         evidence["debuggingMetrics"] = service.metrics()["debuggingMetrics"]
         priority = (
             "revision", "status", "validationMode", "differentialStatus",
@@ -76,7 +84,7 @@ def create_validation_tool(service: CreatorValidationService) -> BaseTool:
         ordered["debuggingGuidance"] = (
             "Use current diagnostics and named owner files before broader discovery. "
             "Delta pass alone does not resolve a requested existing error: bind only "
-            "explicitly requested targetDiagnostics and confirm they disappear. "
+            "the requested debuggingTargetId with select_debugging_target before mutation. If multiple targets are plausible, ask_user_question. Confirm selected targets disappear. "
             "Unrelated unchanged errors remain workspace warnings. Scope Guard still controls writes."
         ) if differential is not None and differential.current_diagnostics else (
             "Reuse current evidence; do not repeat diagnostics without a revision change."

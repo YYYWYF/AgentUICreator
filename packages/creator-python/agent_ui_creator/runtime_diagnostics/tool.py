@@ -121,6 +121,7 @@ class RuntimeDiagnosticInspectionService:
                 f'UI plugin "{sanitized["pluginId"]}" requires a wide container, '
                 f'but its current container is {sanitized["actualWidthClass"]}.'
             )
+        sanitized["debuggingTargetId"] = "runtime:" + DebuggingEvidence.runtime_key(sanitized)
         return sanitized
 
     @classmethod
@@ -268,7 +269,7 @@ class RuntimeDiagnosticInspectionService:
         result["debuggingGuidance"] = (
             "Use only fresh current-hash source attribution. Read the implicated owner "
             "and nearest contract; do not rediscover all Plugins or scan the workspace. "
-            "Bind only requested diagnostic IDs with targetDiagnosticIds. Scope still controls repair."
+            "Select the requested debuggingTargetId with select_debugging_target before mutation; ask the user when candidates are ambiguous. Scope still controls repair."
         )
         self.latest_result = result
         self.last_inspected_revision = self.activity.revision
@@ -541,7 +542,7 @@ def create_runtime_diagnostic_tool(
     async def inspect_runtime_errors(
         includeStale: bool = False, targetDiagnosticIds: list[str] | None = None,
     ) -> str:
-        """Inspect current-hash Runtime diagnostics and freshness. Bind only user-requested current error IDs with targetDiagnosticIds; this does not grant write permission. By default historical errors from older AppUIModel hashes are summarized but omitted. A passed result requires Runtime evidence received after the latest Creator source or composition mutation."""
+        """Inspect current-hash Runtime diagnostics and freshness. Select the requested debuggingTargetId with select_debugging_target before repair; targetDiagnosticIds is an internal compatibility interface. Selection does not grant write permission. By default historical errors from older AppUIModel hashes are summarized but omitted. A passed result requires Runtime evidence received after the latest Creator source or composition mutation."""
         try:
             result = await service.inspect(include_stale=includeStale, target_ids=tuple(sorted(targetDiagnosticIds or [])))
             if targetDiagnosticIds:
@@ -565,6 +566,7 @@ def create_runtime_diagnostic_tool(
                 for item in selected:
                     key = service.debugging.runtime_key(item)
                     service.debugging.runtime_targets[key] = identities[key]
+            service.debugging.observe_runtime_targets(result, service.activity.revision)
             result["targetDiagnosticCount"] = len(service.debugging.runtime_targets)
             result["runtimeDebuggingDifferential"] = service.debugging.runtime_differential(result, service.activity.revision)
             return json.dumps(

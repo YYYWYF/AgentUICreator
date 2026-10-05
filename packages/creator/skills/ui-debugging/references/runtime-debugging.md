@@ -10,8 +10,11 @@ root causes. Missing/freshness failures require reporting or fresh observations,
 not speculative code edits.
 
 A render/activation failure with Plugin, instance, authoring target and component
-stack identifies the owner directly. Bind requested IDs from `currentErrors`
-with `targetDiagnosticIds` before repair. Do not list every Plugin or scan all
+stack identifies the owner directly. Use
+`inspect_runtime_errors → debuggingTargetId → select_debugging_target` before repair.
+The Host establishes a complete fresh baseline before the first mutation.
+If multiple candidates remain plausible, ask the user. Use
+`select_all_current_runtime_diagnostics()` only for an explicit repair-all goal. Do not list every Plugin or scan all
 source to rediscover the owner. Plain console errors cannot establish Plugin
 attribution. Diagnostic selection does not grant scope or cross-layer writes.
 

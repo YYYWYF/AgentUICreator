@@ -33,6 +33,11 @@ class DebuggingEvidence:
         self.runtime_baseline: dict[str, dict[str, Any]] | None = None
         self.runtime_observation: dict[str, dict[str, Any]] | None = None
         self.runtime_evidence_hash: str | None = None
+        self.observed_targets: dict[str, dict[str, Any]] = {}
+        self.selected_target_ids: set[str] = set()
+        self.target_selection_calls = 0
+        self.ambiguous_target_stops = 0
+        self.all_current_runtime = False
         self.clean_requested = False
         self.final_state: str | None = None
         self.reason: str | None = None
@@ -44,6 +49,39 @@ class DebuggingEvidence:
     @property
     def active(self) -> bool:
         return bool(self.targets or self.runtime_targets or self.clean_requested)
+
+    @property
+    def diagnostic_scope_pending(self) -> bool:
+        kinds = {item["kind"] for item in self.observed_targets.values()}
+        return (("static" in kinds and not self.targets and not self.clean_requested)
+                or ("runtime" in kinds and not self.runtime_targets))
+
+    def observe_static_targets(self, diagnostics: Any, revision: int) -> None:
+        for item in diagnostics:
+            if item.path.startswith("<"):
+                continue
+            target_id = "ts:" + self.static_key(item)
+            self.observed_targets[target_id] = {
+                "kind": "static", "identity": self.static_identity(item),
+                "revision": revision, "owner": {"path": item.path},
+                "summary": f"{item.path} / {item.code}",
+            }
+
+    def observe_runtime_targets(self, result: dict[str, Any], revision: int) -> None:
+        if result.get("diagnosticFresh") is not True or result.get("compositionFresh") is not True:
+            return
+        for item in result.get("currentErrors", []):
+            target_id = "runtime:" + self.runtime_key(item)
+            self.observed_targets[target_id] = {
+                "kind": "runtime", "identity": self.runtime_identity(item),
+                "revision": revision,
+                "owner": {key: item.get(key) for key in ("pluginId", "instanceId")},
+                "summary": f"{item.get('pluginId')} / {item.get('kind')}",
+            }
+
+    def candidate_targets(self) -> list[dict[str, Any]]:
+        return [{"targetId": key, "summary": value["summary"]}
+                for key, value in self.observed_targets.items()]
 
     @staticmethod
     def static_identity(diagnostic: Any) -> dict[str, Any]:
@@ -136,6 +174,11 @@ class DebuggingEvidence:
     def metrics(self, *, differential: Any, repair_state: Any, revision: int) -> dict[str, Any]:
         current = None if differential is None or not differential.current_available else differential.current_diagnostics
         return {
+            "observedDebuggingTargets": self.candidate_targets(),
+            "selectedDebuggingTargetIds": sorted(self.selected_target_ids),
+            "diagnosticScopePending": self.diagnostic_scope_pending,
+            "targetSelectionCalls": self.target_selection_calls,
+            "ambiguousTargetStops": self.ambiguous_target_stops,
             "validationReads": self.validation_reads,
             "runtimeDiagnosticReads": self.runtime_reads,
             "duplicateDiagnosticCalls": self.duplicates,

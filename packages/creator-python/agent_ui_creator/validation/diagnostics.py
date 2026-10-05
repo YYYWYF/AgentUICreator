@@ -45,7 +45,9 @@ class TypeScriptDiagnostic:
         return self.path, self.code, self.message
 
     def to_dict(self) -> dict[str, object]:
+        from ..debugging import DebuggingEvidence
         return {
+            "debuggingTargetId": "ts:" + DebuggingEvidence.static_key(self),
             "path": self.path,
             "code": self.code,
             "message": self.message,

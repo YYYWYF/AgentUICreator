@@ -36,6 +36,8 @@ DOMAIN_WRITE_TOOL_NAMES = (
     "edit_file_from_read",
     "apply_agent_ui_source_item",
     "validate_creator_changes",
+    "select_debugging_target",
+    "select_all_current_runtime_diagnostics",
     "inspect_runtime_errors",
     "verify_ui_plugin_behavior",
     "inspect_ui_plugin_delivery",
@@ -46,7 +48,8 @@ ANSWER_ONLY_FORBIDDEN_TOOL_NAMES = _ALLOWED_DOMAIN_WRITE_TOOL_SET | frozenset(
     {"write_file", "delete", "execute", "write_todos", "task"}
 )
 RUNTIME_VERIFICATION_TOOL_NAMES = frozenset(
-    {"inspect_runtime_errors", "inspect_runtime_layout", "verify_ui_plugin_behavior"}
+    {"inspect_runtime_errors", "inspect_runtime_layout", "verify_ui_plugin_behavior",
+     "select_all_current_runtime_diagnostics"}
 )
 
 # Every future side-effecting domain tool must be explicitly classified here.
@@ -70,7 +73,9 @@ ALLOWED_INSPECT_READ_ONLY_TOOLS = tuple(
     name for name in ALLOWED_DOMAIN_READ_TOOLS
     if name not in SIDE_EFFECT_TOOL_NAMES
 )
-READ_ONLY_TOOL_NAMES = _ALLOWED_DOMAIN_WRITE_TOOL_SET - SIDE_EFFECT_TOOL_NAMES
+READ_ONLY_TOOL_NAMES = _ALLOWED_DOMAIN_WRITE_TOOL_SET - SIDE_EFFECT_TOOL_NAMES - frozenset(
+    {"select_debugging_target", "select_all_current_runtime_diagnostics"}
+)
 
 
 def _runtime_tools_enabled(verification_mode: CreatorVerificationMode) -> bool:

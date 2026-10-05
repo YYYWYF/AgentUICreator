@@ -29,6 +29,8 @@ class DebuggingEvidenceConvergenceMiddleware(AgentMiddleware):
                                     if any(debugging.static_matches(item, target) for target in debugging.targets.values()))
             elif validation.status == "failed":
                 diagnostics = differential.new_diagnostics
+        if debugging.diagnostic_scope_pending and differential is not None:
+            diagnostics = differential.current_diagnostics
         static = [item.to_dict() for item in diagnostics[:8]]
         runtime = self.runtime.current_result() or {}
         runtime = debugging.runtime_completion_view(runtime, self.validation.activity.revision)
@@ -44,7 +46,10 @@ class DebuggingEvidenceConvergenceMiddleware(AgentMiddleware):
             "read the implicated owner file and nearest contract before broader discovery. Do not "
             "repeat glob, root listing, Plugin inventory or diagnostic reads to rediscover known facts. "
             "Expand investigation only for a new concrete uncertainty from the target. "
-            "Bind only explicitly requested existing diagnostics; unrelated pre-existing errors "
+            "Diagnostic observation is evidence, not repair scope. Select the requested "
+            "debuggingTargetId with select_debugging_target before mutation. If multiple diagnostics "
+            "remain plausible without explicit all-current authorization, ask_user_question. "
+            "Unrelated pre-existing errors "
             "are workspace warnings. This evidence grants no write permission.\n"
             + json.dumps(evidence, ensure_ascii=False)
         ))])

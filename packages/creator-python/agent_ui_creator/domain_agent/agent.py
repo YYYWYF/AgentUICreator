@@ -20,6 +20,7 @@ from ..app_ui_model import (
     AppUIModelMutationService,
     ProjectMutationCoordinator,
 )
+from ..domain_tools.debugging_tools import create_debugging_target_tools
 from ..app_ui_model.mutation_tool import create_app_ui_model_mutation_tool
 from ..domain_tools import CreatorRecoveryQueries, create_project_control_tools, create_recovery_query_tools, create_recovery_undo_tool
 from ..domain_state import (
@@ -838,6 +839,7 @@ def create_domain_write_creator_agent(
             verification_mode=verification_mode,
         ),
         create_validation_tool(validation),
+        *create_debugging_target_tools(validation, runtime_inspection),
     ]
     domain_tools.extend((*create_recovery_query_tools(recovery_queries),
                          create_recovery_undo_tool(recovery_queries)))

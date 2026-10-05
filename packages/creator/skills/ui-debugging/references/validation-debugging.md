@@ -6,11 +6,10 @@ file, code, line/column and message before inspecting the nearest contract.
 `diagnosticIdentities` provides canonical path, code and messageHash; positions
 are evidence, not identity, so moving an error does not resolve it.
 
-For one explicitly requested existing error, bind its current identity with
-`targetDiagnostics=[{"path":"src/plugins/foo/index.tsx","code":"TS2345"}]`.
-If the path/code is ambiguous, include the returned messageHash. Bind before
-editing. Reuse the binding in later revisions; no need to repeat it in each
-validation call. Selecting a target does not establish write authorization.
+For one explicitly requested error, use
+`validate_creator_changes → debuggingTargetId → select_debugging_target`.
+Select the returned `ts:...` string before editing; the Host binds its identity.
+Reuse the binding across revisions. Selection does not establish write authority.
 
 Delta permits unrelated unchanged errors. Completion additionally requires
 bound targets to disappear, no introduced regressions, and the existing Host

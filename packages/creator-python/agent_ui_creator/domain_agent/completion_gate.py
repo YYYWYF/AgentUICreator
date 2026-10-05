@@ -238,6 +238,12 @@ class CreatorDevelopmentCompletionGate:
     def _review_debugging(self, candidate: str) -> CompletionDecision | None:
         validation = self.validation.current_result()
         debugging = getattr(self.validation, "debugging", None)
+        if debugging is not None and debugging.diagnostic_scope_pending and self.activity.revision == 0:
+            return CompletionDecision(
+                False, "修复目标尚未确定。",
+                "Select the user-requested debuggingTargetId or ask_user_question when ambiguous; observation grants no repair scope.",
+                completion="blocked", reason="debugging_target_required",
+            )
         if debugging is None or not debugging.active:
             return None
 

@@ -18,7 +18,7 @@ list the root, glob the workspace, or rediscover every Plugin.
 
 When static failure details are missing, use `validate_creator_changes` to
 obtain current diagnostics. Delta can pass while a requested pre-existing error
-remains: bind that exact error with `targetDiagnostics` from current Host evidence
+remains: select its `debuggingTargetId` with `select_debugging_target` from current Host evidence
 before repair. Targets persist through revisions; they do not authorize writes.
 Use clean mode only when the user asks to clean the entire typecheck.
 
@@ -26,6 +26,12 @@ Distinguish current, stale, pre-existing, introduced, and resolved diagnostics.
 Historical errors alone do not justify changing current code. Reuse an observed
 result when `DIAGNOSTIC_ALREADY_OBSERVED` says `reusePreviousResult=true`; reread
 after a mutation, changed evidence, validation mode, or Runtime scope.
+
+Diagnostic observation is evidence, not repair scope. Select the diagnostic the
+user wants fixed before mutation. If multiple diagnostics remain plausible and
+the user has not authorized all of them, ask the user instead of editing multiple
+owners. For an explicit all-current Runtime goal, use
+`select_all_current_runtime_diagnostics()`; each owner still obeys Scope Guard.
 
 ## Attribute before repair
 
@@ -55,7 +61,7 @@ unresolved_after_limit. Do not manufacture a no-op change.
 Runtime tools are available only in `static_and_runtime`. Prefer
 `inspect_runtime_errors` for failures and use its current hash, freshness,
 source/component stack, Plugin and instance attribution. Bind only requested
-fresh error IDs with `targetDiagnosticIds`. When attribution identifies the
+fresh `debuggingTargetId` values with `select_debugging_target`. When attribution identifies the
 owner, read it directly. Use `inspect_runtime_layout` for layout uncertainty.
 In `static_only`, report the missing Runtime evidence without claiming a
 Runtime repair was verified.

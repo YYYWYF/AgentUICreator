@@ -857,9 +857,65 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
         if self.run_control is not None:
             self.run_control.assert_tool_runnable()
 
+    def _debugging_selection_guard(self, call: dict[str, Any], name: str) -> ToolMessage | None:
+        debugging = self.debugging
+        if debugging is None:
+            return None
+        if name in {"prepare_ui_plugin_development", "prepare_ui_service_contract_change",
+                    "verify_ui_plugin_behavior"}:
+            return None
+        if not debugging.diagnostic_scope_pending:
+            # Selection narrows owners; it never grants a layer or resource.
+            selected_ids = {target_id for target_id in debugging.selected_target_ids
+                            if not (debugging.clean_requested and target_id.startswith("ts:"))}
+            if not selected_ids or not self._is_side_effect_tool(name):
+                return None
+            allowed = set()
+            for target_id in selected_ids:
+                owner = debugging.observed_targets[target_id]["owner"]
+                if owner.get("path"):
+                    allowed.update(resource_keys_for_path(owner["path"], project_root=self.project_root))
+                for key, prefix in (("pluginId", "plugin"), ("instanceId", "plugin-instance")):
+                    if owner.get(key):
+                        allowed.add(f"{prefix}:{owner[key]}")
+            arguments = call.get("args") or {}
+            resources = set(self._resources_for_call(name, arguments))
+            specific = resources - {_APP_UI_MODEL_RESOURCE}
+            if specific and specific.issubset(allowed):
+                return None
+            path = arguments.get("file_path")
+            if name in {"edit_file", "edit_file_from_read"} and isinstance(path, str):
+                logical = project_logical_path(path, self.project_root)
+                if any(logical == project_logical_path(
+                        debugging.observed_targets[target_id]["owner"].get("path", ""), self.project_root)
+                       for target_id in selected_ids
+                       if debugging.observed_targets[target_id]["owner"].get("path")):
+                    return None
+            return ToolMessage(
+                content=json.dumps({"ok": False, "error": {"code": "DEBUGGING_TARGET_OWNER_REQUIRED"},
+                                    "candidateTargets": debugging.candidate_targets(),
+                                    "nextAction": "inspect_selected_owner_or_ask_user"}),
+                tool_call_id=str(call.get("id") or "debugging-owner-guard"), name=name,
+            )
+        if name == "ask_user_question":
+            if len(debugging.observed_targets) > 1:
+                debugging.ambiguous_target_stops += 1
+            return None
+        if not self._is_side_effect_tool(name):
+            return None
+        return ToolMessage(
+            content=json.dumps({"ok": False, "error": {"code": "DEBUGGING_TARGET_REQUIRED"},
+                                "candidateTargets": debugging.candidate_targets(),
+                                "nextAction": "select_debugging_target_or_ask_user"}),
+            tool_call_id=str(call.get("id") or "debugging-target-guard"), name=name,
+        )
+
     def wrap_tool_call(self, request: Any, handler: Callable[[Any], Any]) -> Any:
         self._assert_tool_runnable()
         call, name, arguments = self._call(request)
+        selection_required = self._debugging_selection_guard(call, name)
+        if selection_required is not None:
+            return selection_required
         layer = change_layer_for_tool_call(name, self._logical_arguments(arguments))
         resources = self._resources_for_call(name, arguments)
         if layer is not None:
@@ -887,6 +943,9 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
     ) -> Any:
         self._assert_tool_runnable()
         call, name, arguments = self._call(request)
+        selection_required = self._debugging_selection_guard(call, name)
+        if selection_required is not None:
+            return selection_required
         layer = change_layer_for_tool_call(name, self._logical_arguments(arguments))
         resources = self._resources_for_call(name, arguments)
         if layer is not None:
