@@ -31,7 +31,7 @@ it.each(["platform", "assistant", "embedded"] as const)("installs independent tr
   const root = await project(mode);
   const modelPath = path.join(root, "custom-ui/app-ui/app-ui.json");
   const modelBefore = await readFile(modelPath, "utf8");
-  for (const resource of ["conversation-command-source", "conversation-mention", "conversation-slash-commands"]) {
+  for (const resource of ["conversation-command-source", "conversation-mention", "conversation-slash-commands", "conversation-lexical-input"]) {
     await installOfficialAgentUIResource(root, resource);
   }
   expect(await readFile(modelPath, "utf8")).toBe(modelBefore);
@@ -45,6 +45,7 @@ it.each(["platform", "assistant", "embedded"] as const)("installs independent tr
     expect(locations.filter(entry => entry.plugin.pluginId === pluginId)).toHaveLength(1);
     expect(locations.find(entry => entry.plugin.pluginId === pluginId)!.target).toEqual({ type: "plugin_slot", parentInstanceId: composer.plugin.id, slot: "triggers" });
   }
+  expect(locations.find(entry => entry.plugin.pluginId === "assistant-ui-lexical-composer-input")!.target).toEqual({ type: "plugin_slot", parentInstanceId: composer.plugin.id, slot: "input" });
   expect(locations.find(entry => entry.plugin.pluginId === "composer-trigger-demo")!.target).toEqual({ type: "application" });
   expect((await verifyUIProject(root)).status).toBe("passed");
   expect((await inspectScenarioResources(root)).items.find(item => item.id === "demo/composer-triggers")!.status).toBe("managed");

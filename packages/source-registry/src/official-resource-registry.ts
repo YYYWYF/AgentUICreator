@@ -46,6 +46,7 @@ export const officialResourceRegistry = createOfficialResourceRegistry([
   { id: "frontend-tool-dialog-demo", label: "弹窗 Frontend Tool Demo", implementation: { type: "source-plugin", sourceItemId: "demo/frontend-tool-dialog", pluginId: "frontend-tool-dialog-demo", placement: "layout", layoutSize: "0px" } },
   { id: "source-citations-message", label: "来源引用", implementation: { type: "plugin", pluginId: "source-citations-message" } },
   { id: "generated-file-message", label: "文件输出", implementation: { type: "plugin", pluginId: "generated-file-message" } },
+  { id: "conversation-lexical-input", label: "输入态提及 Chip", implementation: { type: "plugin", pluginId: "assistant-ui-lexical-composer-input" } },
   { id: "conversation-mention", label: "提及对象", implementation: { type: "plugin", pluginId: "assistant-ui-mention-trigger" } },
   { id: "conversation-slash-commands", label: "斜杠命令", implementation: { type: "plugin", pluginId: "assistant-ui-slash-command-trigger" } },
   { id: "conversation-command-source", label: "会话命令来源", implementation: { type: "plugin", pluginId: "conversation-command-source" } },

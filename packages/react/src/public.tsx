@@ -1,3 +1,4 @@
+import { ComposerTextareaInput as InternalComposerTextareaInput } from "./internal/composer-input-host-context.js";
 import type { AgentUITheme } from "./theme/theme-contract.js";
 export { AGENT_UI_THEME_PRESETS, getAgentUIThemeColorScheme, isAgentUITheme } from "./theme/theme-contract.js";
 export type { AgentUITheme, AgentUIColorScheme, AgentUIThemeConfig } from "./theme/theme-contract.js";
@@ -330,6 +331,7 @@ export interface ConversationCanonicalComposerProps {
   autoFocus?: boolean | undefined;
   triggers?: ReactNode;
   beforeInput?: ReactNode;
+  input?: ReactNode;
   leadingActions?: ReactNode;
   trailingActions?: ReactNode;
   submitAction?: ReactNode;
@@ -353,6 +355,11 @@ export function ConversationCanonicalComposer({
       inputAriaLabel={inputAriaLabel}
     />
   );
+}
+
+/** Canonical textarea fallback for optional Composer input Slots. */
+export function ConversationComposerTextareaInput() {
+  return <InternalComposerTextareaInput />;
 }
 
 export interface ConversationComposerAttachment {

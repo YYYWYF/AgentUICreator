@@ -1,0 +1,32 @@
+{
+  "id": "plugin/assistant-ui-lexical-composer-input",
+  "kind": "agent-component",
+  "description": "Optional Lexical input presentation using the Agent UI directive codec.",
+  "requires": [
+    "foundation/core",
+    "plugin/assistant-ui-composer"
+  ],
+  "files": [
+    {
+      "source": "files/plugins/assistant-ui-lexical-composer-input/definition.ts",
+      "target": "plugins/assistant-ui-lexical-composer-input/definition.ts"
+    },
+    {
+      "source": "files/plugins/assistant-ui-lexical-composer-input/index.tsx",
+      "target": "plugins/assistant-ui-lexical-composer-input/index.tsx"
+    },
+    {
+      "source": "files/plugins/assistant-ui-lexical-composer-input/manifest.json",
+      "target": "plugins/assistant-ui-lexical-composer-input/manifest.json"
+    }
+  ],
+  "packages": {
+    "react": "^19.2.0",
+    "@assistant-ui/react-lexical": "0.2.15",
+    "lexical": "0.51.0",
+    "@lexical/react": "0.51.0",
+    "@lexical/utils": "0.51.0",
+    "@lexical/history": "0.51.0",
+    "@lexical/plain-text": "0.51.0"
+  }
+}

@@ -11,7 +11,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./styles.css": "./dist/styles.css"
+    "./styles.css": "./dist/styles.css",
+    "./lexical": {
+      "types": "./dist/lexical.d.ts",
+      "import": "./dist/lexical.js"
+    }
   },
   "files": [
     "dist",
@@ -24,14 +28,15 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs",
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-lexical-boundary.mjs",
     "check:public-boundary": "node scripts/check-public-boundary.mjs",
     "check:assistant-ui-upstream": "node scripts/check-assistant-ui-upstream.mjs",
     "check:assistant-ui-latest": "node scripts/check-assistant-ui-latest.mjs",
     "check:assistant-ui-revision": "node scripts/check-assistant-ui-revision.mjs",
     "sync:assistant-ui-upstream": "node scripts/sync-assistant-ui-upstream.mjs",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.tests.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:lexical-boundary": "node scripts/check-lexical-boundary.mjs"
   },
   "dependencies": {
     "@assistant-ui/react": "0.15.23",
@@ -48,7 +53,13 @@
   },
   "peerDependencies": {
     "react": ">=18 <20",
-    "react-dom": ">=18 <20"
+    "react-dom": ">=18 <20",
+    "@assistant-ui/react-lexical": "0.2.15",
+    "lexical": "0.51.0",
+    "@lexical/react": "0.51.0",
+    "@lexical/utils": "0.51.0",
+    "@lexical/history": "0.51.0",
+    "@lexical/plain-text": "0.51.0"
   },
   "devDependencies": {
     "@types/node": "^20.19.43",
@@ -74,6 +85,32 @@
     "react-hook-form": "^7",
     "@assistant-ui/react-hook-form": "0.12.34",
     "@assistant-ui/react-generative-ui": "0.0.22",
-    "react-markdown": "10.1.0"
+    "react-markdown": "10.1.0",
+    "@assistant-ui/react-lexical": "0.2.15",
+    "lexical": "0.51.0",
+    "@lexical/react": "0.51.0",
+    "@lexical/utils": "0.51.0",
+    "@lexical/history": "0.51.0",
+    "@lexical/plain-text": "0.51.0"
+  },
+  "peerDependenciesMeta": {
+    "@assistant-ui/react-lexical": {
+      "optional": true
+    },
+    "lexical": {
+      "optional": true
+    },
+    "@lexical/react": {
+      "optional": true
+    },
+    "@lexical/utils": {
+      "optional": true
+    },
+    "@lexical/history": {
+      "optional": true
+    },
+    "@lexical/plain-text": {
+      "optional": true
+    }
   }
 }

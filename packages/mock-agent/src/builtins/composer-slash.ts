@@ -1,7 +1,7 @@
 import { defineScenario } from "../scenario.js";
 export const composerSlashScenario = defineScenario({
   id: "composer-slash", title: "Composer · Slash Commands", category: "presentation",
-  resources: ["conversation-command-source", "conversation-slash-commands", "composer-trigger-demo"],
+  resources: ["conversation-lexical-input", "conversation-command-source", "conversation-slash-commands", "composer-trigger-demo"],
   description: "同一 Slash 列表支持前端 /new 和 Agent 指令 /summarize。",
   reference: { audience: "frontend", protocol: "AG-UI user text", pattern: "Frontend action / serialized command",
     presentation: "assistant-ui Composer Trigger / Directive Text", eventFlow: ["TEXT_MESSAGE_START/CONTENT/END"],

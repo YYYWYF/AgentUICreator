@@ -1,0 +1,20 @@
+{
+  "id": "assistant-ui-lexical-composer-input",
+  "name": "Assistant UI Lexical Composer Input",
+  "description": "Optional plain text input with atomic directive chips.",
+  "version": "0.0.1",
+  "capabilities": [
+    "conversation-composer-input"
+  ],
+  "authoring": {
+    "intents": [
+      "show atomic mention and command chips in the composer"
+    ],
+    "visualRole": "conversation input",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "assistant-ui-composer",
+      "slot": "input"
+    }
+  }
+}

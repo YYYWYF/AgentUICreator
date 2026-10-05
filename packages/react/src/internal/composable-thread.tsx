@@ -1,5 +1,7 @@
 "use client";
 
+import { ComposerInputHostContext, ComposerTextareaInput } from "./composer-input-host-context.js";
+
 import { ConversationUserDirectiveText } from "./conversation-directive-text.js";
 import { QuoteThreadRootContext } from "./quote-thread-root.js";
 import { QuoteSelectableText } from "./quote-selectable-text.js";
@@ -347,6 +349,7 @@ export interface CanonicalComposerProps {
   inputAriaLabel: string;
   triggers?: ReactNode;
   beforeInput?: ReactNode;
+  input?: ReactNode;
   leadingActions?: ReactNode;
   trailingActions?: ReactNode;
   submitAction?: ReactNode;
@@ -358,6 +361,7 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
   inputAriaLabel,
   triggers,
   beforeInput,
+  input,
   leadingActions,
   trailingActions,
   submitAction,
@@ -378,14 +382,9 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
           {beforeInput === undefined || beforeInput === null ? null : (
             <div data-slot="aui_composer-before-input">{beforeInput}</div>
           )}
-          <ComposerPrimitive.Input
-            placeholder={placeholder}
-            className="aui-composer-input caret-primary placeholder:text-muted-foreground/60 max-h-48 min-h-10 w-full resize-none bg-transparent px-2.5 py-1 text-base leading-6 outline-none"
-            rows={1}
-            autoFocus={resolvedAutoFocus}
-            enterKeyHint="send"
-            aria-label={inputAriaLabel}
-          />
+          <ComposerInputHostContext.Provider value={{ placeholder, inputAriaLabel, autoFocus: resolvedAutoFocus }}>
+            {input ?? <ComposerTextareaInput />}
+          </ComposerInputHostContext.Provider>
           <div className="aui-composer-action-wrapper relative flex items-center justify-between">
             <div
               data-slot="aui_composer-leading-actions"

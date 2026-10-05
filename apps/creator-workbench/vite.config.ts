@@ -102,6 +102,7 @@ export default defineConfig({
         workspaceRoot,
         "packages/creator/src/visual-observation/VisualObservationReporter.ts",
       ),
+      "@agent-ui/react/lexical": path.join(workspaceRoot, "packages/react/src/lexical.tsx"),
       "@agent-ui/react": path.join(
         workspaceRoot,
         "packages/react/src/index.ts",

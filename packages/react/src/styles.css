@@ -13,6 +13,7 @@
 @import "./theme/agent-ui-theme-extensions.css";
 @import "./theme/agent-ui-violet-theme.css";
 @import "./theme/assistant-ui-theme-overrides.css";
+@import "./theme/composer-lexical.css";
 
 @custom-variant dark (&:is(.dark *));
 

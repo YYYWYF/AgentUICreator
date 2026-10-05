@@ -1,4 +1,4 @@
-import { ConversationCanonicalComposer } from "@agent-ui/react";
+import { ConversationCanonicalComposer, ConversationComposerTextareaInput } from "@agent-ui/react";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 
 export function AssistantUiComposerPlugin({
@@ -11,6 +11,7 @@ export function AssistantUiComposerPlugin({
     >
       <ConversationCanonicalComposer
         triggers={renderSlot("triggers", null)}
+        input={renderSlot("input", <ConversationComposerTextareaInput />)}
         beforeInput={renderSlot("beforeInput", null)}
         leadingActions={renderSlot("leadingActions", null, { layout: "inline" })}
         trailingActions={renderSlot("trailingActions", null, { layout: "inline" })}

@@ -10,6 +10,7 @@ export function generatedSourceTestConfig(packageRoot: string) {
   return {
     root: packageRoot,
     resolve: { dedupe: ["react", "react-dom", "@assistant-ui/react", "@assistant-ui/core"], alias: [
+      { find: "@agent-ui/react/lexical", replacement: path.join(root, "packages/react/src/lexical.tsx") },
       { find: "@agent-ui/react/styles.css", replacement: path.join(root, "packages/react/src/styles.css") },
       { find: "@agent-ui/runtime-core/testing", replacement: path.join(root, "packages/runtime-core/src/testing/index.ts") },
       ...["react", "runtime-core", "runtime-react", "runtime-conversation", "bootstrap", "source-registry", "mock-agent"].map(name => ({

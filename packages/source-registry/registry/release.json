@@ -36,7 +36,7 @@
       "version": "0.0.1"
     },
     "assistant-ui-composer": {
-      "version": "0.0.1"
+      "version": "0.0.2"
     },
     "generated-file-message": {
       "version": "0.0.1"
@@ -99,6 +99,9 @@
       "version": "0.0.1"
     },
     "agent-plan-message": {
+      "version": "0.0.1"
+    },
+    "assistant-ui-lexical-composer-input": {
       "version": "0.0.1"
     }
   }

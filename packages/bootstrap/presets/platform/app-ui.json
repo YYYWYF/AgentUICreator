@@ -110,6 +110,13 @@
                           "pluginId": "assistant-ui-slash-command-trigger",
                           "enabled": true
                         }
+                      ],
+                      "input": [
+                        {
+                          "id": "assistant-ui-lexical-composer-input-main",
+                          "pluginId": "assistant-ui-lexical-composer-input",
+                          "enabled": true
+                        }
                       ]
                     }
                   }

@@ -7,7 +7,7 @@ export const composerMentionContextScenario = defineScenario({
   id: "composer-mention-context",
   title: "Composer · Mention Backend Context",
   category: "basics",
-  resources: ["conversation-command-source", "conversation-mention", "composer-trigger-demo"],
+  resources: ["conversation-lexical-input", "conversation-command-source", "conversation-mention", "composer-trigger-demo"],
   description: "服务端按稳定员工 ID 查询示例花名册，将安全字段注入 AG-UI Context 后回答。",
   reference: {
     audience: "backend", protocol: "AG-UI user text + Context",

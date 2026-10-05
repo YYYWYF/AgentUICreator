@@ -187,6 +187,10 @@
     {
       "id": "plugin/retrieval-chunks",
       "path": "items/plugin-retrieval-chunks/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-lexical-composer-input",
+      "path": "items/plugin-assistant-ui-lexical-composer-input/item.json"
     }
   ]
 }

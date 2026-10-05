@@ -1,0 +1,54 @@
+/* Input-only presentation. Composer shell and surrounding actions stay owned by
+ * CanonicalComposer. Every selector remains inside the Agent UI style scope. */
+:is(.agent-ui-root, .agent-ui-conversation) .agent-ui-composer-lexical-input {
+  position: relative;
+  width: 100%;
+  min-height: 2.5rem;
+  max-height: 12rem;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 1rem;
+  line-height: 1.5rem;
+  cursor: text;
+}
+
+:is(.agent-ui-root, .agent-ui-conversation) .agent-ui-composer-lexical-input .aui-lexical-input {
+  min-height: 2.5rem;
+  padding: 0.25rem 0.625rem;
+  outline: none;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  caret-color: var(--primary);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation) .agent-ui-composer-lexical-input .aui-lexical-placeholder {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.625rem;
+  right: 0.625rem;
+  color: color-mix(in oklab, var(--muted-foreground) 60%, transparent);
+  pointer-events: none;
+}
+
+:is(.agent-ui-root, .agent-ui-conversation) .agent-ui-composer-directive-chip {
+  display: inline;
+  padding: 0.0625rem 0.25rem;
+  border: 1px solid color-mix(in oklab, var(--primary) 22%, var(--background));
+  border-radius: 0.375rem;
+  background: color-mix(in oklab, var(--primary) 7%, var(--background));
+  color: var(--foreground);
+  font-size: inherit;
+  line-height: inherit;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+:is(.agent-ui-root, .agent-ui-conversation) .agent-ui-composer-lexical-input:focus-within .agent-ui-composer-directive-chip {
+  border-color: color-mix(in oklab, var(--primary) 32%, var(--background));
+}
+
+:is(.agent-ui-root, .agent-ui-conversation) .agent-ui-composer-directive-chip::selection,
+:is(.agent-ui-root, .agent-ui-conversation) .agent-ui-composer-directive-chip:focus-visible {
+  background: color-mix(in oklab, var(--primary) 18%, var(--background));
+  outline: 1px solid var(--ring);
+}

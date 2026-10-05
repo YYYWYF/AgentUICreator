@@ -1,0 +1,8 @@
+{
+  "0.0.1": {
+    "summary": "可替换 Composer 输入与 atomic directive chips",
+    "changes": [
+      "沿用 Directive Codec 与 upstream Lexical 编辑逻辑；删除实例回退 textarea。"
+    ]
+  }
+}

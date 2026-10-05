@@ -1,7 +1,7 @@
 import { defineScenario } from "../scenario.js";
 export const composerMentionScenario = defineScenario({
   id: "composer-mention", title: "Composer · Mention", category: "presentation",
-  resources: ["conversation-command-source", "conversation-mention", "composer-trigger-demo"],
+  resources: ["conversation-lexical-input", "conversation-command-source", "conversation-mention", "composer-trigger-demo"],
   description: "输入 @ 搜索示例花名册，选中对象后发送；在请求记录中检查稳定员工 ID。",
   reference: { audience: "frontend", protocol: "AG-UI user text", pattern: "Async source → directive → user message",
     presentation: "assistant-ui Composer Trigger / Directive Text", eventFlow: ["TEXT_MESSAGE_START/CONTENT/END"],

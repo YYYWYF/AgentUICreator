@@ -2,7 +2,7 @@
   "id": "assistant-ui-composer",
   "name": "Assistant UI Composer",
   "description": "Renders the canonical assistant-ui conversation composer with composable action Slots.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "conversation-composer"
   ],
@@ -67,6 +67,16 @@
         "accepts": {
           "anyOfCapabilities": [
             "conversation-composer-submit-action"
+          ]
+        }
+      },
+      "input": {
+        "description": "Optional text input presentation; falls back to the canonical textarea.",
+        "cardinality": "one",
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": [
+            "conversation-composer-input"
           ]
         }
       }
