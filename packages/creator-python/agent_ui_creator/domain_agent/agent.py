@@ -90,6 +90,7 @@ from ..verification_policy import (
 )
 from .completion_gate import CreatorDevelopmentCompletionGate
 from .composition_verification_tail import CompositionVerificationTail
+from .debugging_convergence import DebuggingEvidenceConvergenceMiddleware
 from .grounding_convergence import CompositionGroundingConvergenceMiddleware
 from .source_grounding import (
     SourceGroundingConvergenceMiddleware, SourceGroundingMetrics,
@@ -277,6 +278,11 @@ class CreatorDomainReadAgent:
         except (httpx.TimeoutException, openai.APITimeoutError, TimeoutError) as error:
             raise ModelTimeoutError("Creator Agent 等待模型响应超时，请稍后重试。") from error
         if terminal_blocked or self.run_control.blocked:
+            if self.completion_gate is not None:
+                debugging = self.completion_gate.validation.debugging
+                if debugging.active or debugging.validation_reads or debugging.runtime_reads:
+                    debugging.final_state = "blocked"
+                    debugging.reason = "scope_or_integrity_blocker"
             return self._build_result(
                 text=self.run_control.render_blocker_response(),
                 completion="blocked",
@@ -791,6 +797,7 @@ def create_domain_write_creator_agent(
         observations=observations,
         activity=backend.activity,
         repair_state=repair_state,
+        debugging=validation.debugging,
     )
     completion_verification_tail = CompositionVerificationTail(
         activity=backend.activity,
@@ -907,6 +914,7 @@ def create_domain_write_creator_agent(
                 verification_mode=verification_mode,
                 development_authority=development_authority,
             ),
+            DebuggingEvidenceConvergenceMiddleware(validation, runtime_inspection),
             source_grounding,
             scope_guard,
             repeated_read_guard,

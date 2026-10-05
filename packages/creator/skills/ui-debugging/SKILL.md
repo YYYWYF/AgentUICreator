@@ -1,31 +1,69 @@
 ---
 name: ui-debugging
-description: Use when diagnosing AppUIModel validation failures, TypeScript errors, Runtime errors, HMR issues, build failures, or UI Plugin loading and registration errors.
-compatibility: Agent UI Plugin Creator Phase 8 command allowlist and Plugin write boundaries.
-allowed-tools: read_file ls glob grep edit_file inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin inspect_runtime_errors mutate_app_ui_model undo_creator_run execute
+description: Use for reported errors, missing UI, failed TypeScript/AppUIModel validation, Runtime failures, or Plugin loading problems. Ordinary layout changes do not require this skill.
 ---
 
 # UI Debugging
 
-Start from the concrete failure and preserve layer boundaries.
+Use tools actually offered in this run. This skill grants no permissions and
+prescribes no fixed workflow or discovery phase.
 
-## Diagnostic order
+## Exact current failure first
 
-1. Read the exact error and the directly implicated model or source file.
-2. For AppUIModel errors, check schema invariants, `activeIndex`, `sizes`, Panel bounds, application plugins, Layout Slot `plugins`, and nested plugin-local Slots. Use snapshot-scoped `nodeRef` targets with `inspect_ui_slots`; Runtime slot ids are compiler output, not repair inputs.
-3. For Plugin load errors, check manifest validation, registration, `pluginId`, and instance references.
-4. For TypeScript errors, inspect the first relevant error and the local contract before editing.
-5. For Runtime errors, call `inspect_runtime_errors` and use only diagnostics matching the current AppUIModel hash. A source-attributed render failure includes its Plugin, instance, authoring target, and component stack; an activation failure identifies the setup instance. Runtime Slot ids and paths are not Creator-facing evidence. Use `includeStale` only for history, and do not attribute ordinary console errors to a Plugin.
-6. For HMR issues, distinguish a failed module update from state or runtime behavior before changing architecture.
+Prefer the user's specific error, then current Host validation diagnostics,
+then fresh Runtime diagnostics, then the implicated owner and nearest contract.
+Broader investigation is justified only by a concrete uncertainty left by that
+evidence. For `TS2345 src/plugins/foo/index.tsx:42`, read that file first; do not
+list the root, glob the workspace, or rediscover every Plugin.
 
-## Phase 8 repair boundary
+When static failure details are missing, use `validate_creator_changes` to
+obtain current diagnostics. Delta can pass while a requested pre-existing error
+remains: bind that exact error with `targetDiagnostics` from current Host evidence
+before repair. Targets persist through revisions; they do not authorize writes.
+Use clean mode only when the user asks to clean the entire typecheck.
 
-- Repair AppUIModel when the failure is model composition and the requested edit is allowed.
-- Repair Plugin source when the failure is inside `/plugins/` and the change preserves the Plugin Contract.
-- Runtime and Framework remain read-only; diagnose and report an infrastructure change rather than bypassing the boundary.
-- Available validation commands include `pnpm verify:ui`, `pnpm test`, `pnpm typecheck`, and `git diff --check`.
-- Run the narrowest relevant validation, then expand only when justified.
-- Runtime diagnostics cover failures after static validation, but do not replace `verify:ui` or typecheck evidence.
+Distinguish current, stale, pre-existing, introduced, and resolved diagnostics.
+Historical errors alone do not justify changing current code. Reuse an observed
+result when `DIAGNOSTIC_ALREADY_OBSERVED` says `reusePreviousResult=true`; reread
+after a mutation, changed evidence, validation mode, or Runtime scope.
 
-Do not hide a validation failure with unrelated rewrites, dependency changes, or relaxed contracts.
-Do not delete a failing Plugin's source to make validation pass. Repair it, remove only its AppUIModel instance when that is the user's intent, or use `undo_creator_run` for a still-matching Creator change.
+## Attribute before repair
+
+- Composition: inspect current AppUIModel/Slot/Layout/instance/placement and
+  repair with `mutate_app_ui_model`, using snapshot-scoped authoring refs.
+- Plugin behavior: read the named TS/TSX/CSS/manifest/definition owner and make
+  the smallest source change preserving the Plugin Contract.
+- Runtime capability: use current Service contract and provider/consumer facts;
+  repair only within user authorization and Host scope.
+- Agent integration: read the application-owned frontend Tool/Event/AG-UI
+  contract. Do not spread the change into Runtime or Framework.
+
+A page failure does not establish which layer owns it. Runtime and Framework
+remain read-only unless the task explicitly authorizes framework work. Diagnosis
+selection never expands Scope Guard permissions. Do not delete failing source,
+relax contracts, or repair unrelated workspace errors to make checks pass.
+
+## Converge and stop
+
+Verify the requested diagnostic disappears on the current revision and no
+introduced regressions remain. Unrelated pre-existing errors are warnings.
+Existing repair limits apply to unresolved target errors even when delta passes.
+Report structured outcomes: resolved, blocked by scope/integrity/freshness,
+unchanged_preexisting when current evidence already satisfies the goal, or
+unresolved_after_limit. Do not manufacture a no-op change.
+
+Runtime tools are available only in `static_and_runtime`. Prefer
+`inspect_runtime_errors` for failures and use its current hash, freshness,
+source/component stack, Plugin and instance attribution. Bind only requested
+fresh error IDs with `targetDiagnosticIds`. When attribution identifies the
+owner, read it directly. Use `inspect_runtime_layout` for layout uncertainty.
+In `static_only`, report the missing Runtime evidence without claiming a
+Runtime repair was verified.
+
+Ordinary debugging does not undo a whole Creator run. Read `ui-change-recovery`
+only when the user's goal is to undo a historical Creator modification.
+
+Read [validation-debugging](references/validation-debugging.md) for complex
+static diagnostics or target completion, and
+[runtime-debugging](references/runtime-debugging.md) for Runtime freshness,
+attribution, and layout boundaries.

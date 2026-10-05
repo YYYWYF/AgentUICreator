@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import re
 from pathlib import Path
 
@@ -8,12 +8,12 @@ from pathlib import Path
 _ANSI_ESCAPE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 _TS_EXTENSION = r"(?:d\.)?(?:[cm]?tsx?|[cm]?jsx?)"
 _TS_PAREN_DIAGNOSTIC = re.compile(
-    rf"(?P<path>(?:[A-Za-z]:)?[^():\n]+?\.{_TS_EXTENSION})\(\d+,\s*\d+\)\s*:\s*"
+    rf"(?P<path>(?:[A-Za-z]:)?[^():\n]+?\.{_TS_EXTENSION})\((?P<line>\d+),\s*(?P<column>\d+)\)\s*:\s*"
     r"error\s+TS(?P<code>\d+)\s*:\s*(?P<message>.*)$",
     re.IGNORECASE,
 )
 _TS_COLON_DIAGNOSTIC = re.compile(
-    rf"(?P<path>(?:[A-Za-z]:)?[^():\n]+?\.{_TS_EXTENSION}):\d+:\d+\s*(?::|-)+\s*"
+    rf"(?P<path>(?:[A-Za-z]:)?[^():\n]+?\.{_TS_EXTENSION}):(?P<line>\d+):(?P<column>\d+)\s*(?::|-)+\s*"
     r"error\s+TS(?P<code>\d+)\s*:\s*(?P<message>.*)$",
     re.IGNORECASE,
 )
@@ -37,16 +37,19 @@ class TypeScriptDiagnostic:
     path: str
     code: str
     message: str
+    line: int | None = field(default=None, compare=False)
+    column: int | None = field(default=None, compare=False)
 
     @property
     def fingerprint(self) -> tuple[str, str, str]:
         return self.path, self.code, self.message
 
-    def to_dict(self) -> dict[str, str]:
+    def to_dict(self) -> dict[str, object]:
         return {
             "path": self.path,
             "code": self.code,
             "message": self.message,
+            **({"line": self.line, "column": self.column} if self.line is not None else {}),
         }
 
 
@@ -77,6 +80,8 @@ def _diagnostic_from_match(
     return TypeScriptDiagnostic(
         path=_normalize_path(match.group("path"), project_root),
         code=f"TS{match.group('code')}",
+        line=int(match.group("line")),
+        column=int(match.group("column")),
         message=re.sub(r"\s+", " ", match.group("message").strip()),
     )
 

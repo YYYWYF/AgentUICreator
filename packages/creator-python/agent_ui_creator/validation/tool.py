@@ -7,16 +7,34 @@ from langchain_core.tools import BaseTool, tool
 
 from ..project_control.errors import ProjectControlError
 from .service import CreatorValidationService
+from ..debugging import evidence_hash
 
 
 def create_validation_tool(service: CreatorValidationService) -> BaseTool:
+    last_key: tuple[object, ...] | None = None
+
     @tool("validate_creator_changes")
     async def validate_creator_changes(
         mode: Literal["delta", "clean"] = "delta",
+        targetDiagnostics: list[dict[str, str]] | None = None,
     ) -> str:
-        """Validate the current revision; delta rejects newly introduced errors, clean requires no TypeScript errors."""
+        """Read current Host diagnostics and validate. Delta rejects introduced errors; clean requires zero TypeScript errors and is only for an explicit clean-workspace request. Bind a user-requested existing error with targetDiagnostics [{path, code, messageHash?}] from current evidence. Targets persist across revisions and do not authorize writes or expand scope."""
+        nonlocal last_key
+        service._synchronize_run_state()
+        service.debugging.validation_reads += 1
+        previous = service.current_result()
+        key = (service.activity.run_id, service.activity.revision, mode, evidence_hash(targetDiagnostics))
+        duplicate = previous is not None and previous.status != "stale" and key == last_key
         try:
-            result = await service.validate(mode=mode)
+            result = previous if duplicate else await service.validate(mode=mode)
+            if targetDiagnostics:
+                service.bind_debugging_targets(targetDiagnostics)
+            if mode == "clean":
+                service.debugging.clean_requested = True
+        except ValueError as error:
+            return json.dumps({"ok": False, "error": {
+                "code": "DEBUGGING_TARGET_INVALID", "message": str(error),
+            }})
         except ProjectControlError as error:
             return json.dumps({
                 "ok": False,
@@ -26,7 +44,18 @@ def create_validation_tool(service: CreatorValidationService) -> BaseTool:
                     "details": error.details,
                 },
             }, ensure_ascii=False, separators=(",", ":"))
+        last_key = (service.activity.run_id, result.revision, mode, evidence_hash(targetDiagnostics))
+        if duplicate:
+            service.debugging.duplicates += 1
         evidence = result.to_dict()
+        if duplicate:
+            evidence.update({"code": "DIAGNOSTIC_ALREADY_OBSERVED", "reusePreviousResult": True})
+        differential = result.differential
+        if differential is not None:
+            evidence["diagnosticIdentities"] = [
+                service.debugging.static_identity(item) for item in differential.current_diagnostics[:8]
+            ]
+        evidence["debuggingMetrics"] = service.metrics()["debuggingMetrics"]
         priority = (
             "revision", "status", "validationMode", "differentialStatus",
             "newDiagnostics", "failureSemantics",
@@ -44,6 +73,14 @@ def create_validation_tool(service: CreatorValidationService) -> BaseTool:
                 "then validate the current revision again. Use these paths and "
                 "messages before searching other source files."
             )
+        ordered["debuggingGuidance"] = (
+            "Use current diagnostics and named owner files before broader discovery. "
+            "Delta pass alone does not resolve a requested existing error: bind only "
+            "explicitly requested targetDiagnostics and confirm they disappear. "
+            "Unrelated unchanged errors remain workspace warnings. Scope Guard still controls writes."
+        ) if differential is not None and differential.current_diagnostics else (
+            "Reuse current evidence; do not repeat diagnostics without a revision change."
+        )
         ordered.update({
             key: value for key, value in evidence.items()
             if key not in ordered and key != "checks"

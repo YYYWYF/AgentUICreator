@@ -5,6 +5,7 @@ from collections import Counter
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol
 
+from ..debugging import DebuggingEvidence, evidence_hash
 from ..activity import CreatorActivityRecorder
 from ..app_ui_model import ProjectMutationCoordinator
 from ..files import read_creator_file_state
@@ -58,6 +59,7 @@ class CreatorValidationService:
         project_control: ProjectControlClient | None = None,
         mutation_coordinator: ProjectMutationCoordinator | None = None,
     ) -> None:
+        self.debugging = DebuggingEvidence()
         self.project_root = Path(project_root).resolve()
         self.activity = activity
         self.runner = runner or CreatorValidationCommandRunner(project_root)
@@ -80,6 +82,7 @@ class CreatorValidationService:
         run_id = self.activity.run_id
         if run_id == self._baseline_run_id:
             return
+        self.debugging.ensure_run(run_id)
         self._baseline_run_id = run_id
         self._baseline_capture_started = False
         self._baseline = None
@@ -175,7 +178,7 @@ class CreatorValidationService:
     @staticmethod
     def _diagnostic_samples(
         diagnostics: tuple[TypeScriptDiagnostic, ...],
-    ) -> list[dict[str, str]]:
+    ) -> list[dict[str, object]]:
         return [
             diagnostic.to_dict()
             for diagnostic in diagnostics[:MAX_DIAGNOSTIC_SAMPLE_COUNT]
@@ -583,6 +586,35 @@ class CreatorValidationService:
             )
         return validation
 
+    def bind_debugging_targets(self, targets: list[dict[str, str]]) -> None:
+        current = self.current_result()
+        differential = None if current is None else current.differential
+        if differential is None or not differential.current_available:
+            raise ValueError("Current TypeScript evidence is unavailable; no targets were bound.")
+        selected = {}
+        for target in targets:
+            matches = [item for item in differential.current_diagnostics
+                       if item.path == target.get("path") and item.code == target.get("code")
+                       and (not target.get("messageHash") or
+                            self.debugging.static_identity(item)["messageHash"] == target["messageHash"])]
+            if not matches and target.get("path") and target.get("code"):
+                # Complete current evidence also proves an explicitly named error
+                # is already absent. This permits a truthful no-change finish.
+                identity = {"path": target["path"], "code": target["code"],
+                            "messageHash": target.get("messageHash"), "revision": current.revision}
+                if not any(item.get("path") == identity["path"] and item.get("code") == identity["code"]
+                           and (not identity["messageHash"] or item.get("messageHash") == identity["messageHash"])
+                           for item in self.debugging.targets.values()):
+                    selected[evidence_hash((identity["path"], identity["code"], identity["messageHash"]))] = identity
+                continue
+            if len(matches) != 1:
+                raise ValueError("Target must identify one current diagnostic; use its canonical path, code and messageHash.")
+            item = matches[0]
+            selected[self.debugging.static_key(item)] = {
+                **self.debugging.static_identity(item), "revision": current.revision,
+            }
+        self.debugging.targets.update(selected)
+
     def metrics(self) -> dict[str, object]:
         self._synchronize_run_state()
         differential = self._latest_differential
@@ -623,6 +655,9 @@ class CreatorValidationService:
                 else None
             ),
             "validationMode": self._latest_mode or "delta",
+            "debuggingMetrics": self.debugging.metrics(
+                differential=current, repair_state=self.repair_state, revision=self.activity.revision,
+            ),
         }
 
     def current_result(self) -> CreatorValidationResult | None:

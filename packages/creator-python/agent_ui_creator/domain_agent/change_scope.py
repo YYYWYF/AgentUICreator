@@ -611,6 +611,11 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
             ):
                 failure_layers = runtime_failure_layers(result_value)
                 task_layers = set(self.metrics.taskChangeLayers)
+                # Diagnosis may precede the first authorized side effect. A
+                # known failure owner is evidence, not a newly granted scope.
+                # Keep existing locks once authoring has established scope.
+                if not task_layers and failure_layers:
+                    return
                 outside_scope = not failure_layers or any(
                     layer not in task_layers for layer in failure_layers
                 )

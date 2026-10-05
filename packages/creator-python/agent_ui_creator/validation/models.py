@@ -62,7 +62,7 @@ class TypecheckDifferential:
     @staticmethod
     def _samples(
         diagnostics: tuple[TypeScriptDiagnostic, ...],
-    ) -> list[dict[str, str]]:
+    ) -> list[dict[str, object]]:
         return [diagnostic.to_dict() for diagnostic in diagnostics[:8]]
 
     def to_dict(self) -> dict[str, object]:

@@ -108,7 +108,7 @@ def _diagnostic_layers(
 
 def _diagnostic_evidence(
     diagnostics: Sequence[TypeScriptDiagnostic],
-) -> list[dict[str, str]]:
+) -> list[dict[str, object]]:
     return [diagnostic.to_dict() for diagnostic in diagnostics[:8]]
 
 

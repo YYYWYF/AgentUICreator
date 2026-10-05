@@ -1412,6 +1412,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             validation_metrics = telemetry.validation_metrics()
                             if validation_metrics is not None:
                                 run_result["validationMetrics"] = validation_metrics
+                                run_result["debuggingMetrics"] = validation_metrics.get("debuggingMetrics")
                             if isinstance(result, ProductizedOperationRun):
                                 if result.operation_result is not None:
                                     run_result["phase"] = "productized-operation"

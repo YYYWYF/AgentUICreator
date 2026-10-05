@@ -151,7 +151,7 @@ def test_new_error_is_introduced_evidence_and_is_repairable(tmp_path):
     assert result.failure_semantics["automaticCrossLayerRepairAllowed"] is True
     assert result.failure_semantics["failureLayers"] == ["runtime_capability"]
     assert result.differential.to_dict()["newDiagnostics"] == [
-        {"path": "services/conversation/contract.ts", "code": "TS2339", "message": "New service error"}
+        {"path": "services/conversation/contract.ts", "code": "TS2339", "message": "New service error", "line": 12, "column": 34}
     ]
 
 
@@ -384,7 +384,7 @@ def test_targeted_existing_diagnostic_resolves_in_delta_with_workspace_warning(
     assert differential["currentDiagnosticCount"] == 2
     assert differential["resolvedDiagnosticCount"] == 1
     assert differential["resolvedDiagnostics"] == [
-        {"path": "tests/bar.ts", "code": "TS2345", "message": "B"}
+        {"path": "tests/bar.ts", "code": "TS2345", "message": "B", "line": 12, "column": 34}
     ]
     assert differential["unchangedDiagnosticCount"] == 2
     assert result.workspace_warning["diagnosticCount"] == 2

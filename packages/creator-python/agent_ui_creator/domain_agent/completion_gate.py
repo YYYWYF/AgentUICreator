@@ -6,7 +6,7 @@ from typing import Protocol
 
 from ..activity import CreatorActivityRecorder
 from ..domain_tools.recovery_tools import CreatorRecoveryQueries
-from ..resource_scope import change_layers_for_paths
+from ..resource_scope import change_layers_for_paths, change_layer_for_path, resource_keys_for_paths
 from ..project_paths import agent_ui_source_path
 from ..runtime_diagnostics.layout_intent import has_fixed_geometry
 from ..runtime_diagnostics import RuntimeDiagnosticInspectionService
@@ -177,7 +177,9 @@ class CreatorDevelopmentCompletionGate:
         recovery_decision = self._review_recovery()
         if recovery_decision is not None:
             return recovery_decision
-        decision = self._review(candidate)
+        decision = self._review_debugging(candidate)
+        if decision is None:
+            decision = self._review(candidate)
         self._delivery_review_run_id = self.activity.run_id
         reports = self.inspect_deliveries()
         if not reports:
@@ -189,8 +191,13 @@ class CreatorDevelopmentCompletionGate:
         if not incomplete:
             if self.verification_mode == "static_only" and decision.accepted:
                 notice = "当前静态验证通过；Runtime / 浏览器行为未由 Creator 验证。"
-                return CompletionDecision(True, decision.text.rstrip() + ("" if notice in decision.text else "\n\n" + notice))
+                return CompletionDecision(True, decision.text.rstrip() + ("" if notice in decision.text else "\n\n" + notice),
+                                          completion=decision.completion, reason=decision.reason)
             return decision
+        debugging = getattr(self.validation, "debugging", None)
+        if debugging is not None and debugging.active:
+            debugging.final_state = "blocked"
+            debugging.reason = "plugin_delivery_incomplete"
         blockers = "；".join(
             f"{report['pluginId']}: " + "；".join(report["delivery"]["blockers"])
             for report in incomplete
@@ -220,6 +227,122 @@ class CreatorDevelopmentCompletionGate:
             "inspect_runtime_layout; run verify_ui_plugin_behavior for declared interactions. "
             "Do not repeat successful work or invent placement types. Evidence: " + json.dumps(reports, ensure_ascii=False)
         ))
+
+    def _review_debugging(self, candidate: str) -> CompletionDecision | None:
+        validation = self.validation.current_result()
+        debugging = getattr(self.validation, "debugging", None)
+        if debugging is None or not debugging.active:
+            return None
+
+        def stop(state: str, reason: str, text: str, completion: CompletionStatus) -> CompletionDecision:
+            debugging.final_state, debugging.reason = state, reason
+            self.activity.record_verification({
+                "status": "failed", "projectRevision": self.activity.revision,
+                "verificationMode": self.verification_mode,
+                "auditAttempts": self.repair_state.repair_rounds,
+                "checks": [self._check("debugging-targets", False, reason)],
+            })
+            return CompletionDecision(True, text, completion=completion, reason=reason)
+
+        def retry(reason: str, feedback: str) -> CompletionDecision:
+            self.repair_state.record_result(self.activity.revision, passed=False)
+            if self.repair_state.limit_reached:
+                return stop("unresolved_after_limit", reason,
+                            "已达到现有自动修复上限，合法修改已保留；目标诊断或必要验证仍未解决。", "failed")
+            debugging.final_state, debugging.reason = None, reason
+            return CompletionDecision(False, "目标诊断或必要验证尚未解决，修改已保留。", feedback,
+                                      completion="blocked", reason=reason)
+
+        if self.run_control is not None and self.run_control.blocked:
+            return stop("blocked", "scope_or_integrity_blocker",
+                        self.run_control.render_blocker_response(), "blocked")
+        mode = "clean" if debugging.clean_requested else "delta"
+        if validation is None:
+            return retry("current_validation_required",
+                         f"Call validate_creator_changes(mode='{mode}') for the current revision. "
+                         "Reuse bound targets; do not repeat discovery or enlarge repair scope.")
+        failure = validation.failure_semantics or {}
+        if validation.status != "passed":
+            if failure.get("automaticRepairAllowed") is False:
+                return stop("blocked", "outside_scope_or_workspace_integrity",
+                            "诊断仍存在，但当前验证证据不允许自动修复；修改已保留，未跨越任务范围。", "blocked")
+            return retry("current_validation_failed",
+                         "Repair only introduced or explicitly requested diagnostics in their named owner files. "
+                         f"Validate mode='{mode}' again. Evidence: " + json.dumps(validation.to_dict(), ensure_ascii=False))
+        differential = validation.differential
+        if differential is None or not differential.current_available or differential.status != "available":
+            return stop("blocked", "diagnostic_set_unavailable", "缺少当前完整静态诊断，无法确认目标已解决。", "blocked")
+        remaining = [item for item in differential.current_diagnostics
+                     if any(debugging.static_matches(item, target) for target in debugging.targets.values())]
+        if debugging.clean_requested:
+            remaining = list(differential.current_diagnostics)
+        scope = self.validation.scope
+        scope_layers = set(getattr(scope, "taskChangeLayers", ()))
+        scope_resources = set(getattr(scope, "scopeResources", ()))
+        if remaining:
+            layers = {change_layer_for_path(item.path, project_root=self.activity.project_root) for item in remaining}
+            resources = set(resource_keys_for_paths([item.path for item in remaining],
+                                                    project_root=self.activity.project_root))
+            if (None in layers or (scope_layers and not layers.issubset(scope_layers))
+                    or (scope_resources and not resources.issubset(scope_resources))):
+                return stop("blocked", "target_outside_scope", "目标诊断位于当前可修复范围之外；未跨层修改。", "blocked")
+            return retry("target_diagnostic_remaining",
+                         "Delta pass does not resolve the requested existing error. Read and repair only these "
+                         "current owner files; unrelated unchanged errors are warnings. Validate the next revision: "
+                         + json.dumps([item.to_dict() for item in remaining], ensure_ascii=False))
+
+        runtime = self.runtime.current_result()
+        if debugging.runtime_targets and self.verification_mode == "static_only":
+            return stop("blocked", "runtime_evidence_not_offered",
+                        "当前环境仅支持静态验证，无法确认 Runtime 目标已解决。", "blocked")
+        runtime_verified = False
+        if self.verification_mode == "static_and_runtime":
+            if runtime is None or runtime.get("runtimeStatus") in {"stale", "unavailable"}:
+                return stop("blocked", "fresh_runtime_evidence_required",
+                            "静态目标已检查，但缺少当前版本最新 Runtime 证据；修改已保留。", "committed_unverified")
+            if runtime.get("runtimeStatus") != "passed" or runtime.get("compositionFresh") is not True:
+                layers = set(runtime_failure_layers(runtime))
+                resources = {f"plugin:{item['pluginId']}" for item in runtime.get("currentErrors", [])
+                             if item.get("pluginId") and item.get("kind") in {"plugin-render", "plugin-activation"}}
+                if (not layers or (scope_layers and not layers.issubset(scope_layers))
+                        or (scope_resources and not resources.issubset(scope_resources))):
+                    return stop("blocked", "runtime_failure_outside_scope",
+                                "当前 Runtime 故障超出任务范围或归属不明确；未跨层修改。", "blocked")
+                return retry("runtime_target_remaining",
+                             "Repair only fresh, source-attributed, in-scope Runtime diagnostics. Read the implicated "
+                             "owner and nearest contract; do not rediscover all Plugins. Validate then inspect Runtime: "
+                             + json.dumps(runtime, ensure_ascii=False))
+            runtime_verified = True
+        no_change = not self.activity.snapshot()["files"]
+        if not no_change:
+            # Keep the existing Host gate authoritative for geometry, Service
+            # checks and every other development completion obligation.
+            decision = self._review(candidate)
+            if not decision.accepted:
+                debugging.final_state, debugging.reason = None, "host_completion_pending"
+                return decision
+            if self.activity.snapshot().get("verification", {}).get("status") not in {
+                "changed-and-verified", "changed-and-statically-verified",
+            }:
+                debugging.final_state, debugging.reason = "blocked", "host_completion_unverified"
+                return CompletionDecision(True, decision.text, completion="committed_unverified",
+                                          reason=debugging.reason)
+        debugging.final_state = "unchanged_preexisting" if no_change else "resolved"
+        debugging.reason = "current_goal_already_satisfied" if no_change else "resolved_target_diagnostic"
+        self.activity.record_verification({
+            "status": "no-project-change" if no_change else
+                       "changed-and-verified" if runtime_verified else "changed-and-statically-verified",
+            "projectRevision": self.activity.revision, "verificationMode": self.verification_mode,
+            "runtimeStatus": "passed" if runtime_verified else "not-run",
+            "auditAttempts": self.repair_state.repair_rounds,
+            "checks": [*self.activity.snapshot().get("verification", {}).get("checks", []),
+                       self._check("debugging-targets", True, debugging.reason)],
+        })
+        if self.service_authorization_finalizer is not None:
+            self.service_authorization_finalizer.complete_current_applied()
+        return CompletionDecision(True, self._with_workspace_warning(candidate, validation),
+                                  completion="already_satisfied" if no_change else "success",
+                                  reason=debugging.reason)
 
     def _review_recovery(self) -> CompletionDecision | None:
         recovery = self.recovery

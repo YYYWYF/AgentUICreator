@@ -4,6 +4,7 @@ import asyncio
 import json
 from types import SimpleNamespace
 
+from agent_ui_creator.debugging import DebuggingEvidence
 from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.app_ui_model import ProjectMutationCoordinator
 from agent_ui_creator.domain_agent.change_scope import ChangeScopeMetrics
@@ -35,6 +36,12 @@ class FakeValidationRunner:
 
 def test_registry_sync_error_is_recoverable_tool_diagnostic():
     class BrokenRegistryService:
+        debugging = DebuggingEvidence()
+        activity = SimpleNamespace(run_id="test", revision=0)
+        def _synchronize_run_state(self):
+            pass
+        def current_result(self):
+            return None
         async def validate(self, mode="delta"):
             raise ProjectControlError(
                 "CONTROL_OPERATION_FAILED", "Plugin manifest is invalid",
@@ -180,6 +187,8 @@ def test_failed_validation_returns_diagnostics_not_run_error(tmp_path):
 def test_validation_tool_exposes_introduced_diagnostics_before_long_check_output():
     class Validation:
         status = "failed"
+        revision = 8
+        differential = None
 
         def to_dict(self):
             return {
@@ -193,6 +202,14 @@ def test_validation_tool_exposes_introduced_diagnostics_before_long_check_output
 
     class Service:
         repair_state = SimpleNamespace(to_dict=lambda: {})
+        debugging = DebuggingEvidence()
+        activity = SimpleNamespace(run_id="test", revision=8)
+        def _synchronize_run_state(self):
+            pass
+        def current_result(self):
+            return None
+        def metrics(self):
+            return {"debuggingMetrics": {}}
 
         async def validate(self, mode="delta"):
             return Validation()

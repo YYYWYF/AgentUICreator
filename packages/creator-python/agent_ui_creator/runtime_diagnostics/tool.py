@@ -9,6 +9,7 @@ from urllib.parse import unquote_to_bytes
 from langchain_core.tools import BaseTool, tool
 from pydantic import Field
 
+from ..debugging import DebuggingEvidence, evidence_hash
 from ..activity import CreatorActivityRecorder
 from ..domain_state import DomainObservationContext
 from ..project_control import ProjectControlClient, ProjectControlError
@@ -52,7 +53,12 @@ class RuntimeDiagnosticInspectionService:
         observations: DomainObservationContext,
         activity: CreatorActivityRecorder,
         repair_state: CreatorRepairState | None = None,
+        debugging: DebuggingEvidence | None = None,
     ) -> None:
+        self.debugging = debugging or DebuggingEvidence()
+        self._diagnostic_key: tuple[object, ...] | None = None
+        self._observed_store_hash: str | None = None
+        self._observed_include_stale = False
         self.store = store
         self.thread_id = thread_id
         self.project_control = project_control
@@ -64,6 +70,7 @@ class RuntimeDiagnosticInspectionService:
         self.layout_run_id: str | None = None
         self.latest_result: dict[str, Any] | None = None
         self.last_inspected_revision: int | None = None
+        self.last_inspected_run_id: str | None = None
 
     @staticmethod
     def _current_hash(project: dict[str, Any]) -> str:
@@ -158,6 +165,7 @@ class RuntimeDiagnosticInspectionService:
             last_mutation_at=self.activity.last_mutation_at,
             include_stale=include_stale,
         )
+        result["runtimeEvidenceHash"] = evidence_hash(result)
         raw_composition = self.store.current_composition(
             thread_id=self.thread_id or "",
             app_ui_model_hash=current_hash,
@@ -192,7 +200,9 @@ class RuntimeDiagnosticInspectionService:
             )
         return result
 
-    async def inspect(self, *, include_stale: bool = False) -> dict[str, Any]:
+    async def inspect(self, *, include_stale: bool = False, target_ids: tuple[str, ...] = ()) -> dict[str, Any]:
+        self.debugging.ensure_run(self.activity.run_id)
+        self.debugging.runtime_reads += 1
         self.repair_state.begin_verification(self.activity.revision)
         project = await self.project_control.inspect_ui_project()
         current_hash = self._current_hash(project)
@@ -207,6 +217,12 @@ class RuntimeDiagnosticInspectionService:
             last_mutation_at=self.activity.last_mutation_at,
             include_stale=include_stale,
         )
+        key = (self.activity.run_id, self.activity.revision, include_stale, target_ids,
+               current_hash, evidence_hash(raw_result))
+        if key == self._diagnostic_key and self.current_result() is not None:
+            self.debugging.duplicates += 1
+            return {**deepcopy(self.latest_result),
+                    "code": "DIAGNOSTIC_ALREADY_OBSERVED", "reusePreviousResult": True}
         raw_composition = self.store.current_composition(
             thread_id=self.thread_id or "",
             app_ui_model_hash=current_hash,
@@ -243,8 +259,23 @@ class RuntimeDiagnosticInspectionService:
             passed=result["runtimeStatus"] in {"passed", "unavailable"},
         )
         result.update(self.repair_state.to_dict())
+        self._observed_store_hash = evidence_hash(raw_result)
+        self._observed_include_stale = include_stale
+        result["runtimeEvidenceHash"] = self._observed_store_hash
+        self.debugging.runtime_revision = self.activity.revision
+        self.debugging.runtime_evidence_hash = evidence_hash(raw_result)
+        self.debugging.runtime_current = {
+            evidence_hash(self.debugging.runtime_identity(item)) for item in result.get("currentErrors", [])
+        } if result.get("diagnosticFresh") is True and result.get("compositionFresh") is True else None
+        self._diagnostic_key = key if result.get("runtimeStatus") in {"passed", "failed"} else None
+        result["debuggingGuidance"] = (
+            "Use only fresh current-hash source attribution. Read the implicated owner "
+            "and nearest contract; do not rediscover all Plugins or scan the workspace. "
+            "Bind only requested diagnostic IDs with targetDiagnosticIds. Scope still controls repair."
+        )
         self.latest_result = result
         self.last_inspected_revision = self.activity.revision
+        self.last_inspected_run_id = self.activity.run_id
         if self.activity.logger is not None:
             self.activity.logger.record(
                 "runtime_verification",
@@ -266,8 +297,16 @@ class RuntimeDiagnosticInspectionService:
         if (
             result is None
             or self.last_inspected_revision != self.activity.revision
+            or self.last_inspected_run_id != self.activity.run_id
         ):
             return None
+        if self._observed_store_hash is not None:
+            observed = self.store.inspect(
+                thread_id=self.thread_id or "", current_app_ui_model_hash=result["currentHash"],
+                last_mutation_at=self.activity.last_mutation_at, include_stale=self._observed_include_stale,
+            )
+            if evidence_hash(observed) != self._observed_store_hash:
+                return None
         return result
 
     def publish_host_verification(
@@ -287,9 +326,13 @@ class RuntimeDiagnosticInspectionService:
             }
             self.layout_revision = self.activity.revision
             self.layout_run_id = self.activity.run_id
+        if runtime_result is not None and isinstance(runtime_result.get("runtimeEvidenceHash"), str):
+            self._observed_store_hash = runtime_result["runtimeEvidenceHash"]
+            self._observed_include_stale = False
         result["verificationTail"] = deepcopy(verification_tail)
         self.latest_result = result
         self.last_inspected_revision = self.activity.revision
+        self.last_inspected_run_id = self.activity.run_id
         return result
 
     @staticmethod
@@ -493,10 +536,25 @@ def create_runtime_diagnostic_tool(
     service: RuntimeDiagnosticInspectionService,
 ) -> BaseTool:
     @tool("inspect_runtime_errors")
-    async def inspect_runtime_errors(includeStale: bool = False) -> str:
-        """Inspect current-hash Runtime diagnostics and freshness. By default historical errors from older AppUIModel hashes are summarized but omitted. A passed result requires Runtime evidence received after the latest Creator source or composition mutation."""
+    async def inspect_runtime_errors(
+        includeStale: bool = False, targetDiagnosticIds: list[str] | None = None,
+    ) -> str:
+        """Inspect current-hash Runtime diagnostics and freshness. Bind only user-requested current error IDs with targetDiagnosticIds; this does not grant write permission. By default historical errors from older AppUIModel hashes are summarized but omitted. A passed result requires Runtime evidence received after the latest Creator source or composition mutation."""
         try:
-            result = await service.inspect(include_stale=includeStale)
+            result = await service.inspect(include_stale=includeStale, target_ids=tuple(sorted(targetDiagnosticIds or [])))
+            if targetDiagnosticIds:
+                if result.get("diagnosticFresh") is not True or result.get("compositionFresh") is not True:
+                    return json.dumps({"ok": False, "error": {"code": "DEBUGGING_EVIDENCE_STALE",
+                        "message": "No fresh current-hash diagnostics are available; no targets were bound."}})
+                selected = [item for item in result.get("currentErrors", [])
+                            if item.get("id") in targetDiagnosticIds]
+                if {item.get("id") for item in selected} != set(targetDiagnosticIds):
+                    return json.dumps({"ok": False, "error": {"code": "DEBUGGING_TARGET_INVALID",
+                        "message": "Select IDs from currentErrors; no targets were bound."}})
+                for item in selected:
+                    identity = service.debugging.runtime_identity(item)
+                    service.debugging.runtime_targets[evidence_hash(identity)] = identity
+            result["targetDiagnosticCount"] = len(service.debugging.runtime_targets)
             return json.dumps(
                 {"ok": True, "result": result},
                 ensure_ascii=False,

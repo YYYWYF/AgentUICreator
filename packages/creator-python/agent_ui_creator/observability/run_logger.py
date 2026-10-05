@@ -459,7 +459,8 @@ class CreatorRunLogger:
                     else {}
                 ),
                 **(
-                    {"validationMetrics": dict(validation_metrics)}
+                    {"validationMetrics": dict(validation_metrics),
+                     "debuggingMetrics": validation_metrics.get("debuggingMetrics")}
                     if validation_metrics is not None
                     else {}
                 ),
