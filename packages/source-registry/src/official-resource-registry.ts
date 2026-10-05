@@ -38,6 +38,8 @@ export function createOfficialResourceRegistry(resources: readonly OfficialAgent
 }
 
 export const officialResourceRegistry = createOfficialResourceRegistry([
+  { id: "web-search", label: "网页搜索", implementation: { type: "source-plugin", sourceItemId: "plugin/web-search", pluginId: "web-search", placement: "application" } },
+  { id: "retrieval-chunks", label: "文档检索", implementation: { type: "source-plugin", sourceItemId: "plugin/retrieval-chunks", pluginId: "retrieval-chunks", placement: "application" } },
   { id: "a2ui", label: "A2UI", description: "A2UI declarative interactive surfaces", implementation: { type: "source", sourceItemId: "integration/a2ui" } },
   { id: "ask-user-question-demo", label: "询问用户偏好 Demo", implementation: { type: "source-plugin", sourceItemId: "demo/ask-user-question", pluginId: "ask-user-question-demo", placement: "application" } },
   { id: "frontend-tool-form-demo", label: "表单 Frontend Tool Demo", implementation: { type: "source-plugin", sourceItemId: "demo/frontend-tool-form", pluginId: "frontend-tool-form-demo", placement: "layout", layoutSize: "320px" } },

@@ -1254,3 +1254,5 @@ export function ConversationComposerMentionTrigger(props: ConversationMentionTri
 export function ConversationComposerCommandTrigger(props: ConversationCommandTriggerProps): ReactElement | null {
   return <InternalConversationCommandTrigger {...props} />;
 }
+
+export { WebSearch, RetrievalChunks, type WebSearchResult, type WebSearchProps, type RetrievalChunk, type RetrievalChunksProps } from "./internal/search-elements.js";

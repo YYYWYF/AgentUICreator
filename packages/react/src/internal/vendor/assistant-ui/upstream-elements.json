@@ -21,6 +21,7 @@
     "components/assistant-ui/elements/quote.aui.tsx",
     "components/assistant-ui/elements/reasoning.aui.tsx",
     "components/assistant-ui/elements/reasoning.tsx",
+    "components/assistant-ui/elements/retrieval-chunks.tsx",
     "components/assistant-ui/elements/sources.aui.tsx",
     "components/assistant-ui/elements/subagent-list.tsx",
     "components/assistant-ui/elements/surfaces.tsx",
@@ -31,7 +32,8 @@
     "components/assistant-ui/elements/tool-call.tsx",
     "components/assistant-ui/elements/tool-fallback.aui.tsx",
     "components/assistant-ui/elements/tool-group.aui.tsx",
-    "components/assistant-ui/elements/tooltip-icon-button.tsx"
+    "components/assistant-ui/elements/tooltip-icon-button.tsx",
+    "components/assistant-ui/elements/web-search.tsx"
   ],
   "legacyExceptions": []
 }

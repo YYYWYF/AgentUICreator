@@ -1,3 +1,5 @@
+import { webSearchScenario } from "./web-search.js";
+import { retrievalChunksScenario } from "./retrieval-chunks.js";
 import { composerMentionScenario } from "./composer-mention.js";
 import { composerSlashScenario } from "./composer-slash.js";
 import { quoteReplyScenario } from "./quote-reply.js";
@@ -36,6 +38,8 @@ import { toolLongRunningScenario } from "./tool-long-running.js";
 import type { MockScenario } from "../scenario.js";
 
 export {
+  webSearchScenario,
+  retrievalChunksScenario,
   composerMentionScenario,
   composerSlashScenario,
   quoteReplyScenario,
@@ -74,6 +78,8 @@ export {
 };
 
 export const backendReferenceMockScenarios: MockScenario[] = [
+  webSearchScenario,
+  retrievalChunksScenario,
   sourceCitationsScenario,
   multimodalInputScenario,
   concurrentConversationsScenario,

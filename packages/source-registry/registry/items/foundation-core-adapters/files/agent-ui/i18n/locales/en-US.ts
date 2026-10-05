@@ -37,6 +37,14 @@ export const enUS = {
     departmentThree: "Design · Designer",
     summarize: "Summarize",
   },
+  searchTools: {
+    searching: "Searching",
+    sources: "Read {count} sources",
+    retrieving: "Retrieving",
+    passages: "{count} passages retrieved",
+    relevance: "{source} relevance score",
+    score: "{score} of 1.00",
+  },
   conversationQuote: {
     quote: "Quote",
     dismiss: "Dismiss quote",

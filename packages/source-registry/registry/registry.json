@@ -179,6 +179,14 @@
     {
       "id": "demo/composer-triggers",
       "path": "items/demo-composer-triggers/item.json"
+    },
+    {
+      "id": "plugin/web-search",
+      "path": "items/plugin-web-search/item.json"
+    },
+    {
+      "id": "plugin/retrieval-chunks",
+      "path": "items/plugin-retrieval-chunks/item.json"
     }
   ]
 }

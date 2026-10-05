@@ -18,10 +18,10 @@ Source form: official Base UI registry output plus declared mechanical import ad
 
 The files below are copied from the frozen revision above. Vendor sync may adapt only upstream import aliases, registry base-ui relative paths, the five recorded Agent UI Portal container bridges, and the recorded Quote selection primitive import bridge. Product presentation and policy stay in the Agent UI facade and Plugin layers.
 
-- 45 tracked vendor files
-- 25 tracked official Element files
+- 50 tracked vendor files
+- 30 tracked official Element files
 - 154 official Element files discovered upstream
-- 130 upstream Element files not adopted into the tracked set
+- 124 upstream Element files not adopted into the tracked set
 - AG-UI remains at `0.0.59` because it follows the react-ag-ui compatibility matrix
 
 ## Upgrade command
@@ -31,3 +31,5 @@ The files below are copied from the frozen revision above. Vendor sync may adapt
 Quote Elements are adopted from the frozen revision. The internal selection primitive adaptation is tracked separately in `../../quote-selection-UPSTREAM.json`; its algorithm is unchanged and its Portal uses AgentUIRoot.
 
 Composer triggers adopt the official Directive Text Elements. Trigger Popover has one generic children seam for the adapter to register the official selection override. The pure matcher is unchanged upstream source and is synchronized with `composer-trigger-UPSTREAM.json`.
+
+WebSearch and RetrievalChunks are adopted unchanged from the same pinned revision. Product localization of their status and meter labels belongs to the public facade; their Tool UI registration belongs to independent headless Plugins.

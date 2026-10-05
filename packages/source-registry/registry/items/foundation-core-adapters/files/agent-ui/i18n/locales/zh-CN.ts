@@ -37,6 +37,14 @@ export const zhCN = {
     departmentThree: "设计部 · 设计师",
     summarize: "总结",
   },
+  searchTools: {
+    searching: "正在搜索",
+    sources: "已读取 {count} 个来源",
+    retrieving: "正在检索",
+    passages: "已检索 {count} 个片段",
+    relevance: "{source} 相关度",
+    score: "{score}，满分 1.00",
+  },
   conversationQuote: {
     quote: "引用",
     dismiss: "取消引用",

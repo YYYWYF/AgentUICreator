@@ -26,6 +26,9 @@ export interface AgentUILocaleMessages {
     localeKey: string; personOne: string; personTwo: string; personThree: string;
     departmentOne: string; departmentTwo: string; departmentThree: string; summarize: string;
   };
+  searchTools: {
+    searching: string; sources: string; retrieving: string; passages: string; relevance: string; score: string;
+  };
   conversationQuote: {
     quote: string;
     dismiss: string;

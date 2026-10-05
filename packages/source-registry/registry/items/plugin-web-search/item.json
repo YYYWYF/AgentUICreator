@@ -1,0 +1,26 @@
+{
+  "id": "plugin/web-search",
+  "kind": "agent-component",
+  "description": "Render web_search backend tool calls with the official assistant-ui Element.",
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0",
+    "@agent-ui/react": "^0.1.0"
+  },
+  "files": [
+    {
+      "source": "files/plugins/web-search/definition.ts",
+      "target": "plugins/web-search/definition.ts"
+    },
+    {
+      "source": "files/plugins/web-search/index.tsx",
+      "target": "plugins/web-search/index.tsx"
+    },
+    {
+      "source": "files/plugins/web-search/manifest.json",
+      "target": "plugins/web-search/manifest.json"
+    }
+  ]
+}

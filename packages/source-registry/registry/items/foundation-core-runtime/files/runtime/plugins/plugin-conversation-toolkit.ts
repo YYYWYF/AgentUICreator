@@ -17,7 +17,7 @@ export function resolvePluginConversationToolkit<TState>(
           (entry.type === "human" && (!entry.description || !entry.parameters))) {
         throw new Error(`Invalid named Tool UI in plugin ${instance.pluginId}`);
       }
-      if (Object.hasOwn(result, name)) throw new Error(`Named Tool UI conflict: ${name}`);
+      if (Object.hasOwn(result, name)) throw new Error(`Duplicate Tool UI registration: ${name}`);
       result[name] = entry;
     }
   }

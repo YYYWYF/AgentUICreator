@@ -183,6 +183,16 @@
       ]
     },
     {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/retrieval-chunks.tsx",
+      "localPath": "components/assistant-ui/elements/retrieval-chunks.tsx",
+      "upstreamSha256": "4d5865907f9451cc44ef66469cd71c3e19fc090d60ca0a055b75d2cabab49131",
+      "installedSha256": "48ec963d0e43af96fc747f9b7e9fe271196b9e867c0d0c956e60d5e3d8e1ac5f",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/sources.aui.tsx",
       "localPath": "components/assistant-ui/elements/sources.aui.tsx",
       "upstreamSha256": "bcc08587928fc7bdb9a66c5c7f8a75c1f66a8a755dca3e6749d55abcc851cc25",
@@ -287,6 +297,16 @@
       "localPath": "components/assistant-ui/elements/tooltip-icon-button.tsx",
       "upstreamSha256": "98580531a6f5a213cccd6964c0c75fd097d97b77bcca05f904df562512273363",
       "installedSha256": "94e64103f5e1faad3ad82502b94c298158126e70ceef138e88e28117f62dd77d",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/web-search.tsx",
+      "localPath": "components/assistant-ui/elements/web-search.tsx",
+      "upstreamSha256": "8bc68f323de40625934a313bdd248c23e6317b2ade5f52f33caa57609c277229",
+      "installedSha256": "17dc54e958e5c316f3b2d79d91a6cc9ba374b1113f3af8f62b78252d7665a3ee",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative"
