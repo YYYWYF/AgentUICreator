@@ -254,19 +254,16 @@ class RuntimeDiagnosticInspectionService:
                 if result.get("compositionFresh") is not True
                 else "failed"
             )
-        self.repair_state.record_result(
-            self.activity.revision,
-            passed=result["runtimeStatus"] in {"passed", "unavailable"},
-        )
-        result.update(self.repair_state.to_dict())
         self._observed_store_hash = evidence_hash(raw_result)
         self._observed_include_stale = include_stale
         result["runtimeEvidenceHash"] = self._observed_store_hash
-        self.debugging.runtime_revision = self.activity.revision
-        self.debugging.runtime_evidence_hash = evidence_hash(raw_result)
-        self.debugging.runtime_current = {
-            evidence_hash(self.debugging.runtime_identity(item)) for item in result.get("currentErrors", [])
-        } if result.get("diagnosticFresh") is True and result.get("compositionFresh") is True else None
+        result["projectRevision"] = self.activity.revision
+        self.debugging.observe_runtime(result, self.activity.revision)
+        completion_view = self.debugging.runtime_completion_view(result, self.activity.revision)
+        self.repair_state.record_result(
+            self.activity.revision, passed=completion_view["runtimeStatus"] in {"passed", "unavailable"},
+        )
+        result.update(self.repair_state.to_dict())
         self._diagnostic_key = key if result.get("runtimeStatus") in {"passed", "failed"} else None
         result["debuggingGuidance"] = (
             "Use only fresh current-hash source attribution. Read the implicated owner "
@@ -306,6 +303,8 @@ class RuntimeDiagnosticInspectionService:
                 last_mutation_at=self.activity.last_mutation_at, include_stale=self._observed_include_stale,
             )
             if evidence_hash(observed) != self._observed_store_hash:
+                self.debugging.runtime_current = None
+                self.debugging.runtime_observation = None
                 return None
         return result
 
@@ -330,6 +329,9 @@ class RuntimeDiagnosticInspectionService:
             self._observed_store_hash = runtime_result["runtimeEvidenceHash"]
             self._observed_include_stale = False
         result["verificationTail"] = deepcopy(verification_tail)
+        result["projectRevision"] = self.activity.revision
+        self.debugging.ensure_run(self.activity.run_id)
+        self.debugging.observe_runtime(result, self.activity.revision)
         self.latest_result = result
         self.last_inspected_revision = self.activity.revision
         self.last_inspected_run_id = self.activity.run_id
@@ -551,10 +553,20 @@ def create_runtime_diagnostic_tool(
                 if {item.get("id") for item in selected} != set(targetDiagnosticIds):
                     return json.dumps({"ok": False, "error": {"code": "DEBUGGING_TARGET_INVALID",
                         "message": "Select IDs from currentErrors; no targets were bound."}})
+                identities = service.debugging.runtime_identities(result)
+                if identities is None:
+                    return json.dumps({"ok": False, "error": {"code": "DEBUGGING_EVIDENCE_INCOMPLETE",
+                        "message": "Runtime diagnostics are incomplete; no baseline or targets were bound."}})
+                if service.debugging.runtime_baseline is None:
+                    if service.activity.revision != 0:
+                        return json.dumps({"ok": False, "error": {"code": "DEBUGGING_BASELINE_REQUIRED",
+                            "message": "Bind fresh Runtime targets before the first mutation to establish a baseline."}})
+                    service.debugging.runtime_baseline = identities
                 for item in selected:
-                    identity = service.debugging.runtime_identity(item)
-                    service.debugging.runtime_targets[evidence_hash(identity)] = identity
+                    key = service.debugging.runtime_key(item)
+                    service.debugging.runtime_targets[key] = identities[key]
             result["targetDiagnosticCount"] = len(service.debugging.runtime_targets)
+            result["runtimeDebuggingDifferential"] = service.debugging.runtime_differential(result, service.activity.revision)
             return json.dumps(
                 {"ok": True, "result": result},
                 ensure_ascii=False,

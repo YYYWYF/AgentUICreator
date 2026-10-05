@@ -31,6 +31,7 @@ class DebuggingEvidenceConvergenceMiddleware(AgentMiddleware):
                 diagnostics = differential.new_diagnostics
         static = [item.to_dict() for item in diagnostics[:8]]
         runtime = self.runtime.current_result() or {}
+        runtime = debugging.runtime_completion_view(runtime, self.validation.activity.revision)
         errors = runtime.get("currentErrors", []) if (
             runtime.get("diagnosticFresh") is True and runtime.get("compositionFresh") is True
         ) else []

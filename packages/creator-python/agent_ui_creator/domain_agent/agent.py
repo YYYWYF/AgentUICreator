@@ -788,6 +788,7 @@ def create_domain_write_creator_agent(
         mutation_coordinator=coordinator,
     )
     scope_guard.set_baseline_capture(validation.ensure_baseline)
+    scope_guard.debugging = validation.debugging
     if telemetry is not None:
         telemetry.bind(validation=validation)
     runtime_inspection = RuntimeDiagnosticInspectionService(

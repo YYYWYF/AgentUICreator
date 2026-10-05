@@ -11,6 +11,7 @@ from typing import Any, Literal
 from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResponse
 from langchain_core.messages import ToolMessage
 
+from ..debugging import DebuggingEvidence
 from ..resource_scope import (
     ChangeLayer,
     ResourceKey,
@@ -396,6 +397,7 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
         run_control: CreatorRunControlState | None = None,
         project_root: str | None = None,
     ) -> None:
+        self.debugging: DebuggingEvidence | None = None
         self.metrics = ChangeScopeMetrics()
         self._blocked_layers: frozenset[ChangeLayer] | None = None
         self._blocked_resources: frozenset[ResourceKey] | None = None
@@ -605,6 +607,8 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
                 )
         elif name == "inspect_runtime_errors":
             result_value = payload.get("result")
+            if isinstance(result_value, dict) and self.debugging is not None:
+                result_value = self.debugging.runtime_completion_view(result_value, result_value.get("projectRevision"))
             if (
                 isinstance(result_value, dict)
                 and result_value.get("runtimeStatus") == "failed"

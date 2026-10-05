@@ -139,7 +139,7 @@ def runtime_result(status='failed', fresh=True, message='Render failure'):
         }], 'summary': {'currentOpenCount': 0 if status == 'passed' else 1}}
 
 
-def runtime_service(activity, debugging, initial):
+def runtime_service(activity, debugging, initial, repair_state=None):
     store = SimpleNamespace(result=initial)
     store.inspect = lambda **_: deepcopy(store.result)
     store.current_composition = lambda **_: {'instances': []}
@@ -153,7 +153,7 @@ def runtime_service(activity, debugging, initial):
     client.verify_runtime_composition = verify
     service = RuntimeDiagnosticInspectionService(store=store, thread_id='test',
         project_control=client, observations=DomainObservationContext(), activity=activity,
-        debugging=debugging)
+        debugging=debugging, repair_state=repair_state)
     return service, store, client
 
 
@@ -239,3 +239,171 @@ def test_ordinary_delta_does_not_inject_debugging_for_unrelated_existing_errors(
     call(tool)
     assert middleware._request(request) is request
     assert not validation.debugging.active
+
+
+# Runtime target completion must share its differential with the ordinary Host
+# gate and Scope Guard, while leaving global Runtime inspection unchanged.
+def runtime_errors(*records):
+    result = runtime_result(status='failed' if records else 'passed')
+    result['currentErrors'] = list(records)
+    result['summary']['currentOpenCount'] = len(records)
+    return result
+
+
+def runtime_error(plugin='foo', instance='foo-main', kind='plugin-render', message='Render failure'):
+    return {'id': 'diagnostic-' + instance, 'kind': kind, 'pluginId': plugin,
+            'instanceId': instance, 'errorMessage': message, 'componentStack': 'source(42:2)'}
+
+
+def targeted_runtime_session(tmp_path, *, bind=True):
+    scope = ChangeScopeMetrics(taskChangeLayers=['plugin_behavior'], scopeResources=['plugin:foo'])
+    validation, activity, gate, static = session(tmp_path, '', '', '', '', '', '', '',
+        mode='static_and_runtime', scope=scope)
+    a, b = runtime_error(), runtime_error('bar', 'bar-main')
+    service, store, _ = runtime_service(activity, validation.debugging, runtime_errors(a, b), validation.repair_state)
+    gate.runtime = service
+    tool = create_runtime_diagnostic_tool(service)
+    call(static)
+    call(tool, **({'targetDiagnosticIds': [a['id']]} if bind else {}))
+    guard = ScopeAwareRecoveryGuard(project_root=str(tmp_path), run_control=CreatorRunControlState())
+    guard.metrics = scope
+    guard.debugging = validation.debugging
+    return validation, activity, gate, static, tool, store, guard, a, b
+
+
+def test_runtime_target_a_resolved_b_unchanged_is_success_with_warning(tmp_path):
+    validation, activity, gate, static, tool, store, guard, a, b = targeted_runtime_session(tmp_path)
+    mutate(tmp_path, activity, 'fixed A')
+    call(static)
+    store.result = runtime_errors(b)
+    payload = call(tool)
+    guard._observe_result('inspect_runtime_errors', {}, json.dumps(payload))
+    assert not guard.run_control.blocked
+    assert payload['result']['runtimeStatus'] == 'failed'  # Global facts are preserved.
+    difference = payload['result']['runtimeDebuggingDifferential']
+    assert len(difference['targetResolved']) == 1 and not difference['targetRemaining']
+    assert not difference['introducedRuntimeDiagnostics']
+    assert difference['unchangedPreexistingRuntimeDiagnostics'][0]['pluginId'] == 'bar'
+    decision = gate.review('A fixed')
+    assert decision.accepted and decision.completion == 'success'
+    assert validation.debugging.final_state == 'resolved'
+    assert '无关 Runtime 错误' in decision.text
+    assert activity.snapshot()['verification']['status'] == 'changed-and-verified'
+    assert validation.metrics()['debuggingMetrics']['runtimeDifferential'] == difference
+
+
+def test_unrelated_baseline_runtime_failure_does_not_lock_another_layer(tmp_path):
+    validation, activity, gate, static, tool, store, guard, a, b = targeted_runtime_session(tmp_path)
+    # B is from another owning layer. It remains a warning rather than granting
+    # that layer or terminating an otherwise successful repair of A.
+    b['kind'] = 'application-event-unknown'
+    b['eventName'] = 'legacy.event'
+    store.result = runtime_errors(a, b)
+    validation.debugging.runtime_baseline = None
+    call(tool, targetDiagnosticIds=[a['id']])
+    mutate(tmp_path, activity, 'fixed A')
+    call(static)
+    store.result = runtime_errors(b)
+    payload = call(tool)
+    guard._observe_result('inspect_runtime_errors', {}, json.dumps(payload))
+    assert not guard.run_control.blocked
+    assert guard.metrics.taskChangeLayers == ['plugin_behavior']
+    assert gate.review('done').completion == 'success'
+
+
+def test_new_runtime_regression_is_not_hidden_by_resolved_target(tmp_path):
+    validation, activity, gate, static, tool, store, guard, a, b = targeted_runtime_session(tmp_path)
+    mutate(tmp_path, activity, 'A fixed but setup broken')
+    call(static)
+    c = runtime_error(kind='plugin-activation', message='New setup error')
+    store.result = runtime_errors(b, c)
+    payload = call(tool)
+    assert payload['result']['runtimeDebuggingDifferential']['introducedRuntimeDiagnostics'][0]['kind'] == 'plugin-activation'
+    guard._observe_result('inspect_runtime_errors', {}, json.dumps(payload))
+    assert not guard.run_control.blocked  # C is repairable within plugin:foo.
+    decision = gate.review('A fixed')
+    assert not decision.accepted and decision.reason == 'introduced_runtime_regression'
+    assert 'New setup error' in decision.feedback
+    assert [item['pluginId'] for item in gate._runtime_completion_evidence()['currentErrors']] == ['foo']
+    assert validation.debugging.final_state != 'resolved'
+
+
+def test_new_outside_scope_runtime_regression_blocks(tmp_path):
+    validation, activity, gate, static, tool, store, guard, a, b = targeted_runtime_session(tmp_path)
+    mutate(tmp_path, activity, 'fixed A but new bar setup failure')
+    call(static)
+    store.result = runtime_errors(b, runtime_error('bar', 'bar-main', 'plugin-activation'))
+    call(tool)
+    decision = gate.review('done')
+    assert decision.completion == 'blocked' and decision.reason == 'runtime_failure_outside_scope'
+    assert validation.debugging.final_state == 'blocked'
+
+
+def test_runtime_target_still_present_obeys_existing_repair_limit(tmp_path):
+    validation, activity, gate, static, tool, store, guard, a, b = targeted_runtime_session(tmp_path)
+    assert gate.review('done').reason == 'runtime_target_remaining'
+    for version in ('attempt one', 'attempt two'):
+        mutate(tmp_path, activity, version)
+        call(static)
+        store.result = runtime_errors(a, b)
+        call(tool)
+        decision = gate.review('done')
+    assert decision.accepted and decision.completion == 'failed'
+    assert validation.debugging.final_state == 'unresolved_after_limit'
+
+
+def test_ordinary_runtime_verification_keeps_global_failure_semantics(tmp_path):
+    validation, activity, gate, static, tool, store, guard, a, b = targeted_runtime_session(tmp_path, bind=False)
+    mutate(tmp_path, activity, 'ordinary modification')
+    call(static)
+    store.result = runtime_errors(b)
+    payload = call(tool)
+    assert payload['result']['runtimeDebuggingDifferential'] is None
+    guard._observe_result('inspect_runtime_errors', {}, json.dumps(payload))
+    assert not validation.debugging.runtime_targets
+    assert gate._runtime_completion_evidence()['runtimeStatus'] == 'failed'
+    assert gate.review('done').feedback is not None
+
+
+def test_runtime_identity_survives_message_stack_report_id_and_hash_changes(tmp_path):
+    validation, activity, gate, static, tool, store, guard, a, b = targeted_runtime_session(tmp_path)
+    changed = {**a, 'errorMessage': 'Updated explanation', 'componentStack': 'source(90:7)',
+               'id': 'new-report-id', 'appUIModelHash': 'b' * 64}
+    store.result = runtime_errors(changed, b)
+    difference = call(tool)['result']['runtimeDebuggingDifferential']
+    assert len(difference['targetRemaining']) == 1
+    assert not difference['targetResolved'] and not difference['introducedRuntimeDiagnostics']
+    assert difference['targetRemaining'][0]['messageHash'] != difference['unchangedPreexistingRuntimeDiagnostics'][0]['messageHash']
+    assert gate.review('done').reason == 'runtime_target_remaining'
+
+
+def test_target_projection_cannot_waive_composition_or_geometry_obligations(tmp_path):
+    validation, activity, gate, static, tool, store, guard, a, b = targeted_runtime_session(tmp_path)
+    store.result = runtime_errors(b)
+    payload = call(tool)['result']
+    assert gate._runtime_completion_evidence()['runtimeStatus'] == 'passed'
+    evidence = validation.debugging
+    failed_composition = {**payload, 'compositionVerified': False,
+                          'compositionChecks': [{'status': 'failed'}]}
+    assert evidence.runtime_completion_view(failed_composition, activity.revision)['runtimeStatus'] == 'failed'
+    failed_geometry = {**payload, 'verificationTail': {'geometryVerification': {'status': 'failed'}}}
+    assert evidence.runtime_completion_view(failed_geometry, activity.revision)['runtimeStatus'] == 'failed'
+
+
+def test_incomplete_runtime_evidence_cannot_establish_a_baseline(tmp_path):
+    validation, activity, _, _ = session(tmp_path)
+    initial = runtime_errors(runtime_error())
+    initial['summary']['truncated'] = True
+    service, _, _ = runtime_service(activity, validation.debugging, initial)
+    result = call(create_runtime_diagnostic_tool(service), targetDiagnosticIds=['diagnostic-foo-main'])
+    assert result['error']['code'] == 'DEBUGGING_EVIDENCE_INCOMPLETE'
+    assert validation.debugging.runtime_baseline is None and not validation.debugging.runtime_targets
+
+
+def test_runtime_baseline_is_not_captured_after_a_mutation(tmp_path):
+    validation, activity, _, _ = session(tmp_path)
+    mutate(tmp_path, activity, 'changed before diagnosis')
+    service, _, _ = runtime_service(activity, validation.debugging, runtime_errors(runtime_error()))
+    result = call(create_runtime_diagnostic_tool(service), targetDiagnosticIds=['diagnostic-foo-main'])
+    assert result['error']['code'] == 'DEBUGGING_BASELINE_REQUIRED'
+    assert validation.debugging.runtime_baseline is None

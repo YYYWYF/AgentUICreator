@@ -139,6 +139,13 @@ class CreatorDevelopmentCompletionGate:
     def finalize(self, candidate: str) -> str:
         return self.review(candidate).text
 
+    def _runtime_completion_evidence(self) -> dict | None:
+        runtime = self.runtime.current_result()
+        debugging = getattr(self.validation, "debugging", None)
+        if runtime is None or debugging is None:
+            return runtime
+        return debugging.runtime_completion_view(runtime, self.activity.revision)
+
     def inspect_deliveries(self) -> list[dict]:
         authority = self.plugin_development_authority
         if authority is None:
@@ -166,7 +173,7 @@ class CreatorDevelopmentCompletionGate:
             reports.append(delivery_report(
                 root=self.activity.project_root, plugin_id=plugin_id, contract=contract,
                 authorization=authorization, revision=self.activity.revision,
-                static_passed=static_passed, runtime=self.runtime.current_result(),
+                static_passed=static_passed, runtime=self._runtime_completion_evidence(),
                 layout=self.runtime.current_layout(), behavior=behavior,
                 final=self._delivery_review_run_id == self.activity.run_id or self.activity.finishing,
                 verification_mode=self.verification_mode,
@@ -291,7 +298,7 @@ class CreatorDevelopmentCompletionGate:
                          "current owner files; unrelated unchanged errors are warnings. Validate the next revision: "
                          + json.dumps([item.to_dict() for item in remaining], ensure_ascii=False))
 
-        runtime = self.runtime.current_result()
+        runtime = self._runtime_completion_evidence()
         if debugging.runtime_targets and self.verification_mode == "static_only":
             return stop("blocked", "runtime_evidence_not_offered",
                         "当前环境仅支持静态验证，无法确认 Runtime 目标已解决。", "blocked")
@@ -300,6 +307,9 @@ class CreatorDevelopmentCompletionGate:
             if runtime is None or runtime.get("runtimeStatus") in {"stale", "unavailable"}:
                 return stop("blocked", "fresh_runtime_evidence_required",
                             "静态目标已检查，但缺少当前版本最新 Runtime 证据；修改已保留。", "committed_unverified")
+            if debugging.runtime_targets and debugging.runtime_differential(self.runtime.current_result(), self.activity.revision) is None:
+                return stop("blocked", "runtime_differential_unavailable",
+                            "缺少当前完整 Runtime 诊断或修复前基线，无法确认目标和回归状态。", "blocked")
             if runtime.get("runtimeStatus") != "passed" or runtime.get("compositionFresh") is not True:
                 layers = set(runtime_failure_layers(runtime))
                 resources = {f"plugin:{item['pluginId']}" for item in runtime.get("currentErrors", [])
@@ -308,7 +318,8 @@ class CreatorDevelopmentCompletionGate:
                         or (scope_resources and not resources.issubset(scope_resources))):
                     return stop("blocked", "runtime_failure_outside_scope",
                                 "当前 Runtime 故障超出任务范围或归属不明确；未跨层修改。", "blocked")
-                return retry("runtime_target_remaining",
+                introduced = (runtime.get("runtimeDebuggingDifferential") or {}).get("introducedRuntimeDiagnostics", [])
+                return retry("introduced_runtime_regression" if introduced else "runtime_target_remaining",
                              "Repair only fresh, source-attributed, in-scope Runtime diagnostics. Read the implicated "
                              "owner and nearest contract; do not rediscover all Plugins. Validate then inspect Runtime: "
                              + json.dumps(runtime, ensure_ascii=False))
@@ -340,6 +351,12 @@ class CreatorDevelopmentCompletionGate:
         })
         if self.service_authorization_finalizer is not None:
             self.service_authorization_finalizer.complete_current_applied()
+        if debugging.runtime_targets:
+            runtime_difference = debugging.runtime_differential(self.runtime.current_result(), self.activity.revision)
+            unchanged = (runtime_difference or {}).get("unchangedPreexistingRuntimeDiagnostics", [])
+            if unchanged:
+                warning = f"工作区仍有 {len(unchanged)} 个任务开始前已存在的无关 Runtime 错误，本次未修复。"
+                candidate = candidate.rstrip() + "\n\n" + warning
         return CompletionDecision(True, self._with_workspace_warning(candidate, validation),
                                   completion="already_satisfied" if no_change else "success",
                                   reason=debugging.reason)
@@ -707,7 +724,7 @@ class CreatorDevelopmentCompletionGate:
                 True, self._with_workspace_warning(candidate, validation)
             )
 
-        runtime = self.runtime.current_result()
+        runtime = self._runtime_completion_evidence()
         runtime_status = (
             "unavailable" if runtime is None else str(runtime["runtimeStatus"])
         )
@@ -721,7 +738,9 @@ class CreatorDevelopmentCompletionGate:
                 "runtime-verification",
                 runtime_passed,
                 (
-                    "与当前 AppUIModel 哈希对应的最新运行时证据中没有未解决错误。"
+                    "当前 Runtime 目标已解决，且没有新引入的 Runtime 诊断。"
+                    if runtime_passed and runtime.get("runtimeDebuggingDifferential") is not None
+                    else "与当前 AppUIModel 哈希对应的最新运行时证据中没有未解决错误。"
                     if runtime_passed
                     else "最新运行时证据明确表明当前状态与请求不符。"
                     if fresh_runtime_contradiction
