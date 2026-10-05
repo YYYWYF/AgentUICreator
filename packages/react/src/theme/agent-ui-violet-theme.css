@@ -1,17 +1,17 @@
 /* AgentUICreator-owned Adaptable Violet. The semantic vocabulary follows
- * shadcn; palette values do not track upstream Violet. One cold seed (#6D5DFB)
- * drives every brand state. Mix in OKLab to preserve hue against neutral white.
+ * shadcn; palette values do not track upstream Violet. One blue-violet seed
+ * (Tailwind violet-600) drives every brand state. Mix in OKLab to preserve hue against neutral white.
  * Intensity: default 0–1, hover 1, selected/focus 2, active 4, primary 5. */
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] {
   --radius: 0.625rem;
-  --agent-brand: oklch(0.585477 0.225676 281.424656);
+  --agent-brand: oklch(0.541 0.281 293.009);
   --agent-brand-subtle: color-mix(in oklab, var(--background) 97%, var(--agent-brand));
   --agent-brand-surface: color-mix(in oklab, var(--background) 94%, var(--agent-brand));
   --agent-brand-hover: color-mix(in oklab, var(--background) 96%, var(--agent-brand));
-  --agent-brand-selected: color-mix(in oklab, var(--background) 90%, var(--agent-brand));
-  --agent-brand-border: color-mix(in oklab, var(--background) 86%, var(--agent-brand));
-  --agent-brand-hover-border: color-mix(in oklab, var(--background) 78%, var(--agent-brand));
-  --agent-brand-focus-border: color-mix(in oklab, var(--background) 60%, var(--agent-brand));
+  --agent-brand-selected: color-mix(in oklab, var(--background) 86%, var(--agent-brand));
+  --agent-brand-border: color-mix(in oklab, var(--background) 78%, var(--agent-brand));
+  --agent-brand-hover-border: color-mix(in oklab, var(--background) 70%, var(--agent-brand));
+  --agent-brand-focus-border: color-mix(in oklab, var(--background) 52%, var(--agent-brand));
   --agent-brand-focus-ring: color-mix(in oklab, var(--agent-brand) 8%, transparent);
   --agent-brand-active: var(--agent-brand);
 

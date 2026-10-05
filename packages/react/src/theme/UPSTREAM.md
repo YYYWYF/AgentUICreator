@@ -15,7 +15,8 @@ from the official Zinc theme. Radius and existing layout scales are retained.
 Violet is the **AgentUICreator-owned Adaptable Brand Theme**, with a light color
 scheme. It follows the shadcn semantic token contract but does not inherit the
 shadcn Violet palette. `agent-ui-violet-theme.css` supplies every required token
-independently. Its canonical cold seed is `#6D5DFB`, stored as OKLCH; interaction
+independently. Its canonical blue-violet seed is [Tailwind `violet-600`](https://tailwindcss.com/docs/color)
+(`oklch(0.541 0.281 293.009)`, approximately `#7C3AED`); interaction
 surfaces, borders, focus, running/progress and chart colors derive from that seed.
 Future shadcn palette syncs must not automatically change Violet visuals.
 
