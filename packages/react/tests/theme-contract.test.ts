@@ -12,15 +12,18 @@ const requiredTokens = [
   "sidebar-border", "sidebar-ring",
 ].sort();
 const paletteUrl = new URL("../src/theme/shadcn-theme-presets.css", import.meta.url);
+const violetUrl = new URL("../src/theme/agent-ui-violet-theme.css", import.meta.url);
 const extensionUrl = new URL("../src/theme/agent-ui-theme-extensions.css", import.meta.url);
 
-describe("official theme contract", () => {
+describe("semantic theme contract", () => {
   it("keeps CSS and preset registry in parity with the complete upstream vocabulary", async () => {
-    const css = await readFile(paletteUrl, "utf8");
+    const upstream = await readFile(paletteUrl, "utf8");
+    expect(upstream).not.toContain('[data-theme="violet"]');
+    const css = upstream + await readFile(violetUrl, "utf8");
     const blocks = [...css.matchAll(/:is\(\.agent-ui-root, \.agent-ui-conversation\)\[data-theme="([^"]+)"\]\s*\{([^}]+)\}/gu)];
     expect(blocks.map((block) => block[1])).toEqual(Object.keys(AGENT_UI_THEME_PRESETS));
     for (const block of blocks) {
-      const tokens = [...block[2]!.matchAll(/--([\w-]+):/gu)].map((token) => token[1]).sort();
+      const tokens = [...block[2]!.matchAll(/--([\w-]+):/gu)].map((token) => token[1]!).filter(token => !token.startsWith("agent-brand")).sort();
       expect(tokens, block[1]).toEqual(requiredTokens);
       expect(block[2]).toContain(`color-scheme: ${getAgentUIThemeColorScheme(block[1] as keyof typeof AGENT_UI_THEME_PRESETS)}`);
     }
@@ -32,8 +35,8 @@ describe("official theme contract", () => {
   });
 
   it("keeps palette and extension declarations scoped and aliases in one shared layer", async () => {
-    const [palette, extension] = await Promise.all([readFile(paletteUrl, "utf8"), readFile(extensionUrl, "utf8")]);
-    for (const css of [palette, extension]) {
+    const [palette, violet, extension] = await Promise.all([readFile(paletteUrl, "utf8"), readFile(violetUrl, "utf8"), readFile(extensionUrl, "utf8")]);
+    for (const css of [palette, violet, extension]) {
       const clean = css.replace(/\/\*[\s\S]*?\*\//gu, "");
       for (const block of clean.matchAll(/([^{}]+)\{[^}]+\}/gu)) expect(block[1]!.trim()).toMatch(/^:is\(\.agent-ui-root, \.agent-ui-conversation\)\[data-/u);
       expect(clean).not.toMatch(/:root|\bbody\b/u);

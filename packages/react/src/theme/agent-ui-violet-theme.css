@@ -1,0 +1,50 @@
+/* AgentUICreator-owned Adaptable Violet. The semantic vocabulary follows
+ * shadcn; palette values do not track upstream Violet. One cold seed (#6D5DFB)
+ * drives every brand state. Mix in OKLab to preserve hue against neutral white.
+ * Intensity: default 0–1, hover 1, selected/focus 2, active 4, primary 5. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] {
+  --radius: 0.625rem;
+  --agent-brand: oklch(0.585477 0.225676 281.424656);
+  --agent-brand-subtle: color-mix(in oklab, var(--background) 97%, var(--agent-brand));
+  --agent-brand-surface: color-mix(in oklab, var(--background) 94%, var(--agent-brand));
+  --agent-brand-hover: color-mix(in oklab, var(--background) 96%, var(--agent-brand));
+  --agent-brand-selected: color-mix(in oklab, var(--background) 90%, var(--agent-brand));
+  --agent-brand-border: color-mix(in oklab, var(--background) 86%, var(--agent-brand));
+  --agent-brand-hover-border: color-mix(in oklab, var(--background) 78%, var(--agent-brand));
+  --agent-brand-focus-border: color-mix(in oklab, var(--background) 60%, var(--agent-brand));
+  --agent-brand-focus-ring: color-mix(in oklab, var(--agent-brand) 8%, transparent);
+  --agent-brand-active: var(--agent-brand);
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.21 0.006 285.885);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--foreground);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--foreground);
+  --primary: var(--agent-brand);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: var(--agent-brand-subtle);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--agent-brand-selected);
+  --muted-foreground: oklch(0.50 0.016 285.938);
+  --accent: var(--agent-brand-hover);
+  --accent-foreground: var(--foreground);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: var(--agent-brand-border);
+  --input: var(--agent-brand-border);
+  --ring: var(--agent-brand-focus-border);
+  --chart-1: color-mix(in oklab, var(--background) 65%, var(--agent-brand));
+  --chart-2: color-mix(in oklab, var(--background) 35%, var(--agent-brand));
+  --chart-3: var(--agent-brand);
+  --chart-4: color-mix(in oklab, var(--foreground) 20%, var(--agent-brand));
+  --chart-5: color-mix(in oklab, var(--foreground) 40%, var(--agent-brand));
+  --sidebar: var(--background);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--agent-brand);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--agent-brand-selected);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--agent-brand-border);
+  --sidebar-ring: var(--agent-brand-focus-border);
+  color-scheme: light;
+}

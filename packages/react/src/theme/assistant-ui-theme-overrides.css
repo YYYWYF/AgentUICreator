@@ -6,9 +6,15 @@
   border-color: var(--input);
 }
 
+/* Hover changes only the border; focus follows it in the cascade. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_composer-shell"]:hover {
+  border-color: var(--agent-brand-hover-border);
+}
+
+/* The stable shell hook keeps focus weaker than solid primary actions. */
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_composer-shell"]:focus-within {
-  border-color: color-mix(in oklab, var(--ring) 65%, var(--border));
-  box-shadow: 0 0 0 2px color-mix(in oklab, var(--ring) 11%, transparent);
+  border-color: var(--agent-brand-focus-border);
+  box-shadow: 0 0 0 1px var(--agent-brand-focus-ring);
 }
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-plan"] [role="progressbar"] {
@@ -18,5 +24,5 @@
 /* The pinned upstream progressbar has one direct aria-hidden span for its fill.
  * The contract test guards that narrow dependency; width/animation stay upstream. */
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-plan"] [role="progressbar"] > span[aria-hidden="true"] {
-  background-color: var(--primary);
+  background-color: var(--agent-brand-active);
 }

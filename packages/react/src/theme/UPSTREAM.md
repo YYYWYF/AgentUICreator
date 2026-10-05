@@ -10,29 +10,31 @@ Base color: **zinc**, retaining the installed light/dark baseline (not neutral).
 Light/dark values remain unchanged; the missing five chart tokens are copied
 from the official Zinc theme. Radius and existing layout scales are retained.
 
-Violet source: official shadcn preset. Preset code: **`b5vnpT4bI`**.
-Decoded values: style `nova`, baseColor `zinc`, theme `violet`, chartColor `violet`,
-iconLibrary `lucide`, font `inter`, fontHeading `inherit`, radius `default`,
-menuAccent `subtle`, menuColor `default`. The scratch project uses `base-nova`,
-matching the existing Base UI implementation. Only the light palette is shipped
-as Violet; its color scheme is light.
+## Product-owned Violet
 
-Sync method: **theme-only**, in a disposable Vite/Tailwind v4 project:
+Violet is the **AgentUICreator-owned Adaptable Brand Theme**, with a light color
+scheme. It follows the shadcn semantic token contract but does not inherit the
+shadcn Violet palette. `agent-ui-violet-theme.css` supplies every required token
+independently. Its canonical cold seed is `#6D5DFB`, stored as OKLCH; interaction
+surfaces, borders, focus, running/progress and chart colors derive from that seed.
+Future shadcn palette syncs must not automatically change Violet visuals.
 
-```sh
-npx --yes shadcn@4.21.1 preset decode b5vnpT4bI --json
-npx --yes shadcn@4.21.1 apply b5vnpT4bI --only theme --yes --cwd <scratch>
-```
-
-Extract only the `:root` semantic declarations, replacing its selector with
-`:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"]`.
-Scratch generated stylesheet SHA256: `3b7d46d87245bf8076bac4a73d22721f1bf104a7eacac44e5d4688a3f6742984`.
-Do not copy font, spacing, radius mapping, components, global resets or dependency
-changes from the scratch project. Build/install/runtime never invokes shadcn.
+`shadcn-theme-presets.css` contains only Light / Dark Zinc upstream snapshots.
+The snapshot hash guards those two palettes, excluding the product theme.
+Build/install/runtime never invokes shadcn.
 
 ## Extension boundary
 
-`shadcn-theme-presets.css` owns upstream palette snapshots.
+`shadcn-theme-presets.css` owns Light / Dark upstream palette snapshots.
+`agent-ui-violet-theme.css` owns the complete Violet palette and interaction
+intensity system: subtle default, light hover, lavender selection, soft focus,
+strong active/running and solid primary action.
+`assistant-ui-theme-overrides.css` owns removable stable-hook presentation seams:
+Composer white surface, border-only hover and a soft 1px focus halo; AgentPlan
+progress track/fill. Their hooks and upstream anatomy have contract guards.
+Thread selection keeps upstream `data-active:bg-muted` with neutral text.
+AgentStatus working remains upstream blue. No new component surfaces are added
+in Phase 1–3; Mention/Slash, Reasoning/Tool coverage remains later work.
 `agent-ui-theme-extensions.css` owns success/warning/overlay and a single shared
 `--aui-*` alias layer. `theme-contract.ts` maps presets to color schemes.
 Tokens stay inside Agent UI roots, including their portal containers.
@@ -47,7 +49,7 @@ No assistant-ui vendor file was modified for themes.
 ## Upgrade workflow
 
 For shadcn: inspect official token vocabulary changes, generate in scratch with
-an explicit CLI version, extract a theme-only diff, review, update snapshot and
+an explicit CLI version, extract only Light / Dark Zinc, review, update snapshot and
 provenance, then run theme contract/isolation tests and the three-theme showcase.
 Never bump Source Registry item versions to evolve palette content.
 
