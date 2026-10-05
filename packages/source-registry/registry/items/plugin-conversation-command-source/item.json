@@ -1,0 +1,26 @@
+{
+  "id": "plugin/conversation-command-source",
+  "version": "0.1.0",
+  "kind": "agent-component",
+  "description": "Default slash command source with a frontend new-conversation action",
+  "requires": [
+    "foundation/core"
+  ],
+  "files": [
+    {
+      "source": "files/plugins/conversation-command-source/definition.ts",
+      "target": "plugins/conversation-command-source/definition.ts"
+    },
+    {
+      "source": "files/plugins/conversation-command-source/index.tsx",
+      "target": "plugins/conversation-command-source/index.tsx"
+    },
+    {
+      "source": "files/plugins/conversation-command-source/manifest.json",
+      "target": "plugins/conversation-command-source/manifest.json"
+    }
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

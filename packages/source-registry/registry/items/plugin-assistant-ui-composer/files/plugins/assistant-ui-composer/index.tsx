@@ -10,6 +10,7 @@ export function AssistantUiComposerPlugin({
       data-slot="aui_composer-plugin"
     >
       <ConversationCanonicalComposer
+        triggers={renderSlot("triggers", null)}
         beforeInput={renderSlot("beforeInput", null)}
         leadingActions={renderSlot("leadingActions", null, { layout: "inline" })}
         trailingActions={renderSlot("trailingActions", null, { layout: "inline" })}

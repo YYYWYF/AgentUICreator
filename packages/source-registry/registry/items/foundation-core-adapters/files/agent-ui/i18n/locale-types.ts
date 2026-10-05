@@ -18,6 +18,14 @@ export interface AgentUILocaleMessages {
     noneSelected: string;
     unavailable: string;
   };
+  conversationTriggers: {
+    suggestions: string; back: string; empty: string; loading: string;
+    searchFailed: string; retry: string; commandFailed: string; invalidItem: string; newConversation: string;
+  };
+  composerTriggerDemo: {
+    localeKey: string; personOne: string; personTwo: string; personThree: string;
+    departmentOne: string; departmentTwo: string; departmentThree: string; summarize: string;
+  };
   conversationQuote: {
     quote: string;
     dismiss: string;

@@ -29,3 +29,5 @@ The files below are copied from the frozen revision above. Vendor sync may adapt
 `pnpm assistant-ui:update` resolves versions from npm, freezes the official remote main SHA, syncs the vendor, and writes the impact report.
 
 Quote Elements are adopted from the frozen revision. The internal selection primitive adaptation is tracked separately in `../../quote-selection-UPSTREAM.json`; its algorithm is unchanged and its Portal uses AgentUIRoot.
+
+Composer triggers adopt the official Directive Text Elements. Trigger Popover has one generic children seam for the adapter to register the official selection override. The pure matcher is unchanged upstream source and is synchronized with `composer-trigger-UPSTREAM.json`.

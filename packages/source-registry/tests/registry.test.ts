@@ -22,7 +22,7 @@ describe("Agent UI Source Registry public conversation contract", () => {
     expect(registry.items.map((entry) => entry.id)).toEqual(expect.arrayContaining([
       "foundation/conversation", "demo/frontend-tool-dialog", "demo/frontend-tool-form", "demo/ask-user-question",
     ]));
-    expect(registry.items.filter(entry => entry.kind === "demo")).toHaveLength(3);
+    expect(registry.items.filter(entry => entry.kind === "demo")).toHaveLength(4);
     expect(() => validateOfficialResourceSources(registry)).not.toThrow();
     expect(registry.byId.get("foundation/conversation")?.kind).toBe("foundation");
     expect(registry.items.filter((entry) => entry.kind === "primitive")).toHaveLength(0);

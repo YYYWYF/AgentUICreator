@@ -254,6 +254,15 @@ export async function collectAssistantUiUpstreamErrors(
     errors.push(`${PROVENANCE_FILE}.revision must be a 40-character commit hash.`);
   }
   errors.push(...await collectQuoteSelectionErrors(internalRoot, provenance?.revision));
+  try {
+    const trigger = await readJson(path.join(internalRoot, "composer-trigger-UPSTREAM.json"), "composer-trigger-UPSTREAM.json");
+    const installed = await readFile(path.join(internalRoot, "trigger-matcher.ts"));
+    if (trigger.revision !== provenance.revision || trigger.localPath !== "trigger-matcher.ts" ||
+        trigger.upstreamPath !== "packages/react/src/primitives/composer/trigger/detectTrigger.ts" ||
+        sha256(installed) !== trigger.installedSha256 || trigger.installedSha256 !== trigger.upstreamSha256) {
+      errors.push("Composer trigger matcher must match its frozen upstream provenance.");
+    }
+  } catch (error) { errors.push(`Composer trigger matcher provenance unavailable: ${error.message}`); }
   const provenanceElementPaths = elementPathsFromProvenance(provenance, errors);
   for (const entry of Array.isArray(provenance.files) ? provenance.files : []) {
     if ((Array.isArray(entry?.adaptations) && entry.adaptations.includes("agent-ui-portal-container-bridge")) !==
@@ -312,7 +321,8 @@ export async function collectAssistantUiUpstreamErrors(
         : [];
       if (patchFiles.some((file) => typeof file === "string" && file.startsWith(ELEMENT_PATH_PREFIX) &&
         !(patch.id === "agent-ui-portal-container-bridge" && file === IMAGE_ZOOM_PORTAL_PATH) &&
-        !(patch.id === "agent-ui-quote-selection-portal-bridge" && file === "components/assistant-ui/elements/quote.aui.tsx"))) {
+        !(patch.id === "agent-ui-quote-selection-portal-bridge" && file === "components/assistant-ui/elements/quote.aui.tsx") &&
+        !(patch.id === "agent-ui-trigger-content-seam" && file === "components/assistant-ui/elements/composer-trigger-popover.aui.tsx"))) {
         errors.push(`${PROVENANCE_FILE} must not contain Element-targeted product patches.`);
       }
       if (JSON.stringify(patch).includes("p3r4d-thread-list-policy-seam")) {

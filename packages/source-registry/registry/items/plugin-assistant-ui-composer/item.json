@@ -1,6 +1,6 @@
 {
   "id": "plugin/assistant-ui-composer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "kind": "agent-component",
   "description": "Managed Agent UI plugin-assistant-ui-composer source",
   "files": [

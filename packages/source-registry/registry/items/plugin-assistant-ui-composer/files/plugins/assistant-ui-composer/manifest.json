@@ -18,6 +18,16 @@
   },
   "slots": {
     "children": {
+      "triggers": {
+        "description": "Optional conversation input triggers.",
+        "cardinality": "many",
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": [
+            "conversation-composer-trigger"
+          ]
+        }
+      },
       "beforeInput": {
         "description": "Content displayed between attachments and the composer input.",
         "cardinality": "many",

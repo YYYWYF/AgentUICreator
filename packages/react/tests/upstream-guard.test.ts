@@ -20,7 +20,8 @@ async function copyGuardFixture(prefix: string): Promise<string> {
   await mkdir(path.dirname(fixtureVendorRoot), { recursive: true });
   await cp(vendorRoot, fixtureVendorRoot, { recursive: true });
   for (const file of ["quote-selection-UPSTREAM.json", "quote-selection-root.tsx",
-    "quote-selection-action.tsx", "quote-selection-message-id.ts"]) {
+    "quote-selection-action.tsx", "quote-selection-message-id.ts",
+    "composer-trigger-UPSTREAM.json", "trigger-matcher.ts"]) {
     await cp(path.join(packageRoot, "src/internal", file), path.join(internalRoot, file));
   }
   return fixtureVendorRoot;

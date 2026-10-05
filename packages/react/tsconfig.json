@@ -19,7 +19,12 @@
     "skipLibCheck": true,
     "types": [
       "node"
-    ]
+    ],
+    "paths": {
+      "@agent-ui/runtime-conversation": [
+        "../runtime-conversation/src/index.ts"
+      ]
+    }
   },
   "include": [
     "src/**/*.ts",
@@ -28,6 +33,7 @@
     "tests/**/*.tsx"
   ],
   "exclude": [
-    "tests/migrated"
+    "tests/migrated",
+    "tests/fixtures"
   ]
 }

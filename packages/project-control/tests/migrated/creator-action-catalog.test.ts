@@ -382,6 +382,7 @@ describe("Creator Action semantic identity", () => {
       code: "AUTHORING_MOVE_INCOMPATIBLE",
     });
     expect(isExpectedCreatorActionRejection(expected)).toBe(true);
+    expect(isExpectedCreatorActionRejection({ code: "RESPONSIVE_DRAWER_INDEX_INVALID" })).toBe(true);
     expect(isExpectedCreatorActionRejection(new Error("synthetic infrastructure failure"))).toBe(false);
   });
 });

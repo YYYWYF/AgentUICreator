@@ -1,0 +1,9 @@
+{
+  "revision": "3542d602272a62eddeb8989befc910841c267022",
+  "license": "MIT",
+  "upstreamPath": "packages/react/src/primitives/composer/trigger/detectTrigger.ts",
+  "localPath": "trigger-matcher.ts",
+  "upstreamSha256": "ba5bd8cb851a8a598c8a808dd1da2328328ffcbad502d2237e48b2d6e1d16147",
+  "installedSha256": "ba5bd8cb851a8a598c8a808dd1da2328328ffcbad502d2237e48b2d6e1d16147",
+  "adaptations": []
+}

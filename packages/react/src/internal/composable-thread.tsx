@@ -1,5 +1,6 @@
 "use client";
 
+import { ConversationUserDirectiveText } from "./conversation-directive-text.js";
 import { QuoteThreadRootContext } from "./quote-thread-root.js";
 import { QuoteSelectableText } from "./quote-selectable-text.js";
 import { InternalConversationQuoteBlock } from "./conversation-quote.js";
@@ -344,6 +345,7 @@ export interface CanonicalComposerProps {
   autoFocus?: boolean | undefined;
   placeholder: string;
   inputAriaLabel: string;
+  triggers?: ReactNode;
   beforeInput?: ReactNode;
   leadingActions?: ReactNode;
   trailingActions?: ReactNode;
@@ -354,6 +356,7 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
   autoFocus,
   placeholder,
   inputAriaLabel,
+  triggers,
   beforeInput,
   leadingActions,
   trailingActions,
@@ -363,7 +366,9 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
   const resolvedAutoFocus = autoFocus ?? inheritedHostConfig.autoFocus;
 
   return (
+    <ComposerPrimitive.Unstable_TriggerPopoverRoot>
     <ComposerPrimitive.Root className="aui-composer-root relative flex w-full flex-col">
+      {triggers}
       <ComposerPrimitive.AttachmentDropzone asChild>
         <div
           data-slot="aui_composer-shell"
@@ -399,6 +404,7 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
         </div>
       </ComposerPrimitive.AttachmentDropzone>
     </ComposerPrimitive.Root>
+    </ComposerPrimitive.Unstable_TriggerPopoverRoot>
   );
 };
 
@@ -823,7 +829,7 @@ const UserMessage: FC = () => {
       <div className="aui-user-message-content-wrapper relative col-start-2 min-w-0">
         <div className="aui-user-message-content peer bg-muted text-foreground rounded-xl px-4 py-2 wrap-break-word empty:hidden">
           <MessagePrimitive.Parts
-            components={{ File: UserFilePart, Image: UserImagePart }}
+            components={{ Text: ConversationUserDirectiveText, File: UserFilePart, Image: UserImagePart }}
           />
         </div>
         <div className="aui-user-action-bar-wrapper absolute start-0 top-1/2 -translate-x-full -translate-y-1/2 pe-2 peer-empty:hidden rtl:translate-x-full">

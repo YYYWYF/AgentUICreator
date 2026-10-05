@@ -125,6 +125,11 @@ describe("Agent UI Preset", () => {
       expect(pluginIds.includes("conversation-thread-list")).toBe(hasThreadList);
       expect(applicationPluginIds).toContain("conversation-data-source");
       expect(applicationPluginIds).toContain("conversation-service");
+      expect(applicationPluginIds).toContain("conversation-command-source");
+      const nestedPluginIds = collectAppUIPluginLocations(model).map(entry => entry.plugin.pluginId);
+      expect(nestedPluginIds).toContain("assistant-ui-mention-trigger");
+      expect(nestedPluginIds).toContain("assistant-ui-slash-command-trigger");
+      expect(applicationPluginIds).not.toContain("composer-trigger-demo");
 
       const topology = projectWorkspaceTopology(
         model,

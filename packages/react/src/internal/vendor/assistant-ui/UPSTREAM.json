@@ -55,7 +55,27 @@
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/composer-trigger-popover.aui.tsx",
       "localPath": "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
       "upstreamSha256": "592d5681d4fe197174d54a0fc7243ef64155f0d2c7bd878117a04f6d050fad81",
-      "installedSha256": "06c9b2b6fa021bbfe58ba226d4d5c6a46e448369aebf362d02f8b56032c69ba2",
+      "installedSha256": "eb2cb7659cdb12ebd156a9a62f8321340da26fdaa8e56598f8751e40f9a22b66",
+      "adaptations": [
+        "official-registry-base-ui-rendering",
+        "import-alias-to-relative",
+        "agent-ui-trigger-content-seam"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/directive-text.aui.tsx",
+      "localPath": "components/assistant-ui/elements/directive-text.aui.tsx",
+      "upstreamSha256": "28fc43782ff1fe261df5c6c55717f0bd9256ed9ee702edd32d638e8a9fbdd0e4",
+      "installedSha256": "28fc43782ff1fe261df5c6c55717f0bd9256ed9ee702edd32d638e8a9fbdd0e4",
+      "adaptations": [
+        "official-registry-base-ui-rendering"
+      ]
+    },
+    {
+      "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/directive-text.tsx",
+      "localPath": "components/assistant-ui/elements/directive-text.tsx",
+      "upstreamSha256": "7865b18353476c4963a1f59cd6c0d72a994899ee2acf27eeb849e7942bf0b3d4",
+      "installedSha256": "5838f8ec1238d1097a1521be4ee33118fbd33b0329ec0806dab94e4682ab6d45",
       "adaptations": [
         "official-registry-base-ui-rendering",
         "import-alias-to-relative"
@@ -474,6 +494,13 @@
       "reason": "Route only Quote selection primitives through the scoped upstream adapter.",
       "files": [
         "components/assistant-ui/elements/quote.aui.tsx"
+      ]
+    },
+    {
+      "id": "agent-ui-trigger-content-seam",
+      "reason": "Provide a generic child seam for public trigger selection overrides; behavior remains in the adapter.",
+      "files": [
+        "components/assistant-ui/elements/composer-trigger-popover.aui.tsx"
       ]
     }
   ]

@@ -325,6 +325,7 @@ export function ConversationThread({
 
 export interface ConversationCanonicalComposerProps {
   autoFocus?: boolean | undefined;
+  triggers?: ReactNode;
   beforeInput?: ReactNode;
   leadingActions?: ReactNode;
   trailingActions?: ReactNode;
@@ -1199,4 +1200,57 @@ export function ConversationQuoteSelectionToolbar(props: { quoteLabel: string })
 }
 export function useConversationQuoteLifecycle(): void {
   useInternalConversationQuoteLifecycle();
+}
+
+export interface ConversationMentionItem {
+  id: string;
+  type: string;
+  label: string;
+  description?: string;
+}
+export interface ConversationMentionSource {
+  /** Change when identity, locale, permissions, or available data changes. */
+  cacheKey: string | number;
+  /** Notify cacheKey changes when the source object stays mounted. */
+  subscribe?(listener: () => void): () => void;
+  search(input: { query: string; signal: AbortSignal }): Promise<readonly ConversationMentionItem[]>;
+}
+export interface ConversationCommandBase {
+  id: string;
+  label: string;
+  description?: string;
+  disabled?: boolean;
+}
+export type ConversationSlashCommand =
+  | (ConversationCommandBase & { mode: "action"; execute(): void | Promise<void> })
+  | (ConversationCommandBase & { mode: "directive" });
+export interface ConversationSlashCommandSource {
+  getSnapshot(): readonly ConversationSlashCommand[];
+  subscribe(listener: () => void): () => void;
+}
+export interface ConversationTriggerLabels {
+  suggestions: string;
+  back: string;
+  empty: string;
+  loading: string;
+  searchFailed: string;
+  retry: string;
+  commandFailed: string;
+  invalidItem: string;
+}
+export interface ConversationMentionTriggerProps {
+  source?: ConversationMentionSource | undefined;
+  labels: ConversationTriggerLabels;
+  debounceMs?: number | undefined;
+}
+export interface ConversationCommandTriggerProps {
+  source?: ConversationSlashCommandSource | undefined;
+  labels: ConversationTriggerLabels;
+}
+import { InternalConversationMentionTrigger, InternalConversationCommandTrigger } from "./internal/conversation-composer-triggers.js";
+export function ConversationComposerMentionTrigger(props: ConversationMentionTriggerProps): ReactElement | null {
+  return <InternalConversationMentionTrigger {...props} />;
+}
+export function ConversationComposerCommandTrigger(props: ConversationCommandTriggerProps): ReactElement | null {
+  return <InternalConversationCommandTrigger {...props} />;
 }

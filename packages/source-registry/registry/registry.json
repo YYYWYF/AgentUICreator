@@ -163,6 +163,22 @@
     {
       "id": "plugin/conversation-quote",
       "path": "items/plugin-conversation-quote/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-mention-trigger",
+      "path": "items/plugin-assistant-ui-mention-trigger/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-slash-command-trigger",
+      "path": "items/plugin-assistant-ui-slash-command-trigger/item.json"
+    },
+    {
+      "id": "plugin/conversation-command-source",
+      "path": "items/plugin-conversation-command-source/item.json"
+    },
+    {
+      "id": "demo/composer-triggers",
+      "path": "items/demo-composer-triggers/item.json"
     }
   ]
 }

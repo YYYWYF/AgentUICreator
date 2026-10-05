@@ -188,5 +188,19 @@
   "plugins/source-citations-message/manifest.json": "packages/source-registry/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/manifest.json",
   "plugins/conversation-quote/definition.ts": "packages/source-registry/registry/items/plugin-conversation-quote/files/plugins/conversation-quote/definition.ts",
   "plugins/conversation-quote/index.tsx": "packages/source-registry/registry/items/plugin-conversation-quote/files/plugins/conversation-quote/index.tsx",
-  "plugins/conversation-quote/manifest.json": "packages/source-registry/registry/items/plugin-conversation-quote/files/plugins/conversation-quote/manifest.json"
+  "plugins/conversation-quote/manifest.json": "packages/source-registry/registry/items/plugin-conversation-quote/files/plugins/conversation-quote/manifest.json",
+  "plugins/assistant-ui-mention-trigger/definition.ts": "packages/source-registry/registry/items/plugin-assistant-ui-mention-trigger/files/plugins/assistant-ui-mention-trigger/definition.ts",
+  "plugins/assistant-ui-mention-trigger/index.tsx": "packages/source-registry/registry/items/plugin-assistant-ui-mention-trigger/files/plugins/assistant-ui-mention-trigger/index.tsx",
+  "plugins/assistant-ui-mention-trigger/manifest.json": "packages/source-registry/registry/items/plugin-assistant-ui-mention-trigger/files/plugins/assistant-ui-mention-trigger/manifest.json",
+  "plugins/assistant-ui-slash-command-trigger/definition.ts": "packages/source-registry/registry/items/plugin-assistant-ui-slash-command-trigger/files/plugins/assistant-ui-slash-command-trigger/definition.ts",
+  "plugins/assistant-ui-slash-command-trigger/index.tsx": "packages/source-registry/registry/items/plugin-assistant-ui-slash-command-trigger/files/plugins/assistant-ui-slash-command-trigger/index.tsx",
+  "plugins/assistant-ui-slash-command-trigger/manifest.json": "packages/source-registry/registry/items/plugin-assistant-ui-slash-command-trigger/files/plugins/assistant-ui-slash-command-trigger/manifest.json",
+  "plugins/conversation-command-source/definition.ts": "packages/source-registry/registry/items/plugin-conversation-command-source/files/plugins/conversation-command-source/definition.ts",
+  "plugins/conversation-command-source/index.tsx": "packages/source-registry/registry/items/plugin-conversation-command-source/files/plugins/conversation-command-source/index.tsx",
+  "plugins/conversation-command-source/manifest.json": "packages/source-registry/registry/items/plugin-conversation-command-source/files/plugins/conversation-command-source/manifest.json",
+  "plugins/composer-trigger-demo/definition.ts": "packages/source-registry/registry/items/demo-composer-triggers/files/plugins/composer-trigger-demo/definition.ts",
+  "plugins/composer-trigger-demo/index.tsx": "packages/source-registry/registry/items/demo-composer-triggers/files/plugins/composer-trigger-demo/index.tsx",
+  "plugins/composer-trigger-demo/manifest.json": "packages/source-registry/registry/items/demo-composer-triggers/files/plugins/composer-trigger-demo/manifest.json",
+  "plugins/composer-trigger-demo/source.ts": "packages/source-registry/registry/items/demo-composer-triggers/files/plugins/composer-trigger-demo/source.ts",
+  "services/composer-triggers.ts": "packages/source-registry/registry/items/foundation-core-application/files/services/composer-triggers.ts"
 }

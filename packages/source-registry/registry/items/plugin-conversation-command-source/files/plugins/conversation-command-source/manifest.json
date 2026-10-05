@@ -1,0 +1,10 @@
+{
+  "id": "conversation-command-source",
+  "name": "Conversation Command Source",
+  "description": "Provides project-owned slash commands through the existing Plugin Service lifecycle.",
+  "version": "1.0.0",
+  "capabilities": [
+    "headless",
+    "plugin-service-provider"
+  ]
+}

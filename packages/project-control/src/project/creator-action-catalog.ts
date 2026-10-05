@@ -268,6 +268,7 @@ export function isExpectedCreatorActionRejection(error: unknown): boolean {
     code.startsWith("LAYOUT_") ||
     code === "PLUGIN_ALREADY_EXISTS" ||
     code === "INDEX_OUT_OF_RANGE" ||
+    code === "RESPONSIVE_DRAWER_INDEX_INVALID" ||
     code === "PLUGIN_WIDTH_INCOMPATIBLE"
   );
 }

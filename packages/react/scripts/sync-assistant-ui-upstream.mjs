@@ -107,6 +107,18 @@ export async function prepareQuoteSelectionSync(repo, revision) {
   return { installations, provenance: { revision, license: "MIT", files, adaptations: QUOTE_SELECTION_ADAPTATIONS } };
 }
 
+export async function prepareComposerTriggerSync(repo, revision) {
+  const upstreamPath = "packages/react/src/primitives/composer/trigger/detectTrigger.ts";
+  const source = await gitShow(repo, revision, upstreamPath);
+  if (!source.includes("export function detectTrigger(") || !source.includes("readonly endOffset: number;")) {
+    throw new Error("Composer trigger matcher upstream shape changed; review the adapter before syncing.");
+  }
+  return {
+    provenance: { revision, license: "MIT", upstreamPath, localPath: "trigger-matcher.ts", upstreamSha256: sha256(source), installedSha256: sha256(source), adaptations: [] },
+    installations: [{ destination: path.join(packageRoot, "src/internal/trigger-matcher.ts"), installed: source }],
+  };
+}
+
 function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
 }
@@ -373,6 +385,12 @@ export function applyApprovedAdaptations(source, localPath) {
     installed = replaceExactlyOnce(installed, '  SelectionToolbarPrimitive,\n', '', localPath);
     installed = replaceExactlyOnce(installed, 'import { QuoteIcon', 'import { SelectionToolbarPrimitive } from "../../../../../quote-selection-adapter.js";\nimport { QuoteIcon', localPath);
   }
+  if (localPath === "components/assistant-ui/elements/composer-trigger-popover.aui.tsx") {
+    installed = replaceExactlyOnce(installed, 'type FC }', 'type FC, type ReactNode }', localPath);
+    installed = replaceExactlyOnce(installed, '  iconMap?: Record<string, IconComponent>;', '  children?: ReactNode;\n  iconMap?: Record<string, IconComponent>;', localPath);
+    installed = replaceExactlyOnce(installed, '  directive,\n  action,', '  directive,\n  action,\n  children,', localPath);
+    installed = replaceExactlyOnce(installed, '      <Categories\n', '      {children}\n      <Categories\n', localPath);
+  }
   return installed;
 }
 
@@ -400,6 +418,7 @@ export function installedVendorEntry({ source, localPath, upstreamPath, previous
       adaptations: [...new Set([
         ...adaptationsFor({ localPath, source, previous }),
         ...(localPath === "components/assistant-ui/elements/quote.aui.tsx" ? ["agent-ui-quote-selection-portal-bridge"] : []),
+        ...(localPath === "components/assistant-ui/elements/composer-trigger-popover.aui.tsx" ? ["agent-ui-trigger-content-seam"] : []),
         ...(PORTAL_BRIDGE_FILES.includes(localPath) ? [PORTAL_BRIDGE_ID] : []),
       ])],
     },
@@ -442,13 +461,14 @@ function upstreamMarkdown({ revision, oldRevision, target, files, inventory, new
     `\n\n## Ownership\n\n` +
     `The files below are copied from the frozen revision above. Vendor sync may adapt ` +
     `only upstream import aliases, registry base-ui relative paths, and the five ` +
-    `recorded Agent UI Portal container bridges and the separate Quote selection import bridge. Product ` +
+    `recorded Agent UI Portal container bridges, the Quote selection import bridge, and the generic Composer trigger child seam. Product ` +
     `presentation and policy stay in the Agent UI facade and Plugin layers.\n\n` +
     `- ${files.length} tracked vendor files\n` +
     `- ${files.filter((file) => file.localPath.startsWith(ELEMENT_PREFIX)).length} tracked official Element files\n` +
     `- ${inventory.length} official Element files discovered upstream\n` +
     `- ${newAvailableElements.length} upstream Element files not adopted into the tracked set\n` +
     `- AG-UI remains at \`${target.agUi["@ag-ui/client"]}\` because it follows the react-ag-ui compatibility matrix\n\n` +
+    `Composer trigger range matching is copied unchanged from this revision; hashes are recorded in composer-trigger-UPSTREAM.json.\n\n` +
     `## Upgrade command\n\n` +
     `\`pnpm assistant-ui:update\` resolves versions from npm, freezes the official remote ` +
     `main SHA, syncs the vendor, and writes the impact report.\n`;
@@ -560,6 +580,8 @@ async function main() {
     files.push(provenance);
   }
   const portalPatch = portalBridgePatch(files);
+  const composerTrigger = await prepareComposerTriggerSync(repo, revision);
+  installations.push(...composerTrigger.installations);
   const quoteSelection = await prepareQuoteSelectionSync(repo, revision);
   installations.push(...quoteSelection.installations);
   for (const { destination, installed } of installations) {
@@ -596,6 +618,9 @@ async function main() {
       id: "agent-ui-quote-selection-portal-bridge",
       reason: "Route only Quote selection primitives through the scoped upstream adapter.",
       files: ["components/assistant-ui/elements/quote.aui.tsx"],
+    }] : []), ... (files.some(file => file.localPath === "components/assistant-ui/elements/composer-trigger-popover.aui.tsx") ? [{
+      id: "agent-ui-trigger-content-seam", reason: "Provide a generic child seam for public trigger selection overrides; behavior remains in the adapter.",
+      files: ["components/assistant-ui/elements/composer-trigger-popover.aui.tsx"],
     }] : [])],
   };
   const nextLock = {
@@ -613,6 +638,7 @@ async function main() {
 
   await writeFile(path.join(packageRoot, "src/internal/quote-selection-UPSTREAM.json"),
     `${JSON.stringify(quoteSelection.provenance, null, 2)}\n`, "utf8");
+  await writeFile(path.join(packageRoot, "src/internal/composer-trigger-UPSTREAM.json"), `${JSON.stringify(composerTrigger.provenance, null, 2)}\n`, "utf8");
   await writeFile(manifestPath, `${JSON.stringify(nextManifest, null, 2)}\n`, "utf8");
   await writeFile(provenancePath, `${JSON.stringify(nextProvenance, null, 2)}\n`, "utf8");
   await writeFile(lockPath, `${JSON.stringify(nextLock, null, 2)}\n`, "utf8");

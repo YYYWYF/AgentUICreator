@@ -1,0 +1,23 @@
+{
+  "id": "assistant-ui-mention-trigger",
+  "name": "Assistant Ui Mention Trigger",
+  "description": "Optional composer trigger backed by project-owned Plugin Services.",
+  "version": "1.0.0",
+  "capabilities": [
+    "conversation-composer-trigger"
+  ],
+  "authoring": {
+    "intents": [
+      "mention a person or resource",
+      "add mention search to the composer",
+      "添加提及功能",
+      "输入 @ 搜索对象"
+    ],
+    "visualRole": "conversation input trigger",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "assistant-ui-composer",
+      "slot": "triggers"
+    }
+  }
+}

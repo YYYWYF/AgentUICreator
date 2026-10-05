@@ -1,3 +1,5 @@
+import { composerMentionScenario } from "./composer-mention.js";
+import { composerSlashScenario } from "./composer-slash.js";
 import { quoteReplyScenario } from "./quote-reply.js";
 import { sourceCitationsScenario } from "./source-citations.js";
 import { multimodalInputScenario } from "./multimodal-input.js";
@@ -34,6 +36,8 @@ import { toolLongRunningScenario } from "./tool-long-running.js";
 import type { MockScenario } from "../scenario.js";
 
 export {
+  composerMentionScenario,
+  composerSlashScenario,
   quoteReplyScenario,
   sourceCitationsScenario,
   cancelBeforeFirstOutputScenario,
@@ -85,6 +89,8 @@ export const backendReferenceMockScenarios: MockScenario[] = [
 ];
 
 export const frontendPresentationMockScenarios: MockScenario[] = [
+  composerMentionScenario,
+  composerSlashScenario,
   quoteReplyScenario,
   resumableLongRunScenario,
   resumableAgentPlanScenario,

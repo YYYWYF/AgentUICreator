@@ -19,6 +19,11 @@
       "id": "locale-provider-main",
       "pluginId": "locale-provider",
       "enabled": true
+    },
+    {
+      "id": "conversation-command-source-main",
+      "pluginId": "conversation-command-source",
+      "enabled": true
     }
   ],
   "root": {
@@ -84,6 +89,25 @@
                         {
                           "id": "assistant-ui-submit-action-main",
                           "pluginId": "assistant-ui-submit-action",
+                          "enabled": true
+                        }
+                      ],
+                      "beforeInput": [
+                        {
+                          "id": "conversation-quote-main",
+                          "pluginId": "conversation-quote",
+                          "enabled": true
+                        }
+                      ],
+                      "triggers": [
+                        {
+                          "id": "assistant-ui-mention-trigger-main",
+                          "pluginId": "assistant-ui-mention-trigger",
+                          "enabled": true
+                        },
+                        {
+                          "id": "assistant-ui-slash-command-trigger-main",
+                          "pluginId": "assistant-ui-slash-command-trigger",
                           "enabled": true
                         }
                       ]

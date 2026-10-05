@@ -9,6 +9,8 @@
     "components/assistant-ui/elements/agent-status.tsx",
     "components/assistant-ui/elements/attachment.aui.tsx",
     "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+    "components/assistant-ui/elements/directive-text.aui.tsx",
+    "components/assistant-ui/elements/directive-text.tsx",
     "components/assistant-ui/elements/file.tsx",
     "components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
     "components/assistant-ui/elements/image.tsx",

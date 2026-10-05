@@ -1,0 +1,22 @@
+{
+  "id": "assistant-ui-slash-command-trigger",
+  "name": "Assistant Ui Slash Command Trigger",
+  "description": "Optional composer trigger backed by project-owned Plugin Services.",
+  "version": "1.0.0",
+  "capabilities": [
+    "conversation-composer-trigger"
+  ],
+  "authoring": {
+    "intents": [
+      "add slash commands to the composer",
+      "run a frontend action or insert an agent command",
+      "添加斜杠命令"
+    ],
+    "visualRole": "conversation input trigger",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "assistant-ui-composer",
+      "slot": "triggers"
+    }
+  }
+}

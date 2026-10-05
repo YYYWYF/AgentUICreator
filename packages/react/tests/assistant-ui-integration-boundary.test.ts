@@ -44,6 +44,10 @@ it("records five Portal target bridges and a separate Quote primitive bridge", a
     id: "agent-ui-quote-selection-portal-bridge",
     files: ["components/assistant-ui/elements/quote.aui.tsx"],
     reason: expect.any(String),
+  }, {
+    id: "agent-ui-trigger-content-seam",
+    files: ["components/assistant-ui/elements/composer-trigger-popover.aui.tsx"],
+    reason: expect.any(String),
   }]);
   const uses: string[] = [];
   for (const filePath of await sourceFiles(path.join(vendorRoot, "components"))) {
