@@ -9,6 +9,8 @@ import pytest
 from fastapi.testclient import TestClient
 from langchain_core.language_models.fake_chat_models import FakeMessagesListChatModel
 from langchain_core.messages import AIMessage
+from langchain_core.outputs import ChatGeneration, ChatResult
+from pydantic import PrivateAttr
 
 from agent_ui_creator.config import CreatorServerSettings
 from agent_ui_creator.project_control import ProjectControlClient
@@ -18,12 +20,62 @@ from agent_ui_creator.validation.models import CommandExecutionResult
 ROOT = Path(__file__).resolve().parents[3]
 
 
+class _TrackingModelState:
+    def __init__(self):
+        self.response_index = 0
+        self.offered_tools: list[set[str]] = []
+
+
 class TrackingModel(FakeMessagesListChatModel):
+    _shared_state: _TrackingModelState = PrivateAttr(default_factory=_TrackingModelState)
+
+    @property
+    def response_index(self) -> int:
+        return self._shared_state.response_index
+
+    @property
+    def offered_tools(self) -> list[set[str]]:
+        return self._shared_state.offered_tools
+
+    def model_copy(self, *, update=None, deep=False):
+        copied = super().model_copy(update=update, deep=deep)
+        # Every clone belongs to the same scripted model session.
+        copied._shared_state = self._shared_state
+        return copied
+
+    def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+        index = self._shared_state.response_index
+        if index >= len(self.responses):
+            raise AssertionError(f"TrackingModel exhausted scripted responses at index {index}")
+        response = self.responses[index]
+        self._shared_state.response_index += 1
+        return ChatResult(generations=[ChatGeneration(message=response)])
+
     def bind_tools(self, tools, **_kwargs):
-        offered = list(getattr(self, "offered_tools", []))
-        offered.append({tool.name for tool in tools})
-        object.__setattr__(self, "offered_tools", offered)
+        self._shared_state.offered_tools.append({tool.name for tool in tools})
         return self
+
+
+@pytest.mark.parametrize("deep", [False, True])
+def test_tracking_model_copies_share_scripted_response_cursor(deep):
+    model = TrackingModel(responses=[AIMessage(content="first"), AIMessage(content="second")])
+    selector_copy = model.model_copy(update={"streaming": False}, deep=deep)
+
+    first = asyncio.run(selector_copy.ainvoke([]))
+    second = asyncio.run(model.ainvoke([]))
+
+    assert selector_copy._shared_state is model._shared_state
+    assert first.content == "first"
+    assert second.content == "second"
+    assert model.response_index == 2
+
+
+def test_tracking_model_fails_when_scripted_responses_are_exhausted():
+    model = TrackingModel(responses=[AIMessage(content="only")])
+    asyncio.run(model.ainvoke([]))
+
+    with pytest.raises(AssertionError, match="exhausted scripted responses"):
+        asyncio.run(model.ainvoke([]))
 
 
 def call(name, args, identifier):
@@ -133,3 +185,4 @@ def test_selector_question_interrupt_answer_and_real_host_removal(tmp_path, monk
         assert "assistant-ui-slash-command-trigger" not in composition_file.read_text()
     assert "removal-thread" not in app.state.pending_creator_questions
     assert app.state.pending_creator_clarifications.peek("removal-thread") is None
+    assert model.response_index == len(responses)
