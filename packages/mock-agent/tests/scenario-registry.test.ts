@@ -13,6 +13,9 @@ import { defineScenario, type MockScenario } from "../src/scenario.js";
 describe("createScenarioRegistry", () => {
   it("keeps the showcase catalog separate from regression fixtures", () => {
     expect(backendReferenceMockScenarios.map(({ id }) => id)).toEqual([
+      "composer-mention-context",
+      "web-search",
+      "retrieval-chunks",
       "source-citations",
       "multimodal-input",
       "concurrent-conversations",
@@ -26,7 +29,7 @@ describe("createScenarioRegistry", () => {
       "agent-state-sync",
       "nested-subagent-conversation",
     ]);
-    expect(backendReferenceMockScenarios).toHaveLength(12);
+    expect(backendReferenceMockScenarios).toHaveLength(15);
     expect(backendReferenceMockScenarios.every(({ reference }) =>
       reference?.audience === "backend",
     )).toBe(true);
@@ -36,6 +39,9 @@ describe("createScenarioRegistry", () => {
       reference?.audience === "frontend",
     )).toBe(true);
     expect(showcaseMockScenarios.map(({ id }) => id)).toEqual([
+      "composer-mention-context",
+      "web-search",
+      "retrieval-chunks",
       "source-citations",
       "multimodal-input",
       "concurrent-conversations",

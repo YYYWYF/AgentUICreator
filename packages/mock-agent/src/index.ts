@@ -37,6 +37,7 @@ export {
 } from "./vite-plugin.js";
 export {
   builtinMockScenarios,
+  composerMentionContextScenario,
   cancelBeforeFirstOutputScenario,
   fileOutputScenario,
   sourceCitationsScenario,
@@ -75,3 +76,6 @@ export {
 
 export { createMockConversationApiVitePlugin } from "./conversations/vite-plugin.js";
 export { withPreviewAgentState } from "./preview/mock-scenario-preview.js";
+
+export { resolveDirectiveContexts, type DirectiveContextResolver, type DirectiveContextResolverOptions } from "./context/directive-context.js";
+export { createDemoUserResolver } from "./context/demo-roster.js";

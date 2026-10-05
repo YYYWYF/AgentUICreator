@@ -691,7 +691,6 @@ export async function* runMockScenario(
     ?? ((prefix: string) => `${input.runId}:${prefix}:${++sequence}`);
   const { signal } = options;
   const timingScale = normalizeTimingScale(options.timingScale);
-  const isResume = (input.resume?.length ?? 0) > 0;
 
   yield {
     type: EventType.RUN_STARTED,
@@ -699,6 +698,23 @@ export async function* runMockScenario(
     runId: input.runId,
   };
 
+  if (scenario.prepareRun !== undefined) {
+    const preparationSignal = signal ?? new AbortController().signal;
+    if (preparationSignal.aborted) return;
+    try {
+      const prepared = await scenario.prepareRun(input, { signal: preparationSignal });
+      if (preparationSignal.aborted) return;
+      input = prepared.input ?? input;
+      scenario = { ...scenario, steps: prepared.steps === undefined ? scenario.steps : [...prepared.steps] };
+      validateMockScenario(scenario);
+    } catch {
+      if (preparationSignal.aborted) return;
+      yield { type: EventType.RUN_ERROR, message: "Mock backend preparation failed.", code: "MOCK_PREPARE_RUN_FAILED" };
+      return;
+    }
+  }
+
+  const isResume = (input.resume?.length ?? 0) > 0;
   if (!isResume && getA2uiAction(input) === undefined && scenario.initialState !== undefined) {
     yield {
       type: EventType.STATE_SNAPSHOT,

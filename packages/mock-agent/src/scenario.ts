@@ -2,6 +2,7 @@ import type {
   ActivityDeltaEvent,
   ActivitySnapshotEvent,
   StateDeltaEvent,
+  RunAgentInput,
 } from "@ag-ui/core";
 
 export type MockScenarioCategory =
@@ -90,6 +91,11 @@ export type MockScenarioResourceId = string;
 export type MockScenarioResourceRequirement = MockScenarioResourceId;
 
 export interface MockScenario {
+  /** Server-only preparation hook; excluded from scenario list DTOs. */
+  prepareRun?(input: RunAgentInput, options: { signal: AbortSignal }): Promise<{
+    input?: RunAgentInput;
+    steps?: readonly MockScenarioStep[];
+  }>;
   /** Development-only server-owned run used by the refresh recovery demo. */
   durableRun?: true | undefined;
   resources?: readonly MockScenarioResourceId[] | undefined;

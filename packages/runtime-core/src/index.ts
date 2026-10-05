@@ -62,3 +62,5 @@ export type {
   AgentTextInputPart,
   AgentUserInput,
 } from "./agent-input.js";
+export { parseAgentUIDirectives, trySerializeAgentUIDirective } from "./directive.js";
+export type { AgentUIDirectiveReference, AgentUIDirectiveSegment } from "./directive.js";

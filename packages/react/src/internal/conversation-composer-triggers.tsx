@@ -1,3 +1,4 @@
+import { agentUIDirectiveFormatter } from "./directive-formatter.js";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useAui, useAuiState, unstable_useLiveCompletionAdapter, unstable_useTriggerPopoverScopeContext, type Unstable_TriggerItem } from "@assistant-ui/react";
 import { ComposerTriggerPopover } from "./vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.js";
@@ -61,7 +62,7 @@ export function InternalConversationMentionTrigger({ source, labels, debounceMs 
   return <>
     <ComposerTriggerPopover char="@" adapter={adapter} isLoading={completion.isLoading}
       aria-label={labels.suggestions} backLabel={labels.back} emptyCategoriesLabel={labels.empty}
-      emptyItemsLabel={labels.empty} loadingLabel={labels.loading} directive={{}} />
+      emptyItemsLabel={labels.empty} loadingLabel={labels.loading} directive={{ formatter: agentUIDirectiveFormatter }} />
     {error && <div role="status" data-slot="composer-trigger-error">{error === "invalid" ? labels.invalidItem : labels.searchFailed} <button type="button" onClick={() => { setError(null); setRetry(value => value + 1); }}>{labels.retry}</button></div>}
   </>;
 }
@@ -118,7 +119,7 @@ export function InternalConversationCommandTrigger({ source, labels }: Conversat
   return <>
     <ComposerTriggerPopover char="/" adapter={adapter} matcher={matcher}
       aria-label={labels.suggestions} backLabel={labels.back} emptyCategoriesLabel={labels.empty}
-      emptyItemsLabel={labels.empty} loadingLabel={labels.loading} action={{ onExecute: execute, removeOnExecute: true }}>
+      emptyItemsLabel={labels.empty} loadingLabel={labels.loading} action={{ formatter: agentUIDirectiveFormatter, onExecute: execute, removeOnExecute: true }}>
       <SelectionOverride select={select} />
     </ComposerTriggerPopover>
     {error !== null && <div role="status" data-slot="composer-trigger-error">{error}</div>}

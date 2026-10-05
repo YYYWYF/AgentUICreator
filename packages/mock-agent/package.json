@@ -28,7 +28,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@ag-ui/core": "0.0.59"
+    "@ag-ui/core": "0.0.59",
+    "@agent-ui/runtime-core": "workspace:*"
   },
   "peerDependencies": {
     "vite": ">=8",
