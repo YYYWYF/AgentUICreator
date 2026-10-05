@@ -79,6 +79,31 @@ def test_list_pagination_contains_bounded_scope_and_no_source(tmp_path):
     assert queries.list(offset=-1)['error'] == 'INVALID_PAGINATION'
 
 
+def test_inspections_distinguish_restored_state_from_edits_after_undo(tmp_path):
+    project(tmp_path)
+    path = 'src/agent-ui/plugins/a.ts'
+    record(tmp_path, 'A', [(path, 'before', 'after')])
+    store = CreatorTransactionStore(tmp_path)
+    queries = CreatorRecoveryQueries(tmp_path)
+    pending = queries.inspect('A')
+    assert pending['alreadyUndone'] is False
+    assert pending['beforeStateMatches'] is None
+    store.undo('A')
+    for result in (queries.list()['transactions'][0], queries.inspect('A')):
+        assert result['alreadyUndone'] is True and result['beforeStateMatches'] is True
+        assert result['undoable'] is False and result['conflicts'] == []
+    # Observation must not substitute for the guarded undo acknowledgement.
+    assert queries.evidence.status != 'already_recovered'
+    assert result['recoveryConfirmation']['nextAction'] == 'undo_creator_run'
+    (tmp_path / path).write_text('later user edit')
+    for result in (queries.list()['transactions'][0], queries.inspect('A')):
+        assert result['alreadyUndone'] is True and result['beforeStateMatches'] is False
+        assert result['undoable'] is False
+        assert result['conflicts'][0]['path'] == path
+        assert result['conflicts'][0]['expectedHash'] == pending['files'][0]['beforeHash']
+        assert 'recoveryConfirmation' not in result
+
+
 def test_summary_or_single_file_does_not_authorize_whole_undo(tmp_path):
     queries, activity, *_ = session(tmp_path)
     files = [('src/agent-ui/app-ui/app-ui.json', '{}', '{"new":true}'),

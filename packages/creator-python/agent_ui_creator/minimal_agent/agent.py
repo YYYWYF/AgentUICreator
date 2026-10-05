@@ -108,8 +108,11 @@ def _register_minimal_harness_profile(model: BaseChatModel) -> None:
     model_name = str(getattr(model, "model_name", "") or "")
     if not model_name:
         return
+    # DeepAgents looks up colon-bearing identifiers directly for prebuilt
+    # models; prefixing them again would create an invalid registry key.
+    profile_key = model_name if ":" in model_name else f"openai:{model_name}"
     register_harness_profile(
-        f"openai:{model_name}",
+        profile_key,
         HarnessProfile(
             excluded_tools=frozenset(
                 {"task", "write_todos", "execute", "write_file", "delete"}

@@ -106,6 +106,25 @@ class CreatorRecoveryQueries:
             self.evidence.inspected_transactions[record.run_id] = state
         return state
 
+    def _recovery_status(self, record: CreatorTransactionRecord) -> dict[str, object]:
+        status = self.store.status(record.run_id)
+        already_undone = read_creator_file_state(
+            self.store.project_root, self.store._undo_marker_path(record.run_id)
+        ).exists
+        conflicts = [conflict.to_dict() for conflict in status.conflicts]
+        if already_undone:
+            # A marker is not proof that subsequent user edits still match
+            # the restored state. Report before-state conflicts explicitly.
+            conflicts = []
+            for file in record.files:
+                current = read_creator_file_state(self.store.project_root, file.path)
+                if current.exists != file.before.exists or current.hash != file.before.hash:
+                    conflicts.append({"path": file.path, "expectedHash": file.before.hash,
+                                      "actualHash": current.hash})
+        return {"undoable": status.undoable and not already_undone, "alreadyUndone": already_undone,
+                "beforeStateMatches": not conflicts if already_undone else None,
+                "conflicts": conflicts}
+
     def _call_token(self, result: dict[str, object]) -> object:
         # Duplicates reuse evidence only while both history and current files
         # are unchanged. This token never grants permission to undo.
@@ -175,7 +194,7 @@ class CreatorRecoveryQueries:
             summaries = []
             for item in selected:
                 record = self.store.load(str(item["runId"]))
-                status = self.store.status(record.run_id)
+                status = self._recovery_status(record)
                 state = self._inspection(record)
                 state.summary_seen = True
                 state.conflict_checked = True
@@ -186,10 +205,9 @@ class CreatorRecoveryQueries:
                     "changeSummary": {kind: sum(file.status == kind for file in record.files)
                                       for kind in ("created", "modified", "deleted")},
                     "scopeHints": ["plugin_source" if layer == "plugin_behavior" else layer for layer in layers],
-                    "undoable": status.undoable,
-                    "conflicts": [conflict.to_dict() for conflict in status.conflicts[:_PAGE_SIZE]],
-                    "conflictCount": len(status.conflicts),
-                    "conflictsTruncated": len(status.conflicts) > _PAGE_SIZE})
+                    **status, "conflicts": status["conflicts"][:_PAGE_SIZE],
+                    "conflictCount": len(status["conflicts"]),
+                    "conflictsTruncated": len(status["conflicts"]) > _PAGE_SIZE})
             if selected and self.evidence.status == "needs_user_input":
                 self.evidence.reason = "recovery_target_not_confirmed"
             return {**result, "transactions": summaries, "offset": offset, "limit": limit,
@@ -240,7 +258,7 @@ class CreatorRecoveryQueries:
             return {"status": "query_error", "error": "INVALID_PAGE"}
         try:
             record = self.store.load(run_id)
-            status = self.store.status(run_id)
+            status = self._recovery_status(record)
         except CreatorTransactionError as error:
             return {"status": "evidence_missing" if error.code == "CREATOR_TRANSACTION_NOT_FOUND" else "query_error",
                     "error": error.code}
@@ -271,7 +289,11 @@ class CreatorRecoveryQueries:
                 "fileCount": total, "observedPages": len(pages),
                 "page": page, "pageCount": page_count,
                 "files": scope[start:start + _PAGE_SIZE],
-                "undoable": status.undoable, "conflicts": [item.to_dict() for item in status.conflicts],
+                **status,
+                **({"recoveryConfirmation": {"required": True,
+                     "nextAction": "undo_creator_run",
+                     "reason": "acknowledge_already_undone_scope_before_validation"}}
+                   if complete and status["alreadyUndone"] and status["beforeStateMatches"] else {}),
                 "association": "unavailable"}
 
     def change(self, run_id: str, path: str) -> dict[str, object]:
@@ -495,7 +517,7 @@ def create_recovery_query_tools(queries: CreatorRecoveryQueries) -> tuple[BaseTo
 
     @tool("inspect_creator_transaction")
     def inspect_creator_transaction(run_id: str, page: int = 1) -> str:
-        """Confirm transaction scope and conflicts. Inspect all pages before undo; saved diffs are optional."""
+        """Confirm transaction scope and conflicts. Inspect all pages before undo; saved diffs are optional. When recoveryConfirmation is required, acknowledge the observed whole scope with undo_creator_run before validation."""
         return _result(**queries.inspect(run_id, page=page))
 
     @tool("inspect_creator_transaction_change")
@@ -516,7 +538,7 @@ def create_recovery_undo_tool(queries: CreatorRecoveryQueries) -> BaseTool:
     @tool("undo_creator_run")
     def undo_creator_run(run_id: str, transaction_id: str,
                          requested_paths: list[str]) -> str:
-        """Undo an explicitly requested whole Creator run after full scope inspection. Supply exactly the paths the user requested to undo; a partial scope is rejected. On recovery success validate the current revision and finish; do not repeat undo."""
+        """Undo an explicitly requested whole Creator run after full scope inspection. Supply exactly the paths the user requested to undo; a partial scope is rejected. Already-undone runs are acknowledged without writes after before-state hash checks. On recovery success validate the current revision and finish; do not repeat undo."""
         return _result(**queries.undo(run_id, transaction_id, requested_paths))
 
     return undo_creator_run
