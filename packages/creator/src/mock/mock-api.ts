@@ -32,12 +32,13 @@ export async function handleCreatorMockRequest(
         ((installResources !== undefined && supportsResource?.(requirement.id) !== false) || (resolveOfficialResource(requirement.id).implementation.type === "plugin" && installPlugin !== undefined)) })),
     };
   };
+  service.setProjectResolver(resolveProject);
   try {
     if (route === "/compatibility" && request.method === "GET") {
       response.end(JSON.stringify(await projectCompatibility(resolveProject?.()))); return;
     }
     if ((route === "/" || route === "") && request.method === "GET") {
-      response.end(JSON.stringify(service.getState())); return;
+      response.end(JSON.stringify(await service.refreshState())); return;
     }
     if (request.method !== "POST") {
       response.statusCode = 405; response.end(JSON.stringify({ error: "此操作需要 POST 请求。" })); return;
@@ -108,7 +109,13 @@ export async function handleCreatorMockRequest(
     if (route === "/start") state = await service.start();
     else if (route === "/stop") state = await service.stop();
     else if (route === "/select") {
-      const selection = input as { scenarioId?: unknown; speed?: unknown };
+      const selection = input as { scenarioId?: unknown; speed?: unknown; selection?: { type?: unknown; id?: unknown }; projectId?: unknown };
+      if (selection.selection?.type === "recording") {
+        state = await service.selectRecording(selection.selection.id, selection.speed, selection.projectId);
+        response.end(JSON.stringify(state)); return;
+      }
+      if (selection.selection !== undefined && selection.selection.type !== "builtin") throw new Error("无效的 Mock 来源。");
+      selection.scenarioId = selection.selection?.id ?? selection.scenarioId;
       const scenario = service.getState().scenarios.find(item => item.id === selection.scenarioId);
       if (scenario?.resources?.length) {
         const compatibility = await inspectMockProjectCompatibility(resolveProject?.(), inspector);

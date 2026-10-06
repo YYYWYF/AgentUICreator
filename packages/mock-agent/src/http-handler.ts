@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 
-import { EventSchemas, RunAgentInputSchema } from "@ag-ui/core";
+import { EventSchemas, RunAgentInputSchema, type AGUIEvent, type RunAgentInput } from "@ag-ui/core";
 
 import type { MockScenarioRegistry } from "./scenario-registry.js";
 import { runMockScenario } from "./scenario-runner.js";
@@ -10,6 +10,20 @@ const MAX_REQUEST_BYTES = 1024 * 1024;
 
 export interface MockAgentHttpHandlerOptions {
   registry: MockScenarioRegistry;
+  resolveRun?: MockRunResolver;
+}
+
+export type MockRunResolver = (
+  input: RunAgentInput,
+  request: { scenarioId?: string; speed: number; signal: AbortSignal },
+) => AsyncIterable<AGUIEvent> | Promise<AsyncIterable<AGUIEvent>>;
+
+export function createScenarioMockRunResolver(registry: MockScenarioRegistry): MockRunResolver {
+  return (input, request) => {
+    const scenario = request.scenarioId === undefined ? registry.getDefault() : registry.get(request.scenarioId);
+    if (!scenario) throw new Error(`Unknown mock scenario: ${request.scenarioId}`);
+    return runMockScenario(input, scenario, { signal: request.signal, timingScale: request.speed });
+  };
 }
 
 export type MockAgentHttpHandler = (
@@ -74,6 +88,7 @@ function parseTimingScale(url: URL): number {
 /** Creates a Node HTTP handler compatible with @ag-ui/client HttpAgent. */
 export function createMockAgentHttpHandler({
   registry,
+  resolveRun,
 }: MockAgentHttpHandlerOptions): MockAgentHttpHandler {
   const events: Array<{ threadId: string; runId: string; type: string; timestamp: number }> = [];
   return async (request, response) => {
@@ -112,7 +127,7 @@ export function createMockAgentHttpHandler({
     const scenario = scenarioId === null
       ? registry.getDefault()
       : registry.get(scenarioId);
-    if (scenario === undefined) {
+    if (resolveRun === undefined && scenario === undefined) {
       sendJsonError(response, 404, `Unknown mock scenario: ${scenarioId}`);
       return;
     }
@@ -135,7 +150,7 @@ export function createMockAgentHttpHandler({
       return;
     }
 
-    if (scenario.durableRun) {
+    if (resolveRun === undefined && scenario?.durableRun) {
       const durableScenarioId = scenario.id === "resumable-agent-plan"
         ? "resumable-agent-plan"
         : "resumable-long-run";
@@ -167,6 +182,24 @@ export function createMockAgentHttpHandler({
     request.once("aborted", abort);
     response.once("close", abort);
 
+    let stream: AsyncIterable<AGUIEvent>;
+    try {
+      stream = await (resolveRun ?? createScenarioMockRunResolver(registry))(parsedInput.data, {
+        ...(scenarioId === null ? {} : { scenarioId }),
+        speed: parseTimingScale(requestUrl), signal: controller.signal,
+      });
+    } catch (error) {
+      request.removeListener("aborted", abort);
+      response.removeListener("close", abort);
+      sendJsonError(response, 400, error instanceof Error ? error.message : "Unable to resolve mock source.");
+      return;
+    }
+    if (controller.signal.aborted || response.destroyed) {
+      request.removeListener("aborted", abort);
+      response.removeListener("close", abort);
+      return;
+    }
+
     response.statusCode = 200;
     response.setHeader("Content-Type", "text/event-stream; charset=utf-8");
     response.setHeader("Cache-Control", "no-cache, no-transform");
@@ -175,10 +208,7 @@ export function createMockAgentHttpHandler({
     response.flushHeaders();
 
     try {
-      for await (const event of runMockScenario(parsedInput.data, scenario, {
-        signal: controller.signal,
-        timingScale: parseTimingScale(requestUrl),
-      })) {
+      for await (const event of stream) {
         if (controller.signal.aborted || response.destroyed) return;
         const standardEvent = EventSchemas.parse(event);
         events.push({ threadId: parsedInput.data.threadId, runId: parsedInput.data.runId, type: standardEvent.type, timestamp: Date.now() });

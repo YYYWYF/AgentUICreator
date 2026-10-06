@@ -11,7 +11,7 @@ import { CREATOR_MOCK_API_PATH, type CreatorMockState } from "../src/mock/types.
 let root: Root | undefined;
 afterEach(async () => { if (root) await act(async () => root!.unmount()); root = undefined; document.body.replaceChildren(); vi.unstubAllGlobals(); vi.useRealTimers(); });
 
-const initial: CreatorMockState = { status: "stopped", endpoint: null, scenarioId: "simple-chat", speed: 1, scenarios: [
+const initial: CreatorMockState = { status: "stopped", endpoint: null, scenarioId: "simple-chat", speed: 1, selection: { type: "builtin", id: "simple-chat" }, projectId: null, recordings: [], scenarios: [
   { id: "simple-chat", title: "Simple Chat", description: "文本回复" },
   { id: "reasoning-chat", title: "Reasoning", description: "思考回复" },
 ] };
@@ -28,6 +28,29 @@ async function click(container: HTMLElement, text: string) {
 }
 
 describe("Creator Mock service panel", () => {
+  it("shows local recordings, disables invalid files and sends project-scoped selection", async () => {
+    const state: CreatorMockState = { ...initial, projectId: "A", recordings: [
+      { id: "local:chat.jsonl", title: "chat", fileName: "chat.jsonl", eventCount: 12, durationMs: 4800, status: "ready" },
+      { id: "local:broken.jsonl", title: "broken", fileName: "broken.jsonl", eventCount: 0, durationMs: 0, status: "invalid", error: "Line 18: invalid AG-UI event." },
+    ] };
+    const fetcher = vi.fn(async (url: string, options?: RequestInit) => {
+      if (url.endsWith("/compatibility")) return json({ projectId: "A", status: "checked", requirements: [] });
+      if (url.endsWith("/select")) return json({ ...state, selection: JSON.parse(String(options?.body)).selection });
+      return json(state);
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const container = await render();
+    const local = container.querySelector<HTMLElement>('[aria-label="本地 Mock"]')!;
+    expect(local.textContent).toContain("12 events · 4.8s");
+    expect(local.textContent).toContain("Line 18");
+    expect(local.querySelectorAll<HTMLInputElement>('input[type="radio"]')[1]?.disabled).toBe(true);
+    await act(async () => local.querySelector<HTMLInputElement>('input[type="radio"]')!.click());
+    const request = fetcher.mock.calls.find(([url]) => url.endsWith("/select"));
+    expect(JSON.parse(String(request?.[1]?.body))).toEqual({ selection: { type: "recording", id: "local:chat.jsonl" }, projectId: "A", speed: 1 });
+    expect(container.textContent).toContain("来源：本地 Recording");
+    expect(container.querySelector<HTMLInputElement>('.creator-mock-scenarios input[type="radio"]')?.checked).toBe(false);
+  });
+
   it("groups related Demos together regardless of service order", async () => {
     const state = { ...initial, scenarios: [
       { id: "nested-subagent-error", title: "Subagent Error" },

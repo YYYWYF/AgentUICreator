@@ -182,7 +182,7 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
     void refresh();
     const timer = window.setInterval(() => { void refresh(); }, 4000);
     return () => { controller.abort(); window.clearInterval(timer); };
-  }, [retry]);
+  }, [projectId, retry]);
 
   async function act(route: string, body: unknown, message: string) {
     if (inFlight.current) return;
@@ -212,6 +212,8 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
     } catch { setError("无法自动复制，请选中地址手动复制。"); }
   }
 
+  const localSelected = state?.selection?.type === "recording";
+  const selectedRecording = localSelected ? state?.recordings?.find(item => item.id === state.selection.id) : undefined;
   const selected = state?.scenarios.find((scenario) => scenario.id === (resourceSelection ?? state.scenarioId));
   const titleFor = (scenario: { id: string; title: string }) => demoTitles[scenario.id] ?? scenario.title;
   const search = query.trim().toLocaleLowerCase();
@@ -224,7 +226,7 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
     <section className="creator-mock-panel creator-ui-scope" id="creator-mock-panel" aria-label="Mock Agent 开发服务" aria-busy={busy}>
       <header>
         <div className="creator-mock-heading"><FlaskConical aria-hidden="true" /><h2>Mock Agent</h2></div>
-        <p>在本机运行预置 Demo，供你的 Agent UI 通过 AG-UI API 连接。</p>
+        <p>在本机回放本地 Mock 或预置 Demo，供你的 Agent UI 通过 AG-UI API 连接。</p>
       </header>
       {error === null ? null : <div className="creator-mock-error" role="alert">{error}<Button size="sm" variant="outline" type="button" disabled={busy} onClick={() => setRetry((value) => value + 1)}>重试连接</Button></div>}
       {state === null ? <p role="status">正在读取 Mock 服务状态…</p> : <>
@@ -256,27 +258,42 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
           <p>关闭面板后服务继续运行；退出 Creator 后服务停止。</p>
         </Card>
         <p className="creator-mock-notice" role="status">{notice}</p>
-        <section aria-label="选择预置 Demo">
-          <h3>预置 Demo</h3>
-          <p className="creator-mock-current-demo">当前：<strong>{selected ? titleFor(selected) : state.scenarioId}</strong></p>
+        <section aria-label="选择 Mock 来源">
+          <h3>Mock 来源</h3>
+          <p className="creator-mock-current-demo">当前：<strong>{localSelected ? (selectedRecording?.title ?? state.selection.id) : (selected ? titleFor(selected) : state.scenarioId)}</strong></p>
+          <p>来源：{localSelected ? "本地 Recording" : "预置 Demo"}</p>
           <details className="creator-mock-demo-help"><summary>Demo 使用说明</summary>
             <p>选择后，在已接入的 Agent UI 中发送一条消息来播放。正在运行的请求保持原场景。</p>
             <p>部分 Demo 需要额外的 Agent UI 资源，Creator 会在运行前检查并提示安装。</p>
           </details>
           {compatibility?.status !== "checked" ? <p className="creator-mock-requirement" role="status">{compatibility === null ? "正在检查当前项目的 Demo 支持…" : "无法检查当前项目的资源，请确认已选择并初始化项目。"}</p> : null}
           <label className="creator-mock-speed">播放时长倍率
-            <NativeSelect disabled={busy} value={state.speed} onChange={(event) => void act("/select", { scenarioId: state.scenarioId, speed: Number(event.target.value) }, "播放时长已更新，下一次请求生效。") }>
+            <NativeSelect disabled={busy} value={state.speed} onChange={(event) => void act("/select", { selection: state.selection ?? { type: "builtin", id: state.scenarioId }, projectId: state.projectId, speed: Number(event.target.value) }, "播放时长已更新，下一次请求生效。") }>
               <option value={0}>立即完成</option><option value={0.1}>快速测试（0.1×）</option><option value={0.5}>较快（0.5×）</option><option value={1}>正常（1×）</option><option value={2}>较慢（2×）</option>
             </NativeSelect>
           </label>
-          <label className="creator-mock-search">搜索 Demo<Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="名称、描述或场景 ID" /></label>
+          <label className="creator-mock-search">搜索 Mock<Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="名称、描述或场景 ID" /></label>
+          <section aria-label="本地 Mock">
+            <h3>本地 Mock</h3>
+            <p>将 JSONL 文件放入当前项目的 <code>.agentui/mocks</code>，选择后在 Agent UI 中发送消息回放。</p>
+            {state.recordingsError ? <p role="alert">无法读取本地 Mock：{state.recordingsError}</p> : null}
+            {(state.recordings ?? []).filter(item => `${item.title} ${item.fileName} ${item.id}`.toLocaleLowerCase().includes(search)).map(recording => <div key={recording.id} className="creator-mock-scenario" data-selected={localSelected && state.selection.id === recording.id}>
+              <label className="creator-mock-scenario-choice">
+                <input type="radio" name="creator-mock-scenario" checked={localSelected && state.selection.id === recording.id && resourceSelection === null} disabled={busy || recording.status !== "ready"}
+                  onChange={() => { setResourceSelection(null); void act("/select", { selection: { type: "recording", id: recording.id }, projectId: state.projectId, speed: state.speed }, `已选择 ${recording.title}，下一次请求生效。`); }} />
+                <span><strong>{recording.title}</strong><span>{recording.status === "ready" ? `${recording.eventCount} events · ${(recording.durationMs / 1000).toFixed(1)}s` : `无法读取：${recording.error ?? "无效文件"}`}</span></span>
+              </label>
+            </div>)}
+            {!(state.recordings ?? []).length && !state.recordingsError ? <p>当前项目还没有本地 Mock 文件。</p> : null}
+          </section>
+          <h3>预置 Demo</h3>
           <div className="creator-mock-scenarios">
             {scenarios.map((scenario, index) => <Fragment key={scenario.id}>
               {index === 0 || groupIndexFor(scenario.id) !== groupIndexFor(scenarios[index - 1]!.id)
                 ? <h4 className="creator-mock-group-heading">{groupTitleFor(scenario.id)}</h4> : null}
-              <div className="creator-mock-scenario" data-selected={scenario.id === state.scenarioId}>
+              <div className="creator-mock-scenario" data-selected={!localSelected && scenario.id === state.scenarioId}>
               <label className="creator-mock-scenario-choice">
-              <input type="radio" name="creator-mock-scenario" checked={scenario.id === (resourceSelection ?? state.scenarioId)} disabled={busy} onChange={() => { if (scenario.resources?.length) setResourceSelection(scenario.id); else { setResourceSelection(null); void act("/select", { scenarioId: scenario.id, speed: state.speed }, `已选择 ${titleFor(scenario)}，下一次请求生效。`); } }} />
+              <input type="radio" name="creator-mock-scenario" checked={scenario.id === resourceSelection || (resourceSelection === null && !localSelected && scenario.id === state.scenarioId)} disabled={busy} onChange={() => { if (scenario.resources?.length) setResourceSelection(scenario.id); else { setResourceSelection(null); void act("/select", { scenarioId: scenario.id, speed: state.speed }, `已选择 ${titleFor(scenario)}，下一次请求生效。`); } }} />
               <span><strong>{titleFor(scenario)}</strong>{scenario.description ? <span>{scenario.description}</span> : null}
               </span></label>
               {requirementsFor(scenario.id).length > 0 ? <div className="creator-mock-scenario-footer">
