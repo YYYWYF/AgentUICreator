@@ -1,0 +1,35 @@
+{
+  "validatedCodeCommit": "f785df74c182f9efb8e805d18a1c1e61794d31d3",
+  "runId": 37409590388,
+  "jobId": 112094788166,
+  "url": "https://github.com/YYYWYF/AgentUICreator/actions/runs/37409590388",
+  "conclusion": "success",
+  "environment": "ubuntu-latest; clean checkout; frozen lockfile",
+  "gates": {
+    "assistantUiUpstream": "passed",
+    "reactTests": {
+      "passed": 81,
+      "failed": 0
+    },
+    "projectControlTests": {
+      "passed": 39,
+      "failed": 0
+    },
+    "browserStyleIsolation": {
+      "passed": 3,
+      "failed": 0
+    },
+    "reactBuild": "passed"
+  },
+  "local": {
+    "expandedTests": {
+      "passed": 57,
+      "failed": 0
+    },
+    "reactTypecheck": "passed",
+    "sourceRegistryTests": {
+      "passed": 6,
+      "failed": 0
+    }
+  }
+}
