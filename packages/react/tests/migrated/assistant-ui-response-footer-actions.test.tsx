@@ -10,6 +10,7 @@ import {
   type ChatModelAdapter,
   type ThreadMessage,
 } from "@assistant-ui/react";
+import { AgentUIRoot } from "../../src/internal/style-boundary/AgentUIRoot";
 import { projectLangChainHistory } from "@agent-ui/runtime-conversation";
 import { useConversationState } from "@agent-ui/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -220,13 +221,15 @@ async function mount(chatModel: ChatModelAdapter, runtimeModel: AppUIRuntimeMode
 
   await act(async () => {
     root.render(
-      <RuntimeFixture
-        chatModel={chatModel}
-        runtimeModel={runtimeModel}
-        onRuntime={(value) => {
-          runtime = value;
-        }}
-      />,
+      <AgentUIRoot theme="light">
+        <RuntimeFixture
+          chatModel={chatModel}
+          runtimeModel={runtimeModel}
+          onRuntime={(value) => {
+            runtime = value;
+          }}
+        />
+      </AgentUIRoot>,
     );
     await Promise.resolve();
     await Promise.resolve();
@@ -236,6 +239,17 @@ async function mount(chatModel: ChatModelAdapter, runtimeModel: AppUIRuntimeMode
     throw new Error("Assistant runtime was not captured");
   }
   return { container, runtime };
+}
+
+async function openExportMenu(container: HTMLDivElement): Promise<HTMLElement> {
+  await act(async () => {
+    const more = findActionButton(container, "assistant-ui-export-markdown-action");
+    more.focus();
+    more.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+  });
+  const item = container.querySelector<HTMLElement>('[data-slot="agent-ui-message-action-menu"] [role="menuitem"]');
+  if (!item) throw new Error("Markdown export menu item was not rendered");
+  return item;
 }
 
 function findActionButton(
@@ -292,6 +306,35 @@ afterEach(async () => {
 });
 
 describe("assistant-ui response footer action Plugins", () => {
+  it("renders Copy / Reload / More and exports the full response from the scoped menu", async () => {
+    const runtimeModel = structuredClone(model);
+    const createObjectURL = vi.fn((_blob: Blob | MediaSource) => "blob:response");
+    vi.stubGlobal("URL", { createObjectURL, revokeObjectURL: vi.fn() });
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    const { container, runtime } = await mount({ run: async () => ({ content: [] }) }, runtimeModel);
+    await hydrate(runtime, responseMessages());
+    const footer = container.querySelector('[data-ui-plugin="assistant-ui-response-footer"]')!;
+    expect(footer.querySelectorAll("button")).toHaveLength(3);
+    expect(container.querySelector('[data-slot="agent-ui-message-action-menu"]')).toBeNull();
+    await act(async () => {
+      const more = findActionButton(container, "assistant-ui-export-markdown-action");
+      more.focus();
+      more.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    });
+    const menu = container.querySelector('[data-slot="agent-ui-message-action-menu"]')!;
+    expect(menu.closest("[data-agent-ui-portal-root]")).not.toBeNull();
+    const item = menu.querySelector<HTMLElement>('[role="menuitem"]')!;
+    expect(item.textContent).toContain("导出为 Markdown");
+    await act(async () => { item.click(); });
+    expect(createObjectURL).toHaveBeenCalledTimes(1);
+    const text = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.readAsText(createObjectURL.mock.calls[0]![0] as Blob);
+    });
+    expect(text).toBe("Hello\n\nWorld\n\nSummary");
+  });
+
   it("keeps Copy and Export disabled for the localized empty cancelled response", async () => {
     const runtimeModel = structuredClone(model);
     runtimeModel.pluginInstances.host!.pluginId = "conversation-surface";
@@ -304,7 +347,8 @@ describe("assistant-ui response footer action Plugins", () => {
     await hydrate(runtime, [userMessage("u"), cancelled]);
     expect(container.querySelector('[data-slot="aui_assistant-message-cancelled"]')?.textContent).toBe("已停止生成");
     expect(findActionButton(container, "assistant-ui-copy-action").disabled).toBe(true);
-    expect(findActionButton(container, "assistant-ui-export-markdown-action").disabled).toBe(true);
+    const exportItem = await openExportMenu(container);
+    expect(exportItem.getAttribute("aria-disabled")).toBe("true");
     expect(findActionButton(container, "assistant-ui-reload-action").disabled).toBe(false);
     expect(runtime.thread.getState().messages.at(-1)?.content).toEqual([]);
   });
@@ -368,10 +412,7 @@ describe("assistant-ui response footer action Plugins", () => {
     const { container } = await mount({ run: async () => ({ content: [] }) });
 
     await act(async () => {
-      findActionButton(
-        container,
-        "assistant-ui-export-markdown-action",
-      ).click();
+      (await openExportMenu(container)).click();
       await Promise.resolve();
     });
 
@@ -441,7 +482,7 @@ describe("multi-message Response actions", () => {
       await act(async () => {
         findActionButton(container, "assistant-ui-copy-action").click();
         await Promise.resolve();
-        findActionButton(container, "assistant-ui-export-markdown-action").click();
+        (await openExportMenu(container)).click();
       });
       const expectedText = "Hello\n\nWorld\n\nSummary";
       expect(writeText).toHaveBeenCalledExactlyOnceWith(expectedText);
@@ -544,7 +585,7 @@ describe("multi-message Response actions", () => {
     vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
     const { container, runtime } = await mount({ run: async () => ({ content: [] }) });
     await hydrate(runtime, responseMessages());
-    await act(async () => { findActionButton(container, "assistant-ui-export-markdown-action").click(); });
+    await act(async () => { (await openExportMenu(container)).click(); });
     const blob = createObjectURL.mock.calls[0]![0] as Blob;
     const text = await new Promise<string>((resolve) => {
       const reader = new FileReader();

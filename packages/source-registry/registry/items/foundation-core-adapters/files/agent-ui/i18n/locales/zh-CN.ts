@@ -54,6 +54,8 @@ export const zhCN = {
     editCancel: "取消",
     editUpdate: "更新",
     editInput: "编辑消息",
+    moreActions: "更多",
+    exportMarkdown: "导出为 Markdown",
   },
   frontendTools: {
     formTitle: "个人资料表单",

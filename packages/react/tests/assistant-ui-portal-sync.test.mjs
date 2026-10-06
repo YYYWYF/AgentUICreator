@@ -22,6 +22,11 @@ it("reports product integration changes and generator drift without treating ven
   const { productIntegrationReport } = await import("../../../scripts/generate-assistant-ui-upgrade-report.mjs");
   const audit = { upstreamPaths: [], provenance: { changed: false }, generatorDrift: { status: "PASS" } };
   const adapter = "packages/react/src/internal/adapters/assistant-ui/components/ui/tooltip.tsx";
+  const threadList = "packages/react/src/internal/conversation-thread-list-item.tsx";
+  expect(productIntegrationReport([threadList], [], audit)).toMatchObject({
+    status: "REVIEW REQUIRED: product adapter / Portal integration", changedFiles: [threadList],
+  });
+  expect(productIntegrationReport([], [], audit).seamFiles).toContain(threadList);
   const boundary = "packages/react/src/internal/style-boundary/AgentUIRoot.tsx";
   expect(productIntegrationReport([adapter, boundary], [], audit)).toMatchObject({
     status: "REVIEW REQUIRED: product adapter / Portal integration", changedFiles: [adapter, boundary],

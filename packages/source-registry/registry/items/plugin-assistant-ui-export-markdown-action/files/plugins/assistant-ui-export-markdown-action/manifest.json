@@ -1,8 +1,8 @@
 {
   "id": "assistant-ui-export-markdown-action",
   "name": "Assistant UI Export Markdown Action",
-  "description": "Exports the complete assistant response as Markdown.",
-  "version": "0.0.1",
+  "description": "Renders More with a Markdown export item for the complete assistant response.",
+  "version": "0.0.2",
   "capabilities": [
     "conversation-assistant-response-action",
     "conversation-message-action"

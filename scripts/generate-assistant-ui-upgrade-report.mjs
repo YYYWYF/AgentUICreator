@@ -46,18 +46,19 @@ export function quoteSelectionIntegrationReport(files, upstreamChangedFiles) {
 const PRODUCT_ADAPTER_ROOT = "packages/react/src/internal/adapters/assistant-ui";
 const STYLE_BOUNDARY_ROOT = "packages/react/src/internal/style-boundary";
 const PRODUCT_ADAPTER_GENERATOR = "packages/react/scripts/sync-product-adapters.mjs";
+const THREAD_LIST_PORTAL_SEAM = "packages/react/src/internal/conversation-thread-list-item.tsx";
 const PRODUCT_ADAPTER_PROVENANCE = `${PRODUCT_ADAPTER_ROOT}/UPSTREAM.json`;
 
 export function productIntegrationReport(files, upstreamChangedFiles, audit) {
   const changedFiles = files.filter(file => file.startsWith(`${PRODUCT_ADAPTER_ROOT}/`) ||
-    file.startsWith(`${STYLE_BOUNDARY_ROOT}/`) || file === PRODUCT_ADAPTER_GENERATOR);
+    file.startsWith(`${STYLE_BOUNDARY_ROOT}/`) || file === PRODUCT_ADAPTER_GENERATOR || file === THREAD_LIST_PORTAL_SEAM);
   const upstream = (upstreamChangedFiles ?? []).filter(file => audit.upstreamPaths.includes(file) ||
     /^packages\/react\/src\/primitives\/(?:actionBarMore|threadListItemMore|selectionToolbar|composer)\//u.test(file));
   const reviewRequired = upstreamChangedFiles == null || audit.generatorDrift.status !== "PASS" ||
     changedFiles.length > 0 || upstream.length > 0 || audit.provenance.changed;
   return {
     status: reviewRequired ? "REVIEW REQUIRED: product adapter / Portal integration" : "UNCHANGED",
-    seamFiles: [`${PRODUCT_ADAPTER_ROOT}/**`, `${STYLE_BOUNDARY_ROOT}/**`, PRODUCT_ADAPTER_GENERATOR],
+    seamFiles: [`${PRODUCT_ADAPTER_ROOT}/**`, `${STYLE_BOUNDARY_ROOT}/**`, PRODUCT_ADAPTER_GENERATOR, THREAD_LIST_PORTAL_SEAM],
     changedFiles,
     upstreamChangedFiles: upstream,
     upstreamDiffUnavailable: upstreamChangedFiles == null,

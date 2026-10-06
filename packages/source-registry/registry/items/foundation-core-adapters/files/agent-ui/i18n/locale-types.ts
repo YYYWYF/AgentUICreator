@@ -38,6 +38,8 @@ export interface AgentUILocaleMessages {
     editCancel: string;
     editUpdate: string;
     editInput: string;
+    moreActions: string;
+    exportMarkdown: string;
   };
   frontendTools: {
     formTitle: string;

@@ -3,6 +3,7 @@
 import { ComposerInputHostContext, ComposerTextareaInput } from "./composer-input-host-context.js";
 
 import { ConversationUserDirectiveText } from "./conversation-directive-text.js";
+import { ConversationActionMoreMenuItem } from "./style-boundary/ConversationActionMoreMenu.js";
 import { QuoteThreadRootContext } from "./quote-thread-root.js";
 import { QuoteSelectableText } from "./quote-selectable-text.js";
 import { InternalConversationQuoteBlock } from "./conversation-quote.js";
@@ -753,26 +754,30 @@ export const CanonicalResponseReloadAction: FC = () => {
   );
 };
 
-export const CanonicalResponseExportMarkdownAction: FC = () => {
+export const CanonicalResponseExportMarkdownAction: FC<{ menuLabel?: string }> = ({ menuLabel }) => {
   const response = useAssistantResponseRuntime();
   const disabled = response.isRunning || !response.text;
-  return (
-    <TooltipIconButton tooltip="Export as Markdown" type="button" disabled={disabled} onClick={() => {
-      if (disabled) return;
-      const blob = new Blob([response.text], { type: "text/markdown" });
-      const url = URL.createObjectURL(blob);
-      try {
-        const anchor = document.createElement("a");
-        anchor.href = url;
-        anchor.download = `response-${Date.now()}.md`;
-        anchor.click();
-      } finally {
-        setTimeout(() => URL.revokeObjectURL(url), 40_000);
-      }
-    }}>
-      <DownloadIcon />
-    </TooltipIconButton>
-  );
+  const exportMarkdown = () => {
+    if (disabled) return;
+    const blob = new Blob([response.text], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    try {
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `response-${Date.now()}.md`;
+      anchor.click();
+    } finally {
+      setTimeout(() => URL.revokeObjectURL(url), 40_000);
+    }
+  };
+  if (menuLabel !== undefined) {
+    return <ConversationActionMoreMenuItem disabled={disabled} onSelect={exportMarkdown}>
+      <DownloadIcon className="size-4" />{menuLabel}
+    </ConversationActionMoreMenuItem>;
+  }
+  return <TooltipIconButton tooltip="Export as Markdown" type="button" disabled={disabled} onClick={exportMarkdown}>
+    <DownloadIcon />
+  </TooltipIconButton>;
 };
 
 export const ResponseBranchPicker: FC = () => {

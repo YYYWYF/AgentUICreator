@@ -1181,7 +1181,7 @@ export const ConversationResponseActionBarRoot: ComponentType<{ children?: React
 export const ConversationResponseBranchPicker: ComponentType = ResponseBranchPicker;
 export const ConversationCanonicalResponseCopyAction: ComponentType = CanonicalResponseCopyAction;
 export const ConversationCanonicalResponseReloadAction: ComponentType = CanonicalResponseReloadAction;
-export const ConversationCanonicalResponseExportMarkdownAction: ComponentType = CanonicalResponseExportMarkdownAction;
+export const ConversationCanonicalResponseExportMarkdownAction: ComponentType<{ menuLabel?: string }> = CanonicalResponseExportMarkdownAction;
 export interface ConversationTurnGroup {
   turnId: string;
   requestMessageId: string | null;

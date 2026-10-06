@@ -1,8 +1,15 @@
 {
   "0.0.1": {
-    "summary": "首次正式插件发布",
+    "summary": "\u9996\u6b21\u6b63\u5f0f\u63d2\u4ef6\u53d1\u5e03",
     "changes": [
-      "建立插件源码升级基线。"
+      "\u5efa\u7acb\u63d2\u4ef6\u6e90\u7801\u5347\u7ea7\u57fa\u7ebf\u3002"
+    ]
+  },
+  "0.0.2": {
+    "summary": "Move Markdown export into the scoped response More menu.",
+    "changes": [
+      "Render More in the existing response Footer action Plugin with localized labels.",
+      "Keep complete-response export and disabled-state behavior in the product adapter."
     ]
   }
 }

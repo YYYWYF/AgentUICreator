@@ -54,6 +54,8 @@ export const enUS = {
     editCancel: "Cancel",
     editUpdate: "Update",
     editInput: "Edit message",
+    moreActions: "More",
+    exportMarkdown: "Export as Markdown",
   },
   frontendTools: {
     formTitle: "Profile Form",
