@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-06",
+  "screenshots": [
+    {
+      "name": "form-idle",
+      "file": "form-idle.png",
+      "url": "http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form",
+      "note": "Violet form: 576px maximum, 40px controls, white card.",
+      "ax": "Browser tab: 32, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form\".\n0 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form\n\t1 container\n\t\t2 container\n\t\t\t3 heading 个人资料表单, Value: 2\n\t\t\t\t4 text 个人资料表单\n\t\t\t5 text 名\n\t\t\t6 text field (settable) 名\n\t\t\t7 text 姓\n\t\t\t8 text field (settable) 姓\n\t\t\t9 text 邮箱\n\t\t\t10 text field (settable) 邮箱\n\t\t\t11 text 项目想法\n\t\t\t12 text entry area (settable) 项目想法\n\t\t\t13 button 重置\n\t\t\t14 button 提交\n\t15 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t18 text ✦\n\t\t17 text Creator Agent\n\nThe focused UI element is 0 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form"
+    },
+    {
+      "name": "form-error-focus",
+      "file": "form-error-focus.png",
+      "url": "http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form",
+      "note": "Required field validation and real keyboard input focus.",
+      "ax": "Browser tab: 32, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form\".\n0 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form\n\t1 container\n\t\t2 container\n\t\t\t3 heading 个人资料表单, Value: 2\n\t\t\t\t4 text 个人资料表单\n\t\t\t5 text 名\n\t\t\t6 text field (settable) 名\n\t\t\t18 text 此字段必填\n\t\t\t7 text 姓\n\t\t\t8 text field (settable) 姓\n\t\t\t9 text 邮箱\n\t\t\t10 text field (settable) 邮箱\n\t\t\t19 text 此字段必填\n\t\t\t11 text 项目想法\n\t\t\t12 text entry area (settable) 项目想法\n\t\t\t13 button 重置\n\t\t\t14 button 提交\n\t15 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t20 text ✦\n\t\t17 text Creator Agent\n\nThe focused UI element is 6 text field (settable) 名"
+    },
+    {
+      "name": "form-success-focus",
+      "file": "form-success-focus.png",
+      "url": "http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form",
+      "note": "Real successful submission with submit keyboard focus.",
+      "ax": "Browser tab: 32, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form\".\n0 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form\n\t1 container\n\t\t2 container\n\t\t\t3 heading 个人资料表单, Value: 2\n\t\t\t\t4 text 个人资料表单\n\t\t\t5 text 名\n\t\t\t6 text field (settable) 名, Value: Demo\n\t\t\t7 text 姓\n\t\t\t8 text field (settable) 姓\n\t\t\t9 text 邮箱\n\t\t\t10 text field (settable) 邮箱, Value: <redacted>\n\t\t\t11 text 项目想法\n\t\t\t12 text entry area (settable) 项目想法\n\t\t\t13 button 重置\n\t\t\t14 button 提交\n\t\t\t18 text 已提交表单\n\t15 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t19 text ✦\n\t\t17 text Creator Agent\n\nThe focused UI element is 14 button 提交"
+    },
+    {
+      "name": "controls-keyboard-focus",
+      "file": "controls-keyboard-focus.png",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=controls&theme=violet",
+      "note": "Keyboard focus on secondary action: 2px solid outline, 2px offset.",
+      "ax": "Browser tab: 33, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=controls&theme=violet\".\n0 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=controls&theme=violet\n\t1 container\n\t\t2 button Primary\n\t\t3 button Secondary\n\t\t4 button (disabled) Disabled\n\t5 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t6 text ✦\n\t\t7 text Creator Agent\n\nThe focused UI element is 3 button Secondary"
+    },
+    {
+      "name": "popover-trigger-focus",
+      "file": "popover-trigger-focus.png",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=popover&theme=violet",
+      "note": "Escape restores focus to actual Popover trigger; solid focus outline.",
+      "ax": "Browser tab: 33, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=popover&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=popover&theme=violet\n\t2 container\n\t\t10 pop up button (collapsed) Popover, ID: base-ui-_r_2_, Secondary Actions: Expand\n\t7 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t8 text ✦\n\t\t9 text Creator Agent\n\nThe focused UI element is 10 pop up button (collapsed) Popover, ID: base-ui-_r_2_, Secondary Actions: Expand"
+    },
+    {
+      "name": "form-narrow",
+      "file": "form-narrow.png",
+      "url": "http://127.0.0.1:5204/dev/violet-input/narrow-verification.html?optional=true&surface=form",
+      "note": "Actual 390px iframe; scrollWidth=390, form width=294px.",
+      "ax": "Browser tab: 32, Title: \"390px real component verification\", URL: \"http://127.0.0.1:5204/dev/violet-input/narrow-verification.html?optional=true&surface=form\".\n1 AXWebArea 390px real component verification, URL: 127.0.0.1:5204/dev/violet-input/narrow-verification.html?optional=true&surface=form\n\t2 container Description: 390px Agent UI viewport, ID: narrow\n\t\t3 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form&theme=violet\n\t\t\t4 container\n\t\t\t\t5 container\n\t\t\t\t\t6 heading 个人资料表单, Value: 2\n\t\t\t\t\t\t7 text 个人资料表单\n\t\t\t\t\t8 text 名\n\t\t\t\t\t9 text field (settable) 名\n\t\t\t\t\t10 text 姓\n\t\t\t\t\t11 text field (settable) 姓\n\t\t\t\t\t12 text 邮箱\n\t\t\t\t\t13 text field (settable) 邮箱\n\t\t\t\t\t14 text 项目想法\n\t\t\t\t\t15 text entry area (settable) 项目想法\n\t\t\t\t\t16 button 重置\n\t\t\t\t\t17 button 提交\n\t\t\t18 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t\t\t19 text ✦\n\t\t\t\t20 text Creator Agent\n\t21 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t22 text ✦\n\t\t23 text Creator Agent\n\nThe focused UI element is 1 AXWebArea 390px real component verification, URL: 127.0.0.1:5204/dev/violet-input/narrow-verification.html?optional=true&surface=form"
+    },
+    {
+      "name": "form-light",
+      "file": "form-light.png",
+      "url": "http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form&theme=light",
+      "note": "Light retains the original demo CSS; Violet sizing rules do not match.",
+      "ax": "Browser tab: 32, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form&theme=light\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form&theme=light\n\t2 container\n\t\t3 container\n\t\t\t4 heading 个人资料表单, Value: 2\n\t\t\t\t5 text 个人资料表单\n\t\t\t6 text 名\n\t\t\t7 text field (settable) 名\n\t\t\t8 text 姓\n\t\t\t9 text field (settable) 姓\n\t\t\t10 text 邮箱\n\t\t\t11 text field (settable) 邮箱\n\t\t\t12 text 项目想法\n\t\t\t13 text entry area (settable) 项目想法\n\t\t\t14 button 重置\n\t\t\t15 button 提交\n\t16 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t17 text ✦\n\t\t18 text Creator Agent\n\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form&theme=light"
+    },
+    {
+      "name": "form-dark",
+      "file": "form-dark.png",
+      "url": "http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form&theme=dark",
+      "note": "Dark retains the original demo CSS; Violet sizing rules do not match.",
+      "ax": "Browser tab: 32, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form&theme=dark\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form&theme=dark\n\t2 container\n\t\t3 container\n\t\t\t4 heading 个人资料表单, Value: 2\n\t\t\t\t5 text 个人资料表单\n\t\t\t6 text 名\n\t\t\t7 text field (settable) 名\n\t\t\t8 text 姓\n\t\t\t9 text field (settable) 姓\n\t\t\t10 text 邮箱\n\t\t\t11 text field (settable) 邮箱\n\t\t\t12 text 项目想法\n\t\t\t13 text entry area (settable) 项目想法\n\t\t\t14 button 重置\n\t\t\t15 button 提交\n\t16 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t17 text ✦\n\t\t18 text Creator Agent\n\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form&theme=dark"
+    }
+  ]
+}

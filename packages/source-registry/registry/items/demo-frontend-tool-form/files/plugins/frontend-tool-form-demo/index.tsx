@@ -54,7 +54,7 @@ export function FrontendToolFormDemoPlugin() {
       })} />}
       {formState.errors[name] ? <span role="alert">{formState.errors[name]?.message}</span> : null}
     </label>)}
-    <div><button data-slot="frontend-tool-form-reset" type="button" onClick={() => reset({ firstName: "", lastName: "", email: "", projectIdea: "" })}>{locale.resetForm}</button>
+    <div data-slot="frontend-tool-form-actions"><button data-slot="frontend-tool-form-reset" type="button" onClick={() => reset({ firstName: "", lastName: "", email: "", projectIdea: "" })}>{locale.resetForm}</button>
     <button data-slot="frontend-tool-form-submit" type="submit" disabled={formState.isSubmitting}>{locale.submitForm}</button></div>
     {formState.isSubmitSuccessful ? <p role="status">{locale.formSubmitted}</p> : null}
   </form></FormProvider>;

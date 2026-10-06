@@ -164,3 +164,22 @@ it("keeps both solid primary color pairs at WCAG AA contrast while preserving th
   expect(contrast("--agent-brand", "--primary-foreground")).toBeGreaterThanOrEqual(4.5);
   expect(resolve("--primary")).not.toBe(resolve("--agent-brand"));
 });
+
+
+it("keeps the keyboard focus outline at least 3:1 against white surfaces", async () => {
+  const css = await read(brandPath);
+  const tokens = new Map([...css.matchAll(/(--[\w-]+):\s*([^;]+);/gu)].map(match => [match[1]!, match[2]!.trim()]));
+  const resolve = (name: string): string => {
+    const value = tokens.get(name)!;
+    const alias = /^var\((--[\w-]+)\)$/u.exec(value);
+    return alias ? resolve(alias[1]!) : value;
+  };
+  const focus = luminance(resolve("--agent-brand-focus-border"));
+  for (const surface of ["--background", "--card", "--popover"]) {
+    expect((luminance(resolve(surface)) + 0.05) / (focus + 0.05)).toBeGreaterThanOrEqual(3);
+  }
+  const outlines = rules(await read(overridesPath)).filter(rule => rule[2]!.includes("outline: 2px solid var(--agent-brand-focus-border)"));
+  expect(outlines).toHaveLength(1);
+  expect(outlines[0]![1]).toContain(":focus-visible");
+  expect(outlines[0]![2]).toContain("outline-offset: 2px");
+});

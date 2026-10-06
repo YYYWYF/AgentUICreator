@@ -35,10 +35,14 @@ it("uses the official styled library and renders its supported vocabulary throug
   expect(f.container.querySelector("code")?.textContent).toBe("code");
 });
 
-it("does not invent vocabulary or capabilities missing from the pinned official release", () => {
-  expect(agentUIGenerativeUILibrary.Slider).toBeUndefined();
-  expect(agentUIGenerativeUILibrary.CheckboxGroup).toBeUndefined();
-  // $field and Input.defaultValue are also absent; see the release capability table.
+it("renders the pinned Slider and CheckboxGroup capabilities with their initial values", async () => {
+  const f = await render({ $type: "Col", children: [
+    { $type: "Slider", label: "Quantity", min: 0, max: 10, defaultValue: 3 },
+    { $type: "CheckboxGroup", label: "Extras", options: [{ label: "A", value: "a" }, { label: "B", value: "b" }], defaultValue: ["b"] },
+  ] });
+  expect(f.container.querySelector<HTMLInputElement>('input[type="range"]')!.value).toBe("3");
+  expect(f.container.querySelector<HTMLInputElement>('input[type="checkbox"][value="a"]')!.checked).toBe(false);
+  expect(f.container.querySelector<HTMLInputElement>('input[type="checkbox"][value="b"]')!.checked).toBe(true);
 });
 
 it("dispatches a Button action exactly once", async () => {
@@ -83,16 +87,16 @@ it("collects named controls through the official Form action", async () => {
   expect(f.handler).toHaveBeenCalledWith({ payload: { type: "save", $input: { note: "Door", transfer: true } } });
 });
 
-it("records the pinned absence of Input defaultValue and $field resolution", async () => {
+it("initializes Input defaultValue and resolves $field from the current control value", async () => {
   const f = await render({ $type: "Col", children: [
     { $type: "Input", name: "note", defaultValue: "Door" },
     { $type: "Button", label: "Save", $action: { type: "save", note: { $field: "note" } } },
   ] });
-  expect(f.container.querySelector<HTMLInputElement>("input")!.value).toBe("");
+  expect(f.container.querySelector<HTMLInputElement>("input")!.value).toBe("Door");
   await act(async () => {
     f.container.querySelector<HTMLInputElement>("input")!.value = "Current";
     f.container.querySelector("button")!.click();
   });
-  // The release passes the action object through; it does not resolve $field.
-  expect(f.handler).toHaveBeenCalledWith({ payload: { type: "save", note: { $field: "note" } } });
+  // Field references are resolved at action time, after the user edits the input.
+  expect(f.handler).toHaveBeenCalledWith({ payload: { type: "save", note: "Current" } });
 });

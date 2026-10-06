@@ -13,8 +13,15 @@ import {
   PLUGIN_REGISTRY_ENTRY_PATH,
   PLUGIN_REGISTRY_ENTRY_SOURCE,
 } from "../../src/project/registry-generator";
-import { collectPluginProjectFacts, generatePluginRegistry } from "../support/fixture-project-paths";
+import { collectPluginProjectFacts as collectFacts, generatePluginRegistry as generateRegistry } from "../../src/project/registry-generator";
+import { resolveAgentUIProjectPaths } from "../../src/project/agent-ui-project-paths";
 import type { UIProjectControlConfig } from "../../src/project/types";
+
+const projectConfig = { mode: "platform", sourceRoot: "agent-ui" } as const;
+const generatePluginRegistry = (root: string, model: AppUIModel, config: UIProjectControlConfig) =>
+  generateRegistry(root, model, { config, paths: resolveAgentUIProjectPaths(root, projectConfig, config) });
+const collectPluginProjectFacts = (root: string, config: UIProjectControlConfig) =>
+  collectFacts(root, config, resolveAgentUIProjectPaths(root, projectConfig, config));
 
 const temporaryProjects: string[] = [];
 const fixtureConfig: UIProjectControlConfig = {
@@ -38,8 +45,10 @@ async function createProject(options: {
 }): Promise<string> {
   const projectRoot = await mkdtemp(path.join(tmpdir(), "verify-agent-ui-"));
   temporaryProjects.push(projectRoot);
-  await mkdir(path.join(projectRoot, "app-ui"));
-  await mkdir(path.join(projectRoot, "plugins", "sample"), {
+  await mkdir(path.join(projectRoot, ".agent-ui"));
+  await writeFile(path.join(projectRoot, ".agent-ui", "project.json"), JSON.stringify(projectConfig));
+  await mkdir(path.join(projectRoot, "agent-ui", "app-ui"), { recursive: true });
+  await mkdir(path.join(projectRoot, "agent-ui", "plugins", "sample"), {
     recursive: true,
   });
   await writeFile(
@@ -50,11 +59,11 @@ async function createProject(options: {
         moduleResolution: "Bundler",
         target: "ES2022",
       },
-      include: ["plugins/**/*.ts", "plugins/**/*.tsx", "services/**/*.ts"],
+      include: ["agent-ui/plugins/**/*.ts", "agent-ui/plugins/**/*.tsx", "agent-ui/services/**/*.ts"],
     }),
   );
   await writeFile(
-    path.join(projectRoot, "plugins", "sample", "manifest.json"),
+    path.join(projectRoot, "agent-ui", "plugins", "sample", "manifest.json"),
     JSON.stringify({
       id: "sample",
       name: "Sample",
@@ -75,13 +84,13 @@ async function createProject(options: {
     }),
   );
   await writeFile(
-    path.join(projectRoot, "plugins", "sample", "definition.ts"),
+    path.join(projectRoot, "agent-ui", "plugins", "sample", "definition.ts"),
     options.definitionSource ??
       "const Component = () => null;\nconst samplePlugin = { manifest: {}, Component };\nexport default samplePlugin;\n",
   );
   if (options.pluginSource !== undefined) {
     await writeFile(
-      path.join(projectRoot, "plugins", "sample", "index.tsx"),
+      path.join(projectRoot, "agent-ui", "plugins", "sample", "index.tsx"),
       options.pluginSource,
     );
   }
@@ -103,7 +112,7 @@ async function createProject(options: {
     },
   };
   await writeFile(
-    path.join(projectRoot, "app-ui", "app-ui.json"),
+    path.join(projectRoot, "agent-ui", "app-ui", "app-ui.json"),
     JSON.stringify(model),
   );
   const registry = await generatePluginRegistry(
@@ -112,11 +121,11 @@ async function createProject(options: {
     fixtureConfig,
   );
   await writeFile(
-    path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
+    path.join(projectRoot, "agent-ui", GENERATED_PLUGIN_REGISTRY_PATH),
     registry.capabilityCatalog.source,
   );
   await writeFile(
-    path.join(projectRoot, PLUGIN_REGISTRY_ENTRY_PATH),
+    path.join(projectRoot, "agent-ui", PLUGIN_REGISTRY_ENTRY_PATH),
     PLUGIN_REGISTRY_ENTRY_SOURCE,
   );
   return projectRoot;
@@ -127,7 +136,7 @@ async function addSecondDataMessageUI(
   enabled: boolean,
   name = "chart",
 ): Promise<void> {
-  const pluginRoot = path.join(projectRoot, "plugins", "second");
+  const pluginRoot = path.join(projectRoot, "agent-ui", "plugins", "second");
   await mkdir(pluginRoot);
   await writeFile(path.join(pluginRoot, "manifest.json"), JSON.stringify({
     id: "second", name: "Second", description: "Fixture", version: "1.0.0",
@@ -144,9 +153,9 @@ async function addSecondDataMessageUI(
     ],
     root: { type: "slot", plugins: [] },
   };
-  await writeFile(path.join(projectRoot, "app-ui", "app-ui.json"), JSON.stringify(model));
+  await writeFile(path.join(projectRoot, "agent-ui", "app-ui", "app-ui.json"), JSON.stringify(model));
   const registry = await generatePluginRegistry(projectRoot, model, fixtureConfig);
-  await writeFile(path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH), registry.capabilityCatalog.source);
+  await writeFile(path.join(projectRoot, "agent-ui", GENERATED_PLUGIN_REGISTRY_PATH), registry.capabilityCatalog.source);
 }
 
 async function addExperimentalPlugin(
@@ -157,7 +166,7 @@ async function addExperimentalPlugin(
     pluginSource?: string;
   },
 ): Promise<void> {
-  const pluginRoot = path.join(projectRoot, "plugins", "experimental");
+  const pluginRoot = path.join(projectRoot, "agent-ui", "plugins", "experimental");
   await mkdir(pluginRoot);
   await writeFile(path.join(pluginRoot, "manifest.json"), JSON.stringify({
     id: "experimental", name: "Experimental", description: "Fixture", version: "1.0.0",
@@ -171,10 +180,10 @@ async function addExperimentalPlugin(
 }
 
 async function writeModelAndRegistry(projectRoot: string, model: AppUIModel): Promise<void> {
-  await writeFile(path.join(projectRoot, "app-ui", "app-ui.json"), JSON.stringify(model));
+  await writeFile(path.join(projectRoot, "agent-ui", "app-ui", "app-ui.json"), JSON.stringify(model));
   const registry = await generatePluginRegistry(projectRoot, model, fixtureConfig);
   await writeFile(
-    path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
+    path.join(projectRoot, "agent-ui", GENERATED_PLUGIN_REGISTRY_PATH),
     registry.capabilityCatalog.source,
   );
 }
@@ -196,7 +205,7 @@ describe("verifyUIProject", () => {
     const unsafe = await verifyUIProject(projectRoot, fixtureConfig);
     expect(unsafe.status).toBe("failed");
     expect(unsafe.errors.filter((issue) => issue.code === "PLUGIN_PORTAL_PRIMITIVE_IMPORT_NOT_ALLOWED")).toHaveLength(4);
-    await writeFile(path.join(projectRoot, "plugins", "sample", "index.tsx"),
+    await writeFile(path.join(projectRoot, "agent-ui", "plugins", "sample", "index.tsx"),
       'import { AgentUIDialog, AgentUIPopover, AgentUITooltip } from "@agent-ui/react";\n');
     const safe = await verifyUIProject(projectRoot, fixtureConfig);
     expect(safe.status).toBe("passed");
@@ -204,7 +213,7 @@ describe("verifyUIProject", () => {
 
   it("blocks global Plugin CSS and accepts the same Plugin after scoping", async () => {
     const projectRoot = await createProject({ instancePluginId: "sample", mounted: true });
-    const stylesheet = path.join(projectRoot, "plugins", "sample", "styles.css");
+    const stylesheet = path.join(projectRoot, "agent-ui", "plugins", "sample", "styles.css");
     await writeFile(stylesheet, "button { color: red; }\n:root { --primary: red; }\n");
     const unsafe = await verifyUIProject(projectRoot, fixtureConfig);
     expect(unsafe.status).toBe("failed");
@@ -618,7 +627,7 @@ describe("verifyUIProject", () => {
       instancePluginId: "sample",
       mounted: true,
     });
-    const registryPath = path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH);
+    const registryPath = path.join(projectRoot, "agent-ui", GENERATED_PLUGIN_REGISTRY_PATH);
     await writeFile(registryPath, "// stale\n");
 
     const result = await verifyUIProject(projectRoot, fixtureConfig);
@@ -633,8 +642,8 @@ describe("verifyUIProject", () => {
 
   it("synchronizes a changed Plugin declaration through the internal Host operation", async () => {
     const projectRoot = await createProject({ instancePluginId: "sample", mounted: true });
-    const definitionPath = path.join(projectRoot, "plugins/sample/definition.ts");
-    const registryPath = path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH);
+    const definitionPath = path.join(projectRoot, "agent-ui", "plugins/sample/definition.ts");
+    const registryPath = path.join(projectRoot, "agent-ui", GENERATED_PLUGIN_REGISTRY_PATH);
     const original = await readFile(registryPath, "utf8");
     await writeFile(definitionPath,
       'const Component = () => null;\nconst samplePlugin = { manifest: {}, Component, optionalInject: ["agent-ui.locale"] };\nexport default samplePlugin;\n');
@@ -644,7 +653,7 @@ describe("verifyUIProject", () => {
     const first = await handleUIProjectControlRequest({
       operation: "synchronize_plugin_registry", input,
     }, projectRoot);
-    expect(first).toMatchObject({ ok: true, result: { changed: true, path: GENERATED_PLUGIN_REGISTRY_PATH } });
+    expect(first).toMatchObject({ ok: true, result: { changed: true, path: `agent-ui/${GENERATED_PLUGIN_REGISTRY_PATH}` } });
     expect((await verifyUIProject(projectRoot, fixtureConfig)).capabilityCatalog.generatedFileFresh).toBe(true);
     const second = await handleUIProjectControlRequest({
       operation: "synchronize_plugin_registry",
@@ -662,7 +671,7 @@ describe("verifyUIProject", () => {
       instancePluginId: "sample",
       mounted: true,
     });
-    const modelPath = path.join(projectRoot, "app-ui", "app-ui.json");
+    const modelPath = path.join(projectRoot, "agent-ui", "app-ui", "app-ui.json");
     const model = JSON.parse(await readFile(modelPath, "utf8")) as AppUIModel;
     if (model.root.type !== "slot") throw new Error("fixture");
     model.root.plugins[0]!.slots = {

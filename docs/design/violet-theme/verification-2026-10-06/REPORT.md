@@ -32,3 +32,7 @@
 仅开发 fixture：examples/creator-embedded-host/dev/violet-input/verification.html、optional-verification.html、narrow-verification.html。
 运行：在 examples/creator-embedded-host 下执行 pnpm exec vite --config dev/violet-input/verification.vite.config.ts --port 5204 --strictPort。
 详见 [capture-manifest.json](capture-manifest.json) 每个截图的 URL、输入状态和 AX 证据。失败 viewport 设置产生的 4 张非窄屏截图、1 张缺少 conversation scope 的试拍已从有效索引排除。
+
+## 后续收口
+
+本报告保留上一轮53/56的历史记录。旧断言、Form与focus修复及完整gate结果见[收口验证](closeout/REPORT.md)和[8张新截图](closeout/index.html)。

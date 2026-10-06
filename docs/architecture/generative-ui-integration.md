@@ -89,7 +89,20 @@ A2UI takes only `present.render` for a backend presentation item. Explicit
 authorization resources remain future design work. No AppFrontendToolRuntime
 permission seam, backend behavior or React Hook Form contract is redefined here.
 
-## Actual 0.0.21 capabilities and upstream gaps
+## Current capability verification (2026-10-06)
+
+The release table above records the initial delivery. The workspace now pins
+`@assistant-ui/react-generative-ui` 0.0.22. Its installed official vocabulary
+supports Slider, CheckboxGroup, Input.defaultValue and action-time `$field`
+resolution. ChoicePicker maps single selection (including chips presentation)
+to RadioGroup and multipleSelection to CheckboxGroup. Product code continues
+to consume these native capabilities without substitute implementations.
+`packages/react/tests/migrated/generative-ui-library.test.tsx` verifies initial
+control values and current-value action dispatch; A2UI integration tests verify
+wire rendering, radio selection and continuation. The historical gap table below
+must not be used as the current capability contract.
+
+## Historical 0.0.21 capabilities and upstream gaps
 
 The initial proposal overestimated this release. Inspection of its exact source
 established the following boundaries; the user approved retaining the release

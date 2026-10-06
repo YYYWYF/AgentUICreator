@@ -14,8 +14,8 @@
   --agent-brand-selected: color-mix(in oklab, var(--background) 90%, var(--agent-brand));
   --agent-brand-border: color-mix(in oklab, var(--background) 82%, var(--agent-brand));
   --agent-brand-hover-border: color-mix(in oklab, var(--background) 78%, var(--agent-brand));
-  --agent-brand-focus-border: color-mix(in oklab, var(--background) 70%, var(--agent-brand));
-  --agent-brand-focus-ring: color-mix(in oklab, var(--agent-brand) 8%, transparent);
+  --agent-brand-focus-border: var(--agent-brand-solid);
+  --agent-brand-focus-ring: color-mix(in oklab, var(--agent-brand) 20%, transparent);
   --agent-brand-active: var(--agent-brand);
 
   --background: oklch(1 0 0);

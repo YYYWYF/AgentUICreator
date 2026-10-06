@@ -30,7 +30,7 @@ for primary actions, running icons/progress, selected items, context chips and f
 Generic hover uses neutral muted fills. Reasoning and ToolGroup remain white while
 running; ToolFallback argument/result surfaces are white with neutral borders.
 Brand surface/hover/selected tints use 6% / 8% / 10%; brand hover/focus borders use
-22% / 30%. The Composer remains white with its existing soft 1px focus halo.
+22% / solid action. The Composer remains white with a solid focus border and a 20% brand 1px halo.
 Build/install/runtime never invokes shadcn.
 
 ## Extension boundary
@@ -119,3 +119,11 @@ with their real services. Product data slots now expose form inputs/reset/submit
 and dialog content/close for scoped Violet neutral borders, brand actions and
 destructive validation text. No lifecycle, events, hierarchy or locale copy changed.
 The verification index is docs/design/violet-theme/verification-2026-10-06/index.html.
+
+
+Closeout (2026-10-06): Violet keyboard controls use a 2px solid brand focus
+outline with 2px offset via stable button/overlay/plugin slots. The outline's
+contrast against white card/popover/canvas is guarded at >=3:1. Composer focus
+uses the same solid border plus a 20% soft halo. Optional Form typography,
+maximum width, input/button sizing and neutral card are scoped in its own CSS;
+Light/Dark preserve their original demo presentation. No vendor changes.

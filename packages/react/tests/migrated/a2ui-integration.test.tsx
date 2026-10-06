@@ -185,11 +185,16 @@ describe("upgraded official Generative UI and A2UI contracts", () => {
     const step = a2uiFormControlsSnapshot();
     await act(async () => { f.streams[0]!.emit({ ...step, type: "ACTIVITY_SNAPSHOT" }); await tick(); });
     await act(async () => { await until(() => f.container.querySelector('[data-aui="datepicker"]') !== null); });
-    for (const component of ["icon", "input", "checkbox", "radiogroup", "select", "datepicker", "listview", "button"]) {
+    for (const component of ["icon", "input", "checkbox", "radiogroup", "datepicker", "listview", "button"]) {
       expect(f.container.querySelector(`[data-aui="${component}"]`), component).not.toBeNull();
     }
-    expect(f.container.querySelectorAll('[data-aui="radiogroup"] input[type="radio"]')).toHaveLength(2);
-    expect(f.container.querySelector('[data-aui="select"]')?.getAttribute("aria-label")).toBe("Destination");
+    const tripType = f.container.querySelector('[data-aui="radiogroup"][aria-label="Trip type"]')!;
+    expect(tripType.querySelectorAll('input[type="radio"]')).toHaveLength(2);
+    expect(tripType.querySelector<HTMLInputElement>('input[value="business"]')!.checked).toBe(true);
+    const destination = f.container.querySelector('[data-aui="radiogroup"][aria-label="Destination"]')!;
+    expect(destination.querySelectorAll('input[type="radio"]')).toHaveLength(2);
+    await act(async () => { destination.querySelector<HTMLInputElement>('input[value="seoul"]')!.click(); });
+    expect(destination.querySelector<HTMLInputElement>('input[value="seoul"]')!.checked).toBe(true);
     expect(f.container.querySelector<HTMLInputElement>('input[type="date"]')!.value).toBe("2026-10-10");
     expect(f.container.textContent).toContain("Singapore");
     expect(f.inputs[0]!.tools).toEqual([]);

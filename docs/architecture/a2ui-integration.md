@@ -103,7 +103,17 @@ The first stage uses only the upstream Basic Catalog. Custom components,
 Plugin-provided catalogs, dynamic/remote catalogs and arbitrary components require
 a separately designed A2UI Component Catalog Authoring Contract.
 
-## Released Basic Catalog boundary
+## Current Basic Catalog verification (2026-10-06)
+
+The initial release versions below are historical. With the current 0.0.22
+Generative UI dependency, single-selection ChoicePicker renders RadioGroup,
+including `displayStyle: "chips"`; multipleSelection maps to CheckboxGroup.
+Slider, Input.defaultValue and `$field` are now native capabilities. The updated
+integration regression verifies both radio groups by their accessible labels,
+initial Business selection, user selection of Seoul and Save continuation.
+No wire protocol or product component behavior changed for this correction.
+
+## Historical released Basic Catalog boundary
 
 The Form Controls scenario covers Icon, TextField, CheckBox, ChoicePicker,
 DateTimeInput, List and Button through standard ACTIVITY_SNAPSHOT events.

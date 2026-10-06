@@ -11,7 +11,7 @@
   border-color: var(--agent-brand-hover-border);
 }
 
-/* The stable shell hook keeps focus weaker than solid primary actions. */
+/* The stable shell hook gives focused input a clear border and a soft halo. */
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_composer-shell"]:focus-within {
   border-color: var(--agent-brand-focus-border);
   box-shadow: 0 0 0 1px var(--agent-brand-focus-ring);
@@ -233,4 +233,11 @@
 }
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form"] [role="alert"] {
   color: var(--destructive);
+}
+
+/* A solid outline remains legible even where upstream uses a half-opacity ring.
+ * These existing slots cover actual keyboard controls, without changing events. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="button"], [data-slot="popover-trigger"], [data-slot="tooltip-trigger"], [data-slot="dialog-trigger"], [data-slot="dialog-close"], [data-slot="composer-trigger-popover-back"], [data-slot="frontend-tool-form-input"], [data-slot="frontend-tool-form-reset"], [data-slot="frontend-tool-form-submit"], [data-slot="frontend-tool-dialog-close"]):focus-visible {
+  outline: 2px solid var(--agent-brand-focus-border);
+  outline-offset: 2px;
 }

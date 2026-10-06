@@ -39,4 +39,5 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @agent-ui/creator-workbench exec playwright install --with-deps chromium
-      - run: pnpm verify:style-isolation
+      - run: pnpm verify:assistant-ui-upgrade
+      - run: pnpm --filter @agent-ui/react build
