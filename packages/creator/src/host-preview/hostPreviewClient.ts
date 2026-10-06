@@ -42,6 +42,21 @@ export function installCreatorHostPreviewBridge(): () => void {
     const port = event.ports[0];
     if (port === undefined) return;
     disposeSession();
+    let running = false;
+    const applySource = (source: unknown) => {
+      if (running || !source || typeof source !== "object") return;
+      const value = source as { identity?: string; runtimeEndpoint?: string; conversationDataEndpointOverride?: string; backendProxyPrefix?: string };
+      if (typeof value.identity !== "string" || !["/__agent-ui/mock", "/__agent-ui/agent-proxy/run"].includes(value.runtimeEndpoint ?? "")) return;
+      (window as Window & { __agentUIPreviewEnvironment?: unknown }).__agentUIPreviewEnvironment = value;
+      window.dispatchEvent(new Event("agent-ui:preview-environment"));
+    };
+    const runState = (event: Event) => {
+      running = Boolean((event as CustomEvent).detail?.running);
+      port.postMessage({ type: "preview-running", running });
+    };
+    window.addEventListener("agent-ui:preview-run-state", runState);
+    window.dispatchEvent(new Event("agent-ui:preview-run-request"));
+    applySource(session.previewSource);
     let nextId = 0;
     let active = true;
     const pending = new Map<number, { resolve: (response: Response) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>();
@@ -53,6 +68,8 @@ export function installCreatorHostPreviewBridge(): () => void {
       port.postMessage({ id, endpoint: String(_input), body: String(init?.body ?? "") });
     });
     port.onmessage = (reply: MessageEvent<PreviewUploadResult>) => {
+      const message = reply.data as unknown as { type?: string; source?: unknown };
+      if (message.type === "preview-source") { applySource(message.source); return; }
       const request = pending.get(reply.data?.id);
       if (!request) return;
       pending.delete(reply.data.id);
@@ -72,6 +89,7 @@ export function installCreatorHostPreviewBridge(): () => void {
     };
     disposeSession = () => {
       active = false;
+      window.removeEventListener("agent-ui:preview-run-state", runState);
       report = undefined;
       port.close();
       for (const request of pending.values()) {

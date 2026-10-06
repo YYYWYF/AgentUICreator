@@ -46,14 +46,24 @@ describe("current-project local recordings", () => {
     await symlink(path.join(other, ".agentui/mocks"), path.join(root, ".agentui/mocks"));
     await expect(store.list(root)).rejects.toThrow("current project");
   });
-  it("replays through the shared SSE endpoint and resets selection on project switch", async () => {
+  it.each(["standalone", "preview"])("replays through the %s SSE endpoint and resets selection on project switch", async mode => {
     const root = await project(); await writeFile(path.join(root, ".agentui/mocks/chat.jsonl"), data());
     let current: MockProjectTarget | undefined = { id: "A", projectRoot: root };
     const service = new CreatorMockService(); services.push(service); service.setProjectResolver(() => current);
     expect((await service.refreshState()).recordings[0]?.status).toBe("ready");
     await service.selectRecording("local:chat.jsonl", 0, "A");
-    const { endpoint } = await service.start();
-    const response = await fetch(endpoint!, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });
+    let endpoint: string;
+    if (mode === "standalone") endpoint = (await service.start()).endpoint!;
+    else {
+      const server = createServer((request, response) => { void service.handlePreviewRequest(request, response); });
+      controlServers.push(server);
+      await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
+      const address = server.address();
+      if (!address || typeof address === "string") throw new Error("Missing preview address");
+      endpoint = `http://127.0.0.1:${address.port}/__agent-ui/mock`;
+      expect(service.getState().status).toBe("stopped");
+    }
+    const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });
     expect(response.headers.get("Content-Type")).toContain("text/event-stream");
     const events = (await response.text()).trim().split("\n\n").map(line => JSON.parse(line.slice(6)));
     expect(events.map(event => event.type)).toEqual(["RUN_STARTED", "TEXT_MESSAGE_START", "TEXT_MESSAGE_CONTENT", "TEXT_MESSAGE_END", "RUN_FINISHED"]);

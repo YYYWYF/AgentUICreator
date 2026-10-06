@@ -1,3 +1,6 @@
+import { createConnectionHandler } from "./agent-connection/connection-api.js";
+import { createHash } from "node:crypto";
+import { realpathSync } from "node:fs";
 import { createCreatorUpdateHandler, CREATOR_UPDATES_API_PATH } from "./updates/update-api.js";
 import type { UpdateSourceProvider } from "@agent-ui/project-control/updates";
 import type { Plugin } from "vite";
@@ -129,6 +132,17 @@ export function createCreatorDevServerPlugin({
       };
     },
     configureServer(server) {
+      const connectionWorkspace = () => {
+        if (workspaceManager) {
+          const state = workspaceManager.getState();
+          return state.status === "ready" ? state.workspace : undefined;
+        }
+        return projectRoot ? { projectRoot, id: createHash("sha256").update(realpathSync(projectRoot)).digest("hex") } : undefined;
+      };
+      mockService.setProjectResolver(connectionWorkspace);
+      const connectionHandler = createConnectionHandler(connectionWorkspace, (request, response) => mockService.handlePreviewRequest(request, response));
+      server.middlewares.use((request, response, next) => { void connectionHandler(request, response, next); });
+
       server.middlewares.use(CREATOR_UPDATES_API_PATH, createCreatorUpdateHandler(workspaceManager, projectRoot, updateSourceProvider));
       server.httpServer?.once("close", () => {
         void mockService.dispose();

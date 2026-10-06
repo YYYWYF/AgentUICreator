@@ -6,10 +6,7 @@ import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import {
-  createMockAgentVitePlugin,
-  showcaseMockScenarios,
   createMockConversationApiVitePlugin,
-  withPreviewAgentState,
 } from "../../packages/mock-agent/src/index";
 import { defineConfig } from "vite";
 
@@ -59,11 +56,6 @@ export default defineConfig({
         await workspaceManager.selectProject(hostProjectRoot);
       },
     },
-    createMockAgentVitePlugin({
-      endpoint: "/__agent-ui/mock",
-      scenarios: showcaseMockScenarios.map(withPreviewAgentState),
-      defaultScenarioId: "reasoning-tool-success",
-    }),
     createMockConversationApiVitePlugin({
       endpoint: "/__agent-ui/mock-data",
     }),

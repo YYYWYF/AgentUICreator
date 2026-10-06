@@ -29,6 +29,14 @@
     {
       "source": "files/application/observability.ts",
       "target": "application/observability.ts"
+    },
+    {
+      "source": "files/application/preview-environment.ts",
+      "target": "application/preview-environment.ts"
+    },
+    {
+      "source": "files/application/agent-backend-transport.ts",
+      "target": "application/agent-backend-transport.ts"
     }
   ]
 }

@@ -237,7 +237,7 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
             </Badge>
             <Button size="sm" variant={state.status === "running" ? "outline" : "default"} type="button" disabled={busy} onClick={() => void act(
               state.status === "running" ? "/stop" : "/start", {},
-              state.status === "running" ? "Mock 服务已停止。" : "Mock 服务已启动，请将前端 endpoint 配置为下方地址。",
+              state.status === "running" ? "Mock 服务已停止。" : "Mock 服务已启动。Creator Preview 在选择 Mock Agent 时使用当前示例与倍速。",
             )}>{busy ? "处理中…" : state.status === "running" ? "停止服务" : "启动服务"}</Button>
           </div>
           {state.endpoint === null ? <p>启动后会显示本机地址。系统自动分配可用端口。</p> : <>

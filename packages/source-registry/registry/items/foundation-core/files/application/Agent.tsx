@@ -1,3 +1,4 @@
+import { usePreviewAgentEnvironment } from "./preview-environment";
 import type { ConversationRuntimeProviderProps } from "@agent-ui/runtime-conversation";
 import { AgentUIRoot } from "@agent-ui/react";
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
@@ -48,9 +49,6 @@ const revisionSources = import.meta.glob<string>("../app-ui/composition-revision
 const revisionDescriptorSource = revisionSources["../app-ui/composition-revision.generated.json"];
 
 const appEventRegistry = new AppEventRegistry(appEventSchemas);
-const frontendToolRuntime = new AppFrontendToolRuntime(
-  new AppFrontendToolRegistry(appFrontendTools),
-);
 
 export interface AgentProps {
   /** The Host application's AG-UI endpoint. Defaults to VITE_AGENT_ENDPOINT or /agent. */
@@ -65,9 +63,9 @@ export interface AgentProps {
   /** Application-owned official assistant-ui speech-to-text adapter. */
   dictationAdapter?: ConversationRuntimeProviderProps["dictationAdapter"];
   /** Optional application-owned durable run capability for persisted conversations. */
-  runResumeProvider?: ConversationRunResumeProvider<AppAgentState>;
+  runResumeProvider?: ConversationRunResumeProvider<AppAgentState> | undefined;
   /** Host-owned persisted thread to reopen after refresh; omitted starts a new conversation. */
-  initialThreadId?: string;
+  initialThreadId?: string | undefined;
 }
 
 function AgentUIStyleSurface({ children }: { children: ReactNode }) {
@@ -75,11 +73,22 @@ function AgentUIStyleSurface({ children }: { children: ReactNode }) {
   return <AgentUIRoot theme={theme}>{children}</AgentUIRoot>;
 }
 
-function AgentSurface({ composition, observability }: {
+function AgentSurface({ composition, observability, frontendToolRuntime }: {
+  frontendToolRuntime: AppFrontendToolRuntime;
   composition: RuntimeCompositionSnapshot<AppAgentState>;
   observability?: AgentObservability | undefined;
 }) {
   const { agentRuntime } = useConversationRuntimeBridge<AppAgentState>();
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const publish = () => window.dispatchEvent(new CustomEvent("agent-ui:preview-run-state", {
+      detail: { running: ["running", "awaiting-input"].includes(agentRuntime.getSnapshot().run.status) },
+    }));
+    publish();
+    const unsubscribe = agentRuntime.subscribe(publish);
+    window.addEventListener("agent-ui:preview-run-request", publish);
+    return () => { window.removeEventListener("agent-ui:preview-run-request", publish); unsubscribe(); window.dispatchEvent(new CustomEvent("agent-ui:preview-run-state", { detail: { running: false } })); };
+  }, [agentRuntime]);
   const actions = useMemo(() => ({
     sendMessage: (input: Parameters<typeof agentRuntime.sendMessage>[0]) => agentRuntime.sendMessage(input),
     resumeInterrupts: (responses: Parameters<typeof agentRuntime.resumeInterrupts>[0]) => agentRuntime.resumeInterrupts(responses),
@@ -164,7 +173,8 @@ function AgentSurface({ composition, observability }: {
   );
 }
 
-export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
+function AgentSession({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
+  const frontendToolRuntime = useMemo(() => new AppFrontendToolRuntime(new AppFrontendToolRegistry(appFrontendTools)), []);
   const composition = useSyncExternalStore(
     agentCompositionStore.subscribe,
     agentCompositionStore.getSnapshot,
@@ -216,8 +226,15 @@ export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agen
       toolkit={toolkit}
     >
       <GeneratedConversationIntegrations>
-        {composition === undefined ? null : <AgentSurface composition={composition} observability={observability} />}
+        {composition === undefined ? null : <AgentSurface frontendToolRuntime={frontendToolRuntime} composition={composition} observability={observability} />}
       </GeneratedConversationIntegrations>
     </ConversationRuntimeProvider>
   );
+}
+
+/** Source changes start a new session, including bindings, services and tool state. */
+export function Agent(props: AgentProps = {}) {
+  const preview = usePreviewAgentEnvironment();
+  if (import.meta.env.DEV && new URLSearchParams(window.location.search).has("creator-preview") && !preview) return null;
+  return <AgentSession key={preview?.identity ?? "product"} {...props} {...(preview ? { endpoint: preview.runtimeEndpoint, initialThreadId: undefined, ...(preview.conversationDataEndpointOverride ? { runResumeProvider: undefined } : {}) } : {})} />;
 }

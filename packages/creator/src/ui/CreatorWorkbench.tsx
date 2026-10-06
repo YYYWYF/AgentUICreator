@@ -1,3 +1,4 @@
+import { AgentConnectionPanel } from "./AgentConnectionPanel.js";
 import {
   memo,
   useCallback,
@@ -70,7 +71,7 @@ const CREATOR_PANEL_MAX_WIDTH = 720;
 const CREATOR_PREVIEW_MIN_WIDTH = 320;
 const CREATOR_PANEL_KEYBOARD_STEP = 16;
 
-function CreatorSettings({ busy, onCheckUpdates }: { busy: boolean; onCheckUpdates: () => void }) {
+function CreatorSettings({ busy, onCheckUpdates, onAgent }: { busy: boolean; onCheckUpdates: () => void; onAgent: () => void }) {
   const [open, setOpen] = useState(false);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
   const anchor = useRef<HTMLDivElement>(null);
@@ -84,6 +85,7 @@ function CreatorSettings({ busy, onCheckUpdates }: { busy: boolean; onCheckUpdat
           </Button>
         </PopoverTrigger>
         <PopoverContent container={portalContainer} align="end" className="cui:w-44 cui:p-1.5" aria-label="设置">
+          <Button variant="ghost" size="sm" className="cui:w-full cui:justify-start" onClick={() => { setOpen(false); onAgent(); }}>Agent</Button>
           <Button variant="ghost" size="sm" className="cui:w-full cui:justify-start" disabled={busy} onClick={() => {
             setOpen(false);
             onCheckUpdates();
@@ -1083,6 +1085,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
   );
   const [input, setInput] = useState("");
   const [isOpen, setIsOpen] = useState(true);
+  const [agentPanelOpen, setAgentPanelOpen] = useState(false);
   const [mockPanelOpen, setMockPanelOpen] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [panelWidth, setPanelWidth] = useState<number | null>(null);
@@ -1964,12 +1967,13 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
               >
                 <X aria-hidden="true" />
               </Button>}
-              {workspaceState?.status === "ready" ? <CreatorSettings busy={isRunning || questionPending} onCheckUpdates={() => setUpdateCheckRequest(value => value + 1)} /> : null}
+              {workspaceState?.status === "ready" ? <CreatorSettings onAgent={() => setAgentPanelOpen(value => !value)} busy={isRunning || questionPending} onCheckUpdates={() => setUpdateCheckRequest(value => value + 1)} /> : null}
             </div>
           </header>
 
           <div className="creator-panel-body">
             {workspaceState?.status === "ready" ? <CreatorPluginUpdates key={workspaceState.workspace.id} workspaceId={workspaceState.workspace.id} busy={isRunning || questionPending} modelReady={creatorRuntimeReady} checkRequest={updateCheckRequest} notificationTarget={updateNotificationTarget} pageOpen={updatePageOpen} onPageChange={handleUpdatePageChange} onModelMerge={prompt => { void submit(undefined, undefined, prompt); }} /> : null}
+            {workspaceState?.status === "ready" ? <AgentConnectionPanel key={workspaceState.workspace.id} workspaceId={workspaceState.workspace.id} visible={agentPanelOpen} /> : null}
             {mockPanelOpen ? <MockServicePanel {...(workspaceState && workspaceState.status !== "none" ? { projectId: workspaceState.workspace.id } : {})} /> : null}
             <div
               className="creator-panel-dev-studio-panel"

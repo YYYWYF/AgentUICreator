@@ -4,6 +4,7 @@ import {
   createScenarioRegistry,
   showcaseMockScenarios,
   runMockRecording,
+  withPreviewAgentState,
 } from "@agent-ui/mock-agent";
 import { LocalMockRecordingStore, type LocalMockRecordingSummary } from "./local-recording-store.js";
 import type { MockProjectTarget } from "./demo-compatibility.js";
@@ -77,6 +78,9 @@ export class CreatorMockService {
     defaultScenarioId: "reasoning-tool-success",
   });
   private readonly handler = createMockAgentHttpHandler({ registry: this.registry });
+  private readonly previewHandler = createMockAgentHttpHandler({ registry: createScenarioRegistry({
+    scenarios: showcaseMockScenarios.map(withPreviewAgentState), defaultScenarioId: "reasoning-tool-success",
+  }) });
 
   getState(): CreatorMockState {
     const project = this.syncProject();
@@ -169,7 +173,14 @@ export class CreatorMockService {
     await this.stop();
   }
 
-  private async handle(request: IncomingMessage, response: ServerResponse): Promise<void> {
+  /** Same service selection/replay at the fixed Creator preview endpoint. */
+  async handlePreviewRequest(request: IncomingMessage, response: ServerResponse): Promise<void> {
+    const url = new URL(request.url ?? "/", "http://mock.local");
+    request.url = `/agent${url.search}`;
+    await this.handle(request, response, true);
+  }
+
+  private async handle(request: IncomingMessage, response: ServerResponse, preview = false): Promise<void> {
     const origin = request.headers.origin;
     if ((origin !== undefined && !isLocalMockOrigin(origin)) ||
         !isLocalMockOrigin(`http://${request.headers.host ?? ""}`)) {
@@ -213,6 +224,6 @@ export class CreatorMockService {
         return runMockRecording(input, recording, { signal: options.signal, timingScale: options.speed });
       } });
       await handler(request, response);
-    } else await this.handler(request, response);
+    } else await (preview ? this.previewHandler : this.handler)(request, response);
   }
 }

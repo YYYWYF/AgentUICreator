@@ -1,3 +1,5 @@
+import { getPreviewAgentEnvironment } from "../../application/preview-environment";
+import { createAgentBackendTransport } from "../../application/agent-backend-transport";
 import type { UIPluginDefinition } from "../../framework/contracts/ui-plugin";
 import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
 import {
@@ -15,11 +17,11 @@ export const conversationDataSourcePlugin: UIPluginDefinition = {
   provides: [AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE],
   setup: ({ services }) => {
     const endpoint = resolveConversationDataEndpoint({
-      configuredEndpoint: conversationDataEndpoint,
+      configuredEndpoint: getPreviewAgentEnvironment()?.conversationDataEndpointOverride ?? conversationDataEndpoint,
     });
     const source = endpoint === undefined
       ? createEmptyConversationDataSource()
-      : createHttpConversationDataSource({ endpoint });
+      : createHttpConversationDataSource({ endpoint, fetch: createAgentBackendTransport().fetch });
     services.provide(AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE, source);
   },
   Component: ConversationDataSourcePlugin,
