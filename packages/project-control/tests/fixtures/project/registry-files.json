@@ -202,5 +202,8 @@
   "plugins/composer-trigger-demo/index.tsx": "packages/source-registry/registry/items/demo-composer-triggers/files/plugins/composer-trigger-demo/index.tsx",
   "plugins/composer-trigger-demo/manifest.json": "packages/source-registry/registry/items/demo-composer-triggers/files/plugins/composer-trigger-demo/manifest.json",
   "plugins/composer-trigger-demo/source.ts": "packages/source-registry/registry/items/demo-composer-triggers/files/plugins/composer-trigger-demo/source.ts",
-  "services/composer-triggers.ts": "packages/source-registry/registry/items/foundation-core-application/files/services/composer-triggers.ts"
+  "services/composer-triggers.ts": "packages/source-registry/registry/items/foundation-core-application/files/services/composer-triggers.ts",
+  "plugins/assistant-ui-lexical-composer-input/definition.ts": "packages/source-registry/registry/items/plugin-assistant-ui-lexical-composer-input/files/plugins/assistant-ui-lexical-composer-input/definition.ts",
+  "plugins/assistant-ui-lexical-composer-input/index.tsx": "packages/source-registry/registry/items/plugin-assistant-ui-lexical-composer-input/files/plugins/assistant-ui-lexical-composer-input/index.tsx",
+  "plugins/assistant-ui-lexical-composer-input/manifest.json": "packages/source-registry/registry/items/plugin-assistant-ui-lexical-composer-input/files/plugins/assistant-ui-lexical-composer-input/manifest.json"
 }
