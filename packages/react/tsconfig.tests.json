@@ -74,6 +74,9 @@
       ],
       "lucide-react": [
         "./node_modules/lucide-react"
+      ],
+      "@agent-ui/react/lexical": [
+        "./src/lexical.tsx"
       ]
     },
     "rootDirs": [
@@ -119,14 +122,19 @@
       "../source-registry/registry/items/plugin-agent-plan-message/files",
       "../project-control/tests/support/typecheck-project",
       "../source-registry/registry/items/plugin-web-search/files",
-      "../source-registry/registry/items/plugin-retrieval-chunks/files"
+      "../source-registry/registry/items/plugin-retrieval-chunks/files",
+      "../source-registry/registry/items/plugin-assistant-ui-lexical-composer-input/files",
+      "../source-registry/registry/items/plugin-assistant-ui-mention-trigger/files",
+      "../source-registry/registry/items/plugin-assistant-ui-slash-command-trigger/files",
+      "../source-registry/registry/items/plugin-conversation-quote/files",
+      "../source-registry/registry/items/demo-ask-user-question/files"
     ]
   },
   "exclude": [
     "tests/fixtures"
   ],
   "include": [
-    "tests/migrated/**/*.ts",
-    "tests/migrated/**/*.tsx"
+    "tests/**/*.ts",
+    "tests/**/*.tsx"
   ]
 }

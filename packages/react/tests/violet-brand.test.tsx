@@ -43,10 +43,10 @@ describe("Adaptable Violet brand boundary", () => {
     expect(brand).toContain("--ring: var(--agent-brand-focus-border);");
   });
 
-  it("imports the brand after the palette and compatibility last", async () => {
+  it("imports the brand after the palette and Composer styles after compatibility", async () => {
     const css = await read("../src/styles.css");
     const imports = [...css.matchAll(/@import "\.\/theme\/([^";]+)";/gu)].map(match => match[1]);
-    expect(imports).toEqual(["shadcn-theme-presets.css", "agent-ui-theme-extensions.css", "agent-ui-violet-theme.css", "assistant-ui-theme-overrides.css"]);
+    expect(imports).toEqual(["shadcn-theme-presets.css", "agent-ui-theme-extensions.css", "agent-ui-violet-theme.css", "assistant-ui-theme-overrides.css", "composer-lexical.css"]);
   });
 
   it("keeps the Composer on solid card with semantic border/focus and no gradient", async () => {

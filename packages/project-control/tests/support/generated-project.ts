@@ -39,6 +39,9 @@ export function generatedProjectFixture(): Promise<string> {
       if (source) await symlink(source, link, "dir");
     }
     await writeGeneratedPluginRegistry(root);
+    // Legacy template imports use the same freshly generated catalog as agent-ui.
+    await cp(path.join(root, "agent-ui/plugins/registry.generated.ts"),
+      path.join(root, "plugins/registry.generated.ts"));
     return root;
   })();
 }

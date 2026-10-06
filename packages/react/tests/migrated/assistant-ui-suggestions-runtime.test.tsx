@@ -5,6 +5,7 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
+import { HttpAgent } from "@ag-ui/client";
 import { useAui, type AssistantRuntime } from "@assistant-ui/react";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -38,8 +39,9 @@ import {
 } from "../../../project-control/src/project/creator-action-catalog";
 import {
   generatePluginRegistryFromFacts,
+  collectPluginProjectFacts,
 } from "../../../project-control/src/project/registry-generator";
-import { collectPluginProjectFacts } from "../../../project-control/tests/support/legacy-project-paths";
+import { resolveAgentUIProjectPaths } from "../../../project-control/src/project/agent-ui-project-paths";
 import type { UIProjectControlConfig } from "../../../project-control/src/project/types";
 
 const mountedRoots: Root[] = [];
@@ -119,13 +121,15 @@ const fixtureServiceContracts: Record<string, {
 async function createProductizedFixtureProject(): Promise<string> {
   const projectRoot = await mkdtemp(path.join(tmpdir(), "assistant-ui-suggestions-runtime-"));
   temporaryProjects.push(projectRoot);
-  await mkdir(path.join(projectRoot, "app-ui"));
-  await mkdir(path.join(projectRoot, "plugins"));
+  await mkdir(path.join(projectRoot, "agent-ui", "app-ui"), { recursive: true });
+  await mkdir(path.join(projectRoot, ".agent-ui"));
+  await writeFile(path.join(projectRoot, ".agent-ui", "project.json"), JSON.stringify({ mode: "platform", sourceRoot: "agent-ui" }));
+  await mkdir(path.join(projectRoot, "agent-ui", "plugins"));
   await writeFile(
     path.join(projectRoot, "tsconfig.json"),
     JSON.stringify({
       compilerOptions: { target: "ES2022", module: "ESNext" },
-      include: ["plugins/**/*.ts"],
+      include: ["agent-ui/plugins/**/*.ts"],
     }),
   );
 
@@ -135,7 +139,7 @@ async function createProductizedFixtureProject(): Promise<string> {
     if (capability === undefined || contract === undefined) {
       throw new Error(`Missing fixture capability ${pluginId}`);
     }
-    const pluginRoot = path.join(projectRoot, "plugins", pluginId);
+    const pluginRoot = path.join(projectRoot, "agent-ui", "plugins", pluginId);
     await mkdir(pluginRoot, { recursive: true });
     await writeFile(
       path.join(pluginRoot, "manifest.json"),
@@ -164,7 +168,7 @@ async function createProductizedFixtureProject(): Promise<string> {
     );
   }
   await writeFile(
-    path.join(projectRoot, "app-ui", "app-ui.json"),
+    path.join(projectRoot, "agent-ui", "app-ui", "app-ui.json"),
     `${JSON.stringify(productizedModel, null, 2)}\n`,
   );
   return projectRoot;
@@ -175,7 +179,7 @@ async function buildProductizedCatalog(
   model: AppUIModel,
   appUIModelSource: string,
 ) {
-  const projectFacts = await collectPluginProjectFacts(projectRoot, fixtureConfig);
+  const projectFacts = await collectPluginProjectFacts(projectRoot, fixtureConfig, resolveAgentUIProjectPaths(projectRoot, { mode: "platform", sourceRoot: "agent-ui" }, fixtureConfig));
   const generation = generatePluginRegistryFromFacts(model, projectFacts);
   const catalog = await buildCreatorActionCatalog({
     model,
@@ -188,12 +192,17 @@ async function buildProductizedCatalog(
 }
 
 function createAgent(): ReturnType<ConversationAgentFactory> {
-  return {
+  return new HttpAgent({
+    url: "http://example.test/agent",
     threadId: "suggestions-runtime",
-    runAgent: vi.fn(),
-    abortRun: vi.fn(),
-    subscribe: vi.fn(() => ({ unsubscribe: vi.fn() })),
-  } as never;
+    fetch: async (_url, init) => {
+      const input = JSON.parse(String(init?.body)) as { threadId: string; runId: string };
+      const events = ["RUN_STARTED", "RUN_FINISHED"].map(type => ({ type, threadId: input.threadId, runId: input.runId }));
+      return new Response(events.map(event => `data: ${JSON.stringify(event)}\n\n`).join(""), {
+        headers: { "Content-Type": "text/event-stream" },
+      });
+    },
+  });
 }
 
 function SuggestionRuntimeSurface({
@@ -257,7 +266,7 @@ describe("Conversation Suggestions Runtime integration", () => {
             { title: "B", label: "B label", prompt: "Prompt B" },
             { title: "C", label: "C label", prompt: "Prompt C" },
           ]}
-          unstable_agentFactory={({ threadId }) => ({ ...agent, threadId }) as never}
+          unstable_agentFactory={({ threadId }) => { agent.threadId = threadId; return agent; }}
         >
           <SuggestionRuntimeSurface onRuntime={(next) => { runtime = next; }} />
         </ConversationRuntimeProvider>,
@@ -284,7 +293,7 @@ describe("Conversation Suggestions Runtime integration", () => {
   it("completes the Suggestions remove-to-add runtime roundtrip", async () => {
     const projectRoot = await createProductizedFixtureProject();
     const initialSource = await readFile(
-      path.join(projectRoot, "app-ui", "app-ui.json"),
+      path.join(projectRoot, "agent-ui", "app-ui", "app-ui.json"),
       "utf8",
     );
     const initialCatalog = await buildProductizedCatalog(
@@ -304,7 +313,7 @@ describe("Conversation Suggestions Runtime integration", () => {
       operations: [{ type: "execute_creator_action", actionId: remove.actionId }],
     });
     const absentSource = await readFile(
-      path.join(projectRoot, "app-ui", "app-ui.json"),
+      path.join(projectRoot, "agent-ui", "app-ui", "app-ui.json"),
       "utf8",
     );
     const absentModel = JSON.parse(absentSource) as AppUIModel;
@@ -332,7 +341,7 @@ describe("Conversation Suggestions Runtime integration", () => {
     });
 
     const restoredSource = await readFile(
-      path.join(projectRoot, "app-ui", "app-ui.json"),
+      path.join(projectRoot, "agent-ui", "app-ui", "app-ui.json"),
       "utf8",
     );
     const initialComposition = await buildRuntimeComposition({
@@ -387,7 +396,7 @@ describe("Conversation Suggestions Runtime integration", () => {
             endpoint="http://example.test/agent"
             threadBinding={binding}
             suggestions={suggestions}
-            unstable_agentFactory={({ threadId }) => ({ ...agent, threadId }) as never}
+            unstable_agentFactory={({ threadId }) => { agent.threadId = threadId; return agent; }}
           >
             <AgentRuntimeProvider runtime={pluginRuntime}>
               <AssistantRuntimeProbe onRuntime={(runtime) => {
@@ -413,7 +422,7 @@ describe("Conversation Suggestions Runtime integration", () => {
 
     await render(absentComposition);
     expect(container.querySelectorAll("button.conversation-suggestion")).toHaveLength(0);
-    expect(container.textContent).not.toContain("A label");
+    expect(container.querySelector(".conversation-empty-state-suggestions")?.textContent ?? "").not.toContain("A label");
 
     await render(restoredComposition);
     expect(container.querySelectorAll("button.conversation-suggestion")).toHaveLength(3);

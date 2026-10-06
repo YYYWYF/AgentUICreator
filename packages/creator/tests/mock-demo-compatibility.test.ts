@@ -4,7 +4,7 @@ import { inspectMockDemoCompatibility, inspectMockProjectCompatibility, mockDemo
 const empty: ProjectCompositionInspection = { pluginSources: [], pluginInstances: [] };
 const sources = { items: mockDemoRequirements.map(requirement => {
   const implementation = resolveOfficialResource(requirement.id).implementation;
-  return { id: "sourceItemId" in implementation ? implementation.sourceItemId : `plugin/${implementation.pluginId}`, status: "managed", resolvedRequirements: [] };
+  return { id: "sourceItemId" in implementation ? implementation.sourceItemId : `plugin/${implementation.pluginId}`, status: "managed", owned: true, resolvedRequirements: [] };
 }) };
 const status = (composition: ProjectCompositionInspection, id: string) => inspectMockDemoCompatibility(composition, sources).requirements.find(requirement => requirement.id === id)?.status;
 
@@ -35,11 +35,11 @@ describe("Official Resource readiness projection", () => {
     const snapshot: ProjectCompositionInspection = { pluginSources: [{ pluginId: "chart-message", status: "available", dataMessageUINames: [] }], pluginInstances: [] };
     expect(status(snapshot, "chart-message")).toBe("missing");
     snapshot.pluginSources[0]!.dataMessageUINames = ["chart"];
-    expect(inspectMockDemoCompatibility(snapshot, { items: [{ id: "plugin/chart-message", status: "partial" }] }).requirements.find(item => item.id === "chart-message")?.status).toBe("missing");
+    expect(inspectMockDemoCompatibility(snapshot, { items: [{ id: "plugin/chart-message", status: "partial", owned: true }] }).requirements.find(item => item.id === "chart-message")?.status).toBe("missing");
   });
   it("projects missing dependencies as installable, incompatible existing versions as conflicts, and stale integration files as missing", () => {
-    const item = { id: "integration/a2ui", status: "managed", dependencies: ["integration/generative-ui"], resolvedRequirements: [{ name: "@assistant-ui/react-generative-ui", required: "0.0.21", compatible: false }] };
-    const sources = { integrationRegistryReady: true, items: [item, { id: "integration/generative-ui", status: "managed", resolvedRequirements: [] }] };
+    const item = { id: "integration/a2ui", status: "managed", owned: true, dependencies: ["integration/generative-ui"], resolvedRequirements: [{ name: "@assistant-ui/react-generative-ui", required: "0.0.21", compatible: false }] };
+    const sources = { integrationRegistryReady: true, items: [item, { id: "integration/generative-ui", status: "managed", owned: true, resolvedRequirements: [] }] };
     const inspect = () => inspectMockDemoCompatibility(empty, sources).requirements.find(item => item.id === "a2ui")!;
     expect(inspect()).toMatchObject({ id: "a2ui", name: "A2UI", status: "missing", installable: true });
     item.resolvedRequirements = [{ name: "@assistant-ui/react-generative-ui", required: "0.0.21", compatible: true }];

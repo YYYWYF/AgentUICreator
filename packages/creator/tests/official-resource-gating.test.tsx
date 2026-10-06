@@ -38,7 +38,7 @@ it("uses the chart Scenario declaration for Compatibility, the UI Run gate and t
       pluginSources: installed ? [{ pluginId: "chart-message", status: "available" as const, dataMessageUINames: ["chart"] }] : [],
       pluginInstances: installed ? [{ id: "chart", pluginId: "chart-message", enabled: true, effectiveEnabled: true, target: { type: "application" } }] : [],
     },
-    sources: { items: [{ id: "plugin/chart-message", status: installed ? "managed" : "not-installed", resolvedRequirements: [] }] },
+    sources: { items: [{ id: "plugin/chart-message", status: installed ? "managed" : "not-installed", owned: installed, resolvedRequirements: [] }] },
   });
   server = createServer((request, response) => {
     void handleCreatorMockRequest(request, response, service!, () => ({ id: "project", projectRoot: "/chart-project" }), undefined, inspector, install);

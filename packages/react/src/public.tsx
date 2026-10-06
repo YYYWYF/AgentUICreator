@@ -1266,7 +1266,27 @@ export function ConversationComposerCommandTrigger(props: ConversationCommandTri
   return <InternalConversationCommandTrigger {...props} />;
 }
 
-export { WebSearch, RetrievalChunks, type WebSearchResult, type WebSearchProps, type RetrievalChunk, type RetrievalChunksProps } from "./internal/search-elements.js";
+import { WebSearch as InternalWebSearch, RetrievalChunks as InternalRetrievalChunks } from "./internal/search-elements.js";
+export interface WebSearchResult { title: string; domain: string }
+export interface WebSearchProps {
+  query: string;
+  results: readonly WebSearchResult[];
+  searching: boolean;
+  labels: { searching: string; complete: string };
+}
+export function WebSearch(props: WebSearchProps): ReactElement {
+  return <InternalWebSearch {...props} />;
+}
+export interface RetrievalChunk { id: string; source: string; locator: string; score: number; text: string }
+export interface RetrievalChunksProps {
+  query: string;
+  chunks: readonly RetrievalChunk[];
+  searching: boolean;
+  labels: { retrieving: string; complete: string; relevance: string; score: string };
+}
+export function RetrievalChunks(props: RetrievalChunksProps): ReactElement {
+  return <InternalRetrievalChunks {...props} />;
+}
 
 import { NativeSelect as InternalNativeSelect, NativeSelectOption as InternalNativeSelectOption } from "./internal/primitives/native-select.js";
 

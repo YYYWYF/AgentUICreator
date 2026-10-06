@@ -24,7 +24,7 @@ it.each([
       pluginSources: [{ pluginId, status: "available" as const, dataMessageUINames: [] }],
       pluginInstances: [{ id: "provider", pluginId, enabled, effectiveEnabled: enabled, target: { type: "layout_slot" } }],
     },
-    sources: { items: [{ id: sourceItemId, status: "managed", resolvedRequirements: [] }] },
+    sources: { items: [{ id: sourceItemId, status: "managed", owned: true, resolvedRequirements: [] }] },
   }));
   const server = createServer((request, response) => { void handleCreatorMockRequest(request, response, service,
     () => ({ id: "project", projectRoot: "/mock-resource-project" }), undefined, inspector, installResources); });

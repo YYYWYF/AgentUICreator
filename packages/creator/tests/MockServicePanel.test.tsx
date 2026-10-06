@@ -225,7 +225,7 @@ it("shows the A2UI resource installation path and enables Run only after compati
   let installed = false;
   const compatibility = () => ({
     ...inspectMockDemoCompatibility({ pluginSources: [], pluginInstances: [] }, { items: [
-      { id: "integration/a2ui", status: installed ? "managed" : "not-installed", resolvedRequirements: [] },
+      { id: "integration/a2ui", status: installed ? "managed" : "not-installed", owned: installed, resolvedRequirements: [] },
     ] }, "project"),
     canInstallResources: true,
   });
@@ -265,7 +265,7 @@ it("offers resource repair and blocks Run when an installed Form Provider is dis
     ...inspectMockDemoCompatibility({
       pluginSources: [{ pluginId, status: "available", dataMessageUINames: [] }],
       pluginInstances: [{ id: "form", pluginId, enabled, effectiveEnabled: enabled, target: { type: "layout_slot" } }],
-    }, { items: [{ id: "demo/frontend-tool-form", status: "managed", resolvedRequirements: [] }] }, "project"),
+    }, { items: [{ id: "demo/frontend-tool-form", status: "managed", owned: true, resolvedRequirements: [] }] }, "project"),
     canInstallResources: true,
   });
   const fetch = vi.fn(async (url: string) => {
@@ -291,7 +291,7 @@ it("offers resource repair and blocks Run when an installed Form Provider is dis
 it("keeps missing A2UI packages installable without exposing implementation details in the DOM", async () => {
   const state = { ...initial, scenarios: [a2uiInteractiveOrderScenario] };
   const compatibility = { ...inspectMockDemoCompatibility({ pluginSources: [], pluginInstances: [] }, { items: [
-    { id: "integration/a2ui", status: "not-installed", resolvedRequirements: [
+    { id: "integration/a2ui", status: "not-installed", owned: false, resolvedRequirements: [
       { name: "@assistant-ui/react-generative-ui", required: "0.0.21", compatible: false },
       { name: "react-markdown", required: "10.1.0", compatible: false },
       { name: "remark-gfm", required: "4.0.1", compatible: false },
@@ -308,7 +308,7 @@ it("keeps missing A2UI packages installable without exposing implementation deta
 it("fetches technical details only after the developer opens a conflicting resource", async () => {
   const state = { ...initial, scenarios: [a2uiInteractiveOrderScenario] };
   const compatibility = { ...inspectMockDemoCompatibility({ pluginSources: [], pluginInstances: [] }, { items: [
-    { id: "integration/a2ui", status: "managed", resolvedRequirements: [{ name: "@assistant-ui/react-generative-ui", required: "0.0.21", declared: "0.0.18", installed: "0.0.18", compatible: false }] },
+    { id: "integration/a2ui", status: "managed", owned: true, resolvedRequirements: [{ name: "@assistant-ui/react-generative-ui", required: "0.0.21", declared: "0.0.18", installed: "0.0.18", compatible: false }] },
   ] }, "project"), canInstallResources: true };
   const fetch = vi.fn(async (url: string) => json(url.endsWith("/resource-diagnostics") ? { technicalDetails: { name: "@assistant-ui/react-generative-ui", installed: "0.0.18", required: "0.0.21" } } : url.endsWith("/compatibility") ? compatibility : state));
   vi.stubGlobal("fetch", fetch);
