@@ -4,5 +4,11 @@
     "changes": [
       "建立插件源码升级基线。"
     ]
+  },
+  "0.0.2": {
+    "summary": "支持历史用户消息编辑 Renderer",
+    "changes": [
+      "新增 userEditComposer scoped renderer Slot，用于可替换的历史消息编辑体验。"
+    ]
   }
 }
