@@ -827,6 +827,7 @@ def create_domain_write_creator_agent(
             client,
             observations=observations,
             activity=backend.activity,
+            removal_intent=removal_intent,
         ),
         create_ui_plugin_tool(plugin_creation),
         create_prepare_ui_plugin_development_tool(development_authority),

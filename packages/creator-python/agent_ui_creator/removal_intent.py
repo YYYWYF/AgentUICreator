@@ -13,9 +13,15 @@ class RemovalIntentViolation(ValueError):
     code = "PLUGIN_REMOVAL_INTENT_VIOLATION"
 
 
+class AppUIModelRecoveryRemovalBlocked(RemovalIntentViolation):
+    code = "APP_UI_MODEL_RECOVERY_REMOVAL_BLOCKED"
+
+
 def assert_removal_mutation(intent: RemovalIntent, name: str, arguments: Mapping[str, Any]) -> None:
     if intent == "none":
         return
+    if intent in {"hide", "purge"} and name == "repair_app_ui_model":
+        raise AppUIModelRecoveryRemovalBlocked("Complete a separate AppUIModel Recovery task before retrying removal; hide/purge does not authorize full-model replacement.")
     if intent == "purge" and name == "purge_ui_plugin":
         return
     if intent == "hide" and name == "mutate_app_ui_model":

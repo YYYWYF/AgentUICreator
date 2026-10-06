@@ -65,12 +65,14 @@ export async function collectPluginAssets(
       if ((error as NodeJS.ErrnoException).code === "ENOENT") {
         errors.push({
           code: "plugin-manifest-missing",
+          path: projectPath(projectRoot, manifestPath),
           message: `${relativeDirectory} is inside plugins/* but has no manifest.json. Declare it as a catalog or add a valid UI Plugin manifest.`,
         });
         continue;
       }
       errors.push({
         code: "plugin-manifest-read",
+          path: projectPath(projectRoot, manifestPath),
         message: `${projectPath(projectRoot, manifestPath)}: ${issueMessage(error)}`,
       });
       continue;
@@ -113,6 +115,7 @@ export async function collectPluginAssets(
     } catch (error) {
       errors.push({
         code: "plugin-manifest-invalid",
+          path: projectPath(projectRoot, manifestPath),
         message: `${projectPath(projectRoot, manifestPath)}: ${issueMessage(error)}`,
       });
     }
@@ -128,6 +131,7 @@ export async function collectPluginAssets(
     if (matches.length > 1) {
       errors.push({
         code: "duplicate-plugin-id",
+        pluginId,
         message: `UI plugin "${pluginId}" is declared by: ${matches
           .map((asset) => asset.manifestPath)
           .join(", ")}.`,

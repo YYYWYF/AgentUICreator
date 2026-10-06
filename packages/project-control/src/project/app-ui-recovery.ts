@@ -3,7 +3,9 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 import { parseAppUIModel } from "../framework/contracts/app-ui-model";
-import { admitAppUIModelCandidate } from "./app-ui-admission";
+import { appUIModelDiagnostics } from "./app-ui-diagnostics";
+import { collectPluginProjectFacts } from "./registry-generator";
+import { admitAppUIModelCandidate, validateAppUIModelCandidateStructure } from "./app-ui-admission";
 import { collectPluginAssets } from "./plugin-assets";
 import { readAgentUIProjectConfig } from "./project-mode";
 import { resolveAgentUIProjectPaths, projectControlConfigForPaths } from "./agent-ui-project-paths";
@@ -18,43 +20,6 @@ export const appUIRepairInputSchema = z.strictObject({
 const hash = (source: string) => createHash("sha256").update(source).digest("hex");
 export type RecoveryStatus = "valid" | "syntax_invalid" | "schema_invalid" | "composition_invalid";
 
-function diagnostics(error: unknown, phase: string, value?: unknown): unknown[] {
-  if (error instanceof z.ZodError) {
-    const flatten = (issues: readonly z.core.$ZodIssue[], prefix: string[] = []): unknown[] => issues.flatMap(issue => {
-      const segments = [...prefix, ...issue.path.map(String)];
-      if (issue.code === "invalid_union") {
-        // Zod union branches carry relative paths. Report the closest grammar
-        // branch instead of asserting every alternative discriminant is required.
-        let node = value;
-        for (const segment of segments) node = node !== null && typeof node === "object"
-          ? (node as Record<string, unknown>)[segment] : undefined;
-        const discriminant = node !== null && typeof node === "object"
-          ? (node as Record<string, unknown>).type : undefined;
-        const matching = typeof discriminant === "string"
-          ? issue.errors.filter(branch => !branch.some(problem =>
-              problem.code === "invalid_value" && problem.path.length === 1 &&
-              problem.path[0] === "type" && !problem.values.includes(discriminant)))
-          : issue.errors;
-        if (matching.length === 0) return [{ phase, path: "/" + segments.join("/"),
-          code: issue.code, message: issue.message, actual: "object" }];
-        const branch = [...matching].sort((left, right) => left.length - right.length)[0] ?? [];
-        return flatten(branch, segments);
-      }
-      let actual = value;
-      for (const segment of segments) actual = actual !== null && typeof actual === "object"
-        ? (actual as Record<string, unknown>)[segment] : undefined;
-      return [{ phase, path: "/" + segments.map(s => s.replaceAll("~", "~0").replaceAll("/", "~1")).join("/"),
-        code: issue.code, message: issue.message,
-        ...("expected" in issue ? { expected: issue.expected } : {}),
-        actual: actual === undefined ? "missing" : Array.isArray(actual) ? "array" : actual === null ? "null" : typeof actual }];
-    });
-    return flatten(error.issues);
-  }
-  const detail = error as { code?: string; details?: unknown };
-  return [{ phase, path: "", code: detail?.code ?? `${phase}_invalid`,
-    message: error instanceof Error ? error.message : String(error),
-    ...(detail?.details === undefined ? {} : { details: detail.details }) }];
-}
 async function context(projectRoot: string) {
   const { config } = await readAgentUIProjectConfig(projectRoot);
   const paths = resolveAgentUIProjectPaths(projectRoot, config);
@@ -63,17 +28,30 @@ async function context(projectRoot: string) {
 export async function inspectAppUIModelSource(projectRoot: string) {
   const { paths, config } = await context(projectRoot);
   const source = await readFile(paths.appUIModelPath, "utf8");
-  const inventory = await collectPluginAssets(projectRoot, paths, config);
-  const result = { source, rawHash: hash(source), pluginInventory: inventory };
+  const raw = { source, rawHash: hash(source) };
+  const invalid = async (error: unknown, status: "syntax_invalid" | "schema_invalid", value?: unknown) => ({
+    ...raw, pluginInventory: await collectPluginAssets(projectRoot, paths, config), status,
+    diagnostics: appUIModelDiagnostics(error, status === "syntax_invalid" ? "syntax" : "schema", value),
+  });
   let value: unknown;
   try { value = JSON.parse(source); }
-  catch (error) { return { ...result, status: "syntax_invalid" as RecoveryStatus, diagnostics: diagnostics(error, "syntax") }; }
+  catch (error) { return invalid(error, "syntax_invalid"); }
   let model;
   try { model = parseAppUIModel(value); }
-  catch (error) { return { ...result, status: "schema_invalid" as RecoveryStatus, diagnostics: diagnostics(error, "schema", value) }; }
-  try { await admitAppUIModelCandidate(projectRoot, model, config, paths); }
-  catch (error) { return { ...result, status: "composition_invalid" as RecoveryStatus, diagnostics: diagnostics(error, "composition") }; }
-  return { ...result, status: "valid" as RecoveryStatus, diagnostics: [] };
+  catch (error) { return invalid(error, "schema_invalid", value); }
+  const facts = await collectPluginProjectFacts(projectRoot, config, paths);
+  const result = { ...raw, pluginInventory: { assets: facts.assets, errors: facts.inventoryIssues } };
+  try { validateAppUIModelCandidateStructure(model, facts); }
+  catch (error) {
+    if ((error as { details?: { workspaceIntegrity?: boolean } }).details?.workspaceIntegrity) {
+      throw new AppUITransactionError("APP_UI_MODEL_WORKSPACE_INTEGRITY", "Workspace declarations prevent model health classification; repair their owning source first.", {
+        ...raw, diagnostics: appUIModelDiagnostics(error, "workspace"),
+      });
+    }
+    return { ...result, status: "composition_invalid" as const, diagnostics: appUIModelDiagnostics(error, "composition") };
+  }
+  return { ...result, status: "valid" as const, diagnostics: [] };
+
 }
 export async function repairAppUIModel(projectRoot: string, rawInput: unknown, options: AppUITransactionTestOptions = {}) {
   const input = appUIRepairInputSchema.parse(rawInput);
@@ -86,19 +64,16 @@ export async function repairAppUIModel(projectRoot: string, rawInput: unknown, o
       { expectedRawHash: input.expectedRawHash, actualRawHash: current.rawHash });
     if (current.status === "valid") throw new AppUITransactionError(
       "APP_UI_MODEL_RECOVERY_NOT_REQUIRED", "Use semantic mutation for a valid AppUIModel.");
-    if (current.diagnostics.some(item => {
-      const issue = item as { code?: string; details?: { workspaceIntegrity?: boolean } };
-      return issue.code === "PLUGIN_CHILD_SLOT_CONTRACT_INVALID" || issue.details?.workspaceIntegrity === true;
-    })) throw new AppUITransactionError("APP_UI_MODEL_REPAIR_WORKSPACE_INTEGRITY", "Current workspace source contracts cannot be repaired by model replacement.", { diagnostics: current.diagnostics });
     const { paths, config } = await context(projectRoot);
     let admitted;
     try { admitted = await admitAppUIModelCandidate(projectRoot, input.candidateModel, config, paths); }
     catch (error) {
       const failure = error as { code?: string; details?: { workspaceIntegrity?: boolean } };
       const code = failure.code;
+      const workspaceIntegrity = code === "PLUGIN_CHILD_SLOT_CONTRACT_INVALID" || failure.details?.workspaceIntegrity === true;
       throw new AppUITransactionError(
-        code === "PLUGIN_CHILD_SLOT_CONTRACT_INVALID" || failure.details?.workspaceIntegrity === true ? "APP_UI_MODEL_REPAIR_WORKSPACE_INTEGRITY" : "APP_UI_MODEL_REPAIR_CANDIDATE_INVALID",
-        "Recovery candidate admission failed.", { diagnostics: diagnostics(error, "candidate", input.candidateModel) });
+        workspaceIntegrity ? "APP_UI_MODEL_REPAIR_WORKSPACE_INTEGRITY" : "APP_UI_MODEL_REPAIR_CANDIDATE_INVALID",
+        "Recovery candidate admission failed.", { diagnostics: appUIModelDiagnostics(error, workspaceIntegrity ? "workspace" : "candidate", input.candidateModel) });
     }
     const afterSource = `${JSON.stringify(admitted.model, null, 2)}\n`;
     const afterHash = hash(afterSource);

@@ -1,0 +1,17 @@
+{
+  "status": "composition_invalid",
+  "rawHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "source": "{\"root\":{\"type\":\"row\",\"children\":{}}}",
+  "diagnostics": [
+    {
+      "phase": "composition",
+      "path": "root.plugins[0].slots.content",
+      "code": "plugin-slot-cardinality",
+      "message": "at most one child",
+      "pluginId": "sample",
+      "instanceId": "sample-main",
+      "slot": "content",
+      "repairHint": "guess"
+    }
+  ]
+}

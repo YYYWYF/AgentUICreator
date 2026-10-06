@@ -287,6 +287,21 @@
       "file": "invalid-recovery-status.result.json",
       "operation": "inspect_app_ui_model_source",
       "valid": false
+    },
+    {
+      "file": "recovery-compiler-diagnostics.result.json",
+      "operation": "inspect_app_ui_model_source",
+      "valid": true
+    },
+    {
+      "file": "invalid-recovery-diagnostic-missing-path.result.json",
+      "operation": "inspect_app_ui_model_source",
+      "valid": false
+    },
+    {
+      "file": "invalid-recovery-diagnostic-repair-hint.result.json",
+      "operation": "inspect_app_ui_model_source",
+      "valid": false
     }
   ]
 }

@@ -205,3 +205,60 @@ def test_conflicting_external_write_requires_invalid_source_refresh(tmp_path):
     assert observations.recovery_pending
     assert not observations.recovery_requires_composition
     assert observations.recovery_observation is None
+
+
+@pytest.mark.parametrize("intent", ["hide", "purge"])
+def test_removal_with_invalid_model_reports_explicit_independent_recovery_block(tmp_path, intent):
+    from agent_ui_creator.domain_agent.tool_policy import DomainWriteToolPolicyMiddleware
+    from agent_ui_creator.removal_intent import AppUIModelRecoveryRemovalBlocked
+    class Client:
+        async def inspect_ui_project(self, **kwargs):
+            raise ProjectControlError("APP_UI_MODEL_INVALID", "invalid", {"status": "schema_invalid"})
+        async def inspect_app_ui_model_source(self):
+            return {"status": "schema_invalid", "rawHash": HASH, "source": "{}", "diagnostics": []}
+    client = Client()
+    _, activity = setup(tmp_path, client)
+    observations = DomainObservationContext()
+    tools = {tool.name: tool for tool in create_project_control_tools(client, activity=activity, observations=observations, removal_intent=intent)}
+    result = json.loads(asyncio.run(tools["inspect_ui_project"].ainvoke({"view": "composition"})))
+    assert result["error"]["code"] == "APP_UI_MODEL_RECOVERY_REMOVAL_BLOCKED"
+    assert "separate Recovery task" in result["error"]["message"]
+    result = json.loads(asyncio.run(tools["inspect_app_ui_model_source"].ainvoke({})))
+    assert result["error"]["code"] == "APP_UI_MODEL_RECOVERY_REMOVAL_BLOCKED"
+    assert observations.recovery_observation is None
+    assert activity.revision == 0
+    policy = DomainWriteToolPolicyMiddleware(removal_intent=intent)
+    assert policy._tools([SimpleNamespace(name="repair_app_ui_model")]) == []
+    with pytest.raises(AppUIModelRecoveryRemovalBlocked):
+        policy._assert_call(SimpleNamespace(tool_call={"name": "repair_app_ui_model", "args": {}}))
+
+
+def test_plugin_workspace_diagnostics_do_not_enter_model_recovery_lane(tmp_path):
+    class Client:
+        async def inspect_ui_project(self, **kwargs):
+            return {"appUIModel": {"hash": HASH}, "observationCoverage": COVERAGE,
+                    "workspaceDiagnostics": [{"phase": "workspace", "code": "plugin-child-slot-rendered-not-declared", "path": "agent-ui/plugins/sample/definition.ts", "message": "undeclared", "pluginId": "sample"}]}
+    _, activity = setup(tmp_path, Client())
+    observations = DomainObservationContext()
+    tools = {tool.name: tool for tool in create_project_control_tools(Client(), activity=activity, observations=observations)}
+    result = json.loads(asyncio.run(tools["inspect_ui_project"].ainvoke({"view": "composition"})))
+    assert result["ok"] is True
+    assert observations.composition_grounding_status(current_revision=0) == "grounded"
+    assert not observations.recovery_pending
+    assert observations.recovery_blocked is None
+    assert observations.recovery_observation is None
+
+
+def test_workspace_classification_failure_exits_a_previous_recovery_lane(tmp_path):
+    class Client:
+        async def inspect_app_ui_model_source(self):
+            raise ProjectControlError("APP_UI_MODEL_WORKSPACE_INTEGRITY", "manifest invalid")
+    _, activity = setup(tmp_path, Client())
+    observations = DomainObservationContext()
+    observations.observe_recovery({"status": "syntax_invalid", "rawHash": HASH}, revision=0)
+    tool = {tool.name: tool for tool in create_project_control_tools(Client(), observations=observations, activity=activity)}["inspect_app_ui_model_source"]
+    result = json.loads(asyncio.run(tool.ainvoke({})))
+    assert result["error"]["code"] == "APP_UI_MODEL_WORKSPACE_INTEGRITY"
+    assert observations.recovery_observation is None
+    assert not observations.recovery_pending
+    assert observations.recovery_blocked is None

@@ -1,3 +1,4 @@
+import type { AppUIModelDiagnostic } from "./app-ui-diagnostics";
 import type {
   AppUILayoutTrackSize,
   AppUIPanelDimension,
@@ -11,6 +12,11 @@ import type { CreatorActionCandidate } from "./creator-action-catalog";
 import type { AnalyzedDeclarations } from "./service-dependency-inspector";
 
 export interface ProjectIssue {
+  path?: string;
+  instanceId?: string;
+  slot?: string | undefined;
+  line?: number;
+  column?: number;
   code: string;
   message: string;
   pluginId?: string | undefined;
@@ -319,6 +325,7 @@ export interface CompositionPluginCapabilitySummary {
 }
 
 export interface UICompositionInspection {
+  workspaceDiagnostics: AppUIModelDiagnostic[];
 
   view: "composition";
   sourceRoot: string;

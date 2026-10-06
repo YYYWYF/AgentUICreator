@@ -1,8 +1,12 @@
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { inspectAppUIModelSource, repairAppUIModel } from "../src/project/app-ui-recovery";
+import * as registryGenerator from "../src/project/registry-generator";
+import { appUIModelDiagnostics } from "../src/project/app-ui-diagnostics";
+import { AppUICompilerError } from "../src/framework/contracts/app-ui-compiler";
+import { validateProjectControlResult } from "../src/result-contract.mjs";
 import { handleUIProjectControlRequest } from "../src/handler";
 
 const roots: string[] = [];
@@ -11,6 +15,7 @@ const valid = { root: { type: "row", children: [{ type: "slot", plugins: [plugin
 async function project(value: unknown = valid) {
   const root = await mkdtemp(path.join(tmpdir(), "app-ui-recovery-")); roots.push(root);
   for (const dir of [".agent-ui", "agent-ui/app-ui", "agent-ui/plugins/sample"]) await mkdir(path.join(root, dir), { recursive: true });
+  await writeFile(path.join(root, "package.json"), JSON.stringify({ name: "recovery-fixture", private: true }));
   await writeFile(path.join(root, ".agent-ui/project.json"), JSON.stringify({ mode: "platform", sourceRoot: "agent-ui" }));
   await writeFile(path.join(root, "agent-ui/plugins/sample/manifest.json"), JSON.stringify({ id: "sample", name: "sample", description: "fixture", version: "1.0.0" }));
   await writeFile(path.join(root, "agent-ui/plugins/sample/definition.ts"), "const definition = { manifest: {}, Component: () => null }; export default definition;\n");
@@ -111,12 +116,15 @@ describe("invalid AppUIModel Recovery", () => {
     await expect(repairAppUIModel(root, { expectedRawHash: observed.rawHash, candidateModel: candidate })).rejects.toMatchObject({ code: "APP_UI_MODEL_REPAIR_CANDIDATE_INVALID" });
     expect(await readFile(modelPath(root), "utf8")).toBe("{");
   });
-  it("stops on a Plugin child Slot source contract violation", async () => {
+  it("keeps a healthy model with broken Plugin child Slot source in normal debugging", async () => {
     const root = await project();
     await writeFile(path.join(root, "agent-ui/plugins/sample/definition.ts"), 'const definition = { manifest: {}, Component: ({renderSlot}) => renderSlot("undeclared") }; export default definition;');
     const observed = await inspectAppUIModelSource(root);
-    expect(observed.status).toBe("composition_invalid");
-    await expect(repairAppUIModel(root, { expectedRawHash: observed.rawHash, candidateModel: { root: { type: "slot", plugins: [] } } })).rejects.toMatchObject({ code: "APP_UI_MODEL_REPAIR_WORKSPACE_INTEGRITY" });
+    expect(observed.status).toBe("valid");
+    const inspected = await handleUIProjectControlRequest({ operation: "inspect_ui_project", input: { view: "composition" } }, root);
+    expect(inspected, JSON.stringify(inspected)).toMatchObject({ ok: true, result: { workspaceDiagnostics: [expect.objectContaining({ code: "plugin-child-slot-rendered-not-declared", pluginId: "sample", path: "agent-ui/plugins/sample/definition.ts", slot: "undeclared" })] } });
+    expect(await handleUIProjectControlRequest({ operation: "inspect_ui_project", input: {} }, root)).toMatchObject({ ok: true, result: { issues: expect.arrayContaining([expect.objectContaining({ code: "plugin-child-slot-rendered-not-declared" })]) } });
+    await expect(repairAppUIModel(root, { expectedRawHash: observed.rawHash, candidateModel: { root: { type: "slot", plugins: [] } } })).rejects.toMatchObject({ code: "APP_UI_MODEL_RECOVERY_NOT_REQUIRED" });
     expect(JSON.parse(await readFile(modelPath(root), "utf8"))).toEqual(valid);
   });
 
@@ -125,11 +133,62 @@ describe("invalid AppUIModel Recovery", () => {
     const observed = await inspectAppUIModelSource(root);
     await repairAppUIModel(root, { expectedRawHash: observed.rawHash, candidateModel: valid });
     const inspected = await handleUIProjectControlRequest({ operation: "inspect_ui_project", input: { view: "composition" } }, root);
-    expect(inspected).toMatchObject({ ok: true });
+    expect(inspected, JSON.stringify(inspected)).toMatchObject({ ok: true });
     const source = await inspectAppUIModelSource(root);
     const mutated = await handleUIProjectControlRequest({ operation: "mutate_app_ui_model", input: { appUIModelHash: source.rawHash, operations: [{ type: "set_plugin_enabled", instanceId: "sample-main", enabled: false }] } }, root);
     expect(mutated).toMatchObject({ ok: true, result: { changed: true } });
     expect((await inspectAppUIModelSource(root)).status).toBe("valid");
+  });
+
+  it("retains strict workspace source admission for a genuinely broken model", async () => {
+    const root = await project("{");
+    await writeFile(path.join(root, "agent-ui/plugins/sample/definition.ts"), 'const definition = { manifest: {}, Component: ({renderSlot}) => renderSlot("undeclared") }; export default definition;');
+    const observed = await inspectAppUIModelSource(root);
+    await expect(repairAppUIModel(root, { expectedRawHash: observed.rawHash, candidateModel: valid })).rejects.toMatchObject({ code: "APP_UI_MODEL_REPAIR_WORKSPACE_INTEGRITY", details: { diagnostics: [expect.objectContaining({ code: "plugin-child-slot-rendered-not-declared", pluginId: "sample", path: "agent-ui/plugins/sample/definition.ts", slot: "undeclared" })] } });
+    expect(await readFile(modelPath(root), "utf8")).toBe("{");
+  });
+  it.each(["syntax", "missing export", "missing file"])("does not classify Plugin definition %s errors as model corruption", async kind => {
+    const root = await project();
+    const definitionPath = path.join(root, "agent-ui/plugins/sample/definition.ts");
+    if (kind === "missing file") await rm(definitionPath);
+    else await writeFile(definitionPath, kind === "syntax" ? "export default {" : "export const definition = {};");
+    expect((await inspectAppUIModelSource(root)).status).toBe("valid");
+    const inspected = await handleUIProjectControlRequest({ operation: "inspect_ui_project", input: { view: "composition" } }, root);
+    expect(inspected, JSON.stringify(inspected)).toMatchObject({ ok: true, result: { workspaceDiagnostics: expect.arrayContaining([expect.objectContaining({ code: kind === "syntax" ? "selected-plugin-definition-parse" : kind === "missing file" ? "selected-plugin-definition-missing" : "selected-plugin-default-export-missing" })]) } });
+  });
+  it("reports source inventory corruption as workspace integrity, without a Recovery baseline", async () => {
+    const root = await project();
+    await writeFile(path.join(root, "agent-ui/plugins/sample/manifest.json"), "{");
+    const source = await handleUIProjectControlRequest({ operation: "inspect_app_ui_model_source", input: {} }, root);
+    expect(source).toMatchObject({ ok: false, error: { code: "APP_UI_MODEL_WORKSPACE_INTEGRITY", details: { diagnostics: [expect.objectContaining({ phase: "workspace", code: "plugin-manifest-invalid", path: "agent-ui/plugins/sample/manifest.json" })] } } });
+    expect(await handleUIProjectControlRequest({ operation: "inspect_ui_project", input: { view: "composition" } }, root)).toMatchObject({ ok: true, result: { workspaceDiagnostics: expect.any(Array) } });
+  });
+  it("collects healthy Composition facts once instead of running a preliminary admission", async () => {
+    const root = await project();
+    const spy = vi.spyOn(registryGenerator, "collectPluginProjectFacts");
+    try {
+      expect(await handleUIProjectControlRequest({ operation: "inspect_ui_project", input: { view: "composition" } }, root)).toMatchObject({ ok: true });
+      expect(spy).toHaveBeenCalledTimes(1);
+    } finally { spy.mockRestore(); }
+  });
+  it("preserves compiler issue envelopes for inspection and rejected candidates", async () => {
+    const broken = { root: { type: "slot", plugins: [{ ...plugin, slots: { absent: [{ ...plugin, id: "child" }] } }] } };
+    const root = await project(broken);
+    const observed = await inspectAppUIModelSource(root);
+    expect(observed).toMatchObject({ status: "composition_invalid", diagnostics: expect.arrayContaining([expect.objectContaining({ phase: "composition", code: "plugin-slot-not-declared", path: "root.plugins[0].slots.absent", instanceId: "sample-main", pluginId: "sample", slot: "absent" })]) });
+    await expect(repairAppUIModel(root, { expectedRawHash: observed.rawHash, candidateModel: broken })).rejects.toMatchObject({ code: "APP_UI_MODEL_REPAIR_CANDIDATE_INVALID", details: { diagnostics: expect.arrayContaining([expect.objectContaining({ phase: "composition", code: "plugin-slot-not-declared", path: "root.plugins[0].slots.absent", instanceId: "sample-main", pluginId: "sample", slot: "absent" })]) } });
+  });
+  it("retains every compiler issue and rejects diagnostic contract drift", () => {
+    const issues = [
+      { code: "plugin-slot-required" as const, path: "root.plugins[0].slots.content", message: "content required", pluginId: "sample", instanceId: "sample-main", slot: "content" },
+      { code: "plugin-slot-cardinality" as const, path: "root.plugins[0].slots.content", message: "one child allowed", pluginId: "sample", instanceId: "sample-main", slot: "content" },
+    ];
+    const diagnostics = appUIModelDiagnostics(new AppUICompilerError(issues), "candidate");
+    expect(diagnostics).toEqual(issues.map(issue => ({ ...issue, phase: "composition" })));
+    const result = { source: "{}", rawHash: "a".repeat(64), status: "composition_invalid", diagnostics };
+    expect(() => validateProjectControlResult("inspect_app_ui_model_source", result)).not.toThrow();
+    expect(() => validateProjectControlResult("inspect_app_ui_model_source", { ...result, diagnostics: [{ phase: "composition", code: "bad", message: "bad" }] })).toThrow();
+    expect(() => validateProjectControlResult("inspect_app_ui_model_source", { ...result, diagnostics: [{ ...diagnostics[0], repairHint: "guess" }] })).toThrow();
   });
 
 });

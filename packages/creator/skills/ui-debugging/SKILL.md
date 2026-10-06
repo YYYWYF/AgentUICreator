@@ -92,3 +92,7 @@ Healthy Composition uses `mutate_app_ui_model`. On `APP_UI_MODEL_INVALID`, enter
 4. After success, call `inspect_ui_project(view="composition")` again. All old nodeRefs, slotRefs and Composition observations are invalid.
 
 A hash conflict requires source refresh. A candidate admission failure allows at most one semantic replan using unchanged source. Workspace integrity blockers require stopping instead of repairing another layer. Commit failures are infrastructure failures; the Host transaction rolls back. Host shares candidate admission with ordinary mutation; Recovery does not add a replace operation to the semantic operation union.
+
+AppUIModel health classification excludes Plugin definition/source consistency and inventory integrity. A healthy model with a broken Plugin stays in normal debugging attribution; never use model replacement to repair its owning source. Candidate commit admission still checks these workspace contracts. Compiler diagnostics preserve code, canonical path, Plugin/instance identity and local Slot.
+
+For a hide/purge task, an invalid AppUIModel returns `APP_UI_MODEL_RECOVERY_REMOVAL_BLOCKED`. Stop that removal task and request a separate Recovery task before retrying removal. Removal authority never grants full-model replacement.

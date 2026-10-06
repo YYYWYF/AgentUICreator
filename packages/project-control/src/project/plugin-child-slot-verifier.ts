@@ -193,6 +193,7 @@ export async function verifyPluginChildSlots(
     for (const location of inspection.dynamic) {
       issues.push({
         code: "plugin-child-slot-dynamic-render-unsupported",
+        pluginId: asset.pluginId, path: location.path, line: location.line, column: location.column,
         message: `${location.path}:${location.line}:${location.column}: Plugin "${asset.pluginId}" renders a child Slot using a dynamic name. Local child Slot names must use static string literals so the Plugin Manifest can be verified deterministically.`,
       });
     }
@@ -204,6 +205,7 @@ export async function verifyPluginChildSlots(
       .sort()) {
       issues.push({
         code: "plugin-child-slot-declared-not-rendered",
+        pluginId: asset.pluginId, path: asset.manifestPath, slot: slotId,
         message: `Plugin "${asset.pluginId}" declares child Slot "${slotId}" in ${asset.manifestPath}, but no runtime source calls renderSlot("${slotId}").`,
       });
     }
@@ -215,6 +217,7 @@ export async function verifyPluginChildSlots(
       )!;
       issues.push({
         code: "plugin-child-slot-rendered-not-declared",
+        pluginId: asset.pluginId, path: location.path, slot: slotId, line: location.line, column: location.column,
         message: `${location.path}:${location.line}:${location.column}: Plugin "${asset.pluginId}" renders child Slot "${slotId}", but ${asset.manifestPath} does not declare it in slots.children.`,
       });
     }
@@ -223,6 +226,7 @@ export async function verifyPluginChildSlots(
       if (definition !== undefined && (definition.mode ?? "content") !== location.mode) {
         issues.push({
           code: "plugin-child-slot-mode-mismatch",
+          pluginId: asset.pluginId, path: location.path, slot: location.slotId, line: location.line, column: location.column,
           message: `${location.path}:${location.line}:${location.column}: Plugin "${asset.pluginId}" renders Slot "${location.slotId}" as ${location.mode}, but its manifest declares ${definition.mode ?? "content"}.`,
         });
       }

@@ -852,6 +852,23 @@
           "items": {
             "$ref": "#/$defs/nonBlankString"
           }
+        },
+        "path": {
+          "type": "string"
+        },
+        "instanceId": {
+          "type": "string"
+        },
+        "slot": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 1
         }
       }
     },
@@ -2311,6 +2328,12 @@
         },
         "hostGuarantees": {
           "$ref": "#/$defs/opaqueHostObject"
+        },
+        "workspaceDiagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/appUIModelDiagnostic"
+          }
         }
       }
     },
@@ -2727,7 +2750,7 @@
         "diagnostics": {
           "type": "array",
           "items": {
-            "type": "object"
+            "$ref": "#/$defs/appUIModelDiagnostic"
           }
         },
         "pluginInventory": {
@@ -2775,6 +2798,54 @@
             }
           }
         }
+      }
+    },
+    "appUIModelDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "phase",
+        "path",
+        "code",
+        "message"
+      ],
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected": {
+          "type": "string"
+        },
+        "actual": {
+          "type": "string"
+        },
+        "pluginId": {
+          "type": "string"
+        },
+        "instanceId": {
+          "type": "string"
+        },
+        "slot": {
+          "type": "string"
+        },
+        "phase": {
+          "enum": [
+            "syntax",
+            "schema",
+            "composition",
+            "workspace",
+            "candidate"
+          ]
+        },
+        "details": {}
       }
     }
   },

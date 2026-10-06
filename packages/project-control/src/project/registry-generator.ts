@@ -145,7 +145,7 @@ function addDefinitionIssue(
   issue: ProjectIssue,
 ): void {
   const issues = issuesByPath.get(asset.definitionPath) ?? [];
-  issues.push(issue);
+  issues.push({ ...issue, path: asset.definitionPath });
   issuesByPath.set(asset.definitionPath, issues);
 }
 
@@ -263,6 +263,33 @@ export async function collectPluginProjectFacts(
   };
 }
 
+/** Composition contracts come from declarations, independently of definition source health. */
+export function pluginCompositionCatalogFromFacts(
+  facts: PluginProjectFacts, selectedPluginIds: readonly string[],
+): PluginCompositionCatalog {
+  const declarationsByPluginId = new Map(facts.declarations.plugins.map(item => [item.pluginId, item]));
+  return Object.fromEntries(
+    facts.assets.filter(asset => selectedPluginIds.includes(asset.pluginId) &&
+      facts.assets.filter(item => item.pluginId === asset.pluginId).length === 1).map((asset) => {
+      const declaration = declarationsByPluginId.get(asset.pluginId);
+      return [
+        asset.pluginId,
+        {
+          childSlots: asset.childSlots ?? {},
+          ...(asset.applicationGate === undefined
+            ? {}
+            : { applicationGate: asset.applicationGate }),
+          capabilities: asset.capabilities,
+          dataMessageUI: asset.manifest.data?.messageUI === true,
+          requiresRenderScope: asset.manifest.requiresRenderScope === true,
+          provides: declaration?.provides ?? [],
+          inject: declaration?.inject ?? [],
+        },
+      ] as const;
+    }),
+  );
+}
+
 /**
  * Pure registry/composition generation from one request-scoped project-fact
  * observation. Do not add filesystem or source-analysis work here.
@@ -270,6 +297,7 @@ export async function collectPluginProjectFacts(
 export function generatePluginRegistryFromFacts(
   model: AppUIModel,
   facts: PluginProjectFacts,
+  options: { validateComposition?: boolean } = {},
 ): GeneratePluginCatalogResult {
   const selectedPluginIds = [
     ...new Set(
@@ -358,28 +386,10 @@ export function generatePluginRegistryFromFacts(
     }
   }
 
-  const compositionCatalog: PluginCompositionCatalog = Object.fromEntries(
-    resolvedAssets.map((asset) => {
-      const declaration = declarationsByPluginId.get(asset.pluginId);
-      return [
-        asset.pluginId,
-        {
-          childSlots: asset.childSlots ?? {},
-          ...(asset.applicationGate === undefined
-            ? {}
-            : { applicationGate: asset.applicationGate }),
-          capabilities: asset.capabilities,
-          dataMessageUI: asset.manifest.data?.messageUI === true,
-          requiresRenderScope: asset.manifest.requiresRenderScope === true,
-          provides: declaration?.provides ?? [],
-          inject: declaration?.inject ?? [],
-        },
-      ] as const;
-    }),
-  );
+  const compositionCatalog = pluginCompositionCatalogFromFacts(facts, selectedPluginIds);
 
   try {
-    compileAppUIModel(model, compositionCatalog);
+    if (options.validateComposition !== false) compileAppUIModel(model, compositionCatalog);
   } catch (error) {
     if (error instanceof AppUICompositionError || error instanceof AppUICompilerError) {
       errors.push(...error.issues);

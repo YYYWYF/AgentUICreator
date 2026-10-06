@@ -247,7 +247,7 @@ Plugin 源码继续由通用 Coding Agent 在权限范围内编辑；AppUIModel 
 6. 以临时文件和原子 rename 写入，任何一步失败都恢复修改前内容；
 7. 成功后递增当前 run 的 mutation revision，并返回新的 hash。
 
-损坏模型使用独立 AppUIModel Recovery 通道：正常 inspection 返回 `APP_UI_MODEL_INVALID` 后，Creator 调用 `inspect_app_ui_model_source` 获取原始文本、精确字节 `rawHash` 与事实诊断，再通过 `repair_app_ui_model(expectedRawHash, candidateModel)` 提交完整候选。Host 仅允许恢复当前非法模型，并与正常 mutation 共用 candidate admission；合法模型不得通过 Recovery 整体替换。Recovery 原子提交模型、Registry 与 Composition revision，崩溃 journal 使用 rollback 策略。修复后旧 refs/hash observation 全部失效，必须重新读取 Composition。Creator 始终不得用文件工具写 app-ui.json。
+损坏模型使用独立 AppUIModel Recovery 通道：正常 inspection 返回 `APP_UI_MODEL_INVALID` 后，Creator 调用 `inspect_app_ui_model_source` 获取原始文本、精确字节 `rawHash` 与事实诊断，再通过 `repair_app_ui_model(expectedRawHash, candidateModel)` 提交完整候选。Host 仅允许恢复当前非法模型，并与正常 mutation 共用 candidate admission；合法模型不得通过 Recovery 整体替换。Recovery 原子提交模型、Registry 与 Composition revision，崩溃 journal 使用 rollback 策略。修复后旧 refs/hash observation 全部失效，必须重新读取 Composition。Creator 始终不得用文件工具写 app-ui.json。 模型健康分类仅检查 grammar、Plugin 声明解析及 Composition/compiler 合约；Plugin definition/source consistency 与 inventory integrity 属于 Workspace/Plugin 源码归因，不触发 `APP_UI_MODEL_INVALID`，但仍是提交门禁。Compiler diagnostics 保留原始 code/path/instanceId/pluginId/slot。hide/purge 请求遇到坏模型时明确返回 `APP_UI_MODEL_RECOVERY_REMOVAL_BLOCKED`，先完成独立 Recovery 再重试 removal。
 
 `mutationRevision` 是完成门禁在一个 run 内使用的证据序号；`appUIModelHash` 是 AppUIModel 文件精确字节内容的 hash，用作跨 run 和外部编辑的乐观并发令牌，也供验证与运行时诊断关联同一模型版本。Plugin 等其他文件分别使用自己的 observed content hash。revision 与 hash 不能互相替代。
 

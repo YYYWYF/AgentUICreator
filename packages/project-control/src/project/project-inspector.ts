@@ -1,3 +1,6 @@
+import { AppUIModelInvalidError, appUIModelDiagnostics } from "./app-ui-diagnostics";
+import { validateAppUIModelCandidateStructure } from "./app-ui-admission";
+import { verifyPluginChildSlots } from "./plugin-child-slot-verifier";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -209,10 +212,26 @@ async function inspectUICompositionData(
     projectConfig.config.mode,
   ).workspace;
   const appUIModelSource = await readFile(paths.appUIModelPath, "utf8");
-  const model = parseAppUIModelJson(appUIModelSource);
+  let model;
+  try { model = parseAppUIModelJson(appUIModelSource); }
+  catch (error) {
+    const syntax = error instanceof SyntaxError;
+    throw new AppUIModelInvalidError({ status: syntax ? "syntax_invalid" : "schema_invalid",
+      diagnostics: appUIModelDiagnostics(error, syntax ? "syntax" : "schema", syntax ? undefined : JSON.parse(appUIModelSource)) });
+  }
   const appUIModelHash = createHash("sha256").update(appUIModelSource).digest("hex");
   const projectFacts = await collectPluginProjectFacts(projectRoot, effectiveConfig, paths);
-  const generation = generatePluginRegistryFromFacts(model, projectFacts);
+  const generation = generatePluginRegistryFromFacts(model, projectFacts, { validateComposition: false });
+  try { validateAppUIModelCandidateStructure(model, projectFacts); }
+  catch (error) {
+    if (!(error as { details?: { workspaceIntegrity?: boolean } }).details?.workspaceIntegrity) {
+      throw new AppUIModelInvalidError({ status: "composition_invalid", diagnostics: appUIModelDiagnostics(error, "composition") });
+    }
+    // The snapshot carries workspace issues for normal debugging attribution.
+    // Incomplete source declarations cannot establish a model recovery baseline.
+  }
+  generation.errors.push(...await verifyPluginChildSlots(projectRoot,
+    generation.assets.filter(asset => generation.activeComposition.selectedPluginIds.includes(asset.pluginId))));
   const refIndex = buildLayoutRefIndex(model.root);
   const layout = compactLayout(model.root, "root", refIndex.byPath.get("root")!, refIndex);
   const slots: InspectedSlot[] = [];
@@ -288,22 +307,35 @@ async function inspectUICompositionData(
       service.status,
     ]),
   );
-  const creatorActionCatalog = await buildCreatorActionCatalog({
+  const blockedCatalogRevision = createHash("sha256").update(JSON.stringify({
+    appUIModelHash, capabilityCatalogRevision: generation.capabilityCatalog.revision,
+    workspaceIssues: generation.errors,
+  })).digest("hex");
+  const creatorActionCatalog = generation.errors.length > 0
+    ? { revision: blockedCatalogRevision, candidates: [] }
+    : await buildCreatorActionCatalog({
     model,
     generation,
     projectFacts,
     appUIModelHash,
     workspacePolicy,
   });
-  const authoringTargetCatalog = await buildCreatorAuthoringTargetCatalog({
+  const authoringTargetCatalog = projectFacts.inventoryIssues.length > 0
+    ? { revision: blockedCatalogRevision, candidates: [], bindings: [] }
+    : await buildCreatorAuthoringTargetCatalog({
     projectRoot,
     config: effectiveConfig,
     paths,
-    projectFacts,
+    projectFacts: {
+      ...projectFacts,
+      assets: projectFacts.assets.filter(asset => pluginSources.some(source =>
+        source.pluginId === asset.pluginId && source.status === "available")),
+    },
   });
 
   return {
     view: "composition",
+    workspaceDiagnostics: appUIModelDiagnostics({ details: { issues: generation.errors } }, "workspace"),
     sourceRoot: effectiveConfig.agentUI.sourceRoot,
     observationCoverage: [...COMPOSITION_OBSERVATION_COVERAGE],
     appUIModel: {

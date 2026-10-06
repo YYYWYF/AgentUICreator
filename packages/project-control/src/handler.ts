@@ -439,8 +439,6 @@ async function executeRequest(
     case "repair_app_ui_model":
       return repairAppUIModel(projectRoot, request.input);
     case "inspect_ui_project": {
-      const source = await inspectAppUIModelSource(projectRoot);
-      if (source.status !== "valid") throw new UIProjectControlError("APP_UI_MODEL_INVALID", "Inspect AppUIModel source before recovery.", { status: source.status, diagnostics: source.diagnostics });
       return "view" in request.input && request.input.view === "composition"
         ? inspectUIComposition(projectRoot)
         : inspectUIProject(projectRoot);

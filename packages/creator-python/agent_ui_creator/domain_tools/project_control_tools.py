@@ -20,6 +20,7 @@ from ..domain_state import (
     composition_fast_path_error,
 )
 from ..project_control import ProjectControlClient, ProjectControlError
+from ..removal_intent import RemovalIntent
 
 MAX_DOMAIN_TOOL_RESULT_CHARS = 48_000
 MAX_DOMAIN_TOOL_RESULT_BYTES = 48_000
@@ -283,8 +284,34 @@ def create_project_control_tools(
     *,
     observations: DomainObservationContext | None = None,
     activity: CreatorActivityRecorder | None = None,
+    removal_intent: RemovalIntent = "none",
 ) -> tuple[BaseTool, ...]:
     paging_states: dict[str, _ProjectInspectionPages] = {}
+
+    def invalid_model_error(error: ProjectControlError | DomainObservationError) -> str:
+        if error.code == "APP_UI_MODEL_INVALID":
+            if observations is not None:
+                observations.invalidate_app_ui_model(reason=error.code)
+                observations.recovery_pending = True
+            if removal_intent in {"hide", "purge"}:
+                return removal_recovery_blocked(error.details)
+        elif error.code == "APP_UI_MODEL_WORKSPACE_INTEGRITY" and observations is not None:
+            observations.invalidate_app_ui_model(reason=error.code)
+            observations.recovery_observation = None
+            observations.recovery_pending = False
+            observations.recovery_requires_composition = False
+        return _render_error(error)
+
+    def removal_recovery_blocked(details: Any) -> str:
+        code = "APP_UI_MODEL_RECOVERY_REMOVAL_BLOCKED"
+        if observations is not None:
+            observations.invalidate_app_ui_model(reason=code)
+            observations.recovery_pending = True
+            observations.recovery_observation = None
+            observations.recovery_blocked = code
+        return _render_error(DomainObservationError(
+            code, "This removal task is blocked by an invalid AppUIModel. Complete a separate Recovery task first, then retry removal. Full-model recovery is not authorized by hide/purge intent.", details,
+        ))
 
     def observe(hash: Any, source: ObservationSource) -> None:
         if observations is None or activity is None:
@@ -347,10 +374,7 @@ def create_project_control_tools(
                 )
             return rendered
         except (ProjectControlError, DomainObservationError) as error:
-            if error.code == "APP_UI_MODEL_INVALID" and observations is not None:
-                observations.invalidate_app_ui_model(reason=error.code)
-                observations.recovery_pending = True
-            return _render_error(error)
+            return invalid_model_error(error)
 
     @tool("inspect_ui_project")
     async def inspect_ui_project(
@@ -418,10 +442,7 @@ def create_project_control_tools(
                 state.coverage_recorded = True
             return rendered
         except (ProjectControlError, DomainObservationError) as error:
-            if error.code == "APP_UI_MODEL_INVALID" and observations is not None:
-                observations.invalidate_app_ui_model(reason=error.code)
-                observations.recovery_pending = True
-            return _render_error(error)
+            return invalid_model_error(error)
 
     @tool("inspect_app_ui_model_source")
     async def inspect_app_ui_model_source(cursor: str | None = None) -> str:
@@ -436,14 +457,13 @@ def create_project_control_tools(
                 paging_states.pop("recovery", None)
             else:
                 paging_states["recovery"] = state
+            if result.get("status") != "valid" and removal_intent in {"hide", "purge"}:
+                return removal_recovery_blocked({key: result[key] for key in ("rawHash", "status", "diagnostics")})
             if complete and json.loads(rendered).get("ok") is True and observations is not None and activity is not None:
                 observations.observe_recovery(result, revision=activity.revision)
             return rendered
         except (ProjectControlError, DomainObservationError) as error:
-            if error.code == "APP_UI_MODEL_INVALID" and observations is not None:
-                observations.invalidate_app_ui_model(reason=error.code)
-                observations.recovery_pending = True
-            return _render_error(error)
+            return invalid_model_error(error)
 
     @tool("inspect_app_ui_model")
     async def inspect_app_ui_model() -> str:
