@@ -2,11 +2,12 @@ import { HttpAgent } from "@ag-ui/client";
 import { useAui } from "@assistant-ui/react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
-import { ConversationRuntimeProvider, type ConversationFeedbackAdapter, type ConversationThreadBinding } from "../src/index.js";
+import { ConversationRuntimeProvider, useConversationRuntimeBridge, type ConversationFeedbackAdapter, type ConversationThreadBinding } from "../src/index.js";
 
-async function fixture(feedbackAdapter?: ConversationFeedbackAdapter) {
+async function fixture(feedbackAdapter?: ConversationFeedbackAdapter, reportErrors = true) {
   let aui!: ReturnType<typeof useAui>;
-  function Capture() { aui = useAui(); return null; }
+  let agentRuntime!: ReturnType<typeof useConversationRuntimeBridge>["agentRuntime"];
+  function Capture() { aui = useAui(); agentRuntime = useConversationRuntimeBridge().agentRuntime; return null; }
   const binding: ConversationThreadBinding = {
     getThreadId: () => "feedback-thread", subscribe: () => () => {}, createNewThread: async () => "new-thread",
     loadThread: async () => ({ messages: [{ id: "answer", role: "assistant", content: [{ type: "text", text: "answer" }], createdAt: new Date(0), status: { type: "complete", reason: "stop" }, metadata: { custom: {}, steps: [], unstable_state: null, unstable_annotations: [], unstable_data: [] } }] }),
@@ -14,9 +15,9 @@ async function fixture(feedbackAdapter?: ConversationFeedbackAdapter) {
   const onError = vi.fn();
   const fetch = vi.fn();
   let renderer!: ReactTestRenderer;
-  await act(async () => { renderer = create(<ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} feedbackAdapter={feedbackAdapter} onError={onError} unstable_agentFactory={({ endpoint, threadId }) => new HttpAgent({ url: endpoint, threadId, fetch })}><Capture /></ConversationRuntimeProvider>); });
+  await act(async () => { renderer = create(<ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} feedbackAdapter={feedbackAdapter} onError={reportErrors ? onError : undefined} unstable_agentFactory={({ endpoint, threadId }) => new HttpAgent({ url: endpoint, threadId, fetch })}><Capture /></ConversationRuntimeProvider>); });
   await act(async () => { for (let i = 0; i < 100 && aui.thread.getState().isLoading; i++) await new Promise<void>(r => setImmediate(r)); });
-  return { aui, fetch, onError, dispose: async () => { await act(async () => renderer.unmount()); } };
+  return { aui, agentRuntime, fetch, onError, dispose: async () => { await act(async () => renderer.unmount()); } };
 }
 describe("Host feedback adapter", () => {
   it("requires a real adapter", async () => {
@@ -46,10 +47,25 @@ describe("Host feedback adapter", () => {
     const error = new Error("persistence failed");
     const f = await fixture({ submit: () => { if (asyncFailure) return Promise.reject(error); throw error; } });
     try {
+      expect(f.agentRuntime.getSnapshot().run.status).toBe("idle");
       await act(async () => f.aui.thread.message({ id: "answer" }).submitFeedback({ type: "negative" }));
       expect(f.onError).toHaveBeenCalledWith(error);
+      expect(f.agentRuntime.getSnapshot().run.status).toBe("idle");
       expect(f.aui.thread.message({ id: "answer" }).getState().metadata.submittedFeedback).toEqual({ type: "negative" });
       expect(f.fetch).not.toHaveBeenCalled();
     } finally { await f.dispose(); }
+  });
+  it("logs persistence errors without an onError callback and keeps the run idle", async () => {
+    const error = new Error("persistence offline");
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const f = await fixture({ submit: () => Promise.reject(error) }, false);
+    try {
+      await act(async () => f.aui.thread.message({ id: "answer" }).submitFeedback({ type: "negative" }));
+      expect(log).toHaveBeenCalledWith("[agent-ui] feedback persistence failed", error);
+      expect(f.onError).not.toHaveBeenCalled();
+      expect(f.agentRuntime.getSnapshot().run.status).toBe("idle");
+      expect(f.aui.thread.message({ id: "answer" }).getState().metadata.submittedFeedback).toEqual({ type: "negative" });
+      expect(f.fetch).not.toHaveBeenCalled();
+    } finally { await f.dispose(); log.mockRestore(); }
   });
 });

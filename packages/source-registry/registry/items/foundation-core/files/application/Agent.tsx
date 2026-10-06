@@ -56,8 +56,11 @@ export interface AgentProps {
   /** The Host application's AG-UI endpoint. Defaults to VITE_AGENT_ENDPOINT or /agent. */
   endpoint?: string;
   observability?: AgentObservability;
-  /** Application-owned official assistant-ui attachment adapter. */
+  /** Application errors and Agent run errors reported by the conversation provider. */
+  onError?: ConversationRuntimeProviderProps["onError"];
+  /** Application-owned feedback persistence. */
   feedbackAdapter?: ConversationRuntimeProviderProps["feedbackAdapter"];
+  /** Application-owned official assistant-ui attachment adapter. */
   attachmentAdapter?: ConversationRuntimeProviderProps["attachmentAdapter"];
   /** Application-owned official assistant-ui speech-to-text adapter. */
   dictationAdapter?: ConversationRuntimeProviderProps["dictationAdapter"];
@@ -161,7 +164,7 @@ function AgentSurface({ composition, observability }: {
   );
 }
 
-export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter, feedbackAdapter, runResumeProvider, initialThreadId }: AgentProps = {}) {
+export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
   const composition = useSyncExternalStore(
     agentCompositionStore.subscribe,
     agentCompositionStore.getSnapshot,
@@ -203,6 +206,7 @@ export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agen
       endpoint={endpoint}
       enableMessageQueue={conversationMessageQueueEnabled}
       feedbackAdapter={feedbackAdapter}
+      onError={onError}
       attachmentAdapter={attachmentAdapter}
       dictationAdapter={dictationAdapter}
       frontendTools={frontendToolRuntime}

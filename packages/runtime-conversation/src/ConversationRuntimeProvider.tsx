@@ -203,8 +203,12 @@ export function ConversationRuntimeProvider<TState = unknown>({
         // Upstream owns optimistic selection. Catch both sync and async Host failures.
         const report = (cause: unknown) => {
           const error = cause instanceof Error ? cause : new Error(String(cause));
-          bridgeRef.current?.recordError(error);
-          if (outerRuntime.current?.threads.getState().mainThreadId === item.id) onError?.(error);
+          // Feedback persistence is an application error, never an inference failure.
+          if (outerRuntime.current?.threads.getState().mainThreadId === item.id && onError !== undefined) {
+            onError(error);
+          } else {
+            console.error("[agent-ui] feedback persistence failed", error);
+          }
         };
         try {
           void Promise.resolve(feedbackAdapter.submit({

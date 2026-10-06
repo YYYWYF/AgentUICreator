@@ -14,8 +14,10 @@ describe("generated feedback and Queue defaults", () => {
   it("passes the generated application config to the Runtime", async () => {
     const config = await readFile(new URL("../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/conversation-runtime-config.ts", import.meta.url), "utf8");
     const agent = await readFile(new URL("../../source-registry/registry/items/foundation-core/files/application/Agent.tsx", import.meta.url), "utf8");
-    expect(config).toContain("conversationMessageQueueEnabled = true");
+    expect(config).toContain("conversationMessageQueueEnabled = false");
     expect(agent).toContain("enableMessageQueue={conversationMessageQueueEnabled}");
     expect(agent).toContain("feedbackAdapter={feedbackAdapter}");
+    expect(agent).toContain('onError?: ConversationRuntimeProviderProps["onError"]');
+    expect(agent).toContain("onError={onError}");
   });
 });
