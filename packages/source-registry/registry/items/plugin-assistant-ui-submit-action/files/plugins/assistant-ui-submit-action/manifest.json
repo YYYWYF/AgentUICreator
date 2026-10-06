@@ -2,7 +2,7 @@
   "id": "assistant-ui-submit-action",
   "name": "Assistant UI Submit Action",
   "description": "Adds assistant-ui send and stop controls to the conversation composer.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "conversation-composer-submit-action"
   ],

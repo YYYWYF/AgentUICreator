@@ -36,7 +36,7 @@
       "version": "0.0.1"
     },
     "assistant-ui-composer": {
-      "version": "0.0.2"
+      "version": "0.0.3"
     },
     "generated-file-message": {
       "version": "0.0.1"
@@ -81,7 +81,7 @@
       "version": "0.0.1"
     },
     "assistant-ui-submit-action": {
-      "version": "0.0.1"
+      "version": "0.0.2"
     },
     "assistant-ui-dictation-action": {
       "version": "0.0.1"

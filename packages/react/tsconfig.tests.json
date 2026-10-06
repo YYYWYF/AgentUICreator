@@ -84,6 +84,7 @@
       "../source-registry/registry/items/plugin-generated-file-message/files",
       ".",
       "../source-registry/registry/items/plugin-assistant-ui-copy-action/files",
+      "../source-registry/registry/items/plugin-assistant-ui-feedback-actions/files",
       "../source-registry/registry/items/plugin-assistant-ui-tool-fallback/files",
       "../source-registry/registry/items/foundation-conversation/files",
       "../source-registry/registry/items/plugin-agent-status-message/files",

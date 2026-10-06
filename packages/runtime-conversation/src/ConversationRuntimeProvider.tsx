@@ -74,6 +74,8 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   attachmentAdapter?: AttachmentAdapter | undefined;
   /** Speech-to-text belongs to the application-provided upstream adapter. */
   dictationAdapter?: DictationAdapter | undefined;
+  /** Ephemeral upstream follow-up queue; disabled by default for direct callers. */
+  enableMessageQueue?: boolean | undefined;
   feedbackAdapter?: ConversationFeedbackAdapter | undefined;
   children: ReactNode;
   onError?: ((error: Error) => void) | undefined;
@@ -98,6 +100,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
   attachmentAdapter,
   dictationAdapter,
   feedbackAdapter,
+  enableMessageQueue = false,
   children,
   onError,
   unstable_agentFactory = defaultAgentFactory,
@@ -212,7 +215,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
       },
     }), [feedbackAdapter, ownedId, item.id, onError]);
     const runtime = useAgUiRuntime({
-      agent, isDisabled: isDisabled || historyFailed, showThinking: true, unstable_enableMessageQueue: false,
+      agent, isDisabled: isDisabled || historyFailed, showThinking: true, unstable_enableMessageQueue: enableMessageQueue,
       adapters: {
         history,
         ...(feedback === undefined ? {} : { feedback }),
@@ -248,7 +251,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
       };
     }, [agentRuntime, applicationEvents, bridge, item.id]);
     return runtime;
-  }, [endpoint, unstable_agentFactory, threadBinding, persistence, sessions, frontendTools, onError, attachmentAdapter, dictationAdapter, feedbackAdapter]);
+  }, [endpoint, unstable_agentFactory, threadBinding, persistence, sessions, frontendTools, onError, attachmentAdapter, dictationAdapter, feedbackAdapter, enableMessageQueue]);
   const [controlledThreadId, setControlledThreadId] = useState<string | undefined>(persistence.initialId);
   const assistantRuntime = useRemoteThreadListRuntime({
     adapter: persistence.adapter, runtimeHook,

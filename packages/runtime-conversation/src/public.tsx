@@ -63,6 +63,8 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   attachmentAdapter?: AttachmentAdapter | undefined;
   /** Official assistant-ui adapter; the application owns speech-to-text. */
   dictationAdapter?: DictationAdapter | undefined;
+  /** Ephemeral upstream follow-up queue; disabled by default for direct callers. */
+  enableMessageQueue?: boolean | undefined;
   feedbackAdapter?: ConversationFeedbackAdapter | undefined;
   children: ReactNode;
   onError?: ((error: Error) => void) | undefined;

@@ -45,6 +45,7 @@ export const zhCN = {
     relevance: "{source} 相关度",
     score: "{score}，满分 1.00",
   },
+  composer: { send: "发送", stop: "停止生成", queueSend: "加入待发送", queued: "待发送", removeQueued: "移除待发送消息" },
   conversationFeedback: { helpful: "有帮助", notHelpful: "没有帮助" },
   conversationQuote: {
     quote: "引用",

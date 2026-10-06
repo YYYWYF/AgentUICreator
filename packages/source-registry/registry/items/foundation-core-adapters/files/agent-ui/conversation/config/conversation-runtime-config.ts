@@ -1,5 +1,8 @@
 import type { ConversationStarterSuggestion } from "@agent-ui/runtime-conversation";
 
+/** Browser-memory follow-up Queue. This is not durable across refresh. */
+export const conversationMessageQueueEnabled = true;
+
 /** Host-owned endpoint. Set this when integrating Agent UI with your application. */
 export const conversationDataEndpoint: string | undefined = undefined;
 

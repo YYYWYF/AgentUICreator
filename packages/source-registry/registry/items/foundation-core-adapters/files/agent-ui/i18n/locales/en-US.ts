@@ -45,6 +45,7 @@ export const enUS = {
     relevance: "{source} relevance score",
     score: "{score} of 1.00",
   },
+  composer: { send: "Send message", stop: "Stop generating", queueSend: "Queue message", queued: "Pending", removeQueued: "Remove queued message" },
   conversationFeedback: { helpful: "Helpful", notHelpful: "Not helpful" },
   conversationQuote: {
     quote: "Quote",

@@ -2,7 +2,7 @@
   "id": "assistant-ui-composer",
   "name": "Assistant UI Composer",
   "description": "Renders the canonical assistant-ui conversation composer with composable action Slots.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "capabilities": [
     "conversation-composer"
   ],

@@ -28,6 +28,7 @@ import {
   ConversationPresentationConfigProvider,
   conversationPresentationConfig,
   conversationStarterSuggestions,
+  conversationMessageQueueEnabled,
 } from "../agent-ui/conversation/config";
 import { ConversationThreadBindingConnector } from "../agent-ui/conversation/threads/ConversationThreadBindingConnector";
 import { useConversationServiceThreadBinding, type ConversationRunResumeProvider } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
@@ -200,6 +201,7 @@ export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agen
   return (
     <ConversationRuntimeProvider<AppAgentState>
       endpoint={endpoint}
+      enableMessageQueue={conversationMessageQueueEnabled}
       feedbackAdapter={feedbackAdapter}
       attachmentAdapter={attachmentAdapter}
       dictationAdapter={dictationAdapter}

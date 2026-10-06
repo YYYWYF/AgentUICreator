@@ -28,7 +28,7 @@ async function until(predicate: () => boolean) {
   }
   throw new Error("Timed out waiting for Lexical Composer");
 }
-async function mount(disabled = false) {
+async function mount(disabled = false, queue = false) {
   vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
   Object.defineProperty(HTMLElement.prototype, "scrollTo", { configurable: true, value() {} });
   // Lexical measures the browser selection when reconciling a focused editor.
@@ -37,6 +37,7 @@ async function mount(disabled = false) {
   let runtime!: AssistantRuntime;
   let rich = true;
   const requests: RunAgentInput[] = [];
+  const finishes: (() => void)[] = [];
   const execute = vi.fn();
   const search = vi.fn(async () => [{ id: "employee_84721", type: "user", label: "张三" }]);
   const mentionSource = { cacheKey: "roster", search };
@@ -48,13 +49,23 @@ async function mount(disabled = false) {
   const agentFactory = () => new CancellationAwareHttpAgent({ url: "http://example.test/agent", fetch: async (_url, init) => {
     const input = JSON.parse(String(init.body)) as RunAgentInput;
     requests.push(input);
+    if (queue) {
+      const encoder = new TextEncoder();
+      const body = new ReadableStream<Uint8Array>({ start(controller) {
+        const emit = (event: object) => controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+        emit({ type: "RUN_STARTED", threadId: input.threadId, runId: input.runId });
+        finishes.push(() => { emit({ type: "RUN_FINISHED", threadId: input.threadId, runId: input.runId }); controller.close(); });
+        init.signal?.addEventListener("abort", () => controller.error(new Error("aborted")), { once: true });
+      } });
+      return new Response(body, { headers: { "Content-Type": "text/event-stream" } });
+    }
     return new Response([{ type: "RUN_STARTED", threadId: input.threadId, runId: input.runId }, { type: "RUN_FINISHED", threadId: input.threadId, runId: input.runId }].map(event => `data: ${JSON.stringify(event)}\n\n`).join(""), { headers: { "Content-Type": "text/event-stream" } });
   } });
   const binding = { ...createEphemeralConversationThreadBinding(), getThreadIsDisabled: () => disabled };
   function Capture() { runtime = useAui().threads.__internal_getAssistantRuntime!(); return null; }
   const host = document.createElement("div"); document.body.append(host); root = createRoot(host);
   const render = () => root!.render(
-    <ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} unstable_agentFactory={agentFactory}>
+    <ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} enableMessageQueue={queue} unstable_agentFactory={agentFactory}>
       <AgentUIRoot theme="violet"><Capture /><ConversationThread autoFocus={false} composer={
         <ConversationCanonicalComposer autoFocus={false} placeholder="写消息" inputAriaLabel="消息输入"
           beforeInput={<div data-testid="quote-preview">Quote</div>}
@@ -82,7 +93,7 @@ async function mount(disabled = false) {
     await act(async () => option.click());
   };
   const remove = async () => { rich = false; await act(async () => render()); };
-  return { host, runtime, requests, execute, search, textbox, editor, type, choose, remove };
+  return { host, runtime, requests, finishes, execute, search, textbox, editor, type, choose, remove };
 }
 
 it("renders a selected Mention as a chip while sending the unchanged directive over AG-UI", async () => {
@@ -182,4 +193,24 @@ it("keeps composition Enter local, inserts Shift+Enter newlines and sends on ord
     editor().dispatchCommand(KEY_ENTER_COMMAND, new KeyboardEvent("keydown", { key: "Enter" }));
   });
   await until(() => requests.length === 1);
+});
+
+it("queues a Lexical Mention through Enter without changing its stable ID", async () => {
+  const { runtime, requests, finishes, editor, type, choose } = await mount(false, true);
+  await type("active");
+  await act(async () => runtime.thread.composer.send());
+  await until(() => requests.length === 1 && runtime.thread.getState().isRunning);
+  await type("@张"); await choose("张三");
+  await act(async () => editor().dispatchCommand(KEY_ENTER_COMMAND, new KeyboardEvent("keydown", { key: "Enter", isComposing: true })));
+  expect(runtime.thread.composer.getState().queue).toHaveLength(0);
+  const queuedText = runtime.thread.composer.getState().text;
+  expect(queuedText).toContain(directive);
+  await act(async () => editor().dispatchCommand(KEY_ENTER_COMMAND, new KeyboardEvent("keydown", { key: "Enter" })));
+  expect(runtime.thread.composer.getState().queue[0]?.prompt).toBe(queuedText);
+  expect(requests).toHaveLength(1);
+  await act(async () => finishes[0]!());
+  await until(() => requests.length === 2);
+  expect(requests[1]!.messages.at(-1)?.content).toBe(queuedText);
+  await act(async () => finishes[1]!());
+  await until(() => !runtime.thread.getState().isRunning);
 });

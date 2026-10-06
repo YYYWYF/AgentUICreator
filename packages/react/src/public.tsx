@@ -90,6 +90,7 @@ import {
   ComposerAddAttachmentAction as InternalConversationComposerAddAttachment,
   ComposerCancelAction as InternalConversationComposerCancel,
   ComposerDictateAction as InternalConversationComposerDictate,
+  ComposerQueue as InternalConversationComposerQueue,
   ComposerSendAction as InternalConversationComposerSend,
   ComposerStopDictationAction as InternalConversationComposerStopDictation,
   ComposableThread as InternalConversationThread,
@@ -340,7 +341,13 @@ export function ConversationThread({
   );
 }
 
+export interface ConversationComposerQueueLabels { queued: string; removeQueued: string; }
+export function ConversationComposerQueue(props: Readonly<ConversationComposerQueueLabels>) {
+  return <InternalConversationComposerQueue {...props} />;
+}
+
 export interface ConversationCanonicalComposerProps {
+  queueLabels?: ConversationComposerQueueLabels | undefined;
   autoFocus?: boolean | undefined;
   triggers?: ReactNode;
   beforeInput?: ReactNode;
@@ -359,6 +366,7 @@ export interface ConversationCanonicalComposerProps {
 export function ConversationCanonicalComposer({
   placeholder = "Send a message...",
   inputAriaLabel = "Message input",
+  queueLabels = { queued: "Pending", removeQueued: "Remove queued message" },
   ...props
 }: Readonly<ConversationCanonicalComposerProps>) {
   return (
@@ -366,6 +374,7 @@ export function ConversationCanonicalComposer({
       {...props}
       placeholder={placeholder}
       inputAriaLabel={inputAriaLabel}
+      queueLabels={queueLabels}
     />
   );
 }
@@ -479,8 +488,8 @@ export function ConversationComposerStopDictation({
   );
 }
 
-export function ConversationComposerSend({ label = "Send message" }: Readonly<{ label?: string }> = {}) {
-  return <InternalConversationComposerSend label={label} />;
+export function ConversationComposerSend({ label = "Send message", queueLabel = "Queue message" }: Readonly<{ label?: string; queueLabel?: string }> = {}) {
+  return <InternalConversationComposerSend label={label} queueLabel={queueLabel} />;
 }
 
 export function ConversationComposerCancel({ label = "Stop generating" }: Readonly<{ label?: string }> = {}) {
@@ -825,7 +834,7 @@ export function ConversationCanonicalToolGroup({ group, children }: {
   children: ReactNode;
 }) {
   return (
-    <InternalToolGroupRoot variant="ghost">
+    <InternalToolGroupRoot variant="ghost" data-agent-state={group.status.type === "running" ? "running" : "idle"}>
       <InternalToolGroupTrigger count={group.indices.length} active={group.status.type === "running"} />
       <InternalToolGroupContent>{children}</InternalToolGroupContent>
     </InternalToolGroupRoot>

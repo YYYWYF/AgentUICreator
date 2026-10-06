@@ -40,6 +40,7 @@ import {
   type AssistantState,
   BranchPickerPrimitive,
   ComposerPrimitive,
+  QueueItemPrimitive,
   ErrorPrimitive,
   groupPartByType,
   MessagePrimitive,
@@ -65,6 +66,7 @@ import {
   SquareIcon,
   ThumbsUpIcon,
   ThumbsDownIcon,
+  XIcon,
 } from "lucide-react";
 import {
   createContext,
@@ -347,10 +349,36 @@ const ThreadSuggestionItem: FC = () => {
   );
 };
 
+export interface ComposerQueueLabels {
+  queued: string;
+  removeQueued: string;
+}
+
+export const ComposerQueue: FC<ComposerQueueLabels> = ({ queued, removeQueued }) => (
+  <AuiIf condition={(s) => s.thread.capabilities.queue && s.composer.queue.length > 0}>
+    <div data-slot="aui_composer-queue" className="border-primary/20 bg-primary/5 flex flex-col gap-1 rounded-lg border p-2">
+      <span className="text-muted-foreground text-xs">{queued}</span>
+      <ComposerPrimitive.Queue>
+        {() => (
+          <div data-slot="aui_composer-queue-item" className="flex items-center gap-2 rounded-md bg-background/60 px-2 py-1 text-sm">
+            <div className="min-w-0 flex-1 break-words"><QueueItemPrimitive.Text /></div>
+            <QueueItemPrimitive.Remove asChild>
+              <TooltipIconButton tooltip={removeQueued} aria-label={removeQueued} type="button" className="size-6 shrink-0">
+                <XIcon className="size-3.5" />
+              </TooltipIconButton>
+            </QueueItemPrimitive.Remove>
+          </div>
+        )}
+      </ComposerPrimitive.Queue>
+    </div>
+  </AuiIf>
+);
+
 export interface CanonicalComposerProps {
   autoFocus?: boolean | undefined;
   placeholder: string;
   inputAriaLabel: string;
+  queueLabels: ComposerQueueLabels;
   triggers?: ReactNode;
   beforeInput?: ReactNode;
   input?: ReactNode;
@@ -363,6 +391,7 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
   autoFocus,
   placeholder,
   inputAriaLabel,
+  queueLabels,
   triggers,
   beforeInput,
   input,
@@ -386,6 +415,7 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
           {beforeInput === undefined || beforeInput === null ? null : (
             <div data-slot="aui_composer-before-input">{beforeInput}</div>
           )}
+          <ComposerQueue {...queueLabels} />
           <ComposerInputHostContext.Provider value={{ variant: "primary", placeholder, inputAriaLabel, autoFocus: resolvedAutoFocus }}>
             {input ?? <ComposerTextareaInput />}
           </ComposerInputHostContext.Provider>
@@ -490,23 +520,27 @@ export const ComposerStopDictationAction: FC<ComposerStopDictationActionProps> =
   </AuiIf>
 );
 
-export const ComposerSendAction: FC<{ label: string }> = ({ label }) => (
-  <AuiIf condition={(s) => !s.thread.isRunning}>
-    <ComposerPrimitive.Send asChild>
-      <TooltipIconButton
-        tooltip={label}
-        side="bottom"
-        type="button"
-        variant="default"
-        size="icon"
-        className="aui-composer-send size-7 rounded-full"
-        aria-label={label}
-      >
-        <ArrowUpIcon className="aui-composer-send-icon size-4" />
-      </TooltipIconButton>
-    </ComposerPrimitive.Send>
-  </AuiIf>
-);
+export const ComposerSendAction: FC<{ label: string; queueLabel: string }> = ({ label, queueLabel }) => {
+  const isRunning = useAuiState((s) => s.thread.isRunning);
+  const actionLabel = isRunning ? queueLabel : label;
+  return (
+    <AuiIf condition={(s) => !s.thread.isRunning || s.thread.capabilities.queue}>
+      <ComposerPrimitive.Send asChild>
+        <TooltipIconButton
+          tooltip={actionLabel}
+          side="bottom"
+          type="button"
+          variant="default"
+          size="icon"
+          className="aui-composer-send size-7 rounded-full"
+          aria-label={actionLabel}
+        >
+          <ArrowUpIcon className="aui-composer-send-icon size-4" />
+        </TooltipIconButton>
+      </ComposerPrimitive.Send>
+    </AuiIf>
+  );
+};
 
 export const ComposerCancelAction: FC<{ label: string }> = ({ label }) => (
   <AuiIf condition={(s) => s.thread.isRunning}>
