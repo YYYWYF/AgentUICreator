@@ -1,3 +1,4 @@
+import { prepareProductAdapters } from "../packages/react/scripts/sync-product-adapters.mjs";
 import { execFile as execFileCallback } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -16,7 +17,7 @@ const CANCELLATION_UPSTREAM_PATTERNS = [
   /(^|\/)(?:run[-/]?http[-/]?request|transform[-/]?http|httpagent|cancell?ation)/iu,
 ];
 const QUOTE_SELECTION_SEAM_FILES = [
-  "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
+  "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
   "packages/react/src/internal/quote-selection-root.tsx",
   "packages/react/src/internal/quote-selection-action.tsx",
   "packages/react/src/internal/quote-selection-message-id.ts",
@@ -42,9 +43,64 @@ export function quoteSelectionIntegrationReport(files, upstreamChangedFiles) {
   };
 }
 
-const PORTAL_BRIDGE_FILES = ["dialog", "popover", "sheet", "tooltip"]
-  .map((name) => `packages/react/src/internal/vendor/assistant-ui/components/ui/${name}.tsx`)
-  .concat("packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/image.tsx");
+const PRODUCT_ADAPTER_ROOT = "packages/react/src/internal/adapters/assistant-ui";
+const STYLE_BOUNDARY_ROOT = "packages/react/src/internal/style-boundary";
+const PRODUCT_ADAPTER_GENERATOR = "packages/react/scripts/sync-product-adapters.mjs";
+const PRODUCT_ADAPTER_PROVENANCE = `${PRODUCT_ADAPTER_ROOT}/UPSTREAM.json`;
+
+export function productIntegrationReport(files, upstreamChangedFiles, audit) {
+  const changedFiles = files.filter(file => file.startsWith(`${PRODUCT_ADAPTER_ROOT}/`) ||
+    file.startsWith(`${STYLE_BOUNDARY_ROOT}/`) || file === PRODUCT_ADAPTER_GENERATOR);
+  const upstream = (upstreamChangedFiles ?? []).filter(file => audit.upstreamPaths.includes(file) ||
+    /^packages\/react\/src\/primitives\/(?:actionBarMore|threadListItemMore|selectionToolbar|composer)\//u.test(file));
+  const reviewRequired = upstreamChangedFiles == null || audit.generatorDrift.status !== "PASS" ||
+    changedFiles.length > 0 || upstream.length > 0 || audit.provenance.changed;
+  return {
+    status: reviewRequired ? "REVIEW REQUIRED: product adapter / Portal integration" : "UNCHANGED",
+    seamFiles: [`${PRODUCT_ADAPTER_ROOT}/**`, `${STYLE_BOUNDARY_ROOT}/**`, PRODUCT_ADAPTER_GENERATOR],
+    changedFiles,
+    upstreamChangedFiles: upstream,
+    upstreamDiffUnavailable: upstreamChangedFiles == null,
+    provenance: audit.provenance,
+    generatorDrift: audit.generatorDrift,
+  };
+}
+
+async function auditProductIntegration(repoRoot, baseGitSha, vendorProvenance) {
+  const audit = {
+    upstreamPaths: [],
+    provenance: { path: PRODUCT_ADAPTER_PROVENANCE, revision: null, baseRevision: null, changed: false },
+    generatorDrift: { status: "UNAVAILABLE", reason: "Product integration has not been inspected" },
+  };
+  try {
+    const source = await readFile(path.join(repoRoot, PRODUCT_ADAPTER_PROVENANCE), "utf8");
+    const record = JSON.parse(source);
+    audit.provenance.revision = record.revision;
+    try {
+      const before = await execFile("git", ["show", `${baseGitSha}:${PRODUCT_ADAPTER_PROVENANCE}`], { cwd: repoRoot, encoding: "utf8" });
+      audit.provenance.baseRevision = JSON.parse(before.stdout).revision;
+      audit.provenance.changed = before.stdout !== source;
+    } catch {
+      audit.provenance.changed = true;
+      audit.provenance.baselineUnavailable = true;
+    }
+    const integrated = new Set(record.files.map(file => file.localPath));
+    audit.upstreamPaths = vendorProvenance.files.filter(file => integrated.has(file.localPath)).map(file => file.upstreamPath);
+    const expected = await prepareProductAdapters(path.join(repoRoot, "packages/react/src/internal/vendor/assistant-ui"));
+    if (record.revision !== expected.revision ||
+      JSON.stringify(record.files) !== JSON.stringify(expected.files.map(({source, ...file}) => file))) {
+      throw new Error("Product adapter provenance differs from the current clean vendor / generator");
+    }
+    for (const file of expected.files) {
+      const actual = await readFile(path.join(repoRoot, PRODUCT_ADAPTER_ROOT, file.localPath), "utf8");
+      if (actual !== file.source) throw new Error(`Product adapter generator drift: ${file.localPath}`);
+    }
+    audit.generatorDrift = { status: "PASS", generatedFiles: expected.files.length };
+  } catch (error) {
+    audit.generatorDrift = { status: "REVIEW REQUIRED", reason: error.message };
+  }
+  return audit;
+}
 
 function option(name, args) {
   const index = args.indexOf(name);
@@ -110,19 +166,10 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
   const upstreamChangedFiles = Array.isArray(session?.upstreamChangedFiles)
     ? session.upstreamChangedFiles
     : [];
-  const portalChangedFiles = PORTAL_BRIDGE_FILES.filter((file) => files.includes(file));
-  const portalUpstreamChangedFiles = upstreamChangedFiles.filter((file) =>
-    /(?:^|\/)(?:dialog|popover|sheet|tooltip|image)\.tsx$/u.test(file));
-  const portalIntegration = {
-    status: session?.upstreamChangedFiles === null
-      ? "REVIEW REQUIRED: upstream change set unavailable"
-      : portalChangedFiles.length > 0 || portalUpstreamChangedFiles.length > 0
-        ? "CHANGED: recheck Portal container bridge"
-        : "UNCHANGED",
-    seamFiles: PORTAL_BRIDGE_FILES,
-    changedFiles: portalChangedFiles,
-    upstreamChangedFiles: portalUpstreamChangedFiles,
-  };
+  const integrationAudit = await auditProductIntegration(repoRoot, baseGitSha, provenance);
+  const portalIntegration = productIntegrationReport(files, session?.upstreamChangedFiles, integrationAudit);
+  const portalChangedFiles = portalIntegration.changedFiles;
+  const portalUpstreamChangedFiles = portalIntegration.upstreamChangedFiles;
   const quoteSelectionIntegration = quoteSelectionIntegrationReport(files, session?.upstreamChangedFiles);
   const cancellationRelevantUpstreamChanges = upstreamChangedFiles.filter((file) =>
     CANCELLATION_UPSTREAM_PATTERNS.some((pattern) => pattern.test(file)),
@@ -372,9 +419,12 @@ ${langGraphReasons.length === 0 ? "" : `\nReasons:\n${langGraphReasons.map((reas
 - removed ${current.vendorFilesRemoved.length} files
 - new transitive dependencies: ${current.newTransitiveDependencies.length}
 
-Portal integration seam: ${portalIntegration.status}
-- local bridge files changed: ${portalChangedFiles.join(", ") || "none"}
-- upstream Portal files changed: ${portalUpstreamChangedFiles.join(", ") || "none"}
+Product adapter / Portal integration: ${portalIntegration.status}
+- product adapter and style-boundary files changed: ${portalChangedFiles.join(", ") || "none"}
+- relevant upstream component/primitive files changed: ${portalUpstreamChangedFiles.join(", ") || "none"}
+- adapter provenance changed: ${portalIntegration.provenance.changed ? "yes" : "no"}
+- adapter revision: ${portalIntegration.provenance.baseRevision ?? "baseline unavailable"} → ${portalIntegration.provenance.revision ?? "unavailable"}
+- generator drift: ${portalIntegration.generatorDrift.status}${portalIntegration.generatorDrift.reason ? ` — ${portalIntegration.generatorDrift.reason}` : ""}
 
 Quote selection integration seam: ${quoteSelectionIntegration.status}
 - local Quote seam files changed: ${quoteSelectionIntegration.changedFiles.join(", ") || "none"}

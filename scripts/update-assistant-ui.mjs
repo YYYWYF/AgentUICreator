@@ -410,6 +410,8 @@ export async function main({
       cwd: repoRoot,
       stdio: "inherit",
     });
+    // Upgrade completion requires the dedicated style/integration gates.
+    await commandRunner("pnpm", ["verify:assistant-ui-upgrade"], { cwd: repoRoot, stdio: "inherit" });
   } finally {
     await rm(sessionPath, { force: true });
   }
