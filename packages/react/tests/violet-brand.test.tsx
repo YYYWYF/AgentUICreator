@@ -1,11 +1,13 @@
 import { createHash } from "node:crypto";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { readFile } from "node:fs/promises";
 import { JSDOM } from "jsdom";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { AgentPlan } from "../src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-plan";
 
-const read = (path: string) => readFile(new URL(path, import.meta.url), "utf8");
+const read = (relative: string) => readFile(path.resolve(path.dirname(fileURLToPath(import.meta.url)), relative), "utf8");
 const brandPath = "../src/theme/agent-ui-violet-theme.css";
 const overridesPath = "../src/theme/assistant-ui-theme-overrides.css";
 const rules = (css: string) => [...css.replace(/\/\*[\s\S]*?\*\//gu, "").matchAll(/([^{}]+)\{([^{}]+)\}/gu)];
@@ -32,9 +34,9 @@ describe("Adaptable Violet brand boundary", () => {
     expect(palette).not.toContain('[data-theme="violet"]');
     const brand = await read(brandPath);
     expect(brand).toContain("--agent-brand: oklch(0.612313 0.217364 287.489976);");
-    expect(brand).toContain("--primary: var(--agent-brand);");
+    expect(brand).toContain("--primary: var(--agent-brand-solid);");
     expect(brand).not.toContain("var(--primary)");
-    for (const state of ["subtle", "surface", "hover", "selected", "border", "hover-border", "focus-border", "focus-ring", "active"]) {
+    for (const state of ["solid", "subtle", "surface", "hover", "selected", "border", "hover-border", "focus-border", "focus-ring", "active"]) {
       expect(brand).toContain(`--agent-brand-${state}:`);
     }
     expect(brand).toContain("--background: oklch(1 0 0);");
@@ -70,11 +72,21 @@ describe("Adaptable Violet brand boundary", () => {
 
   it("keeps Thread selection token-driven without markers or brittle selectors", async () => {
     const css = await read(overridesPath);
-    expect(css).not.toMatch(/:nth-|:first-child|:last-child|::before|::after|\.bg-|\.text-|\bsvg\b|aui_thread-list/u);
+    expect(css).not.toMatch(/:nth-|:first-child|:last-child|::before|::after|\.bg-|\.text-|\bsvg\b/u);
     const thread = await read("../src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx");
     expect(thread).toContain('data-slot="aui_thread-list-item"');
     expect(thread).toContain("data-active:bg-muted");
-    expect(await read(brandPath)).toContain("--muted: var(--agent-brand-selected);");
+    expect(await read(brandPath)).toContain("--muted: var(--agent-brand-surface);");
+    expect(css).toContain('[data-slot="aui_thread-list-item"][data-active="true"]');
+    expect(css).toContain('[data-slot="aui_user-message-content"]');
+    const user = rules(css).find(rule => rule[1]!.trim().endsWith('[data-slot="aui_user-message-content"]'))!;
+    const active = rules(css).find(rule => rule[1]!.trim().endsWith('[data-active="true"]'))!;
+    const hover = rules(css).find(rule => rule[1]!.trim().endsWith('[data-slot="aui_thread-list-item"]:hover'))!;
+    expect(user[2]).toContain("background-color: var(--agent-brand-selected);");
+    expect(active[2]).toContain("background-color: var(--agent-brand-selected);");
+    expect(hover[2]).toContain("background-color: var(--agent-brand-hover);");
+    expect(css.indexOf(active[1]!.trim())).toBeGreaterThan(css.indexOf(hover[1]!.trim()));
+    expect(await read("../src/internal/composable-thread.tsx")).toContain('data-slot="aui_user-message-content"');
   });
 
   it.each([1, 4])("colors only the progress track/fill while preserving progress at %i steps", async (activeIndex) => {
@@ -92,4 +104,60 @@ describe("Adaptable Violet brand boundary", () => {
     expect(progressRules[0]![2]).toContain("var(--agent-brand-subtle)");
     expect(progressRules[1]![2]).toContain("var(--agent-brand-active)");
   });
+});
+
+// WCAG 2.2 relative luminance: https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum
+// Convert CSS OKLCH to linear sRGB before applying the luminance weights.
+function luminance(value: string): number {
+  const match = /^oklch\(([\d.]+) ([\d.]+) ([\d.]+)\)$/u.exec(value);
+  if (!match) throw new Error(`Unsupported contrast-test color: ${value}`);
+  const lightness = Number(match[1]);
+  const chroma = Number(match[2]);
+  const hue = Number(match[3]) * Math.PI / 180;
+  const a = chroma * Math.cos(hue), b = chroma * Math.sin(hue);
+  const l = (lightness + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (lightness - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (lightness - 0.0894841775 * a - 1.2914855480 * b) ** 3;
+  const rgb = [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s,
+  ];
+  for (const channel of rgb) {
+    expect(channel).toBeGreaterThanOrEqual(-0.000001);
+    expect(channel).toBeLessThanOrEqual(1.000001);
+  }
+  return rgb.reduce((sum, channel, index) => sum + Math.min(1, Math.max(0, channel)) * [0.2126, 0.7152, 0.0722][index]!, 0);
+}
+
+it("maintains surface < hover < selected intensity independently of muted", async () => {
+  const css = await read(brandPath);
+  const tint = (state: string) => {
+    const weight = css.match(new RegExp(`--agent-brand-${state}: color-mix\\(in oklab, var\\(--background\\) (\\d+)%`))?.[1];
+    if (!weight) throw new Error(`Missing tint: ${state}`);
+    return 100 - Number(weight);
+  };
+  expect(tint("surface")).toBeLessThan(tint("hover"));
+  expect(tint("hover")).toBeLessThan(tint("selected"));
+});
+
+it("keeps both solid primary color pairs at WCAG AA contrast while preserving the visual seed", async () => {
+  const css = await read(brandPath);
+  const tokens = new Map([...css.matchAll(/(--[\w-]+):\s*([^;]+);/gu)].map(match => [match[1]!, match[2]!.trim()]));
+  const resolve = (name: string, visited = new Set<string>()): string => {
+    if (visited.has(name)) throw new Error(`Cyclic color alias: ${name}`);
+    visited.add(name);
+    const value = tokens.get(name);
+    if (!value) throw new Error(`Missing color token: ${name}`);
+    const alias = /^var\((--[\w-]+)\)$/u.exec(value);
+    return alias ? resolve(alias[1]!, visited) : value;
+  };
+  const contrast = (background: string, foreground: string) => {
+    const values = [luminance(resolve(background)), luminance(resolve(foreground))].sort((a, b) => b - a);
+    return (values[0]! + 0.05) / (values[1]! + 0.05);
+  };
+  expect(contrast("--primary", "--primary-foreground")).toBeGreaterThanOrEqual(4.5);
+  expect(contrast("--sidebar-primary", "--sidebar-primary-foreground")).toBeGreaterThanOrEqual(4.5);
+  expect(contrast("--agent-brand", "--primary-foreground")).toBeLessThan(4.5);
+  expect(resolve("--primary")).not.toBe(resolve("--agent-brand"));
 });

@@ -71,3 +71,10 @@ semantic palette tokens. `@theme inline` remains the utility-generation mapping;
 it does not replace scoped runtime aliases. Radius aliases are likewise scoped.
 The product integration directory owns overlay and locale seams, while installed
 assistant-ui vendor source permits mechanical import conversion only.
+
+Violet generic muted surfaces use `agent-brand-surface`; interaction tints increase
+from surface (6%) to hover (8%) to selected (10%). Product data-slot hooks retain
+selected intensity for User Bubble and active Thread items. The original A+ brand
+seed stays unchanged for identity/progress/tints; `agent-brand-solid` preserves its
+hue/chroma with lower lightness for white-text primary and sidebar-primary actions.
+The Violet contract tests compute WCAG contrast from the resolved token values.

@@ -6,9 +6,11 @@
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] {
   --radius: 0.625rem;
   --agent-brand: oklch(0.612313 0.217364 287.489976);
+  /* Preserve brand hue/chroma; solid text actions need >= 4.5:1 on white. */
+  --agent-brand-solid: oklch(0.58 0.217364 287.489976);
   --agent-brand-subtle: color-mix(in oklab, var(--background) 97%, var(--agent-brand));
   --agent-brand-surface: color-mix(in oklab, var(--background) 94%, var(--agent-brand));
-  --agent-brand-hover: color-mix(in oklab, var(--background) 96%, var(--agent-brand));
+  --agent-brand-hover: color-mix(in oklab, var(--background) 92%, var(--agent-brand));
   --agent-brand-selected: color-mix(in oklab, var(--background) 90%, var(--agent-brand));
   --agent-brand-border: color-mix(in oklab, var(--background) 82%, var(--agent-brand));
   --agent-brand-hover-border: color-mix(in oklab, var(--background) 78%, var(--agent-brand));
@@ -22,11 +24,11 @@
   --card-foreground: var(--foreground);
   --popover: oklch(1 0 0);
   --popover-foreground: var(--foreground);
-  --primary: var(--agent-brand);
+  --primary: var(--agent-brand-solid);
   --primary-foreground: oklch(1 0 0);
   --secondary: var(--agent-brand-subtle);
   --secondary-foreground: var(--foreground);
-  --muted: var(--agent-brand-selected);
+  --muted: var(--agent-brand-surface);
   --muted-foreground: oklch(0.50 0.016 285.938);
   --accent: var(--agent-brand-hover);
   --accent-foreground: var(--foreground);
@@ -41,7 +43,7 @@
   --chart-5: color-mix(in oklab, var(--foreground) 40%, var(--agent-brand));
   --sidebar: var(--background);
   --sidebar-foreground: var(--foreground);
-  --sidebar-primary: var(--agent-brand);
+  --sidebar-primary: var(--agent-brand-solid);
   --sidebar-primary-foreground: var(--primary-foreground);
   --sidebar-accent: var(--agent-brand-selected);
   --sidebar-accent-foreground: var(--foreground);

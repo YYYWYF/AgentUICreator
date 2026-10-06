@@ -1,4 +1,4 @@
-import { cp, mkdir, readdir, rm, copyFile } from "node:fs/promises";
+import { cp, mkdir, readdir, rm, copyFile, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -24,7 +24,11 @@ async function removeInternalDeclarations(root, relativeRoot = "") {
 }
 
 await mkdir(distRoot, { recursive: true });
-await copyFile(path.join(sourceRoot, "styles.css"), path.join(distRoot, "styles.css"));
+// Explicit source-file scans must follow the emitted JS in the publishable tree.
+const styles = await readFile(path.join(sourceRoot, "styles.css"), "utf8");
+await writeFile(path.join(distRoot, "styles.css"), styles.replace(
+  /(@source "\.\/[^"\n]+)\.tsx?(";)/gu, "$1.js$2",
+));
 await copyFile(
   path.join(sourceRoot, "preflight.scoped.css"),
   path.join(distRoot, "preflight.scoped.css"),

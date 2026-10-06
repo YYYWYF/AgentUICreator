@@ -26,3 +26,21 @@
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-plan"] [role="progressbar"] > span[aria-hidden="true"] {
   background-color: var(--agent-brand-active);
 }
+
+/* Product hooks keep selected surfaces stronger than generic muted surfaces. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_user-message-content"] {
+  background-color: var(--agent-brand-selected);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_thread-list-item"]:hover {
+  background-color: var(--agent-brand-hover);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_thread-list-item"]:is(:focus-visible, :has(:focus-visible), :has([data-state="open"])) {
+  background-color: var(--agent-brand-hover);
+}
+
+/* Selection wins over hover, keyboard focus and an open menu. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_thread-list-item"][data-active="true"] {
+  background-color: var(--agent-brand-selected);
+}

@@ -1,3 +1,5 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { AGENT_UI_THEME_PRESETS, getAgentUIThemeColorScheme, isAgentUITheme } from "../src/theme/theme-contract";
@@ -11,9 +13,11 @@ const requiredTokens = [
   "sidebar-primary", "sidebar-primary-foreground", "sidebar-accent", "sidebar-accent-foreground",
   "sidebar-border", "sidebar-ring",
 ].sort();
-const paletteUrl = new URL("../src/theme/shadcn-theme-presets.css", import.meta.url);
-const violetUrl = new URL("../src/theme/agent-ui-violet-theme.css", import.meta.url);
-const extensionUrl = new URL("../src/theme/agent-ui-theme-extensions.css", import.meta.url);
+// Avoid Vite treating static new URL(..., import.meta.url) calls as browser assets.
+const sourcePath = (relative: string) => path.resolve(path.dirname(fileURLToPath(import.meta.url)), relative);
+const paletteUrl = sourcePath("../src/theme/shadcn-theme-presets.css");
+const violetUrl = sourcePath("../src/theme/agent-ui-violet-theme.css");
+const extensionUrl = sourcePath("../src/theme/agent-ui-theme-extensions.css");
 
 describe("semantic theme contract", () => {
   it("keeps CSS and preset registry in parity with the complete upstream vocabulary", async () => {
@@ -51,7 +55,7 @@ describe("semantic theme contract", () => {
 
 it("keeps runtime semantic color aliases aligned with inline Tailwind mappings", async () => {
   const [styles, extension] = await Promise.all([
-    readFile(new URL("../src/styles.css", import.meta.url), "utf8"), readFile(extensionUrl, "utf8"),
+    readFile(sourcePath("../src/styles.css"), "utf8"), readFile(extensionUrl, "utf8"),
   ]);
   const inline = styles.split("@theme inline {")[1]!.split("@keyframes")[0]!;
   const aliases = [...inline.matchAll(/(--color-[\w-]+): var\((--[\w-]+)\);/gu)];

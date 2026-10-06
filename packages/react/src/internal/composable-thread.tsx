@@ -832,7 +832,7 @@ const UserMessage: FC = () => {
       <MessagePrimitive.Quote>{quote => <InternalConversationQuoteBlock text={quote.text} messageId={quote.messageId} />}</MessagePrimitive.Quote>
 
       <div className="aui-user-message-content-wrapper relative col-start-2 min-w-0">
-        <div className="aui-user-message-content peer bg-muted text-foreground rounded-xl px-4 py-2 wrap-break-word empty:hidden">
+        <div data-slot="aui_user-message-content" className="aui-user-message-content peer bg-muted text-foreground rounded-xl px-4 py-2 wrap-break-word empty:hidden">
           <MessagePrimitive.Parts
             components={{ Text: ConversationUserDirectiveText, File: UserFilePart, Image: UserImagePart }}
           />
