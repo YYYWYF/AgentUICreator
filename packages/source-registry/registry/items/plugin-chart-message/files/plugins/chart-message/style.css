@@ -34,7 +34,7 @@
   background: var(--muted);
 }
 
-.agent-ui-chart-message__bar > span {
+.agent-ui-chart-message [data-slot="chart-message-fill"] {
   display: block;
   height: 100%;
   border-radius: inherit;

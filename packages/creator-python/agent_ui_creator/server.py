@@ -1534,26 +1534,34 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                         "phase": "sidecar-skeleton",
                         "echo": True,
                     }
-                yield encode(
-                    TextMessageStartEvent(
-                        type=EventType.TEXT_MESSAGE_START,
-                        message_id=message_id,
-                        role="assistant",
-                    )
+                # Model rounds already streamed through the event bus. Keep
+                # synthetic/completion-gate responses, but do not repeat the final prose.
+                text_already_streamed = (
+                    agent_mode in {"minimal", "domain-read", "domain-write"}
+                    and event_bus.last_assistant_text is not None
+                    and event_bus.last_assistant_text.strip() == response_text.strip()
                 )
-                yield encode(
-                    TextMessageContentEvent(
-                        type=EventType.TEXT_MESSAGE_CONTENT,
-                        message_id=message_id,
-                        delta=response_text,
+                if not text_already_streamed:
+                    yield encode(
+                        TextMessageStartEvent(
+                            type=EventType.TEXT_MESSAGE_START,
+                            message_id=message_id,
+                            role="assistant",
+                        )
                     )
-                )
-                yield encode(
-                    TextMessageEndEvent(
-                        type=EventType.TEXT_MESSAGE_END,
-                        message_id=message_id,
+                    yield encode(
+                        TextMessageContentEvent(
+                            type=EventType.TEXT_MESSAGE_CONTENT,
+                            message_id=message_id,
+                            delta=response_text,
+                        )
                     )
-                )
+                    yield encode(
+                        TextMessageEndEvent(
+                            type=EventType.TEXT_MESSAGE_END,
+                            message_id=message_id,
+                        )
+                    )
                 yield encode(
                     RunFinishedEvent(
                         type=EventType.RUN_FINISHED,

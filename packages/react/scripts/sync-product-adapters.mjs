@@ -91,6 +91,7 @@ export function applyProductAdaptations(source, localPath) {
       ['              categoryId={cat.id}', '              categoryId={cat.id}\n              data-slot="composer-trigger-popover-category-item"'],
       ['<ComposerPrimitive.Unstable_TriggerPopoverBack className=', '<ComposerPrimitive.Unstable_TriggerPopoverBack data-slot="composer-trigger-popover-back" className='],
       ['                  item={item}', '                  data-slot="composer-trigger-popover-item"\n                  item={item}'],
+      ['<div className="py-1">', '<div data-slot="composer-trigger-popover-item-list" className="py-1">'],
       ['<Icon className="text-muted-foreground size-4" />', '<Icon data-slot="composer-trigger-popover-icon" className="text-muted-foreground size-4" />'],
       ['<Icon className="text-primary size-3.5" />', '<Icon data-slot="composer-trigger-popover-icon" className="text-primary size-3.5" />'],
     ]) installed = replaceExactlyOnce(installed, before, after, localPath);

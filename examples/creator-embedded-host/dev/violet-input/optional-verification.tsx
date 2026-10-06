@@ -1,0 +1,18 @@
+import "@agent-ui/react/styles.css";
+import { createRoot } from "react-dom/client";
+import { AgentUIRoot } from "@agent-ui/react";
+import { PluginServiceRuntime, PluginServiceRuntimeContext, createPluginRegistry } from "../../../../packages/source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+import { parseAppUIRuntimeModel } from "../../../../packages/project-control/src/framework/contracts/app-ui-runtime-model";
+import { frontendToolDialogDemoPlugin } from "../../../../packages/source-registry/registry/items/demo-frontend-tool-dialog/files/plugins/frontend-tool-dialog-demo/definition";
+import frontendToolFormDemoPlugin from "../../../../packages/source-registry/registry/items/demo-frontend-tool-form/files/plugins/frontend-tool-form-demo/definition";
+import { FrontendToolFormDemoPlugin } from "../../../../packages/source-registry/registry/items/demo-frontend-tool-form/files/plugins/frontend-tool-form-demo/index";
+import { FrontendToolDialogDemoPlugin } from "../../../../packages/source-registry/registry/items/demo-frontend-tool-dialog/files/plugins/frontend-tool-dialog-demo/index";
+import { createAgentUIGenerativeUI } from "../../../../packages/source-registry/registry/items/integration-generative-ui/files/integrations/generative-ui/index";
+import { generativeUIGallery } from "../../../../packages/project-control/tests/fixtures/generative-ui-gallery";
+const surface=new URLSearchParams(location.search).get("surface")||"form";
+const services=new PluginServiceRuntime();
+const registry=createPluginRegistry([frontendToolDialogDemoPlugin,frontendToolFormDemoPlugin]);
+services.reconcile(parseAppUIRuntimeModel({root:{type:"slot",id:"fixture",slotId:"fixture"},pluginInstances:{form:{id:"form",pluginId:"frontend-tool-form-demo",enabled:true,mount:{slotId:"fixture"}},dialog:{id:"dialog",pluginId:"frontend-tool-dialog-demo",enabled:true,mount:{slotId:"fixture"}}}}),registry,{sendMessage:async()=>{},resumeInterrupts:async()=>{},startNewConversation:async()=>{},abortRun:()=>{}});
+if(surface==="dialog") services.get<any>("demo.dialog")?.open({title:"Theme preferences",message:"Development fixture of the real frontend dialog plugin."});
+const Generative=createAgentUIGenerativeUI().present().render!;
+createRoot(document.getElementById("input")!).render(<AgentUIRoot theme="violet"><PluginServiceRuntimeContext.Provider value={services}><main className="agent-ui-conversation" data-fixture-surface={surface} style={{padding:48,background:"var(--background)",minHeight:"100vh"}}>{surface==="form"?<FrontendToolFormDemoPlugin />:surface==="dialog"?<FrontendToolDialogDemoPlugin />:<Generative type="tool-call" toolName="present" toolCallId="fixture" args={generativeUIGallery} argsText={JSON.stringify(generativeUIGallery)} result={{}} status={{type:"complete"}} addResult={()=>{}} resume={()=>{}} respondToApproval={async()=>{}} />}</main></PluginServiceRuntimeContext.Provider></AgentUIRoot>);

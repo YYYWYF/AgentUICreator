@@ -7,6 +7,9 @@ from uuid import uuid4
 from ag_ui.core import (
     BaseEvent,
     EventType,
+    TextMessageStartEvent,
+    TextMessageContentEvent,
+    TextMessageEndEvent,
     StepFinishedEvent,
     StepStartedEvent,
     ToolCallArgsEvent,
@@ -16,6 +19,9 @@ from ag_ui.core import (
 )
 
 from .runtime_events import (
+    AssistantTextStarted,
+    AssistantTextDelta,
+    AssistantTextFinished,
     CreatorRuntimeEvent,
     CreatorStepFinished,
     CreatorStepStarted,
@@ -29,6 +35,12 @@ def map_runtime_event(
     *,
     message_id_factory: Callable[[], str] = lambda: str(uuid4()),
 ) -> tuple[BaseEvent, ...]:
+    if isinstance(event, AssistantTextStarted):
+        return (TextMessageStartEvent(type=EventType.TEXT_MESSAGE_START, message_id=event.message_id, role="assistant"),)
+    if isinstance(event, AssistantTextDelta):
+        return (TextMessageContentEvent(type=EventType.TEXT_MESSAGE_CONTENT, message_id=event.message_id, delta=event.delta),)
+    if isinstance(event, AssistantTextFinished):
+        return (TextMessageEndEvent(type=EventType.TEXT_MESSAGE_END, message_id=event.message_id),)
     if isinstance(event, ToolInvocationStarted):
         return (
             ToolCallStartEvent(
@@ -58,6 +70,7 @@ def map_runtime_event(
                 tool_call_id=event.call_id,
                 content=event.result,
                 role="tool",
+                metadata={"status": event.status},
             ),
         )
     if isinstance(event, CreatorStepStarted):

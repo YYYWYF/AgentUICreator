@@ -1,0 +1,73 @@
+/* Creator-only shadcn utilities. No Tailwind preflight or Host build dependency. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme) prefix(cui);
+@import "tailwindcss/utilities.css" layer(utilities) prefix(cui);
+@import "tw-animate-css" prefix(cui);
+@source "./*.tsx";
+@source "../CreatorWorkbench.tsx";
+@source "../*.tsx";
+@source "../setup/*.tsx";
+
+@theme inline {
+  --color-background: var(--creator-background);
+  --color-foreground: var(--creator-foreground);
+  --color-card: var(--creator-background);
+  --color-card-foreground: var(--creator-foreground);
+  --color-popover: var(--creator-background);
+  --color-popover-foreground: var(--creator-foreground);
+  --color-primary: var(--creator-primary);
+  --color-primary-foreground: #fff;
+  --color-secondary: #f1f5f9;
+  --color-secondary-foreground: #475569;
+  --color-muted: #f8fafc;
+  --color-muted-foreground: #64748b;
+  --color-accent: #f1f5f9;
+  --color-accent-foreground: #1d2939;
+  --color-destructive: #b42318;
+  --color-border: #e2e8f0;
+  --color-input: #cbd5e1;
+  --color-ring: #2e90fa;
+}
+
+@layer base {
+  .creator-ui-scope {
+    --creator-background: #fff;
+    --creator-foreground: #1e293b;
+    --creator-primary: #2563eb;
+    color: var(--creator-foreground);
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    --cui-spacing: 4px;
+    --cui-text-xs: 12px;
+    --cui-text-xs--line-height: 1.5;
+    --cui-text-sm: 13px;
+    --cui-text-sm--line-height: 1.5;
+    --cui-text-base: 14px;
+    --cui-text-base--line-height: 1.5;
+    --cui-radius-md: 8px;
+    --cui-radius-lg: 10px;
+    --cui-radius-xl: 12px;
+  }
+  .creator-ui-scope,
+  .creator-ui-scope *,
+  .creator-ui-scope *::before,
+  .creator-ui-scope *::after {
+    box-sizing: border-box;
+    border: 0 solid var(--cui-color-border);
+  }
+  .creator-ui-scope :where(button) {
+    appearance: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-transform: none;
+    cursor: pointer;
+  }
+  .creator-ui-scope :where(button:disabled) { cursor: not-allowed; }
+  .creator-ui-scope :where(input, textarea, select) { font: inherit; }
+  .creator-ui-scope :where(svg) { display: block; vertical-align: middle; }
+  .creator-ui-scope :where(h2, h3, h4, p, pre) { margin: 0; }
+}

@@ -14,21 +14,22 @@ async function mount(counter = 0) {
   return { container, props };
 }
 async function click(container: HTMLElement, text: string) {
-  const button = [...container.querySelectorAll("button")].find(button => button.textContent === text)!;
+  const button = [...container.querySelectorAll("button")].find(button => (button.getAttribute("aria-label") ?? button.textContent) === text)!;
   await act(async () => button.click());
 }
 it("dismisses the same update set but manual checks still reveal it, and new sets notify again", async () => {
   const fetch = vi.fn(async () => new Response(JSON.stringify(inspection))); vi.stubGlobal("fetch", fetch);
   const { container, props } = await mount();
   expect(container.textContent).toContain("有 1 个插件可以更新");
-  await click(container, "×");
+  await click(container, "查看更新");
+  await act(async () => { (container.querySelector('[aria-label="关闭插件更新提示"]') as HTMLButtonElement).click(); });
   act(() => root.unmount());
   root = createRoot(container);
   await act(async () => root.render(<CreatorPluginUpdates {...props} checkRequest={0} />));
   expect(container.textContent).not.toContain("有 1 个插件可以更新");
   await act(async () => root.render(<CreatorPluginUpdates {...props} checkRequest={1} />));
   expect(container.textContent).toContain("插件更新");
-  await click(container, "← 返回");
+  await act(async () => { (container.querySelector('[aria-label="返回"]') as HTMLButtonElement).click(); });
   fetch.mockImplementation(async () => new Response(JSON.stringify({ ...inspection, fingerprint: "surface@0.0.3" })));
   act(() => root.unmount()); root = createRoot(container);
   await act(async () => root.render(<CreatorPluginUpdates {...props} checkRequest={1} />));
@@ -41,8 +42,11 @@ it("does not execute until the displayed dependency plan is explicitly confirmed
     return new Response(JSON.stringify(url.endsWith("/plan") ? { id: "plan", releaseVersion: "0.0.2", compatibility: "compatible", requiresMerge: false, blocked: false, fileCount: 8, issues: [], requestedPlugins: ["conversation-surface"], items: [{ itemId: "foundation/core", status: "managed", changed: true, provided: false, currentVersion: null, targetVersion: null, paths: ["index.ts"] }] } : inspection));
   }));
   const { container } = await mount();
-  await click(container, "查看更新"); await click(container, "查看升级计划");
+  await click(container, "查看更新"); await click(container, "查看更新内容");
   expect(container.textContent).toContain("foundation/core");
+  const region = container.querySelector<HTMLElement>('[aria-label="更新方案"]')!;
+  expect(region.closest(".creator-update-plugin-card")?.textContent).toContain("Conversation Surface");
+  expect(document.activeElement).toBe(region);
   expect(routes.some(route => route.endsWith("/execute"))).toBe(false);
   await click(container, "确认更新");
   expect(routes.filter(route => route.endsWith("/execute"))).toHaveLength(1);

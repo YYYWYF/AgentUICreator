@@ -10,12 +10,13 @@ export function shouldPresentStage(activity: CreatorStageActivity, debug: boolea
   return true;
 }
 
-export type CreatorReceiptPresentation = "none" | "mutation" | "validation";
+export type CreatorReceiptPresentation = "none" | "mutation" | "validation" | "outcome";
 
 export function classifyCreatorReceiptPresentation(
   receipt: CreatorRunReceipt,
 ): CreatorReceiptPresentation {
   if (receipt.files.length > 0) return "mutation";
+  if (receipt.pluginDeliveries?.length || receipt.verification?.status === "decision-no-project-change" || receipt.verification?.status === "failed") return "outcome";
   if (receipt.validations.length > 0) return "validation";
   return "none";
 }

@@ -18,7 +18,7 @@
     {
       "localPath": "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
       "upstreamInstalledSha256": "06c9b2b6fa021bbfe58ba226d4d5c6a46e448369aebf362d02f8b56032c69ba2",
-      "installedSha256": "f7e330b49d06efa8f70426efc1f30a41c18ca0a6463b73247f7666a7008a0137"
+      "installedSha256": "3fbea0f9367467730fbd578e7f19480ad251f185713ae35ec395bf9fbcfeaeb8"
     },
     {
       "localPath": "components/assistant-ui/elements/image.tsx",

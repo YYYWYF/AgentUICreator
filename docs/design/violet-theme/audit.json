@@ -1,0 +1,1494 @@
+[
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx",
+    "line": 39,
+    "category": "A upstream-owned",
+    "intent": "C status semantics; preserve unless evidence says otherwise",
+    "colors": [
+      "emerald-500"
+    ],
+    "source": "<CheckIcon aria-hidden className=\"size-3 shrink-0 text-emerald-500\" />"
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx",
+    "line": 48,
+    "category": "A upstream-owned",
+    "intent": "brand-like candidate",
+    "colors": [
+      "blue-500",
+      "blue-400"
+    ],
+    "source": "? \"animate-pulse bg-blue-500 dark:bg-blue-400\""
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+    "line": 167,
+    "category": "A upstream-owned",
+    "intent": "review in context",
+    "colors": [
+      "ring-black/10",
+      "ring-white/10"
+    ],
+    "source": "\"aui-attachment-tile bg-muted hover:after:bg-foreground/10 focus-visible:ring-ring/50 relative size-14 cursor-pointer overflow-hidden rounded-[calc(var(--composer-radius,1rem)-var(--composer-padding,8px))] transition-transform outline-none after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:ring-1 after:ring-black/10 after:transition-colors after:ring-inset focus-visible:ring-1 active:scale-[0.96] motion-reduce:transition-none dark:after:ring-white/10\","
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+    "line": 221,
+    "category": "A upstream-owned",
+    "intent": "review in context",
+    "colors": [
+      "bg-black/50",
+      "text-white",
+      "bg-black/70",
+      "text-white"
+    ],
+    "source": "className=\"aui-attachment-tile-remove absolute end-1 top-1 size-5 rounded-full bg-black/50! text-white after:absolute after:-inset-1.5 hover:bg-black/70! hover:text-white! active:scale-[0.96] motion-reduce:transition-none\""
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/image.tsx",
+    "line": 466,
+    "category": "A upstream-owned",
+    "intent": "review in context",
+    "colors": [
+      "bg-black/80"
+    ],
+    "source": "className=\"aui-image-zoom-overlay fade-in animate-in fixed inset-0 z-50 flex items-center justify-center bg-black/80 duration-200\""
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+    "line": 107,
+    "category": "A upstream-owned",
+    "intent": "C status semantics; preserve unless evidence says otherwise",
+    "colors": [
+      "emerald-500"
+    ],
+    "source": "? \"bg-emerald-500\""
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+    "line": 109,
+    "category": "A upstream-owned",
+    "intent": "C status semantics; preserve unless evidence says otherwise",
+    "colors": [
+      "amber-500",
+      "amber-400"
+    ],
+    "source": "? \"bg-amber-500 dark:bg-amber-400\""
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+    "line": 111,
+    "category": "A upstream-owned",
+    "intent": "C status semantics; preserve unless evidence says otherwise",
+    "colors": [
+      "red-600",
+      "red-400"
+    ],
+    "source": "? \"bg-red-600 dark:bg-red-400\""
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+    "line": 130,
+    "category": "A upstream-owned",
+    "intent": "C status semantics; preserve unless evidence says otherwise",
+    "colors": [
+      "amber-500",
+      "amber-400"
+    ],
+    "source": "<CircleAlertIcon className=\"size-3.5 shrink-0 text-amber-500 dark:text-amber-400\" />"
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+    "line": 132,
+    "category": "A upstream-owned",
+    "intent": "C status semantics; preserve unless evidence says otherwise",
+    "colors": [
+      "red-600",
+      "red-400"
+    ],
+    "source": "<XIcon className=\"size-3.5 shrink-0 text-red-600 dark:text-red-400\" />"
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+    "line": 136,
+    "category": "A upstream-owned",
+    "intent": "C status semantics; preserve unless evidence says otherwise",
+    "colors": [
+      "emerald-500"
+    ],
+    "source": "<CheckIcon className=\"size-3.5 shrink-0 text-emerald-500\" />"
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+    "line": 176,
+    "category": "A upstream-owned",
+    "intent": "brand-like candidate",
+    "colors": [
+      "emerald-500",
+      "blue-500",
+      "blue-400"
+    ],
+    "source": "(finished ? \"bg-emerald-500\" : \"bg-blue-500 dark:bg-blue-400\"),"
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/option-list.tsx",
+    "line": 253,
+    "category": "A upstream-owned",
+    "intent": "C status semantics; preserve unless evidence says otherwise",
+    "colors": [
+      "red-600",
+      "red-400"
+    ],
+    "source": "className=\"px-2 pb-1 text-xs break-words text-red-600 dark:text-red-400\""
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/retrieval-chunks.tsx",
+    "line": 85,
+    "category": "A upstream-owned",
+    "intent": "C status semantics; preserve unless evidence says otherwise",
+    "colors": [
+      "emerald-600",
+      "emerald-400"
+    ],
+    "source": "? \"text-emerald-600 dark:text-emerald-400\""
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/retrieval-chunks.tsx",
+    "line": 105,
+    "category": "A upstream-owned",
+    "intent": "brand-like candidate",
+    "colors": [
+      "blue-500/70",
+      "blue-400/70"
+    ],
+    "source": "className=\"block h-full rounded-full bg-blue-500/70 transition-[width] duration-500 dark:bg-blue-400/70\""
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
+    "line": 24,
+    "category": "A upstream-owned",
+    "intent": "brand-like candidate",
+    "colors": [
+      "blue-100",
+      "blue-700",
+      "blue-900/50",
+      "blue-300",
+      "blue-100/80"
+    ],
+    "source": "info: \"bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 [a&]:hover:bg-blue-100/80\","
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
+    "line": 26,
+    "category": "A upstream-owned",
+    "intent": "C status semantics; preserve unless evidence says otherwise",
+    "colors": [
+      "amber-100",
+      "amber-700",
+      "amber-900/50",
+      "amber-300",
+      "amber-100/80"
+    ],
+    "source": "\"bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300 [a&]:hover:bg-amber-100/80\","
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
+    "line": 28,
+    "category": "A upstream-owned",
+    "intent": "C status semantics; preserve unless evidence says otherwise",
+    "colors": [
+      "emerald-100",
+      "emerald-700",
+      "emerald-900/50",
+      "emerald-300",
+      "emerald-100/80"
+    ],
+    "source": "\"bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300 [a&]:hover:bg-emerald-100/80\","
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
+    "line": 30,
+    "category": "A upstream-owned",
+    "intent": "C status semantics; preserve unless evidence says otherwise",
+    "colors": [
+      "red-100",
+      "red-700",
+      "red-900/50",
+      "red-300",
+      "red-100/80"
+    ],
+    "source": "\"bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 [a&]:hover:bg-red-100/80\","
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.tsx",
+    "line": 62,
+    "category": "A upstream-owned",
+    "intent": "C status semantics; preserve unless evidence says otherwise",
+    "colors": [
+      "emerald-500"
+    ],
+    "source": "<CheckIcon className=\"fade-in zoom-in-90 animate-in size-3.5 shrink-0 text-emerald-500 duration-200\" />"
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.tsx",
+    "line": 84,
+    "category": "A upstream-owned",
+    "intent": "C status semantics; preserve unless evidence says otherwise",
+    "colors": [
+      "emerald-500/70"
+    ],
+    "source": "done ? \"bg-emerald-500/70\" : \"bg-foreground/60\","
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/surfaces.tsx",
+    "line": 43,
+    "category": "A upstream-owned",
+    "intent": "brand-like candidate",
+    "colors": [
+      "blue-500",
+      "blue-400"
+    ],
+    "source": "export const live = \"text-blue-500 dark:text-blue-400\";"
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/task-card.tsx",
+    "line": 35,
+    "category": "A upstream-owned",
+    "intent": "C status semantics; preserve unless evidence says otherwise",
+    "colors": [
+      "emerald-500"
+    ],
+    "source": "className={cn(\"size-3.5 shrink-0 text-emerald-500\", className)}"
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
+    "line": 536,
+    "category": "A upstream-owned",
+    "intent": "C status semantics; preserve unless evidence says otherwise",
+    "colors": [
+      "red-200"
+    ],
+    "source": "<ErrorPrimitive.Root className=\"aui-message-error-root border-destructive bg-destructive/10 text-destructive dark:bg-destructive/5 mt-2 rounded-md border p-3 text-sm dark:text-red-200\">"
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.tsx",
+    "line": 69,
+    "category": "A upstream-owned",
+    "intent": "C status semantics; preserve unless evidence says otherwise",
+    "colors": [
+      "emerald-500"
+    ],
+    "source": "<CheckIcon className=\"fade-in zoom-in-90 animate-in size-3.5 text-emerald-500 duration-200\" />"
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/ui/badge.tsx",
+    "line": 16,
+    "category": "A upstream-owned",
+    "intent": "review in context",
+    "colors": [
+      "text-white"
+    ],
+    "source": "\"bg-destructive focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40 [a&]:hover:bg-destructive/90 text-white\","
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/ui/dialog.tsx",
+    "line": 37,
+    "category": "A upstream-owned",
+    "intent": "review in context",
+    "colors": [
+      "bg-black/10"
+    ],
+    "source": "\"data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs\","
+  },
+  {
+    "file": "packages/react/src/internal/vendor/assistant-ui/components/ui/sheet.tsx",
+    "line": 34,
+    "category": "A upstream-owned",
+    "intent": "review in context",
+    "colors": [
+      "bg-black/10"
+    ],
+    "source": "\"fixed inset-0 z-50 bg-black/10 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-backdrop-filter:backdrop-blur-xs\","
+  },
+  {
+    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "line": 3,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "#16865b"
+    ],
+    "source": "--success: #16865b;"
+  },
+  {
+    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "line": 4,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.985 0 0)"
+    ],
+    "source": "--success-foreground: oklch(0.985 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "line": 5,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "#a86308"
+    ],
+    "source": "--warning: #a86308;"
+  },
+  {
+    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "line": 6,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.985 0 0)"
+    ],
+    "source": "--warning-foreground: oklch(0.985 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "line": 7,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "rgb(0 0 0 / 52%)"
+    ],
+    "source": "--overlay: rgb(0 0 0 / 52%);"
+  },
+  {
+    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "line": 11,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.765 0.177 163.223)"
+    ],
+    "source": "--success: oklch(0.765 0.177 163.223);"
+  },
+  {
+    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "line": 12,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.262 0.051 172.552)"
+    ],
+    "source": "--success-foreground: oklch(0.262 0.051 172.552);"
+  },
+  {
+    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "line": 13,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.828 0.189 84.429)"
+    ],
+    "source": "--warning: oklch(0.828 0.189 84.429);"
+  },
+  {
+    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "line": 14,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.279 0.077 45.635)"
+    ],
+    "source": "--warning-foreground: oklch(0.279 0.077 45.635);"
+  },
+  {
+    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "line": 56,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "rgb(0 0 0 / 10%)"
+    ],
+    "source": "--aui-shadow-md: 0 4px 12px rgb(0 0 0 / 10%);"
+  },
+  {
+    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "line": 57,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "rgb(0 0 0 / 18%)"
+    ],
+    "source": "--aui-shadow-lg: 0 16px 40px rgb(0 0 0 / 18%);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 4,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(1 0 0)"
+    ],
+    "source": "--background: oklch(1 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 5,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.141 0.005 285.823)"
+    ],
+    "source": "--foreground: oklch(0.141 0.005 285.823);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 6,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(1 0 0)"
+    ],
+    "source": "--card: oklch(1 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 7,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.141 0.005 285.823)"
+    ],
+    "source": "--card-foreground: oklch(0.141 0.005 285.823);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 8,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(1 0 0)"
+    ],
+    "source": "--popover: oklch(1 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 9,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.141 0.005 285.823)"
+    ],
+    "source": "--popover-foreground: oklch(0.141 0.005 285.823);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 10,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.21 0.006 285.885)"
+    ],
+    "source": "--primary: oklch(0.21 0.006 285.885);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 11,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.985 0 0)"
+    ],
+    "source": "--primary-foreground: oklch(0.985 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 12,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.967 0.001 286.375)"
+    ],
+    "source": "--secondary: oklch(0.967 0.001 286.375);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 13,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.21 0.006 285.885)"
+    ],
+    "source": "--secondary-foreground: oklch(0.21 0.006 285.885);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 14,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.967 0.001 286.375)"
+    ],
+    "source": "--muted: oklch(0.967 0.001 286.375);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 15,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.552 0.016 285.938)"
+    ],
+    "source": "--muted-foreground: oklch(0.552 0.016 285.938);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 16,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.967 0.001 286.375)"
+    ],
+    "source": "--accent: oklch(0.967 0.001 286.375);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 17,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.21 0.006 285.885)"
+    ],
+    "source": "--accent-foreground: oklch(0.21 0.006 285.885);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 18,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.577 0.245 27.325)"
+    ],
+    "source": "--destructive: oklch(0.577 0.245 27.325);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 19,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.92 0.004 286.32)"
+    ],
+    "source": "--border: oklch(0.92 0.004 286.32);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 20,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.92 0.004 286.32)"
+    ],
+    "source": "--input: oklch(0.92 0.004 286.32);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 21,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.705 0.015 286.067)"
+    ],
+    "source": "--ring: oklch(0.705 0.015 286.067);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 22,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.985 0 0)"
+    ],
+    "source": "--sidebar: oklch(0.985 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 23,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.141 0.005 285.823)"
+    ],
+    "source": "--sidebar-foreground: oklch(0.141 0.005 285.823);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 24,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.21 0.006 285.885)"
+    ],
+    "source": "--sidebar-primary: oklch(0.21 0.006 285.885);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 25,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.985 0 0)"
+    ],
+    "source": "--sidebar-primary-foreground: oklch(0.985 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 26,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.967 0.001 286.375)"
+    ],
+    "source": "--sidebar-accent: oklch(0.967 0.001 286.375);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 27,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.21 0.006 285.885)"
+    ],
+    "source": "--sidebar-accent-foreground: oklch(0.21 0.006 285.885);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 28,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.92 0.004 286.32)"
+    ],
+    "source": "--sidebar-border: oklch(0.92 0.004 286.32);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 29,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.705 0.015 286.067)"
+    ],
+    "source": "--sidebar-ring: oklch(0.705 0.015 286.067);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 31,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.871 0.006 286.286)"
+    ],
+    "source": "--chart-1: oklch(0.871 0.006 286.286);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 32,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.552 0.016 285.938)"
+    ],
+    "source": "--chart-2: oklch(0.552 0.016 285.938);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 33,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.442 0.017 285.786)"
+    ],
+    "source": "--chart-3: oklch(0.442 0.017 285.786);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 34,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.37 0.013 285.805)"
+    ],
+    "source": "--chart-4: oklch(0.37 0.013 285.805);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 35,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.274 0.006 286.033)"
+    ],
+    "source": "--chart-5: oklch(0.274 0.006 286.033);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 40,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.141 0.005 285.823)"
+    ],
+    "source": "--background: oklch(0.141 0.005 285.823);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 41,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.985 0 0)"
+    ],
+    "source": "--foreground: oklch(0.985 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 42,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.21 0.006 285.885)"
+    ],
+    "source": "--card: oklch(0.21 0.006 285.885);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 43,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.985 0 0)"
+    ],
+    "source": "--card-foreground: oklch(0.985 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 44,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.21 0.006 285.885)"
+    ],
+    "source": "--popover: oklch(0.21 0.006 285.885);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 45,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.985 0 0)"
+    ],
+    "source": "--popover-foreground: oklch(0.985 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 46,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.92 0.004 286.32)"
+    ],
+    "source": "--primary: oklch(0.92 0.004 286.32);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 47,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.21 0.006 285.885)"
+    ],
+    "source": "--primary-foreground: oklch(0.21 0.006 285.885);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 48,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.274 0.006 286.033)"
+    ],
+    "source": "--secondary: oklch(0.274 0.006 286.033);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 49,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.985 0 0)"
+    ],
+    "source": "--secondary-foreground: oklch(0.985 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 50,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.274 0.006 286.033)"
+    ],
+    "source": "--muted: oklch(0.274 0.006 286.033);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 51,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.705 0.015 286.067)"
+    ],
+    "source": "--muted-foreground: oklch(0.705 0.015 286.067);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 52,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.274 0.006 286.033)"
+    ],
+    "source": "--accent: oklch(0.274 0.006 286.033);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 53,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.985 0 0)"
+    ],
+    "source": "--accent-foreground: oklch(0.985 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 54,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.704 0.191 22.216)"
+    ],
+    "source": "--destructive: oklch(0.704 0.191 22.216);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 55,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(1 0 0 / 10%)"
+    ],
+    "source": "--border: oklch(1 0 0 / 10%);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 56,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(1 0 0 / 15%)"
+    ],
+    "source": "--input: oklch(1 0 0 / 15%);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 57,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.552 0.016 285.938)"
+    ],
+    "source": "--ring: oklch(0.552 0.016 285.938);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 58,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.21 0.006 285.885)"
+    ],
+    "source": "--sidebar: oklch(0.21 0.006 285.885);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 59,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.985 0 0)"
+    ],
+    "source": "--sidebar-foreground: oklch(0.985 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 60,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.488 0.243 264.376)"
+    ],
+    "source": "--sidebar-primary: oklch(0.488 0.243 264.376);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 61,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.985 0 0)"
+    ],
+    "source": "--sidebar-primary-foreground: oklch(0.985 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 62,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.274 0.006 286.033)"
+    ],
+    "source": "--sidebar-accent: oklch(0.274 0.006 286.033);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 63,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.985 0 0)"
+    ],
+    "source": "--sidebar-accent-foreground: oklch(0.985 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 64,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(1 0 0 / 10%)"
+    ],
+    "source": "--sidebar-border: oklch(1 0 0 / 10%);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 65,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.552 0.016 285.938)"
+    ],
+    "source": "--sidebar-ring: oklch(0.552 0.016 285.938);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 67,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.871 0.006 286.286)"
+    ],
+    "source": "--chart-1: oklch(0.871 0.006 286.286);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 68,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.552 0.016 285.938)"
+    ],
+    "source": "--chart-2: oklch(0.552 0.016 285.938);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 69,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.442 0.017 285.786)"
+    ],
+    "source": "--chart-3: oklch(0.442 0.017 285.786);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 70,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.37 0.013 285.805)"
+    ],
+    "source": "--chart-4: oklch(0.37 0.013 285.805);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 71,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.274 0.006 286.033)"
+    ],
+    "source": "--chart-5: oklch(0.274 0.006 286.033);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 76,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(1 0 0)"
+    ],
+    "source": "--background: oklch(1 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 77,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.141 0.005 285.823)"
+    ],
+    "source": "--foreground: oklch(0.141 0.005 285.823);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 78,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(1 0 0)"
+    ],
+    "source": "--card: oklch(1 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 79,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.141 0.005 285.823)"
+    ],
+    "source": "--card-foreground: oklch(0.141 0.005 285.823);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 80,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(1 0 0)"
+    ],
+    "source": "--popover: oklch(1 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 81,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.141 0.005 285.823)"
+    ],
+    "source": "--popover-foreground: oklch(0.141 0.005 285.823);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 82,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.491 0.27 292.581)"
+    ],
+    "source": "--primary: oklch(0.491 0.27 292.581);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 83,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.969 0.016 293.756)"
+    ],
+    "source": "--primary-foreground: oklch(0.969 0.016 293.756);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 84,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.967 0.001 286.375)"
+    ],
+    "source": "--secondary: oklch(0.967 0.001 286.375);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 85,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.21 0.006 285.885)"
+    ],
+    "source": "--secondary-foreground: oklch(0.21 0.006 285.885);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 86,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.967 0.001 286.375)"
+    ],
+    "source": "--muted: oklch(0.967 0.001 286.375);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 87,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.552 0.016 285.938)"
+    ],
+    "source": "--muted-foreground: oklch(0.552 0.016 285.938);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 88,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.967 0.001 286.375)"
+    ],
+    "source": "--accent: oklch(0.967 0.001 286.375);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 89,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.21 0.006 285.885)"
+    ],
+    "source": "--accent-foreground: oklch(0.21 0.006 285.885);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 90,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.577 0.245 27.325)"
+    ],
+    "source": "--destructive: oklch(0.577 0.245 27.325);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 91,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.92 0.004 286.32)"
+    ],
+    "source": "--border: oklch(0.92 0.004 286.32);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 92,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.92 0.004 286.32)"
+    ],
+    "source": "--input: oklch(0.92 0.004 286.32);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 93,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.705 0.015 286.067)"
+    ],
+    "source": "--ring: oklch(0.705 0.015 286.067);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 94,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.811 0.111 293.571)"
+    ],
+    "source": "--chart-1: oklch(0.811 0.111 293.571);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 95,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.606 0.25 292.717)"
+    ],
+    "source": "--chart-2: oklch(0.606 0.25 292.717);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 96,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.541 0.281 293.009)"
+    ],
+    "source": "--chart-3: oklch(0.541 0.281 293.009);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 97,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.491 0.27 292.581)"
+    ],
+    "source": "--chart-4: oklch(0.491 0.27 292.581);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 98,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.432 0.232 292.759)"
+    ],
+    "source": "--chart-5: oklch(0.432 0.232 292.759);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 99,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.985 0 0)"
+    ],
+    "source": "--sidebar: oklch(0.985 0 0);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 100,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.141 0.005 285.823)"
+    ],
+    "source": "--sidebar-foreground: oklch(0.141 0.005 285.823);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 101,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.541 0.281 293.009)"
+    ],
+    "source": "--sidebar-primary: oklch(0.541 0.281 293.009);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 102,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.969 0.016 293.756)"
+    ],
+    "source": "--sidebar-primary-foreground: oklch(0.969 0.016 293.756);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 103,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.967 0.001 286.375)"
+    ],
+    "source": "--sidebar-accent: oklch(0.967 0.001 286.375);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 104,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.21 0.006 285.885)"
+    ],
+    "source": "--sidebar-accent-foreground: oklch(0.21 0.006 285.885);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 105,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.92 0.004 286.32)"
+    ],
+    "source": "--sidebar-border: oklch(0.92 0.004 286.32);"
+  },
+  {
+    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "line": 106,
+    "category": "E canonical token declaration (expected)",
+    "intent": "review in context",
+    "colors": [
+      "oklch(0.705 0.015 286.067)"
+    ],
+    "source": "--sidebar-ring: oklch(0.705 0.015 286.067);"
+  },
+  {
+    "file": "packages/source-registry/registry/items/demo-frontend-tool-dialog/files/plugins/frontend-tool-dialog-demo/styles.css",
+    "line": 2,
+    "category": "B first-party",
+    "intent": "review in context",
+    "colors": [
+      "rgb(0 0 0 / 40%)"
+    ],
+    "source": ".frontend-tool-dialog-backdrop { position: fixed; inset: 0; z-index: 200; background: rgb(0 0 0 / 40%); }"
+  },
+  {
+    "file": "packages/source-registry/registry/items/demo-frontend-tool-dialog/files/plugins/frontend-tool-dialog-demo/styles.css",
+    "line": 3,
+    "category": "B first-party",
+    "intent": "review in context",
+    "colors": [
+      "rgb(0 0 0 / 25%)"
+    ],
+    "source": ".frontend-tool-dialog-popup { position: fixed; z-index: 201; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(420px, calc(100vw - 32px)); border-radius: 12px; padding: 24px; background: Canvas; color: CanvasText; box-shadow: 0 12px 48px rgb(0 0 0 / 25%); }"
+  },
+  {
+    "file": "packages/source-registry/registry/items/foundation-core-runtime/files/runtime/application/application.css",
+    "line": 11,
+    "category": "B first-party",
+    "intent": "review in context",
+    "colors": [
+      "#f5f7fa"
+    ],
+    "source": "background: var(--app-ui-application-gate-background, #f5f7fa);"
+  },
+  {
+    "file": "packages/source-registry/registry/items/foundation-core-runtime/files/runtime/application/application.css",
+    "line": 26,
+    "category": "B first-party",
+    "intent": "review in context",
+    "colors": [
+      "rgb(240 68 56 / 34%)"
+    ],
+    "source": "border: 1px solid var(--app-ui-plugin-error-border, rgb(240 68 56 / 34%));"
+  },
+  {
+    "file": "packages/source-registry/registry/items/foundation-core-runtime/files/runtime/application/application.css",
+    "line": 28,
+    "category": "B first-party",
+    "intent": "review in context",
+    "colors": [
+      "#b42318"
+    ],
+    "source": "color: var(--app-ui-plugin-error-text, #b42318);"
+  },
+  {
+    "file": "packages/source-registry/registry/items/foundation-core-runtime/files/runtime/application/application.css",
+    "line": 29,
+    "category": "B first-party",
+    "intent": "review in context",
+    "colors": [
+      "#fff6f5"
+    ],
+    "source": "background: var(--app-ui-plugin-error-background, #fff6f5);"
+  },
+  {
+    "file": "packages/source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/plugin-runtime.css",
+    "line": 92,
+    "category": "B first-party",
+    "intent": "review in context",
+    "colors": [
+      "rgb(240 68 56 / 34%)"
+    ],
+    "source": "var(--app-ui-plugin-error-border, rgb(240 68 56 / 34%));"
+  },
+  {
+    "file": "packages/source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/plugin-runtime.css",
+    "line": 94,
+    "category": "B first-party",
+    "intent": "review in context",
+    "colors": [
+      "#b42318"
+    ],
+    "source": "color: var(--app-ui-plugin-error-text, #b42318);"
+  },
+  {
+    "file": "packages/source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/plugin-runtime.css",
+    "line": 97,
+    "category": "B first-party",
+    "intent": "review in context",
+    "colors": [
+      "#fff6f5",
+      "#fef3f2"
+    ],
+    "source": "linear-gradient(135deg, #fff6f5, #fef3f2)"
+  },
+  {
+    "file": "packages/source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/plugin-runtime.css",
+    "line": 120,
+    "category": "B first-party",
+    "intent": "review in context",
+    "colors": [
+      "rgb(0 0 0 / 28%)"
+    ],
+    "source": "box-shadow: 0 1rem 3rem rgb(0 0 0 / 28%);"
+  },
+  {
+    "file": "packages/source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/plugin-runtime.css",
+    "line": 131,
+    "category": "B first-party",
+    "intent": "review in context",
+    "colors": [
+      "#fff"
+    ],
+    "source": "color: #fff;"
+  },
+  {
+    "file": "packages/source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/plugin-runtime.css",
+    "line": 132,
+    "category": "B first-party",
+    "intent": "review in context",
+    "colors": [
+      "#d92d20"
+    ],
+    "source": "background: var(--app-ui-plugin-error-icon, #d92d20);"
+  },
+  {
+    "file": "packages/source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/plugin-runtime.css",
+    "line": 143,
+    "category": "B first-party",
+    "intent": "review in context",
+    "colors": [
+      "#912018"
+    ],
+    "source": "color: var(--app-ui-plugin-error-identity, #912018);"
+  },
+  {
+    "file": "packages/source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/plugin-runtime.css",
+    "line": 171,
+    "category": "B first-party",
+    "intent": "review in context",
+    "colors": [
+      "rgb(255 255 255 / 10%)"
+    ],
+    "source": "background: rgb(255 255 255 / 10%);"
+  }
+]

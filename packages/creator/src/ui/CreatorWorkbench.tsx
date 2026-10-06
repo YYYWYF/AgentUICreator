@@ -1,5 +1,6 @@
 import {
   memo,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -11,6 +12,12 @@ import {
 } from "react";
 import { MessageSchema, type Message } from "@ag-ui/client";
 import ReactMarkdown from "react-markdown";
+import { AlertCircle, ArrowUp, Bot, ChevronDown, FolderOpen, PanelsTopLeft, RotateCcw, RefreshCw, Settings, Sparkles, Square, UserRound, X } from "lucide-react";
+import { Button } from "./components/button.js";
+import { Badge } from "./components/badge.js";
+import { Input } from "./components/input.js";
+import { Textarea } from "./components/textarea.js";
+import { Popover, PopoverContent, PopoverTrigger } from "./components/popover.js";
 import remarkGfm from "remark-gfm";
 
 import "./creator-workbench.css";
@@ -62,6 +69,33 @@ const CREATOR_PANEL_MIN_WIDTH = 280;
 const CREATOR_PANEL_MAX_WIDTH = 720;
 const CREATOR_PREVIEW_MIN_WIDTH = 320;
 const CREATOR_PANEL_KEYBOARD_STEP = 16;
+
+function CreatorSettings({ busy, onCheckUpdates }: { busy: boolean; onCheckUpdates: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+  const anchor = useRef<HTMLDivElement>(null);
+  useEffect(() => { setPortalContainer(anchor.current?.closest<HTMLElement>(".creator-panel") ?? null); }, []);
+  return (
+    <div className="creator-settings creator-ui-scope" ref={anchor}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="ghost" size="icon-sm" aria-label="设置" title="设置">
+            <Settings aria-hidden="true" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent container={portalContainer} align="end" className="cui:w-44 cui:p-1.5" aria-label="设置">
+          <Button variant="ghost" size="sm" className="cui:w-full cui:justify-start" disabled={busy} onClick={() => {
+            setOpen(false);
+            onCheckUpdates();
+          }}>
+            <RefreshCw aria-hidden="true" />
+            检查更新
+          </Button>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
 
 function clampCreatorPanelWidth(width: number): number {
   const availableWidth = Math.max(
@@ -129,6 +163,27 @@ type CreatorConversationItem =
   | CreatorToolActivity
   | CreatorStageActivity
   | CreatorQuestionActivity;
+
+interface CreatorToolGroup {
+  kind: "tool-group";
+  id: string;
+  activities: CreatorToolActivity[];
+}
+
+function presentConversationItems(items: CreatorConversationItem[], debug: boolean): (Exclude<CreatorConversationItem, CreatorToolActivity> | CreatorToolGroup)[] {
+  const presented: (Exclude<CreatorConversationItem, CreatorToolActivity> | CreatorToolGroup)[] = [];
+  for (const item of items) {
+    if (item.kind === "stage" && !shouldPresentStage(item, debug)) continue;
+    if (item.kind !== "tool") {
+      presented.push(item);
+      continue;
+    }
+    const previous = presented.at(-1);
+    if (previous?.kind === "tool-group") previous.activities.push(item);
+    else presented.push({ kind: "tool-group", id: `tools-${item.id}`, activities: [item] });
+  }
+  return presented;
+}
 
 const hasPendingCreatorQuestion = (items: CreatorConversationItem[]) =>
   items.some(item => item.kind === "question" && (item.status === "pending" || item.status === "submitting"));
@@ -533,6 +588,20 @@ function CreatorValidationSections({ validations, showHeading = true }: { valida
   );
 }
 
+function CreatorPluginDeliveryReports({ receipt }: { receipt: CreatorRunReceipt }) {
+  return <>{receipt.pluginDeliveries?.map(report => (
+    <div className="creator-receipt-section creator-delivery-report" key={report.pluginId}>
+      <h2>插件交付：{report.pluginId}</h2>
+      <p>{report.delivery.status === "completed" ? "交付完成" : report.delivery.status === "statically-verified" ? "静态检查通过，Runtime 与浏览器未验证" : report.delivery.status === "blocked" ? "交付阻塞" : "交付进行中"}</p>
+      <div className="creator-delivery-checks">{Object.entries(report.verification).map(([name, status]) => (
+        <span key={name} title={`${name}: ${status}`}>{({ static: "静态检查", runtime: "运行验证", geometry: "布局验证" } as Record<string, string>)[name] ?? name}：{({ pass: "通过", "not-passed": "未通过", "not-run": "未验证", failed: "失败" } as Record<string, string>)[status] ?? creatorDiagnosticValue(status)}</span>
+      ))}</div>
+      {report.delivery.blockers.map(blocker => <p className="creator-delivery-blocker" key={blocker}>{blocker}</p>)}
+      <details><summary>交付详情</summary><p>方案：{report.decision.type} · 授权：{report.authorization.status} · 阶段：{report.delivery.lastSuccessfulStage}</p></details>
+    </div>
+  ))}</>;
+}
+
 function CreatorMutationReceipt({ receipt, debug, onUndo, onReapply, undoBusy, reapplyBusy }: { receipt: CreatorRunReceipt; debug: boolean; onUndo?: ((runId: string) => void) | undefined; onReapply?: ((runId: string) => void) | undefined; undoBusy?: boolean | undefined; reapplyBusy?: boolean | undefined }) {
   const verification = receipt.verification;
   const verificationPassed =
@@ -573,17 +642,7 @@ function CreatorMutationReceipt({ receipt, debug, onUndo, onReapply, undoBusy, r
         </span>
       </header>
 
-      {receipt.pluginDeliveries?.map((report) => (
-        <div className="creator-receipt-section" key={report.pluginId}>
-          <h2>插件交付：{report.pluginId}</h2>
-          <p>{report.delivery.status === "completed" ? "交付完成" : report.delivery.status === "statically-verified" ? "静态检查通过，Runtime 与浏览器未验证" : report.delivery.status === "blocked" ? "交付阻塞" : "交付进行中"} · {report.delivery.lastSuccessfulStage}</p>
-          <p>方案：{report.decision.type} · 授权：{report.authorization.status}</p>
-          {Object.entries(report.verification).map(([name, status]) => (
-            <span key={name}>{name}: {status}{" "}</span>
-          ))}
-          {report.delivery.blockers.map((blocker) => <p key={blocker}>{blocker}</p>)}
-        </div>
-      ))}
+      <CreatorPluginDeliveryReports receipt={receipt} />
       {receipt.transaction === undefined ? null : (
         <div className="creator-receipt-section">
           <h2>修改操作</h2>
@@ -606,14 +665,14 @@ function CreatorMutationReceipt({ receipt, debug, onUndo, onReapply, undoBusy, r
             {receipt.transaction.reapplied ? " 本次再次应用尚未重新验证。" : null}
           </div>
           {receipt.transaction.undoable && onUndo !== undefined ? (
-            <button className="creator-receipt-action" type="button" disabled={undoBusy} onClick={() => onUndo(receipt.transaction!.runId)}>
+            <Button size="sm" variant="outline" className="creator-receipt-action" type="button" disabled={undoBusy} onClick={() => onUndo(receipt.transaction!.runId)}>
               {undoBusy ? "正在撤销…" : "撤销本次修改"}
-            </button>
+            </Button>
           ) : null}
           {receipt.transaction.undone && receipt.transaction.reapplyable && onReapply !== undefined ? (
-            <button className="creator-receipt-action creator-receipt-action--reapply" type="button" disabled={reapplyBusy} onClick={() => onReapply(receipt.transaction!.runId)}>
+            <Button size="sm" variant="outline" className="creator-receipt-action creator-receipt-action--reapply" type="button" disabled={reapplyBusy} onClick={() => onReapply(receipt.transaction!.runId)}>
               {reapplyBusy ? "正在再次应用…" : "再次应用本次修改"}
-            </button>
+            </Button>
           ) : null}
         </div>
       )}
@@ -682,6 +741,15 @@ function CreatorRunReceiptPresentation({ receipt, debug, onUndo, onReapply, undo
   if (presentation === "mutation") {
     return <CreatorMutationReceipt receipt={receipt} debug={debug} onUndo={onUndo} onReapply={onReapply} undoBusy={undoBusy} reapplyBusy={reapplyBusy} />;
   }
+  if (presentation === "outcome") {
+    return <section className="creator-receipt" aria-label="处理结果">
+      <header className="creator-receipt-header"><strong>处理结果</strong><span>{receipt.files.length} 个文件</span></header>
+      {receipt.verification ? <div className="creator-receipt-section"><p>{verificationStatusLabels[receipt.verification.status]}</p></div> : null}
+      <CreatorPluginDeliveryReports receipt={receipt} />
+      <CreatorValidationSections validations={receipt.validations} />
+      {debug && receipt.diagnosticLog ? <CreatorRunDiagnostics diagnosticLog={receipt.diagnosticLog} /> : null}
+    </section>;
+  }
   if (presentation === "validation") {
     return (
       <section className="creator-receipt" aria-label="验证结果">
@@ -707,6 +775,24 @@ function CreatorRunReceiptPresentation({ receipt, debug, onUndo, onReapply, undo
   return null;
 }
 
+function CreatorToolGroupCard({ activities }: { activities: CreatorToolActivity[] }) {
+  const pending = activities.filter(activity => activity.status === "preparing" || activity.status === "running");
+  const failed = activities.filter(activity => activity.status === "failed").length;
+  return <details className="creator-tool-group" aria-label="工具执行详情">
+    <summary>
+      <ChevronDown aria-hidden="true" className="creator-tool-group-chevron" />
+      <strong>工具调用 · {activities.length} 次</strong>
+      <span className={`creator-tool-group-status${failed ? " creator-tool-group-status--failed" : ""}`}>
+        {pending.length ? <><RefreshCw aria-hidden="true" className="creator-tool-group-spinner" />执行中</> : failed ? `${failed} 次失败` : "已完成"}
+        {pending.length && failed ? ` · ${failed} 次失败` : null}
+      </span>
+    </summary>
+    <div className="creator-tool-group-body">
+      {activities.map(activity => <CreatorToolActivityCard activity={activity} key={activity.id} />)}
+    </div>
+  </details>;
+}
+
 function CreatorToolActivityCard({
   activity,
 }: {
@@ -720,7 +806,7 @@ function CreatorToolActivityCard({
       <header>
         <span className="creator-tool-activity-dot" aria-hidden="true" />
         <strong>{activity.name}</strong>
-        <small>{toolStatusLabels[activity.status]}</small>
+        <Badge variant="secondary" className="creator-tool-status">{toolStatusLabels[activity.status]}</Badge>
       </header>
 
       {activity.arguments === "" ? null : (
@@ -1010,6 +1096,11 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
   const [undoRunId, setUndoRunId] = useState<string | null>(null);
   const [updateCheckRequest, setUpdateCheckRequest] = useState(0);
   const [updatePageOpen, setUpdatePageOpen] = useState(false);
+  const handleUpdatePageChange = useCallback((open: boolean) => {
+    setUpdatePageOpen(open);
+    if (open) setMockPanelOpen(false);
+  }, []);
+  const [updateNotificationTarget, setUpdateNotificationTarget] = useState<HTMLDivElement | null>(null);
   const [reapplyRunId, setReapplyRunId] = useState<string | null>(null);
   const [runAccepted, setRunAccepted] = useState(false);
   const [workspacePicking, setWorkspacePicking] = useState(false);
@@ -1117,12 +1208,15 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
   }, []);
 
   useEffect(() => {
-    if (!showWorkspaceSelector || workspaceState?.status === "none") return;
+    if (!showWorkspaceSelector) return;
     const closeOnOutsideClick = (event: globalThis.PointerEvent) => {
       if (!workspaceControl.current?.contains(event.target as Node)) setShowWorkspaceSelector(false);
     };
     const closeOnEscape = (event: globalThis.KeyboardEvent) => {
-      if (event.key === "Escape") setShowWorkspaceSelector(false);
+      if (event.key === "Escape") {
+        setShowWorkspaceSelector(false);
+        workspaceControl.current?.querySelector<HTMLButtonElement>(".creator-workspace-trigger")?.focus();
+      }
     };
     document.addEventListener("pointerdown", closeOnOutsideClick);
     document.addEventListener("keydown", closeOnEscape);
@@ -1599,7 +1693,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     }
   };
 
-  const startNewConversation = () => {
+  const clearConversation = () => {
     if (isRunning || hasPendingCreatorQuestion(itemsRef.current) ||
       !((workspaceState?.status === "ready") && workspaceState.runtime.status === "ready")) {
       return;
@@ -1828,7 +1922,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
       )}
 
       {isOpen ? (
-        <aside className="creator-panel" aria-label="Creator" ref={panel}>
+        <aside className="creator-panel creator-ui-scope" aria-label="Creator" ref={panel}>
           {layout === "dock" ? null : <div
             aria-label="调整 Creator 面板宽度"
             aria-orientation="vertical"
@@ -1841,52 +1935,41 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
             title="拖动调整宽度，双击恢复默认"
           />}
           <header className="creator-panel-header">
-            <div>
-              <span>仅用于开发</span>
-              <h1>
-                Creator
-              </h1>
+            <div className="creator-panel-brand" title="Creator · 仅用于开发">
+              <div className="creator-panel-brand-icon"><PanelsTopLeft aria-hidden="true" /></div>
+              <h1>Creator</h1>
+              <div className="creator-header-updates" ref={setUpdateNotificationTarget} />
             </div>
-            <div className="creator-panel-header-actions">
-              {workspaceState?.status === "ready" ? <details><summary>设置 / 更多</summary><button type="button" disabled={isRunning || questionPending} onClick={() => setUpdateCheckRequest(value => value + 1)}>检查更新</button></details> : null}
-              <button
-                className="creator-panel-mock-toggle"
+            <div className="creator-panel-header-actions creator-ui-scope">
+              <Button variant="secondary" size="sm"
+                className="creator-header-mock"
                 data-creator-mock-entry=""
                 aria-controls="creator-mock-panel"
                 aria-expanded={mockPanelOpen}
                 aria-label={mockPanelOpen ? "关闭 Mock Agent 面板" : "打开 Mock Agent 面板"}
-                onClick={() => setMockPanelOpen((open) => !open)}
+                onClick={() => { setMockPanelOpen((open) => !open); setUpdatePageOpen(false); }}
                 type="button"
               >
-                Mock Agent
-                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
-              </button>
-              <span title={questionPending ? pendingQuestionHint : undefined}><button
-                aria-label="新建 Creator 会话"
-                className="creator-panel-new-conversation"
-                disabled={isRunning || !creatorRuntimeReady || questionPending}
-                onClick={startNewConversation}
-                title={questionPending ? pendingQuestionHint : "清空上下文并新建会话"}
-                type="button"
-              >
-                新建会话
-              </button></span>
+                <span className="creator-mock-label">Mock<span className="creator-mock-label-suffix"> Agent</span></span>
+                <ChevronDown aria-hidden="true" className={mockPanelOpen ? "cui:rotate-180" : undefined} />
+              </Button>
               <div
                 className="creator-panel-dev-studio-dock"
                 data-slot="agent-ui-dev-studio-dock"
               />
-              {layout === "dock" ? null : <button
+              {layout === "dock" ? null : <Button variant="ghost" size="icon-sm"
                 aria-label="关闭 Creator 面板"
                 onClick={() => setIsOpen(false)}
                 type="button"
               >
-                ×
-              </button>}
+                <X aria-hidden="true" />
+              </Button>}
+              {workspaceState?.status === "ready" ? <CreatorSettings busy={isRunning || questionPending} onCheckUpdates={() => setUpdateCheckRequest(value => value + 1)} /> : null}
             </div>
           </header>
 
           <div className="creator-panel-body">
-            {workspaceState?.status === "ready" ? <CreatorPluginUpdates key={workspaceState.workspace.id} workspaceId={workspaceState.workspace.id} busy={isRunning || questionPending} modelReady={creatorRuntimeReady} checkRequest={updateCheckRequest} onPageChange={setUpdatePageOpen} onModelMerge={prompt => { void submit(undefined, undefined, prompt); }} /> : null}
+            {workspaceState?.status === "ready" ? <CreatorPluginUpdates key={workspaceState.workspace.id} workspaceId={workspaceState.workspace.id} busy={isRunning || questionPending} modelReady={creatorRuntimeReady} checkRequest={updateCheckRequest} notificationTarget={updateNotificationTarget} pageOpen={updatePageOpen} onPageChange={handleUpdatePageChange} onModelMerge={prompt => { void submit(undefined, undefined, prompt); }} /> : null}
             {mockPanelOpen ? <MockServicePanel {...(workspaceState && workspaceState.status !== "none" ? { projectId: workspaceState.workspace.id } : {})} /> : null}
             <div
               className="creator-panel-dev-studio-panel"
@@ -1904,28 +1987,35 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                   sourceRoot={workspaceState.project.sourceRoot} />
               ) : null}
               {workspaceState?.status === "broken" ? (
-                <div className="creator-panel-empty"><strong>项目配置需要修复</strong>{workspaceState.issues.map((issue) => <p key={issue.code}>{issue.code}: {issue.message}</p>)}</div>
+                <div className="creator-panel-empty creator-panel-empty--error"><AlertCircle aria-hidden="true" /><strong>项目配置需要修复</strong>{workspaceState.issues.map((issue) => <p key={issue.code}>{issue.message}</p>)}
+                  <Button size="sm" variant="outline" type="button" disabled={workspaceBusy} onClick={() => void refreshWorkspace()}><RefreshCw aria-hidden="true" />重新检查项目</Button>
+                  <details><summary>查看技术详情</summary>{workspaceState.issues.map(issue => <code key={issue.code}>{issue.code}</code>)}</details>
+                </div>
               ) : (workspaceState?.status === "ready") && workspaceState.runtime.status === "unavailable" ? (
-                <div className="creator-panel-empty"><strong>Agent UI 项目已识别，但 Creator Runtime 暂不可用。</strong><p>{workspaceState.runtime.code}: {workspaceState.runtime.message}</p></div>
+                <div className="creator-panel-empty creator-panel-empty--error"><AlertCircle aria-hidden="true" /><strong>Creator 服务暂不可用</strong><p>{workspaceState.runtime.message}</p>
+                  <Button size="sm" variant="outline" type="button" disabled={workspaceBusy} onClick={() => void refreshWorkspace()}><RefreshCw aria-hidden="true" />重新连接</Button>
+                  <details><summary>查看技术详情</summary><code>{workspaceState.runtime.code}</code></details>
+                </div>
               ) : workspaceState?.status !== "ready" ? (
-                <div className="creator-panel-empty"><strong>选择项目后才能使用 Creator。</strong></div>
+                <div className="creator-panel-empty"><FolderOpen aria-hidden="true" /><strong>{workspaceState === null ? "正在读取项目…" : "从你的前端项目开始"}</strong><p>选择项目后，描述你想检查、设计或修改的 Agent UI。</p></div>
               ) : items.filter(
                 (item) => item.kind !== "stage" || shouldPresentStage(item, creatorDebug),
               ).length === 0 ? (
                 <div className="creator-panel-empty">
+                  <Sparkles aria-hidden="true" />
                   <strong>告诉 Creator 你想了解、检查或修改什么。</strong>
                   <p>可以分析当前 Agent UI、设计修改方案，或直接描述你想要的效果。</p>
                 </div>
               ) : (
-                items.map((item) =>
+                presentConversationItems(items, creatorDebug).map((item) =>
                   item.kind === "stage" ? (
                     <CreatorStageActivityCard
                       activity={item}
                       debug={creatorDebug}
                       key={item.id}
                     />
-                  ) : item.kind === "tool" ? (
-                    <CreatorToolActivityCard activity={item} key={item.id} />
+                  ) : item.kind === "tool-group" ? (
+                    <CreatorToolGroupCard activities={item.activities} key={item.id} />
                   ) : item.kind === "question" ? (
                     <CreatorQuestionCard activity={item} key={item.id}
                       onAnswer={answers => { void submit(undefined, { question: item, answers }); }}
@@ -1935,7 +2025,10 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                       className={`creator-panel-message creator-panel-message--${item.role}`}
                       key={item.id}
                     >
-                      <span>{roleLabels[item.role]}</span>
+                      <div className="creator-message-meta">
+                        {item.role === "assistant" ? <Bot aria-hidden="true" /> : item.role === "user" ? <UserRound aria-hidden="true" /> : <AlertCircle aria-hidden="true" />}
+                        <span>{roleLabels[item.role]}</span>
+                      </div>
                       {item.role === "assistant" ? (
                         <CreatorMarkdown content={item.content} />
                       ) : (
@@ -1968,7 +2061,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
 
           <div className="creator-panel-footer">
             <div className="creator-workspace-control" ref={workspaceControl}>
-              <button
+              <Button size="sm" variant="outline"
                 aria-controls="creator-workspace-menu"
                 aria-expanded={showWorkspaceSelector}
                 aria-label={workspaceState !== null && workspaceState.status !== "none"
@@ -1996,18 +2089,29 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                 <svg aria-hidden="true" className="creator-workspace-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="m6 9 6 6 6-6" />
                 </svg>
-              </button>
+              </Button>
               {showWorkspaceSelector ? (
                 <section className="creator-workspace-menu" id="creator-workspace-menu" aria-label="选择前端项目文件夹">
+                  <header className="creator-workspace-menu-header">
+                    <h2>项目</h2>
+                    <Button size="icon-xs" variant="ghost" type="button" aria-label="关闭项目选择" onClick={() => { setShowWorkspaceSelector(false); workspaceControl.current?.querySelector<HTMLButtonElement>(".creator-workspace-trigger")?.focus(); }}><X aria-hidden="true" /></Button>
+                  </header>
                   {workspaceState !== null && workspaceState.status !== "none" ? (
                     <div className="creator-workspace-current">
-                      <strong>{workspaceState.workspace.name}</strong>
-                      <code title={workspaceState.workspace.displayPath}>{workspaceState.workspace.displayPath}</code>
-                      {workspaceState.status === "ready" ? (
-                        <span>Mode: {workspaceState.project.mode} · Agent UI: {workspaceState.project.sourceRoot}</span>
-                      ) : workspaceState.status === "uninitialized" ? (
-                        <span>Agent UI: 未初始化</span>
-                      ) : <span>Agent UI: 配置异常</span>}
+                      <div className="creator-workspace-identity">
+                        <FolderOpen aria-hidden="true" />
+                        <strong title={workspaceState.workspace.name}>{workspaceState.workspace.name}</strong>
+                        <Button size="icon-xs" variant="ghost" type="button" aria-label="刷新项目" disabled={workspaceBusy || setupDraft.initializing || questionPending} title={questionPending ? pendingQuestionHint : "刷新项目"} onClick={() => void refreshWorkspace()}><RefreshCw aria-hidden="true" className={workspaceBusy ? "creator-tool-group-spinner" : undefined} /></Button>
+                      </div>
+                      <div className="creator-workspace-metadata">
+                        <Badge variant="secondary">{workspaceState.status === "ready" ? ({ assistant: "助手", embedded: "嵌入式", platform: "工作台" })[workspaceState.project.mode] : workspaceState.status === "uninitialized" ? "未初始化" : "配置异常"}</Badge>
+                        {workspaceState.status === "ready" ? <code title={workspaceState.project.sourceRoot}>{workspaceState.project.sourceRoot}</code> : null}
+                      </div>
+                      <details className="creator-workspace-info">
+                        <summary>项目详情</summary>
+                        <dl><dt>项目路径</dt><dd><code>{workspaceState.workspace.displayPath}</code></dd></dl>
+                        <Button size="xs" variant="ghost" type="button" disabled={workspaceBusy || setupDraft.initializing || questionPending} title={questionPending ? pendingQuestionHint : "取消选择，保留项目文件"} onClick={() => void clearWorkspace()}>移除选择</Button>
+                      </details>
                       {(workspaceState.status === "ready") && workspaceState.warnings?.length ? (
                         <div className="creator-workspace-warnings" role="status">
                           <strong>⚠ Agent UI 初始化需要恢复检查</strong>
@@ -2018,28 +2122,25 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                           ))}
                         </div>
                       ) : null}
-                      <div className="creator-workspace-actions">
-                        <button type="button" disabled={workspaceBusy || setupDraft.initializing || questionPending} title={questionPending ? pendingQuestionHint : undefined} onClick={() => void refreshWorkspace()}>刷新</button>
-                        <button type="button" disabled={workspaceBusy || setupDraft.initializing || questionPending} title={questionPending ? pendingQuestionHint : undefined} onClick={() => void clearWorkspace()}>移除选择</button>
-                      </div>
+
                     </div>
                   ) : null}
                   <div className="creator-workspace-selector">
                     <strong>{workspaceState !== null && workspaceState.status !== "none" ? "切换项目" : "选择前端项目文件夹"}</strong>
-                    <span>在系统文件夹窗口中选择已有项目。</span>
-                    <button className="creator-workspace-browse" type="button"
+                    <span>选择前端项目，Creator 会检查接入状态。</span>
+                    <Button size="sm" variant="outline" className="creator-workspace-browse" type="button"
                       disabled={workspaceState === null || workspaceBusy || setupDraft.initializing || questionPending}
                       onClick={() => void chooseWorkspace()}>
-                      {workspacePicking ? "等待文件夹选择…" : "打开系统文件夹窗口…"}
-                    </button>
+                      <FolderOpen aria-hidden="true" />{workspacePicking ? "等待文件夹选择…" : "选择项目文件夹"}
+                    </Button>
                     {workspacePicking ? <span role="status">请在系统窗口中选择项目，或取消返回。</span> : null}
                     <details>
                       <summary>手动输入项目路径</summary>
                       <form onSubmit={selectWorkspace}>
                         <label htmlFor="creator-workspace-path">项目文件夹的绝对路径</label>
-                        <input id="creator-workspace-path" value={workspacePath} disabled={workspaceBusy || setupDraft.initializing || questionPending}
-                          onChange={(event) => setWorkspacePath(event.target.value)} placeholder="/path/to/project" />
-                        <button type="submit" disabled={workspaceBusy || setupDraft.initializing || questionPending || workspacePath.trim() === ""}>使用这个文件夹</button>
+                        <Input id="creator-workspace-path" value={workspacePath} disabled={workspaceBusy || setupDraft.initializing || questionPending}
+                          onChange={(event) => setWorkspacePath(event.target.value)} placeholder="/path/to/project" autoComplete="off" spellCheck={false} />
+                        <Button size="sm" variant="secondary" type="submit" disabled={workspaceBusy || setupDraft.initializing || questionPending || workspacePath.trim() === ""}>使用这个文件夹</Button>
                       </form>
                     </details>
                   </div>
@@ -2049,7 +2150,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
             </div>
             {workspaceState?.status === "ready" ? <form className="creator-panel-composer" style={updatePageOpen ? { display: "none" } : undefined} onSubmit={submit}>
               <label htmlFor="creator-request">告诉 Creator</label>
-              <textarea
+              <Textarea
                 disabled={isRunning || !creatorRuntimeReady || questionPending}
                 id="creator-request"
                 onChange={(event) => setInput(event.target.value)}
@@ -2059,22 +2160,31 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                 value={input}
               />
               <div>
+                <Button variant="ghost" size="xs" className="creator-composer-clear"
+                  aria-label="清空 Creator 会话"
+                  disabled={isRunning || !creatorRuntimeReady || questionPending}
+                  onClick={clearConversation}
+                  title={questionPending ? pendingQuestionHint : "清空当前对话和输入，重新开始上下文；保留项目修改"}
+                  type="button"
+                >
+                  <RotateCcw aria-hidden="true" />清空会话
+                </Button>
                 <small>Enter 发送 · Shift+Enter 换行</small>
                 {isRunning ? (
-                  <button type="button" disabled={!runAccepted || stopBusy} onClick={() => void stopCurrentRun()}>
-                    {stopBusy ? "正在停止…" : "停止执行"}
-                  </button>
+                  <Button size="sm" variant="outline" type="button" disabled={!runAccepted || stopBusy} onClick={() => void stopCurrentRun()}>
+                    <Square aria-hidden="true" />{stopBusy ? "正在停止…" : "停止执行"}
+                  </Button>
                 ) : (
-                  <button disabled={input.trim() === "" || !creatorRuntimeReady || items.some(item => item.kind === "question" && (item.status === "pending" || item.status === "submitting"))} type="submit">
-                    发送
-                  </button>
+                  <Button size="sm" disabled={input.trim() === "" || !creatorRuntimeReady || items.some(item => item.kind === "question" && (item.status === "pending" || item.status === "submitting"))} type="submit">
+                    <ArrowUp aria-hidden="true" />发送
+                  </Button>
                 )}
               </div>
             </form> : null}
           </div>
         </aside>
       ) : (
-        <button
+        <Button size="sm" variant="outline"
           aria-label="打开 Creator 面板"
           className="creator-panel-open"
           onClick={() => setIsOpen(true)}
@@ -2083,7 +2193,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
           <span aria-hidden="true" className="creator-panel-open-dot" />
           <span>打开 Creator</span>
           <span aria-hidden="true" className="creator-panel-open-chevron" />
-        </button>
+        </Button>
       )}
     </div>
   );

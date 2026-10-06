@@ -15,15 +15,13 @@ describe("Creator project integration guide", () => {
     expect(agentIntegrationSnippet("src/agent-ui")).toContain('import { Agent } from "./agent-ui";');
   });
 
-  it("shows the generated entry, a concrete mount example, and Mode placement", () => {
+  it("keeps integration instructions collapsed by default", () => {
     const html = renderToStaticMarkup(
       <CreatorProjectIntegrationGuide sourceRoot="src/agent-ui" mode="platform" />,
     );
     expect(html).toContain("Agent UI 已创建");
-    expect(html).toContain("src/agent-ui/index.ts");
-    expect(html).toContain("src/AgentMount.tsx");
-    expect(html).toContain("./agent-ui");
-    expect(html).toContain("应用的主页面或工作台区域");
-    expect(html).toContain("/agent");
+    expect(html).toContain("查看接入方法");
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).not.toContain("creator-project-integration-guide-body");
   });
 });

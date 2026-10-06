@@ -146,7 +146,7 @@ const Items: FC<ItemsProps> = ({
             {backLabel}
           </ComposerPrimitive.Unstable_TriggerPopoverBack>
 
-          <div className="py-1">
+          <div data-slot="composer-trigger-popover-item-list" className="py-1">
             {items.map((item, index) => {
               const iconKey =
                 typeof item.metadata?.icon === "string"

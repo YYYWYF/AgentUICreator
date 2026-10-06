@@ -64,13 +64,13 @@ it("uses the chart Scenario declaration for Compatibility, the UI Run gate and t
   const run = [...card.querySelectorAll("button")].find(button => button.textContent === "运行场景")!;
   expect(run.disabled).toBe(true);
   expect(card.textContent).not.toContain("当前项目尚未安装 图表 资源。");
-  expect(card.textContent).toContain("安装 图表 资源");
+  expect(card.textContent).toContain("安装资源");
   const denied = await post("/select", { scenarioId: "data-message-chart", speed: 1 });
   expect(denied.status).toBe(400);
   expect((await denied.json()).error).toContain("请先安装");
   expect(service.getState().scenarioId).not.toBe("data-message-chart");
 
-  const button = [...card.querySelectorAll("button")].find(button => button.textContent === "安装 图表 资源")!;
+  const button = [...card.querySelectorAll("button")].find(button => button.textContent === "安装资源")!;
   await act(async () => button.click());
   await waitForUI(() => {
     expect(install).toHaveBeenCalledWith("project", "chart-message");

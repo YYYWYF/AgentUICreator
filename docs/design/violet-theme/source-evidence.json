@@ -1,0 +1,1130 @@
+{
+  "commit": "662774fb8c3935584e03abf7ececea08c3d89110",
+  "presets": {
+    "assistant": [
+      "assistant-ui-add-attachment-action",
+      "assistant-ui-composer",
+      "assistant-ui-copy-action",
+      "assistant-ui-dictation-action",
+      "assistant-ui-export-markdown-action",
+      "assistant-ui-mention-trigger",
+      "assistant-ui-reasoning",
+      "assistant-ui-reload-action",
+      "assistant-ui-response-footer",
+      "assistant-ui-slash-command-trigger",
+      "assistant-ui-submit-action",
+      "assistant-ui-tool-fallback",
+      "assistant-ui-tool-group",
+      "conversation-command-source",
+      "conversation-data-source",
+      "conversation-quote",
+      "conversation-service",
+      "conversation-suggestions",
+      "conversation-surface",
+      "locale-provider",
+      "task-group",
+      "theme-provider"
+    ],
+    "embedded": [
+      "assistant-ui-add-attachment-action",
+      "assistant-ui-composer",
+      "assistant-ui-copy-action",
+      "assistant-ui-dictation-action",
+      "assistant-ui-export-markdown-action",
+      "assistant-ui-mention-trigger",
+      "assistant-ui-reasoning",
+      "assistant-ui-reload-action",
+      "assistant-ui-response-footer",
+      "assistant-ui-slash-command-trigger",
+      "assistant-ui-submit-action",
+      "assistant-ui-tool-fallback",
+      "assistant-ui-tool-group",
+      "conversation-command-source",
+      "conversation-data-source",
+      "conversation-quote",
+      "conversation-service",
+      "conversation-suggestions",
+      "conversation-surface",
+      "locale-provider",
+      "task-group",
+      "theme-provider"
+    ],
+    "platform": [
+      "assistant-ui-add-attachment-action",
+      "assistant-ui-composer",
+      "assistant-ui-copy-action",
+      "assistant-ui-dictation-action",
+      "assistant-ui-export-markdown-action",
+      "assistant-ui-mention-trigger",
+      "assistant-ui-reasoning",
+      "assistant-ui-reload-action",
+      "assistant-ui-response-footer",
+      "assistant-ui-slash-command-trigger",
+      "assistant-ui-submit-action",
+      "assistant-ui-tool-fallback",
+      "assistant-ui-tool-group",
+      "conversation-command-source",
+      "conversation-data-source",
+      "conversation-quote",
+      "conversation-service",
+      "conversation-suggestions",
+      "conversation-surface",
+      "conversation-thread-list",
+      "locale-provider",
+      "task-group",
+      "theme-provider"
+    ]
+  },
+  "installedEmbedded": [
+    "assistant-ui-add-attachment-action",
+    "assistant-ui-composer",
+    "assistant-ui-copy-action",
+    "assistant-ui-dictation-action",
+    "assistant-ui-export-markdown-action",
+    "assistant-ui-message-footer",
+    "assistant-ui-reasoning",
+    "assistant-ui-reload-action",
+    "assistant-ui-submit-action",
+    "assistant-ui-tool-fallback",
+    "assistant-ui-tool-group",
+    "conversation-data-source",
+    "conversation-service",
+    "conversation-suggestions",
+    "conversation-surface",
+    "locale-provider",
+    "task-group",
+    "theme-provider"
+  ],
+  "upstreamElements": [
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-plan.tsx",
+      "tokens": [
+        "foreground"
+      ],
+      "hooks": [
+        "agent-plan"
+      ],
+      "colors": []
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.aui.tsx",
+      "tokens": [
+        "foreground",
+        "muted-foreground",
+        "ring"
+      ],
+      "hooks": [
+        "aui_task-tray",
+        "aui_task-tray-item",
+        "aui_task-tray-more"
+      ],
+      "colors": []
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx",
+      "tokens": [
+        "destructive",
+        "foreground"
+      ],
+      "hooks": [
+        "agent-status",
+        "agent-status-trailing"
+      ],
+      "colors": [
+        "blue-400",
+        "blue-500",
+        "emerald-500"
+      ]
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "tokens": [
+        "background",
+        "destructive",
+        "foreground",
+        "muted",
+        "muted-foreground",
+        "ring",
+        "composer-padding",
+        "composer-radius"
+      ],
+      "hooks": [],
+      "colors": [
+        "bg-black/50",
+        "bg-black/70",
+        "ring-black/10",
+        "ring-white/10",
+        "text-white"
+      ]
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "tokens": [
+        "accent",
+        "muted-foreground",
+        "popover",
+        "popover-foreground",
+        "primary"
+      ],
+      "hooks": [
+        "composer-trigger-popover",
+        "composer-trigger-popover-categories",
+        "composer-trigger-popover-items"
+      ],
+      "colors": []
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.aui.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": []
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.tsx",
+      "tokens": [],
+      "hooks": [
+        "directive-text-chip"
+      ],
+      "colors": []
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/file.tsx",
+      "tokens": [
+        "accent",
+        "accent-foreground",
+        "border",
+        "foreground",
+        "muted",
+        "muted-foreground"
+      ],
+      "hooks": [
+        "file-download",
+        "file-icon",
+        "file-name",
+        "file-player",
+        "file-root",
+        "file-size"
+      ],
+      "colors": []
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
+      "tokens": [
+        "foreground",
+        "muted-foreground"
+      ],
+      "hooks": [],
+      "colors": []
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "tokens": [
+        "background",
+        "border",
+        "foreground",
+        "muted",
+        "muted-foreground"
+      ],
+      "hooks": [
+        "image-actions",
+        "image-content-filter-error",
+        "image-copy",
+        "image-download",
+        "image-filename",
+        "image-generating",
+        "image-preview",
+        "image-preview-error",
+        "image-preview-loading",
+        "image-regenerate",
+        "image-root",
+        "image-source",
+        "image-source-icon",
+        "image-source-icon-fallback",
+        "image-source-label",
+        "image-zoom-content",
+        "image-zoom-overlay"
+      ],
+      "colors": [
+        "bg-black/80"
+      ]
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+      "tokens": [
+        "foreground"
+      ],
+      "hooks": [
+        "job-progress"
+      ],
+      "colors": [
+        "amber-400",
+        "amber-500",
+        "blue-400",
+        "blue-500",
+        "emerald-500",
+        "red-400",
+        "red-600"
+      ]
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/markdown-text.tsx",
+      "tokens": [
+        "border",
+        "muted",
+        "muted-foreground",
+        "primary"
+      ],
+      "hooks": [],
+      "colors": []
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/media-player.tsx",
+      "tokens": [
+        "foreground"
+      ],
+      "hooks": [
+        "audio-player",
+        "video-player"
+      ],
+      "colors": []
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/option-list.tsx",
+      "tokens": [
+        "background",
+        "foreground"
+      ],
+      "hooks": [
+        "option-list"
+      ],
+      "colors": [
+        "red-400",
+        "red-600"
+      ]
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
+      "tokens": [
+        "accent",
+        "foreground",
+        "muted",
+        "muted-foreground",
+        "popover",
+        "popover-foreground"
+      ],
+      "hooks": [
+        "composer-quote",
+        "composer-quote-dismiss",
+        "composer-quote-icon",
+        "composer-quote-text",
+        "quote-block",
+        "quote-block-icon",
+        "quote-block-text",
+        "selection-toolbar",
+        "selection-toolbar-quote"
+      ],
+      "colors": []
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/reasoning.aui.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": []
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/reasoning.tsx",
+      "tokens": [
+        "foreground",
+        "muted",
+        "muted-foreground",
+        "animation-duration",
+        "color-background",
+        "color-muted"
+      ],
+      "hooks": [
+        "reasoning-content",
+        "reasoning-fade",
+        "reasoning-root",
+        "reasoning-text",
+        "reasoning-trigger",
+        "reasoning-trigger-chevron",
+        "reasoning-trigger-icon",
+        "reasoning-trigger-label"
+      ],
+      "colors": []
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/retrieval-chunks.tsx",
+      "tokens": [
+        "foreground"
+      ],
+      "hooks": [
+        "retrieval-chunks"
+      ],
+      "colors": [
+        "blue-400/70",
+        "blue-500/70",
+        "emerald-400",
+        "emerald-600"
+      ]
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
+      "tokens": [
+        "accent",
+        "accent-foreground",
+        "foreground",
+        "input",
+        "muted",
+        "muted-foreground",
+        "ring",
+        "secondary",
+        "secondary-foreground"
+      ],
+      "hooks": [
+        "source",
+        "source-document-icon",
+        "source-icon",
+        "source-icon-fallback",
+        "source-title"
+      ],
+      "colors": [
+        "amber-100",
+        "amber-100/80",
+        "amber-300",
+        "amber-700",
+        "amber-900/50",
+        "blue-100",
+        "blue-100/80",
+        "blue-300",
+        "blue-700",
+        "blue-900/50",
+        "emerald-100",
+        "emerald-100/80",
+        "emerald-300",
+        "emerald-700",
+        "emerald-900/50",
+        "red-100",
+        "red-100/80",
+        "red-300",
+        "red-700",
+        "red-900/50"
+      ]
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.tsx",
+      "tokens": [
+        "foreground"
+      ],
+      "hooks": [
+        "subagent-list"
+      ],
+      "colors": [
+        "emerald-500",
+        "emerald-500/70"
+      ]
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/surfaces.tsx",
+      "tokens": [
+        "background",
+        "border",
+        "foreground",
+        "popover"
+      ],
+      "hooks": [],
+      "colors": [
+        "blue-400",
+        "blue-500"
+      ]
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/task-card.aui.tsx",
+      "tokens": [
+        "foreground",
+        "muted-foreground"
+      ],
+      "hooks": [
+        "aui_task-group",
+        "aui_task-group-more",
+        "aui_task-group-summary",
+        "aui_task-transcript-message"
+      ],
+      "colors": []
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/task-card.tsx",
+      "tokens": [
+        "border",
+        "destructive",
+        "foreground"
+      ],
+      "hooks": [
+        "task-card",
+        "task-card-actions",
+        "task-card-result",
+        "task-card-transcript"
+      ],
+      "colors": [
+        "emerald-500"
+      ]
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx",
+      "tokens": [
+        "accent",
+        "accent-foreground",
+        "destructive",
+        "muted",
+        "muted-foreground",
+        "popover",
+        "popover-foreground",
+        "ring"
+      ],
+      "hooks": [
+        "aui_thread-list-empty",
+        "aui_thread-list-group-label",
+        "aui_thread-list-item",
+        "aui_thread-list-item-more",
+        "aui_thread-list-item-more-content",
+        "aui_thread-list-item-more-item",
+        "aui_thread-list-item-rename",
+        "aui_thread-list-item-running",
+        "aui_thread-list-item-title",
+        "aui_thread-list-item-trigger",
+        "aui_thread-list-items",
+        "aui_thread-list-new",
+        "aui_thread-list-new-icon",
+        "aui_thread-list-new-label",
+        "aui_thread-list-root",
+        "aui_thread-list-search",
+        "aui_thread-list-search-icon",
+        "aui_thread-list-skeleton",
+        "aui_thread-list-skeleton-wrapper"
+      ],
+      "colors": []
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
+      "tokens": [
+        "accent",
+        "accent-foreground",
+        "background",
+        "border",
+        "destructive",
+        "foreground",
+        "muted",
+        "muted-foreground",
+        "popover",
+        "popover-foreground",
+        "ring",
+        "color-accent",
+        "color-background",
+        "color-muted"
+      ],
+      "hooks": [
+        "aui_assistant-message-content",
+        "aui_assistant-message-file",
+        "aui_assistant-message-footer",
+        "aui_assistant-message-image",
+        "aui_assistant-message-indicator",
+        "aui_assistant-message-root",
+        "aui_chain-of-thought",
+        "aui_composer-shell",
+        "aui_edit-composer-wrapper",
+        "aui_message-group",
+        "aui_spoken-exchange-header",
+        "aui_spoken-message-content",
+        "aui_spoken-message-indicator",
+        "aui_spoken-message-root",
+        "aui_thread-history-skeleton",
+        "aui_thread-viewport",
+        "aui_user-branch-picker",
+        "aui_user-message-file",
+        "aui_user-message-image",
+        "aui_user-message-root"
+      ],
+      "colors": [
+        "red-200"
+      ]
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.tsx",
+      "tokens": [
+        "foreground"
+      ],
+      "hooks": [
+        "tool-call"
+      ],
+      "colors": [
+        "emerald-500"
+      ]
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx",
+      "tokens": [
+        "destructive",
+        "foreground",
+        "muted",
+        "muted-foreground",
+        "animation-duration"
+      ],
+      "hooks": [
+        "tool-fallback-approval",
+        "tool-fallback-approval-confirm",
+        "tool-fallback-approval-receipt",
+        "tool-fallback-args",
+        "tool-fallback-content",
+        "tool-fallback-duration",
+        "tool-fallback-error",
+        "tool-fallback-result",
+        "tool-fallback-root",
+        "tool-fallback-trigger",
+        "tool-fallback-trigger-chevron",
+        "tool-fallback-trigger-icon",
+        "tool-fallback-trigger-label"
+      ],
+      "colors": []
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-group.aui.tsx",
+      "tokens": [
+        "foreground",
+        "muted",
+        "muted-foreground",
+        "animation-duration"
+      ],
+      "hooks": [
+        "tool-group-content",
+        "tool-group-root",
+        "tool-group-trigger",
+        "tool-group-trigger-chevron",
+        "tool-group-trigger-label",
+        "tool-group-trigger-loader"
+      ],
+      "colors": []
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": []
+    },
+    {
+      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/web-search.tsx",
+      "tokens": [
+        "foreground"
+      ],
+      "hooks": [
+        "web-search"
+      ],
+      "colors": []
+    }
+  ],
+  "visualPluginEntries": [
+    {
+      "source": "packages/source-registry/registry/items/demo-composer-triggers/files/plugins/composer-trigger-demo/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "composer-trigger-demo",
+      "defaultModes": [],
+      "installedEmbedded": false,
+      "publicRenderers": [
+        "ConversationCommandRegistry"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/demo-frontend-tool-dialog/files/plugins/frontend-tool-dialog-demo/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "frontend-tool-dialog-demo",
+      "defaultModes": [],
+      "installedEmbedded": false,
+      "publicRenderers": []
+    },
+    {
+      "source": "packages/source-registry/registry/items/demo-frontend-tool-form/files/plugins/frontend-tool-form-demo/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "frontend-tool-form-demo",
+      "defaultModes": [],
+      "installedEmbedded": false,
+      "publicRenderers": []
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-agent-plan-message/files/plugins/agent-plan-message/index.tsx",
+      "tokens": [],
+      "hooks": [
+        "plan"
+      ],
+      "colors": [],
+      "plugin": "agent-plan-message",
+      "defaultModes": [],
+      "installedEmbedded": false,
+      "publicRenderers": [
+        "AgentPlan"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-agent-status-message/files/plugins/agent-status-message/index.tsx",
+      "tokens": [],
+      "hooks": [
+        "status"
+      ],
+      "colors": [],
+      "plugin": "agent-status-message",
+      "defaultModes": [],
+      "installedEmbedded": false,
+      "publicRenderers": [
+        "AgentStatus",
+        "ConversationToolCallComponent",
+        "ConversationToolCallProps",
+        "ConversationToolFallback"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-assistant-ui-add-attachment-action/files/plugins/assistant-ui-add-attachment-action/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "assistant-ui-add-attachment-action",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": true,
+      "publicRenderers": [
+        "ConversationComposerAddAttachment"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-assistant-ui-composer/files/plugins/assistant-ui-composer/index.tsx",
+      "tokens": [],
+      "hooks": [
+        "assistant-ui-composer",
+        "aui_composer-plugin"
+      ],
+      "colors": [],
+      "plugin": "assistant-ui-composer",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": true,
+      "publicRenderers": [
+        "ConversationCanonicalComposer"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-assistant-ui-copy-action/files/plugins/assistant-ui-copy-action/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "assistant-ui-copy-action",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": true,
+      "publicRenderers": [
+        "ConversationCanonicalResponseCopyAction"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-assistant-ui-dictation-action/files/plugins/assistant-ui-dictation-action/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "assistant-ui-dictation-action",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": true,
+      "publicRenderers": [
+        "ConversationComposerDictate",
+        "ConversationComposerStopDictation"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-assistant-ui-export-markdown-action/files/plugins/assistant-ui-export-markdown-action/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "assistant-ui-export-markdown-action",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": true,
+      "publicRenderers": [
+        "ConversationCanonicalResponseExportMarkdownAction"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-assistant-ui-mention-trigger/files/plugins/assistant-ui-mention-trigger/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "assistant-ui-mention-trigger",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": false,
+      "publicRenderers": [
+        "ConversationComposerMentionTrigger",
+        "ConversationMentionSource"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-assistant-ui-message-footer/files/plugins/assistant-ui-message-footer/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "assistant-ui-message-footer",
+      "defaultModes": [],
+      "installedEmbedded": true,
+      "publicRenderers": []
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-assistant-ui-reasoning/files/plugins/assistant-ui-reasoning/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "assistant-ui-reasoning",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": true,
+      "publicRenderers": [
+        "ConversationCanonicalReasoningGroup",
+        "ConversationReasoningGroupRenderScope"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-assistant-ui-reload-action/files/plugins/assistant-ui-reload-action/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "assistant-ui-reload-action",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": true,
+      "publicRenderers": [
+        "ConversationCanonicalResponseReloadAction"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-assistant-ui-response-footer/files/plugins/assistant-ui-response-footer/index.tsx",
+      "tokens": [],
+      "hooks": [
+        "assistant-ui-response-footer",
+        "aui_assistant-response-footer-plugin"
+      ],
+      "colors": [],
+      "plugin": "assistant-ui-response-footer",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": false,
+      "publicRenderers": [
+        "ConversationResponseActionBarRoot",
+        "ConversationResponseBranchPicker"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-assistant-ui-slash-command-trigger/files/plugins/assistant-ui-slash-command-trigger/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "assistant-ui-slash-command-trigger",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": false,
+      "publicRenderers": [
+        "ConversationCommandRegistry",
+        "ConversationComposerCommandTrigger"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-assistant-ui-submit-action/files/plugins/assistant-ui-submit-action/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "assistant-ui-submit-action",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": true,
+      "publicRenderers": [
+        "ConversationComposerCancel",
+        "ConversationComposerSend"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-assistant-ui-tool-fallback/files/plugins/assistant-ui-tool-fallback/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "assistant-ui-tool-fallback",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": true,
+      "publicRenderers": [
+        "ConversationToolFallback",
+        "ConversationToolFallbackRenderScope"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-assistant-ui-tool-group/files/plugins/assistant-ui-tool-group/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "assistant-ui-tool-group",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": true,
+      "publicRenderers": [
+        "ConversationCanonicalToolGroup",
+        "ConversationToolGroupRenderScope"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-chart-message/files/plugins/chart-message/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "chart-message",
+      "defaultModes": [],
+      "installedEmbedded": false,
+      "publicRenderers": []
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-conversation-command-source/files/plugins/conversation-command-source/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "conversation-command-source",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": false,
+      "publicRenderers": [
+        "ConversationCommandRegistry",
+        "ConversationCommandSourcePlugin"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-conversation-quote/files/plugins/conversation-quote/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "conversation-quote",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": false,
+      "publicRenderers": [
+        "ConversationComposerQuotePreview",
+        "ConversationQuotePlugin",
+        "ConversationQuoteSelectionToolbar"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-conversation-suggestions/files/plugins/conversation-suggestions/index.tsx",
+      "tokens": [],
+      "hooks": [
+        "conversation-suggestions"
+      ],
+      "colors": [],
+      "plugin": "conversation-suggestions",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": true,
+      "publicRenderers": [
+        "ConversationSuggestionDescription",
+        "ConversationSuggestionTitle",
+        "ConversationSuggestionTrigger",
+        "ConversationSuggestions",
+        "ConversationSuggestionsPlugin"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-conversation-surface/files/plugins/conversation-surface/index.tsx",
+      "tokens": [],
+      "hooks": [
+        "conversation-surface"
+      ],
+      "colors": [],
+      "plugin": "conversation-surface",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": true,
+      "publicRenderers": [
+        "ConversationAdapter",
+        "ConversationService",
+        "ConversationSurfacePlugin",
+        "ConversationWelcomeFallback"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/index.tsx",
+      "tokens": [],
+      "hooks": [
+        "agent-ui-thread-detail-error",
+        "conversation-thread-list"
+      ],
+      "colors": [],
+      "plugin": "conversation-thread-list",
+      "defaultModes": [
+        "platform"
+      ],
+      "installedEmbedded": false,
+      "publicRenderers": [
+        "Button",
+        "ConversationService",
+        "ConversationThreadListPlugin"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-generated-file-message/files/plugins/generated-file-message/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "generated-file-message",
+      "defaultModes": [],
+      "installedEmbedded": false,
+      "publicRenderers": [
+        "ConversationFile",
+        "ConversationToolCallComponent",
+        "ConversationToolFallback"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-job-progress-message/files/plugins/job-progress-message/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "job-progress-message",
+      "defaultModes": [],
+      "installedEmbedded": false,
+      "publicRenderers": [
+        "ConversationToolCallComponent",
+        "ConversationToolCallProps",
+        "ConversationToolFallback",
+        "JobProgress"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-retrieval-chunks/files/plugins/retrieval-chunks/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "retrieval-chunks",
+      "defaultModes": [],
+      "installedEmbedded": false,
+      "publicRenderers": [
+        "ConversationToolCallProps",
+        "ConversationToolFallback",
+        "RetrievalChunks"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "source-citations-message",
+      "defaultModes": [],
+      "installedEmbedded": false,
+      "publicRenderers": [
+        "ConversationSource",
+        "ConversationToolCallComponent",
+        "ConversationToolFallback"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-task-group/files/plugins/task-group/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "task-group",
+      "defaultModes": [
+        "assistant",
+        "embedded",
+        "platform"
+      ],
+      "installedEmbedded": true,
+      "publicRenderers": [
+        "ConversationTaskGroup",
+        "ConversationTaskGroupRenderScope"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-theme-switch/files/plugins/theme-switch/index.tsx",
+      "tokens": [],
+      "hooks": [
+        "theme-switch"
+      ],
+      "colors": [],
+      "plugin": "theme-switch",
+      "defaultModes": [],
+      "installedEmbedded": false,
+      "publicRenderers": [
+        "NativeSelect"
+      ]
+    },
+    {
+      "source": "packages/source-registry/registry/items/plugin-web-search/files/plugins/web-search/index.tsx",
+      "tokens": [],
+      "hooks": [],
+      "colors": [],
+      "plugin": "web-search",
+      "defaultModes": [],
+      "installedEmbedded": false,
+      "publicRenderers": [
+        "ConversationToolCallProps",
+        "ConversationToolFallback",
+        "WebSearch"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,656 @@
+{
+  "capturedAt": "2026-10-05T13:17:58.765Z",
+  "base": "http://127.0.0.1:5186",
+  "records": [
+    {
+      "file": "01-embedded-production-full.png",
+      "context": "01-embedded-production-full-context.png",
+      "url": "http://127.0.0.1:5186/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Actual existing Host App and installed default composition. Atlas document pane is host-owned, outside Agent UI design scope.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "tooltip-trigger",
+        "aui_composer-plugin",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions",
+        "button"
+      ]
+    },
+    {
+      "file": "02-production-empty.png",
+      "context": "02-production-empty-context.png",
+      "url": "http://127.0.0.1:5186/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Actual default embedded AppUIModel; no screenshot fixture.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "tooltip-trigger",
+        "aui_composer-plugin",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions",
+        "button"
+      ]
+    },
+    {
+      "file": "03-production-conversation.png",
+      "context": "03-production-conversation-context.png",
+      "url": "http://127.0.0.1:5186/",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Actual default plugins, Mock reasoning-tool-success.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "aui_user-message-root",
+        "aui_assistant-message-root",
+        "aui_assistant-message-content",
+        "aui_assistant-message-parts",
+        "aui_chain-of-thought",
+        "reasoning-root",
+        "reasoning-trigger",
+        "reasoning-trigger-icon",
+        "reasoning-trigger-label",
+        "reasoning-trigger-chevron",
+        "tool-call",
+        "collapsible-trigger",
+        "tooltip-trigger",
+        "aui_composer-plugin",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions",
+        "button"
+      ]
+    },
+    {
+      "file": "component-plan-running.png",
+      "context": "component-plan-running-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=plan-running&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "agent-plan"
+      ]
+    },
+    {
+      "file": "component-plan-completed.png",
+      "context": "component-plan-completed-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=plan-completed&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "agent-plan"
+      ]
+    },
+    {
+      "file": "component-status-working.png",
+      "context": "component-status-working-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=status-working&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "agent-status",
+        "agent-status-trailing"
+      ]
+    },
+    {
+      "file": "component-status-done.png",
+      "context": "component-status-done-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=status-done&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "agent-status",
+        "agent-status-trailing"
+      ]
+    },
+    {
+      "file": "component-status-waiting.png",
+      "context": "component-status-waiting-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=status-waiting&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "agent-status",
+        "agent-status-trailing"
+      ]
+    },
+    {
+      "file": "component-job-running.png",
+      "context": "component-job-running-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=job-running&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "job-progress"
+      ]
+    },
+    {
+      "file": "component-job-success.png",
+      "context": "component-job-success-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=job-success&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "job-progress"
+      ]
+    },
+    {
+      "file": "component-web-search.png",
+      "context": "component-web-search-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=web-search&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "web-search"
+      ]
+    },
+    {
+      "file": "component-retrieval.png",
+      "context": "component-retrieval-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=retrieval&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "retrieval-chunks"
+      ]
+    },
+    {
+      "file": "component-tool-running.png",
+      "context": "component-tool-running-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=tool-running&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "tool-call",
+        "collapsible-trigger",
+        "collapsible-content"
+      ]
+    },
+    {
+      "file": "component-tool-completed.png",
+      "context": "component-tool-completed-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=tool-completed&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "tool-call",
+        "collapsible-trigger",
+        "collapsible-content"
+      ]
+    },
+    {
+      "file": "component-fallback-error.png",
+      "context": "component-fallback-error-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=fallback-error&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "tool-fallback-root",
+        "tool-fallback-trigger",
+        "tool-fallback-trigger-icon",
+        "tool-fallback-trigger-label",
+        "tool-fallback-trigger-chevron"
+      ]
+    },
+    {
+      "file": "component-reasoning.png",
+      "context": "component-reasoning-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=reasoning&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "reasoning-root",
+        "reasoning-trigger",
+        "reasoning-trigger-icon",
+        "reasoning-trigger-label",
+        "reasoning-trigger-chevron",
+        "reasoning-content",
+        "reasoning-fade",
+        "reasoning-text"
+      ]
+    },
+    {
+      "file": "component-question.png",
+      "context": "component-question-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=question&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "option-list"
+      ]
+    },
+    {
+      "file": "component-source.png",
+      "context": "component-source-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=source&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "source",
+        "source-icon",
+        "source-title"
+      ]
+    },
+    {
+      "file": "component-file.png",
+      "context": "component-file-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=file&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "file-root",
+        "file-icon",
+        "file-name",
+        "file-size",
+        "file-download"
+      ]
+    },
+    {
+      "file": "component-dialog.png",
+      "context": "component-dialog-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=dialog&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "dialog-portal",
+        "dialog-overlay",
+        "dialog-content",
+        "button"
+      ]
+    },
+    {
+      "file": "component-popover.png",
+      "context": "component-popover-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=popover&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "popover-trigger",
+        "popover-content"
+      ]
+    },
+    {
+      "file": "component-tooltip.png",
+      "context": "component-tooltip-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=tooltip&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.",
+      "slots": [
+        "tooltip-trigger",
+        "tooltip-content",
+        "tooltip-arrow"
+      ]
+    },
+    {
+      "file": "04-composer-idle-light.png",
+      "context": "04-composer-idle-light-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=light&scenario=markdown-showcase",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real canonical Composer in isolated ConversationRuntimeProvider.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "tooltip-trigger",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "05-markdown-conversation-light.png",
+      "context": "05-markdown-conversation-light-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=light&scenario=markdown-showcase",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Actual ConversationThread driven by built-in AG-UI markdown-showcase. Scroll position as rendered, full viewport context retained.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "aui_user-message-root",
+        "aui_assistant-message-root",
+        "aui_assistant-message-content",
+        "aui_assistant-message-parts",
+        "tooltip-trigger",
+        "aui_assistant-response-footer",
+        "assistant-ui-copy-action-idle",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "04-composer-idle-dark.png",
+      "context": "04-composer-idle-dark-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=dark&scenario=markdown-showcase",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real canonical Composer in isolated ConversationRuntimeProvider.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "tooltip-trigger",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "05-markdown-conversation-dark.png",
+      "context": "05-markdown-conversation-dark-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=dark&scenario=markdown-showcase",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Actual ConversationThread driven by built-in AG-UI markdown-showcase. Scroll position as rendered, full viewport context retained.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "aui_user-message-root",
+        "aui_assistant-message-root",
+        "aui_assistant-message-content",
+        "aui_assistant-message-parts",
+        "tooltip-trigger",
+        "aui_assistant-response-footer",
+        "assistant-ui-copy-action-idle",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "04-composer-idle-violet.png",
+      "context": "04-composer-idle-violet-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=violet&scenario=markdown-showcase",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real canonical Composer in isolated ConversationRuntimeProvider.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "tooltip-trigger",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "05-markdown-conversation-violet.png",
+      "context": "05-markdown-conversation-violet-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=violet&scenario=markdown-showcase",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Actual ConversationThread driven by built-in AG-UI markdown-showcase. Scroll position as rendered, full viewport context retained.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "aui_user-message-root",
+        "aui_assistant-message-root",
+        "aui_assistant-message-content",
+        "aui_assistant-message-parts",
+        "tooltip-trigger",
+        "aui_assistant-response-footer",
+        "assistant-ui-copy-action-idle",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "composer-mention.png",
+      "context": "composer-mention-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real trigger components; fixture mention source deliberately supplies success, empty, and error.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "tooltip-trigger",
+        "composer-trigger-popover",
+        "composer-trigger-popover-items",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "composer-mention-empty.png",
+      "context": "composer-mention-empty-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real trigger components; fixture mention source deliberately supplies success, empty, and error.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "tooltip-trigger",
+        "composer-trigger-popover",
+        "composer-trigger-popover-items",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "composer-mention-error.png",
+      "context": "composer-mention-error-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real trigger components; fixture mention source deliberately supplies success, empty, and error.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "tooltip-trigger",
+        "composer-trigger-popover",
+        "composer-trigger-popover-items",
+        "composer-trigger-error",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "composer-slash.png",
+      "context": "composer-slash-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real trigger components; fixture mention source deliberately supplies success, empty, and error.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "tooltip-trigger",
+        "composer-trigger-popover",
+        "composer-trigger-popover-items",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "component-chart.png",
+      "context": "component-chart-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=light&scenario=data-message-chart",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Actual registry chart-message implementation mounted via DataMessageUIRegistration and AG-UI mock scenario.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "aui_user-message-root",
+        "aui_assistant-message-root",
+        "aui_assistant-message-content",
+        "aui_assistant-message-parts",
+        "aui_assistant-response-footer",
+        "tooltip-trigger",
+        "assistant-ui-copy-action-idle",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "showcase-thread-list.png",
+      "context": "showcase-thread-list-context.png",
+      "url": "http://127.0.0.1:5186/theme-showcase.html",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real ThreadList public surfaces with fixture thread binding. Showcase samples are not product Messages.",
+      "slots": [
+        "native-select-wrapper",
+        "native-select",
+        "native-select-option",
+        "native-select-icon",
+        "aui_thread-list-root",
+        "aui_thread-list-new",
+        "aui_thread-list-item",
+        "aui_thread-list-item-trigger",
+        "aui_thread-list-item-title",
+        "button",
+        "popover-trigger",
+        "tool-call",
+        "collapsible-trigger",
+        "collapsible-content",
+        "collapsible",
+        "source",
+        "source-icon",
+        "source-title",
+        "aui_thread-viewport",
+        "aui_message-group",
+        "tooltip-trigger",
+        "aui_composer-shell",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "06-conversation-narrow.png",
+      "context": "06-conversation-narrow-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=light&scenario=reasoning-tool-success",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "note": "Real canonical thread/composer at narrow viewport; fixture outer padding 48px is not production layout.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "tooltip-trigger",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    }
+  ],
+  "failures": []
+}

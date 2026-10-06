@@ -1,0 +1,359 @@
+{
+  "capturedAt": "2026-10-06T02:48:46.288Z",
+  "method": "cua native browser screenshots; real component anatomy; explicit fixture state inputs",
+  "records": [
+    {
+      "name": "controls",
+      "file": "controls.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=controls&theme=violet",
+      "note": "Real components in isolated development fixture; production Violet CSS.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=controls&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=controls&theme=violet\n\t2 container\n\t\t3 button Primary\n\t\t4 button Secondary\n\t\t5 button (disabled) Disabled\n\t6 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t7 text ✦\n\t\t8 text Creator Agent\n\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=controls&theme=violet"
+    },
+    {
+      "name": "task-states",
+      "file": "task-states.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=task-states&theme=violet",
+      "note": "Real components in isolated development fixture; production Violet CSS.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=task-states&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=task-states&theme=violet\n\t2 container\n\t\t3 button (expanded) working Task working, Secondary Actions: Collapse\n\t\t\t4 text working\n\t\t\t5 text Task working\n\t\t6 button (disabled) done Nested child task\n\t\t\t7 text done Nested child task\n\t\t8 text Child result\n\t\t9 button (expanded) waiting Task waiting, Secondary Actions: Collapse\n\t\t\t10 text waiting\n\t\t\t11 text Task waiting\n\t\t12 button (disabled) done Nested child task\n\t\t\t13 text done Nested child task\n\t\t14 text Child result\n\t\t15 button (expanded) failed Task failed, Secondary Actions: Collapse\n\t\t\t16 text failed\n\t\t\t17 text Task failed\n\t\t18 button (disabled) done Nested child task\n\t\t\t19 text done Nested child task\n\t\t20 text Child result\n\t\t21 text Fixture task failed\n\t\t22 button (expanded) cancelled Task cancelled, Secondary Actions: Collapse\n\t\t\t23 text cancelled\n\t\t\t24 text Task cancelled\n\t\t25 button (disabled) done Nested child task\n\t\t\t26 text done Nested child task\n\t\t27 text Child result\n\t\t28 button (expanded) done Task done, Secondary Actions: Collapse\n\t\t\t29 text done\n\t\t\t30 text Task done\n\t\t31 button (disabled) done Nested child task\n\t\t\t32 text done Nested child task\n\t\t33 text Child result\n\t34 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t35 text ✦\n\t\t36 text Creator Agent\n\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=task-states&theme=violet"
+    },
+    {
+      "name": "studies-media-task",
+      "file": "studies-media-task.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-media-task&theme=violet",
+      "note": "Real components in isolated development fixture; production Violet CSS.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-media-task&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-media-task&theme=violet\n\t2 container\n\t\t3 text Generating image…\n\t\t4 container\n\t\t\t5 text Image could not be generated The image request was filtered.\n\t\t6 button (expanded) working Inspect theme integration 0:12, Secondary Actions: Collapse\n\t\t\t7 text working\n\t\t\t8 text Inspect theme integration\n\t\t\t9 text 0:12\n\t\t10 text Inspect the active Agent UI theme scope.\n\t\t11 button (disabled) done Validate style isolation\n\t\t\t12 text done Validate style isolation\n\t\t13 text All checks passed\n\t14 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t15 text ✦\n\t\t16 text Creator Agent\n\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-media-task&theme=violet"
+    },
+    {
+      "name": "studies-reference",
+      "file": "studies-reference.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-reference&theme=violet",
+      "note": "Real components in isolated development fixture; production Violet CSS.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-reference&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-reference&theme=violet\n\t2 container\n\t\t3 text AG-UI theme tokens\n\t\t4 text Search complete\n\t\t5 text D AG-UI documentation docs.ag-ui.com A assistant-ui assistant-ui.com theme contract\n\t\t6 text Retrieval complete\n\t\t7 text THEME.md L12–L26 0.92\n\t\t8 text Themes consume semantic tokens and preserve component anatomy.\n\t\t9 level indicator Description: Relevance, Value: 92\n\t\t10 text UPSTREAM.md L5–L18 0.76\n\t\t11 text Vendor ownership and upgrade boundary.\n\t\t12 level indicator Description: Relevance, Value: 76\n\t\t13 link Description: shadcn theme documentation, Value: ui.shadcn.com/docs/theming\n\t\t14 text Preserve the real component structure and theme through semantic tokens.\n\t\t15 text theme-contract.txt 14 B\n\t\t16 link Download theme-contract.txt\n\t17 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t18 text ✦\n\t\t19 text Creator Agent\n\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-reference&theme=violet"
+    },
+    {
+      "name": "studies-progress",
+      "file": "studies-progress.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-progress&theme=violet",
+      "note": "Real components in isolated development fixture; production Violet CSS.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-progress&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-progress&theme=violet\n\t2 container\n\t\t3 text Build UI 12s\n\t\t4 progress indicator Description: Build UI progress, Value: 47.5\n\t\t5 text Analyze Build Validate\n\t\t6 text Current stage: Build\n\t\t7 text Build UI done\n\t\t8 progress indicator Description: Build UI progress, Value: 100\n\t\t9 text Analyze Build Validate\n\t\t10 text All checks passed\n\t\t11 text Job done\n\t\t12 text Architecture Agent\n\t\t13 progress indicator Description: Architecture progress, Value: 1\n\t\t14 text UI review Agent\n\t\t15 progress indicator Description: UI review progress, Value: 0.4000000059604645\n\t16 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t17 text ✦\n\t\t18 text Creator Agent\n\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-progress&theme=violet"
+    },
+    {
+      "name": "image-zoom",
+      "file": "image-zoom.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=image-zoom&theme=violet",
+      "note": "Real components in isolated development fixture; production Violet CSS.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=image-zoom&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=image-zoom&theme=violet\n\t2 container\n\t\t3 button Click to zoom image\n\t\t\t4 image Theme chart preview\n\t5 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t6 text ✦\n\t\t7 text Creator Agent\n\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=image-zoom&theme=violet"
+    },
+    {
+      "name": "attachment-uploading",
+      "file": "attachment-uploading.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=attachment-uploading&theme=violet",
+      "note": "Real components in isolated development fixture; production Violet CSS.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=attachment-uploading&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=attachment-uploading&theme=violet\n\t2 container\n\t\t3 container\n\t\t\t4 heading How can I help you today?, Value: 1\n\t\t\t\t5 text How can I help you today?\n\t\t\t6 container\n\t\t\t\t7 pop up button (collapsed) Description: Image attachment, uploading, ID: base-ui-_r_g_, Secondary Actions: Expand\n\t\t\t\t\t8 image Attachment preview\n\t\t\t\t9 button Remove file, ID: base-ui-_r_e_\n\t\t\t10 text entry area (settable) Send a message to run the reasoning and tool Mock scenario…\n\t\t\t11 container\n\t\t\t\t12 button Description: Add Attachment, ID: base-ui-_r_4_\n\t\t\t\t13 button Description: Send, ID: base-ui-_r_6_\n\t14 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t15 text ✦\n\t\t16 text Creator Agent\n\nThe focused UI element is 10 text entry area (settable) Send a message to run the reasoning and tool Mock scenario…"
+    },
+    {
+      "name": "attachment-error",
+      "file": "attachment-error.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=attachment-error&theme=violet",
+      "note": "Real components in isolated development fixture; production Violet CSS.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=attachment-error&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=attachment-error&theme=violet\n\t2 container\n\t\t3 container\n\t\t\t4 heading How can I help you today?, Value: 1\n\t\t\t\t5 text How can I help you today?\n\t\t\t6 container\n\t\t\t\t7 pop up button (collapsed) Description: Image attachment, upload failed, ID: base-ui-_r_g_, Secondary Actions: Expand\n\t\t\t\t\t8 image Attachment preview\n\t\t\t\t9 button Remove file, ID: base-ui-_r_e_\n\t\t\t10 text entry area (settable) Send a message to run the reasoning and tool Mock scenario…\n\t\t\t11 container\n\t\t\t\t12 button Description: Add Attachment, ID: base-ui-_r_4_\n\t\t\t\t13 button Description: Send, ID: base-ui-_r_6_\n\t14 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t15 text ✦\n\t\t16 text Creator Agent\n\nThe focused UI element is 10 text entry area (settable) Send a message to run the reasoning and tool Mock scenario…"
+    },
+    {
+      "name": "attachment-ready",
+      "file": "attachment-ready.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=attachment-ready&theme=violet",
+      "note": "Real components in isolated development fixture; production Violet CSS.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=attachment-ready&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=attachment-ready&theme=violet\n\t2 container\n\t\t3 container\n\t\t\t4 heading How can I help you today?, Value: 1\n\t\t\t\t5 text How can I help you today?\n\t\t\t6 container\n\t\t\t\t7 pop up button (collapsed) Description: Image attachment, ID: base-ui-_r_g_, Secondary Actions: Expand\n\t\t\t\t\t8 image Attachment preview\n\t\t\t\t9 button Remove file, ID: base-ui-_r_e_\n\t\t\t10 text entry area (settable) Send a message to run the reasoning and tool Mock scenario…\n\t\t\t11 container\n\t\t\t\t12 button Description: Add Attachment, ID: base-ui-_r_4_\n\t\t\t\t13 button Description: Send, ID: base-ui-_r_6_\n\t14 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t15 text ✦\n\t\t16 text Creator Agent\n\nThe focused UI element is 10 text entry area (settable) Send a message to run the reasoning and tool Mock scenario…"
+    },
+    {
+      "name": "question",
+      "file": "question.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=question&theme=violet",
+      "note": "Real components in isolated development fixture; production Violet CSS.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=question&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=question&theme=violet\n\t2 container\n\t\t3 container 你希望采用哪种首页布局？\n\t\t\t4 text 1  /  1\n\t\t\t5 progress indicator 1\n\t\t\t6 heading 你希望采用哪种首页布局？, Value: 4\n\t\t\t\t7 text 你希望采用哪种首页布局？\n\t\t\t8 text 选择一个方向\n\t\t\t9 container\n\t\t\t\t10 checkbox Dashboard 适合信息密度较高的首页, Value: 0\n\t\t\t\t11 checkbox Sidebar 适合有持续导航的首页, Value: 0\n\t\t\t\t12 text 0  of  2\n\t\t\t\t13 button (disabled) 提交\n\t14 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t15 text ✦\n\t\t16 text Creator Agent\n\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=question&theme=violet"
+    },
+    {
+      "name": "popover",
+      "file": "popover.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=popover&theme=violet",
+      "note": "Real components in isolated development fixture; production Violet CSS.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=popover&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=popover&theme=violet\n\t2 container\n\t\t3 container\n\t\t\t4 pop up button (expanded) Popover, ID: base-ui-_r_2_, Secondary Actions: Collapse\n\t\t\t5 container\n\t\t\t\t6 text Popover surface, border, text and focus use semantic tokens.\n\t7 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t8 text ✦\n\t\t9 text Creator Agent\n\nThe focused UI element is 5 container"
+    },
+    {
+      "name": "tooltip",
+      "file": "tooltip.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=tooltip&theme=violet",
+      "note": "Real components in isolated development fixture; production Violet CSS.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=tooltip&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=tooltip&theme=violet\n\t2 container\n\t\t3 button Help, ID: base-ui-_r_2_\n\t\t4 text Theme settings\n\t5 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t6 text ✦\n\t\t7 text Creator Agent\n\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=tooltip&theme=violet"
+    },
+    {
+      "name": "dialog",
+      "file": "dialog.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=dialog&theme=violet",
+      "note": "Real components in isolated development fixture; production Violet CSS.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=dialog&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=dialog&theme=violet\n\t2 container Dialog\n\t\t3 heading Dialog, Value: 2, ID: base-ui-_r_3_\n\t\t\t4 text Dialog\n\t\t5 text This dialog inherits the selected theme through the scoped portal.\n\t\t6 button Close\n\nThe focused UI element is 6 button Close"
+    },
+    {
+      "name": "frontend-form-idle",
+      "file": "frontend-form-idle.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form",
+      "note": "Actual optional frontend-tool-form-demo mounted with its service.",
+      "ax": "Browser tab: 26, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form\n\t2 container\n\t\t3 container\n\t\t\t4 heading 个人资料表单, Value: 2\n\t\t\t\t5 text 个人资料表单\n\t\t\t6 text 名\n\t\t\t7 text field (settable) 名\n\t\t\t8 text 姓\n\t\t\t9 text field (settable) 姓\n\t\t\t10 text 邮箱\n\t\t\t11 text field (settable) 邮箱\n\t\t\t12 text 项目想法\n\t\t\t13 text entry area (settable) 项目想法\n\t\t\t14 button 重置\n\t\t\t15 button 提交\n\t16 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t17 text ✦\n\t\t18 text Creator Agent\n\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form"
+    },
+    {
+      "name": "frontend-form-error",
+      "file": "frontend-form-error.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form",
+      "note": "Actual required-field validation, without sending a backend request.",
+      "ax": "Browser tab: 26, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form\n\t2 container\n\t\t3 container\n\t\t\t4 heading 个人资料表单, Value: 2\n\t\t\t\t5 text 个人资料表单\n\t\t\t6 text 名\n\t\t\t7 text field (settable) 名\n\t\t\t19 text 此字段必填\n\t\t\t8 text 姓\n\t\t\t9 text field (settable) 姓\n\t\t\t10 text 邮箱\n\t\t\t11 text field (settable) 邮箱\n\t\t\t20 text 此字段必填\n\t\t\t12 text 项目想法\n\t\t\t13 text entry area (settable) 项目想法\n\t\t\t14 button 重置\n\t\t\t15 button 提交\n\t16 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t21 text ✦\n\t\t18 text Creator Agent\n\nThe focused UI element is 7 text field (settable) 名"
+    },
+    {
+      "name": "frontend-form-idle-after",
+      "file": "frontend-form-idle-after.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form",
+      "note": "Actual plugin after scoped Violet paint fix.",
+      "ax": "Browser tab: 26, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form\n\t2 container\n\t\t3 container\n\t\t\t4 heading 个人资料表单, Value: 2\n\t\t\t\t5 text 个人资料表单\n\t\t\t6 text 名\n\t\t\t7 text field (settable) 名\n\t\t\t8 text 姓\n\t\t\t9 text field (settable) 姓\n\t\t\t10 text 邮箱\n\t\t\t11 text field (settable) 邮箱\n\t\t\t12 text 项目想法\n\t\t\t13 text entry area (settable) 项目想法\n\t\t\t14 button 重置\n\t\t\t15 button 提交\n\t16 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t17 text ✦\n\t\t18 text Creator Agent\n\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form"
+    },
+    {
+      "name": "frontend-form-error-after",
+      "file": "frontend-form-error-after.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form",
+      "note": "Actual required-field errors after paint fix.",
+      "ax": "Browser tab: 26, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form\n\t2 container\n\t\t3 container\n\t\t\t4 heading 个人资料表单, Value: 2\n\t\t\t\t5 text 个人资料表单\n\t\t\t6 text 名\n\t\t\t7 text field (settable) 名\n\t\t\t19 text 此字段必填\n\t\t\t8 text 姓\n\t\t\t9 text field (settable) 姓\n\t\t\t10 text 邮箱\n\t\t\t11 text field (settable) 邮箱\n\t\t\t20 text 此字段必填\n\t\t\t12 text 项目想法\n\t\t\t13 text entry area (settable) 项目想法\n\t\t\t14 button 重置\n\t\t\t15 button 提交\n\t16 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t21 text ✦\n\t\t18 text Creator Agent\n\nThe focused UI element is 7 text field (settable) 名"
+    },
+    {
+      "name": "frontend-form-success-after",
+      "file": "frontend-form-success-after.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form",
+      "note": "Actual successful submission to local fixture service.",
+      "ax": "Browser tab: 26, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=form\n\t2 container\n\t\t3 container\n\t\t\t4 heading 个人资料表单, Value: 2\n\t\t\t\t5 text 个人资料表单\n\t\t\t6 text 名\n\t\t\t7 text field (settable) 名, Value: Visual\n\t\t\t8 text 姓\n\t\t\t9 text field (settable) 姓\n\t\t\t10 text 邮箱\n\t\t\t11 text field (settable) 邮箱, Value: <redacted>\n\t\t\t12 text 项目想法\n\t\t\t13 text entry area (settable) 项目想法\n\t\t\t14 button 重置\n\t\t\t15 button 提交\n\t\t\t19 text 已提交表单\n\t16 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t20 text ✦\n\t\t18 text Creator Agent\n\nThe focused UI element is 15 button 提交"
+    },
+    {
+      "name": "optional-dialog",
+      "file": "optional-dialog.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=dialog",
+      "note": "Actual optional plugin/official renderer, mounted through generated fixture.",
+      "ax": "Browser tab: 26, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=dialog\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=dialog\n\t2 container Theme preferences\n\t\t3 heading Theme preferences, Value: 2, ID: base-ui-_r_2_\n\t\t\t4 text Theme preferences\n\t\t5 text Development fixture of the real frontend dialog plugin.\n\t\t6 button 关闭\n\nThe focused UI element is 6 button 关闭"
+    },
+    {
+      "name": "thread-list",
+      "file": "thread-list.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=threads&theme=violet",
+      "note": "Real public ThreadList with existing Mock conversation service.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=threads&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=threads&theme=violet\n\t2 container\n\t\t3 button New chat\n\t\t4 container\n\t\t\t5 button 历史：基础会话\n\t\t\t6 pop up button (collapsed) More options, ID: radix-_r_3_, Secondary Actions: Expand\n\t\t7 container\n\t\t\t8 button 历史：已完成工具调用\n\t\t\t9 pop up button (collapsed) More options, ID: radix-_r_5_, Secondary Actions: Expand\n\t\t10 container\n\t\t\t11 button 历史：推理内容\n\t\t\t12 pop up button (collapsed) More options, ID: radix-_r_7_, Secondary Actions: Expand\n\t\t13 container\n\t\t\t14 button 历史：已完成前端工具\n\t\t\t15 pop up button (collapsed) More options, ID: radix-_r_9_, Secondary Actions: Expand\n\t\t16 container\n\t\t\t17 button 历史：图片与文件内容\n\t\t\t18 pop up button (collapsed) More options, ID: radix-_r_b_, Secondary Actions: Expand\n\t\t19 container\n\t\t\t20 button 历史：长会话\n\t\t\t21 pop up button (collapsed) More options, ID: radix-_r_d_, Secondary Actions: Expand\n\t\t22 container\n\t\t\t23 button New Chat\n\t\t\t24 pop up button (collapsed) More options, ID: radix-_r_1_, Secondary Actions: Expand\n\t25 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t26 text ✦\n\t\t27 text Creator Agent\n\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=threads&theme=violet"
+    },
+    {
+      "name": "thread-menu",
+      "file": "thread-menu.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=threads&theme=violet",
+      "note": "Actual product menu; Delete is an immediate upstream action, no confirmation dialog is present.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=threads&theme=violet\".\nThere has been no change in the accessibility tree.\nThe focused UI element is 28 menu More options, ID: radix-_r_6_"
+    },
+    {
+      "name": "thread-rename",
+      "file": "thread-rename.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=threads&theme=violet",
+      "note": "Actual inline rename input; screenshot only, no rename persisted.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=threads&theme=violet\".\nThere has been no change in the accessibility tree.\nThe focused UI element is 28 text field (settable) Description: Rename, Value: 历史：已完成工具调用, ID: base-ui-_r_i_"
+    },
+    {
+      "name": "optional-generative-styled",
+      "file": "optional-generative-styled.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=generative",
+      "note": "Actual official renderer with its required conversation scope.",
+      "ax": "Browser tab: 26, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=generative\".\nThere has been no change in the accessibility tree.\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=generative"
+    },
+    {
+      "name": "a2ui-form-controls",
+      "file": "a2ui-form-controls.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=conversation&theme=violet&scenario=a2ui-form-controls",
+      "note": "Actual AG-UI a2ui-form-controls scenario through existing A2UI integration.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=conversation&theme=violet&scenario=a2ui-form-controls\".\nThere has been no change in the accessibility tree.\nThe focused UI element is 40 text entry area (settable) Send a message to run the reasoning and tool Mock scenario…"
+    },
+    {
+      "name": "image-zoom-open",
+      "file": "image-zoom-open.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=image-zoom&theme=violet",
+      "note": "Actual ImageZoom portal, using existing chart screenshot as fixture image content.",
+      "ax": "Browser tab: 27, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=image-zoom&theme=violet\".\n0 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=image-zoom&theme=violet\n\t1 container Zoomed image\n\t\t2 image Image preview\n\t\t3 button Close zoomed image\n\nThe focused UI element is 3 button Close zoomed image"
+    },
+    {
+      "name": "attachment-preview",
+      "file": "attachment-preview.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=attachment-ready&theme=violet",
+      "note": "Actual attachment preview dialog.",
+      "ax": "Browser tab: 27, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=attachment-ready&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=attachment-ready&theme=violet\n\t2 container Image Attachment Preview\n\t\t3 heading Image Attachment Preview, Value: 2, ID: base-ui-_r_j_\n\t\t\t4 text Image Attachment Preview\n\t\t5 image Attachment preview\n\t\t6 button Close\n\nThe focused UI element is 6 button Close"
+    },
+    {
+      "name": "attachment-removed",
+      "file": "attachment-removed.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=attachment-ready&theme=violet",
+      "note": "Real Remove file action; the tile is absent afterwards.",
+      "ax": "Browser tab: 27, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=attachment-ready&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=attachment-ready&theme=violet\n\t2 container\n\t\t3 container\n\t\t\t4 heading How can I help you today?, Value: 1\n\t\t\t\t5 text How can I help you today?\n\t\t\t10 text entry area (settable) Send a message to run the reasoning and tool Mock scenario…\n\t\t\t11 container\n\t\t\t\t12 button Description: Add Attachment, ID: base-ui-_r_4_\n\t\t\t\t13 button (disabled) Description: Send, ID: base-ui-_r_6_\n\t15 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t16 text ✦\n\t\t17 text Creator Agent\n\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=attachment-ready&theme=violet"
+    },
+    {
+      "name": "controls-pointer",
+      "file": "controls-pointer.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=controls&theme=violet",
+      "note": "Pointer rests on actual primary button after click; disabled button included.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=controls&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=controls&theme=violet\n\t2 container\n\t\t3 button Primary\n\t\t4 button Secondary\n\t\t5 button (disabled) Disabled\n\t6 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t7 text ✦\n\t\t8 text Creator Agent\n\nThe focused UI element is 3 button Primary"
+    },
+    {
+      "name": "controls-keyboard-focus",
+      "file": "controls-keyboard-focus.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=controls&theme=violet",
+      "note": "Actual keyboard focus on secondary action; disabled action excluded from Tab order.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=controls&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=controls&theme=violet\n\t2 container\n\t\t3 button Primary\n\t\t4 button Secondary\n\t\t5 button (disabled) Disabled\n\t6 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t9 text ✦\n\t\t8 text Creator Agent\n\nThe focused UI element is 4 button Secondary"
+    },
+    {
+      "name": "popover-trigger-focus",
+      "file": "popover-trigger-focus.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=popover&theme=violet",
+      "note": "Escape restores actual focus to the popover trigger.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=popover&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=popover&theme=violet\n\t2 container\n\t\t10 pop up button (collapsed) Popover, ID: base-ui-_r_2_, Secondary Actions: Expand\n\t7 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t8 text ✦\n\t\t9 text Creator Agent\n\nThe focused UI element is 10 pop up button (collapsed) Popover, ID: base-ui-_r_2_, Secondary Actions: Expand"
+    },
+    {
+      "name": "tooltip-keyboard-focus",
+      "file": "tooltip-keyboard-focus.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=tooltip&theme=violet",
+      "note": "Actual Tab focus on Help trigger.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=tooltip&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=tooltip&theme=violet\n\t2 container\n\t\t3 button Help, ID: base-ui-_r_2_\n\t\t4 text Theme settings\n\t5 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t6 text ✦\n\t\t7 text Creator Agent\n\nThe focused UI element is 3 button Help, ID: base-ui-_r_2_"
+    },
+    {
+      "name": "markdown-code-bottom",
+      "file": "markdown-code-bottom.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=conversation&theme=violet&scenario=markdown-showcase",
+      "note": "Actual streamed Markdown with code blocks and copy buttons at final scroll position.",
+      "ax": "Browser tab: 27, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=conversation&theme=violet&scenario=markdown-showcase\".\nThere has been no change in the accessibility tree.\nThe focused UI element is 18 text entry area (settable) Send a message to run the reasoning and tool Mock scenario…"
+    },
+    {
+      "name": "markdown-headings-links",
+      "file": "markdown-headings-links.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=conversation&theme=violet&scenario=markdown-showcase",
+      "note": "Real viewport scrolled to top: headings, links, inline formatting.",
+      "ax": "Browser tab: 27, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=conversation&theme=violet&scenario=markdown-showcase\".\nThere has been no change in the accessibility tree.\nThe focused UI element is 18 text entry area (settable) Send a message to run the reasoning and tool Mock scenario…"
+    },
+    {
+      "name": "markdown-table-quote",
+      "file": "markdown-table-quote.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=conversation&theme=violet&scenario=markdown-showcase",
+      "note": "Real viewport scroll: list, blockquote and GFM table.",
+      "ax": "Browser tab: 27, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=conversation&theme=violet&scenario=markdown-showcase\".\nThere has been no change in the accessibility tree.\nThe focused UI element is 18 text entry area (settable) Send a message to run the reasoning and tool Mock scenario…"
+    },
+    {
+      "name": "dialog-keyboard-focus",
+      "file": "dialog-keyboard-focus.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=dialog&theme=violet",
+      "note": "Actual focus trapped inside Dialog on its Close action.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=dialog&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=dialog&theme=violet\n\t2 container Dialog\n\t\t3 heading Dialog, Value: 2, ID: base-ui-_r_3_\n\t\t\t4 text Dialog\n\t\t5 text This dialog inherits the selected theme through the scoped portal.\n\t\t6 button Close\n\nThe focused UI element is 6 button Close"
+    },
+    {
+      "name": "generative-selected-focus",
+      "file": "generative-selected-focus.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=generative",
+      "note": "Actual radio selection/focus in official Generative UI form.",
+      "ax": "Browser tab: 26, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=generative\".\nThere has been no change in the accessibility tree.\nThe focused UI element is 43 radio button (settable, integer) Description: Personal, Value: 1"
+    },
+    {
+      "name": "question-narrow-verified",
+      "file": "question-narrow-verified.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/narrow-verification.html?surface=question",
+      "note": "Actual iframe document viewport verified at 390px, screenshot at original scale."
+    },
+    {
+      "name": "task-states-narrow-verified",
+      "file": "task-states-narrow-verified.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/narrow-verification.html?surface=task-states",
+      "note": "Real 390px iframe viewport; {\"scrollWidth\":390,\"width\":390}"
+    },
+    {
+      "name": "attachment-error-narrow-verified",
+      "file": "attachment-error-narrow-verified.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/narrow-verification.html?surface=attachment-error",
+      "note": "Real 390px iframe viewport; {\"scrollWidth\":390,\"width\":390}"
+    },
+    {
+      "name": "generative-narrow-verified",
+      "file": "generative-narrow-verified.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/narrow-verification.html?surface=generative&optional=true",
+      "note": "Real 390px iframe viewport; {\"scrollWidth\":390,\"width\":390}"
+    },
+    {
+      "name": "a2ui-order-idle",
+      "file": "a2ui-order-idle.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=conversation&theme=violet&scenario=a2ui-interactive-order",
+      "note": "Built-in mock order scenario; no real order or payment.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=conversation&theme=violet&scenario=a2ui-interactive-order\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=conversation&theme=violet&scenario=a2ui-interactive-order\n\t2 container\n\t\t3 container\n\t\t\t13 text Show order\n\t\t\t14 container\n\t\t\t\t15 text Order Review Product: Developer Plan Seats: 5 Total: $50/month\n\t\t\t\t16 button Confirm\n\t\t\t\t17 button Cancel\n\t\t\t18 button (disabled) Copy, ID: base-ui-_r_e_\n\t\t\t19 button Refresh, ID: base-ui-_r_g_\n\t\t\t20 button (disabled) Export as Markdown, ID: base-ui-_r_i_\n\t\t\t21 container\n\t\t\t\t22 text entry area (settable) Send a message to run the reasoning and tool Mock scenario…\n\t\t\t\t23 button Description: Add Attachment, ID: base-ui-_r_4_\n\t\t\t\t24 button (disabled) Description: Send, ID: base-ui-_r_k_\n\t10 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t11 text ✦\n\t\t12 text Creator Agent\n\nThe focused UI element is 22 text entry area (settable) Send a message to run the reasoning and tool Mock scenario…"
+    },
+    {
+      "name": "a2ui-order-confirmed",
+      "file": "a2ui-order-confirmed.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=conversation&theme=violet&scenario=a2ui-interactive-order",
+      "note": "Actual mock A2UI action and resulting card update.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=conversation&theme=violet&scenario=a2ui-interactive-order\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=conversation&theme=violet&scenario=a2ui-interactive-order\n\t2 container\n\t\t3 container\n\t\t\t13 text Show order\n\t\t\t14 container\n\t\t\t\t15 text Order Review Product: Developer Plan Seats: 5 Total: $50/month\n\t\t\t\t16 button Confirm\n\t\t\t\t17 button Cancel\n\t\t\t24 container\n\t\t\t\t25 text Order confirmed Order confirmed ✓\n\t\t\t26 container\n\t\t\t\t27 text Order co ●\n\t\t\t21 container\n\t\t\t\t22 text entry area (settable) Send a message to run the reasoning and tool Mock scenario…\n\t\t\t\t23 button Description: Add Attachment, ID: base-ui-_r_4_\n\t\t\t\t28 button Stop\n\t10 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t29 text ✦\n\t\t12 text Creator Agent\n\nThe focused UI element is 22 text entry area (settable) Send a message to run the reasoning and tool Mock scenario…"
+    },
+    {
+      "name": "overlay-triggers-disabled",
+      "file": "overlay-triggers-disabled.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=disabled-overlays&theme=violet",
+      "note": "Actual disabled Popover, Tooltip and Dialog triggers.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=disabled-overlays&theme=violet\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=disabled-overlays&theme=violet\n\t2 container\n\t\t3 pop up button (disabled, collapsed) Popover disabled, ID: base-ui-_r_2_, Secondary Actions: Expand\n\t\t4 button (disabled) Tooltip disabled, ID: base-ui-_r_4_\n\t\t5 pop up button (disabled, collapsed) Dialog disabled, ID: base-ui-_r_6_, Secondary Actions: Expand\n\t6 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t7 text ✦\n\t\t8 text Creator Agent\n\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=disabled-overlays&theme=violet"
+    },
+    {
+      "name": "theme-light",
+      "file": "theme-light.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-media-task&theme=light",
+      "note": "Unmodified Light/Dark comparison on the same real component anatomy.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-media-task&theme=light\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-media-task&theme=light\n\t2 container\n\t\t3 text Generating image…\n\t\t4 container\n\t\t\t5 text Image could not be generated The image request was filtered.\n\t\t6 button (expanded) working Inspect theme integration 0:12, Secondary Actions: Collapse\n\t\t\t7 text working\n\t\t\t8 text Inspect theme integration\n\t\t\t9 text 0:12\n\t\t10 text Inspect the active Agent UI theme scope.\n\t\t11 button (disabled) done Validate style isolation\n\t\t\t12 text done Validate style isolation\n\t\t13 text All checks passed\n\t14 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t15 text ✦\n\t\t16 text Creator Agent\n\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-media-task&theme=light"
+    },
+    {
+      "name": "theme-dark",
+      "file": "theme-dark.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-media-task&theme=dark",
+      "note": "Unmodified Light/Dark comparison on the same real component anatomy.",
+      "ax": "Browser tab: 25, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-media-task&theme=dark\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-media-task&theme=dark\n\t2 container\n\t\t3 text Generating image…\n\t\t4 container\n\t\t\t5 text Image could not be generated The image request was filtered.\n\t\t6 button (expanded) working Inspect theme integration 0:12, Secondary Actions: Collapse\n\t\t\t7 text working\n\t\t\t8 text Inspect theme integration\n\t\t\t9 text 0:12\n\t\t10 text Inspect the active Agent UI theme scope.\n\t\t11 button (disabled) done Validate style isolation\n\t\t\t12 text done Validate style isolation\n\t\t13 text All checks passed\n\t14 button (collapsed) ✦ Creator Agent, Secondary Actions: Expand\n\t\t15 text ✦\n\t\t16 text Creator Agent\n\nThe focused UI element is 1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/verification.html?surface=studies-media-task&theme=dark"
+    },
+    {
+      "name": "optional-dialog-after",
+      "file": "optional-dialog-after.jpg",
+      "url": "http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=dialog",
+      "note": "Actual optional dialog with stable hooks and production Violet CSS.",
+      "ax": "Browser tab: 26, Title: \"Development only — real UI design inputs\", URL: \"http://127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=dialog\".\n1 AXWebArea Development only — real UI design inputs, URL: 127.0.0.1:5204/dev/violet-input/optional-verification.html?surface=dialog\n\t2 container Theme preferences\n\t\t3 heading Theme preferences, Value: 2, ID: base-ui-_r_2_\n\t\t\t4 text Theme preferences\n\t\t5 text Development fixture of the real frontend dialog plugin.\n\t\t6 button 关闭\n\nThe focused UI element is 6 button 关闭"
+    }
+  ],
+  "excludedAttempts": [
+    "optional-generative.jpg",
+    "question-narrow.jpg",
+    "task-states-narrow.jpg",
+    "attachment-error-narrow.jpg",
+    "generative-narrow.jpg"
+  ],
+  "failures": [],
+  "verification": {
+    "upstream": "passed",
+    "themeStyleTests": "passed",
+    "expandedTests": {
+      "passed": 53,
+      "failed": 3,
+      "failures": [
+        "Generative library exposes Slider despite test expecting absence.",
+        "Input defaultValue resolves Door despite test expecting empty string.",
+        "A2UI ChoicePicker uses radio/chips; test expects select element."
+      ]
+    },
+    "browserStyleIsolation": "3 passed",
+    "build": "passed"
+  },
+  "visualDeltas": [
+    "Upstream status dot, retrieval/job running fill remain blue without hooks.",
+    "Internal submit/checkbox/task/image glyphs retain upstream colors without hooks.",
+    "ThreadList Delete has no confirmation dialog; no confirmation state fabricated."
+  ],
+  "productionFixes": [
+    "Optional frontend form/dialog own stable hooks and scoped Violet presentation."
+  ],
+  "notes": [
+    "390px cases use actual iframe document viewport verified by DOM clientWidth; screenshots are not scaled.",
+    "Optional plugins are individually mounted for verification, not installed into default AppUIModel."
+  ]
+}

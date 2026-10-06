@@ -60,6 +60,13 @@ def test_mapper_creates_unique_official_tool_result_messages():
     assert first.content == "ok"
 
 
+def test_mapper_preserves_tool_failure_status_for_collapsed_summary():
+    event = map_runtime_event(ToolInvocationFinished("failed-call", "tool failed", "error"))[0]
+    encoded = json.loads(EventEncoder().encode(event).removeprefix("data: ").strip())
+    assert encoded["metadata"]["status"] == "error"
+    assert encoded["content"] == "tool failed"
+
+
 def test_mapper_uses_official_step_events_and_creator_metadata_namespace():
     started = map_runtime_event(
         CreatorStepStarted(

@@ -54,10 +54,16 @@ describe("Phase 4A Violet surfaces", () => {
 
   it("adds stable Popover hooks without relying on icon classes or text", async () => {
     const source = await read("../src/internal/adapters/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx");
-    for (const hook of ["category-item", "item", "back", "empty", "icon"]) {
+    for (const hook of ["category-item", "item", "item-list", "back", "empty", "icon"]) {
       expect(source).toContain(`data-slot="composer-trigger-popover-${hook}"`);
     }
     expect(source).toContain("data-[highlighted]:bg-accent");
+    expect(source).toContain('<div data-slot="composer-trigger-popover-item-list" className="py-1">');
+    const rules = await surfaceRules();
+    const list = rules.find(rule => rule.selector.includes('data-slot="composer-trigger-popover-item-list"'))!;
+    expect(list.body).toContain("padding-block: 0");
+    const items = rules.find(rule => rule.selector.endsWith('[data-slot="composer-trigger-popover-category-item"])'))!;
+    expect(items.body).toContain("border-radius: 0");
     const chip = new JSDOM(renderToStaticMarkup(<ConversationComposerDirectiveChip directiveId="person-1" directiveType="user" label="Person" />)).window.document.querySelector('[data-slot="composer-directive-chip"]')!;
     expect(chip.getAttribute("data-directive-id")).toBe("person-1");
     expect(chip.textContent).toBe("@Person");
@@ -68,7 +74,7 @@ describe("Phase 4A Violet surfaces", () => {
     const find = (ending: string) => rules.find(rule => rule.selector.endsWith(ending))!.body;
     expect(find('[data-slot="reasoning-root"]')).toContain("background-color: var(--card)");
     for (const hook of ["reasoning-root", "tool-group-root"]) {
-      expect(find(`[data-slot="${hook}"][data-agent-state="running"]`)).toContain("background-color: var(--agent-brand-surface)");
+      expect(find(`[data-slot="${hook}"][data-agent-state="running"]`)).toContain("background-color: var(--card)");
     }
     for (const hook of ["reasoning-trigger-icon", "tool-group-trigger-loader"]) {
       expect(find(`[data-slot="${hook}"]`)).toContain("color: var(--agent-brand-active)");
@@ -76,12 +82,14 @@ describe("Phase 4A Violet surfaces", () => {
     const hover = rules.findIndex(rule => rule.selector.includes('data-slot="composer-trigger-popover-item"') && rule.selector.endsWith(":is(:hover, :focus-visible)"));
     const highlight = rules.findIndex(rule => rule.selector.endsWith("[data-highlighted]"));
     expect(highlight).toBeGreaterThan(hover);
-    expect(rules[hover]!.body).toContain("background-color: var(--agent-brand-hover)");
+    expect(rules[hover]!.body).toContain("background-color: var(--muted)");
     expect(rules[highlight]!.body).toContain("background-color: var(--agent-brand-selected)");
     expect(rules[highlight]!.body).not.toMatch(/(?:^|;)\s*color:/u);
     const dom = new JSDOM('<section class="agent-ui-root" data-theme="violet"><button data-slot="composer-trigger-popover-item" data-highlighted>Label</button><button data-slot="composer-trigger-popover-category-item" data-highlighted>Category</button></section>');
     expect(dom.window.document.querySelectorAll(rules[highlight]!.selector)).toHaveLength(2);
     expect(find('[data-slot="composer-directive-chip"]')).toContain("background: var(--agent-brand-surface)");
+    expect(find('[data-slot="composer-directive-chip"]')).toContain("color: var(--agent-brand-solid)");
+    expect(rules.find(rule => rule.selector.includes('data-slot="tool-fallback-args"'))!.body).toContain("background-color: var(--card)");
     const focus = find(':focus-within [data-slot="composer-directive-chip"]');
     expect(focus).toContain("background: var(--agent-brand-selected)");
     expect(focus).toContain("border-color: var(--agent-brand-focus-border)");

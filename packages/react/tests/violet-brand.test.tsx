@@ -33,7 +33,7 @@ describe("Adaptable Violet brand boundary", () => {
     expect(createHash("sha256").update(palette).digest("hex")).toBe("b00390364b91b675c6d8144b8588592dc766b493d2cc1737bd8d4043bfab4f4b");
     expect(palette).not.toContain('[data-theme="violet"]');
     const brand = await read(brandPath);
-    expect(brand).toContain("--agent-brand: oklch(0.612313 0.217364 287.489976);");
+    expect(brand).toContain("--agent-brand: oklch(0.567945 0.208743 287.302866);");
     expect(brand).toContain("--primary: var(--agent-brand-solid);");
     expect(brand).not.toContain("var(--primary)");
     for (const state of ["solid", "subtle", "surface", "hover", "selected", "border", "hover-border", "focus-border", "focus-ring", "active"]) {
@@ -41,7 +41,10 @@ describe("Adaptable Violet brand boundary", () => {
     }
     expect(brand).toContain("--background: oklch(1 0 0);");
     expect(brand).toContain("--card: oklch(1 0 0);");
-    expect(brand).toContain("--accent: var(--agent-brand-hover);");
+    expect(brand).toContain("--sidebar: var(--background);");
+    expect(brand).toContain("--secondary: var(--background);");
+    expect(brand).toContain("--input: var(--border);");
+    expect(brand).toContain("--accent: var(--muted);");
     expect(brand).toContain("--ring: var(--agent-brand-focus-border);");
   });
 
@@ -76,7 +79,7 @@ describe("Adaptable Violet brand boundary", () => {
     const thread = await read("../src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx");
     expect(thread).toContain('data-slot="aui_thread-list-item"');
     expect(thread).toContain("data-active:bg-muted");
-    expect(await read(brandPath)).toContain("--muted: var(--agent-brand-surface);");
+    expect(await read(brandPath)).toContain("--muted: oklch(0.97 0 0);");
     expect(css).toContain('[data-slot="aui_thread-list-item"][data-active="true"]');
     expect(css).toContain('[data-slot="aui_user-message-content"]');
     const user = rules(css).find(rule => rule[1]!.trim().endsWith('[data-slot="aui_user-message-content"]'))!;
@@ -84,7 +87,7 @@ describe("Adaptable Violet brand boundary", () => {
     const hover = rules(css).find(rule => rule[1]!.trim().endsWith('[data-slot="aui_thread-list-item"]:hover'))!;
     expect(user[2]).toContain("background-color: var(--agent-brand-selected);");
     expect(active[2]).toContain("background-color: var(--agent-brand-selected);");
-    expect(hover[2]).toContain("background-color: var(--agent-brand-hover);");
+    expect(hover[2]).toContain("background-color: var(--muted);");
     expect(css.indexOf(active[1]!.trim())).toBeGreaterThan(css.indexOf(hover[1]!.trim()));
     expect(await read("../src/internal/composable-thread.tsx")).toContain('data-slot="aui_user-message-content"');
   });
@@ -158,6 +161,6 @@ it("keeps both solid primary color pairs at WCAG AA contrast while preserving th
   };
   expect(contrast("--primary", "--primary-foreground")).toBeGreaterThanOrEqual(4.5);
   expect(contrast("--sidebar-primary", "--sidebar-primary-foreground")).toBeGreaterThanOrEqual(4.5);
-  expect(contrast("--agent-brand", "--primary-foreground")).toBeLessThan(4.5);
+  expect(contrast("--agent-brand", "--primary-foreground")).toBeGreaterThanOrEqual(4.5);
   expect(resolve("--primary")).not.toBe(resolve("--agent-brand"));
 });

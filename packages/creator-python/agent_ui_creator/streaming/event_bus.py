@@ -6,6 +6,9 @@ from time import monotonic
 from typing import AsyncIterator
 
 from .runtime_events import (
+    AssistantTextStarted,
+    AssistantTextDelta,
+    AssistantTextFinished,
     CreatorRuntimeEvent,
     ToolInvocationFinished,
     ToolInvocationStarted,
@@ -43,6 +46,8 @@ class CreatorEventBus:
         self._cancel_requested = False
         self._stop_requested = False
         self._active_tool_calls: set[str] = set()
+        self._assistant_text: dict[str, str] = {}
+        self.last_assistant_text: str | None = None
         self._started_at = monotonic()
         self._tool_events_published = 0
         self._first_tool_event_ms: int | None = None
@@ -128,6 +133,12 @@ class CreatorEventBus:
             raise RuntimeError("Creator event stream is already closed.")
 
     def _record_publish(self, event: CreatorRuntimeEvent) -> None:
+        if isinstance(event, AssistantTextStarted):
+            self._assistant_text[event.message_id] = ""
+        elif isinstance(event, AssistantTextDelta):
+            self._assistant_text[event.message_id] = self._assistant_text.get(event.message_id, "") + event.delta
+        elif isinstance(event, AssistantTextFinished):
+            self.last_assistant_text = self._assistant_text.pop(event.message_id, "")
         if isinstance(event, ToolInvocationStarted):
             self._active_tool_calls.add(event.call_id)
             emitted_events = 3

@@ -33,11 +33,11 @@
 }
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_thread-list-item"]:hover {
-  background-color: var(--agent-brand-hover);
+  background-color: var(--muted);
 }
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_thread-list-item"]:is(:focus-visible, :has(:focus-visible), :has([data-state="open"])) {
-  background-color: var(--agent-brand-hover);
+  background-color: var(--muted);
 }
 
 /* Selection wins over hover, keyboard focus and an open menu. */
@@ -46,16 +46,16 @@
 }
 
 /* Phase 4A — High-Fidelity Surfaces. State comes from product adapters,
- * never inferred from vendor markup. The Violet palette stays unchanged. */
+ * never inferred from vendor markup. Static surfaces stay white/neutral. */
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="reasoning-root"] {
   background-color: var(--card);
-  border: 1px solid var(--agent-brand-border);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
 }
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="reasoning-root"][data-agent-state="running"] {
-  background-color: var(--agent-brand-surface);
-  border-color: var(--agent-brand-hover-border);
+  background-color: var(--card);
+  border-color: var(--border);
 }
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="reasoning-root"][data-agent-state="running"] [data-slot="reasoning-trigger-icon"] {
@@ -65,8 +65,8 @@
 /* Paint-only running decoration keeps the upstream ghost geometry unchanged
  * when the group completes. The inset border does not affect the box model. */
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="tool-group-root"][data-agent-state="running"] {
-  background-color: var(--agent-brand-surface);
-  box-shadow: inset 0 0 0 1px var(--agent-brand-border);
+  background-color: var(--card);
+  box-shadow: inset 0 0 0 1px var(--border);
   border-radius: var(--radius);
 }
 
@@ -77,29 +77,35 @@
 /* Generic fallback only: upstream does not expose a root status seam. */
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="tool-fallback-root"] {
   background-color: var(--card);
-  border: 1px solid var(--agent-brand-border);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 0.25rem 0.5rem;
 }
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="tool-fallback-args"], [data-slot="tool-fallback-result"]) {
-  background-color: var(--agent-brand-subtle);
+  background-color: var(--card);
   border-radius: calc(var(--radius) - 2px);
 }
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-trigger-popover"] {
   background-color: var(--popover);
-  border-color: var(--agent-brand-border);
+  border-color: var(--border);
   box-shadow: var(--aui-shadow-md);
 }
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="composer-trigger-popover-item"], [data-slot="composer-trigger-popover-category-item"]) {
   color: var(--foreground);
-  border-radius: calc(var(--radius) - 2px);
+  border-radius: 0;
+}
+
+/* The product-owned list seams remove the unhighlighted gutter. The existing
+ * popover clips each full-width row to its outer radius; anatomy stays intact. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="composer-trigger-popover-item-list"], [data-slot="composer-trigger-popover-categories"]) {
+  padding-block: 0;
 }
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="composer-trigger-popover-item"], [data-slot="composer-trigger-popover-category-item"]):is(:hover, :focus-visible) {
-  background-color: var(--agent-brand-hover);
+  background-color: var(--muted);
 }
 
 /* Keyboard highlight wins over hover and covers the complete item row. */
@@ -113,17 +119,17 @@
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-trigger-popover-back"] {
   color: var(--muted-foreground);
-  border-color: var(--agent-brand-border);
+  border-color: var(--border);
 }
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-trigger-popover-back"]:is(:hover, :focus-visible) {
-  background-color: var(--agent-brand-hover);
+  background-color: var(--muted);
 }
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-directive-chip"] {
   background: var(--agent-brand-surface);
   border-color: var(--agent-brand-border);
-  color: var(--foreground);
+  color: var(--agent-brand-solid);
 }
 
 /* Match the existing product input's focus seam with enough specificity to
@@ -142,4 +148,89 @@
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-directive-chip"]::selection {
   background: var(--agent-brand-selected);
   color: var(--foreground);
+}
+
+/* Reference, file, job and option surfaces: product Violet presentation only.
+ * Stable slots and semantic checkbox state preserve upstream structure/events. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="source-icon"],
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="quote-block-icon"],
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="file-icon"] {
+  color: var(--agent-brand-solid);
+}
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="file-icon"] {
+  background-color: var(--muted);
+}
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="file-root"],
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="option-list"],
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="job-progress"] {
+  background-color: var(--card);
+  border-color: var(--border);
+}
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="source"] {
+  background-color: var(--card);
+  border-color: var(--border);
+}
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="source"]:hover {
+  background-color: var(--muted);
+}
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="option-list"] [role="checkbox"][aria-checked="true"] {
+  background-color: var(--agent-brand-selected);
+}
+
+/* Media, tasks and charts retain their existing dimensions and behavior. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="image-root"], [data-slot="image-generating"], [data-slot="task-card"], [data-slot="task-card-transcript"], [data-slot="task-card-result"], [data-slot="chart-message"]) {
+  background-color: var(--card);
+  border-color: var(--border);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="image-preview-loading"], [data-slot="image-preview-error"], [data-slot="image-content-filter-error"]) {
+  background-color: var(--muted);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="image-copy"], [data-slot="image-download"], [data-slot="image-regenerate"]):hover {
+  background-color: var(--muted);
+  color: var(--agent-brand-solid);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-quote"] {
+  background-color: var(--card);
+  border-color: var(--border);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-quote-icon"] {
+  color: var(--agent-brand-solid);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="chart-message-track"] {
+  background-color: var(--muted);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="chart-message-fill"] {
+  background-color: var(--agent-brand-active);
+}
+
+/* Optional frontend plugins own these hooks; their service lifecycles stay intact. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="frontend-tool-form"], [data-slot="frontend-tool-dialog-content"]) {
+  background-color: var(--card);
+  color: var(--card-foreground);
+}
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form-input"] {
+  background-color: var(--card);
+  border-color: var(--input);
+}
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form-input"]:focus-visible {
+  border-color: var(--agent-brand-focus-border);
+}
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="frontend-tool-form-submit"], [data-slot="frontend-tool-dialog-close"]) {
+  background-color: var(--agent-brand-solid);
+  color: var(--primary-foreground);
+  border: 1px solid var(--agent-brand-solid);
+}
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form-reset"] {
+  background-color: var(--card);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form"] [role="alert"] {
+  color: var(--destructive);
 }

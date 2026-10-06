@@ -52,7 +52,7 @@ it("keeps the pending thread across reload, blocks abandon actions and resumes o
   vi.stubGlobal("fetch", fetch);
   const first = await mount();
   expect((first.container.querySelector("#creator-request") as HTMLTextAreaElement).disabled).toBe(true);
-  const newConversation = first.container.querySelector('[aria-label="新建 Creator 会话"]') as HTMLButtonElement;
+  const newConversation = first.container.querySelector('[aria-label="清空 Creator 会话"]') as HTMLButtonElement;
   expect(newConversation.disabled).toBe(true);
   expect(newConversation.title).toBe("请先回答当前问题");
   expect((first.container.querySelector(".creator-workspace-trigger") as HTMLButtonElement).disabled).toBe(true);
@@ -76,7 +76,7 @@ it("keeps the pending thread across reload, blocks abandon actions and resumes o
   expect(container.querySelectorAll(".creator-question-card input")).toHaveLength(0);
   expect(container.textContent).toContain("Dashboard");
   expect(container.textContent).not.toContain("Sidebar");
-  expect((container.querySelector('[aria-label="新建 Creator 会话"]') as HTMLButtonElement).disabled).toBe(false);
+  expect((container.querySelector('[aria-label="清空 Creator 会话"]') as HTMLButtonElement).disabled).toBe(false);
 });
 
 it("sends pending-question abandon through the control route and releases the workbench", async () => {
@@ -92,7 +92,7 @@ it("sends pending-question abandon through the control route and releases the wo
   expect(url).toBe("/__creator/control");
   expect(JSON.parse(String(init.body))).toEqual({ action: "abandon", threadId: "thread-1", interruptId: "interrupt-1" });
   expect(container.textContent).toContain("已放弃本次开发任务");
-  expect((container.querySelector('[aria-label="新建 Creator 会话"]') as HTMLButtonElement).disabled).toBe(false);
+  expect((container.querySelector('[aria-label="清空 Creator 会话"]') as HTMLButtonElement).disabled).toBe(false);
 });
 
 it("lets the IME confirm text before Enter sends a Creator request", async () => {
@@ -125,7 +125,7 @@ it.each(["CREATOR_INTERRUPT_NOT_FOUND", "CREATOR_INTERRUPT_CONTEXT_INVALID"])("m
   await act(async () => { (container.querySelector('.creator-question-card button') as HTMLButtonElement).click(); });
   expect(container.textContent).toContain("执行状态已经失效");
   expect(container.querySelectorAll(".creator-question-card input")).toHaveLength(0);
-  const newConversation = container.querySelector('[aria-label="新建 Creator 会话"]') as HTMLButtonElement;
+  const newConversation = container.querySelector('[aria-label="清空 Creator 会话"]') as HTMLButtonElement;
   expect(newConversation.disabled).toBe(false);
   await act(async () => newConversation.click());
   expect(container.textContent).not.toContain("Layout?");
@@ -175,7 +175,7 @@ it("renders incomplete plugin delivery separately from successful static checks"
   await act(async () => { (container.querySelector('.creator-question-card button') as HTMLButtonElement).click(); });
   expect(container.textContent).toContain("交付阻塞");
   expect(container.textContent).toContain("插件尚未启用并挂载到 AppUIModel");
-  expect(container.textContent).toContain("static: pass");
+  expect(container.textContent).toContain("静态检查：通过");
   expect(container.textContent).not.toContain("交付完成");
 });
 
@@ -202,4 +202,33 @@ it("accepts a statically verified plugin receipt without calling it Runtime comp
   expect(container.textContent).toContain("静态检查通过，Runtime 与浏览器未验证");
   expect(container.textContent).not.toContain("无效的修改回执");
   expect(container.textContent).not.toContain("交付完成");
+});
+
+
+it("groups consecutive tools while keeping every round of prose and questions visible", async () => {
+  sessionStorage.setItem("agent-ui-creator-conversation:workspace-1", JSON.stringify({
+    threadId: "thread-1", agentMessages: [], items: [
+      { kind: "message", id: "prose-1", role: "assistant", content: "先检查现有布局。" },
+      { kind: "tool", id: "tool-1", name: "inspect_ui_project", arguments: "{}", result: "observed", status: "completed" },
+      { kind: "tool", id: "tool-2", name: "read_file", arguments: "{}", result: "source", status: "completed" },
+      { kind: "message", id: "prose-2", role: "assistant", content: "接下来修改布局。" },
+      { kind: "tool", id: "tool-3", name: "mutate_app_ui_model", arguments: "{}", error: "stale reference", status: "failed" },
+      { kind: "message", id: "prose-3", role: "assistant", content: "修改遇到错误，需要重新检查。" },
+      question,
+    ],
+  }));
+  const { container } = await mount();
+  const groups = container.querySelectorAll<HTMLDetailsElement>(".creator-tool-group");
+  expect(groups).toHaveLength(2);
+  expect(groups[0]!.open).toBe(false);
+  expect(groups[0]!.querySelector("summary")!.textContent).toContain("工具调用 · 2 次");
+  expect(groups[1]!.querySelector("summary")!.textContent).toContain("1 次失败");
+  const prose = [...container.querySelectorAll(".creator-panel-message--assistant")];
+  expect(prose.map(item => item.textContent)).toEqual(expect.arrayContaining([
+    expect.stringContaining("先检查现有布局。"), expect.stringContaining("接下来修改布局。"), expect.stringContaining("修改遇到错误，需要重新检查。"),
+  ]));
+  expect(prose.every(item => item.closest(".creator-tool-group") === null)).toBe(true);
+  expect(container.querySelector(".creator-question-card")?.closest(".creator-tool-group")).toBeNull();
+  await act(async () => { groups[0]!.open = true; });
+  expect(groups[0]!.querySelectorAll(".creator-tool-activity")).toHaveLength(2);
 });

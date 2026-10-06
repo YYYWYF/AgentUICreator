@@ -11,10 +11,10 @@ export function FrontendToolDialogDemoPlugin() {
   return <Dialog.Root open={snapshot.open} onOpenChange={(open: boolean) => { if (!open) dialog?.close(); }}>
     <Dialog.Portal>
       <Dialog.Backdrop className="frontend-tool-dialog-backdrop" />
-      <Dialog.Popup className="frontend-tool-dialog-popup">
+      <Dialog.Popup data-slot="frontend-tool-dialog-content" className="frontend-tool-dialog-popup">
         <Dialog.Title>{snapshot.title}</Dialog.Title>
         <Dialog.Description>{snapshot.message}</Dialog.Description>
-        <Dialog.Close>{locale.close}</Dialog.Close>
+        <Dialog.Close data-slot="frontend-tool-dialog-close">{locale.close}</Dialog.Close>
       </Dialog.Popup>
     </Dialog.Portal>
   </Dialog.Root>;

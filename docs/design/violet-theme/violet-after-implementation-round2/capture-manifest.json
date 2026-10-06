@@ -1,0 +1,67 @@
+{
+  "commit": "985888fd676dbe44e046050f2099587eb2f9f814",
+  "capturedAt": "2026-10-05T14:51:34.754Z",
+  "records": [
+    {
+      "name": "conversation-full",
+      "file": "/Users/yifei/Coding/AgentUICreator/docs/design/violet-theme/after-implementation-round2/conversation-full.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=reasoning-tool-success&theme=violet",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Same AG-UI reasoning-tool-success fixture and content as baseline."
+    },
+    {
+      "name": "plan-running",
+      "file": "/Users/yifei/Coding/AgentUICreator/docs/design/violet-theme/after-implementation-round2/plan-running.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=plan-running&scenario=reasoning-tool-success&theme=violet",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Existing public-component fixture props unchanged."
+    },
+    {
+      "name": "plan-completed",
+      "file": "/Users/yifei/Coding/AgentUICreator/docs/design/violet-theme/after-implementation-round2/plan-completed.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=plan-completed&scenario=reasoning-tool-success&theme=violet",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Existing public-component fixture props unchanged."
+    },
+    {
+      "name": "status-working",
+      "file": "/Users/yifei/Coding/AgentUICreator/docs/design/violet-theme/after-implementation-round2/status-working.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=status-working&scenario=reasoning-tool-success&theme=violet",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Existing public-component fixture props unchanged."
+    },
+    {
+      "name": "composer-mention",
+      "file": "/Users/yifei/Coding/AgentUICreator/docs/design/violet-theme/after-implementation-round2/composer-mention.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=reasoning-tool-success&theme=violet",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Same open mention picker state as composer-mention baseline."
+    },
+    {
+      "name": "thread-list",
+      "file": "/Users/yifei/Coding/AgentUICreator/docs/design/violet-theme/after-implementation-round2/thread-list.png",
+      "url": "http://127.0.0.1:5186/theme-showcase.html",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Existing Theme Showcase thread binding; Violet selected through its theme picker."
+    }
+  ],
+  "errors": []
+}

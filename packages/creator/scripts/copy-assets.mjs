@@ -8,6 +8,18 @@ await copyFile(
   new URL("../src/ui/creator-workbench.css", import.meta.url),
   new URL("../dist/ui/creator-workbench.css", import.meta.url),
 );
+await mkdir(new URL("../dist/ui/components/", import.meta.url), { recursive: true });
+for (const name of ["creator-ui.css", "LICENSE.md"]) {
+  await copyFile(
+    new URL(`../src/ui/components/${name}`, import.meta.url),
+    new URL(`../dist/ui/components/${name}`, import.meta.url),
+  );
+}
+await mkdir(new URL("../dist/ui/setup/", import.meta.url), { recursive: true });
+await copyFile(
+  new URL("../src/ui/setup/creator-project-setup.css", import.meta.url),
+  new URL("../dist/ui/setup/creator-project-setup.css", import.meta.url),
+);
 await mkdir(new URL("../dist/python/", import.meta.url), { recursive: true });
 await cp(
   new URL("../../creator-python/agent_ui_creator/", import.meta.url),

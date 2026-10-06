@@ -1,0 +1,19 @@
+/* Design preview only; rendered with the real public components. */
+.agent-ui-root[data-theme="violet"] [data-slot="reasoning-root"][data-agent-state="running"],
+.agent-ui-root[data-theme="violet"] [data-slot="tool-group-root"][data-agent-state="running"] {
+  background-color: var(--card);
+  border-color: var(--border);
+  box-shadow: none;
+}
+.agent-ui-root[data-theme="violet"] :is([data-slot="tool-fallback-args"], [data-slot="tool-fallback-result"], [data-slot="tool-call"], [data-slot="collapsible-content"]) {
+  background-color: var(--card);
+}
+.agent-ui-root[data-theme="violet"] [data-slot="composer-directive-chip"] {
+  color: var(--agent-brand-solid);
+}
+.agent-ui-root[data-theme="violet"] [data-slot="aui_thread-list-item"]:hover {
+  background-color: var(--muted);
+}
+.agent-ui-root[data-theme="violet"] [data-slot="aui_thread-list-item"][data-active="true"] {
+  background-color: var(--agent-brand-selected);
+}

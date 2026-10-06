@@ -472,11 +472,16 @@ def test_minimal_mode_streams_tool_activity_and_protocol_metrics(tmp_path, monke
         skills_root=tmp_path,
         auth_token="x" * 32,
     )
+    from agent_ui_creator.streaming.runtime_events import AssistantTextStarted, AssistantTextDelta, AssistantTextFinished
+
     metrics = ToolProtocolMetrics(modelCalls=2, toolCalls=1, validToolCalls=1)
 
     async def fake_result(
         _settings, _prompt, _activity, _thread_id, event_sink, _telemetry
     ):
+        await event_sink.publish(AssistantTextStarted("round-text"))
+        await event_sink.publish(AssistantTextDelta("round-text", "I will inspect the file."))
+        await event_sink.publish(AssistantTextFinished("round-text"))
         await event_sink.publish(
             ToolInvocationStarted(
                 call_id="call-1",
@@ -491,6 +496,9 @@ def test_minimal_mode_streams_tool_activity_and_protocol_metrics(tmp_path, monke
                 status="success",
             )
         )
+        await event_sink.publish(AssistantTextStarted("final-text"))
+        await event_sink.publish(AssistantTextDelta("final-text", "Updated and verified."))
+        await event_sink.publish(AssistantTextFinished("final-text"))
         return SimpleNamespace(
             text="Updated and verified.",
             metrics=metrics,
@@ -520,7 +528,8 @@ def test_minimal_mode_streams_tool_activity_and_protocol_metrics(tmp_path, monke
 
     assert '"type":"TOOL_CALL_START"' in response.text
     assert '"toolCallName":"read_file"' in response.text
-    assert '"delta":"Updated and verified."' in response.text
+    assert response.text.count('"delta":"Updated and verified."') == 1
+    assert '"delta":"I will inspect the file."' in response.text
     assert '"phase":"minimal-agent"' in response.text
     assert '"validToolCalls":1' in response.text
     assert '"receipt":{"files":[],"validations":[]' in response.text

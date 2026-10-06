@@ -1,0 +1,31 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": [
+    "fixture.tsx"
+  ],
+  "compilerOptions": {
+    "paths": {
+      "@agent-ui/bootstrap": [
+        "../../../../packages/bootstrap/src/index.ts"
+      ],
+      "@agent-ui/react": [
+        "../../../../packages/react/src/index.ts"
+      ],
+      "@agent-ui/runtime-conversation": [
+        "../../../../packages/runtime-conversation/src/index.ts"
+      ],
+      "@agent-ui/runtime-core": [
+        "../../../../packages/runtime-core/src/index.ts"
+      ],
+      "@agent-ui/runtime-react": [
+        "../../../../packages/runtime-react/src/index.ts"
+      ],
+      "@agent-ui/source-registry": [
+        "../../../../packages/source-registry/src/index.ts"
+      ],
+      "react/jsx-runtime": [
+        "../../node_modules/@types/react/jsx-runtime.d.ts"
+      ]
+    }
+  }
+}

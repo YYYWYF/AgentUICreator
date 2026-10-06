@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Check, ChevronDown, Code2, Copy } from "lucide-react";
+import { Button } from "../components/button.js";
 
 import type { CreatorProjectMode } from "../../workspace/types.js";
 
@@ -29,7 +31,7 @@ export function CreatorProjectIntegrationGuide({ sourceRoot, mode }: {
   sourceRoot: string;
   mode: CreatorProjectMode;
 }) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const snippet = agentIntegrationSnippet(sourceRoot);
 
@@ -43,24 +45,27 @@ export function CreatorProjectIntegrationGuide({ sourceRoot, mode }: {
   };
 
   return (
-    <section className="creator-project-integration-guide" aria-label="接入 Agent UI">
+    <section className="creator-project-integration-guide creator-ui-scope" aria-label="接入 Agent UI">
       <header>
+        <div className="creator-integration-icon"><Code2 aria-hidden="true" /></div>
         <div>
           <strong>Agent UI 已创建</strong>
           <span>接下来把它引入你自己的应用。</span>
         </div>
-        <button type="button" aria-expanded={expanded} onClick={() => setExpanded((current) => !current)}>
+        <Button size="xs" variant="ghost" type="button" aria-expanded={expanded} onClick={() => setExpanded((current) => !current)}>
           {expanded ? "收起" : "查看接入方法"}
-        </button>
+          <ChevronDown aria-hidden="true" className={expanded ? "cui:rotate-180" : undefined} />
+        </Button>
       </header>
       {expanded ? (
         <div className="creator-project-integration-guide-body">
           <p>从公共入口 <code>{sourceRoot}/index.ts</code> 引入。以下以你项目中的组件为例：</p>
           <div className="creator-project-integration-code-header">
             <code>src/AgentMount.tsx</code>
-            <button type="button" className="creator-project-integration-copy" onClick={() => void copySnippet()}>
+            <Button size="xs" variant="ghost" type="button" className="creator-project-integration-copy" onClick={() => void copySnippet()}>
+              {copyState === "copied" ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
               {copyState === "copied" ? "已复制" : "复制代码"}
-            </button>
+            </Button>
           </div>
           <pre><code>{snippet}</code></pre>
           {copyState === "failed" ? <span role="alert">复制失败，请手动选择代码。</span> : null}

@@ -1,4 +1,6 @@
 import type { CreatorProjectMode, CreatorWorkspaceSetupInfo } from "../../workspace/types.js";
+import { Blocks, Check, LayoutDashboard, PanelRight } from "lucide-react";
+import { Button } from "../components/button.js";
 
 interface CreatorModeCardProps {
   mode: CreatorWorkspaceSetupInfo["modes"][number];
@@ -14,8 +16,9 @@ const modeDescriptions: Record<CreatorProjectMode, string> = {
 };
 
 export function CreatorModeCard({ mode, selected, disabled, onSelect }: CreatorModeCardProps) {
+  const Icon = mode.id === "assistant" ? PanelRight : mode.id === "embedded" ? Blocks : LayoutDashboard;
   return (
-    <button
+    <Button variant="outline"
       className="creator-project-mode-card"
       type="button"
       aria-pressed={selected}
@@ -23,8 +26,10 @@ export function CreatorModeCard({ mode, selected, disabled, onSelect }: CreatorM
       disabled={disabled}
       onClick={() => onSelect(mode.id)}
     >
+      <div className="creator-mode-icon"><Icon aria-hidden="true" /></div>
+      {selected ? <Check className="creator-mode-check" aria-hidden="true" /> : null}
       <strong>{mode.title}</strong>
       <span>{modeDescriptions[mode.id] ?? mode.description}</span>
-    </button>
+    </Button>
   );
 }

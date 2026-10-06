@@ -15,19 +15,22 @@ from the official Zinc theme. Radius and existing layout scales are retained.
 Violet is the **AgentUICreator-owned Adaptable Brand Theme**, with a light color
 scheme. It follows the shadcn semantic token contract but does not inherit the
 shadcn Violet palette. `agent-ui-violet-theme.css` supplies every required token
-independently. Its canonical blue-violet seed is `#8263FC`
-(`oklch(0.612313 0.217364 287.489976)`), sampled from the progress fill in the
-original confirmed "Direction A+ — Adaptable Violet" UI reference; interaction
-surfaces, borders, focus, running/progress and chart colors derive from that seed.
+independently. The selected Balanced Violet seed is `#7557E8`
+(`oklch(0.567945 0.208743 287.302866)`), with `#6442CC`
+(`oklch(0.499607 0.201356 288.164255)`) for solid primary actions.
+The user selected this palette on 2026-10-06 after comparing it with the previous
+`#8263FC` seed sampled from the A+ reference's progress fill.
 Future shadcn palette syncs must not automatically change Violet visuals.
 
 `shadcn-theme-presets.css` contains only Light / Dark Zinc upstream snapshots.
 The snapshot hash guards those two palettes, excluding the product theme.
-The reference's pale message/selected surfaces are approximately `#F2F0FE` /
-`#F1EEFD`, and the Composer outline approximately `#E3E0FB` (the image is textured,
-so these are representative samples). The shared selected tint uses 10% brand;
-default/hover/focus borders use 18% / 22% / 30%. All derive from the same seed;
-the Composer remains white with its existing soft 1px halo.
+General canvas, cards, popovers, secondary surfaces and thread-management sidebar
+remain white. Generic muted fills and static borders are neutral. Violet is reserved
+for primary actions, running icons/progress, selected items, context chips and focus.
+Generic hover uses neutral muted fills. Reasoning and ToolGroup remain white while
+running; ToolFallback argument/result surfaces are white with neutral borders.
+Brand surface/hover/selected tints use 6% / 8% / 10%; brand hover/focus borders use
+22% / 30%. The Composer remains white with its existing soft 1px focus halo.
 Build/install/runtime never invokes shadcn.
 
 ## Extension boundary
@@ -40,8 +43,16 @@ strong active/running and solid primary action.
 Composer white surface, border-only hover and a soft 1px focus halo; AgentPlan
 progress track/fill. Their hooks and upstream anatomy have contract guards.
 Thread selection keeps upstream `data-active:bg-muted` with neutral text.
-AgentStatus working remains upstream blue. No new component surfaces are added
-in Phase 1–3; Mention/Slash, Reasoning/Tool coverage remains later work.
+AgentStatus working remains upstream blue. Reasoning/Tool running colors use the
+existing product state hooks; their surfaces stay white in every state.
+
+Mention/Slash selected rows now fill their list area in Violet: the product adapter
+adds `composer-trigger-popover-item-list` without changing the hierarchy, and scoped
+CSS removes list block padding and item rounding. The existing popover clips the
+rows to its outer radius. Light/Dark retain their list padding and presentation.
+AgentStatus's internal working dot has no stable hook or replacement API; its blue
+remains a recorded visual delta until upstream exposes a suitable seam. Do not
+target its internal spans or Tailwind classes to recolor it.
 `agent-ui-theme-extensions.css` owns success/warning/overlay and a single shared
 `--aui-*` alias layer. `theme-contract.ts` maps presets to color schemes.
 Tokens stay inside Agent UI roots, including their portal containers.
@@ -72,9 +83,39 @@ it does not replace scoped runtime aliases. Radius aliases are likewise scoped.
 The product integration directory owns overlay and locale seams, while installed
 assistant-ui vendor source permits mechanical import conversion only.
 
-Violet generic muted surfaces use `agent-brand-surface`; interaction tints increase
-from surface (6%) to hover (8%) to selected (10%). Product data-slot hooks retain
-selected intensity for User Bubble and active Thread items. The original A+ brand
-seed stays unchanged for identity/progress/tints; `agent-brand-solid` preserves its
-hue/chroma with lower lightness for white-text primary and sidebar-primary actions.
-The Violet contract tests compute WCAG contrast from the resolved token values.
+Violet generic muted surfaces and hover fills are neutral. Context chips consume
+brand surface (6%) and solid brand text, while selected rows use selected (10%).
+Reasoning and Tool surfaces never consume purple background tokens. Product data-slot hooks
+retain selected intensity for User Bubble and active Thread items. Thread management
+uses the white sidebar token, with purple confined to selected items.
+The solid action token is distinct from the seed; both color pairs exceed WCAG AA
+contrast against white. The Violet contract tests compute the resolved contrast.
+
+Remaining visual deltas: the upstream ToolCall inner Request/Result field has no
+stable hook and retains its neutral gray fill; AgentPlan step icons likewise retain
+upstream colors. Do not override either via internal DOM or utility class selectors.
+
+Reference/file/question/job palette application (2026-10-06): source, file, option
+and job shells remain white with neutral borders. Quote and file icons use the
+solid brand token; file icon fill and source hover are neutral. Multiple-selection
+rows consume brand-selected through their existing role=checkbox/aria-checked
+semantics. URL favicon pixels retain the source website's branding.
+WebSearch and SubagentList retain their neutral upstream presentation. Retrieval
+relevance and JobProgress running fills remain upstream blue, and OptionList
+confirm/checkbox glyphs remain black: internal elements lack stable hooks. These
+are recorded visual deltas, not permission to patch vendor or utility selectors.
+
+Media/task/chart pass (2026-10-06): image generation and task shells/transcripts
+use white and neutral borders; media loading/error placeholders and action hover
+use neutral muted fills. Image action hover and Composer quote icons use solid
+brand. The product chart plugin adds chart-message/track/fill data slots without
+changing structure, values or behavior. Violet chart fill uses brand-active; other
+themes retain chart-1. Markdown, attachment and overlay presentation continues
+to consume existing semantic tokens. Internal media/task state icons retain their
+upstream colors where no stable hook exists.
+
+Screenshot verification (2026-10-06) covers optional frontend Form/Dialog plugins
+with their real services. Product data slots now expose form inputs/reset/submit
+and dialog content/close for scoped Violet neutral borders, brand actions and
+destructive validation text. No lifecycle, events, hierarchy or locale copy changed.
+The verification index is docs/design/violet-theme/verification-2026-10-06/index.html.

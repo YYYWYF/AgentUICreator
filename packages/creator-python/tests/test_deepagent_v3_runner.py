@@ -135,3 +135,39 @@ def test_runner_aborts_output_when_tool_projection_fails():
         assert stream.aborted is True
 
     asyncio.run(scenario())
+
+
+def test_real_deepagent_stream_preserves_prose_from_every_tool_round(tmp_path):
+    from agent_ui_creator.streaming.runtime_events import (
+        AssistantTextStarted, AssistantTextDelta, AssistantTextFinished,
+    )
+
+    async def scenario():
+        @tool
+        async def inspect_test() -> str:
+            """Return a test observation."""
+            return "observed"
+
+        model = _ToolCallingFakeModel(responses=[
+            AIMessage(content="First round: inspect.", tool_calls=[{"name": "inspect_test", "args": {}, "id": "round-1"}]),
+            AIMessage(content="Second round: verify.", tool_calls=[{"name": "inspect_test", "args": {}, "id": "round-2"}]),
+            AIMessage(content="Final answer."),
+        ])
+        graph = create_deep_agent(model=model, tools=[inspect_test], subagents=[])
+        bus = CreatorEventBus()
+        await DeepAgentV3Runner().run(graph=graph, input={"messages": [{"role": "user", "content": "Inspect twice."}]}, config={"recursion_limit": 30}, event_sink=bus)
+        bus.close()
+        events = [event async for event in bus.events()]
+        starts = [event.message_id for event in events if isinstance(event, AssistantTextStarted)]
+        ends = [event.message_id for event in events if isinstance(event, AssistantTextFinished)]
+        assert len(starts) == len(set(starts)) == 3
+        assert starts == ends
+        prose = ["".join(event.delta for event in events if isinstance(event, AssistantTextDelta) and event.message_id == message_id) for message_id in starts]
+        assert prose == ["First round: inspect.", "Second round: verify.", "Final answer."]
+        assert bus.last_assistant_text == "Final answer."
+        assert [event.call_id for event in events if isinstance(event, ToolInvocationStarted)] == ["round-1", "round-2"]
+        first_prose = next(i for i, event in enumerate(events) if isinstance(event, AssistantTextDelta))
+        first_tool = next(i for i, event in enumerate(events) if isinstance(event, ToolInvocationStarted))
+        assert first_prose < first_tool
+
+    asyncio.run(scenario())

@@ -1,0 +1,343 @@
+{
+  "counts": {
+    "1": 4,
+    "2": 17,
+    "3": 4,
+    "4": 8
+  },
+  "total": 33,
+  "upstreamPresentation": 31,
+  "productPresentation": 2,
+  "rows": [
+    {
+      "name": "Welcome / Empty",
+      "renderer": "ConversationThread Welcome override",
+      "plugin": "conversation-surface + conversation-suggestions",
+      "upstream": "thread.aui.tsx",
+      "level": 3,
+      "risk": "low",
+      "hook": ".aui-thread-welcome-root (class, not data-slot)",
+      "notes": "Product welcome/suggestions seam; preserve prompts and number of suggestions."
+    },
+    {
+      "name": "Assistant message",
+      "renderer": "ConversationThread / ComposableThread",
+      "plugin": "conversation-surface",
+      "upstream": "thread.aui.tsx",
+      "level": 4,
+      "risk": "high",
+      "hook": "aui_assistant-message-root",
+      "notes": "Project composition wraps upstream MessagePrimitive. Override whole semantic component only when authorized; no inner DOM rework."
+    },
+    {
+      "name": "User message",
+      "renderer": "ConversationThread / ComposableThread",
+      "plugin": "conversation-surface",
+      "upstream": "thread.aui.tsx",
+      "level": 4,
+      "risk": "high",
+      "hook": "aui_user-message-root",
+      "notes": "Preserve message/branch/edit controls and attachments."
+    },
+    {
+      "name": "Markdown / code / list / table / blockquote",
+      "renderer": "ConversationMarkdownText",
+      "plugin": "conversation-surface",
+      "upstream": "markdown-text.tsx",
+      "level": 4,
+      "risk": "high",
+      "hook": "see source-evidence",
+      "notes": "Typography/inherited foreground; code token coloring separate from brand state. Do not restructure parser output."
+    },
+    {
+      "name": "Composer",
+      "renderer": "ConversationCanonicalComposer",
+      "plugin": "assistant-ui-composer",
+      "upstream": "attachment.aui.tsx",
+      "level": 2,
+      "risk": "medium",
+      "hook": "aui_composer-shell",
+      "notes": "Product-owned semantic child seams over upstream Composer primitives; muted/background/border/input/ring/primary."
+    },
+    {
+      "name": "Send / Cancel",
+      "renderer": "ConversationComposerSend / Cancel",
+      "plugin": "assistant-ui-submit-action",
+      "upstream": "thread.aui.tsx",
+      "level": 1,
+      "risk": "low",
+      "hook": "button",
+      "notes": "Use primary/ring tokens and preserve conditional runtime controls."
+    },
+    {
+      "name": "Attachment / upload",
+      "renderer": "ConversationComposerAddAttachment + canonical attachments",
+      "plugin": "assistant-ui-add-attachment-action",
+      "upstream": "attachment.aui.tsx",
+      "level": 4,
+      "risk": "high",
+      "hook": "see source-evidence",
+      "notes": "File/image lifecycle belongs to upstream. Token styling only; do not invent attachment behavior."
+    },
+    {
+      "name": "Quote block / preview / toolbar",
+      "renderer": "ConversationQuoteBlock / ComposerQuotePreview / QuoteSelectionToolbar",
+      "plugin": "quote adapter + quote plugins",
+      "upstream": "quote.aui.tsx",
+      "level": 2,
+      "risk": "medium",
+      "hook": "quote-block; composer-quote; selection-toolbar",
+      "notes": "Foreground alpha, background/border. Preserve selection portal and quote lifecycle."
+    },
+    {
+      "name": "Message actions",
+      "renderer": "ConversationActionBar / copy etc.",
+      "plugin": "assistant-ui-copy/reload/export-markdown-action",
+      "upstream": "thread.aui.tsx",
+      "level": 1,
+      "risk": "low",
+      "hook": "assistant-ui-copy-action-idle",
+      "notes": "Button primitives; show meaningful actions in their existing placement."
+    },
+    {
+      "name": "Response footer",
+      "renderer": "ConversationCanonicalAssistantResponseFooter",
+      "plugin": "assistant-ui-response-footer / message-footer",
+      "upstream": "thread.aui.tsx",
+      "level": 2,
+      "risk": "medium",
+      "hook": "aui_assistant-response-footer",
+      "notes": "Product response grouping; preserve one footer per response and branch behavior."
+    },
+    {
+      "name": "Thread list / New / active / actions",
+      "renderer": "ConversationThreadListRoot / Item / New",
+      "plugin": "conversation-thread-list",
+      "upstream": "thread-list.aui.tsx",
+      "level": 2,
+      "risk": "medium",
+      "hook": "aui_thread-list-root; aui_thread-list-item",
+      "notes": "Sidebar/accent/muted/ring; product item composition preserves upstream primitives. Native action popup internals are sensitive."
+    },
+    {
+      "name": "AgentPlan",
+      "renderer": "AgentPlan",
+      "plugin": "agent-plan-message",
+      "upstream": "agent-plan.tsx",
+      "level": 2,
+      "risk": "medium",
+      "hook": "agent-plan; data-agent-ui-composition-part=plan",
+      "notes": "foreground/80 progress, foreground/35 checks, /40 completed, /90 active. Avoid per-li nth-child selectors. Preserve steps/progress."
+    },
+    {
+      "name": "AgentStatus",
+      "renderer": "AgentStatus",
+      "plugin": "agent-status-message",
+      "upstream": "agent-status.tsx",
+      "level": 2,
+      "risk": "medium",
+      "hook": "agent-status; agent-status-trailing",
+      "notes": "Shared paper uses background/popover/border. Working blue, completed emerald. SVG/internal dot is sensitive; public root hook alone does not name active dot."
+    },
+    {
+      "name": "JobProgress",
+      "renderer": "JobProgress",
+      "plugin": "job-progress-message",
+      "upstream": "job-progress.tsx",
+      "level": 2,
+      "risk": "medium",
+      "hook": "job-progress",
+      "notes": "Running blue; success emerald; partial amber; error red. Preserve progress semantics and cancellation."
+    },
+    {
+      "name": "Reasoning group",
+      "renderer": "ConversationCanonicalReasoningGroup",
+      "plugin": "assistant-ui-reasoning",
+      "upstream": "reasoning.aui.tsx",
+      "level": 2,
+      "risk": "medium",
+      "hook": "reasoning-root; reasoning-trigger; reasoning-content",
+      "notes": "Upstream reasoning.tsx has further hooks. Foreground alpha, collapsed anatomy and scroll/fade internals preserved."
+    },
+    {
+      "name": "Task group / tray",
+      "renderer": "ConversationTaskGroup / TaskTray",
+      "plugin": "task-group",
+      "upstream": "task-card.aui.tsx",
+      "level": 4,
+      "risk": "high",
+      "hook": "see source-evidence",
+      "notes": "Product transcript adapter around upstream nested task shell. Do not style nested runtime content through fragile chains."
+    },
+    {
+      "name": "Subagent list",
+      "renderer": "SubagentList",
+      "plugin": "public SubagentList / task integration",
+      "upstream": "subagent-list.tsx",
+      "level": 2,
+      "risk": "medium",
+      "hook": "subagent-list",
+      "notes": "Public deterministic presentation; shared live blue helper may be inherited."
+    },
+    {
+      "name": "Tool group",
+      "renderer": "ConversationCanonicalToolGroup",
+      "plugin": "assistant-ui-tool-group",
+      "upstream": "tool-group.aui.tsx",
+      "level": 2,
+      "risk": "medium",
+      "hook": "tool-group-root; tool-group-trigger; tool-group-content",
+      "notes": "Foreground alpha; preserve grouped disclosure and runtime child ordering."
+    },
+    {
+      "name": "Tool fallback / approval",
+      "renderer": "ConversationToolFallback",
+      "plugin": "assistant-ui-tool-fallback + tool-approval",
+      "upstream": "tool-fallback.aui.tsx",
+      "level": 4,
+      "risk": "high",
+      "hook": "tool-fallback-root; tool-fallback-approval",
+      "notes": "Token-only inner styling; tool execution approval/receipt state is sensitive. Preserve action count and safety semantics."
+    },
+    {
+      "name": "ToolCall / SearchFiles",
+      "renderer": "ConversationToolCall",
+      "plugin": "foundation conversation toolkit/SearchFilesToolUI",
+      "upstream": "tool-call.tsx",
+      "level": 2,
+      "risk": "medium",
+      "hook": "tool-call",
+      "notes": "Foreground alpha, shared paper and codeSurface. Request/result sections retained."
+    },
+    {
+      "name": "Web search",
+      "renderer": "WebSearch",
+      "plugin": "web-search",
+      "upstream": "web-search.tsx",
+      "level": 2,
+      "risk": "medium",
+      "hook": "web-search",
+      "notes": "Foreground alpha and ShimmerLabel. Tokens do not directly introduce Violet accent."
+    },
+    {
+      "name": "Retrieval chunks",
+      "renderer": "RetrievalChunks",
+      "plugin": "retrieval-chunks",
+      "upstream": "retrieval-chunks.tsx",
+      "level": 2,
+      "risk": "medium",
+      "hook": "retrieval-chunks",
+      "notes": "foreground text; blue-500/70 relevance meter. Preserve score and result density."
+    },
+    {
+      "name": "Source / citation-like",
+      "renderer": "ConversationSource",
+      "plugin": "source-citations-message / source mapping",
+      "upstream": "sources.aui.tsx",
+      "level": 2,
+      "risk": "medium",
+      "hook": "source; source-title",
+      "notes": "Muted/foreground plus info blue variant. Actual URL/source UI; no invented footnote badges."
+    },
+    {
+      "name": "File result",
+      "renderer": "ConversationFile",
+      "plugin": "conversation message parts",
+      "upstream": "file.tsx",
+      "level": 2,
+      "risk": "medium",
+      "hook": "see source-evidence",
+      "notes": "Preserve download filename/MIME and layout."
+    },
+    {
+      "name": "Image / zoom",
+      "renderer": "ConversationThread image part",
+      "plugin": "conversation message renderer",
+      "upstream": "image.tsx",
+      "level": 4,
+      "risk": "high",
+      "hook": "image-root; image-preview",
+      "notes": "Portal bridge and preview lifecycle sensitive. No standalone public ConversationImage export."
+    },
+    {
+      "name": "QuestionFlow / ask_user_question",
+      "renderer": "ConversationQuestionFlow / OptionList",
+      "plugin": "demo-ask-user-question",
+      "upstream": "option-list.tsx",
+      "level": 3,
+      "risk": "medium",
+      "hook": "option-list; product data-state receipt/readonly",
+      "notes": "Product step orchestration uses foreground alpha; OptionList is still upstream-owned, error red. Root step orchestration has no dedicated data-slot."
+    },
+    {
+      "name": "Mention trigger / results",
+      "renderer": "ConversationComposerMentionTrigger",
+      "plugin": "assistant-ui-mention-trigger + conversation-command-source",
+      "upstream": "composer-trigger-popover.aui.tsx",
+      "level": 2,
+      "risk": "medium",
+      "hook": "composer-trigger-error; see source-evidence",
+      "notes": "Product matching/provider async errors plus upstream trigger panel. Keep loading/empty/error/retry distinctions."
+    },
+    {
+      "name": "Slash trigger / result",
+      "renderer": "ConversationComposerCommandTrigger",
+      "plugin": "assistant-ui-slash-command-trigger + conversation-command-source",
+      "upstream": "directive-text.aui.tsx",
+      "level": 2,
+      "risk": "medium",
+      "hook": "composer-trigger-error; directive-text-chip",
+      "notes": "Action vs directive behavior preserved; do not invent toolbar buttons."
+    },
+    {
+      "name": "Chart / DataMessageUI",
+      "renderer": "actual chartMessageUI render",
+      "plugin": "chart-message",
+      "upstream": "none: product-owned",
+      "level": 3,
+      "risk": "low",
+      "hook": ".agent-ui-chart-message",
+      "notes": "var(--border), --muted, --chart-1. Product source can change visual treatment, preserve values."
+    },
+    {
+      "name": "Frontend tool form / dialog",
+      "renderer": "demo plugins and receipt renderers",
+      "plugin": "demo-frontend-tool-form / dialog",
+      "upstream": "none: product-owned plus public controls",
+      "level": 3,
+      "risk": "medium",
+      "hook": "data-frontend-tool; see plugin CSS",
+      "notes": "Optional demos not active here. Preserve capability vs transcript receipt distinction; copy via frontendTools locale."
+    },
+    {
+      "name": "Dialog / Popover / Tooltip",
+      "renderer": "AgentUIDialog / AgentUIPopover / AgentUITooltip",
+      "plugin": "public scoped portal wrappers",
+      "upstream": "../../ui/dialog.tsx; popover.tsx; tooltip.tsx",
+      "level": 1,
+      "risk": "low",
+      "hook": "dialog-content; popover-content; tooltip-content",
+      "notes": "background/popover/foreground/overlay/border/ring. Portal positioners and arrows Level 4 internals; do not override geometry."
+    },
+    {
+      "name": "Button / Input / Badge / NativeSelect",
+      "renderer": "public primitives",
+      "plugin": "theme-switch and consuming plugins",
+      "upstream": "../../ui/button.tsx; input.tsx; badge.tsx",
+      "level": 1,
+      "risk": "low",
+      "hook": "button; input; badge; native-select",
+      "notes": "Use semantic tokens. NativeSelect snapshot lives in internal/primitives, not vendor directory. No standalone public Card found."
+    },
+    {
+      "name": "Generative UI / A2UI",
+      "renderer": "registry integration vocabulary",
+      "plugin": "integration-generative-ui / a2ui",
+      "upstream": "registry agent-component assistant-ui-generative-ui",
+      "level": 4,
+      "risk": "high",
+      "hook": "integration-specific; inspect source",
+      "notes": "Installable optional integrations, not loaded in inspected default AppUIModel. No screenshot baseline; do not assume rendering."
+    }
+  ]
+}

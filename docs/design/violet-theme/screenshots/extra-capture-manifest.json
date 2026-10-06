@@ -1,0 +1,281 @@
+{
+  "capturedAt": "2026-10-05T13:20:49.397Z",
+  "base": "http://127.0.0.1:5186",
+  "records": [
+    {
+      "file": "component-quote.png",
+      "context": "component-quote-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=quote&scenario=reasoning-tool-success&theme=light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Actual public component, fixed props; does not assert default installation.",
+      "slots": [
+        "quote-block",
+        "quote-block-icon",
+        "quote-block-text"
+      ]
+    },
+    {
+      "file": "component-subagents.png",
+      "context": "component-subagents-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=subagents&scenario=reasoning-tool-success&theme=light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Actual public component, fixed props; does not assert default installation.",
+      "slots": [
+        "subagent-list"
+      ]
+    },
+    {
+      "file": "question-selected.png",
+      "context": "question-selected-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=question&scenario=reasoning-tool-success&theme=light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real QuestionFlow / OptionList selected state.",
+      "slots": [
+        "option-list"
+      ]
+    },
+    {
+      "file": "composer-attachment.png",
+      "context": "composer-attachment-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=reasoning-tool-success&theme=light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Actual Composer PDF attachment with official PDF-only DemoAttachmentAdapter, mock PDF bytes; no claim of PDF content validation.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "tooltip-trigger",
+        "aui_composer-shell",
+        "avatar",
+        "avatar-fallback",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "composer-focus.png",
+      "context": "composer-focus-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=reasoning-tool-success&theme=light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Real focus state, not a CSS reconstruction.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "tooltip-trigger",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "conversation-full-light.png",
+      "context": "conversation-full-light-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=reasoning-tool-success&theme=light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Actual current public Thread with AG-UI reasoning-tool-success, current root/tokens. Fixture tool registry is empty: actual fallback is visible.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "aui_user-message-root",
+        "aui_assistant-message-root",
+        "aui_assistant-message-content",
+        "aui_assistant-message-parts",
+        "aui_chain-of-thought",
+        "reasoning-root",
+        "reasoning-trigger",
+        "reasoning-trigger-icon",
+        "reasoning-trigger-label",
+        "reasoning-trigger-chevron",
+        "tool-group-root",
+        "tool-group-trigger",
+        "tool-group-trigger-label",
+        "tool-group-trigger-chevron",
+        "aui_assistant-response-footer",
+        "tooltip-trigger",
+        "assistant-ui-copy-action-idle",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "conversation-full-dark.png",
+      "context": "conversation-full-dark-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=reasoning-tool-success&theme=dark",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Actual current public Thread with AG-UI reasoning-tool-success, current root/tokens. Fixture tool registry is empty: actual fallback is visible.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "aui_user-message-root",
+        "aui_assistant-message-root",
+        "aui_assistant-message-content",
+        "aui_assistant-message-parts",
+        "aui_chain-of-thought",
+        "reasoning-root",
+        "reasoning-trigger",
+        "reasoning-trigger-icon",
+        "reasoning-trigger-label",
+        "reasoning-trigger-chevron",
+        "tool-group-root",
+        "tool-group-trigger",
+        "tool-group-trigger-label",
+        "tool-group-trigger-chevron",
+        "aui_assistant-response-footer",
+        "tooltip-trigger",
+        "assistant-ui-copy-action-idle",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "conversation-full-violet.png",
+      "context": "conversation-full-violet-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=reasoning-tool-success&theme=violet",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Actual current public Thread with AG-UI reasoning-tool-success, current root/tokens. Fixture tool registry is empty: actual fallback is visible.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "aui_user-message-root",
+        "aui_assistant-message-root",
+        "aui_assistant-message-content",
+        "aui_assistant-message-parts",
+        "aui_chain-of-thought",
+        "reasoning-root",
+        "reasoning-trigger",
+        "reasoning-trigger-icon",
+        "reasoning-trigger-label",
+        "reasoning-trigger-chevron",
+        "tool-group-root",
+        "tool-group-trigger",
+        "tool-group-trigger-label",
+        "tool-group-trigger-chevron",
+        "aui_assistant-response-footer",
+        "tooltip-trigger",
+        "assistant-ui-copy-action-idle",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "markdown-top.png",
+      "context": "markdown-top-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=markdown-showcase&theme=light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Actual streamed Markdown at top scroll position.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "aui_user-message-root",
+        "aui_assistant-message-root",
+        "aui_assistant-message-content",
+        "aui_assistant-message-parts",
+        "tooltip-trigger",
+        "aui_assistant-response-footer",
+        "assistant-ui-copy-action-idle",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "markdown-middle.png",
+      "context": "markdown-middle-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=markdown-showcase&theme=light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Actual streamed Markdown at middle scroll position.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "aui_user-message-root",
+        "aui_assistant-message-root",
+        "aui_assistant-message-content",
+        "aui_assistant-message-parts",
+        "tooltip-trigger",
+        "aui_assistant-response-footer",
+        "assistant-ui-copy-action-idle",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "composer-mention-result.png",
+      "context": "composer-mention-result-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=reasoning-tool-success&theme=light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Actual selected mention result in Composer.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "tooltip-trigger",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    },
+    {
+      "file": "composer-slash-result.png",
+      "context": "composer-slash-result-context.png",
+      "url": "http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=reasoning-tool-success&theme=light",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "note": "Actual selected slash directive result in Composer.",
+      "slots": [
+        "aui_thread-viewport",
+        "aui_message-group",
+        "tooltip-trigger",
+        "aui_composer-shell",
+        "aui_composer-before-input",
+        "aui_composer-leading-actions",
+        "aui_composer-trailing-actions"
+      ]
+    }
+  ],
+  "failures": []
+}

@@ -5,6 +5,9 @@ import type {
   CreatorWorkspaceSetupInfo,
 } from "../../workspace/types.js";
 import { CreatorModeCard } from "./CreatorModeCard.js";
+import { Button } from "../components/button.js";
+import { Input } from "../components/input.js";
+import { Layers } from "lucide-react";
 import "./creator-project-setup.css";
 
 export interface CreatorSetupError {
@@ -61,14 +64,15 @@ export function CreatorProjectSetup({
   const validation = draft.validation;
   const validTarget = validation.status === "valid" ? validation.result.sourceRoot.targetState : null;
   return (
-    <section className="creator-project-setup" aria-label="创建 Agent UI">
-      <h2>创建 Agent UI</h2>
+    <section className="creator-project-setup creator-ui-scope" aria-label="创建 Agent UI">
+      <div className="creator-setup-heading"><Layers aria-hidden="true" /><h2>创建 Agent UI</h2></div>
+      <p className="creator-setup-description">选择适合的形态，将 Agent UI 接入当前项目。</p>
       {infoState.status === "loading" || infoState.status === "idle" ? (
         <p role="status">正在加载项目初始化选项…</p>
       ) : infoState.status === "failed" || infoState.info === undefined ? (
         <div className="creator-project-setup-error" role="alert">
           <p>{infoState.error ?? "无法加载项目初始化选项。"}</p>
-          <button type="button" onClick={onRetryInfo}>重试</button>
+          <Button size="sm" variant="outline" type="button" onClick={onRetryInfo}>重试</Button>
         </div>
       ) : (
         <>
@@ -83,10 +87,10 @@ export function CreatorProjectSetup({
           </fieldset>
           <div className="creator-project-setup-field">
             <label htmlFor="creator-setup-source-root">Agent UI 源码位置</label>
-            <input id="creator-setup-source-root" type="text" value={draft.sourceRoot}
+            <Input id="creator-setup-source-root" type="text" value={draft.sourceRoot}
               disabled={draft.initializing} onChange={(event) => onSourceRootChange(event.target.value)} />
-            <small>相对于当前 Project Root。AgentUICreator 将主要管理这个目录中的 Agent UI 源码。</small>
-            <small>根据当前项目结构建议：{infoState.info.suggestedSourceRoot}</small>
+            <small>填写项目内的相对路径，Creator 将在此目录管理 Agent UI 源码。</small>
+            <small>建议目录：{infoState.info.suggestedSourceRoot}</small>
           </div>
           <div className="creator-project-setup-validation" aria-live="polite">
             {validation.status === "validating" ? <p>正在检查目录…</p> : null}
@@ -113,9 +117,9 @@ export function CreatorProjectSetup({
           )}
           {draft.initializing ? <p role="status">正在创建 Agent UI 源码并验证项目…</p> : null}
           <div className="creator-project-setup-actions">
-            <button type="button" disabled={!canInitialize} onClick={onInitialize}>
+            <Button size="sm" type="button" disabled={!canInitialize} onClick={onInitialize}>
               {draft.initializing ? "正在初始化…" : "初始化 Agent UI"}
-            </button>
+            </Button>
           </div>
         </>
       )}

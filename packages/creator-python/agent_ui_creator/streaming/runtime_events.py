@@ -30,8 +30,27 @@ class CreatorStepFinished:
     metadata: dict[str, Any] | None = None
 
 
+@dataclass(frozen=True, slots=True)
+class AssistantTextStarted:
+    message_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class AssistantTextDelta:
+    message_id: str
+    delta: str
+
+
+@dataclass(frozen=True, slots=True)
+class AssistantTextFinished:
+    message_id: str
+
+
 CreatorRuntimeEvent: TypeAlias = (
-    ToolInvocationStarted
+    AssistantTextStarted
+    | AssistantTextDelta
+    | AssistantTextFinished
+    | ToolInvocationStarted
     | ToolInvocationFinished
     | CreatorStepStarted
     | CreatorStepFinished
