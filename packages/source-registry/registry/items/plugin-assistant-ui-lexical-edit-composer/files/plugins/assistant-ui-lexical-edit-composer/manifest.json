@@ -1,0 +1,21 @@
+{
+  "id": "assistant-ui-lexical-edit-composer",
+  "name": "Assistant UI Lexical Edit Composer",
+  "description": "Rich editing of existing directives in historical user messages.",
+  "version": "0.0.1",
+  "capabilities": [
+    "conversation-user-edit-composer-renderer"
+  ],
+  "requiresRenderScope": true,
+  "authoring": {
+    "intents": [
+      "show atomic directive chips when editing historical messages"
+    ],
+    "visualRole": "historical message edit composer",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "conversation-surface",
+      "slot": "userEditComposer"
+    }
+  }
+}

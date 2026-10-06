@@ -60,7 +60,7 @@ it("searches Mention asynchronously, sends the stable ID through HttpAgent and r
   expect(requests).toHaveLength(0);
   await act(async () => { runtime.thread.composer.send(); }); await until(() => requests.length === 1 && !runtime.thread.getState().isRunning);
   expect(requests[0]!.messages.find(message => message.role === "user")!.content).toBe(":user[Zhang San]{name=employee_84721} ");
-  expect(host.querySelector('[data-directive-id="employee_84721"]')!.textContent).toBe("Zhang San");
+  expect(host.querySelector('[data-directive-id="employee_84721"]')!.textContent).toBe("@Zhang San");
   await remove("mention"); await type("@Zhang");
   expect(host.querySelector('[role="listbox"]')).toBeNull();
   expect(host.querySelector('[data-directive-id="employee_84721"]')).not.toBeNull();

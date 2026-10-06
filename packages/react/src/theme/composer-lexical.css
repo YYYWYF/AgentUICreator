@@ -1,6 +1,6 @@
 /* Input-only presentation. Composer shell and surrounding actions stay owned by
  * CanonicalComposer. Every selector remains inside the Agent UI style scope. */
-:is(.agent-ui-root, .agent-ui-conversation) .agent-ui-composer-lexical-input {
+:is(.agent-ui-root, .agent-ui-conversation) :is(.agent-ui-composer-lexical-input, .agent-ui-edit-composer-lexical-input) {
   position: relative;
   width: 100%;
   min-height: 2.5rem;
@@ -12,7 +12,7 @@
   cursor: text;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) .agent-ui-composer-lexical-input .aui-lexical-input {
+:is(.agent-ui-root, .agent-ui-conversation) :is(.agent-ui-composer-lexical-input, .agent-ui-edit-composer-lexical-input) .aui-lexical-input {
   min-height: 2.5rem;
   padding: 0.25rem 0.625rem;
   outline: none;
@@ -21,7 +21,7 @@
   caret-color: var(--primary);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) .agent-ui-composer-lexical-input .aui-lexical-placeholder {
+:is(.agent-ui-root, .agent-ui-conversation) :is(.agent-ui-composer-lexical-input, .agent-ui-edit-composer-lexical-input) .aui-lexical-placeholder {
   position: absolute;
   top: 0.25rem;
   left: 0.625rem;
@@ -43,7 +43,7 @@
   -webkit-box-decoration-break: clone;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) .agent-ui-composer-lexical-input:focus-within .agent-ui-composer-directive-chip {
+:is(.agent-ui-root, .agent-ui-conversation) :is(.agent-ui-composer-lexical-input, .agent-ui-edit-composer-lexical-input):focus-within .agent-ui-composer-directive-chip {
   border-color: color-mix(in oklab, var(--primary) 32%, var(--background));
 }
 
@@ -51,4 +51,14 @@
 :is(.agent-ui-root, .agent-ui-conversation) .agent-ui-composer-directive-chip:focus-visible {
   background: color-mix(in oklab, var(--primary) 18%, var(--background));
   outline: 1px solid var(--ring);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation) .agent-ui-edit-composer-lexical-input .aui-lexical-input {
+  min-height: 3.5rem;
+  padding: 0.75rem 1rem 0.25rem;
+}
+:is(.agent-ui-root, .agent-ui-conversation) .agent-ui-edit-composer-lexical-input .aui-lexical-placeholder {
+  top: 0.75rem;
+  left: 1rem;
+  right: 1rem;
 }

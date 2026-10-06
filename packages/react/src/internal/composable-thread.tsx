@@ -88,6 +88,7 @@ export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
  * `ToolFallback`.
  */
 export type ThreadComponents = {
+  UserEditComposer?: ComponentType | undefined;
   AssistantMessage?: ComponentType | undefined;
   AssistantResponseFooter?: ComponentType | undefined;
   /** @deprecated Use AssistantResponseFooter. */
@@ -137,7 +138,7 @@ const taskAwareGroupBy = (
 
 export type ThreadProps = {
   components?: ThreadComponents | undefined;
-  labels?: { generationStopped: string } | undefined;
+  labels?: { generationStopped: string; editCancel?: string; editUpdate?: string; editInput?: string } | undefined;
   autoFocus?: boolean | undefined;
   /** Product-owned composition seam; null means the host intentionally has no Composer. */
   composer?: ReactNode | null | undefined;
@@ -148,7 +149,7 @@ const EMPTY_COMPONENTS: ThreadComponents = {};
 const ThreadComponentsContext =
   createContext<ThreadComponents>(EMPTY_COMPONENTS);
 
-const DEFAULT_THREAD_LABELS = { generationStopped: "Generation stopped" };
+const DEFAULT_THREAD_LABELS = { generationStopped: "Generation stopped", editCancel: "Cancel", editUpdate: "Update", editInput: "Edit message" };
 const ThreadLabelsContext = createContext(DEFAULT_THREAD_LABELS);
 
 interface ComposerHostConfig {
@@ -203,7 +204,7 @@ export const ComposableThread: FC<ThreadProps> = ({
 
   return (
     <ThreadComponentsContext.Provider value={components}>
-      <ThreadLabelsContext.Provider value={labels}>
+      <ThreadLabelsContext.Provider value={{ ...DEFAULT_THREAD_LABELS, ...labels }}>
         <ComposerHostConfigContext.Provider value={{ autoFocus }}>
           <ThreadRoot isEmpty={isEmpty} composer={composer} />
         </ComposerHostConfigContext.Provider>
@@ -283,12 +284,12 @@ const ThreadRoot: FC<{
 };
 
 const ThreadMessage: FC = () => {
-  const { AssistantMessage: AssistantMessageComponent = AssistantMessage } =
+  const { AssistantMessage: AssistantMessageComponent = AssistantMessage, UserEditComposer = CanonicalUserEditComposer } =
     useContext(ThreadComponentsContext);
   const role = useAuiState((s) => s.message.role);
   const isEditing = useAuiState((s) => s.message.composer.isEditing);
 
-  if (isEditing) return <EditComposer />;
+  if (isEditing) return <UserEditComposer />;
   if (role === "user") return <UserMessage />;
   return <AssistantMessageComponent />;
 };
@@ -382,7 +383,7 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
           {beforeInput === undefined || beforeInput === null ? null : (
             <div data-slot="aui_composer-before-input">{beforeInput}</div>
           )}
-          <ComposerInputHostContext.Provider value={{ placeholder, inputAriaLabel, autoFocus: resolvedAutoFocus }}>
+          <ComposerInputHostContext.Provider value={{ variant: "primary", placeholder, inputAriaLabel, autoFocus: resolvedAutoFocus }}>
             {input ?? <ComposerTextareaInput />}
           </ComposerInputHostContext.Provider>
           <div className="aui-composer-action-wrapper relative flex items-center justify-between">
@@ -860,17 +861,18 @@ const UserActionBar: FC = () => {
   );
 };
 
-const EditComposer: FC = () => {
+export const CanonicalUserEditComposer: FC<{ input?: ReactNode }> = ({ input }) => {
+  const labels = useContext(ThreadLabelsContext);
   return (
     <MessagePrimitive.Root
       data-slot="aui_edit-composer-wrapper"
       className="flex flex-col px-2 [contain-intrinsic-size:auto_200px] [content-visibility:auto]"
     >
+      <ComposerPrimitive.Unstable_TriggerPopoverRoot>
       <ComposerPrimitive.Root data-slot="agent-ui-edit-composer" className="aui-edit-composer-root border-foreground/10 focus-within:border-foreground/25 transition-[border-color] ms-auto flex w-full max-w-[85%] cursor-text flex-col rounded-(--composer-radius) border bg-(--composer-bg)">
-        <ComposerPrimitive.Input
-          className="aui-edit-composer-input text-foreground min-h-14 w-full resize-none bg-transparent px-4 pt-3 pb-1 text-base outline-none"
-          autoFocus
-        />
+        <ComposerInputHostContext.Provider value={{ variant: "message-edit", placeholder: labels.editInput, inputAriaLabel: labels.editInput, autoFocus: true }}>
+          {input ?? <ComposerTextareaInput />}
+        </ComposerInputHostContext.Provider>
         <div className="aui-edit-composer-footer mx-2.5 mb-2.5 flex items-center gap-1.5 self-end">
           <ComposerPrimitive.Cancel asChild>
             <Button
@@ -878,16 +880,17 @@ const EditComposer: FC = () => {
               size="sm"
               className="h-8 rounded-full px-3.5"
             >
-              Cancel
+              {labels.editCancel}
             </Button>
           </ComposerPrimitive.Cancel>
           <ComposerPrimitive.Send asChild>
             <Button size="sm" className="h-8 rounded-full px-3.5">
-              Update
+              {labels.editUpdate}
             </Button>
           </ComposerPrimitive.Send>
         </div>
       </ComposerPrimitive.Root>
+      </ComposerPrimitive.Unstable_TriggerPopoverRoot>
     </MessagePrimitive.Root>
   );
 };

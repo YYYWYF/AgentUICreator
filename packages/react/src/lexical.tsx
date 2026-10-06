@@ -1,9 +1,11 @@
 "use client";
 
+import { useAuiState } from "@assistant-ui/react";
+import { CanonicalUserEditComposer } from "./internal/composable-thread.js";
 import { useContext } from "react";
 import { LexicalComposerInput } from "@assistant-ui/react-lexical";
 import { ComposerInputHostContext } from "./internal/composer-input-host-context.js";
-import { agentUIDirectiveFormatter } from "./internal/directive-formatter.js";
+import { agentUIDirectiveFormatter, hasUnsupportedConversationDirective, conversationDirectiveDisplayLabel } from "./internal/directive-formatter.js";
 
 export interface ConversationComposerDirectiveChipProps {
   directiveId: string;
@@ -15,11 +17,10 @@ export interface ConversationComposerDirectiveChipProps {
 export function ConversationComposerDirectiveChip({
   directiveId, directiveType, label,
 }: Readonly<ConversationComposerDirectiveChipProps>) {
-  const prefix = directiveType === "command" ? "/" : "@";
   return (
     <span className="agent-ui-composer-directive-chip"
       data-directive-type={directiveType} data-directive-id={directiveId}>
-      {prefix}{label}
+      {conversationDirectiveDisplayLabel(directiveType, label)}
     </span>
   );
 }
@@ -30,7 +31,7 @@ export function ConversationComposerLexicalInput() {
   if (!host) throw new Error("ConversationComposerLexicalInput requires a canonical Composer input host.");
   return (
     <LexicalComposerInput
-      className="agent-ui-composer-lexical-input"
+      className={host.variant === "message-edit" ? "agent-ui-edit-composer-lexical-input" : "agent-ui-composer-lexical-input"}
       placeholder={host.placeholder}
       aria-label={host.inputAriaLabel}
       autoFocus={host.autoFocus}
@@ -38,4 +39,11 @@ export function ConversationComposerLexicalInput() {
       directiveChip={ConversationComposerDirectiveChip}
     />
   );
+}
+
+/** Rich presentation only; assistant-ui initializes, cancels and sends the edit draft. */
+export function ConversationUserEditLexicalComposer() {
+  const text = useAuiState(s => s.composer.text);
+  return <CanonicalUserEditComposer input={hasUnsupportedConversationDirective(text)
+    ? undefined : <ConversationComposerLexicalInput />} />;
 }

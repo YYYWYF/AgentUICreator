@@ -44,12 +44,13 @@ for (const file of await files(itemsRoot)) {
 // and workspace lock must resolve exactly one Lexical release family.
 const facade = JSON.parse(await readFile(path.join(root, "packages/react/package.json"), "utf8"));
 const sourceItem = JSON.parse(await readFile(path.join(itemsRoot, "plugin-assistant-ui-lexical-composer-input/item.json"), "utf8"));
+const editItem = JSON.parse(await readFile(path.join(itemsRoot, "plugin-assistant-ui-lexical-edit-composer/item.json"), "utf8"));
 const integration = ["@assistant-ui/react-lexical", "lexical", "@lexical/react", "@lexical/utils", "@lexical/history", "@lexical/plain-text"];
 for (const name of integration) {
   const expected = name === "@assistant-ui/react-lexical" ? "0.2.15" : "0.51.0";
   if (facade.dependencies?.[name] || !facade.peerDependenciesMeta?.[name]?.optional ||
       facade.peerDependencies?.[name] !== expected || facade.devDependencies?.[name] !== expected ||
-      sourceItem.packages?.[name] !== expected) errors.push(`${name}: optional integration pin mismatch`);
+      sourceItem.packages?.[name] !== expected || editItem.packages?.[name] !== expected) errors.push(`${name}: optional integration pin mismatch`);
 }
 if (facade.dependencies["@assistant-ui/react"] !== "0.15.23" || !facade.exports["./lexical"]) {
   errors.push("Keep assistant-ui pinned and expose the optional Lexical subpath");

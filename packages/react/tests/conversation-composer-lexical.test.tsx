@@ -99,7 +99,7 @@ it("renders a selected Mention as a chip while sending the unchanged directive o
   await act(async () => runtime.thread.composer.send());
   await until(() => requests.length === 1 && !runtime.thread.getState().isRunning);
   expect(requests[0]!.messages.find(message => message.role === "user")!.content).toBe(directive + " ");
-  expect(host.querySelector('[data-slot="aui_user-message-root"] [data-directive-id="employee_84721"]')?.textContent).toBe("张三");
+  expect(host.querySelector('[data-slot="aui_user-message-root"] [data-directive-id="employee_84721"]')?.textContent).toBe("@张三");
 });
 
 it("keeps Slash actions out of the draft and reconstructs Slash directives as chips", async () => {

@@ -191,6 +191,10 @@
     {
       "id": "plugin/assistant-ui-lexical-composer-input",
       "path": "items/plugin-assistant-ui-lexical-composer-input/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-lexical-edit-composer",
+      "path": "items/plugin-assistant-ui-lexical-edit-composer/item.json"
     }
   ]
 }

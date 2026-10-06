@@ -45,6 +45,7 @@ describe("Agent UI Preset", () => {
       expect(preset.sourceItems).toContain("foundation/conversation");
       expect(preset.sourceItems).toContain("plugin/conversation-quote");
       expect(preset.sourceItems).toContain("plugin/assistant-ui-lexical-composer-input");
+      expect(preset.sourceItems).toContain("plugin/assistant-ui-lexical-edit-composer");
       expect(preset.sourceItems).toContain("plugin/assistant-ui-dictation-action");
     }
   });
@@ -54,6 +55,10 @@ describe("Agent UI Preset", () => {
     (mode) => {
       const model = agentUIPresetRegistry.getDefaultForMode(mode, agentUIModeRegistry).createAppUIModel();
       const locations = collectAppUIPluginLocations(model);
+      expect(locations.find(({ plugin }) => plugin.pluginId === "assistant-ui-lexical-edit-composer"))?.toMatchObject({
+        plugin: { id: "assistant-ui-lexical-edit-composer-main", enabled: true },
+        target: { type: "plugin_slot", parentInstanceId: "agent-conversation-surface-main", slot: "userEditComposer" },
+      });
       expect(locations.find(({ plugin }) => plugin.pluginId === "assistant-ui-lexical-composer-input"))?.toMatchObject({
         plugin: { enabled: true },
         target: { type: "plugin_slot", parentInstanceId: "assistant-ui-composer-main", slot: "input" },

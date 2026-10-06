@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { createOfficialResourceRegistry, loadAgentUISourceRegistry, officialResourceRegistry, resolveOfficialResource, validateOfficialResourceSources, type OfficialAgentUIResource } from "../src/index.js";
 describe("Official Resource Catalog", () => {
   it("keeps stable product IDs above implementation metadata", () => {
+    expect(resolveOfficialResource("conversation-edit-lexical").implementation).toEqual({ type: "plugin", pluginId: "assistant-ui-lexical-edit-composer" });
+    expect(resolveOfficialResource("conversation-lexical-input").implementation).toEqual({ type: "plugin", pluginId: "assistant-ui-lexical-composer-input" });
     expect(resolveOfficialResource("conversation-quote").implementation).toEqual({ type: "plugin", pluginId: "conversation-quote" });
     expect(resolveOfficialResource("source-citations-message").implementation).toEqual({ type: "plugin", pluginId: "source-citations-message" });
     expect(resolveOfficialResource("a2ui")).toMatchObject({ id: "a2ui", label: "A2UI", implementation: { type: "source", sourceItemId: "integration/a2ui" } });

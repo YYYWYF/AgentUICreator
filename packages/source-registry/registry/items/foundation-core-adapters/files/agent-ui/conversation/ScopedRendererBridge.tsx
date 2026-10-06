@@ -1,6 +1,8 @@
 import { createContext, useContext, type ReactNode } from "react";
 import {
   ConversationCanonicalAssistantResponseFooter,
+  ConversationCanonicalUserEditComposer,
+  type ConversationUserEditComposerRenderScope,
   type ConversationTaskGroupRenderScope,
   toConversationMessagePartGroup,
   type ConversationAssistantResponseFooterRenderScope,
@@ -75,4 +77,14 @@ export function ScopedToolFallback(tool: ConversationToolCallProps) {
     kind: "conversation.tool-fallback",
     value: fallbackValue,
   });
+}
+
+export function ScopedUserEditComposer() {
+  const renderScopedSlot = useContext(ScopedRendererBridgeContext);
+  const fallback = <ConversationCanonicalUserEditComposer />;
+  if (renderScopedSlot === null) return fallback;
+  return renderScopedSlot("userEditComposer", {
+    kind: "conversation.user-edit-composer",
+    value: {} satisfies ConversationUserEditComposerRenderScope,
+  }, fallback);
 }

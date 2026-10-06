@@ -51,6 +51,9 @@ export const enUS = {
   },
   conversation: {
     generationStopped: "Generation stopped",
+    editCancel: "Cancel",
+    editUpdate: "Update",
+    editInput: "Edit message",
   },
   frontendTools: {
     formTitle: "Profile Form",

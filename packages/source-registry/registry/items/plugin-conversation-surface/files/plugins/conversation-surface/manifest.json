@@ -117,6 +117,17 @@
             "conversation-assistant-message-footer-renderer"
           ]
         }
+      },
+      "userEditComposer": {
+        "description": "Renderer for the active user message edit composer.",
+        "cardinality": "one",
+        "optional": true,
+        "mode": "renderer",
+        "accepts": {
+          "anyOfCapabilities": [
+            "conversation-user-edit-composer-renderer"
+          ]
+        }
       }
     }
   },

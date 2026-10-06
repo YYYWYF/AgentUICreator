@@ -11,6 +11,7 @@ import { useConversationPresentationConfig } from "./config";
 import { useAgentUITheme } from "../theme/useAgentUITheme";
 import { ConversationSurface } from "./ConversationSurface";
 import {
+  ScopedUserEditComposer,
   ScopedReasoningGroup,
   ScopedAssistantResponseFooter,
   ScopedRendererBridgeProvider,
@@ -60,6 +61,7 @@ export function ConversationWelcomeFallback() {
 
 export function createConversationSemanticThreadComponents(): ConversationThreadComponents {
   return {
+    UserEditComposer: ScopedUserEditComposer,
     Welcome: ConversationEmptyState,
     ReasoningGroup: ScopedReasoningGroup,
     ToolGroup: ScopedToolGroup,

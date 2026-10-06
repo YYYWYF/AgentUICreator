@@ -85,6 +85,7 @@ export interface ConversationThreadListItemProps {
   labels?: ConversationThreadListItemLabels;
 }
 import {
+  CanonicalUserEditComposer as InternalCanonicalUserEditComposer,
   CanonicalComposer as InternalConversationCanonicalComposer,
   ComposerAddAttachmentAction as InternalConversationComposerAddAttachment,
   ComposerCancelAction as InternalConversationComposerCancel,
@@ -251,6 +252,7 @@ export function ConversationIf({
 }
 
 export type ConversationThreadComponents = {
+  UserEditComposer?: ComponentType | undefined;
   AssistantMessage?: ComponentType | undefined;
   AssistantResponseFooter?: ComponentType | undefined;
   /** @deprecated Use AssistantResponseFooter. */
@@ -288,6 +290,13 @@ export interface ConversationTaskGroupRenderScope {
   readonly children?: ReactNode;
 }
 
+/** Message and Composer state remain owned by the active assistant-ui scope. */
+export type ConversationUserEditComposerRenderScope = Record<string, never>;
+
+export function ConversationCanonicalUserEditComposer({ input }: Readonly<{ input?: ReactNode }> = {}) {
+  return <InternalCanonicalUserEditComposer input={input} />;
+}
+
 /** The footer keeps its scope intentionally data-free; actions read Response Context. */
 export type ConversationAssistantResponseFooterRenderScope = Record<string, never>;
 /** @deprecated Use ConversationAssistantResponseFooterRenderScope. */
@@ -300,6 +309,9 @@ export function toConversationMessagePartGroup(group: unknown): ConversationMess
 
 export interface ConversationThreadLabels {
   generationStopped: string;
+  editCancel?: string;
+  editUpdate?: string;
+  editInput?: string;
 }
 
 export interface ConversationThreadProps {

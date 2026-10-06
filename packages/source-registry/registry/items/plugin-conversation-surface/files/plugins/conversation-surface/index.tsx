@@ -38,6 +38,7 @@ export function ConversationSurfacePlugin({
     fallback?: ReactNode,
   ): ReactNode => {
     switch (slotName) {
+      case "userEditComposer": return renderScopedSlot("userEditComposer", scope, fallback);
       case "reasoningGroup": return renderScopedSlot("reasoningGroup", scope, fallback);
       case "toolGroup": return renderScopedSlot("toolGroup", scope, fallback);
       case "toolFallback": return renderScopedSlot("toolFallback", scope, fallback);

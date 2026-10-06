@@ -51,6 +51,9 @@ export const zhCN = {
   },
   conversation: {
     generationStopped: "已停止生成",
+    editCancel: "取消",
+    editUpdate: "更新",
+    editInput: "编辑消息",
   },
   frontendTools: {
     formTitle: "个人资料表单",

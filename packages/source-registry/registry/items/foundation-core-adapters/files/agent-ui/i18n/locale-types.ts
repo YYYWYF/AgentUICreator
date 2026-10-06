@@ -35,6 +35,9 @@ export interface AgentUILocaleMessages {
   };
   conversation: {
     generationStopped: string;
+    editCancel: string;
+    editUpdate: string;
+    editInput: string;
   };
   frontendTools: {
     formTitle: string;

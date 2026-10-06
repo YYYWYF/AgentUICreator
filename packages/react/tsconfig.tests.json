@@ -123,6 +123,7 @@
       "../project-control/tests/support/typecheck-project",
       "../source-registry/registry/items/plugin-web-search/files",
       "../source-registry/registry/items/plugin-retrieval-chunks/files",
+      "../source-registry/registry/items/plugin-assistant-ui-lexical-edit-composer/files",
       "../source-registry/registry/items/plugin-assistant-ui-lexical-composer-input/files",
       "../source-registry/registry/items/plugin-assistant-ui-mention-trigger/files",
       "../source-registry/registry/items/plugin-assistant-ui-slash-command-trigger/files",

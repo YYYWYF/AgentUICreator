@@ -1,0 +1,8 @@
+{
+  "0.0.1": {
+    "summary": "历史消息 Lexical 编辑 Renderer",
+    "changes": [
+      "复用 Directive Formatter 和 Chip；移除或禁用后保留 textarea 编辑与草稿。"
+    ]
+  }
+}

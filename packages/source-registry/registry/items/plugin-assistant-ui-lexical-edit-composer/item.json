@@ -1,0 +1,32 @@
+{
+  "id": "plugin/assistant-ui-lexical-edit-composer",
+  "kind": "agent-component",
+  "description": "Optional scoped historical edit composer with atomic directive chips.",
+  "requires": [
+    "foundation/core",
+    "plugin/conversation-surface"
+  ],
+  "files": [
+    {
+      "source": "files/plugins/assistant-ui-lexical-edit-composer/definition.ts",
+      "target": "plugins/assistant-ui-lexical-edit-composer/definition.ts"
+    },
+    {
+      "source": "files/plugins/assistant-ui-lexical-edit-composer/index.tsx",
+      "target": "plugins/assistant-ui-lexical-edit-composer/index.tsx"
+    },
+    {
+      "source": "files/plugins/assistant-ui-lexical-edit-composer/manifest.json",
+      "target": "plugins/assistant-ui-lexical-edit-composer/manifest.json"
+    }
+  ],
+  "packages": {
+    "react": "^19.2.0",
+    "@assistant-ui/react-lexical": "0.2.15",
+    "lexical": "0.51.0",
+    "@lexical/react": "0.51.0",
+    "@lexical/utils": "0.51.0",
+    "@lexical/history": "0.51.0",
+    "@lexical/plain-text": "0.51.0"
+  }
+}

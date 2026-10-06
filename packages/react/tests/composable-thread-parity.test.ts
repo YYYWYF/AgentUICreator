@@ -25,7 +25,7 @@ describe("ComposableThread upstream parity", () => {
       "ThreadSuggestions",
       "const UserMessage",
       "const AssistantMessage",
-      "const EditComposer",
+      "const CanonicalUserEditComposer",
     ]) {
       expect(source, token).toContain(token);
     }
