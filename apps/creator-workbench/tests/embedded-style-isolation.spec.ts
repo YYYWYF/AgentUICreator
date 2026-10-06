@@ -7,6 +7,7 @@ test("keeps ordinary Host globals outside Agent UI and preserves Host probes", a
   await expect(agent.locator("[data-agent-ui-mode=embedded]")).toHaveCount(1);
   await expect(agent.locator("[data-ui-plugin=conversation-surface]")).toHaveCount(1);
   await expect(agent.locator("[data-agent-ui-conversation]")).toHaveCount(1);
+  await expect(agent.locator('[role="alert"][data-plugin-id]')).toHaveCount(0);
 
   const probes = await page.locator("[data-host-probe]").evaluateAll((elements) => elements.map((element) => {
     const style = getComputedStyle(element);

@@ -17,5 +17,7 @@ const creatorDockPlugin: Plugin = {
 export default defineConfig({
   plugins: [react(), tailwindcss(), creatorDockPlugin, createMockAgentVitePlugin({ endpoint: "/agent", scenarios: showcaseMockScenarios.map(withPreviewAgentState), defaultScenarioId: "reasoning-tool-success" }), createMockConversationApiVitePlugin({ endpoint: "/__agent-ui/mock-data" })],
   resolve: { alias: runtimeAliases },
+  // Optional screenshot fixtures use their own config and package resolver.
+  optimizeDeps: { entries: ["index.html", "style-isolation.html"] },
   server: { host: "127.0.0.1", port: 5178, strictPort: true },
 });

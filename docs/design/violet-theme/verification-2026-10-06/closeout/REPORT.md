@@ -26,3 +26,6 @@
 
 此前 `9c0dd44b` 确实触发了push CI，结论为failure：[运行58](https://github.com/YYYWYF/AgentUICreator/actions/runs/37406808865)。不是没有workflow run。
 本轮将扩展回归纳入正式gate，workflow显式执行升级gate和React build。第一轮修复提交 `f4bc79f4` 的[运行59](https://github.com/YYYWYF/AgentUICreator/actions/runs/37408557317)确认 clean checkout 下 React 81/81 和 project-control 39/39，通过后在 Host 初始化发现缺少直接 Lexical 依赖，浏览器测试尚未开始。Embedded Host 的 package.json/lockfile 已补齐6项锁定依赖；没有放宽初始化检查。后续运行结果以 GitHub Actions 为准，本地通过不能替代 clean CI 证据。
+
+
+Clean CI 的[运行60](https://github.com/YYYWYF/AgentUICreator/actions/runs/37408807222)完成初始化，浏览器2/3通过。隔离副本发现默认Composer、Submit、Mention、Slash、Quote的locale消费未声明；CommandSource有同样的问题。一并补齐现有optionalInject，不改service实现或交互行为。浏览器gate增加“插件运行错误为0”断言；正式Host的Vite扫描仅覆盖index/style-isolation，截图fixture继续使用独立配置，避免可选依赖导致冷启动反复优化。

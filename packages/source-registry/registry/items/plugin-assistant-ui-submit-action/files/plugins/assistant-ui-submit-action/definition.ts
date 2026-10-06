@@ -1,9 +1,11 @@
 import { parseUIPluginManifest, type UIPluginDefinition } from "../../framework/contracts/ui-plugin";
 import { AssistantUiSubmitActionPlugin } from "./index";
+import { AGENT_UI_LOCALE_SERVICE } from "../../services/agent-ui-locale";
 import manifestJson from "./manifest.json";
 
 export const assistantUiSubmitActionPlugin: UIPluginDefinition = {
   manifest: parseUIPluginManifest(manifestJson),
+  optionalInject: [AGENT_UI_LOCALE_SERVICE],
   Component: AssistantUiSubmitActionPlugin,
 };
 
