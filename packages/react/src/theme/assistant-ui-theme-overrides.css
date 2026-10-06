@@ -62,12 +62,12 @@
   color: var(--agent-brand-active);
 }
 
-/* Completed ghost groups retain upstream presentation. */
+/* Paint-only running decoration keeps the upstream ghost geometry unchanged
+ * when the group completes. The inset border does not affect the box model. */
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="tool-group-root"][data-agent-state="running"] {
   background-color: var(--agent-brand-surface);
-  border: 1px solid var(--agent-brand-border);
+  box-shadow: inset 0 0 0 1px var(--agent-brand-border);
   border-radius: var(--radius);
-  padding: 0.25rem 0.5rem;
 }
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="tool-group-root"][data-agent-state="running"] [data-slot="tool-group-trigger-loader"] {

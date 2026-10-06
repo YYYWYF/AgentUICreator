@@ -1,5 +1,4 @@
 import { readFile } from "node:fs/promises";
-import { execFileSync } from "node:child_process";
 import { JSDOM } from "jsdom";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
@@ -89,8 +88,24 @@ describe("Phase 4A Violet surfaces", () => {
     expect(find('[data-slot="composer-directive-chip"]::selection')).toContain("background: var(--agent-brand-selected)");
   });
 
-  it("leaves vendor presentation and the locked palette outside this change", () => {
-    const changes = execFileSync("git", ["diff", "HEAD", "--name-only", "--", "packages/react/src/internal/vendor/assistant-ui", "packages/react/src/theme/agent-ui-violet-theme.css"], { cwd: new URL("../../../", import.meta.url), encoding: "utf8" });
-    expect(changes.trim()).toBe("");
+  it("keeps running ToolGroup decoration out of the box model", async () => {
+    const rules = (await surfaceRules()).filter(rule => rule.selector.includes('[data-slot="tool-group-root"][data-agent-state="running"]'));
+    expect(rules.length).toBeGreaterThan(0);
+    for (const { body } of rules) {
+      const properties = body.split(";").map(declaration => declaration.split(":")[0]!.trim()).filter(Boolean);
+      // Only paint properties may vary with status; padding, borders, sizing,
+      // spacing and transforms would move or resize the completed ghost group.
+      expect(properties.every(property => ["background-color", "box-shadow", "border-radius", "color"].includes(property))).toBe(true);
+    }
+  });
+
+  it("runs surface regression tests behind the existing upstream provenance guard in the CI gate", async () => {
+    const scripts = JSON.parse(await read("../../../package.json")).scripts as Record<string, string>;
+    const gate = scripts["verify:style-isolation"]!;
+    const stages = gate.split(" && ");
+    const upstreamStage = stages.indexOf("pnpm check:assistant-ui-upstream");
+    const themeStage = stages.findIndex(stage => stage.startsWith("pnpm --filter @agent-ui/react exec vitest run ") && stage.split(" ").includes("tests/violet-surface-overrides.test.tsx"));
+    expect(upstreamStage).toBeGreaterThanOrEqual(0);
+    expect(themeStage).toBeGreaterThan(upstreamStage);
   });
 });
