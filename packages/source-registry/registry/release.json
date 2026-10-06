@@ -106,6 +106,9 @@
     },
     "assistant-ui-lexical-edit-composer": {
       "version": "0.0.1"
+    },
+    "assistant-ui-feedback-actions": {
+      "version": "0.0.1"
     }
   }
 }

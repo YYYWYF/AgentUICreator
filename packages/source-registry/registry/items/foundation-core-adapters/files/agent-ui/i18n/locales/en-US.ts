@@ -45,6 +45,7 @@ export const enUS = {
     relevance: "{source} relevance score",
     score: "{score} of 1.00",
   },
+  conversationFeedback: { helpful: "Helpful", notHelpful: "Not helpful" },
   conversationQuote: {
     quote: "Quote",
     dismiss: "Dismiss quote",

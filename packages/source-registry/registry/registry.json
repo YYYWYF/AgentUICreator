@@ -195,6 +195,10 @@
     {
       "id": "plugin/assistant-ui-lexical-edit-composer",
       "path": "items/plugin-assistant-ui-lexical-edit-composer/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-feedback-actions",
+      "path": "items/plugin-assistant-ui-feedback-actions/item.json"
     }
   ]
 }

@@ -29,6 +29,7 @@ export interface AgentUILocaleMessages {
   searchTools: {
     searching: string; sources: string; retrieving: string; passages: string; relevance: string; score: string;
   };
+  conversationFeedback: { helpful: string; notHelpful: string; };
   conversationQuote: {
     quote: string;
     dismiss: string;

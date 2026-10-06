@@ -1,0 +1,21 @@
+{
+  "id": "assistant-ui-feedback-actions",
+  "name": "Assistant UI Feedback Actions",
+  "description": "Submits helpful or not helpful feedback for the response tail.",
+  "version": "0.0.1",
+  "capabilities": [
+    "conversation-assistant-response-action",
+    "conversation-message-action"
+  ],
+  "authoring": {
+    "intents": [
+      "rate assistant response"
+    ],
+    "visualRole": "assistant response feedback actions",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "assistant-ui-response-footer",
+      "slot": "actions"
+    }
+  }
+}

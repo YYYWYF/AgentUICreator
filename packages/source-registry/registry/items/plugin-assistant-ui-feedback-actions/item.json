@@ -1,0 +1,26 @@
+{
+  "id": "plugin/assistant-ui-feedback-actions",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-assistant-ui-feedback-actions source",
+  "files": [
+    {
+      "source": "files/plugins/assistant-ui-feedback-actions/definition.ts",
+      "target": "plugins/assistant-ui-feedback-actions/definition.ts"
+    },
+    {
+      "source": "files/plugins/assistant-ui-feedback-actions/index.tsx",
+      "target": "plugins/assistant-ui-feedback-actions/index.tsx"
+    },
+    {
+      "source": "files/plugins/assistant-ui-feedback-actions/manifest.json",
+      "target": "plugins/assistant-ui-feedback-actions/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core",
+    "plugin/assistant-ui-response-footer"
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

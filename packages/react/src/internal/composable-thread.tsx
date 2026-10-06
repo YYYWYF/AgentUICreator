@@ -63,6 +63,8 @@ import {
   PencilIcon,
   RefreshCwIcon,
   SquareIcon,
+  ThumbsUpIcon,
+  ThumbsDownIcon,
 } from "lucide-react";
 import {
   createContext,
@@ -745,6 +747,21 @@ export const CanonicalResponseCopyAction: FC = () => {
     </TooltipIconButton>
   );
 };
+
+export const CanonicalResponseFeedbackActions: FC<{ helpful: string; notHelpful: string }> = ({ helpful, notHelpful }) => (
+  <AuiIf condition={(s) => s.thread.capabilities.feedback}>
+    <ActionBarPrimitive.FeedbackPositive asChild>
+      <TooltipIconButton tooltip={helpful} aria-label={helpful} type="button" className="data-[submitted]:text-primary">
+        <ThumbsUpIcon />
+      </TooltipIconButton>
+    </ActionBarPrimitive.FeedbackPositive>
+    <ActionBarPrimitive.FeedbackNegative asChild>
+      <TooltipIconButton tooltip={notHelpful} aria-label={notHelpful} type="button" className="data-[submitted]:text-primary">
+        <ThumbsDownIcon />
+      </TooltipIconButton>
+    </ActionBarPrimitive.FeedbackNegative>
+  </AuiIf>
+);
 
 export const CanonicalResponseReloadAction: FC = () => {
   const response = useAssistantResponseRuntime();

@@ -1172,6 +1172,7 @@ import {
   ResponseActionBarRoot,
   ResponseBranchPicker,
   CanonicalResponseCopyAction,
+  CanonicalResponseFeedbackActions,
   CanonicalResponseReloadAction,
   CanonicalResponseExportMarkdownAction,
 } from "./internal/composable-thread.js";
@@ -1179,6 +1180,7 @@ import { useAssistantResponseRuntime } from "./internal/assistant-response-runti
 export const ConversationCanonicalAssistantResponseFooter: ComponentType = CanonicalAssistantResponseFooter;
 export const ConversationResponseActionBarRoot: ComponentType<{ children?: ReactNode }> = ResponseActionBarRoot;
 export const ConversationResponseBranchPicker: ComponentType = ResponseBranchPicker;
+export const ConversationCanonicalResponseFeedbackActions: ComponentType<{ helpful: string; notHelpful: string }> = CanonicalResponseFeedbackActions;
 export const ConversationCanonicalResponseCopyAction: ComponentType = CanonicalResponseCopyAction;
 export const ConversationCanonicalResponseReloadAction: ComponentType = CanonicalResponseReloadAction;
 export const ConversationCanonicalResponseExportMarkdownAction: ComponentType<{ menuLabel?: string }> = CanonicalResponseExportMarkdownAction;

@@ -1,3 +1,4 @@
+import type { ConversationFeedbackAdapter } from "./feedback.js";
 import type {
   AgentApplicationEvent,
   AgentApplicationEventListener,
@@ -62,6 +63,7 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   attachmentAdapter?: AttachmentAdapter | undefined;
   /** Official assistant-ui adapter; the application owns speech-to-text. */
   dictationAdapter?: DictationAdapter | undefined;
+  feedbackAdapter?: ConversationFeedbackAdapter | undefined;
   children: ReactNode;
   onError?: ((error: Error) => void) | undefined;
   unstable_agentFactory?: ConversationAgentFactory | undefined;
@@ -162,3 +164,5 @@ export type {
   AgentRuntimeSnapshot,
   AgentUserInput,
 };
+
+export type { ConversationFeedbackAdapter, ConversationFeedbackSubmission } from "./feedback.js";

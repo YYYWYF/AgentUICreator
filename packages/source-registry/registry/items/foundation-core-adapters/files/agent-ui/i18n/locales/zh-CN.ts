@@ -45,6 +45,7 @@ export const zhCN = {
     relevance: "{source} 相关度",
     score: "{score}，满分 1.00",
   },
+  conversationFeedback: { helpful: "有帮助", notHelpful: "没有帮助" },
   conversationQuote: {
     quote: "引用",
     dismiss: "取消引用",

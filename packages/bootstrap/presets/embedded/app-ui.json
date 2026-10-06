@@ -148,6 +148,11 @@
                           "enabled": true
                         },
                         {
+                          "id": "assistant-ui-feedback-actions-main",
+                          "pluginId": "assistant-ui-feedback-actions",
+                          "enabled": true
+                        },
+                        {
                           "id": "assistant-ui-export-markdown-action-main",
                           "pluginId": "assistant-ui-export-markdown-action",
                           "enabled": true

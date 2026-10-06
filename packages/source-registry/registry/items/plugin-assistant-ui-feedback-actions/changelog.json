@@ -1,0 +1,8 @@
+{
+  "0.0.1": {
+    "summary": "Native response feedback",
+    "changes": [
+      "Host adapter persistence with upstream optimistic selection."
+    ]
+  }
+}

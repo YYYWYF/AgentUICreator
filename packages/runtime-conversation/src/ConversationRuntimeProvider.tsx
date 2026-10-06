@@ -1,3 +1,4 @@
+import type { ConversationFeedbackAdapter } from "./feedback.js";
 import { installConversationQuoteContext } from "./compatibility/conversation-quote-context-agent.js";
 import type { AbstractAgent } from "@ag-ui/client";
 import type { ConversationToolkit } from "@agent-ui/react";
@@ -13,6 +14,7 @@ import {
   type AssistantRuntime,
   type AttachmentAdapter,
   type DictationAdapter,
+  type FeedbackAdapter,
   type ThreadHistoryAdapter,
   type ThreadMessage,
   type ChatModelRunResult,
@@ -72,6 +74,7 @@ export interface ConversationRuntimeProviderProps<TState = unknown> {
   attachmentAdapter?: AttachmentAdapter | undefined;
   /** Speech-to-text belongs to the application-provided upstream adapter. */
   dictationAdapter?: DictationAdapter | undefined;
+  feedbackAdapter?: ConversationFeedbackAdapter | undefined;
   children: ReactNode;
   onError?: ((error: Error) => void) | undefined;
   /** Test seam; production callers should use the default per-thread HttpAgent. */
@@ -94,6 +97,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
   suggestions,
   attachmentAdapter,
   dictationAdapter,
+  feedbackAdapter,
   children,
   onError,
   unstable_agentFactory = defaultAgentFactory,
@@ -191,10 +195,27 @@ export function ConversationRuntimeProvider<TState = unknown>({
       () => threadBinding.getThreadIsDisabled?.(ownedId) ?? false,
       () => threadBinding.getThreadIsDisabled?.(ownedId) ?? false,
     );
+    const feedback = useMemo<FeedbackAdapter | undefined>(() => feedbackAdapter === undefined ? undefined : ({
+      submit({ message, type, comment }) {
+        // Upstream owns optimistic selection. Catch both sync and async Host failures.
+        const report = (cause: unknown) => {
+          const error = cause instanceof Error ? cause : new Error(String(cause));
+          bridgeRef.current?.recordError(error);
+          if (outerRuntime.current?.threads.getState().mainThreadId === item.id) onError?.(error);
+        };
+        try {
+          void Promise.resolve(feedbackAdapter.submit({
+            threadId: ownedId, messageId: message.id, type,
+            ...(comment === undefined ? {} : { comment }),
+          })).catch(report);
+        } catch (error) { report(error); }
+      },
+    }), [feedbackAdapter, ownedId, item.id, onError]);
     const runtime = useAgUiRuntime({
       agent, isDisabled: isDisabled || historyFailed, showThinking: true, unstable_enableMessageQueue: false,
       adapters: {
         history,
+        ...(feedback === undefined ? {} : { feedback }),
         ...(attachmentAdapter === undefined ? {} : { attachments: attachmentAdapter }),
         ...(dictationAdapter === undefined ? {} : { dictation: dictationAdapter }),
       },
@@ -227,7 +248,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
       };
     }, [agentRuntime, applicationEvents, bridge, item.id]);
     return runtime;
-  }, [endpoint, unstable_agentFactory, threadBinding, persistence, sessions, frontendTools, onError, attachmentAdapter, dictationAdapter]);
+  }, [endpoint, unstable_agentFactory, threadBinding, persistence, sessions, frontendTools, onError, attachmentAdapter, dictationAdapter, feedbackAdapter]);
   const [controlledThreadId, setControlledThreadId] = useState<string | undefined>(persistence.initialId);
   const assistantRuntime = useRemoteThreadListRuntime({
     adapter: persistence.adapter, runtimeHook,

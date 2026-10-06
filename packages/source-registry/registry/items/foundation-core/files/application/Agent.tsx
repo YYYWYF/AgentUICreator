@@ -56,6 +56,7 @@ export interface AgentProps {
   endpoint?: string;
   observability?: AgentObservability;
   /** Application-owned official assistant-ui attachment adapter. */
+  feedbackAdapter?: ConversationRuntimeProviderProps["feedbackAdapter"];
   attachmentAdapter?: ConversationRuntimeProviderProps["attachmentAdapter"];
   /** Application-owned official assistant-ui speech-to-text adapter. */
   dictationAdapter?: ConversationRuntimeProviderProps["dictationAdapter"];
@@ -159,7 +160,7 @@ function AgentSurface({ composition, observability }: {
   );
 }
 
-export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter, runResumeProvider, initialThreadId }: AgentProps = {}) {
+export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter, feedbackAdapter, runResumeProvider, initialThreadId }: AgentProps = {}) {
   const composition = useSyncExternalStore(
     agentCompositionStore.subscribe,
     agentCompositionStore.getSnapshot,
@@ -199,6 +200,7 @@ export function Agent({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agen
   return (
     <ConversationRuntimeProvider<AppAgentState>
       endpoint={endpoint}
+      feedbackAdapter={feedbackAdapter}
       attachmentAdapter={attachmentAdapter}
       dictationAdapter={dictationAdapter}
       frontendTools={frontendToolRuntime}
