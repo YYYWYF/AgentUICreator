@@ -43,10 +43,13 @@ frontend resources; they do not install or enable plugins automatically.
 - Recording playback uses the same abortable delay and `timingScale` semantics
   as scenarios: `(current.atMs - previous.atMs) * timingScale`, starting at zero.
 - Each request has its own identity map. Thread/run IDs bind to the request;
-  message, tool and subagent IDs get stable request-scoped replay IDs. Parent
-  references, message snapshot identities and interrupt tool/subagent
-  references share those maps. Application state, tool arguments, text,
-  metadata, custom values and other opaque payloads are preserved.
+  `parentRunId` binds separately to the request's parent and is omitted when
+  the request has no parent. Message, tool, subagent and interrupt IDs get stable
+  request-scoped replay IDs. Encrypted reasoning `entityId` uses the message or
+  tool map according to its subtype. Message snapshots, `RUN_STARTED.input`
+  identities and interrupt/resume references share those maps. Application state,
+  tool arguments, text, metadata, custom values and other opaque payloads are
+  preserved.
 - The HTTP handler accepts an optional `MockRunResolver`, resolves a source
   before opening SSE, validates events, and writes through the existing SSE
   transport. Its default scenario and durable-run paths remain in place.

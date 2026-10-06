@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { AGUIEvent, RunAgentInput } from "@ag-ui/core";
+import { EventSchemas, EventType, type AGUIEvent, type RunAgentInput } from "@ag-ui/core";
 import { parseMockRecording, MAX_MOCK_RECORDING_BYTES, MAX_MOCK_RECORDING_EVENTS } from "../src/recording.js";
 import { runMockRecording } from "../src/recording-runner.js";
 const input: RunAgentInput = { threadId: "current-thread", runId: "current-run", messages: [], state: {}, tools: [], context: [], forwardedProps: {} };
@@ -43,6 +43,71 @@ describe("local recording data and replay", () => {
     expect(events[7]).toMatchObject({ messageId: "current-run:replay:message:2", toolCallId: "current-run:replay:tool:1" });
     expect(events[8]).toEqual(source.events[8]!.event);
     expect(events[9]).toMatchObject({ messages: [{ id: "current-run:replay:message:1", toolCalls: [{ id: "current-run:replay:tool:1" }] }, { id: "current-run:replay:message:2", toolCallId: "current-run:replay:tool:1" }] });
+    expect(recording).toEqual(source);
+  });
+  it.each([undefined, "current-parent"])("rebinds AG-UI 0.0.59 identities completely with parent %s", async parentRunId => {
+    const recordedInput: RunAgentInput = {
+      ...input, threadId: "old-thread", runId: "old-child", parentRunId: "old-parent",
+      messages: [
+        { id: "old-m", role: "assistant", subagentRunId: "old-subagent", content: "old-m old-t old-interrupt", encryptedValue: "message-signature", metadata: { messageId: "old-m" },
+          toolCalls: [{ id: "old-t", type: "function", function: { name: "lookup", arguments: '{"toolCallId":"old-t"}' } }] },
+        { id: "old-result", role: "tool", toolCallId: "old-t", subagentRunId: "old-subagent", content: "old-t" },
+      ],
+      state: { runId: "old-child", nested: { interruptId: "old-interrupt" } },
+      tools: [{ name: "lookup", description: "old-t", parameters: { toolCallId: "old-t" } }],
+      context: [{ description: "old-m", value: "old-thread" }],
+      forwardedProps: { parentRunId: "old-parent", messageId: "old-m" },
+      resume: [{ interruptId: "old-interrupt", status: "resolved", payload: { interruptId: "old-interrupt" }, metadata: { toolCallId: "old-t" } }],
+    };
+    const sourceEvents: AGUIEvent[] = [
+      { type: EventType.RUN_STARTED, threadId: "old-thread", runId: "old-child", parentRunId: "old-parent", input: recordedInput },
+      { type: EventType.REASONING_ENCRYPTED_VALUE, subtype: "message", entityId: "old-m", encryptedValue: "message-signature" },
+      { type: EventType.REASONING_ENCRYPTED_VALUE, subtype: "tool-call", entityId: "old-t", encryptedValue: "tool-signature" },
+      { type: EventType.TEXT_MESSAGE_START, messageId: "old-m", role: "assistant" },
+      { type: EventType.TOOL_CALL_START, toolCallId: "old-t", toolCallName: "lookup", parentMessageId: "old-m", subagentRunId: "old-subagent" },
+      { type: EventType.SUBAGENT_FINISHED, subagentRunId: "old-subagent", outcome: { type: "suspended", interruptIds: ["old-interrupt"] }, result: { interruptId: "old-interrupt" } },
+      { type: EventType.RUN_FINISHED, threadId: "old-thread", runId: "old-child", outcome: { type: "interrupt", interrupts: [
+        { id: "old-interrupt", reason: "approval", toolCallId: "old-t", subagentRunId: "old-subagent", metadata: { interruptId: "old-interrupt" }, responseSchema: { messageId: "old-m" } },
+      ] } },
+      { type: EventType.MESSAGES_SNAPSHOT, messages: recordedInput.messages },
+    ];
+    // Both the fixture and the replay must satisfy the pinned real event schema.
+    for (const event of sourceEvents) expect(EventSchemas.safeParse(event).success).toBe(true);
+    const recording = parse(sourceEvents.map(event => entry(0, event)));
+    const source = structuredClone(recording);
+    const currentInput: RunAgentInput = { ...input, ...(parentRunId === undefined ? {} : { parentRunId }) };
+    const events: AGUIEvent[] = [];
+    for await (const event of runMockRecording(currentInput, recording, { timingScale: 0 })) events.push(event);
+    for (const event of events) expect(EventSchemas.safeParse(event).success).toBe(true);
+    const started = events[0]!;
+    if (started.type !== EventType.RUN_STARTED || !started.input) throw new Error("Missing recorded run input");
+    expect(started).toMatchObject({ threadId: input.threadId, runId: input.runId });
+    expect(started.parentRunId).toBe(parentRunId);
+    expect(started.input.parentRunId).toBe(parentRunId);
+    expect(started.parentRunId).not.toBe(started.runId);
+    expect(started.input.parentRunId).not.toBe(started.input.runId);
+    if (parentRunId === undefined) {
+      expect(started).not.toHaveProperty("parentRunId");
+      expect(started.input).not.toHaveProperty("parentRunId");
+    }
+    expect(started.input).toMatchObject({
+      threadId: input.threadId, runId: input.runId,
+      messages: [
+        { id: "current-run:replay:message:1", subagentRunId: "current-run:replay:subagent:1", toolCalls: [{ id: "current-run:replay:tool:1" }] },
+        { id: "current-run:replay:message:2", toolCallId: "current-run:replay:tool:1", subagentRunId: "current-run:replay:subagent:1" },
+      ],
+      resume: [{ interruptId: "current-run:replay:interrupt:1" }],
+    });
+    expect(events[1]).toMatchObject({ entityId: "current-run:replay:message:1", encryptedValue: "message-signature" });
+    expect(events[2]).toMatchObject({ entityId: "current-run:replay:tool:1", encryptedValue: "tool-signature" });
+    expect(events[3]).toMatchObject({ messageId: "current-run:replay:message:1" });
+    expect(events[4]).toMatchObject({ toolCallId: "current-run:replay:tool:1", parentMessageId: "current-run:replay:message:1" });
+    expect(events[5]).toMatchObject({ outcome: { interruptIds: ["current-run:replay:interrupt:1"] }, result: { interruptId: "old-interrupt" } });
+    expect(events[6]).toMatchObject({ outcome: { interrupts: [{ id: "current-run:replay:interrupt:1", toolCallId: "current-run:replay:tool:1", subagentRunId: "current-run:replay:subagent:1", metadata: { interruptId: "old-interrupt" }, responseSchema: { messageId: "old-m" } }] } });
+    expect(events[7]).toMatchObject({ messages: started.input.messages });
+    for (const key of ["state", "tools", "context", "forwardedProps"] as const) expect(started.input[key]).toEqual(recordedInput[key]);
+    expect(started.input.messages[0]).toMatchObject({ content: recordedInput.messages[0]!.content, encryptedValue: "message-signature", metadata: { messageId: "old-m" }, toolCalls: [{ function: { arguments: '{"toolCallId":"old-t"}' } }] });
+    expect(started.input.resume?.[0]).toMatchObject({ payload: { interruptId: "old-interrupt" }, metadata: { toolCallId: "old-t" } });
     expect(recording).toEqual(source);
   });
   it.each([0, 0.1, 0.5, 1, 2])("uses relative delay with timingScale %s", async scale => {
