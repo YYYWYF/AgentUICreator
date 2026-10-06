@@ -99,6 +99,22 @@
     {
       "file": "invalid-unknown-remove-property.request.json",
       "valid": false
+    },
+    {
+      "file": "inspect_app_ui_model_source.request.json",
+      "valid": true
+    },
+    {
+      "file": "repair_app_ui_model.request.json",
+      "valid": true
+    },
+    {
+      "file": "invalid-repair-missing-hash.request.json",
+      "valid": false
+    },
+    {
+      "file": "invalid-repair-patch.request.json",
+      "valid": false
     }
   ],
   "results": [
@@ -255,6 +271,21 @@
     {
       "file": "invalid-source-item-drift.result.json",
       "operation": "inspect_agent_ui_sources",
+      "valid": false
+    },
+    {
+      "file": "inspect_app_ui_model_source.result.json",
+      "operation": "inspect_app_ui_model_source",
+      "valid": true
+    },
+    {
+      "file": "repair_app_ui_model.result.json",
+      "operation": "repair_app_ui_model",
+      "valid": true
+    },
+    {
+      "file": "invalid-recovery-status.result.json",
+      "operation": "inspect_app_ui_model_source",
       "valid": false
     }
   ]

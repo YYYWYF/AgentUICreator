@@ -1,0 +1,13 @@
+{
+  "transactionId": "recovery-fixture",
+  "changed": true,
+  "changedPaths": [
+    "agent-ui/app-ui/app-ui.json",
+    "agent-ui/app-ui/composition-revision.generated.json",
+    "agent-ui/plugins/registry.generated.ts"
+  ],
+  "appUIModel": {
+    "beforeHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "afterHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  }
+}

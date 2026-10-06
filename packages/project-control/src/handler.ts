@@ -1,3 +1,4 @@
+import { appUIRepairInputSchema, inspectAppUIModelSource, repairAppUIModel } from "./project/app-ui-recovery";
 import { acquireProjectControlLock } from "./project/project-control-lock";
 import { pluginPurgeInputSchema, purgeUIPlugin } from "./project/plugin-purge";
 import { recoverPendingPluginPurge } from "./project/plugin-purge-transaction";
@@ -16,6 +17,7 @@ import {
   recoverPendingAppUITransaction,
 } from "./project/app-ui-transaction";
 import { inspectUIComposition, inspectUIProject } from "./project/project-inspector";
+import { collectPluginProjectFacts } from "./project/registry-generator";
 import { inspectPluginSourceReferences } from "./project/plugin-source-references";
 import { collectPluginAssets } from "./project/plugin-assets";
 import { preflightCreatorPluginPlacement } from "./project/creator-placement-preflight";
@@ -72,6 +74,8 @@ export const requestSchema = z.discriminatedUnion("operation", [
     operation: z.literal("inspect_ui_project"),
     input: inspectUIProjectInputSchema,
   }),
+  z.strictObject({ operation: z.literal("inspect_app_ui_model_source"), input: emptyInputSchema }),
+  z.strictObject({ operation: z.literal("repair_app_ui_model"), input: appUIRepairInputSchema }),
   z.strictObject({
     operation: z.literal("inspect_app_ui_model"),
     input: emptyInputSchema,
@@ -212,6 +216,11 @@ async function inspectAppUIModel(projectRoot: string): Promise<unknown> {
 }
 
 async function listUIPlugins(projectRoot: string): Promise<unknown> {
+  const source = await inspectAppUIModelSource(projectRoot);
+  if (source.status !== "valid") return {
+    recoveryOnly: true, rawHash: source.rawHash,
+    pluginAssets: source.pluginInventory.assets.map(({ manifest: _manifest, ...asset }) => ({ ...asset, selected: false })), issues: source.pluginInventory.errors,
+  };
   const inspection = await inspectUIProject(projectRoot);
   return {
     appUIModelHash: inspection.appUIModel.hash,
@@ -268,7 +277,13 @@ async function inspectUIPlugin(
   projectRoot: string,
   pluginId: string,
 ): Promise<unknown> {
-  const inspection = await inspectUIProject(projectRoot);
+  const source = await inspectAppUIModelSource(projectRoot);
+  const recoveryOnly = source.status !== "valid";
+  const inspection = recoveryOnly ? {
+    appUIModel: { hash: source.rawHash },
+    pluginAssets: source.pluginInventory.assets.map(({ manifest: _manifest, ...asset }) => ({ ...asset, selected: false })),
+    plugins: [] as Array<{ pluginId: string }>,
+  } : await inspectUIProject(projectRoot);
   const matches = inspection.pluginAssets.filter(
     (asset) => asset.pluginId === pluginId,
   );
@@ -322,12 +337,17 @@ async function inspectUIPlugin(
     path.join(projectRoot, asset.definitionPath),
     "utf8",
   );
-  const serviceInspection = await inspectUIServices(projectRoot);
+  const projectConfig = await readAgentUIProjectConfig(projectRoot);
+  const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config);
+  const serviceInspection = recoveryOnly
+    ? (await collectPluginProjectFacts(projectRoot, projectControlConfigForPaths(paths), paths)).declarations
+    : await inspectUIServices(projectRoot);
   const serviceDeclaration = serviceInspection.plugins.find(
     (plugin) => plugin.pluginId === pluginId,
   );
 
   return {
+    ...(recoveryOnly ? { recoveryOnly: true } : {}),
     appUIModelHash: inspection.appUIModel.hash,
     asset,
     selected: asset.selected,
@@ -379,7 +399,13 @@ async function inspectUIPluginSourceReferences(
   projectRoot: string,
   pluginId: string,
 ): Promise<unknown> {
-  const inspection = await inspectUIProject(projectRoot);
+  const source = await inspectAppUIModelSource(projectRoot);
+  const recoveryOnly = source.status !== "valid";
+  const inspection = recoveryOnly ? {
+    appUIModel: { hash: source.rawHash },
+    pluginAssets: source.pluginInventory.assets.map(({ manifest: _manifest, ...asset }) => ({ ...asset, selected: false })),
+    plugins: [] as Array<{ pluginId: string }>,
+  } : await inspectUIProject(projectRoot);
   const matches = inspection.pluginAssets.filter(
     (asset) => asset.pluginId === pluginId,
   );
@@ -408,10 +434,17 @@ async function executeRequest(
     resolveAgentUIProjectPaths(projectRoot, projectConfig.config),
   );
   switch (request.operation) {
-    case "inspect_ui_project":
+    case "inspect_app_ui_model_source":
+      return inspectAppUIModelSource(projectRoot);
+    case "repair_app_ui_model":
+      return repairAppUIModel(projectRoot, request.input);
+    case "inspect_ui_project": {
+      const source = await inspectAppUIModelSource(projectRoot);
+      if (source.status !== "valid") throw new UIProjectControlError("APP_UI_MODEL_INVALID", "Inspect AppUIModel source before recovery.", { status: source.status, diagnostics: source.diagnostics });
       return "view" in request.input && request.input.view === "composition"
         ? inspectUIComposition(projectRoot)
         : inspectUIProject(projectRoot);
+    }
     case "inspect_app_ui_model":
       return inspectAppUIModel(projectRoot);
     case "inspect_ui_slots":

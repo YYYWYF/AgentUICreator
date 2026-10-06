@@ -645,6 +645,38 @@
               "$ref": "#/$defs/purgeUIPluginInput"
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation",
+            "input"
+          ],
+          "properties": {
+            "operation": {
+              "const": "inspect_app_ui_model_source"
+            },
+            "input": {
+              "$ref": "#/$defs/emptyInput"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "operation",
+            "input"
+          ],
+          "properties": {
+            "operation": {
+              "const": "repair_app_ui_model"
+            },
+            "input": {
+              "$ref": "#/$defs/repairAppUIModelInput"
+            }
+          }
         }
       ]
     },
@@ -710,6 +742,12 @@
                 },
                 {
                   "$ref": "#/$defs/purgeUIPluginResult"
+                },
+                {
+                  "$ref": "#/$defs/inspectAppUIModelSourceResult"
+                },
+                {
+                  "$ref": "#/$defs/repairAppUIModelResult"
                 }
               ]
             }
@@ -1344,57 +1382,94 @@
       }
     },
     "listUIPluginsResult": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "appUIModelHash",
-        "capabilityCatalog",
-        "activeComposition",
-        "issues",
-        "pluginAssets",
-        "plugins",
-        "catalogs"
-      ],
-      "properties": {
-        "appUIModelHash": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        },
-        "capabilityCatalog": {
-          "$ref": "#/$defs/capabilityCatalog"
-        },
-        "activeComposition": {
-          "$ref": "#/$defs/activeComposition"
-        },
-        "issues": {
-          "type": "array",
-          "maxItems": 1000,
-          "items": {
-            "$ref": "#/$defs/projectIssue"
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "appUIModelHash",
+            "capabilityCatalog",
+            "activeComposition",
+            "issues",
+            "pluginAssets",
+            "plugins",
+            "catalogs"
+          ],
+          "properties": {
+            "appUIModelHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "capabilityCatalog": {
+              "$ref": "#/$defs/capabilityCatalog"
+            },
+            "activeComposition": {
+              "$ref": "#/$defs/activeComposition"
+            },
+            "issues": {
+              "type": "array",
+              "maxItems": 1000,
+              "items": {
+                "$ref": "#/$defs/projectIssue"
+              }
+            },
+            "pluginAssets": {
+              "type": "array",
+              "maxItems": 500,
+              "items": {
+                "$ref": "#/$defs/pluginAsset"
+              }
+            },
+            "plugins": {
+              "type": "array",
+              "maxItems": 500,
+              "items": {
+                "$ref": "#/$defs/opaqueHostObject"
+              }
+            },
+            "catalogs": {
+              "type": "array",
+              "maxItems": 500,
+              "items": {
+                "$ref": "#/$defs/catalogEntry"
+              }
+            }
           }
         },
-        "pluginAssets": {
-          "type": "array",
-          "maxItems": 500,
-          "items": {
-            "$ref": "#/$defs/pluginAsset"
-          }
-        },
-        "plugins": {
-          "type": "array",
-          "maxItems": 500,
-          "items": {
-            "$ref": "#/$defs/opaqueHostObject"
-          }
-        },
-        "catalogs": {
-          "type": "array",
-          "maxItems": 500,
-          "items": {
-            "$ref": "#/$defs/catalogEntry"
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "recoveryOnly",
+            "rawHash",
+            "pluginAssets",
+            "issues"
+          ],
+          "properties": {
+            "recoveryOnly": {
+              "const": true
+            },
+            "rawHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "pluginAssets": {
+              "type": "array",
+              "maxItems": 500,
+              "items": {
+                "$ref": "#/$defs/pluginAsset"
+              }
+            },
+            "issues": {
+              "type": "array",
+              "maxItems": 1000,
+              "items": {
+                "$ref": "#/$defs/projectIssue"
+              }
+            }
           }
         }
-      }
+      ]
     },
     "serviceDeclaration": {
       "type": "object",
@@ -1772,6 +1847,9 @@
         },
         "filesTruncated": {
           "type": "boolean"
+        },
+        "recoveryOnly": {
+          "const": true
         }
       }
     },
@@ -2597,6 +2675,105 @@
         },
         "verification": {
           "const": "passed"
+        }
+      }
+    },
+    "repairAppUIModelInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expectedRawHash",
+        "candidateModel"
+      ],
+      "properties": {
+        "expectedRawHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "candidateModel": {
+          "type": "object"
+        },
+        "cancelMarker": {
+          "type": "string",
+          "pattern": "^\\.agentuicreator/control/cancel-[a-f0-9-]{36}$"
+        }
+      }
+    },
+    "inspectAppUIModelSourceResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "rawHash",
+        "status",
+        "diagnostics"
+      ],
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "rawHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "status": {
+          "enum": [
+            "valid",
+            "syntax_invalid",
+            "schema_invalid",
+            "composition_invalid"
+          ]
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "pluginInventory": {
+          "type": "object"
+        }
+      }
+    },
+    "repairAppUIModelResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transactionId",
+        "changed",
+        "changedPaths",
+        "appUIModel"
+      ],
+      "properties": {
+        "transactionId": {
+          "type": "string"
+        },
+        "changed": {
+          "const": true
+        },
+        "changedPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "appUIModel": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "beforeHash",
+            "afterHash"
+          ],
+          "properties": {
+            "beforeHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "afterHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
         }
       }
     }

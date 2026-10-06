@@ -88,7 +88,7 @@ Composition contract
 - Plugin placement targets are only application, layout_slot(slotRef), or plugin_slot(parentInstanceId, slot).
 - Plugin instance ids are persistent authoring identities. Layout nodeRef and slotRef values are snapshot-scoped references, not persistent ids.
 - Plugin child Slot contracts come from Plugin declarations; never infer them from Plugin names.
-- Composition changes use mutate_app_ui_model only.
+- Healthy Composition changes use mutate_app_ui_model only. Host-confirmed invalid AppUIModel recovery uses inspect_app_ui_model_source, then repair_app_ui_model with a complete candidate. Never edit app-ui.json with filesystem tools. After repair, inspect_ui_project(view="composition") again before normal mutation.
 - Runtime slot ids, mounts, compiler-generated layout ids, Runtime ordering, and SlotRegistry identities must never be inferred, generated, or used by Creator.
 - These are stable rules and do not require inspection. Inspect only current workspace facts needed for the user's task.
 
@@ -756,8 +756,10 @@ validation pass with no remaining diagnostics. For a fix targeting one or a
 finite set of explicitly identified pre-existing diagnostics, continue using
 delta mode. Before completion, confirm that every requested diagnostic appears
 in resolved diagnostics or is no longer present. Do not add a third validation
-mode or a target-diagnostic workflow. Composition remains exclusively owned by
-mutate_app_ui_model. Never edit app-ui/app-ui.json,
+mode or a target-diagnostic workflow. Healthy Composition remains exclusively owned by
+mutate_app_ui_model. Host-confirmed invalid models use the separate
+inspect_app_ui_model_source → repair_app_ui_model channel, followed by a fresh
+inspect_ui_project(view="composition"). Never edit app-ui/app-ui.json,
 app-ui/composition-revision.generated.json, or plugins/registry.generated.ts
 directly.
 

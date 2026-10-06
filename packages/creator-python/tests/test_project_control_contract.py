@@ -5,6 +5,7 @@ from typing import get_args
 
 import pytest
 
+from agent_ui_creator.app_ui_model.recovery_tool import create_app_ui_model_recovery_tool
 from agent_ui_creator.app_ui_model.mutation_tool import create_app_ui_model_mutation_tool
 from agent_ui_creator.domain_state import DomainObservationContext
 from agent_ui_creator.domain_tools import create_project_control_tools
@@ -24,7 +25,7 @@ def test_inventory_and_actual_agent_tool_surface():
     names = {entry["name"] for entry in inventory}
     assert _literal_names(ProjectControlOperation) == names
     client = ProjectControlClient(project_root=ROOT)
-    tools = (*create_project_control_tools(client), create_app_ui_model_mutation_tool(object(), DomainObservationContext()))
+    tools = (*create_project_control_tools(client), create_app_ui_model_mutation_tool(object(), DomainObservationContext()), create_app_ui_model_recovery_tool(object(), DomainObservationContext()))
     assert {tool.name for tool in tools} & names == {entry["name"] for entry in inventory if entry["agentExposed"]}
     assert hasattr(client, "remove_agent_ui_source_items")
     assert "remove_agent_ui_source_items" not in DOMAIN_WRITE_TOOL_NAMES

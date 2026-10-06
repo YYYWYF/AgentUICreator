@@ -111,6 +111,20 @@
       "inputDef": "purgeUIPluginInput",
       "resultDef": "purgeUIPluginResult",
       "agentExposed": true
+    },
+    {
+      "name": "inspect_app_ui_model_source",
+      "kind": "read",
+      "inputDef": "emptyInput",
+      "resultDef": "inspectAppUIModelSourceResult",
+      "agentExposed": true
+    },
+    {
+      "name": "repair_app_ui_model",
+      "kind": "mutation",
+      "inputDef": "repairAppUIModelInput",
+      "resultDef": "repairAppUIModelResult",
+      "agentExposed": true
     }
   ]
 }

@@ -1,0 +1,7 @@
+{
+  "operation": "repair_app_ui_model",
+  "input": {
+    "expectedRawHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "operations": []
+  }
+}

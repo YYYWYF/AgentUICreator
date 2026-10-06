@@ -1,3 +1,4 @@
+import { admitAppUIModelCandidate } from "./app-ui-admission";
 import { createHash, randomUUID } from "node:crypto";
 import {
   mkdir,
@@ -21,7 +22,6 @@ import {
 import { agentUIModeRegistry } from "../framework/modes/index";
 import type { AgentUIWorkspacePolicy, WorkspaceRegion } from "../framework/contracts/agent-ui-workspace";
 import { WORKSPACE_REGIONS } from "../framework/contracts/agent-ui-workspace";
-import { compileAppUIModel } from "../framework/contracts/app-ui-compiler";
 import type { AppUIRuntimeModel } from "../framework/contracts/app-ui-runtime-model";
 import {
   appUIOperationsSchema,
@@ -52,7 +52,6 @@ import {
 } from "./creator-action-catalog";
 import { readAgentUIProjectConfig } from "./project-mode";
 import { resolveAgentUIProjectPaths, projectControlConfigForPaths, projectRelativePath, type AgentUIProjectPaths } from "./agent-ui-project-paths";
-import { verifyPluginChildSlots } from "./plugin-child-slot-verifier";
 import type {
   GeneratePluginCatalogResult,
   PluginAsset,
@@ -109,12 +108,15 @@ interface JournalFile {
 }
 
 interface AppUITransactionJournal {
+  recoveryStrategy?: "rollback" | undefined;
 
   transactionId: string;
   files: JournalFile[];
 }
 
 export interface AppUITransactionTestOptions {
+  /** Internal journal policy; Recovery restores the before state after a crash. */
+  recoveryStrategy?: "rollback" | undefined;
   /** Host-only permanent-deletion authority. Never accepted in the Tool input schema. */
   purgePluginId?: string;
   simulateCrashAfterRename?: number | undefined;
@@ -269,7 +271,7 @@ class SimulatedTransactionCrash extends Error {}
 
 const projectLockTails = new Map<string, Promise<void>>();
 
-async function withProjectLock<T>(
+export async function withProjectLock<T>(
   projectRoot: string,
   task: () => Promise<T>,
 ): Promise<T> {
@@ -407,6 +409,7 @@ function parseJournal(input: unknown, appUIModelPath: string, compositionRevisio
     hash: z.string().regex(SHA256_PATTERN),
   });
   const journal = z.strictObject({
+    recoveryStrategy: z.literal("rollback").optional(),
     transactionId: z.string().uuid(),
     files: z.array(
       z.strictObject({
@@ -500,7 +503,7 @@ export async function recoverPendingAppUITransaction(
   }
 
   for (const file of journal.files) {
-    await restoreState(projectRoot, file, file.after);
+    await restoreState(projectRoot, file, journal.recoveryStrategy === "rollback" ? file.before : file.after);
     await removeIfPresent(file.temporaryPath);
   }
   await removeIfPresent(journalPath);
@@ -569,7 +572,7 @@ function changedKeys(
   return { added, removed, updated };
 }
 
-async function commitFiles(
+export async function commitFiles(
   projectRoot: string,
   transactionId: string,
   changes: Array<{ relativePath: string; before: string | undefined; after: string }>,
@@ -587,10 +590,12 @@ async function commitFiles(
     after: fileState(change.after),
   }));
   const journal: AppUITransactionJournal = {
+    ...(options.recoveryStrategy === undefined ? {} : { recoveryStrategy: options.recoveryStrategy }),
     transactionId,
     files,
   };
 
+  let renameCount = 0;
   try {
     await ensureControlDirectory(projectRoot);
     await writeJournal(projectRoot, journal);
@@ -599,7 +604,6 @@ async function commitFiles(
     }
     await options.beforeCommit?.();
     await assertCreatorCommitAllowed(projectRoot, cancelMarker);
-    let renameCount = 0;
     for (const file of files) {
       await rename(file.temporaryPath, path.join(projectRoot, file.relativePath));
       renameCount += 1;
@@ -615,7 +619,7 @@ async function commitFiles(
     }
     try {
       for (const file of files) {
-        await restoreBeforeIfOwned(projectRoot, file);
+        if (renameCount > 0) await restoreBeforeIfOwned(projectRoot, file);
         await removeIfPresent(file.temporaryPath);
       }
       await removeIfPresent(path.join(projectRoot, TRANSACTION_JOURNAL_PATH));
@@ -1309,41 +1313,13 @@ async function runTransaction(
     );
   }
 
-  const generation = projectFacts === undefined
-    ? await generateCurrentRegistry(afterModel)
-    : generatePluginRegistryFromFacts(afterModel, projectFacts);
-  if (generation.errors.length > 0) {
-    throw new AppUITransactionError(
-      "PLUGIN_REGISTRY_GENERATION_FAILED",
-      "The transaction cannot resolve a complete capability catalog and Active Registry.",
-      { issues: generation.errors },
-    );
-  }
-  const runtimeModel = compileAppUIModel(
-    afterModel,
-    generation.activeComposition.compositionCatalog,
+  const { generation, runtimeModel } = await admitAppUIModelCandidate(
+    projectRoot, afterModel, effectiveConfig, paths, projectFacts,
   );
   assertPluginWidthCompatibility(
-    beforeModel,
-    runtimeModel,
-    loweredOperations,
-    generation.assets,
+    beforeModel, runtimeModel, loweredOperations, generation.assets,
     input.runtimeSlotWidths ?? {},
   );
-  const selectedPluginIdSet = new Set(
-    generation.activeComposition.selectedPluginIds,
-  );
-  const childSlotIssues = await verifyPluginChildSlots(
-    projectRoot,
-    generation.assets.filter((asset) => selectedPluginIdSet.has(asset.pluginId)),
-  );
-  if (childSlotIssues.length > 0) {
-    throw new AppUITransactionError(
-      "PLUGIN_CHILD_SLOT_CONTRACT_INVALID",
-      "Selected UI plugins contain inconsistent child Slot contracts.",
-      { issues: childSlotIssues },
-    );
-  }
   const warnings = validateMountSemantics(afterModel);
   const afterModelSource = semanticModelSource(
     beforeModel,

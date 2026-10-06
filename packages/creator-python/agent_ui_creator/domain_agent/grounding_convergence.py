@@ -36,6 +36,7 @@ COMPOSITION_PRE_MUTATION_TOOL_NAMES = (
     *RECOVERY_WRITE_TOOL_NAMES,
     "read_file",
     "inspect_ui_project",
+    "inspect_app_ui_model_source",
     "inspect_agent_ui_sources",
     "inspect_ui_capabilities",
     "inspect_ui_plugin_delivery",
@@ -52,6 +53,7 @@ COMPOSITION_POST_MUTATION_TOOL_NAMES = (
     *RECOVERY_WRITE_TOOL_NAMES,
     "read_file",
     "inspect_ui_project",
+    "inspect_app_ui_model_source",
     "mutate_app_ui_model",
     "purge_ui_plugin",
     "inspect_runtime_layout",
@@ -67,6 +69,7 @@ SOURCE_INSTALLED_TOOL_NAMES = (
     *RECOVERY_READ_TOOL_NAMES,
     *RECOVERY_WRITE_TOOL_NAMES,
     "inspect_ui_project",
+    "inspect_app_ui_model_source",
     "inspect_ui_capabilities",
     "inspect_ui_plugin",
     "preflight_ui_plugin_placement",
@@ -177,8 +180,27 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
             names = (*names, "apply_agent_ui_source_item", "list_ui_plugins")
         return [by_name[name] for name in names if name in by_name]
 
+    def _recovery_tools(self) -> frozenset[str]:
+        if self.observations.recovery_blocked is not None:
+            return frozenset({"ask_user_question"})
+        if self.observations.recovery_requires_composition:
+            return frozenset({"inspect_ui_project", "ask_user_question"})
+        return frozenset({"inspect_app_ui_model_source", "read_file", "list_ui_plugins",
+                          "inspect_ui_plugin", "inspect_agent_ui_sources", "ask_user_question", "repair_app_ui_model"})
+
     def _request(self, request: ModelRequest) -> ModelRequest:
         current_revision = self.backend.mutation_revision
+        if self.observations.recovery_pending or self.observations.recovery_requires_composition:
+            allowed = self._recovery_tools()
+            return request.override(
+                messages=[*request.messages, SystemMessage(content=(
+                    "AppUIModel Recovery lane. Inspect invalid source and all pages, reconstruct the complete intended model, "
+                    "then repair_app_ui_model. Preserve unaffected UI. Never edit app-ui.json with filesystem tools. "
+                    "Do not repair Plugin, Service, Runtime or AG-UI implementation in this lane. "
+                    "After repair, inspect_ui_project(view='composition') to acquire new refs before normal mutation."
+                ))],
+                tools=[candidate for candidate in request.tools if tool_name(candidate) in allowed],
+            )
         status = self.observations.composition_grounding_status(
             current_revision=current_revision
         )
@@ -215,7 +237,7 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
                 *request.messages,
                 SystemMessage(content=(
                     COMPOSITION_POST_MUTATION_CONTROL
-                    if post_mutation_revision_change
+                    if post_mutation_revision_change or (after_mutation and successful_mutation_revision == current_revision)
                     else COMPOSITION_GROUNDING_CONTROL
                 )),
             ],
@@ -251,9 +273,13 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
     def _prohibited_message(
         self, call: dict[str, object], name: str
     ) -> ToolMessage:
+        error = ({"ok": False, "error": {"code": "APP_UI_MODEL_RECOVERY_LANE_REQUIRED",
+                  "message": "Recover invalid AppUIModel through source inspection and repair, then refresh Composition before other work."}}
+                 if self.observations.recovery_pending or self.observations.recovery_requires_composition
+                 else composition_fast_path_error())
         return ToolMessage(
             content=json.dumps(
-                composition_fast_path_error(),
+                error,
                 ensure_ascii=False,
                 separators=(",", ":"),
             ),
@@ -310,11 +336,14 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
     ) -> tuple[dict[str, object], str, dict[str, object], bool]:
         call, name, arguments = self._call(request)
         metrics = self.observations.composition_fast_path_metrics
-        if name == "mutate_app_ui_model":
+        if name in {"mutate_app_ui_model", "repair_app_ui_model"}:
             metrics.record_first_mutation_started(
                 self.protocol_metrics,
                 read_only_tool_names=READ_ONLY_TOOL_NAMES,
             )
+        if ((self.observations.recovery_pending or self.observations.recovery_requires_composition)
+                and name not in self._recovery_tools()):
+            return call, name, arguments, True
         prohibited = (
             self.observations.composition_grounding_status(
                 current_revision=self.backend.mutation_revision
@@ -358,7 +387,7 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
                 reason="development_gap",
                 current_revision=self.backend.mutation_revision,
             )
-        if name == "mutate_app_ui_model":
+        if name in {"mutate_app_ui_model", "repair_app_ui_model"}:
             metrics.record_first_mutation_result(
                 result,
                 revision=self.backend.mutation_revision,
@@ -382,7 +411,7 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         try:
             result = handler(request)
         except BaseException as error:
-            if name == "mutate_app_ui_model":
+            if name in {"mutate_app_ui_model", "repair_app_ui_model"}:
                 self.observations.composition_fast_path_metrics.record_first_mutation_exception(
                     error
                 )
@@ -409,7 +438,7 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         try:
             result = await handler(request)
         except BaseException as error:
-            if name == "mutate_app_ui_model":
+            if name in {"mutate_app_ui_model", "repair_app_ui_model"}:
                 self.observations.composition_fast_path_metrics.record_first_mutation_exception(
                     error
                 )

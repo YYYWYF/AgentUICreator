@@ -28,6 +28,7 @@ _PROJECT_CURSOR = re.compile(r"([0-9a-f]{64}):([0-9a-f]{32}):([1-9][0-9]*)\Z")
 DOMAIN_READ_TOOL_NAMES = (
     "inspect_ui_project",
     "inspect_app_ui_model",
+    "inspect_app_ui_model_source",
     "list_ui_plugins",
     "inspect_ui_slots",
     "inspect_ui_plugin",
@@ -346,6 +347,9 @@ def create_project_control_tools(
                 )
             return rendered
         except (ProjectControlError, DomainObservationError) as error:
+            if error.code == "APP_UI_MODEL_INVALID" and observations is not None:
+                observations.invalidate_app_ui_model(reason=error.code)
+                observations.recovery_pending = True
             return _render_error(error)
 
     @tool("inspect_ui_project")
@@ -414,6 +418,31 @@ def create_project_control_tools(
                 state.coverage_recorded = True
             return rendered
         except (ProjectControlError, DomainObservationError) as error:
+            if error.code == "APP_UI_MODEL_INVALID" and observations is not None:
+                observations.invalidate_app_ui_model(reason=error.code)
+                observations.recovery_pending = True
+            return _render_error(error)
+
+    @tool("inspect_app_ui_model_source")
+    async def inspect_app_ui_model_source(cursor: str | None = None) -> str:
+        """Read raw AppUIModel source, hash and factual diagnostics. Read all pages before constructing a complete recovery candidate. Host never supplies repair hints."""
+        try:
+            result = await client.inspect_app_ui_model_source()
+            rendered, complete, state = _render_project_inspection(
+                result, cursor, state=paging_states.get("recovery"),
+                revision=activity.revision if activity else 0,
+            )
+            if state is None:
+                paging_states.pop("recovery", None)
+            else:
+                paging_states["recovery"] = state
+            if complete and json.loads(rendered).get("ok") is True and observations is not None and activity is not None:
+                observations.observe_recovery(result, revision=activity.revision)
+            return rendered
+        except (ProjectControlError, DomainObservationError) as error:
+            if error.code == "APP_UI_MODEL_INVALID" and observations is not None:
+                observations.invalidate_app_ui_model(reason=error.code)
+                observations.recovery_pending = True
             return _render_error(error)
 
     @tool("inspect_app_ui_model")
@@ -447,7 +476,8 @@ def create_project_control_tools(
             return covered
         try:
             result = await client.list_ui_plugins()
-            observe(result.get("appUIModelHash"), "list_ui_plugins")
+            if result.get("recoveryOnly") is not True:
+                observe(result.get("appUIModelHash"), "list_ui_plugins")
             return _render_result(result)
         except ProjectControlError as error:
             return _render_error(error)
@@ -630,6 +660,7 @@ def create_project_control_tools(
     return (
         inspect_ui_project,
         inspect_app_ui_model,
+        inspect_app_ui_model_source,
         list_ui_plugins,
         inspect_ui_slots,
         inspect_ui_plugin,

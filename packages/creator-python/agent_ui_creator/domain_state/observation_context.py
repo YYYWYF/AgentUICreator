@@ -107,9 +107,29 @@ class DomainObservationContext:
         self._composition_grounding_invalidated = False
         self._composition_grounding_exit_reason: str | None = None
         self._invalidation_reason: str | None = None
+        self.recovery_observation: dict[str, Any] | None = None
+        self.recovery_blocked: str | None = None
+        self.recovery_pending = False
+        self.recovery_requires_composition = False
         self.source_inventory_observed = False
         self.metrics = DomainObservationMetrics()
         self.composition_fast_path_metrics = CompositionFastPathMetrics()
+
+    def observe_recovery(self, result: dict[str, Any], *, revision: int) -> None:
+        self.invalidate_app_ui_model(reason="recovery_inspection")
+        self.recovery_observation = None
+        self.recovery_pending = result.get("status") != "valid"
+        if self.recovery_pending and _is_sha256(result.get("rawHash")):
+            self.recovery_observation = {"rawHash": result["rawHash"], "invalidStatus": result["status"], "revision": revision}
+
+    def require_recovery(self, *, revision: int, raw_hash: str) -> None:
+        if self.recovery_blocked is not None:
+            raise DomainObservationError(self.recovery_blocked, "Recovery is blocked for this run; stop and request user action.")
+        observation = self.recovery_observation
+        if observation is None or observation["revision"] != revision:
+            raise DomainObservationError("APP_UI_MODEL_RECOVERY_OBSERVATION_REQUIRED", "Inspect invalid AppUIModel source before recovery.")
+        if raw_hash != observation["rawHash"]:
+            raise DomainObservationError("APP_UI_MODEL_RECOVERY_HASH_CONFLICT", "Refresh invalid source observation.")
 
     def record_source_inventory(self) -> None:
         self.source_inventory_observed = True
@@ -166,6 +186,9 @@ class DomainObservationContext:
             revision=revision,
             source="inspect_ui_project",
         )
+        self.recovery_requires_composition = False
+        self.recovery_pending = False
+        self.recovery_observation = None
         self._composition_grounding = CompositionGroundingObservation(
             hash=hash,
             revision=revision,
@@ -233,7 +256,7 @@ class DomainObservationContext:
 
     def require_app_ui_model_hash(self, *, current_revision: int) -> str:
         observation = self._app_ui_model
-        if observation is None or observation.revision != current_revision:
+        if self.recovery_requires_composition or observation is None or observation.revision != current_revision:
             self.metrics.observationRequiredErrors += 1
             details: dict[str, Any] = {"currentRevision": current_revision}
             if observation is not None:
@@ -272,6 +295,9 @@ class DomainObservationContext:
         observation = self._app_ui_model
         composition = self._composition_grounding
         return {
+            "recoveryBlocked": self.recovery_blocked,
+            "appUIModelRecovery": self.recovery_observation,
+            "recoveryRequiresComposition": self.recovery_requires_composition,
             "appUIModel": (
                 None
                 if observation is None

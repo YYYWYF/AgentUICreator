@@ -1,0 +1,11 @@
+{
+  "operation": "repair_app_ui_model",
+  "input": {
+    "candidateModel": {
+      "root": {
+        "type": "slot",
+        "plugins": []
+      }
+    }
+  }
+}

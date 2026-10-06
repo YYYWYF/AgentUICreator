@@ -328,3 +328,15 @@ User request: Restore the reasoning process.
 Semantic delta: enable the existing assistant-ui-reasoning instance.
 Correct tool: insert the existing Plugin instance through Composition.
 ```
+
+
+## Recovering an invalid AppUIModel
+
+Healthy Composition uses `mutate_app_ui_model`. On `APP_UI_MODEL_INVALID`, enter the separate Recovery lane:
+
+1. Call `inspect_app_ui_model_source` and read every page. Host reports raw source, exact rawHash, and syntax/schema/composition diagnostics without repair hints.
+2. Use user intent, Plugin inventory and Slot contracts to reconstruct a complete legal candidate. Preserve unaffected composition as faithfully as possible; do not redesign unrelated UI.
+3. Call `repair_app_ui_model(expectedRawHash, candidateModel)` only with a fresh invalid-source observation. Never use filesystem edit/write to recover app-ui.json. Never use repair when the current model is valid.
+4. After success, call `inspect_ui_project(view="composition")` again. All old nodeRefs, slotRefs and Composition observations are invalid.
+
+A hash conflict requires source refresh. A candidate admission failure allows at most one semantic replan using unchanged source. Workspace integrity blockers require stopping instead of repairing another layer. Commit failures are infrastructure failures; the Host transaction rolls back. Host shares candidate admission with ordinary mutation; Recovery does not add a replace operation to the semantic operation union.

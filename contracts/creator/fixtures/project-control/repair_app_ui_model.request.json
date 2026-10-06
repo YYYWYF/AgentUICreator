@@ -1,0 +1,12 @@
+{
+  "operation": "repair_app_ui_model",
+  "input": {
+    "expectedRawHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "candidateModel": {
+      "root": {
+        "type": "slot",
+        "plugins": []
+      }
+    }
+  }
+}

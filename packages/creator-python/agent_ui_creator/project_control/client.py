@@ -77,6 +77,12 @@ class ProjectControlClient:
     async def inspect_app_ui_model(self) -> dict[str, Any]:
         return await self._request("inspect_app_ui_model", {})
 
+    async def inspect_app_ui_model_source(self) -> dict[str, Any]:
+        return await self._request("inspect_app_ui_model_source", {})
+
+    async def repair_app_ui_model(self, *, expected_raw_hash: str, candidate_model: dict[str, Any]) -> dict[str, Any]:
+        return await self._request("repair_app_ui_model", {"expectedRawHash": expected_raw_hash, "candidateModel": candidate_model})
+
     async def list_ui_plugins(self) -> dict[str, Any]:
         return await self._request("list_ui_plugins", {})
 
@@ -186,7 +192,7 @@ class ProjectControlClient:
         failed = True
         try:
             self._ensure_fixed_runtime()
-            if operation in {"mutate_app_ui_model", "apply_agent_ui_source_item",
+            if operation in {"repair_app_ui_model", "mutate_app_ui_model", "apply_agent_ui_source_item",
                              "remove_agent_ui_source_items", "synchronize_plugin_registry", "purge_ui_plugin"}:
                 assert_current_removal_mutation(operation, input)
                 assert_run_writable()

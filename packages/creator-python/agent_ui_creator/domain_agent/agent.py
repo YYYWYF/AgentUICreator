@@ -21,6 +21,7 @@ from ..app_ui_model import (
     ProjectMutationCoordinator,
 )
 from ..domain_tools.debugging_tools import create_debugging_target_tools
+from ..app_ui_model.recovery_tool import create_app_ui_model_recovery_tool
 from ..app_ui_model.mutation_tool import create_app_ui_model_mutation_tool
 from ..removal_intent import RemovalIntent
 from ..domain_tools import CreatorRecoveryQueries, create_project_control_tools, create_recovery_query_tools, create_recovery_undo_tool
@@ -837,6 +838,7 @@ def create_domain_write_creator_agent(
             service_creation,
             service_mutation,
         ),
+        create_app_ui_model_recovery_tool(service, observations),
         create_app_ui_model_mutation_tool(
             service,
             observations,

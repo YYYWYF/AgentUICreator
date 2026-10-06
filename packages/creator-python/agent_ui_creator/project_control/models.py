@@ -10,6 +10,7 @@ MAX_PROJECT_CONTROL_OUTPUT_BYTES = 1_000_000
 ReadProjectControlOperation: TypeAlias = Literal[
     "inspect_ui_project",
     "inspect_app_ui_model",
+    "inspect_app_ui_model_source",
     "list_ui_plugins",
     "inspect_ui_slots",
     "inspect_ui_plugin",
@@ -21,6 +22,7 @@ ReadProjectControlOperation: TypeAlias = Literal[
 
 MutationProjectControlOperation: TypeAlias = Literal[
     "mutate_app_ui_model",
+    "repair_app_ui_model",
     "apply_agent_ui_source_item",
     "remove_agent_ui_source_items",
     "purge_ui_plugin",

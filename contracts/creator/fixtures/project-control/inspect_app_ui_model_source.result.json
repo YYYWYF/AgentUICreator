@@ -1,0 +1,15 @@
+{
+  "status": "schema_invalid",
+  "rawHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "source": "{\"root\":{\"type\":\"row\",\"children\":{}}}",
+  "diagnostics": [
+    {
+      "phase": "schema",
+      "path": "/root/children",
+      "code": "invalid_type",
+      "expected": "array",
+      "actual": "object",
+      "message": "Expected array, received object"
+    }
+  ]
+}
