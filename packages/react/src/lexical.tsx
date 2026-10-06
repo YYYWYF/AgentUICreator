@@ -18,7 +18,7 @@ export function ConversationComposerDirectiveChip({
   directiveId, directiveType, label,
 }: Readonly<ConversationComposerDirectiveChipProps>) {
   return (
-    <span className="agent-ui-composer-directive-chip"
+    <span className="agent-ui-composer-directive-chip" data-slot="composer-directive-chip"
       data-directive-type={directiveType} data-directive-id={directiveId}>
       {conversationDirectiveDisplayLabel(directiveType, label)}
     </span>

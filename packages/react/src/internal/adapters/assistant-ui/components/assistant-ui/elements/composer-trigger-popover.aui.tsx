@@ -11,7 +11,7 @@ import {
 import { ChevronLeftIcon, ChevronRightIcon, SparklesIcon } from "lucide-react";
 import { cn } from "../../../../../vendor/assistant-ui/lib/utils.js";
 
-type IconComponent = FC<{ className?: string }>;
+type IconComponent = FC<{ className?: string; "data-slot"?: string }>;
 
 type DirectiveBehaviorProps = {
   /** Formatter used to serialize the selected item into composer text. */
@@ -97,10 +97,11 @@ const Categories: FC<CategoriesProps> = ({
             <ComposerPrimitive.Unstable_TriggerPopoverCategoryItem
               key={cat.id}
               categoryId={cat.id}
+              data-slot="composer-trigger-popover-category-item"
               className="hover:bg-accent focus:bg-accent data-[highlighted]:bg-accent flex cursor-pointer items-center justify-between gap-2 px-3 py-2 text-sm transition-colors outline-none"
             >
               <span className="flex items-center gap-2">
-                <Icon className="text-muted-foreground size-4" />
+                <Icon data-slot="composer-trigger-popover-icon" className="text-muted-foreground size-4" />
                 {cat.label}
               </span>
               <ChevronRightIcon className="text-muted-foreground size-4" />
@@ -108,7 +109,7 @@ const Categories: FC<CategoriesProps> = ({
           );
         })}
         {categories.length === 0 && (
-          <div className="text-muted-foreground px-3 py-2 text-sm">
+          <div data-slot="composer-trigger-popover-empty" className="text-muted-foreground px-3 py-2 text-sm">
             {emptyLabel}
           </div>
         )}
@@ -140,7 +141,7 @@ const Items: FC<ItemsProps> = ({
           data-slot="composer-trigger-popover-items"
           className="flex flex-col"
         >
-          <ComposerPrimitive.Unstable_TriggerPopoverBack className="text-muted-foreground hover:bg-accent flex cursor-pointer items-center gap-1.5 border-b px-3 py-2 text-xs tracking-wide uppercase transition-colors">
+          <ComposerPrimitive.Unstable_TriggerPopoverBack data-slot="composer-trigger-popover-back" className="text-muted-foreground hover:bg-accent flex cursor-pointer items-center gap-1.5 border-b px-3 py-2 text-xs tracking-wide uppercase transition-colors">
             <ChevronLeftIcon className="size-3.5" />
             {backLabel}
           </ComposerPrimitive.Unstable_TriggerPopoverBack>
@@ -155,12 +156,13 @@ const Items: FC<ItemsProps> = ({
               return (
                 <ComposerPrimitive.Unstable_TriggerPopoverItem
                   key={item.id}
+                  data-slot="composer-trigger-popover-item"
                   item={item}
                   index={index}
                   className="hover:bg-accent focus:bg-accent data-[highlighted]:bg-accent flex w-full cursor-pointer flex-col items-start gap-0.5 px-3 py-2 text-start transition-colors outline-none"
                 >
                   <span className="flex items-center gap-2 text-sm font-medium">
-                    <Icon className="text-primary size-3.5" />
+                    <Icon data-slot="composer-trigger-popover-icon" className="text-primary size-3.5" />
                     {item.label}
                   </span>
                   {item.description && (
@@ -172,7 +174,7 @@ const Items: FC<ItemsProps> = ({
               );
             })}
             {items.length === 0 && (
-              <div className="text-muted-foreground px-3 py-2 text-sm">
+              <div data-slot="composer-trigger-popover-empty" className="text-muted-foreground px-3 py-2 text-sm">
                 {isLoading ? loadingLabel : emptyLabel}
               </div>
             )}

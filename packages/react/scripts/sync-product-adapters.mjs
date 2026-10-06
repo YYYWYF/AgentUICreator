@@ -85,6 +85,22 @@ export function applyProductAdaptations(source, localPath) {
     installed = replaceExactlyOnce(installed, '  iconMap?: Record<string, IconComponent>;', '  children?: ReactNode;\n  iconMap?: Record<string, IconComponent>;', localPath);
     installed = replaceExactlyOnce(installed, '  directive,\n  action,', '  directive,\n  action,\n  children,', localPath);
     installed = replaceExactlyOnce(installed, '      <Categories\n', '      {children}\n      <Categories\n', localPath);
+    // Product-owned stable presentation hooks; preserve upstream anatomy and behavior.
+    for (const [before, after] of [
+      ['type IconComponent = FC<{ className?: string }>;', 'type IconComponent = FC<{ className?: string; "data-slot"?: string }>;'],
+      ['              categoryId={cat.id}', '              categoryId={cat.id}\n              data-slot="composer-trigger-popover-category-item"'],
+      ['<ComposerPrimitive.Unstable_TriggerPopoverBack className=', '<ComposerPrimitive.Unstable_TriggerPopoverBack data-slot="composer-trigger-popover-back" className='],
+      ['                  item={item}', '                  data-slot="composer-trigger-popover-item"\n                  item={item}'],
+      ['<Icon className="text-muted-foreground size-4" />', '<Icon data-slot="composer-trigger-popover-icon" className="text-muted-foreground size-4" />'],
+      ['<Icon className="text-primary size-3.5" />', '<Icon data-slot="composer-trigger-popover-icon" className="text-primary size-3.5" />'],
+    ]) installed = replaceExactlyOnce(installed, before, after, localPath);
+    const emptyNode = '<div className="text-muted-foreground px-3 py-2 text-sm">';
+    if (installed.split(emptyNode).length !== 3) throw new Error(`Product presentation hooks: review empty nodes in ${localPath}`);
+    installed = installed.replaceAll(emptyNode, '<div data-slot="composer-trigger-popover-empty" className="text-muted-foreground px-3 py-2 text-sm">');
+  }
+  if (localPath === "components/assistant-ui/elements/reasoning.aui.tsx") {
+    installed = replaceExactlyOnce(installed, '  onAnimationStart,\n  ...props', '  onAnimationStart,\n  streaming,\n  ...props', localPath);
+    installed = replaceExactlyOnce(installed, '      {...props}\n    />', '      {...props}\n      {...(streaming === undefined ? {} : { streaming })}\n      data-agent-state={streaming ? "running" : "idle"}\n    />', localPath);
   }
   return applySearchPresentationLabels(installed, localPath);
 }

@@ -18,7 +18,7 @@
     {
       "localPath": "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
       "upstreamInstalledSha256": "06c9b2b6fa021bbfe58ba226d4d5c6a46e448369aebf362d02f8b56032c69ba2",
-      "installedSha256": "1cf93c45c11cec0fadcdfbf7bb9abdd7abe17d64ee605bf6a1b29635db89e8d6"
+      "installedSha256": "f7e330b49d06efa8f70426efc1f30a41c18ca0a6463b73247f7666a7008a0137"
     },
     {
       "localPath": "components/assistant-ui/elements/image.tsx",
@@ -38,7 +38,7 @@
     {
       "localPath": "components/assistant-ui/elements/reasoning.aui.tsx",
       "upstreamInstalledSha256": "d695ed0a776b664cb8c620c94598ad10b0c93181079a7abec054884503c53443",
-      "installedSha256": "c597734cdff6a462040052ca37b83d0dfe504af888e2075e843e1918cf45c1a6"
+      "installedSha256": "f2a16dee0e42bed54196f310a87f30ecbb3e2c4837ff6610fdf8f77110baf0a9"
     },
     {
       "localPath": "components/assistant-ui/elements/retrieval-chunks.tsx",

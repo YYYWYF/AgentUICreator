@@ -1,5 +1,5 @@
-/* Removable compatibility seams only. No vendor class matching or step/icon
- * overrides; light/dark retain their upstream presentation. */
+/* Stable presentation seams only. No vendor class matching;
+ * light/dark retain their upstream presentation. */
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_composer-shell"] {
   background: var(--card);
   background-image: none;
@@ -43,4 +43,103 @@
 /* Selection wins over hover, keyboard focus and an open menu. */
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_thread-list-item"][data-active="true"] {
   background-color: var(--agent-brand-selected);
+}
+
+/* Phase 4A — High-Fidelity Surfaces. State comes from product adapters,
+ * never inferred from vendor markup. The Violet palette stays unchanged. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="reasoning-root"] {
+  background-color: var(--card);
+  border: 1px solid var(--agent-brand-border);
+  border-radius: var(--radius);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="reasoning-root"][data-agent-state="running"] {
+  background-color: var(--agent-brand-surface);
+  border-color: var(--agent-brand-hover-border);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="reasoning-root"][data-agent-state="running"] [data-slot="reasoning-trigger-icon"] {
+  color: var(--agent-brand-active);
+}
+
+/* Completed ghost groups retain upstream presentation. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="tool-group-root"][data-agent-state="running"] {
+  background-color: var(--agent-brand-surface);
+  border: 1px solid var(--agent-brand-border);
+  border-radius: var(--radius);
+  padding: 0.25rem 0.5rem;
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="tool-group-root"][data-agent-state="running"] [data-slot="tool-group-trigger-loader"] {
+  color: var(--agent-brand-active);
+}
+
+/* Generic fallback only: upstream does not expose a root status seam. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="tool-fallback-root"] {
+  background-color: var(--card);
+  border: 1px solid var(--agent-brand-border);
+  border-radius: var(--radius);
+  padding: 0.25rem 0.5rem;
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="tool-fallback-args"], [data-slot="tool-fallback-result"]) {
+  background-color: var(--agent-brand-subtle);
+  border-radius: calc(var(--radius) - 2px);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-trigger-popover"] {
+  background-color: var(--popover);
+  border-color: var(--agent-brand-border);
+  box-shadow: var(--aui-shadow-md);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="composer-trigger-popover-item"], [data-slot="composer-trigger-popover-category-item"]) {
+  color: var(--foreground);
+  border-radius: calc(var(--radius) - 2px);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="composer-trigger-popover-item"], [data-slot="composer-trigger-popover-category-item"]):is(:hover, :focus-visible) {
+  background-color: var(--agent-brand-hover);
+}
+
+/* Keyboard highlight wins over hover and covers the complete item row. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="composer-trigger-popover-item"], [data-slot="composer-trigger-popover-category-item"])[data-highlighted] {
+  background-color: var(--agent-brand-selected);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-trigger-popover-icon"] {
+  color: var(--agent-brand-active);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-trigger-popover-back"] {
+  color: var(--muted-foreground);
+  border-color: var(--agent-brand-border);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-trigger-popover-back"]:is(:hover, :focus-visible) {
+  background-color: var(--agent-brand-hover);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-directive-chip"] {
+  background: var(--agent-brand-surface);
+  border-color: var(--agent-brand-border);
+  color: var(--foreground);
+}
+
+/* Match the existing product input's focus seam with enough specificity to
+ * override the generic Lexical CSS imported later. No editor internals. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is(.agent-ui-composer-lexical-input, .agent-ui-edit-composer-lexical-input):focus-within [data-slot="composer-directive-chip"] {
+  background: var(--agent-brand-selected);
+  border-color: var(--agent-brand-focus-border);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-directive-chip"]:focus-visible {
+  background: var(--agent-brand-selected);
+  border-color: var(--agent-brand-focus-border);
+  outline: 1px solid var(--agent-brand-border);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="composer-directive-chip"]::selection {
+  background: var(--agent-brand-selected);
+  color: var(--foreground);
 }

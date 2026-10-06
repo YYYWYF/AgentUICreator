@@ -25,6 +25,7 @@ export type { ReasoningRootProps } from "../../../../../vendor/assistant-ui/comp
 function ReasoningRoot({
   ref,
   onAnimationStart,
+  streaming,
   ...props
 }: ReasoningRootProps) {
   const collapsibleRef = useRef<HTMLDivElement | null>(null);
@@ -52,6 +53,8 @@ function ReasoningRoot({
       ref={composedRef}
       onAnimationStart={handleAnimationStart}
       {...props}
+      {...(streaming === undefined ? {} : { streaming })}
+      data-agent-state={streaming ? "running" : "idle"}
     />
   );
 }
