@@ -25,4 +25,4 @@
 ## 服务端 CI
 
 此前 `9c0dd44b` 确实触发了push CI，结论为failure：[运行58](https://github.com/YYYWYF/AgentUICreator/actions/runs/37406808865)。不是没有workflow run。
-本轮将扩展回归纳入正式gate，workflow显式执行升级gate和React build。修复提交的服务端结果待推送后核实，不能以本地通过替代clean CI证据。
+本轮将扩展回归纳入正式gate，workflow显式执行升级gate和React build。第一轮修复提交 `f4bc79f4` 的[运行59](https://github.com/YYYWYF/AgentUICreator/actions/runs/37408557317)确认 clean checkout 下 React 81/81 和 project-control 39/39，通过后在 Host 初始化发现缺少直接 Lexical 依赖，浏览器测试尚未开始。Embedded Host 的 package.json/lockfile 已补齐6项锁定依赖；没有放宽初始化检查。后续运行结果以 GitHub Actions 为准，本地通过不能替代 clean CI 证据。
