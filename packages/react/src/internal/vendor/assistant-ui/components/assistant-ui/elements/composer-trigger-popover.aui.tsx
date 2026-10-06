@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useRef, type ComponentPropsWithoutRef, type FC, type ReactNode } from "react";
+import { memo, useRef, type ComponentPropsWithoutRef, type FC } from "react";
 import {
   ComposerPrimitive,
   unstable_defaultDirectiveFormatter,
@@ -37,7 +37,6 @@ type ComposerTriggerPopoverBaseProps = Omit<
    * Maps icon keys to components. Items look up via `item.metadata?.icon`
    * (string); categories look up via their `id`.
    */
-  children?: ReactNode;
   iconMap?: Record<string, IconComponent>;
   /** Fallback icon when no entry in `iconMap` matches. */
   fallbackIcon?: IconComponent;
@@ -197,7 +196,6 @@ const ComposerTriggerPopoverImpl: FC<ComposerTriggerPopoverProps> = ({
   className,
   directive,
   action,
-  children,
   ...props
 }) => {
   const warnedRef = useRef(false);
@@ -233,7 +231,6 @@ const ComposerTriggerPopoverImpl: FC<ComposerTriggerPopoverProps> = ({
           removeOnExecute={action.removeOnExecute}
         />
       ) : null}
-      {children}
       <Categories
         iconMap={iconMap}
         fallbackIcon={fallbackIcon}

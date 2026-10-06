@@ -12,7 +12,7 @@ import {
 } from "@assistant-ui/react";
 import { createContext, useContext, useState, type ComponentType } from "react";
 import { TaskCard as TaskCardShell } from "./vendor/assistant-ui/components/assistant-ui/elements/task-card.js";
-import { isTaskPart, type TaskPart } from "./vendor/assistant-ui/components/assistant-ui/elements/task-card.aui.js";
+import { isTaskPart, type TaskPart } from "./adapters/assistant-ui/components/assistant-ui/elements/task-card.aui.js";
 import {
   ToolFallback, ToolFallbackApproval, ToolFallbackError,
   formatUnknownValue, offersInterruptAction,

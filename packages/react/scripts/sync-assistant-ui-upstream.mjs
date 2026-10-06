@@ -1,3 +1,4 @@
+import { syncProductAdapters } from "./sync-product-adapters.mjs";
 import { createHash } from "node:crypto";
 import { execFile as execFileCallback } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -25,16 +26,6 @@ const ELEMENT_FILE_PATTERN = /\.(?:tsx)$/u;
 const TEST_FILE_PATTERN = /\.(?:test|spec)\.tsx$/u;
 const UNADOPTED_ELEMENT_RATIONALE =
   "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.";
-const PORTAL_BRIDGE_ID = "agent-ui-portal-container-bridge";
-const PORTAL_BRIDGE_FILES = [
-  "components/assistant-ui/elements/image.tsx",
-  "components/assistant-ui/elements/thread-list.aui.tsx",
-  "components/assistant-ui/elements/thread.aui.tsx",
-  "components/ui/dialog.tsx",
-  "components/ui/popover.tsx",
-  "components/ui/sheet.tsx",
-  "components/ui/tooltip.tsx",
-];
 
 export const QUOTE_SELECTION_FILES = [
   { upstreamPath: "packages/react/src/primitives/selectionToolbar/SelectionToolbarRoot.tsx", localPath: "quote-selection-root.tsx" },
@@ -321,7 +312,7 @@ function resolveSpecifier({
 }
 
 function adaptationsFor({ localPath, source, previous }) {
-  const adaptations = new Set((previous?.adaptations ?? []).filter((id) => id !== PORTAL_BRIDGE_ID));
+  const adaptations = new Set();
   if (isElementPath(localPath)) adaptations.add("official-registry-base-ui-rendering");
   if (source.includes("@/")) adaptations.add("import-alias-to-relative");
   return [...adaptations];
@@ -341,113 +332,8 @@ function adaptImports(source, localPath) {
   );
 }
 
-function replaceExactlyOnce(source, before, after, localPath) {
-  if (source.split(before).length !== 2) {
-    throw new Error(`${PORTAL_BRIDGE_ID}: cannot safely adapt ${localPath}; expected exactly one ${JSON.stringify(before)}. Review the changed upstream Portal structure.`);
-  }
-  return source.replace(before, after);
-}
-
-function applyAgentUIPortalContainerBridge(source, localPath) {
-  if (!PORTAL_BRIDGE_FILES.includes(localPath)) return source;
-  const hookImport = localPath.startsWith("components/ui/")
-    ? 'import { useAgentUIPortalContainer } from "../../../../style-boundary/AgentUIRoot";\n'
-    : 'import { useAgentUIPortalContainer } from "../../../../../style-boundary/AgentUIRoot";\n';
-  const utilsImport = localPath.startsWith("components/ui/")
-    ? 'import { cn } from "../../lib/utils";\n'
-    : 'import { cn } from "../../../lib/utils";\n';
-  let installed = replaceExactlyOnce(source, utilsImport, utilsImport + hookImport, localPath);
-  if (localPath.endsWith("/thread-list.aui.tsx") || localPath.endsWith("/thread.aui.tsx")) {
-    const threadList = localPath.endsWith("/thread-list.aui.tsx");
-    const primitive = threadList ? "ThreadListItemMorePrimitive" : "ActionBarMorePrimitive";
-    const functionStart = threadList
-      ? "const ThreadListItemMore: FC<{ onRename: () => void }> = ({ onRename }) => {\n"
-      : "const AssistantActionBar: FC = () => {\n";
-    installed = replaceExactlyOnce(installed, functionStart,
-      functionStart + "  const portalContainer = useAgentUIPortalContainer();\n", localPath);
-    installed = replaceExactlyOnce(installed, `<${primitive}.Content\n`,
-      `{portalContainer !== null && <${primitive}.Content\n          portalProps={portalContainer === undefined ? undefined : { container: portalContainer }}\n`, localPath);
-    return replaceExactlyOnce(installed, `</${primitive}.Content>`, `</${primitive}.Content>}`, localPath);
-  }
-  if (localPath === "components/assistant-ui/elements/image.tsx") {
-    installed = replaceExactlyOnce(installed,
-      '  const [isOpen, setIsOpen] = useState(false);\n',
-      '  const [isOpen, setIsOpen] = useState(false);\n  const portalContainer = useAgentUIPortalContainer();\n', localPath);
-    installed = replaceExactlyOnce(installed, '      {isOpen &&\n',
-      '      {isOpen && portalContainer !== null &&\n', localPath);
-    return replaceExactlyOnce(installed, '          document.body,\n',
-      '          portalContainer ?? document.body,\n', localPath);
-  }
-  if (localPath === "components/ui/dialog.tsx" || localPath === "components/ui/sheet.tsx") {
-    const name = localPath.includes("dialog") ? "Dialog" : "Sheet";
-    const primitive = `${name}Primitive`;
-    installed = replaceExactlyOnce(installed,
-      `function ${name}Portal({ ...props }: ${primitive}.Portal.Props) {\n  return <${primitive}.Portal data-slot="${name.toLowerCase()}-portal" {...props} />;\n}`,
-      `function ${name}Portal({ ...props }: Omit<${primitive}.Portal.Props, "container">) {\n  const portalContainer = useAgentUIPortalContainer();\n  if (portalContainer === null) return null;\n  return <${primitive}.Portal data-slot="${name.toLowerCase()}-portal" {...props} {...(portalContainer === undefined ? {} : { container: portalContainer })} />;\n}`, localPath);
-    return installed;
-  }
-  const primitive = localPath.includes("popover") ? "PopoverPrimitive" : "TooltipPrimitive";
-  installed = replaceExactlyOnce(installed,
-    `) {\n  return (\n    <${primitive}.Portal>`,
-    `) {\n  const portalContainer = useAgentUIPortalContainer();\n  if (portalContainer === null) return null;\n  return (\n    <${primitive}.Portal {...(portalContainer === undefined ? {} : { container: portalContainer })}>`, localPath);
-  return installed;
-}
-
-export const SEARCH_LABELS_SEAM_ID = "agent-ui-search-presentation-labels-seam";
-export const SEARCH_LABELS_SEAM_FILES = [
-  "components/assistant-ui/elements/retrieval-chunks.tsx",
-  "components/assistant-ui/elements/web-search.tsx",
-];
-
-/** Explicit presentation-only seam; changed upstream source requires review. */
-export function applySearchPresentationLabels(source, localPath) {
-  if (!SEARCH_LABELS_SEAM_FILES.includes(localPath)) return source;
-  const replace = (before, after) => {
-    if (source.split(before).length !== 2) {
-      throw new Error(`${SEARCH_LABELS_SEAM_ID}: cannot safely adapt ${localPath}; expected exactly one ${JSON.stringify(before)}. Review the upstream labels seam.`);
-    }
-    source = source.replace(before, after);
-  };
-  replace('  searching,\n', '  searching,\n  labels,\n');
-  if (localPath.endsWith("web-search.tsx")) {
-    replace('  cycle: number;\n', '  cycle: number;\n  labels?: { searching: string; complete: string };\n');
-    replace('            Searching\n', '            {labels?.searching ?? "Searching"}\n');
-    replace('            Read 3 sources\n', '            {labels?.complete.replace("{count}", String(results.length)) ?? "Read 3 sources"}\n');
-  } else {
-    replace('  searching: boolean;\n', '  searching: boolean;\n  labels?: { retrieving: string; complete: string; relevance: string; score: string };\n');
-    replace('            Retrieving\n', '            {labels?.retrieving ?? "Retrieving"}\n');
-    replace('            {chunks.length} passages above threshold\n', '            {labels?.complete.replace("{count}", String(chunks.length)) ?? `${chunks.length} passages above threshold`}\n');
-    replace('aria-label={`${chunk.source} relevance score`}', 'aria-label={labels?.relevance.replace("{source}", chunk.source) ?? `${chunk.source} relevance score`}');
-    replace('aria-valuetext={`${chunk.score.toFixed(2)} of 1.00`}', 'aria-valuetext={labels?.score.replace("{score}", chunk.score.toFixed(2)) ?? `${chunk.score.toFixed(2)} of 1.00`}');
-  }
-  return source;
-}
-
 export function applyApprovedAdaptations(source, localPath) {
-  let installed = applyAgentUIPortalContainerBridge(adaptImports(source, localPath), localPath);
-  if (localPath === "components/assistant-ui/elements/quote.aui.tsx") {
-    installed = replaceExactlyOnce(installed, '  SelectionToolbarPrimitive,\n', '', localPath);
-    installed = replaceExactlyOnce(installed, 'import { QuoteIcon', 'import { SelectionToolbarPrimitive } from "../../../../../quote-selection-adapter.js";\nimport { QuoteIcon', localPath);
-  }
-  if (localPath === "components/assistant-ui/elements/composer-trigger-popover.aui.tsx") {
-    installed = replaceExactlyOnce(installed, 'type FC }', 'type FC, type ReactNode }', localPath);
-    installed = replaceExactlyOnce(installed, '  iconMap?: Record<string, IconComponent>;', '  children?: ReactNode;\n  iconMap?: Record<string, IconComponent>;', localPath);
-    installed = replaceExactlyOnce(installed, '  directive,\n  action,', '  directive,\n  action,\n  children,', localPath);
-    installed = replaceExactlyOnce(installed, '      <Categories\n', '      {children}\n      <Categories\n', localPath);
-  }
-  return applySearchPresentationLabels(installed, localPath);
-}
-
-export function portalBridgePatch(files) {
-  const present = PORTAL_BRIDGE_FILES.filter((localPath) => files.some((file) => file.localPath === localPath));
-  if (present.length !== PORTAL_BRIDGE_FILES.length) {
-    throw new Error(`${PORTAL_BRIDGE_ID}: expected all seven approved Portal files in the vendor set; missing ${PORTAL_BRIDGE_FILES.filter((file) => !present.includes(file)).join(", ")}.`);
-  }
-  return {
-    id: PORTAL_BRIDGE_ID,
-    reason: "Mount upstream overlays inside AgentUIRoot without changing presentation or runtime behavior.",
-    files: [...PORTAL_BRIDGE_FILES],
-  };
+  return adaptImports(source, localPath);
 }
 
 export function installedVendorEntry({ source, localPath, upstreamPath, previous }) {
@@ -459,13 +345,7 @@ export function installedVendorEntry({ source, localPath, upstreamPath, previous
       localPath,
       upstreamSha256: sha256(source),
       installedSha256: sha256(installed),
-      adaptations: [...new Set([
-        ...adaptationsFor({ localPath, source, previous }),
-        ...(localPath === "components/assistant-ui/elements/quote.aui.tsx" ? ["agent-ui-quote-selection-portal-bridge"] : []),
-        ...(localPath === "components/assistant-ui/elements/composer-trigger-popover.aui.tsx" ? ["agent-ui-trigger-content-seam"] : []),
-        ...(SEARCH_LABELS_SEAM_FILES.includes(localPath) ? [SEARCH_LABELS_SEAM_ID] : []),
-        ...(PORTAL_BRIDGE_FILES.includes(localPath) ? [PORTAL_BRIDGE_ID] : []),
-      ])],
+      adaptations: adaptationsFor({ localPath, source }),
     },
   };
 }
@@ -505,8 +385,7 @@ function upstreamMarkdown({ revision, oldRevision, target, files, inventory, new
     Object.entries(packageVersions).map(([name, version]) => `- \`${name}\` = \`${version}\``).join("\n") +
     `\n\n## Ownership\n\n` +
     `The files below are copied from the frozen revision above. Vendor sync may adapt ` +
-    `only upstream import aliases, registry base-ui relative paths, and the seven ` +
-    `recorded Agent UI Portal container bridges, the Quote selection import bridge, and the generic Composer trigger child seam. Product ` +
+    `only deterministic upstream import aliases and registry base-ui relative paths. Product ` +
     `presentation and policy stay in the Agent UI facade and Plugin layers.\n\n` +
     `- ${files.length} tracked vendor files\n` +
     `- ${files.filter((file) => file.localPath.startsWith(ELEMENT_PREFIX)).length} tracked official Element files\n` +
@@ -624,7 +503,7 @@ async function main() {
     installations.push({ destination: vendorDestination(localPath), installed });
     files.push(provenance);
   }
-  const portalPatch = portalBridgePatch(files);
+
   const composerTrigger = await prepareComposerTriggerSync(repo, revision);
   installations.push(...composerTrigger.installations);
   const quoteSelection = await prepareQuoteSelectionSync(repo, revision);
@@ -659,18 +538,7 @@ async function main() {
     sourceForm: "official Base UI registry output",
     packages: packageVersions,
     files,
-    patches: [portalPatch, ... (files.some(file => file.localPath === "components/assistant-ui/elements/quote.aui.tsx") ? [{
-      id: "agent-ui-quote-selection-portal-bridge",
-      reason: "Route only Quote selection primitives through the scoped upstream adapter.",
-      files: ["components/assistant-ui/elements/quote.aui.tsx"],
-    }] : []), ... (files.some(file => file.localPath === "components/assistant-ui/elements/composer-trigger-popover.aui.tsx") ? [{
-      id: "agent-ui-trigger-content-seam", reason: "Provide a generic child seam for public trigger selection overrides; behavior remains in the adapter.",
-      files: ["components/assistant-ui/elements/composer-trigger-popover.aui.tsx"],
-    }] : []), {
-      id: SEARCH_LABELS_SEAM_ID,
-      reason: "Expose optional presentation labels for status/count and relevance meter copy; no behavior or tree rewriting.",
-      files: [...SEARCH_LABELS_SEAM_FILES],
-    }],
+    patches: [],
   };
   const nextLock = {
     schemaVersion: 1,
@@ -691,6 +559,7 @@ async function main() {
   await writeFile(manifestPath, `${JSON.stringify(nextManifest, null, 2)}\n`, "utf8");
   await writeFile(provenancePath, `${JSON.stringify(nextProvenance, null, 2)}\n`, "utf8");
   await writeFile(lockPath, `${JSON.stringify(nextLock, null, 2)}\n`, "utf8");
+  await syncProductAdapters(vendorRoot);
   await writeFile(
     path.join(vendorRoot, "UPSTREAM.md"),
     upstreamMarkdown({

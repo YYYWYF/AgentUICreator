@@ -6,6 +6,14 @@
 
 @source "./internal/conversation-thread-list-item.tsx";
 @source "./internal/primitives";
+@source "./internal/composable-thread.tsx";
+@source "./internal/conversation-question-flow.tsx";
+@source "./internal/conversation-composer-triggers.tsx";
+@source "./internal/conversation-quote.tsx";
+@source "./internal/composer-input-host-context.tsx";
+@source "./internal/style-boundary";
+@source "./internal/adapters/assistant-ui";
+@source "./public.tsx";
 
 @import "tw-animate-css";
 @import "tw-shimmer";
@@ -166,3 +174,11 @@
 @custom-variant data-open (&:where([data-state="open"], [data-open]:not([data-open="false"])));
 
 @custom-variant data-closed (&:where([data-state="closed"], [data-closed]:not([data-closed="false"])));
+
+/* Upstream Sidebar expects this utility; it remains confined to Agent UI. */
+@utility no-scrollbar {
+  &:where(.agent-ui-root *, .agent-ui-conversation *) {
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+  }
+}

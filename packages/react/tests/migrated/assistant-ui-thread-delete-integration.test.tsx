@@ -6,9 +6,6 @@ import { useAui, type AssistantRuntime, type ThreadMessage } from "@assistant-ui
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { AgentUIRoot } from "../../src/internal/style-boundary/AgentUIRoot";
-import { ThreadList } from "../../src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui";
-import { Thread } from "../../src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui";
-import { TooltipProvider } from "../../src/internal/vendor/assistant-ui/components/ui/tooltip";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ConversationRuntimeProvider, type ConversationAgentFactory } from "@agent-ui/runtime-conversation";
 import { createConversationServiceThreadBinding } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
@@ -56,7 +53,7 @@ async function settleUntil(condition: () => boolean) {
   throw new Error("Thread List interaction did not settle.");
 }
 
-async function mount(upstreamPresentation = false) {
+async function mount() {
   const dataSource = createHttpConversationDataSource({ endpoint });
   const remove = vi.spyOn(dataSource, "delete");
   const service = createConversationService({ dataSource });
@@ -86,7 +83,7 @@ async function mount(upstreamPresentation = false) {
       <ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} unstable_agentFactory={agentFactory}>
         <Capture />
         <AgentUIRoot theme="violet">
-          {upstreamPresentation ? <TooltipProvider><ThreadList /><Thread /></TooltipProvider> : <PolicyThreadList labels={zhCN.threadList} />}
+          <PolicyThreadList labels={zhCN.threadList} />
         </AgentUIRoot>
       </ConversationRuntimeProvider>,
     );
@@ -118,32 +115,6 @@ async function deleteFromNativeMenu(container: HTMLElement) {
 }
 
 describe("assistant-ui native Thread Delete persistence", () => {
-  it("keeps default thread and message overflow menus inside the theme boundary", async () => {
-    const fixture = await mount(true);
-    const more = fixture.container.querySelector<HTMLButtonElement>('[data-slot="aui_thread-list-item-more"]')!;
-    await act(async () => {
-      more.focus();
-      more.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
-    });
-    const menuSelector = '[data-slot="aui_thread-list-item-more-content"]';
-    await settleUntil(() => document.querySelector(menuSelector) !== null);
-    expect(document.querySelector(menuSelector)?.closest("[data-agent-ui-portal-root]")).not.toBeNull();
-    await act(async () => document.querySelector(menuSelector)!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })));
-    await act(async () => fixture.runtime.thread.reset([{
-      id: "assistant-message", role: "assistant", content: [{ type: "text", text: "Result" }],
-      createdAt: new Date(0), metadata: { custom: {} },
-    }]));
-    const messageMore = Array.from(fixture.container.querySelectorAll<HTMLButtonElement>("button"))
-      .find(button => button.textContent?.trim() === "More");
-    expect(messageMore).toBeDefined();
-    await act(async () => {
-      messageMore!.focus();
-      messageMore!.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
-    });
-    await settleUntil(() => document.querySelector(".aui-action-bar-more-content") !== null);
-    expect(document.querySelector(".aui-action-bar-more-content")?.closest("[data-agent-ui-portal-root]")).not.toBeNull();
-  });
-
   it("deletes a background conversation without changing the main runtime or messages", async () => {
     const fixture = await mount();
     const messages: ThreadMessage[] = [{

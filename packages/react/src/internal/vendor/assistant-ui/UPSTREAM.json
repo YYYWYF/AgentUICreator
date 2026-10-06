@@ -55,11 +55,10 @@
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/composer-trigger-popover.aui.tsx",
       "localPath": "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
       "upstreamSha256": "592d5681d4fe197174d54a0fc7243ef64155f0d2c7bd878117a04f6d050fad81",
-      "installedSha256": "eb2cb7659cdb12ebd156a9a62f8321340da26fdaa8e56598f8751e40f9a22b66",
+      "installedSha256": "06c9b2b6fa021bbfe58ba226d4d5c6a46e448369aebf362d02f8b56032c69ba2",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative",
-        "agent-ui-trigger-content-seam"
+        "import-alias-to-relative"
       ]
     },
     {
@@ -104,11 +103,10 @@
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/image.tsx",
       "localPath": "components/assistant-ui/elements/image.tsx",
       "upstreamSha256": "01f7655ba942cc344dd585890e2c6df372725d198523c75e99db327f5c9a057f",
-      "installedSha256": "afa378929ba26bfe964d96c2d87e722fa13893f704d23b6d997e01c30c47feea",
+      "installedSha256": "2d5993bb290a111d6a2292fd8cb575dde84b8036a67e94ab63e1580edeef91d6",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative",
-        "agent-ui-portal-container-bridge"
+        "import-alias-to-relative"
       ]
     },
     {
@@ -155,11 +153,10 @@
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/quote.aui.tsx",
       "localPath": "components/assistant-ui/elements/quote.aui.tsx",
       "upstreamSha256": "4fa31736910936811a5fa1244cf2e7c49ea2e0524da2a4156ade5dc8d3cf8ec8",
-      "installedSha256": "f24f31dc1c6b518134a4e1284e19828f8fb6f6fdfbc9e5534d90da66b8b10131",
+      "installedSha256": "b1b5a05a7a589499eaaf9b091579bb90ef19968650dd1a1940704b865f576142",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative",
-        "agent-ui-quote-selection-portal-bridge"
+        "import-alias-to-relative"
       ]
     },
     {
@@ -186,11 +183,10 @@
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/retrieval-chunks.tsx",
       "localPath": "components/assistant-ui/elements/retrieval-chunks.tsx",
       "upstreamSha256": "4d5865907f9451cc44ef66469cd71c3e19fc090d60ca0a055b75d2cabab49131",
-      "installedSha256": "4b8169f1923e2b2d199f30be0bd1f0cc76c48a74c1b3a9238139e03d331f486c",
+      "installedSha256": "48ec963d0e43af96fc747f9b7e9fe271196b9e867c0d0c956e60d5e3d8e1ac5f",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative",
-        "agent-ui-search-presentation-labels-seam"
+        "import-alias-to-relative"
       ]
     },
     {
@@ -247,22 +243,20 @@
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/thread-list.aui.tsx",
       "localPath": "components/assistant-ui/elements/thread-list.aui.tsx",
       "upstreamSha256": "0d0bf30eef4d96e076df5c85915cd2ef92067178579a48be33b70ab904fab4cf",
-      "installedSha256": "a131579a0c7d111f0ad082384c84786057f75aee99075a678c50a80b490b1ee2",
+      "installedSha256": "dba97aed1ac096e2fbaaebb92e334ec877716e430e7157929d38e8311d358364",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative",
-        "agent-ui-portal-container-bridge"
+        "import-alias-to-relative"
       ]
     },
     {
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/thread.aui.tsx",
       "localPath": "components/assistant-ui/elements/thread.aui.tsx",
       "upstreamSha256": "64cb85b4076644dd319325b319264ec8e998e619a97c19e0f001d3fa5a03a016",
-      "installedSha256": "9354aa6b43983f45ba6a4e4df9d3c335939fbbeb5406edf269c5e82bf7c90f4a",
+      "installedSha256": "672ab839f38f282293e70de66f81e397750bf8bec706f5b474596a6708f89b0b",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative",
-        "agent-ui-portal-container-bridge"
+        "import-alias-to-relative"
       ]
     },
     {
@@ -309,11 +303,10 @@
       "upstreamPath": "packages/ui/src/components/react/assistant-ui/elements/web-search.tsx",
       "localPath": "components/assistant-ui/elements/web-search.tsx",
       "upstreamSha256": "8bc68f323de40625934a313bdd248c23e6317b2ade5f52f33caa57609c277229",
-      "installedSha256": "d42b077d925ac64ec50a7b9885c7a2f524dcdaf86e929e223828fa22b4f26413",
+      "installedSha256": "17dc54e958e5c316f3b2d79d91a6cc9ba374b1113f3af8f62b78252d7665a3ee",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative",
-        "agent-ui-search-presentation-labels-seam"
+        "import-alias-to-relative"
       ]
     },
     {
@@ -382,11 +375,10 @@
       "upstreamPath": "templates/minimal/components/ui/dialog.tsx",
       "localPath": "components/ui/dialog.tsx",
       "upstreamSha256": "662c25e6d4873ba41c12db62a378a1cb873d6c3846e855fc85039793823cd903",
-      "installedSha256": "85e26134bdca61c06a76307d073edc9e508fcdd8488628b7eba00bf93f869b8f",
+      "installedSha256": "dffa485c6923cced66a12bcfa893ed8432cee6b017d50316ab02b7f336111aba",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative",
-        "agent-ui-portal-container-bridge"
+        "import-alias-to-relative"
       ]
     },
     {
@@ -403,11 +395,10 @@
       "upstreamPath": "packages/ui/src/components/react/ui/base/popover.tsx",
       "localPath": "components/ui/popover.tsx",
       "upstreamSha256": "4b4603f4df884f389e2659a1b74c04a3e1e055724a2202d16732959b31f3af74",
-      "installedSha256": "9bd007a28f548eb1b59ec61b3484a4e6c80c2757a2e46bc0de434b59377d1e41",
+      "installedSha256": "95665f5c30dcfd46ee49034c4b3cee8e6f08c26d14930223b56efce505967f34",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative",
-        "agent-ui-portal-container-bridge"
+        "import-alias-to-relative"
       ]
     },
     {
@@ -424,11 +415,10 @@
       "upstreamPath": "packages/ui/src/components/react/ui/base/sheet.tsx",
       "localPath": "components/ui/sheet.tsx",
       "upstreamSha256": "89748ad1285f6d3ad44185e4ca4d4bf8b9fa878559cc0ffa492f81be4cb1f832",
-      "installedSha256": "e79b8a2705bc33d50470a1424a1b08340d7d9a7d74259a4fd0d30d7e095b9673",
+      "installedSha256": "56d09016b4d57fb14b3a0dbdfdb57d9920b6ef8737b4229c39a7ec27dab5b6da",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative",
-        "agent-ui-portal-container-bridge"
+        "import-alias-to-relative"
       ]
     },
     {
@@ -465,11 +455,10 @@
       "upstreamPath": "templates/minimal/components/ui/tooltip.tsx",
       "localPath": "components/ui/tooltip.tsx",
       "upstreamSha256": "43cf8405ec5856165c2e7543d9e07c7bdf186c0b9f39270141a42de3dc11d0cc",
-      "installedSha256": "db242dd9487682e8a46a85f9d926b4aff858893991d974648faf9551cb971751",
+      "installedSha256": "cdbf8fa744fe61171e1d7bc9224e04f45dc7c1d3119eaacd434c603a11e789ec",
       "adaptations": [
         "official-registry-base-ui-rendering",
-        "import-alias-to-relative",
-        "agent-ui-portal-container-bridge"
+        "import-alias-to-relative"
       ]
     },
     {
@@ -501,41 +490,5 @@
       "adaptations": []
     }
   ],
-  "patches": [
-    {
-      "id": "agent-ui-portal-container-bridge",
-      "reason": "Mount upstream overlays inside AgentUIRoot without changing presentation or runtime behavior.",
-      "files": [
-        "components/assistant-ui/elements/image.tsx",
-        "components/assistant-ui/elements/thread-list.aui.tsx",
-        "components/assistant-ui/elements/thread.aui.tsx",
-        "components/ui/dialog.tsx",
-        "components/ui/popover.tsx",
-        "components/ui/sheet.tsx",
-        "components/ui/tooltip.tsx"
-      ]
-    },
-    {
-      "id": "agent-ui-quote-selection-portal-bridge",
-      "reason": "Route only Quote selection primitives through the scoped upstream adapter.",
-      "files": [
-        "components/assistant-ui/elements/quote.aui.tsx"
-      ]
-    },
-    {
-      "id": "agent-ui-trigger-content-seam",
-      "reason": "Provide a generic child seam for public trigger selection overrides; behavior remains in the adapter.",
-      "files": [
-        "components/assistant-ui/elements/composer-trigger-popover.aui.tsx"
-      ]
-    },
-    {
-      "id": "agent-ui-search-presentation-labels-seam",
-      "reason": "Expose optional presentation labels for status/count and relevance meter copy; no behavior or tree rewriting.",
-      "files": [
-        "components/assistant-ui/elements/retrieval-chunks.tsx",
-        "components/assistant-ui/elements/web-search.tsx"
-      ]
-    }
-  ]
+  "patches": []
 }

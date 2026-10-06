@@ -3,7 +3,6 @@
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
 
 import { cn } from "../../lib/utils";
-import { useAgentUIPortalContainer } from "../../../../style-boundary/AgentUIRoot";
 
 function TooltipProvider({
   delay = 0,
@@ -39,10 +38,8 @@ function TooltipContent({
     TooltipPrimitive.Positioner.Props,
     "align" | "alignOffset" | "side" | "sideOffset"
   >) {
-  const portalContainer = useAgentUIPortalContainer();
-  if (portalContainer === null) return null;
   return (
-    <TooltipPrimitive.Portal {...(portalContainer === undefined ? {} : { container: portalContainer })}>
+    <TooltipPrimitive.Portal>
       <TooltipPrimitive.Positioner
         align={align}
         alignOffset={alignOffset}

@@ -1,7 +1,7 @@
 import { agentUIDirectiveFormatter } from "./directive-formatter.js";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useAui, useAuiState, unstable_useLiveCompletionAdapter, unstable_useTriggerPopoverScopeContext, type Unstable_TriggerItem } from "@assistant-ui/react";
-import { ComposerTriggerPopover } from "./vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.js";
+import { ComposerTriggerPopover } from "./adapters/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.js";
 import { detectTrigger, type TriggerMatch } from "./trigger-matcher.js";
 import { serializeConversationDirective } from "./composer-trigger-utils.js";
 import type { ConversationMentionTriggerProps, ConversationCommandTriggerProps } from "./composer-trigger-types.js";

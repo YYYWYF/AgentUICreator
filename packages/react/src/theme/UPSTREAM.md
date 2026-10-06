@@ -65,3 +65,9 @@ showcase. Audit new upstream hardcoded colors; prefer removable integration CSS
 or wrapper styling. Do not fork vendor presentation for a preset.
 
 The development showcase is `examples/creator-embedded-host/theme-showcase.html`.
+
+Runtime `--color-*` aliases are declared at the Agent UI theme boundary alongside
+semantic palette tokens. `@theme inline` remains the utility-generation mapping;
+it does not replace scoped runtime aliases. Radius aliases are likewise scoped.
+The product integration directory owns overlay and locale seams, while installed
+assistant-ui vendor source permits mechanical import conversion only.

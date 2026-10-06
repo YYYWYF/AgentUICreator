@@ -1,9 +1,12 @@
+import { existsSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { checkProductAdapters } from "./sync-product-adapters.mjs";
 import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { QUOTE_SELECTION_FILES, SEARCH_LABELS_SEAM_ID, SEARCH_LABELS_SEAM_FILES } from "./sync-assistant-ui-upstream.mjs";
+import { QUOTE_SELECTION_FILES, installedVendorEntry } from "./sync-assistant-ui-upstream.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const defaultVendorRoot = path.join(
@@ -22,15 +25,6 @@ const EXPECTED_STYLE = "base-nova";
 const ELEMENTS_DIRECTORY = "components/assistant-ui/elements";
 const ELEMENT_PATH_PREFIX = `${ELEMENTS_DIRECTORY}/`;
 const IMAGE_ZOOM_PORTAL_PATH = "components/assistant-ui/elements/image.tsx";
-const PORTAL_BRIDGE_FILES = [
-  IMAGE_ZOOM_PORTAL_PATH,
-  "components/assistant-ui/elements/thread-list.aui.tsx",
-  "components/assistant-ui/elements/thread.aui.tsx",
-  "components/ui/dialog.tsx",
-  "components/ui/popover.tsx",
-  "components/ui/sheet.tsx",
-  "components/ui/tooltip.tsx",
-];
 const FORBIDDEN_ELEMENT_TOKENS = [
   "ThreadListPresentationPolicy",
   "agentUiDisabled",
@@ -266,17 +260,23 @@ export async function collectAssistantUiUpstreamErrors(
     }
   } catch (error) { errors.push(`Composer trigger matcher provenance unavailable: ${error.message}`); }
   const provenanceElementPaths = elementPathsFromProvenance(provenance, errors);
-  for (const entry of Array.isArray(provenance.files) ? provenance.files : []) {
-    if ((Array.isArray(entry?.adaptations) && entry.adaptations.includes("agent-ui-portal-container-bridge")) !==
-        PORTAL_BRIDGE_FILES.includes(entry?.localPath)) {
-      errors.push(`${PROVENANCE_FILE} Portal bridge adaptation is allowed only for the seven approved files: ${entry?.localPath}.`);
+  const upstreamRepo = process.env.ASSISTANT_UI_REPO ?? path.resolve(scriptDirectory, "../../../../assistant-ui");
+  for (const entry of provenance.files ?? []) {
+    if (entry.adaptations?.some(id => !["official-registry-base-ui-rendering", "import-alias-to-relative"].includes(id))) {
+      errors.push(`Vendor product adaptation forbidden: ${entry.localPath}`);
     }
-  }
-
-  for (const entry of Array.isArray(provenance.files) ? provenance.files : []) {
-    if ((Array.isArray(entry?.adaptations) && entry.adaptations.includes("agent-ui-quote-selection-portal-bridge")) !==
-        (entry?.localPath === "components/assistant-ui/elements/quote.aui.tsx")) {
-      errors.push(`${PROVENANCE_FILE} Quote selection bridge adaptation is allowed only for quote.aui.tsx: ${entry?.localPath}.`);
+    let installed;
+    try {
+      const relative = safeRelativePath(entry.localPath, "Vendor localPath");
+      installed = await readFile(path.join(vendorRoot, relative), "utf8");
+    } catch (error) { errors.push(`Vendor source unavailable: ${entry.localPath}: ${error.message}`); continue; }
+    if (/useAgentUIPortalContainer|style-boundary|quote-selection-adapter|adapters\/assistant-ui/u.test(installed)) errors.push(`Vendor product import forbidden: ${entry.localPath}`);
+    if (existsSync(path.join(upstreamRepo, ".git"))) {
+      try {
+        const source = execFileSync("git", ["-C", upstreamRepo, "show", `${provenance.revision}:${entry.upstreamPath}`], { encoding: "utf8" });
+        const expected = installedVendorEntry({ source, localPath: entry.localPath, upstreamPath: entry.upstreamPath });
+        if (installed !== expected.installed || sha256(source) !== entry.upstreamSha256) errors.push(`Vendor differs from deterministic pinned upstream: ${entry.localPath}`);
+      } catch (error) { errors.push(`Pinned source unavailable for ${entry.localPath}: ${error.message}`); }
     }
   }
 
@@ -304,39 +304,7 @@ export async function collectAssistantUiUpstreamErrors(
     errors.push(`${MANIFEST_FILE}.revision must match ${PROVENANCE_FILE}.revision.`);
   }
 
-  if (!Array.isArray(provenance?.patches)) {
-    errors.push(`${PROVENANCE_FILE}.patches must be an array.`);
-  } else {
-    const portalPatches = provenance.patches.filter((patch) => patch?.id === "agent-ui-portal-container-bridge");
-    if (portalPatches.length !== 1 ||
-        JSON.stringify(portalPatches[0]?.files) !== JSON.stringify(PORTAL_BRIDGE_FILES)) {
-      errors.push(`${PROVENANCE_FILE} must declare exactly the seven approved Portal bridge files.`);
-    }
-    const quotePatches = provenance.patches.filter(patch => patch?.id === "agent-ui-quote-selection-portal-bridge");
-    if (quotePatches.length !== 1 || JSON.stringify(quotePatches[0]?.files) !==
-        JSON.stringify(["components/assistant-ui/elements/quote.aui.tsx"])) {
-      errors.push(`${PROVENANCE_FILE} must declare exactly the separate Quote selection bridge file.`);
-    }
-    const searchPatches = provenance.patches.filter(patch => patch?.id === SEARCH_LABELS_SEAM_ID);
-    if (searchPatches.length !== 1 || JSON.stringify(searchPatches[0]?.files) !== JSON.stringify(SEARCH_LABELS_SEAM_FILES)) {
-      errors.push(`${PROVENANCE_FILE} must declare exactly the two approved search presentation labels files.`);
-    }
-    for (const patch of provenance.patches) {
-      const patchFiles = isRecord(patch) && Array.isArray(patch.files)
-        ? patch.files
-        : [];
-      if (patchFiles.some((file) => typeof file === "string" && file.startsWith(ELEMENT_PATH_PREFIX) &&
-        !(patch.id === "agent-ui-portal-container-bridge" && PORTAL_BRIDGE_FILES.includes(file)) &&
-        !(patch.id === "agent-ui-quote-selection-portal-bridge" && file === "components/assistant-ui/elements/quote.aui.tsx") &&
-        !(patch.id === SEARCH_LABELS_SEAM_ID && SEARCH_LABELS_SEAM_FILES.includes(file)) &&
-        !(patch.id === "agent-ui-trigger-content-seam" && file === "components/assistant-ui/elements/composer-trigger-popover.aui.tsx"))) {
-        errors.push(`${PROVENANCE_FILE} must not contain Element-targeted product patches.`);
-      }
-      if (JSON.stringify(patch).includes("p3r4d-thread-list-policy-seam")) {
-        errors.push(`${PROVENANCE_FILE} must not contain p3r4d-thread-list-policy-seam.`);
-      }
-    }
-  }
+  if (!Array.isArray(provenance.patches) || provenance.patches.length !== 0) errors.push("Vendor product patches must be empty.");
 
   for (const relativePath of actualElementPaths) {
     const content = await readFile(path.join(vendorRoot, relativePath), "utf8");
@@ -417,6 +385,9 @@ export async function collectAssistantUiUpstreamErrors(
       if (error?.code === "ENOENT") errors.push(`assistant-ui tracked vendor file missing: ${localPath}`);
       else throw error;
     }
+  }
+  if (path.resolve(vendorRoot) === defaultVendorRoot) {
+    try { await checkProductAdapters(vendorRoot); } catch (error) { errors.push(error.message); }
   }
   return errors;
 }

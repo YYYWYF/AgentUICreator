@@ -8,7 +8,7 @@ import { expect, it } from "vitest";
 const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
 const reactSource = path.join(repositoryRoot, "packages/react/src");
 const vendorRoot = path.join(reactSource, "internal/vendor/assistant-ui");
-const portalFiles = ["components/assistant-ui/elements/image.tsx", "components/assistant-ui/elements/thread-list.aui.tsx", "components/assistant-ui/elements/thread.aui.tsx", ...["dialog", "popover", "sheet", "tooltip"]
+const portalFiles = ["components/assistant-ui/elements/image.tsx", ...["dialog", "popover", "sheet", "tooltip"]
   .map((name) => `components/ui/${name}.tsx`)];
 
 async function sourceFiles(directory: string): Promise<string[]> {
@@ -34,52 +34,15 @@ it("keeps the canonical theme and Preflight scoped to AgentUIRoot", async () => 
   expect(agent).toContain("<AgentUIRoot theme={theme}>");
 });
 
-it("records seven Portal target bridges and a separate Quote primitive bridge", async () => {
-  const provenance = JSON.parse(await readFile(path.join(vendorRoot, "UPSTREAM.json"), "utf8")) as {
-    files: { localPath: string; installedSha256: string; adaptations: string[] }[];
-    patches: { id: string; files: string[] }[];
-  };
-  expect(provenance.patches).toEqual([{ id: "agent-ui-portal-container-bridge", files: portalFiles,
-    reason: expect.any(String) }, {
-    id: "agent-ui-quote-selection-portal-bridge",
-    files: ["components/assistant-ui/elements/quote.aui.tsx"],
-    reason: expect.any(String),
-  }, {
-    id: "agent-ui-trigger-content-seam",
-    files: ["components/assistant-ui/elements/composer-trigger-popover.aui.tsx"],
-    reason: expect.any(String),
-  }, {
-    id: "agent-ui-search-presentation-labels-seam",
-    files: ["components/assistant-ui/elements/retrieval-chunks.tsx", "components/assistant-ui/elements/web-search.tsx"],
-    reason: expect.any(String),
-  }]);
-  const uses: string[] = [];
+it("keeps vendor product patches empty and product overlay integration separate", async () => {
+  const provenance = JSON.parse(await readFile(path.join(vendorRoot, "UPSTREAM.json"), "utf8"));
+  expect(provenance.patches).toEqual([]);
   for (const filePath of await sourceFiles(path.join(vendorRoot, "components"))) {
-    if ((await readFile(filePath, "utf8")).includes("useAgentUIPortalContainer")) {
-      uses.push(path.relative(vendorRoot, filePath).split(path.sep).join("/"));
-    }
+    const source = await readFile(filePath, "utf8");
+    expect(source, filePath).not.toMatch(/useAgentUIPortalContainer|style-boundary|quote-selection-adapter|adapters\/assistant-ui/u);
   }
-  expect(uses.sort()).toEqual(portalFiles);
-  for (const relativePath of portalFiles) {
-    const content = await readFile(path.join(vendorRoot, relativePath));
-    const entry = provenance.files.find((item) => item.localPath === relativePath);
-    expect(entry?.adaptations).toContain("agent-ui-portal-container-bridge");
-    expect(entry?.installedSha256).toBe(createHash("sha256").update(content).digest("hex"));
-    expect(content.toString()).toContain(relativePath.endsWith("/image.tsx")
-      ? "portalContainer ?? document.body" : "container: portalContainer");
-  }
-  const quotePath = "components/assistant-ui/elements/quote.aui.tsx";
-  const quote = await readFile(path.join(vendorRoot, quotePath), "utf8");
-  const quoteEntry = provenance.files.find(item => item.localPath === quotePath);
-  expect(quoteEntry?.adaptations).toContain("agent-ui-quote-selection-portal-bridge");
-  expect(quoteEntry?.adaptations).not.toContain("agent-ui-portal-container-bridge");
-  expect(quote).toContain('from "../../../../../quote-selection-adapter.js"');
-  expect(quoteEntry?.installedSha256).toBe(createHash("sha256").update(quote).digest("hex"));
-  const report = await readFile(path.join(repositoryRoot, "scripts/generate-assistant-ui-upgrade-report.mjs"), "utf8");
-  expect(report).toContain("portalIntegration");
-  expect(report).toContain("Portal integration seam:");
-  expect(report).toContain("quoteSelectionIntegration");
-  expect(report).toContain("Quote selection integration seam:");
+  const { checkProductAdapters } = await import("../scripts/sync-product-adapters.mjs");
+  await expect(checkProductAdapters()).resolves.toBeUndefined();
 });
 
 it("keeps product Plugin and application code off Base UI Portal imports", async () => {
@@ -90,4 +53,16 @@ it("keeps product Plugin and application code off Base UI Portal imports", async
     const content = await readFile(filePath, "utf8");
     expect(content, relativePath).not.toMatch(/from ["']@base-ui\/react\/(?:dialog|popover|tooltip|select|menu)["']/u);
   }
+});
+
+it("keeps Generative UI vocabulary under its independent scoped source contract", async () => {
+  const directory = path.join(repositoryRoot, "packages/source-registry/registry/items/agent-component-assistant-ui-generative-ui/files/agent-ui/vendor/assistant-ui/generative-ui");
+  const record = JSON.parse(await readFile(path.join(directory, "UPSTREAM.json"), "utf8"));
+  for (const entry of record.files) {
+    const source = await readFile(path.join(directory, entry.localPath));
+    expect(createHash("sha256").update(source).digest("hex")).toBe(entry.installedSha256);
+  }
+  const css = await readFile(path.join(directory, "generative-ui.css"), "utf8");
+  expect(css).toContain('.agent-ui-conversation [data-aui="button"]:focus-visible');
+  expect(css).toContain("@media (prefers-reduced-motion: reduce)");
 });

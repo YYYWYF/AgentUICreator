@@ -6,7 +6,6 @@ import { XIcon } from "lucide-react";
 
 import { Button } from "./button";
 import { cn } from "../../lib/utils";
-import { useAgentUIPortalContainer } from "../../../../style-boundary/AgentUIRoot";
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
@@ -16,10 +15,8 @@ function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
 }
 
-function DialogPortal({ ...props }: Omit<DialogPrimitive.Portal.Props, "container">) {
-  const portalContainer = useAgentUIPortalContainer();
-  if (portalContainer === null) return null;
-  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} {...(portalContainer === undefined ? {} : { container: portalContainer })} />;
+function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
+  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />;
 }
 
 function DialogClose({ ...props }: DialogPrimitive.Close.Props) {

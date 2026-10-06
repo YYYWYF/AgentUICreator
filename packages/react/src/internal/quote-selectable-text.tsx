@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { MarkdownText } from "./vendor/assistant-ui/components/assistant-ui/elements/markdown-text.js";
+import { MarkdownText } from "./adapters/assistant-ui/components/assistant-ui/elements/markdown-text.js";
 
 /** Product boundary markers; the upstream selection algorithm stays unchanged. */
 export function QuoteSelectableText() {

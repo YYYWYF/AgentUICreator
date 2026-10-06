@@ -383,7 +383,7 @@ Reuse and extend the existing Source Registry rather than creating an unmanaged 
 - original path -> local path;
 - original hash and installed local hash;
 - mechanical import adaptations;
-- explicit patch id, reason and description;
+- product adapter provenance stored separately from vendor; vendor product patches must be empty;
 - notices files covered by the import.
 
 Update workflow:
@@ -392,13 +392,14 @@ Update workflow:
 inspect current lock/drift
   -> import candidate from pinned local assistant-ui checkout
   -> compute upstream/local diff
-  -> apply declared mechanical adaptations and explicit patches
+  -> install mechanical import adaptations only
+  -> regenerate product integrations outside vendor
   -> update license/notices/provenance
   -> formal Source Registry apply
   -> run Slot Adapter and capability gates before promotion
 ```
 
-Direct edits to installed vendor files or `.agent-ui/source-lock.json` are forbidden. Local drift must be detectable before update, and an upgrade cannot silently overwrite it.
+Direct edits to installed vendor files or `.agent-ui/source-lock.json` are forbidden. Vendor must not import product adapters or contain Portal, locale, theme or Composer product seams. Product integration and caller switching accompany clean vendor regeneration atomically; no intermediate vendor-only rollback is published. Local drift must be detectable before update, and an upgrade cannot silently overwrite it.
 
 ## 17. Subagent Extension Strategy
 

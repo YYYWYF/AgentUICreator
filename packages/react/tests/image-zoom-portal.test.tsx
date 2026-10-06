@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { expect, it } from "vitest";
 
 import { AgentUIRoot } from "../src/internal/style-boundary/AgentUIRoot";
-import { ImageZoom } from "../src/internal/vendor/assistant-ui/components/assistant-ui/elements/image";
+import { ImageZoom } from "../src/internal/adapters/assistant-ui/components/assistant-ui/elements/image";
 
 it("keeps the upstream image zoom Portal inside the Agent UI boundary", async () => {
   const host = document.createElement("div");

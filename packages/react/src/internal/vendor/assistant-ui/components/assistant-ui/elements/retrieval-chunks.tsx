@@ -19,7 +19,6 @@ export function RetrievalChunks({
   chunks,
   visibleCount,
   searching,
-  labels,
   className,
   ...props
 }: Omit<
@@ -30,7 +29,6 @@ export function RetrievalChunks({
   chunks: readonly RetrievalChunk[];
   visibleCount: number;
   searching: boolean;
-  labels?: { retrieving: string; complete: string; relevance: string; score: string };
 }) {
   return (
     <div
@@ -52,11 +50,11 @@ export function RetrievalChunks({
       <div className="text-foreground/45 text-xs">
         {searching ? (
           <ShimmerLabel className="relative inline-block leading-none">
-            {labels?.retrieving ?? "Retrieving"}
+            Retrieving
           </ShimmerLabel>
         ) : (
           <span className="fade-in animate-in duration-300">
-            {labels?.complete.replace("{count}", String(chunks.length)) ?? `${chunks.length} passages above threshold`}
+            {chunks.length} passages above threshold
           </span>
         )}
       </div>
@@ -94,11 +92,11 @@ export function RetrievalChunks({
             </p>
             <span
               role="meter"
-              aria-label={labels?.relevance.replace("{source}", chunk.source) ?? `${chunk.source} relevance score`}
+              aria-label={`${chunk.source} relevance score`}
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={announced(pct(chunk.score, 1))}
-              aria-valuetext={labels?.score.replace("{score}", chunk.score.toFixed(2)) ?? `${chunk.score.toFixed(2)} of 1.00`}
+              aria-valuetext={`${chunk.score.toFixed(2)} of 1.00`}
               className="bg-foreground/[0.06] h-[2px] w-full overflow-hidden rounded-full"
             >
               <span

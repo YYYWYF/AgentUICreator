@@ -26,7 +26,6 @@ import { TooltipIconButton } from "./tooltip-icon-button";
 import { Button } from "../../ui/button";
 import { Skeleton } from "../../ui/skeleton";
 import { cn } from "../../../lib/utils";
-import { useAgentUIPortalContainer } from "../../../../../style-boundary/AgentUIRoot";
 import {
   ActionBarMorePrimitive,
   ActionBarPrimitive,
@@ -652,7 +651,6 @@ const AssistantMessage: FC = () => {
 };
 
 const AssistantActionBar: FC = () => {
-  const portalContainer = useAgentUIPortalContainer();
   return (
     <ActionBarPrimitive.Root
       hideWhenRunning
@@ -701,8 +699,7 @@ const AssistantActionBar: FC = () => {
             <MoreHorizontalIcon />
           </TooltipIconButton>
         </ActionBarMorePrimitive.Trigger>
-        {portalContainer !== null && <ActionBarMorePrimitive.Content
-          portalProps={portalContainer === undefined ? undefined : { container: portalContainer }}
+        <ActionBarMorePrimitive.Content
           side="bottom"
           align="start"
           sideOffset={6}
@@ -714,7 +711,7 @@ const AssistantActionBar: FC = () => {
               Export as Markdown
             </ActionBarMorePrimitive.Item>
           </ActionBarPrimitive.ExportMarkdown>
-        </ActionBarMorePrimitive.Content>}
+        </ActionBarMorePrimitive.Content>
       </ActionBarMorePrimitive.Root>
     </ActionBarPrimitive.Root>
   );

@@ -1,3 +1,4 @@
+import { ConversationActionMoreMenu as InternalConversationActionMoreMenu, ConversationActionMoreMenuItem as InternalConversationActionMoreMenuItem } from "./internal/style-boundary/ConversationActionMoreMenu.js";
 import { ComposerTextareaInput as InternalComposerTextareaInput } from "./internal/composer-input-host-context.js";
 import type { AgentUITheme } from "./theme/theme-contract.js";
 export { AGENT_UI_THEME_PRESETS, getAgentUIThemeColorScheme, isAgentUITheme } from "./theme/theme-contract.js";
@@ -57,9 +58,9 @@ export function useConversationCanAnswerToolCall(): boolean {
 }
 import { AgentUIRoot as InternalAgentUIRoot, useAgentUIPortalContainer as useInternalAgentUIPortalContainer } from "./internal/style-boundary/AgentUIRoot.js";
 import { AgentUIDialog as InternalAgentUIDialog } from "./internal/style-boundary/AgentUIDialog.js";
-import { DialogContent as InternalAgentUIDialogContent } from "./internal/vendor/assistant-ui/components/ui/dialog.js";
-import { Tooltip as InternalAgentUITooltip, TooltipTrigger as InternalAgentUITooltipTrigger, TooltipContent as InternalAgentUITooltipContent, TooltipProvider as InternalAgentUITooltipProvider } from "./internal/vendor/assistant-ui/components/ui/tooltip.js";
-import { Popover as InternalAgentUIPopover, PopoverTrigger as InternalAgentUIPopoverTrigger, PopoverContent as InternalAgentUIPopoverContent } from "./internal/vendor/assistant-ui/components/ui/popover.js";
+import { DialogContent as InternalAgentUIDialogContent } from "./internal/adapters/assistant-ui/components/ui/dialog.js";
+import { Tooltip as InternalAgentUITooltip, TooltipTrigger as InternalAgentUITooltipTrigger, TooltipContent as InternalAgentUITooltipContent, TooltipProvider as InternalAgentUITooltipProvider } from "./internal/adapters/assistant-ui/components/ui/tooltip.js";
+import { Popover as InternalAgentUIPopover, PopoverTrigger as InternalAgentUIPopoverTrigger, PopoverContent as InternalAgentUIPopoverContent } from "./internal/adapters/assistant-ui/components/ui/popover.js";
 import type { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import type { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import type { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
@@ -95,17 +96,17 @@ import {
 } from "./internal/composable-thread.js";
 import { Sources as InternalSources } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.js";
 import { File as InternalFile } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/file.js";
-import { Image as InternalImage } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/image.js";
+import { Image as InternalImage } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/image.js";
 import { ToolCall as InternalToolCall } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.js";
 import { ToolFallback as InternalToolFallback } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
-import { MarkdownText as InternalMarkdownText } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/markdown-text.js";
-import { Reasoning as InternalReasoning } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
+import { MarkdownText as InternalMarkdownText } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/markdown-text.js";
+import { Reasoning as InternalReasoning } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
 import {
   ReasoningRoot as InternalReasoningRoot,
   ReasoningTrigger as InternalReasoningTrigger,
   ReasoningContent as InternalReasoningContent,
   ReasoningText as InternalReasoningText,
-} from "./internal/vendor/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
+} from "./internal/adapters/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
 import {
   ToolGroupRoot as InternalToolGroupRoot,
   ToolGroupTrigger as InternalToolGroupTrigger,
@@ -119,8 +120,8 @@ import {
 import { Button as InternalButton } from "./internal/vendor/assistant-ui/components/ui/button.js";
 import {
   TooltipIconButton as InternalTooltipIconButton,
-} from "./internal/vendor/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
-import { TooltipProvider as InternalTooltipProvider } from "./internal/vendor/assistant-ui/components/ui/tooltip.js";
+} from "./internal/adapters/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
+import { TooltipProvider as InternalTooltipProvider } from "./internal/adapters/assistant-ui/components/ui/tooltip.js";
 import {
   ActionBarPrimitive,
   AuiIf as InternalConversationIf,
@@ -145,7 +146,7 @@ import { AgentStatus as InternalAgentStatus } from "./internal/vendor/assistant-
 import {
   AgentStatus as InternalTaskAgentStatus,
   TaskTray as InternalTaskTray,
-} from "./internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.aui.js";
+} from "./internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.aui.js";
 import { SubagentList as InternalSubagentList } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.js";
 import { JobProgress as InternalJobProgress } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.js";
 import { ConversationTaskGroupComposition as InternalTaskGroup } from "./internal/conversation-task-group.js";
@@ -1275,4 +1276,15 @@ export function NativeSelect(props: Omit<React.ComponentProps<"select">, "size">
 }
 export function NativeSelectOption(props: React.ComponentProps<"option">) {
   return <InternalNativeSelectOption {...props} />;
+}
+
+/** The existing response Footer owns menu placement and localized menu content. */
+export function ConversationActionMoreMenu(props: { label: string; children: ReactNode }): ReactElement {
+  return <InternalConversationActionMoreMenu {...props} />;
+}
+
+export function ConversationActionMoreMenuItem(props: {
+  children: ReactNode; disabled?: boolean; onSelect?: (event: Event) => void;
+}): ReactElement {
+  return <InternalConversationActionMoreMenuItem {...props} />;
 }

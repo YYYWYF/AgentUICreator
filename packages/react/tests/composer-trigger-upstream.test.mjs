@@ -1,3 +1,4 @@
+import { applyProductAdaptations } from "../scripts/sync-product-adapters.mjs";
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { mkdtemp, mkdir, copyFile, rm } from "node:fs/promises";
@@ -32,6 +33,7 @@ it("replays the generic upstream child seam exactly and rejects shape drift", ()
   const source = readFileSync(new URL("composer-trigger-popover.aui.tsx", fixtures), "utf8");
   const entry = installedVendorEntry({ source, localPath, upstreamPath });
   expect(entry.installed).toBe(readFileSync(new URL(`vendor/assistant-ui/${localPath}`, internal), "utf8"));
-  expect(entry.provenance.adaptations).toContain("agent-ui-trigger-content-seam");
-  expect(() => installedVendorEntry({ source: source.replace("  iconMap?: Record<string, IconComponent>;", "  changedIconMap?: Record<string, IconComponent>;"), localPath, upstreamPath })).toThrow();
+  expect(entry.provenance.adaptations).not.toContain("agent-ui-trigger-content-seam");
+  expect(applyProductAdaptations(entry.installed, localPath)).toContain("{children}");
+  expect(() => applyProductAdaptations(source.replace("  iconMap?: Record<string, IconComponent>;", "  changedIconMap?: Record<string, IconComponent>;"), localPath)).toThrow();
 });

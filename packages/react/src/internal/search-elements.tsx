@@ -1,5 +1,5 @@
-import { WebSearch as UpstreamWebSearch } from "./vendor/assistant-ui/components/assistant-ui/elements/web-search.js";
-import { RetrievalChunks as UpstreamRetrievalChunks } from "./vendor/assistant-ui/components/assistant-ui/elements/retrieval-chunks.js";
+import { WebSearch as UpstreamWebSearch } from "./adapters/assistant-ui/components/assistant-ui/elements/web-search.js";
+import { RetrievalChunks as UpstreamRetrievalChunks } from "./adapters/assistant-ui/components/assistant-ui/elements/retrieval-chunks.js";
 
 export interface WebSearchResult { title: string; domain: string }
 export interface WebSearchProps {

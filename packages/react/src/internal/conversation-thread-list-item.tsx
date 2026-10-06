@@ -5,7 +5,6 @@ import { ArchiveIcon, Loader2Icon, MoreHorizontalIcon, PencilIcon, TrashIcon } f
 import { useEffect, useRef, useState } from "react";
 import { Button } from "./vendor/assistant-ui/components/ui/button.js";
 import { Input } from "./vendor/assistant-ui/components/ui/input.js";
-import { ThreadListItem } from "./vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.js";
 import { useAgentUIPortalContainer } from "./style-boundary/AgentUIRoot.js";
 
 export interface ConversationThreadListItemActions {
@@ -36,8 +35,7 @@ const defaultLabels: ConversationThreadListItemLabels = {
 };
 
 export function ConversationThreadListItemComposition(props: ConversationThreadListItemProps) {
-  if (props.actions === undefined) return <ThreadListItem />;
-  return <ConfiguredThreadListItem actions={props.actions} labels={props.labels ?? defaultLabels} />;
+  return <ConfiguredThreadListItem actions={props.actions ?? { rename: true, archive: true, delete: true }} labels={props.labels ?? defaultLabels} />;
 }
 
 /** Presentation only: all actions and navigation remain assistant-ui-owned. */

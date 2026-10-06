@@ -4,7 +4,6 @@ import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Skeleton } from "../../ui/skeleton";
 import { cn } from "../../../lib/utils";
-import { useAgentUIPortalContainer } from "../../../../../style-boundary/AgentUIRoot";
 import {
   AuiIf,
   ThreadListItemMorePrimitive,
@@ -425,7 +424,6 @@ const ThreadListItemRename: FC<{
 };
 
 const ThreadListItemMore: FC<{ onRename: () => void }> = ({ onRename }) => {
-  const portalContainer = useAgentUIPortalContainer();
   return (
     <ThreadListItemMorePrimitive.Root sharedFocusGroup>
       <ThreadListItemMorePrimitive.Trigger asChild>
@@ -439,8 +437,7 @@ const ThreadListItemMore: FC<{ onRename: () => void }> = ({ onRename }) => {
           <span className="sr-only">More options</span>
         </Button>
       </ThreadListItemMorePrimitive.Trigger>
-      {portalContainer !== null && <ThreadListItemMorePrimitive.Content
-          portalProps={portalContainer === undefined ? undefined : { container: portalContainer }}
+      <ThreadListItemMorePrimitive.Content
         side="right"
         align="start"
         sideOffset={6}
@@ -473,7 +470,7 @@ const ThreadListItemMore: FC<{ onRename: () => void }> = ({ onRename }) => {
             Delete
           </ThreadListItemMorePrimitive.Item>
         </ThreadListItemPrimitive.Delete>
-      </ThreadListItemMorePrimitive.Content>}
+      </ThreadListItemMorePrimitive.Content>
     </ThreadListItemMorePrimitive.Root>
   );
 };

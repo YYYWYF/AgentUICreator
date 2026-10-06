@@ -48,3 +48,13 @@ describe("semantic theme contract", () => {
     }
   });
 });
+
+it("keeps runtime semantic color aliases aligned with inline Tailwind mappings", async () => {
+  const [styles, extension] = await Promise.all([
+    readFile(new URL("../src/styles.css", import.meta.url), "utf8"), readFile(extensionUrl, "utf8"),
+  ]);
+  const inline = styles.split("@theme inline {")[1]!.split("@keyframes")[0]!;
+  const aliases = [...inline.matchAll(/(--color-[\w-]+): var\((--[\w-]+)\);/gu)];
+  expect(aliases.length).toBeGreaterThan(30);
+  for (const [, alias, token] of aliases) expect(extension).toContain(`${alias}: var(${token});`);
+});

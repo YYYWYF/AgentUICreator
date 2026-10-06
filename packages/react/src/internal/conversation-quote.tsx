@@ -2,7 +2,7 @@ import { useThreadRootElementRef } from "./quote-thread-root.js";
 import { useEffect } from "react";
 import { useAui, useAuiState } from "@assistant-ui/react";
 import { QuoteIcon, XIcon } from "lucide-react";
-import { ComposerQuotePreview, QuoteBlock, SelectionToolbar } from "./vendor/assistant-ui/components/assistant-ui/elements/quote.aui.js";
+import { ComposerQuotePreview, QuoteBlock, SelectionToolbar } from "./adapters/assistant-ui/components/assistant-ui/elements/quote.aui.js";
 
 export function InternalConversationQuoteBlock({ text, messageId }: { text: string; messageId: string }) {
   return <QuoteBlock text={text} messageId={messageId} />;

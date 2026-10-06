@@ -16,7 +16,6 @@ export function WebSearch({
   results,
   visibleResults,
   searching,
-  labels,
   cycle,
   className,
   ...props
@@ -29,7 +28,6 @@ export function WebSearch({
   visibleResults: number;
   searching: boolean;
   cycle: number;
-  labels?: { searching: string; complete: string };
 }) {
   return (
     <div
@@ -50,11 +48,11 @@ export function WebSearch({
       <div className="text-foreground/45 text-xs">
         {searching ? (
           <ShimmerLabel className="relative inline-block leading-none">
-            {labels?.searching ?? "Searching"}
+            Searching
           </ShimmerLabel>
         ) : (
           <span className="fade-in animate-in duration-300">
-            {labels?.complete.replace("{count}", String(results.length)) ?? "Read 3 sources"}
+            Read 3 sources
           </span>
         )}
       </div>

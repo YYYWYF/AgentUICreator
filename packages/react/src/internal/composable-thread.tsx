@@ -10,26 +10,26 @@ import {
   ComposerAddAttachment as UpstreamComposerAddAttachment,
   ComposerAttachments,
   UserMessageAttachments,
-} from "./vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.js";
+} from "./adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.js";
 import { Sources } from "./vendor/assistant-ui/components/assistant-ui/elements/sources.aui.js";
 import { File } from "./vendor/assistant-ui/components/assistant-ui/elements/file.js";
 import { ThreadFollowupSuggestions } from "./vendor/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.js";
-import { Image } from "./vendor/assistant-ui/components/assistant-ui/elements/image.js";
+import { Image } from "./adapters/assistant-ui/components/assistant-ui/elements/image.js";
 import {
   Reasoning,
   ReasoningContent,
   ReasoningRoot,
   ReasoningText,
   ReasoningTrigger,
-} from "./vendor/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
+} from "./adapters/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
 import { ToolFallback } from "./vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
-import { isTaskPart } from "./vendor/assistant-ui/components/assistant-ui/elements/task-card.aui.js";
+import { isTaskPart } from "./adapters/assistant-ui/components/assistant-ui/elements/task-card.aui.js";
 import {
   ToolGroupContent,
   ToolGroupRoot,
   ToolGroupTrigger,
 } from "./vendor/assistant-ui/components/assistant-ui/elements/tool-group.aui.js";
-import { TooltipIconButton } from "./vendor/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
+import { TooltipIconButton } from "./adapters/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
 import { Button } from "./vendor/assistant-ui/components/ui/button.js";
 import { Skeleton } from "./vendor/assistant-ui/components/ui/skeleton.js";
 import { cn } from "./vendor/assistant-ui/lib/utils.js";
@@ -866,7 +866,7 @@ const EditComposer: FC = () => {
       data-slot="aui_edit-composer-wrapper"
       className="flex flex-col px-2 [contain-intrinsic-size:auto_200px] [content-visibility:auto]"
     >
-      <ComposerPrimitive.Root className="aui-edit-composer-root border-border/60 dark:border-muted-foreground/15 ms-auto flex w-full max-w-[85%] cursor-text flex-col rounded-(--composer-radius) border bg-(--composer-bg)">
+      <ComposerPrimitive.Root data-slot="agent-ui-edit-composer" className="aui-edit-composer-root border-foreground/10 focus-within:border-foreground/25 transition-[border-color] ms-auto flex w-full max-w-[85%] cursor-text flex-col rounded-(--composer-radius) border bg-(--composer-bg)">
         <ComposerPrimitive.Input
           className="aui-edit-composer-input text-foreground min-h-14 w-full resize-none bg-transparent px-4 pt-3 pb-1 text-base outline-none"
           autoFocus

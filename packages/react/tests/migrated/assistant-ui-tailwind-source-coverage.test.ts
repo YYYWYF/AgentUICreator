@@ -21,3 +21,19 @@ describe("assistant-ui scoped Tailwind source coverage", () => {
     expect(projectStyles).toContain('@source "../../plugins";');
   });
 });
+
+it("compiles adapter-only utilities into the independently generated project stylesheet", async () => {
+  const { createServer } = await import("vite");
+  const { default: tailwindcss } = await import("@tailwindcss/vite");
+  const root = await generatedProjectFixture();
+  const server = await createServer({ configFile: false, logLevel: "silent", root,
+    plugins: [tailwindcss()], server: { middlewareMode: true, hmr: false } });
+  try {
+    const result = await server.transformRequest("/agent-ui/conversation/styles.css?direct");
+    const css = result?.code ?? "";
+    for (const selector of [".mb-0", ".row-start-3", ".self-start", ".bg-foreground\\/10", ".focus-within\\:border-border"]) expect(css).toContain(selector);
+    expect(css).toContain("grid-row-start: 3");
+    expect(css).toContain("align-self: flex-start");
+    expect(css).toContain("scrollbar-width: none");
+  } finally { await server.close(); }
+});

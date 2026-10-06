@@ -1,3 +1,4 @@
+import { applyProductAdaptations } from "../scripts/sync-product-adapters.mjs";
 import { readFileSync } from "node:fs";
 import { mkdtemp, copyFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
@@ -49,10 +50,10 @@ it("sync replays the Quote Element import adaptation and fails on upstream drift
   const source = upstream(upstreamPath);
   const entry = installedVendorEntry({ source, localPath, upstreamPath });
   expect(entry.installed).toBe(readFileSync(new URL(`vendor/assistant-ui/${localPath}`, internal), "utf8"));
-  expect(entry.installed).toContain('import { SelectionToolbarPrimitive } from "../../../../../quote-selection-adapter.js";');
-  expect(entry.provenance.adaptations).toContain("agent-ui-quote-selection-portal-bridge");
-  expect(() => installedVendorEntry({ source: source + "\n  SelectionToolbarPrimitive,\n", localPath, upstreamPath })).toThrow();
-  expect(() => installedVendorEntry({ source: source.replace("  SelectionToolbarPrimitive,", "  ChangedSelectionPrimitive,"), localPath, upstreamPath })).toThrow();
+  expect(applyProductAdaptations(entry.installed, localPath)).toContain('import { SelectionToolbarPrimitive } from "../../../../../quote-selection-adapter.js";');
+  expect(entry.provenance.adaptations).not.toContain("agent-ui-quote-selection-portal-bridge");
+  expect(() => applyProductAdaptations(source + "\n  SelectionToolbarPrimitive,\n", localPath)).toThrow();
+  expect(() => applyProductAdaptations(source.replace("  SelectionToolbarPrimitive,", "  ChangedSelectionPrimitive,"), localPath)).toThrow();
 });
 
 

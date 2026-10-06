@@ -48,6 +48,9 @@ await cp(
   path.join(distRoot, "internal", "vendor", "assistant-ui", "assistant-ui-upstream.lock.json"),
   { recursive: true },
 );
+await mkdir(path.join(distRoot, "internal/adapters/assistant-ui"), { recursive: true });
+await copyFile(path.join(sourceRoot, "internal/adapters/assistant-ui/UPSTREAM.json"),
+  path.join(distRoot, "internal/adapters/assistant-ui/UPSTREAM.json"));
 await copyFile(
   path.join(packageRoot, "THIRD_PARTY_NOTICES.md"),
   path.join(distRoot, "THIRD_PARTY_NOTICES.md"),
