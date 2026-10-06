@@ -62,7 +62,15 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @agent-ui/creator-workbench exec playwright install --with-deps chromium
+      - run: node scripts/prepare-workbench.mjs
+      - name: Agent Connection focused unit tests
+        run: >-
+          pnpm --filter @agent-ui/creator exec vitest run
+          tests/agent-connection.test.ts
+          tests/mock-durable-workspace.test.ts
       - run: pnpm --filter @agent-ui/creator-workbench test:e2e:agent-connection
+        env:
+          AGENT_UI_WORKBENCH_PREPARED: '1'
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

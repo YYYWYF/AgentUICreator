@@ -68,6 +68,7 @@ export async function createConnectionHostFixture() {
     const devDependencies = Object.fromEntries(["tailwindcss", "tw-animate-css", "@tailwindcss/vite"].map(name => [name, template.devDependencies[name]]));
     await writeFile(path.join(hostRoot, "package.json"), JSON.stringify({ name: "ordinary-preview-host", private: true, type: "module", dependencies: template.dependencies, devDependencies }));
     for (const name of Object.keys({ ...template.dependencies, ...devDependencies })) await link(hostRoot, name);
+    await mkdir(path.join(hostRoot, "src"), { recursive: true });
     await initializeAgentUIProject({ projectRoot: hostRoot, mode: "platform", sourceRoot: "src/agent-ui" }, createAgentUIInitializationHost());
     if (existsSync(path.join(hostRoot, "node_modules/@agent-ui/mock-agent"))) throw new Error("Host fixture must not install Mock infrastructure.");
     await writeFile(path.join(hostRoot, "index.html"), '<div id="root"></div><script type="module" src="/src/main.tsx"></script>');
