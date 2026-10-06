@@ -35,13 +35,22 @@ and timing scale. Builtin preview state remains available. Starting/stopping the
 standalone Mock service still controls its separately published local address;
 preview uses the fixed Creator route without requiring that service to start.
 
+Creator also owns `/__agent-ui/mock-data`, with separate conversation handler
+state per workspace. Both list/detail and deletion use the workspace routing
+header and require Mock Source. The Host preview plugin explicitly proxies this
+path to Creator. The workbench overlay removes example-owned Mock conversation
+plugins; ordinary user Hosts need neither that plugin nor `@agent-ui/mock-agent`.
+
 The connected proxy reads its target only from the workspace store. Query strings,
 methods, end-to-end headers, bodies, status and streamed response bytes are
 forwarded. Hop-by-hop and workspace routing headers are removed. SSE is flushed
 incrementally with `no-cache, no-transform` and `X-Accel-Buffering: no`.
 Disconnects destroy the upstream request. Redirects are rejected, avoiding an
 implicit change of configured target. Localhost and LAN endpoints are supported.
-The transport does not parse, buffer or reserialize AG-UI.
+The transport does not parse, buffer or reserialize AG-UI. `Selected` indicates
+source selection only, not a connectivity probe. Cookie and Set-Cookie currently
+follow the end-to-end forwarding policy; origin-scoped authentication/header
+policy remains a separate prerequisite for adding Agent authentication.
 
 ## Auxiliary backend transport
 
@@ -75,3 +84,15 @@ header/body/query preservation, locked switching, fixed-target redirects,
 workspace isolation, persistence and auxiliary path routing. Typecheck/build
 checks are engineering validation. Browser and real-Agent acceptance are not
 part of this change's execution request and were not performed.
+
+
+The isolated Playwright suite is available as
+`pnpm --filter @agent-ui/creator-workbench test:e2e:agent-connection`.
+It generates a disposable Host without Mock dependencies or Mock Vite plugins,
+uses the real Creator UI/source bridge and HTTP routes, and checks Mock list,
+history and chat. Its no-CORS temporary SSE Agent keeps the response open until
+the browser has displayed the first chunk, then exercises both Source switches,
+message/history isolation and endpoint retention. Only unrelated Creator
+workspace metadata is stubbed to avoid requiring a Python/model service.
+The new E2E tests were authored and statically checked, but not executed because
+the follow-up request explicitly excludes acceptance runs.

@@ -17,6 +17,7 @@ export function createCreatorHostPreviewPlugin(options: { creatorOrigin?: string
       return { server: { proxy: {
         "/__agent-ui/agent-proxy": proxy,
         "/__agent-ui/backend": proxy,
+        "/__agent-ui/mock-data": proxy,
         "/__agent-ui/mock": proxy,
       } } };
     },

@@ -5,9 +5,6 @@ import { fileURLToPath } from "node:url";
 
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import {
-  createMockConversationApiVitePlugin,
-} from "../../packages/mock-agent/src/index";
 import { defineConfig } from "vite";
 
 import { createCreatorDevServerPlugin } from "../../packages/creator/src/vitePlugin.js";
@@ -56,9 +53,6 @@ export default defineConfig({
         await workspaceManager.selectProject(hostProjectRoot);
       },
     },
-    createMockConversationApiVitePlugin({
-      endpoint: "/__agent-ui/mock-data",
-    }),
     createCreatorDevServerPlugin({
       workspaceManager,
       installMockPlugin: installDemoPlugin,

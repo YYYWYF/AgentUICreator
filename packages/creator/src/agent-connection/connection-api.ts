@@ -1,18 +1,21 @@
+import { createMockConversationApiHandler, type MockConversationApiHandler } from "@agent-ui/mock-agent";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { ConnectionStore } from "./connection-store.js";
 import { forwardAgentRequest } from "./connected-agent-proxy.js";
-import { CONNECTION_API, AGENT_PROXY, BACKEND_PROXY } from "./types.js";
+import { CONNECTION_API, AGENT_PROXY, BACKEND_PROXY, MOCK_DATA } from "./types.js";
 import { CREATOR_WORKSPACE_ID_HEADER } from "../workspace/types.js";
 export interface ConnectionWorkspace { id: string; projectRoot: string }
 export function createConnectionHandler(getWorkspace: () => ConnectionWorkspace | undefined, handleMock?: (request: IncomingMessage, response: ServerResponse) => Promise<void>) {
+  const mockHistory = new Map<string, MockConversationApiHandler>();
   const activity = new Map<string, { runs: number; saving: boolean }>();
   return async (request: IncomingMessage, response: ServerResponse, next: () => void) => {
     const url = new URL(request.url ?? "/", "http://creator.local");
     const connection = url.pathname === CONNECTION_API;
     const run = url.pathname === AGENT_PROXY;
     const mock = url.pathname === "/__agent-ui/mock";
+    const mockData = url.pathname === MOCK_DATA || url.pathname.startsWith(`${MOCK_DATA}/`);
     const backend = url.pathname.startsWith(`${BACKEND_PROXY}/`);
-    if (!connection && !run && !backend && !mock) { next(); return; }
+    if (!connection && !run && !backend && !mock && !mockData) { next(); return; }
     const json = (status: number, value: unknown) => { response.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store" }); response.end(JSON.stringify(value)); };
     try {
       const workspace = getWorkspace();
@@ -35,6 +38,15 @@ export function createConnectionHandler(getWorkspace: () => ConnectionWorkspace 
           const input = JSON.parse(body);
           json(200, await store.save({ ...(previous.endpoint ? { endpoint: previous.endpoint } : {}), ...input }));
         } finally { status.saving = false; }
+        return;
+      }
+      if (mockData) {
+        const state = await store.read();
+        if (state.activeSource !== "mock") { json(409, { error: "Mock Agent is not selected." }); return; }
+        let handler = mockHistory.get(workspace.id);
+        if (!handler) { handler = createMockConversationApiHandler({ endpoint: MOCK_DATA }); mockHistory.set(workspace.id, handler); }
+        response.setHeader("Cache-Control", "no-store");
+        if (!await handler(request, response)) json(404, { error: "Unknown Mock history route." });
         return;
       }
       if (status.saving) { json(409, { error: "Agent connection is being updated." }); return; }

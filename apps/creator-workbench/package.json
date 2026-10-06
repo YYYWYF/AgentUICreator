@@ -8,7 +8,9 @@
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
     "test:e2e:style-isolation": "playwright test -c playwright.embedded.config.ts",
-    "predev": "node ../../scripts/prepare-workbench.mjs"
+    "predev": "node ../../scripts/prepare-workbench.mjs",
+    "test:e2e:agent-connection": "node ../../scripts/prepare-workbench.mjs && playwright test -c playwright.agent-connection.config.ts",
+    "typecheck:preview-tests": "tsc -p tsconfig.preview-tests.json --noEmit"
   },
   "dependencies": {
     "@agent-ui/creator": "workspace:*",

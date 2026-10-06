@@ -51,7 +51,7 @@ export function AgentConnectionPanel({ workspaceId, visible }: { workspaceId: st
       <Button size="sm" disabled={!state || saving || sourceBusy || !endpoint.trim()} onClick={() => void save("connected")}>Connect Agent</Button>
       <Button size="sm" variant="outline" disabled={!state || saving || sourceBusy} onClick={() => void save("mock")}>{state?.configured ? "Use Mock Agent" : "Continue with Mock Agent"}</Button>
     </div>
-    {state?.configured && <p className="cui:text-xs">{state.activeSource === "connected" ? "Connected Agent · Configured" : "Mock Agent · Built-in demos & .agentui recordings"}</p>}
+    {state?.configured && <p className="cui:text-xs">{state.activeSource === "connected" ? "Connected Agent · Selected" : "Mock Agent · Built-in demos & .agentui recordings"}</p>}
     {sourceBusy && <p role="status">Stop the current run before switching Agent source.</p>}
     {error && <p role="alert">{error}</p>}
     {!state && error && <Button size="sm" variant="outline" onClick={() => setRetry(value => value + 1)}>Retry</Button>}

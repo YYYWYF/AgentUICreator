@@ -3,6 +3,7 @@ import { createServer, type Server } from "node:http";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { createCreatorHostPreviewPlugin } from "../src/host-preview/vite.js";
 import { ConnectionStore, validateConnection } from "../src/agent-connection/connection-store.js";
 import { createConnectionHandler } from "../src/agent-connection/connection-api.js";
 import { resolvePreviewAgentSource } from "../src/agent-connection/source-resolver.js";
@@ -55,6 +56,42 @@ describe("workspace Agent connection", () => {
     expect(connected.runtimeEndpoint).toBe(AGENT_PROXY);
     expect(connected.conversationDataEndpointOverride).toBeUndefined();
     expect(connected.identity).not.toBe(mock.identity);
+  });
+  it("explicitly proxies Mock history from ordinary Hosts to Creator", () => {
+    const plugin = createCreatorHostPreviewPlugin({ creatorOrigin: "http://127.0.0.1:1234", workspaceId: "workspace" });
+    const configure = plugin.config as (config: object) => { server: { proxy: Record<string, { target: string; headers: Record<string, string> }> } };
+    const history = configure({}).server.proxy["/__agent-ui/mock-data"]!;
+    expect(history.target).toBe("http://127.0.0.1:1234");
+    expect(history.headers[CREATOR_WORKSPACE_ID_HEADER]).toBe("workspace");
+  });
+  it("Creator serves Mock history without a Host Mock plugin and rejects mismatched sources", async () => {
+    const selected = await workspace();
+    const store = new ConnectionStore(selected.projectRoot);
+    const handler = createConnectionHandler(() => selected);
+    const creator = await listen(createServer((request, response) => { void handler(request, response, () => { response.writeHead(404); response.end(); }); }));
+    const headers = { [CREATOR_WORKSPACE_ID_HEADER]: selected.id };
+    const history = `${creator}/__agent-ui/mock-data/conversations`;
+    expect((await fetch(history)).status).toBe(409);
+    const list = await fetch(history, { headers });
+    expect(list.headers.get("cache-control")).toBe("no-store");
+    expect(await list.json()).toMatchObject({ conversations: expect.arrayContaining([expect.objectContaining({ id: "mock-history-basic" })]) });
+    expect(await (await fetch(`${history}/mock-history-basic`, { headers })).json()).toMatchObject({ id: "mock-history-basic", state: { values: { messages: expect.any(Array) } } });
+    await store.save({ activeSource: "connected", endpoint: "http://localhost:8000/agent" });
+    expect((await fetch(history, { headers })).status).toBe(409);
+  });
+  it("isolates Mock history deletion between workspaces", async () => {
+    let selected = await workspace();
+    const first = selected;
+    const handler = createConnectionHandler(() => selected);
+    const creator = await listen(createServer((request, response) => { void handler(request, response, () => { response.writeHead(404); response.end(); }); }));
+    const detail = `${creator}/__agent-ui/mock-data/conversations/mock-history-basic`;
+    const headers = { [CREATOR_WORKSPACE_ID_HEADER]: first.id };
+    expect((await fetch(detail, { method: "DELETE", headers })).status).toBe(204);
+    expect((await fetch(detail, { headers })).status).toBe(404);
+    selected = { ...await workspace(), id: "second-workspace" };
+    expect((await fetch(detail, { headers: { [CREATOR_WORKSPACE_ID_HEADER]: selected.id } })).status).toBe(200);
+    selected = first;
+    expect((await fetch(detail, { headers })).status).toBe(404);
   });
   it("streams the first chunk before completion, forwards query/body/headers, and locks switching", async () => {
     let finish: (() => void) | undefined;
