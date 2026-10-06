@@ -36,7 +36,13 @@ standalone Mock service still controls its separately published local address;
 preview uses the fixed Creator route without requiring that service to start.
 
 Creator also owns `/__agent-ui/mock-data`, with separate conversation handler
-state per workspace. Both list/detail and deletion use the workspace routing
+state per workspace. CreatorMockService owns a durable store per project root;
+Mock run creation and the same workspace's history/resume handler receive that
+identical store. Lists, snapshots and resume subscriptions never read the
+standalone Mock plugins' process-global compatibility store. Switching away
+preserves the original run for return/reconnect without exposing it to another
+workspace, even if both projects use the same thread ID.
+Both list/detail and deletion use the workspace routing
 header and require Mock Source. The Host preview plugin explicitly proxies this
 path to Creator. The workbench overlay removes example-owned Mock conversation
 plugins; ordinary user Hosts need neither that plugin nor `@agent-ui/mock-agent`.
@@ -96,3 +102,12 @@ message/history isolation and endpoint retention. Only unrelated Creator
 workspace metadata is stubbed to avoid requiring a Python/model service.
 The new E2E tests were authored and statically checked, but not executed because
 the follow-up request explicitly excludes acceptance runs.
+
+
+CI now has an `agent-connection` job in the style-isolation workflow, running
+`test:e2e:agent-connection` independently of the existing style-isolation suite.
+Creator, Mock Agent and bootstrap changes also trigger the workflow. This wiring
+provides the execution path; a successful browser run is still required before
+recording complete acceptance. No local browser E2E was run for this follow-up.
+Durable-store unit regressions cover A/B isolation and reconnect for both text
+continuations and AgentPlan Activity, including colliding thread IDs.

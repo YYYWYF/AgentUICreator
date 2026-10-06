@@ -84,3 +84,5 @@ export { createDemoUserResolver } from "./context/demo-roster.js";
 export { parseMockRecording, validateMockRecording, MAX_MOCK_RECORDING_BYTES, MAX_MOCK_RECORDING_EVENTS, type MockRecording, type MockRecordingEvent } from "./recording.js";
 export { runMockRecording, type MockRecordingRunnerOptions } from "./recording-runner.js";
 export { createScenarioMockRunResolver, type MockRunResolver } from "./http-handler.js";
+
+export { MockDurableRunStore } from "./durable-run-store.js";

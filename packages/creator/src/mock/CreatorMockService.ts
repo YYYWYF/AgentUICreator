@@ -5,6 +5,8 @@ import {
   showcaseMockScenarios,
   runMockRecording,
   withPreviewAgentState,
+  MockDurableRunStore,
+  type MockAgentHttpHandler,
 } from "@agent-ui/mock-agent";
 import { LocalMockRecordingStore, type LocalMockRecordingSummary } from "./local-recording-store.js";
 import type { MockProjectTarget } from "./demo-compatibility.js";
@@ -77,10 +79,30 @@ export class CreatorMockService {
     scenarios: showcaseMockScenarios,
     defaultScenarioId: "reasoning-tool-success",
   });
-  private readonly handler = createMockAgentHttpHandler({ registry: this.registry });
-  private readonly previewHandler = createMockAgentHttpHandler({ registry: createScenarioRegistry({
+  private readonly previewRegistry = createScenarioRegistry({
     scenarios: showcaseMockScenarios.map(withPreviewAgentState), defaultScenarioId: "reasoning-tool-success",
-  }) });
+  });
+  private readonly durableStores = new Map<string | undefined, MockDurableRunStore>();
+  private readonly scopedHandlers = new WeakMap<MockDurableRunStore, { normal: MockAgentHttpHandler; preview: MockAgentHttpHandler }>();
+
+  /** Key by project root: legacy Mock controls and workspace APIs can use different IDs. */
+  getDurableStore(projectRoot?: string): MockDurableRunStore {
+    let store = this.durableStores.get(projectRoot);
+    if (!store) { store = new MockDurableRunStore(); this.durableStores.set(projectRoot, store); }
+    return store;
+  }
+
+  private handlersFor(durableStore: MockDurableRunStore) {
+    let handlers = this.scopedHandlers.get(durableStore);
+    if (!handlers) {
+      handlers = {
+        normal: createMockAgentHttpHandler({ registry: this.registry, durableStore }),
+        preview: createMockAgentHttpHandler({ registry: this.previewRegistry, durableStore }),
+      };
+      this.scopedHandlers.set(durableStore, handlers);
+    }
+    return handlers;
+  }
 
   getState(): CreatorMockState {
     const project = this.syncProject();
@@ -206,7 +228,8 @@ export class CreatorMockService {
       response.end(JSON.stringify({ defaultScenarioId: this.scenarioId, scenarios: this.getState().scenarios }));
       return;
     }
-    this.syncProject();
+    const activeProject = this.syncProject();
+    const durableStore = this.getDurableStore(activeProject?.projectRoot);
     const selection = { ...this.selection };
     const project = this.selectedProject;
     // Snapshot the panel selection for this request; changing the panel never
@@ -216,7 +239,7 @@ export class CreatorMockService {
     if (!url.searchParams.has("speed")) url.searchParams.set("speed", String(this.speed));
     request.url = `${url.pathname}${url.search}`;
     if (useRecording) {
-      const handler = createMockAgentHttpHandler({ registry: this.registry, resolveRun: async (input, options) => {
+      const handler = createMockAgentHttpHandler({ registry: this.registry, durableStore, resolveRun: async (input, options) => {
         if (!project || !this.sameProject(project, this.resolveProject?.())) throw new Error("当前项目已切换，请重新选择本地 Mock。");
         const recording = await this.recordingStore.get(project.projectRoot, selection.id);
         if (!this.sameProject(project, this.resolveProject?.())) throw new Error("当前项目已切换，请重新选择本地 Mock。");
@@ -224,6 +247,9 @@ export class CreatorMockService {
         return runMockRecording(input, recording, { signal: options.signal, timingScale: options.speed });
       } });
       await handler(request, response);
-    } else await (preview ? this.previewHandler : this.handler)(request, response);
+    } else {
+      const handlers = this.handlersFor(durableStore);
+      await (preview ? handlers.preview : handlers.normal)(request, response);
+    }
   }
 }

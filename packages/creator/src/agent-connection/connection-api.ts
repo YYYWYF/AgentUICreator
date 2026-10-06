@@ -1,11 +1,11 @@
-import { createMockConversationApiHandler, type MockConversationApiHandler } from "@agent-ui/mock-agent";
+import { createMockConversationApiHandler, MockDurableRunStore, type MockConversationApiHandler } from "@agent-ui/mock-agent";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { ConnectionStore } from "./connection-store.js";
 import { forwardAgentRequest } from "./connected-agent-proxy.js";
 import { CONNECTION_API, AGENT_PROXY, BACKEND_PROXY, MOCK_DATA } from "./types.js";
 import { CREATOR_WORKSPACE_ID_HEADER } from "../workspace/types.js";
 export interface ConnectionWorkspace { id: string; projectRoot: string }
-export function createConnectionHandler(getWorkspace: () => ConnectionWorkspace | undefined, handleMock?: (request: IncomingMessage, response: ServerResponse) => Promise<void>) {
+export function createConnectionHandler(getWorkspace: () => ConnectionWorkspace | undefined, handleMock?: (request: IncomingMessage, response: ServerResponse) => Promise<void>, getMockDurableStore?: (workspace: ConnectionWorkspace) => MockDurableRunStore) {
   const mockHistory = new Map<string, MockConversationApiHandler>();
   const activity = new Map<string, { runs: number; saving: boolean }>();
   return async (request: IncomingMessage, response: ServerResponse, next: () => void) => {
@@ -42,9 +42,10 @@ export function createConnectionHandler(getWorkspace: () => ConnectionWorkspace 
       }
       if (mockData) {
         const state = await store.read();
+        if (getWorkspace()?.id !== workspace.id) { json(409, { error: "Preview workspace changed. Reload the preview." }); return; }
         if (state.activeSource !== "mock") { json(409, { error: "Mock Agent is not selected." }); return; }
         let handler = mockHistory.get(workspace.id);
-        if (!handler) { handler = createMockConversationApiHandler({ endpoint: MOCK_DATA }); mockHistory.set(workspace.id, handler); }
+        if (!handler) { handler = createMockConversationApiHandler({ endpoint: MOCK_DATA, durableStore: getMockDurableStore?.(workspace) ?? new MockDurableRunStore() }); mockHistory.set(workspace.id, handler); }
         response.setHeader("Cache-Control", "no-store");
         if (!await handler(request, response)) json(404, { error: "Unknown Mock history route." });
         return;
@@ -54,6 +55,7 @@ export function createConnectionHandler(getWorkspace: () => ConnectionWorkspace 
       status.runs++;
       try {
         const state = await store.read();
+        if (getWorkspace()?.id !== workspace.id) { json(409, { error: "Preview workspace changed. Reload the preview." }); return; }
         if (mock) {
           if (state.activeSource !== "mock" || !handleMock) { json(409, { error: "Mock Agent is not selected." }); return; }
           await handleMock(request, response); return;

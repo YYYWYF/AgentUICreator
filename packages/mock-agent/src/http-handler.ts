@@ -4,13 +4,15 @@ import { EventSchemas, RunAgentInputSchema, type AGUIEvent, type RunAgentInput }
 
 import type { MockScenarioRegistry } from "./scenario-registry.js";
 import { runMockScenario } from "./scenario-runner.js";
-import { mockDurableRuns } from "./durable-run-store.js";
+import { mockDurableRuns, type MockDurableRunStore } from "./durable-run-store.js";
 
 const MAX_REQUEST_BYTES = 1024 * 1024;
 
 export interface MockAgentHttpHandlerOptions {
   registry: MockScenarioRegistry;
   resolveRun?: MockRunResolver;
+  /** Run creation and history/resume must share the same development store. */
+  durableStore?: MockDurableRunStore;
 }
 
 export type MockRunResolver = (
@@ -89,6 +91,7 @@ function parseTimingScale(url: URL): number {
 export function createMockAgentHttpHandler({
   registry,
   resolveRun,
+  durableStore = mockDurableRuns,
 }: MockAgentHttpHandlerOptions): MockAgentHttpHandler {
   const events: Array<{ threadId: string; runId: string; type: string; timestamp: number }> = [];
   return async (request, response) => {
@@ -154,12 +157,12 @@ export function createMockAgentHttpHandler({
       const durableScenarioId = scenario.id === "resumable-agent-plan"
         ? "resumable-agent-plan"
         : "resumable-long-run";
-      const run = mockDurableRuns.start(parsedInput.data, durableScenarioId);
+      const run = durableStore.start(parsedInput.data, durableScenarioId);
       response.statusCode = 200;
       response.setHeader("Content-Type", "text/event-stream; charset=utf-8");
       response.setHeader("Cache-Control", "no-cache, no-transform");
       response.flushHeaders();
-      const unsubscribe = mockDurableRuns.subscribeEvents(run.threadId,
+      const unsubscribe = durableStore.subscribeEvents(run.threadId,
         event => {
           const standardEvent = EventSchemas.parse(event);
           events.push({

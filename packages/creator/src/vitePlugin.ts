@@ -140,7 +140,7 @@ export function createCreatorDevServerPlugin({
         return projectRoot ? { projectRoot, id: createHash("sha256").update(realpathSync(projectRoot)).digest("hex") } : undefined;
       };
       mockService.setProjectResolver(connectionWorkspace);
-      const connectionHandler = createConnectionHandler(connectionWorkspace, (request, response) => mockService.handlePreviewRequest(request, response));
+      const connectionHandler = createConnectionHandler(connectionWorkspace, (request, response) => mockService.handlePreviewRequest(request, response), workspace => mockService.getDurableStore(workspace.projectRoot));
       server.middlewares.use((request, response, next) => { void connectionHandler(request, response, next); });
 
       server.middlewares.use(CREATOR_UPDATES_API_PATH, createCreatorUpdateHandler(workspaceManager, projectRoot, updateSourceProvider));

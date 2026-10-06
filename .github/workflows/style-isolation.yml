@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
+      - 'packages/creator/**'
+      - 'packages/mock-agent/**'
+      - 'packages/bootstrap/**'
       - 'packages/react/**'
       - 'packages/project-control/**'
       - 'packages/source-registry/**'
@@ -15,6 +18,9 @@ on:
   push:
     branches: [dev]
     paths:
+      - 'packages/creator/**'
+      - 'packages/mock-agent/**'
+      - 'packages/bootstrap/**'
       - 'packages/react/**'
       - 'packages/project-control/**'
       - 'packages/source-registry/**'
@@ -41,3 +47,25 @@ jobs:
       - run: pnpm --filter @agent-ui/creator-workbench exec playwright install --with-deps chromium
       - run: pnpm verify:assistant-ui-upgrade
       - run: pnpm --filter @agent-ui/react build
+
+  agent-connection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @agent-ui/creator-workbench exec playwright install --with-deps chromium
+      - run: pnpm --filter @agent-ui/creator-workbench test:e2e:agent-connection
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: agent-connection-test-results
+          path: apps/creator-workbench/test-results/
+          if-no-files-found: ignore

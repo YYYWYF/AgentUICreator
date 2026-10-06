@@ -4,10 +4,11 @@ import {
   mockConversationFixtures,
   type MockConversationFixture,
 } from "./fixtures.js";
-import { mockDurableRuns } from "../durable-run-store.js";
+import { mockDurableRuns, type MockDurableRunStore } from "../durable-run-store.js";
 
 export interface MockConversationApiHandlerOptions {
   endpoint?: string | undefined;
+  durableStore?: MockDurableRunStore;
   fixtures?: readonly MockConversationFixture[] | undefined;
   listDelayMs?: number | undefined;
   detailDelayMs?: number | undefined;
@@ -51,6 +52,7 @@ function waitForDelay(milliseconds: number, signal: AbortSignal): Promise<void> 
 
 export function createMockConversationApiHandler({
   endpoint = "/__agent-ui/mock-data",
+  durableStore = mockDurableRuns,
   fixtures = mockConversationFixtures,
   listDelayMs = 400,
   detailDelayMs = 700,
@@ -66,7 +68,7 @@ export function createMockConversationApiHandler({
     const url = new URL(request.url ?? "/", "http://mock-data.local");
     const resumeBase = `${baseEndpoint}/run-resume`;
     if (url.pathname === `${resumeBase}/threads` && request.method === "GET") {
-      sendJson(response, 200, { threads: mockDurableRuns.list() });
+      sendJson(response, 200, { threads: durableStore.list() });
       return true;
     }
     if (url.pathname.startsWith(`${resumeBase}/threads/`) && request.method === "GET") {
@@ -74,7 +76,7 @@ export function createMockConversationApiHandler({
       let id: string;
       try { id = decodeURIComponent(path[0] ?? ""); }
       catch { sendJson(response, 400, { error: "Invalid thread id." }); return true; }
-      const snapshot = mockDurableRuns.snapshot(id);
+      const snapshot = durableStore.snapshot(id);
       if (snapshot === undefined) { sendJson(response, 404, { error: "Unknown run." }); return true; }
       if (path.length === 1) { sendJson(response, 200, snapshot); return true; }
       if (path.length === 2 && path[1] === "stream") {
@@ -83,7 +85,7 @@ export function createMockConversationApiHandler({
         response.setHeader("Cache-Control", "no-cache, no-transform");
         response.flushHeaders();
         if (snapshot.scenarioId === "resumable-agent-plan") {
-          const unsubscribe = mockDurableRuns.subscribeAgentPlanResume(id, event => {
+          const unsubscribe = durableStore.subscribeAgentPlanResume(id, event => {
             if (!response.destroyed) response.write(`data: ${JSON.stringify(event)}\n\n`);
           }, () => {
             if (!response.destroyed) response.end();
@@ -91,7 +93,7 @@ export function createMockConversationApiHandler({
           response.once("close", unsubscribe);
           return true;
         }
-        const unsubscribe = mockDurableRuns.subscribeContinuation(id, text => {
+        const unsubscribe = durableStore.subscribeContinuation(id, text => {
           if (!response.destroyed) { response.write(`data: ${JSON.stringify({ text })}\n\n`); response.end(); }
         });
         response.once("close", unsubscribe);
