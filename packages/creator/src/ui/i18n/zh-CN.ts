@@ -6,6 +6,7 @@ export const zhCN = {
     "sync": "同步 Plugin Registry",
     "syncDescription": "根据当前插件生成 Plugin Registry",
     "installing": "正在安装：{0}",
+    "integrationRequired": "准备 Agent UI 兼容接入",
     "installed": "已安装：{0}",
     "alreadyInstalled": "已安装",
     "reenable": "重新启用",

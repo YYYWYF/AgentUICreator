@@ -28,3 +28,16 @@ def test_recipe_is_forwarded_unchanged_and_apply_is_unavailable_in_read_only_mod
     assert "verify_agent_ui_integration" in ALLOWED_INSPECT_READ_ONLY_TOOLS
     assert "apply_agent_ui_integration" not in ALLOWED_INSPECT_READ_ONLY_TOOLS
     assert "apply_agent_ui_integration" in SIDE_EFFECT_TOOL_NAMES
+
+
+def test_json_encoded_integration_arguments_are_decoded_without_changing_the_host_recipe():
+    client = Client()
+    tools = {tool.name: tool for tool in create_project_control_tools(client)}
+    recipe = {"id": "host-owned", "edits": []}
+    for name, args in [
+        ("plan_agent_ui_integration", {"options": json.dumps({"targetFile": "src/App.vue"})}),
+        ("apply_agent_ui_integration", {"recipe": json.dumps(recipe)}),
+        ("verify_agent_ui_integration", {"recipe": json.dumps(recipe)}),
+    ]:
+        assert json.loads(asyncio.run(tools[name].ainvoke(args)))["ok"]
+    assert client.calls == [("plan", {"targetFile": "src/App.vue"}), ("apply", recipe), ("verify", recipe)]

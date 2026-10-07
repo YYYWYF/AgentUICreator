@@ -30,15 +30,30 @@ React producer. Its build emits a compiled ESM bundle containing that project's
 AppUIModel and React Plugins. Do not install this producer's dependency closure
 into a Vue consumer: it includes React/Vite/Tailwind build dependencies.
 
-The consumer recipe defaults to `@agentui/web-component/register` where a bundler
-can resolve the already installed distribution. Alternatively, supply an existing
-compiled local ESM module as `moduleSpecifier`. A root URL such as `/agent-ui.js`
-uses Vite's public directory in a Vue/Vite consumer, and the document root in a
-plain HTML consumer. Plain HTML without a bundler requires a local compiled module;
-there is no implicit browser support for bare package imports. The Host reports
-`COMPILED_BRIDGE_REQUIRED` and refuses automatic application when the module cannot
-be resolved. Module resolution is a static file/export check, not a claim that the
-bundle executes successfully.
+Vue compatibility defaults to the public compiled distribution `/agent-ui.js`.
+Planning checks whether `public/agent-ui.js` exists or the development Host can
+resolve its installed official Web Component distribution. Planning writes no
+files. After approval, apply exclusively copies the official compiled ESM bundle
+into `public/agent-ui.js` if missing, then applies the same Host-owned wrapper and
+mount edits. Ordinary apply errors roll back a newly copied bundle. Existing
+consumer bundles are preserved. The development Host's Project Control package
+owns the distribution dependency; the Vue consumer receives only the compiled
+asset, never its producer Source Item or React dependency closure.
+
+The wrapper resolves `moduleUrl` from the fixed `/agent-ui.js` path against the
+current page origin and uses
+`await import(/* @vite-ignore */ moduleUrl)`. Vite 8 rejects a literal public-file
+import even with that comment and adds `?import` to relative dynamic imports.
+Using the absolute same-origin URL keeps the compiled asset outside Vite transforms. Explicit
+`moduleSpecifier` values remain supported for existing integrations. HTML hosts
+still require an explicitly supplied compiled module. Missing Host distributions
+return `module-required`; build/install the official distribution in the tool Host
+before offering apply. Module resolution is a static file/export check.
+
+`/install` on a Vue consumer returns `status: "integration-required"`. Its localized
+activity says “准备 Agent UI 兼容接入”; it does not claim installation. This status
+survives conversation reload. The subsequent Creator flow owns target selection,
+plan presentation, approval, apply and verification.
 
 ## Edits and verification
 
@@ -83,7 +98,38 @@ plain HTML and the Vue CLI/Vue 2 lifecycle. Creator's command and tool-policy te
 cover the shared entry and read-only exclusion of apply. Typechecks, canonical
 contract alignment and locale parity are separate from runtime acceptance.
 
-No browser, real model, or backend acceptance was run for this change.
+The clean Vue fixture and live regression pack are in
+`examples/clean-vue-vite-host` and
+`packages/creator-python/tests/live/test_vue_integration.py`. They use the real
+Action Selector, domain agents, user-question resume, and managed Project Control
+protocol. The initial consumer has no Bridge, wrapper, React, React Vite plugin,
+assistant-ui Vue or Web Component package. The test Host installs only its managed
+control entry and existing development project configuration before requests.
+Guide/manual-check snapshots enforce zero consumer writes. Apply checks the exact
+Host recipe, preserved package/entry, verification and visible browser composer.
+Existing integration tools also accept JSON-encoded object arguments from compatible
+providers at their input-validation boundary; the decoded Host recipe is forwarded
+unchanged and still undergoes canonical validation.
+This is a focused regression pack, separate from final product/backend acceptance.
+
+Run after installing workspace dependencies and building the official distribution
+and Project Control:
+
+```sh
+CREATOR_RUN_LIVE_MODEL=1 PYTHONPATH=packages/creator-python \
+  packages/creator-python/.venv/bin/python -m pytest -s \
+  packages/creator-python/tests/live/test_vue_integration.py
+```
+
+The model settings come from the existing workspace `.env.creator.local`.
+
+Focused checks on 2026-10-07 passed: eight Host recipe regressions, 19 command API
+checks, two tool argument checks, the live guide case, and the live apply/manual
+verification case. The applied clean Vue project passed typechecking, production
+build and Chromium composer visibility with no page errors. Creator/Project
+Control typechecks, locale parity and canonical contract alignment also passed.
+The live cases ran through the actual Selector/domain agents and managed Host
+protocol; they do not claim full Workbench HTTP/UI or backend acceptance.
 
 The existing `test_domain_tools.py` and `test_project_control_client.py` suites
 have 36 failures and 18 passes. The same failure list was reproduced using HEAD

@@ -110,7 +110,7 @@ it("compatibility install requests use the Host recipe without the producer inst
   vi.mocked(inspectIntegrationHost).mockResolvedValueOnce(detected);
   vi.mocked(planIntegrationRecipe).mockResolvedValueOnce({ status: "target-required", host: detected });
   const result = await (await execute(await host(), { id: "install", args: { resourceId: "web-component-bridge" } })).json();
-  expect(result).toMatchObject({ changed: false, integrationPlan: { status: "target-required", host: { candidates: ["src/App.vue"] } }, receipt: { files: [] } });
+  expect(result).toMatchObject({ status: "integration-required", changed: false, integrationPlan: { status: "target-required", host: { candidates: ["src/App.vue"] } }, receipt: { files: [] } });
   expect(planIntegrationRecipe).toHaveBeenCalledWith("/project");
   expect(installOfficialAgentUIResource).not.toHaveBeenCalled();
 });

@@ -42,6 +42,7 @@
     "typecheck": "tsc --noEmit && tsc -p tsconfig.tests.json"
   },
   "dependencies": {
+    "@agentui/web-component": "workspace:^",
     "typescript": "7.0.2",
     "@agent-ui/bootstrap": "workspace:^",
     "@agent-ui/source-registry": "workspace:^",

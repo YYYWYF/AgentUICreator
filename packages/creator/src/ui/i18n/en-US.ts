@@ -6,6 +6,7 @@ export const enUS = {
     "sync": "Sync Plugin Registry",
     "syncDescription": "Generate Plugin Registry from current plugins",
     "installing": "Installing {0}…",
+    "integrationRequired": "Prepare Agent UI compatibility integration",
     "installed": "Installed {0}",
     "alreadyInstalled": "Already installed",
     "reenable": "Re-enable",

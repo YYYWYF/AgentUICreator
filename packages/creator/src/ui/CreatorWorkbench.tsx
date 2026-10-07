@@ -404,10 +404,10 @@ function storedItem(value: unknown, localeMessages: CreatorLocaleMessages = DEFA
   if (!isRecord(value) || typeof value.id !== "string") {
     return undefined;
   }
-  if (value.kind === "command" && typeof value.commandId === "string" && ["running", "completed", "failed"].includes(String(value.status))) {
+  if (value.kind === "command" && typeof value.commandId === "string" && ["running", "completed", "failed", "integration-required"].includes(String(value.status))) {
     return { kind: "command", id: value.id, commandId: value.commandId,
       ...(value.reenabled === true ? { reenabled: true } : {}),
-      status: value.status === "completed" ? "completed" : "failed",
+      status: value.status === "integration-required" ? "integration-required" : value.status === "completed" ? "completed" : "failed",
       ...(typeof value.value === "string" ? { value: value.value } : {}),
       ...(typeof value.error === "string" ? { error: value.error } : value.status === "running" ? { error: localeMessages.commands.interrupted } : {}),
       ...(isCreatorRunReceipt(value.receipt) ? { receipt: value.receipt } : {}) };
@@ -1402,7 +1402,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
     try {
       const result = await executeCreatorCommand(id, parsed.id === "theme" ? { id: "theme", args: { theme: parsed.args[0]! } } : parsed.id === "install" ? { id: "install", args: { resourceId: parsed.args[0]! } } : { id: "sync", args: {} }, localeMessages);
       if (session !== sessionRef.current) return;
-      updateItems(current => current.map(item => item.id === activity.id ? { ...activity, ...(result.value ? { value: result.value } : {}), ...(result.reenabled ? { reenabled: true } : {}), status: "completed", receipt: result.receipt } : item));
+      updateItems(current => current.map(item => item.id === activity.id ? { ...activity, ...(result.value ? { value: result.value } : {}), ...(result.reenabled ? { reenabled: true } : {}), status: result.status ?? "completed", receipt: result.receipt } : item));
       setInput("");
       if (result.integrationPlan) {
         commandInFlight.current = false;
@@ -2229,7 +2229,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
                 presentConversationItems(items, creatorDebug).map((item) =>
                   item.kind === "command" ? (
                     <article className="creator-panel-message creator-command-activity" key={item.id} role="status">
-                      <p>{item.status === "failed" ? localizeCreatorPresentation(item.error, localeMessages) ?? localeMessages.commands.failed : item.commandId === "sync" ? (item.status === "running" ? localeMessages.commands.syncing : item.receipt?.verification?.status === "no-project-change" ? localeMessages.commands.alreadySynced : localeMessages.commands.synced) : formatLocaleMessage(item.commandId === "install" ? (item.status === "running" ? localeMessages.commands.installing : item.reenabled ? localeMessages.commands.reenabled : localeMessages.commands.installed) : item.status === "running" ? localeMessages.commands.running : localeMessages.commands.completed, commandState.optionLabel(item.commandId, item.value ?? ""))}</p>
+                      <p>{item.status === "integration-required" ? localeMessages.commands.integrationRequired : item.status === "failed" ? localizeCreatorPresentation(item.error, localeMessages) ?? localeMessages.commands.failed : item.commandId === "sync" ? (item.status === "running" ? localeMessages.commands.syncing : item.receipt?.verification?.status === "no-project-change" ? localeMessages.commands.alreadySynced : localeMessages.commands.synced) : formatLocaleMessage(item.commandId === "install" ? (item.status === "running" ? localeMessages.commands.installing : item.reenabled ? localeMessages.commands.reenabled : localeMessages.commands.installed) : item.status === "running" ? localeMessages.commands.running : localeMessages.commands.completed, commandState.optionLabel(item.commandId, item.value ?? ""))}</p>
                       {item.receipt ? <CreatorRunReceiptPresentation receipt={item.receipt} debug={creatorDebug}
                         onUndo={!commandBusy && !isRunning && !questionPending ? runId => { void undoCreatorRun(runId); } : undefined}
                         onReapply={!commandBusy && !isRunning && !questionPending ? runId => { void reapplyCreatorRun(runId); } : undefined}

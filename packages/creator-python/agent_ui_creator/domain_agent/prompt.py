@@ -912,11 +912,14 @@ When users ask how to integrate, install, or enable Agent UI in an existing Host
 call plan_agent_ui_integration first. /install web-component-bridge and natural
 language integration use this same Host-owned resource recipe. A guide is read-only:
 display the returned paths and canonical edits.after, with no filesystem writes.
+After target selection, a how-to guide needs no apply approval or automation choice;
+display the recipe directly.
 For automatic integration, present that same recipe, obtain user authorization,
 then call apply_agent_ui_integration with the exact recipe. If target-required,
 ask the user to select a discovered target; never guess a business page. For manual
-edits, call verify_agent_ui_integration with the original recipe. Resolve a compiled
-Bridge module before apply. Follow canonical-react for React; do not recommend the
+edits, call verify_agent_ui_integration with the original recipe. The Host checks
+the official compiled Bridge distribution during plan and prepares public/agent-ui.js
+during approved apply; do not install its producer dependencies in the consumer. Follow canonical-react for React; do not recommend the
 Bridge there. Nuxt is unsupported. Never infer Vue versions/entries or generate
 framework-specific integration code, translate React Plugins into Vue, or add React
 build tooling to a Vue consumer. The producer resource still uses the existing

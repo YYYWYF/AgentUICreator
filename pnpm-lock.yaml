@@ -67,6 +67,25 @@ importers:
         specifier: ^8.2.2
         version: 8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6)
 
+  examples/clean-vue-vite-host:
+    dependencies:
+      vue:
+        specifier: ^3.5.0
+        version: 3.5.43(typescript@5.9.3)
+    devDependencies:
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.0
+        version: 6.0.9(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))(vue@3.5.43(typescript@5.9.3))
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^8.2.2
+        version: 8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6)
+      vue-tsc:
+        specifier: ^3.0.0
+        version: 3.3.12(typescript@5.9.3)
+
   examples/creator-assistant-host:
     dependencies:
       '@agent-ui/react':
@@ -528,6 +547,9 @@ importers:
       '@agent-ui/source-registry':
         specifier: workspace:^
         version: link:../source-registry
+      '@agentui/web-component':
+        specifier: workspace:^
+        version: link:../web-component
       postcss:
         specifier: 8.5.28
         version: 8.5.28

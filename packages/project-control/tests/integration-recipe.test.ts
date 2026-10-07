@@ -47,7 +47,7 @@ test("stale targets, tampered edits and unresolved modules cannot cause partial 
   const fresh = await fixture(); const edited = await recipe(fresh);
   edited.edits[0]!.after = "arbitrary code";
   await expect(applyIntegrationRecipe(fresh, edited)).rejects.toMatchObject({ code: "INTEGRATION_RECIPE_INVALID" });
-  const missing = await planIntegrationRecipe(fresh, { targetFile: "src/App.vue" });
+  const missing = await planIntegrationRecipe(fresh, { targetFile: "src/App.vue", moduleSpecifier: "/missing.js" });
   if (missing.status !== "planned") throw new Error(missing.status);
   await expect(applyIntegrationRecipe(fresh, missing.integrationRecipe)).rejects.toMatchObject({ code: "INTEGRATION_COMPILED_MODULE_REQUIRED" });
 });
@@ -75,4 +75,34 @@ test("Vue CLI gets a Vue 2 lifecycle wrapper without React or setup syntax", asy
   expect(planned.edits[0]!.after).toContain("beforeDestroy()");
   expect(planned.edits[1]!.after).not.toContain("<script setup>");
   expect((await applyIntegrationRecipe(root, planned)).status).toBe("passed");
+});
+
+test("clean Vue uses Host distribution without installing producer dependencies", async () => {
+  const root = await fixture();
+  await rm(path.join(root, "public"), { recursive: true });
+  const initial = await readdir(root, { recursive: true });
+  const plan = await planIntegrationRecipe(root, { targetFile: "src/App.vue" });
+  if (plan.status !== "planned") throw new Error(plan.status);
+  expect(plan.integrationRecipe.integration.moduleSpecifier).toBe("/agent-ui.js");
+  expect(plan.integrationRecipe.edits[0]!.after).toContain('new URL("/agent-ui.js", window.location.href).href');
+  expect(await readdir(root, { recursive: true })).toEqual(initial);
+  const manifest = await readFile(path.join(root, "package.json"), "utf8");
+  const result = await applyIntegrationRecipe(root, plan.integrationRecipe);
+  expect(result).toMatchObject({ status: "passed", changedPaths: ["public/agent-ui.js", "src/components/AgentUIBridge.vue", "src/App.vue"] });
+  expect((await readFile(path.join(root, "public/agent-ui.js"))).length).toBeGreaterThan(30_000);
+  expect(await readFile(path.join(root, "package.json"), "utf8")).toBe(manifest);
+  expect((await verifyIntegrationRecipe(root, plan.integrationRecipe)).status).toBe("passed");
+  expect((await applyIntegrationRecipe(root, plan.integrationRecipe)).changedPaths).toEqual([]);
+});
+
+test("a failed apply rolls back a newly prepared Bridge asset", async () => {
+  const root = await fixture();
+  await rm(path.join(root, "public"), { recursive: true });
+  const planned = await recipe(root);
+  await mkdir(path.join(root, "src/components"));
+  const staging = path.join(root, `src/components/AgentUIBridge.vue.agent-ui-${planned.id}.tmp`);
+  await writeFile(staging, "existing concurrent staging file");
+  await expect(applyIntegrationRecipe(root, planned)).rejects.toMatchObject({ code: "EEXIST" });
+  await expect(readFile(path.join(root, "public/agent-ui.js"))).rejects.toMatchObject({ code: "ENOENT" });
+  expect(await readFile(path.join(root, "src/App.vue"), "utf8")).toBe(planned.edits[1]!.before);
 });

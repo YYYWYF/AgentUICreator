@@ -14,13 +14,13 @@ export interface CreatorCommandCatalogEntry extends CreatorCommandDefinition {
   current?: string;
 }
 export interface CreatorCommandCatalog { commands: CreatorCommandCatalogEntry[] }
-export interface CreatorCommandResult { integrationPlan?: Awaited<ReturnType<typeof import("@agent-ui/project-control/resources").planIntegrationRecipe>>; value?: string; changed: boolean; reenabled?: boolean; receipt: CreatorRunReceipt }
+export interface CreatorCommandResult { status?: "integration-required"; integrationPlan?: Awaited<ReturnType<typeof import("@agent-ui/project-control/resources").planIntegrationRecipe>>; value?: string; changed: boolean; reenabled?: boolean; receipt: CreatorRunReceipt }
 export interface CreatorCommandActivity {
   kind: "command";
   id: string;
   commandId: string;
   value?: string;
-  status: "running" | "completed" | "failed";
+  status: "running" | "completed" | "failed" | "integration-required";
   error?: string;
   reenabled?: boolean;
   receipt?: CreatorRunReceipt;

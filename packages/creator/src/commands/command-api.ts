@@ -49,7 +49,7 @@ export function createCreatorCommandHandler(workspaces: CreatorWorkspaceManager 
         }
         if (input?.id === "install" && input.args.resourceId === "web-component-bridge" && (await inspectIntegrationHost(projectRoot)).framework !== "react") {
           const integrationPlan = await planIntegrationRecipe(projectRoot);
-          return { value: "web-component-bridge", changed: false, integrationPlan, receipt: {
+          return { status: "integration-required" as const, value: "web-component-bridge", changed: false, integrationPlan, receipt: {
             files: [], validations: [], verification: { status: "no-project-change", projectRevision: 0, auditAttempts: 0, checks: [], runtimeStatus: "not-run" },
           } };
         }

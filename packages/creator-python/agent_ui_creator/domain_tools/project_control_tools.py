@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any, Literal
 
 from langchain_core.tools import BaseTool, tool
+from pydantic import Json
 
 from .capabilities import capability_navigation
 from ..activity import CreatorActivityRecorder
@@ -588,18 +589,20 @@ def create_project_control_tools(
             return _render_error(error)
 
     @tool("plan_agent_ui_integration")
-    async def plan_agent_ui_integration(options: dict[str, Any] | None = None) -> str:
-        """Inspect Host and return its canonical integration recipe without changing files. Ask the user to select a target from candidates when target-required. Display edits.after verbatim for guides; never invent framework integration code."""
+    async def plan_agent_ui_integration(options: dict[str, Any] | Json[dict[str, Any]] | None = None) -> str:
+        """Inspect Host and return its canonical integration recipe without changing files. Pass options as a JSON object, for example {"targetFile":"src/App.vue"}, never a JSON-encoded string. Ask the user to select a target from candidates when target-required. Display edits.after verbatim for guides; never invent framework integration code."""
         try:
             return _render_result(await client.plan_agent_ui_integration(options or {}))
         except ProjectControlError as error:
             return _render_error(error)
 
     @tool("apply_agent_ui_integration")
-    async def apply_agent_ui_integration(recipe: dict[str, Any]) -> str:
-        """Apply the exact Host recipe after the user authorizes its displayed plan. The compiled Bridge must already resolve. Never install React build dependencies into a Vue consumer."""
+    async def apply_agent_ui_integration(recipe: dict[str, Any] | Json[dict[str, Any]]) -> str:
+        """Apply the exact Host recipe JSON object (never a JSON-encoded string) after the user authorizes its displayed plan. Host prepares the official compiled Bridge when needed. Never install React build dependencies into a Vue consumer."""
         try:
             if activity is not None:
+                if recipe.get("integration", {}).get("moduleSpecifier") == "/agent-ui.js" and recipe.get("host", {}).get("framework") == "vue":
+                    activity.capture_before("public/agent-ui.js")
                 for edit in recipe.get("edits", []):
                     activity.capture_before(edit["file"])
             result = await client.apply_agent_ui_integration(recipe)
@@ -612,8 +615,8 @@ def create_project_control_tools(
             return _render_error(error)
 
     @tool("verify_agent_ui_integration")
-    async def verify_agent_ui_integration(recipe: dict[str, Any]) -> str:
-        """Statically verify the same recipe after Host apply or manual edits; checks files, configuration, resolvable compiled module, and consumer dependency boundary. Does not perform browser acceptance."""
+    async def verify_agent_ui_integration(recipe: dict[str, Any] | Json[dict[str, Any]]) -> str:
+        """Statically verify the same recipe JSON object (never a JSON-encoded string) after Host apply or manual edits; checks files, configuration, resolvable compiled module, and consumer dependency boundary. Does not perform browser acceptance."""
         try:
             return _render_result(await client.verify_agent_ui_integration(recipe))
         except ProjectControlError as error:

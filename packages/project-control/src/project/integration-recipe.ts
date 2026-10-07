@@ -1,14 +1,16 @@
 import { assertCreatorCommitAllowed } from "./creator-cancel-marker";
 import { createHash } from "node:crypto";
-import { readFile, readdir, realpath, mkdir, writeFile, rename, unlink, lstat, stat } from "node:fs/promises";
+import { constants } from "node:fs";
+import { readFile, readdir, realpath, mkdir, writeFile, rename, unlink, lstat, stat, copyFile } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { z } from "zod";
 import { resolveOfficialResource } from "@agent-ui/source-registry";
 import { acquireProjectControlLock } from "./project-control-lock";
 
 export const integrationOptionsSchema = z.strictObject({
   targetFile: z.string().min(1).max(200).optional(),
-  moduleSpecifier: z.string().min(1).max(200).default("@agentui/web-component/register"),
+  moduleSpecifier: z.string().min(1).max(200).default("/agent-ui.js"),
   endpoint: z.string().min(1).max(200).default("/agent"),
   locale: z.enum(["en-US", "zh-CN"]).default("en-US"),
   theme: z.enum(["light", "dark", "violet"]).default("violet"),
@@ -71,7 +73,8 @@ function vueWrapper(options: z.output<typeof integrationOptionsSchema>, major: 2
   const config = literal({ endpoint: options.endpoint, locale: options.locale, theme: options.theme });
   const publicModule = options.moduleSpecifier.startsWith("/");
   const registration = publicModule ? "" : `import ${literal(options.moduleSpecifier)};`;
-  const loadModule = publicModule ? `try { await import(/* @vite-ignore */ ${literal(options.moduleSpecifier)}); }\n    catch (error) { if (!this._agentDisposed) this.$emit('agent-error', { code: 'AGENT_UI_MODULE_LOAD_ERROR', error }); return; }\n    if (this._agentDisposed) return;` : "";
+  const loadModule = publicModule ? `const moduleUrl = new URL(${literal(options.moduleSpecifier)}, window.location.href).href;
+    try { await import(/* @vite-ignore */ moduleUrl); }\n    catch (error) { if (!this._agentDisposed) this.$emit('agent-error', { code: 'AGENT_UI_MODULE_LOAD_ERROR', error }); return; }\n    if (this._agentDisposed) return;` : "";
   const props = `props: { endpoint: { type: String, default: ${literal(options.endpoint)} }, locale: { type: String, default: ${literal(options.locale)} }, theme: { type: String, default: ${literal(options.theme)} }, threadId: String },`;
   return `<template><div ref="container"></div></template>\n<script>\n${registration}\nexport default {\n  name: 'AgentUIBridge',\n  ${props}\n  ${major === 3 ? "emits: ['agent-ready', 'thread-change', 'agent-error']," : ""}\n  async mounted() {\n    ${loadModule}\n    const element = document.createElement('agent-ui');\n    this._agentElement = element;\n    element.config = { ...${config}, endpoint: this.endpoint, locale: this.locale, theme: this.theme, threadId: this.threadId };\n    this._agentListeners = ['agent-ready', 'thread-change', 'agent-error'].map(name => {\n      const listener = event => this.$emit(name, event.detail);\n      element.addEventListener(name, listener);\n      return [name, listener];\n    });\n    this.$refs.container.append(element);\n  },\n  watch: {\n    endpoint: 'updateAgentConfig', locale: 'updateAgentConfig', theme: 'updateAgentConfig', threadId: 'updateAgentConfig',\n  },\n  methods: {\n    updateAgentConfig() { if (this._agentElement) this._agentElement.config = { endpoint: this.endpoint, locale: this.locale, theme: this.theme, threadId: this.threadId }; },\n    disposeAgentElement() {\n      this._agentDisposed = true;\n      if (!this._agentElement) return;\n      for (const [name, listener] of this._agentListeners) this._agentElement.removeEventListener(name, listener);\n      this._agentElement.remove();\n      this._agentElement = undefined;\n    },\n  },\n  ${major === 3 ? "beforeUnmount" : "beforeDestroy"}() { this.disposeAgentElement(); },\n};\n</script>\n`;
 }
@@ -99,10 +102,15 @@ export async function planIntegrationRecipe(projectRoot: string, input: Integrat
   resolveOfficialResource("web-component-bridge");
   const host = await inspectIntegrationHost(root);
   if (host.framework === "react" || host.framework === "nuxt") return { status: host.framework === "react" ? "canonical-react" : "unsupported", host } as const;
-  if (host.framework !== "vue" && host.toolchain !== "vite" && options.moduleSpecifier === "@agentui/web-component/register") return { status: "module-required", host } as const;
+  if (host.framework !== "vue" && host.toolchain !== "vite" && !input.moduleSpecifier) return { status: "module-required", host } as const;
   if (!options.targetFile) return { status: "target-required", host } as const;
   if (!host.candidates.includes(options.targetFile)) fail("INTEGRATION_TARGET_NOT_DISCOVERED");
   if (!/^(?:@agentui\/web-component\/register|\.{1,2}\/[^\s'"<>]+\.m?js|\/[^\s'"<>]+\.m?js)$/u.test(options.moduleSpecifier)) fail("INTEGRATION_MODULE_INVALID");
+  // Planning is read-only: confirm the Host distribution before offering apply.
+  if (host.framework === "vue" && options.moduleSpecifier === "/agent-ui.js" &&
+      !await existingAsset(root, "public/agent-ui.js") && !await officialBridgeAsset()) {
+    return { status: "module-required", host } as const;
+  }
   const edits: IntegrationRecipe["edits"] = [];
   const add = async (file: string, operation: IntegrationRecipe["edits"][number]["operation"], render: (before: string | null) => string) => {
     await safePath(root, file);
@@ -147,6 +155,22 @@ async function validateRecipe(root: string, input: IntegrationRecipe) {
   const regenerated = await planIntegrationRecipe(root, recipe.options, new Map(recipe.edits.map(edit => [edit.file, edit.before])));
   if (regenerated.status !== "planned" || JSON.stringify(regenerated.integrationRecipe) !== JSON.stringify(recipe)) fail("INTEGRATION_RECIPE_INVALID");
   return recipe;
+}
+// Resolve only from the development Host's installed official distribution.
+// Never resolve/install the producer Source Item in the consumer workspace.
+async function officialBridgeAsset() {
+  try {
+    const file = fileURLToPath(import.meta.resolve("@agentui/web-component/register"));
+    const info = await stat(file);
+    return info.isFile() && info.size > 0 ? file : undefined;
+  } catch (error) {
+    if (["ENOENT", "ERR_MODULE_NOT_FOUND"].includes((error as NodeJS.ErrnoException).code ?? "")) return undefined;
+    throw error;
+  }
+}
+async function existingAsset(root: string, file: string) {
+  try { const info = await stat(await safePath(root, file)); return info.isFile() && info.size > 0; }
+  catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") return false; throw error; }
 }
 async function moduleResolvable(root: string, recipe: IntegrationRecipe) {
   const specifier = recipe.integration.moduleSpecifier;
@@ -194,10 +218,21 @@ export async function applyIntegrationRecipe(projectRoot: string, input: Integra
     const manifest = JSON.parse(await read(root, "package.json") ?? "{}");
     const dependencies = { ...manifest.dependencies, ...manifest.devDependencies };
     if (dependencies["@assistant-ui/vue"] || dependencies["@vitejs/plugin-react"]) fail("INTEGRATION_CONSUMER_BOUNDARY_CONFLICT");
-    if (!await moduleResolvable(root, recipe)) fail("INTEGRATION_COMPILED_MODULE_REQUIRED");
+    const prepareAsset = recipe.host.framework === "vue" && recipe.integration.moduleSpecifier === "/agent-ui.js" && !await moduleResolvable(root, recipe);
+    const assetSource = prepareAsset ? await officialBridgeAsset() : undefined;
+    if (!await moduleResolvable(root, recipe) && !assetSource) fail("INTEGRATION_COMPILED_MODULE_REQUIRED");
     await assertCreatorCommitAllowed(root, cancelMarker);
     const committed: IntegrationRecipe["edits"] = [];
+    let assetCreated = false;
+    const assetFile = await safePath(root, "public/agent-ui.js");
     try {
+      if (assetSource) {
+        await mkdir(path.dirname(assetFile), { recursive: true });
+        await assertCreatorCommitAllowed(root, cancelMarker);
+        // Exclusive copy preserves a concurrently supplied distribution.
+        await copyFile(assetSource, assetFile, constants.COPYFILE_EXCL);
+        assetCreated = true;
+      }
       for (const edit of pending) {
         await assertCreatorCommitAllowed(root, cancelMarker);
         const file = await safePath(root, edit.file);
@@ -209,6 +244,7 @@ export async function applyIntegrationRecipe(projectRoot: string, input: Integra
         committed.push(edit);
       }
     } catch (error) {
+      if (assetCreated) await unlink(assetFile);
       for (const edit of committed.reverse()) {
         const file = await safePath(root, edit.file);
         if (edit.before === null) await unlink(file); else await writeFile(file, edit.before);
@@ -216,6 +252,6 @@ export async function applyIntegrationRecipe(projectRoot: string, input: Integra
       throw error;
     }
     const verification = await verifyIntegrationRecipe(root, recipe);
-    return { ...verification, changedPaths: pending.map(edit => edit.file) };
+    return { ...verification, changedPaths: [...(assetCreated ? ["public/agent-ui.js"] : []), ...pending.map(edit => edit.file)] };
   } finally { await release?.(); }
 }
