@@ -1934,15 +1934,15 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
     }
   };
 
-  const pickCommand = (id: string) => {
-    const choice = commandState.pick(id);
-    if ("input" in choice) setInput(choice.input!); else if ("execute" in choice) void executeSlashCommand(choice.execute!);
+  const applyCommandSelection = (choice: { input?: string; execute?: string; handled?: boolean }) => {
+    if (choice.input !== undefined) setInput(choice.input);
+    else if (choice.execute !== undefined) void executeSlashCommand(choice.execute);
   };
+  const pickCommand = (id: string) => applyCommandSelection(commandState.pick(id));
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     const selection = commandState.keyDown(event);
     if (selection?.handled) {
-      if ("input" in selection && selection.input) setInput(selection.input);
-      if ("execute" in selection && selection.execute) void executeSlashCommand(selection.execute);
+      applyCommandSelection(selection);
       return;
     }
     if (event.key === "Enter" && !event.shiftKey) {

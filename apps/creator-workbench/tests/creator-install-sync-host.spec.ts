@@ -1,4 +1,4 @@
-import { expect, test as base } from "@playwright/test";
+import { expect, test as base, type Locator } from "@playwright/test";
 import { readFile, writeFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { createConnectionHostFixture } from "./support/agent-connection-host.js";
@@ -8,6 +8,15 @@ const test = base.extend<{ preview: Awaited<ReturnType<typeof createConnectionHo
     try { await use(fixture); } finally { await fixture.close(); }
   },
 });
+async function expectOptionHitTarget(option: Locator) {
+  await expect(option).toBeVisible();
+  await expect(option).toBeEnabled();
+  await expect.poll(() => option.evaluate(element => {
+    const box = element.getBoundingClientRect();
+    const target = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+    return box.width > 0 && box.height > 0 && target?.closest('[role="option"]') === element;
+  })).toBe(true);
+}
 test.beforeEach(async ({ page, preview }) => {
   // Workspace display metadata only; commands, Python mutation guard,
   // ProjectControl, Source transactions, generated application and Preview are real.
@@ -19,16 +28,27 @@ test.beforeEach(async ({ page, preview }) => {
 });
 test("installs a missing capability through the Picker, persists it, and renders real AG-UI without Creator requests", async ({ page, preview }) => {
   let modelRequests = 0;
-  page.on("request", request => { if (new URL(request.url()).pathname === "/__agent-ui/creator") modelRequests++; });
+  let commandRequests = 0;
+  page.on("request", request => {
+    const pathname = new URL(request.url()).pathname;
+    if (pathname === "/__agent-ui/creator") modelRequests++;
+    if (pathname === "/__creator/commands/execute" && request.method() === "POST") commandRequests++;
+  });
   const catalog = await page.request.get(`${preview.creatorOrigin}__creator/commands`, { headers: { "x-agent-ui-workspace-id": preview.workspaceId } });
   expect(catalog.ok()).toBe(true);
   expect((await catalog.json()).commands.find((command: { id: string }) => command.id === "install").options.find((option: { id: string }) => option.id === "web-search")).toMatchObject({ status: "available", disabled: false });
   const input = page.locator("#creator-request");
   await input.fill("/");
-  await page.getByRole("option", { name: /安装能力/ }).click();
+  const installOption = page.getByRole("option", { name: /安装能力/ });
+  await expectOptionHitTarget(installOption);
+  await installOption.click();
   await expect(input).toHaveValue("/install ");
   const response = page.waitForResponse(value => new URL(value.url()).pathname === "/__creator/commands/execute");
-  await page.getByRole("option", { name: /网页搜索/ }).click();
+  const resourceOption = page.getByRole("option", { name: /网页搜索/ });
+  await expectOptionHitTarget(resourceOption);
+  await resourceOption.hover();
+  await expect(input).toHaveValue("/install ");
+  await resourceOption.click();
   const installed = await response;
   expect(installed.status(), await installed.text()).toBe(200);
   const result = await installed.json();
@@ -56,6 +76,7 @@ test("installs a missing capability through the Picker, persists it, and renders
   await input.fill("/install ");
   await expect(page.getByRole("option", { name: /网页搜索.*已安装/ })).toBeDisabled();
   expect(modelRequests).toBe(0);
+  expect(commandRequests).toBe(1);
 });
 test("sync repairs stale and missing registry and returns a no-op for fresh output without model requests", async ({ page, preview }) => {
   let modelRequests = 0;

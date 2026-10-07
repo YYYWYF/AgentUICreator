@@ -49,7 +49,9 @@ export function useCreatorCommandState(input: string, workspaceId: string | unde
   const active = Math.min(selected, Math.max(0, items.length - 1));
   const open = slash && dismissed !== input;
   const pick = (id: string) => {
-    if (items.find(item => item.id === id)?.disabled) return { handled: true };
+    const item = items.find(item => item.id === id);
+    // Ignore stale clicks from a previous menu instead of treating command ids as arguments.
+    if (!item || item.disabled) return { handled: true };
     if (command?.kind === "choice") return { execute: `/${command.id} ${id}` };
     return catalog.commands.find(entry => entry.id === id)?.kind === "action" ? { execute: `/${id}` } : { input: `/${id} ` };
   };

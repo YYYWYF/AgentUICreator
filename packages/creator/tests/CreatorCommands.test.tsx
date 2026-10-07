@@ -13,6 +13,7 @@ vi.mock("../src/ui/MockServicePanel.js", () => ({ MockServicePanel: () => null }
 vi.mock("../src/ui/AgentConnectionPanel.js", () => ({ AgentConnectionPanel: () => null, readAgentConnection: vi.fn(), CONNECTION_CHANGED: "connection" }));
 import { CreatorWorkbench } from "../src/ui/CreatorWorkbench.js";
 import { executeCreatorCommand } from "../src/ui/workspaceClient.js";
+import { useCreatorCommandState } from "../src/ui/commands/useCreatorCommandState.js";
 const state = { status: "ready", workspace: { id: "workspace-1", name: "Project", displayPath: "/project" }, project: { mode: "platform", sourceRoot: "src" }, runtime: { status: "ready" } };
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 HTMLElement.prototype.scrollTo = vi.fn();
@@ -75,4 +76,36 @@ it("empty install searches remain empty and action commands execute directly", a
   await enter(await type("/sync"));
   expect(executeCreatorCommand).toHaveBeenCalledWith("workspace-1", { id: "sync", args: {} }, expect.anything());
   expect(fetchMock.mock.calls.every(call => String(call[0]).includes("commands"))).toBe(true);
+});
+
+it("replaces the draft when clicking Install and preserves it across rerender and hover", async () => {
+  const input = await type("/");
+  const install = Array.from(container.querySelectorAll<HTMLButtonElement>('[role="option"]')).find(option => option.textContent?.includes("Install capability"))!;
+  await act(async () => install.click());
+  expect(input.value).toBe("/install ");
+  await act(async () => root.render(<CreatorWorkbench locale="en-US" previewWorkspaceId="workspace-1">Updated preview</CreatorWorkbench>));
+  const resource = container.querySelector<HTMLButtonElement>('[role="option"]')!;
+  await act(async () => resource.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
+  expect(input.value).toBe("/install ");
+  expect(input.value).not.toContain("/install /install");
+  await act(async () => resource.click());
+  expect(executeCreatorCommand).toHaveBeenCalledTimes(1);
+  expect(executeCreatorCommand).toHaveBeenCalledWith("workspace-1", { id: "install", args: { resourceId: "reasoning" } }, expect.anything());
+  expect(input.value).toBe("");
+});
+
+it("refreshes choice catalogs without interpreting stale command ids as resource choices", async () => {
+  let commandState!: ReturnType<typeof useCreatorCommandState>;
+  function Harness({ input }: { input: string }) {
+    commandState = useCreatorCommandState(input, "workspace-1");
+    return null;
+  }
+  await act(async () => root.render(<Harness input="/" />));
+  expect(commandState.pick("install")).toEqual({ input: "/install " });
+  await act(async () => root.render(<Harness input="/install " />));
+  await act(async () => commandState.refresh());
+  expect(commandState.parsed).toEqual({ kind: "command", id: "install", args: [] });
+  expect(commandState.pick("install")).toEqual({ handled: true });
+  expect(commandState.pick("/install")).toEqual({ handled: true });
+  expect(commandState.pick("reasoning")).toEqual({ execute: "/install reasoning" });
 });
