@@ -4,7 +4,7 @@ import type { RunAgentInput } from "@ag-ui/client";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, expect, it, vi } from "vitest";
-import { ConversationRuntimeProvider } from "@agent-ui/runtime-conversation";
+import { ConversationRuntimeProvider, type ConversationAgentFactoryConfig, type ConversationThreadBinding, type ConversationMessage } from "@agent-ui/runtime-conversation";
 import { CancellationAwareHttpAgent } from "../../runtime-conversation/src/compatibility/cancellation-aware-http-agent.js";
 import { AgentUIRoot, ConversationThread, ConversationCanonicalComposer, ConversationComposerQuotePreview, ConversationQuoteSelectionToolbar, useConversationQuoteLifecycle } from "../src/index.js";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -18,7 +18,7 @@ function Feature() {
   useConversationQuoteLifecycle();
   return <><ConversationComposerQuotePreview dismissLabel="Dismiss quote" /><ConversationQuoteSelectionToolbar quoteLabel="Quote" /></>;
 }
-async function mount(disabled = false) {
+async function mount(disabled = false, history: readonly ConversationMessage[] = []) {
   vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
   Object.defineProperty(HTMLElement.prototype, "scrollTo", { configurable: true, value() {} });
   Object.defineProperty(Range.prototype, "getBoundingClientRect", { configurable: true, value: () => ({ top: 100, left: 100, width: 80 } as DOMRect) });
@@ -27,17 +27,43 @@ async function mount(disabled = false) {
   let runtime!: AssistantRuntime;
   const requests: RunAgentInput[] = [];
   let installed = true;
-  const agent = new CancellationAwareHttpAgent({ url: "http://example.test/agent", fetch: async (_url, init) => {
-    const input = JSON.parse(String(init.body)) as RunAgentInput; requests.push(input);
+  const captureFetch: typeof fetch = async (_url, init) => {
+    const input = JSON.parse(String(init?.body)) as RunAgentInput; requests.push(input);
     return new Response([
       { type: "RUN_STARTED", threadId: input.threadId, runId: input.runId },
       { type: "RUN_FINISHED", threadId: input.threadId, runId: input.runId },
     ].map(event => `data: ${JSON.stringify(event)}\n\n`).join(""), { headers: { "Content-Type": "text/event-stream" } });
-  } });
-  const agentFactory = () => agent;
-  const binding = {
-    getThreadId: () => "history", subscribe: () => () => {}, createNewThread: async () => "new", getThreadIsDisabled: () => disabled,
-    loadThread: async () => ({ messages: [{ id: "assistant", role: "assistant" as const, content: [{ type: "text" as const, text: "Actions simplify asynchronous state changes." }], createdAt: new Date(0), status: { type: "complete" as const, reason: "stop" as const }, metadata: { custom: {} } }] }),
+  };
+  const agents = new Map<string, CancellationAwareHttpAgent>();
+  const agentFactory = ({ endpoint, threadId }: ConversationAgentFactoryConfig) => {
+    let agent = agents.get(threadId);
+    if (agent === undefined) {
+      agent = new CancellationAwareHttpAgent({ url: endpoint, threadId, fetch: captureFetch });
+      agents.set(threadId, agent);
+    }
+    return agent;
+  };
+  let activeThreadId = "history";
+  const binding: ConversationThreadBinding = {
+    getThreadId: () => activeThreadId,
+    activateThread(threadId) { activeThreadId = threadId; },
+    getThreadListSnapshot: () => ({
+      isLoading: false,
+      threads: [
+        { id: "history", status: "regular", title: "Thread A" },
+        { id: "B", status: "regular", title: "Thread B" },
+      ],
+      archivedThreads: [],
+    }),
+    subscribe: () => () => {}, createNewThread: async () => "new", getThreadIsDisabled: () => disabled,
+    async loadThread(threadId) {
+      if (threadId !== "history" && threadId !== "B") throw new Error(`Unknown test thread ${threadId}`);
+      return { messages: [...history, {
+        id: threadId === "history" ? "assistant" : "assistant-B", role: "assistant",
+        content: [{ type: "text", text: threadId === "history" ? "Actions simplify asynchronous state changes." : "Thread B history." }],
+        createdAt: new Date(0), status: { type: "complete", reason: "stop" }, metadata: { custom: {} },
+      }] };
+    },
   };
   function Capture() { runtime = useAui().threads.__internal_getAssistantRuntime!(); return null; }
   const host = document.createElement("div"); document.body.append(host); root = createRoot(host);
@@ -95,7 +121,7 @@ it("clears the captured Thread A composer on switching to B without clearing B's
   await act(async () => { await runtime.threads.switchToThread("history"); });
   await act(async () => until(() => !runtime.thread.getState().isLoading));
   const composerA = runtime.threads.getById("history").composer;
-  const quoteB = { text: "Pending B", messageId: "assistant" };
+  const quoteB = { text: "Pending B", messageId: "assistant-B" };
   await act(async () => {
     composerA.setQuote({ text: "Pending A", messageId: "assistant" });
     composerB.setQuote(quoteB);
@@ -117,4 +143,24 @@ it("shows Quote for an ordinary editing composer, previews and dismisses it", as
   await act(async () => (host.querySelector('[aria-label="Dismiss quote"]') as HTMLButtonElement).click());
   expect(runtime.thread.composer.getState().quote).toBeUndefined();
   expect(host.querySelector('[data-slot="composer-quote"]')).toBeNull();
+});
+
+it("seeds outbound quote context from structured loaded history after removing creation UI", async () => {
+  const historicalUser: ConversationMessage = {
+    id: "historical-user", role: "user", content: [{ type: "text", text: "Earlier question" }],
+    attachments: [], createdAt: new Date(0),
+    metadata: { custom: { quote: { text: "Restored passage", messageId: "earlier-assistant" } } },
+  };
+  const { runtime, requests, remove } = await mount(false, [historicalUser]);
+  await remove();
+  await act(async () => {
+    runtime.thread.composer.setText("Continue");
+    runtime.thread.composer.send();
+    await until(() => requests.length === 1 && !runtime.thread.getState().isRunning);
+  });
+  expect(requests[0]!.messages.find(message => message.id === historicalUser.id)!.content)
+    .toBe("> Restored passage\n\nEarlier question");
+  expect(requests[0]!.messages.filter(message => message.role === "user").at(-1)!.content).toBe("Continue");
+  expect(runtime.thread.getState().messages.find(message => message.id === historicalUser.id)!.content)
+    .toEqual(historicalUser.content);
 });

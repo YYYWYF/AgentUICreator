@@ -143,9 +143,10 @@ export function ConversationRuntimeProvider<TState = unknown>({
     const item = aui.threadListItem().getState();
     // Pin ownership at mount. Optimistic assistant-ui IDs never become backend IDs.
     const [ownedId] = useState(() => persistence.identity(item.id, item.remoteId));
-    const quoteRuntimeRef = useRef<AssistantRuntime | null>(null);
+    // Observe upstream-owned user messages synchronously before transport starts.
+    const quoteMessagesRef = useRef(new Map<string, ThreadMessage>());
     const agent = useMemo(() => installConversationQuoteContext(unstable_agentFactory({ endpoint, threadId: ownedId }),
-      () => quoteRuntimeRef.current?.thread.getState().messages ?? [],
+      () => [...quoteMessagesRef.current.values()],
     ), [endpoint, ownedId, unstable_agentFactory]);
     const bridgeRef = useRef<ConversationAgentRuntimeBridge<TState> | null>(null);
     const ownedBinding = useMemo<ConversationThreadBinding<TState>>(() => ({
@@ -158,6 +159,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
     const history = useMemo<ThreadHistoryAdapter>(() => ({
       async load() {
         resumeRef.current = undefined;
+        quoteMessagesRef.current.clear();
         let loaded: ConversationLoadedThread<TState>;
         try {
           loaded = item.remoteId === undefined ? { messages: [] } :
@@ -165,6 +167,10 @@ export function ConversationRuntimeProvider<TState = unknown>({
         } catch (error) {
           setHistoryFailed(true);
           throw error;
+        }
+        const messages = loaded.messages.map(message => message as unknown as ThreadMessage);
+        for (const message of messages) {
+          if (message.role === "user") quoteMessagesRef.current.set(message.id, message);
         }
         resumeRef.current = loaded.resume;
         if (loaded.resumeDiscoveryError !== undefined) {
@@ -175,9 +181,9 @@ export function ConversationRuntimeProvider<TState = unknown>({
           });
         }
         return {
-          messages: loaded.messages.map((message, index) => ({
-            parentId: index === 0 ? null : loaded.messages[index - 1]!.id,
-            message: message as unknown as ThreadMessage,
+          messages: messages.map((message, index) => ({
+            parentId: index === 0 ? null : messages[index - 1]!.id,
+            message,
           })),
           ...(loaded.state === undefined ? {} : { state: loaded.state as never }),
           ...(resumeRef.current === undefined ? {} : { unstable_resume: true }),
@@ -191,7 +197,10 @@ export function ConversationRuntimeProvider<TState = unknown>({
           yield toAssistantRunResult(update);
         }
       },
-      async append() { await aui.threadListItem().initialize(); },
+      async append({ message }) {
+        if (message.role === "user") quoteMessagesRef.current.set(message.id, message);
+        await aui.threadListItem().initialize();
+      },
     }), [aui, ownedId, threadBinding]);
     const isDisabled = useSyncExternalStore(
       ownedBinding.subscribe,
@@ -233,7 +242,6 @@ export function ConversationRuntimeProvider<TState = unknown>({
         if (outerRuntime.current?.threads.getState().mainThreadId === item.id) onError?.(error);
       },
     });
-    quoteRuntimeRef.current = runtime;
     const applicationEvents = useMemo(() => new ConversationApplicationEventSource(agent), [agent]);
     const agentRuntime = useMemo(() => createConversationAgentRuntimeBridge<TState>({
       runtime, threadBinding: ownedBinding, applicationEvents,

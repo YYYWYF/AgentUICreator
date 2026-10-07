@@ -29,7 +29,7 @@ export function useInternalConversationQuoteLifecycle() {
   const aui = useAui();
   const threadId = useAuiState(s => s.threads.mainThreadId);
   useEffect(() => {
-    const composer = aui.thread.composer();
+    const composer = aui.threads.__internal_getAssistantRuntime!().threads.getById(threadId).composer;
     return () => composer.setQuote(undefined);
   }, [aui, threadId]);
 }
