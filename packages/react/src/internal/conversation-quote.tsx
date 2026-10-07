@@ -1,6 +1,6 @@
 import { useThreadRootElementRef } from "./quote-thread-root.js";
-import { useEffect } from "react";
-import { useAui, useAuiState } from "@assistant-ui/react";
+import { createContext, useContext, useEffect, type ReactNode } from "react";
+import { useAuiState } from "@assistant-ui/react";
 import { QuoteIcon, XIcon } from "lucide-react";
 import { ComposerQuotePreview, QuoteBlock, SelectionToolbar } from "./adapters/assistant-ui/components/assistant-ui/elements/quote.aui.js";
 
@@ -24,12 +24,16 @@ export function InternalConversationQuoteSelectionToolbar({ quoteLabel }: { quot
   if (disabled || root === null) return null;
   return <SelectionToolbar.Root><SelectionToolbar.Quote><QuoteIcon className="size-3.5" />{quoteLabel}</SelectionToolbar.Quote></SelectionToolbar.Root>;
 }
-/** Capture this thread's composer; cleanup must never clear another thread. */
+/** The canonical runtime supplies a callback bound to one concrete thread. */
+const QuoteCleanupContext = createContext<(() => void) | undefined>(undefined);
+export function InternalConversationQuoteLifecycleProvider({ clearPendingQuote, children }: {
+  clearPendingQuote: () => void;
+  children: ReactNode;
+}) {
+  return <QuoteCleanupContext.Provider value={clearPendingQuote}>{children}</QuoteCleanupContext.Provider>;
+}
+/** Capture this thread's cleanup; never resolve the mutable main thread on unmount. */
 export function useInternalConversationQuoteLifecycle() {
-  const aui = useAui();
-  const threadId = useAuiState(s => s.threads.mainThreadId);
-  useEffect(() => {
-    const composer = aui.threads.__internal_getAssistantRuntime!().threads.getById(threadId).composer;
-    return () => composer.setQuote(undefined);
-  }, [aui, threadId]);
+  const clearPendingQuote = useContext(QuoteCleanupContext);
+  useEffect(() => clearPendingQuote, [clearPendingQuote]);
 }

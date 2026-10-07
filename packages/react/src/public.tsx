@@ -1252,6 +1252,7 @@ export interface ConversationResponseRuntime {
 export const useConversationResponseRuntime: () => ConversationResponseRuntime = useAssistantResponseRuntime;
 
 import {
+  InternalConversationQuoteLifecycleProvider,
   InternalConversationQuoteBlock,
   InternalConversationComposerQuotePreview,
   InternalConversationQuoteSelectionToolbar,
@@ -1265,6 +1266,10 @@ export function ConversationComposerQuotePreview(props: { dismissLabel: string }
 }
 export function ConversationQuoteSelectionToolbar(props: { quoteLabel: string }): ReactElement | null {
   return <InternalConversationQuoteSelectionToolbar {...props} />;
+}
+/** Composition seam for the canonical runtime's thread-bound quote cleanup. */
+export function ConversationQuoteLifecycleProvider(props: { clearPendingQuote: () => void; children: ReactNode }): ReactElement {
+  return <InternalConversationQuoteLifecycleProvider {...props} />;
 }
 export function useConversationQuoteLifecycle(): void {
   useInternalConversationQuoteLifecycle();

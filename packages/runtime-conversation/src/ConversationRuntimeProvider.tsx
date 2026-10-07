@@ -1,7 +1,7 @@
 import type { ConversationFeedbackAdapter } from "./feedback.js";
 import { installConversationQuoteContext } from "./compatibility/conversation-quote-context-agent.js";
 import type { AbstractAgent } from "@ag-ui/client";
-import type { ConversationToolkit } from "@agent-ui/react";
+import { ConversationQuoteLifecycleProvider, type ConversationToolkit } from "@agent-ui/react";
 import type { AgentFrontendToolSource } from "@agent-ui/runtime-core";
 import {
   AuiConfig,
@@ -250,8 +250,9 @@ export function ConversationRuntimeProvider<TState = unknown>({
     bridgeRef.current = agentRuntime;
     const bridge = useMemo<ConversationRuntimeBridge<TState>>(() => ({
       agentRuntime, applicationEvents, observation: agentRuntime.observation, threadBinding,
+      clearPendingQuote: () => runtime.thread.composer.setQuote(undefined),
       ...(frontendTools === undefined ? {} : { frontendTools: createConversationFrontendToolPort(frontendTools) }),
-    }), [agentRuntime, applicationEvents, threadBinding, frontendTools]);
+    }), [agentRuntime, applicationEvents, threadBinding, frontendTools, runtime]);
     useLayoutEffect(() => {
       applicationEvents.start();
       agentRuntime.start();
@@ -335,5 +336,9 @@ function CurrentConversationBridge<TState>({ sessions, persistence, threadBindin
   // session registers in layout, before the browser can receive another event.
   const currentBridge = bridge ?? previousBridge.current;
   if (currentBridge === undefined) return null;
-  return <ConversationRuntimeBridgeProvider bridge={currentBridge}>{children}</ConversationRuntimeBridgeProvider>;
+  return <ConversationRuntimeBridgeProvider bridge={currentBridge}>
+    <ConversationQuoteLifecycleProvider clearPendingQuote={currentBridge.clearPendingQuote}>
+      {children}
+    </ConversationQuoteLifecycleProvider>
+  </ConversationRuntimeBridgeProvider>;
 }

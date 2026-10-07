@@ -12,6 +12,7 @@ export interface ConversationRuntimeBridge<TState = unknown> {
   applicationEvents: ConversationApplicationEventSource;
   observation: ConversationAgentRuntimeBridge<TState>["observation"];
   threadBinding: ConversationThreadBinding<TState>;
+  clearPendingQuote: () => void;
   frontendTools?: ConversationFrontendToolPort | undefined;
 }
 
