@@ -74,6 +74,9 @@ class ProjectControlClient:
     async def apply_agent_ui_integration(self, recipe: dict[str, Any]) -> dict[str, Any]:
         return await self._request("apply_agent_ui_integration", {"recipe": recipe})
 
+    async def prepare_agent_ui_integration_asset(self, recipe: dict[str, Any]) -> dict[str, Any]:
+        return await self._request("prepare_agent_ui_integration_asset", {"recipe": recipe})
+
     async def verify_agent_ui_integration(self, recipe: dict[str, Any]) -> dict[str, Any]:
         return await self._request("verify_agent_ui_integration", {"recipe": recipe})
 
@@ -201,7 +204,7 @@ class ProjectControlClient:
         failed = True
         try:
             self._ensure_fixed_runtime()
-            if operation in {"apply_agent_ui_integration", "repair_app_ui_model", "mutate_app_ui_model", "apply_agent_ui_source_item",
+            if operation in {"apply_agent_ui_integration", "prepare_agent_ui_integration_asset", "repair_app_ui_model", "mutate_app_ui_model", "apply_agent_ui_source_item",
                              "remove_agent_ui_source_items", "synchronize_plugin_registry", "purge_ui_plugin"}:
                 assert_current_removal_mutation(operation, input)
                 assert_run_writable()

@@ -913,7 +913,21 @@ call plan_agent_ui_integration first. /install web-component-bridge and natural
 language integration use this same Host-owned resource recipe. A guide is read-only:
 display the returned paths and canonical edits.after, with no filesystem writes.
 After target selection, a how-to guide needs no apply approval or automation choice;
-display the recipe directly.
+display the recipe directly. When manualPrerequisites includes compiled-bridge,
+show it before the canonical Vue code edits:
+1. Prepare the compatibility runtime resource public/agent-ui.js.
+2. Create src/components/AgentUIBridge.vue using its canonical edits.after.
+3. Modify the selected target (e.g. src/App.vue) using its canonical edits.after.
+If the prerequisite status is ready, say the resource is ready and needs no action.
+If missing, say it is an official compiled asset, should not be edited manually,
+and offer to prepare only this file while the user edits the Vue code themselves.
+Do not write files in a guide or include bundle contents in code edits.
+When the user asks only to prepare the resource file, call
+prepare_agent_ui_integration_asset with the original recipe after authorization.
+Do not call apply_agent_ui_integration, edit Vue files or install dependencies.
+After preparation, say only public/agent-ui.js is ready and list the remaining
+manual edit paths from the recipe. Never claim full integration is complete.
+Keep the original recipe for verify after the user makes the canonical edits.
 For automatic integration, present that same recipe, obtain user authorization,
 then call apply_agent_ui_integration with the exact recipe. If target-required,
 ask the user to select a discovered target; never guess a business page. For manual

@@ -20,5 +20,5 @@ export type { ThemeCatalog, ThemeChange } from "./project/agent-ui-theme";
 
 export { synchronizeAgentUIPluginRegistry } from "./project/synchronize-plugin-registry";
 
-export { inspectIntegrationHost, planIntegrationRecipe, applyIntegrationRecipe, verifyIntegrationRecipe } from "./project/integration-recipe";
+export { inspectIntegrationHost, planIntegrationRecipe, applyIntegrationRecipe, prepareIntegrationRecipeAsset, verifyIntegrationRecipe } from "./project/integration-recipe";
 export type { IntegrationRecipe, IntegrationOptions } from "./project/integration-recipe";

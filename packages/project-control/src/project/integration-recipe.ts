@@ -26,6 +26,10 @@ export const integrationRecipeSchema = z.strictObject({
   detectedFiles: z.strictObject({ packageJson: z.string().optional(), entryFile: z.string().optional(), targetFile: z.string() }),
   integration: z.strictObject({ mode: z.literal("web-component"), moduleSpecifier: z.string() }),
   options: integrationOptionsSchema, edits: z.array(integrationEditSchema), verification: z.array(z.string()), warnings: z.array(z.string()),
+  manualPrerequisites: z.array(z.strictObject({
+    id: z.literal("compiled-bridge"), kind: z.literal("compiled-asset"), target: z.literal("public/agent-ui.js"),
+    status: z.enum(["missing", "ready"]), hostPreparable: z.literal(true),
+  })).optional(),
 });
 export type IntegrationRecipe = z.infer<typeof integrationRecipeSchema>;
 const literal = (value: unknown) => JSON.stringify(value).replace(/</gu, "\\u003c");
@@ -146,6 +150,10 @@ export async function planIntegrationRecipe(projectRoot: string, input: Integrat
     integration: { mode: "web-component" as const, moduleSpecifier: options.moduleSpecifier }, options, edits,
     verification: ["expected-edits", "module-resolvable", "consumer-boundary"],
     warnings: ["COMPILED_BRIDGE_REQUIRED", "STATIC_VERIFICATION_ONLY"],
+    manualPrerequisites: host.framework === "vue" && options.moduleSpecifier === "/agent-ui.js" ? [{
+      id: "compiled-bridge" as const, kind: "compiled-asset" as const, target: "public/agent-ui.js" as const,
+      status: await existingAsset(root, "public/agent-ui.js") ? "ready" as const : "missing" as const, hostPreparable: true as const,
+    }] : [],
   };
   if (Buffer.byteLength(JSON.stringify(recipe), "utf8") > 40_000) fail("INTEGRATION_RECIPE_TOO_LARGE");
   return { status: "planned", host, integrationRecipe: { id: hash(JSON.stringify(recipe)), ...recipe } } as const;
@@ -153,7 +161,16 @@ export async function planIntegrationRecipe(projectRoot: string, input: Integrat
 async function validateRecipe(root: string, input: IntegrationRecipe) {
   const recipe = integrationRecipeSchema.parse(input);
   const regenerated = await planIntegrationRecipe(root, recipe.options, new Map(recipe.edits.map(edit => [edit.file, edit.before])));
-  if (regenerated.status !== "planned" || JSON.stringify(regenerated.integrationRecipe) !== JSON.stringify(recipe)) fail("INTEGRATION_RECIPE_INVALID");
+  if (regenerated.status !== "planned") fail("INTEGRATION_RECIPE_INVALID");
+  // Prerequisite status is a planning snapshot. Keep the original recipe valid
+  // after preparation/manual edits, without trusting that snapshot for readiness.
+  const { id: _id, manualPrerequisites, ...body } = regenerated.integrationRecipe;
+  const canonical = recipe.manualPrerequisites === undefined ? body : { ...body,
+    manualPrerequisites: manualPrerequisites.map(item => ({ ...item,
+      status: recipe.manualPrerequisites?.find(original => original.id === item.id)?.status ?? item.status,
+    })),
+  };
+  if (JSON.stringify({ id: hash(JSON.stringify(canonical)), ...canonical }) !== JSON.stringify(recipe)) fail("INTEGRATION_RECIPE_INVALID");
   return recipe;
 }
 // Resolve only from the development Host's installed official distribution.
@@ -171,6 +188,30 @@ async function officialBridgeAsset() {
 async function existingAsset(root: string, file: string) {
   try { const info = await stat(await safePath(root, file)); return info.isFile() && info.size > 0; }
   catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") return false; throw error; }
+}
+async function prepareIntegrationAsset(root: string, recipe: IntegrationRecipe, cancelMarker?: string) {
+  if (recipe.host.framework !== "vue" || recipe.integration.moduleSpecifier !== "/agent-ui.js") fail("INTEGRATION_ASSET_NOT_PREPARABLE");
+  const target = "public/agent-ui.js";
+  if (await existingAsset(root, target)) return false;
+  const source = await officialBridgeAsset();
+  if (!source) fail("INTEGRATION_COMPILED_MODULE_REQUIRED");
+  const file = await safePath(root, target);
+  await assertCreatorCommitAllowed(root, cancelMarker);
+  await mkdir(path.dirname(file), { recursive: true });
+  await assertCreatorCommitAllowed(root, cancelMarker);
+  // Exclusive copy preserves an existing or concurrently supplied distribution.
+  await copyFile(source, file, constants.COPYFILE_EXCL);
+  return true;
+}
+export async function prepareIntegrationRecipeAsset(projectRoot: string, input: IntegrationRecipe, locked = false, cancelMarker?: string) {
+  const root = await realpath(projectRoot);
+  const release = locked ? undefined : await acquireProjectControlLock(root);
+  try {
+    const recipe = await validateRecipe(root, input);
+    const created = await prepareIntegrationAsset(root, recipe, cancelMarker);
+    return { status: "ready" as const, recipeId: recipe.id, target: "public/agent-ui.js" as const,
+      changedPaths: created ? ["public/agent-ui.js"] : [] };
+  } finally { await release?.(); }
 }
 async function moduleResolvable(root: string, recipe: IntegrationRecipe) {
   const specifier = recipe.integration.moduleSpecifier;
@@ -227,11 +268,7 @@ export async function applyIntegrationRecipe(projectRoot: string, input: Integra
     const assetFile = await safePath(root, "public/agent-ui.js");
     try {
       if (assetSource) {
-        await mkdir(path.dirname(assetFile), { recursive: true });
-        await assertCreatorCommitAllowed(root, cancelMarker);
-        // Exclusive copy preserves a concurrently supplied distribution.
-        await copyFile(assetSource, assetFile, constants.COPYFILE_EXCL);
-        assetCreated = true;
+        assetCreated = await prepareIntegrationAsset(root, recipe, cancelMarker);
       }
       for (const edit of pending) {
         await assertCreatorCommitAllowed(root, cancelMarker);

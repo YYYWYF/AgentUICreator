@@ -614,6 +614,21 @@ def create_project_control_tools(
         except ProjectControlError as error:
             return _render_error(error)
 
+    @tool("prepare_agent_ui_integration_asset")
+    async def prepare_agent_ui_integration_asset(recipe: dict[str, Any] | Json[dict[str, Any]]) -> str:
+        """Only prepare the official compiled public/agent-ui.js from the original Host recipe after user authorization. Never edits Vue code, package.json or entry files; never completes full integration. Use this when the user wants only the resource file prepared and will edit code manually. Never output bundle contents or locate node_modules paths yourself."""
+        try:
+            if activity is not None:
+                activity.capture_before("public/agent-ui.js")
+            result = await client.prepare_agent_ui_integration_asset(recipe)
+            if activity is not None:
+                for changed_path in result.get("changedPaths", []):
+                    activity.file_observations.observe(changed_path)
+                    activity.touch(changed_path)
+            return _render_result(result)
+        except ProjectControlError as error:
+            return _render_error(error)
+
     @tool("verify_agent_ui_integration")
     async def verify_agent_ui_integration(recipe: dict[str, Any] | Json[dict[str, Any]]) -> str:
         """Statically verify the same recipe JSON object (never a JSON-encoded string) after Host apply or manual edits; checks files, configuration, resolvable compiled module, and consumer dependency boundary. Does not perform browser acceptance."""
@@ -726,6 +741,7 @@ def create_project_control_tools(
         inspect_ui_plugin_source_references,
         plan_agent_ui_integration,
         apply_agent_ui_integration,
+        prepare_agent_ui_integration_asset,
         verify_agent_ui_integration,
         inspect_agent_ui_sources,
         inspect_ui_capabilities,

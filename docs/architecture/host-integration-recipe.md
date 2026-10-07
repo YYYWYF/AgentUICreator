@@ -16,7 +16,7 @@ verification identifiers and warning identifiers. Both the guide and automatic
 application consume these same edits. There is no Vue Plugin renderer or second
 Agent Runtime. Templates live in Project Control, not in Creator prompts.
 
-Creator tools expose the three phases through the existing canonical Project
+Creator tools expose planning, asset preparation, application and verification through the existing canonical Project
 Control protocol. Guide and manual-check requests route to the read-only agent;
 application is classified as a side effect and requires authorization for the
 presented plan. `/install web-component-bridge` on a compatibility consumer returns
@@ -54,6 +54,31 @@ before offering apply. Module resolution is a static file/export check.
 activity says “准备 Agent UI 兼容接入”; it does not claim installation. This status
 survives conversation reload. The subsequent Creator flow owns target selection,
 plan presentation, approval, apply and verification.
+
+## Manual compiled-asset prerequisite
+
+New Vue public-distribution recipes include a small `manualPrerequisites` entry:
+`compiled-bridge`, `compiled-asset`, `public/agent-ui.js`, `missing`/`ready`, and
+`hostPreparable: true`. This contains no bundle source and leaves the two canonical
+Vue code edits unchanged. Older recipes without this optional field remain valid.
+The prerequisite status records the planning snapshot; preparation and verification
+inspect the current file independently. Keep the original recipe after preparation.
+
+A read-only guide presents three steps: prepare the compiled runtime resource,
+create `src/components/AgentUIBridge.vue`, then modify the selected target with the
+canonical code. A ready asset needs no action. For a missing asset, Creator explains
+that it is an official compiled resource, should not be edited by hand, and can be
+prepared by Host while the user edits the Vue files themselves.
+
+`prepare_agent_ui_integration_asset(originalRecipe)` is a mutation requiring user
+authorization, unavailable to the read-only agent. It only prepares
+`public/agent-ui.js`, returning `ready` plus that path when created, or an empty
+`changedPaths` for an existing asset. It does not apply the Vue edits, change
+package/entry files, or claim complete integration. Automatic apply and this narrow
+action share one internal preparation implementation, including official
+distribution resolution, safe paths, cancellation checks and exclusive copying.
+After the user manually writes the canonical edits, the existing verify action uses
+the original recipe and remains read-only.
 
 ## Edits and verification
 
@@ -136,3 +161,11 @@ have 36 failures and 18 passes. The same failure list was reproduced using HEAD
 Python sources and HEAD canonical contracts in an isolated temporary package.
 Those fixtures include outdated positional tool expectations and the retired
 scripts/tsx control entry. The focused recipe tool test passes separately.
+
+
+The 2026-10-08 manual-asset follow-up adds three focused Host protocol regressions:
+read-only missing-asset planning, asset-only preparation including repeat no-op,
+and zero-write verification after canonical manual edits using the original
+recipe. The integration recipe suite has 11 passing tests and the tool forwarding/
+read-only policy suite has three passing tests. No additional model/browser or
+final acceptance was run for this follow-up.

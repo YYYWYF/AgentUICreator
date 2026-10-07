@@ -725,6 +725,22 @@
             "operation",
             "input"
           ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "operation": {
+              "const": "prepare_agent_ui_integration_asset"
+            },
+            "input": {
+              "$ref": "#/$defs/integrationApplyInput"
+            }
+          },
+          "required": [
+            "operation",
+            "input"
+          ]
         }
       ]
     },
@@ -802,6 +818,9 @@
                 },
                 {
                   "$ref": "#/$defs/integrationVerificationResult"
+                },
+                {
+                  "$ref": "#/$defs/integrationAssetPreparationResult"
                 }
               ]
             }
@@ -3054,6 +3073,40 @@
           "items": {
             "type": "string"
           }
+        },
+        "manualPrerequisites": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "const": "compiled-bridge"
+              },
+              "kind": {
+                "const": "compiled-asset"
+              },
+              "target": {
+                "const": "public/agent-ui.js"
+              },
+              "status": {
+                "enum": [
+                  "missing",
+                  "ready"
+                ]
+              },
+              "hostPreparable": {
+                "const": true
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "target",
+              "status",
+              "hostPreparable"
+            ]
+          }
         }
       },
       "required": [
@@ -3245,6 +3298,33 @@
         "status",
         "recipeId",
         "checks",
+        "changedPaths"
+      ]
+    },
+    "integrationAssetPreparationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "const": "ready"
+        },
+        "recipeId": {
+          "type": "string"
+        },
+        "target": {
+          "const": "public/agent-ui.js"
+        },
+        "changedPaths": {
+          "type": "array",
+          "items": {
+            "const": "public/agent-ui.js"
+          }
+        }
+      },
+      "required": [
+        "status",
+        "recipeId",
+        "target",
         "changedPaths"
       ]
     }

@@ -24,6 +24,7 @@ ReadProjectControlOperation: TypeAlias = Literal[
 
 MutationProjectControlOperation: TypeAlias = Literal[
     "apply_agent_ui_integration",
+    "prepare_agent_ui_integration_asset",
     "mutate_app_ui_model",
     "repair_app_ui_model",
     "apply_agent_ui_source_item",

@@ -146,6 +146,13 @@
       "inputDef": "integrationRecipeInput",
       "resultDef": "integrationVerificationResult",
       "agentExposed": true
+    },
+    {
+      "name": "prepare_agent_ui_integration_asset",
+      "kind": "mutation",
+      "inputDef": "integrationApplyInput",
+      "resultDef": "integrationAssetPreparationResult",
+      "agentExposed": true
     }
   ]
 }

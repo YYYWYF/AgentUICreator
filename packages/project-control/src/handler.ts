@@ -1,4 +1,4 @@
-import { integrationOptionsSchema, integrationRecipeSchema, planIntegrationRecipe, applyIntegrationRecipe, verifyIntegrationRecipe } from "./project/integration-recipe";
+import { integrationOptionsSchema, integrationRecipeSchema, planIntegrationRecipe, applyIntegrationRecipe, prepareIntegrationRecipeAsset, verifyIntegrationRecipe } from "./project/integration-recipe";
 import { appUIRepairInputSchema, inspectAppUIModelSource, repairAppUIModel } from "./project/app-ui-recovery";
 import { acquireProjectControlLock } from "./project/project-control-lock";
 import { pluginPurgeInputSchema, purgeUIPlugin } from "./project/plugin-purge";
@@ -72,6 +72,7 @@ const inspectUISlotsInputSchema = z.union([
 export const requestSchema = z.discriminatedUnion("operation", [
   z.strictObject({ operation: z.literal("plan_agent_ui_integration"), input: integrationOptionsSchema }),
   z.strictObject({ operation: z.literal("apply_agent_ui_integration"), input: z.strictObject({ recipe: integrationRecipeSchema, cancelMarker: z.string().regex(creatorCancelMarkerSchemaPattern).optional() }) }),
+  z.strictObject({ operation: z.literal("prepare_agent_ui_integration_asset"), input: z.strictObject({ recipe: integrationRecipeSchema, cancelMarker: z.string().regex(creatorCancelMarkerSchemaPattern).optional() }) }),
   z.strictObject({ operation: z.literal("verify_agent_ui_integration"), input: z.strictObject({ recipe: integrationRecipeSchema }) }),
   z.strictObject({ operation: z.literal("purge_ui_plugin"), input: pluginPurgeInputSchema }),
   z.strictObject({
@@ -436,6 +437,7 @@ async function executeRequest(
   switch (request.operation) {
     case "plan_agent_ui_integration": return planIntegrationRecipe(projectRoot, request.input);
     case "apply_agent_ui_integration": return applyIntegrationRecipe(projectRoot, request.input.recipe, true, request.input.cancelMarker);
+    case "prepare_agent_ui_integration_asset": return prepareIntegrationRecipeAsset(projectRoot, request.input.recipe, true, request.input.cancelMarker);
     case "verify_agent_ui_integration": return verifyIntegrationRecipe(projectRoot, request.input.recipe);
   }
   const projectConfig = await readAgentUIProjectConfig(projectRoot);
@@ -551,8 +553,8 @@ export async function handleUIProjectControlRequest(
   let release: (() => Promise<void>) | undefined;
   try {
     const parsed = requestSchema.parse(input);
-    if (["plan_agent_ui_integration", "apply_agent_ui_integration", "verify_agent_ui_integration"].includes(parsed.operation)) {
-      if (parsed.operation === "apply_agent_ui_integration") release = await acquireProjectControlLock(projectRoot);
+    if (["plan_agent_ui_integration", "apply_agent_ui_integration", "prepare_agent_ui_integration_asset", "verify_agent_ui_integration"].includes(parsed.operation)) {
+      if (parsed.operation === "apply_agent_ui_integration" || parsed.operation === "prepare_agent_ui_integration_asset") release = await acquireProjectControlLock(projectRoot);
       const result = await executeRequest(parsed, projectRoot);
       validateProjectControlResult(parsed.operation, result);
       return { ok: true, result };

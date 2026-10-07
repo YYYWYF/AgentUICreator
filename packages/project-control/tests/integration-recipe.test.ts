@@ -1,5 +1,6 @@
-import { mkdtemp, mkdir, writeFile, readFile, readdir, rm, symlink } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, readFile, readdir, rm, symlink, stat } from "node:fs/promises";
 import path from "node:path";
+import { createHash } from "node:crypto";
 import os from "node:os";
 import { afterEach, expect, test } from "vitest";
 import { planIntegrationRecipe, applyIntegrationRecipe, verifyIntegrationRecipe } from "../src/project/integration-recipe";
@@ -105,4 +106,63 @@ test("a failed apply rolls back a newly prepared Bridge asset", async () => {
   await expect(applyIntegrationRecipe(root, planned)).rejects.toMatchObject({ code: "EEXIST" });
   await expect(readFile(path.join(root, "public/agent-ui.js"))).rejects.toMatchObject({ code: "ENOENT" });
   expect(await readFile(path.join(root, "src/App.vue"), "utf8")).toBe(planned.edits[1]!.before);
+});
+
+async function cleanManualFixture() {
+  const root = await fixture();
+  await rm(path.join(root, "public"), { recursive: true });
+  return root;
+}
+async function snapshot(root: string) {
+  const result: Record<string, string> = {};
+  for (const file of (await readdir(root, { recursive: true })).sort()) {
+    const absolute = path.join(root, file);
+    if ((await stat(absolute)).isFile()) result[file] = (await readFile(absolute)).toString("base64");
+  }
+  return result;
+}
+test("clean manual guide describes the missing compiled asset and only two code edits, without writes", async () => {
+  const root = await cleanManualFixture();
+  const before = await snapshot(root);
+  const response = await handleUIProjectControlRequest({ operation: "plan_agent_ui_integration", input: { targetFile: "src/App.vue" } }, root);
+  expect(response).toMatchObject({ ok: true, result: { status: "planned", integrationRecipe: {
+    manualPrerequisites: [{ id: "compiled-bridge", kind: "compiled-asset", target: "public/agent-ui.js", status: "missing", hostPreparable: true }],
+  } } });
+  const planned = await recipe(root);
+  expect(planned.edits.map(edit => edit.file)).toEqual(["src/components/AgentUIBridge.vue", "src/App.vue"]);
+  expect(JSON.stringify(planned).length).toBeLessThan(40_000);
+  expect(await snapshot(root)).toEqual(before);
+});
+test("manual asset preparation writes only the compiled asset and is idempotent", async () => {
+  const root = await cleanManualFixture();
+  const planned = await recipe(root);
+  const before = await snapshot(root);
+  const prepare = () => handleUIProjectControlRequest({ operation: "prepare_agent_ui_integration_asset", input: { recipe: planned } }, root);
+  expect(await prepare()).toMatchObject({ ok: true, result: { status: "ready", recipeId: planned.id, target: "public/agent-ui.js", changedPaths: ["public/agent-ui.js"] } });
+  const after = await snapshot(root);
+  const { "public/agent-ui.js": asset, ...unchanged } = after;
+  expect(asset).toBeTruthy();
+  expect(unchanged).toEqual(before);
+  expect((await recipe(root)).manualPrerequisites?.[0]?.status).toBe("ready");
+  expect(await prepare()).toMatchObject({ ok: true, result: { changedPaths: [] } });
+  expect(await snapshot(root)).toEqual(after);
+  expect((await verifyIntegrationRecipe(root, planned)).status).toBe("failed");
+});
+test("canonical manual edits verify with the original missing-asset recipe, with zero verify writes", async () => {
+  const root = await cleanManualFixture();
+  const original = await recipe(root);
+  expect(original.manualPrerequisites?.[0]?.status).toBe("missing");
+  expect(await handleUIProjectControlRequest({ operation: "prepare_agent_ui_integration_asset", input: { recipe: original } }, root)).toMatchObject({ ok: true });
+  for (const edit of original.edits) {
+    await mkdir(path.dirname(path.join(root, edit.file)), { recursive: true });
+    await writeFile(path.join(root, edit.file), edit.after);
+  }
+  const before = await snapshot(root);
+  expect(await handleUIProjectControlRequest({ operation: "verify_agent_ui_integration", input: { recipe: original } }, root)).toMatchObject({ ok: true, result: { status: "passed", recipeId: original.id, changedPaths: [] } });
+  expect(await snapshot(root)).toEqual(before);
+  // Existing conversations can keep recipes created before manualPrerequisites.
+  const { id: _id, manualPrerequisites: _prerequisites, ...body } = original;
+  const legacy = { id: createHash("sha256").update(JSON.stringify(body)).digest("hex"), ...body };
+  expect((await verifyIntegrationRecipe(root, legacy)).status).toBe("passed");
+  expect(await snapshot(root)).toEqual(before);
 });
