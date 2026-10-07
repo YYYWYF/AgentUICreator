@@ -46,3 +46,41 @@ export function useCreatorLocaleState() { return useContext(LocaleContext); }
 export function formatLocaleMessage(template: string, ...values: unknown[]): string {
   return template.replace(/\{(\d+)\}/g, (match, index: string) => Number(index) < values.length ? String(values[Number(index)]) : match);
 }
+
+const displayCopyPatterns = Object.values(CREATOR_LOCALES).flatMap(catalog =>
+  Object.entries(catalog).flatMap(([namespace, group]) => Object.entries(group).map(([key, text]) => {
+    const indices: number[] = [];
+    const fragments = text.split(/(\{\d+\})/g).map(fragment => {
+      const placeholder = /^\{(\d+)\}$/.exec(fragment);
+      if (placeholder) { indices.push(Number(placeholder[1])); return "([\\s\\S]*?)"; }
+      return fragment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    });
+    return { namespace, key, text, pattern: new RegExp("^" + fragments.join("") + "$"), indices };
+  })),
+);
+const exactDisplayCopy = new Map<string, (typeof displayCopyPatterns)[number]>();
+for (const entry of displayCopyPatterns) if (entry.indices.length === 0 && !exactDisplayCopy.has(entry.text)) exactDisplayCopy.set(entry.text, entry);
+const templatedDisplayCopy = displayCopyPatterns.filter(entry => entry.indices.length > 0 && (
+  entry.namespace === "mock" || entry.namespace === "pluginUpdates" ||
+  (entry.namespace === "creatorWorkbench" && ["refreshPartiallyCompletedCouldNotBeReadPlease", "initializationOutcomeUnconfirmedCouldNotRefreshProjectState"].includes(entry.key))
+));
+/** Re-project transient product notices when locale changes; never touch Agent or user content. */
+export function localizeCreatorPresentation(text: string | null | undefined, messages: CreatorLocaleMessages): string | null | undefined {
+  if (!text) return text;
+  const exact = exactDisplayCopy.get(text);
+  if (exact) {
+    const group = messages[exact.namespace as keyof CreatorLocaleMessages] as Record<string, string>;
+    return group[exact.key] ?? text;
+  }
+  for (const entry of templatedDisplayCopy) {
+    const match = entry.pattern.exec(text);
+    if (!match) continue;
+    const group = messages[entry.namespace as keyof CreatorLocaleMessages] as Record<string, string>;
+    const template = group[entry.key];
+    if (!template) return text;
+    const values: unknown[] = [];
+    entry.indices.forEach((index, capture) => { values[index] = match[capture + 1]; });
+    return formatLocaleMessage(template, ...values);
+  }
+  return text;
+}

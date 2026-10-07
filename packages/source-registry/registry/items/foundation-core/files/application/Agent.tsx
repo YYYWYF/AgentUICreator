@@ -1,3 +1,4 @@
+import { AGENT_UI_LOCALES } from "../agent-ui/i18n/locale-registry";
 import { AgentUILocaleBridge } from "../agent-ui/i18n/AgentUILocaleBridge";
 import { agentUILocaleConfig } from "../agent-ui/i18n/locale-config";
 import type { AgentUILocaleCode } from "../agent-ui/i18n/locale-types";
@@ -133,7 +134,7 @@ function AgentSurface({ composition, observability, frontendToolRuntime, locale,
   }, [observed, composition.appUIModelHash, observability]);
 
   const content = (
-    <AgentUILocaleProvider locale={locale ?? presentationLocale}>
+    <AgentUILocaleProvider locale={locale ?? presentationLocale} messages={AGENT_UI_LOCALES[locale ?? presentationLocale]}>
     <AgentRuntimeProvider runtime={agentRuntime}>
       <PluginServiceProvider
         actions={actions}

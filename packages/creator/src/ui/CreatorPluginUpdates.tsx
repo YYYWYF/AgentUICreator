@@ -1,4 +1,4 @@
-import { useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
+import { localizeCreatorPresentation, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowLeft, ArrowUpCircle, RefreshCw } from "lucide-react";
@@ -107,7 +107,7 @@ export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkReque
       </section> : null;
   const planFeedback = <>
     {working && !plan ? <p className="cui:flex cui:items-center cui:gap-2 cui:text-xs cui:text-muted-foreground" role="status"><RefreshCw aria-hidden="true" className="cui:size-3.5 cui:animate-spin" />{localeMessages.pluginUpdates.checkingUpdateContents}</p> : null}
-    {message ? <Alert role="status"><AlertDescription>{message}</AlertDescription></Alert> : null}
+    {message ? <Alert role="status"><AlertDescription>{localizeCreatorPresentation(message, localeMessages)}</AlertDescription></Alert> : null}
   </>;
   const notification = banner && !pageOpen ? <div className="creator-update-banner" role="status">
     <Button size="sm" variant="ghost" className="creator-update-entry" aria-label={localeMessages.pluginUpdates.viewUpdates} title={formatLocaleMessage(localeMessages.pluginUpdates.pluginsCanBeUpdated, updates.length)} onClick={() => setPageOpen(true)}>
@@ -119,7 +119,7 @@ export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkReque
   return <section className="creator-plugin-updates creator-ui-scope" aria-label={localeMessages.pluginUpdates.pluginUpdates}>
     {notificationTarget ? createPortal(notification, notificationTarget) : notification}
     {working && !pageOpen ? <p className="cui:flex cui:items-center cui:gap-2 cui:py-2 cui:text-xs cui:text-muted-foreground" role="status"><RefreshCw aria-hidden="true" className="cui:size-3.5 cui:animate-spin" />{localeMessages.pluginUpdates.checkingUpdates}</p> : null}
-    {message && (planTarget === null || !pageOpen) ? <Alert className="cui:my-2" role="status"><AlertDescription>{message}</AlertDescription></Alert> : null}
+    {message && (planTarget === null || !pageOpen) ? <Alert className="cui:my-2" role="status"><AlertDescription>{localizeCreatorPresentation(message, localeMessages)}</AlertDescription></Alert> : null}
     {pageOpen ? <div className="creator-update-page cui:space-y-3" aria-busy={working}>
       <header className="cui:flex cui:items-center cui:gap-2">
         <Button size="icon-sm" variant="ghost" aria-label={localeMessages.pluginUpdates.back} onClick={() => setPageOpen(false)}><ArrowLeft aria-hidden="true" /></Button>

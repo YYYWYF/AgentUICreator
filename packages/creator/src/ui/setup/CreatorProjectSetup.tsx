@@ -1,4 +1,4 @@
-import { useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "../i18n/locale.js";
+import { localizeCreatorPresentation, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "../i18n/locale.js";
 import type {
   CreatorProjectIssue,
   CreatorProjectMode,
@@ -73,7 +73,7 @@ export function CreatorProjectSetup({
         <p role="status">{localeMessages.setup.loadingInitializationOptions}</p>
       ) : infoState.status === "failed" || infoState.info === undefined ? (
         <div className="creator-project-setup-error" role="alert">
-          <p>{infoState.error ?? localeMessages.setup.couldNotLoadInitializationOptions}</p>
+          <p>{localizeCreatorPresentation(infoState.error, localeMessages) ?? localeMessages.setup.couldNotLoadInitializationOptions}</p>
           <Button size="sm" variant="outline" type="button" onClick={onRetryInfo}>{localeMessages.setup.retry}</Button>
         </div>
       ) : (
@@ -108,7 +108,7 @@ export function CreatorProjectSetup({
           {draft.error === null ? null : (
             <div className="creator-project-setup-error" role="alert">
               <strong>{draft.error.code === "AGENT_UI_PACKAGE_REQUIREMENTS_UNMET"
-                ? localeMessages.setup.missingOrIncompatibleAgentUIDependencies : draft.error.message}</strong>
+                ? localeMessages.setup.missingOrIncompatibleAgentUIDependencies : localizeCreatorPresentation(draft.error.message, localeMessages)}</strong>
               {draft.error.details === undefined ? null : (
                 <ul>{draft.error.details.map((issue, index) => (
                   <li key={`${issue.code}-${index}`}>{setupIssueMessage(issue, localeMessages)}{debug ? <code> {issue.code}</code> : null}</li>

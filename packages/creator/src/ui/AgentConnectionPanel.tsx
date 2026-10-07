@@ -1,4 +1,4 @@
-import { useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "./i18n/locale.js";
+import { localizeCreatorPresentation, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "./i18n/locale.js";
 import { useEffect, useRef, useState } from "react";
 import { CONNECTION_API, type AgentConnectionState } from "../agent-connection/types.js";
 import { CREATOR_WORKSPACE_ID_HEADER } from "../workspace/types.js";
@@ -57,7 +57,7 @@ export function AgentConnectionPanel({ workspaceId, visible }: { workspaceId: st
     </div>
     {state?.configured && <p className="cui:text-xs">{state.activeSource === "connected" ? localeMessages.agentConnection.currentlyUsingYourAgentService : localeMessages.agentConnection.currentlyUsingDemoAgentMock}</p>}
     {sourceBusy && <p role="status">{localeMessages.agentConnection.stopTheCurrentRunBeforeSwitchingAgentSources}</p>}
-    {error && <p role="alert">{error}</p>}
+    {error && <p role="alert">{localizeCreatorPresentation(error, localeMessages)}</p>}
     {!state && error && <Button size="sm" variant="outline" onClick={() => setRetry(value => value + 1)}>{localeMessages.agentConnection.reloadConnectionSettings}</Button>}
     <p className="cui:text-xs cui:text-muted-foreground">{localeMessages.agentConnection.theDeployedAppConnectsDirectlyToYourAgent}</p>
   </section>;

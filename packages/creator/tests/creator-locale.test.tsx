@@ -3,7 +3,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AgentConnectionPanel } from "../src/ui/AgentConnectionPanel.js";
-import { CreatorLocaleProvider, CREATOR_LOCALES, resolveCreatorLocaleMessages, formatLocaleMessage } from "../src/ui/i18n/locale.js";
+import { CreatorLocaleProvider, CREATOR_LOCALES, resolveCreatorLocaleMessages, formatLocaleMessage, localizeCreatorPresentation } from "../src/ui/i18n/locale.js";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 let root: Root | undefined;
@@ -26,6 +26,14 @@ describe("Creator presentation locale", () => {
     expect(container.querySelector("input")!.value).toBe("http://localhost:9000/draft");
     expect(container.querySelector("section")!.getAttribute("aria-label")).toBe("Agent connection settings");
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("re-projects transient notices while preserving unknown diagnostic text and inserted values", () => {
+    const messages = resolveCreatorLocaleMessages("en-US");
+    expect(localizeCreatorPresentation("Mock 地址已复制。", messages)).toBe("Mock address copied.");
+    expect(localizeCreatorPresentation("已选择 $&/{1}，下一次请求生效。", messages)).toBe("Selected $&/{1} for the next request.");
+    expect(localizeCreatorPresentation("CUSTOM_PROTOCOL_ERROR: 403", messages)).toBe("CUSTOM_PROTOCOL_ERROR: 403");
+    expect(localizeCreatorPresentation("custom output", resolveCreatorLocaleMessages("zh-CN"))).toBe("custom output");
   });
 
   it("falls back for missing translations and preserves placeholder values as data", () => {

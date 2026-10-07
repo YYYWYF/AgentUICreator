@@ -2,7 +2,7 @@
   "id": "assistant-ui-feedback-actions",
   "name": "Assistant UI Feedback Actions",
   "description": "Submits helpful or not helpful feedback for the response tail.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "conversation-assistant-response-action",
     "conversation-message-action"

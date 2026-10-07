@@ -3,6 +3,7 @@
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { assistantUiFeedbackActionsPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-feedback-actions/files/plugins/assistant-ui-feedback-actions/definition";
 import appUIJson from "../../../project-control/tests/fixtures/project/app-ui/app-ui.json";
 import { agentUILocaleConfig } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/locale-config";
 import { AGENT_UI_LOCALES, AGENT_UI_LOCALE_METADATA } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/locale-registry";
@@ -101,6 +102,31 @@ describe("Agent UI locale foundation", () => {
       )).toBe(true);
       expect(AGENT_UI_LOCALE_METADATA[locale].direction).toBe("ltr");
     }
+  });
+
+  it("admits feedback labels through its declared consumer scope", () => {
+    const runtime = new PluginServiceRuntime();
+    runtimes.push(runtime);
+    runtime.reconcile(model, createPluginRegistry([localeProviderPlugin]), actions);
+    function FeedbackLabelsProbe() {
+      const labels = useAgentUILocale("conversationFeedback");
+      return <span>{labels.helpful}</span>;
+    }
+    let renderer: ReactTestRenderer | undefined;
+    act(() => { renderer = create(
+      <PluginServiceRuntimeContext.Provider value={runtime}>
+        <PluginServiceConsumerContext.Provider value={{
+          pluginId: assistantUiFeedbackActionsPlugin.manifest.id, instanceId: "feedback-locale",
+          provides: assistantUiFeedbackActionsPlugin.provides ?? [],
+          inject: assistantUiFeedbackActionsPlugin.inject ?? [],
+          optionalInject: assistantUiFeedbackActionsPlugin.optionalInject ?? [],
+        }}><FeedbackLabelsProbe /></PluginServiceConsumerContext.Provider>
+      </PluginServiceRuntimeContext.Provider>,
+    ); });
+    renderers.push(renderer!);
+    expect(renderer!.toJSON()).toMatchObject({ children: [AGENT_UI_LOCALES["zh-CN"].conversationFeedback.helpful] });
+    act(() => runtime.get<AgentUILocaleService>(AGENT_UI_LOCALE_SERVICE)!.setLocale("en-US"));
+    expect(renderer!.toJSON()).toMatchObject({ children: ["Helpful"] });
   });
 
   it("updates stable snapshots and notifies only when locale changes", () => {

@@ -1,4 +1,5 @@
-import { useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
+import { useRef as useLocaleMessagesRef } from "react";
+import { localizeCreatorPresentation, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { FlaskConical, Copy, Check } from "lucide-react";
 import { Badge } from "./components/badge.js";
@@ -75,6 +76,8 @@ async function mockRequest(route = "", body?: unknown, signal?: AbortSignal, loc
 
 export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
   const localeMessages = useAgentUILocale();
+  const localeMessagesRef = useLocaleMessagesRef(localeMessages);
+  localeMessagesRef.current = localeMessages;
   const [state, setState] = useState<CreatorMockState | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -171,13 +174,13 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
       if (inFlight.current) return;
       const current = version.current;
       try {
-        const next = await mockRequest("", undefined, controller.signal, localeMessages);
+        const next = await mockRequest("", undefined, controller.signal, localeMessagesRef.current);
         if (!controller.signal.aborted && current === version.current) {
           setState(next); setError(null);
         }
       } catch (failure) {
         if (!controller.signal.aborted && current === version.current) {
-          setError(failure instanceof Error ? failure.message : localeMessages.mock.couldNotConnectToMockServiceControl);
+          setError(failure instanceof Error ? failure.message : localeMessagesRef.current.mock.couldNotConnectToMockServiceControl);
         }
       }
     };
@@ -232,7 +235,7 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
         <div className="creator-mock-heading"><FlaskConical aria-hidden="true" /><h2>{localeMessages.mock.mockAgent}</h2></div>
         <p>{localeMessages.mock.replayLocalMockRecordingsOrBuiltInDemos}</p>
       </header>
-      {error === null ? null : <div className="creator-mock-error" role="alert">{error}<Button size="sm" variant="outline" type="button" disabled={busy} onClick={() => setRetry((value) => value + 1)}>{localeMessages.mock.retryConnection}</Button></div>}
+      {error === null ? null : <div className="creator-mock-error" role="alert">{localizeCreatorPresentation(error, localeMessages)}<Button size="sm" variant="outline" type="button" disabled={busy} onClick={() => setRetry((value) => value + 1)}>{localeMessages.mock.retryConnection}</Button></div>}
       {state === null ? <p role="status">{localeMessages.mock.readingMockServiceState}</p> : <>
         <Card className="creator-mock-service" role="region" aria-label={localeMessages.mock.serviceControls}>
           <div className="creator-mock-service-actions">
@@ -261,7 +264,7 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
           </>}
           <p>{localeMessages.mock.theServiceKeepsRunningAfterClosingThePanel}</p>
         </Card>
-        <p className="creator-mock-notice" role="status">{notice}</p>
+        <p className="creator-mock-notice" role="status">{localizeCreatorPresentation(notice, localeMessages)}</p>
         <section aria-label={localeMessages.mock.chooseMockSource}>
           <h3>{localeMessages.mock.mockSource}</h3>
           <p className="creator-mock-current-demo">{localeMessages.mock.current}<strong>{localSelected ? (selectedRecording?.title ?? state.selection.id) : (selected ? titleFor(selected) : state.scenarioId)}</strong></p>
@@ -316,7 +319,7 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
                 <Button size="sm" variant="outline" type="button" disabled={busy || compatibility?.status !== "checked" || requirementsFor(scenario.id).length > 0}
                   onClick={() => void act("/select", { scenarioId: scenario.id, speed: state.speed }, formatLocaleMessage(localeMessages.mock.enabledSendAMessageInAgentUITo, titleFor(scenario)))}>{localeMessages.mock.runScenario}</Button>
               </div> : null}
-              {installation?.scenarioId === scenario.id ? <div className="creator-mock-install-status" data-status={installation.status} role={installation.status === "error" ? "alert" : "status"}>{installation.message}</div> : null}
+              {installation?.scenarioId === scenario.id ? <div className="creator-mock-install-status" data-status={installation.status} role={installation.status === "error" ? "alert" : "status"}>{localizeCreatorPresentation(installation.message, localeMessages)}</div> : null}
               {requirementsFor(scenario.id).some(requirement => !requirement.installable && requirement.status !== "conflict") ? <div className="creator-mock-install-status">{localeMessages.mock.thisCreatorHostDoesNotSupportOneClick}</div> : null}
               </div>
             </Fragment>)}

@@ -4,5 +4,11 @@
     "changes": [
       "Host adapter persistence with upstream optimistic selection."
     ]
+  },
+  "0.0.2": {
+    "summary": "Declare feedback presentation locale consumption",
+    "changes": [
+      "Allow the feedback UI to consume the shared optional locale service without a service permission error."
+    ]
   }
 }

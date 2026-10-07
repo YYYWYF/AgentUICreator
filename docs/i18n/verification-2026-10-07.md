@@ -11,8 +11,8 @@ real-Agent or deployed-backend acceptance was performed.
   messages include the public presentation defaults; these counts overlap.
 - Creator package build and typecheck; product React package build and typecheck,
   including public declaration and Lexical boundaries.
-- Working-tree Creator focused tests: 31 passed. Product locale/foundation/toolkit
-  and vendor guard tests: 26 passed. Source Registry loader/release fixtures:
+- Working-tree Creator focused tests: 32 passed. Product locale/foundation/toolkit
+  and vendor guard tests: 27 passed. Source Registry loader/release fixtures:
   7 passed. Current release descriptor resolution passed.
 - Isolated commit content: Creator build/typecheck and 16 focused tests passed;
   React build/typecheck and 25 focused tests passed before the additional file
@@ -49,3 +49,14 @@ were verified separately using installed dependencies.
 Unsupported pinned upstream copy remains documented in
 [upstream-localization-gaps.md](./upstream-localization-gaps.md). Agent messages,
 recording content, diagnostic details and protocol labels remain data.
+
+A follow-up keeps localized messages in refs for effects/cached callbacks, so
+language changes do not reload Creator state. Transient product notices are
+re-projected through known catalog entries; unknown diagnostics and Agent/user
+content stay unchanged. Controlled Agent locale is synchronized before paint.
+
+The existing pending two-line feedback locale dependency declaration was included
+as a required localization fix: the feedback UI already calls the generated
+namespace hook, and its consumer scope must declare that service. Both affected
+Plugins have patch source-version/changelog updates. Other pending changes remain
+uncommitted.

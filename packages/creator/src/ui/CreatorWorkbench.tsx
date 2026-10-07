@@ -1,4 +1,5 @@
-import { CreatorLocaleProvider, useCreatorLocaleState, type CreatorLocaleCode, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
+import { useRef as useLocaleMessagesRef } from "react";
+import { localizeCreatorPresentation, CreatorLocaleProvider, useCreatorLocaleState, type CreatorLocaleCode, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
 import { AgentConnectionPanel } from "./AgentConnectionPanel.js";
 import {
   memo,
@@ -1096,6 +1097,8 @@ function setupError(error: unknown): CreatorSetupError {
 
 function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workbench" }: CreatorWorkbenchProps) {
   const localeMessages = useAgentUILocale();
+  const localeMessagesRef = useLocaleMessagesRef(localeMessages);
+  localeMessagesRef.current = localeMessages;
   const creatorDebug = resolveCreatorDebugMode({
     hostname: window.location.hostname,
     search: window.location.search,
@@ -1205,12 +1208,12 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
     const loadWorkspace = async () => {
       setWorkspaceBusy(true);
       try {
-        let state = await getWorkspaceState(localeMessages);
+        let state = await getWorkspaceState(localeMessagesRef.current);
         if (state.status === "none") {
           const previousPath = rememberedWorkspacePath();
           if (previousPath !== null) {
             try {
-              state = await selectWorkspaceProject(previousPath, localeMessages);
+              state = await selectWorkspaceProject(previousPath, localeMessagesRef.current);
             } catch (error) {
               rememberWorkspacePath(null);
               if (active) setWorkspaceError(error instanceof Error ? error.message : String(error));
@@ -1291,7 +1294,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
       const controller = new AbortController();
       setupValidationRef.current.controller = controller;
       setSetupDraft((current) => ({ ...current, validation: { status: "validating" } }));
-      void validateWorkspaceSetup({ mode, sourceRoot }, controller.signal, localeMessages).then((result) => {
+      void validateWorkspaceSetup({ mode, sourceRoot }, controller.signal, localeMessagesRef.current).then((result) => {
         if (!isSetupRequestCurrent({ requestGeneration: generation, currentGeneration: setupValidationRef.current.generation,
           requestWorkspaceId: workspaceId, currentWorkspaceId: workspaceIdRef.current, aborted: controller.signal.aborted })) return;
         setSetupDraft((current) => ({ ...current, validation: {
@@ -2170,7 +2173,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
                       </form>
                     </details>
                   </div>
-                  {workspaceError === null ? null : <p role="alert">{workspaceError}</p>}
+                  {workspaceError === null ? null : <p role="alert">{localizeCreatorPresentation(workspaceError, localeMessages)}</p>}
                 </section>
               ) : null}
             </div>
