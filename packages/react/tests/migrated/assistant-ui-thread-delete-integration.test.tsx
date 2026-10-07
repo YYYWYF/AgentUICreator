@@ -10,6 +10,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ConversationRuntimeProvider, type ConversationAgentFactory } from "@agent-ui/runtime-conversation";
 import { createConversationServiceThreadBinding } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
 import { createMockConversationApiHandler } from "../../../mock-agent/src/conversations/handler";
+import { AGENT_UI_LOCALE_SERVICE } from "../../../source-registry/registry/items/foundation-core-application/files/services/agent-ui-locale";
+import { createAgentUILocaleService } from "../../../source-registry/registry/items/plugin-locale-provider/files/plugins/locale-provider/locale-service";
+import { enUS } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/locales/en-US";
 import { zhCN } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/locales/zh-CN";
 import { PolicyThreadList } from "../../../source-registry/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/PolicyThreadList";
 import { createConversationService, createHttpConversationDataSource } from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations";
@@ -22,7 +25,7 @@ const localeModel = parseAppUIRuntimeModel({
   root: { type: "slot", id: "thread-delete-root", slotId: "thread-list" },
   pluginInstances: { "locale-provider-main": { id: "locale-provider-main", pluginId: "locale-provider", enabled: true } },
 });
-const localeRegistry = createPluginRegistry([localeProviderPlugin]);
+
 const actions = { sendMessage: async () => undefined, resumeInterrupts: async () => undefined, startNewConversation: async () => undefined, abortRun: () => undefined };
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -64,7 +67,10 @@ async function settleUntil(condition: () => boolean) {
   throw new Error("Thread List interaction did not settle.");
 }
 
-async function mount() {
+async function mount(locale: "zh-CN" | "en-US" = "zh-CN") {
+  const localeRegistry = createPluginRegistry([{ ...localeProviderPlugin, setup: ({ services }) => {
+    services.provide(AGENT_UI_LOCALE_SERVICE, createAgentUILocaleService(locale));
+  } }]);
   const dataSource = createHttpConversationDataSource({ endpoint });
   const remove = vi.spyOn(dataSource, "delete");
   const service = createConversationService({ dataSource });
@@ -95,7 +101,7 @@ async function mount() {
         <Capture />
         <PluginServiceProvider model={localeModel} registry={localeRegistry} actions={actions}>
         <AgentUIRoot theme="violet">
-          <PolicyThreadList labels={zhCN.threadList} />
+          <PolicyThreadList labels={(locale === "zh-CN" ? zhCN : enUS).threadList} />
         </AgentUIRoot>
         </PluginServiceProvider>
       </ConversationRuntimeProvider>,
@@ -177,4 +183,15 @@ describe("assistant-ui native Thread Delete persistence", () => {
       expect(fixture.agentFactory.mock.calls.some(([input]) => input.threadId === fixture.binding.getThreadId())).toBe(true);
     }
   });
+});
+
+it.each([
+  ["zh-CN", "新建会话", "搜索会话"],
+  ["en-US", "New Thread", "Search threads"],
+] as const)("localizes Thread List controls in %s", async (locale, newThread, search) => {
+  const { container } = await mount(locale);
+  expect(Array.from(container.querySelectorAll("button")).some(button => button.textContent?.trim() === newThread)).toBe(true);
+  const input = container.querySelector("input")!;
+  expect(input.placeholder).toBe(search);
+  expect(input.getAttribute("aria-label")).toBe(search);
 });

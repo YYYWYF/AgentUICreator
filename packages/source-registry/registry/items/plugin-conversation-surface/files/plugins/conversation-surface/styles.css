@@ -1,5 +1,6 @@
 .conversation-surface-plugin {
   position: relative;
+  container-type: inline-size;
   width: 100%;
   height: 100%;
   min-width: 0;
@@ -28,4 +29,27 @@
   align-items: center;
   gap: 0.5rem;
   pointer-events: auto;
+}
+
+@container (max-width: 44rem) {
+  .conversation-surface-plugin > .agent-ui-conversation {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .conversation-surface-header-actions {
+    position: relative;
+    inset: auto;
+    z-index: auto;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    max-width: none;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem 0;
+  }
+
+  .conversation-surface-header-actions > .app-ui-plugin-slot-width-probe,
+  .conversation-surface-header-actions .app-ui-plugin-slot-content {
+    flex-wrap: wrap;
+  }
 }

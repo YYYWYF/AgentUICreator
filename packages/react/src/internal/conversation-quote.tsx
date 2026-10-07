@@ -18,7 +18,9 @@ export function InternalConversationComposerQuotePreview({ dismissLabel }: { dis
 }
 export function InternalConversationQuoteSelectionToolbar({ quoteLabel }: { quoteLabel: string }) {
   const root = useThreadRootElementRef();
-  const disabled = useAuiState(s => s.thread.isDisabled || s.thread.isLoading || s.thread.composer.isEditing);
+  // A thread composer is always editing (it accepts a new draft). That flag
+  // does not indicate a historical message edit and must not suppress Quote.
+  const disabled = useAuiState(s => s.thread.isDisabled || s.thread.isLoading);
   if (disabled || root === null) return null;
   return <SelectionToolbar.Root><SelectionToolbar.Quote><QuoteIcon className="size-3.5" />{quoteLabel}</SelectionToolbar.Quote></SelectionToolbar.Root>;
 }

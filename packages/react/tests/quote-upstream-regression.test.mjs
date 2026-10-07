@@ -20,8 +20,13 @@ it("mechanically adapts the frozen selection fixtures without changing their alg
     expect(adapted).toBe(installed);
     if (entry.localPath === "quote-selection-message-id.ts") expect(adapted).toBe(source);
     if (entry.localPath === "quote-selection-root.tsx") {
+      // Strip the declared test-only observation; the full upstream selection
+      // algorithm and event lifecycle must still match, including scroll.
+      const withoutObservation = adapted
+        .replace(/        if \(onSelectionDiagnostic\) \{[\s\S]*?\n        \}\n/u, "")
+        .replace("[threadRootRef, portalContainer, onSelectionDiagnostic]", "[threadRootRef]");
       const begin = value => value.slice(value.indexOf("    // Read the selection"), value.indexOf("  if (!info"));
-      expect(begin(adapted)).toBe(begin(source));
+      expect(begin(withoutObservation)).toBe(begin(source));
       expect(adapted).toContain("    portalContainer,");
       expect(adapted).not.toContain("    document.body,");
     }

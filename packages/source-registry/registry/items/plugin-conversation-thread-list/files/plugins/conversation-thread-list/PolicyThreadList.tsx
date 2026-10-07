@@ -127,15 +127,17 @@ const PolicyThreadListItems: FC<{ searchQuery?: string }> = ({
 };
 
 export function PolicyThreadList({ labels }: { labels: ConversationThreadListItemLabels }) {
+  const messages = useAgentUILocale("threadList");
   const [search, setSearch] = useState("");
   const hasThreads = useConversationState((s) => s.threads.threadIds.length > 0);
 
   return (
     <ThreadListLabelsContext.Provider value={labels}>
       <ConversationThreadListRoot>
-        <ConversationThreadListNew />
+        <ConversationThreadListNew>{messages.newThread}</ConversationThreadListNew>
         {hasThreads && (
-          <ConversationThreadListSearch value={search} onValueChange={setSearch} />
+          <ConversationThreadListSearch value={search} onValueChange={setSearch}
+            placeholder={messages.search} aria-label={messages.search} />
         )}
         <PolicyThreadListItems searchQuery={hasThreads ? search : ""} />
       </ConversationThreadListRoot>

@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 
 test("keeps ordinary Host globals outside Agent UI and preserves Host probes", async ({ page }) => {
@@ -86,3 +87,35 @@ test("mounts Tooltip, Popover and Dialog within the themed Portal boundary", asy
   expect(buttonBackgrounds).toHaveLength(2);
   expect(buttonBackgrounds[0]).not.toBe(buttonBackgrounds[1]);
 });
+
+// Isolated geometry regression for the product Surface stylesheet. Multiple
+// action consumers must wrap without covering either messages or the composer.
+for (const viewportWidth of [390, 1440]) {
+  test(`narrow Surface reserves flowing header space in a ${viewportWidth}px Host`, async ({ page }) => {
+    await page.setViewportSize({ width: viewportWidth, height: 844 });
+    const css = readFileSync(new URL("../../../packages/source-registry/registry/items/plugin-conversation-surface/files/plugins/conversation-surface/styles.css", import.meta.url), "utf8");
+    await page.setContent(`<style>
+      * { box-sizing: border-box; }
+      .agent-ui-conversation { height: 100%; display: flex; flex-direction: column; }
+      .message-viewport { flex: 1; min-height: 0; overflow: auto; }
+      .fixture-action { min-width: 140px; height: 44px; }
+      ${css}
+    </style><div class="conversation-surface-plugin" style="width:360px;height:600px">
+      <div class="conversation-surface-header-actions">
+        <div class="app-ui-plugin-slot-width-probe"><div class="app-ui-plugin-slot-content">
+          <button class="fixture-action">Action A</button><button class="fixture-action">Action B</button><button class="fixture-action">Action C</button>
+        </div></div>
+      </div>
+      <div class="agent-ui-conversation"><div class="message-viewport">
+        <article data-message-id="first">Assistant fixture text</article>
+      </div><div data-test-composer style="height:80px;flex-shrink:0">Composer fixture</div></div>
+    </div>`);
+    const header = await page.locator(".conversation-surface-header-actions").boundingBox();
+    const firstMessage = await page.locator('[data-message-id="first"]').boundingBox();
+    const composer = await page.locator("[data-test-composer]").boundingBox();
+    const surface = await page.locator(".conversation-surface-plugin").boundingBox();
+    expect(header).not.toBeNull(); expect(firstMessage).not.toBeNull();
+    expect(header!.y + header!.height).toBeLessThanOrEqual(firstMessage!.y);
+    expect(composer!.y + composer!.height).toBeLessThanOrEqual(surface!.y + surface!.height);
+  });
+}

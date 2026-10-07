@@ -37,6 +37,7 @@ const QUOTE_SELECTION_ADAPTATIONS = [
   "Public useAui import and local context preserve captured selection/setQuote semantics.",
   "Canonical Thread supplies the identical DOM root ref without importing a private upstream context.",
   "Only selection behavior change: portal target is AgentUIRoot; absence of its container renders nothing.",
+  "An optional internal test callback observes selection gates without changing validation or event behavior.",
 ];
 const COMPOSE_EVENT_HANDLERS = `function composeEventHandlers<E extends { defaultPrevented: boolean }>(first: ((event: E) => void) | undefined, second: (event: E) => void) {
   return (event: E) => { first?.(event); if (!event.defaultPrevented) second(event); };
@@ -70,6 +71,36 @@ export function adaptQuoteSelectionSource(source, localPath) {
       '  const portalContainer = useAgentUIPortalContainer();\n  const [info, setInfo] = useState<SelectionInfo | null>(null);');
     replace('  if (!info) return null;', '  if (!info || !portalContainer) return null;');
     replace('    document.body,', '    portalContainer,');
+    // Internal, opt-in test observation; no logging or public facade API.
+    replace('  export type Props = ComponentPropsWithoutRef<typeof Primitive.div>;',
+      `  export type Props = ComponentPropsWithoutRef<typeof Primitive.div> & {
+    onSelectionDiagnostic?: (gates: {
+      selectionExists: boolean; textNonEmpty: boolean;
+      threadRefExists: boolean; threadElementExists: boolean;
+      rootContainsMessage: boolean; messageId: string | null;
+      portalExists: boolean; infoWillBeSet: boolean;
+    }) => void;
+  };`);
+    replace('>(({ onMouseDown, style, ...props }, forwardedRef) => {',
+      '>(({ onMouseDown, style, onSelectionDiagnostic, ...props }, forwardedRef) => {');
+    replace('        const sel = window.getSelection();', `        const sel = window.getSelection();
+        if (onSelectionDiagnostic) {
+          const node = sel?.anchorNode;
+          const element = node instanceof Element ? node : node?.parentElement;
+          const message = element?.closest("[data-message-id]");
+          const messageId = sel && !sel.isCollapsed
+            ? getSelectionMessageId(sel, threadRootRef?.current) : null;
+          const textNonEmpty = !!sel?.toString().trim();
+          onSelectionDiagnostic({
+            selectionExists: !!sel && !sel.isCollapsed, textNonEmpty,
+            threadRefExists: !!threadRootRef, threadElementExists: !!threadRootRef?.current,
+            rootContainsMessage: !!message && !!threadRootRef?.current?.contains(message),
+            messageId, portalExists: !!portalContainer,
+            infoWillBeSet: textNonEmpty && !!messageId,
+          });
+        }`);
+    replace('  }, [threadRootRef]);', '  }, [threadRootRef, portalContainer, onSelectionDiagnostic]);');
+
   } else {
     replace('import { useAui } from "@assistant-ui/store";', 'import { useAui } from "@assistant-ui/react";');
     replace('import { useSelectionToolbarInfo } from "./SelectionToolbarRoot";',

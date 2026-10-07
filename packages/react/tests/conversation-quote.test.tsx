@@ -56,6 +56,7 @@ async function mount(disabled = false) {
 }
 it("selects inside the scoped Portal, dismisses, sends quote context for every turn and retains history after removal", async () => {
   const { host, requests, runtime, select, remove } = await mount();
+  expect(runtime.thread.composer.getState().isEditing).toBe(true);
   await select();
   const toolbar = host.querySelector('[data-slot="selection-toolbar"]')!;
   expect(toolbar.closest("[data-agent-ui-portal-root]")).not.toBeNull();
@@ -102,4 +103,18 @@ it("clears the captured Thread A composer on switching to B without clearing B's
   await act(async () => { await runtime.threads.switchToThread("B"); });
   expect(composerA.getState().quote).toBeUndefined();
   expect(composerB.getState().quote).toEqual(quoteB);
+});
+
+it("shows Quote for an ordinary editing composer, previews and dismisses it", async () => {
+  const { host, runtime, select } = await mount();
+  expect(runtime.thread.composer.getState().isEditing).toBe(true);
+  await select();
+  const toolbar = host.querySelector('[data-slot="selection-toolbar"]');
+  expect(toolbar).not.toBeNull();
+  expect(toolbar!.closest("[data-agent-ui-portal-root]")).not.toBeNull();
+  await act(async () => (toolbar!.querySelector("button") as HTMLButtonElement).click());
+  expect(host.querySelector('[data-slot="composer-quote"]')!.textContent).toContain("Actions simplify");
+  await act(async () => (host.querySelector('[aria-label="Dismiss quote"]') as HTMLButtonElement).click());
+  expect(runtime.thread.composer.getState().quote).toBeUndefined();
+  expect(host.querySelector('[data-slot="composer-quote"]')).toBeNull();
 });

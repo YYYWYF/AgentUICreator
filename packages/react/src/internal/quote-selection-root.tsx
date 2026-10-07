@@ -35,7 +35,14 @@ export const useSelectionToolbarInfo = () =>
 
 export namespace SelectionToolbarPrimitiveRoot {
   export type Element = ComponentRef<typeof Primitive.div>;
-  export type Props = ComponentPropsWithoutRef<typeof Primitive.div>;
+  export type Props = ComponentPropsWithoutRef<typeof Primitive.div> & {
+    onSelectionDiagnostic?: (gates: {
+      selectionExists: boolean; textNonEmpty: boolean;
+      threadRefExists: boolean; threadElementExists: boolean;
+      rootContainsMessage: boolean; messageId: string | null;
+      portalExists: boolean; infoWillBeSet: boolean;
+    }) => void;
+  };
 }
 
 /**
@@ -55,7 +62,7 @@ export namespace SelectionToolbarPrimitiveRoot {
 export const SelectionToolbarPrimitiveRoot = forwardRef<
   SelectionToolbarPrimitiveRoot.Element,
   SelectionToolbarPrimitiveRoot.Props
->(({ onMouseDown, style, ...props }, forwardedRef) => {
+>(({ onMouseDown, style, onSelectionDiagnostic, ...props }, forwardedRef) => {
   const portalContainer = useAgentUIPortalContainer();
   const [info, setInfo] = useState<SelectionInfo | null>(null);
   const threadRootRef = useThreadRootElementRef();
@@ -71,6 +78,21 @@ export const SelectionToolbarPrimitiveRoot = forwardRef<
       pendingFrame = requestAnimationFrame(() => {
         pendingFrame = null;
         const sel = window.getSelection();
+        if (onSelectionDiagnostic) {
+          const node = sel?.anchorNode;
+          const element = node instanceof Element ? node : node?.parentElement;
+          const message = element?.closest("[data-message-id]");
+          const messageId = sel && !sel.isCollapsed
+            ? getSelectionMessageId(sel, threadRootRef?.current) : null;
+          const textNonEmpty = !!sel?.toString().trim();
+          onSelectionDiagnostic({
+            selectionExists: !!sel && !sel.isCollapsed, textNonEmpty,
+            threadRefExists: !!threadRootRef, threadElementExists: !!threadRootRef?.current,
+            rootContainsMessage: !!message && !!threadRootRef?.current?.contains(message),
+            messageId, portalExists: !!portalContainer,
+            infoWillBeSet: textNonEmpty && !!messageId,
+          });
+        }
         if (!sel || sel.isCollapsed) {
           setInfo(null);
           return;
@@ -160,7 +182,7 @@ export const SelectionToolbarPrimitiveRoot = forwardRef<
       document.removeEventListener("selectionchange", handleSelectionChange);
       document.removeEventListener("scroll", handleScroll, true);
     };
-  }, [threadRootRef]);
+  }, [threadRootRef, portalContainer, onSelectionDiagnostic]);
 
   if (!info || !portalContainer) return null;
 
