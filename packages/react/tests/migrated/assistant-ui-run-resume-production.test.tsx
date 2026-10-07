@@ -67,7 +67,7 @@ function Fixture({ provider, conversation, onBinding, onRuntime, onError, runAge
   useEffect(() => binding.attachConversationService(conversation), [binding, conversation]);
   return <ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding}
     onError={onError}
-    unstable_agentFactory={({ threadId }) => ({ threadId, runAgent, abortRun: vi.fn(),
+    unstable_agentFactory={({ threadId }) => ({ threadId, runAgent, use() { return this; }, abortRun: vi.fn(),
       subscribe: () => ({ unsubscribe: () => {} }) }) as never}>
     <Capture onRuntime={onRuntime} />
     <DataMessageUIRegistration definition={agentPlanActivityMessageUI} />
@@ -210,24 +210,23 @@ describe("generated Agent thread identity and resume provider lifecycle", () => 
         });
       });
       expect(element.textContent).toContain("Workspace update");
-      expect(element.textContent).toContain("Read the active source.");
+      // Upstream displays the description of the active step only.
+      expect(element.textContent).toContain("Apply the requested changes.");
       expect(element.textContent).toContain("Test not started");
 
-      await act(async () => {
-        releaseSecondUpdate();
-        await vi.waitFor(() => {
+      releaseSecondUpdate();
+      await vi.waitFor(async () => {
+        await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
           expect(element.textContent).toContain("2 of 3");
-          expect(element.textContent).toContain("Test in progress");
-        });
+        expect(element.textContent).toContain("Test in progress");
       });
       expect(element.querySelectorAll('[data-slot="agent-plan"]')).toHaveLength(1);
 
-      await act(async () => {
-        releaseThirdUpdate();
-        await vi.waitFor(() => {
+      releaseThirdUpdate();
+      await vi.waitFor(async () => {
+        await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
           expect(element.textContent).toContain("3 of 3");
-          expect(element.textContent).toContain("Test done");
-        });
+        expect(element.textContent).toContain("Test done");
       });
       expect(element.querySelectorAll('[data-slot="agent-plan"]')).toHaveLength(1);
 

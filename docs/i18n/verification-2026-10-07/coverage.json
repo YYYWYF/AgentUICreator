@@ -1,0 +1,2084 @@
+{
+  "date": "2026-10-07",
+  "verdict": "BLOCKED",
+  "visualAcceptance": "NOT_SIGNED",
+  "reason": "Automated results do not constitute full visual acceptance. Known localization gaps and remaining action/state coverage require review.",
+  "releasePlugins": 36,
+  "visualPlugins": 31,
+  "headlessPlugins": 5,
+  "projects": [
+    "zh-CN-desktop",
+    "zh-CN-narrow",
+    "en-US-desktop",
+    "en-US-narrow"
+  ],
+  "testStats": {
+    "startTime": "2026-10-07T05:04:26.515Z",
+    "duration": 158244.054,
+    "expected": 84,
+    "skipped": 0,
+    "unexpected": 4,
+    "flaky": 0
+  },
+  "screenshotCount": 156,
+  "failures": [
+    {
+      "title": "quote selection and preview",
+      "project": "zh-CN-desktop",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts",
+            "column": 92,
+            "line": 182
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-slot=\"selection-toolbar-quote\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('[data-slot=\"selection-toolbar-quote\"]') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-slot=\"selection-toolbar-quote\"]')\u001b[22m\n\n\n  180 |   await content.locator('p').first().dblclick();\n  181 |   await info.attach(\"quote-selection\", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot=\"selection-toolbar-quote\"]').length }; }), null, 2), contentType: \"application/json\" });\n> 182 |   const quote = page.locator('[data-slot=\"selection-toolbar-quote\"]'); await expect(quote).toBeVisible(); await quote.click();\n      |                                                                                            ^\n  183 |   await expect(page.locator('[data-slot=\"composer-quote\"]')).toBeVisible();\n  184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:\"disabled\"});\n  185 | });\n    at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92"
+        }
+      ]
+    },
+    {
+      "title": "quote selection and preview",
+      "project": "zh-CN-narrow",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts",
+            "column": 92,
+            "line": 182
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-slot=\"selection-toolbar-quote\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('[data-slot=\"selection-toolbar-quote\"]') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-slot=\"selection-toolbar-quote\"]')\u001b[22m\n\n\n  180 |   await content.locator('p').first().dblclick();\n  181 |   await info.attach(\"quote-selection\", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot=\"selection-toolbar-quote\"]').length }; }), null, 2), contentType: \"application/json\" });\n> 182 |   const quote = page.locator('[data-slot=\"selection-toolbar-quote\"]'); await expect(quote).toBeVisible(); await quote.click();\n      |                                                                                            ^\n  183 |   await expect(page.locator('[data-slot=\"composer-quote\"]')).toBeVisible();\n  184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:\"disabled\"});\n  185 | });\n    at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92"
+        }
+      ]
+    },
+    {
+      "title": "quote selection and preview",
+      "project": "en-US-desktop",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts",
+            "column": 92,
+            "line": 182
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-slot=\"selection-toolbar-quote\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('[data-slot=\"selection-toolbar-quote\"]') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-slot=\"selection-toolbar-quote\"]')\u001b[22m\n\n\n  180 |   await content.locator('p').first().dblclick();\n  181 |   await info.attach(\"quote-selection\", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot=\"selection-toolbar-quote\"]').length }; }), null, 2), contentType: \"application/json\" });\n> 182 |   const quote = page.locator('[data-slot=\"selection-toolbar-quote\"]'); await expect(quote).toBeVisible(); await quote.click();\n      |                                                                                            ^\n  183 |   await expect(page.locator('[data-slot=\"composer-quote\"]')).toBeVisible();\n  184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:\"disabled\"});\n  185 | });\n    at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92"
+        }
+      ]
+    },
+    {
+      "title": "quote selection and preview",
+      "project": "en-US-narrow",
+      "status": "unexpected",
+      "errors": [
+        {
+          "location": {
+            "file": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts",
+            "column": 92,
+            "line": 182
+          },
+          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-slot=\"selection-toolbar-quote\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('[data-slot=\"selection-toolbar-quote\"]') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-slot=\"selection-toolbar-quote\"]')\u001b[22m\n\n\n  180 |   await content.locator('p').first().dblclick();\n  181 |   await info.attach(\"quote-selection\", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot=\"selection-toolbar-quote\"]').length }; }), null, 2), contentType: \"application/json\" });\n> 182 |   const quote = page.locator('[data-slot=\"selection-toolbar-quote\"]'); await expect(quote).toBeVisible(); await quote.click();\n      |                                                                                            ^\n  183 |   await expect(page.locator('[data-slot=\"composer-quote\"]')).toBeVisible();\n  184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:\"disabled\"});\n  185 | });\n    at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92"
+        }
+      ]
+    }
+  ],
+  "coverage": [
+    {
+      "id": "agent-plan-message",
+      "classification": "visual",
+      "cases": [
+        "agent-plan"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: agent-plan",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: agent-plan",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: agent-plan",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: agent-plan",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "agent-status-message",
+      "classification": "visual",
+      "cases": [
+        "agent-status"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: agent-status",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: agent-status",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: agent-status",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: agent-status",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "assistant-ui-add-attachment-action",
+      "classification": "visual",
+      "cases": [
+        "mention empty"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "assistant-ui-composer",
+      "classification": "visual",
+      "cases": [
+        "empty",
+        "locale switch"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: empty",
+              "status": "expected"
+            },
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: empty",
+              "status": "expected"
+            },
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: empty",
+              "status": "expected"
+            },
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: empty",
+              "status": "expected"
+            },
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "assistant-ui-copy-action",
+      "classification": "visual",
+      "cases": [
+        "simple-chat"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Visible idle control; clipboard success/error not exercised."
+    },
+    {
+      "id": "assistant-ui-dictation-action",
+      "classification": "visual",
+      "cases": [
+        "mention empty"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Deterministic Host adapter; real microphone/browser permission behavior not tested."
+    },
+    {
+      "id": "assistant-ui-export-markdown-action",
+      "classification": "visual",
+      "cases": [
+        "mention empty"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Localized menu and viewport/theme boundary tested; downloaded file content not checked."
+    },
+    {
+      "id": "assistant-ui-feedback-actions",
+      "classification": "visual",
+      "cases": [
+        "simple-chat",
+        "mention empty"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            },
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            },
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            },
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            },
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Host adapter makes controls available; persistence success/error not exercised."
+    },
+    {
+      "id": "assistant-ui-lexical-composer-input",
+      "classification": "visual",
+      "cases": [
+        "locale switch",
+        "mention empty"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "assistant-ui-lexical-edit-composer",
+      "classification": "visual",
+      "cases": [
+        "mention empty"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "assistant-ui-mention-trigger",
+      "classification": "visual",
+      "cases": [
+        "mention empty",
+        "locale switch"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "assistant-ui-message-footer",
+      "classification": "visual",
+      "cases": [
+        "compatibility message footer"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "compatibility message footer renders canonical actions",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "compatibility message footer renders canonical actions",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "compatibility message footer renders canonical actions",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "compatibility message footer renders canonical actions",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "assistant-ui-reasoning",
+      "classification": "visual",
+      "cases": [
+        "reasoning-tool-success",
+        "tool-long-running"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: reasoning-tool-success",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: tool-long-running",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: reasoning-tool-success",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: tool-long-running",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: reasoning-tool-success",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: tool-long-running",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: reasoning-tool-success",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: tool-long-running",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "assistant-ui-reload-action",
+      "classification": "visual",
+      "cases": [
+        "simple-chat"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Visible control; regeneration/branch persistence not exercised."
+    },
+    {
+      "id": "assistant-ui-response-footer",
+      "classification": "visual",
+      "cases": [
+        "simple-chat",
+        "theme, command",
+        "mention empty"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            },
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            },
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            },
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            },
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            },
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            },
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            },
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            },
+            {
+              "title": "mention empty popover, attachments, dictation, edit and export menu",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "assistant-ui-slash-command-trigger",
+      "classification": "visual",
+      "cases": [
+        "theme, command",
+        "locale switch"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "assistant-ui-submit-action",
+      "classification": "visual",
+      "cases": [
+        "empty",
+        "simple-chat",
+        "tool-long-running"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: empty",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: tool-long-running",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: empty",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: tool-long-running",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: empty",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: tool-long-running",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: empty",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: tool-long-running",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "assistant-ui-tool-fallback",
+      "classification": "visual",
+      "cases": [
+        "tool-error",
+        "reasoning-tool-success"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: reasoning-tool-success",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: tool-error",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: reasoning-tool-success",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: tool-error",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: reasoning-tool-success",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: tool-error",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: reasoning-tool-success",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: tool-error",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "assistant-ui-tool-group",
+      "classification": "visual",
+      "cases": [
+        "tool-error",
+        "tool-long-running"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: tool-error",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: tool-long-running",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: tool-error",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: tool-long-running",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: tool-error",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: tool-long-running",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: tool-error",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: tool-long-running",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "chart-message",
+      "classification": "visual",
+      "cases": [
+        "data-message-chart"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: data-message-chart",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: data-message-chart",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: data-message-chart",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: data-message-chart",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "conversation-command-source",
+      "classification": "headless-integration",
+      "cases": [
+        "theme, command",
+        "locale switch"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Source/locale identities and command popover tested; executing /new not checked."
+    },
+    {
+      "id": "conversation-data-source",
+      "classification": "headless-integration",
+      "cases": [
+        "thread history",
+        "thread loading"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "thread history selection survives locale switch and More stays in theme boundary",
+              "status": "expected"
+            },
+            {
+              "title": "thread loading and error evidence",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "thread history selection survives locale switch and More stays in theme boundary",
+              "status": "expected"
+            },
+            {
+              "title": "thread loading and error evidence",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "thread history selection survives locale switch and More stays in theme boundary",
+              "status": "expected"
+            },
+            {
+              "title": "thread loading and error evidence",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "thread history selection survives locale switch and More stays in theme boundary",
+              "status": "expected"
+            },
+            {
+              "title": "thread loading and error evidence",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "conversation-quote",
+      "classification": "visual",
+      "cases": [
+        "quote selection"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "quote selection and preview",
+              "status": "unexpected"
+            }
+          ],
+          "status": "BLOCKED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "quote selection and preview",
+              "status": "unexpected"
+            }
+          ],
+          "status": "BLOCKED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "quote selection and preview",
+              "status": "unexpected"
+            }
+          ],
+          "status": "BLOCKED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "quote selection and preview",
+              "status": "unexpected"
+            }
+          ],
+          "status": "BLOCKED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "conversation-service",
+      "classification": "headless-integration",
+      "cases": [
+        "thread history",
+        "locale switch"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "thread history selection survives locale switch and More stays in theme boundary",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "thread history selection survives locale switch and More stays in theme boundary",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "thread history selection survives locale switch and More stays in theme boundary",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "thread history selection survives locale switch and More stays in theme boundary",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "conversation-suggestions",
+      "classification": "visual",
+      "cases": [
+        "empty"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: empty",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: empty",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: empty",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: empty",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "All stock suggestions captured; custom Host suggestions remain data."
+    },
+    {
+      "id": "conversation-surface",
+      "classification": "visual",
+      "cases": [
+        "empty",
+        "simple-chat",
+        "markdown-showcase"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: empty",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: markdown-showcase",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: empty",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: markdown-showcase",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: empty",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: markdown-showcase",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: empty",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: simple-chat",
+              "status": "expected"
+            },
+            {
+              "title": "surface evidence: markdown-showcase",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "conversation-thread-list",
+      "classification": "visual",
+      "cases": [
+        "thread history",
+        "thread loading"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "thread history selection survives locale switch and More stays in theme boundary",
+              "status": "expected"
+            },
+            {
+              "title": "thread loading and error evidence",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "thread history selection survives locale switch and More stays in theme boundary",
+              "status": "expected"
+            },
+            {
+              "title": "thread loading and error evidence",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "thread history selection survives locale switch and More stays in theme boundary",
+              "status": "expected"
+            },
+            {
+              "title": "thread loading and error evidence",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "thread history selection survives locale switch and More stays in theme boundary",
+              "status": "expected"
+            },
+            {
+              "title": "thread loading and error evidence",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Known visible zh-CN gaps: New Thread and Search threads. Service loading is captured; skeleton is not displayed while HTTP list is pending."
+    },
+    {
+      "id": "generated-file-message",
+      "classification": "visual",
+      "cases": [
+        "file-output"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: file-output",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: file-output",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: file-output",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: file-output",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "URL file card captured; encoded/media variants and downloads not tested."
+    },
+    {
+      "id": "job-progress-message",
+      "classification": "visual",
+      "cases": [
+        "agent-state-sync"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: agent-state-sync",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: agent-state-sync",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: agent-state-sync",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: agent-state-sync",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "locale-provider",
+      "classification": "headless-integration",
+      "cases": [
+        "locale switch",
+        "thread history"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "thread history selection survives locale switch and More stays in theme boundary",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "thread history selection survives locale switch and More stays in theme boundary",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "thread history selection survives locale switch and More stays in theme boundary",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "thread history selection survives locale switch and More stays in theme boundary",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "retrieval-chunks",
+      "classification": "visual",
+      "cases": [
+        "retrieval-chunks"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: retrieval-chunks",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: retrieval-chunks",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: retrieval-chunks",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: retrieval-chunks",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "source-citations-message",
+      "classification": "visual",
+      "cases": [
+        "source-citations"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: source-citations",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: source-citations",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: source-citations",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: source-citations",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "task-group",
+      "classification": "visual",
+      "cases": [
+        "nested-subagent-task-group"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: nested-subagent-task-group",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: nested-subagent-task-group",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: nested-subagent-task-group",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: nested-subagent-task-group",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "theme-provider",
+      "classification": "headless-integration",
+      "cases": [
+        "theme, command",
+        "locale switch"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "locale switch preserves composer draft and trigger query",
+              "status": "expected"
+            },
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "theme-switch",
+      "classification": "visual",
+      "cases": [
+        "theme, command"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "theme, command popover and footer overlays",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Scenario evidence only; no screenshot-diff baseline or exhaustive state acceptance."
+    },
+    {
+      "id": "web-search",
+      "classification": "visual",
+      "cases": [
+        "web-search"
+      ],
+      "projects": {
+        "zh-CN-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: web-search",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "zh-CN-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: web-search",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-desktop": {
+          "tests": [
+            {
+              "title": "surface evidence: web-search",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        },
+        "en-US-narrow": {
+          "tests": [
+            {
+              "title": "surface evidence: web-search",
+              "status": "expected"
+            }
+          ],
+          "status": "AUTOMATED_CHECKS_PASSED"
+        }
+      },
+      "limits": "Successful structured result captured; invalid-result and loading transitions not separately exercised."
+    }
+  ]
+}

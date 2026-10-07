@@ -1,0 +1,8 @@
+{"atMs": 0, "event": {"type": "RUN_STARTED", "threadId": "recorded-thread", "runId": "recorded-run"}}
+{"atMs": 200, "event": {"type": "TEXT_MESSAGE_START", "messageId": "recorded-message", "role": "assistant"}}
+{"atMs": 400, "event": {"type": "TEXT_MESSAGE_CONTENT", "messageId": "recorded-message", "delta": "## 这是你的本地回放示例\n\n"}}
+{"atMs": 1000, "event": {"type": "TEXT_MESSAGE_CONTENT", "messageId": "recorded-message", "delta": "这段回复来自项目里的 JSONL 文件。\n\n"}}
+{"atMs": 1800, "event": {"type": "TEXT_MESSAGE_CONTENT", "messageId": "recorded-message", "delta": "- 你可以把自己的 AG-UI 事件粘贴到这个文件中。\n"}}
+{"atMs": 2600, "event": {"type": "TEXT_MESSAGE_CONTENT", "messageId": "recorded-message", "delta": "- 在“示例与回放”中选择它，再发送任意消息即可播放。\n\n现在看到的内容就是文件中记录的流式回复。"}}
+{"atMs": 3000, "event": {"type": "TEXT_MESSAGE_END", "messageId": "recorded-message"}}
+{"atMs": 3200, "event": {"type": "RUN_FINISHED", "threadId": "recorded-thread", "runId": "recorded-run", "outcome": {"type": "success"}}}

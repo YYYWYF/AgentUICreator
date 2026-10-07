@@ -72,6 +72,7 @@ const mountedRoots: Root[] = [];
 function createAgent(): ReturnType<ConversationAgentFactory> {
   return {
     threadId: "theme-switch-runtime",
+    use() { return this; },
     runAgent: vi.fn(),
     abortRun: vi.fn(),
     subscribe: vi.fn(() => ({ unsubscribe: vi.fn() })),

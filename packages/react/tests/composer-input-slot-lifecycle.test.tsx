@@ -68,7 +68,7 @@ it.each(["disable", "remove"] as const)("reconciles a preset input %s and restor
   // Directly imported localized components need locale permission in this
   // standalone test registry. Keep their real components and trigger services.
   const localized = (definition: UIPluginDefinition): UIPluginDefinition => ({
-    ...definition, optionalInject: [...(definition.optionalInject ?? []), "agent-ui.locale"],
+    ...definition, optionalInject: [...new Set([...(definition.optionalInject ?? []), "agent-ui.locale"])],
   });
   const registry = createPluginRegistry([hostPlugin, sourcePlugin, assistantUiComposerPlugin, assistantUiLexicalComposerInputPlugin,
     localized(assistantUiMentionTriggerPlugin), localized(assistantUiSlashCommandTriggerPlugin), localized(conversationQuotePlugin),

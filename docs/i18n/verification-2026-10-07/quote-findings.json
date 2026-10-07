@@ -1,0 +1,50 @@
+[
+  {
+    "project": "zh-CN-desktop",
+    "status": "unexpected",
+    "selection": [
+      {
+        "text": "你好",
+        "messageId": "PAatsfS:assistant-message:1",
+        "selectable": "true",
+        "toolbarCount": 0
+      }
+    ]
+  },
+  {
+    "project": "zh-CN-narrow",
+    "status": "unexpected",
+    "selection": [
+      {
+        "text": "你好",
+        "messageId": "01e4W6S:assistant-message:1",
+        "selectable": "true",
+        "toolbarCount": 0
+      }
+    ]
+  },
+  {
+    "project": "en-US-desktop",
+    "status": "unexpected",
+    "selection": [
+      {
+        "text": "你好",
+        "messageId": "wKrf681:assistant-message:1",
+        "selectable": "true",
+        "toolbarCount": 0
+      }
+    ]
+  },
+  {
+    "project": "en-US-narrow",
+    "status": "unexpected",
+    "selection": [
+      {
+        "text": "你好",
+        "messageId": "yNVkAxQ:assistant-message:1",
+        "selectable": "true",
+        "toolbarCount": 0
+      }
+    ]
+  }
+]

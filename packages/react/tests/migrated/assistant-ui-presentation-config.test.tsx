@@ -7,10 +7,8 @@ import {
 } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/index";
 
 describe("assistant-ui application presentation config", () => {
-  it("owns Welcome copy in application source", () => {
-    expect(conversationWelcomeConfig).toEqual({
-      title: "How can I help you today?",
-    });
+  it("lets locale defaults own Welcome copy while preserving explicit application overrides", () => {
+    expect(conversationWelcomeConfig).toEqual({});
     expect(conversationPresentationConfig).toEqual({
       welcome: conversationWelcomeConfig,
     });

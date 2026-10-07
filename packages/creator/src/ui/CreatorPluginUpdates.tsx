@@ -6,6 +6,7 @@ import { Button } from "./components/button.js";
 import { Alert, AlertDescription } from "./components/alert.js";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/card.js";
 import type { UpdateInspection, UpgradePlan } from "@agent-ui/project-control/updates";
+import { useCreatorRefresh } from "./creatorRefresh.js";
 
 export interface UpdateNotificationStateStore { isDismissed(projectId: string, fingerprint: string): boolean; dismiss(projectId: string, fingerprint: string): void }
 export class LocalUpdateNotificationStateStore implements UpdateNotificationStateStore {
@@ -38,6 +39,12 @@ export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkReque
   const generation = useRef(0);
   const active = useRef(true);
   const lastCheckRequest = useRef(checkRequest);
+  useCreatorRefresh(data => {
+    if (data.projectId !== workspaceId || !data.updates || working) return;
+    generation.current++;
+    setInspection(data.updates);
+    setBanner(data.updates.plugins.some(plugin => plugin.updateAvailable) && !store.isDismissed(workspaceId, data.updates.fingerprint));
+  });
   const check = async (manual: boolean) => {
     const requestGeneration = ++generation.current;
     if (manual) { setWorking(true); setMessage(""); }
@@ -116,7 +123,7 @@ export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkReque
       <span className="cui:sr-only">{localeMessages.pluginUpdates.thereAre} {updates.length} {localeMessages.pluginUpdates.pluginsWithUpdates}</span>
     </Button>
   </div> : null;
-  return <section className="creator-plugin-updates creator-ui-scope" aria-label={localeMessages.pluginUpdates.pluginUpdates}>
+  return <section className="creator-plugin-updates creator-ui-scope" aria-label={localeMessages.pluginUpdates.pluginUpdates} aria-busy={working}>
     {notificationTarget ? createPortal(notification, notificationTarget) : notification}
     {working && !pageOpen ? <p className="cui:flex cui:items-center cui:gap-2 cui:py-2 cui:text-xs cui:text-muted-foreground" role="status"><RefreshCw aria-hidden="true" className="cui:size-3.5 cui:animate-spin" />{localeMessages.pluginUpdates.checkingUpdates}</p> : null}
     {message && (planTarget === null || !pageOpen) ? <Alert className="cui:my-2" role="status"><AlertDescription>{localizeCreatorPresentation(message, localeMessages)}</AlertDescription></Alert> : null}

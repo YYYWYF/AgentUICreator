@@ -72,6 +72,7 @@ vi.stubGlobal("ResizeObserver", ResizeObserverMock);
 function createAgent(): ReturnType<ConversationAgentFactory> {
   return {
     threadId: "live",
+    use() { return this; },
     runAgent: vi.fn(),
     abortRun: vi.fn(),
     subscribe: vi.fn(() => ({ unsubscribe: vi.fn() })),

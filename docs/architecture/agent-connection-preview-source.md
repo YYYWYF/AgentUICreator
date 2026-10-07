@@ -87,27 +87,33 @@ host/platform proxy. Creator does not ship a production proxy or runtime.
 
 Transport/store unit tests cover streaming before completion, cancellation,
 header/body/query preservation, locked switching, fixed-target redirects,
-workspace isolation, persistence and auxiliary path routing. Typecheck/build
-checks are engineering validation. Browser and real-Agent acceptance are not
-part of this change's execution request and were not performed.
+workspace isolation, persistence and auxiliary path routing.
 
-
-The isolated Playwright suite is available as
+The isolated Playwright suite runs with
 `pnpm --filter @agent-ui/creator-workbench test:e2e:agent-connection`.
-It generates a disposable Host without Mock dependencies or Mock Vite plugins,
-uses the real Creator UI/source bridge and HTTP routes, and checks Mock list,
-history and chat. Its no-CORS temporary SSE Agent keeps the response open until
-the browser has displayed the first chunk, then exercises both Source switches,
-message/history isolation and endpoint retention. Only unrelated Creator
-workspace metadata is stubbed to avoid requiring a Python/model service.
-The new E2E tests were authored and statically checked, but not executed because
-the follow-up request explicitly excludes acceptance runs.
+It creates a disposable generated Host without Mock dependencies or Mock Vite
+plugins. Only unrelated Creator workspace metadata is supplied by the test;
+the Creator UI, preview bridge, generated Plugins and HTTP routes are real.
 
+Local acceptance on 2026-10-07 passed all three browser cases:
 
-CI now has an `agent-connection` job in the style-isolation workflow, running
-`test:e2e:agent-connection` independently of the existing style-isolation suite.
-Creator, Mock Agent and bootstrap changes also trigger the workflow. This wiring
-provides the execution path; a successful browser run is still required before
-recording complete acceptance. No local browser E2E was run for this follow-up.
-Durable-store unit regressions cover A/B isolation and reconnect for both text
-continuations and AgentPlan Activity, including colliding thread IDs.
+- Mock thread list, historical messages and a new chat through Creator.
+- Standalone Host mounting without a root `tsconfig.json` or Creator preview.
+- A no-CORS Connected Agent displaying streamed content before completion,
+  with run-time Source locking, Source isolation and endpoint retention.
+
+Hosts without a root `tsconfig.json` now use inferred TypeScript projects for
+service analysis. Their generated capability catalogs retain the Plugins'
+actual service contracts rather than silently emitting empty declarations.
+Generated application actions retain their identity across thread switches and
+forward to the active conversation bridge, keeping application services and
+pending history reads alive. The feedback Plugin declares its locale dependency.
+
+The browser fixture includes the current Lexical package requirements, resolves
+macOS temporary-directory real paths, and preloads lazy Plugin dependencies to
+avoid Vite reloads during interaction. The temporary Agent rejects the empty
+CORS probe rather than counting it as an AG-UI run.
+
+CI has an `agent-connection` job in the style-isolation workflow. Creator, Mock
+Agent and bootstrap changes trigger it independently of the style-isolation
+suite. This acceptance uses a simulated Agent, not a live model.

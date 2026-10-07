@@ -49,7 +49,7 @@ describe("assistant-ui semantic Slot rendering", () => {
       "../../packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
     );
     const globals = await read("../../packages/react/src/styles.css");
-    expect(app).toContain("suggestions={conversationStarterSuggestions}");
+    expect(app).toContain("suggestions={suggestions}");
     expect(app).toContain("ConversationRuntimeProvider");
     expect(thread).toContain("ThreadPrimitive.Suggestions");
     expect(thread).not.toContain("InitialSuggestionsWrapper");

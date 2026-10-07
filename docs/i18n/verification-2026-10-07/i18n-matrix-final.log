@@ -1,0 +1,274 @@
+
+Running 88 tests using 1 worker
+
+(node:33983) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: empty (1.2s)
+  ✓   2 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: simple-chat (881ms)
+  ✓   3 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: reasoning-tool-success (1.2s)
+  ✓   4 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: tool-error (1.0s)
+  ✓   5 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: tool-long-running (7.3s)
+  ✓   6 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: web-search (1.0s)
+  ✓   7 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: retrieval-chunks (950ms)
+  ✓   8 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: source-citations (1.0s)
+  ✓   9 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: file-output (909ms)
+  ✓  10 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: data-message-chart (844ms)
+  ✓  11 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: agent-status (994ms)
+  ✓  12 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: agent-plan (1.1s)
+  ✓  13 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: agent-state-sync (1.1s)
+  ✓  14 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: nested-subagent-task-group (1.6s)
+  ✓  15 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: markdown-showcase (2.1s)
+  ✓  16 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:51:1 › locale switch preserves composer draft and trigger query (1.0s)
+  ✓  17 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:67:1 › thread history selection survives locale switch and More stays in theme boundary (2.0s)
+  ✓  18 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:95:1 › theme, command popover and footer overlays (1.2s)
+  ✓  19 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:115:1 › thread loading and error evidence (864ms)
+  ✓  20 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:128:1 › mention empty popover, attachments, dictation, edit and export menu (1.6s)
+1:04:58 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+1:04:59 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+  ✓  21 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:161:1 › compatibility message footer renders canonical actions (1.5s)
+  ✘  22 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview (6.1s)
+(node:34056) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  23 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: empty (1.1s)
+  ✓  24 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: simple-chat (867ms)
+  ✓  25 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: reasoning-tool-success (1.2s)
+  ✓  26 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: tool-error (955ms)
+  ✓  27 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: tool-long-running (7.4s)
+  ✓  28 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: web-search (980ms)
+  ✓  29 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: retrieval-chunks (938ms)
+  ✓  30 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: source-citations (990ms)
+  ✓  31 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: file-output (890ms)
+  ✓  32 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: data-message-chart (824ms)
+  ✓  33 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: agent-status (956ms)
+  ✓  34 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: agent-plan (1.0s)
+  ✓  35 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: agent-state-sync (1.1s)
+  ✓  36 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: nested-subagent-task-group (1.6s)
+  ✓  37 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: markdown-showcase (2.1s)
+  ✓  38 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:51:1 › locale switch preserves composer draft and trigger query (959ms)
+  ✓  39 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:67:1 › thread history selection survives locale switch and More stays in theme boundary (2.2s)
+  ✓  40 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:95:1 › theme, command popover and footer overlays (1.4s)
+  ✓  41 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:115:1 › thread loading and error evidence (854ms)
+  ✓  42 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:128:1 › mention empty popover, attachments, dictation, edit and export menu (1.7s)
+1:05:37 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+1:05:38 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+  ✓  43 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:161:1 › compatibility message footer renders canonical actions (1.5s)
+  ✘  44 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview (6.2s)
+(node:34170) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  45 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: empty (1.1s)
+  ✓  46 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: simple-chat (872ms)
+  ✓  47 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: reasoning-tool-success (1.7s)
+  ✓  48 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: tool-error (984ms)
+  ✓  49 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: tool-long-running (7.4s)
+  ✓  50 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: web-search (976ms)
+  ✓  51 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: retrieval-chunks (944ms)
+  ✓  52 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: source-citations (984ms)
+  ✓  53 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: file-output (910ms)
+  ✓  54 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: data-message-chart (844ms)
+  ✓  55 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: agent-status (987ms)
+  ✓  56 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: agent-plan (994ms)
+  ✓  57 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: agent-state-sync (1.1s)
+  ✓  58 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: nested-subagent-task-group (1.6s)
+  ✓  59 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: markdown-showcase (2.1s)
+  ✓  60 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:51:1 › locale switch preserves composer draft and trigger query (1.1s)
+  ✓  61 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:67:1 › thread history selection survives locale switch and More stays in theme boundary (2.6s)
+  ✓  62 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:95:1 › theme, command popover and footer overlays (1.3s)
+  ✓  63 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:115:1 › thread loading and error evidence (833ms)
+  ✓  64 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:128:1 › mention empty popover, attachments, dictation, edit and export menu (1.7s)
+1:06:17 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+1:06:18 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+  ✓  65 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:161:1 › compatibility message footer renders canonical actions (1.5s)
+  ✘  66 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview (6.1s)
+(node:34259) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  67 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: empty (1.1s)
+  ✓  68 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: simple-chat (1.0s)
+  ✓  69 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: reasoning-tool-success (1.7s)
+  ✓  70 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: tool-error (928ms)
+  ✓  71 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: tool-long-running (7.4s)
+  ✓  72 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: web-search (971ms)
+  ✓  73 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: retrieval-chunks (938ms)
+  ✓  74 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: source-citations (963ms)
+  ✓  75 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: file-output (938ms)
+  ✓  76 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: data-message-chart (824ms)
+  ✓  77 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: agent-status (958ms)
+  ✓  78 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: agent-plan (958ms)
+  ✓  79 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: agent-state-sync (1.0s)
+  ✓  80 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: nested-subagent-task-group (1.7s)
+  ✓  81 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:11:3 › surface evidence: markdown-showcase (2.1s)
+  ✓  82 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:51:1 › locale switch preserves composer draft and trigger query (1.0s)
+  ✓  83 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:67:1 › thread history selection survives locale switch and More stays in theme boundary (2.2s)
+  ✓  84 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:95:1 › theme, command popover and footer overlays (1.3s)
+  ✓  85 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:115:1 › thread loading and error evidence (866ms)
+  ✓  86 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:128:1 › mention empty popover, attachments, dictation, edit and export menu (1.5s)
+1:06:57 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+1:06:58 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+  ✓  87 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:161:1 › compatibility message footer renders canonical actions (1.5s)
+  ✘  88 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview (6.1s)
+
+
+  1) [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview ────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-slot="selection-toolbar-quote"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-slot="selection-toolbar-quote"]') with timeout 5000ms
+      - waiting for locator('[data-slot="selection-toolbar-quote"]')
+
+
+      180 |   await content.locator('p').first().dblclick();
+      181 |   await info.attach("quote-selection", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot="selection-toolbar-quote"]').length }; }), null, 2), contentType: "application/json" });
+    > 182 |   const quote = page.locator('[data-slot="selection-toolbar-quote"]'); await expect(quote).toBeVisible(); await quote.click();
+          |                                                                                            ^
+      183 |   await expect(page.locator('[data-slot="composer-quote"]')).toBeVisible();
+      184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:"disabled"});
+      185 | });
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/error-context.md
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview ─────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-slot="selection-toolbar-quote"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-slot="selection-toolbar-quote"]') with timeout 5000ms
+      - waiting for locator('[data-slot="selection-toolbar-quote"]')
+
+
+      180 |   await content.locator('p').first().dblclick();
+      181 |   await info.attach("quote-selection", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot="selection-toolbar-quote"]').length }; }), null, 2), contentType: "application/json" });
+    > 182 |   const quote = page.locator('[data-slot="selection-toolbar-quote"]'); await expect(quote).toBeVisible(); await quote.click();
+          |                                                                                            ^
+      183 |   await expect(page.locator('[data-slot="composer-quote"]')).toBeVisible();
+      184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:"disabled"});
+      185 | });
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/error-context.md
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview ────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-slot="selection-toolbar-quote"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-slot="selection-toolbar-quote"]') with timeout 5000ms
+      - waiting for locator('[data-slot="selection-toolbar-quote"]')
+
+
+      180 |   await content.locator('p').first().dblclick();
+      181 |   await info.attach("quote-selection", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot="selection-toolbar-quote"]').length }; }), null, 2), contentType: "application/json" });
+    > 182 |   const quote = page.locator('[data-slot="selection-toolbar-quote"]'); await expect(quote).toBeVisible(); await quote.click();
+          |                                                                                            ^
+      183 |   await expect(page.locator('[data-slot="composer-quote"]')).toBeVisible();
+      184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:"disabled"});
+      185 | });
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/error-context.md
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview ─────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-slot="selection-toolbar-quote"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-slot="selection-toolbar-quote"]') with timeout 5000ms
+      - waiting for locator('[data-slot="selection-toolbar-quote"]')
+
+
+      180 |   await content.locator('p').first().dblclick();
+      181 |   await info.attach("quote-selection", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot="selection-toolbar-quote"]').length }; }), null, 2), contentType: "application/json" });
+    > 182 |   const quote = page.locator('[data-slot="selection-toolbar-quote"]'); await expect(quote).toBeVisible(); await quote.click();
+          |                                                                                            ^
+      183 |   await expect(page.locator('[data-slot="composer-quote"]')).toBeVisible();
+      184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:"disabled"});
+      185 | });
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/error-context.md
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4 failed
+    [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview ─────────
+    [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview ──────────
+    [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview ─────────
+    [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview ──────────
+  84 passed (2.6m)
+undefined
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: playwright test -c playwright.i18n-plugin.config.ts

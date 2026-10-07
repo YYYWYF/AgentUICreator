@@ -17,9 +17,9 @@ import {
   ReasoningFade,
   reasoningVariants,
   type ReasoningRootProps,
-} from "../../../../../vendor/assistant-ui/components/assistant-ui/elements/reasoning.js";
+} from "./reasoning";
 
-export type { ReasoningRootProps } from "../../../../../vendor/assistant-ui/components/assistant-ui/elements/reasoning.js";
+export type { ReasoningRootProps } from "./reasoning";
 
 /** `ReasoningRoot` with the thread viewport scroll locked during disclosure animations. */
 function ReasoningRoot({

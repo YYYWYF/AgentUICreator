@@ -26,7 +26,7 @@ it.each(["resumable-long-run", "resumable-agent-plan"])("isolates %s creation, l
   const b = { id: "workspace-B", projectRoot: path.join(root, "B") };
   await mkdir(a.projectRoot); await mkdir(b.projectRoot);
   let selected = a;
-  const mock = new CreatorMockService(); services.push(mock);
+  const mock = new CreatorMockService({ port: 0 }); services.push(mock);
   mock.setProjectResolver(() => selected);
   const handler = createConnectionHandler(() => selected,
     (request, response) => mock.handlePreviewRequest(request, response),
@@ -84,7 +84,7 @@ it.each(["resumable-long-run", "resumable-agent-plan"])("isolates %s creation, l
 it("rejects a stale Mock request if selection changes while reading connection state", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "mock-durable-stale-")); roots.push(root);
   let selected = { id: "A", projectRoot: root };
-  const mock = new CreatorMockService(); services.push(mock); mock.setProjectResolver(() => selected);
+  const mock = new CreatorMockService({ port: 0 }); services.push(mock); mock.setProjectResolver(() => selected);
   const handler = createConnectionHandler(() => selected,
     (request, response) => mock.handlePreviewRequest(request, response),
     workspace => mock.getDurableStore(workspace.projectRoot));

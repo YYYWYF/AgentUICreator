@@ -69,6 +69,23 @@ afterEach(async () => {
 });
 
 describe("bootstrap initialization commit boundary", () => {
+  it("tracks development defaults and rolls them back if control installation fails", async () => {
+    const { root, host } = await fixture();
+    const developmentPath = ".env.development.local";
+    host.installDevelopmentDefaults = async () => {
+      await writeFile(path.join(root, developmentPath), "VITE_AGENT_ENDPOINT=http://127.0.0.1:47831/agent\n");
+      return [developmentPath];
+    };
+    host.installControlPlane = vi.fn().mockRejectedValue(new Error("control install"));
+    host.rollbackCreatedPaths = vi.fn(async (_root, created) => {
+      for (const relative of created) await unlink(path.join(root, relative));
+    });
+    await expect(initializeAgentUIProject(input(root), host)).rejects.toThrow("control install");
+    expect(await exists(path.join(root, developmentPath))).toBe(false);
+    expect(await exists(configPath(root))).toBe(false);
+    expect(host.rollbackCreatedPaths).toHaveBeenCalledWith(root, expect.arrayContaining([developmentPath]), expect.anything(), expect.anything(), expect.anything());
+  });
+
   it("does not mutate or roll back when preflight fails", async () => {
     const { root, host } = await fixture();
     host.preflightSources = vi.fn().mockRejectedValue(new Error("preflight"));

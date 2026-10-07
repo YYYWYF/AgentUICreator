@@ -46,3 +46,8 @@ export function useAgentUILocale(namespace?: keyof AgentUILocaleMessages) {
   return namespace === undefined ? messages : messages[namespace];
 }
 export function useAgentUILocaleCode(): AgentUILocaleCode { return useContext(LocaleContext).locale; }
+
+/** Substitute presentation placeholders without interpreting inserted data. */
+export function formatPresentationMessage(message: string, values: Readonly<Record<string, string | number>>): string {
+  return message.replace(/\{([A-Za-z][A-Za-z0-9]*)\}/g, (placeholder, key: string) => Object.hasOwn(values, key) ? String(values[key]) : placeholder);
+}

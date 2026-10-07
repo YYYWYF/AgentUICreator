@@ -76,7 +76,7 @@ export function CreatorProjectIntegrationGuide({ sourceRoot, mode }: {
             <summary>{localeMessages.integration.importPathsAndAPIAddress}</summary>
             <p>{localeMessages.integration.ifTheComponentIsOutside} <code>src/</code>  {localeMessages.integration.adjustTheRelativeImportPathToMatchIts}</p>
             <p>{localeMessages.integration.theAGUIEndpointReads} <code>VITE_AGENT_ENDPOINT</code>{localeMessages.integration.byDefaultOtherwiseItUses} <code>/agent</code>{localeMessages.integration.forAnotherAddressPass} <code>endpoint</code>{localeMessages.integration.forExample} <code>{'<Agent endpoint="/api/agent" />'}</code>{localeMessages.integration.saveTheComponentAndYourDevelopmentServerWill}</p>
-            <p>{localeMessages.integration.whenUsingEnvironmentVariablesCreateOrEditThis} <code>package.json</code>  {localeMessages.integration.message} <code>.env.local</code>{localeMessages.integration.enterTheLineBelowAndReplaceTheAddress}</p>
+            <p>{localeMessages.integration.newTemplatesConfigureTheLocalMockAddressIn} <code>.env.development.local</code>  {localeMessages.integration.atTheProjectRoot} <code>http://127.0.0.1:47831/agent</code>{localeMessages.integration.startMockAgentToUseItExistingEndpoint} <code>VITE_AGENT_ENDPOINT</code>：</p>
             <pre><code>{localeMessages.integration.vITEAGENTENDPOINTYourCompleteAGUIURL}</code></pre>
             <p>{localeMessages.integration.saveAndRestartYourFrontendDevelopmentServerIf} <code>endpoint</code>{localeMessages.integration.toTheComponentThatAddressTakesPriority}</p>
           </details>

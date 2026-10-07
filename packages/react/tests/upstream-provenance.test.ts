@@ -18,11 +18,11 @@ describe("assistant-ui upstream provenance", () => {
     expect(provenance).toContain("Repository: https://github.com/assistant-ui/assistant-ui");
     expect(provenance).toContain("Source policy: fixed published release");
     expect(provenance).toMatch(/Commit: `[0-9a-f]{40}`/u);
-    expect(provenance).toContain("@assistant-ui/react` = `0.15.22");
-    expect(provenance).toContain("@assistant-ui/react-ag-ui` = `0.0.62");
+    expect(provenance).toContain("@assistant-ui/react` = `0.15.23");
+    expect(provenance).toContain("@assistant-ui/react-ag-ui` = `0.0.63");
     expect(provenance).toContain("@assistant-ui/react-markdown` = `0.14.16");
     expect(provenance).toContain("@ag-ui/client` = `0.0.59");
-    expect(metadata.revision).toBe("da9a624496ae97864ae30e90f85c7533092a228d");
+    expect(metadata.revision).toBe("3542d602272a62eddeb8989befc910841c267022");
     expect(provenance).toContain(metadata.revision);
   });
 

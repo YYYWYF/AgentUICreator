@@ -1,0 +1,1247 @@
+
+ RUN  v4.1.11 /Users/yifei/Coding/AgentUICreator/packages/react
+
+stdout | tests/assistant-ui-upgrade-drill.test.mjs > assistant-ui upgrade drill > replaces stale failed compatibility metadata when generating the current report
+{
+  "report": "assistant-ui-upgrade-report.json",
+  "impact": "assistant-ui-upgrade-impact.md",
+  "cost": "Low"
+}
+
+stdout | tests/assistant-ui-upgrade-drill.test.mjs > assistant-ui upgrade drill > requires re-audit when a compatible react-ag-ui dependency range changes
+{
+  "report": "assistant-ui-upgrade-report.json",
+  "impact": "assistant-ui-upgrade-impact.md",
+  "cost": "Low"
+}
+
+stdout | tests/assistant-ui-upgrade-drill.test.mjs > assistant-ui upgrade drill > builds a clean report from the base SHA plus explicit generated artifacts
+{
+  "report": "assistant-ui-upgrade-report.json",
+  "impact": "assistant-ui-upgrade-impact.md",
+  "cost": "Medium"
+}
+
+stdout | tests/assistant-ui-upgrade-drill.test.mjs > assistant-ui upgrade drill > builds a clean report from the base SHA plus explicit generated artifacts
+{
+  "report": "assistant-ui-upgrade-report.json",
+  "impact": "assistant-ui-upgrade-impact.md",
+  "cost": "Medium"
+}
+
+ ✓ tests/upstream-guard.test.ts (10 tests) 5432ms
+     ✓ configures the official Base UI Registry and protects the declared set  560ms
+     ✓ fails when an upstream-owned Element is modified: thread-list.aui.tsx  551ms
+     ✓ fails when an upstream-owned Element is modified: attachment.aui.tsx  612ms
+     ✓ fails when an upstream-owned Element is modified: task-card.aui.tsx  671ms
+     ✓ fails when an upstream-owned Element is modified: task-card.tsx  625ms
+     ✓ fails when the upstream-owned Thread is modified  608ms
+     ✓ fails when an approved non-Element Portal bridge drifts from its installed hash  587ms
+     ✓ fails when an Element is added without an ownership declaration  579ms
+     ✓ fails when an upstream-owned Element is removed from the lock  637ms
+stdout | tests/assistant-ui-upgrade-drill.test.mjs > assistant-ui upgrade drill > upgrades Generative UI 0.0.21 to 0.0.22 through one update and rejects a stale Resource pin
+{
+  "report": "assistant-ui-upgrade-report.json",
+  "impact": "assistant-ui-upgrade-impact.md",
+  "cost": "Medium"
+}
+
+ ✓ tests/assistant-ui-upgrade-drill.test.mjs (18 tests) 8048ms
+     ✓ passes the revision guard without a sibling assistant-ui checkout  469ms
+     ✓ builds a clean report from the base SHA plus explicit generated artifacts  4339ms
+     ✓ upgrades Generative UI 0.0.21 to 0.0.22 through one update and rejects a stale Resource pin  2740ms
+ ✓ tests/migrated/assistant-ui-nested-subagent.test.tsx (19 tests) 1993ms
+     ✓ 'Streaming Contract': streams nested subagent work into TaskCard before SUBAGENT_FINISHED  709ms
+     ✓ 'Product presentation acceptance': streams nested subagent work into TaskCard before SUBAGENT_FINISHED  496ms
+stderr | tests/migrated/assistant-ui-response-footer-actions.test.tsx > assistant-ui response footer action Plugins > renders Copy / Reload / More and exports the full response from the scoped menu
+An update to TooltipRoot inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | tests/migrated/assistant-ui-response-footer-actions.test.tsx > assistant-ui response footer action Plugins > renders Copy / Reload / More and exports the full response from the scoped menu
+An update to TooltipTrigger inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipRoot inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipTrigger inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipTrigger inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipRoot inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipTrigger inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipPortal inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipRoot inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipInteractions inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipInteractions inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipTrigger inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipInteractions inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipInteractions inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipRoot inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipTrigger inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipTrigger inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to FloatingPortalLite inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipTrigger inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipInteractions inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipInteractions inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to FloatingPortalLite inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipRoot inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipInteractions inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipInteractions inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipPopup inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipPositioner inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipRoot inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | tests/migrated/assistant-ui-response-footer-actions.test.tsx > assistant-ui response footer action Plugins > renders Copy / Reload / More and exports the full response from the scoped menu
+An update to TooltipPositioner inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipPopup inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TooltipPositioner inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ tests/migrated/assistant-ui-response-footer-actions.test.tsx (17 tests) 927ms
+ ✓ tests/conversation-edit-lexical.test.tsx (20 tests) 914ms
+ ✓ tests/conversation-composer-triggers.test.tsx (12 tests) 705ms
+ ✓ tests/migrated/assistant-ui-suggestions-runtime.test.tsx (2 tests) 576ms
+     ✓ completes the Suggestions remove-to-add runtime roundtrip  532ms
+ ✓ tests/composer-input-slot-lifecycle.test.tsx (2 tests) 501ms
+   ✓ reconciles a preset input disable and restoration through real Plugin Runtime Slots  308ms
+ ✓ tests/migrated/theme-plugin-boundary.test.ts (2 tests) 447ms
+     ✓ keeps the provider headless and the switch independent from Ant Design  445ms
+ ✓ tests/migrated/assistant-ui-presentation-config.test.tsx (2 tests) 536ms
+     ✓ does not expose the removed Runtime Model presentation resolver  534ms
+ ✓ tests/portal-container-boundary.test.tsx (3 tests) 385ms
+   ✓ keeps Tooltip, Popover and response More menus inside the same theme boundary  314ms
+ ✓ tests/migrated/assistant-ui-thread-delete-integration.test.tsx (4 tests) 381ms
+ ✓ tests/conversation-quote.test.tsx (5 tests) 371ms
+ ✓ tests/conversation-composer-lexical.test.tsx (9 tests) 356ms
+ ✓ tests/migrated/search-tool-ui-lifecycle.test.tsx (6 tests) 370ms
+ ✓ tests/migrated/scoped-renderer-conversation-integration.test.tsx (10 tests) 362ms
+ ✓ tests/migrated/frontend-tool-dialog-lifecycle.test.tsx (5 tests) 339ms
+ ✓ tests/migrated/assistant-ui-composer-actions.test.tsx (8 tests) 345ms
+ ✓ tests/migrated/frontend-tool-form-lifecycle.test.tsx (3 tests) 363ms
+stderr | tests/migrated/a2ui-integration.test.tsx > A2UI Official Integration (active native runtime) > reuses upstream public APIs and registers only the backend renderer
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > A2UI Official Integration (active native runtime) > renders a standard surface without adding a model-visible present tool
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > A2UI Official Integration (active native runtime) > renders a standard surface without adding a model-visible present tool
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > A2UI Official Integration (active native runtime) > preserves an existing parent Tool renderer alongside A2UI
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > A2UI Official Integration (active native runtime) > preserves an existing parent Tool renderer alongside A2UI
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > A2UI Official Integration (active native runtime) > updates the same message/surface in place and delegates deleteSurface to upstream
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > A2UI Official Integration (active native runtime) > updates the same message/surface in place and delegates deleteSurface to upstream
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > A2UI Official Integration (active native runtime) > updates the same message/surface in place and delegates deleteSurface to upstream
+[ToolInvocationTracker] argsText changed after first completion; not re-firing streamCall (see EDGE_CASES.md A.4) {
+  previous: '{"$type":"Card","title":"Order Review","children":[{"$type":"Markdown","value":"Product: Developer Plan\\n\\nSeats: 5\\n\\nTotal: $50/month"},{"$type":"Row","children":[{"$type":"Button","label":"Confirm","$action":{"type":"a2ui:action","name":"confirm_order","surfaceId":"order","sourceComponentId":"confirm"}},{"$type":"Button","label":"Cancel","$action":{"type":"a2ui:action","name":"cancel_order","surfaceId":"order","sourceComponentId":"cancel"}}]}]}',
+  next: '{"$type":"Card","title":"Order confirmed","children":[{"$type":"Markdown","value":"Order confirmed ✓"}]}',
+  toolCallId: 'a2ui:order'
+}
+
+stderr | tests/migrated/a2ui-integration.test.tsx > A2UI Official Integration (active native runtime) > sends a native action continuation with no new user message, resume or synthetic tool result
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > A2UI Official Integration (active native runtime) > sends a native action continuation with no new user message, resume or synthetic tool result
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > A2UI Official Integration (active native runtime) > defers an action while the original SSE body is still draining
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > A2UI Official Integration (active native runtime) > defers an action while the original SSE body is still draining
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > A2UI Official Integration (active native runtime) > preserves the live surface on an in-memory thread revisit without executing or sending anything
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > A2UI Official Integration (active native runtime) > preserves the live surface on an in-memory thread revisit without executing or sending anything
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > A2UI Official Integration (active native runtime) > preserves the live surface on an in-memory thread revisit without executing or sending anything
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > A2UI Official Integration (active native runtime) > preserves the live surface on an in-memory thread revisit without executing or sending anything
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > upgraded official Generative UI and A2UI contracts > keeps available Generative UI capabilities out of RunAgentInput.tools
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > upgraded official Generative UI and A2UI contracts > renders the supported Form Controls catalog from standard wire events
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > upgraded official Generative UI and A2UI contracts > renders the supported Form Controls catalog from standard wire events
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > upgraded official Generative UI and A2UI contracts > keeps official rebuild operations in the synthesized present artifact
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > upgraded official Generative UI and A2UI contracts > keeps official rebuild operations in the synthesized present artifact
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+ ✓ tests/product-localization-generation.test.mjs (3 tests) 192ms
+stderr | tests/migrated/a2ui-integration.test.tsx > upgraded official Generative UI and A2UI contracts > keeps official rebuild operations in the synthesized present artifact
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > upgraded official Generative UI and A2UI contracts > preserves non-A2UI Activity data without creating a surface
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/a2ui-integration.test.tsx > upgraded official Generative UI and A2UI contracts > preserves non-A2UI Activity data without creating a surface
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+ ✓ tests/migrated/a2ui-integration.test.tsx (11 tests) 318ms
+ ✓ tests/migrated/assistant-ui-tailwind-source-coverage.test.ts (2 tests) 189ms
+ ✓ tests/migrated/assistant-ui-attachments.test.tsx (3 tests) 257ms
+stderr | tests/migrated/assistant-ui-style-isolation.test.ts > formal assistant-ui adapter style isolation > generates formal vendor utilities in both Vite hosts
+[Creator] runtime=python agentMode=domain-write
+
+ ✓ tests/migrated/assistant-ui-style-isolation.test.ts (4 tests) 197ms
+ ✓ tests/migrated/assistant-ui-rich-history-navigation.test.tsx (4 tests) 194ms
+ ✓ tests/migrated/assistant-ui-cancelled-empty-presentation.test.tsx (7 tests) 164ms
+ ✓ tests/attachment-locale-states.test.tsx (3 tests) 153ms
+ ✓ tests/migrated/source-citations.test.tsx (35 tests) 143ms
+stderr | tests/migrated/theme-switch.test.tsx > theme-switch plugin > selects all presets through the shared theme service with localized labels
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+stderr | tests/migrated/theme-switch.test.tsx > theme-switch plugin > selects all presets through the shared theme service with localized labels
+An update to Root inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ThemePicker inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ThemeSwitchPlugin inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ tests/migrated/theme-switch.test.tsx (2 tests) 127ms
+ ✓ tests/migrated/assistant-ui-markdown-showcase.test.tsx (1 test) 140ms
+stderr | tests/migrated/assistant-ui-composer-history.test.tsx > assistant-ui Composer history continuation behavior > enables the composed Composer on persisted history without starting a run merely by opening it
+An update to ForwardRef(AuiProvider) inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ForwardRef(AuiProvider) inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | tests/migrated/assistant-ui-composer-history.test.tsx > assistant-ui Composer history continuation behavior > enables the composed Composer on persisted history without starting a run merely by opening it
+An update to ForwardRef(AuiProvider) inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ForwardRef(AuiProvider) inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ tests/migrated/assistant-ui-composer-history.test.tsx (1 test) 122ms
+ ✓ tests/migrated/assistant-ui-rich-history-integration.test.tsx (3 tests) 140ms
+ ✓ tests/migrated/source-citations-ag-ui-integration.test.tsx (1 test) 125ms
+ ✓ tests/migrated/generated-file-message.test.tsx (22 tests) 115ms
+ ✓ tests/composer-queue.test.tsx (3 tests) 115ms
+ ✓ tests/feedback-actions.test.tsx (2 tests) 112ms
+ ✓ tests/migrated/assistant-ui-toolkit.test.tsx (6 tests) 100ms
+ ✓ tests/migrated/agent-plan-activity-integration.test.tsx (2 tests) 88ms
+ ✓ tests/product-locale-fallbacks.test.tsx (14 tests) 89ms
+ ✓ tests/quote-selection-root.test.tsx (2 tests) 92ms
+ ✓ tests/migrated/assistant-ui-run-resume-production.test.tsx (4 tests) 91ms
+ ✓ tests/migrated/assistant-ui-mock-agent-elements.test.tsx (15 tests) 81ms
+stderr | tests/migrated/assistant-ui-history-retry-integration.test.tsx > assistant-ui history and new-thread integration > uses both ThreadList and Plugin new-thread actions without changing old Agent ownership
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+ ✓ tests/composer-trigger-upstream.test.mjs (2 tests) 72ms
+stderr | tests/migrated/assistant-ui-history-retry-integration.test.tsx > assistant-ui history and new-thread integration > retains live history while a failed history runtime is retried
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+stderr | tests/migrated/assistant-ui-history-retry-integration.test.tsx > assistant-ui history and new-thread integration > keeps business selection aligned with a writable empty new thread
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+ ✓ tests/migrated/assistant-ui-history-retry-integration.test.tsx (3 tests) 67ms
+ ✓ tests/migrated/ag-ui-boundary.test.ts (5 tests) 55ms
+stderr | tests/migrated/generative-ui-library.test.tsx > uses the official styled library and renders its supported vocabulary through JSONGenerativeUI
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/generative-ui-library.test.tsx > renders the pinned Slider and CheckboxGroup capabilities with their initial values
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/generative-ui-library.test.tsx > dispatches a Button action exactly once
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/generative-ui-library.test.tsx > passes official current control value into undefined ({"$type":"Input","label":"Note"})
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/generative-ui-library.test.tsx > passes official current control value into undefined ({"$type":"Select","options":[{"label":"A","value":"a"},{"label":"B","value":"b"}]})
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/generative-ui-library.test.tsx > passes official current control value into undefined ({"$type":"Checkbox","label":"Transfer"})
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/generative-ui-library.test.tsx > passes official current control value into undefined ({"$type":"RadioGroup","options":[{"label":"A","value":"a"},{"label":"B","value":"b"}]})
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/generative-ui-library.test.tsx > passes official current control value into undefined ({"$type":"DatePicker","label":"Departure"})
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/generative-ui-library.test.tsx > collects named controls through the official Form action
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+stderr | tests/migrated/generative-ui-library.test.tsx > initializes Input defaultValue and resolves $field from the current control value
+[@assistant-ui/react-generative-ui] Prop "size" is declared by "Header", "Text", "Image", and "Icon"; keeping "Header"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "value" is declared by "Text", "Caption", "Fact", "DatePicker", "Badge", and "Markdown"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "color" is declared by "Text" and "Chart"; keeping "Text"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "label" is declared by "Fact", "Button", "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Carousel"; keeping "Fact"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "options" is declared by "Select", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "placeholder" is declared by "Select" and "Input"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "name" is declared by "Select", "Input", "DatePicker", "Checkbox", "Slider", "RadioGroup", "CheckboxGroup", and "Icon"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "defaultValue" is declared by "Select", "Input", "Slider", "RadioGroup", and "CheckboxGroup"; keeping "Select"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "min" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "max" is declared by "DatePicker" and "Slider"; keeping "DatePicker"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "variant" is declared by "Checkbox", "Badge", and "Chart"; keeping "Checkbox"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "gap" is declared by "Form", "Col", and "Row"; keeping "Form"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "title" is declared by "Card" and "Alert"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "background" is declared by "Card" and "Box"; keeping "Card"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+[@assistant-ui/react-generative-ui] Prop "align" is declared by "Col" and "Row"; keeping "Col"'s schema. Rename or align the prop type to avoid an ambiguous schema.
+
+ ✓ tests/migrated/generative-ui-library.test.tsx (10 tests) 70ms
+ ✓ tests/theme-dark-variant.test.tsx (1 test) 61ms
+ ✓ tests/migrated/human-question-flow.test.tsx (12 tests) 60ms
+ ✓ tests/migrated/generated-file-ag-ui-integration.test.tsx (1 test) 52ms
+ ✓ tests/violet-surface-overrides.test.tsx (9 tests) 40ms
+ ✓ tests/assistant-ui-integration-boundary.test.ts (4 tests) 43ms
+ ✓ tests/violet-brand.test.tsx (10 tests) 56ms
+stderr | tests/migrated/assistant-ui-thread-list.test.tsx > ConversationThreadListPlugin > idle exposes the official New Thread control with the expected navigation state
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+stderr | tests/migrated/assistant-ui-thread-list.test.tsx > ConversationThreadListPlugin > running exposes the official New Thread control with the expected navigation state
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+stderr | tests/migrated/assistant-ui-thread-list.test.tsx > ConversationThreadListPlugin > awaiting-input exposes the official New Thread control with the expected navigation state
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+stderr | tests/migrated/assistant-ui-thread-list.test.tsx > ConversationThreadListPlugin > projects disabled history as an inert row while leaving regular history active
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+stderr | tests/migrated/assistant-ui-thread-list.test.tsx > ConversationThreadListPlugin > renders Delete while omitting unsupported Rename and Archive actions
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+ ✓ tests/thread-list-locale.test.tsx (3 tests) 38ms
+stderr | tests/migrated/assistant-ui-thread-list.test.tsx > ConversationThreadListPlugin > keeps action capability configuration independent between item compositions
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+stderr | tests/migrated/assistant-ui-thread-list.test.tsx > ConversationThreadListPlugin > renders list and detail errors independently and retries the failed conversation
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+stderr | tests/migrated/assistant-ui-thread-list.test.tsx > ConversationThreadListPlugin > allows detail retry while another thread is running
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+stderr | tests/migrated/assistant-ui-thread-list.test.tsx > ConversationThreadListPlugin > allows detail retry while another thread is awaiting-input
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+ ✓ tests/migrated/assistant-ui-thread-list.test.tsx (10 tests) 46ms
+ ✓ tests/migrated/assistant-ui-agent-state.test.tsx (1 test) 39ms
+ ✓ tests/data-message-ui.test.tsx (3 tests) 36ms
+ ✓ tests/migrated/official-form-fixture.test.ts (1 test) 31ms
+ ✓ tests/media-file-locale.test.tsx (5 tests) 32ms
+stderr | tests/migrated/scoped-renderer-runtime.test.tsx > scoped renderer runtime composition > uses the same Plugin instance with isolated scopes for repeated entities
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+stderr | tests/migrated/scoped-renderer-runtime.test.tsx > scoped renderer runtime composition > renders nothing when an optional Renderer Slot has no occupant
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+stderr | tests/migrated/scoped-renderer-runtime.test.tsx > scoped renderer runtime composition > renders nothing for disabled and removed instances and replaces a renderer through the model
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+stderr | tests/migrated/scoped-renderer-runtime.test.tsx > scoped renderer runtime composition > updates running status without remounting the structural host
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+ ✓ tests/migrated/scoped-renderer-runtime.test.tsx (4 tests) 25ms
+ ✓ tests/migrated/scoped-renderer-builder.test.ts (2 tests) 14ms
+ ✓ tests/image-zoom-portal.test.tsx (1 test) 21ms
+ ✓ tests/migrated/data-message-ui-host.test.tsx (8 tests) 20ms
+stderr | tests/migrated/locale-foundation.test.tsx > Agent UI locale foundation > admits feedback labels through its declared consumer scope
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+stderr | tests/migrated/locale-foundation.test.tsx > Agent UI locale foundation > provides the optional service and updates namespace consumers without reconciling the runtime
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+stderr | tests/migrated/locale-foundation.test.tsx > Agent UI locale foundation > uses the configured default when the provider is absent
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+ ✓ tests/migrated/locale-foundation.test.tsx (7 tests) 17ms
+ ✓ tests/migrated/human-question-readonly-integration.test.tsx (1 test) 17ms
+ ✓ tests/migrated/public-conversation-boundary.test.ts (1 test) 17ms
+ ✓ tests/migrated/plugin-cleanup-boundary.test.ts (3 tests) 16ms
+ ✓ tests/migrated/assistant-ui-thread-boundary.test.ts (2 tests) 14ms
+ ✓ tests/quote-selection-boundary.test.ts (1 test) 12ms
+ ✓ tests/migrated/conversation-service-plugin.test.ts (3 tests) 12ms
+ ✓ tests/quote-upstream-regression.test.mjs (7 tests) 9ms
+stderr | tests/product-locale.test.tsx > Product locale composition > updates controls and screen-reader copy through the host provider
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+stderr | tests/product-locale.test.tsx > Product locale composition > localizes URL file download accessibility through public upstream composition
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+ ✓ tests/product-locale.test.tsx (4 tests) 10ms
+ ✓ tests/migrated/conversation-http-data-source.test.ts (11 tests) 8ms
+stderr | tests/migrated/assistant-ui-theme-bridge.test.tsx > assistant-ui theme bridge > uses the project default when the optional provider is removed
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+stderr | tests/migrated/assistant-ui-theme-bridge.test.tsx > assistant-ui theme bridge > uses the project default when the optional provider is removed
+An update to Root inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | tests/migrated/assistant-ui-theme-bridge.test.tsx > assistant-ui theme bridge > updates the theme without remounting its conversation consumer
+react-test-renderer is deprecated. See https://react.dev/warnings/react-test-renderer
+
+stderr | tests/migrated/assistant-ui-theme-bridge.test.tsx > assistant-ui theme bridge > updates the theme without remounting its conversation consumer
+An update to Root inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ThemeProbe inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ tests/migrated/assistant-ui-theme-bridge.test.tsx (2 tests) 10ms
+ ✓ tests/migrated/assistant-ui-agent-elements-rendering.test.tsx (1 test) 8ms
+ ✓ tests/migrated/assistant-ui-conversation-thread-binding.test.ts (14 tests) 8ms
+ ✓ tests/migrated/ui-plugin.test.ts (25 tests) 8ms
+ ✓ tests/migrated/frontend-tools.test.ts (6 tests) 7ms
+ ✓ tests/upstream-provenance.test.ts (3 tests) 6ms
+ ✓ tests/assistant-ui-portal-sync.test.mjs (3 tests) 5ms
+ ✓ tests/migrated/scoped-renderer-bridge.test.tsx (5 tests) 5ms
+ ✓ tests/migrated/conversation-service.test.ts (13 tests) 5ms
+ ✓ tests/public-api.test.ts (2 tests) 5ms
+ ✓ tests/migrated/frontend-tool-form-contract.test.ts (3 tests) 5ms
+ ✓ tests/migrated/assistant-ui-conversation-visual-contract.test.ts (6 tests) 7ms
+ ✓ tests/migrated/assistant-ui-default-composition.test.ts (9 tests) 7ms
+ ✓ tests/theme-contract.test.ts (4 tests) 5ms
+ ✓ tests/composable-thread-parity.test.ts (4 tests) 4ms
+ ✓ tests/conversation-turn.test.ts (13 tests) 3ms
+ ✓ tests/migrated/assistant-ui-langgraph-history-projector.test.ts (4 tests) 4ms
+ ✓ tests/assistant-response.test.ts (11 tests) 3ms
+ ✓ tests/migrated/assistant-ui-locale-boundary.test.ts (2 tests) 4ms
+ ✓ tests/directive-formatter-conformance.test.ts (13 tests) 3ms
+ ✓ tests/assistant-response-ownership.test.ts (2 tests) 3ms
+ ✓ tests/canonical-presentation-contract.test.ts (2 tests) 14ms
+ ✓ tests/migrated/assistant-ui-suggestions-boundary.test.tsx (2 tests) 3ms
+ ✓ tests/assistant-message-ownership.test.ts (3 tests) 3ms
+ ✓ tests/migrated/conversation-empty-data-source.test.ts (2 tests) 3ms
+ ✓ tests/migrated/assistant-ui-semantic-slot-rendering.test.tsx (3 tests) 3ms
+ ✓ tests/migrated/job-progress-projection.test.ts (7 tests) 2ms
+ ✓ tests/search-presentation-seam-sync.test.mjs (3 tests) 3ms
+ ✓ tests/migrated/scoped-renderer-boundary.test.ts (2 tests) 3ms
+ ✓ tests/migrated/assistant-ui-agent-elements-projection.test.ts (14 tests) 3ms
+ ✓ tests/migrated/assistant-ui-semantic-slot-adapter.test.ts (2 tests) 3ms
+ ✓ tests/migrated/assistant-ui-agent-elements-contract.test.ts (1 test) 3ms
+ ✓ tests/migrated/assistant-ui-agent-message-composition.test.tsx (2 tests) 3ms
+ ✓ tests/migrated/assistant-ui-empty-state-stability.test.ts (3 tests) 3ms
+ ✓ tests/migrated/assistant-ui-interaction-state-contract.test.tsx (2 tests) 3ms
+ ✓ tests/conversation-navigation.test.ts (2 tests) 2ms
+ ✓ tests/migrated/plugin-identity.test.ts (2 tests) 3ms
+ ✓ tests/migrated/assistant-ui-formal-surface.test.ts (1 test) 2ms
+ ✓ tests/migrated/conversation-navigation-policy.test.ts (2 tests) 3ms
+ ✓ tests/migrated/task-group-boundary.test.ts (1 test) 2ms
+ ✓ tests/migrated/conversation-endpoint.test.ts (2 tests) 1ms
+
+ Test Files  113 passed (113)
+      Tests  645 passed (645)
+   Start at  16:44:00
+   Duration  50.43s (transform 2.05s, setup 241ms, import 43.01s, tests 27.88s, environment 21.97s)
+
+JSON report written to /tmp/agent-ui-finished-results.json

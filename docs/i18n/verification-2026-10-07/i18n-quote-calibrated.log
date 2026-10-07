@@ -1,0 +1,181 @@
+
+Running 4 tests using 1 worker
+
+(node:34429) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview (6.6s)
+(node:34446) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  2 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview (6.3s)
+(node:34466) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  3 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview (6.4s)
+(node:34488) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  4 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview (6.4s)
+
+
+  1) [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview ────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-slot="selection-toolbar-quote"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-slot="selection-toolbar-quote"]') with timeout 5000ms
+      - waiting for locator('[data-slot="selection-toolbar-quote"]')
+
+
+      180 |   await content.locator('p').first().dblclick({position:{x:12,y:8}});
+      181 |   await info.attach("quote-selection", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot="selection-toolbar-quote"]').length }; }), null, 2), contentType: "application/json" });
+    > 182 |   const quote = page.locator('[data-slot="selection-toolbar-quote"]'); await expect(quote).toBeVisible(); await quote.click();
+          |                                                                                            ^
+      183 |   await expect(page.locator('[data-slot="composer-quote"]')).toBeVisible();
+      184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:"disabled"});
+      185 | });
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/error-context.md
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview ─────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-slot="selection-toolbar-quote"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-slot="selection-toolbar-quote"]') with timeout 5000ms
+      - waiting for locator('[data-slot="selection-toolbar-quote"]')
+
+
+      180 |   await content.locator('p').first().dblclick({position:{x:12,y:8}});
+      181 |   await info.attach("quote-selection", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot="selection-toolbar-quote"]').length }; }), null, 2), contentType: "application/json" });
+    > 182 |   const quote = page.locator('[data-slot="selection-toolbar-quote"]'); await expect(quote).toBeVisible(); await quote.click();
+          |                                                                                            ^
+      183 |   await expect(page.locator('[data-slot="composer-quote"]')).toBeVisible();
+      184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:"disabled"});
+      185 | });
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/error-context.md
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview ────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-slot="selection-toolbar-quote"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-slot="selection-toolbar-quote"]') with timeout 5000ms
+      - waiting for locator('[data-slot="selection-toolbar-quote"]')
+
+
+      180 |   await content.locator('p').first().dblclick({position:{x:12,y:8}});
+      181 |   await info.attach("quote-selection", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot="selection-toolbar-quote"]').length }; }), null, 2), contentType: "application/json" });
+    > 182 |   const quote = page.locator('[data-slot="selection-toolbar-quote"]'); await expect(quote).toBeVisible(); await quote.click();
+          |                                                                                            ^
+      183 |   await expect(page.locator('[data-slot="composer-quote"]')).toBeVisible();
+      184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:"disabled"});
+      185 | });
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/error-context.md
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview ─────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-slot="selection-toolbar-quote"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-slot="selection-toolbar-quote"]') with timeout 5000ms
+      - waiting for locator('[data-slot="selection-toolbar-quote"]')
+
+
+      180 |   await content.locator('p').first().dblclick({position:{x:12,y:8}});
+      181 |   await info.attach("quote-selection", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot="selection-toolbar-quote"]').length }; }), null, 2), contentType: "application/json" });
+    > 182 |   const quote = page.locator('[data-slot="selection-toolbar-quote"]'); await expect(quote).toBeVisible(); await quote.click();
+          |                                                                                            ^
+      183 |   await expect(page.locator('[data-slot="composer-quote"]')).toBeVisible();
+      184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:"disabled"});
+      185 | });
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/error-context.md
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4 failed
+    [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview ─────────
+    [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview ──────────
+    [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview ─────────
+    [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:173:1 › quote selection and preview ──────────
+undefined
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: playwright test -c playwright.i18n-plugin.config.ts --grep 'quote selection'

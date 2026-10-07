@@ -30,7 +30,7 @@ afterEach(async () => {
 });
 
 it("uses the chart Scenario declaration for Compatibility, the UI Run gate and the Server select gate", async () => {
-  service = new CreatorMockService();
+  service = new CreatorMockService({ port: 0 });
   let installed = false;
   const install = vi.fn(async () => { installed = true; });
   const inspector = async () => ({

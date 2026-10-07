@@ -1,0 +1,218 @@
+$ pnpm verify:style-isolation
+$ node scripts/prepare-host-packages.mjs && pnpm check:assistant-ui-upstream && pnpm --filter @agent-ui/react exec vitest run tests/assistant-ui-portal-sync.test.mjs tests/migrated/assistant-ui-thread-delete-integration.test.tsx tests/portal-container-boundary.test.tsx tests/image-zoom-portal.test.tsx tests/assistant-ui-integration-boundary.test.ts tests/upstream-guard.test.ts tests/migrated/assistant-ui-tailwind-source-coverage.test.ts tests/theme-contract.test.ts tests/violet-brand.test.tsx tests/violet-surface-overrides.test.tsx tests/migrated/generative-ui-library.test.tsx tests/migrated/a2ui-integration.test.tsx tests/migrated/frontend-tool-dialog-lifecycle.test.tsx tests/migrated/assistant-ui-attachments.test.tsx tests/migrated/assistant-ui-style-isolation.test.ts && pnpm --filter @agent-ui/project-control exec vitest run tests/migrated/verify-ui.test.ts tests/migrated/plugin-style-verifier.test.ts && pnpm test:style-isolation
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-lexical-boundary.mjs
+@agent-ui/react public declaration boundary: OK (7 declarations)
+Lexical optional facade and Source Plugin boundaries: OK
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-consumer-types.mjs
+@agent-ui/runtime-conversation public declaration boundary: OK (9 reachable declarations)
+@agent-ui/runtime-conversation published-package consumer typecheck: OK (isolated tarball install, skipLibCheck: false)
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json
+$ node scripts/build.mjs
+$ pnpm --filter @agent-ui/react check:assistant-ui-upstream
+$ node scripts/check-assistant-ui-upstream.mjs
+assistant-ui upstream-owned Elements: OK
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../scripts/generated-source-test-config" without a file extension (vitest.config.ts:3:43). Add the file extension
+  - ESM syntax in a file loaded as CommonJS (../../scripts/generated-source-test-config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+  - import "../../src/generate-plugin-registry" without a file extension (../project-control/tests/support/generated-project.ts:5:46). Add the file extension
+  - import "./framework/contracts/app-ui-model" without a file extension (../project-control/src/generate-plugin-registry.ts:6:37). Add the file extension
+  - import "./project/project-mode" without a file extension (../project-control/src/generate-plugin-registry.ts:7:42). Add the file extension
+  - import "./framework/contracts/agent-ui-project" without a file extension (../project-control/src/generate-plugin-registry.ts:8:43). Add the file extension
+  - import "./project/agent-ui-project-paths" without a file extension (../project-control/src/generate-plugin-registry.ts:9:95). Add the file extension
+  - import "./project/creator-cancel-marker" without a file extension (../project-control/src/generate-plugin-registry.ts:10:44). Add the file extension
+  - import "./project/registry-generator" without a file extension (../project-control/src/generate-plugin-registry.ts:13:8). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (../project-control/src/project/project-mode.ts:7:8). Add the file extension
+  - import "./panel-dimension" without a file extension (../project-control/src/framework/contracts/app-ui-model.ts:3:42). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (../project-control/src/project/agent-ui-project-paths.ts:3:43). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (../project-control/src/project/registry-generator.ts:16:8). Add the file extension
+  - import "./types" without a file extension (../project-control/src/project/agent-ui-project-paths.ts:4:45). Add the file extension
+  - import "../framework/contracts/app-ui-compiler" without a file extension (../project-control/src/project/registry-generator.ts:17:55). Add the file extension
+  - import "./project-config" without a file extension (../project-control/src/project/agent-ui-project-paths.ts:5:40). Add the file extension
+  - import "../framework/contracts/app-ui-composition" without a file extension (../project-control/src/project/registry-generator.ts:22:8). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (../project-control/src/project/registry-generator.ts:23:42). Add the file extension
+  - import "./plugin-assets" without a file extension (../project-control/src/project/registry-generator.ts:24:37). Add the file extension
+  - import "./agent-ui-mode" without a file extension (../project-control/src/framework/contracts/agent-ui-project.ts:6:8). Add the file extension
+  - import "./types" without a file extension (../project-control/src/project/project-config.ts:1:45). Add the file extension
+  - import "./data-message-ui-analyzer" without a file extension (../project-control/src/project/registry-generator.ts:25:39). Add the file extension
+  - import "./service-dependency-inspector" without a file extension (../project-control/src/project/registry-generator.ts:30:8). Add the file extension
+  - import "./types" without a file extension (../project-control/src/project/registry-generator.ts:37:8). Add the file extension
+  - import "./agent-ui-workspace" without a file extension (../project-control/src/framework/contracts/agent-ui-mode.ts:3:45). Add the file extension
+  - import "./app-ui-model" without a file extension (../project-control/src/framework/contracts/app-ui-compiler.ts:8:8). Add the file extension
+  - import "../framework/contracts/ui-plugin" without a file extension (../project-control/src/project/plugin-assets.ts:4:39). Add the file extension
+  - import "../framework/contracts/data-message-ui" without a file extension (../project-control/src/project/data-message-ui-analyzer.ts:22:42). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (../project-control/src/framework/contracts/app-ui-composition.ts:4:8). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (../project-control/src/project/service-dependency-inspector.ts:8:8). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (../project-control/src/framework/contracts/app-ui-compiler.ts:14:8). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (../project-control/src/project/plugin-assets.ts:5:42). Add the file extension
+  - import "./types" without a file extension (../project-control/src/project/data-message-ui-analyzer.ts:23:48). Add the file extension
+  - import "./types" without a file extension (../project-control/src/project/service-dependency-inspector.ts:25:8). Add the file extension
+  - import "./app-ui-composition" without a file extension (../project-control/src/framework/contracts/app-ui-compiler.ts:23:8). Add the file extension
+  - import "./types" without a file extension (../project-control/src/project/plugin-assets.ts:11:8). Add the file extension
+  - import "./panel-dimension" without a file extension (../project-control/src/framework/contracts/app-ui-runtime-model.ts:3:42). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (../project-control/src/framework/contracts/ui-plugin.ts:9:49). Add the file extension
+  - import "./app-ui-model" without a file extension (../project-control/src/framework/contracts/ui-plugin.ts:10:43). Add the file extension
+  - import "./app-ui-composition" without a file extension (../project-control/src/framework/contracts/ui-plugin.ts:11:48). Add the file extension
+  - import "./custom-event-protocol" without a file extension (../project-control/src/framework/contracts/ui-plugin.ts:12:39). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 /Users/yifei/Coding/AgentUICreator/packages/react
+
+
+ Test Files  15 passed (15)
+      Tests  81 passed (81)
+   Start at  12:48:55
+   Duration  9.73s (transform 1.02s, setup 47ms, import 5.66s, tests 9.61s, environment 3.01s)
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../scripts/generated-source-test-config" without a file extension (vitest.config.ts:3:43). Add the file extension
+  - ESM syntax in a file loaded as CommonJS (../../scripts/generated-source-test-config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+  - import "../../src/generate-plugin-registry" without a file extension (tests/support/generated-project.ts:5:46). Add the file extension
+  - import "./framework/contracts/app-ui-model" without a file extension (src/generate-plugin-registry.ts:6:37). Add the file extension
+  - import "./project/project-mode" without a file extension (src/generate-plugin-registry.ts:7:42). Add the file extension
+  - import "./framework/contracts/agent-ui-project" without a file extension (src/generate-plugin-registry.ts:8:43). Add the file extension
+  - import "./project/agent-ui-project-paths" without a file extension (src/generate-plugin-registry.ts:9:95). Add the file extension
+  - import "./project/creator-cancel-marker" without a file extension (src/generate-plugin-registry.ts:10:44). Add the file extension
+  - import "./project/registry-generator" without a file extension (src/generate-plugin-registry.ts:13:8). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (src/project/registry-generator.ts:16:8). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (src/project/project-mode.ts:7:8). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (src/project/agent-ui-project-paths.ts:3:43). Add the file extension
+  - import "./panel-dimension" without a file extension (src/framework/contracts/app-ui-model.ts:3:42). Add the file extension
+  - import "../framework/contracts/app-ui-compiler" without a file extension (src/project/registry-generator.ts:17:55). Add the file extension
+  - import "./types" without a file extension (src/project/agent-ui-project-paths.ts:4:45). Add the file extension
+  - import "../framework/contracts/app-ui-composition" without a file extension (src/project/registry-generator.ts:22:8). Add the file extension
+  - import "./project-config" without a file extension (src/project/agent-ui-project-paths.ts:5:40). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/registry-generator.ts:23:42). Add the file extension
+  - import "./plugin-assets" without a file extension (src/project/registry-generator.ts:24:37). Add the file extension
+  - import "./data-message-ui-analyzer" without a file extension (src/project/registry-generator.ts:25:39). Add the file extension
+  - import "./service-dependency-inspector" without a file extension (src/project/registry-generator.ts:30:8). Add the file extension
+  - import "./types" without a file extension (src/project/registry-generator.ts:37:8). Add the file extension
+  - import "./agent-ui-mode" without a file extension (src/framework/contracts/agent-ui-project.ts:6:8). Add the file extension
+  - import "./types" without a file extension (src/project/project-config.ts:1:45). Add the file extension
+  - import "./agent-ui-workspace" without a file extension (src/framework/contracts/agent-ui-mode.ts:3:45). Add the file extension
+  - import "../framework/contracts/ui-plugin" without a file extension (src/project/plugin-assets.ts:4:39). Add the file extension
+  - import "../framework/contracts/data-message-ui" without a file extension (src/project/data-message-ui-analyzer.ts:22:42). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/app-ui-composition.ts:4:8). Add the file extension
+  - import "./app-ui-model" without a file extension (src/framework/contracts/app-ui-compiler.ts:8:8). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (src/project/service-dependency-inspector.ts:8:8). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/plugin-assets.ts:5:42). Add the file extension
+  - import "./types" without a file extension (src/project/data-message-ui-analyzer.ts:23:48). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/app-ui-compiler.ts:14:8). Add the file extension
+  - import "./types" without a file extension (src/project/service-dependency-inspector.ts:25:8). Add the file extension
+  - import "./types" without a file extension (src/project/plugin-assets.ts:11:8). Add the file extension
+  - import "./app-ui-composition" without a file extension (src/framework/contracts/app-ui-compiler.ts:23:8). Add the file extension
+  - import "./panel-dimension" without a file extension (src/framework/contracts/app-ui-runtime-model.ts:3:42). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/ui-plugin.ts:9:49). Add the file extension
+  - import "./app-ui-model" without a file extension (src/framework/contracts/ui-plugin.ts:10:43). Add the file extension
+  - import "./app-ui-composition" without a file extension (src/framework/contracts/ui-plugin.ts:11:48). Add the file extension
+  - import "./custom-event-protocol" without a file extension (src/framework/contracts/ui-plugin.ts:12:39). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 /Users/yifei/Coding/AgentUICreator/packages/project-control
+
+
+ Test Files  2 passed (2)
+      Tests  39 passed (39)
+   Start at  12:49:05
+   Duration  9.26s (transform 212ms, setup 24ms, import 298ms, tests 8.75s, environment 360ms)
+
+$ node scripts/prepare-host-packages.mjs && pnpm --filter @agent-ui/creator-embedded-host exec node --import tsx ../../scripts/host-examples/host-project.ts ensure embedded creator-embedded-host && pnpm --filter @agent-ui/creator-workbench test:e2e:style-isolation
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-lexical-boundary.mjs
+@agent-ui/react public declaration boundary: OK (7 declarations)
+Lexical optional facade and Source Plugin boundaries: OK
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-consumer-types.mjs
+@agent-ui/runtime-conversation public declaration boundary: OK (9 reachable declarations)
+@agent-ui/runtime-conversation published-package consumer typecheck: OK (isolated tarball install, skipLibCheck: false)
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json
+$ node scripts/build.mjs
+Preserving the Host's customized foundation; automatic source upgrades are skipped.
+Preserving plugin/assistant-ui-add-attachment-action: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-add-attachment-action requires changed dependency source.
+Preserving plugin/assistant-ui-composer: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-composer requires changed dependency source.
+Preserving plugin/assistant-ui-copy-action: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-copy-action requires changed dependency source.
+Preserving plugin/assistant-ui-dictation-action: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-dictation-action requires changed dependency source.
+Preserving plugin/assistant-ui-export-markdown-action: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-export-markdown-action requires changed dependency source.
+Preserving plugin/assistant-ui-message-footer: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-message-footer requires changed dependency source.
+Preserving plugin/assistant-ui-reasoning: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-reasoning requires changed dependency source.
+Preserving plugin/assistant-ui-reload-action: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-reload-action requires changed dependency source.
+Preserving plugin/assistant-ui-submit-action: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-submit-action requires changed dependency source.
+Preserving plugin/assistant-ui-tool-fallback: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-tool-fallback requires changed dependency source.
+Preserving plugin/assistant-ui-tool-group: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-tool-group requires changed dependency source.
+Preserving plugin/conversation-service: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/conversation-service requires changed dependency source.
+Preserving plugin/conversation-suggestions: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/conversation-suggestions requires changed dependency source.
+Preserving plugin/conversation-surface: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/conversation-surface requires changed dependency source.
+Preserving plugin/locale-provider: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/locale-provider requires changed dependency source.
+Preserving plugin/task-group: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/task-group requires changed dependency source.
+Preserving plugin/theme-provider: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/theme-provider requires changed dependency source.
+$ playwright test -c playwright.embedded.config.ts
+[WebServer] (node:30787) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] $ node ../../scripts/prepare-host-packages.mjs && node --import tsx ../../scripts/host-examples/host-project.ts ensure embedded creator-embedded-host
+[WebServer] (node:30829) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] $ tsc -p tsconfig.build.json
+[WebServer] (node:30878) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] $ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-lexical-boundary.mjs
+[WebServer] (node:30934) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] $ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-consumer-types.mjs
+[WebServer] (node:31179) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] $ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs
+[WebServer] (node:31240) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] $ tsc -p tsconfig.build.json
+[WebServer] (node:31302) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] $ tsc -p tsconfig.build.json
+[WebServer] (node:31356) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] $ tsc -p tsconfig.build.json
+[WebServer] (node:31411) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] $ node scripts/build.mjs
+[WebServer] (node:31465) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:31465) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] Preserving the Host's customized foundation; automatic source upgrades are skipped.
+[WebServer] Preserving plugin/assistant-ui-add-attachment-action: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-add-attachment-action requires changed dependency source.
+[WebServer] Preserving plugin/assistant-ui-composer: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-composer requires changed dependency source.
+[WebServer] Preserving plugin/assistant-ui-copy-action: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-copy-action requires changed dependency source.
+[WebServer] Preserving plugin/assistant-ui-dictation-action: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-dictation-action requires changed dependency source.
+[WebServer] Preserving plugin/assistant-ui-export-markdown-action: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-export-markdown-action requires changed dependency source.
+[WebServer] Preserving plugin/assistant-ui-message-footer: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-message-footer requires changed dependency source.
+[WebServer] Preserving plugin/assistant-ui-reasoning: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-reasoning requires changed dependency source.
+[WebServer] Preserving plugin/assistant-ui-reload-action: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-reload-action requires changed dependency source.
+[WebServer] Preserving plugin/assistant-ui-submit-action: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-submit-action requires changed dependency source.
+[WebServer] Preserving plugin/assistant-ui-tool-fallback: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-tool-fallback requires changed dependency source.
+[WebServer] Preserving plugin/assistant-ui-tool-group: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/assistant-ui-tool-group requires changed dependency source.
+[WebServer] Preserving plugin/conversation-service: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/conversation-service requires changed dependency source.
+[WebServer] Preserving plugin/conversation-suggestions: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/conversation-suggestions requires changed dependency source.
+[WebServer] Preserving plugin/conversation-surface: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/conversation-surface requires changed dependency source.
+[WebServer] Preserving plugin/locale-provider: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/locale-provider requires changed dependency source.
+[WebServer] Preserving plugin/task-group: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/task-group requires changed dependency source.
+[WebServer] Preserving plugin/theme-provider: Agent UI source dependency foundation/core-runtime was customized by the project and cannot be synchronized automatically; plugin/theme-provider requires changed dependency source.
+[WebServer] $ vite --host 127.0.0.1 --port 5178 --strictPort
+[WebServer] (node:31502) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+[WebServer]   - import "./vite-runtime-aliases" without a file extension (vite.config.ts:5:32). Add the file extension
+[WebServer] Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+Running 3 tests using 1 worker
+
+(node:31524) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/embedded-style-isolation.spec.ts:3:1 › keeps ordinary Host globals outside Agent UI and preserves Host probes (723ms)
+  ✓  2 tests/embedded-style-isolation.spec.ts:37:1 › preserves runtime Row tracks inside the Agent UI style boundary (382ms)
+  ✓  3 tests/embedded-style-isolation.spec.ts:51:1 › mounts Tooltip, Popover and Dialog within the themed Portal boundary (1.2s)
+
+  3 passed (29.7s)

@@ -9,8 +9,15 @@ import { Input } from "./components/input.js";
 import { NativeSelect } from "./components/native-select.js";
 import { CREATOR_MOCK_API_PATH, type CreatorMockState } from "../mock/types.js";
 import type { MockDemoCompatibility } from "../mock/demo-compatibility.js";
+import { useCreatorRefresh } from "./creatorRefresh.js";
 
 function getDemoTitles(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): Record<string, string> { return {
+  "web-search": localeMessages.mock.searchTheWebWithTools,
+  "retrieval-chunks": localeMessages.mock.retrievePassagesWithTools,
+  "source-citations": localeMessages.mock.showSourceCitationsInAnswers,
+  "resumable-long-run": localeMessages.mock.continueALongResponseAfterRefreshing,
+  "resumable-agent-plan": localeMessages.mock.recoverExecutionPlanProgressAfterRefreshing,
+  "composer-mention-context": localeMessages.mock.askAgentWithContext,
   "multimodal-input": localeMessages.mock.sendTextImagesAndFiles,
   "file-output": localeMessages.mock.generateDownloadableFilesWithTools,
   "a2ui-form-controls": localeMessages.mock.interactiveA2UIForm,
@@ -21,7 +28,7 @@ function getDemoTitles(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_M
   "concurrent-conversations": localeMessages.mock.runSeveralConversationsConcurrently,
   "multi-message-response": localeMessages.mock.multipleMessagesInOneResponse,
   "cancel-before-first-output": localeMessages.mock.cancelBeforeTheFirstResponse,
-  "agent-plan": localeMessages.mock.showAnExecutionPlanThroughToolArguments,
+  "agent-plan": localeMessages.mock.showAnExecutionPlanThroughActivityEvents,
   "agent-status": localeMessages.mock.showAgentStatusThroughToolArguments,
   "data-message-chart": localeMessages.mock.showACustomChartInMessages,
   "agent-state-sync": localeMessages.mock.updateTaskProgressThroughAgentState,
@@ -42,17 +49,54 @@ function getDemoTitles(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_M
   "tool-long-running": localeMessages.mock.longRunningToolsAndWaiting,
 }; }
 
+// Curated teaching focus, not an inventory of every event emitted by a demo.
+// Capability labels cover examples whose focus has no dedicated AG-UI event.
+function getDemoFocusTags(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): Record<string, readonly string[]> { return {
+  "simple-chat": ["TEXT_MESSAGE_*"],
+  "multi-message-response": ["TEXT_MESSAGE_*", localeMessages.mock.multipleMessages],
+  "markdown-showcase": ["TEXT_MESSAGE_*", "Markdown"],
+  "multimodal-input": [localeMessages.mock.multimodalInput, localeMessages.mock.attachments],
+  "reasoning-chat": ["REASONING_*"],
+  "reasoning-long-preview": ["REASONING_*"],
+  "reasoning-tool-success": ["REASONING_*", "TOOL_CALL_*"],
+  "multi-tool": ["TOOL_CALL_*", localeMessages.mock.sequentialCalls],
+  "parallel-tools": ["TOOL_CALL_*", localeMessages.mock.parallelCalls],
+  "tool-long-running": ["TOOL_CALL_*", localeMessages.mock.longRunningTool],
+  "tool-error": ["TOOL_CALL_*", "RUN_ERROR"],
+  "file-output": ["TOOL_CALL_RESULT", localeMessages.mock.fileOutput],
+  "frontend-tool-open-dialog": ["TOOL_CALL_*", localeMessages.mock.frontendTools],
+  "frontend-tool-fill-form": ["TOOL_CALL_*", localeMessages.mock.frontendTools],
+  "ask-user-question": ["TOOL_CALL_*", localeMessages.mock.userQuestion],
+  "approval-resume": ["RUN_FINISHED · interrupt", "TOOL_CALL_RESULT", localeMessages.mock.approvalRecovery],
+  "agent-state-sync": ["STATE_SNAPSHOT", "STATE_DELTA"],
+  "agent-plan": ["ACTIVITY_SNAPSHOT", "ACTIVITY_DELTA"],
+  "agent-status": ["TOOL_CALL_ARGS", localeMessages.mock.agentState],
+  "data-message-chart": ["CUSTOM · chart"],
+  "a2ui-form-controls": ["ACTIVITY_SNAPSHOT", "A2UI"],
+  "a2ui-interactive-order": ["ACTIVITY_SNAPSHOT", "A2UI"],
+  "nested-subagent-conversation": ["SUBAGENT_STARTED", "SUBAGENT_FINISHED"],
+  "nested-subagent-task-group": ["SUBAGENT_STARTED", "SUBAGENT_FINISHED", localeMessages.mock.taskGroup],
+  "nested-subagent-recursive": ["SUBAGENT_STARTED", "SUBAGENT_FINISHED", localeMessages.mock.recursiveDelegation],
+  "nested-subagent-error": ["SUBAGENT_STARTED", "SUBAGENT_ERROR"],
+  "subagent-lifecycle": ["SUBAGENT_STARTED", "SUBAGENT_FINISHED", "SUBAGENT_ERROR"],
+  "concurrent-conversations": [localeMessages.mock.concurrentConversations],
+  "cancel-before-first-output": [localeMessages.mock.cancelRun],
+  "composer-mention-context": ["AG-UI Context"],
+  "resumable-long-run": [localeMessages.mock.runRecovery],
+  "resumable-agent-plan": ["ACTIVITY_SNAPSHOT", "ACTIVITY_DELTA", localeMessages.mock.runRecovery],
+  "retrieval-chunks": ["TOOL_CALL_RESULT", localeMessages.mock.retrievedPassages],
+  "source-citations": ["TOOL_CALL_RESULT", localeMessages.mock.sourceCitations],
+  "web-search": ["TOOL_CALL_RESULT", localeMessages.mock.webSearch],
+}; }
+
 function getDemoGroups(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) { return [
-  { title: localeMessages.mock.conversationsAndMessages, ids: ["simple-chat", "multi-message-response", "markdown-showcase", "multimodal-input"] },
-  { title: localeMessages.mock.reasoningAndAnswers, ids: ["reasoning-chat", "reasoning-long-preview", "reasoning-tool-success"] },
-  { title: localeMessages.mock.toolCalls, ids: ["multi-tool", "parallel-tools", "tool-long-running", "tool-error", "file-output"] },
-  { title: localeMessages.mock.frontendTools, ids: ["frontend-tool-open-dialog", "frontend-tool-fill-form"] },
+  { title: localeMessages.mock.messagesAndContext, ids: ["simple-chat", "multi-message-response", "markdown-showcase", "multimodal-input", "composer-mention-context"] },
+  { title: localeMessages.mock.reasoningAndTools, ids: ["reasoning-chat", "reasoning-tool-success", "parallel-tools", "tool-error", "frontend-tool-open-dialog", "frontend-tool-fill-form", "web-search", "retrieval-chunks"] },
   { title: localeMessages.mock.questionsAndApprovals, ids: ["ask-user-question", "approval-resume"] },
-  { title: localeMessages.mock.stateAndPlans, ids: ["agent-state-sync", "agent-plan", "agent-status"] },
-  { title: localeMessages.mock.contentComponents, ids: ["data-message-chart"] },
-  { title: localeMessages.mock.a2UIInteractiveUI, ids: ["a2ui-form-controls", "a2ui-interactive-order"] },
-  { title: localeMessages.mock.subagents, ids: ["nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive", "nested-subagent-error", "subagent-lifecycle"] },
-  { title: localeMessages.mock.runsAndConversations, ids: ["concurrent-conversations", "cancel-before-first-output"] },
+  { title: localeMessages.mock.stateAndExecutionPlans, ids: ["agent-state-sync", "agent-plan", "agent-status"] },
+  { title: localeMessages.mock.structuredResultsAndInteractiveUI, ids: ["file-output", "source-citations", "data-message-chart", "a2ui-form-controls", "a2ui-interactive-order"] },
+  { title: localeMessages.mock.subagentCollaboration, ids: ["nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive", "nested-subagent-error"] },
+  { title: localeMessages.mock.runControlAndRecovery, ids: ["concurrent-conversations", "cancel-before-first-output", "resumable-long-run", "resumable-agent-plan"] },
 ] as const; }
 function getDemoGroupIndex(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) { return new Map<string, number>(getDemoGroups(localeMessages).flatMap((group, index) => group.ids.map(id => [id, index] as const))); }
 function getDemoOrderIndex(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) { return new Map<string, number>(getDemoGroups(localeMessages).flatMap(group => group.ids.map((id, index) => [id, index] as const))); }
@@ -74,7 +118,7 @@ async function mockRequest(route = "", body?: unknown, signal?: AbortSignal, loc
   return value as CreatorMockState;
 }
 
-export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
+export function MockServicePanel({ projectId, projectPath }: { projectId?: string; projectPath?: string } = {}) {
   const localeMessages = useAgentUILocale();
   const localeMessagesRef = useLocaleMessagesRef(localeMessages);
   localeMessagesRef.current = localeMessages;
@@ -92,6 +136,17 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
   const [installation, setInstallation] = useState<{ scenarioId: string; resourceId: string; status: "installing" | "success" | "error"; message: string } | null>(null);
 
   const [resourceSelection, setResourceSelection] = useState<string | null>(null);
+  useCreatorRefresh(data => {
+    if (inFlight.current || (projectId !== undefined && data.projectId !== projectId)) return;
+    if (data.mock?.projectId === data.projectId) {
+      version.current += 1;
+      setState(data.mock); setError(null);
+    }
+    if (data.compatibility?.projectId === data.projectId) {
+      compatibilityVersion.current += 1;
+      setCompatibility(data.compatibility);
+    }
+  });
 
   async function installRequirements(scenarioId: string) {
     if (inFlight.current || !compatibility?.projectId) return;
@@ -225,7 +280,7 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
   const titleFor = (scenario: { id: string; title: string }) => getDemoTitles(localeMessages)[scenario.id] ?? scenario.title;
   const search = query.trim().toLocaleLowerCase();
   const scenarios = state?.scenarios.filter((scenario) =>
-    `${scenario.id} ${titleFor(scenario)} ${scenario.title} ${descriptionFor(scenario) ?? ""}`.toLocaleLowerCase().includes(search),
+    `${scenario.id} ${titleFor(scenario)} ${scenario.title} ${descriptionFor(scenario) ?? ""} ${(getDemoFocusTags(localeMessages)[scenario.id] ?? []).join(" ")}`.toLocaleLowerCase().includes(search),
   ).sort((first, second) => groupIndexFor(first.id, localeMessages) - groupIndexFor(second.id, localeMessages)
     || (getDemoOrderIndex(localeMessages).get(first.id) ?? 0) - (getDemoOrderIndex(localeMessages).get(second.id) ?? 0)) ?? [];
 
@@ -279,10 +334,11 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
               <option value={0}>{localeMessages.mock.completeImmediately}</option><option value={0.1}>{localeMessages.mock.fastTest01}</option><option value={0.5}>{localeMessages.mock.faster05}</option><option value={1}>{localeMessages.mock.normal1}</option><option value={2}>{localeMessages.mock.slower2}</option>
             </NativeSelect>
           </label>
-          <label className="creator-mock-search">{localeMessages.mock.searchMocks}<Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={localeMessages.mock.nameDescriptionOrScenarioID} /></label>
+          <label className="creator-mock-search">{localeMessages.mock.searchMocks}<Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={localeMessages.mock.nameEventCapabilityOrScenarioID} /></label>
           <section aria-label={localeMessages.mock.localMock}>
             <h3>{localeMessages.mock.localMock}</h3>
             <p>{localeMessages.mock.placeJSONLFilesInThisDirectoryInYour} <code>.agentui/mocks</code>{localeMessages.mock.thenSelectARecordingAndSendAMessage}</p>
+            {projectPath ? <details className="creator-mock-file-location"><summary>{localeMessages.mock.viewRecordingDirectory}</summary><code>{projectPath.replace(/[\\/]$/, "")}/.agentui/mocks</code></details> : null}
             {state.recordingsError ? <p role="alert">{localeMessages.mock.couldNotReadLocalMock}{state.recordingsError}</p> : null}
             {(state.recordings ?? []).filter(item => `${item.title} ${item.fileName} ${item.id}`.toLocaleLowerCase().includes(search)).map(recording => <div key={recording.id} className="creator-mock-scenario" data-selected={localSelected && state.selection.id === recording.id}>
               <label className="creator-mock-scenario-choice">
@@ -294,6 +350,7 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
             {!(state.recordings ?? []).length && !state.recordingsError ? <p>{localeMessages.mock.noLocalMockFilesInThisProjectYet}</p> : null}
           </section>
           <h3>{localeMessages.mock.builtInDemo}</h3>
+          <p>{localeMessages.mock.tagsIdentifyEachDemoSEventsAndCapabilities}</p>
           <div className="creator-mock-scenarios">
             {scenarios.map((scenario, index) => <Fragment key={scenario.id}>
               {index === 0 || groupIndexFor(scenario.id, localeMessages) !== groupIndexFor(scenarios[index - 1]!.id, localeMessages)
@@ -303,6 +360,10 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
               <input type="radio" name="creator-mock-scenario" checked={scenario.id === resourceSelection || (resourceSelection === null && !localSelected && scenario.id === state.scenarioId)} disabled={busy} onChange={() => { if (scenario.resources?.length) setResourceSelection(scenario.id); else { setResourceSelection(null); void act("/select", { scenarioId: scenario.id, speed: state.speed }, formatLocaleMessage(localeMessages.mock.selectedForTheNextRequest, titleFor(scenario))); } }} />
               <span><strong>{titleFor(scenario)}</strong>{descriptionFor(scenario) ? <span>{descriptionFor(scenario)}</span> : null}
               </span></label>
+              {getDemoFocusTags(localeMessages)[scenario.id]?.length ? <div className="creator-mock-focus-tags" role="group" aria-label={localeMessages.mock.featuredEventsAndCapabilities}>
+                {getDemoFocusTags(localeMessages)[scenario.id]!.map(tag => <Badge key={tag} variant="secondary"
+                  data-event-tag={/^(TEXT_MESSAGE_|REASONING_|TOOL_CALL_|RUN_|STATE_|ACTIVITY_|SUBAGENT_|CUSTOM\b)/.test(tag)}>{tag}</Badge>)}
+              </div> : null}
               {requirementsFor(scenario.id).length > 0 ? <div className="creator-mock-scenario-footer">
                 <div className="creator-mock-resource-actions">
                   <Button size="sm" variant="outline" type="button" disabled={busy || requirementsFor(scenario.id).some(item => !item.installable)} onClick={() => void installRequirements(scenario.id)}>

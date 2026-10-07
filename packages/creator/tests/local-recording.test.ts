@@ -49,7 +49,7 @@ describe("current-project local recordings", () => {
   it.each(["standalone", "preview"])("replays through the %s SSE endpoint and resets selection on project switch", async mode => {
     const root = await project(); await writeFile(path.join(root, ".agentui/mocks/chat.jsonl"), data());
     let current: MockProjectTarget | undefined = { id: "A", projectRoot: root };
-    const service = new CreatorMockService(); services.push(service); service.setProjectResolver(() => current);
+    const service = new CreatorMockService({ port: 0 }); services.push(service); service.setProjectResolver(() => current);
     expect((await service.refreshState()).recordings[0]?.status).toBe("ready");
     await service.selectRecording("local:chat.jsonl", 0, "A");
     let endpoint: string;
@@ -75,7 +75,7 @@ describe("current-project local recordings", () => {
   });
   it("exposes recording state and selection through the control API", async () => {
     const root = await project(); await writeFile(path.join(root, ".agentui/mocks/chat.jsonl"), data());
-    const service = new CreatorMockService(); services.push(service);
+    const service = new CreatorMockService({ port: 0 }); services.push(service);
     const server = createServer((request, response) => { void handleCreatorMockRequest(request, response, service, () => ({ id: "A", projectRoot: root })); });
     controlServers.push(server);
     await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -90,7 +90,7 @@ describe("current-project local recordings", () => {
   it("fails if the selected project changes while resolving a recording", async () => {
     const root = await project(); await writeFile(path.join(root, ".agentui/mocks/chat.jsonl"), data());
     let current: MockProjectTarget | undefined = { id: "A", projectRoot: root };
-    const service = new CreatorMockService(); services.push(service); service.setProjectResolver(() => current);
+    const service = new CreatorMockService({ port: 0 }); services.push(service); service.setProjectResolver(() => current);
     await service.selectRecording("local:chat.jsonl", 0, "A");
     const { endpoint } = await service.start();
     const original = LocalMockRecordingStore.prototype.get;
@@ -104,7 +104,7 @@ describe("current-project local recordings", () => {
   });
   it("reports deleted selected files before opening SSE", async () => {
     const root = await project(); const file = path.join(root, ".agentui/mocks/chat.jsonl"); await writeFile(file, data());
-    const service = new CreatorMockService(); services.push(service); service.setProjectResolver(() => ({ id: "A", projectRoot: root }));
+    const service = new CreatorMockService({ port: 0 }); services.push(service); service.setProjectResolver(() => ({ id: "A", projectRoot: root }));
     await service.selectRecording("local:chat.jsonl", 0, "A"); await rm(file);
     const { endpoint } = await service.start();
     const response = await fetch(endpoint!, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) });

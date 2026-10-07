@@ -42,6 +42,8 @@ export interface AgentUIInitializationHost<TModel> {
   rollbackCreatedPaths(projectRoot: string, paths: readonly string[], config: AgentUIProjectConfig, plannedPaths: readonly string[], sourceRootWasMissing: boolean): Promise<void>;
   /** Install the development control plane before committing project.json. */
   installControlPlane(projectRoot: string): Promise<readonly string[]>;
+  /** Create optional Host development defaults without replacing user configuration. */
+  installDevelopmentDefaults?(projectRoot: string): Promise<readonly string[]>;
   /** Optional persistence seam for failure-path tests. */
   writeInitializationJournal?(filePath: string, journal: AgentUIInitializationJournal, create: boolean): Promise<void>;
 }
@@ -165,6 +167,7 @@ export async function initializeAgentUIProject<TModel>(
         verification.errors,
       );
     }
+    for (const developmentPath of await host.installDevelopmentDefaults?.(projectRoot) ?? []) createdPaths.add(developmentPath);
     for (const controlPath of await host.installControlPlane(projectRoot)) createdPaths.add(controlPath);
     await persistJournal(journalPath, { ...journal, createdPaths: [...createdPaths].sort(), phase: "verified" }, false);
     try {

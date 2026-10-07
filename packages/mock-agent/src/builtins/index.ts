@@ -98,9 +98,6 @@ export const backendReferenceMockScenarios: MockScenario[] = [
 ];
 
 export const frontendPresentationMockScenarios: MockScenario[] = [
-  composerMentionScenario,
-  composerSlashScenario,
-  quoteReplyScenario,
   resumableLongRunScenario,
   resumableAgentPlanScenario,
   cancelBeforeFirstOutputScenario,
@@ -120,6 +117,8 @@ export const frontendPresentationMockScenarios: MockScenario[] = [
 ];
 
 export const showcaseMockScenarios: MockScenario[] = [
+  // Public demos teach Agent conversation flows. Pure Composer/Quote UI
+  // fixtures stay individually exported for component development only.
   ...backendReferenceMockScenarios,
   ...frontendPresentationMockScenarios,
 ];

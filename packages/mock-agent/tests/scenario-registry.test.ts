@@ -33,8 +33,11 @@ describe("createScenarioRegistry", () => {
     expect(backendReferenceMockScenarios.every(({ reference }) =>
       reference?.audience === "backend",
     )).toBe(true);
-    expect(frontendPresentationMockScenarios).toHaveLength(19);
-    expect(frontendPresentationMockScenarios.find(({ id }) => id === "quote-reply")?.reference?.audience).toBe("frontend");
+    expect(frontendPresentationMockScenarios).toHaveLength(16);
+    for (const id of ["quote-reply", "composer-mention", "composer-slash"]) {
+      expect(showcaseMockScenarios.map(scenario => scenario.id)).not.toContain(id);
+      expect(builtinMockScenarios.map(scenario => scenario.id)).not.toContain(id);
+    }
     expect(frontendPresentationMockScenarios.every(({ reference }) =>
       reference?.audience === "frontend",
     )).toBe(true);
@@ -54,9 +57,6 @@ describe("createScenarioRegistry", () => {
       "approval-resume",
       "agent-state-sync",
       "nested-subagent-conversation",
-      "composer-mention",
-      "composer-slash",
-      "quote-reply",
       "resumable-long-run",
       "resumable-agent-plan",
       "cancel-before-first-output",

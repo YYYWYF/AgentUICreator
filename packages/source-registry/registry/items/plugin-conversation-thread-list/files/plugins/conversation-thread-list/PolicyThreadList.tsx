@@ -90,7 +90,7 @@ const PolicyThreadListItemGroups: FC<{ searchQuery?: string }> = ({
   }
 
   return groups.map((group) => (
-    <Fragment key={group.label}>
+    <Fragment key={group.id}>
       <div
         data-slot="aui_thread-list-group-label"
         className="text-muted-foreground px-2.5 pt-3 pb-1 text-xs font-medium"

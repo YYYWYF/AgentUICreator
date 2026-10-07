@@ -14,7 +14,7 @@ import {
   UserMessageAttachments,
 } from "./adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.js";
 import { Sources } from "./vendor/assistant-ui/components/assistant-ui/elements/sources.aui.js";
-import { File } from "./vendor/assistant-ui/components/assistant-ui/elements/file.js";
+import { File } from "./adapters/assistant-ui/components/assistant-ui/elements/file.js";
 import { ThreadFollowupSuggestions } from "./vendor/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.js";
 import { Image } from "./adapters/assistant-ui/components/assistant-ui/elements/image.js";
 import {
@@ -24,13 +24,13 @@ import {
   ReasoningText,
   ReasoningTrigger,
 } from "./adapters/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
-import { ToolFallback } from "./vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
+import { ToolFallback } from "./adapters/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
 import { isTaskPart } from "./adapters/assistant-ui/components/assistant-ui/elements/task-card.aui.js";
 import {
   ToolGroupContent,
   ToolGroupRoot,
   ToolGroupTrigger,
-} from "./vendor/assistant-ui/components/assistant-ui/elements/tool-group.aui.js";
+} from "./adapters/assistant-ui/components/assistant-ui/elements/tool-group.aui.js";
 import { TooltipIconButton } from "./adapters/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
 import { Button } from "./vendor/assistant-ui/components/ui/button.js";
 import { Skeleton } from "./vendor/assistant-ui/components/ui/skeleton.js";
@@ -300,6 +300,7 @@ const ThreadMessage: FC = () => {
   const role = useAuiState((s) => s.message.role);
   const isEditing = useAuiState((s) => s.message.composer.isEditing);
 
+  if (role === "system") return null;
   if (isEditing) return <UserEditComposer />;
   if (role === "user") return <UserMessage />;
   return <AssistantMessageComponent />;
@@ -470,7 +471,7 @@ const ComposerAddAttachmentOverride: FC<{ label: string }> = ({ label }) => {
 };
 
 export const ComposerAddAttachmentAction: FC<{ label?: string }> = ({ label }) => {
-  if (label === undefined || label === "Add Attachment") {
+  if (label === undefined) {
     return <UpstreamComposerAddAttachment />;
   }
 
@@ -918,6 +919,7 @@ const UserMessage: FC = () => {
 
 const UserActionBar: FC = () => {
   const localeMessages = useAgentUILocale();
+  const isDisabled = useAuiState(s => s.thread.isDisabled);
   return (
     <ActionBarPrimitive.Root
       hideWhenRunning
@@ -925,7 +927,7 @@ const UserActionBar: FC = () => {
       className="aui-user-action-bar-root flex flex-col items-end"
     >
       <ActionBarPrimitive.Edit asChild>
-        <TooltipIconButton tooltip={localeMessages.common.edit} className="aui-user-action-edit">
+        <TooltipIconButton tooltip={localeMessages.common.edit} disabled={isDisabled} className="aui-user-action-edit">
           <PencilIcon />
         </TooltipIconButton>
       </ActionBarPrimitive.Edit>

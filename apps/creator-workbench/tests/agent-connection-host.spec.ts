@@ -12,16 +12,20 @@ test.beforeEach(async ({ page, preview }) => {
   } }));
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(preview.creatorOrigin);
+  await page.getByRole("button", { name: "设置", exact: true }).click();
+  await page.getByRole("button", { name: "连接 Agent", exact: true }).click();
   await page.getByRole("button", { name: "使用示例 Agent", exact: true }).click();
 });
 
 test("ordinary Host receives Mock thread list, history and chat through Creator", async ({ page, preview }) => {
   expect(existsSync(path.join(preview.hostRoot, "node_modules/@agent-ui/mock-agent"))).toBe(false);
+  await page.getByRole("button", { name: "返回对话", exact: true }).click();
   const host = page.frameLocator('iframe[title="Host Application"]');
   const list = host.locator('[data-ui-plugin="conversation-thread-list"]');
   await expect(list).toContainText("历史：基础会话");
   await list.getByText("历史：基础会话", { exact: true }).click();
   await expect(host.locator('[data-ui-plugin="conversation-surface"]')).toContainText("我们先从 Runtime、Frontend State 和 UI Plugin 的边界开始");
+  await expect(host.locator('[data-plugin-state="error"]')).toHaveCount(0);
   const selection = await page.request.post(`${preview.creatorOrigin}__agent-ui/creator/mock/select`, { data: { scenarioId: "simple-chat", speed: 0 } });
   expect(selection.ok()).toBe(true);
   await list.getByRole("button", { name: /新建会话|New Thread/ }).click();
@@ -33,11 +37,20 @@ test("ordinary Host receives Mock thread list, history and chat through Creator"
   await expect(host.locator('[data-ui-plugin="conversation-thread-list"]')).not.toHaveAttribute("data-conversation-list-status", "error");
 });
 
+test("generated Host mounts independently without a root tsconfig or Creator preview", async ({ page, preview }) => {
+  expect(existsSync(path.join(preview.hostRoot, "tsconfig.json"))).toBe(false);
+  await page.goto(preview.hostOrigin);
+  await expect(page.locator('[data-ui-plugin="conversation-thread-list"]')).toBeVisible();
+  await expect(page.locator('[data-ui-plugin="conversation-surface"]')).toBeVisible();
+  await expect(page.locator(".aui-composer-root").getByRole("textbox")).toBeEditable();
+  await expect(page.locator('[data-plugin-state="error"]')).toHaveCount(0);
+});
+
 test("no-CORS Connected Agent streams before completion and Source switching isolates sessions", async ({ page, preview }) => {
   const host = page.frameLocator('iframe[title="Host Application"]');
   await expect(host.locator('[data-ui-plugin="conversation-thread-list"]')).toContainText("历史：基础会话");
   await page.getByRole("button", { name: "设置", exact: true }).click();
-  await page.getByRole("button", { name: "Agent", exact: true }).click();
+  await page.getByRole("button", { name: "连接 Agent", exact: true }).click();
   const endpoint = page.getByRole("textbox", { name: "Agent 服务地址" });
   await endpoint.fill(preview.agentEndpoint);
   await page.getByRole("button", { name: "使用此地址", exact: true }).click();

@@ -98,10 +98,10 @@ import {
   type ThreadComponents as InternalThreadComponents,
 } from "./internal/composable-thread.js";
 import { Sources as InternalSources } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.js";
-import { File as InternalFile } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/file.js";
+import { File as InternalFile } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/file.js";
 import { Image as InternalImage } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/image.js";
 import { ToolCall as InternalToolCall } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.js";
-import { ToolFallback as InternalToolFallback } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
+import { ToolFallback as InternalToolFallback } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
 import { MarkdownText as InternalMarkdownText } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/markdown-text.js";
 import { Reasoning as InternalReasoning } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
 import {
@@ -114,7 +114,7 @@ import {
   ToolGroupRoot as InternalToolGroupRoot,
   ToolGroupTrigger as InternalToolGroupTrigger,
   ToolGroupContent as InternalToolGroupContent,
-} from "./internal/vendor/assistant-ui/components/assistant-ui/elements/tool-group.aui.js";
+} from "./internal/adapters/assistant-ui/components/assistant-ui/elements/tool-group.aui.js";
 import {
   Collapsible as InternalCollapsible,
   CollapsibleContent as InternalCollapsibleContent,
@@ -143,7 +143,7 @@ import {
   ThreadListRoot as InternalConversationThreadListRoot,
   ThreadListSearch as InternalConversationThreadListSearch,
   useThreadListGroups as useInternalConversationThreadListGroups,
-} from "./internal/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.js";
+} from "./internal/adapters/assistant-ui/components/assistant-ui/elements/thread-list.aui.js";
 import { AgentPlan as InternalAgentPlan } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/agent-plan.js";
 import { AgentStatus as InternalAgentStatus } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.js";
 import {
@@ -194,6 +194,7 @@ import {
   CopyIcon,
   DownloadIcon,
   RefreshCwIcon,
+  PlusIcon,
 } from "lucide-react";
 import { cn } from "./internal/vendor/assistant-ui/lib/utils.js";
 import {
@@ -876,6 +877,8 @@ export function ConversationCanonicalToolGroup({ group, children }: {
 }
 
 export interface ConversationThreadListGroup {
+  /** Stable upstream date bucket; presentation locale does not change its identity. */
+  id: string;
   label: string;
   indices: number[];
 }
@@ -899,7 +902,12 @@ export function ConversationThreadListItem(props: ConversationThreadListItemProp
 export function ConversationThreadListNew(
   props: Readonly<React.ComponentProps<"button"> & { labelClassName?: string }>,
 ) {
-  return <InternalConversationThreadListNew {...(props as ComponentProps<typeof InternalConversationThreadListNew>)} />;
+  const messages = useAgentUILocale("threadList");
+  const label = props.children ?? messages.newThread;
+  return <InternalConversationThreadListNew {...props}>{typeof label === "string" || typeof label === "number" ? <>
+    <PlusIcon data-slot="aui_thread-list-new-icon" className="size-4 shrink-0" />
+    <span data-slot="aui_thread-list-new-label" className={cn("whitespace-nowrap", props.labelClassName)}>{label}</span>
+  </> : label}</InternalConversationThreadListNew>;
 }
 
 export function ConversationThreadListRoot(
@@ -914,7 +922,8 @@ export function ConversationThreadListSearch(
     onValueChange: (value: string) => void;
   }>,
 ) {
-  return <InternalConversationThreadListSearch {...(props as ComponentProps<typeof InternalConversationThreadListSearch>)} />;
+  const messages = useAgentUILocale("threadList");
+  return <InternalConversationThreadListSearch {...props} placeholder={props.placeholder ?? messages.search} aria-label={props["aria-label"] ?? messages.search} />;
 }
 
 export function ConversationThreadListItemByIndex({

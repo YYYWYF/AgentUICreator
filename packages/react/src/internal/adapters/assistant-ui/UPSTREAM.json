@@ -8,17 +8,22 @@
     {
       "localPath": "components/assistant-ui/elements/agent-status.aui.tsx",
       "upstreamInstalledSha256": "1c6661f8459e3b73052ed40deb7730637ca21fcf84eb719e797046a877f5e417",
-      "installedSha256": "1f3be58fc31b14206db144fa31106bcb9a8056c789fce6b5e4bce75a388b74b3"
+      "installedSha256": "0732c3fafb8a0fef63deeb7cae2b39c0b2c2fb5412ef22a18678fea923698132"
     },
     {
       "localPath": "components/assistant-ui/elements/attachment.aui.tsx",
       "upstreamInstalledSha256": "e8d56f198d67d9879d93659cbee7a25e0e275dc5066bc5b81740d075a439ca76",
-      "installedSha256": "ca9e9723af1243bd94676cbd2154076e04a716cc66b2496ae0b8426ee0eea0b8"
+      "installedSha256": "8753000f1d7e7c6c120ad0bd99ecb23ca06eb444d48e90b02290310bce337d78"
     },
     {
       "localPath": "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
       "upstreamInstalledSha256": "06c9b2b6fa021bbfe58ba226d4d5c6a46e448369aebf362d02f8b56032c69ba2",
-      "installedSha256": "e606c85fedd5379afea146b3a12143ba94293bf273da380ea7d13a230db507a5"
+      "installedSha256": "f3993b179ddc838552c46b0ee46766111b5496c6a30cf4a9a9c483e47c2940dc"
+    },
+    {
+      "localPath": "components/assistant-ui/elements/file.tsx",
+      "upstreamInstalledSha256": "25f9a00685e9552175a4a34eb498384a05523c730461659ae89fc41724365c93",
+      "installedSha256": "1d445e40ae06d0e527fd14eb226e278178a9d034c08dfe39b3f9c12b22131501"
     },
     {
       "localPath": "components/assistant-ui/elements/image.tsx",
@@ -31,6 +36,11 @@
       "installedSha256": "a44545e956a3fe1b292f7c55b0bc94738814a30fbb3bc2c5ac38f8cd76bea03d"
     },
     {
+      "localPath": "components/assistant-ui/elements/media-player.tsx",
+      "upstreamInstalledSha256": "ea7006322eb54ca921872ef45162f25d6a06528da6fbbcc28b007509c2982b35",
+      "installedSha256": "e58e6eec9f894fd1576058a03e86fb87c1dbda895f9ac1fca543621071176789"
+    },
+    {
       "localPath": "components/assistant-ui/elements/quote.aui.tsx",
       "upstreamInstalledSha256": "b1b5a05a7a589499eaaf9b091579bb90ef19968650dd1a1940704b865f576142",
       "installedSha256": "323dca2642bc8a4f6891da0f67efe6bb242b9fbd8e7e875f129b3509a4a14190"
@@ -38,7 +48,12 @@
     {
       "localPath": "components/assistant-ui/elements/reasoning.aui.tsx",
       "upstreamInstalledSha256": "d695ed0a776b664cb8c620c94598ad10b0c93181079a7abec054884503c53443",
-      "installedSha256": "f2a16dee0e42bed54196f310a87f30ecbb3e2c4837ff6610fdf8f77110baf0a9"
+      "installedSha256": "ac5dd91794004487174cad3675487c4782fc2d2cdfe87b82cd6b3c93dc11ce57"
+    },
+    {
+      "localPath": "components/assistant-ui/elements/reasoning.tsx",
+      "upstreamInstalledSha256": "6e629d6cab9204b903120f7195b3d3126ed48d5ecd7191dbb0174ad9ccf8dfb0",
+      "installedSha256": "77436e8f5d916987685ff675e839ec20b6cf205575e0691d3d989187361c035b"
     },
     {
       "localPath": "components/assistant-ui/elements/retrieval-chunks.tsx",
@@ -48,7 +63,27 @@
     {
       "localPath": "components/assistant-ui/elements/task-card.aui.tsx",
       "upstreamInstalledSha256": "c09e7821d0841dfe1f2583e1bc8f2d56cb4d1d15d32a9ff03e0223f4ea920542",
-      "installedSha256": "838354a7b335eba1a64ab6f1e05114f45061697750c6ead50add86f14d5edb12"
+      "installedSha256": "2988e2bf6ec0cfb4fac5acb0052f9df1aaa88af4ed9788c518892a1ce40334b4"
+    },
+    {
+      "localPath": "components/assistant-ui/elements/task-card.tsx",
+      "upstreamInstalledSha256": "ca70922716cc75904a37824c56e88a1ab12aaea14a2faf635af0fc2aa39ec2d4",
+      "installedSha256": "b83028b746e537bb2b22c08bfdaabd222f9c03a3adb63a284f7970455380e392"
+    },
+    {
+      "localPath": "components/assistant-ui/elements/thread-list.aui.tsx",
+      "upstreamInstalledSha256": "dba97aed1ac096e2fbaaebb92e334ec877716e430e7157929d38e8311d358364",
+      "installedSha256": "b158587c9a7cb0d0c9191bc5ec5869511a9c01a845166c2634087b58bd4aae1f"
+    },
+    {
+      "localPath": "components/assistant-ui/elements/tool-fallback.aui.tsx",
+      "upstreamInstalledSha256": "e22c55485613936018a831773d6b4495d636d48148a02ac5345fa63e1d32ccf8",
+      "installedSha256": "b68dda4308628b1e07c3cc77a8bef4fe655cb6fb2515199f99daca73e75c37d2"
+    },
+    {
+      "localPath": "components/assistant-ui/elements/tool-group.aui.tsx",
+      "upstreamInstalledSha256": "50e5d21a865de8bead130bd9bcfa968ab1a330c4b0082374bf3d1a84951a9b08",
+      "installedSha256": "175c8a5022730515dc9426e8057841ac110fe3c2c6514a1f909278ead501ded6"
     },
     {
       "localPath": "components/assistant-ui/elements/tooltip-icon-button.tsx",

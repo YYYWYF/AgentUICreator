@@ -34,7 +34,9 @@ export const enUS = {
     "scrollToBottom": "Scroll to bottom",
     "welcome": "How can I help you today?",
     "working": "Assistant is working",
-    "exportMarkdown": "Export as Markdown"
+    "exportMarkdown": "Export as Markdown",
+    "reasoning": "Reasoning",
+    "reasoningDuration": " ({seconds}s)"
   },
   "threadList": {
     "newChat": "New Chat",
@@ -46,13 +48,24 @@ export const enUS = {
     "loading": "Loading threads",
     "empty": "No threads found",
     "loadFailed": "Could not load conversations",
-    "historyFailed": "Could not load conversation history"
+    "historyFailed": "Could not load conversation history",
+    "newThread": "New Thread",
+    "search": "Search threads",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "earlier": "Earlier"
   },
   "attachments": {
     "preview": "Attachment preview",
     "imagePreview": "Image Attachment Preview",
     "uploadFailed": "Upload failed",
-    "remove": "Remove file"
+    "remove": "Remove file",
+    "imageType": "Image",
+    "documentType": "Document",
+    "fileType": "File",
+    "tile": "{type} attachment",
+    "tileUploading": "{type} attachment, uploading",
+    "tileFailed": "{type} attachment, upload failed"
   },
   "images": {
     "content": "Image content",
@@ -73,7 +86,24 @@ export const enUS = {
     "dismiss": "Dismiss quote"
   },
   "tasks": {
-    "title": "Tasks"
+    "title": "Tasks",
+    "running": "{running} of {total} tasks running",
+    "waiting": "{count} tasks waiting for input",
+    "failed": "{total} tasks done, {failed} failed",
+    "done": "{count} tasks done",
+    "working": "Working",
+    "waitingState": "Waiting for input",
+    "failedState": "Failed",
+    "doneState": "Done",
+    "cancelledState": "Cancelled",
+    "runningOne": "{running} of {total} task running",
+    "waitingOne": "{count} task waiting for input",
+    "failedOne": "{total} task done, {failed} failed",
+    "doneOne": "{count} task done",
+    "groupCount": "{count} tasks",
+    "groupRunning": "{count} running",
+    "groupWaiting": "{count} waiting",
+    "groupFailed": "{count} failed"
   },
   "triggers": {
     "noItems": "No items available",
@@ -85,7 +115,8 @@ export const enUS = {
     "searchFailed": "Search failed",
     "retry": "Retry",
     "commandFailed": "Command failed",
-    "invalidItem": "Unavailable"
+    "invalidItem": "Unavailable",
+    "items": "Items"
   },
   "accessibility": {
     "sidebar": "Sidebar",
@@ -239,8 +270,48 @@ export const enUS = {
     "request": "{\"query\":\"theme\"}",
     "result": "{\"tokens\":32}"
   },
+  "media": {
+      "audio": "Audio",
+      "video": "Video",
+      "play": "Play {title}",
+      "pause": "Pause {title}",
+      "seek": "Seek",
+      "position": "{current} of {duration}",
+      "audioError": "Can't play this audio"
+  },
   "files": {
     "unnamed": "Unnamed file",
     "download": "Download {filename}"
+  },
+  "toolPresentation": {
+    "running": "Running tool",
+    "waiting": "Waiting on tool",
+    "cancelled": "Cancelled tool",
+    "failed": "Failed tool",
+    "used": "Used tool",
+    "call": "{count} tool call",
+    "calls": "{count} tool calls",
+    "result": "Result:",
+    "error": "Error:",
+    "cancelReason": "Cancelled reason:",
+    "allow": "Allow",
+    "alwaysAllow": "Always allow",
+    "deny": "Deny",
+    "alwaysDeny": "Always deny",
+    "dismiss": "Dismiss",
+    "send": "Send",
+    "confirm": "Confirm",
+    "back": "Back",
+    "answer": "Answer",
+    "note": "Note",
+    "answerPlaceholder": "Type your answer",
+    "notePlaceholder": "Add a note to your decision",
+    "cancelledDecision": "Cancelled before a decision",
+    "expiredDecision": "Expired before a decision",
+    "answered": "Answered",
+    "allowed": "Allowed",
+    "dismissed": "Dismissed",
+    "denied": "Denied",
+    "automatic": " automatically"
   }
 };

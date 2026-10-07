@@ -34,7 +34,9 @@ export const zhCN = {
     "scrollToBottom": "滚动到底部",
     "welcome": "今天有什么可以帮你？",
     "working": "助手正在处理",
-    "exportMarkdown": "导出 Markdown"
+    "exportMarkdown": "导出 Markdown",
+    "reasoning": "思考",
+    "reasoningDuration": "（{seconds}秒）"
   },
   "threadList": {
     "newChat": "新会话",
@@ -46,13 +48,24 @@ export const zhCN = {
     "loading": "正在加载会话列表",
     "empty": "没有找到会话",
     "loadFailed": "加载会话失败",
-    "historyFailed": "历史会话加载失败"
+    "historyFailed": "历史会话加载失败",
+    "newThread": "新建会话",
+    "search": "搜索会话",
+    "today": "今天",
+    "yesterday": "昨天",
+    "earlier": "更早"
   },
   "attachments": {
     "preview": "附件预览",
     "imagePreview": "图片附件预览",
     "uploadFailed": "上传失败",
-    "remove": "移除文件"
+    "remove": "移除文件",
+    "imageType": "图片",
+    "documentType": "文档",
+    "fileType": "文件",
+    "tile": "{type}附件",
+    "tileUploading": "{type}附件，正在上传",
+    "tileFailed": "{type}附件，上传失败"
   },
   "images": {
     "content": "图片内容",
@@ -73,7 +86,24 @@ export const zhCN = {
     "dismiss": "取消引用"
   },
   "tasks": {
-    "title": "任务"
+    "title": "任务",
+    "running": "{total} 项任务中有 {running} 项正在运行",
+    "waiting": "{count} 项任务等待输入",
+    "failed": "{total} 项任务已结束，{failed} 项失败",
+    "done": "{count} 项任务已完成",
+    "working": "正在运行",
+    "waitingState": "等待输入",
+    "failedState": "失败",
+    "doneState": "已完成",
+    "cancelledState": "已取消",
+    "runningOne": "{total} 项任务中有 {running} 项正在运行",
+    "waitingOne": "{count} 项任务等待输入",
+    "failedOne": "{total} 项任务已结束，{failed} 项失败",
+    "doneOne": "{count} 项任务已完成",
+    "groupCount": "{count} 项任务",
+    "groupRunning": "{count} 项正在运行",
+    "groupWaiting": "{count} 项等待输入",
+    "groupFailed": "{count} 项失败"
   },
   "triggers": {
     "noItems": "没有可用项",
@@ -85,7 +115,8 @@ export const zhCN = {
     "searchFailed": "搜索失败",
     "retry": "重试",
     "commandFailed": "指令执行失败",
-    "invalidItem": "不可用"
+    "invalidItem": "不可用",
+    "items": "选项"
   },
   "accessibility": {
     "sidebar": "侧边栏",
@@ -239,8 +270,48 @@ export const zhCN = {
     "request": "{\"query\":\"theme\"}",
     "result": "{\"tokens\":32}"
   },
+  "media": {
+      "audio": "音频",
+      "video": "视频",
+      "play": "播放 {title}",
+      "pause": "暂停 {title}",
+      "seek": "调整播放进度",
+      "position": "{current}，共 {duration}",
+      "audioError": "无法播放此音频"
+  },
   "files": {
     "unnamed": "未命名文件",
     "download": "下载 {filename}"
+  },
+  "toolPresentation": {
+    "running": "正在调用工具",
+    "waiting": "等待工具操作",
+    "cancelled": "工具调用已取消",
+    "failed": "工具调用失败",
+    "used": "已调用工具",
+    "call": "{count} 次工具调用",
+    "calls": "{count} 次工具调用",
+    "result": "结果：",
+    "error": "错误：",
+    "cancelReason": "取消原因：",
+    "allow": "允许",
+    "alwaysAllow": "始终允许",
+    "deny": "拒绝",
+    "alwaysDeny": "始终拒绝",
+    "dismiss": "关闭",
+    "send": "发送",
+    "confirm": "确认",
+    "back": "返回",
+    "answer": "回答",
+    "note": "备注",
+    "answerPlaceholder": "输入你的回答",
+    "notePlaceholder": "为你的决定添加备注",
+    "cancelledDecision": "决定前已取消",
+    "expiredDecision": "决定前已过期",
+    "answered": "已回答",
+    "allowed": "已允许",
+    "dismissed": "已关闭",
+    "denied": "已拒绝",
+    "automatic": "（自动）"
   }
 };

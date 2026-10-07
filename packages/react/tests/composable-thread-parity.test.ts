@@ -97,7 +97,7 @@ describe("ComposableThread upstream parity", () => {
     expect(lock.elements?.[upstreamPath]).toMatch(/^[0-9a-f]{64}$/u);
     expect(upstreamThread).toContain("export const Thread");
     expect(composableThread).toContain(
-      'from "./vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.js"',
+      'from "./adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.js"',
     );
     expect(composableThread).not.toMatch(
       /from "\.\/(?:attachment|file|image|markdown-text|reasoning\.aui|tool-fallback\.aui|tool-group\.aui|tooltip-icon-button)"/u,

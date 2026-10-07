@@ -1,6 +1,6 @@
 "use client";
 
-import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../../../../../../locale.js";
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from "../../../../../../locale.js";
 
 import { memo, useRef, type ComponentPropsWithoutRef, type FC, type ReactNode } from "react";
 import {
@@ -135,9 +135,10 @@ const Items: FC<ItemsProps> = ({
   emptyLabel,
   loadingLabel,
 }) => {
+  const messages = useAgentUILocale("triggers");
   const { isLoading } = unstable_useTriggerPopoverScopeContext();
   return (
-    <ComposerPrimitive.Unstable_TriggerPopoverItems>
+    <ComposerPrimitive.Unstable_TriggerPopoverItems aria-label={messages.items}>
       {(items) => (
         <div
           data-slot="composer-trigger-popover-items"
@@ -196,8 +197,8 @@ const ComposerTriggerPopoverImpl: FC<ComposerTriggerPopoverProps> = ({
   fallbackIcon = SparklesIcon,
   backLabel,
   emptyCategoriesLabel,
-  emptyItemsLabel = "No matching items",
-  loadingLabel = "Loading…",
+  emptyItemsLabel,
+  loadingLabel,
   className,
   directive,
   action,
@@ -207,6 +208,8 @@ const ComposerTriggerPopoverImpl: FC<ComposerTriggerPopoverProps> = ({
   const localeMessages = useAgentUILocale();
   backLabel ??= localeMessages.common.back;
   emptyCategoriesLabel ??= localeMessages.triggers.noItems;
+  emptyItemsLabel ??= localeMessages.triggers.noResults;
+  loadingLabel ??= localeMessages.triggers.loading;
   const warnedRef = useRef(false);
   if (
     process.env.NODE_ENV !== "production" &&

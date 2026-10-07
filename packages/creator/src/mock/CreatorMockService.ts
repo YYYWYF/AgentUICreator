@@ -12,6 +12,8 @@ import { LocalMockRecordingStore, type LocalMockRecordingSummary } from "./local
 import type { MockProjectTarget } from "./demo-compatibility.js";
 import type { CreatorMockSelection, CreatorMockState } from "./types.js";
 
+export const DEFAULT_CREATOR_MOCK_PORT = 47831;
+
 export function isLocalMockOrigin(origin: string): boolean {
   try {
     const url = new URL(origin);
@@ -22,6 +24,8 @@ export function isLocalMockOrigin(origin: string): boolean {
 
 /** Creator-owned development service; never loaded by a generated Agent app. */
 export class CreatorMockService {
+  constructor(private readonly options: { port?: number } = {}) {}
+
   private server: Server | undefined;
   private endpoint: string | null = null;
   private scenarioId = "reasoning-tool-success";
@@ -155,7 +159,7 @@ export class CreatorMockService {
       });
       await new Promise<void>((resolve, reject) => {
         server.once("error", reject);
-        server.listen(0, "127.0.0.1", () => {
+        server.listen(this.options.port ?? DEFAULT_CREATOR_MOCK_PORT, "127.0.0.1", () => {
           server.removeListener("error", reject);
           resolve();
         });

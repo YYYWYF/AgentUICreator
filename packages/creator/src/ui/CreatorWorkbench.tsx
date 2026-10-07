@@ -5,7 +5,8 @@ import { useCreatorCommandState } from "./commands/useCreatorCommandState.js";
 import { CreatorCommandMenu } from "./commands/CreatorCommandMenu.js";
 import { useRef as useLocaleMessagesRef } from "react";
 import { localizeCreatorPresentation, CreatorLocaleProvider, useCreatorLocaleState, type CreatorLocaleCode, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
-import { AgentConnectionPanel } from "./AgentConnectionPanel.js";
+import { AgentConnectionPanel, CONNECTION_CHANGED, readAgentConnection } from "./AgentConnectionPanel.js";
+import { publishCreatorRefresh, readRefreshJson, type CreatorRefreshData } from "./creatorRefresh.js";
 import {
   memo,
   useCallback,
@@ -20,7 +21,7 @@ import {
 } from "react";
 import { MessageSchema, type Message } from "@ag-ui/client";
 import ReactMarkdown from "react-markdown";
-import { AlertCircle, ArrowUp, Bot, ChevronDown, FolderOpen, PanelsTopLeft, RotateCcw, RefreshCw, Settings, Sparkles, Square, UserRound, X } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowUp, Bot, ChevronDown, FlaskConical, FolderOpen, PanelsTopLeft, Plug, RotateCcw, RefreshCw, Settings, Sparkles, Square, UserRound, X } from "lucide-react";
 import { Button } from "./components/button.js";
 import { Badge } from "./components/badge.js";
 import { Input } from "./components/input.js";
@@ -78,7 +79,10 @@ const CREATOR_PANEL_MAX_WIDTH = 720;
 const CREATOR_PREVIEW_MIN_WIDTH = 320;
 const CREATOR_PANEL_KEYBOARD_STEP = 16;
 
-function CreatorSettings({ busy, onCheckUpdates, onAgent }: { busy: boolean; onCheckUpdates: () => void; onAgent: () => void }) {
+function CreatorSettings({ busy, ready, onCheckUpdates, onAgent, onMock }: {
+  busy: boolean; ready: boolean; onCheckUpdates: () => void;
+  onAgent: () => void; onMock: () => void;
+}) {
   const localeMessages = useAgentUILocale();
   const localeState = useCreatorLocaleState();
   const [open, setOpen] = useState(false);
@@ -93,17 +97,11 @@ function CreatorSettings({ busy, onCheckUpdates, onAgent }: { busy: boolean; onC
             <Settings aria-hidden="true" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent container={portalContainer} align="end" className="cui:w-44 cui:p-1.5" aria-label={localeMessages.creatorWorkbench.settings}>
+        <PopoverContent container={portalContainer} align="end" className="creator-settings-menu" aria-label={localeMessages.creatorWorkbench.settings}>
           <select aria-label={localeMessages.creatorWorkbench.language} value={localeState.locale} onChange={event => localeState.setLocale(event.target.value as CreatorLocaleCode)}><option value="zh-CN">{localeMessages.creatorWorkbench.chineseName}</option><option value="en-US">{localeMessages.creatorWorkbench.englishName}</option></select>
-          <Button variant="ghost" size="sm" className="cui:w-full cui:justify-start" onClick={() => { setOpen(false); onAgent(); }}>Agent</Button>
-          <Button variant="ghost" size="sm" className="cui:w-full cui:justify-start" disabled={busy} onClick={() => {
-            setOpen(false);
-            onCheckUpdates();
-          }}>
-            <RefreshCw aria-hidden="true" />
-
-            {localeMessages.creatorWorkbench.checkUpdates}
-          </Button>
+          <Button variant="ghost" size="sm" disabled={!ready} onClick={() => { setOpen(false); onAgent(); }}><Plug aria-hidden="true" />{localeMessages.creatorWorkbench.connectAgent}</Button>
+          <Button variant="ghost" size="sm" onClick={() => { setOpen(false); onMock(); }}><FlaskConical aria-hidden="true" />{localeMessages.creatorWorkbench.demosAndReplay}</Button>
+          <Button variant="ghost" size="sm" disabled={busy || !ready} onClick={() => { setOpen(false); onCheckUpdates(); }}><RefreshCw aria-hidden="true" />{localeMessages.creatorWorkbench.pluginUpdates}</Button>
         </PopoverContent>
       </Popover>
     </div>
@@ -1133,13 +1131,16 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
   const [workspacePath, setWorkspacePath] = useState("");
   const [workspaceError, setWorkspaceError] = useState<string | null>(null);
   const [workspaceBusy, setWorkspaceBusy] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshMessage, setRefreshMessage] = useState("");
+  const refreshInFlight = useRef(false);
   const [stopBusy, setStopBusy] = useState(false);
   const [undoRunId, setUndoRunId] = useState<string | null>(null);
   const [updateCheckRequest, setUpdateCheckRequest] = useState(0);
   const [updatePageOpen, setUpdatePageOpen] = useState(false);
   const handleUpdatePageChange = useCallback((open: boolean) => {
     setUpdatePageOpen(open);
-    if (open) setMockPanelOpen(false);
+    if (open) { setMockPanelOpen(false); setAgentPanelOpen(false); }
   }, []);
   const [updateNotificationTarget, setUpdateNotificationTarget] = useState<HTMLDivElement | null>(null);
   const [reapplyRunId, setReapplyRunId] = useState<string | null>(null);
@@ -1166,7 +1167,6 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
   const [commandBusy, setCommandBusy] = useState(false);
   const [commandPreviewRevision, setCommandPreviewRevision] = useState(0);
   const commandInFlight = useRef(false);
-
   const sessionRef = useRef(0);
   const setupValidationRef = useRef<{ generation: number; controller: AbortController | undefined }>({ generation: 0, controller: undefined });
   const setupInfoRef = useRef<{ generation: number; controller: AbortController | undefined }>({ generation: 0, controller: undefined });
@@ -1846,6 +1846,40 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
     }
   };
 
+  const refreshCreator = async () => {
+    if (refreshInFlight.current || workspaceBusy || isRunning || initializingRef.current || hasPendingCreatorQuestion(itemsRef.current)) return;
+    if (panel.current?.querySelector('[aria-busy="true"]')) { setRefreshMessage(localeMessages.creatorWorkbench.refreshAfterTheCurrentOperationFinishes); return; }
+    refreshInFlight.current = true;
+    setRefreshing(true); setRefreshMessage("");
+    const currentSession = sessionRef.current;
+    try {
+      const next = await refreshWorkspaceProject(localeMessages);
+      if (sessionRef.current !== currentSession) return;
+      const id = next.status === "none" ? undefined : next.workspace.id;
+      if (next.status === "ready" && workspaceState?.status === "ready" && id === workspaceIdRef.current) {
+        setWorkspaceState(next);
+        if (next.runtime.status !== "ready") agentRef.current = null;
+        else if (!agentRef.current) agentRef.current = new CreatorAgentClient(id!, threadId, storedConversation(id!, localeMessages).agentMessages);
+      } else installWorkspace(next);
+      if (!id) { setRefreshMessage(localeMessages.creatorWorkbench.projectStateRefreshedOpenAProjectFirst); return; }
+      const refreshedSession = sessionRef.current;
+      const data: CreatorRefreshData = { projectId: id };
+      const results = await Promise.allSettled([
+        readAgentConnection(id, undefined, localeMessages).then(value => { data.connection = value; }),
+        readRefreshJson<NonNullable<CreatorRefreshData["mock"]>>("/__agent-ui/creator/mock", undefined, localeMessages).then(value => { data.mock = value; }),
+        readRefreshJson<NonNullable<CreatorRefreshData["compatibility"]>>("/__agent-ui/creator/mock/compatibility", undefined, localeMessages).then(value => { data.compatibility = value; if (value.status !== "checked") throw new Error(localeMessages.creatorWorkbench.couldNotCheckDemoResources); }),
+        readRefreshJson<NonNullable<CreatorRefreshData["updates"]>>("/__creator/updates/check", { workspaceId: id }, localeMessages).then(value => { data.updates = value; }),
+      ]);
+      if (workspaceIdRef.current !== id || sessionRef.current !== refreshedSession) return;
+      publishCreatorRefresh(data);
+      if (data.connection) window.dispatchEvent(new CustomEvent(CONNECTION_CHANGED, { detail: { workspaceId: id, state: data.connection } }));
+      const names = [localeMessages.creatorWorkbench.connectionSettings, localeMessages.creatorWorkbench.mockFilesAndService, localeMessages.creatorWorkbench.demoResources, localeMessages.creatorWorkbench.pluginUpdates];
+      const failed = results.flatMap((result, index) => result.status === "rejected" ? [names[index]] : []);
+      setRefreshMessage(failed.length ? formatLocaleMessage(localeMessages.creatorWorkbench.refreshPartiallyCompletedCouldNotBeReadPlease, failed.join("、")) : localeMessages.creatorWorkbench.refreshedProjectStateConnectionSettingsMockFilesDemo);
+    } catch { setRefreshMessage(localeMessages.creatorWorkbench.couldNotRefreshTheProjectMakeSureThe); }
+    finally { refreshInFlight.current = false; setRefreshing(false); }
+  };
+
   const refreshWorkspace = async () => {
     if (workspaceBusy || initializingRef.current || hasPendingCreatorQuestion(itemsRef.current)) return;
     setWorkspaceBusy(true);
@@ -1994,6 +2028,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
       data-creator-layout={layout}
       data-creator-panel-open={isOpen}
       data-creator-mock-open={mockPanelOpen}
+      data-creator-tool-open={mockPanelOpen || agentPanelOpen || updatePageOpen}
       data-creator-panel-resizing={isResizing}
       style={
         panelWidth === null
@@ -2034,21 +2069,94 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
             <div className="creator-panel-brand" title={localeMessages.creatorWorkbench.creatorDevelopmentOnly}>
               <div className="creator-panel-brand-icon"><PanelsTopLeft aria-hidden="true" /></div>
               <h1>{localeMessages.creatorWorkbench.creator}</h1>
-              <div className="creator-header-updates" ref={setUpdateNotificationTarget} />
             </div>
             <div className="creator-panel-header-actions creator-ui-scope">
-              <Button variant="secondary" size="sm"
-                className="creator-header-mock"
-                data-creator-mock-entry=""
-                aria-controls="creator-mock-panel"
-                aria-expanded={mockPanelOpen}
-                aria-label={mockPanelOpen ? localeMessages.creatorWorkbench.closeMockAgentPanel : localeMessages.creatorWorkbench.openMockAgentPanel}
-                onClick={() => { setMockPanelOpen((open) => !open); setUpdatePageOpen(false); }}
-                type="button"
-              >
-                <span className="creator-mock-label">Mock<span className="creator-mock-label-suffix"> Agent</span></span>
-                <ChevronDown aria-hidden="true" className={mockPanelOpen ? "cui:rotate-180" : undefined} />
-              </Button>
+            <div className="creator-workspace-control" ref={workspaceControl}>
+              <Button size="icon-sm" variant="ghost"
+                aria-controls="creator-workspace-menu" aria-expanded={showWorkspaceSelector}
+                aria-label={workspaceState !== null && workspaceState.status !== "none"
+                  ? formatLocaleMessage(localeMessages.creatorWorkbench.currentProjectClickToSwitchProjects, workspaceState.workspace.name) : localeMessages.creatorWorkbench.chooseProjectFolder}
+                className="creator-workspace-trigger"
+                disabled={workspaceBusy || setupDraft.initializing || questionPending}
+                onClick={() => {
+                  if (workspaceState !== null && workspaceState.status !== "none") setWorkspacePath(workspaceState.workspace.displayPath);
+                  setShowWorkspaceSelector(current => !current);
+                }}
+                title={localeMessages.creatorWorkbench.openOrSwitchProject} type="button"><FolderOpen aria-hidden="true" /></Button>
+              {showWorkspaceSelector ? (
+                <section className="creator-workspace-menu" id="creator-workspace-menu" aria-label={localeMessages.creatorWorkbench.chooseFrontendProjectFolder}>
+                  <header className="creator-workspace-menu-header">
+                    <h2>{workspaceState !== null && workspaceState.status !== "none" ? localeMessages.creatorWorkbench.currentProject : localeMessages.creatorWorkbench.openProject}</h2>
+                    <Button size="icon-xs" variant="ghost" type="button" aria-label={localeMessages.creatorWorkbench.closeProjectSelection} onClick={() => { setShowWorkspaceSelector(false); workspaceControl.current?.querySelector<HTMLButtonElement>(".creator-workspace-trigger")?.focus(); }}><X aria-hidden="true" /></Button>
+                  </header>
+                  {workspaceState !== null && workspaceState.status !== "none" ? (
+                    <div className="creator-workspace-current">
+                      <div className="creator-workspace-identity">
+                        <FolderOpen aria-hidden="true" />
+                        <strong title={workspaceState.workspace.name}>{workspaceState.workspace.name}</strong>
+                      </div>
+                      <div className="creator-workspace-metadata">
+                        <Badge variant="secondary" data-project-ready={workspaceState.status === "ready"}>{workspaceState.status === "ready" ? localeMessages.creatorWorkbench.agentUIConnected : workspaceState.status === "uninitialized" ? localeMessages.creatorWorkbench.notInitialized : localeMessages.creatorWorkbench.repairNeeded}</Badge>
+                      </div>
+                      <p className="creator-workspace-purpose">{localeMessages.creatorWorkbench.creatorSavesChangesToThisProject}</p>
+                      <details className="creator-workspace-info">
+                        <summary><ChevronDown aria-hidden="true" />{localeMessages.creatorWorkbench.pathsAndIntegration}</summary>
+                        <div className="creator-workspace-info-panel">
+                          <dl>
+                            <div className="creator-workspace-path-field"><dt>{localeMessages.creatorWorkbench.projectFolder}</dt><dd><code>{workspaceState.workspace.displayPath}</code></dd></div>
+                            {workspaceState.status === "ready" ? <>
+                              <div><dt>{localeMessages.creatorWorkbench.agentUISourceDirectory}</dt><dd><code>{workspaceState.project.sourceRoot}</code></dd></div>
+                              <div><dt>{localeMessages.creatorWorkbench.productMode}</dt><dd>{({ assistant: localeMessages.creatorWorkbench.assistant, embedded: localeMessages.creatorWorkbench.embedded, platform: localeMessages.creatorWorkbench.workbench })[workspaceState.project.mode]}</dd></div>
+                            </> : null}
+                          </dl>
+                          <div className="creator-workspace-info-actions">
+                            <Button size="xs" variant="ghost" type="button" disabled={workspaceBusy || setupDraft.initializing || questionPending} title={questionPending ? pendingQuestionHint : localeMessages.creatorWorkbench.recheckAgentUIIntegration} onClick={() => void refreshWorkspace()}><RefreshCw aria-hidden="true" className={workspaceBusy ? "creator-tool-group-spinner" : undefined} />{workspaceBusy ? localeMessages.creatorWorkbench.checking : localeMessages.creatorWorkbench.recheckIntegration}</Button>
+                          </div>
+                        </div>
+                      </details>
+                      {(workspaceState.status === "ready") && workspaceState.warnings?.length ? (
+                        <div className="creator-workspace-warnings" role="status">
+                          <strong>{localeMessages.creatorWorkbench.agentUIInitializationNeedsRecoveryChecks}</strong>
+                          {workspaceState.warnings.map((issue, index) => (
+                            <span key={`${issue.code}-${index}`}>{issue.code === "AGENT_UI_INITIALIZATION_RECOVERY_REQUIRED"
+                              ? localeMessages.creatorWorkbench.initializationWasCommittedButCleanupDidNotFinish
+                              : setupIssueMessage(issue, localeMessages)}</span>
+                          ))}
+                        </div>
+                      ) : null}
+
+                    </div>
+                  ) : null}
+                  <div className="creator-workspace-selector">
+                    {workspaceState?.status === "none" ? <p className="creator-workspace-purpose">{localeMessages.creatorWorkbench.openAFrontendProjectFolderCreatorWillCheck}</p> : null}
+                    <Button size="sm" variant="outline" className="creator-workspace-browse" type="button"
+                      disabled={workspaceState === null || workspaceBusy || setupDraft.initializing || questionPending}
+                      onClick={() => void chooseWorkspace()}>
+                      <FolderOpen aria-hidden="true" />{workspacePicking ? localeMessages.creatorWorkbench.waitingForFolderSelection : workspaceState !== null && workspaceState.status !== "none" ? localeMessages.creatorWorkbench.openAnotherProject : localeMessages.creatorWorkbench.openFrontendProject}
+                    </Button>
+                    {workspacePicking ? <span role="status">{localeMessages.creatorWorkbench.chooseAProjectInTheSystemWindowOr}</span> : null}
+                    <details>
+                      <summary>{localeMessages.creatorWorkbench.openByPath}</summary>
+                      <form onSubmit={selectWorkspace}>
+                        <label htmlFor="creator-workspace-path">{localeMessages.creatorWorkbench.absoluteProjectFolderPath}</label>
+                        <Input id="creator-workspace-path" value={workspacePath} disabled={workspaceBusy || setupDraft.initializing || questionPending}
+                          onChange={(event) => setWorkspacePath(event.target.value)} placeholder="/path/to/project" autoComplete="off" spellCheck={false} />
+                        <Button size="sm" variant="secondary" type="submit" disabled={workspaceBusy || setupDraft.initializing || questionPending || workspacePath.trim() === ""}>{localeMessages.creatorWorkbench.openProject}</Button>
+                      </form>
+                    </details>
+                  </div>
+                  {workspaceState !== null && workspaceState.status !== "none" ? <div className="creator-workspace-close">
+                    <Button size="sm" variant="ghost" type="button" disabled={workspaceBusy || setupDraft.initializing || questionPending} title={questionPending ? pendingQuestionHint : localeMessages.creatorWorkbench.closeTheProjectAndKeepItsFiles} onClick={() => void clearWorkspace()}>{localeMessages.creatorWorkbench.closeCurrentProject}</Button>
+                    <span>{localeMessages.creatorWorkbench.projectFilesWillBeKept}</span>
+                  </div> : null}
+                  {workspaceError === null ? null : <p role="alert">{localizeCreatorPresentation(workspaceError, localeMessages)}</p>}
+                </section>
+              ) : null}
+            </div>
+              <div className="creator-header-updates" ref={setUpdateNotificationTarget} />
+              <Button variant="ghost" size="icon-sm" aria-label={localeMessages.creatorWorkbench.refresh} title={localeMessages.creatorWorkbench.reloadCurrentProjectAndPanelData}
+                disabled={refreshing || workspaceBusy || isRunning || questionPending || setupDraft.initializing}
+                onClick={() => void refreshCreator()}><RefreshCw aria-hidden="true" className={refreshing ? "creator-tool-group-spinner" : undefined} /></Button>
               <div
                 className="creator-panel-dev-studio-dock"
                 data-slot="agent-ui-dev-studio-dock"
@@ -2060,14 +2168,23 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
               >
                 <X aria-hidden="true" />
               </Button>}
-              {workspaceState?.status === "ready" ? <CreatorSettings onAgent={() => setAgentPanelOpen(value => !value)} busy={isRunning || questionPending} onCheckUpdates={() => setUpdateCheckRequest(value => value + 1)} /> : null}
+              <CreatorSettings ready={workspaceState?.status === "ready"}
+                onAgent={() => { setAgentPanelOpen(true); setMockPanelOpen(false); setUpdatePageOpen(false); }}
+                onMock={() => { setMockPanelOpen(true); setAgentPanelOpen(false); setUpdatePageOpen(false); }}
+                busy={isRunning || questionPending}
+                onCheckUpdates={() => { setAgentPanelOpen(false); setMockPanelOpen(false); setUpdatePageOpen(true); setUpdateCheckRequest(value => value + 1); }} />
             </div>
           </header>
 
           <div className="creator-panel-body">
+            {refreshing || refreshMessage ? <p className="creator-refresh-status" role="status">{refreshing ? localeMessages.creatorWorkbench.reloadingProjectData : refreshMessage}</p> : null}
             {workspaceState?.status === "ready" ? <CreatorPluginUpdates key={workspaceState.workspace.id} workspaceId={workspaceState.workspace.id} busy={isRunning || questionPending} modelReady={creatorRuntimeReady} checkRequest={updateCheckRequest} notificationTarget={updateNotificationTarget} pageOpen={updatePageOpen} onPageChange={handleUpdatePageChange} onModelMerge={prompt => { void submit(undefined, undefined, prompt); }} /> : null}
-            {workspaceState?.status === "ready" ? <AgentConnectionPanel key={workspaceState.workspace.id} workspaceId={workspaceState.workspace.id} visible={agentPanelOpen} /> : null}
-            {mockPanelOpen ? <MockServicePanel {...(workspaceState && workspaceState.status !== "none" ? { projectId: workspaceState.workspace.id } : {})} /> : null}
+            {agentPanelOpen || mockPanelOpen ? <div className="creator-tool-header">
+              <Button size="icon-sm" variant="ghost" aria-label={localeMessages.creatorWorkbench.backToConversation} onClick={() => { setAgentPanelOpen(false); setMockPanelOpen(false); }}><ArrowLeft aria-hidden="true" /></Button>
+              <h2>{agentPanelOpen ? localeMessages.creatorWorkbench.connectAgent : localeMessages.creatorWorkbench.demosAndReplay}</h2>
+            </div> : null}
+            {workspaceState?.status === "ready" && agentPanelOpen ? <AgentConnectionPanel key={`connection:${workspaceState.workspace.id}`} workspaceId={workspaceState.workspace.id} visible /> : null}
+            {mockPanelOpen ? <MockServicePanel {...(workspaceState && workspaceState.status !== "none" ? { projectId: workspaceState.workspace.id, projectPath: workspaceState.workspace.displayPath } : {})} /> : null}
             <div
               className="creator-panel-dev-studio-panel"
               data-slot="agent-ui-dev-studio-panel"
@@ -2114,7 +2231,6 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
                         undoBusy={undoRunId === item.receipt.transaction?.runId} reapplyBusy={reapplyRunId === item.receipt.transaction?.runId} /> : null}
                     </article>
                   ) : item.kind === "stage" ? (
-
                     <CreatorStageActivityCard
                       activity={item}
                       debug={creatorDebug}
@@ -2167,94 +2283,6 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
           </div>
 
           <div className="creator-panel-footer">
-            <div className="creator-workspace-control" ref={workspaceControl}>
-              <Button size="sm" variant="outline"
-                aria-controls="creator-workspace-menu"
-                aria-expanded={showWorkspaceSelector}
-                aria-label={workspaceState !== null && workspaceState.status !== "none"
-                  ? formatLocaleMessage(localeMessages.creatorWorkbench.currentProjectClickToSwitchProjects, workspaceState.workspace.name) : localeMessages.creatorWorkbench.chooseProjectFolder}
-                className="creator-workspace-trigger"
-                disabled={workspaceBusy || setupDraft.initializing || questionPending}
-                onClick={() => {
-                  if (workspaceState !== null && workspaceState.status !== "none") {
-                    setWorkspacePath(workspaceState.workspace.displayPath);
-                  }
-                  setShowWorkspaceSelector((current) => !current);
-                }}
-                title={questionPending ? pendingQuestionHint : workspaceState !== null && workspaceState.status !== "none"
-                  ? workspaceState.workspace.displayPath : localeMessages.creatorWorkbench.chooseProjectFolder}
-                type="button"
-              >
-                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <path d="M3.5 6.5h6l2 2h9v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-11Z" />
-                  <path d="M3.5 10h17" />
-                </svg>
-                <span>{workspaceState !== null && workspaceState.status !== "none"
-                  ? workspaceState.workspace.name : localeMessages.creatorWorkbench.selectProject}</span>
-                {workspaceState !== null && (workspaceState.status === "ready") &&
-                  workspaceState.warnings?.length ? <span aria-label={localeMessages.creatorWorkbench.projectHasNotices} className="creator-workspace-warning-dot">!</span> : null}
-                <svg aria-hidden="true" className="creator-workspace-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </Button>
-              {showWorkspaceSelector ? (
-                <section className="creator-workspace-menu" id="creator-workspace-menu" aria-label={localeMessages.creatorWorkbench.chooseFrontendProjectFolder}>
-                  <header className="creator-workspace-menu-header">
-                    <h2>{localeMessages.creatorWorkbench.project}</h2>
-                    <Button size="icon-xs" variant="ghost" type="button" aria-label={localeMessages.creatorWorkbench.closeProjectSelection} onClick={() => { setShowWorkspaceSelector(false); workspaceControl.current?.querySelector<HTMLButtonElement>(".creator-workspace-trigger")?.focus(); }}><X aria-hidden="true" /></Button>
-                  </header>
-                  {workspaceState !== null && workspaceState.status !== "none" ? (
-                    <div className="creator-workspace-current">
-                      <div className="creator-workspace-identity">
-                        <FolderOpen aria-hidden="true" />
-                        <strong title={workspaceState.workspace.name}>{workspaceState.workspace.name}</strong>
-                        <Button size="icon-xs" variant="ghost" type="button" aria-label={localeMessages.creatorWorkbench.refreshProject} disabled={workspaceBusy || setupDraft.initializing || questionPending} title={questionPending ? pendingQuestionHint : localeMessages.creatorWorkbench.refreshProject} onClick={() => void refreshWorkspace()}><RefreshCw aria-hidden="true" className={workspaceBusy ? "creator-tool-group-spinner" : undefined} /></Button>
-                      </div>
-                      <div className="creator-workspace-metadata">
-                        <Badge variant="secondary">{workspaceState.status === "ready" ? ({ assistant: localeMessages.creatorWorkbench.assistant, embedded: localeMessages.creatorWorkbench.embedded, platform: localeMessages.creatorWorkbench.workbench })[workspaceState.project.mode] : workspaceState.status === "uninitialized" ? localeMessages.creatorWorkbench.notInitialized2 : localeMessages.creatorWorkbench.configurationError}</Badge>
-                        {workspaceState.status === "ready" ? <code title={workspaceState.project.sourceRoot}>{workspaceState.project.sourceRoot}</code> : null}
-                      </div>
-                      <details className="creator-workspace-info">
-                        <summary>{localeMessages.creatorWorkbench.projectDetails}</summary>
-                        <dl><dt>{localeMessages.creatorWorkbench.projectPath}</dt><dd><code>{workspaceState.workspace.displayPath}</code></dd></dl>
-                        <Button size="xs" variant="ghost" type="button" disabled={workspaceBusy || setupDraft.initializing || questionPending} title={questionPending ? pendingQuestionHint : localeMessages.creatorWorkbench.deselectAndKeepProjectFiles} onClick={() => void clearWorkspace()}>{localeMessages.creatorWorkbench.deselectProject}</Button>
-                      </details>
-                      {(workspaceState.status === "ready") && workspaceState.warnings?.length ? (
-                        <div className="creator-workspace-warnings" role="status">
-                          <strong>{localeMessages.creatorWorkbench.agentUIInitializationNeedsRecoveryChecks}</strong>
-                          {workspaceState.warnings.map((issue, index) => (
-                            <span key={`${issue.code}-${index}`}>{issue.code === "AGENT_UI_INITIALIZATION_RECOVERY_REQUIRED"
-                              ? localeMessages.creatorWorkbench.initializationWasCommittedButCleanupDidNotFinish
-                              : setupIssueMessage(issue, localeMessages)}</span>
-                          ))}
-                        </div>
-                      ) : null}
-
-                    </div>
-                  ) : null}
-                  <div className="creator-workspace-selector">
-                    <strong>{workspaceState !== null && workspaceState.status !== "none" ? localeMessages.creatorWorkbench.switchProject : localeMessages.creatorWorkbench.chooseFrontendProjectFolder}</strong>
-                    <span>{localeMessages.creatorWorkbench.chooseAFrontendProjectCreatorWillCheckIts}</span>
-                    <Button size="sm" variant="outline" className="creator-workspace-browse" type="button"
-                      disabled={workspaceState === null || workspaceBusy || setupDraft.initializing || questionPending}
-                      onClick={() => void chooseWorkspace()}>
-                      <FolderOpen aria-hidden="true" />{workspacePicking ? localeMessages.creatorWorkbench.waitingForFolderSelection2 : localeMessages.creatorWorkbench.chooseProjectFolder}
-                    </Button>
-                    {workspacePicking ? <span role="status">{localeMessages.creatorWorkbench.chooseAProjectInTheSystemWindowOr}</span> : null}
-                    <details>
-                      <summary>{localeMessages.creatorWorkbench.enterProjectPathManually}</summary>
-                      <form onSubmit={selectWorkspace}>
-                        <label htmlFor="creator-workspace-path">{localeMessages.creatorWorkbench.absoluteProjectFolderPath}</label>
-                        <Input id="creator-workspace-path" value={workspacePath} disabled={workspaceBusy || setupDraft.initializing || questionPending}
-                          onChange={(event) => setWorkspacePath(event.target.value)} placeholder="/path/to/project" autoComplete="off" spellCheck={false} />
-                        <Button size="sm" variant="secondary" type="submit" disabled={workspaceBusy || setupDraft.initializing || questionPending || workspacePath.trim() === ""}>{localeMessages.creatorWorkbench.useThisFolder}</Button>
-                      </form>
-                    </details>
-                  </div>
-                  {workspaceError === null ? null : <p role="alert">{localizeCreatorPresentation(workspaceError, localeMessages)}</p>}
-                </section>
-              ) : null}
-            </div>
             {workspaceState?.status === "ready" ? <form className="creator-panel-composer" style={updatePageOpen ? { display: "none" } : undefined} onSubmit={submit}>
               <label htmlFor="creator-request">{localeMessages.creatorWorkbench.tellCreator}</label>
               {commandState.open && !commandBusy && !isRunning && !questionPending ? <CreatorCommandMenu key={commandState.menuKey} optionDomId={commandState.optionDomId} items={commandState.items} active={commandState.active} title={commandState.title} notice={commandState.notice} onPick={pickCommand} onSelect={commandState.select} /> : null}
@@ -2265,7 +2293,6 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
                 aria-controls={commandState.open ? "creator-command-menu" : undefined}
                 aria-activedescendant={commandState.open && commandState.items.length ? commandState.optionDomId(commandState.active) : undefined}
                 disabled={isRunning || commandBusy || questionPending}
-
                 id="creator-request"
                 onChange={(event) => setInput(event.target.value)}
                 onKeyDown={handleKeyDown}
@@ -2274,16 +2301,15 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
                 value={input}
               />
               <div>
-                <Button variant="ghost" size="xs" className="creator-composer-clear"
-                  aria-label={localeMessages.creatorWorkbench.clearCreatorConversation}
-                  disabled={commandBusy || isRunning || !creatorRuntimeReady || questionPending}
-                  onClick={clearConversation}
-                  title={questionPending ? pendingQuestionHint : localeMessages.creatorWorkbench.clearTheConversationAndInputToStartAgain}
-                  type="button"
-                >
-                  <RotateCcw aria-hidden="true" />{localeMessages.creatorWorkbench.clearConversation}
-                </Button>
-                <small>{localeMessages.creatorWorkbench.enterToSendShiftEnterForANew}</small>
+                <div className="creator-composer-tools">
+                  <Button variant="ghost" size="xs" className="creator-composer-clear" type="button"
+                    disabled={!creatorRuntimeReady || commandBusy || isRunning || questionPending}
+                    onClick={clearConversation}
+                    title={questionPending ? pendingQuestionHint : isRunning ? localeMessages.creatorWorkbench.stopTheCurrentRunFirst : localeMessages.creatorWorkbench.clearThisConversationAndDraftToStartAgain}>
+                    <RotateCcw aria-hidden="true" />{localeMessages.creatorWorkbench.clearConversation}
+                  </Button>
+                  <small>{localeMessages.creatorWorkbench.enterToSendShiftEnterForANew}</small>
+                </div>
                 {isRunning ? (
                   <Button size="sm" variant="outline" type="button" disabled={!runAccepted || stopBusy} onClick={() => void stopCurrentRun()}>
                     <Square aria-hidden="true" />{stopBusy ? localeMessages.creatorWorkbench.stopping : localeMessages.creatorWorkbench.stopExecution}

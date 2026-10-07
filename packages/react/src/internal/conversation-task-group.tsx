@@ -1,6 +1,6 @@
 "use client";
 
-import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../locale.js";
+import { useAgentUILocale, formatPresentationMessage } from "../locale.js";
 import {
   MessagePrimitive,
   ReadonlyThreadProvider,
@@ -12,12 +12,12 @@ import {
   type ToolCallMessagePartComponent,
 } from "@assistant-ui/react";
 import { createContext, useContext, useState, type ComponentType } from "react";
-import { TaskCard as TaskCardShell } from "./vendor/assistant-ui/components/assistant-ui/elements/task-card.js";
+import { TaskCard as TaskCardShell } from "./adapters/assistant-ui/components/assistant-ui/elements/task-card.js";
 import { isTaskPart, type TaskPart } from "./adapters/assistant-ui/components/assistant-ui/elements/task-card.aui.js";
 import {
   ToolFallback, ToolFallbackApproval, ToolFallbackError,
   formatUnknownValue, offersInterruptAction,
-} from "./vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
+} from "./adapters/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
 import {
   TASK_PAGE_SIZE, formatElapsed, taskLabel, taskMeta, taskStateOf, useTaskElapsed,
 } from "./vendor/assistant-ui/components/assistant-ui/utils/task.js";
@@ -140,12 +140,12 @@ function TaskLanes({ group, className }: {
   }).length);
   if (indices.length === 1) return <TaskLane index={indices[0]!} />;
   const hidden = indices.length - Math.min(visible, indices.length);
-  // Preserve the existing upstream labels; this seam introduces no new UI copy.
+  // Localize only presentation; counts and lane identities remain upstream-owned.
   const summary = [
-    `${indices.length} tasks`,
-    counts.running > 0 && `${counts.running} running`,
-    counts.requiresAction > 0 && `${counts.requiresAction} waiting`,
-    failed > 0 && `${failed} failed`,
+    formatPresentationMessage(localeMessages.tasks.groupCount, { count: indices.length }),
+    counts.running > 0 && formatPresentationMessage(localeMessages.tasks.groupRunning, { count: counts.running }),
+    counts.requiresAction > 0 && formatPresentationMessage(localeMessages.tasks.groupWaiting, { count: counts.requiresAction }),
+    failed > 0 && formatPresentationMessage(localeMessages.tasks.groupFailed, { count: failed }),
   ].filter(Boolean).join(" · ");
   return (
     <div data-slot="aui_task-group" className={cn("flex w-full max-w-sm flex-col gap-2", className)}>

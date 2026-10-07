@@ -1,6 +1,6 @@
 "use client";
 
-import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../../../../../../locale.js";
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from "../../../../../../locale.js";
 
 import { useAuiState, type TaskState } from "@assistant-ui/react";
 import { ChevronDownIcon } from "lucide-react";
@@ -16,7 +16,7 @@ import {
   type AgentState,
 } from "../../../../../vendor/assistant-ui/components/assistant-ui/elements/agent-status.js";
 import { mono } from "../../../../../vendor/assistant-ui/components/assistant-ui/elements/surfaces.js";
-import { TaskStateIcon } from "../../../../../vendor/assistant-ui/components/assistant-ui/elements/task-card.js";
+import { TaskStateIcon } from "./task-card";
 import {
   formatElapsed,
   TASK_PAGE_SIZE,
@@ -83,23 +83,24 @@ export const summaryState = (summary: TaskSummary): AgentState => {
   return summary.failed > 0 ? "failed" : "done";
 };
 
-export const summaryLabel = (summary: TaskSummary) => {
+export const summaryLabel = (summary: TaskSummary, messages = DEFAULT_AGENT_UI_MESSAGES.tasks) => {
   if (summary.running === 1 && summary.runningLabel !== undefined) {
     return summary.runningLabel;
   }
   if (summary.running > 0) {
-    return `${summary.running} of ${plural(summary.total, "task")} running`;
+    return formatPresentationMessage(summary.total === 1 ? messages.runningOne : messages.running, { running: summary.running, total: summary.total });
   }
   if (summary.waiting > 0) {
-    return `${plural(summary.waiting, "task")} waiting for input`;
+    return formatPresentationMessage(summary.waiting === 1 ? messages.waitingOne : messages.waiting, { count: summary.waiting });
   }
   if (summary.failed > 0) {
-    return `${plural(summary.total, "task")} done, ${summary.failed} failed`;
+    return formatPresentationMessage(summary.total === 1 ? messages.failedOne : messages.failed, { total: summary.total, failed: summary.failed });
   }
-  return `${plural(summary.total, "task")} done`;
+  return formatPresentationMessage(summary.total === 1 ? messages.doneOne : messages.done, { count: summary.total });
 };
 
 export const AgentStatus: FC<{ className?: string }> = ({ className }) => {
+  const localeMessages = useAgentUILocale();
   const summary = useTaskSummary();
   const elapsedMs = useTaskElapsed(
     summary.startedAt === undefined
@@ -113,13 +114,14 @@ export const AgentStatus: FC<{ className?: string }> = ({ className }) => {
     <AgentStatusBase
       className={className}
       state={summaryState(summary)}
-      label={summaryLabel(summary)}
+      label={summaryLabel(summary, localeMessages.tasks)}
       elapsed={elapsedMs === undefined ? undefined : formatElapsed(elapsedMs)}
     />
   );
 };
 
 const TaskTrayItem: FC<{ task: TaskState }> = ({ task }) => {
+  const messages = useAgentUILocale("tasks");
   const state = taskStateOf(task.status, task.isError);
   const meta = taskMeta(task.args);
   const elapsedMs = useTaskElapsed(
@@ -135,7 +137,7 @@ const TaskTrayItem: FC<{ task: TaskState }> = ({ task }) => {
       style={{ paddingInlineStart: `${0.625 + task.depth * 0.75}rem` }}
     >
       <TaskStateIcon state={state} />
-      <span className="sr-only">{state}</span>
+      <span className="sr-only">{{ working: messages.working, waiting: messages.waitingState, failed: messages.failedState, done: messages.doneState, cancelled: messages.cancelledState }[state]}</span>
       <span className="min-w-0 flex-1 truncate">
         {taskLabel(task.toolName, task.args)}
       </span>
@@ -195,7 +197,7 @@ export const TaskTray: FC<{ className?: string }> = ({ className }) => {
       >
         <AgentStatusBase
           state={summaryState(summary)}
-          label={summaryLabel(summary)}
+          label={summaryLabel(summary, localeMessages.tasks)}
           elapsed={
             elapsedMs === undefined ? undefined : formatElapsed(elapsedMs)
           }

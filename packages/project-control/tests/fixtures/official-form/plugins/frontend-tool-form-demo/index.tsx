@@ -45,17 +45,17 @@ export function FrontendToolFormDemoPlugin() {
       pending.current?.({ success: false, message: locale.formUnavailable }); pending.current = undefined;
     };
   }, [service, getValues, setValue, reset, watch, locale]);
-  return <FormProvider {...form}><form ref={element} noValidate className="frontend-tool-form" onSubmit={onSubmit}>
+  return <FormProvider {...form}><form ref={element} noValidate data-slot="frontend-tool-form" className="frontend-tool-form" onSubmit={onSubmit}>
     <h2>{locale.formTitle}</h2>
     {DEMO_FORM_FIELDS.map(name => <label key={name}>{locale[name]}
-      {name === "projectIdea" ? <textarea {...register(name)} /> : <input type={name === "email" ? "email" : "text"} {...register(name, {
+      {name === "projectIdea" ? <textarea data-slot="frontend-tool-form-input" {...register(name)} /> : <input data-slot="frontend-tool-form-input" type={name === "email" ? "email" : "text"} {...register(name, {
         ...(name === "firstName" || name === "email" ? { required: locale.formRequired } : {}),
         ...(name === "email" ? { pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: locale.formInvalid } } : {}),
       })} />}
       {formState.errors[name] ? <span role="alert">{formState.errors[name]?.message}</span> : null}
     </label>)}
-    <div><button type="button" onClick={() => reset({ firstName: "", lastName: "", email: "", projectIdea: "" })}>{locale.resetForm}</button>
-    <button type="submit" disabled={formState.isSubmitting}>{locale.submitForm}</button></div>
+    <div data-slot="frontend-tool-form-actions"><button data-slot="frontend-tool-form-reset" type="button" onClick={() => reset({ firstName: "", lastName: "", email: "", projectIdea: "" })}>{locale.resetForm}</button>
+    <button data-slot="frontend-tool-form-submit" type="submit" disabled={formState.isSubmitting}>{locale.submitForm}</button></div>
     {formState.isSubmitSuccessful ? <p role="status">{locale.formSubmitted}</p> : null}
   </form></FormProvider>;
 }

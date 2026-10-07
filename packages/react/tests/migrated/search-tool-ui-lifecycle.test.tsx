@@ -89,11 +89,10 @@ async function fixture(scenario: MockScenario, pauseResult = false) {
   }
   async function complete() {
     release();
-    await act(async () => {
-      await vi.waitFor(() => {
-        expect(runtime.thread.getState().isRunning).toBe(false);
-        expect(events).toContain(EventType.TOOL_CALL_RESULT);
-      });
+    await vi.waitFor(async () => {
+      await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
+      expect(runtime.thread.getState().isRunning).toBe(false);
+      expect(events).toContain(EventType.TOOL_CALL_RESULT);
     });
   }
   return { container, send, complete, render, events };
@@ -144,11 +143,15 @@ describe("standard AG-UI search Tool UI lifecycle", () => {
     const scene = { ...c.scenario, steps: [...webSearchScenario.steps, ...retrievalChunksScenario.steps] };
     const f = await fixture(scene);
     await f.send(); await f.complete();
+    const group = f.container.querySelector<HTMLButtonElement>('[data-slot="tool-group-trigger"]');
+    if (group?.getAttribute("aria-expanded") === "false") await act(async () => group.click());
     expect(f.container.querySelector('[data-slot="web-search"]')).not.toBeNull();
     expect(f.container.querySelector('[data-slot="retrieval-chunks"]')).not.toBeNull();
     const otherSlot = c.id === "web-search" ? "retrieval-chunks" : "web-search";
     for (const changed of [await toolkit(undefined, c.id), await toolkit(c.id)]) {
       await f.render(changed);
+      const trigger = f.container.querySelector<HTMLButtonElement>('[data-slot="tool-group-trigger"]');
+      if (trigger?.getAttribute("aria-expanded") === "false") await act(async () => trigger.click());
       await act(async () => { await vi.waitFor(() => {
         expect(f.container.querySelector(`[data-slot="${c.slot}"]`)).toBeNull();
         expect(f.container.querySelector('[data-slot="tool-fallback-root"]')).not.toBeNull();

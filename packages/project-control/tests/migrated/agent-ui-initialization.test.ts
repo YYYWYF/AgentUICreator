@@ -93,6 +93,9 @@ describe("deterministic Agent UI initializer", () => {
     const root = await hostProject(parent);
     const result = await initializeAgentUIProject({ projectRoot: root, mode, sourceRoot }, initializationHost);
     expect(result.projectConfig).toEqual({ mode, sourceRoot });
+    expect(result.createdPaths).toContain(".env.development.local");
+    expect(await readFile(path.join(root, ".env.development.local"), "utf8"))
+      .toContain("VITE_AGENT_ENDPOINT=http://127.0.0.1:47831/agent");
     expect(result.installedSourceItems).toContain("foundation/core");
     expect(result.installedSourceItems).toContain("foundation/conversation");
     expect(result.installedSourceItems).toContain("plugin/conversation-surface");
@@ -102,6 +105,11 @@ describe("deterministic Agent UI initializer", () => {
     expect(lock.sourceRoot).toBe(sourceRoot);
     expect(await readFile(path.join(root, sourceRoot, "application/runtime-config.generated.ts"), "utf8"))
       .toContain(`agentUIRuntimeConfig = { mode: "${mode}" } as const`);
+    // This Host intentionally has no root tsconfig. The catalog must still
+    // agree with the installed plugin definitions before Runtime can mount.
+    const registry = await readFile(path.join(root, sourceRoot, "plugins/registry.generated.ts"), "utf8");
+    expect(registry).toContain('provides: ["agent-ui.conversation-data-source"]');
+    expect(registry).toContain('inject: ["agent-ui.conversation-data-source"]');
     if (mode === "platform") {
       const model = JSON.parse(await readFile(path.join(root, sourceRoot, "app-ui/app-ui.json"), "utf8")) as {
         root: { children: Array<{ child: { plugins: Array<{ pluginId: string }> } }> };

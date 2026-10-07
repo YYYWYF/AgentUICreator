@@ -14,7 +14,7 @@ it.each([
   { resourceId: "frontend-tool-form-demo", scenarioId: "frontend-tool-fill-form" },
   { resourceId: "frontend-tool-dialog-demo", scenarioId: "frontend-tool-open-dialog" },
 ])("rejects $resourceId after its Provider is disabled and allows selection after resource repair", async ({ resourceId, scenarioId }) => {
-  const service = new CreatorMockService(); services.push(service);
+  const service = new CreatorMockService({ port: 0 }); services.push(service);
   const sourceItemId = `demo/${resourceId.replace(/-demo$/, "")}`;
   const pluginId = resourceId;
   let enabled = false;

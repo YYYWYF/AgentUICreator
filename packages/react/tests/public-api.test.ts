@@ -7,14 +7,14 @@ import { describe, expect, it } from "vitest";
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 describe("@agent-ui/react public API", () => {
-  it("exposes only the package root facade and styles", async () => {
+  it("exposes the root facade, optional lexical entry, theme contract and styles", async () => {
     const packageJson = JSON.parse(
       await readFile(path.join(packageRoot, "package.json"), "utf8"),
     ) as { exports?: Record<string, unknown> };
     const indexSource = await readFile(path.join(packageRoot, "src/index.ts"), "utf8");
 
     expect(indexSource.trim()).toBe('export * from "./public.js";');
-    expect(Object.keys(packageJson.exports ?? {}).sort()).toEqual([".", "./styles.css"]);
+    expect(Object.keys(packageJson.exports ?? {}).sort()).toEqual([".", "./lexical", "./styles.css", "./theme"]);
     expect(Object.keys(packageJson.exports ?? {}).some((key) => key.includes("*") || key.includes("internal"))).toBe(false);
   });
 

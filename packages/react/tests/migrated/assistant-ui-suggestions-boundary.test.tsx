@@ -38,7 +38,7 @@ describe("Conversation Suggestions boundary", () => {
     ]);
     expect(conversationSuggestionsPlugin.manifest).toMatchObject({
       id: "conversation-suggestions",
-      version: "1.0.0",
+      version: "0.0.1",
       capabilities: ["conversation-suggestions"],
     });
     expect(source).toContain('from "@agent-ui/react"');

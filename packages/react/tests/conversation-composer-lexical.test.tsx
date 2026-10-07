@@ -103,13 +103,13 @@ it("renders a selected Mention as a chip while sending the unchanged directive o
   const chip = host.querySelector('[data-directive-id="employee_84721"]')!;
   expect(chip.textContent).toBe("@张三");
   expect(chip.getAttribute("data-directive-type")).toBe("user");
-  expect(chip.closest('[contenteditable="false"]')).not.toBeNull();
+  expect((chip.parentElement as HTMLElement).contentEditable).toBe("false");
   expect(search).toHaveBeenCalled();
-  expect(runtime.thread.composer.getState().text).toBe(directive + " ");
+  expect(runtime.thread.composer.getState().text).toBe(directive);
   expect(requests).toHaveLength(0);
   await act(async () => runtime.thread.composer.send());
   await until(() => requests.length === 1 && !runtime.thread.getState().isRunning);
-  expect(requests[0]!.messages.find(message => message.role === "user")!.content).toBe(directive + " ");
+  expect(requests[0]!.messages.find(message => message.role === "user")!.content).toBe(directive);
   expect(host.querySelector('[data-slot="aui_user-message-root"] [data-directive-id="employee_84721"]')?.textContent).toBe("@张三");
 });
 

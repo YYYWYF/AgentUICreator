@@ -209,5 +209,7 @@
   "plugins/assistant-ui-feedback-actions/definition.ts": "packages/source-registry/registry/items/plugin-assistant-ui-feedback-actions/files/plugins/assistant-ui-feedback-actions/definition.ts",
   "plugins/assistant-ui-feedback-actions/index.tsx": "packages/source-registry/registry/items/plugin-assistant-ui-feedback-actions/files/plugins/assistant-ui-feedback-actions/index.tsx",
   "plugins/assistant-ui-feedback-actions/manifest.json": "packages/source-registry/registry/items/plugin-assistant-ui-feedback-actions/files/plugins/assistant-ui-feedback-actions/manifest.json",
-  "agent-ui/i18n/AgentUILocaleBridge.tsx": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/AgentUILocaleBridge.tsx"
+  "agent-ui/i18n/AgentUILocaleBridge.tsx": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/AgentUILocaleBridge.tsx",
+  "application/preview-environment.ts": "packages/source-registry/registry/items/foundation-core/files/application/preview-environment.ts",
+  "application/agent-backend-transport.ts": "packages/source-registry/registry/items/foundation-core/files/application/agent-backend-transport.ts"
 }

@@ -1,0 +1,11 @@
+$ node ../../scripts/prepare-workbench.mjs && playwright test -c playwright.agent-connection.config.ts
+
+Running 3 tests using 1 worker
+
+(node:21349) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/agent-connection-host.spec.ts:20:1 › ordinary Host receives Mock thread list, history and chat through Creator (4.5s)
+  ✓  2 tests/agent-connection-host.spec.ts:40:1 › generated Host mounts independently without a root tsconfig or Creator preview (2.4s)
+  ✓  3 tests/agent-connection-host.spec.ts:49:1 › no-CORS Connected Agent streams before completion and Source switching isolates sessions (4.6s)
+
+  3 passed (12.8s)

@@ -65,6 +65,16 @@ must never justify vendor changes or become an upgrade blocker.
 
 ## Verification boundary for this change
 
-Only static checks, compilation and focused unit regressions are run. Per the
-user's instruction, browser, visual, narrow-screen and production acceptance are
-not performed. No visual acceptance or zero-visible-English claim is implied.
+The initial localization work used static checks, compilation and focused unit
+regressions. The 2026-10-07 follow-up also checks real browser composition with
+isolated AG-UI mocks: language switching, reasoning, tool errors, approval and
+receipts, and command-picker accessibility. This follow-up covers Agent UI only;
+Creator Agent and user-owned Host presentation are outside its scope. Audio controls, media/file labels and encoded-file fallbacks are now covered by
+guarded adapters, unit regressions and browser checks. Native video controls use
+the browser language. No full production backend acceptance or zero-visible-English
+claim is implied.
+
+For an Agent UI-only inventory including installed example Agent UI sources, run
+`node scripts/audit-ui-copy.mjs --agent-ui-only --output /tmp/agent-ui-copy.json`.
+This excludes Creator and Host presentation. As with the general audit, review
+findings semantically; it is not a blanket string ban.

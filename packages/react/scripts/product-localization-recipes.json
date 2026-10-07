@@ -130,7 +130,7 @@
     ]
   },
   "components/assistant-ui/elements/agent-status.aui.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "export const TaskTray: FC<{ className?: string }> = ({ className }) => {\n",
@@ -146,11 +146,56 @@
         "before": "                Show {Math.min(hidden, TASK_PAGE_SIZE)} more\n              </button>\n",
         "after": "\n                {localeMessages.common.show} {Math.min(hidden, TASK_PAGE_SIZE)}  {localeMessages.common.more}\n              </button>\n",
         "expectedCount": 1
+      },
+      {
+        "before": "export const summaryLabel = (summary: TaskSummary) => {",
+        "after": "export const summaryLabel = (summary: TaskSummary, messages = DEFAULT_AGENT_UI_MESSAGES.tasks) => {",
+        "expectedCount": 1
+      },
+      {
+        "before": "`${summary.running} of ${plural(summary.total, \"task\")} running`",
+        "after": "formatPresentationMessage(summary.total === 1 ? messages.runningOne : messages.running, { running: summary.running, total: summary.total })",
+        "expectedCount": 1
+      },
+      {
+        "before": "`${plural(summary.waiting, \"task\")} waiting for input`",
+        "after": "formatPresentationMessage(summary.waiting === 1 ? messages.waitingOne : messages.waiting, { count: summary.waiting })",
+        "expectedCount": 1
+      },
+      {
+        "before": "`${plural(summary.total, \"task\")} done, ${summary.failed} failed`",
+        "after": "formatPresentationMessage(summary.total === 1 ? messages.failedOne : messages.failed, { total: summary.total, failed: summary.failed })",
+        "expectedCount": 1
+      },
+      {
+        "before": "`${plural(summary.total, \"task\")} done`",
+        "after": "formatPresentationMessage(summary.total === 1 ? messages.doneOne : messages.done, { count: summary.total })",
+        "expectedCount": 1
+      },
+      {
+        "before": "export const AgentStatus: FC<{ className?: string }> = ({ className }) => {",
+        "after": "export const AgentStatus: FC<{ className?: string }> = ({ className }) => {\n  const localeMessages = useAgentUILocale();",
+        "expectedCount": 1
+      },
+      {
+        "before": "summaryLabel(summary)",
+        "after": "summaryLabel(summary, localeMessages.tasks)",
+        "expectedCount": 2
+      },
+      {
+        "before": "const TaskTrayItem: FC<{ task: TaskState }> = ({ task }) => {",
+        "after": "const TaskTrayItem: FC<{ task: TaskState }> = ({ task }) => {\n  const messages = useAgentUILocale(\"tasks\");",
+        "expectedCount": 1
+      },
+      {
+        "before": "<span className=\"sr-only\">{state}</span>",
+        "after": "<span className=\"sr-only\">{{ working: messages.working, waiting: messages.waitingState, failed: messages.failedState, done: messages.doneState, cancelled: messages.cancelledState }[state]}</span>",
+        "expectedCount": 1
       }
     ]
   },
   "components/assistant-ui/elements/attachment.aui.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "const AttachmentPreview: FC<AttachmentPreviewProps> = ({ src }) => {\n",
@@ -216,6 +261,16 @@
         "before": "          aria-label=\"Add Attachment\"\n",
         "after": "          aria-label={localeMessages.composer.addAttachment}\n",
         "expectedCount": 1
+      },
+      {
+        "before": "  const typeLabel = useAuiState((s) => {\n    const type = s.attachment.type;\n    switch (type) {\n      case \"image\":\n        return \"Image\";\n      case \"document\":\n        return \"Document\";\n      case \"file\":\n        return \"File\";\n      default:\n        return type;\n    }\n  });",
+        "after": "  const attachmentType = useAuiState((s) => s.attachment.type);\n  const typeLabel = ({ image: localeMessages.attachments.imageType, document: localeMessages.attachments.documentType, file: localeMessages.attachments.fileType } as Record<string, string>)[attachmentType] ?? attachmentType;",
+        "expectedCount": 1
+      },
+      {
+        "before": "aria-label={`${typeLabel} attachment${\n                    isError\n                      ? \", upload failed\"\n                      : isUploading\n                        ? \", uploading\"\n                        : \"\"\n                  }`}",
+        "after": "aria-label={formatPresentationMessage(isError ? localeMessages.attachments.tileFailed : isUploading ? localeMessages.attachments.tileUploading : localeMessages.attachments.tile, { type: typeLabel })}",
+        "expectedCount": 1
       }
     ]
   },
@@ -240,7 +295,7 @@
     ]
   },
   "components/assistant-ui/elements/task-card.aui.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "}> = ({ group, className }) => {\n",
@@ -250,6 +305,26 @@
       {
         "before": "          Show {Math.min(hidden, TASK_PAGE_SIZE)} more\n        </button>\n",
         "after": "\n          {localeMessages.common.show} {Math.min(hidden, TASK_PAGE_SIZE)}  {localeMessages.common.more}\n        </button>\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "`${indices.length} tasks`",
+        "after": "formatPresentationMessage(localeMessages.tasks.groupCount, { count: indices.length })",
+        "expectedCount": 1
+      },
+      {
+        "before": "`${counts.running} running`",
+        "after": "formatPresentationMessage(localeMessages.tasks.groupRunning, { count: counts.running })",
+        "expectedCount": 1
+      },
+      {
+        "before": "`${counts.requiresAction} waiting`",
+        "after": "formatPresentationMessage(localeMessages.tasks.groupWaiting, { count: counts.requiresAction })",
+        "expectedCount": 1
+      },
+      {
+        "before": "`${failed} failed`",
+        "after": "formatPresentationMessage(localeMessages.tasks.groupFailed, { count: failed })",
         "expectedCount": 1
       }
     ]
@@ -270,7 +345,7 @@
     ]
   },
   "components/assistant-ui/elements/composer-trigger-popover.aui.tsx": {
-    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
         "before": "  backLabel = \"Back\",\n  emptyCategoriesLabel = \"No items available\",\n",
@@ -279,7 +354,22 @@
       },
       {
         "before": "  ...props\n}) => {\n",
-        "after": "  ...props\n}) => {\n  const localeMessages = useAgentUILocale();\n  backLabel ??= localeMessages.common.back;\n  emptyCategoriesLabel ??= localeMessages.triggers.noItems;\n",
+        "after": "  ...props\n}) => {\n  const localeMessages = useAgentUILocale();\n  backLabel ??= localeMessages.common.back;\n  emptyCategoriesLabel ??= localeMessages.triggers.noItems;\n  emptyItemsLabel ??= localeMessages.triggers.noResults;\n  loadingLabel ??= localeMessages.triggers.loading;\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "  emptyItemsLabel = \"No matching items\",\n  loadingLabel = \"Loading…\",",
+        "after": "  emptyItemsLabel,\n  loadingLabel,",
+        "expectedCount": 1
+      },
+      {
+        "before": "  const { isLoading } = unstable_useTriggerPopoverScopeContext();",
+        "after": "  const messages = useAgentUILocale(\"triggers\");\n  const { isLoading } = unstable_useTriggerPopoverScopeContext();",
+        "expectedCount": 1
+      },
+      {
+        "before": "<ComposerPrimitive.Unstable_TriggerPopoverItems>",
+        "after": "<ComposerPrimitive.Unstable_TriggerPopoverItems aria-label={messages.items}>",
         "expectedCount": 1
       }
     ]
@@ -360,6 +450,331 @@
       {
         "before": "            <span className=\"sr-only\">Close</span>\n",
         "after": "            <span className=\"sr-only\">{localeMessages.common.close}</span>\n",
+        "expectedCount": 1
+      }
+    ]
+  },
+  "components/assistant-ui/elements/reasoning.tsx": {
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from \"../../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "  const durationText = duration ? ` (${duration}s)` : \"\";",
+        "after": "  const messages = useAgentUILocale(\"conversation\");\n  const durationText = duration ? formatPresentationMessage(messages.reasoningDuration, { seconds: duration }) : \"\";",
+        "expectedCount": 1
+      },
+      {
+        "before": "        Reasoning{durationText}",
+        "after": "        {messages.reasoning}{durationText}",
+        "expectedCount": 1
+      }
+    ]
+  },
+  "components/assistant-ui/elements/tool-group.aui.tsx": {
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from \"../../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "  const label = `${count} tool ${count === 1 ? \"call\" : \"calls\"}`;",
+        "after": "  const messages = useAgentUILocale(\"toolPresentation\");\n  const label = formatPresentationMessage(count === 1 ? messages.call : messages.calls, { count });",
+        "expectedCount": 1
+      }
+    ]
+  },
+  "components/assistant-ui/elements/tool-fallback.aui.tsx": {
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage, type AgentUILocaleMessages } from \"../../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "  const statusType = status?.type ?? \"complete\";",
+        "after": "  const messages = useAgentUILocale(\"toolPresentation\");\n  const statusType = status?.type ?? \"complete\";",
+        "expectedCount": 1
+      },
+      {
+        "before": "\"Running tool\"",
+        "after": "messages.running",
+        "expectedCount": 1
+      },
+      {
+        "before": "\"Waiting on tool\"",
+        "after": "messages.waiting",
+        "expectedCount": 1
+      },
+      {
+        "before": "`${isCancelled ? \"Cancelled\" : \"Failed\"} tool`",
+        "after": "(isCancelled ? messages.cancelled : messages.failed)",
+        "expectedCount": 1
+      },
+      {
+        "before": "\"Used tool\"",
+        "after": "messages.used",
+        "expectedCount": 1
+      },
+      {
+        "before": "  if (result === undefined) return null;",
+        "after": "  const messages = useAgentUILocale(\"toolPresentation\");\n  if (result === undefined) return null;",
+        "expectedCount": 1
+      },
+      {
+        "before": "        Result:",
+        "after": "        {messages.result}",
+        "expectedCount": 1
+      },
+      {
+        "before": "  if (status?.type !== \"incomplete\") return null;",
+        "after": "  const messages = useAgentUILocale(\"toolPresentation\");\n  if (status?.type !== \"incomplete\") return null;",
+        "expectedCount": 1
+      },
+      {
+        "before": "  const headerText = isCancelled ? \"Cancelled reason:\" : \"Error:\";",
+        "after": "  const headerText = isCancelled ? messages.cancelReason : messages.error;",
+        "expectedCount": 1
+      },
+      {
+        "before": "const approvalOptionLabel = (option: ToolApprovalOption) =>",
+        "after": "const approvalOptionLabel = (option: ToolApprovalOption, messages = DEFAULT_AGENT_UI_MESSAGES.toolPresentation) =>",
+        "expectedCount": 1
+      },
+      {
+        "before": "    ? APPROVAL_OPTION_DEFAULT_LABELS[option.kind]",
+        "after": "    ? ({ \"allow-once\": messages.allow, \"allow-always\": messages.alwaysAllow, \"reject-once\": messages.deny, \"reject-always\": messages.alwaysDeny } as Record<string, string>)[option.kind]",
+        "expectedCount": 1
+      },
+      {
+        "before": "  approval: NonNullable<ToolCallMessagePart[\"approval\"]>,\n): ApprovalReceipt => {",
+        "after": "  approval: NonNullable<ToolCallMessagePart[\"approval\"]>,\n  messages = DEFAULT_AGENT_UI_MESSAGES.toolPresentation,\n): ApprovalReceipt => {",
+        "expectedCount": 1
+      },
+      {
+        "before": "\"Cancelled before a decision\"",
+        "after": "messages.cancelledDecision",
+        "expectedCount": 1
+      },
+      {
+        "before": "\"Expired before a decision\"",
+        "after": "messages.expiredDecision",
+        "expectedCount": 1
+      },
+      {
+        "before": "approvalOptionLabel(chosen)",
+        "after": "approvalOptionLabel(chosen, messages)",
+        "expectedCount": 1
+      },
+      {
+        "before": "approval.isAutomatic ? \" automatically\" : \"\"",
+        "after": "approval.isAutomatic ? messages.automatic : \"\"",
+        "expectedCount": 1
+      },
+      {
+        "before": "`${answered ? \"Answered\" : \"Allowed\"}${automatic}`",
+        "after": "`${answered ? messages.answered : messages.allowed}${automatic}`",
+        "expectedCount": 1
+      },
+      {
+        "before": "`${answered ? \"Dismissed\" : \"Denied\"}${automatic}`",
+        "after": "`${answered ? messages.dismissed : messages.denied}${automatic}`",
+        "expectedCount": 1
+      },
+      {
+        "before": "  const receipt = approvalReceipt(approval);",
+        "after": "  const messages = useAgentUILocale(\"toolPresentation\");\n  const receipt = approvalReceipt(approval, messages);",
+        "expectedCount": 1
+      },
+      {
+        "before": "  const [submitted, setSubmitted] = useState(false);",
+        "after": "  const messages = useAgentUILocale(\"toolPresentation\");\n  const [submitted, setSubmitted] = useState(false);",
+        "expectedCount": 1
+      },
+      {
+        "before": "approvalOptionLabel(confirming)",
+        "after": "approvalOptionLabel(confirming, messages)",
+        "expectedCount": 1
+      },
+      {
+        "before": "approvalOptionLabel(option)}",
+        "after": "approvalOptionLabel(option, messages)}",
+        "expectedCount": 1
+      },
+      {
+        "before": "approval?.prompt ?? \"Answer\"",
+        "after": "approval?.prompt ?? messages.answer",
+        "expectedCount": 1
+      },
+      {
+        "before": ": \"Note\"}",
+        "after": ": messages.note}",
+        "expectedCount": 1
+      },
+      {
+        "before": "question ? \"Type your answer\" : \"Add a note to your decision\"",
+        "after": "question ? messages.answerPlaceholder : messages.notePlaceholder",
+        "expectedCount": 1
+      },
+      {
+        "before": "\n      Dismiss\n",
+        "after": "\n      {messages.dismiss}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "\n            Send\n",
+        "after": "\n            {messages.send}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "\n            Confirm\n",
+        "after": "\n            {messages.confirm}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "\n            Back\n",
+        "after": "\n            {messages.back}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "\n          Allow\n",
+        "after": "\n          {messages.allow}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "\n              Deny\n",
+        "after": "\n              {messages.deny}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "\n          Deny\n",
+        "after": "\n          {messages.deny}\n",
+        "expectedCount": 1
+      }
+    ]
+  },
+  "components/assistant-ui/elements/thread-list.aui.tsx": {
+    "importText": "import { useAgentUILocale } from \"../../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "export type ThreadListGroup = { label: string; indices: number[] };",
+        "after": "export type ThreadListGroup = { id: string; label: string; indices: number[] };",
+        "expectedCount": 1
+      },
+      {
+        "before": "export const useThreadListGroups = (searchQuery = \"\") => {",
+        "after": "export const useThreadListGroups = (searchQuery = \"\") => {\n  const messages = useAgentUILocale(\"threadList\");",
+        "expectedCount": 1
+      },
+      {
+        "before": "(itemsById.get(id)?.title || \"New Chat\")",
+        "after": "(itemsById.get(id)?.title || messages.newChat)",
+        "expectedCount": 1
+      },
+      {
+        "before": "      const label = dateGroupLabel(",
+        "after": "      const id = dateGroupLabel(",
+        "expectedCount": 1
+      },
+      {
+        "before": "      if (lastGroup?.label === label) {",
+        "after": "      if (lastGroup?.id === id) {",
+        "expectedCount": 1
+      },
+      {
+        "before": "        result.push({ label, indices: [index] });",
+        "after": "        const label = ({ Today: messages.today, Yesterday: messages.yesterday, Earlier: messages.earlier } as Record<string, string>)[id] ?? id;\n        result.push({ id, label, indices: [index] });",
+        "expectedCount": 1
+      },
+      {
+        "before": "  }, [threadIds, threadItems, query, startOfToday]);",
+        "after": "  }, [threadIds, threadItems, query, startOfToday, messages]);",
+        "expectedCount": 1
+      },
+      {
+        "before": "    <Fragment key={group.label}>",
+        "after": "    <Fragment key={group.id}>",
+        "expectedCount": 1
+      }
+    ]
+  },
+  "components/assistant-ui/elements/task-card.tsx": {
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "  const hasTranscript = Children.toArray(children).length > 0;",
+        "after": "  const messages = useAgentUILocale(\"tasks\");\n  const hasTranscript = Children.toArray(children).length > 0;",
+        "expectedCount": 1
+      },
+      {
+        "before": "<span className=\"sr-only\">{state}</span>",
+        "after": "<span className=\"sr-only\">{{ working: messages.working, waiting: messages.waitingState, failed: messages.failedState, done: messages.doneState, cancelled: messages.cancelledState }[state]}</span>",
+        "expectedCount": 1
+      }
+    ]
+  },
+  "components/assistant-ui/elements/media-player.tsx": {
+    "importText": "import { useAgentUILocale, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "}: AudioPlayerProps) {",
+        "after": "}: AudioPlayerProps) {\n  const messages = useAgentUILocale(\"media\");",
+        "expectedCount": 1
+      },
+      {
+        "before": "}: VideoPlayerProps) {",
+        "after": "}: VideoPlayerProps) {\n  const messages = useAgentUILocale(\"media\");",
+        "expectedCount": 1
+      },
+      {
+        "before": "title ?? \"Audio\"",
+        "after": "title ?? messages.audio",
+        "expectedCount": 1
+      },
+      {
+        "before": "  const playbackLabel = title ? ` ${title}` : \" audio\";",
+        "after": "  const playbackLabel = title ?? messages.audio;",
+        "expectedCount": 1
+      },
+      {
+        "before": "aria-label={`${playing ? \"Pause\" : \"Play\"}${playbackLabel}`}",
+        "after": "aria-label={formatPresentationMessage(playing ? messages.pause : messages.play, { title: playbackLabel })}",
+        "expectedCount": 1
+      },
+      {
+        "before": "aria-label=\"Seek\"",
+        "after": "aria-label={messages.seek}",
+        "expectedCount": 1
+      },
+      {
+        "before": "aria-valuetext={`${formatDuration(currentTime)} of ${durationLabel}`}",
+        "after": "aria-valuetext={formatPresentationMessage(messages.position, { current: formatDuration(currentTime), duration: durationLabel })}",
+        "expectedCount": 1
+      },
+      {
+        "before": "          Can't play this audio",
+        "after": "          {messages.audioError}",
+        "expectedCount": 1
+      },
+      {
+        "before": "title ?? \"Video\"",
+        "after": "title ?? messages.video",
+        "expectedCount": 1
+      }
+    ]
+  },
+  "components/assistant-ui/elements/file.tsx": {
+    "importText": "import { useAgentUILocale, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "}: React.ComponentProps<\"span\">) {\n  return (\n    <span\n      data-slot=\"file-name\"",
+        "after": "}: React.ComponentProps<\"span\">) {\n  const messages = useAgentUILocale(\"files\");\n  return (\n    <span\n      data-slot=\"file-name\"",
+        "expectedCount": 1
+      },
+      {
+        "before": "{children || \"Unnamed file\"}",
+        "after": "{children || messages.unnamed}",
+        "expectedCount": 1
+      },
+      {
+        "before": "}: FileDownloadProps) {",
+        "after": "}: FileDownloadProps) {\n  const messages = useAgentUILocale(\"files\");",
+        "expectedCount": 1
+      },
+      {
+        "before": "aria-label={!children ? `Download ${filename || \"file\"}` : undefined}",
+        "after": "aria-label={!children ? formatPresentationMessage(messages.download, { filename: filename || messages.unnamed }) : undefined}",
         "expectedCount": 1
       }
     ]

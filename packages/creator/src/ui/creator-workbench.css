@@ -104,6 +104,7 @@
 }
 
 .creator-panel-header {
+  position: relative;
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
@@ -179,6 +180,169 @@
 
 .creator-settings {
   display: flex;
+}
+
+.creator-settings-menu[data-slot="popover-content"] {
+  display: grid;
+  width: 192px;
+  gap: 2px;
+  padding: 6px;
+}
+
+.creator-settings-menu button[data-creator-ui-button] {
+  width: 100%;
+  height: 36px;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.creator-settings-menu button svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  color: var(--cui-color-muted-foreground);
+}
+
+.creator-settings-divider {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--cui-color-border);
+}
+
+.creator-panel-header .creator-workspace-control {
+  position: static;
+  display: flex;
+  padding: 0;
+  width: 32px;
+  flex: none;
+}
+
+.creator-panel-header .creator-workspace-trigger {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+}
+
+.creator-panel-header .creator-workspace-menu {
+  right: 16px;
+  top: calc(100% + 8px);
+  bottom: auto;
+  left: auto;
+  width: min(320px, calc(100cqw - 32px));
+  max-height: min(70dvh, 560px);
+}
+
+.creator-panel-header .creator-workspace-menu span {
+  font-size: 12px;
+  letter-spacing: normal;
+}
+
+.creator-tool-header {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--cui-color-border);
+}
+
+.creator-tool-header h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.creator-agent-connection {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  padding: 20px;
+  overflow: auto;
+}
+
+.creator-agent-connection p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.creator-agent-connection > label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.creator-agent-connection > details {
+  padding-top: 16px;
+  border-top: 1px solid var(--cui-color-border);
+}
+
+.creator-header-updates:empty {
+  display: none;
+}
+
+.creator-refresh-status {
+  flex: none;
+  margin: 0;
+  padding: 8px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #64748b;
+  background: #f8fafc;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.creator-mock-file-location {
+  margin: 8px 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.creator-mock-file-location summary {
+  cursor: pointer;
+}
+
+.creator-mock-file-location > code {
+  display: block;
+  padding: 8px 10px;
+  margin-top: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+  overflow-wrap: anywhere;
+}
+
+.creator-workbench[data-creator-tool-open="true"] .creator-panel-body > .creator-panel-messages,
+.creator-workbench[data-creator-tool-open="true"] .creator-panel-body > .creator-panel-dev-studio-panel,
+.creator-workbench[data-creator-tool-open="true"] .creator-panel-footer {
+  display: none;
+}
+
+.creator-panel-body:has(> .creator-tool-header) .creator-mock-panel > header {
+  display: none;
+}
+
+.creator-panel-body:has(> .creator-tool-header) .creator-mock-panel {
+  padding-top: 12px;
+}
+
+.creator-panel-body:has(> .creator-tool-header) .creator-mock-service {
+  margin-top: 0;
+}
+
+.creator-panel-body:has(> .creator-tool-header) .creator-mock-error {
+  margin-top: 0;
+}
+
+.creator-panel-body:has(> .creator-tool-header) .creator-mock-error + .creator-mock-service {
+  margin-top: 12px;
 }
 
 .creator-panel-dev-studio-dock {
@@ -1567,6 +1731,25 @@
   margin: 12px 0 0 24px;
 }
 
+.creator-mock-focus-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 0 0 24px;
+}
+
+.creator-mock-focus-tags [data-slot="badge"] {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.creator-mock-focus-tags [data-event-tag="true"] {
+  border-color: #e4d7ff;
+  color: #6d45a3;
+  background: #f5f0ff;
+}
+
 .creator-mock-resource-row {
   display: flex;
   align-items: center;
@@ -2125,6 +2308,19 @@
   color: #64748b;
 }
 
+.creator-composer-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+@container creator-panel (max-width: 420px) {
+  .creator-composer-tools small {
+    display: none;
+  }
+}
+
 .creator-panel-composer .creator-composer-clear:hover {
   color: #334155;
 }
@@ -2233,9 +2429,9 @@
 }
 
 .creator-workspace-menu {
-  gap: 12px;
-  padding: 14px;
-  max-height: min(70dvh, 460px);
+  gap: 16px;
+  padding: 16px;
+  max-height: min(70dvh, 560px);
 }
 
 .creator-workspace-menu-header {
@@ -2246,17 +2442,18 @@
 }
 
 .creator-workspace-menu-header h2 {
+  margin: 0;
   color: #334155;
   font-size: 13px;
   font-weight: 600;
 }
 
 .creator-workspace-current {
-  gap: 10px;
-  padding: 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 9px;
-  background: #f8fafc;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .creator-workspace-identity {
@@ -2279,6 +2476,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 14px;
 }
 
 .creator-workspace-metadata {
@@ -2290,7 +2488,39 @@
 
 .creator-workspace-metadata [data-slot="badge"] {
   flex: none;
-  font-size: 10px;
+  font-size: 11px;
+}
+
+.creator-workspace-metadata [data-project-ready="true"] {
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.creator-workspace-purpose {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.creator-workspace-close {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.creator-workspace-close > button {
+  padding: 0 8px;
+  margin-left: -8px;
+  color: #475569;
+}
+
+.creator-workspace-close > span {
+  color: #94a3b8;
+  font-size: 11px;
 }
 
 .creator-workspace-metadata code {
@@ -2312,22 +2542,103 @@
   color: #64748b;
 }
 
-.creator-workspace-info dl {
-  margin: 10px 0 6px;
-  font-size: 11px;
+.creator-workspace-info > summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  list-style: none;
+  font-size: 12px;
 }
 
-.creator-workspace-info dt {
-  margin-bottom: 4px;
-  color: #64748b;
+.creator-workspace-info > summary::-webkit-details-marker {
+  display: none;
 }
 
-.creator-workspace-info dd {
+.creator-workspace-info > summary svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  transform: rotate(-90deg);
+}
+
+.creator-workspace-info[open] > summary svg {
+  transform: none;
+}
+
+.creator-workspace-info > summary:focus-visible {
+  outline: 2px solid #93b4f8;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.creator-workspace-info-panel {
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid #e8edf4;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.creator-workspace-info-panel dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px 16px;
   margin: 0;
+  font-size: 12px;
 }
 
-.creator-workspace-info button {
-  margin-top: 6px;
+.creator-workspace-info-panel dl > div {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  gap: 5px;
+}
+
+.creator-workspace-path-field {
+  grid-column: 1 / -1;
+}
+
+.creator-workspace-info-panel dt {
+  margin: 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.creator-workspace-info-panel dd {
+  margin: 0;
+  color: #334155;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.creator-workspace-info-panel code {
+  color: #475569;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.creator-workspace-path-field dd {
+  padding: 8px 10px;
+  border: 1px solid #e8edf4;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.creator-workspace-info-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #e8edf4;
+}
+
+.creator-workspace-info-actions button {
+  margin: 0;
+  color: #64748b;
+  font-weight: 400;
 }
 
 .creator-workspace-current + .creator-workspace-selector {
@@ -2345,7 +2656,7 @@
 }
 
 .creator-workspace-menu .creator-workspace-browse {
-  height: 32px;
+  height: 36px;
   border-radius: 8px;
   box-shadow: none;
 }
@@ -2357,7 +2668,7 @@
 }
 
 .creator-workspace-selector details form {
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   margin-top: 8px;
 }
@@ -2369,7 +2680,8 @@
 }
 
 .creator-workspace-selector form button {
-  font-size: 11px;
+  justify-self: end;
+  font-size: 12px;
   box-shadow: none;
 }
 

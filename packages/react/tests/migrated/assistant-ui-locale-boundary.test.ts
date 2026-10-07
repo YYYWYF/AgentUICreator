@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import { pluginCapabilityCatalog } from "../../../source-registry/registry/items/foundation-core/files/plugins/index";
 
 const projectRoot = await generatedProjectFixture();
+const productLocalePlugins = new Set(["assistant-ui-export-markdown-action", "assistant-ui-composer", "assistant-ui-submit-action"]);
 const canonicalPluginIds = [
   "assistant-ui-copy-action",
   "assistant-ui-reload-action",
@@ -20,26 +21,25 @@ const canonicalPluginIds = [
 ] as const;
 
 describe("assistant-ui canonical localization boundary", () => {
-  it("keeps canonical Plugins independent from AgentUICreator LocaleService", async () => {
-    const sources = await Promise.all(
-      canonicalPluginIds.flatMap(async (pluginId) => [
-        await readFile(path.join(projectRoot, "plugins", pluginId, "definition.ts"), "utf8"),
-        await readFile(path.join(projectRoot, "plugins", pluginId, "index.tsx"), "utf8"),
-      ]),
-    );
-
-    for (const source of sources.flat()) {
-      expect(source).not.toContain("useAgentUILocale");
-      expect(source).not.toContain("AGENT_UI_LOCALE_SERVICE");
-      expect(source).not.toContain("agent-ui.locale");
+  it("keeps locale ownership in public composition or explicitly declared product Plugins", async () => {
+    for (const pluginId of canonicalPluginIds) {
+      const [definition, component] = await Promise.all([readFile(path.join(projectRoot, "plugins", pluginId, "definition.ts"), "utf8"), readFile(path.join(projectRoot, "plugins", pluginId, "index.tsx"), "utf8")]);
+      if (productLocalePlugins.has(pluginId)) {
+        expect(definition).toContain("optionalInject: [AGENT_UI_LOCALE_SERVICE]");
+        expect(component).toContain("useAgentUILocale");
+      } else {
+        expect(definition + component).not.toContain("useAgentUILocale");
+        expect(definition + component).not.toContain("AGENT_UI_LOCALE_SERVICE");
+      }
+      expect(component).not.toMatch(/locale\s*===|zh-CN|en-US/);
     }
   });
 
-  it("keeps generated canonical capability entries free from locale injection", () => {
+  it("declares locale consumption only for product composition that needs it", () => {
     for (const pluginId of canonicalPluginIds) {
       const entry = pluginCapabilityCatalog.get(pluginId);
       expect(entry, pluginId).toBeDefined();
-      expect(entry?.optionalInject, pluginId).toEqual([]);
+      expect(entry?.optionalInject, pluginId).toEqual(productLocalePlugins.has(pluginId) ? ["agent-ui.locale"] : []);
     }
   });
 });

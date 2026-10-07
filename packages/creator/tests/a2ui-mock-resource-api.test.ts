@@ -11,7 +11,7 @@ afterEach(async () => {
 });
 
 it.each(["a2ui-interactive-order", "a2ui-form-controls"])("gates %s on the same source resource accepted by the installation API", async scenarioId => {
-  const service = new CreatorMockService(); services.push(service);
+  const service = new CreatorMockService({ port: 0 }); services.push(service);
   let installed = false;
   const installResources = vi.fn(async () => { installed = true; });
   const inspector = vi.fn(async () => ({
@@ -62,7 +62,7 @@ it.each(["a2ui-interactive-order", "a2ui-form-controls"])("gates %s on the same 
 });
 
 it("projects installation failures and exposes complete diagnostics only through the explicit endpoint", async () => {
-  const service = new CreatorMockService(); services.push(service);
+  const service = new CreatorMockService({ port: 0 }); services.push(service);
   const inspector = async () => ({ composition: { pluginSources: [], pluginInstances: [] }, sources: { items: [{ id: "integration/a2ui", status: "not-installed", owned: false, resolvedRequirements: [] }] } });
   const install = vi.fn(async () => { throw new Error("pnpm add @assistant-ui/react-generative-ui react-markdown remark-gfm failed for integration/a2ui"); });
   const log = vi.spyOn(console, "error").mockImplementation(() => {});

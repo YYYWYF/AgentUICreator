@@ -117,6 +117,9 @@ describe("assistant-ui default composition", () => {
       "assistant-ui-add-attachment-action-main",
       "assistant-ui-dictation-action-main",
       "assistant-ui-submit-action-main",
+      "conversation-quote-main",
+      "assistant-ui-mention-trigger-main",
+      "assistant-ui-slash-command-trigger-main",
       "assistant-ui-reasoning-main",
       "assistant-ui-tool-group-main",
       "assistant-ui-tool-fallback-main",
@@ -124,13 +127,15 @@ describe("assistant-ui default composition", () => {
       "assistant-ui-response-footer-main",
       "assistant-ui-copy-action-main",
       "assistant-ui-reload-action-main",
+      "assistant-ui-feedback-actions-main",
       "assistant-ui-export-markdown-action-main",
-    ]);
+]);
     expect(locations.map(({ plugin }) => plugin.id)).toEqual([
       "agent-conversation-data-main",
       "agent-conversation-service-main",
       "theme-provider-main",
       "locale-provider-main",
+      "conversation-command-source-main",
       "conversation-thread-list-main",
       "agent-conversation-surface-main",
       "conversation-suggestions-main",
@@ -138,6 +143,9 @@ describe("assistant-ui default composition", () => {
       "assistant-ui-add-attachment-action-main",
       "assistant-ui-dictation-action-main",
       "assistant-ui-submit-action-main",
+      "conversation-quote-main",
+      "assistant-ui-mention-trigger-main",
+      "assistant-ui-slash-command-trigger-main",
       "assistant-ui-reasoning-main",
       "assistant-ui-tool-group-main",
       "assistant-ui-tool-fallback-main",
@@ -145,13 +153,15 @@ describe("assistant-ui default composition", () => {
       "assistant-ui-response-footer-main",
       "assistant-ui-copy-action-main",
       "assistant-ui-reload-action-main",
+      "assistant-ui-feedback-actions-main",
       "assistant-ui-export-markdown-action-main",
-    ]);
+]);
     expect(locations.filter(({ plugin, target }) => plugin.enabled && target.type === "application").map(({ plugin }) => plugin.id)).toEqual([
       "agent-conversation-data-main",
       "agent-conversation-service-main",
       "theme-provider-main",
       "locale-provider-main",
+      "conversation-command-source-main",
     ]);
 
   });
@@ -189,7 +199,7 @@ describe("assistant-ui default composition", () => {
 
   it("keeps Welcome presentation in application configuration", () => {
     expect(conversationPresentationConfig).toEqual({
-      welcome: { title: "How can I help you today?" },
+      welcome: {},
     });
   });
 
@@ -215,7 +225,7 @@ describe("assistant-ui default composition", () => {
 
     expect(app).toContain("toolkit={toolkit}");
     expect(app).toContain("<ConversationRuntimeProvider");
-    expect(app).toContain("createConversationToolkit");
+    expect(app).toContain("composition?.conversationToolkit ?? baseConversationToolkit");
     expect(toolkit).toContain('type: "backend"');
     expect(toolkit).toContain('display: "standalone"');
     expect(toolkit).not.toContain("appFrontendTools");

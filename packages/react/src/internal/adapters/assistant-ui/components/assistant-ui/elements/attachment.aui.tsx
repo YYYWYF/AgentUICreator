@@ -1,6 +1,6 @@
 "use client";
 
-import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../../../../../../locale.js";
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage } from "../../../../../../locale.js";
 
 import {
   type PropsWithChildren,
@@ -117,19 +117,8 @@ const AttachmentUI: FC = () => {
   const isComposer = aui.attachment.source !== "message";
 
   const isImage = useAuiState((s) => s.attachment.type === "image");
-  const typeLabel = useAuiState((s) => {
-    const type = s.attachment.type;
-    switch (type) {
-      case "image":
-        return "Image";
-      case "document":
-        return "Document";
-      case "file":
-        return "File";
-      default:
-        return type;
-    }
-  });
+  const attachmentType = useAuiState((s) => s.attachment.type);
+  const typeLabel = ({ image: localeMessages.attachments.imageType, document: localeMessages.attachments.documentType, file: localeMessages.attachments.fileType } as Record<string, string>)[attachmentType] ?? attachmentType;
 
   // An attachment on a submission is still being prepared, whether or not the
   // adapter reports progress while it uploads.
@@ -177,13 +166,7 @@ const AttachmentUI: FC = () => {
                   )}
                   role="button"
                   tabIndex={0}
-                  aria-label={`${typeLabel} attachment${
-                    isError
-                      ? ", upload failed"
-                      : isUploading
-                        ? ", uploading"
-                        : ""
-                  }`}
+                  aria-label={formatPresentationMessage(isError ? localeMessages.attachments.tileFailed : isUploading ? localeMessages.attachments.tileUploading : localeMessages.attachments.tile, { type: typeLabel })}
                 />
               }
             >

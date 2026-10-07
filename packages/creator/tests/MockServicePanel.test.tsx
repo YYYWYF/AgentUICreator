@@ -2,9 +2,10 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { a2uiInteractiveOrderScenario, frontendToolFillFormScenario } from "@agent-ui/mock-agent";
+import { a2uiInteractiveOrderScenario, frontendToolFillFormScenario, showcaseMockScenarios } from "@agent-ui/mock-agent";
 import { inspectMockDemoCompatibility } from "../src/mock/demo-compatibility.js";
 import { MockServicePanel } from "../src/ui/MockServicePanel.js";
+import { publishCreatorRefresh } from "../src/ui/creatorRefresh.js";
 import { CREATOR_MOCK_API_PATH, type CreatorMockState } from "../src/mock/types.js";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -28,6 +29,33 @@ async function click(container: HTMLElement, text: string) {
 }
 
 describe("Creator Mock service panel", () => {
+  it("shows newly read local files after an overall refresh without changing selection", async () => {
+    const current: CreatorMockState = { ...initial, projectId: "project" };
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => json(url.endsWith("/compatibility")
+      ? { projectId: "project", status: "checked", requirements: [] } : current)));
+    const container = await render();
+    expect(container.textContent).toContain("当前项目还没有本地 Mock 文件");
+    await act(async () => publishCreatorRefresh({ projectId: "project", mock: {
+      ...current, recordings: [{ id: "local:new.jsonl", title: "新回放", fileName: "new.jsonl", eventCount: 8, durationMs: 3200, status: "ready" }],
+    } }));
+    expect(container.querySelector('[aria-label="本地 Mock"]')?.textContent).toContain("新回放");
+    expect(container.querySelector<HTMLInputElement>('.creator-mock-scenarios input[type="radio"]')?.checked).toBe(true);
+  });
+  it("places all 31 conversation demos into seven groups without a catch-all", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => json(url.endsWith("/compatibility")
+      ? { projectId: "project", status: "checked", requirements: [] }
+      : { ...initial, scenarios: [...showcaseMockScenarios].reverse() })));
+    const container = await render();
+    expect([...container.querySelectorAll(".creator-mock-group-heading")].map(node => node.textContent)).toEqual([
+      "消息与上下文", "思考与工具", "提问与审批", "状态与执行计划",
+      "结构化结果与交互界面", "子智能体协作", "运行控制与恢复",
+    ]);
+    expect(container.querySelectorAll(".creator-mock-scenarios .creator-mock-scenario")).toHaveLength(31);
+    expect(container.textContent).not.toContain("其他示例");
+    expect(container.textContent).toContain("刷新后恢复执行计划进度");
+    expect(container.textContent).toContain("回答中展示来源引用");
+  });
+
   it("shows local recordings, disables invalid files and sends project-scoped selection", async () => {
     const state: CreatorMockState = { ...initial, projectId: "A", recordings: [
       { id: "local:chat.jsonl", title: "chat", fileName: "chat.jsonl", eventCount: 12, durationMs: 4800, status: "ready" },
@@ -65,12 +93,18 @@ describe("Creator Mock service panel", () => {
       : state)));
     const container = await render();
     expect([...container.querySelectorAll(".creator-mock-group-heading")].map(node => node.textContent)).toEqual([
-      "对话与消息", "状态与计划", "内容组件", "子智能体",
+      "消息与上下文", "状态与执行计划", "结构化结果与交互界面", "子智能体协作",
     ]);
     expect([...container.querySelectorAll(".creator-mock-scenario-choice strong")].map(node => node.textContent)).toEqual([
-      "纯文本流式回复", "通过工具参数展示执行计划", "通过工具参数展示 Agent 状态",
+      "纯文本流式回复", "通过 Activity 事件展示执行计划", "通过工具参数展示 Agent 状态",
       "在消息中展示自定义图表", "子智能体任务卡片", "子智能体运行错误",
     ]);
+    const cards = [...container.querySelectorAll(".creator-mock-scenario")];
+    const tagsFor = (title: string) => [...cards.find(card => card.querySelector("strong")?.textContent === title)!
+      .querySelectorAll('.creator-mock-focus-tags [data-slot="badge"]')].map(tag => tag.textContent);
+    expect(tagsFor("子智能体任务卡片")).toEqual(["SUBAGENT_STARTED", "SUBAGENT_FINISHED"]);
+    expect(tagsFor("子智能体运行错误")).toEqual(["SUBAGENT_STARTED", "SUBAGENT_ERROR"]);
+    expect(tagsFor("通过 Activity 事件展示执行计划")).toEqual(["ACTIVITY_SNAPSHOT", "ACTIVITY_DELTA"]);
   });
 
   it("shows descriptive Chinese Demo titles without exposing scenario IDs in cards", async () => {
@@ -89,6 +123,13 @@ describe("Creator Mock service panel", () => {
       search.dispatchEvent(new Event("input", { bubbles: true }));
     });
     expect(container.querySelectorAll(".creator-mock-scenario")).toHaveLength(1);
+    await act(async () => {
+      const search = container.querySelector<HTMLInputElement>(".creator-mock-search input")!;
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(search, "TEXT_MESSAGE");
+      search.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    expect(container.querySelectorAll(".creator-mock-scenario")).toHaveLength(1);
+    expect(container.querySelector(".creator-mock-scenario strong")?.textContent).toBe("纯文本流式回复");
   });
 
   it("keeps installation errors and retry inside the Demo card without selecting its radio", async () => {

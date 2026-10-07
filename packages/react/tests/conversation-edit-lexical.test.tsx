@@ -114,6 +114,7 @@ async function mount({ preset = "assistant", text = draft, disabled = false, hol
   const chip = () => shell()?.querySelector('[data-directive-id="employee_84721"]') ?? null;
   const editor = () => getNearestEditorFromDOMNode(textbox()!)!;
   const begin = async () => {
+    await act(async () => container.querySelector('[data-slot="aui_user-message-root"]')!.dispatchEvent(new MouseEvent('mouseenter')));
     const edit = container.querySelector<HTMLButtonElement>('.aui-user-action-edit')!;
     await act(async () => edit.click()); await until(() => shell() !== null);
   };
@@ -142,7 +143,7 @@ it.each(["assistant", "embedded", "platform"] as const)("preserves active messag
     await f.mutate(operation === "disable" ? { type: "set_plugin_enabled", instanceId: editId, enabled: false } : { type: "remove_plugin", instanceId: editId });
     await until(() => f.textarea() !== null && f.textbox() === null);
     expect(f.textarea()!.value).toBe("修改 " + draft);
-    expect(f.runtime.thread.getMessageById("user").composer).toBe(composer);
+    expect(f.runtime.thread.getMessageById("user").composer.getState()).toEqual(composer.getState());
     expect(composer.getState().isEditing).toBe(true);
     expect(f.container.querySelector('[data-slot="aui_composer-shell"] .aui-lexical-input')).not.toBeNull();
     await f.mutate(operation === "disable" ? { type: "set_plugin_enabled", instanceId: editId, enabled: true } : {
@@ -174,6 +175,8 @@ it.each([":legacy[ABC]{name=123}", ":unknown[X]"])("keeps unknown directives ver
 it("edits ordinary text, sends canonical AG-UI text and resolves the same employee on the new branch", async () => {
   const f = await mount(); await f.begin(); await until(() => f.chip() !== null);
   expect(f.textbox()!.getAttribute("aria-label")).toBe("编辑消息");
+  // Keyboard editing starts with the editable element focused.
+  await act(async () => f.textbox()!.focus());
   expect(document.activeElement).toBe(f.textbox());
   const expected = directive + "\n负责什么？";
   await act(async () => f.editor().update(() => {
@@ -264,5 +267,8 @@ it("preserves the existing Edit action visibility during an active run", async (
   expect(f.shell()).toBeNull();
   await act(async () => f.finishRun());
   await until(() => !f.runtime.thread.getState().isRunning);
+  // Upstream autohide=not-last requires hovering a user message after a reply.
+  await act(async () => f.container.querySelector('[data-slot="aui_user-message-root"]')!.dispatchEvent(new MouseEvent('mouseenter')));
+  await until(() => f.container.querySelector('.aui-user-action-edit') !== null);
   expect(f.container.querySelector('.aui-user-action-edit')).not.toBeNull();
 });

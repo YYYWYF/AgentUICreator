@@ -52,7 +52,7 @@ it("keeps the pending thread across reload, blocks abandon actions and resumes o
   vi.stubGlobal("fetch", fetch);
   const first = await mount();
   expect((first.container.querySelector("#creator-request") as HTMLTextAreaElement).disabled).toBe(true);
-  const newConversation = first.container.querySelector('[aria-label="清空 Creator 会话"]') as HTMLButtonElement;
+  const newConversation = first.container.querySelector('button[title="请先回答当前问题"]') as HTMLButtonElement;
   expect(newConversation.disabled).toBe(true);
   expect(newConversation.title).toBe("请先回答当前问题");
   expect((first.container.querySelector(".creator-workspace-trigger") as HTMLButtonElement).disabled).toBe(true);
@@ -76,7 +76,7 @@ it("keeps the pending thread across reload, blocks abandon actions and resumes o
   expect(container.querySelectorAll(".creator-question-card input")).toHaveLength(0);
   expect(container.textContent).toContain("Dashboard");
   expect(container.textContent).not.toContain("Sidebar");
-  expect((container.querySelector('[aria-label="清空 Creator 会话"]') as HTMLButtonElement).disabled).toBe(false);
+  expect((container.querySelector('button[title="清空当前对话和草稿，重新开始"]') as HTMLButtonElement).disabled).toBe(false);
 });
 
 it("sends pending-question abandon through the control route and releases the workbench", async () => {
@@ -92,7 +92,7 @@ it("sends pending-question abandon through the control route and releases the wo
   expect(url).toBe("/__creator/control");
   expect(JSON.parse(String(init.body))).toEqual({ action: "abandon", threadId: "thread-1", interruptId: "interrupt-1" });
   expect(container.textContent).toContain("已放弃本次开发任务");
-  expect((container.querySelector('[aria-label="清空 Creator 会话"]') as HTMLButtonElement).disabled).toBe(false);
+  expect((container.querySelector('button[title="清空当前对话和草稿，重新开始"]') as HTMLButtonElement).disabled).toBe(false);
 });
 
 it("lets the IME confirm text before Enter sends a Creator request", async () => {
@@ -125,7 +125,7 @@ it.each(["CREATOR_INTERRUPT_NOT_FOUND", "CREATOR_INTERRUPT_CONTEXT_INVALID"])("m
   await act(async () => { (container.querySelector('.creator-question-card button') as HTMLButtonElement).click(); });
   expect(container.textContent).toContain("执行状态已经失效");
   expect(container.querySelectorAll(".creator-question-card input")).toHaveLength(0);
-  const newConversation = container.querySelector('[aria-label="清空 Creator 会话"]') as HTMLButtonElement;
+  const newConversation = container.querySelector('button[title="清空当前对话和草稿，重新开始"]') as HTMLButtonElement;
   expect(newConversation.disabled).toBe(false);
   await act(async () => newConversation.click());
   expect(container.textContent).not.toContain("Layout?");
@@ -231,4 +231,36 @@ it("groups consecutive tools while keeping every round of prose and questions vi
   expect(container.querySelector(".creator-question-card")?.closest(".creator-tool-group")).toBeNull();
   await act(async () => { groups[0]!.open = true; });
   expect(groups[0]!.querySelectorAll(".creator-tool-activity")).toHaveLength(2);
+});
+
+it("refreshes project data once without clearing the conversation or draft", async () => {
+  sessionStorage.clear();
+  const calls: string[] = [];
+  const fetcher = vi.fn(async (url: string) => {
+    calls.push(url);
+    const value = url.endsWith('/workspace/refresh')
+      ? { status: 'ready', workspace: { id: 'workspace-1', name: 'Project', displayPath: '/project' }, project: { mode: 'platform', sourceRoot: 'agent-ui' }, runtime: { status: 'ready' } }
+      : url.endsWith('/connection') ? { activeSource: 'mock', configured: true, running: false }
+      : url.endsWith('/compatibility') ? { projectId: 'workspace-1', status: 'checked', requirements: [] }
+      : url.endsWith('/updates/check') ? { plugins: [], fingerprint: 'refreshed' }
+      : { projectId: 'workspace-1', recordings: [{ id: 'local:new.jsonl' }], scenarios: [] };
+    return new Response(JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } });
+  });
+  vi.stubGlobal('fetch', fetcher);
+  const { container } = await mount();
+  const original = sessionStorage.getItem('agent-ui-creator-conversation:workspace-1');
+  const draft = container.querySelector<HTMLTextAreaElement>('#creator-request')!;
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!.call(draft, '保留这个草稿');
+    draft.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  const refresh = container.querySelector<HTMLButtonElement>('button[aria-label="刷新"]')!;
+  await act(async () => { refresh.click(); refresh.click(); });
+  expect(calls).toEqual([
+    '/__agent-ui/creator/workspace/refresh', '/__agent-ui/creator/connection',
+    '/__agent-ui/creator/mock', '/__agent-ui/creator/mock/compatibility', '/__creator/updates/check',
+  ]);
+  expect(draft.value).toBe('保留这个草稿');
+  expect(sessionStorage.getItem('agent-ui-creator-conversation:workspace-1')).toBe(original);
+  expect(container.querySelector('.creator-refresh-status')?.textContent).toContain('已刷新项目状态');
 });

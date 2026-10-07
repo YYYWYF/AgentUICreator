@@ -9,7 +9,7 @@ export function applyProductLocalization(source, localPath) {
   if (!recipe) return source;
   for (const { before, after, expectedCount } of recipe.replacements) {
     if (source.split(before).length - 1 !== expectedCount) throw new Error(`Product localization anchor changed: ${localPath}. Check new upstream user-facing copy; update the composition seam or record a gap, never patch vendor.`);
-    source = source.replace(before, after);
+    source = source.split(before).join(after);
   }
   return source.startsWith('"use client";')
     ? source.replace('"use client";', '"use client";\n\n' + recipe.importText.trimEnd())
@@ -125,7 +125,7 @@ const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const defaultVendorRoot = path.join(packageRoot, "src/internal/vendor/assistant-ui");
 const adapterRoot = path.join(packageRoot, "src/internal/adapters/assistant-ui");
 const hash = value => createHash("sha256").update(value).digest("hex");
-const seeded = new Set([...PORTAL_BRIDGE_FILES, ...SEARCH_LABELS_SEAM_FILES,
+const seeded = new Set([...PORTAL_BRIDGE_FILES, ...SEARCH_LABELS_SEAM_FILES, ...Object.keys(localizationRecipes),
   "components/assistant-ui/elements/quote.aui.tsx", "components/assistant-ui/elements/composer-trigger-popover.aui.tsx"]);
 function dependency(importPath, filename, files) {
   if (!importPath.startsWith(".")) return undefined;

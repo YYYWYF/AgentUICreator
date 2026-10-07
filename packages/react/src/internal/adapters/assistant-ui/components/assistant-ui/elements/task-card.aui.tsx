@@ -1,6 +1,6 @@
 "use client";
 
-import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../../../../../../locale.js";
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage } from "../../../../../../locale.js";
 
 import {
   MessagePrimitive,
@@ -22,10 +22,10 @@ import {
   ToolFallback,
   ToolFallbackApproval,
   ToolFallbackError,
-} from "../../../../../vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
+} from "./tool-fallback.aui";
 import { cn } from "../../../../../vendor/assistant-ui/lib/utils.js";
 import { mono } from "../../../../../vendor/assistant-ui/components/assistant-ui/elements/surfaces.js";
-import { TaskCard as TaskCardBase } from "../../../../../vendor/assistant-ui/components/assistant-ui/elements/task-card.js";
+import { TaskCard as TaskCardBase } from "./task-card";
 import {
   formatElapsed,
   TASK_PAGE_SIZE,
@@ -35,7 +35,7 @@ import {
   useTaskElapsed,
 } from "../../../../../vendor/assistant-ui/components/assistant-ui/utils/task.js";
 
-export type { TaskCardState } from "../../../../../vendor/assistant-ui/components/assistant-ui/elements/task-card.js";
+export type { TaskCardState } from "./task-card";
 export { TASK_PAGE_SIZE } from "../../../../../vendor/assistant-ui/components/assistant-ui/utils/task.js";
 
 export type TaskPart = ToolCallMessagePart & {
@@ -202,10 +202,10 @@ export const TaskGroup: FC<{
   const shown = indices.slice(0, visible);
   const hidden = indices.length - shown.length;
   const summary = [
-    `${indices.length} tasks`,
-    counts.running > 0 && `${counts.running} running`,
-    counts.requiresAction > 0 && `${counts.requiresAction} waiting`,
-    failed > 0 && `${failed} failed`,
+    formatPresentationMessage(localeMessages.tasks.groupCount, { count: indices.length }),
+    counts.running > 0 && formatPresentationMessage(localeMessages.tasks.groupRunning, { count: counts.running }),
+    counts.requiresAction > 0 && formatPresentationMessage(localeMessages.tasks.groupWaiting, { count: counts.requiresAction }),
+    failed > 0 && formatPresentationMessage(localeMessages.tasks.groupFailed, { count: failed }),
   ].filter((entry): entry is string => typeof entry === "string");
 
   return (

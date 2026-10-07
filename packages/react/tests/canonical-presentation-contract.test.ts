@@ -38,9 +38,9 @@ describe("assistant-ui canonical presentation contract", () => {
       "export function ConversationComposerDictate",
       "export interface ConversationComposerStopDictationProps",
     );
-    expect(dictateFacade).toContain('tooltip={tooltip ?? label ?? "Voice input"}');
+    expect(dictateFacade).toContain('tooltip={tooltip ?? label ?? localeMessages.composer.voiceInput}');
     expect(dictateFacade).toContain(
-      'ariaLabel={ariaLabel ?? label ?? "Start voice input"}',
+      'ariaLabel={ariaLabel ?? label ?? localeMessages.composer.startVoice}',
     );
 
     const stopFacade = section(
@@ -48,9 +48,9 @@ describe("assistant-ui canonical presentation contract", () => {
       "export function ConversationComposerStopDictation",
       "export function ConversationComposerSend",
     );
-    expect(stopFacade).toContain('tooltip={tooltip ?? label ?? "Stop dictation"}');
+    expect(stopFacade).toContain('tooltip={tooltip ?? label ?? localeMessages.composer.stopDictation}');
     expect(stopFacade).toContain(
-      'ariaLabel={ariaLabel ?? label ?? "Stop voice input"}',
+      'ariaLabel={ariaLabel ?? label ?? localeMessages.composer.stopVoice}',
     );
 
     const dictateAction = section(
@@ -87,12 +87,12 @@ describe("assistant-ui canonical presentation contract", () => {
       readFile(upstreamAttachmentPath, "utf8"),
     ]);
 
-    expect(facade).toContain('placeholder = "Send a message..."');
-    expect(facade).toContain('inputAriaLabel = "Message input"');
-    expect(facade).toContain('label = "Send message"');
-    expect(facade).toContain('label = "Stop generating"');
-    expect(facade).toContain('nextLabel = "Next"');
-    expect(facade).toContain('previousLabel = "Previous"');
+    expect(facade).toContain('placeholder ??= localeMessages.composer.placeholder');
+    expect(facade).toContain('inputAriaLabel ??= localeMessages.composer.input');
+    expect(facade).toContain('label ??= localeMessages.composer.send');
+    expect(facade).toContain('label ??= localeMessages.composer.stop');
+    expect(facade).toContain('nextLabel ??= localeMessages.common.next');
+    expect(facade).toContain('previousLabel ??= localeMessages.common.previous');
 
     const cancelAction = section(
       composable,
@@ -115,7 +115,7 @@ describe("assistant-ui canonical presentation contract", () => {
       "export function ConversationCanonicalReloadAction",
       "export function ConversationCanonicalExportMarkdownAction",
     );
-    expect(reloadAction).toContain('tooltip="Refresh"');
+    expect(reloadAction).toContain('tooltip={localeMessages.common.refresh}');
     expect(reloadAction).not.toContain('type="button"');
 
     expect(composable).toContain(

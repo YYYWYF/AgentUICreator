@@ -17,6 +17,7 @@ import { inspectAgentUIPackages } from "./source-registry/inspector";
 import { installAgentUISourceItems, resolveAgentUISourceItems } from "./source-registry/installer";
 import { recoverPendingAgentUISourceTransaction } from "./source-registry/transaction";
 import { assertNoSymbolicLinkTraversal, resolveAgentUISourceRoots } from "./source-registry/path-policy";
+import { DEVELOPMENT_ENV_PATH, installDevelopmentDefaults } from "./development-defaults";
 
 async function exists(filePath: string): Promise<boolean> {
   try { await lstat(filePath); return true; }
@@ -36,6 +37,7 @@ export function createAgentUIInitializationHost() {
   return {
     inspectProject: inspectCreatorProject,
     installControlPlane: installManagedProjectControl,
+    installDevelopmentDefaults,
     parseAppUIModel,
     async preflightSources(projectRoot, itemIds, projectConfig) {
       const { paths, config } = context(projectRoot, projectConfig);
@@ -56,6 +58,7 @@ export function createAgentUIInitializationHost() {
       return {
         plannedPaths: [
           MANAGED_CONTROL_ENTRY,
+          DEVELOPMENT_ENV_PATH,
           ...items.flatMap((item) => item.loadedFiles.map((file) =>
             projectRelativePath(projectRoot, path.join(paths.sourceRoot, file.target)))),
           projectRelativePath(projectRoot, paths.sourceLockPath),

@@ -1,0 +1,480 @@
+{
+  "config": {
+    "argv": [
+      "/Users/yifei/.nvm/versions/node/v24.20.0/bin/node",
+      "/Users/yifei/Coding/AgentUICreator/node_modules/.pnpm/@playwright+test@1.63.0/node_modules/@playwright/test/cli.js",
+      "test",
+      "-c",
+      "playwright.i18n-plugin.config.ts",
+      "--grep",
+      "quote selection"
+    ],
+    "configFile": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/playwright.i18n-plugin.config.ts",
+    "rootDir": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "zh-CN-desktop",
+        "name": "zh-CN-desktop",
+        "testDir": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "i18n-plugin-visual.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "zh-CN-narrow",
+        "name": "zh-CN-narrow",
+        "testDir": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "i18n-plugin-visual.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "en-US-desktop",
+        "name": "en-US-desktop",
+        "testDir": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "i18n-plugin-visual.spec.ts"
+        ],
+        "timeout": 60000
+      },
+      {
+        "outputDir": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "en-US-narrow",
+        "name": "en-US-narrow",
+        "testDir": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "i18n-plugin-visual.spec.ts"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/i18n-plugin-visual/results.json"
+        }
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report/i18n-plugin-visual",
+          "open": "never"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "i18n-plugin-visual.spec.ts",
+      "file": "i18n-plugin-visual.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "quote selection and preview",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "zh-CN-desktop",
+              "projectName": "zh-CN-desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6640,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-slot=\"selection-toolbar-quote\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('[data-slot=\"selection-toolbar-quote\"]') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-slot=\"selection-toolbar-quote\"]')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-slot=\"selection-toolbar-quote\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('[data-slot=\"selection-toolbar-quote\"]') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-slot=\"selection-toolbar-quote\"]')\u001b[22m\n\n    at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92",
+                    "location": {
+                      "file": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts",
+                      "column": 92,
+                      "line": 182
+                    },
+                    "snippet": "  180 |   await content.locator('p').first().dblclick({position:{x:12,y:8}});\n  181 |   await info.attach(\"quote-selection\", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot=\"selection-toolbar-quote\"]').length }; }), null, 2), contentType: \"application/json\" });\n> 182 |   const quote = page.locator('[data-slot=\"selection-toolbar-quote\"]'); await expect(quote).toBeVisible(); await quote.click();\n      |                                                                                            ^\n  183 |   await expect(page.locator('[data-slot=\"composer-quote\"]')).toBeVisible();\n  184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:\"disabled\"});\n  185 | });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts",
+                        "column": 92,
+                        "line": 182
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-slot=\"selection-toolbar-quote\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('[data-slot=\"selection-toolbar-quote\"]') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-slot=\"selection-toolbar-quote\"]')\u001b[22m\n\n\n  180 |   await content.locator('p').first().dblclick({position:{x:12,y:8}});\n  181 |   await info.attach(\"quote-selection\", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot=\"selection-toolbar-quote\"]').length }; }), null, 2), contentType: \"application/json\" });\n> 182 |   const quote = page.locator('[data-slot=\"selection-toolbar-quote\"]'); await expect(quote).toBeVisible(); await quote.click();\n      |                                                                                            ^\n  183 |   await expect(page.locator('[data-slot=\"composer-quote\"]')).toBeVisible();\n  184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:\"disabled\"});\n  185 | });\n    at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T05:07:40.624Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "quote-selection",
+                      "contentType": "application/json",
+                      "body": "ewogICJ0ZXh0IjogIuS9oOWlvSIsCiAgIm1lc3NhZ2VJZCI6ICJQQWF0c2ZTOmFzc2lzdGFudC1tZXNzYWdlOjEiLAogICJzZWxlY3RhYmxlIjogInRydWUiLAogICJ0b29sYmFyQ291bnQiOiAwCn0="
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/error-context.md"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts",
+                    "column": 92,
+                    "line": 182
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "1fbf76452223da7a9375-f8af07702d477d685cd6",
+          "file": "i18n-plugin-visual.spec.ts",
+          "line": 173,
+          "column": 1
+        },
+        {
+          "title": "quote selection and preview",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "zh-CN-narrow",
+              "projectName": "zh-CN-narrow",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6345,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-slot=\"selection-toolbar-quote\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('[data-slot=\"selection-toolbar-quote\"]') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-slot=\"selection-toolbar-quote\"]')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-slot=\"selection-toolbar-quote\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('[data-slot=\"selection-toolbar-quote\"]') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-slot=\"selection-toolbar-quote\"]')\u001b[22m\n\n    at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92",
+                    "location": {
+                      "file": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts",
+                      "column": 92,
+                      "line": 182
+                    },
+                    "snippet": "  180 |   await content.locator('p').first().dblclick({position:{x:12,y:8}});\n  181 |   await info.attach(\"quote-selection\", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot=\"selection-toolbar-quote\"]').length }; }), null, 2), contentType: \"application/json\" });\n> 182 |   const quote = page.locator('[data-slot=\"selection-toolbar-quote\"]'); await expect(quote).toBeVisible(); await quote.click();\n      |                                                                                            ^\n  183 |   await expect(page.locator('[data-slot=\"composer-quote\"]')).toBeVisible();\n  184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:\"disabled\"});\n  185 | });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts",
+                        "column": 92,
+                        "line": 182
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-slot=\"selection-toolbar-quote\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('[data-slot=\"selection-toolbar-quote\"]') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-slot=\"selection-toolbar-quote\"]')\u001b[22m\n\n\n  180 |   await content.locator('p').first().dblclick({position:{x:12,y:8}});\n  181 |   await info.attach(\"quote-selection\", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot=\"selection-toolbar-quote\"]').length }; }), null, 2), contentType: \"application/json\" });\n> 182 |   const quote = page.locator('[data-slot=\"selection-toolbar-quote\"]'); await expect(quote).toBeVisible(); await quote.click();\n      |                                                                                            ^\n  183 |   await expect(page.locator('[data-slot=\"composer-quote\"]')).toBeVisible();\n  184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:\"disabled\"});\n  185 | });\n    at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T05:07:48.777Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "quote-selection",
+                      "contentType": "application/json",
+                      "body": "ewogICJ0ZXh0IjogIuS9oOWlvSIsCiAgIm1lc3NhZ2VJZCI6ICIwMWU0VzZTOmFzc2lzdGFudC1tZXNzYWdlOjEiLAogICJzZWxlY3RhYmxlIjogInRydWUiLAogICJ0b29sYmFyQ291bnQiOiAwCn0="
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/error-context.md"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts",
+                    "column": 92,
+                    "line": 182
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "1fbf76452223da7a9375-c865923e28c2eb55b31d",
+          "file": "i18n-plugin-visual.spec.ts",
+          "line": 173,
+          "column": 1
+        },
+        {
+          "title": "quote selection and preview",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "en-US-desktop",
+              "projectName": "en-US-desktop",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6400,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-slot=\"selection-toolbar-quote\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('[data-slot=\"selection-toolbar-quote\"]') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-slot=\"selection-toolbar-quote\"]')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-slot=\"selection-toolbar-quote\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('[data-slot=\"selection-toolbar-quote\"]') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-slot=\"selection-toolbar-quote\"]')\u001b[22m\n\n    at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92",
+                    "location": {
+                      "file": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts",
+                      "column": 92,
+                      "line": 182
+                    },
+                    "snippet": "  180 |   await content.locator('p').first().dblclick({position:{x:12,y:8}});\n  181 |   await info.attach(\"quote-selection\", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot=\"selection-toolbar-quote\"]').length }; }), null, 2), contentType: \"application/json\" });\n> 182 |   const quote = page.locator('[data-slot=\"selection-toolbar-quote\"]'); await expect(quote).toBeVisible(); await quote.click();\n      |                                                                                            ^\n  183 |   await expect(page.locator('[data-slot=\"composer-quote\"]')).toBeVisible();\n  184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:\"disabled\"});\n  185 | });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts",
+                        "column": 92,
+                        "line": 182
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-slot=\"selection-toolbar-quote\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('[data-slot=\"selection-toolbar-quote\"]') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-slot=\"selection-toolbar-quote\"]')\u001b[22m\n\n\n  180 |   await content.locator('p').first().dblclick({position:{x:12,y:8}});\n  181 |   await info.attach(\"quote-selection\", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot=\"selection-toolbar-quote\"]').length }; }), null, 2), contentType: \"application/json\" });\n> 182 |   const quote = page.locator('[data-slot=\"selection-toolbar-quote\"]'); await expect(quote).toBeVisible(); await quote.click();\n      |                                                                                            ^\n  183 |   await expect(page.locator('[data-slot=\"composer-quote\"]')).toBeVisible();\n  184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:\"disabled\"});\n  185 | });\n    at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T05:07:56.570Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "quote-selection",
+                      "contentType": "application/json",
+                      "body": "ewogICJ0ZXh0IjogIuS9oOWlvSIsCiAgIm1lc3NhZ2VJZCI6ICJ3S3JmNjgxOmFzc2lzdGFudC1tZXNzYWdlOjEiLAogICJzZWxlY3RhYmxlIjogInRydWUiLAogICJ0b29sYmFyQ291bnQiOiAwCn0="
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/error-context.md"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts",
+                    "column": 92,
+                    "line": 182
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "1fbf76452223da7a9375-7c87215d19661b6609c8",
+          "file": "i18n-plugin-visual.spec.ts",
+          "line": 173,
+          "column": 1
+        },
+        {
+          "title": "quote selection and preview",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "en-US-narrow",
+              "projectName": "en-US-narrow",
+              "results": [
+                {
+                  "workerIndex": 3,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6443,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-slot=\"selection-toolbar-quote\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('[data-slot=\"selection-toolbar-quote\"]') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-slot=\"selection-toolbar-quote\"]')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-slot=\"selection-toolbar-quote\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('[data-slot=\"selection-toolbar-quote\"]') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-slot=\"selection-toolbar-quote\"]')\u001b[22m\n\n    at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92",
+                    "location": {
+                      "file": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts",
+                      "column": 92,
+                      "line": 182
+                    },
+                    "snippet": "  180 |   await content.locator('p').first().dblclick({position:{x:12,y:8}});\n  181 |   await info.attach(\"quote-selection\", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot=\"selection-toolbar-quote\"]').length }; }), null, 2), contentType: \"application/json\" });\n> 182 |   const quote = page.locator('[data-slot=\"selection-toolbar-quote\"]'); await expect(quote).toBeVisible(); await quote.click();\n      |                                                                                            ^\n  183 |   await expect(page.locator('[data-slot=\"composer-quote\"]')).toBeVisible();\n  184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:\"disabled\"});\n  185 | });"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts",
+                        "column": 92,
+                        "line": 182
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-slot=\"selection-toolbar-quote\"]')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('[data-slot=\"selection-toolbar-quote\"]') with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-slot=\"selection-toolbar-quote\"]')\u001b[22m\n\n\n  180 |   await content.locator('p').first().dblclick({position:{x:12,y:8}});\n  181 |   await info.attach(\"quote-selection\", { body: JSON.stringify(await page.evaluate(() => { const selection = window.getSelection(); const anchor = selection?.anchorNode; const element = anchor instanceof Element ? anchor : anchor?.parentElement; return { text: selection?.toString(), messageId: element?.closest('[data-message-id]')?.getAttribute('data-message-id'), selectable: element?.closest('[data-aui-quote-selectable]')?.getAttribute('data-aui-quote-selectable'), toolbarCount: document.querySelectorAll('[data-slot=\"selection-toolbar-quote\"]').length }; }), null, 2), contentType: \"application/json\" });\n> 182 |   const quote = page.locator('[data-slot=\"selection-toolbar-quote\"]'); await expect(quote).toBeVisible(); await quote.click();\n      |                                                                                            ^\n  183 |   await expect(page.locator('[data-slot=\"composer-quote\"]')).toBeVisible();\n  184 |   await page.screenshot({path:info.outputPath('quote-preview.png'),fullPage:true,animations:\"disabled\"});\n  185 | });\n    at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:182:92"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-07T05:08:04.372Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "quote-selection",
+                      "contentType": "application/json",
+                      "body": "ewogICJ0ZXh0IjogIuS9oOWlvSIsCiAgIm1lc3NhZ2VJZCI6ICJ5TlZrQXhROmFzc2lzdGFudC1tZXNzYWdlOjEiLAogICJzZWxlY3RhYmxlIjogInRydWUiLAogICJ0b29sYmFyQ291bnQiOiAwCn0="
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/error-context.md"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts",
+                    "column": 92,
+                    "line": 182
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "1fbf76452223da7a9375-c1e192d5e8a4cfb1d93a",
+          "file": "i18n-plugin-visual.spec.ts",
+          "line": 173,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-07T05:07:40.239Z",
+    "duration": 31717.034,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 4,
+    "flaky": 0
+  }
+}

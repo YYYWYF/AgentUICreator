@@ -5,13 +5,14 @@ import vm from "node:vm";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const scopes = ["packages/creator/src/ui", "packages/react/src", "packages/runtime-react/src", "packages/runtime-conversation/src", "packages/source-registry/registry/items", "examples", "apps/creator-workbench/src"];
+const agentUIOnly = process.argv.includes("--agent-ui-only");
+const scopes = agentUIOnly ? ["packages/react/src", "packages/runtime-react/src", "packages/runtime-conversation/src", "packages/source-registry/registry/items", ...["creator-host-sandbox", "creator-assistant-host", "creator-embedded-host"].map(name => `examples/${name}/src/agent-ui`)] : ["packages/creator/src/ui", "packages/react/src", "packages/runtime-react/src", "packages/runtime-conversation/src", "packages/source-registry/registry/items", "examples", "apps/creator-workbench/src"];
 const excluded = /\/(?:vendor|vendors|fixtures|node_modules|dist|dev)\/|(?:\.test|\.spec)\.[cm]?[jt]sx?$|\.generated\./;
 async function collect(directory) {
   const results = [];
   for (const entry of await readdir(path.join(root, directory), { withFileTypes: true })) {
     const file = `${directory}/${entry.name}`;
-    if (excluded.test(file) || /^examples\/[^/]+\/src\/agent-ui(?:\/|$)/.test(file)) continue;
+    if (excluded.test(file) || (!agentUIOnly && /^examples\/[^/]+\/src\/agent-ui(?:\/|$)/.test(file))) continue;
     if (entry.isDirectory()) results.push(...await collect(file));
     else if (/\.[jt]sx?$/.test(file)) results.push(file);
   }
@@ -47,6 +48,7 @@ const files = (await Promise.all(scopes.map(collect))).flat().sort();
 const sources = new Map(await Promise.all(files.map(async file => [file, await readFile(path.join(root, file), "utf8")])));
 const presentationSources = [...sources.entries()].filter(([file]) => !/\/i18n\/|\/locales\/|\.locale\./.test(file));
 for (const [owner, directory] of dictionaries) {
+  if (agentUIOnly && owner === "creator") continue;
   const [english, chinese] = await Promise.all(["en-US", "zh-CN"].map(async locale => flatten(await dictionary(`${directory}/${locale}.ts`))));
   const keys = new Set([...Object.keys(english), ...Object.keys(chinese)]);
   for (const key of keys) {

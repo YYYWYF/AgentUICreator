@@ -11,16 +11,32 @@ import path from "node:path";
 
 const services: CreatorMockService[] = [];
 const controlServers: Server[] = [];
-function service() { const value = new CreatorMockService(); services.push(value); return value; }
+const temporaryRoots: string[] = [];
+function service() { const value = new CreatorMockService({ port: 0 }); services.push(value); return value; }
 afterEach(async () => {
   await Promise.all(services.splice(0).map((value) => value.dispose()));
   await Promise.all(controlServers.splice(0).map((server) => new Promise<void>((resolve) => {
     server.close(() => resolve()); server.closeAllConnections();
   })));
+  await Promise.all(temporaryRoots.splice(0).map(root => rm(root, { recursive: true, force: true })));
 });
 const input = { threadId: "mock-thread", runId: "mock-run", state: {}, messages: [], tools: [], context: [], forwardedProps: {} };
 
 describe("Creator independent local Mock service", () => {
+  it("keeps the default port across restarts and instances without falling back when occupied", async () => {
+    const mock = new CreatorMockService();
+    const next = new CreatorMockService();
+    services.push(mock, next);
+    const started = await mock.start();
+    expect(started.endpoint).toBe("http://127.0.0.1:47831/agent");
+    await expect(next.start()).rejects.toMatchObject({ code: "EADDRINUSE" });
+    expect(next.getState()).toMatchObject({ status: "stopped", endpoint: null });
+    await mock.stop();
+    expect((await mock.start()).endpoint).toBe(started.endpoint);
+    await mock.dispose();
+    expect((await next.start()).endpoint).toBe(started.endpoint);
+  });
+
   it("installs only an allowed plugin in the currently selected project and verifies support", async () => {
     const projectRoot = await mkdtemp(path.join(os.tmpdir(), "mock-install-api-"));
     try {
@@ -39,7 +55,7 @@ describe("Creator independent local Mock service", () => {
             pluginSources: installed.map(pluginId => ({ pluginId, status: "available" as const, dataMessageUINames: ["chart"] })),
             pluginInstances: installed.map(pluginId => ({ id: "demo", pluginId, enabled: true, effectiveEnabled: true, target: { type: "application" } })),
           },
-          sources: { items: [] },
+          sources: { items: [{ id: "plugin/chart-message", status: installed.length ? "managed" : "not-installed", owned: installed.length > 0, resolvedRequirements: [] }] },
         })); });
       controlServers.push(server);
       await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -118,7 +134,9 @@ describe("Creator independent local Mock service", () => {
   it("stops the service when the owning Creator development server closes", async () => {
     const callbacks: Array<() => void> = [];
     let middleware: ((request: IncomingMessage, response: ServerResponse) => void) | undefined;
-    const plugin = createCreatorDevServerPlugin({ projectRoot: "/tmp/mock-owner", python: { environment: {}, log: () => undefined } });
+    const projectRoot = await mkdtemp(path.join(os.tmpdir(), "mock-owner-"));
+    temporaryRoots.push(projectRoot);
+    const plugin = createCreatorDevServerPlugin({ projectRoot, python: { environment: {}, log: () => undefined } });
     const configure = plugin.configureServer as (server: unknown) => void;
     configure({
       httpServer: { once: (_event: string, listener: () => void) => callbacks.push(listener) },
