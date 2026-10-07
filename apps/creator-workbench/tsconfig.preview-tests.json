@@ -8,6 +8,7 @@
     "tests/support/i18n-plugin-visual-host.ts",
     "playwright.i18n-plugin-visual.config.ts",
     "tests/creator-theme-host.spec.ts",
+    "tests/creator-install-sync-host.spec.ts",
     "playwright.theme-commands.config.ts"
   ]
 }

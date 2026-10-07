@@ -2257,13 +2257,13 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
             </div>
             {workspaceState?.status === "ready" ? <form className="creator-panel-composer" style={updatePageOpen ? { display: "none" } : undefined} onSubmit={submit}>
               <label htmlFor="creator-request">{localeMessages.creatorWorkbench.tellCreator}</label>
-              {commandState.open && !commandBusy && !isRunning && !questionPending ? <CreatorCommandMenu items={commandState.items} active={commandState.active} title={commandState.title} notice={commandState.notice} onPick={pickCommand} onSelect={commandState.select} /> : null}
+              {commandState.open && !commandBusy && !isRunning && !questionPending ? <CreatorCommandMenu key={commandState.menuKey} optionDomId={commandState.optionDomId} items={commandState.items} active={commandState.active} title={commandState.title} notice={commandState.notice} onPick={pickCommand} onSelect={commandState.select} /> : null}
               <Textarea
                 role="combobox"
                 aria-expanded={commandState.open}
                 aria-autocomplete="list"
                 aria-controls={commandState.open ? "creator-command-menu" : undefined}
-                aria-activedescendant={commandState.open && commandState.items.length ? `creator-command-option-${commandState.active}` : undefined}
+                aria-activedescendant={commandState.open && commandState.items.length ? commandState.optionDomId(commandState.active) : undefined}
                 disabled={isRunning || commandBusy || questionPending}
 
                 id="creator-request"

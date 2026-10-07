@@ -34,6 +34,8 @@ export function useCreatorCommandState(input: string, workspaceId: string | unde
   }, [slash, workspaceId]);
   useEffect(() => { setSelected(0); setNavigated(false); setDismissed(undefined); }, [input, workspaceId]);
   const command = slash ? catalog.commands.find(command => command.id === parsed.id) : undefined;
+  const menuKey = command?.kind === "choice" ? `choice:${command.id}` : "root";
+  const optionDomId = (index: number) => `creator-command-${menuKey.replace(":", "-")}-option-${index}`;
   const copy = messages as Record<string, string>;
   const optionLabel = (commandId: string, id: string, fallback?: string) => commandId === "theme" ? themeLabel(id) : copy[`resource_${id}`] ?? fallback ?? id;
   const query = parsed.kind === "command" ? parsed.args.join(" ").toLowerCase() : "";
@@ -71,5 +73,5 @@ export function useCreatorCommandState(input: string, workspaceId: string | unde
     }
   };
   const notice = error ?? (loading ? messages.loading : command?.kind === "choice" && !filteredOptions.length ? command.id === "theme" ? formatLocaleMessage(messages.unknownTheme, query) : messages.noMatches : !items.length ? (parsed.kind === "command" && parsed.id ? formatLocaleMessage(messages.unknownCommand, parsed.id) : messages.unavailable) : undefined);
-  return { parsed, catalog, open, items, active, select: setSelected, keyDown, pick, themeLabel, refresh: load, show: () => setDismissed(undefined), notice, optionLabel, title: command ? copy[command.id] ?? command.id : messages.title };
+  return { parsed, catalog, open, items, active, menuKey, optionDomId, select: setSelected, keyDown, pick, themeLabel, refresh: load, show: () => setDismissed(undefined), notice, optionLabel, title: command ? copy[command.id] ?? command.id : messages.title };
 }

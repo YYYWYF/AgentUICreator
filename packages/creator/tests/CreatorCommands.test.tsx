@@ -13,6 +13,7 @@ vi.mock("../src/ui/MockServicePanel.js", () => ({ MockServicePanel: () => null }
 vi.mock("../src/ui/AgentConnectionPanel.js", () => ({ AgentConnectionPanel: () => null, readAgentConnection: vi.fn(), CONNECTION_CHANGED: "connection" }));
 import { CreatorWorkbench } from "../src/ui/CreatorWorkbench.js";
 import { executeCreatorCommand } from "../src/ui/workspaceClient.js";
+import { CreatorCommandMenu } from "../src/ui/commands/CreatorCommandMenu.js";
 import { useCreatorCommandState } from "../src/ui/commands/useCreatorCommandState.js";
 const state = { status: "ready", workspace: { id: "workspace-1", name: "Project", displayPath: "/project" }, project: { mode: "platform", sourceRoot: "src" }, runtime: { status: "ready" } };
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -85,7 +86,7 @@ it("replaces the draft when clicking Install and preserves it across rerender an
   expect(input.value).toBe("/install ");
   await act(async () => root.render(<CreatorWorkbench locale="en-US" previewWorkspaceId="workspace-1">Updated preview</CreatorWorkbench>));
   const resource = container.querySelector<HTMLButtonElement>('[role="option"]')!;
-  await act(async () => resource.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
+  await act(async () => resource.dispatchEvent(new MouseEvent("pointerover", { bubbles: true })));
   expect(input.value).toBe("/install ");
   expect(input.value).not.toContain("/install /install");
   await act(async () => resource.click());
@@ -108,4 +109,52 @@ it("refreshes choice catalogs without interpreting stale command ids as resource
   expect(commandState.pick("install")).toEqual({ handled: true });
   expect(commandState.pick("/install")).toEqual({ handled: true });
   expect(commandState.pick("reasoning")).toEqual({ execute: "/install reasoning" });
+});
+
+// Separate act calls flush the menu transition between down and up, as in a browser.
+async function pointerEvent(target: Element, type: string, button = 0) {
+  const EventType = type === "click" ? MouseEvent : PointerEvent;
+  await act(async () => target.dispatchEvent(new EventType(type, { bubbles: true, cancelable: true, button, detail: 1 })));
+}
+it("isolates root and choice menus across a physical pointer gesture", async () => {
+  const input = await type("/");
+  const rootMenu = container.querySelector('[role="listbox"]')!;
+  const install = container.querySelector('#creator-command-root-option-1')!;
+  expect(input.getAttribute("aria-activedescendant")).toBe("creator-command-root-option-0");
+  input.focus();
+  await pointerEvent(install, "pointerdown");
+  expect(input.value).toBe("/install ");
+  const choiceMenu = container.querySelector('[role="listbox"]')!;
+  const resource = container.querySelector('#creator-command-choice-install-option-0')!;
+  expect(choiceMenu).not.toBe(rootMenu);
+  expect(rootMenu.isConnected).toBe(false);
+  expect(input.getAttribute("aria-activedescendant")).toBe(resource.id);
+  // A release/click arriving at the newly mounted option must not select it.
+  await pointerEvent(resource, "pointerup");
+  await pointerEvent(resource, "click");
+  await act(async () => { await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))); });
+  expect(input.value).toBe("/install ");
+  expect(document.activeElement).toBe(input);
+  expect(executeCreatorCommand).not.toHaveBeenCalled();
+  await pointerEvent(resource, "pointerdown");
+  await pointerEvent(resource, "pointerup");
+  await pointerEvent(resource, "click");
+  expect(executeCreatorCommand).toHaveBeenCalledTimes(1);
+  expect(executeCreatorCommand).toHaveBeenCalledWith("workspace-1", { id: "install", args: { resourceId: "reasoning" } }, expect.anything());
+});
+it("picks exactly once for pointer activation and retains keyboard/AT click activation", async () => {
+  const onPick = vi.fn();
+  const onSelect = vi.fn();
+  await act(async () => root.render(<CreatorCommandMenu items={[{ id: "install", label: "Install" }]} active={0} title="Commands" optionDomId={index => `option-${index}`} onPick={onPick} onSelect={onSelect} />));
+  const option = container.querySelector('[role="option"]')!;
+  await pointerEvent(option, "pointerdown", 2);
+  expect(onPick).not.toHaveBeenCalled();
+  await pointerEvent(option, "pointerdown");
+  await pointerEvent(option, "pointerup");
+  await pointerEvent(option, "click");
+  expect(onPick).toHaveBeenCalledExactlyOnceWith("install");
+  await act(async () => option.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 0 })));
+  expect(onPick).toHaveBeenCalledTimes(2);
+  await pointerEvent(option, "pointerover");
+  expect(onSelect).toHaveBeenCalledWith(0);
 });
