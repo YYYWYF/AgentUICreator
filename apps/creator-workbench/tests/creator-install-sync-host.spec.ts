@@ -11,6 +11,7 @@ const test = base.extend<{ preview: Awaited<ReturnType<typeof createConnectionHo
 async function expectOptionHitTarget(option: Locator) {
   await expect(option).toBeVisible();
   await expect(option).toBeEnabled();
+  await option.scrollIntoViewIfNeeded();
   await expect.poll(() => option.evaluate(element => {
     const box = element.getBoundingClientRect();
     const target = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);

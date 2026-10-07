@@ -1308,7 +1308,7 @@
   outline: none;
 }
 
-.creator-panel-composer > div {
+.creator-panel-composer > div:not(.creator-command-menu) {
   display: flex;
   align-items: center;
   justify-content: space-between;
