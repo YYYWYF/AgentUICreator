@@ -101,6 +101,13 @@ def _explicit_workspace_region(message: str) -> str | None:
 
 _SELECTOR_SYSTEM_PROMPT = """You are the Creator Intent Selector.
 
+For Agent UI integration into the current Host: a how-to guide needs current
+Host facts, so choose READ_ONLY INSPECT (integration_guide). A request to apply
+integration chooses MODIFY GENERAL. A request to check manual integration chooses
+READ_ONLY INSPECT. Do not route these requests to a Plugin development decision
+or a Composer/Layout action. The general agent consumes Host Integration Recipes.
+
+
 The Host has already determined the currently valid Composition Actions and
 Authoring Targets. You only select one supplied choice; you do not construct
 operations, invent ownership, or execute changes.

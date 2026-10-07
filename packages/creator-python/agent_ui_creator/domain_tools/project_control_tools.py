@@ -27,6 +27,8 @@ MAX_DOMAIN_TOOL_RESULT_BYTES = 48_000
 PROJECT_INSPECTION_PAGE_CHARS = 20_000
 _PROJECT_CURSOR = re.compile(r"([0-9a-f]{64}):([0-9a-f]{32}):([1-9][0-9]*)\Z")
 DOMAIN_READ_TOOL_NAMES = (
+    "plan_agent_ui_integration",
+    "verify_agent_ui_integration",
     "inspect_ui_project",
     "inspect_app_ui_model",
     "inspect_app_ui_model_source",
@@ -585,6 +587,38 @@ def create_project_control_tools(
         except ProjectControlError as error:
             return _render_error(error)
 
+    @tool("plan_agent_ui_integration")
+    async def plan_agent_ui_integration(options: dict[str, Any] | None = None) -> str:
+        """Inspect Host and return its canonical integration recipe without changing files. Ask the user to select a target from candidates when target-required. Display edits.after verbatim for guides; never invent framework integration code."""
+        try:
+            return _render_result(await client.plan_agent_ui_integration(options or {}))
+        except ProjectControlError as error:
+            return _render_error(error)
+
+    @tool("apply_agent_ui_integration")
+    async def apply_agent_ui_integration(recipe: dict[str, Any]) -> str:
+        """Apply the exact Host recipe after the user authorizes its displayed plan. The compiled Bridge must already resolve. Never install React build dependencies into a Vue consumer."""
+        try:
+            if activity is not None:
+                for edit in recipe.get("edits", []):
+                    activity.capture_before(edit["file"])
+            result = await client.apply_agent_ui_integration(recipe)
+            if activity is not None:
+                for changed_path in result.get("changedPaths", []):
+                    activity.file_observations.observe(changed_path)
+                    activity.touch(changed_path)
+            return _render_result(result)
+        except ProjectControlError as error:
+            return _render_error(error)
+
+    @tool("verify_agent_ui_integration")
+    async def verify_agent_ui_integration(recipe: dict[str, Any]) -> str:
+        """Statically verify the same recipe after Host apply or manual edits; checks files, configuration, resolvable compiled module, and consumer dependency boundary. Does not perform browser acceptance."""
+        try:
+            return _render_result(await client.verify_agent_ui_integration(recipe))
+        except ProjectControlError as error:
+            return _render_error(error)
+
     @tool("inspect_agent_ui_sources")
     async def inspect_agent_ui_sources() -> str:
         """List all available and installed Agent UI Source Items with current stateHash, status, ownership, content update availability, and issue codes. The inventory is complete; file and dependency details are omitted. apply_agent_ui_source_item reports checked dependency and path conflicts without overwriting user files."""
@@ -687,6 +721,9 @@ def create_project_control_tools(
         preflight_ui_plugin_placement,
         inspect_ui_services,
         inspect_ui_plugin_source_references,
+        plan_agent_ui_integration,
+        apply_agent_ui_integration,
+        verify_agent_ui_integration,
         inspect_agent_ui_sources,
         inspect_ui_capabilities,
         apply_agent_ui_source_item,

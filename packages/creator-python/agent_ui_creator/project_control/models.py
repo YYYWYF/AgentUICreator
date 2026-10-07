@@ -8,6 +8,8 @@ PROJECT_CONTROL_TIMEOUT_SECONDS = 15.0
 MAX_PROJECT_CONTROL_OUTPUT_BYTES = 1_000_000
 
 ReadProjectControlOperation: TypeAlias = Literal[
+    "plan_agent_ui_integration",
+    "verify_agent_ui_integration",
     "inspect_ui_project",
     "inspect_app_ui_model",
     "inspect_app_ui_model_source",
@@ -21,6 +23,7 @@ ReadProjectControlOperation: TypeAlias = Literal[
 ]
 
 MutationProjectControlOperation: TypeAlias = Literal[
+    "apply_agent_ui_integration",
     "mutate_app_ui_model",
     "repair_app_ui_model",
     "apply_agent_ui_source_item",

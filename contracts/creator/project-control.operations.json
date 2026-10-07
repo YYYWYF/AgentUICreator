@@ -125,6 +125,27 @@
       "inputDef": "repairAppUIModelInput",
       "resultDef": "repairAppUIModelResult",
       "agentExposed": true
+    },
+    {
+      "name": "plan_agent_ui_integration",
+      "kind": "read",
+      "inputDef": "integrationOptions",
+      "resultDef": "integrationPlanResult",
+      "agentExposed": true
+    },
+    {
+      "name": "apply_agent_ui_integration",
+      "kind": "mutation",
+      "inputDef": "integrationApplyInput",
+      "resultDef": "integrationVerificationResult",
+      "agentExposed": true
+    },
+    {
+      "name": "verify_agent_ui_integration",
+      "kind": "read",
+      "inputDef": "integrationRecipeInput",
+      "resultDef": "integrationVerificationResult",
+      "agentExposed": true
     }
   ]
 }

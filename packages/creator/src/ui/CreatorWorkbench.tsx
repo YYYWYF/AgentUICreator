@@ -1404,6 +1404,11 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
       if (session !== sessionRef.current) return;
       updateItems(current => current.map(item => item.id === activity.id ? { ...activity, ...(result.value ? { value: result.value } : {}), ...(result.reenabled ? { reenabled: true } : {}), status: "completed", receipt: result.receipt } : item));
       setInput("");
+      if (result.integrationPlan) {
+        commandInFlight.current = false;
+        setCommandBusy(false);
+        await submit(undefined, undefined, localeMessages.commands.integrateAgentUI);
+      }
       if (result.changed) {
         const refreshed = await refreshWorkspaceProject(localeMessages).catch(() => undefined);
         if (session === sessionRef.current) { if (refreshed) setWorkspaceState(refreshed); setCommandPreviewRevision(value => value + 1); }

@@ -1,5 +1,6 @@
 export const zhCN = {
   "commands": {
+    "integrateAgentUI": "帮我把 Agent UI 接入这个项目。",
     "install": "安装能力",
     "installDescription": "安装官方 Agent UI 能力",
     "sync": "同步 Plugin Registry",
@@ -18,6 +19,7 @@ export const zhCN = {
     "available": "可安装",
     "noMatches": "没有匹配的能力",
     "chooseOption": "请选择一个选项。",
+    "resource_web-component-bridge": "Web Component 兼容入口",
     "resource_web-search": "网页搜索",
     "resource_retrieval-chunks": "文档检索",
     "resource_source-citations-message": "来源引用",

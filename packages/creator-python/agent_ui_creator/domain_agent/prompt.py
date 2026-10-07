@@ -905,3 +905,25 @@ created-but-unmounted, stale, unavailable or untested interaction behavior compl
 """
 DOMAIN_READ_AGENT_PROMPT += "\nUse inspect_ui_capabilities for a bounded combined capability index before targeted source inspection.\n"
 DOMAIN_WRITE_AGENT_PROMPT += PLUGIN_DELIVERY_GUIDANCE
+
+
+HOST_INTEGRATION_RECIPE_RULES = """
+When users ask how to integrate, install, or enable Agent UI in an existing Host,
+call plan_agent_ui_integration first. /install web-component-bridge and natural
+language integration use this same Host-owned resource recipe. A guide is read-only:
+display the returned paths and canonical edits.after, with no filesystem writes.
+For automatic integration, present that same recipe, obtain user authorization,
+then call apply_agent_ui_integration with the exact recipe. If target-required,
+ask the user to select a discovered target; never guess a business page. For manual
+edits, call verify_agent_ui_integration with the original recipe. Resolve a compiled
+Bridge module before apply. Follow canonical-react for React; do not recommend the
+Bridge there. Nuxt is unsupported. Never infer Vue versions/entries or generate
+framework-specific integration code, translate React Plugins into Vue, or add React
+build tooling to a Vue consumer. The producer resource still uses the existing
+Source Item/resource installation pipeline; consumers only load its compiled module.
+"""
+DOMAIN_WRITE_AGENT_PROMPT += HOST_INTEGRATION_RECIPE_RULES
+DOMAIN_READ_AGENT_PROMPT += HOST_INTEGRATION_RECIPE_RULES
+DOMAIN_ANSWER_AGENT_PROMPT += HOST_INTEGRATION_RECIPE_RULES
+
+DOMAIN_INSPECT_AGENT_PROMPT += HOST_INTEGRATION_RECIPE_RULES

@@ -14,7 +14,7 @@ export interface CreatorCommandCatalogEntry extends CreatorCommandDefinition {
   current?: string;
 }
 export interface CreatorCommandCatalog { commands: CreatorCommandCatalogEntry[] }
-export interface CreatorCommandResult { value?: string; changed: boolean; reenabled?: boolean; receipt: CreatorRunReceipt }
+export interface CreatorCommandResult { integrationPlan?: Awaited<ReturnType<typeof import("@agent-ui/project-control/resources").planIntegrationRecipe>>; value?: string; changed: boolean; reenabled?: boolean; receipt: CreatorRunReceipt }
 export interface CreatorCommandActivity {
   kind: "command";
   id: string;

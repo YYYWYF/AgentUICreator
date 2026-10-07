@@ -372,3 +372,18 @@ language conditionals. Preserve protocol IDs, enums, schema and persisted fields
 locale is a view concern. Prefer public props/composition, then owned adapters.
 If upstream lacks a seam, record a localization gap instead of modifying vendor.
 Include `pnpm check:i18n` where available and check new copy during upgrades.
+
+## Non-React Hosts
+
+For Vue, HTML and legacy Hosts, discover/install the `web-component-bridge` compatibility resource through the existing resource protocol. React remains the canonical Plugin implementation. Never generate Vue Plugins, assistant-ui Vue components or a second AG-UI client. Edit the generated project's AppUIModel and React Plugins, then rebuild its compatibility bundle with `vite build --config <sourceRoot>/integrations/web-component-bridge/vite.config.ts`. The consumer loads the compiled bundle and uses `<agent-ui>`; it does not configure React, JSX, Tailwind or TSX. The build configuration belongs to the Agent UI producer project, not the Vue consumer.
+
+
+For Host integration requests, consume `plan_agent_ui_integration` before editing.
+A how-to guide presents the Host's canonical `edits.after` without writes. Resolve
+an explicit target and compiled module; for automatic integration present the
+same recipe, obtain authorization, then use `apply_agent_ui_integration`. Check
+manual or automatic changes with `verify_agent_ui_integration` and the original
+recipe. Never generate Vue-specific snippets, infer Host versions/entries in the
+prompt, or install the React producer build closure into the Vue consumer. React
+uses its canonical Source Item path; Nuxt is unsupported. See
+`docs/architecture/host-integration-recipe.md` for the Host contract.

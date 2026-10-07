@@ -677,6 +677,54 @@
               "$ref": "#/$defs/repairAppUIModelInput"
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "operation": {
+              "const": "plan_agent_ui_integration"
+            },
+            "input": {
+              "$ref": "#/$defs/integrationOptions"
+            }
+          },
+          "required": [
+            "operation",
+            "input"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "operation": {
+              "const": "apply_agent_ui_integration"
+            },
+            "input": {
+              "$ref": "#/$defs/integrationApplyInput"
+            }
+          },
+          "required": [
+            "operation",
+            "input"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "operation": {
+              "const": "verify_agent_ui_integration"
+            },
+            "input": {
+              "$ref": "#/$defs/integrationRecipeInput"
+            }
+          },
+          "required": [
+            "operation",
+            "input"
+          ]
         }
       ]
     },
@@ -748,6 +796,12 @@
                 },
                 {
                   "$ref": "#/$defs/repairAppUIModelResult"
+                },
+                {
+                  "$ref": "#/$defs/integrationPlanResult"
+                },
+                {
+                  "$ref": "#/$defs/integrationVerificationResult"
                 }
               ]
             }
@@ -2847,6 +2901,352 @@
         },
         "details": {}
       }
+    },
+    "integrationRecipe": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "projectId": {
+          "type": "string"
+        },
+        "resourceId": {
+          "const": "web-component-bridge"
+        },
+        "host": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "framework": {
+              "enum": [
+                "vue",
+                "html",
+                "legacy"
+              ]
+            },
+            "frameworkVersion": {
+              "type": "string"
+            },
+            "toolchain": {
+              "enum": [
+                "vite",
+                "vue-cli",
+                "other"
+              ]
+            }
+          },
+          "required": [
+            "framework",
+            "toolchain"
+          ]
+        },
+        "detectedFiles": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "packageJson": {
+              "type": "string"
+            },
+            "entryFile": {
+              "type": "string"
+            },
+            "targetFile": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "targetFile"
+          ]
+        },
+        "integration": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mode": {
+              "const": "web-component"
+            },
+            "moduleSpecifier": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "mode",
+            "moduleSpecifier"
+          ]
+        },
+        "options": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "targetFile": {
+              "type": "string"
+            },
+            "moduleSpecifier": {
+              "type": "string"
+            },
+            "endpoint": {
+              "type": "string"
+            },
+            "locale": {
+              "enum": [
+                "en-US",
+                "zh-CN"
+              ]
+            },
+            "theme": {
+              "enum": [
+                "light",
+                "dark",
+                "violet"
+              ]
+            }
+          },
+          "required": []
+        },
+        "edits": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string"
+              },
+              "operation": {
+                "enum": [
+                  "add_import",
+                  "create_file",
+                  "mount_component"
+                ]
+              },
+              "before": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "const": null
+                  }
+                ]
+              },
+              "after": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "file",
+              "operation",
+              "before",
+              "after"
+            ]
+          }
+        },
+        "verification": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "projectId",
+        "resourceId",
+        "host",
+        "detectedFiles",
+        "integration",
+        "options",
+        "edits",
+        "verification",
+        "warnings"
+      ]
+    },
+    "integrationOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "targetFile": {
+          "type": "string"
+        },
+        "moduleSpecifier": {
+          "type": "string"
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "locale": {
+          "enum": [
+            "en-US",
+            "zh-CN"
+          ]
+        },
+        "theme": {
+          "enum": [
+            "light",
+            "dark",
+            "violet"
+          ]
+        }
+      },
+      "required": []
+    },
+    "integrationPlanResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "planned",
+            "target-required",
+            "canonical-react",
+            "unsupported",
+            "module-required"
+          ]
+        },
+        "host": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "framework": {
+              "enum": [
+                "vue",
+                "html",
+                "legacy",
+                "react",
+                "nuxt"
+              ]
+            },
+            "frameworkVersion": {
+              "type": "string"
+            },
+            "toolchain": {
+              "enum": [
+                "vite",
+                "vue-cli",
+                "other"
+              ]
+            },
+            "packageJson": {
+              "type": "string"
+            },
+            "entryFile": {
+              "type": "string"
+            },
+            "candidates": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "targetRequired": {
+              "const": true
+            },
+            "recommendedResource": {
+              "enum": [
+                "canonical-react",
+                "unsupported",
+                "web-component-bridge"
+              ]
+            }
+          },
+          "required": [
+            "framework",
+            "toolchain",
+            "candidates",
+            "targetRequired",
+            "recommendedResource"
+          ]
+        },
+        "integrationRecipe": {
+          "$ref": "#/$defs/integrationRecipe"
+        }
+      },
+      "required": [
+        "status",
+        "host"
+      ]
+    },
+    "integrationRecipeInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recipe": {
+          "$ref": "#/$defs/integrationRecipe"
+        }
+      },
+      "required": [
+        "recipe"
+      ]
+    },
+    "integrationApplyInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recipe": {
+          "$ref": "#/$defs/integrationRecipe"
+        },
+        "cancelMarker": {
+          "type": "string",
+          "pattern": "^\\.agentuicreator/control/cancel-[a-f0-9-]{36}$"
+        }
+      },
+      "required": [
+        "recipe"
+      ]
+    },
+    "integrationVerificationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "passed",
+            "failed"
+          ]
+        },
+        "recipeId": {
+          "type": "string"
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "passed": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "passed"
+            ]
+          }
+        },
+        "changedPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "status",
+        "recipeId",
+        "checks",
+        "changedPaths"
+      ]
     }
   },
   "oneOf": [

@@ -1,5 +1,6 @@
 export const enUS = {
   "commands": {
+    "integrateAgentUI": "Help me integrate Agent UI into this project.",
     "install": "Install capability",
     "installDescription": "Install an official Agent UI capability",
     "sync": "Sync Plugin Registry",
@@ -18,6 +19,7 @@ export const enUS = {
     "available": "Available",
     "noMatches": "No matching capabilities",
     "chooseOption": "Choose one option.",
+    "resource_web-component-bridge": "Web Component compatibility",
     "resource_web-search": "Web search",
     "resource_retrieval-chunks": "Document retrieval",
     "resource_source-citations-message": "Source citations",

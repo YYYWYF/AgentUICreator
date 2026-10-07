@@ -23,6 +23,7 @@ ALLOWED_DOMAIN_READ_TOOLS = (
 )
 _ALLOWED_DOMAIN_READ_TOOL_SET = frozenset(ALLOWED_DOMAIN_READ_TOOLS)
 DOMAIN_WRITE_TOOL_NAMES = (
+    "apply_agent_ui_integration",
     *DOMAIN_READ_TOOL_NAMES,
     *RECOVERY_READ_TOOL_NAMES,
     *RECOVERY_WRITE_TOOL_NAMES,
@@ -59,6 +60,7 @@ RUNTIME_VERIFICATION_TOOL_NAMES = frozenset(
 # Every future side-effecting domain tool must be explicitly classified here.
 SIDE_EFFECT_TOOL_NAMES = frozenset(
     {
+        "apply_agent_ui_integration",
         "edit_file",
         "edit_file_from_read",
         "create_ui_plugin",

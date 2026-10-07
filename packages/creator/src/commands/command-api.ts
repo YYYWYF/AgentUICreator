@@ -5,7 +5,7 @@ import { getAvailableAgentUIThemes, setAgentUITheme, synchronizeAgentUIPluginReg
 import type { CreatorWorkspaceManager } from "../workspace/CreatorWorkspaceManager.js";
 import type { PythonCreatorProcessManager } from "../PythonCreatorProcessManager.js";
 import { CREATOR_WORKSPACE_ID_HEADER } from "../workspace/types.js";
-import { inspectOfficialAgentUIResourceCatalog, installOfficialAgentUIResource, resolveOfficialResource } from "@agent-ui/project-control/resources";
+import { inspectOfficialAgentUIResourceCatalog, installOfficialAgentUIResource, resolveOfficialResource, inspectIntegrationHost, planIntegrationRecipe } from "@agent-ui/project-control/resources";
 import type { CreatorCommandExecuteRequest } from "./types.js";
 import { creatorCommandRegistry } from "./registry.js";
 
@@ -35,7 +35,10 @@ export function createCreatorCommandHandler(workspaces: CreatorWorkspaceManager 
       const run = async (projectRoot: string) => {
         if (catalog) {
           const themes = await getAvailableAgentUIThemes(projectRoot).catch(() => undefined);
-          const resources = await inspectOfficialAgentUIResourceCatalog(projectRoot);
+          const host = await inspectIntegrationHost(projectRoot);
+          const resources: import("@agent-ui/project-control/resources").OfficialResourceCatalogEntry[] = host.framework === "react"
+            ? await inspectOfficialAgentUIResourceCatalog(projectRoot)
+            : [{ id: "web-component-bridge", label: "Web Component Compatibility", status: "missing", installable: host.framework !== "nuxt" }];
           return { commands: [
             ...(themes ? [{ ...creatorCommandRegistry.get("theme")!, ...themes }] : []),
             { ...creatorCommandRegistry.get("install")!, options: resources.map(resource => ({ id: resource.id, label: resource.label,
@@ -43,6 +46,12 @@ export function createCreatorCommandHandler(workspaces: CreatorWorkspaceManager 
               status: resource.status === "missing" ? "available" : resource.status === "ready" ? "installed" : resource.status })) },
             { ...creatorCommandRegistry.get("sync")!, options: [] },
           ] };
+        }
+        if (input?.id === "install" && input.args.resourceId === "web-component-bridge" && (await inspectIntegrationHost(projectRoot)).framework !== "react") {
+          const integrationPlan = await planIntegrationRecipe(projectRoot);
+          return { value: "web-component-bridge", changed: false, integrationPlan, receipt: {
+            files: [], validations: [], verification: { status: "no-project-change", projectRevision: 0, auditAttempts: 0, checks: [], runtimeStatus: "not-run" },
+          } };
         }
         if (workspaces?.hasActiveCreatorRequests()) throw new Error("CREATOR_COMMAND_BUSY");
         const manager = workspaces?.ensureCreatorRuntime() ?? legacy;

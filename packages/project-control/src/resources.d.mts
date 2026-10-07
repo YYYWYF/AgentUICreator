@@ -46,3 +46,6 @@ export function installOfficialAgentUIResource(projectRoot: string, resourceId: 
 export interface OfficialResourceCatalogEntry { id: string; label: string; description?: string; status: "ready" | "missing" | "disabled" | "conflict"; installable: boolean }
 export interface OfficialResourceInstallResult { resourceId: string; changed: boolean; reenabled: boolean; verification?: { status: "passed" | "failed"; errors: unknown[]; warnings: unknown[] } }
 export function inspectOfficialAgentUIResourceCatalog(root: string): Promise<OfficialResourceCatalogEntry[]>;
+
+export { inspectIntegrationHost, planIntegrationRecipe, applyIntegrationRecipe, verifyIntegrationRecipe } from "./project/integration-recipe";
+export type { IntegrationRecipe, IntegrationOptions } from "./project/integration-recipe";

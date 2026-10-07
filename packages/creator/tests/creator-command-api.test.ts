@@ -6,11 +6,13 @@ vi.mock("@agent-ui/project-control/commands", () => ({
   setAgentUITheme: vi.fn(),
   synchronizeAgentUIPluginRegistry: vi.fn(async () => ({ changed: true, path: "plugins/registry.generated.ts", pluginIds: [] })),
 
+  inspectIntegrationHost: vi.fn(async () => ({ framework: "react" })),
+  planIntegrationRecipe: vi.fn(),
   inspectOfficialAgentUIResourceCatalog: vi.fn(async () => [{ id: "reasoning", label: "Reasoning", status: "missing", installable: true }, { id: "chart-message", label: "Charts", status: "ready", installable: false }]),
   resolveOfficialResource: (id: string) => { if (id === "unknown") throw Object.assign(new Error("unknown"), { code: "RESOURCE_UNKNOWN" }); return { id, discoverable: id !== "demo" }; },
   installOfficialAgentUIResource: vi.fn(async (_root: string, resourceId: string) => ({ resourceId, changed: true, reenabled: false, verification: { status: "passed", errors: [], warnings: [] } })),
 }));
-import { installOfficialAgentUIResource, inspectOfficialAgentUIResourceCatalog } from "@agent-ui/project-control/resources";
+import { inspectIntegrationHost, planIntegrationRecipe, installOfficialAgentUIResource, inspectOfficialAgentUIResourceCatalog } from "@agent-ui/project-control/resources";
 import { synchronizeAgentUIPluginRegistry } from "@agent-ui/project-control/commands";
 import { createCreatorCommandHandler } from "../src/commands/command-api.js";
 import type { CreatorWorkspaceManager } from "../src/workspace/CreatorWorkspaceManager.js";
@@ -101,4 +103,14 @@ it("authoritative resource conflicts cannot produce a success receipt", async ()
   vi.mocked(installOfficialAgentUIResource).mockRejectedValueOnce(Object.assign(new Error("conflict"), { code: "RESOURCE_CONFLICT" }));
   const result = await execute(await host(), { id: "install", args: { resourceId: "reasoning" } });
   expect(result.status).toBe(409); expect((await result.json()).code).toBe("RESOURCE_CONFLICT");
+});
+
+it("compatibility install requests use the Host recipe without the producer installer", async () => {
+  const detected = { framework: "vue", frameworkVersion: "^3.5.0", toolchain: "vite", candidates: ["src/App.vue"], targetRequired: true as const, recommendedResource: "web-component-bridge" };
+  vi.mocked(inspectIntegrationHost).mockResolvedValueOnce(detected);
+  vi.mocked(planIntegrationRecipe).mockResolvedValueOnce({ status: "target-required", host: detected });
+  const result = await (await execute(await host(), { id: "install", args: { resourceId: "web-component-bridge" } })).json();
+  expect(result).toMatchObject({ changed: false, integrationPlan: { status: "target-required", host: { candidates: ["src/App.vue"] } }, receipt: { files: [] } });
+  expect(planIntegrationRecipe).toHaveBeenCalledWith("/project");
+  expect(installOfficialAgentUIResource).not.toHaveBeenCalled();
 });
