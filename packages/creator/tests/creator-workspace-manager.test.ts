@@ -240,3 +240,26 @@ describe("CreatorWorkspaceManager", () => {
     expect(manager.getState().status).toBe("broken");
   });
 });
+
+it("mutation gate rejects new requests and commands and waits before switching workspace", async () => {
+  const manager = new CreatorWorkspaceManager({ ...setupDependencies(),
+    inspectProject: async () => ({ status: "ready", projectConfig: { mode: "platform", sourceRoot: "agent-ui" }, paths: { sourceRoot: "agent-ui" } }),
+    ensureProjectControl: vi.fn(async () => ({})) as unknown as typeof import("@agent-ui/project-control").ensureManagedProjectControl,
+    createPythonManager: () => ({ ensureStarted: async () => undefined, dispose: async () => undefined }) as unknown as PythonCreatorProcessManager,
+  });
+  await manager.selectProject(await root());
+  const state = manager.getState(); if (state.status !== "ready") throw new Error("fixture");
+  const id = state.workspace.id;
+  let release!: () => void;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  const command = manager.runProjectOperation(id, async () => pending, { mutation: true });
+  expect(() => manager.trackRequest(() => {})).toThrow("CREATOR_COMMAND_BUSY");
+  await expect(manager.runProjectOperation(id, async () => {}, { mutation: true })).rejects.toThrow("CREATOR_COMMAND_BUSY");
+  const switchProject = manager.selectProject(await root());
+  expect(manager.getState()).toBe(state);
+  release(); await command; await switchProject;
+  const untrack = manager.trackRequest(() => {});
+  const newState = manager.getState(); if (newState.status !== "ready") throw new Error("fixture");
+  await expect(manager.runProjectOperation(newState.workspace.id, async () => {}, { mutation: true })).rejects.toThrow("CREATOR_COMMAND_BUSY");
+  untrack();
+});

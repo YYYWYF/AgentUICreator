@@ -1,1 +1,1 @@
-export interface CreatorCommandMenuItem { id: string; label: string; description?: string; current?: boolean }
+export interface CreatorCommandMenuItem { id: string; label: string; description?: string; current?: boolean; disabled?: boolean }

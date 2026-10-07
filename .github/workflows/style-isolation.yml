@@ -103,11 +103,11 @@ jobs:
           packages/creator-python/.venv/bin/pip install -e 'packages/creator-python[test]'
       - run: pnpm --filter @agent-ui/creator-workbench exec playwright install --with-deps chromium
       - run: node scripts/prepare-workbench.mjs
-      - run: pnpm --filter @agent-ui/project-control exec vitest run tests/agent-ui-theme.test.ts
-      - run: pnpm --filter @agent-ui/creator exec vitest run tests/creator-command-parser.test.ts tests/creator-command-api.test.ts tests/CreatorCommands.test.tsx tests/host-preview-reload.test.ts
+      - run: pnpm --filter @agent-ui/project-control exec vitest run tests/agent-ui-theme.test.ts tests/creator-resource-commands.test.ts tests/migrated/ensure-resource-packages.test.ts
+      - run: pnpm --filter @agent-ui/creator exec vitest run tests/creator-command-parser.test.ts tests/creator-command-api.test.ts tests/CreatorCommands.test.tsx tests/creator-workspace-manager.test.ts tests/host-preview-reload.test.ts
       - run: .venv/bin/python -m pytest tests/test_creator_command_commit.py tests/test_creator_transactions.py -q
         working-directory: packages/creator-python
-      - name: Persistent theme command through real Host and ProjectControl
+      - name: Persistent theme, install and sync commands through real Host and ProjectControl
         run: pnpm --filter @agent-ui/creator-workbench test:e2e:theme-commands
         env:
           AGENT_UI_WORKBENCH_PREPARED: '1'

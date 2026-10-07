@@ -408,6 +408,7 @@ function storedItem(value: unknown, localeMessages: CreatorLocaleMessages = DEFA
   }
   if (value.kind === "command" && typeof value.commandId === "string" && ["running", "completed", "failed"].includes(String(value.status))) {
     return { kind: "command", id: value.id, commandId: value.commandId,
+      ...(value.reenabled === true ? { reenabled: true } : {}),
       status: value.status === "completed" ? "completed" : "failed",
       ...(typeof value.value === "string" ? { value: value.value } : {}),
       ...(typeof value.error === "string" ? { error: value.error } : value.status === "running" ? { error: localeMessages.commands.interrupted } : {}),
@@ -1163,6 +1164,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
   const workspaceIdRef = useRef<string | undefined>(undefined);
   const commandState = useCreatorCommandState(input, workspaceState?.status === "ready" ? workspaceState.workspace.id : undefined);
   const [commandBusy, setCommandBusy] = useState(false);
+  const [commandPreviewRevision, setCommandPreviewRevision] = useState(0);
   const commandInFlight = useRef(false);
 
   const sessionRef = useRef(0);
@@ -1383,26 +1385,33 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
     const parsed = parseCreatorCommand(request);
     if (parsed.kind !== "command") return;
     if (commandInFlight.current || isRunning || runInFlightRef.current || workspaceBusy || undoRunId || reapplyRunId || hasPendingCreatorQuestion(itemsRef.current) || workspaceState?.status !== "ready") return;
-    if (parsed.id === "" || (parsed.id === "theme" && parsed.args.length === 0)) { setInput(parsed.id === "" ? "/" : "/theme "); commandState.show(); return; }
+    if (parsed.id === "" || (["theme", "install"].includes(parsed.id) && parsed.args.length === 0)) { setInput(parsed.id === "" ? "/" : `/${parsed.id} `); commandState.show(); return; }
     const activity: CreatorCommandActivity = { kind: "command", id: crypto.randomUUID(), commandId: parsed.id, status: "running", ...(parsed.args[0] ? { value: parsed.args[0] } : {}) };
     const fail = (error: string) => updateItems(current => current.map(item => item.id === activity.id ? { ...activity, status: "failed", error } : item));
+    if (!["theme", "install", "sync"].includes(parsed.id)) { updateItems(current => [...current, activity]); fail(formatLocaleMessage(localeMessages.commands.unknownCommand, parsed.id)); return; }
+    if (parsed.id === "install") {
+      const option = commandState.catalog.commands.find(command => command.id === "install")?.options.find(option => option.id === parsed.args.join(" "));
+      if (!option) { commandState.show(); return; }
+      if (option.disabled) return;
+    }
     updateItems(current => [...current, activity]);
-    if (parsed.id !== "theme") { fail(formatLocaleMessage(localeMessages.commands.unknownCommand, parsed.id)); return; }
-    if (parsed.args.length !== 1) { fail(localeMessages.commands.arguments); return; }
+    if (parsed.args.length !== (parsed.id === "sync" ? 0 : 1)) { fail(localeMessages.commands.chooseOption); return; }
     commandInFlight.current = true; setCommandBusy(true);
     const session = sessionRef.current;
     const id = workspaceState.workspace.id;
     try {
-      const result = await executeCreatorCommand(id, parsed.args[0]!, localeMessages);
+      const result = await executeCreatorCommand(id, parsed.id === "theme" ? { id: "theme", args: { theme: parsed.args[0]! } } : parsed.id === "install" ? { id: "install", args: { resourceId: parsed.args[0]! } } : { id: "sync", args: {} }, localeMessages);
       if (session !== sessionRef.current) return;
-      updateItems(current => current.map(item => item.id === activity.id ? { ...activity, value: result.current, status: "completed", receipt: result.receipt } : item));
+      updateItems(current => current.map(item => item.id === activity.id ? { ...activity, ...(result.value ? { value: result.value } : {}), ...(result.reenabled ? { reenabled: true } : {}), status: "completed", receipt: result.receipt } : item));
       setInput("");
-      const refreshed = await refreshWorkspaceProject(localeMessages).catch(() => undefined);
-      if (refreshed && session === sessionRef.current) setWorkspaceState(refreshed);
+      if (result.changed) {
+        const refreshed = await refreshWorkspaceProject(localeMessages).catch(() => undefined);
+        if (session === sessionRef.current) { if (refreshed) setWorkspaceState(refreshed); setCommandPreviewRevision(value => value + 1); }
+      }
     } catch (error) {
       if (session === sessionRef.current) {
         const code = error instanceof Error && "code" in error ? error.code : undefined;
-        fail(code === "UNKNOWN_THEME" ? formatLocaleMessage(localeMessages.commands.unknownTheme, parsed.args[0]) : code === "CREATOR_COMMAND_BUSY" ? localeMessages.commands.busy : localeMessages.commands.failed);
+        fail(code === "UNKNOWN_THEME" ? formatLocaleMessage(localeMessages.commands.unknownTheme, parsed.args[0]) : code === "CREATOR_COMMAND_BUSY" ? localeMessages.commands.busy : parsed.id === "install" ? formatLocaleMessage(localeMessages.commands.installFailed, commandState.optionLabel("install", parsed.args[0] ?? "")) : parsed.id === "sync" ? localeMessages.commands.syncFailed : localeMessages.commands.failed);
       }
     } finally {
       commandInFlight.current = false; setCommandBusy(false);
@@ -1927,7 +1936,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
 
   const pickCommand = (id: string) => {
     const choice = commandState.pick(id);
-    if ("input" in choice) setInput(choice.input!); else void executeSlashCommand(choice.execute!);
+    if ("input" in choice) setInput(choice.input!); else if ("execute" in choice) void executeSlashCommand(choice.execute!);
   };
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     const selection = commandState.keyDown(event);
@@ -1995,7 +2004,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
       }
     >
       {layout === "dock" ? null : workspaceState !== null && (workspaceState.status === "ready") && workspaceState.workspace.id === previewWorkspaceId ? (
-        <CreatorWorkbenchPreview threadId={threadId} workspaceId={workspaceState.workspace.id}>{children}</CreatorWorkbenchPreview>
+        <CreatorWorkbenchPreview key={commandPreviewRevision} threadId={threadId} workspaceId={workspaceState.workspace.id}>{children}</CreatorWorkbenchPreview>
       ) : (
         <section className="creator-workbench-preview creator-workbench-preview-placeholder" aria-label={localeMessages.creatorWorkbench.projectPreview}>
           {workspaceState?.status === "uninitialized" ? (
@@ -2098,7 +2107,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
                 presentConversationItems(items, creatorDebug).map((item) =>
                   item.kind === "command" ? (
                     <article className="creator-panel-message creator-command-activity" key={item.id} role="status">
-                      <p>{item.status === "failed" ? localizeCreatorPresentation(item.error, localeMessages) ?? localeMessages.commands.failed : formatLocaleMessage(item.status === "running" ? localeMessages.commands.running : localeMessages.commands.completed, commandState.themeLabel(item.value ?? ""))}</p>
+                      <p>{item.status === "failed" ? localizeCreatorPresentation(item.error, localeMessages) ?? localeMessages.commands.failed : item.commandId === "sync" ? (item.status === "running" ? localeMessages.commands.syncing : item.receipt?.verification?.status === "no-project-change" ? localeMessages.commands.alreadySynced : localeMessages.commands.synced) : formatLocaleMessage(item.commandId === "install" ? (item.status === "running" ? localeMessages.commands.installing : item.reenabled ? localeMessages.commands.reenabled : localeMessages.commands.installed) : item.status === "running" ? localeMessages.commands.running : localeMessages.commands.completed, commandState.optionLabel(item.commandId, item.value ?? ""))}</p>
                       {item.receipt ? <CreatorRunReceiptPresentation receipt={item.receipt} debug={creatorDebug}
                         onUndo={!commandBusy && !isRunning && !questionPending ? runId => { void undoCreatorRun(runId); } : undefined}
                         onReapply={!commandBusy && !isRunning && !questionPending ? runId => { void reapplyCreatorRun(runId); } : undefined}

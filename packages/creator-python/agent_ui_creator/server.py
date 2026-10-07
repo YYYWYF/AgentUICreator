@@ -936,6 +936,24 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
     app.state.creator_checkpointer = checkpointer
     app.state.pending_creator_questions = pending_questions
 
+    command_mutation_token: str | None = None
+
+    @app.post("/creator-command-mutation")
+    async def creator_command_mutation(request: Request) -> JSONResponse:
+        nonlocal command_mutation_token
+        payload = await _json_body(request, 4096)
+        if isinstance(payload, dict) and payload == {"action": "acquire"}:
+            if writing_run_lock.locked() or active_runs or pending_questions:
+                return JSONResponse(status_code=409, content={"code": "CREATOR_COMMAND_BUSY"})
+            await writing_run_lock.acquire()
+            command_mutation_token = str(uuid4())
+            return JSONResponse(content={"token": command_mutation_token})
+        if isinstance(payload, dict) and set(payload) == {"action", "token"} and payload["action"] == "release" and command_mutation_token is not None and payload["token"] == command_mutation_token:
+            command_mutation_token = None
+            writing_run_lock.release()
+            return JSONResponse(content={"released": True})
+        return JSONResponse(status_code=409, content={"code": "CREATOR_COMMAND_REQUEST_INVALID"})
+
     @app.post("/creator-command-commit")
     async def creator_command_commit(request: Request) -> JSONResponse:
         from .theme_command_transaction import commit_theme_change
@@ -946,6 +964,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                 raise ValueError("Invalid command mutation.")
             if any(not isinstance(payload[key], str) for key in payload):
                 raise ValueError("Invalid command mutation fields.")
+            if writing_run_lock.locked() or active_runs or pending_questions:
+                return JSONResponse(status_code=409, content={"code": "CREATOR_COMMAND_BUSY"})
             async with writing_run_lock:
                 if active_runs or pending_questions:
                     return JSONResponse(status_code=409, content={"code": "CREATOR_COMMAND_BUSY", "error": "CREATOR_COMMAND_BUSY"})
@@ -1067,6 +1087,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
         except (ValueError, ValidationError) as error:
             return JSONResponse(status_code=400, content={"error": str(error)})
 
+        if command_mutation_token is not None:
+            return JSONResponse(status_code=409, content={"code": "CREATOR_COMMAND_BUSY"})
         encoder = EventEncoder(accept=request.headers.get("accept"))
 
         def encode(event: Any) -> bytes:

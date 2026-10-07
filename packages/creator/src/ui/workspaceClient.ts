@@ -61,10 +61,10 @@ export const validateWorkspaceSetup = (input: CreatorWorkspaceInitializeInput, s
 export const initializeWorkspaceProjectRequest = (input: CreatorWorkspaceInitializeInput, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) =>
   workspaceFetch<CreatorWorkspacePublicState>("/initialize", input, undefined, localeMessages);
 
-export async function executeCreatorCommand(workspaceId: string, theme: string, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) {
+export async function executeCreatorCommand(workspaceId: string, request: import("../commands/types.js").CreatorCommandExecuteRequest, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) {
   const response = await fetch("/__creator/commands/execute", {
     method: "POST", headers: { "Content-Type": "application/json", "x-agent-ui-workspace-id": workspaceId },
-    body: JSON.stringify({ id: "theme", args: { theme } }),
+    body: JSON.stringify(request),
   });
   const result = await response.json();
   if (!response.ok) throw new CreatorWorkspaceRequestError(localeMessages.commands.failed, result);

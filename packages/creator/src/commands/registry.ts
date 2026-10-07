@@ -1,2 +1,4 @@
 import { themeCommand } from "./theme.js";
-export const creatorCommandRegistry = new Map([[themeCommand.id, themeCommand]]);
+import { installCommand } from "./install.js";
+import { syncCommand } from "./sync.js";
+export const creatorCommandRegistry = new Map([themeCommand, installCommand, syncCommand].map(command => [command.id, command]));

@@ -6,7 +6,7 @@ vi.mock("../src/ui/workspaceClient.js", async importOriginal => ({
   ...await importOriginal<typeof import("../src/ui/workspaceClient.js")>(),
   getWorkspaceState: vi.fn(async () => state),
   refreshWorkspaceProject: vi.fn(async () => state),
-  executeCreatorCommand: vi.fn(async () => ({ current: "violet", receipt: { files: [], validations: [] } })),
+  executeCreatorCommand: vi.fn(async () => ({ value: "violet", changed: true, receipt: { files: [], validations: [] } })),
 }));
 vi.mock("../src/ui/CreatorPluginUpdates.js", () => ({ CreatorPluginUpdates: () => null }));
 vi.mock("../src/ui/MockServicePanel.js", () => ({ MockServicePanel: () => null }));
@@ -17,7 +17,7 @@ const state = { status: "ready", workspace: { id: "workspace-1", name: "Project"
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 HTMLElement.prototype.scrollTo = vi.fn();
 let root: Root; let container: HTMLDivElement;
-const fetchMock = vi.fn(async (_url: string) => new Response(JSON.stringify({ commands: [{ id: "theme", kind: "choice", scope: "project", current: "light", options: [{ id: "light" }, { id: "violet" }] }] }), { headers: { "Content-Type": "application/json" } }));
+const fetchMock = vi.fn(async (_url: string) => new Response(JSON.stringify({ commands: [{ id: "theme", kind: "choice", scope: "project", current: "light", options: [{ id: "light" }, { id: "violet" }] }, { id: "install", kind: "choice", scope: "project", options: [{ id: "reasoning", label: "推理展示", status: "available" }, { id: "chart-message", label: "图表", status: "installed", disabled: true }, { id: "tool-group", status: "disabled" }, { id: "task-group", status: "conflict", disabled: true }] }, { id: "sync", kind: "action", scope: "project", options: [] }] }), { headers: { "Content-Type": "application/json" } }));
 beforeEach(async () => { sessionStorage.clear(); vi.clearAllMocks(); vi.stubGlobal("fetch", fetchMock); container = document.createElement("div"); document.body.append(container); root = createRoot(container); await act(async () => { root.render(<CreatorWorkbench locale="en-US" previewWorkspaceId="workspace-1">Preview</CreatorWorkbench>); }); });
 afterEach(async () => { await act(async () => root.unmount()); container.remove(); vi.unstubAllGlobals(); });
 async function type(text: string) { const input = container.querySelector("textarea")!; await act(async () => { Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(input, text); input.dispatchEvent(new Event("input", { bubbles: true })); }); return input; }
@@ -26,7 +26,7 @@ it("offers command then theme options with keyboard selection", async () => {
   const input = await type("/"); expect(container.textContent).toContain("Change Agent UI theme");
   await enter(input); expect(input.value).toBe("/theme "); expect(container.textContent).toContain("Violet");
   await act(async () => input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true })));
-  await enter(input); expect(executeCreatorCommand).toHaveBeenCalledWith("workspace-1", "violet", expect.anything()); expect(input.value).toBe("");
+  await enter(input); expect(executeCreatorCommand).toHaveBeenCalledWith("workspace-1", { id: "theme", args: { theme: "violet" } }, expect.anything()); expect(input.value).toBe("");
 });
 it("executes direct syntax without adding command activity to Agent history", async () => {
   const input = await type("/theme violet"); await enter(input);
@@ -55,4 +55,24 @@ it("natural language still reaches the original Creator Agent transport", async 
   await enter(await type("Make the composer narrower"));
   expect(executeCreatorCommand).not.toHaveBeenCalled();
   expect(fetchMock.mock.calls.some(call => !String(call[0]).includes("commands"))).toBe(true);
+});
+
+it("discovers install and sync, filters localized labels and skips disabled choices", async () => {
+  await type("/"); expect(container.textContent).toContain("Install capability"); expect(container.textContent).toContain("Sync Plugin Registry");
+  const input = await type("/install Reas");
+  expect(container.querySelector('[role="listbox"]')!.textContent).toContain("Reasoning");
+  expect(container.querySelector('[role="listbox"]')!.textContent).not.toContain("Charts");
+  await enter(input);
+  expect(executeCreatorCommand).toHaveBeenCalledWith("workspace-1", { id: "install", args: { resourceId: "reasoning" } }, expect.anything());
+  await type("/install ");
+  expect(container.querySelectorAll('[role="option"][disabled]')).toHaveLength(2);
+  const stored = JSON.parse(sessionStorage.getItem("agent-ui-creator-conversation:workspace-1")!);
+  expect(stored.agentMessages).toEqual([]);
+});
+it("empty install searches remain empty and action commands execute directly", async () => {
+  await type("/install unmatched"); expect(container.querySelectorAll('[role="option"]')).toHaveLength(0);
+  expect(container.textContent).toContain("No matching capabilities");
+  await enter(await type("/sync"));
+  expect(executeCreatorCommand).toHaveBeenCalledWith("workspace-1", { id: "sync", args: {} }, expect.anything());
+  expect(fetchMock.mock.calls.every(call => String(call[0]).includes("commands"))).toBe(true);
 });

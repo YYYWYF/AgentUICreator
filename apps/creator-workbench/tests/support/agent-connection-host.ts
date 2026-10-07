@@ -15,7 +15,7 @@ import { createCreatorHostPreviewPlugin } from "../../../../packages/creator/src
 const repository = fileURLToPath(new URL("../../../../", import.meta.url));
 
 /** Disposable generated Host: no mock package or Mock Vite plugin is installed. */
-export async function createConnectionHostFixture(options: { themeCommands?: boolean } = {}) {
+export async function createConnectionHostFixture(options: { themeCommands?: boolean; webSearchCommands?: boolean } = {}) {
   const root = realpathSync(await mkdtemp(path.join(tmpdir(), "creator-connection-host-")));
   const hostRoot = path.join(root, "host");
   const creatorRoot = path.join(root, "creator");
@@ -44,6 +44,13 @@ export async function createConnectionHostFixture(options: { themeCommands?: boo
     finishRun = () => {
       event({ type: "TEXT_MESSAGE_CONTENT", messageId, delta: " wire:finished" });
       event({ type: "TEXT_MESSAGE_END", messageId });
+      if (options.webSearchCommands) {
+        const toolCallId = `search-${input.runId}`;
+        event({ type: "TOOL_CALL_START", toolCallId, toolCallName: "web_search", parentMessageId: messageId });
+        event({ type: "TOOL_CALL_ARGS", toolCallId, delta: JSON.stringify({ query: "command capability" }) });
+        event({ type: "TOOL_CALL_END", toolCallId });
+        event({ type: "TOOL_CALL_RESULT", toolCallId, messageId: `result-${input.runId}`, role: "tool", content: JSON.stringify({ results: [{ title: "Installed search capability", domain: "example.com" }] }) });
+      }
       event({ type: "RUN_FINISHED", threadId: input.threadId, runId: input.runId });
       response.end();
     };

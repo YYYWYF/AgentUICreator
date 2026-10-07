@@ -44,7 +44,7 @@ describe("Official Resource package installation", () => {
     expect(command.command).toBe("pnpm");
     expect(command.args[0]).toBe("add");
     expect(command.args.slice(1)).toHaveLength(Object.keys(f.requirements).length);
-    expect(command.args).toContain("@assistant-ui/react-generative-ui@0.0.21");
+    expect(command.args).toContain("@assistant-ui/react-generative-ui@0.0.22");
     expect(command.args).toContain("react-markdown@10.1.0");
     expect(command.args).toContain("remark-gfm@4.0.1");
   });
@@ -66,7 +66,7 @@ describe("Official Resource package installation", () => {
     await expect(ensureResourcePackages(f.root, f.closure, f.run)).rejects.toMatchObject({ code: "RESOURCE_CONFLICT" });
     expect(f.run).not.toHaveBeenCalled();
     expect(await readFile(path.join(f.root, "package.json"), "utf8")).toBe(before);
-    await installed(f.root, "@assistant-ui/react-generative-ui", "0.0.21");
+    await installed(f.root, "@assistant-ui/react-generative-ui", "0.0.22");
     const manifest = JSON.parse(before); manifest.dependencies["@assistant-ui/react-generative-ui"] = "0.0.18";
     await writeFile(path.join(f.root, "package.json"), JSON.stringify(manifest));
     await expect(ensureResourcePackages(f.root, f.closure, f.run)).rejects.toMatchObject({ code: "RESOURCE_CONFLICT" });

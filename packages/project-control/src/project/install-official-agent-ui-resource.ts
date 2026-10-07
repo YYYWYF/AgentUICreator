@@ -8,10 +8,15 @@ import { inspectUIComposition } from "./project-inspector";
 import { inspectOfficialResourceImplementation } from "./official-resource-inspection";
 import { verifyUIProject } from "../verify-ui";
 
-const installations = new Map<string, Promise<void>>();
+export interface OfficialResourceInstallResult { resourceId: string; changed: boolean; reenabled: boolean; verification?: Awaited<ReturnType<typeof verifyUIProject>> }
+const installations = new Map<string, Promise<OfficialResourceInstallResult>>();
 
-async function install(projectRoot: string, resourceId: string, runPackages?: ResourcePackageRunner): Promise<void> {
+async function install(projectRoot: string, resourceId: string, runPackages?: ResourcePackageRunner): Promise<OfficialResourceInstallResult> {
   const resource = resolveOfficialResource(resourceId);
+  const sourcesBefore = await inspectScenarioResources(projectRoot);
+  const before = inspectOfficialResourceImplementation(resource, await inspectUIComposition(projectRoot), sourcesBefore);
+  if (before.status === "conflict") throw new OfficialResourceError("RESOURCE_CONFLICT", "Resource installation conflicts with the current project.", before);
+  if (before.status === "ready") return { resourceId, changed: false, reenabled: false };
   const implementation = resource.implementation;
   const registry = await loadAgentUISourceRegistry();
   const itemId = "sourceItemId" in implementation ? implementation.sourceItemId : `plugin/${implementation.pluginId}`;
@@ -21,7 +26,9 @@ async function install(projectRoot: string, resourceId: string, runPackages?: Re
   await ensureResourcePackages(projectRoot, closure, runPackages);
   if (implementation.type === "plugin") await installDemoPlugin(projectRoot, implementation.pluginId);
   else {
-    await installOptionalAgentUIResource(projectRoot, implementation.sourceItemId);
+    if (!before.closure.every(item => item && ["managed", "customized"].includes(item.status))) {
+      await installOptionalAgentUIResource(projectRoot, implementation.sourceItemId);
+    }
     if (implementation.type === "source-plugin") await activateOfficialResourcePlugin(projectRoot, implementation);
   }
   const verification = await verifyUIProject(projectRoot);
@@ -30,15 +37,16 @@ async function install(projectRoot: string, resourceId: string, runPackages?: Re
   const composition = await inspectUIComposition(projectRoot);
   const inspection = inspectOfficialResourceImplementation(resource, composition, sources);
   if (inspection.status !== "ready") throw new OfficialResourceError(inspection.status === "conflict" ? "RESOURCE_CONFLICT" : "RESOURCE_INSTALL_FAILED", "Installed resource is not ready.", inspection);
+  return { resourceId, changed: true, reenabled: before.status === "disabled", verification };
 }
 
 /** Product-level installer; serialize dependency changes for each project. */
-export async function installOfficialAgentUIResource(projectRoot: string, resourceId: string, options: { runPackages?: ResourcePackageRunner } = {}): Promise<void> {
+export async function installOfficialAgentUIResource(projectRoot: string, resourceId: string, options: { runPackages?: ResourcePackageRunner } = {}): Promise<OfficialResourceInstallResult> {
   const root = await realpath(projectRoot);
   const previous = installations.get(root) ?? Promise.resolve();
   const current = previous.catch(() => {}).then(() => install(root, resourceId, options.runPackages));
   installations.set(root, current);
-  try { await current; }
+  try { return await current; }
   catch (error) {
     if (error instanceof OfficialResourceError) throw error;
     throw new OfficialResourceError("RESOURCE_INSTALL_FAILED", "Official resource installation failed.", error instanceof Error ? {

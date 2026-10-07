@@ -30,6 +30,7 @@ export class CreatorWorkspaceManager {
   #state: CreatorWorkspaceState = { status: "none" };
   #python: PythonCreatorProcessManager | undefined;
   #activeRequests = new Set<() => void>();
+  #mutationPending = false;
   #queue: Promise<unknown> = Promise.resolve();
 
   constructor(options: {
@@ -52,17 +53,22 @@ export class CreatorWorkspaceManager {
 
   hasActiveCreatorRequests(): boolean { return this.#activeRequests.size > 0; }
 
-  runProjectOperation<T>(workspaceId: string, operation: (projectRoot: string) => Promise<T>): Promise<T> {
-    return this.#exclusive(async () => {
+  runProjectOperation<T>(workspaceId: string, operation: (projectRoot: string) => Promise<T>, options: { mutation?: boolean } = {}): Promise<T> {
+    if (options.mutation && (this.#mutationPending || this.hasActiveCreatorRequests())) return Promise.reject(new CreatorWorkspaceError("CREATOR_COMMAND_BUSY", "CREATOR_COMMAND_BUSY"));
+    if (options.mutation) this.#mutationPending = true;
+    const result = this.#exclusive(async () => {
       const state = this.#state;
       if ((state.status !== "ready") || state.workspace.id !== workspaceId) {
         throw new CreatorWorkspaceError("CREATOR_WORKSPACE_CHANGED", "当前项目已改变，请刷新面板后重试。");
       }
+      if (options.mutation && this.hasActiveCreatorRequests()) throw new CreatorWorkspaceError("CREATOR_COMMAND_BUSY", "CREATOR_COMMAND_BUSY");
       return operation(state.workspace.projectRoot);
     });
+    return result.finally(() => { if (options.mutation) this.#mutationPending = false; });
   }
 
   trackRequest(abort: () => void): () => void {
+    if (this.#mutationPending) throw new CreatorWorkspaceError("CREATOR_COMMAND_BUSY", "CREATOR_COMMAND_BUSY");
     this.#activeRequests.add(abort);
     return () => this.#activeRequests.delete(abort);
   }

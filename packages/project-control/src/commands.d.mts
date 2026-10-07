@@ -5,3 +5,5 @@ export function getAvailableAgentUIThemes(root: string): Promise<ThemeCatalog>;
 export function setAgentUITheme(root: string, theme: string, commit: (change: ThemeChange) => Promise<{ runId?: string; verification: ThemeVerification }>): Promise<{
   current: string; changed: boolean; changedPaths: string[]; validation: "passed"; runId?: string; verification: ThemeVerification;
 }>;
+
+export function synchronizeAgentUIPluginRegistry(root: string): Promise<{ changed: boolean; path: string; pluginIds: string[] }>;

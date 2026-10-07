@@ -41,4 +41,8 @@ export type ResourcePackageRunner = (projectRoot: string, command: ResourcePacka
 export function inspectOfficialResourceImplementation(resource: OfficialAgentUIResource, composition: ResourceCompositionInspection, sources: ResourceSourceInspection): ResourceImplementationInspection;
 export function inspectScenarioResources(projectRoot: string): Promise<ResourceSourceInspection>;
 export function mergeOptionalResourceInspection<T extends ResourceSourceInspection>(normal: T, resources: ResourceSourceInspection): Promise<T>;
-export function installOfficialAgentUIResource(projectRoot: string, resourceId: string, options?: { runPackages?: ResourcePackageRunner }): Promise<void>;
+export function installOfficialAgentUIResource(projectRoot: string, resourceId: string, options?: { runPackages?: ResourcePackageRunner }): Promise<OfficialResourceInstallResult>;
+
+export interface OfficialResourceCatalogEntry { id: string; label: string; description?: string; status: "ready" | "missing" | "disabled" | "conflict"; installable: boolean }
+export interface OfficialResourceInstallResult { resourceId: string; changed: boolean; reenabled: boolean; verification?: { status: "passed" | "failed"; errors: unknown[]; warnings: unknown[] } }
+export function inspectOfficialAgentUIResourceCatalog(root: string): Promise<OfficialResourceCatalogEntry[]>;

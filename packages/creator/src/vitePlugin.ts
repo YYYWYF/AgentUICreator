@@ -206,7 +206,9 @@ export function createCreatorDevServerPlugin({
           gateError(response, error);
           return;
         }
-        const untrack = workspaceManager?.trackRequest(() => response.destroy());
+        let untrack: (() => void) | undefined;
+        try { untrack = workspaceManager?.trackRequest(() => response.destroy()); }
+        catch (error) { gateError(response, error); return; }
         if (untrack !== undefined) response.once("close", untrack);
         await proxyPythonCreatorRequest(request, response, manager, route);
         untrack?.();

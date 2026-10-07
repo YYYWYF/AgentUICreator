@@ -1,4 +1,4 @@
-import { loadAgentUISourceRegistry, isOptionalAgentUISourceItem } from "@agent-ui/source-registry";
+import { loadAgentUISourceRegistry, isOptionalAgentUISourceItem, officialResourceRegistry } from "@agent-ui/source-registry";
 import { inspectAgentUISources } from "./source-registry/index";
 import { applyAgentUISourceProjectMutation, recoverPendingAgentUISourceProjectMutation } from "./source-registry/project-mutation";
 import { AgentUISourceError } from "./source-registry/path-policy";
@@ -11,7 +11,7 @@ export async function installOptionalAgentUIResource(projectRoot: string, source
   const inspection = await inspectAgentUISources(projectRoot, config);
   const item = inspection.items.find(item => item.id === sourceItemId);
   const definition = (await loadAgentUISourceRegistry()).byId.get(sourceItemId);
-  if (!item || !definition || !isOptionalAgentUISourceItem(definition)) throw new Error("Optional Agent UI resource is unavailable");
+  if (!item || !definition || !(isOptionalAgentUISourceItem(definition) || officialResourceRegistry.resources.some(resource => "sourceItemId" in resource.implementation && resource.implementation.sourceItemId === sourceItemId))) throw new Error("Optional Agent UI resource is unavailable");
   const missing = item.resolvedRequirements.filter(requirement => !requirement.compatible).map(({ name, required }) => ({ name, required }));
   if (missing.length) throw new AgentUISourceError("AGENT_UI_PACKAGE_REQUIREMENTS_UNMET", `缺少依赖：${missing.map(item => `${item.name} ${item.required}`).join(", ")}`, missing);
   await applyAgentUISourceProjectMutation(projectRoot, { itemId: sourceItemId, expectedStateHash: inspection.stateHash }, { config });

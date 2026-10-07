@@ -3,6 +3,7 @@ export interface OfficialAgentUIResource {
   readonly id: string;
   readonly label: string;
   readonly description?: string;
+  readonly discoverable?: boolean;
   /** Development-only implementation metadata. Never serialize into ordinary UI DTOs. */
   readonly implementation:
     | { readonly type: "source"; readonly sourceItemId: string }

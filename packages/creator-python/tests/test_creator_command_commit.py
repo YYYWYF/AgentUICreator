@@ -127,3 +127,18 @@ def test_success_is_verified_only_after_violet_is_on_disk(tmp_path, monkeypatch)
     assert response.status_code == 200
     assert calls == [change["after"]]
     assert CreatorTransactionStore(tmp_path).load(response.json()["runId"]).validation_revision == 1
+
+
+def test_host_mutation_guard_preserves_writing_lock_and_pending_question_admission(tmp_path):
+    app, client, _, change = setup(tmp_path)
+    with client:
+        app.state.pending_creator_questions["thread"] = object()
+        assert client.post("/creator-command-mutation", json={"action": "acquire"}).json()["code"] == "CREATOR_COMMAND_BUSY"
+        app.state.pending_creator_questions.clear()
+        token = client.post("/creator-command-mutation", json={"action": "acquire"}).json()["token"]
+        assert client.post("/creator-command-mutation", json={"action": "acquire"}).status_code == 409
+        assert client.post("/creator-command-commit", json=change).json()["code"] == "CREATOR_COMMAND_BUSY"
+        assert client.post("/creator", json={"threadId": "new-thread", "runId": "new-run", "messages": [], "tools": [], "context": [], "state": {}, "forwardedProps": {}}).json()["code"] == "CREATOR_COMMAND_BUSY"
+        assert client.post("/creator-command-mutation", json={"action": "release", "token": "wrong"}).status_code == 409
+        assert client.post("/creator-command-mutation", json={"action": "release", "token": token}).status_code == 200
+        assert client.post("/creator-command-commit", json=change).status_code == 200

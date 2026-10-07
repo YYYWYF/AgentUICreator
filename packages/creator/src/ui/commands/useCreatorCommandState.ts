@@ -34,27 +34,40 @@ export function useCreatorCommandState(input: string, workspaceId: string | unde
   }, [slash, workspaceId]);
   useEffect(() => { setSelected(0); setNavigated(false); setDismissed(undefined); }, [input, workspaceId]);
   const command = slash ? catalog.commands.find(command => command.id === parsed.id) : undefined;
-  const filteredOptions = command && parsed.kind === "command" ? command.options.filter(option => option.id.toLowerCase().includes(parsed.args.join(" ").toLowerCase())) : [];
-  const items: CreatorCommandMenuItem[] = !slash ? [] : command ? (filteredOptions.length ? filteredOptions : command.options)
-    .map(option => ({ id: option.id, label: themeLabel(option.id), current: option.id === command.current })) : catalog.commands
-    .filter(command => command.id.startsWith(parsed.id))
-    .map(command => ({ id: command.id, label: messages.theme, description: messages.themeDescription }));
+  const copy = messages as Record<string, string>;
+  const optionLabel = (commandId: string, id: string, fallback?: string) => commandId === "theme" ? themeLabel(id) : copy[`resource_${id}`] ?? fallback ?? id;
+  const query = parsed.kind === "command" ? parsed.args.join(" ").toLowerCase() : "";
+  const filteredOptions = command?.options.filter(option => [option.id, optionLabel(command.id, option.id, option.label), option.description ?? ""].some(value => value.toLowerCase().includes(query))) ?? [];
+  const options = command?.id === "theme" && !filteredOptions.length ? command.options : filteredOptions;
+  const statusLabel = (status: string | undefined) => status === "installed" ? messages.alreadyInstalled : status === "disabled" ? messages.reenable : status === "conflict" ? messages.resourceConflict : status === "available" ? messages.available : undefined;
+  const items: CreatorCommandMenuItem[] = !slash ? [] : command?.kind === "choice" ? options
+    .map(option => ({ id: option.id, label: optionLabel(command.id, option.id, option.label), current: option.id === command.current,
+      ...(option.disabled === undefined ? {} : { disabled: option.disabled }), ...(statusLabel(option.status) ? { description: statusLabel(option.status)! } : {}) })) : catalog.commands
+    .filter(entry => entry.id.startsWith(parsed.id))
+    .map(entry => ({ id: entry.id, label: copy[entry.id] ?? entry.id, description: copy[`${entry.id}Description`] ?? entry.id }));
   function themeLabel(id: string) { return ({ light: messages.light, dark: messages.dark, violet: messages.violet } as Record<string, string>)[id] ?? id; }
   const active = Math.min(selected, Math.max(0, items.length - 1));
   const open = slash && dismissed !== input;
-  const pick = (id: string) => command ? { execute: `/theme ${id}` } : { input: `/${id} ` };
+  const pick = (id: string) => {
+    if (items.find(item => item.id === id)?.disabled) return { handled: true };
+    if (command?.kind === "choice") return { execute: `/${command.id} ${id}` };
+    return catalog.commands.find(entry => entry.id === id)?.kind === "action" ? { execute: `/${id}` } : { input: `/${id} ` };
+  };
   const keyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (!open || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
     if (event.key === "Escape") { event.preventDefault(); setDismissed(input); return { handled: true }; }
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-      event.preventDefault(); setNavigated(true); setSelected(items.length ? (active + (event.key === "ArrowDown" ? 1 : items.length - 1)) % items.length : 0); return { handled: true };
+      event.preventDefault(); setNavigated(true); setSelected(() => {
+        for (let step = 1; step <= items.length; step++) { const index = (active + (event.key === "ArrowDown" ? step : items.length - step)) % items.length; if (!items[index]?.disabled) return index; }
+        return active;
+      }); return { handled: true };
     }
     if (event.key === "Enter" && !event.shiftKey && items[active]) {
       // Explicit arguments are authoritative: never silently substitute a filtered option.
-      if (command && parsed.kind === "command" && parsed.args.length && !navigated) return;
+      if (command?.id === "theme" && parsed.kind === "command" && parsed.args.length && !navigated) return;
       event.preventDefault(); return { handled: true, ...pick(items[active]!.id) };
     }
   };
-  const notice = error ?? (loading ? messages.loading : command && !filteredOptions.length ? formatLocaleMessage(messages.unknownTheme, parsed.kind === "command" ? parsed.args.join(" ") : "") : !items.length ? (parsed.kind === "command" && parsed.id ? formatLocaleMessage(messages.unknownCommand, parsed.id) : messages.unavailable) : undefined);
-  return { parsed, catalog, open, items, active, select: setSelected, keyDown, pick, themeLabel, refresh: load, show: () => setDismissed(undefined), notice, title: command ? messages.theme : messages.title };
+  const notice = error ?? (loading ? messages.loading : command?.kind === "choice" && !filteredOptions.length ? command.id === "theme" ? formatLocaleMessage(messages.unknownTheme, query) : messages.noMatches : !items.length ? (parsed.kind === "command" && parsed.id ? formatLocaleMessage(messages.unknownCommand, parsed.id) : messages.unavailable) : undefined);
+  return { parsed, catalog, open, items, active, select: setSelected, keyDown, pick, themeLabel, refresh: load, show: () => setDismissed(undefined), notice, optionLabel, title: command ? copy[command.id] ?? command.id : messages.title };
 }

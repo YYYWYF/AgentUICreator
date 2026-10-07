@@ -4,14 +4,28 @@ import { afterEach, expect, it, vi } from "vitest";
 vi.mock("@agent-ui/project-control/commands", () => ({
   getAvailableAgentUIThemes: vi.fn(async () => ({ current: "light", options: [{ id: "light" }, { id: "violet" }] })),
   setAgentUITheme: vi.fn(),
+  synchronizeAgentUIPluginRegistry: vi.fn(async () => ({ changed: true, path: "plugins/registry.generated.ts", pluginIds: [] })),
+
+  inspectOfficialAgentUIResourceCatalog: vi.fn(async () => [{ id: "reasoning", label: "Reasoning", status: "missing", installable: true }, { id: "chart-message", label: "Charts", status: "ready", installable: false }]),
+  resolveOfficialResource: (id: string) => { if (id === "unknown") throw Object.assign(new Error("unknown"), { code: "RESOURCE_UNKNOWN" }); return { id, discoverable: id !== "demo" }; },
+  installOfficialAgentUIResource: vi.fn(async (_root: string, resourceId: string) => ({ resourceId, changed: true, reenabled: false, verification: { status: "passed", errors: [], warnings: [] } })),
 }));
+import { installOfficialAgentUIResource, inspectOfficialAgentUIResourceCatalog } from "@agent-ui/project-control/resources";
+import { synchronizeAgentUIPluginRegistry } from "@agent-ui/project-control/commands";
 import { createCreatorCommandHandler } from "../src/commands/command-api.js";
 import type { CreatorWorkspaceManager } from "../src/workspace/CreatorWorkspaceManager.js";
 import { setAgentUITheme } from "@agent-ui/project-control/commands";
 const servers: ReturnType<typeof createServer>[] = [];
 afterEach(async () => { vi.clearAllMocks(); await Promise.all(servers.splice(0).map(server => new Promise<void>(resolve => server.close(() => resolve())))); });
 async function host(active = false) {
-  const workspaces = { hasActiveCreatorRequests: () => active, runProjectOperation: async (id: string, run: (root: string) => unknown) => { if (id !== "project-1") throw new Error("CREATOR_WORKSPACE_CHANGED"); return run("/project"); } } as unknown as CreatorWorkspaceManager;
+  const guard = createServer(async (request, response) => {
+    let body = ""; for await (const chunk of request) body += chunk;
+    const payload = JSON.parse(body);
+    response.setHeader("Content-Type", "application/json");
+    response.end(JSON.stringify(payload.action === "acquire" ? { token: "token" } : { released: true }));
+  }); servers.push(guard);
+  await new Promise<void>(resolve => guard.listen(0, "127.0.0.1", resolve));
+  const workspaces = { ensureCreatorRuntime: () => ({ ensureStarted: async () => ({ host: "127.0.0.1", port: (guard.address() as AddressInfo).port, authToken: "token" }) }), hasActiveCreatorRequests: () => active, runProjectOperation: async (id: string, run: (root: string) => unknown) => { if (id !== "project-1") throw new Error("CREATOR_WORKSPACE_CHANGED"); return run("/project"); } } as unknown as CreatorWorkspaceManager;
   const server = createServer(createCreatorCommandHandler(workspaces, undefined, undefined)); servers.push(server);
   await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
   return `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
@@ -47,4 +61,44 @@ it("uses the same hashed workspace identity as legacy Host Preview", async () =>
   const id = createHash("sha256").update(realpathSync(root)).digest("hex");
   expect((await fetch(base, { headers: { "x-agent-ui-workspace-id": id } })).status).toBe(200);
   expect((await fetch(base, { headers: { "x-agent-ui-workspace-id": root } })).status).toBe(409);
+});
+
+async function execute(base: string, data: unknown) { return fetch(base + "/execute", { method: "POST", headers: { "Content-Type": "application/json", "x-agent-ui-workspace-id": "project-1" }, body: JSON.stringify(data) }); }
+it("catalog translates authoritative installability into disabled options", async () => {
+  const data = await (await fetch(await host(), { headers: { "x-agent-ui-workspace-id": "project-1" } })).json();
+  expect(data.commands.map((command: { id: string }) => command.id)).toEqual(["theme", "install", "sync"]);
+  expect(data.commands[1].options[1]).toMatchObject({ disabled: true, status: "installed" });
+  expect(inspectOfficialAgentUIResourceCatalog).toHaveBeenCalledWith("/project");
+});
+it.each([{ id: "install", args: { resourceId: "reasoning", packages: ["bad"] } }, { id: "sync", args: { command: "bad" } }, { id: "install", args: {}, extra: true }])("rejects extra protocol fields", async input => {
+  expect((await (await execute(await host(), input)).json()).code).toBe("CREATOR_COMMAND_REQUEST_INVALID");
+  expect(installOfficialAgentUIResource).not.toHaveBeenCalled();
+});
+it.each([["unknown", "RESOURCE_UNKNOWN"], ["demo", "RESOURCE_NOT_DISCOVERABLE"]])("rejects resource %s", async (resourceId, code) => {
+  expect((await (await execute(await host(), { id: "install", args: { resourceId } })).json()).code).toBe(code);
+  expect(installOfficialAgentUIResource).not.toHaveBeenCalled();
+});
+it("install returns true validation without a fake transaction; sync stays unverified", async () => {
+  const base = await host();
+  const installed = await (await execute(base, { id: "install", args: { resourceId: "reasoning" } })).json();
+  expect(installed).toMatchObject({ value: "reasoning", changed: true, receipt: { files: [], verification: { status: "changed-and-statically-verified" } } });
+  expect(installed.receipt.transaction).toBeUndefined();
+  const sync = await (await execute(base, { id: "sync", args: {} })).json();
+  expect(sync.receipt.verification.status).toBe("changed-unverified"); expect(sync.receipt.transaction).toBeUndefined();
+  expect(synchronizeAgentUIPluginRegistry).toHaveBeenCalledWith("/project");
+});
+it.each(["install", "sync"])("rejects active Creator for %s", async id => {
+  expect((await (await execute(await host(true), { id, args: id === "install" ? { resourceId: "reasoning" } : {} })).json()).code).toBe("CREATOR_COMMAND_BUSY");
+});
+
+it("already-ready API installs return a no-op without fake verification or Undo", async () => {
+  vi.mocked(installOfficialAgentUIResource).mockResolvedValueOnce({ resourceId: "reasoning", changed: false, reenabled: false });
+  const result = await (await execute(await host(), { id: "install", args: { resourceId: "reasoning" } })).json();
+  expect(result).toMatchObject({ changed: false, receipt: { validations: [], verification: { status: "no-project-change" } } });
+  expect(result.receipt.transaction).toBeUndefined();
+});
+it("authoritative resource conflicts cannot produce a success receipt", async () => {
+  vi.mocked(installOfficialAgentUIResource).mockRejectedValueOnce(Object.assign(new Error("conflict"), { code: "RESOURCE_CONFLICT" }));
+  const result = await execute(await host(), { id: "install", args: { resourceId: "reasoning" } });
+  expect(result.status).toBe(409); expect((await result.json()).code).toBe("RESOURCE_CONFLICT");
 });
