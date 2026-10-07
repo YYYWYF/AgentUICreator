@@ -88,8 +88,25 @@ export function applySearchPresentationLabels(source, localPath) {
   return source;
 }
 
+export const THREAD_LIST_GROUP_IDENTITY_SEAM_ID = "agent-ui-thread-list-stable-group-identity";
+
+function applyThreadListGroupIdentity(source, localPath) {
+  if (localPath !== "components/assistant-ui/elements/thread-list.aui.tsx") return source;
+  for (const [before, after] of [
+    ["export type ThreadListGroup = { label: string; indices: number[] };", "export type ThreadListGroup = { id: string; label: string; indices: number[] };"],
+    ["      const label = dateGroupLabel(", "      const id = dateGroupLabel("],
+    ["      if (lastGroup?.label === label) {", "      if (lastGroup?.id === id) {"],
+    ["    <Fragment key={group.label}>", "    <Fragment key={group.id}>"],
+    ["        result.push({ label, indices: [index] });", "        const label = id;\n        result.push({ id, label, indices: [index] });"],
+  ]) {
+    if (source.split(before).length !== 2) throw new Error(`${THREAD_LIST_GROUP_IDENTITY_SEAM_ID}: upstream anchor changed in ${localPath}: ${JSON.stringify(before)}`);
+    source = source.replace(before, after);
+  }
+  return source;
+}
+
 export function applyProductAdaptations(source, localPath) {
-  let installed = applyAgentUIPortalContainerBridge(source, localPath);
+  let installed = applyThreadListGroupIdentity(applyAgentUIPortalContainerBridge(source, localPath), localPath);
   if (localPath === "components/assistant-ui/elements/quote.aui.tsx") {
     installed = replaceExactlyOnce(installed, '  SelectionToolbarPrimitive,\n', '', localPath);
     installed = replaceExactlyOnce(installed, 'import { QuoteIcon', 'import { SelectionToolbarPrimitive } from "../../../../../quote-selection-adapter.js";\nimport { QuoteIcon', localPath);

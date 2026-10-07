@@ -47,6 +47,11 @@ async function createGitFixture() {
 }
 
 async function writeFixtureFile(root, relativePath, content) {
+  if (relativePath === "assistant-ui-upgrade-target.json") {
+    const target = JSON.parse(content);
+    target.packages["@assistant-ui/react-lexical"] ??= "0.2.15";
+    content = JSON.stringify(target, null, 2);
+  }
   const filePath = path.join(root, relativePath);
   await mkdir(path.dirname(filePath), { recursive: true });
   await writeFile(filePath, content, "utf8");
@@ -67,6 +72,12 @@ function langGraphPackageManifestFixture(version = "0.14.30") {
 }
 
 function packageArtifactFixture(name, version) {
+  if (name === "@assistant-ui/react-lexical") return {
+    manifest: { name, version, peerDependencies: {
+      "@assistant-ui/react": ">=0.0.0",
+      ...Object.fromEntries(["lexical", "@lexical/react", "@lexical/utils", "@lexical/history", "@lexical/plain-text"].map(name => [name, "^0.52.0"])),
+    } }, types: "", source: "mock lexical package",
+  };
   if (name === "@assistant-ui/react-langgraph") {
     return {
       manifest: langGraphPackageManifestFixture(version),
@@ -598,6 +609,7 @@ describe("assistant-ui upgrade drill", () => {
 if [ "$1" = "-C" ] && [ "$3" = "rev-parse" ]; then
   case "$4" in
     @assistant-ui/react@0.15.23*) printf '%s\\n' '3542d602272a62eddeb8989befc910841c267022'; exit 0 ;;
+    @assistant-ui/react-lexical@0.2.15*) printf '%s\\n' 'f008537f39f0936992b0f6d2433c092935df5faf'; exit 0 ;;
     @assistant-ui/react-ag-ui@0.0.63*) printf '%s\\n' '3542d602272a62eddeb8989befc910841c267022'; exit 0 ;;
     @assistant-ui/react-generative-ui@0.0.22*) printf '%s\\n' '3542d602272a62eddeb8989befc910841c267022'; exit 0 ;;
   esac
@@ -682,6 +694,7 @@ exit 99
       repoRoot: root,
       remoteRevisionResolver: async () => "b".repeat(40),
       sourceCacheEnsurer: async () => {},
+      peerVersionsResolver: async () => ["0.52.0", "0.52.1", "0.53.0"],
       packageArtifactResolver: async (_repoRoot, name, version) => packageArtifactFixture(name, version),
       langGraphSourceResolver: async () => langGraphSourceFixture(),
       latestVersionResolver: async () => "0.0.61",
@@ -761,6 +774,18 @@ exit 99
       "  '@ag-ui/client@0.0.59': {}",
       "",
     ].join("\n"));
+    const lexicalConsumers = [
+      ["packages/react/package.json", { peerDependencies: { lexical: "0.51.0", "@assistant-ui/react-lexical": "0.2.15" }, devDependencies: { lexical: "0.51.0", "@assistant-ui/react-lexical": "0.2.15" } }],
+      ["examples/creator-host-sandbox/package.json", { dependencies: { lexical: "0.51.0", "@assistant-ui/react-lexical": "0.2.15" } }],
+      ...["composer-input", "edit-composer"].map(suffix => [
+        `packages/source-registry/registry/items/plugin-assistant-ui-lexical-${suffix}/item.json`,
+        { packages: { lexical: "0.51.0", "@assistant-ui/react-lexical": "0.2.15" } },
+      ]),
+    ];
+    for (const [file, manifest] of lexicalConsumers) {
+      const existing = file === "packages/react/package.json" ? JSON.parse(await readFile(path.join(root, file), "utf8")) : {};
+      await writeFixtureFile(root, file, JSON.stringify({ ...existing, ...manifest }));
+    }
     await git(root, ["add", "."]);
     await git(root, ["commit", "--quiet", "-m", "fixture"]);
 
@@ -771,6 +796,7 @@ exit 99
       repoRoot: root,
       remoteRevisionResolver: async () => revision,
       sourceCacheEnsurer: async () => {},
+      peerVersionsResolver: async () => ["0.52.0", "0.52.1", "0.53.0"],
       packageArtifactResolver: async (_repoRoot, name, version) => packageArtifactFixture(name, version),
       langGraphSourceResolver: async () => langGraphSourceFixture(),
       latestVersionResolver: async (_repoRoot, name) => {
@@ -778,6 +804,7 @@ exit 99
         return name === "@assistant-ui/react-langgraph"
           ? "0.14.30"
           : {
+              "@assistant-ui/react-lexical": "0.3.0",
               "@assistant-ui/react": "0.15.21",
               "@assistant-ui/react-ag-ui": "0.0.60",
               "@assistant-ui/react-markdown": "0.14.16",
@@ -822,6 +849,14 @@ exit 99
       },
     });
 
+    for (const [file, manifest] of lexicalConsumers) {
+      const updated = JSON.parse(await readFile(path.join(root, file), "utf8"));
+      for (const field of Object.keys(manifest)) {
+        expect(updated[field].lexical).toBe("0.52.1");
+        expect(updated[field]["@assistant-ui/react-lexical"]).toBe("0.3.0");
+      }
+    }
+    expect(await readFile(path.join(root, "assistant-ui-upgrade-target.json"), "utf8")).toContain('"@assistant-ui/react-lexical": "0.3.0"');
     const installIndex = commandCalls.findIndex(({ file, args }) =>
       file === "pnpm" && args.join(" ") === "install --lockfile-only",
     );
@@ -1056,6 +1091,7 @@ exit 99
       },
       sourceCacheEnsurer: async () => {},
       latestVersionResolver: async (_root, name) => name === "@assistant-ui/react-generative-ui" ? "0.0.22" : target.packages[name],
+      peerVersionsResolver: async () => ["0.52.0", "0.52.1", "0.53.0"],
       packageArtifactResolver: async (_root, name, version) => packageArtifactFixture(name, version),
       langGraphSourceResolver: async () => langGraphSourceFixture(),
       compatibilityChecker: async () => ({ compatible: true, status: "PASS", pinnedClientVersion: "0.0.59" }),
@@ -1119,4 +1155,28 @@ exit 99
     expect(await checkGenerativeUiResource({ repoRoot: root, target: upgradedTarget }))
       .toContain("integration-generative-ui/item.json @assistant-ui/react-generative-ui is 0.0.21; expected 0.0.22");
   });
+});
+
+it.each(["React incompatibility", "split Lexical family"])("fails before workspace mutation on %s", async failure => {
+  const root = await createGitFixture();
+  await createReportFixture(root);
+  const target = JSON.parse(await readFile(path.join(root, "assistant-ui-upgrade-target.json"), "utf8"));
+  const commandCalls = [];
+  await expect(updateAssistantUi({
+    repoRoot: root,
+    remoteRevisionResolver: async () => "b".repeat(40),
+    sourceCacheEnsurer: async () => {},
+    latestVersionResolver: async (_root, name) => name === "@assistant-ui/react-lexical" ? "0.3.0" : target.packages[name],
+    packageArtifactResolver: async (_root, name, version) => {
+      const artifact = packageArtifactFixture(name, version);
+      if (name === "@assistant-ui/react-lexical" && failure === "React incompatibility") artifact.manifest.peerDependencies["@assistant-ui/react"] = "^0.16.0";
+      return artifact;
+    },
+    peerVersionsResolver: async (_root, name) => [failure === "split Lexical family" && name === "lexical" ? "0.52.2" : "0.52.1"],
+    compatibilityChecker: async () => ({ compatible: true }),
+    langGraphInstalledCompatibilityChecker: async () => ({ compatible: true }),
+    commandRunner: async (...args) => commandCalls.push(args),
+  })).rejects.toThrow(failure === "React incompatibility" ? "requires @assistant-ui/react" : "one supported Lexical release family");
+  expect(commandCalls).toEqual([]);
+  expect(await git(root, ["status", "--porcelain=v1"])).toBe("");
 });

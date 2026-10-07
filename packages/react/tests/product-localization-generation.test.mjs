@@ -46,3 +46,20 @@ it("preserves JSX elements, icons, slots and styles when localizing generated ad
     expect(shape(localized), file).toEqual(shape(adapted));
   }
 });
+
+it("adapts Thread List identity before applying presentation-only localization", async () => {
+  const { applyProductAdaptations, THREAD_LIST_GROUP_IDENTITY_SEAM_ID } = await import("../scripts/sync-product-adapters.mjs");
+  const path = "components/assistant-ui/elements/thread-list.aui.tsx";
+  const vendor = await readFile(new URL(`../src/internal/vendor/assistant-ui/${path}`, import.meta.url), "utf8");
+  const adapted = applyProductAdaptations(vendor, path);
+  expect(adapted).toContain("id: string; label: string");
+  expect(adapted).toContain("const label = id;");
+  expect(adapted).toContain("lastGroup?.id === id");
+  expect(adapted).toContain("result.push({ id, label, indices: [index] });");
+  expect(adapted).toContain("key={group.id}");
+  expect(adapted).not.toContain("useAgentUILocale");
+  const localized = applyProductLocalization(adapted, path);
+  for (const anchor of ["id: string; label: string", "lastGroup?.id === id", "result.push({ id, label, indices: [index] });", "key={group.id}"]) expect(localized).toContain(anchor);
+  expect(localized).toContain("Today: messages.today");
+  expect(() => applyProductAdaptations(vendor.replace("lastGroup?.label === label", "lastGroup?.label === nextLabel"), path)).toThrow(THREAD_LIST_GROUP_IDENTITY_SEAM_ID);
+});

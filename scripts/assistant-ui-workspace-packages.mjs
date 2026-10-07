@@ -2,6 +2,7 @@ import { readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const dependencyFields = ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"];
+const manifestFields = [...dependencyFields, "packages"];
 const skippedDirectories = new Set([".git", "node_modules", ".pnpm-store", "dist", "build"]);
 
 export async function packageFiles(root) {
@@ -10,7 +11,7 @@ export async function packageFiles(root) {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
       if (entry.isDirectory() && !skippedDirectories.has(entry.name)) {
         await visit(path.join(directory, entry.name));
-      } else if (entry.isFile() && entry.name === "package.json") {
+      } else if (entry.isFile() && (entry.name === "package.json" || (entry.name === "item.json" && directory.startsWith(path.join(root, "packages/source-registry/registry/items"))))) {
         result.push(path.join(directory, entry.name));
       }
     }
@@ -20,6 +21,7 @@ export async function packageFiles(root) {
 }
 
 export function expectedDeclaration(field, declared, version, name) {
+  if (name === "@assistant-ui/react-lexical" || name === "lexical" || name.startsWith("@lexical/")) return version;
   if (field !== "peerDependencies" || declared === version) return version;
   if (declared.startsWith("^") && /^\^\d+\.\d+\.\d+(?:-[\w.-]+)?$/u.test(declared)) return `^${version}`;
   if (declared.startsWith("~") && /^~\d+\.\d+\.\d+(?:-[\w.-]+)?$/u.test(declared)) return `~${version}`;
@@ -32,7 +34,7 @@ export async function updatePackageManifests(root, packages) {
   for (const file of await packageFiles(root)) {
     const manifest = JSON.parse(await readFile(file, "utf8"));
     let modified = false;
-    for (const field of dependencyFields) {
+    for (const field of manifestFields) {
       for (const [name, version] of Object.entries(packages)) {
         const declared = manifest[field]?.[name];
         if (declared === undefined) continue;
@@ -55,7 +57,7 @@ export async function packageManifestMismatches(root, packages) {
   const mismatches = [];
   for (const file of await packageFiles(root)) {
     const manifest = JSON.parse(await readFile(file, "utf8"));
-    for (const field of dependencyFields) {
+    for (const field of manifestFields) {
       for (const [name, version] of Object.entries(packages)) {
         const declared = manifest[field]?.[name];
         if (declared === undefined) continue;

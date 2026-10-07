@@ -648,11 +648,6 @@
     "importText": "import { useAgentUILocale } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
-        "before": "export type ThreadListGroup = { label: string; indices: number[] };",
-        "after": "export type ThreadListGroup = { id: string; label: string; indices: number[] };",
-        "expectedCount": 1
-      },
-      {
         "before": "export const useThreadListGroups = (searchQuery = \"\") => {",
         "after": "export const useThreadListGroups = (searchQuery = \"\") => {\n  const messages = useAgentUILocale(\"threadList\");",
         "expectedCount": 1
@@ -663,28 +658,13 @@
         "expectedCount": 1
       },
       {
-        "before": "      const label = dateGroupLabel(",
-        "after": "      const id = dateGroupLabel(",
-        "expectedCount": 1
-      },
-      {
-        "before": "      if (lastGroup?.label === label) {",
-        "after": "      if (lastGroup?.id === id) {",
-        "expectedCount": 1
-      },
-      {
-        "before": "        result.push({ label, indices: [index] });",
-        "after": "        const label = ({ Today: messages.today, Yesterday: messages.yesterday, Earlier: messages.earlier } as Record<string, string>)[id] ?? id;\n        result.push({ id, label, indices: [index] });",
+        "before": "        const label = id;",
+        "after": "        const label = ({ Today: messages.today, Yesterday: messages.yesterday, Earlier: messages.earlier } as Record<string, string>)[id] ?? id;",
         "expectedCount": 1
       },
       {
         "before": "  }, [threadIds, threadItems, query, startOfToday]);",
         "after": "  }, [threadIds, threadItems, query, startOfToday, messages]);",
-        "expectedCount": 1
-      },
-      {
-        "before": "    <Fragment key={group.label}>",
-        "after": "    <Fragment key={group.id}>",
         "expectedCount": 1
       }
     ]

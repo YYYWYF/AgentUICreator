@@ -15,6 +15,8 @@ import { checkAgUiLockfile } from "./check-ag-ui-lockfile.mjs";
 import { checkGenerativeUiResource } from "./check-generative-ui-resource.mjs";
 import { updatePackageManifests } from "./assistant-ui-workspace-packages.mjs";
 
+import { REACT_LEXICAL, resolveLexicalPeerVersions } from "../packages/react/scripts/lexical-integration-contract.mjs";
+
 const execFile = promisify(execFileCallback);
 const defaultRepoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const UPSTREAM_REPOSITORY = "https://github.com/assistant-ui/assistant-ui.git";
@@ -42,6 +44,13 @@ async function latest(repoRoot, name) {
   });
   const value = JSON.parse(result.stdout);
   return Array.isArray(value) ? value.at(-1) : value;
+}
+
+async function publishedPeerVersions(repoRoot, name, range) {
+  const result = await execFile("npm", ["view", `${name}@${range}`, "version", "--json"], {
+    cwd: repoRoot, encoding: "utf8", maxBuffer: 8 * 1024 * 1024,
+  });
+  return JSON.parse(result.stdout);
 }
 
 function packageTypesEntry(manifest) {
@@ -113,7 +122,7 @@ async function publishedPackageArtifact(repoRoot, name, version) {
 }
 
 async function installedPackageArtifact(repoRoot, name, version) {
-  const packageRoot = path.join(repoRoot, "packages/runtime-conversation/node_modules", name);
+  const packageRoot = path.join(repoRoot, name === REACT_LEXICAL ? "packages/react/node_modules" : "packages/runtime-conversation/node_modules", name);
   return packageArtifact(
     name,
     version,
@@ -228,6 +237,7 @@ export async function main({
   langGraphSourceResolver = langGraphSourceAtRevision,
   latestVersionResolver = latest,
   packageArtifactResolver = publishedPackageArtifact,
+  peerVersionsResolver = publishedPeerVersions,
   installedPackageArtifactResolver = installedPackageArtifact,
   compatibilityChecker = checkAssistantUiAgUiCompatibility,
   langGraphInstalledCompatibilityChecker = checkAssistantUiLangGraphInstalledCompatibility,
@@ -298,7 +308,7 @@ export async function main({
     const resolvePackageArtifact = skipNpm
       ? installedPackageArtifactResolver
       : packageArtifactResolver;
-    const [nextLangGraphPackage, nextReactPackage] = await Promise.all([
+    const [nextLangGraphPackage, nextReactPackage, nextReactLexicalPackage] = await Promise.all([
       resolvePackageArtifact(
         repoRoot,
         "@assistant-ui/react-langgraph",
@@ -309,7 +319,16 @@ export async function main({
         "@assistant-ui/react",
         packages["@assistant-ui/react"],
       ),
+      resolvePackageArtifact(repoRoot, REACT_LEXICAL, packages[REACT_LEXICAL]),
     ]);
+    const resolvedLexicalPeers = await resolveLexicalPeerVersions(
+      nextReactLexicalPackage.manifest,
+      packages["@assistant-ui/react"],
+      skipNpm
+        ? async name => JSON.parse(await readFile(path.join(repoRoot, "packages/react/node_modules", name, "package.json"), "utf8")).version
+        : (name, range) => peerVersionsResolver(repoRoot, name, range),
+    );
+    const workspacePackages = { ...packages, ...resolvedLexicalPeers };
     const nextLangGraphSource = await langGraphSourceResolver(repo, revision, repoRoot);
     const nextLangGraphSourceCompatibility = await langGraphSourceCompatibilityChecker({
       ...nextLangGraphSource,
@@ -334,6 +353,7 @@ export async function main({
       previousLangGraphInstalledCompatibility,
       nextAgUiCompatibility,
       nextAssistantUiPackages: packages,
+      resolvedLexicalPeers,
       nextLangGraphSourceCompatibility,
       agUiCompatibility: nextAgUiCompatibility,
       upstreamChangedFiles: await upstreamChangedFiles(
@@ -344,7 +364,7 @@ export async function main({
       ),
     };
     await writeFile(sessionPath, `${JSON.stringify(session, null, 2)}\n`, "utf8");
-    await updatePackageManifests(repoRoot, packages);
+    await updatePackageManifests(repoRoot, workspacePackages);
 
     const workspacePath = path.join(repoRoot, "pnpm-workspace.yaml");
     let workspace = await readFile(workspacePath, "utf8");
