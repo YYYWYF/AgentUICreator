@@ -61,7 +61,7 @@ const displayCopyPatterns = Object.values(CREATOR_LOCALES).flatMap(catalog =>
 const exactDisplayCopy = new Map<string, (typeof displayCopyPatterns)[number]>();
 for (const entry of displayCopyPatterns) if (entry.indices.length === 0 && !exactDisplayCopy.has(entry.text)) exactDisplayCopy.set(entry.text, entry);
 const templatedDisplayCopy = displayCopyPatterns.filter(entry => entry.indices.length > 0 && (
-  entry.namespace === "mock" || entry.namespace === "pluginUpdates" ||
+  entry.namespace === "mock" || entry.namespace === "pluginUpdates" || entry.namespace === "commands" ||
   (entry.namespace === "creatorWorkbench" && ["refreshPartiallyCompletedCouldNotBeReadPlease", "initializationOutcomeUnconfirmedCouldNotRefreshProjectState"].includes(entry.key))
 ));
 /** Re-project transient product notices when locale changes; never touch Agent or user content. */

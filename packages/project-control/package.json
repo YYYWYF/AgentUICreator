@@ -23,6 +23,10 @@
     "./updates": {
       "types": "./src/updates.d.mts",
       "import": "./dist/runtime/project-control-runtime.mjs"
+    },
+    "./commands": {
+      "types": "./src/commands.d.mts",
+      "import": "./dist/runtime/project-control-runtime.mjs"
     }
   },
   "files": [

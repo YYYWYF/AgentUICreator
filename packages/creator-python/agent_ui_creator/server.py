@@ -934,6 +934,40 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
     app.state.creator_checkpointer = checkpointer
     app.state.pending_creator_questions = pending_questions
 
+    @app.post("/creator-command-commit")
+    async def creator_command_commit(request: Request) -> JSONResponse:
+        # Host-only storage port. No Agent messages, tools or model invocation.
+        from .files import read_creator_file_state, replace_creator_file_atomically, CreatorFileStateConflictError
+        from .transactions import CreatorTransactionFileInput
+        try:
+            payload = await _json_body(request, 65536)
+            if not isinstance(payload, dict) or set(payload) != {"path", "before", "after"}:
+                raise ValueError("Invalid command mutation.")
+            if any(not isinstance(payload[key], str) for key in payload):
+                raise ValueError("Invalid command mutation fields.")
+            config = json.loads((settings.project_root / ".agent-ui/project.json").read_text())
+            from pathlib import Path
+            canonical = (Path(config["sourceRoot"]) / "agent-ui/theme/theme-config.ts").as_posix()
+            if payload["path"] != canonical:
+                raise ValueError("Command storage only owns the canonical theme configuration.")
+            async with writing_run_lock:
+                if active_runs or pending_questions:
+                    return JSONResponse(status_code=409, content={"code": "CREATOR_COMMAND_BUSY", "error": "CREATOR_COMMAND_BUSY"})
+                current = read_creator_file_state(settings.project_root, canonical)
+                if current.content != payload["before"]:
+                    raise ValueError("THEME_CONFIGURATION_CHANGED")
+                if payload["before"] == payload["after"]:
+                    return JSONResponse(content={})
+                run_id = str(uuid4())
+                # Persist before atomic publication. A crash cannot publish an untracked mutation.
+                store = CreatorTransactionStore(settings.project_root)
+                store.persist_run(run_id=run_id, mutation_revision=1, validation_revision=1,
+                    files=[CreatorTransactionFileInput(canonical, payload["before"], payload["after"])])
+                replace_creator_file_atomically(settings.project_root, canonical, payload["after"], expected=current)
+                return JSONResponse(content={"runId": run_id})
+        except (ValueError, KeyError, OSError, CreatorTransactionError, CreatorFileStateConflictError) as error:
+            return JSONResponse(status_code=409, content={"code": "CREATOR_COMMAND_COMMIT_FAILED", "error": str(error)})
+
     @app.post("/creator-control")
     async def creator_control(request: Request) -> JSONResponse:
         try:

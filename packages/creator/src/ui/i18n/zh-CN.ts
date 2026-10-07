@@ -1,4 +1,22 @@
 export const zhCN = {
+  "commands": {
+    "title": "命令",
+    "theme": "主题",
+    "themeDescription": "修改 Agent UI 项目主题",
+    "light": "浅色",
+    "dark": "深色",
+    "violet": "紫罗兰",
+    "loading": "正在加载命令…",
+    "unavailable": "当前项目无法使用主题命令。",
+    "running": "正在将主题改为{0}…",
+    "completed": "主题已改为{0}",
+    "failed": "无法修改项目主题。",
+    "unknownTheme": "未知主题“{0}”",
+    "unknownCommand": "未知命令：/{0}",
+    "arguments": "请选择一个主题。",
+    "interrupted": "主题命令结果尚未确认，请刷新项目。",
+    "busy": "请等待当前操作或问题结束。"
+},
   "agentConnection": {
     "couldNotReadConnectionSettingsMakeSureThe": "暂时无法读取连接设置。请确认 Creator 开发服务已启动；如果刚更新过 Creator，请重启服务后重试。",
     "theProjectHasChangedRefreshThePreviewAnd": "当前项目已切换，请刷新预览后重试。",

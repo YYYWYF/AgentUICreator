@@ -21,6 +21,14 @@ export function createCreatorHostPreviewPlugin(options: { creatorOrigin?: string
         "/__agent-ui/mock": proxy,
       } } };
     },
+    handleHotUpdate(context) {
+      // Theme providers initialize from canonical config. Recreate their service lifecycle
+      // after persistent changes, including undo/reapply, rather than retaining an old service.
+      if (context.file.replaceAll("\\", "/").endsWith("/agent-ui/theme/theme-config.ts")) {
+        context.server.ws.send({ type: "full-reload" });
+        return [];
+      }
+    },
     transformIndexHtml() {
       return [{ tag: "script", attrs: { type: "module", src: `/@fs/${clientPath}` }, injectTo: "head-prepend" }];
     },

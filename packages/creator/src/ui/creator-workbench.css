@@ -2556,3 +2556,10 @@
 .creator-update-plugin-card .creator-upgrade-plan {
   margin-top: 2px;
 }
+
+.creator-panel-composer { position: relative; }
+.creator-command-menu { position: absolute; bottom: 100%; left: 12px; right: 12px; z-index: 30; max-height: 260px; overflow: auto; padding: 8px; border: 1px solid var(--creator-border, #ddd); border-radius: 8px; background: var(--creator-panel-bg, #fff); box-shadow: 0 6px 24px #0002; }
+.creator-command-menu > strong, .creator-command-menu > p { display: block; padding: 6px; }
+.creator-command-menu button { display: flex; flex-direction: column; text-align: left; width: 100%; padding: 8px; border: 0; border-radius: 6px; background: transparent; color: inherit; cursor: pointer; }
+.creator-command-menu button[aria-selected="true"] { background: var(--creator-hover-bg, #eee); }
+.creator-command-menu small { opacity: .7; }

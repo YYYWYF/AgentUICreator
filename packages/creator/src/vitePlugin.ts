@@ -1,3 +1,5 @@
+import { createCreatorCommandHandler } from "./commands/command-api.js";
+import { CREATOR_COMMANDS_API_PATH } from "./commands/types.js";
 import { createConnectionHandler } from "./agent-connection/connection-api.js";
 import { createHash } from "node:crypto";
 import { realpathSync } from "node:fs";
@@ -143,6 +145,7 @@ export function createCreatorDevServerPlugin({
       const connectionHandler = createConnectionHandler(connectionWorkspace, (request, response) => mockService.handlePreviewRequest(request, response), workspace => mockService.getDurableStore(workspace.projectRoot));
       server.middlewares.use((request, response, next) => { void connectionHandler(request, response, next); });
 
+      server.middlewares.use(CREATOR_COMMANDS_API_PATH, createCreatorCommandHandler(workspaceManager, projectRoot, legacyPythonManager));
       server.middlewares.use(CREATOR_UPDATES_API_PATH, createCreatorUpdateHandler(workspaceManager, projectRoot, updateSourceProvider));
       server.httpServer?.once("close", () => {
         void mockService.dispose();

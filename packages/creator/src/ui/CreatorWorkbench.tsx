@@ -1,3 +1,8 @@
+import { parseCreatorCommand } from "../commands/parser.js";
+import type { CreatorCommandActivity } from "../commands/types.js";
+import { executeCreatorCommand } from "./workspaceClient.js";
+import { useCreatorCommandState } from "./commands/useCreatorCommandState.js";
+import { CreatorCommandMenu } from "./commands/CreatorCommandMenu.js";
 import { useRef as useLocaleMessagesRef } from "react";
 import { localizeCreatorPresentation, CreatorLocaleProvider, useCreatorLocaleState, type CreatorLocaleCode, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
 import { AgentConnectionPanel } from "./AgentConnectionPanel.js";
@@ -173,7 +178,8 @@ type CreatorConversationItem =
   | CreatorMessage
   | CreatorToolActivity
   | CreatorStageActivity
-  | CreatorQuestionActivity;
+  | CreatorQuestionActivity
+  | CreatorCommandActivity;
 
 interface CreatorToolGroup {
   kind: "tool-group";
@@ -399,6 +405,13 @@ function creatorAgentMessages(messages: CreatorMessage[]): Message[] {
 function storedItem(value: unknown, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): CreatorConversationItem | undefined {
   if (!isRecord(value) || typeof value.id !== "string") {
     return undefined;
+  }
+  if (value.kind === "command" && typeof value.commandId === "string" && ["running", "completed", "failed"].includes(String(value.status))) {
+    return { kind: "command", id: value.id, commandId: value.commandId,
+      status: value.status === "completed" ? "completed" : "failed",
+      ...(typeof value.value === "string" ? { value: value.value } : {}),
+      ...(typeof value.error === "string" ? { error: value.error } : value.status === "running" ? { error: localeMessages.commands.interrupted } : {}),
+      ...(isCreatorRunReceipt(value.receipt) ? { receipt: value.receipt } : {}) };
   }
   if (value.kind === "question") return parseCreatorQuestion(value);
 
@@ -1148,6 +1161,11 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
   const agentRef = useRef<CreatorAgentClient | null>(null);
   const runInFlightRef = useRef(false);
   const workspaceIdRef = useRef<string | undefined>(undefined);
+  const commandState = useCreatorCommandState(input, workspaceState?.status === "ready" ? workspaceState.workspace.id : undefined);
+  const [commandBusy, setCommandBusy] = useState(false);
+  const commandInFlight = useRef(false);
+  const [commandPreviewRevision, setCommandPreviewRevision] = useState(0);
+
   const sessionRef = useRef(0);
   const setupValidationRef = useRef<{ generation: number; controller: AbortController | undefined }>({ generation: 0, controller: undefined });
   const setupInfoRef = useRef<{ generation: number; controller: AbortController | undefined }>({ generation: 0, controller: undefined });
@@ -1362,9 +1380,42 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
     };
   }, []);
 
+  const executeSlashCommand = async (request: string) => {
+    const parsed = parseCreatorCommand(request);
+    if (parsed.kind !== "command") return;
+    if (commandInFlight.current || isRunning || runInFlightRef.current || workspaceBusy || undoRunId || reapplyRunId || hasPendingCreatorQuestion(itemsRef.current) || workspaceState?.status !== "ready") return;
+    if (parsed.id === "" || (parsed.id === "theme" && parsed.args.length === 0)) { setInput(parsed.id === "" ? "/" : "/theme "); commandState.show(); return; }
+    const activity: CreatorCommandActivity = { kind: "command", id: crypto.randomUUID(), commandId: parsed.id, status: "running", ...(parsed.args[0] ? { value: parsed.args[0] } : {}) };
+    const fail = (error: string) => updateItems(current => current.map(item => item.id === activity.id ? { ...activity, status: "failed", error } : item));
+    updateItems(current => [...current, activity]);
+    if (parsed.id !== "theme") { fail(formatLocaleMessage(localeMessages.commands.unknownCommand, parsed.id)); return; }
+    if (parsed.args.length !== 1) { fail(localeMessages.commands.arguments); return; }
+    commandInFlight.current = true; setCommandBusy(true);
+    const session = sessionRef.current;
+    const id = workspaceState.workspace.id;
+    try {
+      const result = await executeCreatorCommand(id, parsed.args[0]!, localeMessages);
+      if (session !== sessionRef.current) return;
+      updateItems(current => current.map(item => item.id === activity.id ? { ...activity, value: result.current, status: "completed", receipt: result.receipt } : item));
+      setInput(""); setCommandPreviewRevision(value => value + 1);
+      const refreshed = await refreshWorkspaceProject(localeMessages).catch(() => undefined);
+      if (refreshed && session === sessionRef.current) setWorkspaceState(refreshed);
+    } catch (error) {
+      if (session === sessionRef.current) {
+        const code = error instanceof Error && "code" in error ? error.code : undefined;
+        fail(code === "UNKNOWN_THEME" ? formatLocaleMessage(localeMessages.commands.unknownTheme, parsed.args[0]) : code === "CREATOR_COMMAND_BUSY" ? localeMessages.commands.busy : localeMessages.commands.failed);
+      }
+    } finally {
+      commandInFlight.current = false; setCommandBusy(false);
+      if (session === sessionRef.current) void commandState.refresh();
+    }
+  };
+
   const submit = async (event?: FormEvent<HTMLFormElement>, response?: { question: CreatorQuestionActivity; answers: Record<string, string[]> }, requestOverride?: string) => {
     event?.preventDefault();
     const request = (requestOverride ?? input).trim();
+    if (response === undefined && parseCreatorCommand(request).kind === "command") { await executeSlashCommand(request); return; }
+    if (commandInFlight.current) return;
     if ((response === undefined && (request === "" || hasPendingCreatorQuestion(itemsRef.current))) ||
       isRunning || runInFlightRef.current || !((workspaceState?.status === "ready") && workspaceState.runtime.status === "ready")) {
       return;
@@ -1686,14 +1737,15 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
 
   const undoCreatorRun = async (runId: string) => {
     const agent = agentRef.current;
-    if (agent === null || isRunning || undoRunId !== null || reapplyRunId !== null || hasPendingCreatorQuestion(itemsRef.current)) return;
+    if (agent === null || commandInFlight.current || isRunning || undoRunId !== null || reapplyRunId !== null || hasPendingCreatorQuestion(itemsRef.current)) return;
     setUndoRunId(runId);
     try {
       const { reapplyable } = await agent.undo(runId);
-      updateItems(current => current.map(item => item.kind === "message" && item.receipt?.transaction?.runId === runId
+      updateItems(current => current.map(item => (item.kind === "message" || item.kind === "command") && item.receipt?.transaction?.runId === runId
         ? { ...item, receipt: { ...item.receipt, transaction: { ...item.receipt.transaction, undoable: false, undone: true, reapplyable, reapplied: false } } }
         : item));
       setSetupValidationEpoch(current => current + 1);
+      setCommandPreviewRevision(current => current + 1);
     } catch (error) {
       updateItems(current => [...current, { kind: "message", id: crypto.randomUUID(), role: "error",
         content: error instanceof Error ? error.message : String(error) }]);
@@ -1704,14 +1756,15 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
 
   const reapplyCreatorRun = async (runId: string) => {
     const agent = agentRef.current;
-    if (agent === null || isRunning || undoRunId !== null || reapplyRunId !== null || hasPendingCreatorQuestion(itemsRef.current)) return;
+    if (agent === null || commandInFlight.current || isRunning || undoRunId !== null || reapplyRunId !== null || hasPendingCreatorQuestion(itemsRef.current)) return;
     setReapplyRunId(runId);
     try {
       await agent.reapply(runId);
-      updateItems(current => current.map(item => item.kind === "message" && item.receipt?.transaction?.runId === runId
+      updateItems(current => current.map(item => (item.kind === "message" || item.kind === "command") && item.receipt?.transaction?.runId === runId
         ? { ...item, receipt: { ...item.receipt, transaction: { ...item.receipt.transaction, undoable: true, undone: false, reapplied: true } } }
         : item));
       setSetupValidationEpoch(current => current + 1);
+      setCommandPreviewRevision(current => current + 1);
     } catch (error) {
       updateItems(current => [...current, { kind: "message", id: crypto.randomUUID(), role: "error",
         content: error instanceof Error ? error.message : String(error) }]);
@@ -1721,7 +1774,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
   };
 
   const clearConversation = () => {
-    if (isRunning || hasPendingCreatorQuestion(itemsRef.current) ||
+    if (commandInFlight.current || isRunning || hasPendingCreatorQuestion(itemsRef.current) ||
       !((workspaceState?.status === "ready") && workspaceState.runtime.status === "ready")) {
       return;
     }
@@ -1875,7 +1928,17 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
     }
   };
 
+  const pickCommand = (id: string) => {
+    const choice = commandState.pick(id);
+    if ("input" in choice) setInput(choice.input!); else void executeSlashCommand(choice.execute!);
+  };
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    const selection = commandState.keyDown(event);
+    if (selection?.handled) {
+      if ("input" in selection && selection.input) setInput(selection.input);
+      if ("execute" in selection && selection.execute) void executeSlashCommand(selection.execute);
+      return;
+    }
     if (event.key === "Enter" && !event.shiftKey) {
       if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
       event.preventDefault();
@@ -1935,7 +1998,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
       }
     >
       {layout === "dock" ? null : workspaceState !== null && (workspaceState.status === "ready") && workspaceState.workspace.id === previewWorkspaceId ? (
-        <CreatorWorkbenchPreview threadId={threadId} workspaceId={workspaceState.workspace.id}>{children}</CreatorWorkbenchPreview>
+        <CreatorWorkbenchPreview key={commandPreviewRevision} threadId={threadId} workspaceId={workspaceState.workspace.id}>{children}</CreatorWorkbenchPreview>
       ) : (
         <section className="creator-workbench-preview creator-workbench-preview-placeholder" aria-label={localeMessages.creatorWorkbench.projectPreview}>
           {workspaceState?.status === "uninitialized" ? (
@@ -2036,7 +2099,16 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
                 </div>
               ) : (
                 presentConversationItems(items, creatorDebug).map((item) =>
-                  item.kind === "stage" ? (
+                  item.kind === "command" ? (
+                    <article className="creator-panel-message creator-command-activity" key={item.id} role="status">
+                      <p>{item.status === "failed" ? localizeCreatorPresentation(item.error, localeMessages) ?? localeMessages.commands.failed : formatLocaleMessage(item.status === "running" ? localeMessages.commands.running : localeMessages.commands.completed, commandState.themeLabel(item.value ?? ""))}</p>
+                      {item.receipt ? <CreatorRunReceiptPresentation receipt={item.receipt} debug={creatorDebug}
+                        onUndo={!commandBusy && !isRunning && !questionPending ? runId => { void undoCreatorRun(runId); } : undefined}
+                        onReapply={!commandBusy && !isRunning && !questionPending ? runId => { void reapplyCreatorRun(runId); } : undefined}
+                        undoBusy={undoRunId === item.receipt.transaction?.runId} reapplyBusy={reapplyRunId === item.receipt.transaction?.runId} /> : null}
+                    </article>
+                  ) : item.kind === "stage" ? (
+
                     <CreatorStageActivityCard
                       activity={item}
                       debug={creatorDebug}
@@ -2070,8 +2142,8 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
                       ) : null}
                       {item.receipt === undefined ? null : (
                         <CreatorRunReceiptPresentation receipt={item.receipt} debug={creatorDebug}
-                          onUndo={!isRunning && !hasPendingCreatorQuestion(items) ? (runId) => { void undoCreatorRun(runId); } : undefined}
-                          onReapply={!isRunning && !hasPendingCreatorQuestion(items) ? (runId) => { void reapplyCreatorRun(runId); } : undefined}
+                          onUndo={!commandBusy && !isRunning && !hasPendingCreatorQuestion(items) ? (runId) => { void undoCreatorRun(runId); } : undefined}
+                          onReapply={!commandBusy && !isRunning && !hasPendingCreatorQuestion(items) ? (runId) => { void reapplyCreatorRun(runId); } : undefined}
                           undoBusy={undoRunId === item.receipt.transaction?.runId}
                           reapplyBusy={reapplyRunId === item.receipt.transaction?.runId} />
                       )}
@@ -2179,8 +2251,15 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
             </div>
             {workspaceState?.status === "ready" ? <form className="creator-panel-composer" style={updatePageOpen ? { display: "none" } : undefined} onSubmit={submit}>
               <label htmlFor="creator-request">{localeMessages.creatorWorkbench.tellCreator}</label>
+              {commandState.open && !commandBusy && !isRunning && !questionPending ? <CreatorCommandMenu items={commandState.items} active={commandState.active} title={commandState.title} notice={commandState.notice} onPick={pickCommand} onSelect={commandState.select} /> : null}
               <Textarea
-                disabled={isRunning || !creatorRuntimeReady || questionPending}
+                role="combobox"
+                aria-expanded={commandState.open}
+                aria-autocomplete="list"
+                aria-controls={commandState.open ? "creator-command-menu" : undefined}
+                aria-activedescendant={commandState.open && commandState.items.length ? `creator-command-option-${commandState.active}` : undefined}
+                disabled={isRunning || commandBusy || questionPending}
+
                 id="creator-request"
                 onChange={(event) => setInput(event.target.value)}
                 onKeyDown={handleKeyDown}
@@ -2191,7 +2270,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
               <div>
                 <Button variant="ghost" size="xs" className="creator-composer-clear"
                   aria-label={localeMessages.creatorWorkbench.clearCreatorConversation}
-                  disabled={isRunning || !creatorRuntimeReady || questionPending}
+                  disabled={commandBusy || isRunning || !creatorRuntimeReady || questionPending}
                   onClick={clearConversation}
                   title={questionPending ? pendingQuestionHint : localeMessages.creatorWorkbench.clearTheConversationAndInputToStartAgain}
                   type="button"
@@ -2204,7 +2283,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
                     <Square aria-hidden="true" />{stopBusy ? localeMessages.creatorWorkbench.stopping : localeMessages.creatorWorkbench.stopExecution}
                   </Button>
                 ) : (
-                  <Button size="sm" disabled={input.trim() === "" || !creatorRuntimeReady || items.some(item => item.kind === "question" && (item.status === "pending" || item.status === "submitting"))} type="submit">
+                  <Button size="sm" disabled={commandBusy || input.trim() === "" || (commandState.parsed.kind === "text" && !creatorRuntimeReady) || items.some(item => item.kind === "question" && (item.status === "pending" || item.status === "submitting"))} type="submit">
                     <ArrowUp aria-hidden="true" />{localeMessages.creatorWorkbench.send}
                   </Button>
                 )}

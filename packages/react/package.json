@@ -15,6 +15,10 @@
     "./lexical": {
       "types": "./dist/lexical.d.ts",
       "import": "./dist/lexical.js"
+    },
+    "./theme": {
+      "types": "./dist/theme/theme-contract.d.ts",
+      "import": "./dist/theme/theme-contract.js"
     }
   },
   "files": [

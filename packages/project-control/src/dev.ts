@@ -14,3 +14,5 @@ export { AgentUIUpdateService } from "./project/source-registry/updates";
 export type { UpdateInspection, PluginUpdate, UpgradePlan, UpdateCompatibility } from "./project/source-registry/updates";
 export { MockUpdateSourceProvider } from "@agent-ui/source-registry";
 export type { UpdateSourceProvider, ReleaseDescriptor, ResolvedSourceRelease } from "@agent-ui/source-registry";
+export { getAvailableAgentUIThemes, setAgentUITheme } from "./project/agent-ui-theme";
+export type { ThemeCatalog, ThemeChange } from "./project/agent-ui-theme";

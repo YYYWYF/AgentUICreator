@@ -1,4 +1,22 @@
 export const enUS = {
+  "commands": {
+    "title": "Commands",
+    "theme": "Theme",
+    "themeDescription": "Change Agent UI theme",
+    "light": "Light",
+    "dark": "Dark",
+    "violet": "Violet",
+    "loading": "Loading commands…",
+    "unavailable": "Theme commands are unavailable for this project.",
+    "running": "Changing theme to {0}…",
+    "completed": "Theme changed to {0}",
+    "failed": "Could not change the project theme.",
+    "unknownTheme": "Unknown theme \"{0}\"",
+    "unknownCommand": "Unknown command: /{0}",
+    "arguments": "Choose one theme.",
+    "interrupted": "Theme command outcome is unconfirmed. Refresh the project.",
+    "busy": "Wait for the current operation or question to finish."
+},
   "agentConnection": {
     "couldNotReadConnectionSettingsMakeSureThe": "Could not read connection settings. Make sure the Creator development service is running. If Creator was just updated, restart it and retry.",
     "theProjectHasChangedRefreshThePreviewAnd": "The project has changed. Refresh the preview and retry.",
