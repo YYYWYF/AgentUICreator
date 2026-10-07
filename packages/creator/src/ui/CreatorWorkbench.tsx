@@ -1164,7 +1164,6 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
   const commandState = useCreatorCommandState(input, workspaceState?.status === "ready" ? workspaceState.workspace.id : undefined);
   const [commandBusy, setCommandBusy] = useState(false);
   const commandInFlight = useRef(false);
-  const [commandPreviewRevision, setCommandPreviewRevision] = useState(0);
 
   const sessionRef = useRef(0);
   const setupValidationRef = useRef<{ generation: number; controller: AbortController | undefined }>({ generation: 0, controller: undefined });
@@ -1397,7 +1396,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
       const result = await executeCreatorCommand(id, parsed.args[0]!, localeMessages);
       if (session !== sessionRef.current) return;
       updateItems(current => current.map(item => item.id === activity.id ? { ...activity, value: result.current, status: "completed", receipt: result.receipt } : item));
-      setInput(""); setCommandPreviewRevision(value => value + 1);
+      setInput("");
       const refreshed = await refreshWorkspaceProject(localeMessages).catch(() => undefined);
       if (refreshed && session === sessionRef.current) setWorkspaceState(refreshed);
     } catch (error) {
@@ -1745,7 +1744,6 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
         ? { ...item, receipt: { ...item.receipt, transaction: { ...item.receipt.transaction, undoable: false, undone: true, reapplyable, reapplied: false } } }
         : item));
       setSetupValidationEpoch(current => current + 1);
-      setCommandPreviewRevision(current => current + 1);
     } catch (error) {
       updateItems(current => [...current, { kind: "message", id: crypto.randomUUID(), role: "error",
         content: error instanceof Error ? error.message : String(error) }]);
@@ -1764,7 +1762,6 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
         ? { ...item, receipt: { ...item.receipt, transaction: { ...item.receipt.transaction, undoable: true, undone: false, reapplied: true } } }
         : item));
       setSetupValidationEpoch(current => current + 1);
-      setCommandPreviewRevision(current => current + 1);
     } catch (error) {
       updateItems(current => [...current, { kind: "message", id: crypto.randomUUID(), role: "error",
         content: error instanceof Error ? error.message : String(error) }]);
@@ -1998,7 +1995,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
       }
     >
       {layout === "dock" ? null : workspaceState !== null && (workspaceState.status === "ready") && workspaceState.workspace.id === previewWorkspaceId ? (
-        <CreatorWorkbenchPreview key={commandPreviewRevision} threadId={threadId} workspaceId={workspaceState.workspace.id}>{children}</CreatorWorkbenchPreview>
+        <CreatorWorkbenchPreview threadId={threadId} workspaceId={workspaceState.workspace.id}>{children}</CreatorWorkbenchPreview>
       ) : (
         <section className="creator-workbench-preview creator-workbench-preview-placeholder" aria-label={localeMessages.creatorWorkbench.projectPreview}>
           {workspaceState?.status === "uninitialized" ? (

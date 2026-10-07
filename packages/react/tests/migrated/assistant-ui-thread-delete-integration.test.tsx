@@ -14,6 +14,17 @@ import { zhCN } from "../../../source-registry/registry/items/foundation-core-ad
 import { PolicyThreadList } from "../../../source-registry/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/PolicyThreadList";
 import { createConversationService, createHttpConversationDataSource } from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations";
 
+import { PluginServiceProvider, createPluginRegistry } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+import { parseAppUIRuntimeModel } from "../../../project-control/src/framework/contracts/app-ui-runtime-model";
+import { localeProviderPlugin } from "../../../source-registry/registry/items/plugin-locale-provider/files/plugins/locale-provider/definition";
+
+const localeModel = parseAppUIRuntimeModel({
+  root: { type: "slot", id: "thread-delete-root", slotId: "thread-list" },
+  pluginInstances: { "locale-provider-main": { id: "locale-provider-main", pluginId: "locale-provider", enabled: true } },
+});
+const localeRegistry = createPluginRegistry([localeProviderPlugin]);
+const actions = { sendMessage: async () => undefined, resumeInterrupts: async () => undefined, startNewConversation: async () => undefined, abortRun: () => undefined };
+
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 class ResizeObserverMock {
@@ -82,9 +93,11 @@ async function mount() {
     root!.render(
       <ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} unstable_agentFactory={agentFactory}>
         <Capture />
+        <PluginServiceProvider model={localeModel} registry={localeRegistry} actions={actions}>
         <AgentUIRoot theme="violet">
           <PolicyThreadList labels={zhCN.threadList} />
         </AgentUIRoot>
+        </PluginServiceProvider>
       </ConversationRuntimeProvider>,
     );
   });

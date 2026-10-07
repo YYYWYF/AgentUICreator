@@ -3,6 +3,8 @@
   "include": [
     "tests/agent-connection-host.spec.ts",
     "tests/support/agent-connection-host.ts",
-    "playwright.agent-connection.config.ts"
+    "playwright.agent-connection.config.ts",
+    "tests/creator-theme-host.spec.ts",
+    "playwright.theme-commands.config.ts"
   ]
 }

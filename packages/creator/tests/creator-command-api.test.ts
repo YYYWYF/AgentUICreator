@@ -37,3 +37,14 @@ it("rejects mutations while Creator is active", async () => {
 it("rejects cross-origin requests", async () => {
   const base = await host(); expect((await fetch(base, { headers: { origin: "https://example.com", "x-agent-ui-workspace-id": "project-1" } })).status).toBe(409);
 });
+it("uses the same hashed workspace identity as legacy Host Preview", async () => {
+  const { createHash } = await import("node:crypto");
+  const { realpathSync } = await import("node:fs");
+  const root = process.cwd();
+  const server = createServer(createCreatorCommandHandler(undefined, root, undefined)); servers.push(server);
+  await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
+  const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  const id = createHash("sha256").update(realpathSync(root)).digest("hex");
+  expect((await fetch(base, { headers: { "x-agent-ui-workspace-id": id } })).status).toBe(200);
+  expect((await fetch(base, { headers: { "x-agent-ui-workspace-id": root } })).status).toBe(409);
+});

@@ -38,9 +38,18 @@ export function installCreatorHostPreviewBridge(): () => void {
     if (window.parent === window || !new URLSearchParams(location.search).has("creator-preview")) return;
     if (event.source !== window.parent || event.data?.type !== HOST_PREVIEW_CONNECT || !isHostPreviewSession(event.data.session)) return;
     const session = event.data.session;
-    if (event.origin !== session.creatorOrigin || !document.referrer || new URL(document.referrer).origin !== event.origin) return;
+    const referrerOrigin = document.referrer ? new URL(document.referrer).origin : undefined;
+    const parentKey = "agent-ui-creator:preview-parent-origin";
+    let trustedParent: string | null = null;
+    try { trustedParent = sessionStorage.getItem(parentKey); } catch { /* Storage can be unavailable. */ }
+    // An iframe's own full reload uses the Host as referrer. Retain only an origin
+    // previously authenticated against the initial parent referrer in this tab.
+    const parentMatches = referrerOrigin === event.origin ||
+      (referrerOrigin === location.origin && trustedParent === event.origin);
+    if (event.origin !== session.creatorOrigin || !parentMatches) return;
     const port = event.ports[0];
     if (port === undefined) return;
+    try { sessionStorage.setItem(parentKey, event.origin); } catch { /* The current port still works. */ }
     disposeSession();
     let running = false;
     const applySource = (source: unknown) => {

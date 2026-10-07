@@ -25,6 +25,9 @@ export function createCreatorHostPreviewPlugin(options: { creatorOrigin?: string
       // Theme providers initialize from canonical config. Recreate their service lifecycle
       // after persistent changes, including undo/reapply, rather than retaining an old service.
       if (context.file.replaceAll("\\", "/").endsWith("/agent-ui/theme/theme-config.ts")) {
+        // Returning [] suppresses Vite's default update propagation. Invalidate the
+        // canonical module first so a new iframe/reload cannot reuse its old transform.
+        for (const module of context.modules) context.server.moduleGraph.invalidateModule(module);
         context.server.ws.send({ type: "full-reload" });
         return [];
       }

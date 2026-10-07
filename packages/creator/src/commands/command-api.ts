@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+import { realpathSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { getAvailableAgentUIThemes, setAgentUITheme } from "@agent-ui/project-control/commands";
 import type { CreatorWorkspaceManager } from "../workspace/CreatorWorkspaceManager.js";
@@ -6,6 +8,7 @@ import { CREATOR_WORKSPACE_ID_HEADER } from "../workspace/types.js";
 import { creatorCommandRegistry } from "./registry.js";
 
 export function createCreatorCommandHandler(workspaces: CreatorWorkspaceManager | undefined, root: string | undefined, legacy: PythonCreatorProcessManager | undefined) {
+  const legacyWorkspaceId = root ? createHash("sha256").update(realpathSync(root)).digest("hex") : undefined;
   return async (request: IncomingMessage, response: ServerResponse) => {
     response.setHeader("Content-Type", "application/json; charset=utf-8");
     response.setHeader("Cache-Control", "no-store");
@@ -41,18 +44,19 @@ export function createCreatorCommandHandler(workspaces: CreatorWorkspaceManager 
           const commit = await fetch(`http://${endpoint.host}:${endpoint.port}/creator-command-commit`, {
             method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${endpoint.authToken}` }, body: JSON.stringify(change),
           });
-          const body = await commit.json() as { runId?: string; error?: string; code?: string };
+          const body = await commit.json() as { runId?: string; error?: string; code?: string; verification?: import("@agent-ui/project-control/commands").ThemeVerification };
           if (!commit.ok) throw new Error(body.code === "CREATOR_COMMAND_BUSY" ? body.code : body.error ?? "CREATOR_COMMAND_COMMIT_FAILED");
-          return body;
+          if (!body.verification) throw new Error("THEME_VERIFICATION_RESULT_INVALID");
+          return { ...body, verification: body.verification };
         });
         return { current: result.current, receipt: {
           files: result.changedPaths.map(path => ({ path, status: "modified", diff, truncated: false })),
-          validations: [{ command: "verify_ui_project", status: "passed", exitCode: 0, output: "", truncated: false }],
-          verification: { status: result.changed ? "changed-and-statically-verified" : "no-project-change", projectRevision: result.changed ? 1 : 0, auditAttempts: 0, checks: [{ id: "static-project-validation", status: "passed", evidence: "verify_ui_project" }], verificationMode: "static_only", runtimeStatus: "not-run" },
+          validations: [{ command: "verify_ui_project", status: result.validation, exitCode: result.validation === "passed" ? 0 : 1, output: JSON.stringify(result.verification), truncated: false }],
+          verification: { status: result.changed ? "changed-and-statically-verified" : "no-project-change", projectRevision: result.changed ? 1 : 0, auditAttempts: 0, checks: [{ id: "static-project-validation", status: result.verification.status, evidence: JSON.stringify(result.verification) }], verificationMode: "static_only", runtimeStatus: "not-run" },
           ...(result.runId ? { transaction: { runId: result.runId, undoable: true, reapplyable: true } } : {}),
         } };
       };
-      const result = workspaces ? await workspaces.runProjectOperation(workspaceId, run) : root && root === workspaceId ? await run(root) : (() => { throw new Error("CREATOR_WORKSPACE_CHANGED"); })();
+      const result = workspaces ? await workspaces.runProjectOperation(workspaceId, run) : root && legacyWorkspaceId === workspaceId ? await run(root) : (() => { throw new Error("CREATOR_WORKSPACE_CHANGED"); })();
       response.end(JSON.stringify(result));
     } catch (error) {
       const code = error instanceof Error ? error.message : "CREATOR_COMMAND_FAILED";

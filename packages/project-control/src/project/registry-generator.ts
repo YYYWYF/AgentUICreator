@@ -21,7 +21,7 @@ import {
   type PluginCompositionCatalog,
 } from "../framework/contracts/app-ui-composition";
 import type { AgentUIProjectPaths } from "./agent-ui-project-paths";
-import { collectPluginAssets, pathExists } from "./plugin-assets";
+import { collectPluginAssets } from "./plugin-assets";
 import { analyzeDataMessageUIs } from "./data-message-ui-analyzer";
 import {
   analyzePluginServiceDeclarations,
@@ -243,12 +243,11 @@ export async function collectPluginProjectFacts(
   paths: AgentUIProjectPaths,
 ): Promise<PluginProjectFacts> {
   const inventory = await collectPluginAssets(projectRoot, paths, config);
-  const canAnalyzeServiceContracts = await pathExists(
-    path.join(projectRoot, "tsconfig.json"),
+  // Hosts without a root tsconfig still have service contracts. Analyze their
+  // open files in an inferred TypeScript project instead of emitting empty ones.
+  const declarations: AnalyzedDeclarations = analyzePluginServiceDeclarations(
+    projectRoot, inventory.assets, path.dirname(paths.pluginsRoot),
   );
-  const declarations: AnalyzedDeclarations = canAnalyzeServiceContracts
-    ? analyzePluginServiceDeclarations(projectRoot, inventory.assets, path.dirname(paths.pluginsRoot))
-    : { plugins: [], issues: [], seamPaths: new Map() };
   const definitionIssuesByPath = await collectPluginDefinitionFacts(
     projectRoot,
     inventory.assets,

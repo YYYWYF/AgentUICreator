@@ -97,6 +97,28 @@ afterEach(async () => {
 });
 
 describe("generatePluginRegistry", () => {
+  it("preserves imported service contracts without a root tsconfig", async () => {
+    const projectRoot = await createProject();
+    await createPlugin(projectRoot, "provider", "beta", { headless: true });
+    await createPlugin(projectRoot, "consumer", "alpha");
+    await mkdir(path.join(projectRoot, "services"));
+    await writeFile(path.join(projectRoot, "services/id.ts"),
+      'export const HISTORY_SERVICE = "business.history" as const;\n');
+    await writeFile(path.join(projectRoot, "services/index.ts"),
+      'export { HISTORY_SERVICE } from "./id";\n');
+    for (const [directory, property] of [["provider", "provides"], ["consumer", "inject"]] as const) {
+      await writeFile(path.join(projectRoot, "plugins", directory, "definition.ts"),
+        'import { HISTORY_SERVICE } from "../../services";\n' +
+        `export default { manifest: {}, ${property}: [HISTORY_SERVICE], Component: () => null };\n`);
+    }
+
+    const result = await generatePluginRegistry(projectRoot, modelFor(["beta", "alpha"]), fixtureConfig);
+    expect(result.errors).toEqual([]);
+    expect(result.capabilityCatalog.source).toContain('provides: ["business.history"]');
+    expect(result.capabilityCatalog.source).toContain('inject: ["business.history"]');
+    expect(result.activeComposition.resolvedPluginIds).toEqual(["alpha", "beta"]);
+  });
+
   it("generates a stable lazy capability catalog while resolving active definitions", async () => {
     const projectRoot = await createProject();
     await createPlugin(projectRoot, "beta-dir", "beta", { headless: true });

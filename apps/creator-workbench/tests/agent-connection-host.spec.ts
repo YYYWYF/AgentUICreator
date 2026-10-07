@@ -12,7 +12,7 @@ test.beforeEach(async ({ page, preview }) => {
   } }));
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(preview.creatorOrigin);
-  await page.getByRole("button", { name: "Continue with Mock Agent", exact: true }).click();
+  await page.getByRole("button", { name: "使用示例 Agent", exact: true }).click();
 });
 
 test("ordinary Host receives Mock thread list, history and chat through Creator", async ({ page, preview }) => {
@@ -26,7 +26,7 @@ test("ordinary Host receives Mock thread list, history and chat through Creator"
   expect(selection.ok()).toBe(true);
   await list.getByRole("button", { name: /新建会话|New Thread/ }).click();
   const response = page.waitForResponse(value => value.url().startsWith(`${preview.hostOrigin}__agent-ui/mock`) && value.request().method() === "POST");
-  await host.locator(".aui-composer-input").fill("Mock chat through ordinary Host");
+  await host.locator(".aui-composer-root").getByRole("textbox").fill("Mock chat through ordinary Host");
   await host.locator(".aui-composer-send").click();
   expect((await response).status()).toBe(200);
   await expect(host.locator('[data-slot="aui_assistant-message-root"]')).toContainText("你好，这是一个纯文本流式回复。");
@@ -38,10 +38,10 @@ test("no-CORS Connected Agent streams before completion and Source switching iso
   await expect(host.locator('[data-ui-plugin="conversation-thread-list"]')).toContainText("历史：基础会话");
   await page.getByRole("button", { name: "设置", exact: true }).click();
   await page.getByRole("button", { name: "Agent", exact: true }).click();
-  const endpoint = page.getByRole("textbox", { name: "Agent Endpoint" });
+  const endpoint = page.getByRole("textbox", { name: "Agent 服务地址" });
   await endpoint.fill(preview.agentEndpoint);
-  await page.getByRole("button", { name: "Connect Agent", exact: true }).click();
-  await expect(page.getByText("Connected Agent · Selected", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "使用此地址", exact: true }).click();
+  await expect(page.getByText("当前使用：自己的 Agent 服务", { exact: true })).toBeVisible();
   await expect(host.getByText("历史：基础会话", { exact: true })).toHaveCount(0);
   const child = page.frames().find(frame => frame.url().startsWith(preview.hostOrigin))!;
   // A direct browser POST is blocked by CORS; the Agent has no OPTIONS support.
@@ -49,20 +49,20 @@ test("no-CORS Connected Agent streams before completion and Source switching iso
     try { await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }); return false; }
     catch { return true; }
   }, preview.agentEndpoint)).toBe(true);
-  await host.locator(".aui-composer-input").fill("Connected chat");
+  await host.locator(".aui-composer-root").getByRole("textbox").fill("Connected chat");
   await host.locator(".aui-composer-send").click();
   await expect(host.locator('[data-ui-plugin="conversation-surface"]')).toContainText("wire:first");
   expect(preview.runCount()).toBe(1);
   expect(preview.pendingCount()).toBe(1); // Upstream has not finished: proves browser-visible streaming.
-  await expect(page.getByRole("button", { name: "Use Mock Agent", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "使用示例 Agent", exact: true })).toBeDisabled();
   preview.finishRun();
   await expect(host.locator('[data-ui-plugin="conversation-surface"]')).toContainText("wire:finished");
-  await expect(page.getByRole("button", { name: "Use Mock Agent", exact: true })).toBeEnabled();
-  await page.getByRole("button", { name: "Use Mock Agent", exact: true }).click();
+  await expect(page.getByRole("button", { name: "使用示例 Agent", exact: true })).toBeEnabled();
+  await page.getByRole("button", { name: "使用示例 Agent", exact: true }).click();
   await expect(endpoint).toHaveValue(preview.agentEndpoint);
   await expect(host.locator('[data-ui-plugin="conversation-thread-list"]')).toContainText("历史：基础会话");
   await expect(host.getByText(/wire:first/)).toHaveCount(0);
-  await page.getByRole("button", { name: "Connect Agent", exact: true }).click();
+  await page.getByRole("button", { name: "使用此地址", exact: true }).click();
   await expect(endpoint).toHaveValue(preview.agentEndpoint);
   await expect(host.getByText("历史：基础会话", { exact: true })).toHaveCount(0);
   await expect(host.getByText(/wire:first/)).toHaveCount(0);

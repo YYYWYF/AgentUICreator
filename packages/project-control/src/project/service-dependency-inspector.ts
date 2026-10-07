@@ -1,4 +1,4 @@
-import { realpathSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import path from "node:path";
 
 import {
@@ -156,7 +156,7 @@ export function analyzePluginServiceDeclarations(
   const api = new API();
   const configFilePath = path.join(projectRoot, "tsconfig.json");
   const snapshot = api.updateSnapshot({
-    openProjects: [configFilePath],
+    openProjects: existsSync(configFilePath) ? [configFilePath] : [],
     openFiles: definitionPaths,
   });
   const plugins: PluginServiceDeclaration[] = [];

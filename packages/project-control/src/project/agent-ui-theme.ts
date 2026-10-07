@@ -6,13 +6,14 @@ import { API, ModifierFlags } from "typescript/unstable/sync";
 import { getTokenPosOfNode } from "typescript/unstable/ast";
 import { isVariableStatement, isIdentifier, isSatisfiesExpression, isAsExpression, isParenthesizedExpression, isObjectLiteralExpression, isPropertyAssignment, isStringLiteral } from "typescript/unstable/ast/is";
 import { readAgentUIProjectConfig } from "./project-mode";
-import { resolveAgentUIProjectPaths, projectRelativePath, projectControlConfigForPaths } from "./agent-ui-project-paths";
+import { resolveAgentUIProjectPaths, projectRelativePath } from "./agent-ui-project-paths";
 import { assertNoSymbolicLinkTraversal } from "./source-registry/path-policy";
 import { acquireProjectControlLock } from "./project-control-lock";
-import { verifyUIProject } from "../verify-ui";
+import type { UIProjectVerification } from "../verify-ui";
 
 export interface ThemeCatalog { current: string; options: { id: string }[] }
-export interface ThemeChange { path: string; before: string; after: string }
+export interface ThemeChange { path: string; before: string; after: string; verificationRuntime: string }
+export interface ThemeTransactionResult { runId?: string; verification: UIProjectVerification }
 async function inspect(root: string) {
   const project = await readAgentUIProjectConfig(root);
   const paths = resolveAgentUIProjectPaths(root, project.config);
@@ -56,16 +57,17 @@ async function inspect(root: string) {
 export async function getAvailableAgentUIThemes(root: string): Promise<ThemeCatalog> { return (await inspect(root)).catalog; }
 
 /** ProjectControl owns planning/admission. The Host supplies the shared transaction storage. */
-export async function setAgentUITheme(root: string, theme: string, commit: (change: ThemeChange) => Promise<{ runId?: string }>) {
+export async function setAgentUITheme(root: string, theme: string, commit: (change: ThemeChange) => Promise<ThemeTransactionResult>) {
   const release = await acquireProjectControlLock(root);
   try {
     const state = await inspect(root);
     if (!state.catalog.options.some(option => option.id === theme)) throw new Error("UNKNOWN_THEME");
     const after = state.catalog.current === theme ? state.source : state.source.slice(0, state.literal.start) + JSON.stringify(theme) + state.source.slice(state.literal.end);
-    const verification = await verifyUIProject(root, projectControlConfigForPaths(state.paths));
-    if (verification.status !== "passed") throw new Error("THEME_STATIC_VALIDATION_FAILED");
-    // AST replacement changes only a known literal to a preset ID; project verification is read-only.
-    const transaction = await commit({ path: state.relative, before: state.source, after });
-    return { current: theme, changed: after !== state.source, changedPaths: after === state.source ? [] : [state.relative], validation: "passed" as const, ...transaction };
+    // Storage publishes durably, verifies this real project through the managed ProjectControl
+    // runtime while holding its writing lock, and rolls back any failed verification.
+    const transaction = await commit({ path: state.relative, before: state.source, after,
+      verificationRuntime: import.meta.resolve("@agent-ui/project-control/commands") });
+    if (transaction.verification.status !== "passed") throw new Error("THEME_STATIC_VALIDATION_FAILED");
+    return { current: theme, changed: after !== state.source, changedPaths: after === state.source ? [] : [state.relative], validation: transaction.verification.status, ...transaction };
   } finally { await release(); }
 }

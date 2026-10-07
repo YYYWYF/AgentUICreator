@@ -15,8 +15,8 @@ import { createCreatorHostPreviewPlugin } from "../../../../packages/creator/src
 const repository = fileURLToPath(new URL("../../../../", import.meta.url));
 
 /** Disposable generated Host: no mock package or Mock Vite plugin is installed. */
-export async function createConnectionHostFixture() {
-  const root = await mkdtemp(path.join(tmpdir(), "creator-connection-host-"));
+export async function createConnectionHostFixture(options: { themeCommands?: boolean } = {}) {
+  const root = realpathSync(await mkdtemp(path.join(tmpdir(), "creator-connection-host-")));
   const hostRoot = path.join(root, "host");
   const creatorRoot = path.join(root, "creator");
   const servers: ViteDevServer[] = [];
@@ -28,6 +28,10 @@ export async function createConnectionHostFixture() {
     if (request.method !== "POST" || request.url !== "/agent") { response.writeHead(405); response.end(); return; }
     let body = ""; for await (const chunk of request) body += chunk;
     const input = JSON.parse(body) as { threadId: string; runId: string };
+    // The direct-browser CORS probe sends {}; it must not create a fake run.
+    if (typeof input.threadId !== "string" || typeof input.runId !== "string") {
+      response.writeHead(400); response.end(); return;
+    }
     runs++;
     const messageId = `connected-${input.runId}`;
     const event = (value: object) => response.write(`data: ${JSON.stringify(value)}\n\n`);
@@ -52,9 +56,10 @@ export async function createConnectionHostFixture() {
   };
   const link = async (projectRoot: string, name: string) => {
     const candidates = [
+      // Workspace packages must use the current release, never an older installed tarball.
+      ...(name.startsWith("@agent-ui/") ? [path.join(repository, "packages", name.slice("@agent-ui/".length))] : []),
       ...["creator-host-sandbox", "creator-assistant-host"].map(owner => path.join(repository, "examples", owner, "node_modules", name)),
       ...["react", "runtime-conversation", "project-control", "bootstrap", "creator"].map(owner => path.join(repository, "packages", owner, "node_modules", name)),
-      ...(name.startsWith("@agent-ui/") ? [path.join(repository, "packages", name.slice("@agent-ui/".length))] : []),
     ];
     const source = candidates.find(existsSync);
     if (!source) throw new Error(`Missing prepared fixture dependency: ${name}`);
@@ -78,10 +83,14 @@ export async function createConnectionHostFixture() {
     await writeFile(path.join(creatorRoot, "package.json"), JSON.stringify({ private: true, type: "module", dependencies: { react: template.dependencies.react, "react-dom": template.dependencies["react-dom"], "@agent-ui/creator": "workspace:*" } }));
     for (const name of ["react", "react-dom", "@agent-ui/creator"]) await link(creatorRoot, name);
     await writeFile(path.join(creatorRoot, "index.html"), '<div id="root"></div><script type="module" src="/main.tsx"></script>');
-    const creator = await createServer({ configFile: false, root: creatorRoot, plugins: [react(), createCreatorDevServerPlugin({ projectRoot: hostRoot, python: { environment: { CREATOR_VERIFICATION_MODE: "static_only" }, log: () => undefined } })], server: { host: "127.0.0.1", port: 0, fs: { allow: [root, repository] } }, resolve: { dedupe: ["react", "react-dom"] } });
+    const creator = await createServer({ configFile: false, root: creatorRoot, optimizeDeps: { noDiscovery: true, include: ["react", "react-dom/client", "@agent-ui/creator/ui", "@agent-ui/creator/host-preview"] }, plugins: [react(), createCreatorDevServerPlugin({ projectRoot: hostRoot, python: { environment: { CREATOR_VERIFICATION_MODE: "static_only" },
+      ...(options.themeCommands ? { allowExternalEndpoint: false, pythonExecutable: process.env.CREATOR_THEME_TEST_PYTHON ?? path.join(repository, "packages/creator-python/.venv/bin/python"), pythonPackageRoot: path.join(repository, "packages/creator-python") } : {}), log: () => undefined } })], server: { host: "127.0.0.1", port: 0, hmr: false, fs: { allow: [root, repository] } }, resolve: { dedupe: ["react", "react-dom"] } });
     servers.push(creator); await creator.listen();
     const creatorOrigin = creator.resolvedUrls!.local[0]!;
-    const host = await createServer({ configFile: false, root: hostRoot, plugins: [react(), tailwindcss(), createCreatorHostPreviewPlugin({ creatorOrigin, workspaceId })], server: { host: "127.0.0.1", port: 0, fs: { allow: [root, repository] } }, resolve: { dedupe: ["react", "react-dom"] } });
+    const host = await createServer({ configFile: false, root: hostRoot,
+      // Lazy plugin imports must not trigger dependency reloads mid-test.
+      optimizeDeps: { noDiscovery: true, include: ["react", "react-dom/client", "@agent-ui/react", "@agent-ui/react/lexical", "@agent-ui/runtime-conversation", "@agent-ui/runtime-core", "@agent-ui/runtime-react", "@base-ui/react/**", "@assistant-ui/react-lexical", "lexical", "zod", "zustand"] },
+      plugins: [react(), tailwindcss(), createCreatorHostPreviewPlugin({ creatorOrigin, workspaceId })], server: { host: "127.0.0.1", port: 0, fs: { allow: [root, repository] } }, resolve: { dedupe: ["react", "react-dom"] } });
     servers.push(host); await host.listen();
     const hostOrigin = host.resolvedUrls!.local[0]!;
     // Real Creator UI and its real iframe/source bridge. Only unrelated Creator

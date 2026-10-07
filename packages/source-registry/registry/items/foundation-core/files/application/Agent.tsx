@@ -98,12 +98,16 @@ function AgentSurface({ composition, observability, frontendToolRuntime, locale,
     window.addEventListener("agent-ui:preview-run-request", publish);
     return () => { window.removeEventListener("agent-ui:preview-run-request", publish); unsubscribe(); window.dispatchEvent(new CustomEvent("agent-ui:preview-run-state", { detail: { running: false } })); };
   }, [agentRuntime]);
+  const activeAgentRuntime = useRef(agentRuntime);
+  activeAgentRuntime.current = agentRuntime;
+  // Thread switches replace the conversation bridge, not application services.
+  // Keep Plugin setup actions stable while dispatching to the active thread.
   const actions = useMemo(() => ({
-    sendMessage: (input: Parameters<typeof agentRuntime.sendMessage>[0]) => agentRuntime.sendMessage(input),
-    resumeInterrupts: (responses: Parameters<typeof agentRuntime.resumeInterrupts>[0]) => agentRuntime.resumeInterrupts(responses),
-    startNewConversation: () => agentRuntime.startNewConversation(),
-    abortRun: () => agentRuntime.abort(),
-  }), [agentRuntime]);
+    sendMessage: (input: Parameters<typeof agentRuntime.sendMessage>[0]) => activeAgentRuntime.current.sendMessage(input),
+    resumeInterrupts: (responses: Parameters<typeof agentRuntime.resumeInterrupts>[0]) => activeAgentRuntime.current.resumeInterrupts(responses),
+    startNewConversation: () => activeAgentRuntime.current.startNewConversation(),
+    abortRun: () => activeAgentRuntime.current.abort(),
+  }), []);
 
   const previewRoot = useRef<HTMLDivElement>(null);
   const observed = import.meta.env.DEV || observability !== undefined;
