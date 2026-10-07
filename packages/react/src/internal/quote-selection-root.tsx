@@ -171,6 +171,10 @@ export const SelectionToolbarPrimitiveRoot = forwardRef<
     window.addEventListener("blur", handleMouseCancel);
     document.addEventListener("selectionchange", handleSelectionChange);
     document.addEventListener("scroll", handleScroll, true);
+    // Shadow DOM scroll events do not cross their root boundary.
+    const domRoot = threadRootRef?.current?.getRootNode();
+    const shadowRoot = domRoot instanceof ShadowRoot ? domRoot : undefined;
+    shadowRoot?.addEventListener("scroll", handleScroll, true);
 
     return () => {
       if (pendingFrame !== null) cancelAnimationFrame(pendingFrame);
@@ -181,6 +185,7 @@ export const SelectionToolbarPrimitiveRoot = forwardRef<
       window.removeEventListener("blur", handleMouseCancel);
       document.removeEventListener("selectionchange", handleSelectionChange);
       document.removeEventListener("scroll", handleScroll, true);
+      shadowRoot?.removeEventListener("scroll", handleScroll, true);
     };
   }, [threadRootRef, portalContainer, onSelectionDiagnostic]);
 

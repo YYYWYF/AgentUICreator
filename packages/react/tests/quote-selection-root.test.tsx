@@ -66,3 +66,29 @@ it("rejects excluded, cross-message and outside-thread selections", async () => 
   await f.select(paragraphs[2]!.firstChild!); expect(f.toolbar()).toBeNull();
   expect(f.diagnostic).toHaveBeenLastCalledWith(expect.objectContaining({ rootContainsMessage: false, messageId: null, infoWillBeSet: false }));
 });
+it("dismisses Quote on non-composed scrolling within a Shadow Root and removes its listener", async () => {
+  vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => window.setTimeout(() => cb(0), 0));
+  vi.stubGlobal("cancelAnimationFrame", (id: number) => window.clearTimeout(id));
+  const host = document.createElement("div"); document.body.append(host);
+  const shadow = host.attachShadow({ mode: "open" });
+  const mount = document.createElement("div"); shadow.append(mount);
+  const ref = createRef<HTMLDivElement>();
+  const removeListener = vi.spyOn(shadow, "removeEventListener");
+  root = createRoot(mount);
+  await act(async () => root!.render(<AgentUIRoot theme="light"><QuoteThreadRootContext.Provider value={ref}>
+    <div ref={ref}><article data-message-id="shadow-message"><p data-aui-quote-selectable="true">Body</p></article>
+      <SelectionToolbarPrimitiveRoot data-test-toolbar="">Quote</SelectionToolbarPrimitiveRoot>
+    </div>
+  </QuoteThreadRootContext.Provider></AgentUIRoot>));
+  const text = shadow.querySelector("p")!.firstChild!;
+  const range = document.createRange(); range.selectNodeContents(text);
+  Object.defineProperty(range, "getBoundingClientRect", { value: () => ({ top: 100, left: 100, width: 80 }) });
+  vi.spyOn(window, "getSelection").mockReturnValue({ anchorNode: text, focusNode: text, isCollapsed: false,
+    rangeCount: 1, getRangeAt: () => range, toString: () => "Body", removeAllRanges: () => {} } as unknown as Selection);
+  await act(async () => { document.dispatchEvent(new Event("selectionchange")); await new Promise(resolve => setTimeout(resolve, 10)); });
+  expect(shadow.querySelector("[data-test-toolbar]")).not.toBeNull();
+  await act(async () => ref.current!.dispatchEvent(new Event("scroll", { composed: false })));
+  expect(shadow.querySelector("[data-test-toolbar]")).toBeNull();
+  await act(async () => root!.unmount()); root = undefined;
+  expect(removeListener).toHaveBeenCalledWith("scroll", expect.any(Function), true);
+});

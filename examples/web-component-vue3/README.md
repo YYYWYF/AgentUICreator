@@ -1,0 +1,13 @@
+# Vue 3 compatibility demo
+
+Run `pnpm --filter @agent-ui/web-component-vue3-demo dev` from the workspace.
+The predev step builds the independent Web Component bundle. This Vue/Vite
+application does not depend directly on React or use the React Vite plugin.
+`AgentUIWrapper.vue` creates the element, assigns configuration, forwards three
+CustomEvents, and removes its listeners/element on unmount. Replace the mock API
+and mock attachment adapter with your Host APIs for deployment.
+
+The mock default exercises reasoning and a tool response; the official embedded
+preset also supplies Markdown, attachments, slash commands and quote context.
+Locale/theme controls and deliberately hostile Host styles are provided for later
+manual checks. Demo compilation is not browser or visual acceptance.

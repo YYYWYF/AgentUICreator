@@ -36,7 +36,8 @@ const QUOTE_SELECTION_ADAPTATIONS = [
   "Public React DOM elements replace the private Primitive helper (no asChild API is exposed).",
   "Public useAui import and local context preserve captured selection/setQuote semantics.",
   "Canonical Thread supplies the identical DOM root ref without importing a private upstream context.",
-  "Only selection behavior change: portal target is AgentUIRoot; absence of its container renders nothing.",
+  "Portal target is AgentUIRoot; absence of its container renders nothing.",
+  "Shadow Root scroll capture reuses upstream dismissal for non-composed scroll events; document behavior is unchanged.",
   "An optional internal test callback observes selection gates without changing validation or event behavior.",
 ];
 const COMPOSE_EVENT_HANDLERS = `function composeEventHandlers<E extends { defaultPrevented: boolean }>(first: ((event: E) => void) | undefined, second: (event: E) => void) {
@@ -70,6 +71,14 @@ export function adaptQuoteSelectionSource(source, localPath) {
     replace('  const [info, setInfo] = useState<SelectionInfo | null>(null);',
       '  const portalContainer = useAgentUIPortalContainer();\n  const [info, setInfo] = useState<SelectionInfo | null>(null);');
     replace('  if (!info) return null;', '  if (!info || !portalContainer) return null;');
+    replace('    document.addEventListener("scroll", handleScroll, true);', `    document.addEventListener("scroll", handleScroll, true);
+    // Shadow DOM scroll events do not cross their root boundary.
+    const domRoot = threadRootRef?.current?.getRootNode();
+    const shadowRoot = domRoot instanceof ShadowRoot ? domRoot : undefined;
+    shadowRoot?.addEventListener("scroll", handleScroll, true);`);
+    replace('      document.removeEventListener("scroll", handleScroll, true);', `      document.removeEventListener("scroll", handleScroll, true);
+      shadowRoot?.removeEventListener("scroll", handleScroll, true);`);
+
     replace('    document.body,', '    portalContainer,');
     // Internal, opt-in test observation; no logging or public facade API.
     replace('  export type Props = ComponentPropsWithoutRef<typeof Primitive.div>;',
