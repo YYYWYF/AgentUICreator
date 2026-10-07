@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { createI18nPluginHost } from "./support/i18n-plugin-visual-host";
 import { readReleasePluginCoverage } from "./support/i18n-plugin-visual-coverage";
 let host: Awaited<ReturnType<typeof createI18nPluginHost>>;
@@ -9,6 +9,23 @@ test.beforeAll(async () => {
   expect(host.plugins).toEqual(releaseIds);
 });
 test.afterAll(async () => { await host?.close(); });
+async function showThreadList(page: Page, info: TestInfo) {
+  const row = page.locator('.app-ui-layout-responsive-row').filter({
+    has: page.locator('[data-ui-plugin="conversation-thread-list"]'),
+  });
+  const narrow = info.project.name.endsWith('narrow');
+  await expect(row).toHaveAttribute('data-layout-responsive', narrow ? 'drawer' : 'grid');
+  if (narrow) {
+    await expect(row.locator('[data-layout-drawer-state]')).toHaveAttribute('data-layout-drawer-state', 'closed');
+    await row.locator('.app-ui-layout-drawer-controls button').click();
+    await expect(row.locator('[data-layout-drawer-state]')).toHaveAttribute('data-layout-drawer-state', 'open');
+  } else {
+    await expect(row.locator('[data-layout-drawer-state]')).toHaveAttribute('data-layout-drawer-state', 'inline');
+  }
+  const sidebar = row.locator('[data-ui-plugin="conversation-thread-list"]');
+  await expect(sidebar).toBeVisible();
+  return sidebar;
+}
 const scenarios = ["simple-chat", "reasoning-tool-success", "tool-error", "tool-long-running", "web-search", "retrieval-chunks", "source-citations", "file-output", "data-message-chart", "agent-status", "agent-plan", "agent-state-sync", "nested-subagent-task-group", "markdown-showcase"];
 for (const scenario of ["empty", ...scenarios]) {
   test(`surface evidence: ${scenario}`, async ({ page }, info) => {
@@ -70,12 +87,7 @@ test("locale switch preserves composer draft and trigger query", async ({ page }
 test("thread history selection survives locale switch and More stays in theme boundary", async ({ page }, info) => {
   await page.goto(`${host.url}?locale=${info.project.metadata.locale}`);
   await expect(page.locator('[data-ui-plugin="conversation-surface"]')).toBeVisible();
-  // Narrow layout collapses history; use the real responsive control when present.
-  const sidebar = page.locator('[data-ui-plugin="conversation-thread-list"]');
-  if (!(await sidebar.isVisible())) {
-    const toggle = page.locator(".app-ui-layout-drawer-controls button");
-    await toggle.click();
-  }
+  const sidebar = await showThreadList(page, info);
   const history = sidebar.getByText("历史：基础会话", { exact: true });
   await expect(history).toBeVisible(); await history.click();
   if (info.project.name.endsWith("narrow")) await page.locator(".app-ui-layout-drawer-close").click();
@@ -204,9 +216,7 @@ test("quote selection and preview", async ({page}, info) => {
 
 test("thread list localization", async ({ page }, info) => {
   await page.goto(`${host.url}?locale=${info.project.metadata.locale}`);
-  const sidebar = page.locator('[data-ui-plugin="conversation-thread-list"]');
-  if (!(await sidebar.isVisible())) await page.locator('.app-ui-layout-drawer-controls button').click();
-  await expect(sidebar).toBeVisible();
+  const sidebar = await showThreadList(page, info);
   const zh = info.project.metadata.locale === "zh-CN";
   const newThread = sidebar.getByRole('button', { name: zh ? '新建会话' : 'New Thread', exact: true });
   await expect(newThread).toHaveText(zh ? '新建会话' : 'New Thread');
