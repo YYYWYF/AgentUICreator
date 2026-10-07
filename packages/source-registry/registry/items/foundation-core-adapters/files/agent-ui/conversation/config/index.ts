@@ -9,4 +9,4 @@ export {
   type ConversationPresentationConfig,
   type ConversationWelcomeConfig,
 } from "./conversation-presentation-config";
-export { conversationStarterSuggestions, conversationMessageQueueEnabled } from "./conversation-runtime-config";
+export { getConversationStarterSuggestions, conversationStarterSuggestions, conversationMessageQueueEnabled } from "./conversation-runtime-config";

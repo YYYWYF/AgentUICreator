@@ -1,3 +1,4 @@
+import { useAgentUILocale as useAgentUIPresentationLocale } from "@agent-ui/react";
 import {
   useCallback,
   useEffect,
@@ -162,6 +163,7 @@ function SlotContent<TState = unknown>({
   onPluginError,
   onPluginReset,
 }: SlotContentProps<TState>) {
+  const localeMessages = useAgentUIPresentationLocale("runtime");
   const serviceRuntime = usePluginServiceRuntime();
   const slots = serviceRuntime.slots;
   const getSnapshot = useCallback(
@@ -259,7 +261,7 @@ function SlotContent<TState = unknown>({
         if (instance === undefined) {
           return (
             <PluginRuntimeError key={instanceId}>
-              Plugin instance &quot;{instanceId}&quot; does not exist.
+              {localeMessages.missingInstance.replace("{instance}", () => instanceId)}
             </PluginRuntimeError>
           );
         }
@@ -273,7 +275,7 @@ function SlotContent<TState = unknown>({
         if (definition === undefined) {
           return (
             <PluginRuntimeError key={instance.id}>
-              UI plugin &quot;{instance.pluginId}&quot; is not registered.
+              {localeMessages.pluginNotRegistered.replace("{plugin}", () => instance.pluginId)}
             </PluginRuntimeError>
           );
         }
@@ -390,6 +392,7 @@ function UIPluginRuntimeContent<TState = unknown>({
   className,
 }: UIPluginRuntimeProps<TState>) {
   const diagnostics = useOptionalPluginDiagnosticContext();
+  const localeMessages = useAgentUIPresentationLocale("runtime");
   const serviceRuntime = usePluginServiceRuntime();
   usePluginServiceRuntimeRevision();
   const application = useApplicationLifecycle();
@@ -538,7 +541,7 @@ function UIPluginRuntimeContent<TState = unknown>({
         if (definition === undefined) {
           return (
             <PluginRuntimeError key={instance.id}>
-              UI plugin &quot;{instance.pluginId}&quot; is not registered.
+              {localeMessages.pluginNotRegistered.replace("{plugin}", () => instance.pluginId)}
             </PluginRuntimeError>
           );
         }
@@ -546,7 +549,7 @@ function UIPluginRuntimeContent<TState = unknown>({
         if (activation?.status === "failed") {
           return (
             <PluginRuntimeError key={instance.id}>
-              UI plugin &quot;{instance.pluginId}&quot; failed to activate: {activation.errorMessage}
+              {localeMessages.pluginActivationFailed.replace("{plugin}", () => instance.pluginId).replace("{error}", () => activation.errorMessage ?? "")}
             </PluginRuntimeError>
           );
         }
@@ -559,7 +562,7 @@ function UIPluginRuntimeContent<TState = unknown>({
               key={instance.id}
               role="status"
             >
-              Waiting for plugin service: {activation.missingServices.join(", ")}
+              {localeMessages.waitingForService.replace("{services}", () => activation.missingServices.join(", "))}
             </div>
           );
         }
@@ -568,7 +571,7 @@ function UIPluginRuntimeContent<TState = unknown>({
 
       {failures.length > 0 ? (
         <section
-          aria-label="插件错误通知"
+          aria-label={localeMessages.pluginNotifications}
           aria-live="polite"
           className="app-ui-plugin-notifications"
         >
@@ -585,14 +588,14 @@ function UIPluginRuntimeContent<TState = unknown>({
                 !
               </span>
               <span className="app-ui-plugin-error-body">
-                <strong>插件运行失败</strong>
+                <strong>{localeMessages.pluginFailed}</strong>
                 <span className="app-ui-plugin-error-identity">
                   {failure.pluginName} · {failure.instanceId}
                 </span>
                 <code>{failure.errorMessage}</code>
               </span>
               <button
-                aria-label={`关闭 ${failure.pluginName} 错误提示`}
+                aria-label={localeMessages.dismissPluginError.replace("{plugin}", () => failure.pluginName)}
                 className="app-ui-plugin-notification-close"
                 onClick={() => dismissPluginFailure(failure.instanceId)}
                 type="button"

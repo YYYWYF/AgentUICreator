@@ -1,0 +1,5731 @@
+{
+  "baselineCommit": "bd1173463dd95c034cd31884c676a66436c13fc4",
+  "date": "2026-10-07",
+  "note": "Initial semantic copy candidates collected before edits; line numbers refer to the starting working tree. Vendor and release fixtures excluded. Mock transcripts and runtime data are not translated.",
+  "entries": [
+    {
+      "file": "apps/creator-workbench/src/dock.tsx",
+      "line": 7,
+      "value": "缺少 #root 元素",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 8,
+      "value": "暂时无法读取连接设置。请确认 Creator 开发服务已启动；如果刚更新过 Creator，请重启服务后重试。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 10,
+      "value": "Preview workspace changed. Reload the preview.",
+      "category": "protocol / identifier"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 10,
+      "value": "当前项目已切换，请刷新预览后重试。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 11,
+      "value": "Workspace changed.",
+      "category": "protocol / identifier"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 11,
+      "value": "当前项目已切换，请刷新预览后重试。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 12,
+      "value": "Stop the current run before switching Agent source.",
+      "category": "protocol / identifier"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 12,
+      "value": "请先停止当前运行，再切换 Agent 来源。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 13,
+      "value": "Connection changes require same-origin requests.",
+      "category": "protocol / identifier"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 13,
+      "value": "请在 Creator 开发服务页面中修改连接设置。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 14,
+      "value": "Agent connection is being updated.",
+      "category": "protocol / identifier"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 14,
+      "value": "连接设置正在更新，请稍后重试。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 15,
+      "value": "Invalid Agent endpoint.",
+      "category": "protocol / identifier"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 15,
+      "value": "服务地址无效，请填写完整的 HTTP 或 HTTPS 地址。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 16,
+      "value": "Invalid URL",
+      "category": "protocol / identifier"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 16,
+      "value": "服务地址无效，请填写完整的 HTTP 或 HTTPS 地址。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 17,
+      "value": "Use an HTTP(S) Agent endpoint without credentials or fragments.",
+      "category": "protocol / identifier"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 17,
+      "value": "请使用 HTTP 或 HTTPS 地址，且不要在地址中包含用户名、密码或 # 片段。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 18,
+      "value": "Agent endpoint is required.",
+      "category": "protocol / identifier"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 18,
+      "value": "请先填写 Agent 服务地址。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 19,
+      "value": "Select Mock or Connected Agent.",
+      "category": "protocol / identifier"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 19,
+      "value": "请选择接入自己的 Agent 或使用示例 Agent。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 29,
+      "value": "无法连接 Creator 开发服务，请检查服务是否运行后重试。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 38,
+      "value": "连接设置未保存，请稍后重试；如果问题持续，请重启 Creator 开发服务。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 80,
+      "value": "Use an HTTP(S) Agent endpoint without credentials or fragments.",
+      "category": "protocol / identifier"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 82,
+      "value": "Invalid Agent endpoint.",
+      "category": "protocol / identifier"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 89,
+      "value": "连接设置未保存，请稍后重试。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 94,
+      "value": "Agent 连接设置",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 95,
+      "value": "接入支持 AG-UI 的 Agent 服务，或使用内置示例体验对话、工具调用等功能。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 96,
+      "value": "Agent 服务地址",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 96,
+      "value": "例如：http://localhost:8000/agent",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 98,
+      "value": "使用此地址",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 99,
+      "value": "使用示例 Agent",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 101,
+      "value": "当前使用：自己的 Agent 服务",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 101,
+      "value": "当前使用：示例 Agent（Mock）",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 102,
+      "value": "在 Mock Agent 面板中选择示例，再到预览中发送消息体验。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 103,
+      "value": "正在读取连接设置…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 104,
+      "value": "正在保存连接设置…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 105,
+      "value": "请先停止当前运行，再切换 Agent 来源。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 107,
+      "value": "重新读取连接设置",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 109,
+      "value": "连接与部署说明",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 110,
+      "value": "开发预览通过 Creator 转发请求，避免浏览器跨域限制。保存地址后，在预览中发送消息即可使用你的 Agent。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/AgentConnectionPanel.tsx",
+      "line": 111,
+      "value": "正式部署时，应用直接使用自己的 Agent 服务地址，不依赖 Creator。静态部署需由 Agent 服务允许跨域访问，或配置部署代理。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "apps/creator-workbench/src/main.tsx",
+      "line": 22,
+      "value": "Host Application",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "apps/creator-workbench/src/main.tsx",
+      "line": 26,
+      "value": "缺少 #root 元素",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorRefresh.ts",
+      "line": 33,
+      "value": "读取失败",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 87,
+      "value": "设置",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 87,
+      "value": "设置",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 91,
+      "value": "设置",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 92,
+      "value": "连接 Agent",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 93,
+      "value": "示例与回放",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 94,
+      "value": "插件更新",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 137,
+      "value": "智能体前端预览",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 202,
+      "value": "用户",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 204,
+      "value": "错误",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 208,
+      "value": "已创建",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 209,
+      "value": "已修改",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 210,
+      "value": "已删除",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 217,
+      "value": "通过",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 218,
+      "value": "失败",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 225,
+      "value": "通过",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 226,
+      "value": "失败",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 227,
+      "value": "Runtime 未观测到",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 228,
+      "value": "Runtime 暂不可用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 233,
+      "value": "请求结果未确认",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 234,
+      "value": "请求目标未满足",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 237,
+      "value": "静态验证未完成",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 238,
+      "value": "静态验证未通过",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 247,
+      "value": "未执行完成验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 248,
+      "value": "修改已通过静态验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 249,
+      "value": "修改已验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 250,
+      "value": "修改已提交，但完成验证未确认",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 251,
+      "value": "项目未修改",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 252,
+      "value": "已按用户决定结束，项目未修改",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 253,
+      "value": "完成验证失败",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 257,
+      "value": "正在准备",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 258,
+      "value": "正在执行",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 259,
+      "value": "已完成",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 260,
+      "value": "执行失败",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 372,
+      "value": "Creator 返回了无效的运行回执。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 416,
+      "value": "页面刷新时该阶段尚未结束。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 442,
+      "value": "页面刷新时该工具调用尚未结束。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 549,
+      "value": "诊断日志",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 551,
+      "value": "\n        Creator 已把本次模型、工具和验证链路保存在项目本地：\n      ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 553,
+      "value": "Creator 诊断日志路径",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 557,
+      "value": "\n        日志可能包含用户请求、项目内容和工具输出；对外分享前请先检查。\n      ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 567,
+      "value": "验证结果",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 577,
+      "value": "\n            Revision：",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 577,
+      "value": "旧版回执",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 577,
+      "value": " · 退出码：\n            ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 578,
+      "value": "不可用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 580,
+      "value": "`${validation.command} 输出`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 581,
+      "value": "（命令无输出）",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 584,
+      "value": "验证输出已截断",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 595,
+      "value": "插件交付：",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 596,
+      "value": "交付完成",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 596,
+      "value": "静态检查通过，Runtime 与浏览器未验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 596,
+      "value": "交付阻塞",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 596,
+      "value": "交付进行中",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 598,
+      "value": "静态检查",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 598,
+      "value": "运行验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 598,
+      "value": "布局验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 598,
+      "value": "通过",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 598,
+      "value": "未通过",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 598,
+      "value": "未验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 598,
+      "value": "失败",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 601,
+      "value": "交付详情",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 601,
+      "value": "方案：",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 601,
+      "value": " · 授权：",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 601,
+      "value": " · 阶段：",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 628,
+      "value": "修改已提交，但请求结果尚未确认",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 630,
+      "value": "修改已提交，Runtime 尚未观测到",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 632,
+      "value": "修改已提交，Runtime 暂不可用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 633,
+      "value": "修改已提交，但请求结果尚未确认",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 637,
+      "value": "修改回执",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 639,
+      "value": "修改回执",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 641,
+      "value": " 个文件\n          ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 642,
+      "value": "` · ${receipt.validations.length} 项验证`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 649,
+      "value": "修改操作",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 656,
+      "value": "已撤销",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 656,
+      "value": "当前可撤销",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 656,
+      "value": "当前不可撤销",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 658,
+      "value": " · Run ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 663,
+      "value": "再次应用前会检查所有文件；后续人工修改不会被覆盖。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 664,
+      "value": "文件已恢复到本次修改前的状态。此记录无法再次应用。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 665,
+      "value": "撤销执行时会再次检查所有文件；后续人工修改不会被覆盖。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 666,
+      "value": " 本次再次应用尚未重新验证。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 670,
+      "value": "正在撤销…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 670,
+      "value": "撤销本次修改",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 675,
+      "value": "正在再次应用…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 675,
+      "value": "再次应用本次修改",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 683,
+      "value": "原运行验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 683,
+      "value": "完成验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 692,
+      "value": "\n            · Revision ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 692,
+      "value": " · 复核 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 692,
+      "value": " 次\n          ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 717,
+      "value": "文件修改",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 730,
+      "value": "Diff 已截断",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 746,
+      "value": "处理结果",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 747,
+      "value": "处理结果",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 747,
+      "value": " 个文件",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 756,
+      "value": "验证结果",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 758,
+      "value": "验证结果",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 759,
+      "value": " 项验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 770,
+      "value": "运行诊断",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 771,
+      "value": "运行诊断",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 782,
+      "value": "工具执行详情",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 785,
+      "value": "工具调用 · ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 785,
+      "value": " 次",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 787,
+      "value": "执行中",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 787,
+      "value": "`${failed} 次失败`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 787,
+      "value": "已完成",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 788,
+      "value": "` · ${failed} 次失败`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 804,
+      "value": "`工具调用 ${activity.name}`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 815,
+      "value": "调用参数",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 824,
+      "value": "工具结果",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 846,
+      "value": "是",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 847,
+      "value": "否",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 855,
+      "value": "仅静态验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 856,
+      "value": "静态与运行时验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 857,
+      "value": "未执行",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 858,
+      "value": "通过",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 859,
+      "value": "未通过",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 860,
+      "value": "尚未更新",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 861,
+      "value": "不可用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 862,
+      "value": "进行中",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 863,
+      "value": "已完成",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 864,
+      "value": "成功",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 865,
+      "value": "已提交，未验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 866,
+      "value": "当前已满足",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 867,
+      "value": "已恢复",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 868,
+      "value": "此前已恢复",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 869,
+      "value": "需要补充信息",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 870,
+      "value": "预定义操作",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 871,
+      "value": "通用 Agent",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 872,
+      "value": "需要澄清",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 873,
+      "value": "暂不支持",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 905,
+      "value": "上下文准备",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 907,
+      "value": "快照生成耗时",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 908,
+      "value": "模型调用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 909,
+      "value": "错误代码",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 917,
+      "value": "需求理解",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 919,
+      "value": "错误代码",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 920,
+      "value": "选择失败代码",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 921,
+      "value": "原因",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 922,
+      "value": "决策",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 923,
+      "value": "操作 ID",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 924,
+      "value": "操作类型",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 925,
+      "value": "操作状态",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 926,
+      "value": "操作选择次数",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 927,
+      "value": "选择修复次数",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 928,
+      "value": "无效选择响应",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 931,
+      "value": "修复原因代码",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 932,
+      "value": "修复原因",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 935,
+      "value": "模型调用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 936,
+      "value": "修复调用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 937,
+      "value": "耗时",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 938,
+      "value": "候选数量",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 939,
+      "value": "上下文字数",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 943,
+      "value": "修改目标",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 945,
+      "value": "插件",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 946,
+      "value": "实例",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 951,
+      "value": "位置验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 953,
+      "value": "类型",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 954,
+      "value": "锚点插件",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 955,
+      "value": "锚点实例",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 956,
+      "value": "相对关系",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 957,
+      "value": "父插件",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 958,
+      "value": "父实例",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 959,
+      "value": "插槽",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 965,
+      "value": "作用范围",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 967,
+      "value": "类型",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 968,
+      "value": "区域",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 969,
+      "value": "父插件",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 970,
+      "value": "父实例",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 971,
+      "value": "插槽",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 976,
+      "value": "执行路径",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 978,
+      "value": "预定义操作",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 979,
+      "value": "通用 Agent",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 980,
+      "value": "需要澄清",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 981,
+      "value": "暂不支持",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 986,
+      "value": "通用 Agent",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 988,
+      "value": "模型调用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 989,
+      "value": "工具调用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 990,
+      "value": "模型调用总数",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1000,
+      "value": "修改执行",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1002,
+      "value": "执行模型调用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1003,
+      "value": "工具调用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1004,
+      "value": "DeepAgent 调用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1005,
+      "value": "修改尝试",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1009,
+      "value": "验证结果",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1011,
+      "value": "验证方式",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1012,
+      "value": "静态验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1013,
+      "value": "运行时验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1014,
+      "value": "最新状态检查次数",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1015,
+      "value": "运行时等待",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1016,
+      "value": "位置验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1017,
+      "value": "尺寸验证",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1038,
+      "value": "`Creator 阶段 ${activity.name}`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1060,
+      "value": "诊断详情",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1584,
+      "value": "Creator 已完成本次处理。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1658,
+      "value": "已放弃本次开发任务。此前已提交的修改仍保留；如需撤销，请单独提出。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1739,
+      "value": "没有选择项目文件夹。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1770,
+      "value": "当前操作完成后，请再刷新。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1783,
+      "value": "项目状态已刷新，请先打开项目。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1789,
+      "value": "无法检查示例资源",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1795,
+      "value": "连接设置",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1795,
+      "value": "Mock 文件与服务",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1795,
+      "value": "示例资源",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1795,
+      "value": "插件更新",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1797,
+      "value": "`已完成部分刷新；${failed.join(\"、\")}暂时无法读取，请重试。`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1797,
+      "value": "已刷新项目状态、连接设置、Mock 文件、示例资源和插件更新。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1798,
+      "value": "暂时无法刷新项目，请确认 Creator 开发服务运行后重试。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1858,
+      "value": "初始化未返回就绪状态，请刷新项目状态后重试。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1871,
+      "value": "初始化结果尚未确认，请刷新项目状态后重试。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1876,
+      "value": "`初始化结果尚未确认；刷新项目状态失败：${setupError(refreshError).message}`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1932,
+      "value": "请先回答当前问题",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1953,
+      "value": "项目预览",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1955,
+      "value": "Agent UI 尚未初始化",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1955,
+      "value": "选择产品形态并完成初始化后，Creator 才能开始编辑 Agent UI。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1957,
+      "value": "请先选择项目",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1959,
+      "value": "请打开项目自己的开发页面",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1959,
+      "value": "项目页面由它自己的开发服务器渲染；Creator 在该页面的开发期浮层中使用。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1965,
+      "value": "Creator",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1967,
+      "value": "调整 Creator 面板宽度",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1975,
+      "value": "拖动调整宽度，双击恢复默认",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1978,
+      "value": "Creator · 仅用于开发",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1980,
+      "value": "Creator",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1987,
+      "value": "`当前项目：${workspaceState.workspace.name}，点击切换项目`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1987,
+      "value": "选择项目文件夹",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1994,
+      "value": "打开或切换项目",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1996,
+      "value": "选择前端项目文件夹",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1998,
+      "value": "当前编辑项目",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1998,
+      "value": "打开项目",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 1999,
+      "value": "关闭项目选择",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2008,
+      "value": "已接入 Agent UI",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2008,
+      "value": "待初始化",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2008,
+      "value": "需要修复",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2010,
+      "value": "Creator 的修改会保存到这个项目。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2012,
+      "value": "路径与接入信息",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2015,
+      "value": "项目文件夹",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2017,
+      "value": "Agent UI 源码目录",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2018,
+      "value": "界面形态",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2018,
+      "value": "助手",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2018,
+      "value": "嵌入式",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2018,
+      "value": "工作台",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2022,
+      "value": "重新检查项目的 Agent UI 接入状态",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2022,
+      "value": "正在检查…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2022,
+      "value": "重新检查接入",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2028,
+      "value": "⚠ Agent UI 初始化需要恢复检查",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2031,
+      "value": "上次初始化已提交，但清理流程没有完整结束。项目当前可以继续使用。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2040,
+      "value": "打开要编辑的前端项目文件夹，Creator 会检查它是否已接入 Agent UI。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2044,
+      "value": "等待选择文件夹…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2044,
+      "value": "打开其他项目…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2044,
+      "value": "打开前端项目…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2046,
+      "value": "请在系统窗口中选择项目，或取消返回。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2048,
+      "value": "通过路径打开",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2050,
+      "value": "项目文件夹的绝对路径",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2052,
+      "value": "/path/to/project",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2053,
+      "value": "打开项目",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2058,
+      "value": "关闭当前项目，保留项目文件",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2058,
+      "value": "关闭当前项目",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2059,
+      "value": "项目文件会保留",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2066,
+      "value": "刷新",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2066,
+      "value": "重新读取当前项目与面板数据",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2074,
+      "value": "关闭 Creator 面板",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2089,
+      "value": "正在重新读取项目数据…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2092,
+      "value": "返回对话",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2093,
+      "value": "连接 Agent",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2093,
+      "value": "示例与回放",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2113,
+      "value": "项目配置需要修复",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2114,
+      "value": "重新检查项目",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2115,
+      "value": "查看技术详情",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2118,
+      "value": "Creator 服务暂不可用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2119,
+      "value": "重新连接",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2120,
+      "value": "查看技术详情",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2123,
+      "value": "正在读取项目…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2123,
+      "value": "从你的前端项目开始",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2123,
+      "value": "选择项目后，描述你想检查、设计或修改的 Agent UI。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2129,
+      "value": "告诉 Creator 你想了解、检查或修改什么。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2130,
+      "value": "可以分析当前 Agent UI、设计修改方案，或直接描述你想要的效果。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2179,
+      "value": "\n                  Creator 正在处理请求…\n                ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2187,
+      "value": "告诉 Creator",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2193,
+      "value": "例如：看看当前 UI，或在右侧增加工具详情面板",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2202,
+      "value": "请先停止当前运行",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2202,
+      "value": "清空当前对话和草稿，重新开始",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2203,
+      "value": "清空会话\n                  ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2205,
+      "value": "Enter 发送 · Shift+Enter 换行",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2209,
+      "value": "正在停止…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2209,
+      "value": "停止执行",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2213,
+      "value": "发送\n                  ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2222,
+      "value": "打开 Creator 面板",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorWorkbench.tsx",
+      "line": 2228,
+      "value": "打开 Creator",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 15,
+      "value": "可直接更新",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 15,
+      "value": "本地已修改",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 15,
+      "value": "尚未安装",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 15,
+      "value": "需要处理冲突",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 15,
+      "value": "需要检查",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 16,
+      "value": "需要检查",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 21,
+      "value": "插件更新操作失败。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 54,
+      "value": "当前已是最新版本",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 56,
+      "value": "`暂时无法检查更新：${error instanceof Error ? error.message : String(error)}`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 77,
+      "value": "插件更新完成，验证通过。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 84,
+      "value": "更新方案",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 85,
+      "value": "确认本次更新",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 87,
+      "value": "` ${item.currentVersion ?? \"未安装 / 未记录\"} → ${item.targetVersion}`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 87,
+      "value": "未安装 / 未记录",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 87,
+      "value": "（基础依赖）",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 87,
+      "value": "（保持当前源码）",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 88,
+      "value": "预计修改 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 88,
+      "value": " 个源码文件，另同步 source-lock 和必要的派生注册表。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 89,
+      "value": "需要先升级 Creator。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 91,
+      "value": "此计划包含本地修改。选择合并后完成验证，才能推进官方基线。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 93,
+      "value": "暂不更新 / 取消",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 94,
+      "value": "确认更新",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 96,
+      "value": "使用模型合并",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 101,
+      "value": "手动合并",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 104,
+      "value": "等待合并：请在 IDE 或 Creator 中完成以下文件的修改。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 105,
+      "value": "BASE",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 105,
+      "value": "文件不存在",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 105,
+      "value": "TARGET",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 105,
+      "value": "文件不存在",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 105,
+      "value": "历史 Release 不可用；请参考上方 changelog 手动处理。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 107,
+      "value": "重新检查",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 108,
+      "value": "我已完成合并：验证并推进基线",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 114,
+      "value": "正在检查更新内容…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 118,
+      "value": "查看更新",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 118,
+      "value": "`有 ${updates.length} 个插件可以更新`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 121,
+      "value": "有 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 121,
+      "value": " 个插件可以更新",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 124,
+      "value": "插件更新",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 126,
+      "value": "正在检查更新…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 130,
+      "value": "返回",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 131,
+      "value": "插件更新",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 132,
+      "value": "全部更新",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 135,
+      "value": " 个插件可以更新",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 136,
+      "value": "关闭插件更新提示",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 136,
+      "value": "暂不提醒",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 138,
+      "value": "当前 Creator 版本无法安装此更新，请先升级 Creator。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 143,
+      "value": "未记录版本",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 148,
+      "value": "检测到本地源码修改，无法安全直接覆盖。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorPluginUpdates.tsx",
+      "line": 149,
+      "value": "查看更新内容",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 13,
+      "value": "工具搜索网页并返回结果",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 14,
+      "value": "工具返回检索片段",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 15,
+      "value": "回答中展示来源引用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 16,
+      "value": "刷新后继续接收长任务回复",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 17,
+      "value": "刷新后恢复执行计划进度",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 18,
+      "value": "携带上下文向 Agent 提问",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 19,
+      "value": "发送文字、图片与文件",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 20,
+      "value": "工具生成文件并提供下载",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 21,
+      "value": "A2UI 交互表单",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 22,
+      "value": "A2UI 订单确认卡片",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 23,
+      "value": "前端工具填写表单",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 24,
+      "value": "前端工具打开弹窗",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 25,
+      "value": "向用户提问并继续回答",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 26,
+      "value": "多个会话同时运行",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 27,
+      "value": "一次回复包含多条消息",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 28,
+      "value": "首次回复前取消运行",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 29,
+      "value": "通过 Activity 事件展示执行计划",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 30,
+      "value": "通过工具参数展示 Agent 状态",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 31,
+      "value": "在消息中展示自定义图表",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 32,
+      "value": "Agent 状态实时更新任务进度",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 33,
+      "value": "工具调用等待人工审批",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 34,
+      "value": "依次调用多个工具",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 35,
+      "value": "子智能体任务卡片",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 36,
+      "value": "子智能体运行错误",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 37,
+      "value": "子智能体递归委托任务",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 38,
+      "value": "多个子智能体组成任务组",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 39,
+      "value": "并行调用多个工具",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 40,
+      "value": "思考后回复",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 41,
+      "value": "长篇思考内容预览",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 42,
+      "value": "思考、调用工具并回答",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 43,
+      "value": "纯文本流式回复",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 44,
+      "value": "流式展示 Markdown 内容",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 45,
+      "value": "子智能体运行生命周期",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 46,
+      "value": "工具调用期间发生错误",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 47,
+      "value": "耗时工具运行与等待",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 54,
+      "value": "多条消息",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 56,
+      "value": "多模态输入",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 56,
+      "value": "附件",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 60,
+      "value": "顺序调用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 61,
+      "value": "并行调用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 62,
+      "value": "耗时工具",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 64,
+      "value": "文件输出",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 65,
+      "value": "前端工具",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 66,
+      "value": "前端工具",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 67,
+      "value": "用户提问",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 68,
+      "value": "审批恢复",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 71,
+      "value": "Agent 状态",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 76,
+      "value": "任务组",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 77,
+      "value": "递归委托",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 80,
+      "value": "并发会话",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 81,
+      "value": "取消运行",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 83,
+      "value": "运行恢复",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 84,
+      "value": "运行恢复",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 85,
+      "value": "检索片段",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 86,
+      "value": "来源引用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 87,
+      "value": "网页搜索",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 91,
+      "value": "消息与上下文",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 92,
+      "value": "思考与工具",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 93,
+      "value": "提问与审批",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 94,
+      "value": "状态与执行计划",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 95,
+      "value": "结构化结果与交互界面",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 96,
+      "value": "子智能体协作",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 97,
+      "value": "运行控制与恢复",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 102,
+      "value": "其他示例",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 112,
+      "value": "Creator 服务端尚未提供 Mock 控制接口，请重启 Creator 开发服务。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 115,
+      "value": "`Mock 请求失败（${response.status}）`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 155,
+      "value": "资源安装失败，请重试。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 161,
+      "value": "`${requirement.name} 资源安装失败，请重试。`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 162,
+      "value": "`正在安装 ${requirement.name} 资源…`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 171,
+      "value": "`${requirement.name} 资源与当前项目存在兼容性冲突。`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 182,
+      "value": "资源已安装并就绪，可以运行场景。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 233,
+      "value": "无法连接 Mock 服务控制端。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 253,
+      "value": "`Mock 服务已启动，但连接检查失败（${check.status}）。`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 257,
+      "value": "Mock 操作失败。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 266,
+      "value": "Mock 地址已复制。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 267,
+      "value": "无法自动复制，请选中地址手动复制。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 281,
+      "value": "Mock Agent 开发服务",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 283,
+      "value": "Mock Agent",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 284,
+      "value": "在本机回放本地 Mock 或预置 Demo，供你的 Agent UI 通过 AG-UI API 连接。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 286,
+      "value": "重试连接",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 287,
+      "value": "正在读取 Mock 服务状态…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 288,
+      "value": "服务控制",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 291,
+      "value": "运行中",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 291,
+      "value": "未运行",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 295,
+      "value": "Mock 服务已停止。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 295,
+      "value": "Mock 服务已启动。Creator Preview 在选择 Mock Agent 时使用当前示例与倍速。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 296,
+      "value": "处理中…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 296,
+      "value": "停止服务",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 296,
+      "value": "启动服务",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 298,
+      "value": "启动后会显示本机地址。系统自动分配可用端口。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 300,
+      "value": "AG-UI 地址",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 302,
+      "value": "已复制",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 302,
+      "value": "复制地址",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 306,
+      "value": "如何接入这个地址",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 307,
+      "value": "将接入组件的 endpoint 或前端环境变量改成这个地址：",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 308,
+      "value": "`<Agent endpoint=\"${state.endpoint}\" />\\n\\nVITE_AGENT_ENDPOINT=${state.endpoint}`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 309,
+      "value": "使用环境变量时，在你自己的前端项目根目录（与 package.json 同级）创建或编辑 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 309,
+      "value": ".env.local",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 309,
+      "value": "，填写上面的 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 309,
+      "value": "VITE_AGENT_ENDPOINT",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 310,
+      "value": "保存后重启这个前端项目的开发服务。组件中显式传入的 endpoint 优先于环境变量。服务停止后此地址不可用，再次启动请复制新地址。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 313,
+      "value": "关闭面板后服务继续运行；退出 Creator 后服务停止。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 316,
+      "value": "选择 Mock 来源",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 317,
+      "value": "Mock 来源",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 318,
+      "value": "当前：",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 319,
+      "value": "来源：",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 319,
+      "value": "本地 Recording",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 319,
+      "value": "预置 Demo",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 320,
+      "value": "Demo 使用说明",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 321,
+      "value": "选择后，在已接入的 Agent UI 中发送一条消息来播放。正在运行的请求保持原场景。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 322,
+      "value": "部分 Demo 需要额外的 Agent UI 资源，Creator 会在运行前检查并提示安装。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 324,
+      "value": "正在检查当前项目的 Demo 支持…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 324,
+      "value": "无法检查当前项目的资源，请确认已选择并初始化项目。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 325,
+      "value": "播放时长倍率\n            ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 326,
+      "value": "播放时长已更新，下一次请求生效。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 327,
+      "value": "立即完成",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 327,
+      "value": "快速测试（0.1×）",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 327,
+      "value": "较快（0.5×）",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 327,
+      "value": "正常（1×）",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 327,
+      "value": "较慢（2×）",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 330,
+      "value": "搜索 Mock",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 330,
+      "value": "名称、事件、能力或场景 ID",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 331,
+      "value": "本地 Mock",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 332,
+      "value": "本地 Mock",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 333,
+      "value": "将 JSONL 文件放入当前项目的 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 333,
+      "value": ".agentui/mocks",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 333,
+      "value": "，选择后在 Agent UI 中发送消息回放。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 334,
+      "value": "查看文件读取位置",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 334,
+      "value": "/.agentui/mocks",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 335,
+      "value": "无法读取本地 Mock：",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 339,
+      "value": "`已选择 ${recording.title}，下一次请求生效。`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 340,
+      "value": "`${recording.eventCount} events · ${(recording.durationMs / 1000).toFixed(1)}s`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 340,
+      "value": "`无法读取：${recording.error ?? \"无效文件\"}`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 340,
+      "value": "无效文件",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 343,
+      "value": "当前项目还没有本地 Mock 文件。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 345,
+      "value": "预置 Demo",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 346,
+      "value": "标签标出各 Demo 重点演示的事件或能力；* 表示该事件系列。可输入标签搜索。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 353,
+      "value": "`已选择 ${titleFor(scenario)}，下一次请求生效。`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 356,
+      "value": "重点事件与能力",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 363,
+      "value": "\n                    安装资源\n                  ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 371,
+      "value": "所需资源已就绪",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 371,
+      "value": "此场景需要额外的 Agent UI 资源，请先安装资源。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 373,
+      "value": "`已启用 ${titleFor(scenario)}，在 Agent UI 中发送消息运行。`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 373,
+      "value": "运行场景",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 376,
+      "value": "当前 Creator 宿主尚未配置一键引入。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 380,
+      "value": "没有匹配的 Demo。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 400,
+      "value": "无法读取技术详情，请刷新后重试。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 403,
+      "value": "无法读取技术详情，请刷新后重试。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 407,
+      "value": "查看技术详情",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/MockServicePanel.tsx",
+      "line": 408,
+      "value": "正在读取技术详情…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorModeCard.tsx",
+      "line": 13,
+      "value": "全局 AI 助手 / Copilot，适合接入已有应用。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorModeCard.tsx",
+      "line": 14,
+      "value": "嵌入业务页面，适合具体业务场景。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorModeCard.tsx",
+      "line": 15,
+      "value": "完整 Agent 工作台，适合独立 Agent 产品。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 8,
+      "value": "建议放在应用的根布局或需要显示助手的位置。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 9,
+      "value": "建议放在需要 Agent 能力的业务页面或区域。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 10,
+      "value": "建议放在应用的主页面或工作台区域。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 22,
+      "value": "`import { Agent } from \"${agentImportPathFromSrc(sourceRoot)}\";`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 25,
+      "value": "  return <Agent />;",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 48,
+      "value": "接入 Agent UI",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 52,
+      "value": "Agent UI 已创建",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 53,
+      "value": "接下来把它引入你自己的应用。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 56,
+      "value": "收起",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 56,
+      "value": "查看接入方法",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 62,
+      "value": "从公共入口 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 62,
+      "value": "/index.ts",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 62,
+      "value": " 引入。以下以你项目中的组件为例：",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 64,
+      "value": "src/AgentMount.tsx",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 67,
+      "value": "已复制",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 67,
+      "value": "复制代码",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 71,
+      "value": "复制失败，请手动选择代码。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 72,
+      "value": "在已有页面或布局中渲染 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 72,
+      "value": "<AgentMount />",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 74,
+      "value": "导入路径与接口地址",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 75,
+      "value": "如果组件不在 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 75,
+      "value": "src/",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 75,
+      "value": " 目录，请按该文件的位置调整相对导入路径。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 76,
+      "value": "AG-UI 接口默认读取 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 76,
+      "value": "VITE_AGENT_ENDPOINT",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 76,
+      "value": "，否则使用 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 76,
+      "value": "/agent",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 76,
+      "value": "；地址不同时可传入 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 76,
+      "value": "endpoint",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 76,
+      "value": "，例如 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 76,
+      "value": "<Agent endpoint=\"/api/agent\" />",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 76,
+      "value": "。保存组件后，你自己的开发服务器会更新页面。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 77,
+      "value": "新模板默认在项目根目录的 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 77,
+      "value": ".env.development.local",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 77,
+      "value": " 配置本机 Mock 地址 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 77,
+      "value": "http://127.0.0.1:47831/agent",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 77,
+      "value": "，启动 Mock Agent 服务即可使用。已有接口配置会保留；该默认配置只在开发模式生效。连接真实后端时，修改对应环境的 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 77,
+      "value": "VITE_AGENT_ENDPOINT",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 78,
+      "value": "VITE_AGENT_ENDPOINT=你的完整 AG-UI 地址",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 79,
+      "value": "保存后重启这个前端项目的开发服务。如果已在组件中显式传入 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 79,
+      "value": "endpoint",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectIntegrationGuide.tsx",
+      "line": 79,
+      "value": "，则组件中的地址优先。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 38,
+      "value": "上级目录不存在，请选择项目中已经存在的目录。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 39,
+      "value": "这个目录已有文件，请选择一个空目录或新的 Agent UI 目录。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 40,
+      "value": "Agent UI 源码位置无效，请使用项目内的相对路径。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 41,
+      "value": "这个项目已经初始化了 Agent UI。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 42,
+      "value": "请选择有效的产品形态。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 67,
+      "value": "创建 Agent UI",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 68,
+      "value": "创建 Agent UI",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 69,
+      "value": "选择适合的形态，将 Agent UI 接入当前项目。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 71,
+      "value": "正在加载项目初始化选项…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 74,
+      "value": "无法加载项目初始化选项。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 75,
+      "value": "重试",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 80,
+      "value": "选择产品形态",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 89,
+      "value": "Agent UI 源码位置",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 92,
+      "value": "填写项目内的相对路径，Creator 将在此目录管理 Agent UI 源码。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 93,
+      "value": "建议目录：",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 96,
+      "value": "正在检查目录…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 97,
+      "value": "✓ 将创建新目录：",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 98,
+      "value": "✓ 将使用现有空目录：",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 100,
+      "value": "当前目录状态不允许初始化，请刷新项目状态。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 109,
+      "value": "缺少或不兼容的 Agent UI 依赖",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 118,
+      "value": "正在创建 Agent UI 源码并验证项目…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 121,
+      "value": "正在初始化…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/setup/CreatorProjectSetup.tsx",
+      "line": 121,
+      "value": "初始化 Agent UI",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 349,
+      "value": "正在读取项目状态…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 350,
+      "value": "读取项目状态失败",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 351,
+      "value": "项目状态已读取",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 354,
+      "value": "正在理解你的请求…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 355,
+      "value": "理解请求失败",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 357,
+      "value": "需要确认修改目标",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 360,
+      "value": "当前没有可安全执行的对应操作",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 362,
+      "value": "已识别意图",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 364,
+      "value": "正在应用并验证修改…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 366,
+      "value": "修改未完成",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 369,
+      "value": "当前状态已满足，无需修改",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 372,
+      "value": "修改已提交，但无法确认请求结果",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 376,
+      "value": "请求的修改已完成，静态验证未通过",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 379,
+      "value": "请求的修改已完成，Runtime 尚未观测到最新状态",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 382,
+      "value": "请求的修改已完成，Runtime 暂不可用",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 385,
+      "value": "请求的修改已完成，但 Runtime 验证未通过",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 392,
+      "value": "请求的修改已完成",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 394,
+      "value": "请求的修改已完成，但部分验证未完成",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 396,
+      "value": "修改状态未确认",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/creatorStageProjection.ts",
+      "line": 430,
+      "value": "页面刷新时该阶段尚未结束。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/workspaceClient.ts",
+      "line": 42,
+      "value": "工作区请求失败",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorQuestionCard.tsx",
+      "line": 18,
+      "value": "Creator 问题",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorQuestionCard.tsx",
+      "line": 19,
+      "value": "已确认选择",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorQuestionCard.tsx",
+      "line": 19,
+      "value": "此问题已失效",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorQuestionCard.tsx",
+      "line": 19,
+      "value": "需要你的选择",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorQuestionCard.tsx",
+      "line": 23,
+      "value": "选择一项",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorQuestionCard.tsx",
+      "line": 23,
+      "value": "`选择 ${step.minSelections}–${step.maxSelections} 项`",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorQuestionCard.tsx",
+      "line": 46,
+      "value": "\n      确认选择\n    ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorQuestionCard.tsx",
+      "line": 47,
+      "value": "放弃本次任务",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorQuestionCard.tsx",
+      "line": 48,
+      "value": "正在继续 Creator 任务…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/CreatorQuestionCard.tsx",
+      "line": 49,
+      "value": "这个问题对应的 Agent 执行状态已经失效，请重新发起请求。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 7,
+      "value": "Quarterly Sales",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 8,
+      "value": "Verify the current change on CI",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 8,
+      "value": "Building · about 2 min remaining",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 9,
+      "value": "Execution plan",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 9,
+      "value": "✓ Inspect current implementation",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 9,
+      "value": "✓ Compare AG-UI runtime",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 9,
+      "value": "● Update UI composition",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 9,
+      "value": "○ Run regression checks",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 10,
+      "value": "Analyzing workspace",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 10,
+      "value": "Working → Waiting → Done",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 11,
+      "value": "Task group · 3 agents",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 15,
+      "value": "Assistant answer",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 16,
+      "value": "Tool calls",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 16,
+      "value": "✓ Search files",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 16,
+      "value": "✓ Read document",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 16,
+      "value": "✓ Compare results",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 17,
+      "value": "Tool execution / Approval",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 17,
+      "value": "Allow this operation?",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 18,
+      "value": "Choose a homepage layout",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/creator/src/ui/mock-demo-previews.ts",
+      "line": 18,
+      "value": "Confirm selection",
+      "category": "mock/example content"
+    },
+    {
+      "file": "packages/react/src/lexical.tsx",
+      "line": 31,
+      "value": "ConversationComposerLexicalInput requires a canonical Composer input host.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/public.tsx",
+      "line": 367,
+      "value": "Send a message...",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/public.tsx",
+      "line": 368,
+      "value": "Message input",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/public.tsx",
+      "line": 369,
+      "value": "Remove queued message",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/public.tsx",
+      "line": 441,
+      "value": "Add Attachment",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/public.tsx",
+      "line": 462,
+      "value": "Voice input",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/public.tsx",
+      "line": 463,
+      "value": "Start voice input",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/public.tsx",
+      "line": 485,
+      "value": "Stop dictation",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/public.tsx",
+      "line": 486,
+      "value": "Stop voice input",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/public.tsx",
+      "line": 491,
+      "value": "Send message",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/public.tsx",
+      "line": 491,
+      "value": "Queue message",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/public.tsx",
+      "line": 495,
+      "value": "Stop generating",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/public.tsx",
+      "line": 720,
+      "value": "Copy",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/public.tsx",
+      "line": 741,
+      "value": "Refresh",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/public.tsx",
+      "line": 751,
+      "value": "Export as Markdown",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/RunResumeProductionDemo.tsx",
+      "line": 41,
+      "value": "Durable run",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/RunResumeProductionDemo.tsx",
+      "line": 94,
+      "value": "AgentPlan Activity refresh recovery",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/RunResumeProductionDemo.tsx",
+      "line": 94,
+      "value": "Production binding refresh recovery",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/RunResumeProductionDemo.tsx",
+      "line": 96,
+      "value": "Agent invocation count: ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/RunResumeProductionDemo.tsx",
+      "line": 102,
+      "value": "执行一个长任务",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/RunResumeProductionDemo.tsx",
+      "line": 102,
+      "value": "发送",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/RunResumeProductionDemo.tsx",
+      "line": 122,
+      "value": "加载中……",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/RunResumeDemo.tsx",
+      "line": 22,
+      "value": "`Mock run request failed: ${response.status}`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/RunResumeDemo.tsx",
+      "line": 32,
+      "value": "`Resume stream failed: ${response.status}`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/RunResumeDemo.tsx",
+      "line": 128,
+      "value": "执行一个长任务",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/RunResumeDemo.tsx",
+      "line": 138,
+      "value": "Run Resume Mock",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/RunResumeDemo.tsx",
+      "line": 139,
+      "value": "发送长任务，看到第一段后刷新页面。Mock server 会继续执行同一个 Run。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/RunResumeDemo.tsx",
+      "line": 140,
+      "value": "Agent invocation count: ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/RunResumeDemo.tsx",
+      "line": 152,
+      "value": "任务",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/RunResumeDemo.tsx",
+      "line": 153,
+      "value": "发送",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/RunResumeDemo.tsx",
+      "line": 154,
+      "value": "Stop",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/RunResumeDemo.tsx",
+      "line": 175,
+      "value": "加载中……",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-host-sandbox/src/main.tsx",
+      "line": 8,
+      "value": "Missing #root element",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/main.tsx",
+      "line": 8,
+      "value": "Missing #root element",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 4,
+      "value": "整理客户反馈",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 4,
+      "value": "产品体验",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 4,
+      "value": "今天",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 4,
+      "value": "进行中",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 5,
+      "value": "更新季度路线图",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 5,
+      "value": "规划",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 5,
+      "value": "明天",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 5,
+      "value": "待处理",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 6,
+      "value": "准备周五设计评审",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 6,
+      "value": "设计系统",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 6,
+      "value": "周五",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 6,
+      "value": "待处理",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 13,
+      "value": "工作区导航",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 14,
+      "value": "N",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 14,
+      "value": "northstar",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 15,
+      "value": "我的工作区",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 17,
+      "value": "总览",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 18,
+      "value": "任务",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 19,
+      "value": "动态",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 21,
+      "value": "林",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 21,
+      "value": "林嘉怡",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 21,
+      "value": "团队工作区",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 24,
+      "value": "工作区 / 总览",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 24,
+      "value": "2026 年 9 月",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 26,
+      "value": "星期五 · 工作概览",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 27,
+      "value": "早上好，嘉怡 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 28,
+      "value": "从这里开始今天的工作。你的项目进展都在掌握之中。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 29,
+      "value": "工作统计",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 30,
+      "value": "进行中的项目",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 30,
+      "value": "与上周持平",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 31,
+      "value": "待完成任务",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 31,
+      "value": "本周有 3 项到期",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 32,
+      "value": "团队更新",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 32,
+      "value": "今天新增 2 条",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 35,
+      "value": "下一步",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 35,
+      "value": "近期任务",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 35,
+      "value": "查看全部 →",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 40,
+      "value": "团队提示",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 40,
+      "value": "让想法更快落地",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-assistant-host/src/App.tsx",
+      "line": 40,
+      "value": "把重复的整理工作交给助理，把时间留给真正重要的决定。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/conversation-task-group.tsx",
+      "line": 156,
+      "value": "Show ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/conversation-task-group.tsx",
+      "line": 156,
+      "value": " more",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/conversation-thread-list-item.tsx",
+      "line": 33,
+      "value": "New Chat",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/conversation-thread-list-item.tsx",
+      "line": 33,
+      "value": "More options",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/directive-formatter.ts",
+      "line": 19,
+      "value": "Invalid Agent UI directive reference.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/composable-thread.tsx",
+      "line": 157,
+      "value": "Generation stopped",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/composable-thread.tsx",
+      "line": 157,
+      "value": "Edit message",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/composable-thread.tsx",
+      "line": 187,
+      "value": "Loading conversation",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/composable-thread.tsx",
+      "line": 306,
+      "value": "Scroll to bottom",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/composable-thread.tsx",
+      "line": 320,
+      "value": "\n        How can I help you today?\n      ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/composable-thread.tsx",
+      "line": 464,
+      "value": "Add Attachment",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/composable-thread.tsx",
+      "line": 710,
+      "value": "Assistant is working",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/composable-thread.tsx",
+      "line": 758,
+      "value": "Copy",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/composable-thread.tsx",
+      "line": 803,
+      "value": "Refresh",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/composable-thread.tsx",
+      "line": 830,
+      "value": "Export as Markdown",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/composable-thread.tsx",
+      "line": 840,
+      "value": "Previous",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/composable-thread.tsx",
+      "line": 844,
+      "value": "Next",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/composable-thread.tsx",
+      "line": 913,
+      "value": "Edit",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/composable-thread.tsx",
+      "line": 969,
+      "value": "Previous",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/composable-thread.tsx",
+      "line": 977,
+      "value": "Next",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/composer-input-host-context.tsx",
+      "line": 19,
+      "value": "ComposerTextareaInput requires a canonical Composer input host.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/conversation-question-flow.tsx",
+      "line": 116,
+      "value": "`${((stepIndex + 1) / steps.length) * 100}%`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/quote-selection-root.tsx",
+      "line": 92,
+      "value": "[SelectionToolbarPrimitive.Root] ThreadPrimitive.Root did not provide a DOM element, so the selection cannot be scoped to its thread. Ensure a custom root child forwards its ref.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/assistant-response-runtime.tsx",
+      "line": 27,
+      "value": "Assistant response actions require a Response Footer context",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/plugin-conversation-surface/files/plugins/conversation-surface/index.tsx",
+      "line": 50,
+      "value": "`Unknown Conversation renderer Slot \"${slotName}\"`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/style-isolation-test.tsx",
+      "line": 38,
+      "value": "Agent heading",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/style-isolation-test.tsx",
+      "line": 39,
+      "value": "Agent input probe",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/style-isolation-test.tsx",
+      "line": 40,
+      "value": "Agent list",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/style-isolation-test.tsx",
+      "line": 41,
+      "value": "Theme",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/style-isolation-test.tsx",
+      "line": 42,
+      "value": "Tooltip",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/style-isolation-test.tsx",
+      "line": 43,
+      "value": "Popover",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/style-isolation-test.tsx",
+      "line": 44,
+      "value": "Dialog",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/style-isolation-test.tsx",
+      "line": 47,
+      "value": "Tooltip trigger",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/style-isolation-test.tsx",
+      "line": 48,
+      "value": "Tooltip probe",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/style-isolation-test.tsx",
+      "line": 52,
+      "value": "Popover trigger",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/style-isolation-test.tsx",
+      "line": 53,
+      "value": "Popover probe",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/style-isolation-test.tsx",
+      "line": 57,
+      "value": "Dialog probe",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/style-isolation-test.tsx",
+      "line": 60,
+      "value": "Facade Dialog",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/style-isolation-test.tsx",
+      "line": 64,
+      "value": "Facade Dialog probe",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/style-isolation-test.tsx",
+      "line": 65,
+      "value": "Dark variant probe",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/style-isolation-test.tsx",
+      "line": 76,
+      "value": "<AgentUIRoot theme={theme}>",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/main.tsx",
+      "line": 8,
+      "value": "Missing #root element",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 4,
+      "value": "用户访谈",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 4,
+      "value": "9 月 12 日",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 4,
+      "value": "已完成",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 5,
+      "value": "交互原型",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 5,
+      "value": "9 月 19 日",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 5,
+      "value": "进行中",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 6,
+      "value": "开发交付",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 6,
+      "value": "10 月 03 日",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 6,
+      "value": "待开始",
+      "category": "mock/example content"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 13,
+      "value": "A",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 13,
+      "value": " atlas ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 13,
+      "value": " 项目空间",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 13,
+      "value": "林嘉怡 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 13,
+      "value": "林",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 15,
+      "value": "项目 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 15,
+      "value": " 产品设计 ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 15,
+      "value": " 文档",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 16,
+      "value": "项目文档",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 16,
+      "value": "下一代工作台",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 16,
+      "value": "为团队打造一个更清晰、更流畅的协作体验。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 16,
+      "value": "分享文档",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 17,
+      "value": "林",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 17,
+      "value": "林嘉怡",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 17,
+      "value": "更新于 9 月 24 日",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 17,
+      "value": "● 正在编辑",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 18,
+      "value": "01 / 项目概览",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 18,
+      "value": "我们要解决什么问题？",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 18,
+      "value": "团队的工作信息散落在不同工具中。成员需要反复切换页面，才能理解一个项目的背景、进度和下一步行动。我们希望把关键上下文放在同一个地方，让讨论和执行自然衔接。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 18,
+      "value": "设计原则：让重要信息在需要的时候出现，减少无意义的打断。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 19,
+      "value": "02 / 交付计划",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 19,
+      "value": "近期里程碑",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 20,
+      "value": "03 / 备注",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 20,
+      "value": "待讨论的问题",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 20,
+      "value": "如何让助理在保留当前文档上下文的同时，协助用户探索不同方案？右侧的嵌入式助理可以与页面并排工作。",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "examples/creator-embedded-host/src/App.tsx",
+      "line": 23,
+      "value": "嵌入式助理",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/PolicyThreadList.tsx",
+      "line": 21,
+      "value": "Thread List labels are missing.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/PolicyThreadList.tsx",
+      "line": 48,
+      "value": "Loading threads",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/PolicyThreadList.tsx",
+      "line": 74,
+      "value": "\n        No threads found\n      ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/index.tsx",
+      "line": 50,
+      "value": "加载会话失败",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/index.tsx",
+      "line": 62,
+      "value": "\n            重试\n          ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/index.tsx",
+      "line": 73,
+      "value": "历史会话加载失败",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/index.tsx",
+      "line": 94,
+      "value": "\n            重试\n          ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
+      "line": 118,
+      "value": "\n          Quote\n        ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
+      "line": 226,
+      "value": "Dismiss quote",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "line": 135,
+      "value": "Clipboard API is not available in this environment.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "line": 204,
+      "value": "Image content",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "line": 347,
+      "value": " (opens in a new tab)",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "line": 384,
+      "value": "Image preview",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "line": 455,
+      "value": "Click to zoom image",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "line": 468,
+      "value": "Zoomed image",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "line": 483,
+      "value": "Close zoomed image",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "line": 509,
+      "value": "Generating image…",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "line": 530,
+      "value": "Image could not be generated",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "line": 566,
+      "value": "Regenerate image",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "line": 586,
+      "value": "Download image",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "line": 597,
+      "value": "Copy image",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "line": 622,
+      "value": "The provider blocked this image.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "line": 629,
+      "value": "Image content",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "line": 630,
+      "value": "Image content",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.aui.tsx",
+      "line": 212,
+      "value": "Tasks",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.aui.tsx",
+      "line": 226,
+      "value": "\n                Show ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.aui.tsx",
+      "line": 226,
+      "value": " more\n              ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "line": 49,
+      "value": "Attachment preview",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "line": 81,
+      "value": "\n          Image Attachment Preview\n        ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "line": 98,
+      "value": "Attachment preview",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "line": 145,
+      "value": "Upload failed",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "line": 220,
+      "value": "Remove file",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "line": 256,
+      "value": "Add Attachment",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "line": 261,
+      "value": "Add Attachment",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/web-search.tsx",
+      "line": 57,
+      "value": "Read 3 sources",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/task-card.aui.tsx",
+      "line": 229,
+      "value": "\n          Show ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/task-card.aui.tsx",
+      "line": 229,
+      "value": " more\n        ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/markdown-text.tsx",
+      "line": 74,
+      "value": "Copy",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "line": 196,
+      "value": "No items available",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "line": 197,
+      "value": "No matching items",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "line": 213,
+      "value": "[assistant-ui] ComposerTriggerPopover requires exactly one of `directive` or `action` props.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
+      "line": 50,
+      "value": "useSidebar must be used within a SidebarProvider.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
+      "line": 192,
+      "value": "Sidebar",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
+      "line": 193,
+      "value": "Displays the mobile sidebar.",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
+      "line": 266,
+      "value": "Toggle Sidebar",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
+      "line": 278,
+      "value": "Toggle Sidebar",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
+      "line": 281,
+      "value": "Toggle Sidebar",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/dialog.tsx",
+      "line": 77,
+      "value": "Close",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/dialog.tsx",
+      "line": 115,
+      "value": "\n          Close\n        ",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/sheet.tsx",
+      "line": 77,
+      "value": "Close",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/plugin-conversation-service/files/plugins/conversation-service/definition.ts",
+      "line": 20,
+      "value": "Conversation DataSource is unavailable.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/integration-react-hook-form/files/integrations/react-hook-form/create-frontend-tools.ts",
+      "line": 18,
+      "value": "Frontend tool execution aborted",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/integration-react-hook-form/files/integrations/react-hook-form/create-frontend-tools.ts",
+      "line": 20,
+      "value": "Form capability unavailable",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/integration-react-hook-form/files/integrations/react-hook-form/create-frontend-tools.ts",
+      "line": 23,
+      "value": "Form tool exposure must be explicit",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/integration-react-hook-form/files/integrations/react-hook-form/create-frontend-tools.ts",
+      "line": 24,
+      "value": "Duplicate form tool exposure",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/integration-react-hook-form/files/integrations/react-hook-form/create-frontend-tools.ts",
+      "line": 44,
+      "value": "`Unknown form tool: ${name}`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/demo-frontend-tool-form/files/plugins/frontend-tool-form-demo/form-service.ts",
+      "line": 7,
+      "value": "Form capability unavailable",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-application/files/services/conversations/service.ts",
+      "line": 106,
+      "value": "Conversation id must not be blank.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-application/files/services/conversations/service.ts",
+      "line": 107,
+      "value": "Conversation service was disposed.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-application/files/services/conversations/service.ts",
+      "line": 216,
+      "value": "Conversation service was disposed.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-application/files/services/conversations/service.ts",
+      "line": 222,
+      "value": "History read invalidated.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-application/files/services/conversations/data-source.ts",
+      "line": 19,
+      "value": "Conversation API endpoint is not configured.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-application/files/services/conversations/data-source.ts",
+      "line": 33,
+      "value": "`Conversation \"${id}\" does not exist in the empty data source.`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-application/files/services/conversations/data-source.ts",
+      "line": 37,
+      "value": "`Conversation \"${id}\" does not exist in the empty data source.`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-application/files/services/conversations/http-data-source.ts",
+      "line": 17,
+      "value": "Conversation API endpoint must not be blank.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-application/files/services/conversations/http-data-source.ts",
+      "line": 38,
+      "value": "`Conversation API request failed (${response.status})${detail}`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-application/files/services/conversations/contract.ts",
+      "line": 46,
+      "value": "Must not be blank",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-application/files/services/composer-triggers.ts",
+      "line": 17,
+      "value": "`Duplicate or invalid conversation command: ${command.id}`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/demo-ask-user-question/files/plugins/ask-user-question-demo/definition.ts",
+      "line": 12,
+      "value": "Ask the user to choose among structured options before continuing.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/SearchFilesToolUI.tsx",
+      "line": 65,
+      "value": "Searching files",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/SearchFilesToolUI.tsx",
+      "line": 66,
+      "value": "Searched files",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter.tsx",
+      "line": 51,
+      "value": "How can I help you today?",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding.ts",
+      "line": 53,
+      "value": "`Conversation \"${threadId}\" is disabled and cannot be selected.`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding.ts",
+      "line": 161,
+      "value": "Conversation service is unavailable.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding.ts",
+      "line": 207,
+      "value": "Conversation service is unavailable.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding.ts",
+      "line": 214,
+      "value": "Conversation service is unavailable.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/demo-frontend-tool-dialog/files/agent-contract/frontend-tools/open-demo-dialog.ts",
+      "line": 8,
+      "value": "Open a dialog in the current application for the user.",
+      "category": "agent-generated content"
+    },
+    {
+      "file": "packages/source-registry/registry/items/demo-frontend-tool-dialog/files/agent-contract/frontend-tools/open-demo-dialog.ts",
+      "line": 12,
+      "value": "Frontend tool execution aborted",
+      "category": "agent-generated content"
+    },
+    {
+      "file": "packages/source-registry/registry/items/demo-frontend-tool-dialog/files/agent-contract/frontend-tools/open-demo-dialog.ts",
+      "line": 14,
+      "value": "Dialog capability unavailable",
+      "category": "agent-generated content"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/authoring/creator-authoring-targets.ts",
+      "line": 21,
+      "value": "Conversation starter suggestions",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/authoring/creator-authoring-targets.ts",
+      "line": 35,
+      "value": "Conversation welcome content",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/authoring/creator-authoring-targets.ts",
+      "line": 48,
+      "value": "Application default theme mode",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/conversation-runtime-config.ts",
+      "line": 12,
+      "value": "分析 Agent UI 架构",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/conversation-runtime-config.ts",
+      "line": 13,
+      "value": "检查布局、Plugin 与 Service 边界",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/conversation-runtime-config.ts",
+      "line": 14,
+      "value": "帮我分析当前 Agent UI 架构",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/conversation-runtime-config.ts",
+      "line": 17,
+      "value": "调试当前问题",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/conversation-runtime-config.ts",
+      "line": 18,
+      "value": "定位当前界面的异常行为",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/conversation-runtime-config.ts",
+      "line": 19,
+      "value": "帮我调试当前界面的问题",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/conversation-runtime-config.ts",
+      "line": 22,
+      "value": "建议下一步",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/conversation-runtime-config.ts",
+      "line": 23,
+      "value": "给出一个可执行的后续动作",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/conversation-runtime-config.ts",
+      "line": 24,
+      "value": "根据当前上下文建议下一步",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/conversation-presentation-config.ts",
+      "line": 15,
+      "value": "How can I help you today?",
+      "category": "user-facing UI"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-composition.ts",
+      "line": 173,
+      "value": "`Application Gate instance \"${instance.id}\" must not mount to Slot \"${instance.mount.slotId}\".`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-composition.ts",
+      "line": 182,
+      "value": "`Application Gate plugin \"${instance.pluginId}\" must not declare child Slots.`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-composition.ts",
+      "line": 190,
+      "value": "`Application Gate plugin \"${instance.pluginId}\" must declare Gate service \"${gate.service}\" in provides.`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-composition.ts",
+      "line": 210,
+      "value": "`Application Gate foundation dependency \"${service}\" required by instance \"${consumer.id}\" has no enabled Provider.`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-composition.ts",
+      "line": 219,
+      "value": "`Application Gate foundation dependency \"${service}\" required by instance \"${consumer.id}\" has multiple enabled Providers: ${providers.map((provider) => provider.id).join(\", \")}.`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-composition.ts",
+      "line": 234,
+      "value": "`Application Gate dependency Provider instance \"${provider.id}\" for service \"${service}\" must be an unmounted headless or Application Gate plugin.`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-composition.ts",
+      "line": 286,
+      "value": "assistantResponseFooter and assistantMessageFooter cannot both be occupied.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-composition.ts",
+      "line": 316,
+      "value": "`Plugin instance \"${instance.id}\" declares child Slot \"${childSlotId}\", which collides with a Layout Slot.`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-composition.ts",
+      "line": 326,
+      "value": "`Plugin instance \"${instance.id}\" declares child Slot \"${childSlotId}\", which is already owned by reachable instance \"${existingOwner}\".`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-composition.ts",
+      "line": 354,
+      "value": "`Renderer plugin \"${instance.pluginId}\" requires a renderer Slot.`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-composition.ts",
+      "line": 364,
+      "value": "`Plugin \"${instance.pluginId}\" does not provide a capability accepted by Slot \"${slotId}\".`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-composition.ts",
+      "line": 372,
+      "value": "`Plugin instance \"${instance.id}\" mount Slot \"${instance.mount!.slotId}\" is not reachable from the Layout Tree.`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/ui-plugin.ts",
+      "line": 212,
+      "value": "Must not be blank",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/ui-plugin.ts",
+      "line": 216,
+      "value": "Authoring metadata must be at most 200 characters",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/ui-plugin.ts",
+      "line": 217,
+      "value": "Must not be blank",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/ui-plugin.ts",
+      "line": 230,
+      "value": "`Duplicate authoring intent \"${intent}\"`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/ui-plugin.ts",
+      "line": 240,
+      "value": "Must not be blank",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/ui-plugin.ts",
+      "line": 246,
+      "value": "Must be lowercase dot-separated (for example: editor, workspace.files)",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/ui-plugin.ts",
+      "line": 257,
+      "value": "`Duplicate service name \"${name}\"`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/ui-plugin.ts",
+      "line": 269,
+      "value": "Authoring size metadata must be at most 100 characters",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/ui-plugin.ts",
+      "line": 270,
+      "value": "Must not be blank",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/ui-plugin.ts",
+      "line": 275,
+      "value": "Child Slot names must be at most 100 characters",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/ui-plugin.ts",
+      "line": 279,
+      "value": "Child Slot descriptions must be at most 300 characters",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/ui-plugin.ts",
+      "line": 322,
+      "value": "At least one recommended dimension is required",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/ui-plugin.ts",
+      "line": 369,
+      "value": "`Duplicate capability \"${capability}\"`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/ui-plugin.ts",
+      "line": 382,
+      "value": "Use application.gate as the sole Gate declaration; do not add capability \"app-gate\"",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/ui-plugin.ts",
+      "line": 393,
+      "value": "`Duplicate application event declaration \"${eventName}\"`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/ui-plugin.ts",
+      "line": 405,
+      "value": "`Renderer Slot \"${slotName}\" must have cardinality \"one\"`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/ui-plugin.ts",
+      "line": 417,
+      "value": "`Duplicate accepted capability \"${capability}\"`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-model.ts",
+      "line": 91,
+      "value": "Must not be blank",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-model.ts",
+      "line": 110,
+      "value": "Panel width/height must be a CSS element dimension, not Grid track syntax",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-model.ts",
+      "line": 248,
+      "value": "Row responsive indices must identify an existing primary child and a drawer position at or before the end",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-model.ts",
+      "line": 253,
+      "value": "activeIndex must be less than children.length",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-model.ts",
+      "line": 258,
+      "value": "minWidth must not be greater than maxWidth",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-model.ts",
+      "line": 268,
+      "value": "`Duplicate plugin instance id \"${plugin.id}\"`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-runtime-model.ts",
+      "line": 30,
+      "value": "Must not be blank",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-runtime-model.ts",
+      "line": 49,
+      "value": "Panel width/height must be a CSS element dimension, not Grid track syntax",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-runtime-model.ts",
+      "line": 112,
+      "value": "`Runtime plugin instance key \"${key}\" must match id \"${instance.id}\"`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-runtime-model.ts",
+      "line": 121,
+      "value": "`Duplicate Runtime layout node id \"${node.id}\"`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-runtime-model.ts",
+      "line": 132,
+      "value": "Row responsive indices must identify an existing primary child and a drawer position at or before the end",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-runtime-model.ts",
+      "line": 137,
+      "value": "`Stack active id \"${node.active}\" must reference a direct child`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-runtime-model.ts",
+      "line": 142,
+      "value": "minWidth must not be greater than maxWidth",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-runtime-model.ts",
+      "line": 146,
+      "value": "`Runtime Layout Slot \"${node.slotId}\" is rendered by more than one node`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/custom-event-protocol.ts",
+      "line": 32,
+      "value": "Custom Event name must not be empty",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/custom-event-protocol.ts",
+      "line": 35,
+      "value": "`Custom Event name must not exceed ${CUSTOM_EVENT_NAME_MAX_LENGTH} characters`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/custom-event-protocol.ts",
+      "line": 39,
+      "value": "Custom Event name must not be blank",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/custom-event-protocol.ts",
+      "line": 43,
+      "value": "Custom Event name must not contain leading or trailing whitespace",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/custom-event-protocol.ts",
+      "line": 47,
+      "value": "Custom Event name must not contain control characters",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/custom-event-protocol.ts",
+      "line": 51,
+      "value": "Custom Event name uses a reserved Agent Runtime namespace",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-compiler.ts",
+      "line": 62,
+      "value": "Layout node is missing from the canonical AppUI traversal.",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-compiler.ts",
+      "line": 139,
+      "value": "`Plugin instance \"${plugin.id}\" references unknown plugin \"${plugin.pluginId}\".`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-compiler.ts",
+      "line": 148,
+      "value": "`Renderer plugin \"${plugin.pluginId}\" requires a renderer Slot.`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-compiler.ts",
+      "line": 162,
+      "value": "`Application plugin instance \"${plugin.id}\" must be headless, a Data Message UI, or an Application Gate.`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-compiler.ts",
+      "line": 171,
+      "value": "`Headless plugin instance \"${plugin.id}\" must be declared in applicationPlugins.`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-compiler.ts",
+      "line": 180,
+      "value": "`Data Message UI plugin instance \"${plugin.id}\" must be declared in applicationPlugins and cannot mount into Layout.`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-compiler.ts",
+      "line": 200,
+      "value": "`Plugin instance \"${plugin.id}\" uses undeclared local child Slot \"${slot}\".`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-compiler.ts",
+      "line": 213,
+      "value": "`Plugin instance \"${plugin.id}\" requires content in child Slot \"${slot}\".`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-compiler.ts",
+      "line": 223,
+      "value": "`Plugin instance \"${plugin.id}\" child Slot \"${slot}\" accepts at most one plugin.`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-compiler.ts",
+      "line": 233,
+      "value": "`Renderer Slot \"${slot}\" must accept exactly one plugin at most.`",
+      "category": "developer-facing text"
+    },
+    {
+      "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-compiler.ts",
+      "line": 247,
+      "value": "`Plugin \"${child.pluginId}\" does not provide a capability accepted by Slot \"${slot}\".`",
+      "category": "developer-facing text"
+    }
+  ]
+}

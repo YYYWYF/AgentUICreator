@@ -1,3 +1,4 @@
+import { useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "../i18n/locale.js";
 import type { CreatorProjectMode, CreatorWorkspaceSetupInfo } from "../../workspace/types.js";
 import { Blocks, Check, LayoutDashboard, PanelRight } from "lucide-react";
 import { Button } from "../components/button.js";
@@ -9,13 +10,14 @@ interface CreatorModeCardProps {
   onSelect(mode: CreatorProjectMode): void;
 }
 
-const modeDescriptions: Record<CreatorProjectMode, string> = {
-  assistant: "全局 AI 助手 / Copilot，适合接入已有应用。",
-  embedded: "嵌入业务页面，适合具体业务场景。",
-  platform: "完整 Agent 工作台，适合独立 Agent 产品。",
-};
+function getModeDescriptions(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): Record<CreatorProjectMode, string> { return {
+  assistant: localeMessages.setup.globalAIAssistantCopilotForExistingApplications,
+  embedded: localeMessages.setup.embeddedInABusinessPageForSpecificWorkflows,
+  platform: localeMessages.setup.fullAgentWorkbenchForStandaloneAgentProducts,
+}; }
 
 export function CreatorModeCard({ mode, selected, disabled, onSelect }: CreatorModeCardProps) {
+  const localeMessages = useAgentUILocale();
   const Icon = mode.id === "assistant" ? PanelRight : mode.id === "embedded" ? Blocks : LayoutDashboard;
   return (
     <Button variant="outline"
@@ -28,8 +30,8 @@ export function CreatorModeCard({ mode, selected, disabled, onSelect }: CreatorM
     >
       <div className="creator-mode-icon"><Icon aria-hidden="true" /></div>
       {selected ? <Check className="creator-mode-check" aria-hidden="true" /> : null}
-      <strong>{mode.title}</strong>
-      <span>{modeDescriptions[mode.id] ?? mode.description}</span>
+      <strong>{({ assistant: localeMessages.creatorWorkbench.assistant, embedded: localeMessages.creatorWorkbench.embedded, platform: localeMessages.creatorWorkbench.workbench })[mode.id]}</strong>
+      <span>{getModeDescriptions(localeMessages)[mode.id] ?? mode.description}</span>
     </Button>
   );
 }

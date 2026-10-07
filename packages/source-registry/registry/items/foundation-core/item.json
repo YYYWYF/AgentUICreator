@@ -38,5 +38,8 @@
       "source": "files/application/agent-backend-transport.ts",
       "target": "application/agent-backend-transport.ts"
     }
-  ]
+  ],
+  "packages": {
+    "@agent-ui/react": "^0.1.1"
+  }
 }

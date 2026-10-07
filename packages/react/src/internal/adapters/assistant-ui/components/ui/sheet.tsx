@@ -1,5 +1,7 @@
 "use client";
 
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../../../../../locale.js";
+
 import * as React from "react";
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
 import { XIcon } from "lucide-react";
@@ -49,6 +51,7 @@ function SheetContent({
   side?: "top" | "right" | "bottom" | "left";
   showCloseButton?: boolean;
 }) {
+  const localeMessages = useAgentUILocale();
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -74,7 +77,7 @@ function SheetContent({
             }
           >
             <XIcon />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">{localeMessages.common.close}</span>
           </SheetPrimitive.Close>
         )}
       </SheetPrimitive.Popup>

@@ -244,6 +244,15 @@ rediscover a resolved target, do not select a different owner, and do not turn
 an application-config or Plugin-source request into an AppUIModel mutation.
 Keep the implementation inside the supplied ownership boundary unless the user
 explicitly asks for a separate, independently resolved change.
+Product localization rule: vendor-owned code must remain locale-agnostic and
+unmodified; all product localization is owned by AgentUICreator composition,
+adapters, plugins, and Host UI. New presentation copy belongs in the existing
+useAgentUILocale namespace with both en-US and zh-CN messages. Do not invent
+per-Plugin i18n hooks, branch business logic on translated labels, or translate
+protocol IDs, enums, schema fields, or persisted fields. Prefer public props and
+composition, then product adapters. Record unsupported upstream copy as a
+localization gap; never patch vendor to translate it.
+
 An Agent UI Plugin copy change may also need the generated project's locale
 types and dictionaries: that is part of the same presentation change, not a
 different Plugin owner or a Composition change.

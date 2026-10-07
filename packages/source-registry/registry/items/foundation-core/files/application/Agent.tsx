@@ -1,7 +1,10 @@
+import { AgentUILocaleBridge } from "../agent-ui/i18n/AgentUILocaleBridge";
+import { agentUILocaleConfig } from "../agent-ui/i18n/locale-config";
+import type { AgentUILocaleCode } from "../agent-ui/i18n/locale-types";
 import { usePreviewAgentEnvironment } from "./preview-environment";
 import type { ConversationRuntimeProviderProps } from "@agent-ui/runtime-conversation";
-import { AgentUIRoot } from "@agent-ui/react";
-import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
+import { AgentUIRoot, AgentUILocaleProvider } from "@agent-ui/react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import {
   ConversationRuntimeProvider,
   useConversationRuntimeBridge,
@@ -28,7 +31,7 @@ import type { RuntimeCompositionSnapshot } from "../runtime/composition";
 import {
   ConversationPresentationConfigProvider,
   conversationPresentationConfig,
-  conversationStarterSuggestions,
+  getConversationStarterSuggestions,
   conversationMessageQueueEnabled,
 } from "../agent-ui/conversation/config";
 import { ConversationThreadBindingConnector } from "../agent-ui/conversation/threads/ConversationThreadBindingConnector";
@@ -51,6 +54,8 @@ const revisionDescriptorSource = revisionSources["../app-ui/composition-revision
 const appEventRegistry = new AppEventRegistry(appEventSchemas);
 
 export interface AgentProps {
+  /** Optional Host-owned presentation locale; never sent to AG-UI. */
+  locale?: AgentUILocaleCode;
   /** The Host application's AG-UI endpoint. Defaults to VITE_AGENT_ENDPOINT or /agent. */
   endpoint?: string;
   observability?: AgentObservability;
@@ -73,7 +78,10 @@ function AgentUIStyleSurface({ children }: { children: ReactNode }) {
   return <AgentUIRoot theme={theme}>{children}</AgentUIRoot>;
 }
 
-function AgentSurface({ composition, observability, frontendToolRuntime }: {
+function AgentSurface({ composition, observability, frontendToolRuntime, locale, presentationLocale, onLocaleChange }: {
+  presentationLocale: AgentUILocaleCode;
+  locale?: AgentUILocaleCode | undefined;
+  onLocaleChange?: ((locale: AgentUILocaleCode) => void) | undefined;
   frontendToolRuntime: AppFrontendToolRuntime;
   composition: RuntimeCompositionSnapshot<AppAgentState>;
   observability?: AgentObservability | undefined;
@@ -125,6 +133,7 @@ function AgentSurface({ composition, observability, frontendToolRuntime }: {
   }, [observed, composition.appUIModelHash, observability]);
 
   const content = (
+    <AgentUILocaleProvider locale={locale ?? presentationLocale}>
     <AgentRuntimeProvider runtime={agentRuntime}>
       <PluginServiceProvider
         actions={actions}
@@ -134,6 +143,7 @@ function AgentSurface({ composition, observability, frontendToolRuntime }: {
         model={composition.runtimeModel}
         registry={composition.activeRegistry}
       >
+        <AgentUILocaleBridge locale={locale} onLocaleChange={onLocaleChange}>
         <AgentUIStyleSurface>
           <PluginDataMessageUIHost model={composition.runtimeModel} registry={composition.activeRegistry} />
           <ConversationThreadBindingConnector />
@@ -151,8 +161,10 @@ function AgentSurface({ composition, observability, frontendToolRuntime }: {
             </ModeShell>
           </ConversationPresentationConfigProvider>
         </AgentUIStyleSurface>
+        </AgentUILocaleBridge>
       </PluginServiceProvider>
     </AgentRuntimeProvider>
+    </AgentUILocaleProvider>
   );
   if (!observed) return content;
   return (
@@ -173,7 +185,9 @@ function AgentSurface({ composition, observability, frontendToolRuntime }: {
   );
 }
 
-function AgentSession({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
+function AgentSession({ locale, endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
+  const [presentationLocale, setPresentationLocale] = useState<AgentUILocaleCode>(locale ?? agentUILocaleConfig.defaultLocale);
+  const suggestions = useMemo(() => getConversationStarterSuggestions(locale ?? presentationLocale), [locale, presentationLocale]);
   const frontendToolRuntime = useMemo(() => new AppFrontendToolRuntime(new AppFrontendToolRegistry(appFrontendTools)), []);
   const composition = useSyncExternalStore(
     agentCompositionStore.subscribe,
@@ -221,12 +235,12 @@ function AgentSession({ endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agen
       dictationAdapter={dictationAdapter}
       frontendTools={frontendToolRuntime}
       frontendToolUIs={generatedFrontendToolUIs}
-      suggestions={conversationStarterSuggestions}
+      suggestions={suggestions}
       threadBinding={threadBinding}
       toolkit={toolkit}
     >
       <GeneratedConversationIntegrations>
-        {composition === undefined ? null : <AgentSurface frontendToolRuntime={frontendToolRuntime} composition={composition} observability={observability} />}
+        {composition === undefined ? null : <AgentSurface presentationLocale={presentationLocale} locale={locale} onLocaleChange={setPresentationLocale} frontendToolRuntime={frontendToolRuntime} composition={composition} observability={observability} />}
       </GeneratedConversationIntegrations>
     </ConversationRuntimeProvider>
   );

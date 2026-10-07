@@ -1,5 +1,6 @@
 "use client";
 
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../locale.js";
 import { ThreadListItemMorePrimitive, ThreadListItemPrimitive, useAui, useAuiState } from "@assistant-ui/react";
 import { ArchiveIcon, Loader2Icon, MoreHorizontalIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -30,12 +31,13 @@ export interface ConversationThreadListItemProps {
 }
 
 const defaultLabels: ConversationThreadListItemLabels = {
-  newChat: "New Chat", moreOptions: "More options", running: "Running",
-  rename: "Rename", archive: "Archive", delete: "Delete",
+  newChat: DEFAULT_AGENT_UI_MESSAGES.threadList.newChat, moreOptions: DEFAULT_AGENT_UI_MESSAGES.threadList.moreOptions, running: DEFAULT_AGENT_UI_MESSAGES.threadList.running,
+  rename: DEFAULT_AGENT_UI_MESSAGES.threadList.rename, archive: DEFAULT_AGENT_UI_MESSAGES.threadList.archive, delete: DEFAULT_AGENT_UI_MESSAGES.threadList.delete,
 };
 
 export function ConversationThreadListItemComposition(props: ConversationThreadListItemProps) {
-  return <ConfiguredThreadListItem actions={props.actions ?? { rename: true, archive: true, delete: true }} labels={props.labels ?? defaultLabels} />;
+  const messages = useAgentUILocale("threadList");
+  return <ConfiguredThreadListItem actions={props.actions ?? { rename: true, archive: true, delete: true }} labels={props.labels ?? messages} />;
 }
 
 /** Presentation only: all actions and navigation remain assistant-ui-owned. */

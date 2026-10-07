@@ -1,5 +1,7 @@
 "use client";
 
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../../../../../locale.js";
+
 import * as React from "react";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { XIcon } from "lucide-react";
@@ -50,6 +52,7 @@ function DialogContent({
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean;
 }) {
+  const localeMessages = useAgentUILocale();
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -74,7 +77,7 @@ function DialogContent({
             }
           >
             <XIcon />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">{localeMessages.common.close}</span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Popup>
@@ -100,6 +103,7 @@ function DialogFooter({
 }: React.ComponentProps<"div"> & {
   showCloseButton?: boolean;
 }) {
+  const localeMessages = useAgentUILocale();
   return (
     <div
       data-slot="dialog-footer"
@@ -112,7 +116,8 @@ function DialogFooter({
       {children}
       {showCloseButton && (
         <DialogPrimitive.Close render={<Button variant="outline" />}>
-          Close
+
+          {localeMessages.common.close}
         </DialogPrimitive.Close>
       )}
     </div>

@@ -1,5 +1,7 @@
 "use client";
 
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../../../../../../locale.js";
+
 import { memo, useRef, type ComponentPropsWithoutRef, type FC, type ReactNode } from "react";
 import {
   ComposerPrimitive,
@@ -192,8 +194,8 @@ const Items: FC<ItemsProps> = ({
 const ComposerTriggerPopoverImpl: FC<ComposerTriggerPopoverProps> = ({
   iconMap,
   fallbackIcon = SparklesIcon,
-  backLabel = "Back",
-  emptyCategoriesLabel = "No items available",
+  backLabel,
+  emptyCategoriesLabel,
   emptyItemsLabel = "No matching items",
   loadingLabel = "Loading…",
   className,
@@ -202,6 +204,9 @@ const ComposerTriggerPopoverImpl: FC<ComposerTriggerPopoverProps> = ({
   children,
   ...props
 }) => {
+  const localeMessages = useAgentUILocale();
+  backLabel ??= localeMessages.common.back;
+  emptyCategoriesLabel ??= localeMessages.triggers.noItems;
   const warnedRef = useRef(false);
   if (
     process.env.NODE_ENV !== "production" &&

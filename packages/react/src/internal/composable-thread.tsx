@@ -1,5 +1,6 @@
 "use client";
 
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../locale.js";
 import { ComposerInputHostContext, ComposerTextareaInput } from "./composer-input-host-context.js";
 
 import { ConversationUserDirectiveText } from "./conversation-directive-text.js";
@@ -154,7 +155,7 @@ const EMPTY_COMPONENTS: ThreadComponents = {};
 const ThreadComponentsContext =
   createContext<ThreadComponents>(EMPTY_COMPONENTS);
 
-const DEFAULT_THREAD_LABELS = { generationStopped: "Generation stopped", editCancel: "Cancel", editUpdate: "Update", editInput: "Edit message" };
+const DEFAULT_THREAD_LABELS = { generationStopped: DEFAULT_AGENT_UI_MESSAGES.conversation.generationStopped, editCancel: DEFAULT_AGENT_UI_MESSAGES.common.cancel, editUpdate: DEFAULT_AGENT_UI_MESSAGES.common.update, editInput: DEFAULT_AGENT_UI_MESSAGES.conversation.editInput };
 const ThreadLabelsContext = createContext(DEFAULT_THREAD_LABELS);
 
 interface ComposerHostConfig {
@@ -178,13 +179,15 @@ const isHistoryLoadingView = (s: AssistantState) =>
   !s.thread.isDisabled &&
   !s.threads.isLoading;
 
-const ThreadHistorySkeleton: FC = () => (
+const ThreadHistorySkeleton: FC = () => {
+  const localeMessages = useAgentUILocale();
+  return (
   <div
     data-slot="aui_thread-history-skeleton"
     role="status"
     className="animate-in fade-in fill-mode-both flex flex-col gap-y-6 [animation-delay:150ms] [animation-duration:200ms]"
   >
-    <span className="sr-only">Loading conversation</span>
+    <span className="sr-only">{localeMessages.conversation.loading}</span>
     <Skeleton className="ml-auto h-9 w-2/5 rounded-xl motion-reduce:animate-none" />
     <div className="flex flex-col gap-y-2">
       <Skeleton className="h-4 w-11/12 motion-reduce:animate-none" />
@@ -198,18 +201,21 @@ const ThreadHistorySkeleton: FC = () => (
     </div>
   </div>
 );
+};
 
 export const ComposableThread: FC<ThreadProps> = ({
   components = EMPTY_COMPONENTS,
-  labels = DEFAULT_THREAD_LABELS,
+  labels,
   autoFocus = true,
   composer = null,
 }) => {
+  const localeMessages = useAgentUILocale();
+  const defaultLabels = { generationStopped: localeMessages.conversation.generationStopped, editCancel: localeMessages.common.cancel, editUpdate: localeMessages.common.update, editInput: localeMessages.conversation.editInput };
   const isEmpty = useAuiState(isNewChatView);
 
   return (
     <ThreadComponentsContext.Provider value={components}>
-      <ThreadLabelsContext.Provider value={{ ...DEFAULT_THREAD_LABELS, ...labels }}>
+      <ThreadLabelsContext.Provider value={{ ...defaultLabels, ...labels }}>
         <ComposerHostConfigContext.Provider value={{ autoFocus }}>
           <ThreadRoot isEmpty={isEmpty} composer={composer} />
         </ComposerHostConfigContext.Provider>
@@ -300,10 +306,11 @@ const ThreadMessage: FC = () => {
 };
 
 const ThreadScrollToBottom: FC = () => {
+  const localeMessages = useAgentUILocale();
   return (
     <ThreadPrimitive.ScrollToBottom asChild>
       <TooltipIconButton
-        tooltip="Scroll to bottom"
+        tooltip={localeMessages.conversation.scrollToBottom}
         variant="outline"
         className="aui-thread-scroll-to-bottom dark:border-border dark:bg-background dark:hover:bg-accent absolute -top-12 z-10 self-center rounded-full p-4 disabled:invisible"
       >
@@ -314,10 +321,12 @@ const ThreadScrollToBottom: FC = () => {
 };
 
 const ThreadWelcome: FC = () => {
+  const localeMessages = useAgentUILocale();
   return (
     <div className="aui-thread-welcome-root mb-6 flex flex-col items-center px-4 text-center">
       <h1 className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-2xl font-medium tracking-tight duration-200">
-        How can I help you today?
+
+        {localeMessages.conversation.welcome}
       </h1>
     </div>
   );
@@ -596,6 +605,7 @@ const AssistantResponseFooterHost: FC<{
 };
 
 const AssistantMessage: FC = () => {
+  const localeMessages = useAgentUILocale();
   const {
     ToolFallback: ToolFallbackComponent = ToolFallback,
     ToolGroup,
@@ -707,7 +717,7 @@ const AssistantMessage: FC = () => {
                       <span
                         data-slot="aui_assistant-message-indicator"
                         className="animate-pulse font-sans"
-                        aria-label="Assistant is working"
+                        aria-label={localeMessages.conversation.working}
                       >
                         {"●"}
                       </span>
@@ -740,6 +750,7 @@ export const ResponseActionBarRoot: FC<PropsWithChildren> = ({ children }) => (
 );
 
 export const CanonicalResponseCopyAction: FC = () => {
+  const localeMessages = useAgentUILocale();
   const response = useAssistantResponseRuntime();
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -755,7 +766,7 @@ export const CanonicalResponseCopyAction: FC = () => {
   const disabled = response.isRunning || !response.text;
   return (
     <TooltipIconButton
-      tooltip="Copy"
+      tooltip={localeMessages.common.copy}
       type="button"
       disabled={disabled}
       {...(copied ? { "data-copied": "true" } : {})}
@@ -798,15 +809,17 @@ export const CanonicalResponseFeedbackActions: FC<{ helpful: string; notHelpful:
 );
 
 export const CanonicalResponseReloadAction: FC = () => {
+  const localeMessages = useAgentUILocale();
   const response = useAssistantResponseRuntime();
   return (
-    <TooltipIconButton tooltip="Refresh" type="button" disabled={!response.canReload} onClick={response.reload}>
+    <TooltipIconButton tooltip={localeMessages.common.refresh} type="button" disabled={!response.canReload} onClick={response.reload}>
       <RefreshCwIcon />
     </TooltipIconButton>
   );
 };
 
 export const CanonicalResponseExportMarkdownAction: FC<{ menuLabel?: string }> = ({ menuLabel }) => {
+  const localeMessages = useAgentUILocale();
   const response = useAssistantResponseRuntime();
   const disabled = response.isRunning || !response.text;
   const exportMarkdown = () => {
@@ -827,21 +840,22 @@ export const CanonicalResponseExportMarkdownAction: FC<{ menuLabel?: string }> =
       <DownloadIcon className="size-4" />{menuLabel}
     </ConversationActionMoreMenuItem>;
   }
-  return <TooltipIconButton tooltip="Export as Markdown" type="button" disabled={disabled} onClick={exportMarkdown}>
+  return <TooltipIconButton tooltip={localeMessages.conversation.exportMarkdown} type="button" disabled={disabled} onClick={exportMarkdown}>
     <DownloadIcon />
   </TooltipIconButton>;
 };
 
 export const ResponseBranchPicker: FC = () => {
+  const localeMessages = useAgentUILocale();
   const response = useAssistantResponseRuntime();
   if (response.branchCount <= 1 || !response.canSwitchBranch) return null;
   return (
     <div className="aui-branch-picker-root text-muted-foreground -ms-2 me-2 inline-flex items-center text-xs">
-      <TooltipIconButton tooltip="Previous" type="button" disabled={response.branchNumber <= 1} onClick={response.switchToPreviousBranch}>
+      <TooltipIconButton tooltip={localeMessages.common.previous} type="button" disabled={response.branchNumber <= 1} onClick={response.switchToPreviousBranch}>
         <ChevronLeftIcon />
       </TooltipIconButton>
       <span className="aui-branch-picker-state font-medium">{response.branchNumber} / {response.branchCount}</span>
-      <TooltipIconButton tooltip="Next" type="button" disabled={response.branchNumber >= response.branchCount} onClick={response.switchToNextBranch}>
+      <TooltipIconButton tooltip={localeMessages.common.next} type="button" disabled={response.branchNumber >= response.branchCount} onClick={response.switchToNextBranch}>
         <ChevronRightIcon />
       </TooltipIconButton>
     </div>
@@ -903,6 +917,7 @@ const UserMessage: FC = () => {
 };
 
 const UserActionBar: FC = () => {
+  const localeMessages = useAgentUILocale();
   return (
     <ActionBarPrimitive.Root
       hideWhenRunning
@@ -910,7 +925,7 @@ const UserActionBar: FC = () => {
       className="aui-user-action-bar-root flex flex-col items-end"
     >
       <ActionBarPrimitive.Edit asChild>
-        <TooltipIconButton tooltip="Edit" className="aui-user-action-edit">
+        <TooltipIconButton tooltip={localeMessages.common.edit} className="aui-user-action-edit">
           <PencilIcon />
         </TooltipIconButton>
       </ActionBarPrimitive.Edit>
@@ -956,6 +971,7 @@ const BranchPicker: FC<BranchPickerPrimitive.Root.Props> = ({
   className,
   ...rest
 }) => {
+  const localeMessages = useAgentUILocale();
   return (
     <BranchPickerPrimitive.Root
       hideWhenSingleBranch
@@ -966,7 +982,7 @@ const BranchPicker: FC<BranchPickerPrimitive.Root.Props> = ({
       {...rest}
     >
       <BranchPickerPrimitive.Previous asChild>
-        <TooltipIconButton tooltip="Previous">
+        <TooltipIconButton tooltip={localeMessages.common.previous}>
           <ChevronLeftIcon />
         </TooltipIconButton>
       </BranchPickerPrimitive.Previous>
@@ -974,7 +990,7 @@ const BranchPicker: FC<BranchPickerPrimitive.Root.Props> = ({
         <BranchPickerPrimitive.Number /> / <BranchPickerPrimitive.Count />
       </span>
       <BranchPickerPrimitive.Next asChild>
-        <TooltipIconButton tooltip="Next">
+        <TooltipIconButton tooltip={localeMessages.common.next}>
           <ChevronRightIcon />
         </TooltipIconButton>
       </BranchPickerPrimitive.Next>

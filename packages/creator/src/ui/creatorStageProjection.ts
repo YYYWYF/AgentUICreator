@@ -1,3 +1,4 @@
+import { useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "./i18n/locale.js";
 export type CreatorStageName =
   | "creator.grounding"
   | "creator.resolve"
@@ -344,56 +345,56 @@ function statusFromMetadata(
 }
 
 /** Describe operation completion separately from its static and Runtime checks. */
-export function creatorStageTitle(activity: CreatorStageActivity): string {
+export function creatorStageTitle(activity: CreatorStageActivity, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): string {
   if (activity.name === "creator.grounding") {
-    if (activity.status === "running") return "正在读取项目状态…";
-    if (activity.status === "failed") return "读取项目状态失败";
-    return "项目状态已读取";
+    if (activity.status === "running") return localeMessages.creatorStages.readingProjectState;
+    if (activity.status === "failed") return localeMessages.creatorStages.couldNotReadProjectState;
+    return localeMessages.creatorStages.projectStateRead;
   }
   if (activity.name === "creator.resolve") {
-    if (activity.status === "running") return "正在理解你的请求…";
-    if (activity.status === "failed") return "理解请求失败";
+    if (activity.status === "running") return localeMessages.creatorStages.understandingYourRequest;
+    if (activity.status === "failed") return localeMessages.creatorStages.couldNotUnderstandTheRequest;
     if (activity.metadata?.route === "clarification") {
-      return "需要确认修改目标";
+      return localeMessages.creatorStages.confirmTheChangeTarget;
     }
     if (activity.metadata?.route === "unsupported") {
-      return "当前没有可安全执行的对应操作";
+      return localeMessages.creatorStages.noCorrespondingOperationCanBePerformedSafely;
     }
-    return "已识别意图";
+    return localeMessages.creatorStages.intentIdentified;
   }
-  if (activity.status === "running") return "正在应用并验证修改…";
+  if (activity.status === "running") return localeMessages.creatorStages.applyingAndVerifyingChanges;
   if (activity.status === "failed" || activity.metadata?.status === "failed") {
-    return "修改未完成";
+    return localeMessages.creatorStages.changesIncomplete;
   }
   if (activity.metadata?.status === "already_satisfied") {
-    return "当前状态已满足，无需修改";
+    return localeMessages.creatorStages.currentStateAlreadySatisfiesTheRequest;
   }
   if (activity.metadata?.status === "committed_unverified") {
-    return "修改已提交，但无法确认请求结果";
+    return localeMessages.creatorStages.changesCommittedRequestOutcomeUnconfirmed;
   }
   if (activity.metadata?.status === "success") {
     if (activity.metadata.staticStatus === "failed") {
-      return "请求的修改已完成，静态验证未通过";
+      return localeMessages.creatorStages.requestedChangesCompleteStaticValidationFailed;
     }
     if (activity.metadata.runtimeStatus === "stale") {
-      return "请求的修改已完成，Runtime 尚未观测到最新状态";
+      return localeMessages.creatorStages.requestedChangesCompleteRuntimeHasNotObservedThe;
     }
     if (activity.metadata.runtimeStatus === "unavailable") {
-      return "请求的修改已完成，Runtime 暂不可用";
+      return localeMessages.creatorStages.requestedChangesCompleteRuntimeTemporarilyUnavailable;
     }
     if (activity.metadata.runtimeStatus === "failed") {
-      return "请求的修改已完成，但 Runtime 验证未通过";
+      return localeMessages.creatorStages.requestedChangesCompleteRuntimeVerificationFailed;
     }
     if (
       activity.metadata.staticStatus === "passed" &&
       (activity.metadata.runtimeStatus === "passed" ||
         activity.metadata.runtimeStatus === "not-run")
     ) {
-      return "请求的修改已完成";
+      return localeMessages.creatorStages.requestedChangesComplete;
     }
-    return "请求的修改已完成，但部分验证未完成";
+    return localeMessages.creatorStages.requestedChangesCompleteSomeVerificationIncomplete;
   }
-  return "修改状态未确认";
+  return localeMessages.creatorStages.changeStatusUnconfirmed;
 }
 
 /** Project one official Step callback into the Creator-only stage model. */
@@ -427,7 +428,7 @@ export function projectCreatorIntentStage(
 
 export function interruptCreatorStage(
   stage: CreatorStageActivity,
-  message = "页面刷新时该阶段尚未结束。",
+  message = DEFAULT_CREATOR_MESSAGES.creatorStages.thisStageWasStillRunningWhenThePage, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES
 ): CreatorStageActivity {
   return stage.status === "running"
     ? { ...stage, status: "failed", error: message }

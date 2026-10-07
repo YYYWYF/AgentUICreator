@@ -1,3 +1,4 @@
+import { useAgentUILocale } from "@agent-ui/react";
 import {
   Component,
   type ErrorInfo,
@@ -93,7 +94,7 @@ export class PluginRuntimeBoundary extends Component<
         data-plugin-instance-id={this.props.instanceId}
         role="alert"
       >
-        <strong>{this.props.pluginName} could not be rendered.</strong>
+        <PluginFailureTitle pluginName={this.props.pluginName} />
       </div>
     );
   }
@@ -101,3 +102,8 @@ export class PluginRuntimeBoundary extends Component<
 
 /** @deprecated Use PluginRuntimeBoundary. */
 export { PluginRuntimeBoundary as PluginErrorBoundary };
+
+function PluginFailureTitle({ pluginName }: { pluginName: string }) {
+  const messages = useAgentUILocale("runtime");
+  return <strong>{messages.pluginRenderFailed.replace("{plugin}", () => pluginName)}</strong>;
+}

@@ -1,6 +1,8 @@
+import { AGENT_UI_PRESENTATION_LOCALES } from "@agent-ui/react";
 import type { AgentUILocaleMessages } from "../locale-types";
 
 export const enUS = {
+  ...AGENT_UI_PRESENTATION_LOCALES["en-US"],
   layout: {
     open: "Open panel",
     close: "Close panel",
@@ -45,13 +47,15 @@ export const enUS = {
     relevance: "{source} relevance score",
     score: "{score} of 1.00",
   },
-  composer: { send: "Send message", stop: "Stop generating", queueSend: "Queue message", queued: "Pending", removeQueued: "Remove queued message" },
+  composer: { ...AGENT_UI_PRESENTATION_LOCALES["en-US"].composer, send: "Send message", stop: "Stop generating", queueSend: "Queue message", queued: "Pending", removeQueued: "Remove queued message" },
   conversationFeedback: { helpful: "Helpful", notHelpful: "Not helpful" },
   conversationQuote: {
     quote: "Quote",
     dismiss: "Dismiss quote",
   },
   conversation: {
+    ...AGENT_UI_PRESENTATION_LOCALES["en-US"].conversation,
+    welcome: "How can I help you today?",
     generationStopped: "Generation stopped",
     editCancel: "Cancel",
     editUpdate: "Update",
@@ -84,6 +88,13 @@ export const enUS = {
     failed: "Could not open dialog",
   },
   threadList: {
+    ...AGENT_UI_PRESENTATION_LOCALES["en-US"].threadList,
+    retry: "Retry",
+    loading: "Loading threads",
+    empty: "No threads found",
+    loadFailed: "Could not load conversations",
+    historyFailed: "Could not load conversation history",
+
     newThread: "New Thread",
     newChat: "New Chat",
     search: "Search threads",
@@ -92,6 +103,17 @@ export const enUS = {
     rename: "Rename",
     archive: "Archive",
     delete: "Delete",
+  },
+  starterSuggestions: {
+    architectureTitle: "Analyze Agent UI architecture",
+    architectureLabel: "Review layout, Plugin, and Service boundaries",
+    architecturePrompt: "Help me analyze the current Agent UI architecture",
+    debugTitle: "Debug the current issue",
+    debugLabel: "Investigate unexpected interface behavior",
+    debugPrompt: "Help me debug the current interface",
+    nextTitle: "Suggest a next step",
+    nextLabel: "Provide an actionable follow-up",
+    nextPrompt: "Suggest a next step based on the current context",
   },
   theme: {
     settings: "Theme settings",

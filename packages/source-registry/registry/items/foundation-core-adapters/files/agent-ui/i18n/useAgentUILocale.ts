@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { usePluginService, usePluginServiceSnapshot } from "../../runtime/plugins";
 import {
   AGENT_UI_LOCALE_SERVICE,
@@ -5,7 +6,7 @@ import {
   type AgentUILocaleSnapshot,
 } from "../../services/agent-ui-locale";
 import { agentUILocaleConfig } from "./locale-config";
-import { AGENT_UI_LOCALES, AGENT_UI_LOCALE_METADATA } from "./locale-registry";
+import { resolveLocaleNamespace, AGENT_UI_LOCALE_METADATA } from "./locale-registry";
 import type { AgentUILocaleMessages } from "./locale-types";
 
 const defaultLocale = agentUILocaleConfig.defaultLocale;
@@ -21,7 +22,5 @@ export function useAgentUILocale<K extends keyof AgentUILocaleMessages>(
     AGENT_UI_LOCALE_SERVICE,
   );
   const { locale } = usePluginServiceSnapshot(service, defaultSnapshot);
-  const messages: AgentUILocaleMessages = AGENT_UI_LOCALES[locale];
-
-  return messages[namespace];
+  return useMemo(() => resolveLocaleNamespace(locale, namespace), [locale, namespace]);
 }

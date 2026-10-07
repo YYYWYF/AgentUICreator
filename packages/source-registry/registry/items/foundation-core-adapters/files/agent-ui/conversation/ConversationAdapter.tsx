@@ -1,3 +1,4 @@
+import { useAgentUILocale } from "../i18n/useAgentUILocale";
 import {
   createContext,
   useContext,
@@ -45,10 +46,11 @@ function ConversationEmptyState() {
 
 export function ConversationWelcomeFallback() {
   const { welcome } = useConversationPresentationConfig();
+  const messages = useAgentUILocale("conversation");
   return (
     <div className="aui-thread-welcome-root mb-6 flex flex-col items-center px-4 text-center">
       <h1 className="aui-thread-welcome-message-inner fade-in slide-in-from-bottom-1 animate-in fill-mode-both text-2xl font-medium tracking-tight duration-200">
-        {welcome.title ?? "How can I help you today?"}
+        {welcome.title ?? messages.welcome}
       </h1>
       {welcome.description === undefined ? null : (
         <p className="text-muted-foreground fade-in slide-in-from-bottom-1 animate-in fill-mode-both mt-2 max-w-xl text-sm leading-6 duration-200">

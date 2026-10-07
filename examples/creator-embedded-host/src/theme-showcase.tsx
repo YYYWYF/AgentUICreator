@@ -1,7 +1,8 @@
+import { ExampleLocaleHost } from "./ExampleLocaleHost";
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
-  AGENT_UI_THEME_PRESETS, isAgentUITheme, type AgentUITheme,
+  useAgentUILocale, AGENT_UI_THEME_PRESETS, isAgentUITheme, type AgentUITheme,
   AgentUIRoot, Button, NativeSelect, NativeSelectOption,
   AgentUIDialog, AgentUIDialogContent, AgentUIPopover, AgentUIPopoverTrigger, AgentUIPopoverContent,
   TooltipProvider, ConversationThread, ConversationCanonicalComposer, ConversationComposerSend, ConversationComposerCancel,
@@ -28,15 +29,17 @@ const mentionSource: ConversationMentionSource = {
 };
 const commands = [{ id: "summarize", label: copy.command, mode: "directive" as const }];
 const commandSource: ConversationSlashCommandSource = { getSnapshot: () => commands, subscribe: () => () => undefined };
-function Welcome() { return <div className="showcase-welcome"><h2>{copy.welcome}</h2><p>{copy.welcomeText}</p></div>; }
+function Welcome() { const copy = useAgentUILocale("themeShowcase"); return <div className="showcase-welcome"><h2>{copy.welcome}</h2><p>{copy.welcomeText}</p></div>; }
 const threadComponents = { Welcome };
 function ThreadListItem() {
+  const copy = useAgentUILocale("themeShowcase");
   return <ConversationThreadListItem actions={{ rename: false, archive: false, delete: false }} labels={{
     newChat: copy.newChat, moreOptions: copy.threadList, running: copy.activeTool,
     rename: copy.threadList, archive: copy.threadList, delete: copy.threadList,
   }} />;
 }
 function ThreadList() {
+  const copy = useAgentUILocale("themeShowcase");
   const { threadIds } = useConversationThreadListGroups();
   return <ConversationThreadListRoot>
     <ConversationThreadListNew>{copy.newChat}</ConversationThreadListNew>
@@ -45,6 +48,8 @@ function ThreadList() {
 }
 
 function ThemeShowcase() {
+  const copy = useAgentUILocale("themeShowcase");
+  const triggerLabels = useAgentUILocale("triggers");
   const [theme, setTheme] = useState<AgentUITheme>("light");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [toolOpen, setToolOpen] = useState(true);
@@ -76,7 +81,7 @@ function ThemeShowcase() {
         <section className="showcase-live agent-ui-conversation" aria-label={copy.live}>
           <ConversationThread components={threadComponents} labels={{ generationStopped: copy.stopped }} composer={
             <ConversationCanonicalComposer placeholder={copy.composer} inputAriaLabel={copy.composer}
-              triggers={<><ConversationComposerMentionTrigger source={mentionSource} labels={copy.triggers} /><ConversationComposerCommandTrigger source={commandSource} labels={copy.triggers} /></>}
+              triggers={<><ConversationComposerMentionTrigger source={mentionSource} labels={triggerLabels} /><ConversationComposerCommandTrigger source={commandSource} labels={triggerLabels} /></>}
               submitAction={<><ConversationComposerSend label={copy.send} /><ConversationComposerCancel label={copy.stop} /></>}
             />
           } />
@@ -90,5 +95,5 @@ function ThemeShowcase() {
 }
 
 createRoot(document.getElementById("theme-showcase")!).render(
-  <ConversationRuntimeProvider endpoint="/agent" threadBinding={binding}><ThemeShowcase /></ConversationRuntimeProvider>,
+  <ExampleLocaleHost><ConversationRuntimeProvider endpoint="/agent" threadBinding={binding}><ThemeShowcase /></ConversationRuntimeProvider></ExampleLocaleHost>,
 );

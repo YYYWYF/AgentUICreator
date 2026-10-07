@@ -12,7 +12,7 @@ export interface ConversationPresentationConfig {
  * application configuration, not an AppUIModel Plugin payload.
  */
 export const conversationWelcomeConfig: ConversationWelcomeConfig = {
-  title: "How can I help you today?",
+  // Omitted defaults resolve through locale in ConversationWelcomeFallback.
 };
 
 export const conversationPresentationConfig: ConversationPresentationConfig = {

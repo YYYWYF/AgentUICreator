@@ -1,5 +1,7 @@
 "use client";
 
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../../../../../../locale.js";
+
 import {
   MessagePrimitive,
   ReadonlyThreadProvider,
@@ -174,6 +176,7 @@ export const TaskGroup: FC<{
   group: MessagePrimitive.GroupedParts.GroupPart;
   className?: string;
 }> = ({ group, className }) => {
+  const localeMessages = useAgentUILocale();
   const [visible, setVisible] = useState(TASK_PAGE_SIZE);
   const { indices, counts } = group;
   // A selector has to return a stable value, so the lane keys travel as one string and are split afterwards.
@@ -226,7 +229,8 @@ export const TaskGroup: FC<{
           onClick={() => setVisible((count) => count + TASK_PAGE_SIZE)}
           className="text-muted-foreground hover:text-foreground w-fit px-1 text-xs transition-colors"
         >
-          Show {Math.min(hidden, TASK_PAGE_SIZE)} more
+
+          {localeMessages.common.show} {Math.min(hidden, TASK_PAGE_SIZE)}  {localeMessages.common.more}
         </button>
       )}
     </div>

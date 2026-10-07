@@ -47,7 +47,7 @@ export function ConversationThreadListPlugin(_props: UIPluginComponentProps) {
 
       {snapshot.listStatus === "error" ? (
         <div className="conversation-thread-list-error" role="alert">
-          <strong>加载会话失败</strong>
+          <strong>{labels.loadFailed}</strong>
           {snapshot.listError === undefined ? null : (
             <span>{snapshot.listError}</span>
           )}
@@ -59,7 +59,7 @@ export function ConversationThreadListPlugin(_props: UIPluginComponentProps) {
             size="sm"
             variant="outline"
           >
-            重试
+            {labels.retry}
           </Button>
         </div>
       ) : null}
@@ -70,7 +70,7 @@ export function ConversationThreadListPlugin(_props: UIPluginComponentProps) {
           data-slot="agent-ui-thread-detail-error"
           role="alert"
         >
-          <strong>历史会话加载失败</strong>
+          <strong>{labels.historyFailed}</strong>
           {snapshot.detailError === undefined ? null : (
             <span>{snapshot.detailError}</span>
           )}
@@ -91,7 +91,7 @@ export function ConversationThreadListPlugin(_props: UIPluginComponentProps) {
             size="sm"
             variant="outline"
           >
-            重试
+            {labels.retry}
           </Button>
         </div>
       ) : null}

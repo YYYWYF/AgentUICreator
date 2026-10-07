@@ -149,3 +149,23 @@ AgentUICreator Adapter / UI Plugin / Slot
 > Reference Projects
 > 生成项目当前 UI Library API
 ```
+
+## Product localization boundary
+
+`vendor-owned code must remain locale-agnostic and unmodified; all product localization is owned by AgentUICreator composition, adapters, plugins, and host UI.`
+
+All new presentation copy, including errors, loading states, placeholders,
+accessibility labels and default suggestions, must use the existing domain locale
+namespace and have `en-US` / `zh-CN` parity. Keep common words small and put Plugin
+copy in its domain namespace. Components consume the unified locale context;
+pure presentation helpers receive messages. No per-Plugin language conditionals
+or independent i18n hooks. Never translate protocol identifiers, schema/domain
+values or persisted field names, and never branch business logic on translated
+labels. Use props/composition/adapters for upstream copy and record unsupported
+seams in `docs/i18n/upstream-localization-gaps.md`; do not patch vendor.
+
+After meaningful copy changes run `pnpm check:i18n` and relevant typechecks.
+`pnpm audit:ui-copy` is a semantic-review aid, not a blanket string ban. During
+assistant-ui upgrades, check new upstream user-facing copy and preserve the
+locale recipes/provenance. See `docs/i18n/README.md` for message ownership and
+fallbacks. Visual acceptance is separate from static or unit validation.

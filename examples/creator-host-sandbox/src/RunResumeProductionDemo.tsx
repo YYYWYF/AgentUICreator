@@ -1,3 +1,4 @@
+import { useAgentUILocale } from "@agent-ui/react";
 import { ConversationRuntimeProvider, useConversationRuntimeBridge } from "@agent-ui/runtime-conversation";
 import {
   AgentPlan,
@@ -78,6 +79,7 @@ function ProductionConversation({ threadId, scenarioId }: {
   threadId: string;
   scenarioId: ProductionResumeScenario;
 }) {
+  const localeMessages = useAgentUILocale();
   const { agentRuntime } = useConversationRuntimeBridge();
   const snapshot = useSyncExternalStore(
     agentRuntime.subscribe.bind(agentRuntime), agentRuntime.getSnapshot.bind(agentRuntime), agentRuntime.getSnapshot.bind(agentRuntime),
@@ -91,21 +93,22 @@ function ProductionConversation({ threadId, scenarioId }: {
     return () => clearInterval(timer);
   }, [threadId]);
   return <main style={{ maxWidth: 760, margin: "48px auto", padding: 24, fontFamily: "system-ui" }}>
-    <h1>{scenarioId === "resumable-agent-plan" ? "AgentPlan Activity refresh recovery" : "Production binding refresh recovery"}</h1>
+    <h1>{scenarioId === "resumable-agent-plan" ? localeMessages.examples.agentPlanActivityRefreshRecovery : localeMessages.examples.productionBindingRefreshRecovery}</h1>
     <p data-testid="production-thread-id">{snapshot.conversation.id}</p>
-    <p data-testid="production-run-count">Agent invocation count: {runCount}</p>
+    <p data-testid="production-run-count">{localeMessages.examples.agentInvocationCount} {runCount}</p>
     <p data-testid="production-run-status">{snapshot.run.status}</p>
     <div data-testid="production-conversation-messages" style={{ height: 380 }}>
       <ConversationThread autoFocus={false} composer={null} />
     </div>
     <button type="button" disabled={snapshot.run.status === "running"}
-      onClick={() => void agentRuntime.sendMessage("执行一个长任务")}>发送</button>
+      onClick={() => void agentRuntime.sendMessage(localeMessages.examples.runALongTask)}>{localeMessages.examples.send}</button>
   </main>;
 }
 
 export function RunResumeProductionDemo({ scenarioId = "resumable-long-run" }: {
   scenarioId?: ProductionResumeScenario;
 }) {
+  const localeMessages = useAgentUILocale();
   const storageKey = `${STORAGE_KEY}:${scenarioId}`;
   const [boot, setBoot] = useState<{ summaries: RunSummary[]; initialThreadId?: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -119,5 +122,5 @@ export function RunResumeProductionDemo({ scenarioId = "resumable-long-run" }: {
     return () => { cancelled = true; };
   }, [storageKey]);
   if (error !== null) return <p role="alert">{error}</p>;
-  return boot === null ? <p>加载中……</p> : <ProductionThread {...boot} scenarioId={scenarioId} />;
+  return boot === null ? <p>{localeMessages.examples.loading}</p> : <ProductionThread {...boot} scenarioId={scenarioId} />;
 }

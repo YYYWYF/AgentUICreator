@@ -1,3 +1,4 @@
+import { useAgentUILocale } from "@agent-ui/react";
 import type { ReactNode } from "react";
 
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";
@@ -27,9 +28,10 @@ function ApplicationStartupFailure({
   instanceId?: string | undefined;
   message: string;
 }) {
+  const messages = useAgentUILocale("runtime");
   return (
     <div className="app-ui-application-gate-failure" role="alert">
-      <strong>Application startup failed</strong>
+      <strong>{messages.startupFailed}</strong>
       {pluginId === undefined && instanceId === undefined ? null : (
         <span>{[pluginId, instanceId].filter(Boolean).join(" · ")}</span>
       )}
@@ -45,6 +47,7 @@ export function ApplicationGateSurface<TState = unknown>({
   onPluginError,
   onPluginReset,
 }: ApplicationGateSurfaceProps<TState>) {
+  const messages = useAgentUILocale("runtime");
   const lifecycle = useApplicationLifecycle();
   const serviceRuntime = usePluginServiceRuntime();
 
@@ -57,7 +60,7 @@ export function ApplicationGateSurface<TState = unknown>({
       >
         <ApplicationStartupFailure
           instanceId={lifecycle.failure?.instanceId}
-          message={lifecycle.failure?.message ?? "Unknown Application Gate error."}
+          message={lifecycle.failure?.message ?? messages.unknownGateError}
           pluginId={lifecycle.failure?.pluginId}
         />
       </main>
@@ -98,7 +101,7 @@ export function ApplicationGateSurface<TState = unknown>({
       >
         <ApplicationStartupFailure
           instanceId={activeGateInstanceId}
-          message="The active Application Gate cannot be rendered."
+          message={messages.gateCannotRender}
           pluginId={instance?.pluginId}
         />
       </main>

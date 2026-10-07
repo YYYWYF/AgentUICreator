@@ -1,3 +1,4 @@
+import { useAgentUILocale } from "@agent-ui/react";
 import { ConversationRuntimeProvider, useConversationRuntimeBridge,
   type ConversationAssistantRunUpdate, type ConversationLoadedThread, type ConversationThreadBinding } from "@agent-ui/runtime-conversation";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
@@ -121,11 +122,12 @@ function createBinding(id: string, summaries: RunSummary[]): ConversationThreadB
 }
 
 function DemoConversation({ id }: { id: string }) {
+  const localeMessages = useAgentUILocale();
   const { agentRuntime } = useConversationRuntimeBridge();
   const snapshot = useSyncExternalStore(
     agentRuntime.subscribe.bind(agentRuntime), agentRuntime.getSnapshot.bind(agentRuntime), agentRuntime.getSnapshot.bind(agentRuntime),
   );
-  const [input, setInput] = useState("执行一个长任务");
+  const [input, setInput] = useState(localeMessages.examples.runALongTask);
   const [runCount, setRunCount] = useState(0);
   useEffect(() => {
     const refresh = () => { void readJson<{ threads: RunSummary[] }>(RUN_RESUME_API)
@@ -135,9 +137,9 @@ function DemoConversation({ id }: { id: string }) {
     return () => clearInterval(timer);
   }, [id]);
   return <main style={{ maxWidth: 760, margin: "48px auto", padding: 24, fontFamily: "system-ui" }}>
-    <h1>Run Resume Mock</h1>
-    <p>发送长任务，看到第一段后刷新页面。Mock server 会继续执行同一个 Run。</p>
-    <p data-testid="run-count">Agent invocation count: {runCount}</p>
+    <h1>{localeMessages.examples.runResumeMock}</h1>
+    <p>{localeMessages.examples.sendALongTaskAndRefreshAfter}</p>
+    <p data-testid="run-count">{localeMessages.examples.agentInvocationCount} {runCount}</p>
     <p data-testid="run-status">{snapshot.run.status}</p>
     <div data-testid="conversation-messages">
       {snapshot.messages.map(message => {
@@ -149,14 +151,15 @@ function DemoConversation({ id }: { id: string }) {
       })}
     </div>
     <form onSubmit={event => { event.preventDefault(); void agentRuntime.sendMessage(input); }}>
-      <input aria-label="任务" value={input} onChange={event => setInput(event.target.value)} />
-      <button type="submit" disabled={snapshot.run.status === "running"}>发送</button>
-      <button type="button" onClick={() => agentRuntime.abort()}>Stop</button>
+      <input aria-label={localeMessages.examples.task} value={input} onChange={event => setInput(event.target.value)} />
+      <button type="submit" disabled={snapshot.run.status === "running"}>{localeMessages.examples.send}</button>
+      <button type="button" onClick={() => agentRuntime.abort()}>{localeMessages.examples.stop}</button>
     </form>
   </main>;
 }
 
 export function RunResumeDemo() {
+  const localeMessages = useAgentUILocale();
   const [boot, setBoot] = useState<{ id: string; summaries: RunSummary[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -172,7 +175,7 @@ export function RunResumeDemo() {
   }, []);
   const binding = useMemo(() => boot === null ? null : createBinding(boot.id, boot.summaries), [boot]);
   if (error !== null) return <p role="alert">{error}</p>;
-  if (boot === null || binding === null) return <p>加载中……</p>;
+  if (boot === null || binding === null) return <p>{localeMessages.examples.loading}</p>;
   return <ConversationRuntimeProvider endpoint="/agent?scenario=resumable-long-run" threadBinding={binding}>
     <DemoConversation id={boot.id} />
   </ConversationRuntimeProvider>;

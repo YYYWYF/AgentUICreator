@@ -126,6 +126,10 @@
     {
       "source": "files/agent-ui/conversation/frontend-tool-uis.generated.ts",
       "target": "agent-ui/conversation/frontend-tool-uis.generated.ts"
+    },
+    {
+      "source": "files/agent-ui/i18n/AgentUILocaleBridge.tsx",
+      "target": "agent-ui/i18n/AgentUILocaleBridge.tsx"
     }
   ],
   "requires": [
@@ -133,7 +137,7 @@
   ],
   "packages": {
     "react": "^19.2.0",
-    "@agent-ui/react": "^0.1.0",
+    "@agent-ui/react": "^0.1.1",
     "@agent-ui/runtime-conversation": "^0.1.0",
     "lucide-react": "^1.41.0"
   }

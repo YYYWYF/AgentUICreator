@@ -361,3 +361,14 @@ if tests/configuration cannot be supplied within that boundary, report the block
 Do not replace an absent browser test with a model-written PASS claim. Composer
 adapters require send, stop, attachment add/remove/attachment-only send, and draft
 parity for the capabilities already enabled in the target project.
+
+## Localization ownership
+
+Vendor-owned code must remain locale-agnostic and unmodified; all product
+localization is owned by AgentUICreator composition, adapters, plugins, and Host
+UI. New user-visible copy must use the existing `useAgentUILocale` namespace and
+complete `en-US` / `zh-CN` dictionaries. Do not create per-Plugin i18n hooks or
+language conditionals. Preserve protocol IDs, enums, schema and persisted fields;
+locale is a view concern. Prefer public props/composition, then owned adapters.
+If upstream lacks a seam, record a localization gap instead of modifying vendor.
+Include `pnpm check:i18n` where available and check new copy during upgrades.

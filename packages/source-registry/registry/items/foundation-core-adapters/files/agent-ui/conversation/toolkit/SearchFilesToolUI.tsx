@@ -1,3 +1,4 @@
+import { useAgentUILocale, resolveAgentUILocaleMessages } from "@agent-ui/react";
 import { useState } from "react";
 import type {
   ConversationToolCallComponent,
@@ -25,14 +26,14 @@ function isSafeSearchFilesResult(
   return Array.isArray(files) && files.every((file) => typeof file === "string");
 }
 
-export function formatSearchFilesResult(result: unknown): string {
+export function formatSearchFilesResult(result: unknown, messages = resolveAgentUILocaleMessages("en-US").search): string {
   if (result === undefined || result === null) return "";
 
   if (isSafeSearchFilesResult(result)) {
     const { files } = result;
-    if (files.length === 0) return "0 files found";
-    if (files.length === 1) return `1 file found — ${files[0]}`;
-    return `${files.length} files found — ${files.join(", ")}`;
+    if (files.length === 0) return messages.noFiles;
+    if (files.length === 1) return messages.oneFile.replace("{files}", () => String(files[0]));
+    return messages.manyFiles.replace("{count}", String(files.length)).replace("{files}", () => files.join(", "));
   }
 
   try {
@@ -56,17 +57,18 @@ function shouldUseFallback(
 }
 
 export const SearchFilesToolUI: ConversationToolCallComponent = (props) => {
+  const messages = useAgentUILocale("search");
   const [open, setOpen] = useState(false);
 
   if (shouldUseFallback(props)) return <ConversationToolFallback {...props} />;
 
   return (
     <ConversationToolCall
-      activeLabel="Searching files"
-      label="Searched files"
+      activeLabel={messages.searchFiles}
+      label={messages.searchedFiles}
       query={getSearchKeyword(props.args)}
       request={props.argsText ?? ""}
-      result={formatSearchFilesResult(props.result)}
+      result={formatSearchFilesResult(props.result, messages)}
       running={props.status.type === "running"}
       open={open}
       onOpenChange={setOpen}

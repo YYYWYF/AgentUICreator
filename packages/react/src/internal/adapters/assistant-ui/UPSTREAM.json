@@ -8,32 +8,32 @@
     {
       "localPath": "components/assistant-ui/elements/agent-status.aui.tsx",
       "upstreamInstalledSha256": "1c6661f8459e3b73052ed40deb7730637ca21fcf84eb719e797046a877f5e417",
-      "installedSha256": "0215b788eff8d22c658dec0f9a7464170e0dd76e470b71099ceecb53f41568cb"
+      "installedSha256": "1f3be58fc31b14206db144fa31106bcb9a8056c789fce6b5e4bce75a388b74b3"
     },
     {
       "localPath": "components/assistant-ui/elements/attachment.aui.tsx",
       "upstreamInstalledSha256": "e8d56f198d67d9879d93659cbee7a25e0e275dc5066bc5b81740d075a439ca76",
-      "installedSha256": "2f4c175ff16c821ead6ebeb030a933e3f86cf606e9842ef98f57f362046cea26"
+      "installedSha256": "ca9e9723af1243bd94676cbd2154076e04a716cc66b2496ae0b8426ee0eea0b8"
     },
     {
       "localPath": "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
       "upstreamInstalledSha256": "06c9b2b6fa021bbfe58ba226d4d5c6a46e448369aebf362d02f8b56032c69ba2",
-      "installedSha256": "3fbea0f9367467730fbd578e7f19480ad251f185713ae35ec395bf9fbcfeaeb8"
+      "installedSha256": "e606c85fedd5379afea146b3a12143ba94293bf273da380ea7d13a230db507a5"
     },
     {
       "localPath": "components/assistant-ui/elements/image.tsx",
       "upstreamInstalledSha256": "2d5993bb290a111d6a2292fd8cb575dde84b8036a67e94ab63e1580edeef91d6",
-      "installedSha256": "c2a5324fbddc111e7ff528b136c91368df5e0e0cb0cca8c32dc19aaa375a2a43"
+      "installedSha256": "b0bd809184f69e5e7f90b9c6c153181c7394e3dc91318980b8b0982b52898985"
     },
     {
       "localPath": "components/assistant-ui/elements/markdown-text.tsx",
       "upstreamInstalledSha256": "b041132faa98790395e4161329249eb1a38642ce7a5603042a67e7ab7ff72808",
-      "installedSha256": "d0e01252f2d8e1b4b328eb40e1ad8e4722d96c64d88f01c9dbd7ac803cb93e76"
+      "installedSha256": "a44545e956a3fe1b292f7c55b0bc94738814a30fbb3bc2c5ac38f8cd76bea03d"
     },
     {
       "localPath": "components/assistant-ui/elements/quote.aui.tsx",
       "upstreamInstalledSha256": "b1b5a05a7a589499eaaf9b091579bb90ef19968650dd1a1940704b865f576142",
-      "installedSha256": "d950c701c1f6cc575a894a9984f29c2da6687e3e3d977bdf8dfe10a8c09f457f"
+      "installedSha256": "323dca2642bc8a4f6891da0f67efe6bb242b9fbd8e7e875f129b3509a4a14190"
     },
     {
       "localPath": "components/assistant-ui/elements/reasoning.aui.tsx",
@@ -48,7 +48,7 @@
     {
       "localPath": "components/assistant-ui/elements/task-card.aui.tsx",
       "upstreamInstalledSha256": "c09e7821d0841dfe1f2583e1bc8f2d56cb4d1d15d32a9ff03e0223f4ea920542",
-      "installedSha256": "626799b7efb401534bf83b553511d6899a6c6750fe961759c40579dc86a37109"
+      "installedSha256": "838354a7b335eba1a64ab6f1e05114f45061697750c6ead50add86f14d5edb12"
     },
     {
       "localPath": "components/assistant-ui/elements/tooltip-icon-button.tsx",
@@ -58,12 +58,12 @@
     {
       "localPath": "components/assistant-ui/elements/web-search.tsx",
       "upstreamInstalledSha256": "17dc54e958e5c316f3b2d79d91a6cc9ba374b1113f3af8f62b78252d7665a3ee",
-      "installedSha256": "a3a0e06f61bffc618c43d4f027acec0f9a714f5fe5f670a25b2c97cc2c94fc23"
+      "installedSha256": "933df6d5ad10aa089dc0c7866536cc241e9be4be03d6654a842f30f54fdc77a4"
     },
     {
       "localPath": "components/ui/dialog.tsx",
       "upstreamInstalledSha256": "dffa485c6923cced66a12bcfa893ed8432cee6b017d50316ab02b7f336111aba",
-      "installedSha256": "5c2cbb670202de23b95e2f6777a8f1be44e9eb31c74ff07ddf13d301aed17185"
+      "installedSha256": "f31a20dcf9477fa16300d050431cde2061b7b6c4e49c3267ddac3e0975a0444f"
     },
     {
       "localPath": "components/ui/popover.tsx",
@@ -73,12 +73,12 @@
     {
       "localPath": "components/ui/sheet.tsx",
       "upstreamInstalledSha256": "56d09016b4d57fb14b3a0dbdfdb57d9920b6ef8737b4229c39a7ec27dab5b6da",
-      "installedSha256": "dabc30ea165b1dc00020bc961a955671e99c9b2ba99cf2ecdbaee736e694940d"
+      "installedSha256": "847ea1989eb43765d0e9a8f502f00a372c6840a6d7d92a19ef1394c389142946"
     },
     {
       "localPath": "components/ui/sidebar.tsx",
       "upstreamInstalledSha256": "6289a09ebea0df90e6445396fad6f29a42795e2e24dc26513c479084ceb77b23",
-      "installedSha256": "a35c36298a3317c1c3a701c96603a84d4da69df82a97547b55b1b82703735db9"
+      "installedSha256": "6898d4fa7b4b905a4ff9fe0a234a2291e2deec3ddaf8eb6e681c557943a97e76"
     },
     {
       "localPath": "components/ui/tooltip.tsx",

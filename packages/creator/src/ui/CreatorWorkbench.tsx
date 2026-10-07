@@ -1,3 +1,4 @@
+import { CreatorLocaleProvider, useCreatorLocaleState, type CreatorLocaleCode, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
 import { AgentConnectionPanel } from "./AgentConnectionPanel.js";
 import {
   memo,
@@ -72,6 +73,8 @@ const CREATOR_PREVIEW_MIN_WIDTH = 320;
 const CREATOR_PANEL_KEYBOARD_STEP = 16;
 
 function CreatorSettings({ busy, onCheckUpdates, onAgent }: { busy: boolean; onCheckUpdates: () => void; onAgent: () => void }) {
+  const localeMessages = useAgentUILocale();
+  const localeState = useCreatorLocaleState();
   const [open, setOpen] = useState(false);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
   const anchor = useRef<HTMLDivElement>(null);
@@ -80,18 +83,20 @@ function CreatorSettings({ busy, onCheckUpdates, onAgent }: { busy: boolean; onC
     <div className="creator-settings creator-ui-scope" ref={anchor}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon-sm" aria-label="设置" title="设置">
+          <Button variant="ghost" size="icon-sm" aria-label={localeMessages.creatorWorkbench.settings} title={localeMessages.creatorWorkbench.settings}>
             <Settings aria-hidden="true" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent container={portalContainer} align="end" className="cui:w-44 cui:p-1.5" aria-label="设置">
+        <PopoverContent container={portalContainer} align="end" className="cui:w-44 cui:p-1.5" aria-label={localeMessages.creatorWorkbench.settings}>
+          <select aria-label={localeMessages.creatorWorkbench.language} value={localeState.locale} onChange={event => localeState.setLocale(event.target.value as CreatorLocaleCode)}><option value="zh-CN">{localeMessages.creatorWorkbench.chineseName}</option><option value="en-US">{localeMessages.creatorWorkbench.englishName}</option></select>
           <Button variant="ghost" size="sm" className="cui:w-full cui:justify-start" onClick={() => { setOpen(false); onAgent(); }}>Agent</Button>
           <Button variant="ghost" size="sm" className="cui:w-full cui:justify-start" disabled={busy} onClick={() => {
             setOpen(false);
             onCheckUpdates();
           }}>
             <RefreshCw aria-hidden="true" />
-            检查更新
+
+            {localeMessages.creatorWorkbench.checkUpdates}
           </Button>
         </PopoverContent>
       </Popover>
@@ -116,6 +121,8 @@ export interface CreatorWorkbenchContext {
 }
 
 interface CreatorWorkbenchProps {
+  locale?: CreatorLocaleCode;
+  onLocaleChange?: (locale: CreatorLocaleCode) => void;
   previewWorkspaceId?: string | undefined;
   layout?: "workbench" | "dock" | undefined;
   children:
@@ -134,8 +141,9 @@ const CreatorWorkbenchPreview = memo(function CreatorWorkbenchPreview({
   threadId,
   workspaceId,
 }: CreatorWorkbenchPreviewProps) {
+  const localeMessages = useAgentUILocale();
   return (
-    <section className="creator-workbench-preview" aria-label="智能体前端预览">
+    <section className="creator-workbench-preview" aria-label={localeMessages.creatorWorkbench.agentFrontendPreview}>
       {typeof children === "function" ? children({ threadId, workspaceId }) : children}
     </section>
   );
@@ -199,67 +207,67 @@ interface StoredCreatorConversation {
   agentMessages: Message[];
 }
 
-const roleLabels: Record<CreatorMessage["role"], string> = {
-  user: "用户",
-  assistant: "Creator",
-  error: "错误",
-};
+function getRoleLabels(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): Record<CreatorMessage["role"], string> { return {
+  user: localeMessages.creatorWorkbench.user,
+  assistant: localeMessages.creatorWorkbench.creator,
+  error: localeMessages.creatorWorkbench.error,
+}; }
 
-const fileStatusLabels: Record<CreatorFileChangeReceipt["status"], string> = {
-  created: "已创建",
-  modified: "已修改",
-  deleted: "已删除",
-};
+function getFileStatusLabels(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): Record<CreatorFileChangeReceipt["status"], string> { return {
+  created: localeMessages.creatorWorkbench.created,
+  modified: localeMessages.creatorWorkbench.modified,
+  deleted: localeMessages.creatorWorkbench.deleted,
+}; }
 
-const validationStatusLabels: Record<
+function getValidationStatusLabels(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): Record<
   CreatorValidationReceipt["status"],
   string
-> = {
-  passed: "通过",
-  failed: "失败",
-};
+> { return {
+  passed: localeMessages.creatorWorkbench.passed,
+  failed: localeMessages.creatorWorkbench.failed,
+}; }
 
-const verificationCheckStatusLabels: Record<
+function getVerificationCheckStatusLabels(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): Record<
   CreatorVerificationCheck["status"],
   string
-> = {
-  passed: "通过",
-  failed: "失败",
-  stale: "Runtime 未观测到",
-  unavailable: "Runtime 暂不可用",
-};
+> { return {
+  passed: localeMessages.creatorWorkbench.passed,
+  failed: localeMessages.creatorWorkbench.failed,
+  stale: localeMessages.creatorWorkbench.runtimeHasNotObservedTheUpdate,
+  unavailable: localeMessages.creatorWorkbench.runtimeTemporarilyUnavailable,
+}; }
 
-function verificationCheckStatusLabel(check: CreatorVerificationCheck): string {
+function verificationCheckStatusLabel(check: CreatorVerificationCheck, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): string {
   if (check.id === "operation-postcondition") {
-    if (check.status === "unavailable") return "请求结果未确认";
-    if (check.status === "failed") return "请求目标未满足";
+    if (check.status === "unavailable") return localeMessages.creatorWorkbench.requestOutcomeUnconfirmed;
+    if (check.status === "failed") return localeMessages.creatorWorkbench.requestTargetNotSatisfied;
   }
   if (check.id === "static-validation") {
-    if (check.status === "unavailable") return "静态验证未完成";
-    if (check.status === "failed") return "静态验证未通过";
+    if (check.status === "unavailable") return localeMessages.creatorWorkbench.staticValidationIncomplete;
+    if (check.status === "failed") return localeMessages.creatorWorkbench.staticValidationFailed;
   }
-  return verificationCheckStatusLabels[check.status];
+  return getVerificationCheckStatusLabels(localeMessages)[check.status];
 }
 
-const verificationStatusLabels: Record<
+function getVerificationStatusLabels(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): Record<
   NonNullable<CreatorRunReceipt["verification"]>["status"],
   string
-> = {
-  "not-run": "未执行完成验证",
-  "changed-and-statically-verified": "修改已通过静态验证",
-  "changed-and-verified": "修改已验证",
-  "changed-unverified": "修改已提交，但完成验证未确认",
-  "no-project-change": "项目未修改",
-  "decision-no-project-change": "已按用户决定结束，项目未修改",
-  failed: "完成验证失败",
-};
+> { return {
+  "not-run": localeMessages.creatorWorkbench.completionVerificationNotPerformed,
+  "changed-and-statically-verified": localeMessages.creatorWorkbench.changesPassedStaticValidation,
+  "changed-and-verified": localeMessages.creatorWorkbench.changesVerified,
+  "changed-unverified": localeMessages.creatorWorkbench.changesCommittedCompletionVerificationUnconfirmed,
+  "no-project-change": localeMessages.creatorWorkbench.projectUnchanged,
+  "decision-no-project-change": localeMessages.creatorWorkbench.endedByUserDecisionProjectUnchanged,
+  failed: localeMessages.creatorWorkbench.completionVerificationFailed,
+}; }
 
-const toolStatusLabels: Record<CreatorToolActivity["status"], string> = {
-  preparing: "正在准备",
-  running: "正在执行",
-  completed: "已完成",
-  failed: "执行失败",
-};
+function getToolStatusLabels(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): Record<CreatorToolActivity["status"], string> { return {
+  preparing: localeMessages.creatorWorkbench.preparing,
+  running: localeMessages.creatorWorkbench.executing,
+  completed: localeMessages.creatorWorkbench.completed,
+  failed: localeMessages.creatorWorkbench.executionFailed,
+}; }
 
 const creatorStageNames: CreatorStageName[] = [
   "creator.grounding",
@@ -365,12 +373,12 @@ function isCreatorRunReceipt(value: unknown): value is CreatorRunReceipt {
   );
 }
 
-function receiptFromRunResult(value: unknown): CreatorRunReceipt | undefined {
+function receiptFromRunResult(value: unknown, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): CreatorRunReceipt | undefined {
   if (!isRecord(value) || value.receipt === undefined) {
     return undefined;
   }
   if (!isCreatorRunReceipt(value.receipt)) {
-    throw new Error("Creator 返回了无效的运行回执。");
+    throw new Error(localeMessages.creatorWorkbench.creatorReturnedAnInvalidRunReceipt);
   }
   return value.receipt;
 }
@@ -387,7 +395,7 @@ function creatorAgentMessages(messages: CreatorMessage[]): Message[] {
   });
 }
 
-function storedItem(value: unknown): CreatorConversationItem | undefined {
+function storedItem(value: unknown, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): CreatorConversationItem | undefined {
   if (!isRecord(value) || typeof value.id !== "string") {
     return undefined;
   }
@@ -414,7 +422,7 @@ function storedItem(value: unknown): CreatorConversationItem | undefined {
       ...(typeof value.error === "string"
         ? { error: value.error }
         : interrupted
-          ? { error: "页面刷新时该阶段尚未结束。" }
+          ? { error: localeMessages.creatorWorkbench.thisStageWasStillRunningWhenThePage }
           : {}),
     };
   }
@@ -440,7 +448,7 @@ function storedItem(value: unknown): CreatorConversationItem | undefined {
       ...(typeof value.error === "string"
         ? { error: value.error }
         : interrupted && !waitingForAnswer
-          ? { error: "页面刷新时该工具调用尚未结束。" }
+          ? { error: localeMessages.creatorWorkbench.thisToolCallWasStillRunningWhenThe }
           : {}),
       status: interrupted && !waitingForAnswer ? "failed" : value.status,
     };
@@ -465,12 +473,12 @@ function storedItem(value: unknown): CreatorConversationItem | undefined {
   return undefined;
 }
 
-function parsedItems(value: unknown): CreatorConversationItem[] {
+function parsedItems(value: unknown, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): CreatorConversationItem[] {
   if (!Array.isArray(value)) {
     return [];
   }
   return value.flatMap((item) => {
-    const parsed = storedItem(item);
+    const parsed = storedItem(item, localeMessages);
     return parsed === undefined ? [] : [parsed];
   });
 }
@@ -489,14 +497,14 @@ function emptyConversation(): StoredCreatorConversation {
   return { threadId: crypto.randomUUID(), items: [], agentMessages: [] };
 }
 
-function storedConversation(workspaceId: string): StoredCreatorConversation {
+function storedConversation(workspaceId: string, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): StoredCreatorConversation {
   try {
     const value: unknown = JSON.parse(
       sessionStorage.getItem(conversationKey(workspaceId)) ?? "null",
     );
 
     if (Array.isArray(value)) {
-      const items = parsedItems(value);
+      const items = parsedItems(value, localeMessages);
       const textMessages = items.filter(
         (item): item is CreatorMessage => item.kind === "message",
       );
@@ -510,7 +518,7 @@ function storedConversation(workspaceId: string): StoredCreatorConversation {
     if (isRecord(value) && typeof value.threadId === "string") {
       return {
         threadId: value.threadId,
-        items: parsedItems(value.items),
+        items: parsedItems(value.items, localeMessages),
         agentMessages: parsedAgentMessages(value.agentMessages),
       };
     }
@@ -545,44 +553,49 @@ function CreatorMarkdown({ content }: { content: string }) {
 }
 
 function CreatorRunDiagnostics({ diagnosticLog }: { diagnosticLog: NonNullable<CreatorRunReceipt["diagnosticLog"]> }) {
+  const localeMessages = useAgentUILocale();
   return (
     <div className="creator-receipt-section">
-      <h2>诊断日志</h2>
+      <h2>{localeMessages.creatorWorkbench.diagnosticLog}</h2>
       <div className="creator-receipt-meta">
-        Creator 已把本次模型、工具和验证链路保存在项目本地：
+
+        {localeMessages.creatorWorkbench.creatorSavedTheModelToolAndValidationTrace}
       </div>
-      <pre aria-label="Creator 诊断日志路径">
+      <pre aria-label={localeMessages.creatorWorkbench.creatorDiagnosticLogPath}>
         <code>{diagnosticLog.path}</code>
       </pre>
       <div className="creator-receipt-note">
-        日志可能包含用户请求、项目内容和工具输出；对外分享前请先检查。
+
+        {localeMessages.creatorWorkbench.logsMayContainUserRequestsProjectContentAnd}
       </div>
     </div>
   );
 }
 
 function CreatorValidationSections({ validations, showHeading = true }: { validations: CreatorValidationReceipt[]; showHeading?: boolean }) {
+  const localeMessages = useAgentUILocale();
   if (validations.length === 0) return null;
   return (
     <div className="creator-receipt-section">
-      {showHeading ? <h2>验证结果</h2> : null}
+      {showHeading ? <h2>{localeMessages.creatorWorkbench.validationResults}</h2> : null}
       {validations.map((validation, index) => (
         <details className="creator-receipt-item" key={`${validation.command}-${index}`}>
           <summary>
             <span className={`creator-receipt-status creator-receipt-status--${validation.status}`}>
-              {validationStatusLabels[validation.status]}
+              {getValidationStatusLabels(localeMessages)[validation.status]}
             </span>
             <code>{validation.command}</code>
           </summary>
           <div className="creator-receipt-meta">
-            Revision：{validation.revision ?? "旧版回执"} · 退出码：
-            {validation.exitCode ?? "不可用"}
+
+            {localeMessages.creatorWorkbench.revision}{validation.revision ?? localeMessages.creatorWorkbench.legacyReceipt} {localeMessages.creatorWorkbench.exitCode}
+            {validation.exitCode ?? localeMessages.creatorWorkbench.unavailable}
           </div>
-          <pre aria-label={`${validation.command} 输出`}>
-            <code>{validation.output || "（命令无输出）"}</code>
+          <pre aria-label={formatLocaleMessage(localeMessages.creatorWorkbench.output, validation.command)}>
+            <code>{validation.output || localeMessages.creatorWorkbench.noCommandOutput}</code>
           </pre>
           {validation.truncated ? (
-            <div className="creator-receipt-note">验证输出已截断</div>
+            <div className="creator-receipt-note">{localeMessages.creatorWorkbench.validationOutputTruncated}</div>
           ) : null}
         </details>
       ))}
@@ -591,20 +604,22 @@ function CreatorValidationSections({ validations, showHeading = true }: { valida
 }
 
 function CreatorPluginDeliveryReports({ receipt }: { receipt: CreatorRunReceipt }) {
+  const localeMessages = useAgentUILocale();
   return <>{receipt.pluginDeliveries?.map(report => (
     <div className="creator-receipt-section creator-delivery-report" key={report.pluginId}>
-      <h2>插件交付：{report.pluginId}</h2>
-      <p>{report.delivery.status === "completed" ? "交付完成" : report.delivery.status === "statically-verified" ? "静态检查通过，Runtime 与浏览器未验证" : report.delivery.status === "blocked" ? "交付阻塞" : "交付进行中"}</p>
+      <h2>{localeMessages.creatorWorkbench.pluginDelivery}{report.pluginId}</h2>
+      <p>{report.delivery.status === "completed" ? localeMessages.creatorWorkbench.deliveryComplete : report.delivery.status === "statically-verified" ? localeMessages.creatorWorkbench.staticChecksPassedRuntimeAndBrowserUnverified : report.delivery.status === "blocked" ? localeMessages.creatorWorkbench.deliveryBlocked : localeMessages.creatorWorkbench.deliveryInProgress}</p>
       <div className="creator-delivery-checks">{Object.entries(report.verification).map(([name, status]) => (
-        <span key={name} title={`${name}: ${status}`}>{({ static: "静态检查", runtime: "运行验证", geometry: "布局验证" } as Record<string, string>)[name] ?? name}：{({ pass: "通过", "not-passed": "未通过", "not-run": "未验证", failed: "失败" } as Record<string, string>)[status] ?? creatorDiagnosticValue(status)}</span>
+        <span key={name} title={`${name}: ${status}`}>{({ static: localeMessages.creatorWorkbench.staticChecks, runtime: localeMessages.creatorWorkbench.runVerification, geometry: localeMessages.creatorWorkbench.layoutVerification } as Record<string, string>)[name] ?? name}：{({ pass: localeMessages.creatorWorkbench.passed, "not-passed": localeMessages.creatorWorkbench.failed2, "not-run": localeMessages.creatorWorkbench.unverified, failed: localeMessages.creatorWorkbench.failed } as Record<string, string>)[status] ?? creatorDiagnosticValue(status, localeMessages)}</span>
       ))}</div>
       {report.delivery.blockers.map(blocker => <p className="creator-delivery-blocker" key={blocker}>{blocker}</p>)}
-      <details><summary>交付详情</summary><p>方案：{report.decision.type} · 授权：{report.authorization.status} · 阶段：{report.delivery.lastSuccessfulStage}</p></details>
+      <details><summary>{localeMessages.creatorWorkbench.deliveryDetails}</summary><p>{localeMessages.creatorWorkbench.plan}{report.decision.type} {localeMessages.creatorWorkbench.authorization}{report.authorization.status} {localeMessages.creatorWorkbench.stage}{report.delivery.lastSuccessfulStage}</p></details>
     </div>
   ))}</>;
 }
 
 function CreatorMutationReceipt({ receipt, debug, onUndo, onReapply, undoBusy, reapplyBusy }: { receipt: CreatorRunReceipt; debug: boolean; onUndo?: ((runId: string) => void) | undefined; onReapply?: ((runId: string) => void) | undefined; undoBusy?: boolean | undefined; reapplyBusy?: boolean | undefined }) {
+  const localeMessages = useAgentUILocale();
   const verification = receipt.verification;
   const verificationPassed =
     verification?.status === "changed-and-statically-verified" ||
@@ -626,54 +641,54 @@ function CreatorMutationReceipt({ receipt, debug, onUndo, onReapply, undoBusy, r
               check.id === "operation-postcondition" &&
               check.status === "unavailable",
           )
-          ? "修改已提交，但请求结果尚未确认"
+          ? localeMessages.creatorWorkbench.changesCommittedRequestOutcomeUnconfirmed
           : verification.runtimeStatus === "stale"
-            ? "修改已提交，Runtime 尚未观测到"
+            ? localeMessages.creatorWorkbench.changesCommittedRuntimeHasNotObservedTheUpdate
             : verification.runtimeStatus === "unavailable"
-              ? "修改已提交，Runtime 暂不可用"
-              : "修改已提交，但请求结果尚未确认"
-        : verificationStatusLabels[verification.status];
+              ? localeMessages.creatorWorkbench.changesCommittedRuntimeTemporarilyUnavailable
+              : localeMessages.creatorWorkbench.changesCommittedRequestOutcomeUnconfirmed
+        : getVerificationStatusLabels(localeMessages)[verification.status];
 
   return (
-    <section className="creator-receipt" aria-label="修改回执">
+    <section className="creator-receipt" aria-label={localeMessages.creatorWorkbench.changeReceipt}>
       <header className="creator-receipt-header">
-        <strong>修改回执</strong>
+        <strong>{localeMessages.creatorWorkbench.changeReceipt}</strong>
         <span>
-          {receipt.files.length} 个文件
-          {receipt.validations.length > 0 ? ` · ${receipt.validations.length} 项验证` : ""}
+          {receipt.files.length} {localeMessages.creatorWorkbench.files}
+          {receipt.validations.length > 0 ? formatLocaleMessage(localeMessages.creatorWorkbench.validations, receipt.validations.length) : ""}
         </span>
       </header>
 
       <CreatorPluginDeliveryReports receipt={receipt} />
       {receipt.transaction === undefined ? null : (
         <div className="creator-receipt-section">
-          <h2>修改操作</h2>
+          <h2>{localeMessages.creatorWorkbench.changeOperation}</h2>
           <div className="creator-receipt-meta">
             <span
               className={`creator-receipt-status creator-receipt-status--${
                 receipt.transaction.undone ? "undone" : receipt.transaction.undoable ? "passed" : "failed"
               }`}
             >
-              {receipt.transaction.undone ? "已撤销" : receipt.transaction.undoable ? "当前可撤销" : "当前不可撤销"}
+              {receipt.transaction.undone ? localeMessages.creatorWorkbench.undone : receipt.transaction.undoable ? localeMessages.creatorWorkbench.canUndo : localeMessages.creatorWorkbench.cannotUndoNow}
             </span>
             {debug ? <> · Run <code>{receipt.transaction.runId}</code></> : null}
           </div>
           <div className="creator-receipt-note">
             {receipt.transaction.undone
               ? receipt.transaction.reapplyable
-                ? "再次应用前会检查所有文件；后续人工修改不会被覆盖。"
-                : "文件已恢复到本次修改前的状态。此记录无法再次应用。"
-              : "撤销执行时会再次检查所有文件；后续人工修改不会被覆盖。"}
-            {receipt.transaction.reapplied ? " 本次再次应用尚未重新验证。" : null}
+                ? localeMessages.creatorWorkbench.allFilesAreCheckedBeforeReapplyingLaterManual
+                : localeMessages.creatorWorkbench.filesRestoredToTheirPreviousStateThisRecord
+              : localeMessages.creatorWorkbench.allFilesAreCheckedAgainWhenUndoingLater}
+            {receipt.transaction.reapplied ? localeMessages.creatorWorkbench.reappliedChangesHaveNotBeenReverified : null}
           </div>
           {receipt.transaction.undoable && onUndo !== undefined ? (
             <Button size="sm" variant="outline" className="creator-receipt-action" type="button" disabled={undoBusy} onClick={() => onUndo(receipt.transaction!.runId)}>
-              {undoBusy ? "正在撤销…" : "撤销本次修改"}
+              {undoBusy ? localeMessages.creatorWorkbench.undoing : localeMessages.creatorWorkbench.undoTheseChanges}
             </Button>
           ) : null}
           {receipt.transaction.undone && receipt.transaction.reapplyable && onReapply !== undefined ? (
             <Button size="sm" variant="outline" className="creator-receipt-action creator-receipt-action--reapply" type="button" disabled={reapplyBusy} onClick={() => onReapply(receipt.transaction!.runId)}>
-              {reapplyBusy ? "正在再次应用…" : "再次应用本次修改"}
+              {reapplyBusy ? localeMessages.creatorWorkbench.reapplying : localeMessages.creatorWorkbench.reapplyTheseChanges}
             </Button>
           ) : null}
         </div>
@@ -681,7 +696,7 @@ function CreatorMutationReceipt({ receipt, debug, onUndo, onReapply, undoBusy, r
 
       {verification === undefined ? null : (
         <div className="creator-receipt-section">
-          <h2>{receipt.transaction?.undone || receipt.transaction?.reapplied ? "原运行验证" : "完成验证"}</h2>
+          <h2>{receipt.transaction?.undone || receipt.transaction?.reapplied ? localeMessages.creatorWorkbench.originalRunVerification : localeMessages.creatorWorkbench.completionVerification}</h2>
           <div className="creator-receipt-meta">
             <span
               className={`creator-receipt-status creator-receipt-status--${
@@ -690,7 +705,7 @@ function CreatorMutationReceipt({ receipt, debug, onUndo, onReapply, undoBusy, r
             >
               {verificationLabel}
             </span>{" "}
-            · Revision {verification.projectRevision} · 复核 {verification.auditAttempts} 次
+            · Revision {verification.projectRevision} {localeMessages.creatorWorkbench.rechecks} {verification.auditAttempts} {localeMessages.creatorWorkbench.times}
           </div>
           {verification.checks.map((check) => (
             <details className="creator-receipt-item" key={check.id}>
@@ -698,7 +713,7 @@ function CreatorMutationReceipt({ receipt, debug, onUndo, onReapply, undoBusy, r
                 <span
                   className={`creator-receipt-status creator-receipt-status--${check.status}`}
                 >
-                  {verificationCheckStatusLabel(check)}
+                  {verificationCheckStatusLabel(check, localeMessages)}
                 </span>
                 <code>{check.id}</code>
               </summary>
@@ -715,12 +730,12 @@ function CreatorMutationReceipt({ receipt, debug, onUndo, onReapply, undoBusy, r
       ) : null}
 
       <div className="creator-receipt-section">
-        <h2>文件修改</h2>
+        <h2>{localeMessages.creatorWorkbench.fileChanges}</h2>
         {receipt.files.map((file) => (
           <details className="creator-receipt-item" key={file.path}>
             <summary>
               <span className={`creator-receipt-status creator-receipt-status--${file.status}`}>
-                {fileStatusLabels[file.status]}
+                {getFileStatusLabels(localeMessages)[file.status]}
               </span>
               <code>{file.path}</code>
             </summary>
@@ -728,7 +743,7 @@ function CreatorMutationReceipt({ receipt, debug, onUndo, onReapply, undoBusy, r
               <code>{file.diff}</code>
             </pre>
             {file.truncated ? (
-              <div className="creator-receipt-note">Diff 已截断</div>
+              <div className="creator-receipt-note">{localeMessages.creatorWorkbench.diffTruncated}</div>
             ) : null}
           </details>
         ))}
@@ -739,14 +754,15 @@ function CreatorMutationReceipt({ receipt, debug, onUndo, onReapply, undoBusy, r
 }
 
 function CreatorRunReceiptPresentation({ receipt, debug, onUndo, onReapply, undoBusy, reapplyBusy }: { receipt: CreatorRunReceipt; debug: boolean; onUndo?: ((runId: string) => void) | undefined; onReapply?: ((runId: string) => void) | undefined; undoBusy?: boolean | undefined; reapplyBusy?: boolean | undefined }) {
+  const localeMessages = useAgentUILocale();
   const presentation = classifyCreatorReceiptPresentation(receipt);
   if (presentation === "mutation") {
     return <CreatorMutationReceipt receipt={receipt} debug={debug} onUndo={onUndo} onReapply={onReapply} undoBusy={undoBusy} reapplyBusy={reapplyBusy} />;
   }
   if (presentation === "outcome") {
-    return <section className="creator-receipt" aria-label="处理结果">
-      <header className="creator-receipt-header"><strong>处理结果</strong><span>{receipt.files.length} 个文件</span></header>
-      {receipt.verification ? <div className="creator-receipt-section"><p>{verificationStatusLabels[receipt.verification.status]}</p></div> : null}
+    return <section className="creator-receipt" aria-label={localeMessages.creatorWorkbench.outcome}>
+      <header className="creator-receipt-header"><strong>{localeMessages.creatorWorkbench.outcome}</strong><span>{receipt.files.length} {localeMessages.creatorWorkbench.files}</span></header>
+      {receipt.verification ? <div className="creator-receipt-section"><p>{getVerificationStatusLabels(localeMessages)[receipt.verification.status]}</p></div> : null}
       <CreatorPluginDeliveryReports receipt={receipt} />
       <CreatorValidationSections validations={receipt.validations} />
       {debug && receipt.diagnosticLog ? <CreatorRunDiagnostics diagnosticLog={receipt.diagnosticLog} /> : null}
@@ -754,10 +770,10 @@ function CreatorRunReceiptPresentation({ receipt, debug, onUndo, onReapply, undo
   }
   if (presentation === "validation") {
     return (
-      <section className="creator-receipt" aria-label="验证结果">
+      <section className="creator-receipt" aria-label={localeMessages.creatorWorkbench.validationResults}>
         <header className="creator-receipt-header">
-          <strong>验证结果</strong>
-          <span>{receipt.validations.length} 项验证</span>
+          <strong>{localeMessages.creatorWorkbench.validationResults}</strong>
+          <span>{receipt.validations.length} {localeMessages.creatorWorkbench.validations2}</span>
         </header>
         <CreatorValidationSections validations={receipt.validations} showHeading={false} />
         {debug && receipt.diagnosticLog !== undefined ? (
@@ -768,8 +784,8 @@ function CreatorRunReceiptPresentation({ receipt, debug, onUndo, onReapply, undo
   }
   if (debug && receipt.diagnosticLog !== undefined) {
     return (
-      <section className="creator-receipt" aria-label="运行诊断">
-        <header className="creator-receipt-header"><strong>运行诊断</strong></header>
+      <section className="creator-receipt" aria-label={localeMessages.creatorWorkbench.runDiagnostics}>
+        <header className="creator-receipt-header"><strong>{localeMessages.creatorWorkbench.runDiagnostics}</strong></header>
         <CreatorRunDiagnostics diagnosticLog={receipt.diagnosticLog} />
       </section>
     );
@@ -778,15 +794,16 @@ function CreatorRunReceiptPresentation({ receipt, debug, onUndo, onReapply, undo
 }
 
 function CreatorToolGroupCard({ activities }: { activities: CreatorToolActivity[] }) {
+  const localeMessages = useAgentUILocale();
   const pending = activities.filter(activity => activity.status === "preparing" || activity.status === "running");
   const failed = activities.filter(activity => activity.status === "failed").length;
-  return <details className="creator-tool-group" aria-label="工具执行详情">
+  return <details className="creator-tool-group" aria-label={localeMessages.creatorWorkbench.toolExecutionDetails}>
     <summary>
       <ChevronDown aria-hidden="true" className="creator-tool-group-chevron" />
-      <strong>工具调用 · {activities.length} 次</strong>
+      <strong>{localeMessages.creatorWorkbench.toolCall} {activities.length} {localeMessages.creatorWorkbench.times}</strong>
       <span className={`creator-tool-group-status${failed ? " creator-tool-group-status--failed" : ""}`}>
-        {pending.length ? <><RefreshCw aria-hidden="true" className="creator-tool-group-spinner" />执行中</> : failed ? `${failed} 次失败` : "已完成"}
-        {pending.length && failed ? ` · ${failed} 次失败` : null}
+        {pending.length ? <><RefreshCw aria-hidden="true" className="creator-tool-group-spinner" />{localeMessages.creatorWorkbench.running}</> : failed ? formatLocaleMessage(localeMessages.creatorWorkbench.failures, failed) : localeMessages.creatorWorkbench.completed}
+        {pending.length && failed ? formatLocaleMessage(localeMessages.creatorWorkbench.failures2, failed) : null}
       </span>
     </summary>
     <div className="creator-tool-group-body">
@@ -800,20 +817,21 @@ function CreatorToolActivityCard({
 }: {
   activity: CreatorToolActivity;
 }) {
+  const localeMessages = useAgentUILocale();
   return (
     <article
-      aria-label={`工具调用 ${activity.name}`}
+      aria-label={formatLocaleMessage(localeMessages.creatorWorkbench.toolCall2, activity.name)}
       className={`creator-tool-activity creator-tool-activity--${activity.status}`}
     >
       <header>
         <span className="creator-tool-activity-dot" aria-hidden="true" />
         <strong>{activity.name}</strong>
-        <Badge variant="secondary" className="creator-tool-status">{toolStatusLabels[activity.status]}</Badge>
+        <Badge variant="secondary" className="creator-tool-status">{getToolStatusLabels(localeMessages)[activity.status]}</Badge>
       </header>
 
       {activity.arguments === "" ? null : (
         <details open={activity.status === "preparing"}>
-          <summary>调用参数</summary>
+          <summary>{localeMessages.creatorWorkbench.callArguments}</summary>
           <pre>
             <code>{activity.arguments}</code>
           </pre>
@@ -822,7 +840,7 @@ function CreatorToolActivityCard({
 
       {activity.result === undefined ? null : (
         <details open={activity.status === "failed"}>
-          <summary>工具结果</summary>
+          <summary>{localeMessages.creatorWorkbench.toolResult}</summary>
           <pre>
             <code>{activity.result}</code>
           </pre>
@@ -842,38 +860,38 @@ function stageSymbol(status: CreatorStageActivity["status"]): string {
   return "✓";
 }
 
-function debugValue(value: unknown): string {
+function debugValue(value: unknown, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): string {
   if (Array.isArray(value)) return value.length === 0 ? "—" : value.join(", ");
-  if (value === true) return "是";
-  if (value === false) return "否";
+  if (value === true) return localeMessages.creatorWorkbench.yes;
+  if (value === false) return localeMessages.creatorWorkbench.no;
   if (value === null || value === undefined) return "—";
   return String(value);
 }
 
 // Translate presentation values while preserving raw diagnostic values in titles.
-function creatorDiagnosticValue(value: unknown): string {
+function creatorDiagnosticValue(value: unknown, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): string {
   const labels: Record<string, string> = {
-    static_only: "仅静态验证",
-    static_and_runtime: "静态与运行时验证",
-    "not-run": "未执行",
-    passed: "通过",
-    failed: "未通过",
-    stale: "尚未更新",
-    unavailable: "不可用",
-    running: "进行中",
-    completed: "已完成",
-    success: "成功",
-    committed_unverified: "已提交，未验证",
-    already_satisfied: "当前已满足",
-    recovered: "已恢复",
-    already_recovered: "此前已恢复",
-    needs_user_input: "需要补充信息",
-    productized: "预定义操作",
-    "general-agent": "通用 Agent",
-    clarification: "需要澄清",
-    unsupported: "暂不支持",
+    static_only: localeMessages.creatorWorkbench.staticValidationOnly,
+    static_and_runtime: localeMessages.creatorWorkbench.staticAndRuntimeValidation,
+    "not-run": localeMessages.creatorWorkbench.notExecuted,
+    passed: localeMessages.creatorWorkbench.passed,
+    failed: localeMessages.creatorWorkbench.failed2,
+    stale: localeMessages.creatorWorkbench.notUpdatedYet,
+    unavailable: localeMessages.creatorWorkbench.unavailable,
+    running: localeMessages.creatorWorkbench.inProgress,
+    completed: localeMessages.creatorWorkbench.completed,
+    success: localeMessages.creatorWorkbench.succeeded,
+    committed_unverified: localeMessages.creatorWorkbench.committedUnverified,
+    already_satisfied: localeMessages.creatorWorkbench.alreadySatisfied,
+    recovered: localeMessages.creatorWorkbench.recovered,
+    already_recovered: localeMessages.creatorWorkbench.previouslyRecovered,
+    needs_user_input: localeMessages.creatorWorkbench.moreInformationNeeded,
+    productized: localeMessages.creatorWorkbench.predefinedOperation,
+    "general-agent": localeMessages.creatorWorkbench.generalAgent,
+    clarification: localeMessages.creatorWorkbench.clarificationNeeded,
+    unsupported: localeMessages.creatorWorkbench.unsupported,
   };
-  return typeof value === "string" ? labels[value] ?? value : debugValue(value);
+  return typeof value === "string" ? labels[value] ?? value : debugValue(value, localeMessages);
 }
 
 function CreatorStageDebugDetails({
@@ -881,6 +899,7 @@ function CreatorStageDebugDetails({
 }: {
   activity: CreatorStageActivity;
 }) {
+  const localeMessages = useAgentUILocale();
   const metadata = activity.metadata ?? {};
   const isUnderstanding = activity.name === "creator.resolve";
   const isGrounding = activity.name === "creator.grounding";
@@ -893,7 +912,7 @@ function CreatorStageDebugDetails({
       {values.map(([label, value]) => (
         <div key={label}>
           <dt>{label}</dt>
-          <dd title={debugValue(value)}>{creatorDiagnosticValue(value)}</dd>
+          <dd title={debugValue(value, localeMessages)}>{creatorDiagnosticValue(value, localeMessages)}</dd>
         </div>
       ))}
     </dl>
@@ -903,11 +922,11 @@ function CreatorStageDebugDetails({
     <div className="creator-stage-debug">
       {isGrounding ? (
         <section>
-          <h3>上下文准备</h3>
+          <h3>{localeMessages.creatorWorkbench.contextPreparation}</h3>
           {rows([
-            ["快照生成耗时", metadata.snapshotBuildMs === undefined ? "—" : `${metadata.snapshotBuildMs} ms`],
-            ["模型调用", metadata.modelCalls ?? 0],
-            ["错误代码", metadata.errorCode],
+            [localeMessages.creatorWorkbench.snapshotGenerationTime, metadata.snapshotBuildMs === undefined ? "—" : `${metadata.snapshotBuildMs} ms`],
+            [localeMessages.creatorWorkbench.modelCalls, metadata.modelCalls ?? 0],
+            [localeMessages.creatorWorkbench.errorCode, metadata.errorCode],
           ])}
         </section>
       ) : null}
@@ -915,80 +934,80 @@ function CreatorStageDebugDetails({
       {isUnderstanding ? (
         <>
           <section>
-            <h3>需求理解</h3>
+            <h3>{localeMessages.creatorWorkbench.requestUnderstanding}</h3>
             {rows([
-              ["错误代码", metadata.errorCode],
-              ["选择失败代码", metadata.selectorFailureReasonCode],
-              ["原因", metadata.selectorFailureReason],
-              ["决策", metadata.decision ?? metadata.intent],
-              ["操作 ID", metadata.actionId],
-              ["操作类型", metadata.actionKind],
-              ["操作状态", metadata.actionStatus],
-              ["操作选择次数", metadata.actionSelectorCalls],
-              ["选择修复次数", metadata.actionSelectorRepairCalls],
-              ["无效选择响应", metadata.actionSelectorInvalidResponses],
+              [localeMessages.creatorWorkbench.errorCode, metadata.errorCode],
+              [localeMessages.creatorWorkbench.selectionFailureCode, metadata.selectorFailureReasonCode],
+              [localeMessages.creatorWorkbench.reason, metadata.selectorFailureReason],
+              [localeMessages.creatorWorkbench.decision, metadata.decision ?? metadata.intent],
+              [localeMessages.creatorWorkbench.operationID, metadata.actionId],
+              [localeMessages.creatorWorkbench.operationType, metadata.actionKind],
+              [localeMessages.creatorWorkbench.operationStatus, metadata.actionStatus],
+              [localeMessages.creatorWorkbench.operationSelections, metadata.actionSelectorCalls],
+              [localeMessages.creatorWorkbench.selectionRepairs, metadata.actionSelectorRepairCalls],
+              [localeMessages.creatorWorkbench.invalidSelectionResponses, metadata.actionSelectorInvalidResponses],
               ...(metadata.actionSelectorRepairCalls !== undefined && metadata.actionSelectorRepairCalls > 0
                 ? [
-                    ["修复原因代码", metadata.actionSelectorRepairReasonCode] as [string, unknown],
-                    ["修复原因", metadata.actionSelectorRepairReason] as [string, unknown],
+                    [localeMessages.creatorWorkbench.repairReasonCode, metadata.actionSelectorRepairReasonCode] as [string, unknown],
+                    [localeMessages.creatorWorkbench.repairReason, metadata.actionSelectorRepairReason] as [string, unknown],
                   ]
                 : []),
-              ["模型调用", metadata.modelCalls],
-              ["修复调用", metadata.repairCalls],
-              ["耗时", metadata.durationMs === undefined ? "—" : `${metadata.durationMs} ms`],
-              ["候选数量", metadata.candidateCount],
-              ["上下文字数", metadata.contextCharacters],
+              [localeMessages.creatorWorkbench.modelCalls, metadata.modelCalls],
+              [localeMessages.creatorWorkbench.repairCalls, metadata.repairCalls],
+              [localeMessages.creatorWorkbench.duration, metadata.durationMs === undefined ? "—" : `${metadata.durationMs} ms`],
+              [localeMessages.creatorWorkbench.candidateCount, metadata.candidateCount],
+              [localeMessages.creatorWorkbench.contextCharacters, metadata.contextCharacters],
             ])}
           </section>
           <section>
-            <h3>修改目标</h3>
+            <h3>{localeMessages.creatorWorkbench.changeTarget}</h3>
             {rows([
-              ["插件", metadata.targetPluginIds],
-              ["实例", metadata.targetInstanceIds],
+              [localeMessages.creatorWorkbench.plugin, metadata.targetPluginIds],
+              [localeMessages.creatorWorkbench.instance, metadata.targetInstanceIds],
             ])}
           </section>
           {metadata.placementType === undefined ? null : (
             <section>
-              <h3>位置验证</h3>
+              <h3>{localeMessages.creatorWorkbench.placementVerification}</h3>
               {rows([
-                ["类型", metadata.placementType],
-                ["锚点插件", metadata.anchorPluginId],
-                ["锚点实例", metadata.anchorInstanceId],
-                ["相对关系", metadata.relation],
-                ["父插件", metadata.parentPluginId],
-                ["父实例", metadata.parentInstanceId],
-                ["插槽", metadata.slot],
+                [localeMessages.creatorWorkbench.type, metadata.placementType],
+                [localeMessages.creatorWorkbench.anchorPlugin, metadata.anchorPluginId],
+                [localeMessages.creatorWorkbench.anchorInstance, metadata.anchorInstanceId],
+                [localeMessages.creatorWorkbench.relativeRelationship, metadata.relation],
+                [localeMessages.creatorWorkbench.parentPlugin, metadata.parentPluginId],
+                [localeMessages.creatorWorkbench.parentInstance, metadata.parentInstanceId],
+                [localeMessages.creatorWorkbench.slot, metadata.slot],
               ])}
             </section>
           )}
           {metadata.effectType === undefined ? null : (
             <section>
-              <h3>作用范围</h3>
+              <h3>{localeMessages.creatorWorkbench.scope}</h3>
               {rows([
-                ["类型", metadata.effectType],
-                ["区域", metadata.region],
-                ["父插件", metadata.parentPluginId],
-                ["父实例", metadata.parentInstanceId],
-                ["插槽", metadata.slot],
+                [localeMessages.creatorWorkbench.type, metadata.effectType],
+                [localeMessages.creatorWorkbench.region, metadata.region],
+                [localeMessages.creatorWorkbench.parentPlugin, metadata.parentPluginId],
+                [localeMessages.creatorWorkbench.parentInstance, metadata.parentInstanceId],
+                [localeMessages.creatorWorkbench.slot, metadata.slot],
               ])}
             </section>
           )}
           <section>
-            <h3>执行路径</h3>
+            <h3>{localeMessages.creatorWorkbench.executionRoute}</h3>
             {rows([
-              ["预定义操作", metadata.route === "productized"],
-              ["通用 Agent", metadata.route === "general-agent"],
-              ["需要澄清", metadata.route === "clarification"],
-              ["暂不支持", metadata.route === "unsupported"],
+              [localeMessages.creatorWorkbench.predefinedOperation, metadata.route === "productized"],
+              [localeMessages.creatorWorkbench.generalAgent, metadata.route === "general-agent"],
+              [localeMessages.creatorWorkbench.clarificationNeeded, metadata.route === "clarification"],
+              [localeMessages.creatorWorkbench.unsupported, metadata.route === "unsupported"],
             ])}
           </section>
           {metadata.route === "general-agent" ? (
             <section>
-              <h3>通用 Agent</h3>
+              <h3>{localeMessages.creatorWorkbench.generalAgent}</h3>
               {rows([
-                ["模型调用", metadata.generalAgentModelCalls],
-                ["工具调用", metadata.generalAgentToolCalls],
-                ["模型调用总数", metadata.totalModelCalls],
+                [localeMessages.creatorWorkbench.modelCalls, metadata.generalAgentModelCalls],
+                [localeMessages.creatorWorkbench.toolCalls, metadata.generalAgentToolCalls],
+                [localeMessages.creatorWorkbench.totalModelCalls, metadata.totalModelCalls],
               ])}
             </section>
           ) : null}
@@ -998,24 +1017,24 @@ function CreatorStageDebugDetails({
       {isExecution ? (
         <>
           <section>
-            <h3>修改执行</h3>
+            <h3>{localeMessages.creatorWorkbench.changeExecution}</h3>
             {rows([
-              ["执行模型调用", metadata.executionModelCalls],
-              ["工具调用", metadata.toolCalls],
-              ["DeepAgent 调用", metadata.deepAgentCalls],
-              ["修改尝试", metadata.mutationAttempts],
+              [localeMessages.creatorWorkbench.executionModelCalls, metadata.executionModelCalls],
+              [localeMessages.creatorWorkbench.toolCalls, metadata.toolCalls],
+              [localeMessages.creatorWorkbench.deepAgentCalls, metadata.deepAgentCalls],
+              [localeMessages.creatorWorkbench.changeAttempts, metadata.mutationAttempts],
             ])}
           </section>
           <section>
-            <h3>验证结果</h3>
+            <h3>{localeMessages.creatorWorkbench.validationResults}</h3>
             {rows([
-              ["验证方式", metadata.verificationMode],
-              ["静态验证", metadata.staticStatus],
-              ["运行时验证", metadata.runtimeStatus],
-              ["最新状态检查次数", metadata.runtimeFreshnessAttempts],
-              ["运行时等待", metadata.runtimeFreshnessWaitMs === undefined ? "—" : `${metadata.runtimeFreshnessWaitMs} ms`],
-              ["位置验证", metadata.placementVerified],
-              ["尺寸验证", metadata.geometryVerified],
+              [localeMessages.creatorWorkbench.verificationMethod, metadata.verificationMode],
+              [localeMessages.creatorWorkbench.staticValidation, metadata.staticStatus],
+              [localeMessages.creatorWorkbench.runtimeValidation, metadata.runtimeStatus],
+              [localeMessages.creatorWorkbench.freshnessChecks, metadata.runtimeFreshnessAttempts],
+              [localeMessages.creatorWorkbench.runtimeWait, metadata.runtimeFreshnessWaitMs === undefined ? "—" : `${metadata.runtimeFreshnessWaitMs} ms`],
+              [localeMessages.creatorWorkbench.placementVerification, metadata.placementVerified],
+              [localeMessages.creatorWorkbench.geometryVerification, metadata.geometryVerified],
             ])}
           </section>
         </>
@@ -1031,12 +1050,13 @@ function CreatorStageActivityCard({
   activity: CreatorStageActivity;
   debug: boolean;
 }) {
+  const localeMessages = useAgentUILocale();
   if (!shouldPresentStage(activity, debug)) {
     return null;
   }
   return (
     <article
-      aria-label={debug ? `Creator 阶段 ${activity.name}` : creatorStageTitle(activity)}
+      aria-label={debug ? formatLocaleMessage(localeMessages.creatorWorkbench.creatorStage, activity.name) : creatorStageTitle(activity, localeMessages)}
       className={`creator-stage-activity creator-stage-activity--${activity.status}`}
     >
       <div className="creator-stage-summary">
@@ -1044,7 +1064,7 @@ function CreatorStageActivityCard({
           {stageSymbol(activity.status)}
         </span>
         <div>
-          <strong>{creatorStageTitle(activity)}</strong>
+          <strong>{creatorStageTitle(activity, localeMessages)}</strong>
           {activity.name === "creator.resolve" &&
           activity.displayIntent !== undefined &&
           activity.metadata?.route !== "clarification" &&
@@ -1058,7 +1078,7 @@ function CreatorStageActivityCard({
       </div>
       {debug ? (
         <details className="creator-stage-diagnostics">
-          <summary>诊断详情</summary>
+          <summary>{localeMessages.creatorWorkbench.diagnosticDetails}</summary>
           <CreatorStageDebugDetails activity={activity} />
         </details>
       ) : null}
@@ -1074,7 +1094,8 @@ function setupError(error: unknown): CreatorSetupError {
   return { message: error instanceof Error ? error.message : String(error) };
 }
 
-export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workbench" }: CreatorWorkbenchProps) {
+function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workbench" }: CreatorWorkbenchProps) {
+  const localeMessages = useAgentUILocale();
   const creatorDebug = resolveCreatorDebugMode({
     hostname: window.location.hostname,
     search: window.location.search,
@@ -1166,7 +1187,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     }
     workspaceIdRef.current = id;
     const conversation = id === undefined || next.status === "uninitialized" || next.status === "broken"
-      ? emptyConversation() : storedConversation(id);
+      ? emptyConversation() : storedConversation(id, localeMessages);
     agentRef.current = (next.status === "ready") && next.runtime.status === "ready"
       ? new CreatorAgentClient(id!, conversation.threadId, conversation.agentMessages)
       : null;
@@ -1184,12 +1205,12 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     const loadWorkspace = async () => {
       setWorkspaceBusy(true);
       try {
-        let state = await getWorkspaceState();
+        let state = await getWorkspaceState(localeMessages);
         if (state.status === "none") {
           const previousPath = rememberedWorkspacePath();
           if (previousPath !== null) {
             try {
-              state = await selectWorkspaceProject(previousPath);
+              state = await selectWorkspaceProject(previousPath, localeMessages);
             } catch (error) {
               rememberWorkspacePath(null);
               if (active) setWorkspaceError(error instanceof Error ? error.message : String(error));
@@ -1237,7 +1258,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     const controller = new AbortController();
     setupInfoRef.current.controller = controller;
     setSetupInfo({ status: "loading" });
-    void getWorkspaceSetup(controller.signal).then((info) => {
+    void getWorkspaceSetup(controller.signal, localeMessages).then((info) => {
       if (!isSetupRequestCurrent({ requestGeneration: generation, currentGeneration: setupInfoRef.current.generation,
         requestWorkspaceId: workspaceId, currentWorkspaceId: workspaceIdRef.current, aborted: controller.signal.aborted })) return;
       setSetupInfo({ status: "ready", info });
@@ -1270,7 +1291,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
       const controller = new AbortController();
       setupValidationRef.current.controller = controller;
       setSetupDraft((current) => ({ ...current, validation: { status: "validating" } }));
-      void validateWorkspaceSetup({ mode, sourceRoot }, controller.signal).then((result) => {
+      void validateWorkspaceSetup({ mode, sourceRoot }, controller.signal, localeMessages).then((result) => {
         if (!isSetupRequestCurrent({ requestGeneration: generation, currentGeneration: setupValidationRef.current.generation,
           requestWorkspaceId: workspaceId, currentWorkspaceId: workspaceIdRef.current, aborted: controller.signal.aborted })) return;
         setSetupDraft((current) => ({ ...current, validation: {
@@ -1533,7 +1554,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                     (item.status === "preparing" || item.status === "running")
                 ? { ...item, status: "failed" as const, error: event.message }
                 : item.kind === "stage" && item.status === "running"
-                  ? interruptCreatorStage(item, event.message)
+                  ? interruptCreatorStage(item, event.message, localeMessages)
                 : item,
             ),
             {
@@ -1570,7 +1591,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
           ? [...next, ...reconciled.slice(stageIndex)]
           : next;
       });
-      const receipt = receiptFromRunResult(result.result);
+      const receipt = receiptFromRunResult(result.result, localeMessages);
       if (receipt !== undefined) {
         if (latestAssistantMessageId === undefined) {
           updateRunItems((current) => [
@@ -1579,7 +1600,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
               kind: "message",
               id: crypto.randomUUID(),
               role: "assistant",
-              content: "Creator 已完成本次处理。",
+              content: localeMessages.creatorWorkbench.creatorCompletedThisRequest,
               receipt,
               streaming: false,
             },
@@ -1610,7 +1631,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                   (item.status === "preparing" || item.status === "running")
                 ? { ...item, status: "failed" as const, error: message }
                 : item.kind === "stage" && item.status === "running"
-                  ? interruptCreatorStage(item, message)
+                  ? interruptCreatorStage(item, message, localeMessages)
                 : item,
           ),
           {
@@ -1653,7 +1674,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
       updateItems(current => [...current.map(item => item.kind === "question" && item.id === question.id
         ? { ...item, status: "stale" as const } : item),
         { kind: "message", id: crypto.randomUUID(), role: "assistant",
-          content: "已放弃本次开发任务。此前已提交的修改仍保留；如需撤销，请单独提出。" }]);
+          content: localeMessages.creatorWorkbench.thisDevelopmentTaskWasAbandonedPreviouslyCommittedChanges }]);
     } catch (error) {
       updateItems(current => [...current, { kind: "message", id: crypto.randomUUID(), role: "error",
         content: error instanceof Error ? error.message : String(error) }]);
@@ -1717,7 +1738,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     setWorkspaceBusy(true);
     setWorkspaceError(null);
     try {
-      installWorkspace(await selectWorkspaceProject(workspacePath.trim()));
+      installWorkspace(await selectWorkspaceProject(workspacePath.trim(), localeMessages));
       setShowWorkspaceSelector(false);
     } catch (error) {
       setWorkspaceError(error instanceof Error ? error.message : String(error));
@@ -1732,9 +1753,9 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     setWorkspacePicking(true);
     setWorkspaceError(null);
     try {
-      const result = await chooseWorkspaceProject();
+      const result = await chooseWorkspaceProject(localeMessages);
       if (result.status === "cancelled") return;
-      if (result.status === "none") throw new Error("没有选择项目文件夹。");
+      if (result.status === "none") throw new Error(localeMessages.creatorWorkbench.noProjectFolderSelected);
       installWorkspace(result);
       setWorkspacePath(result.workspace.displayPath);
       setShowWorkspaceSelector(false);
@@ -1753,7 +1774,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     sessionRef.current += 1;
     agentRef.current?.abort();
     try {
-      installWorkspace(await clearWorkspaceProject());
+      installWorkspace(await clearWorkspaceProject(localeMessages));
       setWorkspacePath("");
       setShowWorkspaceSelector(true);
     } catch (error) {
@@ -1774,7 +1795,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
     sessionRef.current += 1;
     agentRef.current?.abort();
     try {
-      const refreshed = await refreshWorkspaceProject();
+      const refreshed = await refreshWorkspaceProject(localeMessages);
       installWorkspace(refreshed);
       if (refreshed.status === "uninitialized") setSetupValidationEpoch((current) => current + 1);
     } catch (error) {
@@ -1813,13 +1834,13 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
       const result = await initializeWorkspaceProjectRequest({
         mode: setupDraft.mode,
         sourceRoot: setupDraft.sourceRoot,
-      });
+      }, localeMessages);
       if (workspaceIdRef.current === workspaceId) {
         installWorkspace(result);
         if (result.status === "uninitialized") {
           setSetupNeedsRefresh(true);
           setSetupDraft((current) => ({ ...current, validation: { status: "idle" },
-            error: { message: "初始化未返回就绪状态，请刷新项目状态后重试。" } }));
+            error: { message: localeMessages.creatorWorkbench.initializationDidNotReportAReadyStateRefresh } }));
         }
       }
     } catch (error) {
@@ -1827,17 +1848,17 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
       if (shouldRefreshAfterInitializeError(error)) {
         setSetupNeedsRefresh(true);
         try {
-          const refreshed = await refreshWorkspaceProject();
+          const refreshed = await refreshWorkspaceProject(localeMessages);
           if (workspaceIdRef.current !== workspaceId) return;
           installWorkspace(refreshed);
           if (refreshed.status === "uninitialized") {
             setSetupDraft((current) => ({ ...current, validation: { status: "idle" },
-              error: { message: "初始化结果尚未确认，请刷新项目状态后重试。", ...(error.code === undefined ? {} : { code: error.code }) } }));
+              error: { message: localeMessages.creatorWorkbench.initializationOutcomeUnconfirmedRefreshProjectStateAndRetry, ...(error.code === undefined ? {} : { code: error.code }) } }));
           }
         } catch (refreshError) {
           if (workspaceIdRef.current === workspaceId) {
             setSetupDraft((current) => ({ ...current, validation: { status: "idle" },
-              error: { message: `初始化结果尚未确认；刷新项目状态失败：${setupError(refreshError).message}`, ...(error.code === undefined ? {} : { code: error.code }) } }));
+              error: { message: formatLocaleMessage(localeMessages.creatorWorkbench.initializationOutcomeUnconfirmedCouldNotRefreshProjectState, setupError(refreshError).message), ...(error.code === undefined ? {} : { code: error.code }) } }));
           }
         }
       } else {
@@ -1893,7 +1914,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
 
   const creatorRuntimeReady = (workspaceState?.status === "ready") && workspaceState.runtime.status === "ready";
   const questionPending = hasPendingCreatorQuestion(items);
-  const pendingQuestionHint = "请先回答当前问题";
+  const pendingQuestionHint = localeMessages.creatorWorkbench.answerTheCurrentQuestionFirst;
 
   return (
     <div
@@ -1913,21 +1934,21 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
       {layout === "dock" ? null : workspaceState !== null && (workspaceState.status === "ready") && workspaceState.workspace.id === previewWorkspaceId ? (
         <CreatorWorkbenchPreview threadId={threadId} workspaceId={workspaceState.workspace.id}>{children}</CreatorWorkbenchPreview>
       ) : (
-        <section className="creator-workbench-preview creator-workbench-preview-placeholder" aria-label="项目预览">
+        <section className="creator-workbench-preview creator-workbench-preview-placeholder" aria-label={localeMessages.creatorWorkbench.projectPreview}>
           {workspaceState?.status === "uninitialized" ? (
-            <><strong>Agent UI 尚未初始化</strong><p>选择产品形态并完成初始化后，Creator 才能开始编辑 Agent UI。</p></>
+            <><strong>{localeMessages.creatorWorkbench.agentUIIsNotInitialized}</strong><p>{localeMessages.creatorWorkbench.chooseAProductModeAndInitializeAgentUI}</p></>
           ) : workspaceState === null || workspaceState.status === "none" ? (
-            <strong>请先选择项目</strong>
+            <strong>{localeMessages.creatorWorkbench.selectAProjectFirst}</strong>
           ) : (
-            <><strong>请打开项目自己的开发页面</strong><p>项目页面由它自己的开发服务器渲染；Creator 在该页面的开发期浮层中使用。</p></>
+            <><strong>{localeMessages.creatorWorkbench.openYourProjectSDevelopmentPage}</strong><p>{localeMessages.creatorWorkbench.yourProjectSDevelopmentServerRendersThePage}</p></>
           )}
         </section>
       )}
 
       {isOpen ? (
-        <aside className="creator-panel creator-ui-scope" aria-label="Creator" ref={panel}>
+        <aside className="creator-panel creator-ui-scope" aria-label={localeMessages.creatorWorkbench.creator} ref={panel}>
           {layout === "dock" ? null : <div
-            aria-label="调整 Creator 面板宽度"
+            aria-label={localeMessages.creatorWorkbench.resizeCreatorPanel}
             aria-orientation="vertical"
             className="creator-panel-resizer"
             onDoubleClick={() => setPanelWidth(null)}
@@ -1935,12 +1956,12 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
             onPointerDown={startPanelResize}
             role="separator"
             tabIndex={0}
-            title="拖动调整宽度，双击恢复默认"
+            title={localeMessages.creatorWorkbench.dragToResizeDoubleClickToRestoreThe}
           />}
           <header className="creator-panel-header">
-            <div className="creator-panel-brand" title="Creator · 仅用于开发">
+            <div className="creator-panel-brand" title={localeMessages.creatorWorkbench.creatorDevelopmentOnly}>
               <div className="creator-panel-brand-icon"><PanelsTopLeft aria-hidden="true" /></div>
-              <h1>Creator</h1>
+              <h1>{localeMessages.creatorWorkbench.creator}</h1>
               <div className="creator-header-updates" ref={setUpdateNotificationTarget} />
             </div>
             <div className="creator-panel-header-actions creator-ui-scope">
@@ -1949,7 +1970,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                 data-creator-mock-entry=""
                 aria-controls="creator-mock-panel"
                 aria-expanded={mockPanelOpen}
-                aria-label={mockPanelOpen ? "关闭 Mock Agent 面板" : "打开 Mock Agent 面板"}
+                aria-label={mockPanelOpen ? localeMessages.creatorWorkbench.closeMockAgentPanel : localeMessages.creatorWorkbench.openMockAgentPanel}
                 onClick={() => { setMockPanelOpen((open) => !open); setUpdatePageOpen(false); }}
                 type="button"
               >
@@ -1961,7 +1982,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                 data-slot="agent-ui-dev-studio-dock"
               />
               {layout === "dock" ? null : <Button variant="ghost" size="icon-sm"
-                aria-label="关闭 Creator 面板"
+                aria-label={localeMessages.creatorWorkbench.closeCreatorPanel}
                 onClick={() => setIsOpen(false)}
                 type="button"
               >
@@ -1991,24 +2012,24 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                   sourceRoot={workspaceState.project.sourceRoot} />
               ) : null}
               {workspaceState?.status === "broken" ? (
-                <div className="creator-panel-empty creator-panel-empty--error"><AlertCircle aria-hidden="true" /><strong>项目配置需要修复</strong>{workspaceState.issues.map((issue) => <p key={issue.code}>{issue.message}</p>)}
-                  <Button size="sm" variant="outline" type="button" disabled={workspaceBusy} onClick={() => void refreshWorkspace()}><RefreshCw aria-hidden="true" />重新检查项目</Button>
-                  <details><summary>查看技术详情</summary>{workspaceState.issues.map(issue => <code key={issue.code}>{issue.code}</code>)}</details>
+                <div className="creator-panel-empty creator-panel-empty--error"><AlertCircle aria-hidden="true" /><strong>{localeMessages.creatorWorkbench.projectConfigurationNeedsRepair}</strong>{workspaceState.issues.map((issue) => <p key={issue.code}>{issue.message}</p>)}
+                  <Button size="sm" variant="outline" type="button" disabled={workspaceBusy} onClick={() => void refreshWorkspace()}><RefreshCw aria-hidden="true" />{localeMessages.creatorWorkbench.recheckProject}</Button>
+                  <details><summary>{localeMessages.creatorWorkbench.viewTechnicalDetails}</summary>{workspaceState.issues.map(issue => <code key={issue.code}>{issue.code}</code>)}</details>
                 </div>
               ) : (workspaceState?.status === "ready") && workspaceState.runtime.status === "unavailable" ? (
-                <div className="creator-panel-empty creator-panel-empty--error"><AlertCircle aria-hidden="true" /><strong>Creator 服务暂不可用</strong><p>{workspaceState.runtime.message}</p>
-                  <Button size="sm" variant="outline" type="button" disabled={workspaceBusy} onClick={() => void refreshWorkspace()}><RefreshCw aria-hidden="true" />重新连接</Button>
-                  <details><summary>查看技术详情</summary><code>{workspaceState.runtime.code}</code></details>
+                <div className="creator-panel-empty creator-panel-empty--error"><AlertCircle aria-hidden="true" /><strong>{localeMessages.creatorWorkbench.creatorServiceTemporarilyUnavailable}</strong><p>{workspaceState.runtime.message}</p>
+                  <Button size="sm" variant="outline" type="button" disabled={workspaceBusy} onClick={() => void refreshWorkspace()}><RefreshCw aria-hidden="true" />{localeMessages.creatorWorkbench.reconnect}</Button>
+                  <details><summary>{localeMessages.creatorWorkbench.viewTechnicalDetails}</summary><code>{workspaceState.runtime.code}</code></details>
                 </div>
               ) : workspaceState?.status !== "ready" ? (
-                <div className="creator-panel-empty"><FolderOpen aria-hidden="true" /><strong>{workspaceState === null ? "正在读取项目…" : "从你的前端项目开始"}</strong><p>选择项目后，描述你想检查、设计或修改的 Agent UI。</p></div>
+                <div className="creator-panel-empty"><FolderOpen aria-hidden="true" /><strong>{workspaceState === null ? localeMessages.creatorWorkbench.readingProject : localeMessages.creatorWorkbench.startWithYourFrontendProject}</strong><p>{localeMessages.creatorWorkbench.chooseAProjectThenDescribeTheAgentUI}</p></div>
               ) : items.filter(
                 (item) => item.kind !== "stage" || shouldPresentStage(item, creatorDebug),
               ).length === 0 ? (
                 <div className="creator-panel-empty">
                   <Sparkles aria-hidden="true" />
-                  <strong>告诉 Creator 你想了解、检查或修改什么。</strong>
-                  <p>可以分析当前 Agent UI、设计修改方案，或直接描述你想要的效果。</p>
+                  <strong>{localeMessages.creatorWorkbench.tellCreatorWhatYouWantToUnderstandInspect}</strong>
+                  <p>{localeMessages.creatorWorkbench.analyzeTheCurrentAgentUIDesignAChange}</p>
                 </div>
               ) : (
                 presentConversationItems(items, creatorDebug).map((item) =>
@@ -2031,7 +2052,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                     >
                       <div className="creator-message-meta">
                         {item.role === "assistant" ? <Bot aria-hidden="true" /> : item.role === "user" ? <UserRound aria-hidden="true" /> : <AlertCircle aria-hidden="true" />}
-                        <span>{roleLabels[item.role]}</span>
+                        <span>{getRoleLabels(localeMessages)[item.role]}</span>
                       </div>
                       {item.role === "assistant" ? (
                         <CreatorMarkdown content={item.content} />
@@ -2057,7 +2078,8 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
               )}
               {isRunning ? (
                 <p className="creator-panel-running" role="status">
-                  Creator 正在处理请求…
+
+                  {localeMessages.creatorWorkbench.creatorIsProcessingYourRequest}
                 </p>
               ) : null}
             </div>}
@@ -2069,7 +2091,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                 aria-controls="creator-workspace-menu"
                 aria-expanded={showWorkspaceSelector}
                 aria-label={workspaceState !== null && workspaceState.status !== "none"
-                  ? `当前项目：${workspaceState.workspace.name}，点击切换项目` : "选择项目文件夹"}
+                  ? formatLocaleMessage(localeMessages.creatorWorkbench.currentProjectClickToSwitchProjects, workspaceState.workspace.name) : localeMessages.creatorWorkbench.chooseProjectFolder}
                 className="creator-workspace-trigger"
                 disabled={workspaceBusy || setupDraft.initializing || questionPending}
                 onClick={() => {
@@ -2079,7 +2101,7 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                   setShowWorkspaceSelector((current) => !current);
                 }}
                 title={questionPending ? pendingQuestionHint : workspaceState !== null && workspaceState.status !== "none"
-                  ? workspaceState.workspace.displayPath : "选择项目文件夹"}
+                  ? workspaceState.workspace.displayPath : localeMessages.creatorWorkbench.chooseProjectFolder}
                 type="button"
               >
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -2087,42 +2109,42 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                   <path d="M3.5 10h17" />
                 </svg>
                 <span>{workspaceState !== null && workspaceState.status !== "none"
-                  ? workspaceState.workspace.name : "选择项目"}</span>
+                  ? workspaceState.workspace.name : localeMessages.creatorWorkbench.selectProject}</span>
                 {workspaceState !== null && (workspaceState.status === "ready") &&
-                  workspaceState.warnings?.length ? <span aria-label="项目有提示" className="creator-workspace-warning-dot">!</span> : null}
+                  workspaceState.warnings?.length ? <span aria-label={localeMessages.creatorWorkbench.projectHasNotices} className="creator-workspace-warning-dot">!</span> : null}
                 <svg aria-hidden="true" className="creator-workspace-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="m6 9 6 6 6-6" />
                 </svg>
               </Button>
               {showWorkspaceSelector ? (
-                <section className="creator-workspace-menu" id="creator-workspace-menu" aria-label="选择前端项目文件夹">
+                <section className="creator-workspace-menu" id="creator-workspace-menu" aria-label={localeMessages.creatorWorkbench.chooseFrontendProjectFolder}>
                   <header className="creator-workspace-menu-header">
-                    <h2>项目</h2>
-                    <Button size="icon-xs" variant="ghost" type="button" aria-label="关闭项目选择" onClick={() => { setShowWorkspaceSelector(false); workspaceControl.current?.querySelector<HTMLButtonElement>(".creator-workspace-trigger")?.focus(); }}><X aria-hidden="true" /></Button>
+                    <h2>{localeMessages.creatorWorkbench.project}</h2>
+                    <Button size="icon-xs" variant="ghost" type="button" aria-label={localeMessages.creatorWorkbench.closeProjectSelection} onClick={() => { setShowWorkspaceSelector(false); workspaceControl.current?.querySelector<HTMLButtonElement>(".creator-workspace-trigger")?.focus(); }}><X aria-hidden="true" /></Button>
                   </header>
                   {workspaceState !== null && workspaceState.status !== "none" ? (
                     <div className="creator-workspace-current">
                       <div className="creator-workspace-identity">
                         <FolderOpen aria-hidden="true" />
                         <strong title={workspaceState.workspace.name}>{workspaceState.workspace.name}</strong>
-                        <Button size="icon-xs" variant="ghost" type="button" aria-label="刷新项目" disabled={workspaceBusy || setupDraft.initializing || questionPending} title={questionPending ? pendingQuestionHint : "刷新项目"} onClick={() => void refreshWorkspace()}><RefreshCw aria-hidden="true" className={workspaceBusy ? "creator-tool-group-spinner" : undefined} /></Button>
+                        <Button size="icon-xs" variant="ghost" type="button" aria-label={localeMessages.creatorWorkbench.refreshProject} disabled={workspaceBusy || setupDraft.initializing || questionPending} title={questionPending ? pendingQuestionHint : localeMessages.creatorWorkbench.refreshProject} onClick={() => void refreshWorkspace()}><RefreshCw aria-hidden="true" className={workspaceBusy ? "creator-tool-group-spinner" : undefined} /></Button>
                       </div>
                       <div className="creator-workspace-metadata">
-                        <Badge variant="secondary">{workspaceState.status === "ready" ? ({ assistant: "助手", embedded: "嵌入式", platform: "工作台" })[workspaceState.project.mode] : workspaceState.status === "uninitialized" ? "未初始化" : "配置异常"}</Badge>
+                        <Badge variant="secondary">{workspaceState.status === "ready" ? ({ assistant: localeMessages.creatorWorkbench.assistant, embedded: localeMessages.creatorWorkbench.embedded, platform: localeMessages.creatorWorkbench.workbench })[workspaceState.project.mode] : workspaceState.status === "uninitialized" ? localeMessages.creatorWorkbench.notInitialized2 : localeMessages.creatorWorkbench.configurationError}</Badge>
                         {workspaceState.status === "ready" ? <code title={workspaceState.project.sourceRoot}>{workspaceState.project.sourceRoot}</code> : null}
                       </div>
                       <details className="creator-workspace-info">
-                        <summary>项目详情</summary>
-                        <dl><dt>项目路径</dt><dd><code>{workspaceState.workspace.displayPath}</code></dd></dl>
-                        <Button size="xs" variant="ghost" type="button" disabled={workspaceBusy || setupDraft.initializing || questionPending} title={questionPending ? pendingQuestionHint : "取消选择，保留项目文件"} onClick={() => void clearWorkspace()}>移除选择</Button>
+                        <summary>{localeMessages.creatorWorkbench.projectDetails}</summary>
+                        <dl><dt>{localeMessages.creatorWorkbench.projectPath}</dt><dd><code>{workspaceState.workspace.displayPath}</code></dd></dl>
+                        <Button size="xs" variant="ghost" type="button" disabled={workspaceBusy || setupDraft.initializing || questionPending} title={questionPending ? pendingQuestionHint : localeMessages.creatorWorkbench.deselectAndKeepProjectFiles} onClick={() => void clearWorkspace()}>{localeMessages.creatorWorkbench.deselectProject}</Button>
                       </details>
                       {(workspaceState.status === "ready") && workspaceState.warnings?.length ? (
                         <div className="creator-workspace-warnings" role="status">
-                          <strong>⚠ Agent UI 初始化需要恢复检查</strong>
+                          <strong>{localeMessages.creatorWorkbench.agentUIInitializationNeedsRecoveryChecks}</strong>
                           {workspaceState.warnings.map((issue, index) => (
                             <span key={`${issue.code}-${index}`}>{issue.code === "AGENT_UI_INITIALIZATION_RECOVERY_REQUIRED"
-                              ? "上次初始化已提交，但清理流程没有完整结束。项目当前可以继续使用。"
-                              : setupIssueMessage(issue)}</span>
+                              ? localeMessages.creatorWorkbench.initializationWasCommittedButCleanupDidNotFinish
+                              : setupIssueMessage(issue, localeMessages)}</span>
                           ))}
                         </div>
                       ) : null}
@@ -2130,21 +2152,21 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
                     </div>
                   ) : null}
                   <div className="creator-workspace-selector">
-                    <strong>{workspaceState !== null && workspaceState.status !== "none" ? "切换项目" : "选择前端项目文件夹"}</strong>
-                    <span>选择前端项目，Creator 会检查接入状态。</span>
+                    <strong>{workspaceState !== null && workspaceState.status !== "none" ? localeMessages.creatorWorkbench.switchProject : localeMessages.creatorWorkbench.chooseFrontendProjectFolder}</strong>
+                    <span>{localeMessages.creatorWorkbench.chooseAFrontendProjectCreatorWillCheckIts}</span>
                     <Button size="sm" variant="outline" className="creator-workspace-browse" type="button"
                       disabled={workspaceState === null || workspaceBusy || setupDraft.initializing || questionPending}
                       onClick={() => void chooseWorkspace()}>
-                      <FolderOpen aria-hidden="true" />{workspacePicking ? "等待文件夹选择…" : "选择项目文件夹"}
+                      <FolderOpen aria-hidden="true" />{workspacePicking ? localeMessages.creatorWorkbench.waitingForFolderSelection2 : localeMessages.creatorWorkbench.chooseProjectFolder}
                     </Button>
-                    {workspacePicking ? <span role="status">请在系统窗口中选择项目，或取消返回。</span> : null}
+                    {workspacePicking ? <span role="status">{localeMessages.creatorWorkbench.chooseAProjectInTheSystemWindowOr}</span> : null}
                     <details>
-                      <summary>手动输入项目路径</summary>
+                      <summary>{localeMessages.creatorWorkbench.enterProjectPathManually}</summary>
                       <form onSubmit={selectWorkspace}>
-                        <label htmlFor="creator-workspace-path">项目文件夹的绝对路径</label>
+                        <label htmlFor="creator-workspace-path">{localeMessages.creatorWorkbench.absoluteProjectFolderPath}</label>
                         <Input id="creator-workspace-path" value={workspacePath} disabled={workspaceBusy || setupDraft.initializing || questionPending}
                           onChange={(event) => setWorkspacePath(event.target.value)} placeholder="/path/to/project" autoComplete="off" spellCheck={false} />
-                        <Button size="sm" variant="secondary" type="submit" disabled={workspaceBusy || setupDraft.initializing || questionPending || workspacePath.trim() === ""}>使用这个文件夹</Button>
+                        <Button size="sm" variant="secondary" type="submit" disabled={workspaceBusy || setupDraft.initializing || questionPending || workspacePath.trim() === ""}>{localeMessages.creatorWorkbench.useThisFolder}</Button>
                       </form>
                     </details>
                   </div>
@@ -2153,34 +2175,34 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
               ) : null}
             </div>
             {workspaceState?.status === "ready" ? <form className="creator-panel-composer" style={updatePageOpen ? { display: "none" } : undefined} onSubmit={submit}>
-              <label htmlFor="creator-request">告诉 Creator</label>
+              <label htmlFor="creator-request">{localeMessages.creatorWorkbench.tellCreator}</label>
               <Textarea
                 disabled={isRunning || !creatorRuntimeReady || questionPending}
                 id="creator-request"
                 onChange={(event) => setInput(event.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="例如：看看当前 UI，或在右侧增加工具详情面板"
+                placeholder={localeMessages.creatorWorkbench.forExampleInspectTheUIOrAddA}
                 rows={2}
                 value={input}
               />
               <div>
                 <Button variant="ghost" size="xs" className="creator-composer-clear"
-                  aria-label="清空 Creator 会话"
+                  aria-label={localeMessages.creatorWorkbench.clearCreatorConversation}
                   disabled={isRunning || !creatorRuntimeReady || questionPending}
                   onClick={clearConversation}
-                  title={questionPending ? pendingQuestionHint : "清空当前对话和输入，重新开始上下文；保留项目修改"}
+                  title={questionPending ? pendingQuestionHint : localeMessages.creatorWorkbench.clearTheConversationAndInputToStartAgain}
                   type="button"
                 >
-                  <RotateCcw aria-hidden="true" />清空会话
+                  <RotateCcw aria-hidden="true" />{localeMessages.creatorWorkbench.clearConversation}
                 </Button>
-                <small>Enter 发送 · Shift+Enter 换行</small>
+                <small>{localeMessages.creatorWorkbench.enterToSendShiftEnterForANew}</small>
                 {isRunning ? (
                   <Button size="sm" variant="outline" type="button" disabled={!runAccepted || stopBusy} onClick={() => void stopCurrentRun()}>
-                    <Square aria-hidden="true" />{stopBusy ? "正在停止…" : "停止执行"}
+                    <Square aria-hidden="true" />{stopBusy ? localeMessages.creatorWorkbench.stopping : localeMessages.creatorWorkbench.stopExecution}
                   </Button>
                 ) : (
                   <Button size="sm" disabled={input.trim() === "" || !creatorRuntimeReady || items.some(item => item.kind === "question" && (item.status === "pending" || item.status === "submitting"))} type="submit">
-                    <ArrowUp aria-hidden="true" />发送
+                    <ArrowUp aria-hidden="true" />{localeMessages.creatorWorkbench.send}
                   </Button>
                 )}
               </div>
@@ -2189,16 +2211,22 @@ export function CreatorWorkbench({ children, previewWorkspaceId, layout = "workb
         </aside>
       ) : (
         <Button size="sm" variant="outline"
-          aria-label="打开 Creator 面板"
+          aria-label={localeMessages.creatorWorkbench.openCreatorPanel}
           className="creator-panel-open"
           onClick={() => setIsOpen(true)}
           type="button"
         >
           <span aria-hidden="true" className="creator-panel-open-dot" />
-          <span>打开 Creator</span>
+          <span>{localeMessages.creatorWorkbench.openCreator}</span>
           <span aria-hidden="true" className="creator-panel-open-chevron" />
         </Button>
       )}
     </div>
   );
+}
+
+export { CreatorLocaleProvider, useAgentUILocale } from "./i18n/locale.js";
+export type { CreatorLocaleCode } from "./i18n/locale.js";
+export function CreatorWorkbench(props: CreatorWorkbenchProps) {
+  return <CreatorLocaleProvider locale={props.locale} onLocaleChange={props.onLocaleChange}><CreatorWorkbenchContent {...props} /></CreatorLocaleProvider>;
 }

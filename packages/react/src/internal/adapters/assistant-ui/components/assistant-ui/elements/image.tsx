@@ -1,5 +1,7 @@
 "use client";
 
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../../../../../../locale.js";
+
 import {
   memo,
   useState,
@@ -201,10 +203,12 @@ function ImagePreview({
   fit = "contain",
   onLoad,
   onError,
-  alt = "Image content",
+  alt,
   src,
   ...props
 }: ImagePreviewProps) {
+  const localeMessages = useAgentUILocale();
+  alt ??= localeMessages.images.content;
   const imgRef = useRef<HTMLImageElement>(null);
   const [loadedSrc, setLoadedSrc] = useState<string | undefined>(undefined);
   const [errorSrc, setErrorSrc] = useState<string | undefined>(undefined);
@@ -300,6 +304,7 @@ function ImageSource({
   iconUrl,
   ...props
 }: ImageSourceProps) {
+  const localeMessages = useAgentUILocale();
   const href = safeHref(url);
   const host = hostOf(url);
   const displayLabel = label || host;
@@ -344,7 +349,7 @@ function ImageSource({
           className="hover:text-foreground truncate"
         >
           {displayLabel}
-          <span className="sr-only"> (opens in a new tab)</span>
+          <span className="sr-only">  {localeMessages.images.newTab}</span>
         </a>
       ) : (
         <span data-slot="image-source-label" className="truncate">
@@ -381,7 +386,9 @@ type ImageZoomProps = PropsWithChildren<{
   alt?: string;
 }>;
 
-function ImageZoom({ src, alt = "Image preview", children }: ImageZoomProps) {
+function ImageZoom({ src, alt, children }: ImageZoomProps) {
+  const localeMessages = useAgentUILocale();
+  alt ??= localeMessages.images.preview;
   const [isOpen, setIsOpen] = useState(false);
   const portalContainer = useAgentUIPortalContainer();
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -452,7 +459,7 @@ function ImageZoom({ src, alt = "Image preview", children }: ImageZoomProps) {
         role="button"
         tabIndex={0}
         className="aui-image-zoom-trigger cursor-zoom-in"
-        aria-label="Click to zoom image"
+        aria-label={localeMessages.images.zoom}
       >
         {children}
       </div>
@@ -465,7 +472,7 @@ function ImageZoom({ src, alt = "Image preview", children }: ImageZoomProps) {
             aria-modal="true"
             className="aui-image-zoom-overlay fade-in animate-in fixed inset-0 z-50 flex items-center justify-center bg-black/80 duration-200"
             onClick={handleClose}
-            aria-label="Zoomed image"
+            aria-label={localeMessages.images.zoomed}
           >
             <img
               data-slot="image-zoom-content"
@@ -480,7 +487,7 @@ function ImageZoom({ src, alt = "Image preview", children }: ImageZoomProps) {
             <button
               ref={closeRef}
               type="button"
-              aria-label="Close zoomed image"
+              aria-label={localeMessages.images.closeZoom}
               onClick={(e) => {
                 e.stopPropagation();
                 handleClose();
@@ -497,6 +504,7 @@ function ImageZoom({ src, alt = "Image preview", children }: ImageZoomProps) {
 }
 
 function ImageGenerating({ className }: { className?: string }) {
+  const localeMessages = useAgentUILocale();
   return (
     <div
       data-slot="image-generating"
@@ -506,7 +514,7 @@ function ImageGenerating({ className }: { className?: string }) {
       )}
     >
       <Loader2Icon className="text-muted-foreground size-8 animate-spin" />
-      <span className="sr-only">Generating image…</span>
+      <span className="sr-only">{localeMessages.images.generating}</span>
     </div>
   );
 }
@@ -518,6 +526,7 @@ function ImageContentFilterError({
   className?: string;
   reason?: string;
 }) {
+  const localeMessages = useAgentUILocale();
   return (
     <div
       data-slot="image-content-filter-error"
@@ -527,7 +536,7 @@ function ImageContentFilterError({
       )}
     >
       <ShieldAlertIcon className="text-muted-foreground size-8" />
-      <p className="text-sm font-medium">Image could not be generated</p>
+      <p className="text-sm font-medium">{localeMessages.images.generationFailed}</p>
       {reason && <p className="text-muted-foreground text-xs">{reason}</p>}
     </div>
   );
@@ -548,6 +557,7 @@ function RegenerateButton({
 }: {
   onRegenerate: () => void | Promise<void>;
 }) {
+  const localeMessages = useAgentUILocale();
   const [isRegenerating, setIsRegenerating] = useState(false);
   return (
     <button
@@ -563,7 +573,7 @@ function RegenerateButton({
       }}
       disabled={isRegenerating}
       data-slot="image-regenerate"
-      aria-label="Regenerate image"
+      aria-label={localeMessages.images.regenerate}
       className="hover:bg-muted inline-flex size-7 items-center justify-center rounded disabled:opacity-50"
     >
       <RefreshCwIcon
@@ -574,6 +584,7 @@ function RegenerateButton({
 }
 
 function ImageActions({ part, onRegenerate, className }: ImageActionsProps) {
+  const localeMessages = useAgentUILocale();
   return (
     <div
       data-slot="image-actions"
@@ -583,7 +594,7 @@ function ImageActions({ part, onRegenerate, className }: ImageActionsProps) {
         type="button"
         onClick={() => downloadImagePart(part)}
         data-slot="image-download"
-        aria-label="Download image"
+        aria-label={localeMessages.images.download}
         className="hover:bg-muted inline-flex size-7 items-center justify-center rounded"
       >
         <DownloadIcon className="size-4" />
@@ -594,7 +605,7 @@ function ImageActions({ part, onRegenerate, className }: ImageActionsProps) {
           copyImagePart(part).catch(() => {});
         }}
         data-slot="image-copy"
-        aria-label="Copy image"
+        aria-label={localeMessages.images.copy}
         className="hover:bg-muted inline-flex size-7 items-center justify-center rounded"
       >
         <CopyIcon className="size-4" />
@@ -605,6 +616,7 @@ function ImageActions({ part, onRegenerate, className }: ImageActionsProps) {
 }
 
 const ImageImpl: ImageMessagePartComponent = (props) => {
+  const localeMessages = useAgentUILocale();
   const { image, filename, status } = props;
 
   if (status?.type === "running") {
@@ -619,15 +631,15 @@ const ImageImpl: ImageMessagePartComponent = (props) => {
   if (status?.type === "incomplete" && status.reason === "content-filter") {
     return (
       <ImageRoot>
-        <ImageContentFilterError reason="The provider blocked this image." />
+        <ImageContentFilterError reason={localeMessages.images.blocked} />
       </ImageRoot>
     );
   }
 
   return (
     <ImageRoot>
-      <ImageZoom src={image} alt={filename || "Image content"}>
-        <ImagePreview src={image} alt={filename || "Image content"} />
+      <ImageZoom src={image} alt={filename || localeMessages.images.content}>
+        <ImagePreview src={image} alt={filename || localeMessages.images.content} />
       </ImageZoom>
       <ImageFilename>{filename}</ImageFilename>
     </ImageRoot>

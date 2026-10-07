@@ -1,0 +1,367 @@
+{
+  "components/assistant-ui/elements/quote.aui.tsx": {
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "}: ComponentProps<typeof SelectionToolbarPrimitive.Quote>) {\n",
+        "after": "}: ComponentProps<typeof SelectionToolbarPrimitive.Quote>) {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "          Quote\n        </>\n",
+        "after": "\n          {localeMessages.quote.quote}\n        </>\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "}: ComponentProps<typeof ComposerPrimitive.QuoteDismiss>) {\n",
+        "after": "}: ComponentProps<typeof ComposerPrimitive.QuoteDismiss>) {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "          aria-label=\"Dismiss quote\"\n",
+        "after": "          aria-label={localeMessages.quote.dismiss}\n",
+        "expectedCount": 1
+      }
+    ]
+  },
+  "components/assistant-ui/elements/image.tsx": {
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "  alt = \"Image content\",\n",
+        "after": "  alt,\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "}: ImagePreviewProps) {\n",
+        "after": "}: ImagePreviewProps) {\n  const localeMessages = useAgentUILocale();\n  alt ??= localeMessages.images.content;\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "}: ImageSourceProps) {\n",
+        "after": "}: ImageSourceProps) {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "          <span className=\"sr-only\"> (opens in a new tab)</span>\n",
+        "after": "          <span className=\"sr-only\">  {localeMessages.images.newTab}</span>\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "function ImageZoom({ src, alt = \"Image preview\", children }: ImageZoomProps) {\n",
+        "after": "function ImageZoom({ src, alt, children }: ImageZoomProps) {\n  const localeMessages = useAgentUILocale();\n  alt ??= localeMessages.images.preview;\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "        aria-label=\"Click to zoom image\"\n",
+        "after": "        aria-label={localeMessages.images.zoom}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "            aria-label=\"Zoomed image\"\n",
+        "after": "            aria-label={localeMessages.images.zoomed}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "              aria-label=\"Close zoomed image\"\n",
+        "after": "              aria-label={localeMessages.images.closeZoom}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "function ImageGenerating({ className }: { className?: string }) {\n",
+        "after": "function ImageGenerating({ className }: { className?: string }) {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "      <span className=\"sr-only\">Generating image…</span>\n",
+        "after": "      <span className=\"sr-only\">{localeMessages.images.generating}</span>\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "  reason?: string;\n}) {\n",
+        "after": "  reason?: string;\n}) {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "      <p className=\"text-sm font-medium\">Image could not be generated</p>\n",
+        "after": "      <p className=\"text-sm font-medium\">{localeMessages.images.generationFailed}</p>\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "  onRegenerate: () => void | Promise<void>;\n}) {\n",
+        "after": "  onRegenerate: () => void | Promise<void>;\n}) {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "      aria-label=\"Regenerate image\"\n",
+        "after": "      aria-label={localeMessages.images.regenerate}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "function ImageActions({ part, onRegenerate, className }: ImageActionsProps) {\n",
+        "after": "function ImageActions({ part, onRegenerate, className }: ImageActionsProps) {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "        aria-label=\"Download image\"\n",
+        "after": "        aria-label={localeMessages.images.download}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "        aria-label=\"Copy image\"\n",
+        "after": "        aria-label={localeMessages.images.copy}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "const ImageImpl: ImageMessagePartComponent = (props) => {\n",
+        "after": "const ImageImpl: ImageMessagePartComponent = (props) => {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "        <ImageContentFilterError reason=\"The provider blocked this image.\" />\n",
+        "after": "        <ImageContentFilterError reason={localeMessages.images.blocked} />\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "      <ImageZoom src={image} alt={filename || \"Image content\"}>\n        <ImagePreview src={image} alt={filename || \"Image content\"} />\n",
+        "after": "      <ImageZoom src={image} alt={filename || localeMessages.images.content}>\n        <ImagePreview src={image} alt={filename || localeMessages.images.content} />\n",
+        "expectedCount": 1
+      }
+    ]
+  },
+  "components/assistant-ui/elements/agent-status.aui.tsx": {
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "export const TaskTray: FC<{ className?: string }> = ({ className }) => {\n",
+        "after": "export const TaskTray: FC<{ className?: string }> = ({ className }) => {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "          aria-label=\"Tasks\"\n",
+        "after": "          aria-label={localeMessages.tasks.title}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "                Show {Math.min(hidden, TASK_PAGE_SIZE)} more\n              </button>\n",
+        "after": "\n                {localeMessages.common.show} {Math.min(hidden, TASK_PAGE_SIZE)}  {localeMessages.common.more}\n              </button>\n",
+        "expectedCount": 1
+      }
+    ]
+  },
+  "components/assistant-ui/elements/attachment.aui.tsx": {
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "const AttachmentPreview: FC<AttachmentPreviewProps> = ({ src }) => {\n",
+        "after": "const AttachmentPreview: FC<AttachmentPreviewProps> = ({ src }) => {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "      src={src}\n      alt=\"Attachment preview\"\n",
+        "after": "      src={src}\n      alt={localeMessages.attachments.preview}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "const AttachmentPreviewDialog: FC<PropsWithChildren> = ({ children }) => {\n",
+        "after": "const AttachmentPreviewDialog: FC<PropsWithChildren> = ({ children }) => {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "          Image Attachment Preview\n        </DialogTitle>\n",
+        "after": "\n          {localeMessages.attachments.imagePreview}\n        </DialogTitle>\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "const AttachmentThumb: FC = () => {\n",
+        "after": "const AttachmentThumb: FC = () => {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "        alt=\"Attachment preview\"\n",
+        "after": "        alt={localeMessages.attachments.preview}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "const AttachmentUI: FC = () => {\n",
+        "after": "const AttachmentUI: FC = () => {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "      ? (s.attachment.status.message ?? \"Upload failed\")\n",
+        "after": "      ? (s.attachment.status.message ?? localeMessages.attachments.uploadFailed)\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "const AttachmentRemove: FC = () => {\n",
+        "after": "const AttachmentRemove: FC = () => {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "          tooltip=\"Remove file\"\n",
+        "after": "          tooltip={localeMessages.attachments.remove}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "export const ComposerAddAttachment: FC = () => {\n",
+        "after": "export const ComposerAddAttachment: FC = () => {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "          tooltip=\"Add Attachment\"\n",
+        "after": "          tooltip={localeMessages.composer.addAttachment}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "          aria-label=\"Add Attachment\"\n",
+        "after": "          aria-label={localeMessages.composer.addAttachment}\n",
+        "expectedCount": 1
+      }
+    ]
+  },
+  "components/assistant-ui/elements/web-search.tsx": {
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "}) {\n",
+        "after": "}) {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "            {labels?.searching ?? \"Searching\"}\n",
+        "after": "            {labels?.searching ?? localeMessages.search.searching}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "            {labels?.complete.replace(\"{count}\", String(results.length)) ?? \"Read 3 sources\"}\n",
+        "after": "            {labels?.complete.replace(\"{count}\", String(results.length)) ?? localeMessages.search.readSources}\n",
+        "expectedCount": 1
+      }
+    ]
+  },
+  "components/assistant-ui/elements/task-card.aui.tsx": {
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "}> = ({ group, className }) => {\n",
+        "after": "}> = ({ group, className }) => {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "          Show {Math.min(hidden, TASK_PAGE_SIZE)} more\n        </button>\n",
+        "after": "\n          {localeMessages.common.show} {Math.min(hidden, TASK_PAGE_SIZE)}  {localeMessages.common.more}\n        </button>\n",
+        "expectedCount": 1
+      }
+    ]
+  },
+  "components/assistant-ui/elements/markdown-text.tsx": {
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "const CodeHeader: FC<CodeHeaderProps> = ({ language, code }) => {\n",
+        "after": "const CodeHeader: FC<CodeHeaderProps> = ({ language, code }) => {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "      <TooltipIconButton tooltip=\"Copy\" onClick={onCopy}>\n",
+        "after": "      <TooltipIconButton tooltip={localeMessages.common.copy} onClick={onCopy}>\n",
+        "expectedCount": 1
+      }
+    ]
+  },
+  "components/assistant-ui/elements/composer-trigger-popover.aui.tsx": {
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "  backLabel = \"Back\",\n  emptyCategoriesLabel = \"No items available\",\n",
+        "after": "  backLabel,\n  emptyCategoriesLabel,\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "  ...props\n}) => {\n",
+        "after": "  ...props\n}) => {\n  const localeMessages = useAgentUILocale();\n  backLabel ??= localeMessages.common.back;\n  emptyCategoriesLabel ??= localeMessages.triggers.noItems;\n",
+        "expectedCount": 1
+      }
+    ]
+  },
+  "components/ui/sidebar.tsx": {
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "  collapsible?: \"offcanvas\" | \"icon\" | \"none\";\n}) {\n",
+        "after": "  collapsible?: \"offcanvas\" | \"icon\" | \"none\";\n}) {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "            <SheetTitle>Sidebar</SheetTitle>\n            <SheetDescription>Displays the mobile sidebar.</SheetDescription>\n",
+        "after": "            <SheetTitle>{localeMessages.accessibility.sidebar}</SheetTitle>\n            <SheetDescription>{localeMessages.accessibility.sidebarDescription}</SheetDescription>\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "}: React.ComponentProps<typeof Button>) {\n",
+        "after": "}: React.ComponentProps<typeof Button>) {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "      <span className=\"sr-only\">Toggle Sidebar</span>\n",
+        "after": "      <span className=\"sr-only\">{localeMessages.accessibility.toggleSidebar}</span>\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "function SidebarRail({ className, ...props }: React.ComponentProps<\"button\">) {\n",
+        "after": "function SidebarRail({ className, ...props }: React.ComponentProps<\"button\">) {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "      aria-label=\"Toggle Sidebar\"\n",
+        "after": "      aria-label={localeMessages.accessibility.toggleSidebar}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "      title=\"Toggle Sidebar\"\n",
+        "after": "      title={localeMessages.accessibility.toggleSidebar}\n",
+        "expectedCount": 1
+      }
+    ]
+  },
+  "components/ui/dialog.tsx": {
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "}: DialogPrimitive.Popup.Props & {\n  showCloseButton?: boolean;\n}) {\n",
+        "after": "}: DialogPrimitive.Popup.Props & {\n  showCloseButton?: boolean;\n}) {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "            <span className=\"sr-only\">Close</span>\n",
+        "after": "            <span className=\"sr-only\">{localeMessages.common.close}</span>\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "}: React.ComponentProps<\"div\"> & {\n  showCloseButton?: boolean;\n}) {\n",
+        "after": "}: React.ComponentProps<\"div\"> & {\n  showCloseButton?: boolean;\n}) {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "          Close\n        </DialogPrimitive.Close>\n",
+        "after": "\n          {localeMessages.common.close}\n        </DialogPrimitive.Close>\n",
+        "expectedCount": 1
+      }
+    ]
+  },
+  "components/ui/sheet.tsx": {
+    "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from \"../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "}) {\n",
+        "after": "}) {\n  const localeMessages = useAgentUILocale();\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "            <span className=\"sr-only\">Close</span>\n",
+        "after": "            <span className=\"sr-only\">{localeMessages.common.close}</span>\n",
+        "expectedCount": 1
+      }
+    ]
+  }
+}

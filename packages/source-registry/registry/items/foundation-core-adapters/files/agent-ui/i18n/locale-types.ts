@@ -1,8 +1,9 @@
+import type { AgentUILocaleMessages as AgentUIPresentationMessages } from "@agent-ui/react";
 export type AgentUILocaleCode = "zh-CN" | "en-US";
 
 export type AgentUIDirection = "ltr" | "rtl";
 
-export interface AgentUILocaleMessages {
+export interface AgentUILocaleMessages extends Omit<AgentUIPresentationMessages, "composer" | "conversation" | "threadList"> {
   layout: {
     open: string;
     close: string;
@@ -29,13 +30,14 @@ export interface AgentUILocaleMessages {
   searchTools: {
     searching: string; sources: string; retrieving: string; passages: string; relevance: string; score: string;
   };
-  composer: { send: string; stop: string; queueSend: string; queued: string; removeQueued: string; };
+  composer: AgentUIPresentationMessages["composer"];
   conversationFeedback: { helpful: string; notHelpful: string; };
   conversationQuote: {
     quote: string;
     dismiss: string;
   };
-  conversation: {
+  conversation: AgentUIPresentationMessages["conversation"] & {
+    welcome: string;
     generationStopped: string;
     editCancel: string;
     editUpdate: string;
@@ -67,7 +69,12 @@ export interface AgentUILocaleMessages {
     opened: string;
     failed: string;
   };
-  threadList: {
+  threadList: AgentUIPresentationMessages["threadList"] & {
+    retry: string;
+    loading: string;
+    empty: string;
+    loadFailed: string;
+    historyFailed: string;
     newThread: string;
     newChat: string;
     search: string;
@@ -76,6 +83,11 @@ export interface AgentUILocaleMessages {
     rename: string;
     archive: string;
     delete: string;
+  };
+  starterSuggestions: {
+    architectureTitle: string; architectureLabel: string; architecturePrompt: string;
+    debugTitle: string; debugLabel: string; debugPrompt: string;
+    nextTitle: string; nextLabel: string; nextPrompt: string;
   };
   theme: {
     settings: string;

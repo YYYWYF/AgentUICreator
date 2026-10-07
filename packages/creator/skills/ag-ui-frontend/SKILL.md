@@ -141,3 +141,14 @@ source or from the presence of related CSS selectors.
 - assistant-ui supports restored A2UI activity history, but the current LangGraph
   checkpoint adapter does not define Activity persistence. Do not claim cold
   history support or add a frontend cache.
+
+## Localization ownership
+
+Vendor-owned code must remain locale-agnostic and unmodified; all product
+localization is owned by AgentUICreator composition, adapters, plugins, and Host
+UI. New user-visible copy must use the existing `useAgentUILocale` namespace and
+complete `en-US` / `zh-CN` dictionaries. Do not create per-Plugin i18n hooks or
+language conditionals. Preserve protocol IDs, enums, schema and persisted fields;
+locale is a view concern. Prefer public props/composition, then owned adapters.
+If upstream lacks a seam, record a localization gap instead of modifying vendor.
+Include `pnpm check:i18n` where available and check new copy during upgrades.

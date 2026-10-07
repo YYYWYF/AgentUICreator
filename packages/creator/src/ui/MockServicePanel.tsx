@@ -1,3 +1,4 @@
+import { useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { FlaskConical, Copy, Check } from "lucide-react";
 import { Badge } from "./components/badge.js";
@@ -8,56 +9,56 @@ import { NativeSelect } from "./components/native-select.js";
 import { CREATOR_MOCK_API_PATH, type CreatorMockState } from "../mock/types.js";
 import type { MockDemoCompatibility } from "../mock/demo-compatibility.js";
 
-const demoTitles: Record<string, string> = {
-  "multimodal-input": "发送文字、图片与文件",
-  "file-output": "工具生成文件并提供下载",
-  "a2ui-form-controls": "A2UI 交互表单",
-  "a2ui-interactive-order": "A2UI 订单确认卡片",
-  "frontend-tool-fill-form": "前端工具填写表单",
-  "frontend-tool-open-dialog": "前端工具打开弹窗",
-  "ask-user-question": "向用户提问并继续回答",
-  "concurrent-conversations": "多个会话同时运行",
-  "multi-message-response": "一次回复包含多条消息",
-  "cancel-before-first-output": "首次回复前取消运行",
-  "agent-plan": "通过工具参数展示执行计划",
-  "agent-status": "通过工具参数展示 Agent 状态",
-  "data-message-chart": "在消息中展示自定义图表",
-  "agent-state-sync": "Agent 状态实时更新任务进度",
-  "approval-resume": "工具调用等待人工审批",
-  "multi-tool": "依次调用多个工具",
-  "nested-subagent-conversation": "子智能体任务卡片",
-  "nested-subagent-error": "子智能体运行错误",
-  "nested-subagent-recursive": "子智能体递归委托任务",
-  "nested-subagent-task-group": "多个子智能体组成任务组",
-  "parallel-tools": "并行调用多个工具",
-  "reasoning-chat": "思考后回复",
-  "reasoning-long-preview": "长篇思考内容预览",
-  "reasoning-tool-success": "思考、调用工具并回答",
-  "simple-chat": "纯文本流式回复",
-  "markdown-showcase": "流式展示 Markdown 内容",
-  "subagent-lifecycle": "子智能体运行生命周期",
-  "tool-error": "工具调用期间发生错误",
-  "tool-long-running": "耗时工具运行与等待",
-};
+function getDemoTitles(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): Record<string, string> { return {
+  "multimodal-input": localeMessages.mock.sendTextImagesAndFiles,
+  "file-output": localeMessages.mock.generateDownloadableFilesWithTools,
+  "a2ui-form-controls": localeMessages.mock.interactiveA2UIForm,
+  "a2ui-interactive-order": localeMessages.mock.a2UIOrderConfirmationCard,
+  "frontend-tool-fill-form": localeMessages.mock.fillAFormWithFrontendTools,
+  "frontend-tool-open-dialog": localeMessages.mock.openADialogWithFrontendTools,
+  "ask-user-question": localeMessages.mock.askTheUserAQuestionAndContinue,
+  "concurrent-conversations": localeMessages.mock.runSeveralConversationsConcurrently,
+  "multi-message-response": localeMessages.mock.multipleMessagesInOneResponse,
+  "cancel-before-first-output": localeMessages.mock.cancelBeforeTheFirstResponse,
+  "agent-plan": localeMessages.mock.showAnExecutionPlanThroughToolArguments,
+  "agent-status": localeMessages.mock.showAgentStatusThroughToolArguments,
+  "data-message-chart": localeMessages.mock.showACustomChartInMessages,
+  "agent-state-sync": localeMessages.mock.updateTaskProgressThroughAgentState,
+  "approval-resume": localeMessages.mock.toolCallAwaitingHumanApproval,
+  "multi-tool": localeMessages.mock.callToolsSequentially,
+  "nested-subagent-conversation": localeMessages.mock.subagentTaskCards,
+  "nested-subagent-error": localeMessages.mock.subagentRunError,
+  "nested-subagent-recursive": localeMessages.mock.recursiveSubagentDelegation,
+  "nested-subagent-task-group": localeMessages.mock.groupMultipleSubagents,
+  "parallel-tools": localeMessages.mock.callToolsInParallel,
+  "reasoning-chat": localeMessages.mock.reasonBeforeResponding,
+  "reasoning-long-preview": localeMessages.mock.previewLongReasoning,
+  "reasoning-tool-success": localeMessages.mock.reasonCallToolsAndRespond,
+  "simple-chat": localeMessages.mock.streamPlainText,
+  "markdown-showcase": localeMessages.mock.streamMarkdown,
+  "subagent-lifecycle": localeMessages.mock.subagentRunLifecycle,
+  "tool-error": localeMessages.mock.errorDuringToolExecution,
+  "tool-long-running": localeMessages.mock.longRunningToolsAndWaiting,
+}; }
 
-const demoGroups = [
-  { title: "对话与消息", ids: ["simple-chat", "multi-message-response", "markdown-showcase", "multimodal-input"] },
-  { title: "思考与回答", ids: ["reasoning-chat", "reasoning-long-preview", "reasoning-tool-success"] },
-  { title: "工具调用", ids: ["multi-tool", "parallel-tools", "tool-long-running", "tool-error", "file-output"] },
-  { title: "前端工具", ids: ["frontend-tool-open-dialog", "frontend-tool-fill-form"] },
-  { title: "提问与审批", ids: ["ask-user-question", "approval-resume"] },
-  { title: "状态与计划", ids: ["agent-state-sync", "agent-plan", "agent-status"] },
-  { title: "内容组件", ids: ["data-message-chart"] },
-  { title: "A2UI 交互界面", ids: ["a2ui-form-controls", "a2ui-interactive-order"] },
-  { title: "子智能体", ids: ["nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive", "nested-subagent-error", "subagent-lifecycle"] },
-  { title: "运行与会话", ids: ["concurrent-conversations", "cancel-before-first-output"] },
-] as const;
-const demoGroupIndex = new Map<string, number>(demoGroups.flatMap((group, index) => group.ids.map(id => [id, index] as const)));
-const demoOrderIndex = new Map<string, number>(demoGroups.flatMap(group => group.ids.map((id, index) => [id, index] as const)));
-const groupIndexFor = (id: string) => demoGroupIndex.get(id) ?? demoGroups.length;
-const groupTitleFor = (id: string) => demoGroups[groupIndexFor(id)]?.title ?? "其他示例";
+function getDemoGroups(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) { return [
+  { title: localeMessages.mock.conversationsAndMessages, ids: ["simple-chat", "multi-message-response", "markdown-showcase", "multimodal-input"] },
+  { title: localeMessages.mock.reasoningAndAnswers, ids: ["reasoning-chat", "reasoning-long-preview", "reasoning-tool-success"] },
+  { title: localeMessages.mock.toolCalls, ids: ["multi-tool", "parallel-tools", "tool-long-running", "tool-error", "file-output"] },
+  { title: localeMessages.mock.frontendTools, ids: ["frontend-tool-open-dialog", "frontend-tool-fill-form"] },
+  { title: localeMessages.mock.questionsAndApprovals, ids: ["ask-user-question", "approval-resume"] },
+  { title: localeMessages.mock.stateAndPlans, ids: ["agent-state-sync", "agent-plan", "agent-status"] },
+  { title: localeMessages.mock.contentComponents, ids: ["data-message-chart"] },
+  { title: localeMessages.mock.a2UIInteractiveUI, ids: ["a2ui-form-controls", "a2ui-interactive-order"] },
+  { title: localeMessages.mock.subagents, ids: ["nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive", "nested-subagent-error", "subagent-lifecycle"] },
+  { title: localeMessages.mock.runsAndConversations, ids: ["concurrent-conversations", "cancel-before-first-output"] },
+] as const; }
+function getDemoGroupIndex(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) { return new Map<string, number>(getDemoGroups(localeMessages).flatMap((group, index) => group.ids.map(id => [id, index] as const))); }
+function getDemoOrderIndex(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) { return new Map<string, number>(getDemoGroups(localeMessages).flatMap(group => group.ids.map((id, index) => [id, index] as const))); }
+const groupIndexFor = (id: string, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) => getDemoGroupIndex(localeMessages).get(id) ?? getDemoGroups(localeMessages).length;
+const groupTitleFor = (id: string, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) => getDemoGroups(localeMessages)[groupIndexFor(id, localeMessages)]?.title ?? localeMessages.mock.otherDemos;
 
-async function mockRequest(route = "", body?: unknown, signal?: AbortSignal): Promise<CreatorMockState> {
+async function mockRequest(route = "", body?: unknown, signal?: AbortSignal, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): Promise<CreatorMockState> {
   const response = await fetch(`${CREATOR_MOCK_API_PATH}${route}`, {
     ...(body === undefined ? {} : {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
@@ -65,14 +66,15 @@ async function mockRequest(route = "", body?: unknown, signal?: AbortSignal): Pr
     ...(signal === undefined ? {} : { signal }),
   });
   if (!response.headers.get("content-type")?.includes("application/json")) {
-    throw new Error("Creator 服务端尚未提供 Mock 控制接口，请重启 Creator 开发服务。");
+    throw new Error(localeMessages.mock.creatorDoesNotProvideTheMockControlAPI);
   }
   const value = await response.json();
-  if (!response.ok) throw new Error(value.error ?? `Mock 请求失败（${response.status}）`);
+  if (!response.ok) throw new Error(value.error ?? formatLocaleMessage(localeMessages.mock.mockRequestFailed, response.status));
   return value as CreatorMockState;
 }
 
 export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
+  const localeMessages = useAgentUILocale();
   const [state, setState] = useState<CreatorMockState | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -97,14 +99,14 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
     setBusy(true); setError(null); setNotice("");
     let latest = compatibility;
     let resourceId = requirements[0]!.id;
-    let projectedError = "资源安装失败，请重试。";
+    let projectedError = localeMessages.mock.resourceInstallationFailedRetry;
     try {
       for (const requirement of requirements) {
         if (current !== compatibilityVersion.current) return;
         if (latest.requirements.some(item => item.id === requirement.id && item.status === "ready")) continue;
         resourceId = requirement.id;
-        projectedError = `${requirement.name} 资源安装失败，请重试。`;
-        setInstallation({ scenarioId, resourceId, status: "installing", message: `正在安装 ${requirement.name} 资源…` });
+        projectedError = formatLocaleMessage(localeMessages.mock.couldNotInstallResourcesRetry, requirement.name);
+        setInstallation({ scenarioId, resourceId, status: "installing", message: formatLocaleMessage(localeMessages.mock.installingResources, requirement.name) });
         const response = await fetch(`${CREATOR_MOCK_API_PATH}/install-resources`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ projectId: compatibility.projectId, resourceId }),
@@ -113,7 +115,7 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
         if (current !== compatibilityVersion.current) return;
         if (!response.ok) {
           if (result.code === "RESOURCE_CONFLICT") {
-            projectedError = `${requirement.name} 资源与当前项目存在兼容性冲突。`;
+            projectedError = formatLocaleMessage(localeMessages.mock.resourcesConflictWithTheCurrentProject, requirement.name);
             setCompatibility(previous => previous === null ? null : ({ ...previous, requirements: previous.requirements.map(item => item.id === resourceId ? { ...item, status: "conflict", installable: false, issue: { code: "RESOURCE_CONFLICT", message: projectedError } } : item) }));
           }
           throw new Error(projectedError);
@@ -124,7 +126,7 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
             !latest.requirements.some(item => item.id === resourceId && item.status === "ready")) throw new Error(projectedError);
       }
       if (latest.requirements.some(item => item.scenarioIds.includes(scenarioId) && item.status !== "ready")) throw new Error(projectedError);
-      setInstallation({ scenarioId, resourceId, status: "success", message: "资源已安装并就绪，可以运行场景。" });
+      setInstallation({ scenarioId, resourceId, status: "success", message: localeMessages.mock.resourcesInstalledAndReadyYouCanRunThe });
     } catch {
       if (current === compatibilityVersion.current) setInstallation({ scenarioId, resourceId, status: "error", message: projectedError });
     } finally { inFlight.current = false; setBusy(false); }
@@ -169,13 +171,13 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
       if (inFlight.current) return;
       const current = version.current;
       try {
-        const next = await mockRequest("", undefined, controller.signal);
+        const next = await mockRequest("", undefined, controller.signal, localeMessages);
         if (!controller.signal.aborted && current === version.current) {
           setState(next); setError(null);
         }
       } catch (failure) {
         if (!controller.signal.aborted && current === version.current) {
-          setError(failure instanceof Error ? failure.message : "无法连接 Mock 服务控制端。");
+          setError(failure instanceof Error ? failure.message : localeMessages.mock.couldNotConnectToMockServiceControl);
         }
       }
     };
@@ -190,16 +192,16 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
     version.current += 1;
     setBusy(true); setError(null); setNotice("");
     try {
-      const next = await mockRequest(route, body);
+      const next = await mockRequest(route, body, undefined, localeMessages);
       setState(next);
       if (route === "/start" && next.endpoint !== null) {
         // Verify the advertised independent URL from the browser, including CORS.
         const check = await fetch(`${next.endpoint}/scenarios`);
-        if (!check.ok) throw new Error(`Mock 服务已启动，但连接检查失败（${check.status}）。`);
+        if (!check.ok) throw new Error(formatLocaleMessage(localeMessages.mock.mockServiceStartedButConnectionCheckFailed, check.status));
       }
       setNotice(message);
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : "Mock 操作失败。");
+      setError(failure instanceof Error ? failure.message : localeMessages.mock.mockOperationFailed);
     } finally { inFlight.current = false; setBusy(false); }
   }
 
@@ -208,98 +210,101 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
     try {
       await navigator.clipboard.writeText(state.endpoint);
       setCopiedEndpoint(state.endpoint);
-      setNotice("Mock 地址已复制。");
-    } catch { setError("无法自动复制，请选中地址手动复制。"); }
+      setNotice(localeMessages.mock.mockAddressCopied);
+    } catch { setError(localeMessages.mock.couldNotCopyAutomaticallySelectTheAddressAnd); }
   }
 
   const localSelected = state?.selection?.type === "recording";
   const selectedRecording = localSelected ? state?.recordings?.find(item => item.id === state.selection.id) : undefined;
   const selected = state?.scenarios.find((scenario) => scenario.id === (resourceSelection ?? state.scenarioId));
-  const titleFor = (scenario: { id: string; title: string }) => demoTitles[scenario.id] ?? scenario.title;
+  const descriptions: Readonly<Record<string, string>> = localeMessages.mockDescriptions;
+  const descriptionFor = (scenario: { id: string; description?: string | undefined }) => descriptions[scenario.id] ?? scenario.description;
+  const titleFor = (scenario: { id: string; title: string }) => getDemoTitles(localeMessages)[scenario.id] ?? scenario.title;
   const search = query.trim().toLocaleLowerCase();
   const scenarios = state?.scenarios.filter((scenario) =>
-    `${scenario.id} ${titleFor(scenario)} ${scenario.title} ${scenario.description ?? ""}`.toLocaleLowerCase().includes(search),
-  ).sort((first, second) => groupIndexFor(first.id) - groupIndexFor(second.id)
-    || (demoOrderIndex.get(first.id) ?? 0) - (demoOrderIndex.get(second.id) ?? 0)) ?? [];
+    `${scenario.id} ${titleFor(scenario)} ${scenario.title} ${descriptionFor(scenario) ?? ""}`.toLocaleLowerCase().includes(search),
+  ).sort((first, second) => groupIndexFor(first.id, localeMessages) - groupIndexFor(second.id, localeMessages)
+    || (getDemoOrderIndex(localeMessages).get(first.id) ?? 0) - (getDemoOrderIndex(localeMessages).get(second.id) ?? 0)) ?? [];
 
   return (
-    <section className="creator-mock-panel creator-ui-scope" id="creator-mock-panel" aria-label="Mock Agent 开发服务" aria-busy={busy}>
+    <section className="creator-mock-panel creator-ui-scope" id="creator-mock-panel" aria-label={localeMessages.mock.mockAgentDevelopmentService} aria-busy={busy}>
       <header>
-        <div className="creator-mock-heading"><FlaskConical aria-hidden="true" /><h2>Mock Agent</h2></div>
-        <p>在本机回放本地 Mock 或预置 Demo，供你的 Agent UI 通过 AG-UI API 连接。</p>
+        <div className="creator-mock-heading"><FlaskConical aria-hidden="true" /><h2>{localeMessages.mock.mockAgent}</h2></div>
+        <p>{localeMessages.mock.replayLocalMockRecordingsOrBuiltInDemos}</p>
       </header>
-      {error === null ? null : <div className="creator-mock-error" role="alert">{error}<Button size="sm" variant="outline" type="button" disabled={busy} onClick={() => setRetry((value) => value + 1)}>重试连接</Button></div>}
-      {state === null ? <p role="status">正在读取 Mock 服务状态…</p> : <>
-        <Card className="creator-mock-service" role="region" aria-label="服务控制">
+      {error === null ? null : <div className="creator-mock-error" role="alert">{error}<Button size="sm" variant="outline" type="button" disabled={busy} onClick={() => setRetry((value) => value + 1)}>{localeMessages.mock.retryConnection}</Button></div>}
+      {state === null ? <p role="status">{localeMessages.mock.readingMockServiceState}</p> : <>
+        <Card className="creator-mock-service" role="region" aria-label={localeMessages.mock.serviceControls}>
           <div className="creator-mock-service-actions">
             <Badge variant="secondary" className="creator-mock-status" data-running={state.status === "running"}>
-              {state.status === "running" ? "运行中" : "未运行"}
+              {state.status === "running" ? localeMessages.mock.running : localeMessages.mock.stopped}
             </Badge>
             <Button size="sm" variant={state.status === "running" ? "outline" : "default"} type="button" disabled={busy} onClick={() => void act(
               state.status === "running" ? "/stop" : "/start", {},
-              state.status === "running" ? "Mock 服务已停止。" : "Mock 服务已启动。Creator Preview 在选择 Mock Agent 时使用当前示例与倍速。",
-            )}>{busy ? "处理中…" : state.status === "running" ? "停止服务" : "启动服务"}</Button>
+              state.status === "running" ? localeMessages.mock.mockServiceStopped : localeMessages.mock.mockServiceStartedCreatorPreviewUsesTheSelected,
+            )}>{busy ? localeMessages.mock.processing : state.status === "running" ? localeMessages.mock.stopService : localeMessages.mock.startService}</Button>
           </div>
-          {state.endpoint === null ? <p>启动后会显示本机地址。系统自动分配可用端口。</p> : <>
+          {state.endpoint === null ? <p>{localeMessages.mock.aLocalAddressAppearsAfterStartingAnAvailable}</p> : <>
             <div className="creator-mock-address-row">
-            <label className="creator-mock-address">AG-UI 地址<Input readOnly value={state.endpoint} onFocus={(event) => event.target.select()} /></label>
+            <label className="creator-mock-address">{localeMessages.mock.aGUIAddress}<Input readOnly value={state.endpoint} onFocus={(event) => event.target.select()} /></label>
             <Button size="sm" variant="outline" type="button" className="creator-mock-copy" data-copied={copiedEndpoint === state.endpoint} onClick={() => void copyAddress()}>
-              {copiedEndpoint === state.endpoint ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}{copiedEndpoint === state.endpoint ? "已复制" : "复制地址"}
+              {copiedEndpoint === state.endpoint ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}{copiedEndpoint === state.endpoint ? localeMessages.mock.copied : localeMessages.mock.copyAddress}
             </Button>
             </div>
             <details className="creator-mock-integration">
-              <summary>如何接入这个地址</summary>
-              <p>将接入组件的 endpoint 或前端环境变量改成这个地址：</p>
+              <summary>{localeMessages.mock.howToConnect}</summary>
+              <p>{localeMessages.mock.setTheComponentEndpointOrFrontendEnvironmentVariable}</p>
               <pre><code>{`<Agent endpoint="${state.endpoint}" />\n\nVITE_AGENT_ENDPOINT=${state.endpoint}`}</code></pre>
-              <p>使用环境变量时，在你自己的前端项目根目录（与 package.json 同级）创建或编辑 <code>.env.local</code>，填写上面的 <code>VITE_AGENT_ENDPOINT</code>。</p>
-              <p>保存后重启这个前端项目的开发服务。组件中显式传入的 endpoint 优先于环境变量。服务停止后此地址不可用，再次启动请复制新地址。</p>
+              <p>{localeMessages.mock.createOrEditThisFileAtTheRoot} <code>.env.local</code>{localeMessages.mock.andEnterTheValueAboveFor} <code>VITE_AGENT_ENDPOINT</code>。</p>
+              <p>{localeMessages.mock.saveAndRestartYourFrontendDevelopmentServerAn}</p>
             </details>
           </>}
-          <p>关闭面板后服务继续运行；退出 Creator 后服务停止。</p>
+          <p>{localeMessages.mock.theServiceKeepsRunningAfterClosingThePanel}</p>
         </Card>
         <p className="creator-mock-notice" role="status">{notice}</p>
-        <section aria-label="选择 Mock 来源">
-          <h3>Mock 来源</h3>
-          <p className="creator-mock-current-demo">当前：<strong>{localSelected ? (selectedRecording?.title ?? state.selection.id) : (selected ? titleFor(selected) : state.scenarioId)}</strong></p>
-          <p>来源：{localSelected ? "本地 Recording" : "预置 Demo"}</p>
-          <details className="creator-mock-demo-help"><summary>Demo 使用说明</summary>
-            <p>选择后，在已接入的 Agent UI 中发送一条消息来播放。正在运行的请求保持原场景。</p>
-            <p>部分 Demo 需要额外的 Agent UI 资源，Creator 会在运行前检查并提示安装。</p>
+        <section aria-label={localeMessages.mock.chooseMockSource}>
+          <h3>{localeMessages.mock.mockSource}</h3>
+          <p className="creator-mock-current-demo">{localeMessages.mock.current}<strong>{localSelected ? (selectedRecording?.title ?? state.selection.id) : (selected ? titleFor(selected) : state.scenarioId)}</strong></p>
+          <p>{localeMessages.mock.source}{localSelected ? localeMessages.mock.localRecording : localeMessages.mock.builtInDemo}</p>
+          <details className="creator-mock-demo-help"><summary>{localeMessages.mock.demoInstructions}</summary>
+            <p>{localeMessages.mock.afterSelectingSendAMessageInTheConnected}</p>
+            <p>{localeMessages.mock.someDemosRequireExtraAgentUIResourcesCreator}</p>
           </details>
-          {compatibility?.status !== "checked" ? <p className="creator-mock-requirement" role="status">{compatibility === null ? "正在检查当前项目的 Demo 支持…" : "无法检查当前项目的资源，请确认已选择并初始化项目。"}</p> : null}
-          <label className="creator-mock-speed">播放时长倍率
-            <NativeSelect disabled={busy} value={state.speed} onChange={(event) => void act("/select", { selection: state.selection ?? { type: "builtin", id: state.scenarioId }, projectId: state.projectId, speed: Number(event.target.value) }, "播放时长已更新，下一次请求生效。") }>
-              <option value={0}>立即完成</option><option value={0.1}>快速测试（0.1×）</option><option value={0.5}>较快（0.5×）</option><option value={1}>正常（1×）</option><option value={2}>较慢（2×）</option>
+          {compatibility?.status !== "checked" ? <p className="creator-mock-requirement" role="status">{compatibility === null ? localeMessages.mock.checkingDemoSupportInTheCurrentProject : localeMessages.mock.couldNotCheckProjectResourcesSelectAndInitialize}</p> : null}
+          <label className="creator-mock-speed">{localeMessages.mock.replayDurationMultiplier}
+            <NativeSelect disabled={busy} value={state.speed} onChange={(event) => void act("/select", { selection: state.selection ?? { type: "builtin", id: state.scenarioId }, projectId: state.projectId, speed: Number(event.target.value) }, localeMessages.mock.replayDurationUpdatedForTheNextRequest) }>
+              <option value={0}>{localeMessages.mock.completeImmediately}</option><option value={0.1}>{localeMessages.mock.fastTest01}</option><option value={0.5}>{localeMessages.mock.faster05}</option><option value={1}>{localeMessages.mock.normal1}</option><option value={2}>{localeMessages.mock.slower2}</option>
             </NativeSelect>
           </label>
-          <label className="creator-mock-search">搜索 Mock<Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="名称、描述或场景 ID" /></label>
-          <section aria-label="本地 Mock">
-            <h3>本地 Mock</h3>
-            <p>将 JSONL 文件放入当前项目的 <code>.agentui/mocks</code>，选择后在 Agent UI 中发送消息回放。</p>
-            {state.recordingsError ? <p role="alert">无法读取本地 Mock：{state.recordingsError}</p> : null}
+          <label className="creator-mock-search">{localeMessages.mock.searchMocks}<Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={localeMessages.mock.nameDescriptionOrScenarioID} /></label>
+          <section aria-label={localeMessages.mock.localMock}>
+            <h3>{localeMessages.mock.localMock}</h3>
+            <p>{localeMessages.mock.placeJSONLFilesInThisDirectoryInYour} <code>.agentui/mocks</code>{localeMessages.mock.thenSelectARecordingAndSendAMessage}</p>
+            {state.recordingsError ? <p role="alert">{localeMessages.mock.couldNotReadLocalMock}{state.recordingsError}</p> : null}
             {(state.recordings ?? []).filter(item => `${item.title} ${item.fileName} ${item.id}`.toLocaleLowerCase().includes(search)).map(recording => <div key={recording.id} className="creator-mock-scenario" data-selected={localSelected && state.selection.id === recording.id}>
               <label className="creator-mock-scenario-choice">
                 <input type="radio" name="creator-mock-scenario" checked={localSelected && state.selection.id === recording.id && resourceSelection === null} disabled={busy || recording.status !== "ready"}
-                  onChange={() => { setResourceSelection(null); void act("/select", { selection: { type: "recording", id: recording.id }, projectId: state.projectId, speed: state.speed }, `已选择 ${recording.title}，下一次请求生效。`); }} />
-                <span><strong>{recording.title}</strong><span>{recording.status === "ready" ? `${recording.eventCount} events · ${(recording.durationMs / 1000).toFixed(1)}s` : `无法读取：${recording.error ?? "无效文件"}`}</span></span>
+                  onChange={() => { setResourceSelection(null); void act("/select", { selection: { type: "recording", id: recording.id }, projectId: state.projectId, speed: state.speed }, formatLocaleMessage(localeMessages.mock.selectedForTheNextRequest, recording.title)); }} />
+                <span><strong>{recording.title}</strong><span>{recording.status === "ready" ? formatLocaleMessage(localeMessages.mock.eventsS, recording.eventCount, (recording.durationMs / 1000).toFixed(1)) : formatLocaleMessage(localeMessages.mock.couldNotRead, recording.error ?? localeMessages.mock.invalidFile)}</span></span>
               </label>
             </div>)}
-            {!(state.recordings ?? []).length && !state.recordingsError ? <p>当前项目还没有本地 Mock 文件。</p> : null}
+            {!(state.recordings ?? []).length && !state.recordingsError ? <p>{localeMessages.mock.noLocalMockFilesInThisProjectYet}</p> : null}
           </section>
-          <h3>预置 Demo</h3>
+          <h3>{localeMessages.mock.builtInDemo}</h3>
           <div className="creator-mock-scenarios">
             {scenarios.map((scenario, index) => <Fragment key={scenario.id}>
-              {index === 0 || groupIndexFor(scenario.id) !== groupIndexFor(scenarios[index - 1]!.id)
-                ? <h4 className="creator-mock-group-heading">{groupTitleFor(scenario.id)}</h4> : null}
+              {index === 0 || groupIndexFor(scenario.id, localeMessages) !== groupIndexFor(scenarios[index - 1]!.id, localeMessages)
+                ? <h4 className="creator-mock-group-heading">{groupTitleFor(scenario.id, localeMessages)}</h4> : null}
               <div className="creator-mock-scenario" data-selected={!localSelected && scenario.id === state.scenarioId}>
               <label className="creator-mock-scenario-choice">
-              <input type="radio" name="creator-mock-scenario" checked={scenario.id === resourceSelection || (resourceSelection === null && !localSelected && scenario.id === state.scenarioId)} disabled={busy} onChange={() => { if (scenario.resources?.length) setResourceSelection(scenario.id); else { setResourceSelection(null); void act("/select", { scenarioId: scenario.id, speed: state.speed }, `已选择 ${titleFor(scenario)}，下一次请求生效。`); } }} />
-              <span><strong>{titleFor(scenario)}</strong>{scenario.description ? <span>{scenario.description}</span> : null}
+              <input type="radio" name="creator-mock-scenario" checked={scenario.id === resourceSelection || (resourceSelection === null && !localSelected && scenario.id === state.scenarioId)} disabled={busy} onChange={() => { if (scenario.resources?.length) setResourceSelection(scenario.id); else { setResourceSelection(null); void act("/select", { scenarioId: scenario.id, speed: state.speed }, formatLocaleMessage(localeMessages.mock.selectedForTheNextRequest, titleFor(scenario))); } }} />
+              <span><strong>{titleFor(scenario)}</strong>{descriptionFor(scenario) ? <span>{descriptionFor(scenario)}</span> : null}
               </span></label>
               {requirementsFor(scenario.id).length > 0 ? <div className="creator-mock-scenario-footer">
                 <div className="creator-mock-resource-actions">
                   <Button size="sm" variant="outline" type="button" disabled={busy || requirementsFor(scenario.id).some(item => !item.installable)} onClick={() => void installRequirements(scenario.id)}>
-                    安装资源
+
+                    {localeMessages.mock.installResources}
                   </Button>
                 </div>
                 {compatibility?.projectId ? requirementsFor(scenario.id)
@@ -307,16 +312,16 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
                   .map(requirement => <MockResourceDiagnostics key={`${compatibility.projectId}:${requirement.id}:${installation?.status}`} projectId={compatibility.projectId!} resourceId={requirement.id} />) : null}
               </div> : null}
               {scenario.resources?.length && resourceSelection === scenario.id ? <div>
-                <p>{compatibility?.status === "checked" && requirementsFor(scenario.id).length === 0 ? "所需资源已就绪" : "此场景需要额外的 Agent UI 资源，请先安装资源。"}</p>
+                <p>{compatibility?.status === "checked" && requirementsFor(scenario.id).length === 0 ? localeMessages.mock.requiredResourcesReady : localeMessages.mock.thisScenarioNeedsAdditionalAgentUIResourcesInstall}</p>
                 <Button size="sm" variant="outline" type="button" disabled={busy || compatibility?.status !== "checked" || requirementsFor(scenario.id).length > 0}
-                  onClick={() => void act("/select", { scenarioId: scenario.id, speed: state.speed }, `已启用 ${titleFor(scenario)}，在 Agent UI 中发送消息运行。`)}>运行场景</Button>
+                  onClick={() => void act("/select", { scenarioId: scenario.id, speed: state.speed }, formatLocaleMessage(localeMessages.mock.enabledSendAMessageInAgentUITo, titleFor(scenario)))}>{localeMessages.mock.runScenario}</Button>
               </div> : null}
               {installation?.scenarioId === scenario.id ? <div className="creator-mock-install-status" data-status={installation.status} role={installation.status === "error" ? "alert" : "status"}>{installation.message}</div> : null}
-              {requirementsFor(scenario.id).some(requirement => !requirement.installable && requirement.status !== "conflict") ? <div className="creator-mock-install-status">当前 Creator 宿主尚未配置一键引入。</div> : null}
+              {requirementsFor(scenario.id).some(requirement => !requirement.installable && requirement.status !== "conflict") ? <div className="creator-mock-install-status">{localeMessages.mock.thisCreatorHostDoesNotSupportOneClick}</div> : null}
               </div>
             </Fragment>)}
           </div>
-          {scenarios.length === 0 ? <p>没有匹配的 Demo。</p> : null}
+          {scenarios.length === 0 ? <p>{localeMessages.mock.noMatchingDemos}</p> : null}
         </section>
       </>}
     </section>
@@ -325,6 +330,7 @@ export function MockServicePanel({ projectId }: { projectId?: string } = {}) {
 
 /** Fetch implementation data only after the developer explicitly opens diagnostics. */
 function MockResourceDiagnostics({ projectId, resourceId }: { projectId: string; resourceId: string }) {
+  const localeMessages = useAgentUILocale();
   const [details, setDetails] = useState<string | null>(null);
   const loading = useRef(false);
   const controller = useRef<AbortController | null>(null);
@@ -336,14 +342,14 @@ function MockResourceDiagnostics({ projectId, resourceId }: { projectId: string;
     try {
       const response = await fetch(`${CREATOR_MOCK_API_PATH}/resource-diagnostics`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ projectId, resourceId }), signal: controller.current.signal });
       const result = await response.json();
-      if (!response.ok) throw new Error("无法读取技术详情，请刷新后重试。");
+      if (!response.ok) throw new Error(localeMessages.mock.couldNotReadTechnicalDetailsRefreshAndRetry);
       if (!controller.current.signal.aborted) setDetails(JSON.stringify(result, null, 2));
     } catch {
-      if (!controller.current?.signal.aborted) setDetails("无法读取技术详情，请刷新后重试。");
+      if (!controller.current?.signal.aborted) setDetails(localeMessages.mock.couldNotReadTechnicalDetailsRefreshAndRetry);
     } finally { loading.current = false; }
   }
   return <details className="creator-mock-resource-diagnostics" onToggle={event => void load(event.currentTarget.open)}>
-    <summary>查看技术详情</summary>
-    <pre>{details ?? "正在读取技术详情…"}</pre>
+    <summary>{localeMessages.mock.viewTechnicalDetails}</summary>
+    <pre>{details ?? localeMessages.mock.readingTechnicalDetails}</pre>
   </details>;
 }

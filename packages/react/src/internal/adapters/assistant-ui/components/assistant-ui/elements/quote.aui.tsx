@@ -1,5 +1,7 @@
 "use client";
 
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../../../../../../locale.js";
+
 import { memo, type ComponentProps, type FC } from "react";
 import type { QuoteMessagePartComponent } from "@assistant-ui/react";
 import {
@@ -103,6 +105,7 @@ function SelectionToolbarQuote({
   children,
   ...props
 }: ComponentProps<typeof SelectionToolbarPrimitive.Quote>) {
+  const localeMessages = useAgentUILocale();
   return (
     <SelectionToolbarPrimitive.Quote
       data-slot="selection-toolbar-quote"
@@ -115,7 +118,8 @@ function SelectionToolbarQuote({
       {children ?? (
         <>
           <QuoteIcon className="size-3.5" />
-          Quote
+
+          {localeMessages.quote.quote}
         </>
       )}
     </SelectionToolbarPrimitive.Quote>
@@ -210,6 +214,7 @@ function ComposerQuotePreviewDismiss({
   children,
   ...props
 }: ComponentProps<typeof ComposerPrimitive.QuoteDismiss>) {
+  const localeMessages = useAgentUILocale();
   const defaultClassName =
     "shrink-0 rounded-sm p-0.5 text-muted-foreground/70 transition-colors hover:bg-accent hover:text-foreground";
 
@@ -223,7 +228,7 @@ function ComposerQuotePreviewDismiss({
       {children ?? (
         <button
           type="button"
-          aria-label="Dismiss quote"
+          aria-label={localeMessages.quote.dismiss}
           className={cn(defaultClassName, className)}
         >
           <XIcon className="size-3.5" />

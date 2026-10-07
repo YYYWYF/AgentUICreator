@@ -2,6 +2,20 @@ import { readFile, writeFile, mkdir, readdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
+const localizationRecipes = JSON.parse(await readFile(new URL("./product-localization-recipes.json", import.meta.url), "utf8"));
+
+export function applyProductLocalization(source, localPath) {
+  const recipe = localizationRecipes[localPath];
+  if (!recipe) return source;
+  for (const { before, after, expectedCount } of recipe.replacements) {
+    if (source.split(before).length - 1 !== expectedCount) throw new Error(`Product localization anchor changed: ${localPath}. Check new upstream user-facing copy; update the composition seam or record a gap, never patch vendor.`);
+    source = source.replace(before, after);
+  }
+  return source.startsWith('"use client";')
+    ? source.replace('"use client";', '"use client";\n\n' + recipe.importText.trimEnd())
+    : recipe.importText + source;
+}
+
 const PORTAL_BRIDGE_ID = "agent-ui-scoped-overlay-adapter";
 const PORTAL_BRIDGE_FILES = ["components/assistant-ui/elements/image.tsx", ...["dialog", "popover", "sheet", "tooltip"].map(name => `components/ui/${name}.tsx`)];
 function replaceExactlyOnce(source, before, after, localPath) {
@@ -144,6 +158,7 @@ export async function prepareProductAdapters(vendorDirectory = defaultVendorRoot
       const relative = path.posix.relative(path.posix.dirname(filename), `../../vendor/assistant-ui/${target}`).replace(/\.tsx?$/u, ".js");
       return `${prefix}"${relative.startsWith(".") ? relative : `./${relative}`}"`;
     });
+    installed = applyProductLocalization(installed, filename);
     files.push({ localPath: filename, upstreamInstalledSha256: hash(clean), installedSha256: hash(installed), source: installed });
   }
   return { revision: provenance.revision, files };

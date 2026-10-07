@@ -1,3 +1,4 @@
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "./locale.js";
 import { ConversationActionMoreMenu as InternalConversationActionMoreMenu, ConversationActionMoreMenuItem as InternalConversationActionMoreMenuItem } from "./internal/style-boundary/ConversationActionMoreMenu.js";
 import { ComposerTextareaInput as InternalComposerTextareaInput } from "./internal/composer-input-host-context.js";
 import type { AgentUITheme } from "./theme/theme-contract.js";
@@ -364,11 +365,15 @@ export interface ConversationCanonicalComposerProps {
  * content while assistant-ui owns the Root, attachment, input, and state.
  */
 export function ConversationCanonicalComposer({
-  placeholder = "Send a message...",
-  inputAriaLabel = "Message input",
-  queueLabels = { queued: "Pending", removeQueued: "Remove queued message" },
+  placeholder,
+  inputAriaLabel,
+  queueLabels,
   ...props
 }: Readonly<ConversationCanonicalComposerProps>) {
+  const localeMessages = useAgentUILocale();
+  placeholder ??= localeMessages.composer.placeholder;
+  inputAriaLabel ??= localeMessages.composer.input;
+  queueLabels ??= { queued: localeMessages.composer.queued, removeQueued: localeMessages.composer.removeQueued };
   return (
     <InternalConversationCanonicalComposer
       {...props}
@@ -438,7 +443,9 @@ export function useConversationComposer(): ConversationComposerController {
   };
 }
 
-export function ConversationComposerAddAttachment({ label = "Add Attachment" }: Readonly<{ label?: string }> = {}) {
+export function ConversationComposerAddAttachment({ label }: Readonly<{ label?: string }> = {}) {
+  const localeMessages = useAgentUILocale();
+  label ??= localeMessages.composer.addAttachment;
   return <InternalConversationComposerAddAttachment label={label} />;
 }
 
@@ -457,10 +464,11 @@ export function ConversationComposerDictate({
   ariaLabel,
   label,
 }: Readonly<ConversationComposerDictateProps> = {}) {
+  const localeMessages = useAgentUILocale();
   return (
     <InternalConversationComposerDictate
-      tooltip={tooltip ?? label ?? "Voice input"}
-      ariaLabel={ariaLabel ?? label ?? "Start voice input"}
+      tooltip={tooltip ?? label ?? localeMessages.composer.voiceInput}
+      ariaLabel={ariaLabel ?? label ?? localeMessages.composer.startVoice}
     />
   );
 }
@@ -480,19 +488,25 @@ export function ConversationComposerStopDictation({
   ariaLabel,
   label,
 }: Readonly<ConversationComposerStopDictationProps> = {}) {
+  const localeMessages = useAgentUILocale();
   return (
     <InternalConversationComposerStopDictation
-      tooltip={tooltip ?? label ?? "Stop dictation"}
-      ariaLabel={ariaLabel ?? label ?? "Stop voice input"}
+      tooltip={tooltip ?? label ?? localeMessages.composer.stopDictation}
+      ariaLabel={ariaLabel ?? label ?? localeMessages.composer.stopVoice}
     />
   );
 }
 
-export function ConversationComposerSend({ label = "Send message", queueLabel = "Queue message" }: Readonly<{ label?: string; queueLabel?: string }> = {}) {
+export function ConversationComposerSend({ label, queueLabel }: Readonly<{ label?: string; queueLabel?: string }> = {}) {
+  const localeMessages = useAgentUILocale();
+  label ??= localeMessages.composer.send;
+  queueLabel ??= localeMessages.composer.queueSend;
   return <InternalConversationComposerSend label={label} queueLabel={queueLabel} />;
 }
 
-export function ConversationComposerCancel({ label = "Stop generating" }: Readonly<{ label?: string }> = {}) {
+export function ConversationComposerCancel({ label }: Readonly<{ label?: string }> = {}) {
+  const localeMessages = useAgentUILocale();
+  label ??= localeMessages.composer.stop;
   return <InternalConversationComposerCancel label={label} />;
 }
 
@@ -662,6 +676,20 @@ export interface ConversationFileProps {
 
 /** Official File presentation and download behavior behind the public facade. */
 export function ConversationFile(props: Readonly<ConversationFileProps>) {
+  const messages = useAgentUILocale("files");
+  // Compose public upstream parts for URL file cards. Media and encoded payloads
+  // retain the upstream high-level presentation and its parsing/size behavior.
+  if ((props.sourceType === "url" || /^(https?:\/\/|blob:)/i.test(props.data)) && !/^(audio|video)\//i.test(props.mimeType) && !/^data:/i.test(props.data)) {
+    const filename = props.filename || messages.unnamed;
+    return <InternalFile.Root>
+      <InternalFile.Icon mimeType={props.mimeType} />
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5"><InternalFile.Name>{filename}</InternalFile.Name></div>
+      <InternalFile.Download data={props.data} mimeType={props.mimeType}
+        {...(props.filename === undefined ? {} : { filename: props.filename })}
+        {...(props.sourceType === undefined ? {} : { sourceType: props.sourceType })}
+        aria-label={messages.download.replace("{filename}", () => filename)} />
+    </InternalFile.Root>;
+  }
   return <InternalFile type="file" status={{ type: "complete" }} {...props} />;
 }
 
@@ -715,9 +743,10 @@ export function ConversationActionExportMarkdown({
 }
 
 export function ConversationCanonicalCopyAction() {
+  const localeMessages = useAgentUILocale();
   return (
     <ConversationActionCopy>
-      <ConversationTooltipIconButton tooltip="Copy">
+      <ConversationTooltipIconButton tooltip={localeMessages.common.copy}>
         <ConversationIf condition={(state) => state.message.isCopied}>
           <CheckIcon
             data-slot="assistant-ui-copy-action-copied"
@@ -736,9 +765,10 @@ export function ConversationCanonicalCopyAction() {
 }
 
 export function ConversationCanonicalReloadAction() {
+  const localeMessages = useAgentUILocale();
   return (
     <ConversationActionReload>
-      <ConversationTooltipIconButton tooltip="Refresh">
+      <ConversationTooltipIconButton tooltip={localeMessages.common.refresh}>
         <RefreshCwIcon />
       </ConversationTooltipIconButton>
     </ConversationActionReload>
@@ -746,9 +776,10 @@ export function ConversationCanonicalReloadAction() {
 }
 
 export function ConversationCanonicalExportMarkdownAction() {
+  const localeMessages = useAgentUILocale();
   return (
     <ConversationActionExportMarkdown>
-      <ConversationTooltipIconButton tooltip="Export as Markdown" type="button">
+      <ConversationTooltipIconButton tooltip={localeMessages.conversation.exportMarkdown} type="button">
         <DownloadIcon />
       </ConversationTooltipIconButton>
     </ConversationActionExportMarkdown>
@@ -766,10 +797,13 @@ export interface ConversationBranchPickerProps
 
 export function ConversationBranchPicker({
   className,
-  nextLabel = "Next",
-  previousLabel = "Previous",
+  nextLabel,
+  previousLabel,
   ...rest
 }: Readonly<ConversationBranchPickerProps>) {
+  const localeMessages = useAgentUILocale();
+  nextLabel ??= localeMessages.common.next;
+  previousLabel ??= localeMessages.common.previous;
   return (
     <BranchPickerPrimitive.Root
       hideWhenSingleBranch
@@ -1331,3 +1365,6 @@ export function ConversationActionMoreMenuItem(props: {
 }): ReactElement {
   return <InternalConversationActionMoreMenuItem {...props} />;
 }
+
+export { AgentUILocaleProvider, useAgentUILocale, useAgentUILocaleCode, resolveAgentUILocaleMessages, AGENT_UI_PRESENTATION_LOCALES } from "./locale.js";
+export type { AgentUILocaleCode, AgentUILocaleMessages, AgentUILocaleOverrides } from "./locale.js";

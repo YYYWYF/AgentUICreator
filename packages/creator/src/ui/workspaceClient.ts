@@ -1,3 +1,4 @@
+import { useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "./i18n/locale.js";
 import {
   CREATOR_WORKSPACE_API_PATH,
   type CreatorProjectIssue,
@@ -25,7 +26,7 @@ export class CreatorWorkspaceRequestError extends Error {
   }
 }
 
-async function workspaceFetch<T>(route: string, body?: unknown, signal?: AbortSignal): Promise<T> {
+async function workspaceFetch<T>(route: string, body?: unknown, signal?: AbortSignal, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): Promise<T> {
   const response = await fetch(`${CREATOR_WORKSPACE_API_PATH}${route}`, {
     ...(body === undefined ? {} : {
       method: "POST",
@@ -39,23 +40,23 @@ async function workspaceFetch<T>(route: string, body?: unknown, signal?: AbortSi
     const error = typeof result === "object" && result !== null
       ? result as CreatorWorkspaceApiErrorBody
       : {};
-    throw new CreatorWorkspaceRequestError(error.error ?? "工作区请求失败", error);
+    throw new CreatorWorkspaceRequestError(error.error ?? localeMessages.errors.workspaceRequestFailed, error);
   }
   return result as T;
 }
 
-export const getWorkspaceState = () => workspaceFetch<CreatorWorkspacePublicState>("");
-export const selectWorkspaceProject = (projectRoot: string) =>
-  workspaceFetch<CreatorWorkspacePublicState>("/select", { projectRoot });
-export const chooseWorkspaceProject = () =>
-  workspaceFetch<CreatorWorkspacePublicState | { readonly status: "cancelled" }>("/choose-directory", {});
-export const clearWorkspaceProject = () =>
-  workspaceFetch<CreatorWorkspacePublicState>("/clear", {});
-export const refreshWorkspaceProject = () =>
-  workspaceFetch<CreatorWorkspacePublicState>("/refresh", {});
-export const getWorkspaceSetup = (signal?: AbortSignal) =>
-  workspaceFetch<CreatorWorkspaceSetupInfo>("/setup", undefined, signal);
-export const validateWorkspaceSetup = (input: CreatorWorkspaceInitializeInput, signal?: AbortSignal) =>
-  workspaceFetch<CreatorProjectSetupValidation>("/setup/validate", input, signal);
-export const initializeWorkspaceProjectRequest = (input: CreatorWorkspaceInitializeInput) =>
-  workspaceFetch<CreatorWorkspacePublicState>("/initialize", input);
+export const getWorkspaceState = (localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) => workspaceFetch<CreatorWorkspacePublicState>("", undefined, undefined, localeMessages);
+export const selectWorkspaceProject = (projectRoot: string, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) =>
+  workspaceFetch<CreatorWorkspacePublicState>("/select", { projectRoot }, undefined, localeMessages);
+export const chooseWorkspaceProject = (localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) =>
+  workspaceFetch<CreatorWorkspacePublicState | { readonly status: "cancelled" }>("/choose-directory", {}, undefined, localeMessages);
+export const clearWorkspaceProject = (localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) =>
+  workspaceFetch<CreatorWorkspacePublicState>("/clear", {}, undefined, localeMessages);
+export const refreshWorkspaceProject = (localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) =>
+  workspaceFetch<CreatorWorkspacePublicState>("/refresh", {}, undefined, localeMessages);
+export const getWorkspaceSetup = (signal?: AbortSignal, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) =>
+  workspaceFetch<CreatorWorkspaceSetupInfo>("/setup", undefined, signal, localeMessages);
+export const validateWorkspaceSetup = (input: CreatorWorkspaceInitializeInput, signal?: AbortSignal, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) =>
+  workspaceFetch<CreatorProjectSetupValidation>("/setup/validate", input, signal, localeMessages);
+export const initializeWorkspaceProjectRequest = (input: CreatorWorkspaceInitializeInput, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) =>
+  workspaceFetch<CreatorWorkspacePublicState>("/initialize", input, undefined, localeMessages);

@@ -1,5 +1,6 @@
 "use client";
 
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../locale.js";
 import {
   MessagePrimitive,
   ReadonlyThreadProvider,
@@ -124,6 +125,7 @@ function TaskLanes({ group, className }: {
   group: MessagePrimitive.GroupedParts.GroupPart;
   className?: string;
 }) {
+  const localeMessages = useAgentUILocale();
   const [visible, setVisible] = useState(TASK_PAGE_SIZE);
   const { indices, counts } = group;
   // Grouping and run counts come from assistant-ui, never from a product store.
@@ -153,7 +155,7 @@ function TaskLanes({ group, className }: {
         type="button" data-slot="aui_task-group-more"
         onClick={() => setVisible((count) => count + TASK_PAGE_SIZE)}
         className="text-muted-foreground hover:text-foreground w-fit px-1 text-xs transition-colors"
-      >Show {Math.min(hidden, TASK_PAGE_SIZE)} more</button>}
+      >{localeMessages.common.show} {Math.min(hidden, TASK_PAGE_SIZE)}  {localeMessages.common.more}</button>}
     </div>
   );
 }

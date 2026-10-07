@@ -15,7 +15,7 @@ async function removeInternalDeclarations(root, relativeRoot = "") {
       continue;
     }
     const isPublicDeclaration = relativePath === "index.d.ts" ||
-      relativePath === "public.d.ts" || relativePath === "lexical.d.ts" || relativePath === "theme/theme-contract.d.ts";
+      relativePath === "locale.d.ts" || relativePath.startsWith("locales/") || relativePath === "public.d.ts" || relativePath === "lexical.d.ts" || relativePath === "theme/theme-contract.d.ts";
     if (!isPublicDeclaration &&
       (entry.name.endsWith(".d.ts") || entry.name.endsWith(".d.ts.map"))) {
       await rm(entryPath);

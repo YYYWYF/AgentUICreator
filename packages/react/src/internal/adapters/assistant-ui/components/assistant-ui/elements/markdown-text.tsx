@@ -1,5 +1,7 @@
 "use client";
 
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../../../../../../locale.js";
+
 import "@assistant-ui/react-markdown/styles/dot.css";
 
 import {
@@ -60,6 +62,7 @@ const MarkdownTextImpl: FC<MarkdownTextProps> = ({ components }) => {
 export const MarkdownText = memo(MarkdownTextImpl);
 
 const CodeHeader: FC<CodeHeaderProps> = ({ language, code }) => {
+  const localeMessages = useAgentUILocale();
   const { isCopied, copyToClipboard } = useCopyToClipboard();
   const onCopy = () => {
     if (!code || isCopied) return;
@@ -71,7 +74,7 @@ const CodeHeader: FC<CodeHeaderProps> = ({ language, code }) => {
       <span className="aui-code-header-language text-muted-foreground font-medium lowercase">
         {language}
       </span>
-      <TooltipIconButton tooltip="Copy" onClick={onCopy}>
+      <TooltipIconButton tooltip={localeMessages.common.copy} onClick={onCopy}>
         {!isCopied && (
           <CopyIcon className="animate-in zoom-in-75 fade-in duration-150" />
         )}

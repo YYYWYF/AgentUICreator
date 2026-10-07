@@ -1,5 +1,7 @@
 "use client";
 
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../../../../../../locale.js";
+
 import { useAuiState, type TaskState } from "@assistant-ui/react";
 import { ChevronDownIcon } from "lucide-react";
 import { type FC, useMemo, useState } from "react";
@@ -154,6 +156,7 @@ const TaskTrayItem: FC<{ task: TaskState }> = ({ task }) => {
 };
 
 export const TaskTray: FC<{ className?: string }> = ({ className }) => {
+  const localeMessages = useAgentUILocale();
   const tasks = useAuiState((s) => s.thread.tasks);
   const summary = useMemo(() => summarize(tasks), [tasks]);
   const elapsedMs = useTaskElapsed(
@@ -209,7 +212,7 @@ export const TaskTray: FC<{ className?: string }> = ({ className }) => {
       <PopoverContent align="end" className="w-80 p-1">
         <ul
           data-slot="aui_task-tray"
-          aria-label="Tasks"
+          aria-label={localeMessages.tasks.title}
           className="flex max-h-80 flex-col overflow-y-auto"
         >
           {tasks.slice(0, visible).map((task, index) => (
@@ -223,7 +226,8 @@ export const TaskTray: FC<{ className?: string }> = ({ className }) => {
                 onClick={() => setVisible((count) => count + TASK_PAGE_SIZE)}
                 className="text-muted-foreground hover:text-foreground px-2.5 py-2 text-xs transition-colors"
               >
-                Show {Math.min(hidden, TASK_PAGE_SIZE)} more
+
+                {localeMessages.common.show} {Math.min(hidden, TASK_PAGE_SIZE)}  {localeMessages.common.more}
               </button>
             </li>
           )}

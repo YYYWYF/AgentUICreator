@@ -1,5 +1,7 @@
 "use client";
 
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../../../../../../locale.js";
+
 import type { ComponentProps } from "react";
 import { SearchIcon } from "lucide-react";
 import { cn } from "../../../../../vendor/assistant-ui/lib/utils.js";
@@ -31,6 +33,7 @@ export function WebSearch({
   cycle: number;
   labels?: { searching: string; complete: string };
 }) {
+  const localeMessages = useAgentUILocale();
   return (
     <div
       data-slot="web-search"
@@ -50,11 +53,11 @@ export function WebSearch({
       <div className="text-foreground/45 text-xs">
         {searching ? (
           <ShimmerLabel className="relative inline-block leading-none">
-            {labels?.searching ?? "Searching"}
+            {labels?.searching ?? localeMessages.search.searching}
           </ShimmerLabel>
         ) : (
           <span className="fade-in animate-in duration-300">
-            {labels?.complete.replace("{count}", String(results.length)) ?? "Read 3 sources"}
+            {labels?.complete.replace("{count}", String(results.length)) ?? localeMessages.search.readSources}
           </span>
         )}
       </div>

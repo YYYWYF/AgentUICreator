@@ -1,6 +1,8 @@
+import { AGENT_UI_PRESENTATION_LOCALES } from "@agent-ui/react";
 import type { AgentUILocaleMessages } from "../locale-types";
 
 export const zhCN = {
+  ...AGENT_UI_PRESENTATION_LOCALES["zh-CN"],
   layout: {
     open: "打开业务面板",
     close: "关闭业务面板",
@@ -45,13 +47,15 @@ export const zhCN = {
     relevance: "{source} 相关度",
     score: "{score}，满分 1.00",
   },
-  composer: { send: "发送", stop: "停止生成", queueSend: "加入待发送", queued: "待发送", removeQueued: "移除待发送消息" },
+  composer: { ...AGENT_UI_PRESENTATION_LOCALES["zh-CN"].composer, send: "发送", stop: "停止生成", queueSend: "加入待发送", queued: "待发送", removeQueued: "移除待发送消息" },
   conversationFeedback: { helpful: "有帮助", notHelpful: "没有帮助" },
   conversationQuote: {
     quote: "引用",
     dismiss: "取消引用",
   },
   conversation: {
+    ...AGENT_UI_PRESENTATION_LOCALES["zh-CN"].conversation,
+    welcome: "今天有什么可以帮你？",
     generationStopped: "已停止生成",
     editCancel: "取消",
     editUpdate: "更新",
@@ -84,6 +88,13 @@ export const zhCN = {
     failed: "无法打开弹窗",
   },
   threadList: {
+    ...AGENT_UI_PRESENTATION_LOCALES["zh-CN"].threadList,
+    retry: "重试",
+    loading: "正在加载会话列表",
+    empty: "没有找到会话",
+    loadFailed: "加载会话失败",
+    historyFailed: "历史会话加载失败",
+
     newThread: "新建会话",
     newChat: "新会话",
     search: "搜索会话",
@@ -92,6 +103,17 @@ export const zhCN = {
     rename: "重命名",
     archive: "归档",
     delete: "删除",
+  },
+  starterSuggestions: {
+    architectureTitle: "分析 Agent UI 架构",
+    architectureLabel: "检查布局、Plugin 与 Service 边界",
+    architecturePrompt: "帮我分析当前 Agent UI 架构",
+    debugTitle: "调试当前问题",
+    debugLabel: "定位当前界面的异常行为",
+    debugPrompt: "帮我调试当前界面的问题",
+    nextTitle: "建议下一步",
+    nextLabel: "给出一个可执行的后续动作",
+    nextPrompt: "根据当前上下文建议下一步",
   },
   theme: {
     settings: "主题设置",

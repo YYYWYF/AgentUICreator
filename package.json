@@ -43,6 +43,11 @@
     "verify:creator-python-wheel": "node scripts/verify-creator-python-wheel.mjs",
     "test:creator-package-runtime": "node scripts/test-creator-package-runtime.mjs",
     "verify:creator-distribution": "node scripts/verify-creator-distribution.mjs",
-    "check:project-control-contract": "node scripts/check-project-control-contract.mjs"
+    "check:project-control-contract": "node scripts/check-project-control-contract.mjs",
+    "check:i18n": "node scripts/audit-ui-copy.mjs",
+    "audit:ui-copy": "node scripts/audit-ui-copy.mjs --output docs/i18n/ui-copy-audit.json"
+  },
+  "devDependencies": {
+    "typescript-ui-audit": "npm:typescript@5.9.3"
   }
 }

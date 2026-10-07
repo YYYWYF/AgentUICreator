@@ -1,3 +1,4 @@
+import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
 "use client";
 
 import {
@@ -39,13 +40,14 @@ function PolicyThreadListItem() {
 }
 
 const PolicyThreadListSkeleton: FC = () => {
+  const messages = useAgentUILocale("threadList");
   return (
     <div className="flex flex-col gap-0.5">
       {Array.from({ length: 5 }, (_, index) => (
         <div
           key={index}
           role="status"
-          aria-label="Loading threads"
+          aria-label={messages.loading}
           data-slot="aui_thread-list-skeleton-wrapper"
           className="flex h-8 items-center px-2.5"
         >
@@ -62,6 +64,7 @@ const PolicyThreadListSkeleton: FC = () => {
 const PolicyThreadListItemGroups: FC<{ searchQuery?: string }> = ({
   searchQuery = "",
 }) => {
+  const messages = useAgentUILocale("threadList");
   const { threadIds, filteredIndices, groups } = useConversationThreadListGroups(searchQuery);
   const query = searchQuery.trim();
 
@@ -71,7 +74,7 @@ const PolicyThreadListItemGroups: FC<{ searchQuery?: string }> = ({
         data-slot="aui_thread-list-empty"
         className="text-muted-foreground px-2.5 py-4 text-sm"
       >
-        No threads found
+        {messages.empty}
       </div>
     );
   }

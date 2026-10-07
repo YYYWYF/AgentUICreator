@@ -208,5 +208,6 @@
   "plugins/assistant-ui-lexical-composer-input/manifest.json": "packages/source-registry/registry/items/plugin-assistant-ui-lexical-composer-input/files/plugins/assistant-ui-lexical-composer-input/manifest.json",
   "plugins/assistant-ui-feedback-actions/definition.ts": "packages/source-registry/registry/items/plugin-assistant-ui-feedback-actions/files/plugins/assistant-ui-feedback-actions/definition.ts",
   "plugins/assistant-ui-feedback-actions/index.tsx": "packages/source-registry/registry/items/plugin-assistant-ui-feedback-actions/files/plugins/assistant-ui-feedback-actions/index.tsx",
-  "plugins/assistant-ui-feedback-actions/manifest.json": "packages/source-registry/registry/items/plugin-assistant-ui-feedback-actions/files/plugins/assistant-ui-feedback-actions/manifest.json"
+  "plugins/assistant-ui-feedback-actions/manifest.json": "packages/source-registry/registry/items/plugin-assistant-ui-feedback-actions/files/plugins/assistant-ui-feedback-actions/manifest.json",
+  "agent-ui/i18n/AgentUILocaleBridge.tsx": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/AgentUILocaleBridge.tsx"
 }

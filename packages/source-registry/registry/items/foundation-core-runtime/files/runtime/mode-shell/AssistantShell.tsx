@@ -1,3 +1,4 @@
+import { useAgentUILocale } from "@agent-ui/react";
 import { useId, useState, type ReactNode } from "react";
 
 import "./mode-shell.css";
@@ -7,6 +8,7 @@ export interface AssistantShellProps {
 }
 
 export function AssistantShell({ children }: AssistantShellProps) {
+  const messages = useAgentUILocale("runtime");
   const [open, setOpen] = useState(false);
   const panelId = useId();
 
@@ -16,7 +18,7 @@ export function AssistantShell({ children }: AssistantShellProps) {
       data-agent-ui-mode="assistant"
     >
       <div
-        aria-label="Assistant"
+        aria-label={messages.assistant}
         className="agent-ui-assistant-panel"
         hidden={!open}
         id={panelId}
@@ -27,10 +29,10 @@ export function AssistantShell({ children }: AssistantShellProps) {
       <button
         aria-controls={panelId}
         aria-expanded={open}
-        aria-label={open ? "Close assistant" : "Open assistant"}
+        aria-label={open ? messages.closeAssistant : messages.openAssistant}
         className="agent-ui-assistant-trigger"
         onClick={() => setOpen((current) => !current)}
-        title={open ? "Close assistant" : "Open assistant"}
+        title={open ? messages.closeAssistant : messages.openAssistant}
         type="button"
       >
         <span aria-hidden="true">{open ? "\u00d7" : "\u2726"}</span>

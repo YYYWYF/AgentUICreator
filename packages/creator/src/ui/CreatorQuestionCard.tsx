@@ -1,3 +1,4 @@
+import { useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
 import { useState } from "react";
 import type { CreatorQuestionActivity } from "../agent/creatorInterruptTypes.js";
 import { Button } from "./components/button.js";
@@ -8,6 +9,7 @@ export function CreatorQuestionCard({ activity, onAnswer, onAbandon }: {
   onAnswer: (answers: Record<string, string[]>) => void;
   onAbandon: () => void;
 }) {
+  const localeMessages = useAgentUILocale();
   const [answers, setAnswers] = useState<Record<string, string[]>>(activity.answers ?? {});
   const ready = activity.steps.every(step => {
     const selected = answers[step.id] ?? [];
@@ -15,12 +17,12 @@ export function CreatorQuestionCard({ activity, onAnswer, onAbandon }: {
   });
   const inactive = activity.status !== "pending";
 
-  return <article className="creator-question-card creator-ui-scope" aria-label="Creator 问题" data-status={activity.status}>
-    <header className="creator-question-header"><CircleHelp aria-hidden="true" /><span>{activity.status === "resolved" ? "已确认选择" : activity.status === "stale" ? "此问题已失效" : "需要你的选择"}</span></header>
+  return <article className="creator-question-card creator-ui-scope" aria-label={localeMessages.creatorQuestion.creatorQuestion} data-status={activity.status}>
+    <header className="creator-question-header"><CircleHelp aria-hidden="true" /><span>{activity.status === "resolved" ? localeMessages.creatorQuestion.selectionConfirmed : activity.status === "stale" ? localeMessages.creatorQuestion.thisQuestionHasExpired : localeMessages.creatorQuestion.yourSelectionIsNeeded}</span></header>
     {activity.steps.map(step => <fieldset key={step.id} disabled={inactive}>
       <legend>{step.question}</legend>
       {step.description ? <p>{step.description}</p> : null}
-      {activity.status === "pending" ? <small className="creator-question-selection-hint">{step.selectionMode === "single" ? "选择一项" : `选择 ${step.minSelections}–${step.maxSelections} 项`}</small> : null}
+      {activity.status === "pending" ? <small className="creator-question-selection-hint">{step.selectionMode === "single" ? localeMessages.creatorQuestion.chooseOne : formatLocaleMessage(localeMessages.creatorQuestion.chooseItems, step.minSelections, step.maxSelections)}</small> : null}
       {step.options.map(option => {
         const checked = (answers[step.id] ?? []).includes(option.id);
         const shown = activity.status === "resolved" ? (activity.answers?.[step.id] ?? []).includes(option.id) : checked;
@@ -43,9 +45,10 @@ export function CreatorQuestionCard({ activity, onAnswer, onAbandon }: {
     </fieldset>)}
     {activity.status === "pending" ? <div className="creator-question-actions"><Button size="sm" type="button" disabled={!ready}
       onClick={() => onAnswer(Object.fromEntries(activity.steps.map(step => [step.id, answers[step.id] ?? []])))}>
-      确认选择
-    </Button><Button size="sm" variant="ghost" type="button" onClick={onAbandon}>放弃本次任务</Button></div> : null}
-    {activity.status === "submitting" ? <p role="status">正在继续 Creator 任务…</p> : null}
-    {activity.status === "stale" ? <p role="alert">这个问题对应的 Agent 执行状态已经失效，请重新发起请求。</p> : null}
+
+      {localeMessages.creatorQuestion.confirmSelection}
+    </Button><Button size="sm" variant="ghost" type="button" onClick={onAbandon}>{localeMessages.creatorQuestion.abandonThisTask}</Button></div> : null}
+    {activity.status === "submitting" ? <p role="status">{localeMessages.creatorQuestion.continuingCreatorTask}</p> : null}
+    {activity.status === "stale" ? <p role="alert">{localeMessages.creatorQuestion.thisQuestionSAgentExecutionHasExpiredStart}</p> : null}
   </article>;
 }
