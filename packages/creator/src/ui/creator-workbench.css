@@ -2130,7 +2130,7 @@
 }
 
 @container creator-panel (max-width: 420px) {
-  .creator-panel-composer small {
+  .creator-panel-composer > div:not(.creator-command-menu) small {
     display: none;
   }
 }
