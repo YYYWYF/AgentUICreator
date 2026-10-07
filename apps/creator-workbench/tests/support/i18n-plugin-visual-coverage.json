@@ -1,0 +1,240 @@
+{
+  "agent-plan-message": {
+    "kind": "visual",
+    "scenarios": [
+      "agent-plan"
+    ]
+  },
+  "agent-status-message": {
+    "kind": "visual",
+    "scenarios": [
+      "agent-status"
+    ]
+  },
+  "assistant-ui-add-attachment-action": {
+    "kind": "visual",
+    "scenarios": [
+      "mention empty"
+    ]
+  },
+  "assistant-ui-composer": {
+    "kind": "visual",
+    "scenarios": [
+      "empty",
+      "locale switch"
+    ]
+  },
+  "assistant-ui-copy-action": {
+    "kind": "visual",
+    "scenarios": [
+      "simple-chat"
+    ]
+  },
+  "assistant-ui-dictation-action": {
+    "kind": "visual",
+    "scenarios": [
+      "mention empty"
+    ]
+  },
+  "assistant-ui-export-markdown-action": {
+    "kind": "visual",
+    "scenarios": [
+      "mention empty"
+    ]
+  },
+  "assistant-ui-feedback-actions": {
+    "kind": "visual",
+    "scenarios": [
+      "simple-chat",
+      "mention empty"
+    ]
+  },
+  "assistant-ui-lexical-composer-input": {
+    "kind": "visual",
+    "scenarios": [
+      "locale switch",
+      "mention empty"
+    ]
+  },
+  "assistant-ui-lexical-edit-composer": {
+    "kind": "visual",
+    "scenarios": [
+      "mention empty"
+    ]
+  },
+  "assistant-ui-mention-trigger": {
+    "kind": "visual",
+    "scenarios": [
+      "mention empty",
+      "locale switch"
+    ]
+  },
+  "assistant-ui-message-footer": {
+    "kind": "visual",
+    "scenarios": [
+      "compatibility message footer"
+    ]
+  },
+  "assistant-ui-reasoning": {
+    "kind": "visual",
+    "scenarios": [
+      "reasoning-tool-success",
+      "tool-long-running"
+    ]
+  },
+  "assistant-ui-reload-action": {
+    "kind": "visual",
+    "scenarios": [
+      "simple-chat"
+    ]
+  },
+  "assistant-ui-response-footer": {
+    "kind": "visual",
+    "scenarios": [
+      "simple-chat",
+      "theme, command",
+      "mention empty"
+    ]
+  },
+  "assistant-ui-slash-command-trigger": {
+    "kind": "visual",
+    "scenarios": [
+      "theme, command",
+      "locale switch"
+    ]
+  },
+  "assistant-ui-submit-action": {
+    "kind": "visual",
+    "scenarios": [
+      "empty",
+      "simple-chat",
+      "tool-long-running"
+    ]
+  },
+  "assistant-ui-tool-fallback": {
+    "kind": "visual",
+    "scenarios": [
+      "tool-error",
+      "reasoning-tool-success"
+    ]
+  },
+  "assistant-ui-tool-group": {
+    "kind": "visual",
+    "scenarios": [
+      "tool-error",
+      "tool-long-running"
+    ]
+  },
+  "chart-message": {
+    "kind": "visual",
+    "scenarios": [
+      "data-message-chart"
+    ]
+  },
+  "conversation-command-source": {
+    "kind": "headless",
+    "scenarios": [
+      "theme, command",
+      "locale switch"
+    ]
+  },
+  "conversation-data-source": {
+    "kind": "headless",
+    "scenarios": [
+      "thread history",
+      "thread loading"
+    ]
+  },
+  "conversation-quote": {
+    "kind": "visual",
+    "scenarios": [
+      "quote selection"
+    ]
+  },
+  "conversation-service": {
+    "kind": "headless",
+    "scenarios": [
+      "thread history",
+      "locale switch"
+    ]
+  },
+  "conversation-suggestions": {
+    "kind": "visual",
+    "scenarios": [
+      "empty"
+    ]
+  },
+  "conversation-surface": {
+    "kind": "visual",
+    "scenarios": [
+      "empty",
+      "simple-chat",
+      "markdown-showcase",
+      "header stays above"
+    ]
+  },
+  "conversation-thread-list": {
+    "kind": "visual",
+    "scenarios": [
+      "thread history",
+      "thread loading",
+      "thread list localization"
+    ]
+  },
+  "generated-file-message": {
+    "kind": "visual",
+    "scenarios": [
+      "file-output"
+    ]
+  },
+  "job-progress-message": {
+    "kind": "visual",
+    "scenarios": [
+      "agent-state-sync"
+    ]
+  },
+  "locale-provider": {
+    "kind": "headless",
+    "scenarios": [
+      "locale switch",
+      "thread history"
+    ]
+  },
+  "retrieval-chunks": {
+    "kind": "visual",
+    "scenarios": [
+      "retrieval-chunks"
+    ]
+  },
+  "source-citations-message": {
+    "kind": "visual",
+    "scenarios": [
+      "source-citations"
+    ]
+  },
+  "task-group": {
+    "kind": "visual",
+    "scenarios": [
+      "nested-subagent-task-group"
+    ]
+  },
+  "theme-provider": {
+    "kind": "headless",
+    "scenarios": [
+      "theme, command",
+      "locale switch"
+    ]
+  },
+  "theme-switch": {
+    "kind": "visual",
+    "scenarios": [
+      "theme, command"
+    ]
+  },
+  "web-search": {
+    "kind": "visual",
+    "scenarios": [
+      "web-search"
+    ]
+  }
+}

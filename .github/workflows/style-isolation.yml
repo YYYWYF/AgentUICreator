@@ -8,6 +8,8 @@ on:
       - 'packages/mock-agent/**'
       - 'packages/bootstrap/**'
       - 'packages/react/**'
+      - 'packages/runtime-*/**'
+      - 'scripts/**'
       - 'packages/project-control/**'
       - 'packages/source-registry/**'
       - 'examples/creator-embedded-host/**'
@@ -22,6 +24,8 @@ on:
       - 'packages/mock-agent/**'
       - 'packages/bootstrap/**'
       - 'packages/react/**'
+      - 'packages/runtime-*/**'
+      - 'scripts/**'
       - 'packages/project-control/**'
       - 'packages/source-registry/**'
       - 'examples/creator-embedded-host/**'
@@ -113,3 +117,31 @@ jobs:
           name: theme-command-test-results
           path: apps/creator-workbench/test-results/
           if-no-files-found: ignore
+
+  i18n-plugin-visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @agent-ui/creator-workbench exec playwright install --with-deps chromium
+      - run: node scripts/prepare-workbench.mjs
+      - run: pnpm check:i18n
+      - run: pnpm --filter @agent-ui/creator-workbench test:e2e:i18n-plugin-visual
+        env:
+          AGENT_UI_WORKBENCH_PREPARED: '1'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: i18n-plugin-visual
+          path: |
+            apps/creator-workbench/test-results/i18n-plugin-visual/
+            apps/creator-workbench/playwright-report/i18n-plugin-visual/
+          if-no-files-found: error

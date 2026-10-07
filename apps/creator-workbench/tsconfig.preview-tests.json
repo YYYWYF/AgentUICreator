@@ -4,6 +4,9 @@
     "tests/agent-connection-host.spec.ts",
     "tests/support/agent-connection-host.ts",
     "playwright.agent-connection.config.ts",
+    "tests/i18n-plugin-visual.spec.ts",
+    "tests/support/i18n-plugin-visual-host.ts",
+    "playwright.i18n-plugin-visual.config.ts",
     "tests/creator-theme-host.spec.ts",
     "playwright.theme-commands.config.ts"
   ]
