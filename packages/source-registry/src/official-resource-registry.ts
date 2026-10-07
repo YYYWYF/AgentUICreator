@@ -25,7 +25,7 @@ export function createOfficialResourceRegistry(resources: readonly OfficialAgent
       if (implementationOwners.has(key)) throw new Error(`Conflicting official resource implementation: ${key}`);
       implementationOwners.set(key, resource.id);
     }
-    byId.set(resource.id, Object.freeze({ ...resource, implementation: Object.freeze({ ...implementation }) }));
+    byId.set(resource.id, Object.freeze({ ...resource, ...(resource.targets === undefined ? {} : { targets: Object.freeze([...resource.targets]) }), implementation: Object.freeze({ ...implementation }) }));
   }
   return Object.freeze({
     resources: Object.freeze([...byId.values()]),
@@ -38,6 +38,7 @@ export function createOfficialResourceRegistry(resources: readonly OfficialAgent
 }
 
 export const officialResourceRegistry = createOfficialResourceRegistry([
+  { id: "web-component-bridge", kind: "compatibility", targets: ["vue", "legacy", "html"], discoverable: true, label: "Web Component Compatibility", implementation: { type: "source", sourceItemId: "integration/web-component-bridge" } },
   { id: "web-search", discoverable: true, label: "网页搜索", implementation: { type: "source-plugin", sourceItemId: "plugin/web-search", pluginId: "web-search", placement: "application" } },
   { id: "retrieval-chunks", discoverable: true, label: "文档检索", implementation: { type: "source-plugin", sourceItemId: "plugin/retrieval-chunks", pluginId: "retrieval-chunks", placement: "application" } },
   { id: "a2ui", label: "A2UI", description: "A2UI declarative interactive surfaces", implementation: { type: "source", sourceItemId: "integration/a2ui" } },

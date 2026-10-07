@@ -1,0 +1,4 @@
+@import "../../agent-ui/conversation/styles.css";
+:host { display: block; height: 600px; min-width: 0; }
+.agent-ui-bridge-mount { all: initial; display: block; height: 100%; font-family: ui-sans-serif, system-ui, sans-serif; }
+.agent-ui-bridge-mount > .agent-ui-root, .agent-ui-embedded-shell { height: 100%; min-height: 0; }

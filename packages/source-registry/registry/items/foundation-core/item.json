@@ -37,6 +37,18 @@
     {
       "source": "files/application/agent-backend-transport.ts",
       "target": "application/agent-backend-transport.ts"
+    },
+    {
+      "source": "files/application/AgentSurface.tsx",
+      "target": "application/AgentSurface.tsx"
+    },
+    {
+      "source": "files/application/AgentUICompatibilityRoot.tsx",
+      "target": "application/AgentUICompatibilityRoot.tsx"
+    },
+    {
+      "source": "files/application/compatibility-config.ts",
+      "target": "application/compatibility-config.ts"
     }
   ],
   "packages": {

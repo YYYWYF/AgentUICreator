@@ -199,6 +199,10 @@
     {
       "id": "plugin/assistant-ui-feedback-actions",
       "path": "items/plugin-assistant-ui-feedback-actions/item.json"
+    },
+    {
+      "id": "integration/web-component-bridge",
+      "path": "items/integration-web-component-bridge/item.json"
     }
   ]
 }

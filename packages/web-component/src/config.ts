@@ -1,20 +1,7 @@
-import type { AgentUITheme, AgentUILocaleCode } from "@agent-ui/react";
-import type { ConversationRuntimeProviderProps } from "@agent-ui/runtime-conversation";
-import type { AppUIModel } from "../.generated/src/agent-ui/framework/contracts/app-ui-model";
-
-/** Host configuration; composition uses the existing AppUIModel unchanged. */
-export interface AgentUIConfig {
-  endpoint?: string;
-  locale?: AgentUILocaleCode;
-  theme?: AgentUITheme;
-  /** Persisted conversation identity; requires conversationDataEndpoint. */
-  threadId?: string;
-  /** Existing conversation API base, not the /conversations list URL. */
-  conversationDataEndpoint?: string;
-  appUIModel?: AppUIModel;
-  attachmentAdapter?: ConversationRuntimeProviderProps["attachmentAdapter"];
-}
-export type ResolvedAgentUIConfig = AgentUIConfig & { endpoint: string; locale: AgentUILocaleCode; theme: AgentUITheme };
+export type { AgentUICompatibilityConfig as AgentUIConfig } from "../.generated/src/agent-ui/application/compatibility-config";
+import type { AgentUICompatibilityConfig as AgentUIConfig } from "../.generated/src/agent-ui/application/compatibility-config";
+export type { ResolvedAgentUICompatibilityConfig as ResolvedAgentUIConfig } from "../.generated/src/agent-ui/application/compatibility-config";
+import type { ResolvedAgentUICompatibilityConfig as ResolvedAgentUIConfig } from "../.generated/src/agent-ui/application/compatibility-config";
 export const configAttributes = ["endpoint", "locale", "theme", "thread-id"] as const;
 
 export function resolveConfig(config: AgentUIConfig, attributes: Record<string, string | null>): ResolvedAgentUIConfig {

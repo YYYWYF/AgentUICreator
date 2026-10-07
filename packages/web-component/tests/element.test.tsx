@@ -50,6 +50,14 @@ describe("host bridge lifecycle", () => {
     await act(async () => { document.body.append(element); });
     expect(calls.mounted).toBe(before + 1);
   });
+  it("disposes even when config changes while disconnected", async () => {
+    const element = await mount();
+    const unmounted = calls.unmounted;
+    await act(async () => { element.remove(); element.config = { endpoint: "/detached" }; });
+    expect(calls.unmounted).toBe(unmounted + 1);
+    await act(async () => { document.body.append(element); });
+    expect(calls.configs.at(-1)?.endpoint).toBe("/detached");
+  });
   it("retains the session for a synchronous DOM move", async () => {
     const element = await mount();
     const before = calls.mounted;
@@ -61,7 +69,7 @@ describe("host bridge lifecycle", () => {
   it("reports bad configuration without replacing the current render", async () => {
     const element = await mount();
     const listener = vi.fn();
-    element.addEventListener("error", listener);
+    element.addEventListener("agent-error", listener);
     await act(async () => { element.setAttribute("locale", "bad-locale"); });
     expect(listener).toHaveBeenCalledOnce();
     expect((listener.mock.calls[0]![0] as CustomEvent).detail.code).toBe("AGENT_UI_CONFIG_ERROR");

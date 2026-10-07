@@ -1,5 +1,7 @@
 /** Product IDs stay stable when their internal source, package or adapter changes. */
 export interface OfficialAgentUIResource {
+  readonly kind?: "compatibility";
+  readonly targets?: readonly ("vue" | "legacy" | "html")[];
   readonly id: string;
   readonly label: string;
   readonly description?: string;

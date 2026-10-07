@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createOfficialResourceRegistry, loadAgentUISourceRegistry, officialResourceRegistry, resolveOfficialResource, validateOfficialResourceSources, type OfficialAgentUIResource } from "../src/index.js";
 describe("Official Resource Catalog", () => {
   it("keeps stable product IDs above implementation metadata", () => {
+    expect(resolveOfficialResource("web-component-bridge")).toMatchObject({ kind: "compatibility", targets: ["vue", "legacy", "html"], discoverable: true, implementation: { type: "source", sourceItemId: "integration/web-component-bridge" } });
     expect(resolveOfficialResource("conversation-edit-lexical").implementation).toEqual({ type: "plugin", pluginId: "assistant-ui-lexical-edit-composer" });
     expect(resolveOfficialResource("conversation-lexical-input").implementation).toEqual({ type: "plugin", pluginId: "assistant-ui-lexical-composer-input" });
     expect(resolveOfficialResource("conversation-quote").implementation).toEqual({ type: "plugin", pluginId: "conversation-quote" });
