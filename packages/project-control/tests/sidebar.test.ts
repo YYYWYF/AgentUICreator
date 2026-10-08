@@ -85,9 +85,9 @@ describe("Sidebar contract and deterministic operations", () => {
   });
   it("requires Sidebar-capable package versions in Source Registry", () => {
     for (const [item, name, oldVersion, version] of [
-      ["foundation-core", "@agent-ui/react", "0.1.2", "0.1.3"],
-      ["foundation-core-runtime", "@agent-ui/react", "0.1.2", "0.1.3"],
-      ["foundation-core-contracts", "@agent-ui/runtime-react", "0.1.0", "0.1.1"],
+      ["foundation-core", "@agent-ui/react", "0.1.3", "0.1.4"],
+      ["foundation-core-runtime", "@agent-ui/react", "0.1.3", "0.1.4"],
+      ["foundation-core-contracts", "@agent-ui/runtime-react", "0.1.1", "0.1.2"],
     ]) {
       const descriptor = JSON.parse(readFileSync(new URL(`../../source-registry/registry/items/${item}/item.json`, import.meta.url), "utf8"));
       expect(satisfiesAgentUIPackageRange(oldVersion, descriptor.packages[name!])).toBe(false);
@@ -109,9 +109,48 @@ describe("Sidebar contract and deterministic operations", () => {
     const preset = parseAppUIModel(JSON.parse(readFileSync(new URL(`../../bootstrap/presets/${mode}/app-ui.json`, import.meta.url), "utf8")));
     expect(preset.root.type).toBe(mode === "embedded" ? "row" : "sidebar");
     if (preset.root.type === "sidebar") {
-      expect(preset.root.defaultActive).toBeNull();
+      expect(preset.root.defaultActive).toBe(mode === "platform" ? "history" : null);
+      expect(preset.root.header?.plugins[0]?.pluginId).toBe("agent-identity");
       expect(preset.root.content.type).toBe("row");
       if (preset.root.content.type === "row" && mode === "platform") expect(preset.root.content.responsive).toMatchObject({ primaryIndex: 0, drawerIndex: 1 });
     }
   });
+});
+
+it("compiles Header as an ordinary Slot and supports remove, restore and replace", () => {
+  const source = model(); if (source.root.type !== "sidebar") throw new Error();
+  source.root.header = { type: "slot", plugins: [plugin("identity")] };
+  const runtime = compileAppUIModel(source, { ...catalog, identity: {} });
+  if (runtime.root.type !== "sidebar") throw new Error();
+  expect(runtime.root.header).toEqual({ type: "slot", id: "layout-node:root.header", slotId: "layout-slot:root.header" });
+  expect(runtime.pluginInstances.identity?.mount?.slotId).toBe("layout-slot:root.header");
+  expect(resolveAppUIComposition(runtime, catalog).issues).toEqual([]);
+  const slotRef = buildLayoutRefIndex(source.root).byPath.get("root.header")!;
+  const removed = applyAppUIOperations(source, [op({ type: "remove_plugin", instanceId: "identity" })]);
+  if (removed.root.type !== "sidebar") throw new Error();
+  expect(removed.root.header?.plugins).toEqual([]);
+  const restored = applyAppUIOperations(removed, [op({ type: "insert_plugin", target: { type: "layout_slot", slotRef }, plugin: plugin("identity") })]);
+  expect(restored).toEqual(source);
+  const disabled = applyAppUIOperations(restored, [op({ type: "set_plugin_enabled", instanceId: "identity", enabled: false })]);
+  expect(compileAppUIModel(disabled, { ...catalog, identity: {} }).pluginInstances.identity?.enabled).toBe(false);
+  const enabled = applyAppUIOperations(disabled, [op({ type: "set_plugin_enabled", instanceId: "identity", enabled: true })]);
+  expect(enabled).toEqual(source);
+  const changed = applyAppUIOperations(restored, [op({ type: "replace_plugin", instanceId: "identity", replacement: plugin("replacement") })]);
+  if (changed.root.type !== "sidebar") throw new Error();
+  expect(changed.root.header?.plugins[0]?.pluginId).toBe("replacement");
+  const replaced = applyAppUIOperations(restored, [op({ type: "replace_layout_node", nodeRef: slotRef, node: { type: "slot", plugins: [plugin("identity")] } })]);
+  expect(replaced).toEqual(source);
+  source.root.header.plugins.push(plugin("other"));
+  expect(() => parseAppUIModel(source)).toThrow();
+});
+
+it("accepts Header local refs and rejects nonvisual Header plugins", () => {
+  const source: AppUIModel = { root: { type: "slot", plugins: [] } };
+  const result = applyAppUIOperations(source, [
+    op({ type: "replace_layout_node", nodeRef: "l0", node: { type: "sidebar", defaultActive: null, header: { type: "slot", localRef: "$header", plugins: [] }, items: [], content: { type: "slot", plugins: [] } } }),
+    op({ type: "insert_plugin", target: { type: "layout_slot", slotRef: "$header" }, plugin: plugin("identity") }),
+  ]);
+  expect(() => compileAppUIModel(result, { identity: { capabilities: ["headless"] } })).toThrow(/visual content/);
+  expect(() => compileAppUIModel(result, { identity: {} })).not.toThrow();
+  expect(JSON.stringify(result)).not.toContain("localRef");
 });

@@ -1386,6 +1386,13 @@ export type { AgentUILocaleCode, AgentUILocaleMessages, AgentUILocaleOverrides }
 
 import { AgentUISidebarFrame as InternalSidebarFrame, useAgentUISidebarNavigation as internalSidebarNavigation } from "./internal/sidebar-frame.js";
 export type AgentUISidebarIcon = "messages-square" | "folder" | "folder-open" | "files" | "search" | "settings" | "database" | "chart-no-axes-combined" | "list" | "bot" | "book-open" | "star" | "circle-help";
-export interface AgentUISidebarItem { id: string; icon: AgentUISidebarIcon; label: string; content: ReactNode; }
-export function AgentUISidebarFrame(props: { items: readonly AgentUISidebarItem[]; defaultActive: string | null; children: ReactNode }) { return <InternalSidebarFrame {...props} />; }
+export interface AgentUISidebarItem { id: string; icon: AgentUISidebarIcon; label: string; content: ReactNode; railAction?: ReactNode; }
+export function AgentUISidebarFrame(props: { items: readonly AgentUISidebarItem[]; defaultActive: string | null; header?: ReactNode; children: ReactNode }) { return <InternalSidebarFrame {...props} />; }
 export function useAgentUISidebarNavigation(): () => void { return internalSidebarNavigation(); }
+
+// Product facade reuses the same Sidebar context and upstream-derived primitives.
+import { SidebarHeader as InternalSidebarHeader, SidebarMenu as InternalSidebarMenu, SidebarMenuItem as InternalSidebarMenuItem, SidebarMenuButton as InternalSidebarMenuButton } from "./internal/adapters/assistant-ui/components/ui/sidebar.js";
+export const AgentUISidebarHeader: ComponentType<React.HTMLAttributes<HTMLDivElement>> = InternalSidebarHeader;
+export const AgentUISidebarMenu: ComponentType<React.HTMLAttributes<HTMLUListElement>> = InternalSidebarMenu;
+export const AgentUISidebarMenuItem: ComponentType<React.HTMLAttributes<HTMLLIElement>> = InternalSidebarMenuItem;
+export const AgentUISidebarMenuButton: ComponentType<React.ButtonHTMLAttributes<HTMLButtonElement> & { render?: ReactElement; size?: "default" | "sm" | "lg"; tooltip?: string }> = InternalSidebarMenuButton;

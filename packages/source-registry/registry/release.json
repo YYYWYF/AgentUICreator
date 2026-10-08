@@ -33,7 +33,7 @@
       "version": "0.0.1"
     },
     "conversation-thread-list": {
-      "version": "0.0.4"
+      "version": "0.0.5"
     },
     "assistant-ui-composer": {
       "version": "0.0.3"
@@ -109,6 +109,9 @@
     },
     "assistant-ui-feedback-actions": {
       "version": "0.0.2"
+    },
+    "agent-identity": {
+      "version": "0.0.1"
     }
   }
 }

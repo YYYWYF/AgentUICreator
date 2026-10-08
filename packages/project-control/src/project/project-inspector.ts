@@ -77,6 +77,7 @@ function compactLayout(
 
   if (node.type === "sidebar") {
     return { nodeRef, type: node.type, defaultActive: node.defaultActive,
+      ...(node.header === undefined ? {} : { header: compactLayout(node.header, `${nodePath}.header`, refIndex.byNode.get(node.header)!, refIndex) }),
       items: node.items.map((item, index) => ({ id: item.id, child: compactLayout(item.child, `${nodePath}.items[${index}].child`, refIndex.byNode.get(item.child)!, refIndex) })),
       content: compactLayout(node.content, `${nodePath}.content`, refIndex.byNode.get(node.content)!, refIndex) };
   }

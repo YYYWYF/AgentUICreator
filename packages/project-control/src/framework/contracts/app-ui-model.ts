@@ -52,6 +52,7 @@ export interface AppUISlotNode {
 export interface AppUISidebarNode {
   type: "sidebar";
   defaultActive: string | null;
+  header?: AppUISlotNode | undefined;
   items: { id: string; child: AppUISlotNode }[];
   content: AppUILayoutNode;
 }
@@ -73,7 +74,7 @@ export interface AppUILayoutWalkEntry {
   node: AppUILayoutNode;
   path: string;
   parent?: AppUILayoutNode | undefined;
-  parentKind: "root" | "children" | "panel" | "sidebar-item" | "sidebar-content";
+  parentKind: "root" | "children" | "panel" | "sidebar-item" | "sidebar-header" | "sidebar-content";
   index?: number | undefined;
 }
 
@@ -133,6 +134,7 @@ export const layoutNodeSchema: z.ZodType<AppUILayoutNode> = z.lazy(() =>
     z.strictObject({
       type: z.literal("sidebar"),
       defaultActive: nonBlankStringSchema.nullable(),
+      header: z.strictObject({ type: z.literal("slot"), plugins: z.array(appUIPluginNodeSchema).max(1) }).optional(),
       items: z.array(z.strictObject({ id: nonBlankStringSchema, child: z.strictObject({ type: z.literal("slot"), plugins: z.array(appUIPluginNodeSchema).length(1) }) })),
       content: layoutNodeSchema,
     }),
@@ -190,6 +192,7 @@ export function walkAppUILayout(root: AppUILayoutNode): AppUILayoutWalkEntry[] {
         visit(child, `${path}.children[${childIndex}]`, node, "children", childIndex),
       );
     } else if (node.type === "sidebar") {
+      if (node.header) visit(node.header, `${path}.header`, node, "sidebar-header");
       node.items.forEach((item, index) => visit(item.child, `${path}.items[${index}].child`, node, "sidebar-item", index));
       visit(node.content, `${path}.content`, node, "sidebar-content");
     } else if (node.type === "panel") {
@@ -275,6 +278,7 @@ export const appUIModelSchema = appUIModelShapeSchema.superRefine((model, contex
       if (new Set(ids).size !== ids.length || (node.defaultActive !== null && !ids.includes(node.defaultActive))) {
         context.addIssue({ code: "custom", path, message: "Sidebar item ids must be unique and defaultActive must reference an item or be null" });
       }
+      if (node.header) visitLayout(node.header, [...path, "header"]);
       node.items.forEach((item, index) => visitLayout(item.child, [...path, "items", index, "child"]));
       visitLayout(node.content, [...path, "content"]);
     } else if (node.type === "panel") {

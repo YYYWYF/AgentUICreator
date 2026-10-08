@@ -27,7 +27,7 @@ function collectLayoutPluginIds(
 ): string[] {
   if (node.type === "slot") return node.plugins.map((plugin) => plugin.pluginId);
   if (node.type === "panel") return collectLayoutPluginIds(node.child);
-  if (node.type === "sidebar") return [...node.items.flatMap(item => collectLayoutPluginIds(item.child)), ...collectLayoutPluginIds(node.content)];
+  if (node.type === "sidebar") return [...(node.header ? collectLayoutPluginIds(node.header) : []), ...node.items.flatMap(item => collectLayoutPluginIds(item.child)), ...collectLayoutPluginIds(node.content)];
   return node.children.flatMap(collectLayoutPluginIds);
 }
 
@@ -102,7 +102,7 @@ describe("Agent UI Preset", () => {
 
     const registry = await loadAgentUISourceRegistry();
     const editComposer = registry.byId.get("plugin/assistant-ui-lexical-edit-composer")!;
-    for (const file of editComposer.loadedFiles) {
+    for (const file of [...editComposer.loadedFiles, ...registry.byId.get("plugin/agent-identity")!.loadedFiles]) {
       const destination = path.join(projectRoot, "agent-ui", file.target);
       await mkdir(path.dirname(destination), { recursive: true });
       await writeFile(destination, file.content);
@@ -174,6 +174,6 @@ describe("Agent UI Preset", () => {
 
     expect(currentAppUIModel.root.type).toBe("row");
     expect(platformPresetModel.root.type).toBe("sidebar");
-    expect(collectLayoutPluginIds(platformPresetModel.root)).toEqual(collectLayoutPluginIds(currentAppUIModel.root));
+    expect(collectLayoutPluginIds(platformPresetModel.root)).toEqual(["agent-identity", ...collectLayoutPluginIds(currentAppUIModel.root)]);
   });
 });

@@ -59,7 +59,7 @@ const pluginMovePlacementSchema = z.discriminatedUnion("type", [
 ]);
 
 type AppUILayoutMutationNode =
-  | ({ type: "sidebar"; defaultActive: string | null; items: { id: string; child: { type: "slot"; plugins: AppUIPluginNode[]; localRef?: string | undefined } }[]; content: AppUILayoutMutationNode } & { localRef?: string | undefined })
+  | ({ type: "sidebar"; defaultActive: string | null; header?: { type: "slot"; plugins: AppUIPluginNode[]; localRef?: string | undefined } | undefined; items: { id: string; child: { type: "slot"; plugins: AppUIPluginNode[]; localRef?: string | undefined } }[]; content: AppUILayoutMutationNode } & { localRef?: string | undefined })
   | ({ type: "row"; children: AppUILayoutMutationNode[]; gap?: number | undefined; sizes?: string[] | undefined; responsive?: AppUIRowNode["responsive"] } & { localRef?: string | undefined })
   | ({ type: "column"; children: AppUILayoutMutationNode[]; gap?: number | undefined; sizes?: string[] | undefined } & { localRef?: string | undefined })
   | ({ type: "stack"; children: AppUILayoutMutationNode[]; activeIndex?: number | undefined } & { localRef?: string | undefined })
@@ -97,6 +97,7 @@ const mutationLayoutNodeSchema: z.ZodType<AppUILayoutMutationNode> = z.lazy(() =
     z.strictObject({
       type: z.literal("sidebar"), localRef: z.string().regex(/^\$[A-Za-z][A-Za-z0-9_-]*$/).optional(),
       defaultActive: nonBlankStringSchema.nullable(),
+      header: z.strictObject({ type: z.literal("slot"), localRef: z.string().regex(/^\$[A-Za-z][A-Za-z0-9_-]*$/).optional(), plugins: z.array(appUIPluginNodeSchema).max(1) }).optional(),
       items: z.array(z.strictObject({ id: nonBlankStringSchema, child: z.strictObject({ type: z.literal("slot"), localRef: z.string().regex(/^\$[A-Za-z][A-Za-z0-9_-]*$/).optional(), plugins: z.array(appUIPluginNodeSchema).length(1) }) })),
       content: mutationLayoutNodeSchema,
     }),
@@ -269,7 +270,7 @@ interface CurrentNodeEntry {
   node: AppUILayoutNode;
   path: string;
   parent?: AppUILayoutNode | undefined;
-  parentKind: "root" | "children" | "panel" | "sidebar-item" | "sidebar-content";
+  parentKind: "root" | "children" | "panel" | "sidebar-item" | "sidebar-header" | "sidebar-content";
   index?: number | undefined;
 }
 
@@ -428,7 +429,10 @@ function materializeMutationNode(
       ...(input.resizable === undefined ? {} : { resizable: input.resizable }),
     };
   } else if (input.type === "sidebar") {
+    const header = input.header === undefined ? undefined : materializeMutationNode(input.header, context);
+    if (header !== undefined && header.type !== "slot") operationError("SIDEBAR_HEADER_REQUIRES_SLOT", "Sidebar Header requires a Slot.");
     node = { type: "sidebar", defaultActive: input.defaultActive,
+      ...(header === undefined ? {} : { header }),
       items: input.items.map(item => {
         const child = materializeMutationNode(item.child, context);
         if (child.type !== "slot") operationError("SIDEBAR_ITEM_REQUIRES_SLOT", "Sidebar entries require a single-plugin Slot.");
@@ -451,6 +455,7 @@ function visitMutationLayoutNode(
   if (node.type === "row" || node.type === "column" || node.type === "stack") {
     node.children.forEach((child) => visitMutationLayoutNode(child, visit));
   } else if (node.type === "sidebar") {
+    if (node.header) visitMutationLayoutNode(node.header, visit);
     node.items.forEach(item => visitMutationLayoutNode(item.child, visit));
     visitMutationLayoutNode(node.content, visit);
   } else if (node.type === "panel") {
@@ -1472,7 +1477,7 @@ function subtreePluginIds(node: AppUILayoutNode): string[] {
   const visit = (current: AppUILayoutNode): void => {
     if (current.type === "slot") current.plugins.forEach(visitPlugin);
     else if (current.type === "panel") visit(current.child);
-    else if (current.type === "sidebar") { current.items.forEach(item => visit(item.child)); visit(current.content); }
+    else if (current.type === "sidebar") { if (current.header) visit(current.header); current.items.forEach(item => visit(item.child)); visit(current.content); }
     else current.children.forEach(visit);
   };
   visit(node);
@@ -1496,6 +1501,11 @@ function replaceNode(context: MutationContext, oldNode: AppUILayoutNode, replace
     return;
   }
   if (entry.parent === undefined) operationError("LAYOUT_PARENT_NOT_FOUND", "The Layout parent is missing.");
+  if (entry.parentKind === "sidebar-header" && entry.parent.type === "sidebar") {
+    if (replacement.type !== "slot") operationError("SIDEBAR_HEADER_REQUIRES_SLOT", "Sidebar Header requires a Slot.");
+    entry.parent.header = replacement;
+    return;
+  }
   if (entry.parentKind === "sidebar-content" && entry.parent.type === "sidebar") {
     entry.parent.content = replacement;
     return;

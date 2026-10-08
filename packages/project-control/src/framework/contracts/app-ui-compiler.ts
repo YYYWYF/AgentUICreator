@@ -83,6 +83,7 @@ function compileLayout(
   }
   if (node.type === "sidebar") {
     return { type: "sidebar", id: resolveRuntimeLayoutNodeId(path), defaultActive: node.defaultActive,
+      ...(node.header === undefined ? {} : { header: compileLayout(node.header, paths) as import("./app-ui-runtime-model").RuntimeSlotNode }),
       items: node.items.map(item => ({ id: item.id, child: compileLayout(item.child, paths) as import("./app-ui-runtime-model").RuntimeSlotNode })),
       content: compileLayout(node.content, paths) };
   }
@@ -277,6 +278,12 @@ export function compileAppUIModel(
 
   for (const { node, path } of walkAppUILayout(model.root)) {
     if (node.type !== "sidebar") continue;
+    for (const plugin of node.header?.plugins ?? []) {
+      const entry = pluginCatalog[plugin.pluginId];
+      if (entry?.requiresRenderScope || entry?.dataMessageUI || entry?.capabilities?.includes("headless") || entry?.applicationGate) {
+        issues.push({ code: "sidebar-navigation-required", instanceId: plugin.id, pluginId: plugin.pluginId, path: `${path}.header`, message: `Sidebar Header plugin "${plugin.pluginId}" must be a visual content plugin.` });
+      }
+    }
     for (const item of node.items) {
       const plugin = item.child.plugins[0]!;
       const entry = pluginCatalog[plugin.pluginId];

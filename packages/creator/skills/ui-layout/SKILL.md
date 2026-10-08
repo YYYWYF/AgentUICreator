@@ -87,3 +87,20 @@ with a complete Sidebar container preserving existing Plugin instances in its
 from strings or DOM selectors. Desktop rail is 48px with a 280px active panel;
 containers narrower than 648px use a scoped Sheet. Only new platform/assistant
 presets adopt Sidebar automatically; preserve existing project layouts.
+
+### Optional Sidebar Header
+
+`sidebar.header` is an optional ordinary Layout Slot containing at most one visual
+Plugin (zero is valid after removal). It needs no manifest navigation metadata.
+Inspect its existing Slot ref and use `insert_plugin`, `remove_plugin`,
+`replace_plugin`, `move_plugin`, or enable/disable operations just as for any
+Layout Slot. `replace_layout_node` can declare an optional Header Slot, including
+a transaction-local ref; there is no Header-specific install operation.
+
+For Agent name, logo, description or branding requests, reuse `agent-identity`
+and edit `plugins/agent-identity/config.ts`. Its localized defaults use the
+`agentIdentity` namespace; custom brand content need not be translated. Do not
+edit SidebarFrame, vendor components or create a Service to change identity.
+New platform presets select history by default; Assistant presets stay collapsed.
+Models without Header retain the legacy navigation rail. A Header with one
+enabled navigation item uses a single column without a duplicate history icon.

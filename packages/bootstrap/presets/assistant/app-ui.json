@@ -196,6 +196,16 @@
       "sizes": [
         "minmax(0, 1fr)"
       ]
+    },
+    "header": {
+      "type": "slot",
+      "plugins": [
+        {
+          "id": "agent-identity-main",
+          "pluginId": "agent-identity",
+          "enabled": true
+        }
+      ]
     }
   }
 }

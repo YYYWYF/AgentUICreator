@@ -1,7 +1,7 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, expect, it, vi } from "vitest";
-import { AgentUISidebarFrame, useAgentUISidebarNavigation } from "../src/internal/sidebar-frame";
+import { AgentUISidebarFrame, useAgentUISidebarNavigation, type AgentUISidebarItem } from "../src/internal/sidebar-frame";
 import { AgentUIRoot } from "../src/internal/style-boundary/AgentUIRoot";
 
 const hosts: HTMLDivElement[] = [];
@@ -74,5 +74,28 @@ it("uses the controlled upstream trigger and plugin shortcuts without a second o
     expect(host.querySelector(".agent-ui-sidebar-panel-track")).toBeNull();
     await act(async () => trigger.click());
     expect(host.textContent).toContain("Navigate");
+  } finally { await act(async () => root.unmount()); }
+});
+
+it("uses a single column with Header and retains multiple-item navigation", async () => {
+  const { root, host } = await mount(900);
+  const list = [{ ...items[0]!, railAction: <Navigate /> }];
+  try {
+    const view = (navigation: readonly AgentUISidebarItem[] = list) => <AgentUIRoot theme="light"><AgentUISidebarFrame key="header" header={<span>Agent identity</span>} items={navigation} defaultActive="history">Main</AgentUISidebarFrame></AgentUIRoot>;
+    await act(async () => root.render(view()));
+    expect(host.querySelector('[data-sidebar-presentation="single"]')).not.toBeNull();
+    expect(host.querySelector('button[aria-label="History"]')).toBeNull();
+    expect(host.querySelector(".agent-ui-sidebar-panel-header")).toBeNull();
+    expect(host.textContent).toContain("Agent identity");
+    expect(host.textContent).toContain("History content");
+    expect(host.textContent).not.toContain("Navigate");
+    const trigger = host.querySelector<HTMLButtonElement>('[data-slot="sidebar-trigger"]')!;
+    await act(async () => trigger.click());
+    expect(host.textContent).toContain("Navigate");
+    expect(host.textContent).not.toContain("History content");
+    await act(async () => root.render(view(items)));
+    expect(host.querySelector('[data-sidebar-presentation="multiple"]')).not.toBeNull();
+    await click(host, "Files");
+    expect(host.querySelector("[data-sidebar-active]")?.getAttribute("data-sidebar-active")).toBe("files");
   } finally { await act(async () => root.unmount()); }
 });

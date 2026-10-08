@@ -361,3 +361,20 @@ observed Slot. Empty Sidebar entries are removed at the end of the atomic batch,
 clearing the default only when its item was removed. See `ui-layout` for exact
 arguments and supported icon names. Do not persist interaction state or edit
 Runtime code to fulfill application composition requests.
+
+### Optional Sidebar Header
+
+`sidebar.header` is an optional ordinary Layout Slot containing at most one visual
+Plugin (zero is valid after removal). It needs no manifest navigation metadata.
+Inspect its existing Slot ref and use `insert_plugin`, `remove_plugin`,
+`replace_plugin`, `move_plugin`, or enable/disable operations just as for any
+Layout Slot. `replace_layout_node` can declare an optional Header Slot, including
+a transaction-local ref; there is no Header-specific install operation.
+
+For Agent name, logo, description or branding requests, reuse `agent-identity`
+and edit `plugins/agent-identity/config.ts`. Its localized defaults use the
+`agentIdentity` namespace; custom brand content need not be translated. Do not
+edit SidebarFrame, vendor components or create a Service to change identity.
+New platform presets select history by default; Assistant presets stay collapsed.
+Models without Header retain the legacy navigation rail. A Header with one
+enabled navigation item uses a single column without a duplicate history icon.

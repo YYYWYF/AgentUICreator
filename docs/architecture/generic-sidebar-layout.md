@@ -54,3 +54,37 @@ Added browser coverage lives in `apps/creator-workbench/tests/sidebar.spec.ts`, 
 Existing generated foundation sources must be upgraded together when adopting the expanded Runtime Layout type; exhaustive consumers of the previous union require source regeneration. The fixed icon vocabulary may be extended explicitly with corresponding manifest validation. No KeepAlive is introduced. Optional `UIPluginDefinition.RailAction` uses the existing Slot declaration, admission, service and instance contexts; history supplies the public `ConversationThreadListNew`. Its rail shortcut hides while its own panel is open. The React frame extension requires `@agent-ui/react >=0.1.3`; regenerate foundation/core and the history source together. This version is prepared in source, not published by this change.
 
 Official Sidebar alignment implementation and static/unit check results: [2026-10-08 report](../sidebar/official-alignment-2026-10-08/REPORT.md). Browser and visual acceptance remain excluded by the user request.
+
+## Optional identity Header (2026-10-08 follow-up)
+
+`sidebar.header?: Slot` adds an ordinary Layout Slot, with zero or one visual
+Plugin. Header mounts have deterministic `layout-node:root.header` and
+`layout-slot:root.header` IDs at the root; nested paths follow existing encoding.
+The Header is traversed by compiler, composition, Inspector and diagnostics. It
+uses the same Slot outlet, lifecycle, service admission and error boundary. It
+requires no manifest navigation metadata and never enters the items array.
+
+Creator uses ordinary Slot operations to install, replace, disable, remove or
+restore Header plugins. Removing its last Plugin leaves the optional empty Slot,
+so it remains an inspectable target for restoration. Local refs work inside
+`replace_layout_node` batches. The Header cannot be replaced with a container.
+
+New platform defaults include `agent-identity` and history, with history selected
+by default. Assistant includes the same plugins but remains initially collapsed
+and uses the existing contained Sheet. Embedded does not gain a Sidebar. Existing
+user projects are not rewritten. With Header and one enabled navigation plugin,
+the frame renders a single column and hides the history navigation icon and
+repeated title. Multiple enabled items keep icon switching under the Header.
+Without Header, the legacy path is unchanged. Width variables stay 280px/48px.
+
+Identity composes the public product facades for upstream-derived SidebarHeader,
+SidebarMenu, SidebarMenuItem and SidebarMenuButton. Its config.ts owns branding;
+its default bilingual names come from the generated agentIdentity namespace.
+The Logo is not a toggle. SidebarFrame owns the official SidebarTrigger. The
+public facades share the same Sidebar context as the frame. No vendor or adapter
+recipe changes, service, conversation runtime or backend logic were introduced.
+
+Adoption requires React >=0.1.4 and Runtime React >=0.1.2, with regenerated
+foundation contracts/runtime and plugin sources. These source package versions
+are prepared but have not been published to npm. See
+[implementation report](../sidebar/identity-header-2026-10-08/REPORT.md).

@@ -3,6 +3,7 @@ import type { AgentUILocaleMessages } from "../locale-types";
 
 export const zhCN = {
   ...AGENT_UI_PRESENTATION_LOCALES["zh-CN"],
+  agentIdentity: { name: "智能助手" },
   layout: {
     open: "打开业务面板",
     close: "关闭业务面板",

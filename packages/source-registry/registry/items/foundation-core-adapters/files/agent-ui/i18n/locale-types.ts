@@ -4,6 +4,7 @@ export type AgentUILocaleCode = "zh-CN" | "en-US";
 export type AgentUIDirection = "ltr" | "rtl";
 
 export interface AgentUILocaleMessages extends Omit<AgentUIPresentationMessages, "composer" | "conversation" | "threadList"> {
+  agentIdentity: { name: string; };
   layout: {
     open: string;
     close: string;

@@ -37,6 +37,30 @@
         }
       }
     },
+    "sidebarHeaderSlot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "plugins"
+      ],
+      "properties": {
+        "type": {
+          "const": "slot"
+        },
+        "localRef": {
+          "type": "string",
+          "pattern": "^\\$[A-Za-z][A-Za-z0-9_-]*$"
+        },
+        "plugins": {
+          "type": "array",
+          "maxItems": 1,
+          "items": {
+            "$ref": "#/$defs/plugin"
+          }
+        }
+      }
+    },
     "sidebarLayoutNode": {
       "type": "object",
       "additionalProperties": false,
@@ -80,6 +104,7 @@
             }
           }
         },
+        "header": { "$ref": "#/$defs/sidebarHeaderSlot" },
         "content": {
           "$ref": "#/$defs/layoutNode"
         }

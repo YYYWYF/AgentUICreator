@@ -526,7 +526,7 @@ function UIPluginRuntimeContent<TState = unknown>({
               onPluginError={reportPluginFailure} onPluginReset={resolvePluginFailure}
               slot={item.child} presentation="rail-action" /> }];
         });
-        return <AgentUISidebarFrame key={node.id} items={items} defaultActive={node.defaultActive}>{renderNode(node.content)}</AgentUISidebarFrame>;
+        return <AgentUISidebarFrame key={node.id} items={items} defaultActive={node.defaultActive} header={node.header === undefined ? undefined : renderNode(node.header)}>{renderNode(node.content)}</AgentUISidebarFrame>;
       }}
       renderSlot={(slot: SlotNode) => (
         <LayoutSlotOutlet

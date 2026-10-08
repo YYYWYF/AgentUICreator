@@ -51,3 +51,23 @@ def test_sidebar_external_schema_rejects_invalid_item_children(child):
         "content": {"type": "slot", "plugins": []},
     }}
     assert not Draft202012Validator(schema).is_valid(operation)
+
+
+def test_sidebar_header_is_an_ordinary_slot_and_is_in_diagnostics():
+    schema = json.loads((Path(__file__).resolve().parents[3] / "contracts/creator/app-ui-model-operation.schema.json").read_text())
+    validator = Draft202012Validator(schema)
+    operation = {"type": "replace_layout_node", "nodeRef": "l0", "node": {
+        "type": "sidebar", "defaultActive": None, "items": [],
+        "header": {"type": "slot", "localRef": "$header", "plugins": []},
+        "content": {"type": "slot", "plugins": []},
+    }}
+    validator.validate(operation)
+    operation["node"]["header"] = {"type": "row", "children": []}
+    assert not validator.is_valid(operation)
+    paths, refs = RuntimeDiagnosticInspectionService._build_authoring_layout_index({
+        "appUIModel": {"layout": {"type": "sidebar", "nodeRef": "l0",
+            "header": {"type": "slot", "nodeRef": "l1"}, "items": [],
+            "content": {"type": "slot", "nodeRef": "l2"}}}
+    })
+    assert paths["root.header"] == "l1"
+    assert refs == {"l0", "l1", "l2"}

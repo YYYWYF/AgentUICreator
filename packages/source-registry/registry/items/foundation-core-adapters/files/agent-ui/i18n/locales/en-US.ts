@@ -3,6 +3,7 @@ import type { AgentUILocaleMessages } from "../locale-types";
 
 export const enUS = {
   ...AGENT_UI_PRESENTATION_LOCALES["en-US"],
+  agentIdentity: { name: "Agent" },
   layout: {
     open: "Open panel",
     close: "Close panel",

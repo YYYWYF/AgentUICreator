@@ -98,6 +98,7 @@
       "../source-registry/registry/items/plugin-chart-message/files",
       "../source-registry/registry/items/plugin-theme-provider/files",
       "../source-registry/registry/items/plugin-conversation-thread-list/files",
+      "../source-registry/registry/items/plugin-agent-identity/files",
       "../source-registry/registry/items/foundation-core/files",
       "../source-registry/registry/items/plugin-assistant-ui-composer/files",
       "../source-registry/registry/items/plugin-assistant-ui-message-footer/files",

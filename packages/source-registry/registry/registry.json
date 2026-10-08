@@ -1,6 +1,10 @@
 {
   "items": [
     {
+      "id": "plugin/agent-identity",
+      "path": "items/plugin-agent-identity/item.json"
+    },
+    {
       "id": "foundation/conversation",
       "path": "items/foundation-conversation/item.json"
     },

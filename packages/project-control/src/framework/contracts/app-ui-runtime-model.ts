@@ -56,6 +56,7 @@ export const runtimeLayoutNodeSchema: z.ZodType<LayoutNode> = z.lazy(() =>
     z.strictObject({
       type: z.literal("sidebar"), id: nonBlankStringSchema,
       defaultActive: nonBlankStringSchema.nullable(),
+      header: z.strictObject({ type: z.literal("slot"), id: nonBlankStringSchema, slotId: nonBlankStringSchema }).optional(),
       items: z.array(z.strictObject({ id: nonBlankStringSchema, child: z.strictObject({ type: z.literal("slot"), id: nonBlankStringSchema, slotId: nonBlankStringSchema }) })),
       content: runtimeLayoutNodeSchema,
     }),
@@ -145,6 +146,11 @@ export const appUIRuntimeModelSchema = appUIRuntimeModelShapeSchema.superRefine(
         }
         node.children.forEach((child, index) => visit(child, [...path, "children", index]));
       } else if (node.type === "sidebar") {
+        if (node.header) {
+          const instances = Object.values(model.pluginInstances).filter(instance => instance.mount?.slotId === node.header!.slotId);
+          if (instances.length > 1) context.addIssue({ code: "custom", path: [...path, "header"], message: "Sidebar Header accepts at most one plugin instance" });
+          visit(node.header, [...path, "header"]);
+        }
         const ids = node.items.map(item => item.id);
         if (new Set(ids).size !== ids.length || (node.defaultActive !== null && !ids.includes(node.defaultActive))) context.addIssue({ code: "custom", path, message: "Invalid Sidebar items/defaultActive" });
         node.items.forEach((item, index) => {

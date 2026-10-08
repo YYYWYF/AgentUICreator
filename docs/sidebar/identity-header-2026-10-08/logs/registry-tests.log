@@ -1,0 +1,10 @@
+[WARN] Your node_modules are out of sync with your lockfile. The workspace structure has changed since last install
+$ vitest run
+
+ RUN  v4.1.11 /Users/yifei/Coding/AgentUICreator/packages/source-registry
+
+
+ Test Files  9 passed (9)
+      Tests  29 passed (29)
+   Start at  15:27:05
+   Duration  744ms (transform 702ms, setup 0ms, import 1.02s, tests 1.56s, environment 1ms)

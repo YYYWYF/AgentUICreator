@@ -22,5 +22,11 @@
     "changes": [
       "Provide an optional shortcut using the existing conversation runtime and show a localized empty history state."
     ]
+  },
+  "0.0.5": {
+    "summary": "Single-column Sidebar presentation",
+    "changes": [
+      "Keep conversation behavior and use a lightweight borderless new-thread button."
+    ]
   }
 }

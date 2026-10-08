@@ -1,0 +1,34 @@
+{
+  "id": "plugin/agent-identity",
+  "kind": "agent-component",
+  "description": "Configurable Agent identity display",
+  "files": [
+    {
+      "source": "files/plugins/agent-identity/manifest.json",
+      "target": "plugins/agent-identity/manifest.json"
+    },
+    {
+      "source": "files/plugins/agent-identity/definition.ts",
+      "target": "plugins/agent-identity/definition.ts"
+    },
+    {
+      "source": "files/plugins/agent-identity/index.tsx",
+      "target": "plugins/agent-identity/index.tsx"
+    },
+    {
+      "source": "files/plugins/agent-identity/config.ts",
+      "target": "plugins/agent-identity/config.ts"
+    },
+    {
+      "source": "files/plugins/agent-identity/styles.css",
+      "target": "plugins/agent-identity/styles.css"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0",
+    "lucide-react": "^1.41.0"
+  }
+}

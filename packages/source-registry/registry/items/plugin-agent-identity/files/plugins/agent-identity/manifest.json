@@ -1,0 +1,20 @@
+{
+  "id": "agent-identity",
+  "name": "Agent Identity",
+  "description": "Displays configurable Agent name, logo and optional description in a normal Layout Slot.",
+  "version": "0.0.1",
+  "capabilities": [
+    "agent-identity"
+  ],
+  "authoring": {
+    "intents": [
+      "rename Agent",
+      "change Agent name",
+      "change Agent logo",
+      "change Agent brand information",
+      "把我的 Agent 改名为智能研发助手",
+      "把 Agent 的 Logo 换成公司的标志"
+    ],
+    "visualRole": "Agent identity in Sidebar Header; edit plugins/agent-identity/config.ts for name, logo and description"
+  }
+}

@@ -211,5 +211,10 @@
   "plugins/assistant-ui-feedback-actions/manifest.json": "packages/source-registry/registry/items/plugin-assistant-ui-feedback-actions/files/plugins/assistant-ui-feedback-actions/manifest.json",
   "agent-ui/i18n/AgentUILocaleBridge.tsx": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/AgentUILocaleBridge.tsx",
   "application/preview-environment.ts": "packages/source-registry/registry/items/foundation-core/files/application/preview-environment.ts",
-  "application/agent-backend-transport.ts": "packages/source-registry/registry/items/foundation-core/files/application/agent-backend-transport.ts"
+  "application/agent-backend-transport.ts": "packages/source-registry/registry/items/foundation-core/files/application/agent-backend-transport.ts",
+  "plugins/agent-identity/manifest.json": "packages/source-registry/registry/items/plugin-agent-identity/files/plugins/agent-identity/manifest.json",
+  "plugins/agent-identity/definition.ts": "packages/source-registry/registry/items/plugin-agent-identity/files/plugins/agent-identity/definition.ts",
+  "plugins/agent-identity/index.tsx": "packages/source-registry/registry/items/plugin-agent-identity/files/plugins/agent-identity/index.tsx",
+  "plugins/agent-identity/config.ts": "packages/source-registry/registry/items/plugin-agent-identity/files/plugins/agent-identity/config.ts",
+  "plugins/agent-identity/styles.css": "packages/source-registry/registry/items/plugin-agent-identity/files/plugins/agent-identity/styles.css"
 }

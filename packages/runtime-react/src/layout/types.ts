@@ -55,6 +55,7 @@ export interface SidebarNode {
   type: "sidebar";
   id: string;
   defaultActive: string | null;
+  header?: SlotNode | undefined;
   items: { id: string; child: SlotNode }[];
   content: LayoutNode;
 }

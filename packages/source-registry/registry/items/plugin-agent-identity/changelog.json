@@ -1,0 +1,8 @@
+{
+  "0.0.1": {
+    "summary": "Configurable Agent identity for Sidebar Header",
+    "changes": [
+      "Compose existing Sidebar primitives; edit config.ts for branding."
+    ]
+  }
+}
