@@ -39,6 +39,7 @@
     "test:python-live-model": "node scripts/run-python-tests.mjs --live-model",
     "test:python-sidecar": "pnpm test:python:setup && pnpm --filter @agent-ui/creator test:python-sidecar",
     "creator": "pnpm --filter @agent-ui/creator build && node packages/creator/dist/cli.js --project examples/creator-host-sandbox --config-root .",
+    "verify:creator:official-composer-live": "node scripts/run-python-tests.mjs --official-composer-live",
     "verify:creator:live": "node scripts/run-python-tests.mjs --live-model",
     "verify:creator-package": "node scripts/verify-creator-package.mjs",
     "verify:creator-python-wheel": "node scripts/verify-creator-python-wheel.mjs",

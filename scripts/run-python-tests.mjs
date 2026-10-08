@@ -25,7 +25,7 @@ const bootstrapPython =
   (process.platform === "win32" ? "python" : "python3");
 
 export function parseArguments(arguments_) {
-  const supportedArguments = new Set(["--live-model", "--setup-only"]);
+  const supportedArguments = new Set(["--live-model", "--setup-only", "--official-composer-live"]);
   const unknownArgument = arguments_.find(
     (argument) => !supportedArguments.has(argument),
   );
@@ -33,16 +33,17 @@ export function parseArguments(arguments_) {
     throw new Error(`Unknown argument: ${unknownArgument}`);
   }
 
-  const liveModel = arguments_.includes("--live-model");
+  const officialComposer = arguments_.includes("--official-composer-live");
+  const liveModel = arguments_.includes("--live-model") || officialComposer;
   const setupOnly = arguments_.includes("--setup-only");
   if (liveModel && setupOnly) {
     throw new Error("--live-model and --setup-only cannot be used together.");
   }
 
-  return { liveModel, setupOnly };
+  return { liveModel, setupOnly, ...(officialComposer ? { officialComposer: true } : {}) };
 }
 
-export function createPytestArguments({ liveModel }) {
+export function createPytestArguments({ liveModel, officialComposer = false }) {
   if (liveModel) {
     return [
       "-m",
@@ -50,7 +51,7 @@ export function createPytestArguments({ liveModel }) {
       "-m",
       "live_model",
       "-s",
-      path.join(pythonPackageRoot, "tests", "live"),
+      path.join(pythonPackageRoot, "tests", "live", ...(officialComposer ? ["test_official_composer.py"] : [])),
     ];
   }
 

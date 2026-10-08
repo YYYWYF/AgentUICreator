@@ -5,6 +5,8 @@ import { build } from "esbuild";
 import { createHash } from "node:crypto";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const registry = fileURLToPath(new URL("../../source-registry/registry/items/", import.meta.url));
+const verification = spawnSync("pnpm", ["--filter", "@agent-ui/source-registry", "exec", "node", "--import", "tsx", "scripts/verify-package-services.mjs"], { cwd: root, stdio: "inherit" });
+if (verification.status !== 0) throw new Error("OFFICIAL_PACKAGE_SERVICE_METADATA_DRIFT: reference validation failed");
 const generated = `${root}.generated`;
 await rm(generated, { recursive: true, force: true });
 await rm(`${root}dist`, { recursive: true, force: true });

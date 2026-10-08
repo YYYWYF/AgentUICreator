@@ -108,3 +108,13 @@ test("package live-model script delegates portably to the Node runner", async ()
   assert.doesNotMatch(script, /\.venv[\\/]bin[\\/]python/);
   assert.doesNotMatch(script, /CREATOR_RUN_LIVE_MODEL=/);
 });
+
+test("official Composer acceptance selects only its live test", async () => {
+  const options = parseArguments(["--official-composer-live"]);
+  assert.deepEqual(options, { liveModel: true, setupOnly: false, officialComposer: true });
+  assert.deepEqual(createPytestArguments(options), ["-m", "pytest", "-m", "live_model", "-s",
+    path.join(pythonPackageRoot, "tests", "live", "test_official_composer.py")]);
+  assert.throws(() => parseArguments(["--official-composer-live", "--setup-only"]));
+  const pkg = JSON.parse(await readFile(path.join(repositoryRoot, "package.json"), "utf8"));
+  assert.equal(pkg.scripts["verify:creator:official-composer-live"], "node scripts/run-python-tests.mjs --official-composer-live");
+});

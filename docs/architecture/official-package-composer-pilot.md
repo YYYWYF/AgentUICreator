@@ -38,6 +38,20 @@ Removing the last instance removes its runtime import while keeping discovery
 metadata. Disabled instances still select their definitions so they can be
 reenabled without requiring a regeneration during production runtime.
 
+`packages/source-registry/src/package-plugins.ts` is the sole runtime package
+metadata authority (package, subpath, version, reference item and services).
+Official Resources resolve delivery from that catalog and retain only their product
+semantics. Source Items declare reference-source requirements; installation adds
+runtime dependencies from the catalog rather than the reference Item's packages.
+
+Source Registry build/release checks and the official package build evaluate the
+reference definition's `provides`, `inject` and `optionalInject`, including imported
+service constants, against catalog metadata. Presentation components and manifest
+parsing are stubbed only for this metadata check; service expressions are evaluated
+from the actual reference source closure. Drift or unresolved metadata fails with
+`OFFICIAL_PACKAGE_SERVICE_METADATA_DRIFT`. This check lives in development/release
+tooling and does not enter the generated frontend.
+
 Official manifest/service metadata is authoritative. Package availability is
 checked before selected definition admission. Host source/Slot/style checks do
 not try to parse npm import specifiers as project filesystem paths. Dependency
@@ -113,3 +127,33 @@ not delete npm implementation files.
 
 Per the requested scope, browser/visual, real-model E2E, deployment and final
 product acceptance are not run. Expansion beyond Composer waits for acceptance.
+
+## Explicit real-model Composer acceptance
+
+Run `pnpm verify:creator:official-composer-live` when acceptance is requested.
+The runner loads the normal `.env.creator.local` model settings, selects only
+`tests/live/test_official_composer.py`, and sets the existing live-model opt-in.
+Ordinary test runs skip the test. StaticChatModel regressions remain unchanged.
+
+The test initializes a disposable platform Host with real Project Control, runs the
+natural-language request above through the real Selector and Creator Agent, and
+asserts an `official_plugin_reference` handoff with no writable owner binding.
+It requires official `inspect_ui_plugin`, then public Slot/API inspection, then
+successful `create_custom_plugin` with a real Host build. It accepts either a custom
+replacement at the original Composer instance or a custom Plugin mounted in a
+Composer child Slot, without prescribing custom IDs.
+
+Model callbacks capture proposed tool calls before admission (so forbidden attempts
+cannot hide behind a rejected Host call). Host calls and the normal Creator JSONL
+trajectory provide execution evidence. Assertions reject official source mutation,
+official-ID shadow creation, dependency-directory writes, changes to reference or
+package files, and a local `plugins/assistant-ui-composer` directory. Final Host
+inspection must report at least one newly created `project_source` Plugin.
+
+Implementation checks: Source Registry 29 tests, Project Control package pilot
+9 tests, Python StaticChatModel/admission 3 tests, package boundary 1 test and
+runner 6 tests passed, with relevant builds/typechecks. The broader release check
+remains blocked by the existing `conversation-quote` version/changelog drift,
+reproduced at unchanged HEAD; the new service metadata check passed before it.
+Per the instruction to push without acceptance, the live test was collected and
+skipped with opt-in disabled; no real-model or visual acceptance was executed.

@@ -1,6 +1,7 @@
 import { OfficialResourceError, type OfficialAgentUIResource } from "./official-resource.js";
 import type { LoadedAgentUISourceRegistry } from "./types.js";
 import { resolveAgentUISourceItemClosure } from "./closure.js";
+import { officialPackagePlugin } from "./package-plugins.js";
 
 export function createOfficialResourceRegistry(resources: readonly OfficialAgentUIResource[]) {
   const byId = new Map<string, OfficialAgentUIResource>();
@@ -8,7 +9,11 @@ export function createOfficialResourceRegistry(resources: readonly OfficialAgent
   for (const resource of resources) {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(resource.id) || !resource.label.trim()) throw new Error("Invalid official resource ID or label.");
     if (byId.has(resource.id)) throw new Error(`Duplicate official resource: ${resource.id}`);
-    const implementation = resource.implementation;
+    const delivery = resource.implementation.type === "plugin"
+      ? officialPackagePlugin(resource.implementation.pluginId) : undefined;
+    const implementation = delivery
+      ? { ...resource.implementation, runtime: delivery.runtime, referenceSourceItemId: delivery.referenceSourceItemId }
+      : resource.implementation;
     if (!["source", "plugin", "source-plugin"].includes(implementation.type)) throw new Error(`Invalid resource implementation: ${resource.id}`);
     if (implementation.type !== "plugin" && (!("sourceItemId" in implementation) || !/^[a-z0-9-]+\/[a-z0-9-]+$/.test(implementation.sourceItemId))) throw new Error(`Invalid resource source: ${resource.id}`);
     if (implementation.type !== "source" && (!("pluginId" in implementation) || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(implementation.pluginId) || (implementation.slot !== undefined && !implementation.slot.trim()))) throw new Error(`Invalid resource Plugin: ${resource.id}`);
@@ -38,7 +43,7 @@ export function createOfficialResourceRegistry(resources: readonly OfficialAgent
 }
 
 export const officialResourceRegistry = createOfficialResourceRegistry([
-  { id: "conversation-composer", label: "Composer", discoverable: true, implementation: { type: "plugin", pluginId: "assistant-ui-composer", slot: "composer", runtime: { type: "package", package: "@agent-ui/plugins", subpath: "./assistant-ui-composer", version: "^0.1.0" }, referenceSourceItemId: "plugin/assistant-ui-composer" } },
+  { id: "conversation-composer", label: "Composer", discoverable: true, implementation: { type: "plugin", pluginId: "assistant-ui-composer", slot: "composer" } },
   { id: "web-component-bridge", kind: "compatibility", targets: ["vue", "legacy", "html"], discoverable: true, label: "Web Component Compatibility", implementation: { type: "source", sourceItemId: "integration/web-component-bridge" } },
   { id: "web-search", discoverable: true, label: "网页搜索", implementation: { type: "source-plugin", sourceItemId: "plugin/web-search", pluginId: "web-search", placement: "application" } },
   { id: "retrieval-chunks", discoverable: true, label: "文档检索", implementation: { type: "source-plugin", sourceItemId: "plugin/retrieval-chunks", pluginId: "retrieval-chunks", placement: "application" } },
@@ -68,7 +73,7 @@ export const officialResourceRegistry = createOfficialResourceRegistry([
 
 export const resolveOfficialResource = (id: string): OfficialAgentUIResource => officialResourceRegistry.resolve(id);
 
-/** Maintenance/build check. Source Registry remains the sole package/upstream authority. */
+/** Maintenance/build check for reference source availability. */
 export function validateOfficialResourceSources(sources: LoadedAgentUISourceRegistry): void {
   for (const resource of officialResourceRegistry.resources) {
     const implementation = resource.implementation;

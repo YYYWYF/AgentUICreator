@@ -23,7 +23,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node --import tsx scripts/verify-package-services.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "sync:generative-ui-upstream": "node scripts/sync-generative-ui-upstream.mjs",
@@ -36,6 +36,7 @@
     "typescript": "^7.0.2",
     "vitest": "^4.1.11",
     "zod": "^4.5.4",
-    "tsx": "4.20.6"
+    "tsx": "4.20.6",
+    "esbuild": "0.25.12"
   }
 }

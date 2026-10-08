@@ -1,6 +1,10 @@
 import manifest from "../registry/items/plugin-assistant-ui-composer/files/plugins/assistant-ui-composer/manifest.json" with { type: "json" };
 
-/** Phase 1: only Composer changes ownership. Other source plugins migrate later. */
+/** Sole runtime delivery and service metadata authority for official package Plugins.
+ * Source Items own reference-source requirements; Resources own product semantics.
+ * Build/release checks validate services against the official reference definition.
+ * Phase 1: only Composer changes ownership. Other source plugins migrate later.
+ */
 export const officialPackagePlugins = [{
   pluginId: manifest.id,
   manifest,

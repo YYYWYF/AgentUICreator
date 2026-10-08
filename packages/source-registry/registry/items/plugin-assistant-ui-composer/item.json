@@ -20,7 +20,6 @@
     "foundation/core"
   ],
   "packages": {
-    "react": "^19.2.0",
-    "@agent-ui/plugins": "^0.1.0"
+    "react": "^19.2.0"
   }
 }

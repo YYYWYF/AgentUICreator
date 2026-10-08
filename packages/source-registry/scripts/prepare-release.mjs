@@ -1,3 +1,4 @@
+import { validateOfficialPackageServices } from "./verify-package-services.mjs";
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { resolveSourceRelease, verifySourceRelease, pluginSourceDigest } from '../src/release.ts';
@@ -35,5 +36,7 @@ if (!args.includes('--verify')) {
   }
   await writeFile(path.join(targetRoot, 'release.json'), JSON.stringify(descriptor, null, 2) + '\n');
 }
-verifySourceRelease(await resolveSourceRelease(targetRoot), previous);
+const target = await resolveSourceRelease(targetRoot);
+await validateOfficialPackageServices(target.registry);
+verifySourceRelease(target, previous);
 console.log('Release metadata verified against ' + (previous?.descriptor.releaseVersion ?? 'initial release'));
