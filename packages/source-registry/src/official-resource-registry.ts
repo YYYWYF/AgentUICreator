@@ -62,6 +62,7 @@ export const officialResourceRegistry = createOfficialResourceRegistry([
   { id: "message-feedback", discoverable: true, label: "消息反馈", implementation: { type: "plugin", pluginId: "assistant-ui-feedback-actions" } },
   { id: "conversation-quote", discoverable: true, label: "引用回复", implementation: { type: "plugin", pluginId: "conversation-quote" } },
   { id: "reasoning", discoverable: true, label: "推理展示", implementation: { type: "plugin", pluginId: "assistant-ui-reasoning", slot: "reasoningGroup" } },
+  { id: "tool-timeline", discoverable: true, label: "工具时间线", implementation: { type: "plugin", pluginId: "assistant-ui-tool-timeline", slot: "toolTimeline" } },
   { id: "tool-group", discoverable: true, label: "工具分组", implementation: { type: "plugin", pluginId: "assistant-ui-tool-group", slot: "toolGroup" } },
   { id: "tool-approval", discoverable: true, label: "工具调用与审批", implementation: { type: "plugin", pluginId: "assistant-ui-tool-fallback", slot: "toolFallback" } },
   { id: "chart-message", discoverable: true, label: "图表", implementation: { type: "plugin", pluginId: "chart-message", dataMessageUIName: "chart" } },

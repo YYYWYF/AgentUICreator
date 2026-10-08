@@ -16,10 +16,13 @@ import {
 } from "../../runtime/plugins";
 import "./styles.css";
 
+import { useConversationRendererSlots } from "../../agent-ui/conversation/useConversationRendererSlots";
+
 export function ConversationSurfacePlugin({
   renderSlot,
   renderScopedSlot,
 }: UIPluginComponentProps) {
+  const rendererSlots = useConversationRendererSlots();
   const messages = useAgentUILocale("conversation");
   const conversation = usePluginService<ConversationService>(
     AGENT_UI_CONVERSATION_SERVICE,
@@ -40,6 +43,7 @@ export function ConversationSurfacePlugin({
     switch (slotName) {
       case "userEditComposer": return renderScopedSlot("userEditComposer", scope, fallback);
       case "reasoningGroup": return renderScopedSlot("reasoningGroup", scope, fallback);
+      case "toolTimeline": return renderScopedSlot("toolTimeline", scope, fallback);
       case "toolGroup": return renderScopedSlot("toolGroup", scope, fallback);
       case "toolFallback": return renderScopedSlot("toolFallback", scope, fallback);
       case "taskGroup": return renderScopedSlot("taskGroup", scope, fallback);
@@ -65,6 +69,7 @@ export function ConversationSurfacePlugin({
         {headerActions}
       </div>
       <ConversationAdapter
+        rendererSlots={rendererSlots}
         labels={messages}
         welcome={welcome}
         suggestions={suggestions}

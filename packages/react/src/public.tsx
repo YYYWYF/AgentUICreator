@@ -263,6 +263,7 @@ export type ConversationThreadComponents = {
   AssistantMessageFooter?: ComponentType | undefined;
   Welcome?: ComponentType | undefined;
   ToolFallback?: ComponentType<ConversationToolCallProps> | undefined;
+  ToolTimeline?: ComponentType<{ children?: ReactNode }> | undefined;
   ToolGroup?: ComponentType<{ children?: ReactNode; group: unknown }> | undefined;
   ReasoningGroup?: ComponentType<{ children?: ReactNode; group: unknown }> | undefined;
   TaskGroup?: ComponentType<{ children?: ReactNode; group: unknown }> | undefined;
@@ -1396,3 +1397,10 @@ export const AgentUISidebarHeader: ComponentType<React.HTMLAttributes<HTMLDivEle
 export const AgentUISidebarMenu: ComponentType<React.HTMLAttributes<HTMLUListElement>> = InternalSidebarMenu;
 export const AgentUISidebarMenuItem: ComponentType<React.HTMLAttributes<HTMLLIElement>> = InternalSidebarMenuItem;
 export const AgentUISidebarMenuButton: ComponentType<React.ButtonHTMLAttributes<HTMLButtonElement> & { render?: ReactElement; size?: "default" | "sm" | "lg"; tooltip?: string }> = InternalSidebarMenuButton;
+
+/** One scoped timeline per assistant message; children reuse existing tool detail renderers. */
+export interface ConversationToolTimelineRenderScope { readonly children?: ReactNode; }
+import { InternalConversationToolTimeline } from "./internal/conversation-tool-timeline.js";
+export function ConversationToolTimeline({ children }: { children?: ReactNode }) {
+  return <InternalConversationToolTimeline>{children}</InternalConversationToolTimeline>;
+}

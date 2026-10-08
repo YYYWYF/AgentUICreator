@@ -81,6 +81,8 @@ import {
   type ReactNode,
 } from "react";
 
+import { projectToolTimeline } from "./tool-timeline-projection.js";
+
 import { resolveConversationTurnGroup } from "./conversation-turn.js";
 import { AssistantResponseRuntimeProvider, useAssistantResponseRuntime } from "./assistant-response-runtime.js";
 
@@ -101,6 +103,7 @@ export type ThreadComponents = {
   AssistantMessageFooter?: ComponentType | undefined;
   Welcome?: ComponentType | undefined;
   ToolFallback?: ToolCallMessagePartComponent | undefined;
+  ToolTimeline?: ComponentType<PropsWithChildren> | undefined;
   ToolGroup?:
     | ComponentType<PropsWithChildren<{ group: ThreadGroupPart }>>
     | undefined;
@@ -610,6 +613,7 @@ const AssistantMessage: FC = () => {
   const {
     ToolFallback: ToolFallbackComponent = ToolFallback,
     ToolGroup,
+    ToolTimeline,
     ReasoningGroup,
     TaskGroup: TaskGroupComponent,
     AssistantResponseFooter,
@@ -624,7 +628,16 @@ const AssistantMessage: FC = () => {
     s.message.status.reason === "cancelled" &&
     s.message.content.length === 0,
   );
-  const groupBy = TaskGroupComponent ? taskAwareGroupBy : messageGroupBy;
+  const parts = useAuiState(s => s.message.parts);
+  const toolUIs = useAuiState(s => s.tools.toolUIs);
+  const timeline = projectToolTimeline(parts, toolUIs);
+  const baseGroupBy = TaskGroupComponent ? taskAwareGroupBy : messageGroupBy;
+  const groupBy = ToolTimeline ? (part: Parameters<typeof messageGroupBy>[0], context?: Parameters<typeof messageGroupBy>[1]) => {
+    // Ordinary summarized tools and protected actions stay in their chronological
+    // position. Protected tools must never sit inside a collapsed ToolGroup.
+    if (part.type === "tool-call" && timeline.calls.some(call => call.toolCallId === part.toolCallId && (call.summarized || call.protected))) return [];
+    return baseGroupBy(part, context);
+  } : baseGroupBy;
 
   return (
     <MessagePrimitive.Root
@@ -695,8 +708,20 @@ const AssistantMessage: FC = () => {
                     return <QuoteSelectableText />;
                   case "reasoning":
                     return <Reasoning {...part} />;
-                  case "tool-call":
+                  case "tool-call": {
+                    const call = timeline.calls.find(call => call.toolCallId === part.toolCallId);
+                    if (ToolTimeline && call?.summarized) {
+                      const anchor = call.toolCallId === timeline.anchorId;
+                      return <>
+                        {anchor ? <ToolTimeline>
+                          {timeline.detailIndices.map(index => <MessagePrimitive.PartByIndex key={parts[index]?.type === "tool-call" ? parts[index].toolCallId : index} index={index}
+                            components={{ tools: { Fallback: ToolFallbackComponent } }} />)}
+                        </ToolTimeline> : null}
+                        {call.protected ? part.toolUI ?? <ToolFallbackComponent {...part} /> : null}
+                      </>;
+                    }
                     return part.toolUI ?? <ToolFallbackComponent {...part} />;
+                  }
                   case "source":
                     return <Sources {...part} />;
                   case "data":

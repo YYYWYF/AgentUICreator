@@ -1,4 +1,20 @@
 export const zhCN = {
+  "toolTimeline": {
+    "summary": "已执行 {count} 个步骤",
+    "active": "正在执行 {count} 个步骤",
+    "details": "原始工具详情",
+    "read": "读取文件",
+    "command": "执行命令",
+    "search": "搜索内容",
+    "tool": "工具调用",
+    "complete": "已完成",
+    "running": "运行中",
+    "waiting": "等待操作",
+    "failed": "失败",
+    "cancelled": "已取消",
+    "interrupted": "已中断",
+    "unknown": "状态未知"
+},
   "common": {
     "close": "关闭",
     "copy": "复制",

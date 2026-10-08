@@ -27,11 +27,13 @@
     "components/assistant-ui/elements/surfaces.tsx": "fcc704686fc4bf3a15dc40f2600da759ba46a796d6d8a9c97eb37b2d21907885",
     "components/assistant-ui/elements/task-card.aui.tsx": "c09e7821d0841dfe1f2583e1bc8f2d56cb4d1d15d32a9ff03e0223f4ea920542",
     "components/assistant-ui/elements/task-card.tsx": "ca70922716cc75904a37824c56e88a1ab12aaea14a2faf635af0fc2aa39ec2d4",
+    "components/assistant-ui/elements/thinking-indicator.tsx": "6396e7dc517884ae8eafa436dbaebc6bc02fb958a50996aef816f3f5be66584e",
     "components/assistant-ui/elements/thread-list.aui.tsx": "dba97aed1ac096e2fbaaebb92e334ec877716e430e7157929d38e8311d358364",
     "components/assistant-ui/elements/thread.aui.tsx": "672ab839f38f282293e70de66f81e397750bf8bec706f5b474596a6708f89b0b",
     "components/assistant-ui/elements/tool-call.tsx": "1fd4f2aa297d146059a9e4e436063f3bc83eee5e9a69f7e44c1aa5f8935d8bef",
     "components/assistant-ui/elements/tool-fallback.aui.tsx": "e22c55485613936018a831773d6b4495d636d48148a02ac5345fa63e1d32ccf8",
     "components/assistant-ui/elements/tool-group.aui.tsx": "50e5d21a865de8bead130bd9bcfa968ab1a330c4b0082374bf3d1a84951a9b08",
+    "components/assistant-ui/elements/tool-timeline.tsx": "969a246f013df8654ab3a89f13f2d550085d1ce8668e285c4703d7935b5d43b9",
     "components/assistant-ui/elements/tooltip-icon-button.tsx": "94e64103f5e1faad3ad82502b94c298158126e70ceef138e88e28117f62dd77d",
     "components/assistant-ui/elements/web-search.tsx": "17dc54e958e5c316f3b2d79d91a6cc9ba374b1113f3af8f62b78252d7665a3ee"
   }

@@ -88,3 +88,9 @@ export function ScopedUserEditComposer() {
     value: {} satisfies ConversationUserEditComposerRenderScope,
   }, fallback);
 }
+
+export function ScopedToolTimeline({ children }: { children?: ReactNode }) {
+  const renderScopedSlot = useContext(ScopedRendererBridgeContext);
+  if (renderScopedSlot === null) return children;
+  return renderScopedSlot("toolTimeline", { kind: "conversation.tool-timeline", value: { children } }, children);
+}

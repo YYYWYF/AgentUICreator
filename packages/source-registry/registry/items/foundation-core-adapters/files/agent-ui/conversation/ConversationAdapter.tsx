@@ -19,6 +19,7 @@ import {
   ScopedTaskGroup,
   ScopedToolFallback,
   ScopedToolGroup,
+  ScopedToolTimeline,
 } from "./ScopedRendererBridge";
 
 export interface ConversationEmptyStateProps {
@@ -61,12 +62,13 @@ export function ConversationWelcomeFallback() {
   );
 }
 
-export function createConversationSemanticThreadComponents(): ConversationThreadComponents {
+export function createConversationSemanticThreadComponents(rendererSlots: { toolTimeline?: boolean; reasoningGroup?: boolean } = {}): ConversationThreadComponents {
   return {
     UserEditComposer: ScopedUserEditComposer,
     Welcome: ConversationEmptyState,
     ReasoningGroup: ScopedReasoningGroup,
     ToolGroup: ScopedToolGroup,
+    ...(rendererSlots.toolTimeline ? { ToolTimeline: ScopedToolTimeline } : {}),
     TaskGroup: ScopedTaskGroup,
     ToolFallback: ScopedToolFallback,
     AssistantResponseFooter: ScopedAssistantResponseFooter,
@@ -79,12 +81,14 @@ export function ConversationAdapter({
   composer,
   labels,
   renderScopedSlot,
+  rendererSlots = {},
 }: ConversationEmptyStateProps & {
+  rendererSlots?: { toolTimeline?: boolean; reasoningGroup?: boolean };
   labels?: ConversationThreadLabels;
   renderScopedSlot?: UIPluginComponentProps["renderScopedSlot"];
 } = {}) {
   const theme = useAgentUITheme();
-  const components = useMemo(() => createConversationSemanticThreadComponents(), []);
+  const components = useMemo(() => createConversationSemanticThreadComponents(rendererSlots), [rendererSlots.toolTimeline, rendererSlots.reasoningGroup]);
   const emptyState = useMemo(
     () => ({ welcome, suggestions }),
     [welcome, suggestions],

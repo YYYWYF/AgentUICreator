@@ -130,6 +130,10 @@
     {
       "source": "files/agent-ui/i18n/AgentUILocaleBridge.tsx",
       "target": "agent-ui/i18n/AgentUILocaleBridge.tsx"
+    },
+    {
+      "source": "files/agent-ui/conversation/useConversationRendererSlots.ts",
+      "target": "agent-ui/conversation/useConversationRendererSlots.ts"
     }
   ],
   "requires": [

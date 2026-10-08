@@ -1,0 +1,25 @@
+{
+  "id": "plugin/assistant-ui-tool-timeline",
+  "kind": "agent-component",
+  "description": "Message-level official tool execution summary with original tool details.",
+  "files": [
+    {
+      "source": "files/plugins/assistant-ui-tool-timeline/definition.ts",
+      "target": "plugins/assistant-ui-tool-timeline/definition.ts"
+    },
+    {
+      "source": "files/plugins/assistant-ui-tool-timeline/index.tsx",
+      "target": "plugins/assistant-ui-tool-timeline/index.tsx"
+    },
+    {
+      "source": "files/plugins/assistant-ui-tool-timeline/manifest.json",
+      "target": "plugins/assistant-ui-tool-timeline/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

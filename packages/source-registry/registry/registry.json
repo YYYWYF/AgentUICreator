@@ -207,6 +207,10 @@
     {
       "id": "integration/web-component-bridge",
       "path": "items/integration-web-component-bridge/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-tool-timeline",
+      "path": "items/plugin-assistant-ui-tool-timeline/item.json"
     }
   ]
 }

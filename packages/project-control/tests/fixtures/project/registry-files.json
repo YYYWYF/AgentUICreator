@@ -216,5 +216,9 @@
   "plugins/agent-identity/definition.ts": "packages/source-registry/registry/items/plugin-agent-identity/files/plugins/agent-identity/definition.ts",
   "plugins/agent-identity/index.tsx": "packages/source-registry/registry/items/plugin-agent-identity/files/plugins/agent-identity/index.tsx",
   "plugins/agent-identity/config.ts": "packages/source-registry/registry/items/plugin-agent-identity/files/plugins/agent-identity/config.ts",
-  "plugins/agent-identity/styles.css": "packages/source-registry/registry/items/plugin-agent-identity/files/plugins/agent-identity/styles.css"
+  "plugins/agent-identity/styles.css": "packages/source-registry/registry/items/plugin-agent-identity/files/plugins/agent-identity/styles.css",
+  "agent-ui/conversation/useConversationRendererSlots.ts": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/useConversationRendererSlots.ts",
+  "plugins/assistant-ui-tool-timeline/definition.ts": "packages/source-registry/registry/items/plugin-assistant-ui-tool-timeline/files/plugins/assistant-ui-tool-timeline/definition.ts",
+  "plugins/assistant-ui-tool-timeline/index.tsx": "packages/source-registry/registry/items/plugin-assistant-ui-tool-timeline/files/plugins/assistant-ui-tool-timeline/index.tsx",
+  "plugins/assistant-ui-tool-timeline/manifest.json": "packages/source-registry/registry/items/plugin-assistant-ui-tool-timeline/files/plugins/assistant-ui-tool-timeline/manifest.json"
 }

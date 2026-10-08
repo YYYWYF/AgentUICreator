@@ -1,36 +1,16 @@
 {
   "schemaVersion": 1,
-  "fromRevision": "da9a624496ae97864ae30e90f85c7533092a228d",
+  "fromRevision": "3542d602272a62eddeb8989befc910841c267022",
   "toRevision": "3542d602272a62eddeb8989befc910841c267022",
-  "packagesChanged": [
-    "packages/bootstrap/package.json",
-    "packages/project-control/package.json",
-    "packages/react/package.json",
-    "packages/runtime-react/package.json",
-    "pnpm-lock.yaml",
-    "pnpm-workspace.yaml"
-  ],
+  "packagesChanged": [],
   "vendorFilesChanged": [
-    "components/assistant-ui/elements/agent-plan.tsx",
-    "components/assistant-ui/elements/file.tsx",
-    "components/assistant-ui/elements/image.tsx",
-    "components/assistant-ui/elements/job-progress.tsx",
-    "components/assistant-ui/elements/option-list.tsx",
-    "components/assistant-ui/elements/reasoning.aui.tsx",
-    "components/assistant-ui/elements/sources.aui.tsx",
-    "components/assistant-ui/elements/task-card.aui.tsx",
-    "components/assistant-ui/elements/thread-list.aui.tsx",
-    "components/assistant-ui/elements/tool-fallback.aui.tsx"
+    "components/assistant-ui/elements/thinking-indicator.tsx",
+    "components/assistant-ui/elements/tool-timeline.tsx"
   ],
-  "vendorFilesAdded": [
-    "components/assistant-ui/elements/media-player.tsx",
-    "components/assistant-ui/utils/href.ts"
-  ],
+  "vendorFilesAdded": [],
   "vendorFilesRemoved": [],
   "vendorFilesRenamed": [],
-  "newTransitiveDependencies": [
-    "components/assistant-ui/utils/href.ts"
-  ],
+  "newTransitiveDependencies": [],
   "newAvailableElements": [
     "components/assistant-ui/elements/activity-graph.tsx",
     "components/assistant-ui/elements/agent-card.tsx",
@@ -65,8 +45,6 @@
     "components/assistant-ui/elements/data-table.tsx",
     "components/assistant-ui/elements/day-separator.tsx",
     "components/assistant-ui/elements/diagram.tsx",
-    "components/assistant-ui/elements/directive-text.aui.tsx",
-    "components/assistant-ui/elements/directive-text.tsx",
     "components/assistant-ui/elements/document-reference.tsx",
     "components/assistant-ui/elements/draft-restore.tsx",
     "components/assistant-ui/elements/edit-message.tsx",
@@ -95,7 +73,6 @@
     "components/assistant-ui/elements/mcp-config.aui.radix.tsx",
     "components/assistant-ui/elements/mcp-config.aui.tsx",
     "components/assistant-ui/elements/mcp-server-panel.tsx",
-    "components/assistant-ui/elements/media-player.tsx",
     "components/assistant-ui/elements/memory-chips.tsx",
     "components/assistant-ui/elements/mermaid-diagram.aui.tsx",
     "components/assistant-ui/elements/mermaid-diagram.tsx",
@@ -119,14 +96,12 @@
     "components/assistant-ui/elements/question-flow.tsx",
     "components/assistant-ui/elements/quota-banner.tsx",
     "components/assistant-ui/elements/quote-reply.tsx",
-    "components/assistant-ui/elements/quote.aui.tsx",
     "components/assistant-ui/elements/read-aloud.tsx",
     "components/assistant-ui/elements/reasoning-effort.tsx",
     "components/assistant-ui/elements/reasoning-panel.tsx",
     "components/assistant-ui/elements/recommendation-card.tsx",
     "components/assistant-ui/elements/regenerate-menu.tsx",
     "components/assistant-ui/elements/research-report.tsx",
-    "components/assistant-ui/elements/retrieval-chunks.tsx",
     "components/assistant-ui/elements/reviewable-diff.tsx",
     "components/assistant-ui/elements/schedule-card.tsx",
     "components/assistant-ui/elements/score-breakdown.tsx",
@@ -143,7 +118,6 @@
     "components/assistant-ui/elements/suggestions.tsx",
     "components/assistant-ui/elements/syntax-highlighter.tsx",
     "components/assistant-ui/elements/terminal-block.tsx",
-    "components/assistant-ui/elements/thinking-indicator.tsx",
     "components/assistant-ui/elements/thread-list.tsx",
     "components/assistant-ui/elements/thread-search.tsx",
     "components/assistant-ui/elements/threadlist-sidebar.aui.radix.tsx",
@@ -152,7 +126,6 @@
     "components/assistant-ui/elements/todo-list.tsx",
     "components/assistant-ui/elements/tool-error.tsx",
     "components/assistant-ui/elements/tool-group.tsx",
-    "components/assistant-ui/elements/tool-timeline.tsx",
     "components/assistant-ui/elements/tooltip-icon-button.radix.tsx",
     "components/assistant-ui/elements/trace-waterfall.tsx",
     "components/assistant-ui/elements/typing-indicator.tsx",
@@ -160,24 +133,13 @@
     "components/assistant-ui/elements/voice-conversation.tsx",
     "components/assistant-ui/elements/voice.aui.tsx",
     "components/assistant-ui/elements/voice.tsx",
-    "components/assistant-ui/elements/web-preview.tsx",
-    "components/assistant-ui/elements/web-search.tsx"
+    "components/assistant-ui/elements/web-preview.tsx"
   ],
-  "newlyAdoptedElements": [
-    "components/assistant-ui/elements/media-player.tsx"
-  ],
+  "newlyAdoptedElements": [],
   "removedUpstreamElements": [],
   "changedUpstreamElements": [
-    "components/assistant-ui/elements/agent-plan.tsx",
-    "components/assistant-ui/elements/file.tsx",
-    "components/assistant-ui/elements/image.tsx",
-    "components/assistant-ui/elements/job-progress.tsx",
-    "components/assistant-ui/elements/option-list.tsx",
-    "components/assistant-ui/elements/reasoning.aui.tsx",
-    "components/assistant-ui/elements/sources.aui.tsx",
-    "components/assistant-ui/elements/task-card.aui.tsx",
-    "components/assistant-ui/elements/thread-list.aui.tsx",
-    "components/assistant-ui/elements/tool-fallback.aui.tsx"
+    "components/assistant-ui/elements/thinking-indicator.tsx",
+    "components/assistant-ui/elements/tool-timeline.tsx"
   ],
   "ignoredUpstreamElements": [
     {
@@ -310,14 +272,6 @@
     },
     {
       "localPath": "components/assistant-ui/elements/diagram.tsx",
-      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
-    },
-    {
-      "localPath": "components/assistant-ui/elements/directive-text.aui.tsx",
-      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
-    },
-    {
-      "localPath": "components/assistant-ui/elements/directive-text.tsx",
       "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
     },
     {
@@ -525,10 +479,6 @@
       "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
     },
     {
-      "localPath": "components/assistant-ui/elements/quote.aui.tsx",
-      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
-    },
-    {
       "localPath": "components/assistant-ui/elements/read-aloud.tsx",
       "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
     },
@@ -550,10 +500,6 @@
     },
     {
       "localPath": "components/assistant-ui/elements/research-report.tsx",
-      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
-    },
-    {
-      "localPath": "components/assistant-ui/elements/retrieval-chunks.tsx",
       "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
     },
     {
@@ -621,10 +567,6 @@
       "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
     },
     {
-      "localPath": "components/assistant-ui/elements/thinking-indicator.tsx",
-      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
-    },
-    {
       "localPath": "components/assistant-ui/elements/thread-list.tsx",
       "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
     },
@@ -654,10 +596,6 @@
     },
     {
       "localPath": "components/assistant-ui/elements/tool-group.tsx",
-      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
-    },
-    {
-      "localPath": "components/assistant-ui/elements/tool-timeline.tsx",
       "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
     },
     {
@@ -691,41 +629,15 @@
     {
       "localPath": "components/assistant-ui/elements/web-preview.tsx",
       "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
-    },
-    {
-      "localPath": "components/assistant-ui/elements/web-search.tsx",
-      "rationale": "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review."
     }
   ],
   "missingTransitiveDependencies": [],
-  "localFacadeFilesChanged": [
-    "packages/react/src/internal/conversation-question-flow.tsx",
-    "packages/react/src/public.tsx"
-  ],
-  "runtimeAdapterFilesChanged": [
-    "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
-    "packages/runtime-conversation/src/public.tsx",
-    "packages/runtime-conversation/src/threads/types.ts",
-    "packages/runtime-conversation/tests/run-resume.test.tsx"
-  ],
+  "localFacadeFilesChanged": [],
+  "runtimeAdapterFilesChanged": [],
   "pluginFilesChanged": [],
   "appUIModelFilesChanged": [],
   "creatorFilesChanged": [],
-  "testsChanged": [
-    "apps/creator-workbench/tests/run-resume-production-refresh.e2e.spec.ts",
-    "apps/creator-workbench/tests/run-resume-refresh.e2e.spec.ts",
-    "packages/mock-agent/tests/durable-run-store.test.ts",
-    "packages/project-control/tests/migrated/source-content-freshness.test.ts",
-    "packages/react/tests/assistant-ui-upgrade-drill.test.mjs",
-    "packages/react/tests/migrated/assistant-ui-conversation-thread-binding.test.ts",
-    "packages/react/tests/migrated/assistant-ui-langgraph-history-projector.test.ts",
-    "packages/react/tests/migrated/assistant-ui-nested-subagent.test.tsx",
-    "packages/react/tests/migrated/assistant-ui-run-resume-production.test.tsx",
-    "packages/react/tests/migrated/human-question-flow.test.tsx",
-    "packages/runtime-conversation/tests/run-resume.test.tsx",
-    "packages/source-registry/tests/integration.test.ts",
-    "packages/source-registry/tests/managed-version-discipline.test.ts"
-  ],
+  "testsChanged": [],
   "_inventory": {
     "fromFiles": [
       "components/assistant-ui/elements/agent-plan.tsx",
@@ -733,25 +645,34 @@
       "components/assistant-ui/elements/agent-status.tsx",
       "components/assistant-ui/elements/attachment.aui.tsx",
       "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "components/assistant-ui/elements/directive-text.aui.tsx",
+      "components/assistant-ui/elements/directive-text.tsx",
       "components/assistant-ui/elements/file.tsx",
       "components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
       "components/assistant-ui/elements/image.tsx",
       "components/assistant-ui/elements/job-progress.tsx",
       "components/assistant-ui/elements/markdown-text.tsx",
+      "components/assistant-ui/elements/media-player.tsx",
       "components/assistant-ui/elements/option-list.tsx",
+      "components/assistant-ui/elements/quote.aui.tsx",
       "components/assistant-ui/elements/reasoning.aui.tsx",
       "components/assistant-ui/elements/reasoning.tsx",
+      "components/assistant-ui/elements/retrieval-chunks.tsx",
       "components/assistant-ui/elements/sources.aui.tsx",
       "components/assistant-ui/elements/subagent-list.tsx",
       "components/assistant-ui/elements/surfaces.tsx",
       "components/assistant-ui/elements/task-card.aui.tsx",
       "components/assistant-ui/elements/task-card.tsx",
+      "components/assistant-ui/elements/thinking-indicator.tsx",
       "components/assistant-ui/elements/thread-list.aui.tsx",
       "components/assistant-ui/elements/thread.aui.tsx",
       "components/assistant-ui/elements/tool-call.tsx",
       "components/assistant-ui/elements/tool-fallback.aui.tsx",
       "components/assistant-ui/elements/tool-group.aui.tsx",
+      "components/assistant-ui/elements/tool-timeline.tsx",
       "components/assistant-ui/elements/tooltip-icon-button.tsx",
+      "components/assistant-ui/elements/web-search.tsx",
+      "components/assistant-ui/utils/href.ts",
       "components/assistant-ui/utils/range.ts",
       "components/assistant-ui/utils/task.ts",
       "components/ui/avatar.tsx",
@@ -778,6 +699,8 @@
       "components/assistant-ui/elements/agent-status.tsx",
       "components/assistant-ui/elements/attachment.aui.tsx",
       "components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "components/assistant-ui/elements/directive-text.aui.tsx",
+      "components/assistant-ui/elements/directive-text.tsx",
       "components/assistant-ui/elements/file.tsx",
       "components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
       "components/assistant-ui/elements/image.tsx",
@@ -785,19 +708,24 @@
       "components/assistant-ui/elements/markdown-text.tsx",
       "components/assistant-ui/elements/media-player.tsx",
       "components/assistant-ui/elements/option-list.tsx",
+      "components/assistant-ui/elements/quote.aui.tsx",
       "components/assistant-ui/elements/reasoning.aui.tsx",
       "components/assistant-ui/elements/reasoning.tsx",
+      "components/assistant-ui/elements/retrieval-chunks.tsx",
       "components/assistant-ui/elements/sources.aui.tsx",
       "components/assistant-ui/elements/subagent-list.tsx",
       "components/assistant-ui/elements/surfaces.tsx",
       "components/assistant-ui/elements/task-card.aui.tsx",
       "components/assistant-ui/elements/task-card.tsx",
+      "components/assistant-ui/elements/thinking-indicator.tsx",
       "components/assistant-ui/elements/thread-list.aui.tsx",
       "components/assistant-ui/elements/thread.aui.tsx",
       "components/assistant-ui/elements/tool-call.tsx",
       "components/assistant-ui/elements/tool-fallback.aui.tsx",
       "components/assistant-ui/elements/tool-group.aui.tsx",
+      "components/assistant-ui/elements/tool-timeline.tsx",
       "components/assistant-ui/elements/tooltip-icon-button.tsx",
+      "components/assistant-ui/elements/web-search.tsx",
       "components/assistant-ui/utils/href.ts",
       "components/assistant-ui/utils/range.ts",
       "components/assistant-ui/utils/task.ts",
@@ -975,113 +903,5 @@
       "components/assistant-ui/elements/web-preview.tsx",
       "components/assistant-ui/elements/web-search.tsx"
     ]
-  },
-  "sourceRegistryAssistantUiFilesChanged": [
-    "packages/source-registry/registry/items/agent-component-assistant-ui-generative-ui/files/agent-ui/vendor/assistant-ui/generative-ui/UPSTREAM.json",
-    "packages/source-registry/registry/items/agent-component-assistant-ui-generative-ui/files/agent-ui/vendor/assistant-ui/generative-ui/generative-ui.css",
-    "packages/source-registry/registry/items/agent-component-assistant-ui-generative-ui/item.json",
-    "packages/source-registry/registry/items/integration-generative-ui/item.json"
-  ],
-  "portalIntegration": {
-    "status": "UNCHANGED",
-    "seamFiles": [
-      "packages/react/src/internal/vendor/assistant-ui/components/ui/dialog.tsx",
-      "packages/react/src/internal/vendor/assistant-ui/components/ui/popover.tsx",
-      "packages/react/src/internal/vendor/assistant-ui/components/ui/sheet.tsx",
-      "packages/react/src/internal/vendor/assistant-ui/components/ui/tooltip.tsx",
-      "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/image.tsx"
-    ],
-    "changedFiles": [],
-    "upstreamChangedFiles": []
-  },
-  "cancellationCompatibility": {
-    "packageName": "@assistant-ui/react-ag-ui",
-    "reactAgUiVersion": "0.0.63",
-    "reactAgUiClientRange": "^0.0.59",
-    "pinnedClientVersion": "0.0.59",
-    "resolvedClientVersions": [
-      "0.0.59"
-    ],
-    "status": "SAFE: AG-UI transport baseline unchanged",
-    "compatible": true,
-    "source": "packages/runtime-conversation/node_modules/@assistant-ui/react-ag-ui/package.json",
-    "message": "assistant-ui AG-UI compatibility: PASS\n@assistant-ui/react-ag-ui@0.0.63 expects @ag-ui/client ^0.0.59\nAgentUICreator pins 0.0.59\npnpm resolves 0.0.59",
-    "guardStatus": "PASS",
-    "cancellationShim": "ACTIVE",
-    "nextAgUiCompatibility": {
-      "packageName": "@assistant-ui/react-ag-ui",
-      "reactAgUiVersion": "0.0.63",
-      "reactAgUiClientRange": "^0.0.59",
-      "pinnedClientVersion": "0.0.59",
-      "resolvedClientVersions": [
-        "0.0.59"
-      ],
-      "status": "PASS",
-      "compatible": true,
-      "source": "packages/runtime-conversation/node_modules/@assistant-ui/react-ag-ui/package.json",
-      "message": "assistant-ui AG-UI compatibility: PASS\n@assistant-ui/react-ag-ui@0.0.63 expects @ag-ui/client ^0.0.59\nAgentUICreator pins 0.0.59\npnpm resolves 0.0.59"
-    },
-    "resolvedAgUiClientVersions": [
-      "0.0.59"
-    ],
-    "duplicateClientVersions": false,
-    "dependencyRangeChanged": false,
-    "agUiPinnedVersionChanged": false,
-    "upstreamChangedFiles": [],
-    "cancellationRelevantUpstreamChanges": [],
-    "transportBaselineChanged": false,
-    "reAuditRequired": false,
-    "reasons": []
-  },
-  "historyCompatibility": {
-    "packageName": "@assistant-ui/react-langgraph",
-    "targetVersion": "0.14.29",
-    "converterSeam": "@assistant-ui/react-langgraph.convertLangChainMessages",
-    "externalMessageSeam": "@assistant-ui/react.unstable_convertExternalMessages",
-    "versionChanged": false,
-    "reAuditRequired": true,
-    "reasons": [
-      "LangGraph source API compatibility was not proven by the upgrade run.",
-      "LangGraph published package compatibility was not proven by the upgrade run."
-    ],
-    "status": "REVIEW REQUIRED"
-  },
-  "capabilityAudit": [
-    {
-      "capability": "ThreadComponents.TaskGroup",
-      "status": "NEW UPSTREAM CAPABILITY"
-    },
-    {
-      "capability": "thread.tasks",
-      "status": "NEW UPSTREAM CAPABILITY"
-    },
-    {
-      "capability": "TaskCard / TaskGroup",
-      "status": "NEW UPSTREAM CAPABILITY"
-    },
-    {
-      "capability": "AgentStatus / TaskTray",
-      "status": "NEW UPSTREAM CAPABILITY"
-    },
-    {
-      "capability": "ReasoningGroup / ToolGroup / ToolFallback",
-      "status": "UNCHANGED"
-    },
-    {
-      "capability": "Composer / Message Footer / Thread List / Attachments / Suggestions",
-      "status": "UNCHANGED"
-    },
-    {
-      "capability": "LangChain / LangGraph persisted message conversion",
-      "status": "REVIEW REQUIRED"
-    },
-    {
-      "capability": "ConversationSubagentTool compatibility presentation",
-      "status": "LOCAL COMPATIBILITY NO LONGER NEEDED"
-    },
-    {
-      "capability": "CancellationAwareHttpAgent / AG-UI transport",
-      "status": "SAFE: AG-UI transport baseline unchanged"
-    }
-  ]
+  }
 }

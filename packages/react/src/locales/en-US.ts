@@ -1,4 +1,20 @@
 export const enUS = {
+  "toolTimeline": {
+    "summary": "Executed {count} steps",
+    "active": "Executing {count} steps",
+    "details": "Original tool details",
+    "read": "Read file",
+    "command": "Execute command",
+    "search": "Search content",
+    "tool": "Tool call",
+    "complete": "Completed",
+    "running": "Running",
+    "waiting": "Waiting for action",
+    "failed": "Failed",
+    "cancelled": "Cancelled",
+    "interrupted": "Interrupted",
+    "unknown": "Unknown"
+},
   "common": {
     "close": "Close",
     "copy": "Copy",

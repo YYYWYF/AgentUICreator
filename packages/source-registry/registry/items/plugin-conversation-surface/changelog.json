@@ -10,5 +10,11 @@
     "changes": [
       "新增 userEditComposer scoped renderer Slot，用于可替换的历史消息编辑体验。"
     ]
+  },
+  "0.0.3": {
+    "summary": "Message-level tool timeline renderer",
+    "changes": [
+      "Add optional toolTimeline Slot; ordinary summaries preserve protected actions and dedicated UIs."
+    ]
   }
 }

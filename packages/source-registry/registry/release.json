@@ -96,7 +96,7 @@
       "version": "0.0.1"
     },
     "conversation-surface": {
-      "version": "0.0.2"
+      "version": "0.0.3"
     },
     "agent-plan-message": {
       "version": "0.0.1"
@@ -111,6 +111,9 @@
       "version": "0.0.2"
     },
     "agent-identity": {
+      "version": "0.0.1"
+    },
+    "assistant-ui-tool-timeline": {
       "version": "0.0.1"
     }
   }
