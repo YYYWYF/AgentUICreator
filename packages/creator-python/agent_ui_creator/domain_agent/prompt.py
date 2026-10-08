@@ -944,3 +944,21 @@ DOMAIN_READ_AGENT_PROMPT += HOST_INTEGRATION_RECIPE_RULES
 DOMAIN_ANSWER_AGENT_PROMPT += HOST_INTEGRATION_RECIPE_RULES
 
 DOMAIN_INSPECT_AGENT_PROMPT += HOST_INTEGRATION_RECIPE_RULES
+
+OFFICIAL_PLUGIN_OWNERSHIP_RULES = """
+Official plugins are dependency-owned. Custom plugins are project-owned.
+For official_plugin_reference, inspect_ui_plugin reads Source Registry reference
+source; there is no writable plugin_source. Never edit node_modules or write a
+local plugin with an official ID. First inspect configuration, semantic Slots,
+extension points and public @agent-ui/react Composer APIs. Prefer a thin custom
+Slot extension. For full replacement use create_custom_plugin with a new ID,
+basedOn and replaceInstanceId; implement CustomPlugin against public contracts.
+Reference implementation, do not fork implementation by default. If public APIs
+are insufficient, report a contract gap instead of copying private implementation.
+To add new official capabilities to a custom plugin, read the custom source and
+latest reference, then semantically port the capability using public APIs. Never
+automatically overwrite custom source or merge the whole official implementation.
+"""
+
+DOMAIN_WRITE_AGENT_PROMPT += OFFICIAL_PLUGIN_OWNERSHIP_RULES
+DOMAIN_READ_AGENT_PROMPT += OFFICIAL_PLUGIN_OWNERSHIP_RULES

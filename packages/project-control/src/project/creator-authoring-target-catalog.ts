@@ -238,6 +238,14 @@ export async function buildCreatorAuthoringTargetCatalog(
   }
 
   for (const asset of input.projectFacts.assets) {
+    if (asset.ownership === "official_package") {
+      const id = `official-plugin-reference:${asset.pluginId}`;
+      await add({ id, kind: "official_plugin_reference", name: asset.name,
+        description: `Dependency-owned Plugin. Inspect public Slots and APIs, then create_custom_plugin with a new ID; reference source: ${asset.referenceSourceItemId}.`,
+        intents: [`customize ${asset.name}`, `port official capabilities to a custom ${asset.name}`], relatedPluginIds: [asset.pluginId] },
+        { targetId: id, kind: "official_plugin_reference", pluginId: asset.pluginId, relatedPluginIds: [asset.pluginId] });
+      continue;
+    }
     const sourceTarget = pluginSourceTarget(asset);
     const ownerRoot = projectRelativePath(input.projectRoot, sourceTarget.binding.ownerRoot!, `${sourceTarget.candidate.id}.ownerRoot`);
     const definitionPath = projectRelativePath(input.projectRoot, sourceTarget.binding.definitionPath!, `${sourceTarget.candidate.id}.definitionPath`);

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { officialResourceRegistry } from "@agent-ui/source-registry";
+import { officialPackagePlugin, officialResourceRegistry } from "@agent-ui/source-registry";
 import { readFile } from "node:fs/promises";
 import { collectPluginAssets } from "./plugin-assets";
 import { collectAppUIPluginLocations, parseAppUIModelJson } from "../framework/contracts/app-ui-model";
@@ -23,7 +23,7 @@ export async function installDemoPlugin(projectRoot: string, pluginId: string): 
   if (!item) throw new Error("插件库中没有找到对应插件。");
   // Existing customized Demo code can still be selected through composition;
   // it is not a Source synchronization request.
-  if (!["managed", "customized"].includes(item.status)) {
+  if (!officialPackagePlugin(pluginId) && !["managed", "customized"].includes(item.status)) {
     await applyAgentUISourceProjectMutation(projectRoot, {
       itemId: item.id, expectedStateHash: sources.stateHash,
     }, { config });

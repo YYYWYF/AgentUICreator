@@ -1,3 +1,4 @@
+import { officialPackagePlugins, officialPackagePlugin } from "@agent-ui/source-registry";
 import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 
@@ -42,7 +43,7 @@ export async function collectPluginAssets(
   ]);
   const assets: PluginAsset[] = [];
   const errors: ProjectIssue[] = [];
-  const entries = await readdir(pluginsRoot, { withFileTypes: true });
+  const entries = await readdir(pluginsRoot, { withFileTypes: true }).catch(error => { if (error.code === "ENOENT") return []; throw error; });
 
   for (const entry of entries.sort((left, right) =>
     left.name.localeCompare(right.name),
@@ -80,7 +81,14 @@ export async function collectPluginAssets(
 
     try {
       const manifest = parseUIPluginManifest(JSON.parse(source) as unknown);
+      if (officialPackagePlugin(manifest.id)) {
+        errors.push({ code: "PLUGIN_ID_RESERVED_BY_OFFICIAL", pluginId: manifest.id,
+          path: projectPath(projectRoot, manifestPath),
+          message: `Plugin ${manifest.id} is dependency-owned. Migrate unchanged legacy source or port custom behavior to a new project-owned ID.` });
+        continue;
+      }
       assets.push({
+        ownership: "project_source",
         pluginId: manifest.id,
         manifest,
         name: manifest.name,
@@ -121,6 +129,15 @@ export async function collectPluginAssets(
     }
   }
 
+  for (const official of officialPackagePlugins) {
+    const manifest = parseUIPluginManifest(official.manifest);
+    const runtimeImport = official.runtime.package + official.runtime.subpath.slice(1);
+    assets.push({ ownership: "official_package", pluginId: official.pluginId, manifest,
+      name: manifest.name, description: manifest.description, directory: official.pluginId,
+      manifestPath: official.referenceSourceItemId, definitionPath: runtimeImport, runtimeImport,
+      referenceSourceItemId: official.referenceSourceItemId, capabilities: manifest.capabilities ?? [],
+      authoring: manifest.authoring, childSlots: { ...manifest.slots?.children } });
+  }
   const assetsById = new Map<string, PluginAsset[]>();
   for (const asset of assets) {
     const matches = assetsById.get(asset.pluginId) ?? [];

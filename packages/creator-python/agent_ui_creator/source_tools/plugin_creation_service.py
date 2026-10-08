@@ -93,6 +93,8 @@ class UIPluginCreationService:
                 {"pluginId": plugin_id},
             )
 
+        if plugin_id == "assistant-ui-composer":
+            raise SourceCreationError("PLUGIN_ID_RESERVED_BY_OFFICIAL", "Official Composer is dependency-owned; choose a new project-owned ID.")
         plugin_directory = f"/plugins/{plugin_id}"
         if resolve_creator_project_file(
             self.project_root, agent_ui_source_path(self.project_root, plugin_directory[1:])

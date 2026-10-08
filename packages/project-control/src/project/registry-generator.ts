@@ -1,3 +1,5 @@
+import { officialPackagePlugin } from "@agent-ui/source-registry";
+import { createRequire } from "node:module";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -116,7 +118,7 @@ function capabilityCatalogSource(
     `    inject: ${JSON.stringify(declaration?.inject ?? [])},`,
     `    optionalInject: ${JSON.stringify(declaration?.optionalInject ?? [])},`,
     "    loadDefinition: () =>",
-    `      import("./${asset.directory}/definition").then(`,
+    `      import("${asset.runtimeImport ?? `./${asset.directory}/definition`}").then(`,
     "        ({ default: definition }) => definition,",
     "      ),",
     "  },",
@@ -169,6 +171,11 @@ async function collectPluginDefinitionFacts(
   }> = [];
 
   for (const asset of assets) {
+    if (asset.ownership === "official_package") {
+      try { createRequire(path.join(projectRoot, "package.json")).resolve(asset.runtimeImport!); }
+      catch { addDefinitionIssue(issuesByPath, asset, { code: "OFFICIAL_PLUGIN_PACKAGE_MISSING", pluginId: asset.pluginId, message: `Install ${asset.runtimeImport} before selecting this Plugin.` }); }
+      continue;
+    }
     const definitionPath = path.join(projectRoot, asset.definitionPath);
     try {
       await readFile(definitionPath, "utf8");
@@ -246,13 +253,17 @@ export async function collectPluginProjectFacts(
   // Hosts without a root tsconfig still have service contracts. Analyze their
   // open files in an inferred TypeScript project instead of emitting empty ones.
   const declarations: AnalyzedDeclarations = analyzePluginServiceDeclarations(
-    projectRoot, inventory.assets, path.dirname(paths.pluginsRoot),
+    projectRoot, inventory.assets.filter(asset => asset.ownership !== "official_package"), path.dirname(paths.pluginsRoot),
   );
+  for (const asset of inventory.assets.filter(asset => asset.ownership === "official_package")) {
+    declarations.plugins.push({ pluginId: asset.pluginId,
+      ...officialPackagePlugin(asset.pluginId)!.services });
+  }
   const definitionIssuesByPath = await collectPluginDefinitionFacts(
     projectRoot,
     inventory.assets,
   );
-  const dataMessageUIIssues = await analyzeDataMessageUIs(projectRoot, inventory.assets);
+  const dataMessageUIIssues = await analyzeDataMessageUIs(projectRoot, inventory.assets.filter(asset => asset.ownership !== "official_package"));
   return {
     assets: inventory.assets,
     inventoryIssues: inventory.errors,
@@ -400,12 +411,12 @@ export function generatePluginRegistryFromFacts(
   return {
     capabilityCatalog: {
       source: capabilityCatalogSource(
-        facts.assets,
+        resolvedAssets,
         capabilityCatalogRevision,
         declarationsByPluginId,
       ),
       revision: capabilityCatalogRevision,
-      pluginIds: facts.assets.map((asset) => asset.pluginId),
+      pluginIds: resolvedAssets.map((asset) => asset.pluginId),
     },
     activeComposition: {
       selectedPluginIds,

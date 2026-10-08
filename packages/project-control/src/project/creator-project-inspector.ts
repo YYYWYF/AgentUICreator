@@ -118,7 +118,7 @@ async function inspectCreatorProjectCore(
     const selected = new Set(generation.activeComposition.selectedPluginIds);
     const childSlotIssues = await verifyPluginChildSlots(
       projectRoot,
-      generation.assets.filter((asset) => selected.has(asset.pluginId)),
+      generation.assets.filter((asset) => selected.has(asset.pluginId) && asset.ownership !== "official_package"),
     );
     const errors = [
       ...generation.errors,

@@ -25,6 +25,7 @@ export const enUS = {
     "resource_retrieval-chunks": "Document retrieval",
     "resource_source-citations-message": "Source citations",
     "resource_generated-file-message": "Generated files",
+    "resource_conversation-composer": "Conversation composer",
     "resource_message-feedback": "Message feedback",
     "resource_conversation-quote": "Quote reply",
     "resource_reasoning": "Reasoning",

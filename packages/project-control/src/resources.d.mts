@@ -49,3 +49,5 @@ export function inspectOfficialAgentUIResourceCatalog(root: string): Promise<Off
 
 export { inspectIntegrationHost, planIntegrationRecipe, applyIntegrationRecipe, prepareIntegrationRecipeAsset, verifyIntegrationRecipe } from "./project/integration-recipe";
 export type { IntegrationRecipe, IntegrationOptions } from "./project/integration-recipe";
+
+export function migrateOfficialPackagePlugin(projectRoot: string, pluginId?: "assistant-ui-composer"): Promise<{ changed: boolean }>;

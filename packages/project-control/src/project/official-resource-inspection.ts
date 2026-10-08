@@ -1,4 +1,4 @@
-import { officialResourceRegistry, type OfficialAgentUIResource } from "@agent-ui/source-registry";
+import { officialPackagePlugin, officialResourceRegistry, type OfficialAgentUIResource } from "@agent-ui/source-registry";
 import { resourcePackageConflicts } from "./ensure-resource-packages";
 import type { ResourceCompositionInspection, ResourceSourceInspection, ResourceImplementationInspection } from "../resources.mjs";
 export type { ResourceCompositionInspection, ResourceSourceInspection } from "../resources.mjs";
@@ -11,12 +11,13 @@ export function inspectOfficialResourceImplementation(resource: OfficialAgentUIR
   const closure = [item, ...(item?.dependencies ?? []).map(id => sources.items.find(item => item.id === id))];
   const packages = closure.flatMap(item => item?.resolvedRequirements ?? []);
   const conflicts = resourcePackageConflicts(packages);
-  const blocked = closure.some(item => item?.status === "partial" || item?.status === "blocked" || item?.issues?.some(issue => issue.code === "AGENT_UI_PACKAGE_INCOMPATIBLE"));
+  const packageOwned = "pluginId" in implementation && officialPackagePlugin(implementation.pluginId) !== undefined;
+  const blocked = !packageOwned && closure.some(item => item?.status === "partial" || item?.status === "blocked" || item?.issues?.some(issue => issue.code === "AGENT_UI_PACKAGE_INCOMPATIBLE"));
   const duplicateProvider = implementation.type !== "source" && composition.pluginInstances.filter(instance => instance.pluginId === implementation.pluginId).length > 1;
   let status: "ready" | "missing" | "disabled" | "conflict";
   if (conflicts.length || blocked || duplicateProvider) status = "conflict";
   else {
-    const sourceReady = (implementation.type !== "source" || sources.integrationRegistryReady !== false) &&
+    const sourceReady = packageOwned || (implementation.type !== "source" || sources.integrationRegistryReady !== false) &&
       closure.every(item => item && ["managed", "customized"].includes(item.status) && !item.dependencyIssues?.length &&
         !(item.resolvedRequirements ?? []).some(requirement => !requirement.compatible));
     const pluginId = "pluginId" in implementation ? implementation.pluginId : undefined;

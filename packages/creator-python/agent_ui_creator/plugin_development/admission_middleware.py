@@ -23,7 +23,7 @@ _PLUGIN_LOCALE_PATHS = frozenset({
     "/agent-ui/i18n/locales/en-US.ts",
 })
 _WRITES = frozenset({
-    "edit_file", "create_ui_plugin", "mutate_ui_plugin_source",
+    "edit_file", "create_ui_plugin", "create_custom_plugin", "mutate_ui_plugin_source",
     "mutate_app_ui_model", "apply_agent_ui_source_item",
     "prepare_ui_service_contract_change", "create_ui_service_contract",
     "mutate_ui_service_contract",
@@ -67,8 +67,9 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
     never treats an installed Source Item as an authored new Plugin identity.
     """
 
-    def __init__(self, authority: PluginDevelopmentAuthority) -> None:
+    def __init__(self, authority: PluginDevelopmentAuthority, *, official_reference_plugin_id: str | None = None) -> None:
         self.authority = authority
+        self.official_reference_plugin_id = official_reference_plugin_id
         self._composition_snapshot_hash: str | None = None
         self._composition_pages: dict[int, str] = {}
 
@@ -406,11 +407,19 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
             self.authority.require_skill()
         if name == "mutate_app_ui_model" and active is not None and active.status == "authorized":
             self._require_bound_composition(args.get("operations"), active.target_plugin_id)
-        if name == "create_ui_plugin":
+        if name in {"create_ui_plugin", "create_custom_plugin"}:
             plugin_id = args.get("pluginId")
             if not isinstance(plugin_id, str):
                 raise PluginDevelopmentError("创建目标 Plugin ID 无效。")
-            self.authority.require_create(plugin_id)
+            official_derivation = (name == "create_custom_plugin"
+                and self.official_reference_plugin_id == "assistant-ui-composer"
+                and args.get("basedOn") == self.official_reference_plugin_id
+                and (args.get("replaceInstanceId") or args.get("placement")))
+            # A Host-resolved official customization target already authorizes
+            # its project-owned implementation. Ordinary new capability work
+            # continues to use the existing development authorization.
+            if not official_derivation:
+                self.authority.require_create(plugin_id)
         if name == "edit_file":
             path = args.get("file_path")
             if isinstance(path, str):
@@ -433,6 +442,8 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
                         raise PluginDevelopmentError("源码写入超出了已批准的 Plugin 目标。")
                 parts = logical.strip("/").split("/")
                 if len(parts) >= 3 and parts[0] == "plugins":
+                    if parts[1] == "assistant-ui-composer":
+                        raise PluginDevelopmentError("PLUGIN_ID_RESERVED_BY_OFFICIAL: use create_custom_plugin with a new ID.")
                     self._require_customized_source_decision(parts[1], logical)
                 new_id = self._new_plugin_identity(path)
                 if new_id is not None:
@@ -442,6 +453,8 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
                     )
                 elif self.authority.intent in {"needs_decision", "explicit", "conditional"} and active is None:
                     raise PluginDevelopmentError("新增能力的源码写入前需要完成开发方案和授权。")
+        if name == "mutate_ui_plugin_source" and args.get("pluginId") == "assistant-ui-composer":
+            raise PluginDevelopmentError("PLUGIN_ID_RESERVED_BY_OFFICIAL: use create_custom_plugin with a new ID.")
         if name == "mutate_ui_plugin_source":
             plugin_id = args.get("pluginId")
             if isinstance(plugin_id, str):

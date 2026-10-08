@@ -1,4 +1,5 @@
 import { createAgentUIInitializationHost } from "../../packages/project-control/dist/runtime/project-control-runtime.mjs";
+import { access } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -43,6 +44,10 @@ async function main() {
 
   if ((command !== "init" && command !== "ensure") || (mode !== "assistant" && mode !== "embedded" && mode !== "platform")) {
     throw new Error("Usage: host-project.ts inspect project | init|ensure assistant|embedded|platform project");
+  }
+  if (command === "ensure" && await access(path.join(projectRoot, ".agent-ui/project.json")).then(() => true, () => false)) {
+    const migration = await handleUIProjectControlRequest({ operation: "migrate_official_package_plugin", input: { pluginId: "assistant-ui-composer" } }, projectRoot);
+    if (!migration.ok) throw new Error(`${migration.error.code}: ${migration.error.message}`);
   }
   const before = await inspectCreatorProject(projectRoot);
   if (command === "ensure" && before.status === "ready") {

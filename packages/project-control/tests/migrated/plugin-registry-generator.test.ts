@@ -144,7 +144,6 @@ describe("generatePluginRegistry", () => {
     expect(first.capabilityCatalog.pluginIds).toEqual([
       "alpha",
       "beta",
-      "unselected",
     ]);
     expect(first.activeComposition.headlessPluginIds).toEqual(["beta"]);
     expect(first.capabilityCatalog.source).toBe(second.capabilityCatalog.source);
@@ -155,7 +154,7 @@ describe("generatePluginRegistry", () => {
       'import("./beta-dir/definition")',
     );
     expect(first.capabilityCatalog.source).not.toContain("catalog-only");
-    expect(first.capabilityCatalog.source).toContain("unselected");
+    expect(first.capabilityCatalog.source).not.toContain("unselected");
     expect(first.capabilityCatalog.source).not.toMatch(/import pluginDefinition/u);
   });
 
@@ -184,7 +183,7 @@ describe("generatePluginRegistry", () => {
     });
   });
 
-  it("keeps capability membership stable after its last instance is removed", async () => {
+  it("keeps discovery assets but removes runtime imports after its last instance is removed", async () => {
     const projectRoot = await createProject();
     await createPlugin(projectRoot, "sample", "sample");
 
@@ -201,8 +200,8 @@ describe("generatePluginRegistry", () => {
 
     expect(selected.activeComposition.resolvedPluginIds).toEqual(["sample"]);
     expect(removed.activeComposition.resolvedPluginIds).toEqual([]);
-    expect(removed.capabilityCatalog.source).toContain("./sample/definition");
-    expect(removed.capabilityCatalog.source).toBe(
+    expect(removed.capabilityCatalog.source).not.toContain("./sample/definition");
+    expect(removed.capabilityCatalog.source).not.toBe(
       selected.capabilityCatalog.source,
     );
     expect(removed.assets).toContainEqual(
@@ -306,7 +305,7 @@ describe("generatePluginRegistry", () => {
     );
 
     expect(result.errors).toEqual([]);
-    expect(result.capabilityCatalog.source).toContain('import("./inactive/definition")');
+    expect(result.capabilityCatalog.source).not.toContain('import("./inactive/definition")');
   });
 
   it("scopes declaration issues to selected Plugins", async () => {

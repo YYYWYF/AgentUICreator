@@ -1043,6 +1043,7 @@ class ProductizedOperationEngine:
                 "scoped_general_handoff",
                 "application_config",
                 "plugin_source",
+    "official_plugin_reference",
             },
             "ownerScopedHandoff": selected_target is not None,
             "clarification": route == "clarification",

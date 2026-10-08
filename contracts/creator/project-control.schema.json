@@ -741,6 +741,38 @@
             "operation",
             "input"
           ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "operation": {
+              "const": "create_custom_plugin"
+            },
+            "input": {
+              "$ref": "#/$defs/createCustomPluginInput"
+            }
+          },
+          "required": [
+            "operation",
+            "input"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "operation": {
+              "const": "migrate_official_package_plugin"
+            },
+            "input": {
+              "$ref": "#/$defs/migrateOfficialPackagePluginInput"
+            }
+          },
+          "required": [
+            "operation",
+            "input"
+          ]
         }
       ]
     },
@@ -821,6 +853,12 @@
                 },
                 {
                   "$ref": "#/$defs/integrationAssetPreparationResult"
+                },
+                {
+                  "$ref": "#/$defs/createCustomPluginResult"
+                },
+                {
+                  "$ref": "#/$defs/migrateOfficialPackagePluginResult"
                 }
               ]
             }
@@ -1452,6 +1490,18 @@
         },
         "childSlots": {
           "$ref": "#/$defs/opaqueHostObject"
+        },
+        "ownership": {
+          "enum": [
+            "official_package",
+            "project_source"
+          ]
+        },
+        "runtimeImport": {
+          "type": "string"
+        },
+        "referenceSourceItemId": {
+          "type": "string"
         }
       }
     },
@@ -3326,6 +3376,133 @@
         "recipeId",
         "target",
         "changedPaths"
+      ]
+    },
+    "createCustomPluginInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pluginId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,99}$"
+        },
+        "basedOn": {
+          "const": "assistant-ui-composer"
+        },
+        "replaceInstanceId": {
+          "$ref": "#/$defs/nonBlankString"
+        },
+        "placement": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "const": "application"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "const": "plugin_slot"
+                },
+                "parentInstanceId": {
+                  "$ref": "#/$defs/nonBlankString"
+                },
+                "slot": {
+                  "$ref": "#/$defs/nonBlankString"
+                }
+              },
+              "required": [
+                "type",
+                "parentInstanceId",
+                "slot"
+              ]
+            }
+          ]
+        },
+        "implementation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 24000
+        },
+        "cancelMarker": {
+          "type": "string",
+          "pattern": "^\\.agentuicreator/control/cancel-[a-f0-9-]{36}$"
+        },
+        "capabilities": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        }
+      },
+      "required": [
+        "pluginId"
+      ]
+    },
+    "createCustomPluginResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pluginId": {
+          "$ref": "#/$defs/nonBlankString"
+        },
+        "ownership": {
+          "const": "project_source"
+        },
+        "changedPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "pluginId",
+        "ownership",
+        "changedPaths",
+        "checks"
+      ]
+    },
+    "migrateOfficialPackagePluginInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pluginId": {
+          "const": "assistant-ui-composer"
+        }
+      },
+      "required": [
+        "pluginId"
+      ]
+    },
+    "migrateOfficialPackagePluginResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "changed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "changed"
       ]
     }
   },

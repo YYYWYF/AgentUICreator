@@ -25,6 +25,7 @@ export const zhCN = {
     "resource_retrieval-chunks": "文档检索",
     "resource_source-citations-message": "来源引用",
     "resource_generated-file-message": "文件输出",
+    "resource_conversation-composer": "会话输入框",
     "resource_message-feedback": "消息反馈",
     "resource_conversation-quote": "引用回复",
     "resource_reasoning": "推理展示",

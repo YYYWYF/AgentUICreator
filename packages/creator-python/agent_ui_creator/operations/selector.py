@@ -213,6 +213,7 @@ choose 隐藏（保留插件源码，之后可以恢复） or 彻底删除（删
 before writes. “先把 Slash Command 隐藏掉” means hide; “彻底删除 Slash Command，
 源码也不要” means purge. Host owns cleanup; never construct file or Provider lists.
 A brief answer to the previous clarification resolves the choice using context.
+Select an official_plugin_reference choice for customizing dependency-owned official Plugins. This hands off to the general agent to inspect public extension points and create a custom Plugin, never to edit official source.
 Select an application_config or plugin_source choice when the requested change
 is a supplied, scoped authoring target. Use GENERAL for broader or unscoped
 implementation changes, such as a new capability with no supplied owner. Use

@@ -917,7 +917,10 @@ def create_domain_write_creator_agent(
         middleware=[
             filesystem,
             DomainWriteToolPolicyMiddleware(verification_mode, require_removal_choice=require_removal_choice, removal_intent=removal_intent),
-            PluginDevelopmentAdmissionMiddleware(development_authority),
+            PluginDevelopmentAdmissionMiddleware(development_authority,
+                official_reference_plugin_id=(authoring_handoff.pluginId
+                    if authoring_handoff is not None and authoring_handoff.kind == "official_plugin_reference"
+                    else None)),
             CompositionGroundingConvergenceMiddleware(
                 observations,
                 backend,

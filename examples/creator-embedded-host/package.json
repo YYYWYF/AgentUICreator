@@ -37,7 +37,8 @@
     "@lexical/plain-text": "0.51.0",
     "@lexical/react": "0.51.0",
     "@lexical/utils": "0.51.0",
-    "lexical": "0.51.0"
+    "lexical": "0.51.0",
+    "@agent-ui/plugins": "workspace:^"
   },
   "devDependencies": {
     "@types/node": "^20.19.43",

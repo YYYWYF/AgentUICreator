@@ -387,3 +387,21 @@ recipe. Never generate Vue-specific snippets, infer Host versions/entries in the
 prompt, or install the React producer build closure into the Vue consumer. React
 uses its canonical Source Item path; Nuxt is unsupported. See
 `docs/architecture/host-integration-recipe.md` for the Host contract.
+
+## Official package ownership (Composer pilot)
+
+Official plugins are dependency-owned; custom plugins are project-owned.
+For `official_plugin_reference`, read reference with `inspect_ui_plugin`, inspect
+configuration and public semantic Slots first. Use `@agent-ui/react` public Composer
+components/controller for custom implementations; do not copy private or whole
+official implementation. Create with `create_custom_plugin` under a new ID and
+replace the intended instance in AppUIModel. Host validates the manifest, generates
+the selected registry and runs project checks before committing. Never edit
+`node_modules` or shadow `assistant-ui-composer` with project source.
+
+To port a new official feature, read current custom source and latest Source
+Registry reference, then implement the behavior using public contracts. Report
+missing public extension contracts instead of bypassing them through private copies.
+Modified legacy official source must be preserved until its behavior has been
+ported to a new project-owned ID. Only an unchanged installed baseline may migrate
+automatically. Other official plugins retain legacy delivery in this phase.

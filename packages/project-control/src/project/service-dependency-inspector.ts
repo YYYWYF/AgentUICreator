@@ -1,3 +1,4 @@
+import { officialPackagePlugin } from "@agent-ui/source-registry";
 import { existsSync, realpathSync } from "node:fs";
 import path from "node:path";
 
@@ -150,6 +151,8 @@ export function analyzePluginServiceDeclarations(
   assets: readonly PluginAsset[],
   managedSourceRoot: string = projectRoot,
 ): AnalyzedDeclarations {
+  const officialAssets = assets.filter(asset => asset.ownership === "official_package");
+  assets = assets.filter(asset => asset.ownership !== "official_package");
   const definitionPaths = assets.map((asset) =>
     path.join(projectRoot, asset.definitionPath),
   );
@@ -159,7 +162,7 @@ export function analyzePluginServiceDeclarations(
     openProjects: existsSync(configFilePath) ? [configFilePath] : [],
     openFiles: definitionPaths,
   });
-  const plugins: PluginServiceDeclaration[] = [];
+  const plugins: PluginServiceDeclaration[] = officialAssets.map(asset => ({ pluginId: asset.pluginId, ...officialPackagePlugin(asset.pluginId)!.services }));
   const issues: ProjectIssue[] = [];
   const seamPaths = new Map<string, Set<string>>();
 

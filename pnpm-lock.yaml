@@ -88,6 +88,9 @@ importers:
 
   examples/creator-assistant-host:
     dependencies:
+      '@agent-ui/plugins':
+        specifier: workspace:^
+        version: link:../../packages/plugins
       '@agent-ui/react':
         specifier: workspace:^
         version: link:../../packages/react
@@ -152,6 +155,9 @@ importers:
 
   examples/creator-embedded-host:
     dependencies:
+      '@agent-ui/plugins':
+        specifier: workspace:^
+        version: link:../../packages/plugins
       '@agent-ui/react':
         specifier: workspace:^
         version: link:../../packages/react
@@ -234,6 +240,9 @@ importers:
 
   examples/creator-host-sandbox:
     dependencies:
+      '@agent-ui/plugins':
+        specifier: workspace:^
+        version: link:../../packages/plugins
       '@agent-ui/react':
         specifier: workspace:^
         version: link:../../packages/react
@@ -538,6 +547,40 @@ importers:
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@types/node@20.19.43)(jsdom@27.4.0)(vite@8.3.0(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.20.6))
+
+  packages/plugins:
+    dependencies:
+      zod:
+        specifier: ^4.5.4
+        version: 4.6.5
+    devDependencies:
+      '@agent-ui/react':
+        specifier: workspace:^
+        version: link:../react
+      '@agent-ui/runtime-core':
+        specifier: workspace:^
+        version: link:../runtime-core
+      '@agent-ui/runtime-react':
+        specifier: workspace:^
+        version: link:../runtime-react
+      '@types/node':
+        specifier: ^20.19.43
+        version: 20.19.43
+      '@types/react':
+        specifier: ^19.2.18
+        version: 19.3.0
+      esbuild:
+        specifier: 0.25.12
+        version: 0.25.12
+      react:
+        specifier: ^19.2.8
+        version: 19.3.0
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      vite:
+        specifier: ^8.2.2
+        version: 8.3.0(@types/node@20.19.43)(esbuild@0.25.12)(jiti@2.7.0)(tsx@4.20.6)
 
   packages/project-control:
     dependencies:

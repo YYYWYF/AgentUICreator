@@ -371,7 +371,7 @@ def _build_authoring_target_catalog(
             )
         target_id = _bounded_text(candidate.get("id"), f"{path}.id", MAX_AUTHORING_TARGET_ID_CHARS)
         kind = _required_string(candidate.get("kind"), f"{path}.kind")
-        if kind not in {"application_config", "plugin_source"}:
+        if kind not in {"application_config", "plugin_source", "official_plugin_reference"}:
             raise _invalid(f"Unsupported authoring target kind {kind!r}.")
         name = _bounded_text(candidate.get("name"), f"{path}.name", MAX_AUTHORING_TARGET_NAME_CHARS)
         description = _bounded_text(
@@ -431,7 +431,7 @@ def _build_authoring_target_catalog(
             )
         target_id = _bounded_text(binding.get("targetId"), f"{path}.targetId", MAX_AUTHORING_TARGET_ID_CHARS)
         kind = _required_string(binding.get("kind"), f"{path}.kind")
-        if kind not in {"application_config", "plugin_source"}:
+        if kind not in {"application_config", "plugin_source", "official_plugin_reference"}:
             raise _invalid(f"Unsupported authoring binding kind {kind!r}.")
         values: dict[str, Any] = {"targetId": target_id, "kind": kind}
         for field_name in ("ownerPath", "ownerRoot", "definitionPath", "manifestPath"):

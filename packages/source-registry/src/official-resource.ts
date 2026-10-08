@@ -9,7 +9,9 @@ export interface OfficialAgentUIResource {
   /** Development-only implementation metadata. Never serialize into ordinary UI DTOs. */
   readonly implementation:
     | { readonly type: "source"; readonly sourceItemId: string }
-    | { readonly type: "plugin"; readonly pluginId: string; readonly slot?: string; readonly dataMessageUIName?: string }
+    | { readonly type: "plugin"; readonly pluginId: string;
+        readonly runtime?: { readonly type: "package"; readonly package: string; readonly subpath: string; readonly version: string };
+        readonly referenceSourceItemId?: string; readonly slot?: string; readonly dataMessageUIName?: string }
     | { readonly type: "source-plugin"; readonly sourceItemId: string; readonly pluginId: string;
         /** Explicit AppUIModel activation target; never inferred from the Plugin component or size. */
         readonly placement: "application" | "layout" | "plugin-slot"; readonly slot?: string; readonly layoutSize?: string };

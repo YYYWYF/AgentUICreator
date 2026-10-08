@@ -31,7 +31,7 @@ export function generatedSourceTestConfig(packageRoot: string) {
         if (!importer) return;
         const physical = source.startsWith(".") ? path.resolve(path.dirname(importer), source) : source;
         const templateRoot = filesRoots.find(files => physical.startsWith(files + path.sep));
-        if (templateRoot) {
+        if (templateRoot && !importer.includes("/source-registry/src/")) {
           const fixture = await generatedProjectFixture();
           const found = await this.resolve(path.join(fixture, path.relative(templateRoot, physical)), importer, { skipSelf: true });
           if (found) return found;

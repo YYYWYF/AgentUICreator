@@ -109,7 +109,7 @@ export async function planPluginPurge(root: string, input: PluginPurgeInput) {
     const { lock } = await readAgentUISourceLock(root, ctx.config);
     const managedItems = new Set<string>();
     const userDirectories: string[] = [];
-    for (const asset of inventory.assets.filter(asset => removedPluginIds.has(asset.pluginId))) {
+    for (const asset of inventory.assets.filter(asset => removedPluginIds.has(asset.pluginId) && asset.ownership !== "official_package")) {
       const directory = path.posix.dirname(asset.manifestPath);
       if (path.resolve(root, directory) !== path.join(ctx.paths.pluginsRoot, asset.pluginId)) fail(`Plugin has no independent directory boundary: ${asset.pluginId}`);
       const prefix = projectRelativePath(ctx.paths.sourceRoot, path.join(root, directory)) + "/";
@@ -135,7 +135,7 @@ export async function planPluginPurge(root: string, input: PluginPurgeInput) {
     }
     for (const directory of userDirectories) await rm(path.join(temporary, directory), { recursive: true });
     // Remove only empty managed directories; retained shared ownership is never deleted.
-    const removedDirectories = inventory.assets.filter(asset => removedPluginIds.has(asset.pluginId)).map(asset => path.posix.dirname(asset.manifestPath));
+    const removedDirectories = inventory.assets.filter(asset => removedPluginIds.has(asset.pluginId) && asset.ownership !== "official_package").map(asset => path.posix.dirname(asset.manifestPath));
     for (const directory of snapshot.directories.filter(directory => removedDirectories.some(boundary => directory === boundary || directory.startsWith(`${boundary}/`))).sort((a, b) => b.length - a.length)) {
       await rmdir(path.join(temporary, directory)).catch((error: NodeJS.ErrnoException) => { if (!["ENOENT", "ENOTEMPTY", "EEXIST"].includes(error.code ?? "")) throw error; });
     }
@@ -143,7 +143,7 @@ export async function planPluginPurge(root: string, input: PluginPurgeInput) {
     await writeGeneratedFrontendToolRegistries(temporary);
     await writeGeneratedConversationIntegrationRegistry(temporary);
     const generation = await generatePluginRegistry(temporary, finalModel, { paths: staged.paths, config: staged.config });
-    if (generation.errors.length || generation.assets.some(asset => removedPluginIds.has(asset.pluginId)) || remaining.some(({ plugin }) => removedPluginIds.has(plugin.pluginId))) fail("Final Plugin inventory still contains a purged Plugin or is invalid.");
+    if (generation.errors.length || generation.assets.some(asset => removedPluginIds.has(asset.pluginId) && asset.ownership !== "official_package") || remaining.some(({ plugin }) => removedPluginIds.has(plugin.pluginId))) fail("Final Plugin inventory still contains a purged Plugin or is invalid.");
     compileAppUIModel(finalModel, generation.activeComposition.compositionCatalog);
     await writeFile(path.join(path.dirname(staged.paths.appUIModelPath), "composition-revision.generated.json"), JSON.stringify({
       transactionId: randomUUID(),
@@ -163,7 +163,7 @@ export async function planPluginPurge(root: string, input: PluginPurgeInput) {
     });
     const disappearingFiles = new Set(files.filter(file => file.after === null).map(file => file.path));
     const generatedFiles = new Set(["plugins/registry.generated.ts", "agent-contract/frontend-tools.generated.ts", "agent-ui/conversation/frontend-tool-uis.generated.ts", "agent-ui/conversation/integrations.generated.tsx"].map(target => projectRelativePath(root, path.join(ctx.paths.sourceRoot, target))));
-    for (const asset of inventory.assets.filter(asset => removedPluginIds.has(asset.pluginId))) {
+    for (const asset of inventory.assets.filter(asset => removedPluginIds.has(asset.pluginId) && asset.ownership !== "official_package")) {
       const references = await inspectPluginSourceReferences(root, ctx.paths, asset.pluginId, asset.directory);
       if (references.truncated || references.references.some(reference => !disappearingFiles.has(reference.path) && !generatedFiles.has(reference.path)))
         fail(`Retained source references Plugin ${asset.pluginId}.`);

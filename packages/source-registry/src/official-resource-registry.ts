@@ -38,6 +38,7 @@ export function createOfficialResourceRegistry(resources: readonly OfficialAgent
 }
 
 export const officialResourceRegistry = createOfficialResourceRegistry([
+  { id: "conversation-composer", label: "Composer", discoverable: true, implementation: { type: "plugin", pluginId: "assistant-ui-composer", slot: "composer", runtime: { type: "package", package: "@agent-ui/plugins", subpath: "./assistant-ui-composer", version: "^0.1.0" }, referenceSourceItemId: "plugin/assistant-ui-composer" } },
   { id: "web-component-bridge", kind: "compatibility", targets: ["vue", "legacy", "html"], discoverable: true, label: "Web Component Compatibility", implementation: { type: "source", sourceItemId: "integration/web-component-bridge" } },
   { id: "web-search", discoverable: true, label: "网页搜索", implementation: { type: "source-plugin", sourceItemId: "plugin/web-search", pluginId: "web-search", placement: "application" } },
   { id: "retrieval-chunks", discoverable: true, label: "文档检索", implementation: { type: "source-plugin", sourceItemId: "plugin/retrieval-chunks", pluginId: "retrieval-chunks", placement: "application" } },

@@ -1,4 +1,5 @@
-import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure, resolveOfficialResource, OfficialResourceError } from "@agent-ui/source-registry";
+import { officialPackagePlugin, loadAgentUISourceRegistry, resolveAgentUISourceItemClosure, resolveOfficialResource, OfficialResourceError } from "@agent-ui/source-registry";
+import { migrateOfficialPackagePlugin } from "./migrate-official-package-plugin";
 import { realpath } from "node:fs/promises";
 import { ensureResourcePackages, type ResourcePackageRunner } from "./ensure-resource-packages";
 import { installOptionalAgentUIResource } from "./install-optional-agent-ui-resource";
@@ -13,6 +14,11 @@ const installations = new Map<string, Promise<OfficialResourceInstallResult>>();
 
 async function install(projectRoot: string, resourceId: string, runPackages?: ResourcePackageRunner): Promise<OfficialResourceInstallResult> {
   const resource = resolveOfficialResource(resourceId);
+  if (resource.implementation.type === "plugin" && officialPackagePlugin(resource.implementation.pluginId)) {
+    const registry = await loadAgentUISourceRegistry();
+    await ensureResourcePackages(projectRoot, resolveAgentUISourceItemClosure(registry, `plugin/${resource.implementation.pluginId}`), runPackages);
+    await migrateOfficialPackagePlugin(projectRoot, resource.implementation.pluginId);
+  }
   const sourcesBefore = await inspectScenarioResources(projectRoot);
   const before = inspectOfficialResourceImplementation(resource, await inspectUIComposition(projectRoot), sourcesBefore);
   if (before.status === "conflict") throw new OfficialResourceError("RESOURCE_CONFLICT", "Resource installation conflicts with the current project.", before);

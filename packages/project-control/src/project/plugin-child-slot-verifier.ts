@@ -138,6 +138,8 @@ export async function verifyPluginChildSlots(
   projectRoot: string,
   assets: readonly PluginAsset[],
 ): Promise<ProjectIssue[]> {
+  // Dependency-owned implementations are validated by their package build.
+  assets = assets.filter(asset => asset.ownership !== "official_package");
   const resolvedProjectRoot = path.resolve(projectRoot);
   const sourcesByPlugin = await Promise.all(
     assets.map(async (asset) => ({

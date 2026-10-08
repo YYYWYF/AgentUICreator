@@ -154,6 +154,7 @@ BoundedIntentCandidateId: TypeAlias = Annotated[
 CreatorAuthoringTargetKind: TypeAlias = Literal[
     "application_config",
     "plugin_source",
+    "official_plugin_reference",
 ]
 
 
@@ -473,7 +474,7 @@ class CreatorIntentCandidate(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    type: Literal["composition_action", "application_config", "plugin_source"]
+    type: Literal["composition_action", "application_config", "plugin_source", "official_plugin_reference"]
     candidateId: BoundedIntentCandidateId
     label: BoundedActionLabel
     description: BoundedActionDescription

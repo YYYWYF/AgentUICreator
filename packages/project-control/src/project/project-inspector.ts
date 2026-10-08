@@ -287,7 +287,7 @@ async function inspectUICompositionData(
   const inspectedInstances = pluginInstances.map(instance => ({ ...instance, effectiveEnabled: effectiveEnabled(instance) }));
   const pluginSources = await Promise.all(generation.assets.map(async asset => ({
     pluginId: asset.pluginId,
-    status: await pathExists(path.join(projectRoot, asset.definitionPath)) ? "available" as const : "missing" as const,
+    status: asset.ownership === "official_package" ? (projectFacts.definitionIssuesByPath.has(asset.definitionPath) ? "missing" as const : "available" as const) : await pathExists(path.join(projectRoot, asset.definitionPath)) ? "available" as const : "missing" as const,
     dataMessageUINames: asset.dataMessageUINames ?? [],
   })));
   const selectedPluginIds = generation.activeComposition.selectedPluginIds;

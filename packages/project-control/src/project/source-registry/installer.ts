@@ -1,4 +1,5 @@
 import {
+  officialPackagePlugin,
   loadAgentUISourceRegistry,
   resolveAgentUISourceItemClosure,
   type LoadedAgentUISourceItem,
@@ -49,7 +50,12 @@ export function resolveAgentUISourceItems(
   for (const itemId of itemIds) {
     for (const item of resolveAgentUISourceItemClosure(registry, itemId)) ordered.set(item.id, item);
   }
-  return [...ordered.values()];
+  return [...ordered.values()].map(item => {
+    const official = item.id.startsWith("plugin/") ? officialPackagePlugin(item.id.slice(7)) : undefined;
+    return official ? { ...item, loadedFiles: [], files: [], packages: {
+      ...item.packages, [official.runtime.package]: official.runtime.version,
+    } } : item;
+  });
 }
 
 function stateError(itemId: string, status: string): AgentUISourceError {
@@ -115,7 +121,7 @@ export async function installAgentUISourceItems(
     for (const file of item.loadedFiles) {
       mutations.push({ target: file.target, content: file.content });
     }
-    nextLock.items[item.id] = sourceItemLock(item, loadedRegistry);
+    if (item.loadedFiles.length) nextLock.items[item.id] = sourceItemLock(item, loadedRegistry);
   }
   mutations.sort((left, right) => left.target.localeCompare(right.target));
   await commitAgentUISourceTransaction(
@@ -141,7 +147,8 @@ export async function preflightAgentUISourceApply(
   registry?: LoadedAgentUISourceRegistry,
 ) {
   const loadedRegistry = registry ?? await loadAgentUISourceRegistry();
-  const closure = resolveAgentUISourceItemClosure(loadedRegistry, input.itemId);
+  if (input.itemId === "plugin/assistant-ui-composer") throw new AgentUISourceError("PLUGIN_ID_RESERVED_BY_OFFICIAL", "Install the official package or create a project-owned custom plugin; reference source is read-only.");
+  const closure = resolveAgentUISourceItems(loadedRegistry, [input.itemId]).filter(item => item.loadedFiles.length > 0);
   const before = await inspectAgentUISources(projectRoot, config, loadedRegistry);
   if (before.stateHash !== input.expectedStateHash) {
     throw new AgentUISourceError(
@@ -212,7 +219,7 @@ export async function applyAgentUISourceItem(
       if (previous?.files[file.target]?.sha256 === sha256(file.content)) continue;
       mutations.set(file.target, { target: file.target, content: file.content });
     }
-    nextLock.items[item.id] = sourceItemLock(item, loadedRegistry);
+    if (item.loadedFiles.length) nextLock.items[item.id] = sourceItemLock(item, loadedRegistry);
     changedItems.push(item.id);
   }
 

@@ -1,4 +1,4 @@
-import { cp, mkdir, mkdtemp, readFile, symlink, writeFile } from "node:fs/promises";
+import { rm, cp, mkdir, mkdtemp, readFile, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -38,6 +38,9 @@ export function generatedProjectFixture(): Promise<string> {
       const source = candidates.find(existsSync);
       if (source) await symlink(source, link, "dir");
     }
+    await rm(path.join(root, "agent-ui/plugins/assistant-ui-composer"), { recursive: true, force: true });
+    await mkdir(path.join(root, "node_modules/@agent-ui"), { recursive: true });
+    await symlink(path.join(repositoryRoot, "packages/plugins"), path.join(root, "node_modules/@agent-ui/plugins"), "dir");
     await writeGeneratedPluginRegistry(root);
     // Legacy template imports use the same freshly generated catalog as agent-ui.
     await cp(path.join(root, "agent-ui/plugins/registry.generated.ts"),

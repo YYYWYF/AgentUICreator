@@ -22,3 +22,6 @@ export { synchronizeAgentUIPluginRegistry } from "./project/synchronize-plugin-r
 
 export { inspectIntegrationHost, planIntegrationRecipe, applyIntegrationRecipe, prepareIntegrationRecipeAsset, verifyIntegrationRecipe } from "./project/integration-recipe";
 export type { IntegrationRecipe, IntegrationOptions } from "./project/integration-recipe";
+
+export { createCustomPlugin } from "./project/create-custom-plugin";
+export { migrateOfficialPackagePlugin } from "./project/migrate-official-package-plugin";

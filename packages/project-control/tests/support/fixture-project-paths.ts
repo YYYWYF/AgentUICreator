@@ -8,6 +8,7 @@ export function fixtureProjectPaths(projectRoot: string, config: UIProjectContro
   return {
     ...resolveAgentUIProjectPaths(projectRoot, { mode: "platform", sourceRoot: "agent-ui" }, config),
     sourceRoot: projectRoot,
+    agentUIAdaptersRoot: `${projectRoot}/agent-ui`,
     appUIModelPath: `${projectRoot}/app-ui/app-ui.json`,
     pluginsRoot: `${projectRoot}/plugins`,
     generatedPluginRegistryPath: `${projectRoot}/plugins/registry.generated.ts`,

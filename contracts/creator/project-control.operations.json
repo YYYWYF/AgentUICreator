@@ -153,6 +153,20 @@
       "inputDef": "integrationApplyInput",
       "resultDef": "integrationAssetPreparationResult",
       "agentExposed": true
+    },
+    {
+      "name": "create_custom_plugin",
+      "kind": "mutation",
+      "inputDef": "createCustomPluginInput",
+      "resultDef": "createCustomPluginResult",
+      "agentExposed": true
+    },
+    {
+      "name": "migrate_official_package_plugin",
+      "kind": "mutation",
+      "inputDef": "migrateOfficialPackagePluginInput",
+      "resultDef": "migrateOfficialPackagePluginResult",
+      "agentExposed": false
     }
   ]
 }

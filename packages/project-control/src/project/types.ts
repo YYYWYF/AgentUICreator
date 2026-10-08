@@ -83,6 +83,9 @@ export interface UIProjectControlConfig {
 }
 
 export interface PluginAsset {
+  ownership?: "official_package" | "project_source";
+  referenceSourceItemId?: string;
+  runtimeImport?: string;
   pluginId: string;
   manifest: UIPluginManifest;
   name: string;
@@ -127,7 +130,7 @@ export interface PluginAuthoringReadiness {
   warnings: ProjectIssue[];
 }
 
-export type CreatorAuthoringTargetKind = "application_config" | "plugin_source";
+export type CreatorAuthoringTargetKind = "application_config" | "plugin_source" | "official_plugin_reference";
 
 export interface CreatorAuthoringTargetCandidate {
   id: string;

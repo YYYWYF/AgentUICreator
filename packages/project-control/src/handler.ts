@@ -1,3 +1,6 @@
+import { createCustomPlugin, createCustomPluginInputSchema } from "./project/create-custom-plugin";
+import { migrateOfficialPackagePlugin } from "./project/migrate-official-package-plugin";
+import { officialPackagePlugin, loadAgentUISourceRegistry } from "@agent-ui/source-registry";
 import { integrationOptionsSchema, integrationRecipeSchema, planIntegrationRecipe, applyIntegrationRecipe, prepareIntegrationRecipeAsset, verifyIntegrationRecipe } from "./project/integration-recipe";
 import { appUIRepairInputSchema, inspectAppUIModelSource, repairAppUIModel } from "./project/app-ui-recovery";
 import { acquireProjectControlLock } from "./project/project-control-lock";
@@ -70,6 +73,8 @@ const inspectUISlotsInputSchema = z.union([
   }),
 ]);
 export const requestSchema = z.discriminatedUnion("operation", [
+  z.strictObject({ operation: z.literal("create_custom_plugin"), input: createCustomPluginInputSchema }),
+  z.strictObject({ operation: z.literal("migrate_official_package_plugin"), input: z.strictObject({ pluginId: z.literal("assistant-ui-composer") }) }),
   z.strictObject({ operation: z.literal("plan_agent_ui_integration"), input: integrationOptionsSchema }),
   z.strictObject({ operation: z.literal("apply_agent_ui_integration"), input: z.strictObject({ recipe: integrationRecipeSchema, cancelMarker: z.string().regex(creatorCancelMarkerSchemaPattern).optional() }) }),
   z.strictObject({ operation: z.literal("prepare_agent_ui_integration_asset"), input: z.strictObject({ recipe: integrationRecipeSchema, cancelMarker: z.string().regex(creatorCancelMarkerSchemaPattern).optional() }) }),
@@ -313,6 +318,17 @@ async function inspectUIPlugin(
       `UI plugin "${pluginId}" is unavailable.`,
     );
   }
+  const official = officialPackagePlugin(pluginId);
+  if (official) {
+    const registry = await loadAgentUISourceRegistry();
+    const item = registry.byId.get(official.referenceSourceItemId)!;
+    return { appUIModelHash: inspection.appUIModel.hash, asset, selected: asset.selected,
+      instances: inspection.plugins.filter(instance => instance.pluginId === pluginId),
+      manifest: official.manifest,
+      definitionSource: boundedText(item.loadedFiles.find(file => file.target.endsWith("definition.ts"))!.content.toString("utf8"), MAX_PLUGIN_SOURCE_CHARACTERS),
+      services: { provides: official.services.provides, required: official.services.inject, optional: official.services.optionalInject },
+      files: item.loadedFiles.map(file => ({ path: `source-registry/${file.target}`, kind: "file", bytes: file.content.length })), filesTruncated: false };
+  }
   const pluginRoot = path.join(projectRoot, path.dirname(asset.manifestPath));
   const allEntries = (await readdir(pluginRoot, { withFileTypes: true })).sort(
     (left, right) => left.name.localeCompare(right.name),
@@ -392,6 +408,7 @@ async function inspectUIServices(projectRoot: string) {
     model,
     inventory.assets,
     path.dirname(paths.pluginsRoot),
+    (await collectPluginProjectFacts(projectRoot, projectControlConfigForPaths(paths), paths)).declarations,
   );
   return {
     appUIModelHash: createHash("sha256").update(appUIModelSource).digest("hex"),
@@ -477,6 +494,8 @@ async function executeRequest(
       const result = await verifyUIProject(projectRoot);
       return { status: result.status, errors: result.errors, warnings: result.warnings };
     }
+    case "create_custom_plugin": return createCustomPlugin(projectRoot, request.input);
+    case "migrate_official_package_plugin": return migrateOfficialPackagePlugin(projectRoot, request.input.pluginId);
     case "purge_ui_plugin":
       return purgeUIPlugin(projectRoot, request.input);
     case "mutate_app_ui_model":

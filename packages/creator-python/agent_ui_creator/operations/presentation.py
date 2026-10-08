@@ -23,6 +23,7 @@ CreatorIntentRoute: TypeAlias = Literal[
     "scoped_general_handoff",
     "application_config",
     "plugin_source",
+    "official_plugin_reference",
     "clarification",
     "unsupported",
 ]
