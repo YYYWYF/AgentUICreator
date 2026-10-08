@@ -186,6 +186,10 @@ class CreatorValidationService:
             for diagnostic in diagnostics[:MAX_DIAGNOSTIC_SAMPLE_COUNT]
         ]
 
+    def _command_label(self, command: CreatorValidationCommand) -> str:
+        resolver = getattr(self.runner, "command_label", None)
+        return resolver(command) if resolver is not None else command
+
     async def ensure_baseline(self) -> TypeScriptDiagnosticParseResult:
         """Capture the run baseline once, before the first side effect."""
 
@@ -225,7 +229,7 @@ class CreatorValidationService:
                 "host_validation_baseline",
                 {
                     "revision": self.activity.revision,
-                    "command": "pnpm typecheck",
+                    "command": self._command_label("pnpm typecheck"),
                     "captured": True,
                     "available": parsed.available,
                     "exitCode": exit_code,
@@ -431,15 +435,16 @@ class CreatorValidationService:
                 {
                     "revision": target_revision,
                     "validationMode": mode,
-                    "commands": list(commands),
+                    "commands": [self._command_label(command) for command in commands],
                 },
             )
 
         for command in commands:
             if self.activity.revision != target_revision:
                 break
+            command_label = self._command_label(command)
             cached = self.activity.validation_at_revision(
-                command, target_revision, validation_mode=mode
+                command_label, target_revision, validation_mode=mode
             )
             if cached is not None:
                 if command == "pnpm typecheck":
@@ -482,7 +487,7 @@ class CreatorValidationService:
             else:
                 output, truncated = self._bounded(result.output, result.truncated)
             self.activity.record_validation(
-                command,
+                command_label,
                 exit_code=result.exit_code,
                 output=output,
                 truncated=truncated,
@@ -491,7 +496,7 @@ class CreatorValidationService:
                 validation_mode=mode,
             )
             recorded = self.activity.validation_at_revision(
-                command, target_revision, validation_mode=mode
+                command_label, target_revision, validation_mode=mode
             )
             if recorded is not None:
                 checks.append(
