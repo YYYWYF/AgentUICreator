@@ -11,7 +11,7 @@ CREATOR_COMPLETION_VALIDATIONS = (
     "pnpm verify:ui",
     "pnpm typecheck",
 )
-CreatorValidationCommand = Literal["pnpm verify:ui", "pnpm typecheck"]
+CreatorValidationCommand = Literal["pnpm verify:ui", "pnpm typecheck", "pnpm build"]
 ValidationMode = Literal["delta", "clean"]
 DifferentialStatus = Literal["available", "unavailable"]
 

@@ -128,6 +128,26 @@ function dependencyVersions(source: unknown): Record<string, string> {
   return versions;
 }
 
+export function uiPackageContext(source: unknown): UIProjectInspection["uiContext"] {
+  const manifest = typeof source === "object" && source !== null && !Array.isArray(source)
+    ? source as Record<string, unknown> : {};
+  // Report declarations, not a library recommendation or resolved install state.
+  const dependencyDeclarations = ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"].flatMap(section => {
+    const declarations = manifest[section];
+    if (typeof declarations !== "object" || declarations === null || Array.isArray(declarations)) return [];
+    return Object.entries(declarations).flatMap(([packageName, version]) =>
+      typeof version === "string" ? [{ packageName, version, section }] : []);
+  });
+  return {
+    authority: "package declarations only; inspect actual components, imports, providers and styles before selecting a UI system",
+    manifestPath: "package.json",
+    dependencyDeclarations,
+    ...(typeof manifest.packageManager === "string" ? { packageManager: manifest.packageManager } : {}),
+    scriptNames: typeof manifest.scripts === "object" && manifest.scripts !== null && !Array.isArray(manifest.scripts)
+      ? Object.keys(manifest.scripts) : [],
+  };
+}
+
 export async function inspectUIProject(
   projectRoot: string,
   config: UIProjectControlConfig = uiProjectControlConfig,
@@ -182,6 +202,7 @@ export async function inspectUIProject(
       const version = versions[packageName];
       return version === undefined ? [] : [{ packageName, version }];
     }),
+    uiContext: uiPackageContext(packageJson),
     agentUI,
   };
 }

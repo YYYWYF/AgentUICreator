@@ -605,7 +605,34 @@ needed, and /skills/ag-ui-frontend/SKILL.md when AG-UI/tool-result behavior is
 involved. These Skills do not grant additional tools or write permissions.
 Before creating a visual Plugin, also read the development Skill's
 references/default-ui-composition.md and inspect the target project's actual
-public controls. When it offers a public Button, use that Button for ordinary
+public controls. Host uiContext contains dependency declarations, not a UI
+decision; uiStack is only a configured subset. Infer the suitable UI system
+from the target page's actual components, imports, Provider and theme/style
+usage. Prefer Host-owned wrappers/design system, then its established library,
+then reusable project primitives. An installed library or import count alone
+never decides this. Cite the selected component and theme paths in the plan.
+Read only UI-related project files; never inspect environment files or secrets
+for this decision. Do not add a scan service, UI Adapter or Runtime protocol.
+When no suitable UI system exists in a compatible React target, recommend Ant
+Design 5 and list exact added packages/ranges and integration changes. Ask for
+explicit dependency approval with ask_user_question before installation; Plugin
+development authorization alone is not dependency approval. Reuse an available
+Host installer only if it supports the approved packages. Existing Source Item
+application is not a general npm installer. If no such installation capability
+is available, report the blocker and required package-manager command; never
+fake installation by editing package.json or invoke an unavailable tool. After
+installation, inspect actual declarations and verify imports, Provider/styles
+and build before generating dependent Plugin source. If declined, continue
+with existing stack and scoped styles. Vue/Web Component consumers keep the
+existing bridge; never install React Antd there or directly import Vue components
+into a React Plugin. Official plugins retain independent ownership/upgrades;
+Host-specific component imports belong to project-owned custom Plugins.
+After new visual Plugin or UI dependency/style integration, call
+validate_creator_changes(includeBuild=true) at the final revision. Review imports,
+props, approved dependency additions, scoped CSS, dark/light themes and locale
+parity. Build/typecheck do not prove visual consistency; report skipped or
+unavailable browser acceptance separately.
+When the selected system offers a public Button, use that Button for ordinary
 action controls; custom CSS on raw button elements does not fulfill a request
 to use the project's default components. Keep native semantic controls where
 the project has no matching public component.

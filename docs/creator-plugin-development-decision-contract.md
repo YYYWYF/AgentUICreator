@@ -23,3 +23,12 @@ Creator 的普通功能请求先检查当前项目中已安装的 Plugin、已�
 开发授权只覆盖方案内的 Plugin 开发、必要组合、当前 revision 验证和有限因果修复。它不授予 Service Contract、Frontend Tool、Agent 业务操作或任意路径写入。只读 INSPECT 的普通问题回答仍只读；开发需另起明确的顶层可写请求。拒绝和调整是正常的无变更结果，不能回执为功能已交付。新任务、撤销、相关范围变化或失去 checkpoint 绑定使旧授权失效；无关 revision 变化和本任务自己的写入不要求重复批准。
 
 新 Plugin 产出优先采用用户指明的合格自有组件、正式插件或 Source Item、项目认可的公开基础组件与 tokens，再补业务组合。由 AppUIModel 管理布局与实例；UI Plugin 不建立第二 Runtime，不替换上游会话实现。`static_only` 的最终回执只说明当前 revision 静态验证，不声称浏览器或 Runtime 已通过。
+
+
+## 宿主 UI 体系选择
+
+Host 通过既有项目摘要的 `uiContext` 提供 package.json 的四类直接依赖声明、包管理器声明和脚本名称，既有组件导航、文件读取与源码检索提供按需证据。`uiStack` 仅为配置的依赖子集；两者均不判定组件库、不证明实际安装或 API 可用。Agent 应读取目标页面/最近插件、组件封装及导出、Provider、样式与主题 Tokens 后判断：优先宿主自研封装，其次实际主流组件库，再组合已有基础组件。不能按库名、版本或 import 数量机械选择。方案记录引用组件和主题路径，不新增决策协议或全仓扫描服务，不读取环境变量/密钥。
+
+仅在没有合适 UI 体系、React 目标兼容时建议 Ant Design 5，并展示确切新增依赖、实际包管理器和接入修改。开发授权不包含新 UI 依赖安装授权；安装前通过已有 `ask_user_question` 取得明确确认。使用支持这些包的现有 Host 安装能力；当前 Source Item 安装不是通用 npm 安装入口，不支持时明确报告阻塞及用户可执行命令，禁止伪造安装或仅修改声明。确认真实安装与 Provider/样式接入成功后再生成依赖它的插件。拒绝后继续用现有栈。Vue/HTML/Web Components 保持既有桥接，不能把 React Antd 装入消费者作为通用兜底。
+
+自定义插件可复用宿主业务组件；官方插件保持独立 ownership 和升级机制。生成后使用既有 `validate_creator_changes(includeBuild=true)` 执行最终 revision 的静态检查、类型检查及宿主 build；检查 import/Props、授权依赖、样式作用域、主题和国际化。缺少 build 或失败不声称成功。视觉一致性需要独立浏览器证据，未运行时明确未验收。不得修改 vendor、添加 UI Adapter 或改变 Runtime 协议。

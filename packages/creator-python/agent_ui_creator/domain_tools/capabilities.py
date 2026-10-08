@@ -19,7 +19,7 @@ def component_navigation(root: Path, *, limit: int = 200) -> tuple[list[dict[str
             if visited > 10_000:
                 return entries, False
             path = Path(directory) / name
-            if path.is_symlink() or path.suffix not in {".tsx", ".jsx"} or any(
+            if path.is_symlink() or path.suffix not in {".tsx", ".jsx", ".vue"} or any(
                 part in name for part in (".test.", ".spec.", ".stories.")
             ):
                 continue
@@ -61,7 +61,9 @@ def capability_navigation(project: dict, sources: dict, root: Path | None) -> di
             "refreshBeforeMutation": "inspect_ui_project(view='composition')",
         },
         "uiStack": project.get("uiStack", []),
+        "uiContext": project.get("uiContext", {}),
         "limitations": ["Component filenames are candidates, not a capability guarantee.",
+                         "uiStack is a configured package subset; uiContext lists declarations, not installed APIs or a UI recommendation.",
                          "Placement support depends on the current layout and Plugin authoring contract.",
                          "Incomplete component discovery does not prove absence; use a targeted project search."],
     }

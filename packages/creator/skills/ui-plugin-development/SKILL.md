@@ -57,7 +57,10 @@ do not describe that as freeing chat space. A Plugin-local disclosure control
 is appropriate only when retaining its allocated panel width is intended.
 
 Before implementation, inspect `references/default-ui-composition.md` for the
-project's public component and style discovery path. Use actual exported APIs,
+project's Host UI evidence, AI selection priorities, explicit dependency approval,
+React-only Ant Design 5 fallback and post-generation checks. Follow that policy
+for every new visual Plugin; record the component/theme source evidence in the
+existing development plan. Use actual exported APIs,
 not guessed Button, Checkbox, Dialog, or overlay names. If the user did not
 specify a component, use the project's mature default controls and tokens; do
 not make an unstyled native form or placeholder panel the product result.

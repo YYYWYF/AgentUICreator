@@ -11,6 +11,7 @@ import { APP_UI_MUTATION_ADMISSION_GUARANTEES } from "../../src/project/app-ui-t
 import {
   inspectUIComposition,
   inspectUIProject,
+  uiPackageContext,
 } from "../../src/project/project-inspector";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
@@ -21,6 +22,34 @@ import { generatePluginRegistry } from "../support/fixture-project-paths";
 import type { UIProjectControlConfig } from "../../src/project/types";
 
 const temporaryProjects: string[] = [];
+describe("Host UI dependency evidence", () => {
+  it("preserves unknown libraries and all declaration sections without selecting a UI system", () => {
+    const facts = uiPackageContext({
+      dependencies: { antd: "^5", "@host/ui": "workspace:*" },
+      devDependencies: { tailwindcss: "^4" },
+      peerDependencies: { vue: "^3" },
+      optionalDependencies: { "custom-theme": "^1" },
+      packageManager: "npm@11.0.0",
+      scripts: { build: "vite build" },
+      privateConfig: "must not be returned",
+    });
+    expect(facts.dependencyDeclarations).toEqual([
+      { packageName: "antd", version: "^5", section: "dependencies" },
+      { packageName: "@host/ui", version: "workspace:*", section: "dependencies" },
+      { packageName: "tailwindcss", version: "^4", section: "devDependencies" },
+      { packageName: "vue", version: "^3", section: "peerDependencies" },
+      { packageName: "custom-theme", version: "^1", section: "optionalDependencies" },
+    ]);
+    expect(facts.packageManager).toBe("npm@11.0.0");
+    expect(facts.scriptNames).toEqual(["build"]);
+    expect(facts).not.toHaveProperty("privateConfig");
+    expect(facts).not.toHaveProperty("selectedLibrary");
+  });
+  it("reports empty facts for missing or malformed declarations", () => {
+    expect(uiPackageContext(null).dependencyDeclarations).toEqual([]);
+    expect(uiPackageContext({ dependencies: [], devDependencies: { invalid: 3 } }).dependencyDeclarations).toEqual([]);
+  });
+});
 const fixtureConfig: UIProjectControlConfig = {
   catalogs: ["plugins/catalog"],
   uiPackages: ["react", "@base-ui/react"],
@@ -143,6 +172,10 @@ describe("inspectUIProject", () => {
       JSON.stringify({
         dependencies: { react: "19.2.8" },
         devDependencies: { "@base-ui/react": "1.8.0" },
+        peerDependencies: { "@host/design-system": "^2" },
+        optionalDependencies: { "host-theme": "^1" },
+        packageManager: "pnpm@10.0.0",
+        scripts: { build: "vite build" },
       }),
     );
     await writeFile(
@@ -288,6 +321,17 @@ describe("inspectUIProject", () => {
       { packageName: "react", version: "19.2.8" },
       { packageName: "@base-ui/react", version: "1.8.0" },
     ]);
+    expect(result.uiContext).toMatchObject({
+      manifestPath: "package.json",
+      packageManager: "pnpm@10.0.0",
+      scriptNames: ["build"],
+      dependencyDeclarations: [
+        { packageName: "react", version: "19.2.8", section: "dependencies" },
+        { packageName: "@base-ui/react", version: "1.8.0", section: "devDependencies" },
+        { packageName: "@host/design-system", version: "^2", section: "peerDependencies" },
+        { packageName: "host-theme", version: "^1", section: "optionalDependencies" },
+      ],
+    });
 
     const composition = await inspectUIComposition(projectRoot, fixtureConfig);
     expect(composition).toMatchObject({

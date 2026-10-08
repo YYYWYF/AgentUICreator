@@ -77,6 +77,7 @@ class CreatorValidationService:
         self._latest_differential: TypecheckDifferential | None = None
         self._latest_mode: ValidationMode | None = None
         self._latest_revision: int | None = None
+        self._build_requested = False
 
     def _synchronize_run_state(self) -> None:
         run_id = self.activity.run_id
@@ -91,6 +92,7 @@ class CreatorValidationService:
         self._latest_differential = None
         self._latest_mode = None
         self._latest_revision = None
+        self._build_requested = False
         self._registry_sync_mutation_index = 0
 
     async def _synchronize_plugin_registry(self) -> None:
@@ -411,7 +413,7 @@ class CreatorValidationService:
                 },
             )
 
-    async def validate(self, mode: ValidationMode = "delta") -> CreatorValidationResult:
+    async def validate(self, mode: ValidationMode = "delta", *, include_build: bool = False) -> CreatorValidationResult:
         if mode not in {"delta", "clean"}:
             raise ValueError("Validation mode must be 'delta' or 'clean'.")
         self._synchronize_run_state()
@@ -421,17 +423,19 @@ class CreatorValidationService:
         self.repair_state.begin_verification(target_revision)
         checks: list[CreatorValidationCheck] = []
         differential: TypecheckDifferential | None = None
+        self._build_requested = self._build_requested or include_build
+        commands = (*CREATOR_COMPLETION_VALIDATIONS, "pnpm build") if self._build_requested else CREATOR_COMPLETION_VALIDATIONS
         if self.activity.logger is not None:
             self.activity.logger.record(
                 "host_validation_started",
                 {
                     "revision": target_revision,
                     "validationMode": mode,
-                    "commands": list(CREATOR_COMPLETION_VALIDATIONS),
+                    "commands": list(commands),
                 },
             )
 
-        for command in CREATOR_COMPLETION_VALIDATIONS:
+        for command in commands:
             if self.activity.revision != target_revision:
                 break
             cached = self.activity.validation_at_revision(
@@ -506,7 +510,7 @@ class CreatorValidationService:
             "stale"
             if self.activity.revision != target_revision
             else "passed"
-            if len(checks) == len(CREATOR_COMPLETION_VALIDATIONS)
+            if len(checks) == len(commands)
             and all(check.status == "passed" for check in checks)
             and all(check.status == "passed" for check in host_checks)
             else "failed"

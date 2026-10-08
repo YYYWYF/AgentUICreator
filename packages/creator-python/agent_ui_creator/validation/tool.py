@@ -15,16 +15,22 @@ def create_validation_tool(service: CreatorValidationService) -> BaseTool:
     @tool("validate_creator_changes")
     async def validate_creator_changes(
         mode: Literal["delta", "clean"] = "delta",
+        includeBuild: bool = False,
     ) -> str:
-        """Validate current revision completion and regressions. Unrelated pre-existing diagnostics remain workspace warnings. Use inspect_static_diagnostics for explicit static debugging discovery. Delta rejects introduced errors; clean requires zero TypeScript errors and is only for an explicit clean-workspace request. For an explicit existing-error repair, discover and select the requested debuggingTargetId first. Targets persist across revisions and do not authorize writes or expand scope."""
+        """Validate current revision completion and regressions. includeBuild=true also runs the target build for new visual Plugins or UI dependency/style integration; a failed or unavailable build is not success. Unrelated pre-existing diagnostics remain workspace warnings. Use inspect_static_diagnostics for explicit static debugging discovery. Delta rejects introduced errors; clean requires zero TypeScript errors and is only for an explicit clean-workspace request. For an explicit existing-error repair, discover and select the requested debuggingTargetId first. Targets persist across revisions and do not authorize writes or expand scope."""
         nonlocal last_key
         service._synchronize_run_state()
         service.debugging.validation_reads += 1
         previous = service.current_result()
-        key = (service.activity.run_id, service.activity.revision, mode)
+        key = (service.activity.run_id, service.activity.revision, mode, includeBuild)
         duplicate = previous is not None and previous.status != "stale" and key == last_key
         try:
-            result = previous if duplicate else await service.validate(mode=mode)
+            if duplicate:
+                result = previous
+            elif includeBuild:
+                result = await service.validate(mode=mode, include_build=True)
+            else:
+                result = await service.validate(mode=mode)
             if mode == "clean":
                 service.debugging.clean_requested = True
         except ValueError as error:
@@ -40,7 +46,7 @@ def create_validation_tool(service: CreatorValidationService) -> BaseTool:
                     "details": error.details,
                 },
             }, ensure_ascii=False, separators=(",", ":"))
-        last_key = (service.activity.run_id, result.revision, mode)
+        last_key = (service.activity.run_id, result.revision, mode, includeBuild)
         if duplicate:
             service.debugging.duplicates += 1
         evidence = result.to_dict()

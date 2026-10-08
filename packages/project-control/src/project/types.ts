@@ -280,6 +280,13 @@ export interface UIProjectInspection {
     packageName: string;
     version: string;
   }>;
+  uiContext: {
+    authority: string;
+    manifestPath: string;
+    dependencyDeclarations: Array<{ packageName: string; version: string; section: string }>;
+    packageManager?: string;
+    scriptNames: string[];
+  };
   agentUI: {
     stateHash: string;
     sourceRoot: string;

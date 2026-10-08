@@ -463,3 +463,22 @@ def test_managed_composition_failure_keeps_project_scope(tmp_path):
     assert result.failure_semantics["taskScope"] == ["composition"]
     assert result.failure_semantics["changedResources"] == ["app-ui-model"]
     assert result.failure_semantics["attribution"] == "introduced"
+
+
+def test_optional_build_is_not_replaced_by_cached_static_validation(tmp_path):
+    runner = FakeValidationRunner()
+    service, activity = validation_service(tmp_path, runner)
+    tool = create_validation_tool(service)
+    asyncio.run(tool.ainvoke({}))
+    runner.results = [CommandExecutionResult("build failed", 1, False)]
+    payload = json.loads(asyncio.run(tool.ainvoke({"includeBuild": True})))
+    assert runner.calls[-1] == "pnpm build"
+    assert payload["result"]["status"] == "failed"
+    assert payload["result"]["checks"][-1]["command"] == "pnpm build"
+    previous_calls = list(runner.calls)
+    asyncio.run(tool.ainvoke({"includeBuild": True}))
+    assert runner.calls == previous_calls
+    # Omitting the flag later cannot turn a failed build into completion success.
+    payload = json.loads(asyncio.run(tool.ainvoke({})))
+    assert payload["result"]["status"] == "failed"
+    assert runner.calls == previous_calls

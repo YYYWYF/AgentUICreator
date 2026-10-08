@@ -336,3 +336,17 @@ def test_fixed_sidebar_checks_conversation_position_too():
     assert layout_intent_checks(layout, evidence)[-1]["status"] == "failed"
     evidence[-1]["rect"]["x"] = 280
     assert all(check["status"] == "passed" for check in layout_intent_checks(layout, evidence))
+
+
+def test_ui_navigation_preserves_host_dependency_evidence_and_vue_candidates(tmp_path):
+    from agent_ui_creator.domain_tools.capabilities import capability_navigation
+
+    write(tmp_path, "src/components/HostCard.vue", "<template><section /></template>")
+    write(tmp_path, "node_modules/secret/Ignore.vue", "<template />")
+    context = {"dependencyDeclarations": [
+        {"packageName": "@host/ui", "version": "workspace:*", "section": "dependencies"},
+    ]}
+    result = capability_navigation({"uiContext": context, "pluginAssets": []}, {}, tmp_path)
+    assert result["uiContext"] == context
+    assert [item["sourcePath"] for item in result["components"]] == ["/src/components/HostCard.vue"]
+    assert "recommendedLibrary" not in result

@@ -13,6 +13,7 @@ COMMAND_TIMEOUT_SECONDS = 120
 _COMMANDS: dict[CreatorValidationCommand, tuple[str, ...]] = {
     "pnpm verify:ui": ("pnpm", "verify:ui"),
     "pnpm typecheck": ("pnpm", "typecheck"),
+    "pnpm build": ("pnpm", "build"),
 }
 
 
