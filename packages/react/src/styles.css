@@ -185,17 +185,25 @@
 
 @source "./internal/sidebar-frame.tsx";
 
-@layer components {
+@layer utilities {
   .agent-ui-root .agent-ui-sidebar-frame { position: relative; isolation: isolate; width: 100%; height: 100%; min-width: 0; min-height: 0; overflow: hidden; }
   .agent-ui-root .agent-ui-sidebar-provider { height: 100%; min-height: 0; }
-  .agent-ui-root .agent-ui-sidebar-rail { width: 48px; flex: 0 0 48px; padding: 8px; border-inline-end: 1px solid var(--border); }
+  /* Scope full-page upstream positioning to this frame only. The official gap
+     and container still own width from the controlled provider state. */
+  .agent-ui-root .agent-ui-sidebar-provider > [data-slot="sidebar"] { display: block; position: relative; flex: 0 0 auto; }
+  .agent-ui-root .agent-ui-sidebar-container { position: absolute; inset-block: 0; height: 100%; display: flex; border-inline-width: 0; }
+  .agent-ui-root .agent-ui-sidebar-container > [data-slot="sidebar-inner"] { flex-direction: row; overflow: hidden; }
+  .agent-ui-root .agent-ui-sidebar-rail { width: 48px; flex: 0 0 48px; min-height: 0; display: flex; flex-direction: column; border-inline-end: 1px solid var(--border); }
+  .agent-ui-root .agent-ui-sidebar-rail > [data-slot="sidebar-header"] { padding: 8px; }
+  .agent-ui-root .agent-ui-sidebar-rail > [data-slot="sidebar-content"] { padding: 0 8px 8px; gap: 8px; overflow-x: hidden; overflow-y: auto; }
+  .agent-ui-root .agent-ui-sidebar-rail [data-slot="sidebar-menu"] { gap: 4px; }
   .agent-ui-root .agent-ui-sidebar-entry { width: 32px; height: 32px; padding: 8px; justify-content: center; }
-  .agent-ui-root .agent-ui-sidebar-panel-track { width: 0; flex: 0 0 auto; overflow: hidden; transition: width 200ms ease; }
-  .agent-ui-root .agent-ui-sidebar-panel-track[data-open="true"] { width: 280px; }
-  .agent-ui-root .agent-ui-sidebar-panel { width: 280px; height: 100%; min-height: 0; overflow: auto; background: var(--sidebar); border-inline-end: 1px solid var(--border); }
+  .agent-ui-root .agent-ui-sidebar-panel { flex: 1; min-width: 0; height: 100%; min-height: 0; display: flex; flex-direction: column; background: var(--sidebar); border-inline-end: 1px solid var(--border); }
+  .agent-ui-root .agent-ui-sidebar-panel-header { padding: 12px; font-size: 0.875rem; font-weight: 500; flex-shrink: 0; }
+  .agent-ui-root .agent-ui-sidebar-panel-content { flex: 1; min-width: 0; min-height: 0; overflow: hidden; }
   .agent-ui-root .agent-ui-sidebar-inset { min-width: 0; min-height: 0; overflow: hidden; }
   .agent-ui-root .agent-ui-sidebar-portal { position: absolute; inset: 0; pointer-events: none; z-index: 50; }
   .agent-ui-root .agent-ui-sidebar-portal > * { pointer-events: auto; }
   .agent-ui-root .agent-ui-sidebar-sheet { min-height: 0; padding-top: 36px; overflow: hidden; gap: 0; }
-  @media (prefers-reduced-motion: reduce) { .agent-ui-root .agent-ui-sidebar-panel-track { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .agent-ui-root .agent-ui-sidebar-provider [data-slot="sidebar-gap"], .agent-ui-root .agent-ui-sidebar-container { transition: none; } }
 }

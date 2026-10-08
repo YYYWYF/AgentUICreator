@@ -34,10 +34,16 @@ test("desktop rail, expansion, switch and collapse", async ({ page }) => {
   await page.goto(url);
   const frame = page.locator("[data-sidebar-active]");
   await expect(frame).toHaveAttribute("data-sidebar-active", "");
+  await expect(page.locator(".agent-ui-sidebar-container")).toHaveCSS("width", "48px");
+  await page.getByRole("button", { name: "Toggle Sidebar" }).click();
+  await expect(frame).toHaveAttribute("data-sidebar-active", "history");
+  await page.getByRole("button", { name: "Toggle Sidebar" }).click();
+  await expect(frame).toHaveAttribute("data-sidebar-active", "");
   await expect(page.getByRole("button", { name: "History content", exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "History", exact: true }).click();
   await expect(frame).toHaveAttribute("data-sidebar-active", "history");
-  await expect(page.locator(".agent-ui-sidebar-panel")).toHaveCSS("width", "280px");
+  await expect(page.locator(".agent-ui-sidebar-container")).toHaveCSS("width", "280px");
+  await expect(page.locator(".agent-ui-sidebar-panel")).toHaveCSS("width", "232px");
   await page.getByRole("button", { name: "Files", exact: true }).click();
   await expect(page.getByRole("button", { name: "History content", exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Navigate files", exact: true })).toBeVisible();

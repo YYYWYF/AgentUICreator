@@ -3,11 +3,11 @@
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { useAui, type AssistantRuntime, type ThreadMessage } from "@assistant-ui/react";
-import { act } from "react";
+import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { AgentUIRoot } from "../../src/internal/style-boundary/AgentUIRoot";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ConversationRuntimeProvider, type ConversationAgentFactory } from "@agent-ui/runtime-conversation";
+import { ConversationRuntimeProvider, useConversationRuntimeBridge, type ConversationAgentFactory } from "@agent-ui/runtime-conversation";
 import { createConversationServiceThreadBinding } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
 import { createMockConversationApiHandler } from "../../../mock-agent/src/conversations/handler";
 import { AGENT_UI_LOCALE_SERVICE } from "../../../source-registry/registry/items/foundation-core-application/files/services/agent-ui-locale";
@@ -17,9 +17,17 @@ import { zhCN } from "../../../source-registry/registry/items/foundation-core-ad
 import { PolicyThreadList } from "../../../source-registry/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/PolicyThreadList";
 import { createConversationService, createHttpConversationDataSource } from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations";
 
-import { PluginServiceProvider, createPluginRegistry } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+import { PluginServiceProvider, createPluginRegistry, UIPluginRuntime } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
 import { parseAppUIRuntimeModel } from "../../../project-control/src/framework/contracts/app-ui-runtime-model";
+import { AgentRuntimeProvider } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/context/AgentRuntimeProvider";
+import { conversationThreadListPlugin } from "../../../source-registry/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/definition";
+import { AGENT_UI_CONVERSATION_SERVICE } from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations";
 import { localeProviderPlugin } from "../../../source-registry/registry/items/plugin-locale-provider/files/plugins/locale-provider/definition";
+
+function RuntimeBridge({ children }: { children: ReactNode }) {
+  const bridge = useConversationRuntimeBridge();
+  return <AgentRuntimeProvider runtime={bridge.agentRuntime}>{children}</AgentRuntimeProvider>;
+}
 
 const localeModel = parseAppUIRuntimeModel({
   root: { type: "slot", id: "thread-delete-root", slotId: "thread-list" },
@@ -67,13 +75,14 @@ async function settleUntil(condition: () => boolean) {
   throw new Error("Thread List interaction did not settle.");
 }
 
-async function mount(locale: "zh-CN" | "en-US" = "zh-CN") {
-  const localeRegistry = createPluginRegistry([{ ...localeProviderPlugin, setup: ({ services }) => {
-    services.provide(AGENT_UI_LOCALE_SERVICE, createAgentUILocaleService(locale));
-  } }]);
+async function mount(locale: "zh-CN" | "en-US" = "zh-CN", sidebar = false) {
   const dataSource = createHttpConversationDataSource({ endpoint });
-  const remove = vi.spyOn(dataSource, "delete");
   const service = createConversationService({ dataSource });
+  const localeRegistry = createPluginRegistry([{ ...localeProviderPlugin, provides: [...(localeProviderPlugin.provides ?? []), AGENT_UI_CONVERSATION_SERVICE], setup: ({ services }) => {
+    services.provide(AGENT_UI_LOCALE_SERVICE, createAgentUILocaleService(locale));
+    services.provide(AGENT_UI_CONVERSATION_SERVICE, service);
+  } }, conversationThreadListPlugin]);
+  const remove = vi.spyOn(dataSource, "delete");
   const binding = createConversationServiceThreadBinding();
   const detach = binding.attachConversationService(service);
   cleanup = () => { detach(); service.dispose(); };
@@ -95,19 +104,26 @@ async function mount(locale: "zh-CN" | "en-US" = "zh-CN") {
   container.className = "conversation-thread-list-plugin";
   document.body.append(container);
   root = createRoot(container);
+  const model = sidebar ? parseAppUIRuntimeModel({
+    root: { type: "sidebar", id: "sidebar", defaultActive: null,
+      items: [{ id: "history", child: { type: "slot", id: "history-slot", slotId: "thread-list" } }],
+      content: { type: "slot", id: "main", slotId: "main" } },
+    pluginInstances: { ...localeModel.pluginInstances,
+      history: { id: "history", pluginId: "conversation-thread-list", enabled: true, mount: { slotId: "thread-list", order: 0 } } },
+  }) : localeModel;
   await act(async () => {
     root!.render(
       <ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding} unstable_agentFactory={agentFactory}>
         <Capture />
-        <PluginServiceProvider model={localeModel} registry={localeRegistry} actions={actions}>
+        <RuntimeBridge><PluginServiceProvider model={model} registry={localeRegistry} actions={actions}>
         <AgentUIRoot theme="violet">
-          <PolicyThreadList labels={(locale === "zh-CN" ? zhCN : enUS).threadList} />
+          {sidebar ? <UIPluginRuntime model={model} registry={localeRegistry} actions={actions} /> : <PolicyThreadList labels={(locale === "zh-CN" ? zhCN : enUS).threadList} />}
         </AgentUIRoot>
-        </PluginServiceProvider>
+        </PluginServiceProvider></RuntimeBridge>
       </ConversationRuntimeProvider>,
     );
   });
-  await settleUntil(() => container.textContent?.includes("历史：基础会话") === true);
+  await settleUntil(() => sidebar ? container.querySelector(".conversation-thread-list-rail-new") !== null : container.textContent?.includes("历史：基础会话") === true);
   if (runtime === undefined) throw new Error("Runtime was not captured.");
   return { runtime, binding, service, container, liveId, remove, abortRun, unsubscribe, subscribe, agentFactory };
 }
@@ -194,4 +210,22 @@ it.each([
   const input = container.querySelector("input")!;
   expect(input.placeholder).toBe(search);
   expect(input.getAttribute("aria-label")).toBe(search);
+});
+
+it("creates a real upstream thread from the plugin rail action while staying collapsed", async () => {
+  const fixture = await mount("en-US", true);
+  await act(async () => { await fixture.runtime.threads.switchToThread("mock-history-basic"); });
+  await settleUntil(() => fixture.binding.getThreadId() === "mock-history-basic");
+  const button = fixture.container.querySelector<HTMLButtonElement>(".conversation-thread-list-rail-new")!;
+  expect(button.getAttribute("aria-label")).toBe("New Thread");
+  await act(async () => button.click());
+  await settleUntil(() => fixture.binding.getThreadId() !== "mock-history-basic");
+  expect(fixture.runtime.threads.getState().mainThreadId).not.toBe("mock-history-basic");
+  expect(fixture.container.querySelector("[data-sidebar-active]")?.getAttribute("data-sidebar-active")).toBe("");
+  await act(async () => fixture.container.querySelector<HTMLButtonElement>('[aria-label="History"]')!.click());
+  await settleUntil(() => fixture.container.querySelector('[role="dialog"] [data-slot="aui_thread-list-new"]') !== null);
+  expect(fixture.container.querySelector(".conversation-thread-list-rail-new")).toBeNull();
+  await act(async () => fixture.container.querySelector<HTMLButtonElement>('[role="dialog"] [data-slot="aui_thread-list-new"]')!.click());
+  await settleUntil(() => fixture.container.querySelector('[role="dialog"]') === null);
+  expect(fixture.container.querySelector(".conversation-thread-list-rail-new")).not.toBeNull();
 });

@@ -69,6 +69,7 @@ export interface PluginInstanceRendererProps<TState = unknown> {
   onPluginReset(instanceId: string): void;
   mountSlotId?: string | undefined;
   scoped?: boolean | undefined;
+  presentation?: "content" | "rail-action" | undefined;
 }
 
 export function PluginInstanceRenderer<TState = unknown>({
@@ -83,8 +84,10 @@ export function PluginInstanceRenderer<TState = unknown>({
   onPluginReset,
   mountSlotId,
   scoped,
+  presentation,
 }: PluginInstanceRendererProps<TState>) {
-  const PluginComponent = definition.Component;
+  const PluginComponent = presentation === "rail-action" ? definition.RailAction : definition.Component;
+  if (PluginComponent === undefined) return null;
   const instanceActions = createInstanceActions(instance, actions);
   const activationKey =
     definition.setup !== undefined ||

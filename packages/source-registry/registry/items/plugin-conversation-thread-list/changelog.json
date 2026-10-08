@@ -16,5 +16,11 @@
     "changes": [
       "Declare localized navigation metadata and explicitly close the container drawer after thread navigation."
     ]
+  },
+  "0.0.4": {
+    "summary": "Align Sidebar presentation and expose the new-thread rail action",
+    "changes": [
+      "Provide an optional shortcut using the existing conversation runtime and show a localized empty history state."
+    ]
   }
 }

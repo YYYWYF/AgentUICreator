@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { MessagesSquare, Folder, FolderOpen, Files, Search, Settings, Database, ChartNoAxesCombined, List, Bot, BookOpen, Star, CircleHelp } from "lucide-react";
 import { useAgentUILocale } from "../locale.js";
-import { SidebarProvider, Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset } from "./adapters/assistant-ui/components/ui/sidebar.js";
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset } from "./adapters/assistant-ui/components/ui/sidebar.js";
 import { Sheet, SheetContent, SheetTitle } from "./adapters/assistant-ui/components/ui/sheet.js";
 
 const icons = { "messages-square": MessagesSquare, folder: Folder, "folder-open": FolderOpen, files: Files, search: Search, settings: Settings, database: Database, "chart-no-axes-combined": ChartNoAxesCombined, list: List, bot: Bot, "book-open": BookOpen, star: Star, "circle-help": CircleHelp };
@@ -13,6 +13,8 @@ export interface AgentUISidebarItem {
   icon: AgentUISidebarIcon;
   label: string;
   content: ReactNode;
+  /** Optional plugin-owned shortcut, already wrapped in its runtime context. */
+  railAction?: ReactNode;
 }
 const NavigationContext = createContext<() => void>(() => {});
 /** Plugins explicitly report navigation; no DOM selectors or conversation policy here. */
@@ -49,35 +51,43 @@ export function AgentUISidebarFrame({ items, defaultActive, children }: {
   const content = active && <NavigationContext.Provider value={() => { if (narrow) close(); }}>{active.content}</NavigationContext.Provider>;
   return (
     <div ref={shell} className="agent-ui-sidebar-frame" data-sidebar-mode={narrow ? "drawer" : "inline"} data-sidebar-active={active?.id ?? ""}>
-      <SidebarProvider isMobile={narrow} open={false} className="agent-ui-sidebar-provider" style={{ minHeight: 0, height: "100%", "--sidebar-width": "48px" } as CSSProperties}>
-        <Sidebar collapsible="none" className="agent-ui-sidebar-rail" role="navigation" aria-label={messages.sidebar}>
-          <SidebarContent>
-            <SidebarMenu>
-              {items.map(item => {
-                const Icon = icons[item.icon];
-                return <SidebarMenuItem key={item.id}>
-                  <SidebarMenuButton type="button" ref={element => { if (element) triggers.current.set(item.id, element); else triggers.current.delete(item.id); }}
-                    className="agent-ui-sidebar-entry" tooltip={item.label} aria-label={item.label}
-                    aria-expanded={active?.id === item.id} aria-controls={active?.id === item.id ? panelId : undefined}
-                    isActive={active?.id === item.id} onClick={() => { lastTrigger.current = triggers.current.get(item.id) ?? null; setActiveItemId(id => id === item.id ? null : item.id); }}>
-                    <Icon aria-hidden="true" />
-                  </SidebarMenuButton>
-                </SidebarMenuItem>;
-              })}
-            </SidebarMenu>
-          </SidebarContent>
+      <SidebarProvider isMobile={false} open={!!active} onOpenChange={open => setActiveItemId(open ? items[0]?.id ?? null : null)} className="agent-ui-sidebar-provider" style={{ minHeight: 0, height: "100%", "--sidebar-width": narrow ? "48px" : "280px", "--sidebar-width-icon": "48px" } as CSSProperties}>
+        <Sidebar collapsible="icon" className="agent-ui-sidebar-container">
+          <div className="agent-ui-sidebar-rail" role="navigation" aria-label={messages.sidebar}>
+            <SidebarHeader>
+              <SidebarTrigger title={messages.toggleSidebar} className="agent-ui-sidebar-entry" disabled={items.length === 0} aria-expanded={!!active} aria-controls={active ? panelId : undefined}
+                onClick={event => { lastTrigger.current = event.currentTarget; }} />
+            </SidebarHeader>
+            <SidebarContent>
+              {items.map(item => item.railAction && active?.id !== item.id ? <NavigationContext.Provider key={item.id} value={() => { if (narrow) close(); }}>{item.railAction}</NavigationContext.Provider> : null)}
+              <SidebarMenu>
+                {items.map(item => {
+                  const Icon = icons[item.icon];
+                  return <SidebarMenuItem key={item.id}>
+                    <SidebarMenuButton type="button" ref={element => { if (element) triggers.current.set(item.id, element); else triggers.current.delete(item.id); }}
+                      className="agent-ui-sidebar-entry" tooltip={{ children: item.label, hidden: false }} aria-label={item.label}
+                      aria-expanded={active?.id === item.id} aria-controls={active?.id === item.id ? panelId : undefined}
+                      isActive={active?.id === item.id} onClick={() => { lastTrigger.current = triggers.current.get(item.id) ?? null; setActiveItemId(id => id === item.id ? null : item.id); }}>
+                      <Icon aria-hidden="true" />
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>;
+                })}
+              </SidebarMenu>
+            </SidebarContent>
+          </div>
+          {!narrow && active && <aside className="agent-ui-sidebar-panel" id={panelId} aria-label={active.label}>
+            <SidebarHeader className="agent-ui-sidebar-panel-header">{active.label}</SidebarHeader>
+            <div className="agent-ui-sidebar-panel-content">{content}</div>
+          </aside>}
         </Sidebar>
-        {!narrow && <div className="agent-ui-sidebar-panel-track" data-open={!!active}>
-          {active && <aside className="agent-ui-sidebar-panel" id={panelId} aria-label={active.label}>{content}</aside>}
-        </div>}
         <SidebarInset className="agent-ui-sidebar-inset">{children}</SidebarInset>
       </SidebarProvider>
       <div ref={setPortal} className="agent-ui-sidebar-portal" />
       {narrow && portal && <Sheet modal="trap-focus" open={!!active} onOpenChange={open => { if (!open) close(); }}>
         <SheetContent container={portal} contained side="left" className="agent-ui-sidebar-sheet" id={panelId}
           finalFocus={lastTrigger}>
-          <SheetTitle className="sr-only">{active?.label ?? messages.sidebar}</SheetTitle>
-          {content}
+          <SheetTitle className="agent-ui-sidebar-panel-header">{active?.label ?? messages.sidebar}</SheetTitle>
+          <div className="agent-ui-sidebar-panel-content">{content}</div>
         </SheetContent>
       </Sheet>}
     </div>

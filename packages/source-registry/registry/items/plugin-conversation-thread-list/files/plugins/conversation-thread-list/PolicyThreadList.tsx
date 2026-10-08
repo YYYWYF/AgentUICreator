@@ -69,9 +69,8 @@ const PolicyThreadListItemGroups: FC<{ searchQuery?: string }> = ({
 }) => {
   const messages = useAgentUILocale("threadList");
   const { threadIds, filteredIndices, groups } = useConversationThreadListGroups(searchQuery);
-  const query = searchQuery.trim();
 
-  if (query && filteredIndices.length === 0) {
+  if (filteredIndices.length === 0) {
     return (
       <div
         data-slot="aui_thread-list-empty"

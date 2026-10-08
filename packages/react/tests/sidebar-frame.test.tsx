@@ -56,3 +56,23 @@ it("isolates active state between multiple Agent instances and never writes cook
     expect(document.cookie).toBe(cookieBefore);
   } finally { await act(async () => root.unmount()); }
 });
+
+it("uses the controlled upstream trigger and plugin shortcuts without a second open state", async () => {
+  const { root, host, render } = await mount(900);
+  const shortcutItems = [{ ...items[0]!, railAction: <Navigate /> }, items[1]!];
+  try {
+    await act(async () => root.render(render(shortcutItems)));
+    expect(host.querySelector('[data-slot="sidebar"]')?.getAttribute("data-state")).toBe("collapsed");
+    await click(host, "Navigate");
+    expect(host.querySelector("[data-sidebar-active]")?.getAttribute("data-sidebar-active")).toBe("");
+    const trigger = host.querySelector<HTMLButtonElement>('[data-slot="sidebar-trigger"]')!;
+    await act(async () => trigger.click());
+    expect(host.querySelector('[data-slot="sidebar"]')?.getAttribute("data-state")).toBe("expanded");
+    expect(host.querySelector("[data-sidebar-active]")?.getAttribute("data-sidebar-active")).toBe("history");
+    expect(host.textContent).not.toContain("Navigate");
+    expect(host.querySelector<HTMLElement>('[data-slot="sidebar-wrapper"]')?.style.getPropertyValue("--sidebar-width")).toBe("280px");
+    expect(host.querySelector(".agent-ui-sidebar-panel-track")).toBeNull();
+    await act(async () => trigger.click());
+    expect(host.textContent).toContain("Navigate");
+  } finally { await act(async () => root.unmount()); }
+});

@@ -18,8 +18,8 @@ The frame composes the existing generated product adapters for `SidebarProvider`
 
 ## Product adapter differences
 
-- Frame uses a 48px rail and independent 280px panel. `collapsible="icon"` alone does not represent this structure.
-- ResizeObserver measures the frame; below 648px the panel uses a contained Sheet. Provider receives its mobile mode explicitly, without viewport listeners.
+- Frame uses controlled `Sidebar collapsible="icon"`: 48px collapsed and 280px total expanded, including its 48px navigation rail. `activeItemId` determines provider open state; the upstream gap/container own the total width. Product utility-layer CSS scopes absolute positioning and desktop visibility to this frame, including nested and narrow Hosts. Other Sidebar consumers and vendor/adapters are unchanged.
+- ResizeObserver measures the frame; below 648px the panel uses a contained Sheet. The provider stays in its desktop branch to retain the rail; narrow containers use the existing contained Sheet for plugin content with the same active-item state, without viewport listeners.
 - Product provider does not write Cookie state or install global shortcuts.
 - Sheet accepts a nested container only within its owning AgentUIRoot. Contained backdrop/popup use absolute positioning and available-container width. `modal="trap-focus"` preserves focus handling without page-wide scroll locking.
 - Thread items expose `onNavigate`; the Plugin calls the generic Sidebar navigation context after selection/new-thread interaction. No DOM selector determines navigation.
@@ -51,4 +51,6 @@ Expanded package results: React 654 passed / 7 failed; Runtime React 164 passed 
 
 Added browser coverage lives in `apps/creator-workbench/tests/sidebar.spec.ts`, with `playwright.sidebar.config.ts`. It covers desktop collapse/expansion/switching and narrow-container Sheet focus/Escape/navigation. Per request it was not executed; no screenshots or visual acceptance were produced. Real Host/Web Component responsive and theme acceptance remains unverified.
 
-Existing generated foundation sources must be upgraded together when adopting the expanded Runtime Layout type; exhaustive consumers of the previous union require source regeneration. The fixed icon vocabulary may be extended explicitly with corresponding manifest validation. No KeepAlive or rail-specific conversation shortcut is introduced.
+Existing generated foundation sources must be upgraded together when adopting the expanded Runtime Layout type; exhaustive consumers of the previous union require source regeneration. The fixed icon vocabulary may be extended explicitly with corresponding manifest validation. No KeepAlive is introduced. Optional `UIPluginDefinition.RailAction` uses the existing Slot declaration, admission, service and instance contexts; history supplies the public `ConversationThreadListNew`. Its rail shortcut hides while its own panel is open. The React frame extension requires `@agent-ui/react >=0.1.3`; regenerate foundation/core and the history source together. This version is prepared in source, not published by this change.
+
+Official Sidebar alignment implementation and static/unit check results: [2026-10-08 report](../sidebar/official-alignment-2026-10-08/REPORT.md). Browser and visual acceptance remain excluded by the user request.

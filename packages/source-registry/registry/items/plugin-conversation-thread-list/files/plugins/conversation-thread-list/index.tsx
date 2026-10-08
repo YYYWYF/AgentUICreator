@@ -1,4 +1,5 @@
-import { getAgentUIThemeColorScheme, Button, useConversationNavigation } from "@agent-ui/react";
+import { getAgentUIThemeColorScheme, Button, useConversationNavigation, ConversationThreadListNew, useAgentUISidebarNavigation, AgentUITooltip, AgentUITooltipTrigger, AgentUITooltipContent } from "@agent-ui/react";
+import { Plus } from "lucide-react";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { useAgentUITheme } from "../../agent-ui/theme/useAgentUITheme";
 import { useAgentRun } from "../../runtime/context";
@@ -97,4 +98,19 @@ export function ConversationThreadListPlugin(_props: UIPluginComponentProps) {
       ) : null}
     </aside>
   );
+}
+
+/** Shares the Host's conversation runtime and the instance's service admission. */
+export function ConversationThreadListRailAction(_props: UIPluginComponentProps) {
+  const labels = useAgentUILocale("threadList");
+  const navigate = useAgentUISidebarNavigation();
+  const conversation = usePluginService<ConversationService>(AGENT_UI_CONVERSATION_SERVICE);
+  if (conversation === undefined) return null;
+  return <AgentUITooltip>
+    <AgentUITooltipTrigger render={<ConversationThreadListNew
+      className="conversation-thread-list-rail-new" aria-label={labels.newThread} onClick={navigate}>
+      <Plus aria-hidden="true" />
+    </ConversationThreadListNew>} />
+    <AgentUITooltipContent side="right">{labels.newThread}</AgentUITooltipContent>
+  </AgentUITooltip>;
 }

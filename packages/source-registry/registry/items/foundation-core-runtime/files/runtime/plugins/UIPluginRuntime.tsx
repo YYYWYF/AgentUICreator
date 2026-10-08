@@ -69,6 +69,7 @@ interface SlotContentProps<TState = unknown> {
   layout: "stack" | "inline";
   scope?: UIPluginRenderScope | undefined;
   acceptedCapabilities?: readonly string[] | undefined;
+  presentation?: "content" | "rail-action" | undefined;
   model: AppUIRuntimeModel;
   registry: PluginRegistry<TState>;
   actions: UIPluginRuntimeActions;
@@ -157,6 +158,7 @@ function SlotContent<TState = unknown>({
   layout,
   scope,
   acceptedCapabilities,
+  presentation,
   model,
   registry,
   actions,
@@ -280,6 +282,7 @@ function SlotContent<TState = unknown>({
           );
         }
 
+        if (presentation === "rail-action" && definition.RailAction === undefined) return null;
         const activation = serviceRuntime.getActivation(instance.id);
         if (activation?.status !== "active") return null;
         const events = serviceRuntime.getEvents(instance.id);
@@ -344,7 +347,8 @@ function SlotContent<TState = unknown>({
             events={events}
             instance={instance}
             key={instance.id}
-            mountSlotId={slotId}
+            mountSlotId={presentation === "rail-action" ? undefined : slotId}
+            presentation={presentation}
             onPluginError={onPluginError}
             onPluginReset={onPluginReset}
             renderSlot={renderSlot}
@@ -374,6 +378,9 @@ function LayoutSlotOutlet<TState = unknown>({
       }),
     [slot.id, slot.slotId, slots],
   );
+  if (props.presentation === "rail-action") {
+    return <SlotContent {...props} layout="inline" slotId={slot.slotId} />;
+  }
   return (
     <SlotWidthProbe
       layout="stack"
@@ -510,9 +517,14 @@ function UIPluginRuntimeContent<TState = unknown>({
         const items = node.items.flatMap(item => {
           const instances = Object.values(model.pluginInstances).filter(instance => instance.mount?.slotId === item.child.slotId && instance.enabled);
           if (instances.length !== 1) return [];
-          const manifest = registry.get(instances[0]!.pluginId)?.manifest;
+          const definition = registry.get(instances[0]!.pluginId);
+          const manifest = definition?.manifest;
           if (!manifest?.sidebar) return [];
-          return [{ id: item.id, icon: manifest.sidebar.icon, label: manifest.sidebar.labels?.[presentationLocale] ?? manifest.name, content: renderNode(item.child) }];
+          return [{ id: item.id, icon: manifest.sidebar.icon, label: manifest.sidebar.labels?.[presentationLocale] ?? manifest.name, content: renderNode(item.child),
+            railAction: definition?.RailAction === undefined ? undefined : <LayoutSlotOutlet
+              actions={actions} model={model} registry={registry}
+              onPluginError={reportPluginFailure} onPluginReset={resolvePluginFailure}
+              slot={item.child} presentation="rail-action" /> }];
         });
         return <AgentUISidebarFrame key={node.id} items={items} defaultActive={node.defaultActive}>{renderNode(node.content)}</AgentUISidebarFrame>;
       }}

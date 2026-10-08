@@ -205,6 +205,8 @@ export interface UIPluginDefinition<TState = unknown> {
   setup?:
     | ((context: UIPluginSetupContext) => UIPluginSetupCleanup)
     | undefined;
+  /** Optional Sidebar shortcut; rendered in this instance's existing contexts. */
+  RailAction?: ComponentType<UIPluginComponentProps> | undefined;
   Component: ComponentType<UIPluginComponentProps>;
 }
 
