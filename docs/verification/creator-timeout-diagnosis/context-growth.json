@@ -1,0 +1,485 @@
+[
+  {
+    "attemptSequence": 1,
+    "sequence": 1,
+    "status": "completed",
+    "requestMessageChars": 64267,
+    "requestMessageCount": 2,
+    "requestToolSchemaChars": 28015,
+    "requestToolCount": 41,
+    "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+    "requestMaxToolSchemaChars": 2850,
+    "inputTokens": 26470,
+    "outputTokens": 369,
+    "durationMs": 12944.400500040501,
+    "observedDurationMs": null,
+    "callbackMessageChars": 64267,
+    "messageCharsByRole": {
+      "system": 63943,
+      "human": 324
+    },
+    "duplicateToolMessageCharsIncludingAllCopies": 0,
+    "toolMessageCharsByResultSource": {}
+  },
+  {
+    "attemptSequence": 2,
+    "sequence": 2,
+    "status": "completed",
+    "requestMessageChars": 106007,
+    "requestMessageCount": 6,
+    "requestToolSchemaChars": 28015,
+    "requestToolCount": 41,
+    "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+    "requestMaxToolSchemaChars": 2850,
+    "inputTokens": 36299,
+    "outputTokens": 47,
+    "durationMs": 10581.20616688393,
+    "observedDurationMs": null,
+    "callbackMessageChars": 106007,
+    "messageCharsByRole": {
+      "system": 63943,
+      "human": 324,
+      "ai": 428,
+      "tool": 41312
+    },
+    "duplicateToolMessageCharsIncludingAllCopies": 0,
+    "toolMessageCharsByResultSource": {
+      "skill-read": 41038,
+      "inspect_ui_project": 122,
+      "inspect_ui_capabilities": 152
+    }
+  },
+  {
+    "attemptSequence": 3,
+    "sequence": 3,
+    "status": "completed",
+    "requestMessageChars": 128800,
+    "requestMessageCount": 8,
+    "requestToolSchemaChars": 28015,
+    "requestToolCount": 41,
+    "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+    "requestMaxToolSchemaChars": 2850,
+    "inputTokens": 41370,
+    "outputTokens": 149,
+    "durationMs": 31098.028833046556,
+    "observedDurationMs": null,
+    "callbackMessageChars": 128800,
+    "messageCharsByRole": {
+      "system": 63943,
+      "human": 324,
+      "ai": 574,
+      "tool": 63959
+    },
+    "duplicateToolMessageCharsIncludingAllCopies": 0,
+    "toolMessageCharsByResultSource": {
+      "skill-read": 41038,
+      "inspect_ui_project": 22769,
+      "inspect_ui_capabilities": 152
+    }
+  },
+  {
+    "attemptSequence": 4,
+    "sequence": 4,
+    "status": "completed",
+    "requestMessageChars": 151573,
+    "requestMessageCount": 10,
+    "requestToolSchemaChars": 28015,
+    "requestToolCount": 41,
+    "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+    "requestMaxToolSchemaChars": 2850,
+    "inputTokens": 46291,
+    "outputTokens": 121,
+    "durationMs": 9723.770250100642,
+    "observedDurationMs": null,
+    "callbackMessageChars": 151573,
+    "messageCharsByRole": {
+      "system": 63943,
+      "human": 324,
+      "ai": 829,
+      "tool": 86477
+    },
+    "duplicateToolMessageCharsIncludingAllCopies": 0,
+    "toolMessageCharsByResultSource": {
+      "skill-read": 41038,
+      "inspect_ui_project": 45287,
+      "inspect_ui_capabilities": 152
+    }
+  },
+  {
+    "attemptSequence": 5,
+    "sequence": 5,
+    "status": "completed",
+    "requestMessageChars": 165299,
+    "requestMessageCount": 13,
+    "requestToolSchemaChars": 11519,
+    "requestToolCount": 17,
+    "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+    "requestMaxToolSchemaChars": 2850,
+    "inputTokens": 44284,
+    "outputTokens": 933,
+    "durationMs": 35171.96720815264,
+    "observedDurationMs": null,
+    "callbackMessageChars": 165299,
+    "messageCharsByRole": {
+      "system": 65440,
+      "human": 324,
+      "ai": 1059,
+      "tool": 98476
+    },
+    "duplicateToolMessageCharsIncludingAllCopies": 0,
+    "toolMessageCharsByResultSource": {
+      "skill-read": 41038,
+      "inspect_ui_project": 57286,
+      "inspect_ui_capabilities": 152
+    }
+  },
+  {
+    "attemptSequence": 6,
+    "sequence": 6,
+    "status": "completed",
+    "requestMessageChars": 186363,
+    "requestMessageCount": 16,
+    "requestToolSchemaChars": 28015,
+    "requestToolCount": 41,
+    "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+    "requestMaxToolSchemaChars": 2850,
+    "inputTokens": 54853,
+    "outputTokens": 671,
+    "durationMs": 25456.04654191993,
+    "observedDurationMs": null,
+    "callbackMessageChars": 186363,
+    "messageCharsByRole": {
+      "system": 63943,
+      "human": 324,
+      "ai": 1554,
+      "tool": 120542
+    },
+    "duplicateToolMessageCharsIncludingAllCopies": 0,
+    "toolMessageCharsByResultSource": {
+      "skill-read": 47851,
+      "inspect_ui_project": 57286,
+      "inspect_ui_capabilities": 152,
+      "inspect_agent_ui_sources": 14419,
+      "read_file": 834
+    }
+  },
+  {
+    "attemptSequence": 7,
+    "sequence": 7,
+    "status": "completed",
+    "requestMessageChars": 190264,
+    "requestMessageCount": 21,
+    "requestToolSchemaChars": 28015,
+    "requestToolCount": 41,
+    "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+    "requestMaxToolSchemaChars": 2850,
+    "inputTokens": 56473,
+    "outputTokens": 303,
+    "durationMs": 20212.192458100617,
+    "observedDurationMs": null,
+    "callbackMessageChars": 190264,
+    "messageCharsByRole": {
+      "system": 63943,
+      "human": 324,
+      "ai": 2181,
+      "tool": 123816
+    },
+    "duplicateToolMessageCharsIncludingAllCopies": 0,
+    "toolMessageCharsByResultSource": {
+      "skill-read": 47851,
+      "inspect_ui_project": 57286,
+      "inspect_ui_capabilities": 152,
+      "inspect_agent_ui_sources": 14419,
+      "read_file": 2228,
+      "glob": 1880
+    }
+  },
+  {
+    "attemptSequence": 8,
+    "sequence": 8,
+    "status": "completed",
+    "requestMessageChars": 191183,
+    "requestMessageCount": 25,
+    "requestToolSchemaChars": 28015,
+    "requestToolCount": 41,
+    "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+    "requestMaxToolSchemaChars": 2850,
+    "inputTokens": 56904,
+    "outputTokens": 111,
+    "durationMs": 13638.452332932502,
+    "observedDurationMs": null,
+    "callbackMessageChars": 191183,
+    "messageCharsByRole": {
+      "system": 63943,
+      "human": 324,
+      "ai": 2608,
+      "tool": 124308
+    },
+    "duplicateToolMessageCharsIncludingAllCopies": 0,
+    "toolMessageCharsByResultSource": {
+      "skill-read": 47851,
+      "inspect_ui_project": 57286,
+      "inspect_ui_capabilities": 152,
+      "inspect_agent_ui_sources": 14419,
+      "read_file": 2228,
+      "glob": 2143,
+      "grep": 229
+    }
+  },
+  {
+    "attemptSequence": 9,
+    "sequence": 9,
+    "status": "completed",
+    "requestMessageChars": 191723,
+    "requestMessageCount": 28,
+    "requestToolSchemaChars": 28015,
+    "requestToolCount": 41,
+    "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+    "requestMaxToolSchemaChars": 2850,
+    "inputTokens": 57116,
+    "outputTokens": 269,
+    "durationMs": 8567.490208894014,
+    "observedDurationMs": null,
+    "callbackMessageChars": 191723,
+    "messageCharsByRole": {
+      "system": 63943,
+      "human": 324,
+      "ai": 2882,
+      "tool": 124574
+    },
+    "duplicateToolMessageCharsIncludingAllCopies": 28,
+    "toolMessageCharsByResultSource": {
+      "skill-read": 47851,
+      "inspect_ui_project": 57286,
+      "inspect_ui_capabilities": 152,
+      "inspect_agent_ui_sources": 14419,
+      "read_file": 2228,
+      "glob": 2157,
+      "grep": 481
+    }
+  },
+  {
+    "attemptSequence": 10,
+    "sequence": 10,
+    "status": "completed",
+    "requestMessageChars": 194674,
+    "requestMessageCount": 33,
+    "requestToolSchemaChars": 28015,
+    "requestToolCount": 41,
+    "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+    "requestMaxToolSchemaChars": 2850,
+    "inputTokens": 57995,
+    "outputTokens": 1813,
+    "durationMs": 57313.64887487143,
+    "observedDurationMs": null,
+    "callbackMessageChars": 194674,
+    "messageCharsByRole": {
+      "system": 63943,
+      "human": 324,
+      "ai": 3487,
+      "tool": 126920
+    },
+    "duplicateToolMessageCharsIncludingAllCopies": 28,
+    "toolMessageCharsByResultSource": {
+      "skill-read": 47851,
+      "inspect_ui_project": 57286,
+      "inspect_ui_capabilities": 152,
+      "inspect_agent_ui_sources": 14419,
+      "read_file": 4430,
+      "glob": 2301,
+      "grep": 481
+    }
+  },
+  {
+    "attemptSequence": 11,
+    "sequence": 11,
+    "status": "completed",
+    "requestMessageChars": 198841,
+    "requestMessageCount": 37,
+    "requestToolSchemaChars": 28015,
+    "requestToolCount": 41,
+    "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+    "requestMaxToolSchemaChars": 2850,
+    "inputTokens": 61024,
+    "outputTokens": 2445,
+    "durationMs": 68075.96970791928,
+    "observedDurationMs": null,
+    "callbackMessageChars": 198841,
+    "messageCharsByRole": {
+      "system": 63943,
+      "human": 324,
+      "ai": 3926,
+      "tool": 130648
+    },
+    "duplicateToolMessageCharsIncludingAllCopies": 486,
+    "toolMessageCharsByResultSource": {
+      "skill-read": 47851,
+      "inspect_ui_project": 57286,
+      "inspect_ui_capabilities": 152,
+      "inspect_agent_ui_sources": 14419,
+      "read_file": 6024,
+      "glob": 2301,
+      "grep": 2615
+    }
+  },
+  {
+    "attemptSequence": 12,
+    "sequence": 12,
+    "status": "completed",
+    "requestMessageChars": 202370,
+    "requestMessageCount": 40,
+    "requestToolSchemaChars": 28015,
+    "requestToolCount": 41,
+    "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+    "requestMaxToolSchemaChars": 2850,
+    "inputTokens": 64377,
+    "outputTokens": 200,
+    "durationMs": 30917.19404188916,
+    "observedDurationMs": null,
+    "callbackMessageChars": 202370,
+    "messageCharsByRole": {
+      "system": 63943,
+      "human": 324,
+      "ai": 4204,
+      "tool": 133899
+    },
+    "duplicateToolMessageCharsIncludingAllCopies": 486,
+    "toolMessageCharsByResultSource": {
+      "skill-read": 47851,
+      "inspect_ui_project": 57286,
+      "inspect_ui_capabilities": 152,
+      "inspect_agent_ui_sources": 14419,
+      "read_file": 9190,
+      "glob": 2301,
+      "grep": 2700
+    }
+  },
+  {
+    "attemptSequence": 13,
+    "sequence": 13,
+    "status": "completed",
+    "requestMessageChars": 211015,
+    "requestMessageCount": 43,
+    "requestToolSchemaChars": 28015,
+    "requestToolCount": 41,
+    "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+    "requestMaxToolSchemaChars": 2850,
+    "inputTokens": 67371,
+    "outputTokens": 3794,
+    "durationMs": 73908.74745813198,
+    "observedDurationMs": null,
+    "callbackMessageChars": 211015,
+    "messageCharsByRole": {
+      "system": 63943,
+      "human": 324,
+      "ai": 4516,
+      "tool": 142232
+    },
+    "duplicateToolMessageCharsIncludingAllCopies": 486,
+    "toolMessageCharsByResultSource": {
+      "skill-read": 47851,
+      "inspect_ui_project": 57286,
+      "inspect_ui_capabilities": 152,
+      "inspect_agent_ui_sources": 14419,
+      "read_file": 17523,
+      "glob": 2301,
+      "grep": 2700
+    }
+  },
+  {
+    "attemptSequence": 14,
+    "sequence": 14,
+    "status": "failed",
+    "requestMessageChars": 217490,
+    "requestMessageCount": 48,
+    "requestToolSchemaChars": 28015,
+    "requestToolCount": 41,
+    "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+    "requestMaxToolSchemaChars": 2850,
+    "inputTokens": null,
+    "outputTokens": null,
+    "durationMs": 186925.9099578485,
+    "observedDurationMs": null,
+    "callbackMessageChars": 217490,
+    "messageCharsByRole": {
+      "system": 63943,
+      "human": 324,
+      "ai": 5270,
+      "tool": 147953
+    },
+    "duplicateToolMessageCharsIncludingAllCopies": 486,
+    "toolMessageCharsByResultSource": {
+      "skill-read": 47851,
+      "inspect_ui_project": 57286,
+      "inspect_ui_capabilities": 152,
+      "inspect_agent_ui_sources": 14419,
+      "read_file": 23244,
+      "glob": 2301,
+      "grep": 2700
+    }
+  },
+  {
+    "attemptSequence": 15,
+    "sequence": 14,
+    "status": "failed",
+    "requestMessageChars": 217490,
+    "requestMessageCount": 48,
+    "requestToolSchemaChars": 28015,
+    "requestToolCount": 41,
+    "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+    "requestMaxToolSchemaChars": 2850,
+    "inputTokens": null,
+    "outputTokens": null,
+    "durationMs": 5027.140500023961,
+    "observedDurationMs": null,
+    "callbackMessageChars": 217490,
+    "messageCharsByRole": {
+      "system": 63943,
+      "human": 324,
+      "ai": 5270,
+      "tool": 147953
+    },
+    "duplicateToolMessageCharsIncludingAllCopies": 486,
+    "toolMessageCharsByResultSource": {
+      "skill-read": 47851,
+      "inspect_ui_project": 57286,
+      "inspect_ui_capabilities": 152,
+      "inspect_agent_ui_sources": 14419,
+      "read_file": 23244,
+      "glob": 2301,
+      "grep": 2700
+    }
+  },
+  {
+    "attemptSequence": 16,
+    "sequence": 14,
+    "status": "failed",
+    "requestMessageChars": 217490,
+    "requestMessageCount": 48,
+    "requestToolSchemaChars": 28015,
+    "requestToolCount": 41,
+    "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+    "requestMaxToolSchemaChars": 2850,
+    "inputTokens": null,
+    "outputTokens": null,
+    "durationMs": 5019.006957998499,
+    "observedDurationMs": null,
+    "callbackMessageChars": 217490,
+    "messageCharsByRole": {
+      "system": 63943,
+      "human": 324,
+      "ai": 5270,
+      "tool": 147953
+    },
+    "duplicateToolMessageCharsIncludingAllCopies": 486,
+    "toolMessageCharsByResultSource": {
+      "skill-read": 47851,
+      "inspect_ui_project": 57286,
+      "inspect_ui_capabilities": 152,
+      "inspect_agent_ui_sources": 14419,
+      "read_file": 23244,
+      "glob": 2301,
+      "grep": 2700
+    }
+  }
+]

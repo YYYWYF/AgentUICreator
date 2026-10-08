@@ -5,6 +5,8 @@ import json
 import os
 import shutil
 import sys
+import time
+import subprocess
 from pathlib import Path
 from langgraph.checkpoint.memory import InMemorySaver
 from agent_ui_creator.activity import CreatorActivityRecorder
@@ -13,7 +15,9 @@ from agent_ui_creator.model_factory import create_creator_chat_model
 from agent_ui_creator.model_settings import CreatorModelSettings
 from agent_ui_creator.plugin_development.authority import PluginDevelopmentAuthority
 from agent_ui_creator.streaming.deepagent_v3_runner import DeepAgentInterrupted
-from test_official_composer import ROOT, fresh_host, ObservedHost, ObservedLogger, ModelToolTrace, hashes
+from test_official_composer import ROOT, fresh_host, ObservedHost, hashes
+
+from timeout_diagnostics import DiagnosticModelTrace, DiagnosticLogger, stamp
 
 OUTPUT = Path(os.environ['CREATOR_ACCEPTANCE_OUTPUT']).resolve()
 DS = '''import type {ButtonHTMLAttributes, InputHTMLAttributes, HTMLAttributes} from 'react';
@@ -102,12 +106,12 @@ async def run(name):
               '所有文案使用现有统一 locale 层且中英文齐全。沿用现有 ui-plugin-development Skill，完成 Host verify:ui、typecheck、build（includeBuild=true）和最终交付回执。')
     (root / 'request.txt').write_text(prompt)
     host = ObservedHost(root)
-    logger = ObservedLogger(root)
+    logger = DiagnosticLogger(root)
     run_id = f'ui-selection-{name}'
     logger.begin(run_id=run_id,thread_id=run_id)
     activity = CreatorActivityRecorder(root,logger=logger)
     activity.begin(run_id)
-    trace = ModelToolTrace()
+    trace = DiagnosticModelTrace()
     settings = CreatorModelSettings.from_environment(config_root=ROOT)
     model = create_creator_chat_model(settings,thread_id=run_id)
     model.callbacks=[trace]
@@ -119,6 +123,15 @@ async def run(name):
         automatic_completion_repair=True,verification_mode='static_only',
         plugin_development_authority=authority)
     outcome = {'scenario':name,'model':settings.model_name,'realCreatorInvoked':True,'maxTokens':settings.max_tokens}
+    run_started_at = stamp()
+    run_started_monotonic = time.monotonic()
+    environment = {'model': settings.model_name, 'singleRequestTimeoutSeconds': settings.timeout_seconds,
+                   'overallTimeoutSeconds': 600, 'maxTokens': settings.max_tokens,
+                   'maxRetries': settings.max_retries, 'rawTraceEnabled': settings.raw_trace,
+                   'commit': subprocess.check_output(['git','rev-parse','HEAD'], cwd=ROOT, text=True).strip(),
+                   'scenario': name, 'host': 'React + Ant Design 5' if name == 'B' else name,
+                   'skillsRoot': str(ROOT/'packages/creator/skills'),
+                   'modelCallBudget': creator.protocol.max_model_calls}
     try:
         result=await asyncio.wait_for(creator.run_messages([{'role':'user','content':prompt}]),timeout=600)
         outcome.update({'interrupted':isinstance(result,DeepAgentInterrupted),
@@ -129,6 +142,15 @@ async def run(name):
     except Exception as e:
         outcome.update({'completion':'error','errorType':type(e).__name__,'error':str(e)})
     finally:
+        ended_monotonic = time.monotonic()
+        # Persist first, before expensive source hashing / completion inspection.
+        diagnostics = {'startedAt': run_started_at, 'finishedAt': stamp(),
+                       'durationMs': (ended_monotonic-run_started_monotonic)*1000,
+                       'modelAttempts': trace.snapshot(ended_monotonic),
+                       'toolObservations': logger.observations}
+        (root/'model-metrics.json').write_text(json.dumps(creator.protocol.metrics.to_dict(),ensure_ascii=False,indent=2))
+        (root/'diagnostics.json').write_text(json.dumps(diagnostics,ensure_ascii=False,indent=2))
+        (root/'environment.json').write_text(json.dumps(environment,ensure_ascii=False,indent=2))
         baseline = json.loads((root/'baseline-hashes.json').read_text())
         current = hashes(root)
         changed = [file for file in sorted(set(baseline) | set(current))

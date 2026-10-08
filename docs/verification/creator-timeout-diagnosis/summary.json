@@ -1,0 +1,618 @@
+{
+  "historical": [
+    {
+      "attempt": "attempt-1",
+      "maxTokens": null,
+      "errorType": "ModelToolProtocolError",
+      "proposedToolCalls": 17,
+      "executedToolCalls": 12,
+      "completedModelCallsLowerBound": 4,
+      "toolDurationSumMs": 3071,
+      "toolWallMs": 2786.5517578125,
+      "toolCounts": {
+        "read_file": 4,
+        "glob": 4,
+        "inspect_ui_capabilities": 1,
+        "inspect_ui_project": 3
+      },
+      "toolStatuses": {
+        "success": 11,
+        "rejected": 1
+      },
+      "toolErrorCodes": {
+        "CONTROL_RESULT_CONTRACT_VIOLATION": 1
+      },
+      "repeatedProposedArgumentGroups": [
+        {
+          "toolName": "inspect_agent_ui_sources",
+          "argumentSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "count": 2
+        },
+        {
+          "toolName": "glob",
+          "argumentSha256": "a4417b71c2e5e2dc5c7a33029bce50313bf0c2db7ee120832fb7085c57e1a3fb",
+          "count": 2
+        }
+      ],
+      "lastEvent": {
+        "type": "creator_tool_observation",
+        "timestamp": "2026-10-08T03:07:20.516Z",
+        "toolName": "inspect_ui_project"
+      },
+      "transportEvents": [],
+      "authorizedPlan": false,
+      "sourceChangedFiles": null,
+      "missing": [
+        "model lifecycle",
+        "completed model traces",
+        "model-facing tool result sizes"
+      ],
+      "hostResponseSizesAreNotModelToolResultSizes": true
+    },
+    {
+      "attempt": "attempt-2",
+      "maxTokens": null,
+      "errorType": "TimeoutError",
+      "proposedToolCalls": 42,
+      "executedToolCalls": 38,
+      "completedModelCallsLowerBound": 19,
+      "toolDurationSumMs": 4601,
+      "toolWallMs": 4061.548828125,
+      "toolCounts": {
+        "read_file": 10,
+        "glob": 5,
+        "inspect_ui_project": 3,
+        "prepare_ui_plugin_development": 1,
+        "ls": 6,
+        "grep": 12,
+        "inspect_agent_ui_sources": 1
+      },
+      "toolStatuses": {
+        "success": 37,
+        "error": 1
+      },
+      "toolErrorCodes": {},
+      "repeatedProposedArgumentGroups": [
+        {
+          "toolName": "inspect_agent_ui_sources",
+          "argumentSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "count": 2
+        },
+        {
+          "toolName": "read_file",
+          "argumentSha256": "a3b110bd2aae586e9f9f275c2d44bd447666281b7801f2250e78e8d6a338c366",
+          "count": 2
+        },
+        {
+          "toolName": "grep",
+          "argumentSha256": "e01b9f5091c2aca7ad879dc4d1843fa86c1b4e5547075aba4aedf6a7d1b859e6",
+          "count": 2
+        }
+      ],
+      "lastEvent": {
+        "type": "creator_tool_observation",
+        "timestamp": "2026-10-08T03:19:32.905Z",
+        "toolName": "grep"
+      },
+      "transportEvents": [
+        {
+          "type": "model_transport_attempt_failed",
+          "timestamp": "2026-10-08T03:12:37.904Z",
+          "data": {
+            "modelCallSequence": 8,
+            "attempt": 1,
+            "failureKind": "connect",
+            "durationMs": 5018,
+            "requestMessageCount": 20,
+            "requestMessageChars": 177643,
+            "requestToolCount": 42,
+            "requestToolSchemaChars": 28644,
+            "requestMaxToolSchemaChars": 2850,
+            "requestMaxToolSchemaName": "prepare_ui_plugin_development"
+          }
+        },
+        {
+          "type": "model_transport_retry_recovered",
+          "timestamp": "2026-10-08T03:13:13.266Z",
+          "data": {
+            "modelCallSequence": 8,
+            "attempts": 2,
+            "failures": 1,
+            "durationMs": 40385
+          }
+        }
+      ],
+      "authorizedPlan": false,
+      "sourceChangedFiles": null,
+      "missing": [
+        "model lifecycle",
+        "completed model traces",
+        "model-facing tool result sizes"
+      ],
+      "hostResponseSizesAreNotModelToolResultSizes": true
+    },
+    {
+      "attempt": "final-8192",
+      "maxTokens": 8192,
+      "errorType": "TimeoutError",
+      "proposedToolCalls": 41,
+      "executedToolCalls": 40,
+      "completedModelCallsLowerBound": 18,
+      "toolDurationSumMs": 4147,
+      "toolWallMs": 3644.71484375,
+      "toolCounts": {
+        "read_file": 30,
+        "inspect_ui_capabilities": 3,
+        "inspect_ui_project": 4,
+        "inspect_agent_ui_sources": 1,
+        "prepare_ui_plugin_development": 1,
+        "inspect_ui_plugin_delivery": 1
+      },
+      "toolStatuses": {
+        "success": 35,
+        "rejected": 4,
+        "error": 1
+      },
+      "toolErrorCodes": {
+        "PROJECT_CONTROL_BUSY": 3,
+        "CONTROL_RESULT_CONTRACT_VIOLATION": 1
+      },
+      "repeatedProposedArgumentGroups": [
+        {
+          "toolName": "inspect_ui_capabilities",
+          "argumentSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "count": 3
+        },
+        {
+          "toolName": "inspect_ui_project",
+          "argumentSha256": "4fc0ca258b55a7f1d7270674fe6ef0f44ae077d59b6b2e0a8b023bfbb2c83597",
+          "count": 2
+        }
+      ],
+      "lastEvent": {
+        "type": "creator_tool_observation",
+        "timestamp": "2026-10-08T03:29:56.159Z",
+        "toolName": "read_file"
+      },
+      "transportEvents": [],
+      "authorizedPlan": true,
+      "sourceChangedFiles": [],
+      "missing": [
+        "model lifecycle",
+        "completed model traces",
+        "model-facing tool result sizes"
+      ],
+      "hostResponseSizesAreNotModelToolResultSizes": true
+    }
+  ],
+  "diagnosticRun": {
+    "elapsedMs": 600005.1759998314,
+    "outcome": "ModelTransportError",
+    "logicalModelRequests": 14,
+    "actualModelAttempts": 16,
+    "completedModelRequests": 13,
+    "failedModelRequests": 3,
+    "unfinishedModelRequests": 0,
+    "cancelledModelRequests": 0,
+    "completedModelDurationSumMs": 397609.1145828832,
+    "modelWallMs": 594581.3532714844,
+    "modelWallFraction": 0.9909603734345975,
+    "meanCompletedModelMs": 30585.31650637563,
+    "p95CompletedModelMs": 73908.74745813198,
+    "maxCompletedModelMs": 73908.74745813198,
+    "maxObservedModelAttemptMs": 186925.9099578485,
+    "failedModelDurationSumMs": 196972.05741587095,
+    "outputTokensDurationPearsonR": 0.9221565103806996,
+    "proposedToolCalls": 33,
+    "executedToolCalls": 33,
+    "toolDurationSumMs": 4538,
+    "toolWallMs": 3846.012939453125,
+    "modelToolOverlapMs": 0.0,
+    "otherObservableMs": 1577.8097888939083,
+    "slowestTool": {
+      "sequence": 3,
+      "toolName": "inspect_ui_capabilities",
+      "modelCallSequence": 1,
+      "toolCallId": "call_977c14bc24684832b0b127d1",
+      "startedAt": "2026-10-08T06:59:31.881648+00:00",
+      "finishedAt": "2026-10-08T06:59:32.815988+00:00",
+      "durationMs": 934,
+      "phase": "before_first_mutation",
+      "argumentSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+      "resultChars": 152,
+      "resultUtf8Bytes": 152,
+      "resultSha256": "12a23951f2bc26ebd7daa60640a4c586beffddb7788487fc3bc7fa23fc0955d8",
+      "errorType": null,
+      "status": "rejected",
+      "arguments": {},
+      "structuredErrorCode": "CONTROL_RESULT_CONTRACT_VIOLATION",
+      "repeatOfSequences": [],
+      "sameResultAsPreviousSameArguments": null,
+      "newEvidence": "first-observation",
+      "resultSeenBefore": false
+    },
+    "firstContext": {
+      "attemptSequence": 1,
+      "sequence": 1,
+      "status": "completed",
+      "requestMessageChars": 64267,
+      "requestMessageCount": 2,
+      "requestToolSchemaChars": 28015,
+      "requestToolCount": 41,
+      "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+      "requestMaxToolSchemaChars": 2850,
+      "inputTokens": 26470,
+      "outputTokens": 369,
+      "durationMs": 12944.400500040501,
+      "observedDurationMs": null,
+      "callbackMessageChars": 64267,
+      "messageCharsByRole": {
+        "system": 63943,
+        "human": 324
+      },
+      "duplicateToolMessageCharsIncludingAllCopies": 0,
+      "toolMessageCharsByResultSource": {}
+    },
+    "lastContext": {
+      "attemptSequence": 16,
+      "sequence": 14,
+      "status": "failed",
+      "requestMessageChars": 217490,
+      "requestMessageCount": 48,
+      "requestToolSchemaChars": 28015,
+      "requestToolCount": 41,
+      "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+      "requestMaxToolSchemaChars": 2850,
+      "inputTokens": null,
+      "outputTokens": null,
+      "durationMs": 5019.006957998499,
+      "observedDurationMs": null,
+      "callbackMessageChars": 217490,
+      "messageCharsByRole": {
+        "system": 63943,
+        "human": 324,
+        "ai": 5270,
+        "tool": 147953
+      },
+      "duplicateToolMessageCharsIncludingAllCopies": 486,
+      "toolMessageCharsByResultSource": {
+        "skill-read": 47851,
+        "inspect_ui_project": 57286,
+        "inspect_ui_capabilities": 152,
+        "inspect_agent_ui_sources": 14419,
+        "read_file": 23244,
+        "glob": 2301,
+        "grep": 2700
+      }
+    },
+    "maxCompletedRequestMessageChars": 211015,
+    "messageCharsDurationPearsonR": 0.4974476779783795,
+    "correlationSampleSize": 13,
+    "traceCallbackAlignment": true,
+    "retryRepairCounters": {
+      "modelTransportRetries": 2,
+      "modelTransportFailures": 3,
+      "protocolRepairAttempts": 0,
+      "modelTruncatedTurns": 0,
+      "modelTruncationRepairAttempts": 0,
+      "invalidToolCalls": 0,
+      "toolArgumentParseFailures": 0,
+      "repeatedToolLoops": 0
+    },
+    "finishLengthCount": 0,
+    "outputAtConfiguredLimitCount": 0,
+    "toolStatuses": {
+      "success": 30,
+      "rejected": 2,
+      "error": 1
+    },
+    "toolErrorCodes": {
+      "PROJECT_CONTROL_BUSY": 1,
+      "CONTROL_RESULT_CONTRACT_VIOLATION": 1
+    },
+    "toolRanking": [
+      {
+        "toolName": "read_file",
+        "count": 16,
+        "chars": 71095,
+        "utf8Bytes": 72109,
+        "durationSumMs": 230
+      },
+      {
+        "toolName": "inspect_ui_project",
+        "count": 4,
+        "chars": 57286,
+        "utf8Bytes": 57398,
+        "durationSumMs": 2336
+      },
+      {
+        "toolName": "inspect_agent_ui_sources",
+        "count": 1,
+        "chars": 14419,
+        "utf8Bytes": 14419,
+        "durationSumMs": 224
+      },
+      {
+        "toolName": "grep",
+        "count": 5,
+        "chars": 2700,
+        "utf8Bytes": 2700,
+        "durationSumMs": 374
+      },
+      {
+        "toolName": "glob",
+        "count": 6,
+        "chars": 2301,
+        "utf8Bytes": 2301,
+        "durationSumMs": 440
+      },
+      {
+        "toolName": "inspect_ui_capabilities",
+        "count": 1,
+        "chars": 152,
+        "utf8Bytes": 152,
+        "durationSumMs": 934
+      }
+    ],
+    "largestFiveToolReturns": [
+      {
+        "sequence": 1,
+        "toolName": "read_file",
+        "modelCallSequence": 1,
+        "toolCallId": "call_1de6b201a58849a0b169d0a1",
+        "startedAt": "2026-10-08T06:59:31.881865+00:00",
+        "finishedAt": "2026-10-08T06:59:31.897142+00:00",
+        "durationMs": 15,
+        "phase": "before_first_mutation",
+        "argumentSha256": "a72638fb7896a61ae0f55c29e8456ccdc4a0dcea654ce1d9b69cb34c06ae8db8",
+        "resultChars": 41038,
+        "resultUtf8Bytes": 41146,
+        "resultSha256": "d22ee7cc856d24f702b7897c9c13bd31c0d1f4eccbca37a85d069aca8f7e9d18",
+        "errorType": null,
+        "status": "success",
+        "arguments": {
+          "file_path": "/skills/ui-plugin-development/SKILL.md"
+        },
+        "structuredErrorCode": null,
+        "repeatOfSequences": [],
+        "sameResultAsPreviousSameArguments": null,
+        "newEvidence": "first-observation",
+        "resultSeenBefore": false
+      },
+      {
+        "sequence": 4,
+        "toolName": "inspect_ui_project",
+        "modelCallSequence": 2,
+        "toolCallId": "call_09c7c7e812d1401bb6c508fa",
+        "startedAt": "2026-10-08T06:59:43.431563+00:00",
+        "finishedAt": "2026-10-08T06:59:44.112449+00:00",
+        "durationMs": 681,
+        "phase": "before_first_mutation",
+        "argumentSha256": "857c7e01c2dedc6daf3b46bbd09e460a38d7516bd8a0a19a0a6dd1678cdff368",
+        "resultChars": 22647,
+        "resultUtf8Bytes": 22647,
+        "resultSha256": "b51702575f940250fb1ad5de844c12b08910ad3d5ce715dd6877b160207e896c",
+        "errorType": null,
+        "status": "success",
+        "arguments": {
+          "view": "composition"
+        },
+        "structuredErrorCode": null,
+        "repeatOfSequences": [
+          2
+        ],
+        "sameResultAsPreviousSameArguments": false,
+        "newEvidence": "changed-result-needs-semantic-review",
+        "resultSeenBefore": false
+      },
+      {
+        "sequence": 5,
+        "toolName": "inspect_ui_project",
+        "modelCallSequence": 3,
+        "toolCallId": "call_cd8e18bc7091453aaab8874e",
+        "startedAt": "2026-10-08T07:00:15.246574+00:00",
+        "finishedAt": "2026-10-08T07:00:15.999914+00:00",
+        "durationMs": 753,
+        "phase": "before_first_mutation",
+        "argumentSha256": "46af95f7d1450dcf3f72ba90284beaac86c459c8ba9aa8157010e99d57ae4cf6",
+        "resultChars": 22518,
+        "resultUtf8Bytes": 22554,
+        "resultSha256": "2fc09af075daffc545cbd4c51087da56ba15bd705b14d095e04d46c4c06aa5e7",
+        "errorType": null,
+        "status": "success",
+        "arguments": {
+          "view": "composition"
+        },
+        "structuredErrorCode": null,
+        "repeatOfSequences": [],
+        "sameResultAsPreviousSameArguments": null,
+        "newEvidence": "first-observation",
+        "resultSeenBefore": false
+      },
+      {
+        "sequence": 9,
+        "toolName": "inspect_agent_ui_sources",
+        "modelCallSequence": 5,
+        "toolCallId": "call_7019ff23503d42d5a462b4b4",
+        "startedAt": "2026-10-08T07:01:01.745648+00:00",
+        "finishedAt": "2026-10-08T07:01:01.970042+00:00",
+        "durationMs": 224,
+        "phase": "before_first_mutation",
+        "argumentSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "resultChars": 14419,
+        "resultUtf8Bytes": 14419,
+        "resultSha256": "4de4abe21d17f8af8db1547382d228483124942affe801ee44608d0e7897b7eb",
+        "errorType": null,
+        "status": "success",
+        "arguments": {},
+        "structuredErrorCode": null,
+        "repeatOfSequences": [],
+        "sameResultAsPreviousSameArguments": null,
+        "newEvidence": "first-observation",
+        "resultSeenBefore": false
+      },
+      {
+        "sequence": 6,
+        "toolName": "inspect_ui_project",
+        "modelCallSequence": 4,
+        "toolCallId": "call_330c5c49a9a04f04b1396cee",
+        "startedAt": "2026-10-08T07:00:25.758275+00:00",
+        "finishedAt": "2026-10-08T07:00:26.552417+00:00",
+        "durationMs": 794,
+        "phase": "before_first_mutation",
+        "argumentSha256": "1afc423d0a7727d9cd2bb104bf506d6a72efde933317ee6f1eab743a0a74887e",
+        "resultChars": 11999,
+        "resultUtf8Bytes": 12075,
+        "resultSha256": "b4aab3fb94407b8d5c799d971d33c5cb8d4608a1b2d1eed097a7299f8278c046",
+        "errorType": null,
+        "status": "success",
+        "arguments": {
+          "view": "composition"
+        },
+        "structuredErrorCode": null,
+        "repeatOfSequences": [],
+        "sameResultAsPreviousSameArguments": null,
+        "newEvidence": "first-observation",
+        "resultSeenBefore": false
+      }
+    ],
+    "near48000CharReturns": 0,
+    "identicalRepeatResults": 0,
+    "repeatedArgumentExecutions": 1,
+    "lastCompleteEvent": {
+      "type": "model_transport_retry_exhausted",
+      "timestamp": "2026-10-08T07:09:18.836Z",
+      "toolName": null
+    },
+    "lastModelAttempt": {
+      "attemptSequence": 16,
+      "runId": "01a11a58-40d6-76c0-a64c-3a48baf7356e",
+      "startedAt": "2026-10-08T07:09:13.815583+00:00",
+      "status": "failed",
+      "callbackMessageChars": 217490,
+      "messageCharsByRole": {
+        "system": 63943,
+        "human": 324,
+        "ai": 5270,
+        "tool": 147953
+      },
+      "finishedAt": "2026-10-08T07:09:18.834595+00:00",
+      "durationMs": 5019.006957998499,
+      "errorType": "APIConnectionError",
+      "sequence": 14,
+      "transportAttempt": 3,
+      "failureKind": "connect",
+      "requestMessageCount": 48,
+      "requestMessageChars": 217490,
+      "requestToolCount": 41,
+      "requestToolSchemaChars": 28015,
+      "requestMaxToolSchemaChars": 2850,
+      "requestMaxToolSchemaName": "prepare_ui_plugin_development",
+      "inputShapeSource": "existing-transport-failure-log"
+    },
+    "sourceChangedFiles": [],
+    "planAuthorized": false,
+    "transportEvents": [
+      {
+        "type": "model_transport_attempt_failed",
+        "timestamp": "2026-10-08T07:09:07.854Z",
+        "durationMs": 186937,
+        "modelCallSequence": 14
+      },
+      {
+        "type": "model_transport_attempt_failed",
+        "timestamp": "2026-10-08T07:09:13.348Z",
+        "durationMs": 5062,
+        "modelCallSequence": 14
+      },
+      {
+        "type": "model_transport_attempt_failed",
+        "timestamp": "2026-10-08T07:09:18.835Z",
+        "durationMs": 5042,
+        "modelCallSequence": 14
+      },
+      {
+        "type": "model_transport_retry_exhausted",
+        "timestamp": "2026-10-08T07:09:18.836Z",
+        "durationMs": 197925,
+        "modelCallSequence": 14
+      }
+    ]
+  },
+  "limitations": [
+    "Callback elapsed includes network, provider prefill, generation and streaming; does not isolate server latency.",
+    "Character counts are not token estimates. Original attempts have no per-request lifecycle or tool result size.",
+    "Protocol durations may include transport retry/backoff; use callback interval union for time attribution.",
+    "Result hash equality proves unchanged content, not that every repeated inspection is unnecessary.",
+    "Correlation in one run is descriptive and confounded by different tool-argument output lengths."
+  ],
+  "attribution": {
+    "category": "MIXED",
+    "primary": "MODEL_LATENCY",
+    "confidence": "medium",
+    "primaryConfidence": "high-for-observed-wait-share; medium-for-provider-only-cause",
+    "originalRunConfidence": "limited-by-missing-per-call-metrics",
+    "factors": [
+      {
+        "category": "MODEL_LATENCY",
+        "support": "strong",
+        "evidence": [
+          "594581 ms model wait / 600005 ms total (99.10%)",
+          "13 successes average 30585 ms",
+          "186926 ms stream chunk timeout, 2 connection failures (~5s each)"
+        ],
+        "causalTimeMs": null
+      },
+      {
+        "category": "CONTEXT_GROWTH",
+        "support": "strong-for-growth; limited-for-causality",
+        "evidence": [
+          "64267 -> 217490 message chars",
+          "completed input tokens 26470 -> 67371",
+          "message size/duration r=0.497; output tokens/duration r=0.922, confounded"
+        ],
+        "causalTimeMs": null
+      },
+      {
+        "category": "TOOL_SCHEMA_OVERHEAD",
+        "support": "observed-cost; necessity-not-established",
+        "evidence": [
+          "41 tools / 28015 chars most rounds; one narrowed round 17 / 11519",
+          "max prepare_ui_plugin_development 2850 chars",
+          "first input char share 30.36%, last 11.41%"
+        ],
+        "causalTimeMs": null
+      },
+      {
+        "category": "TOOL_RESULT_BLOAT",
+        "support": "accumulation-observed; duplicate-bloat-not-supported",
+        "evidence": [
+          "147953 result chars accumulate",
+          "skill reads 47851 chars; project pagination 57286 chars",
+          "0 near-48000-char returns; no same-args identical result re-execution",
+          "486 identical tool-message chars including all copies in final context"
+        ],
+        "causalTimeMs": null
+      },
+      {
+        "category": "AGENT_LOOP",
+        "support": "moderate-for-low-progress; limited-for-needless-loop",
+        "evidence": [
+          "original 18+ completed rounds / 40 executed tools / authorized plan / no writes",
+          "diagnostic 13 completed rounds / 33 executed tools / no plan or writes",
+          "original busy 3 + contract rejection 1; diagnostic busy 1 + contract rejection 1",
+          "project page cursors differ; one same-args repeat is retry after busy, not duplicate success"
+        ],
+        "causalTimeMs": null
+      }
+    ],
+    "recommendationsOnly": [
+      "串行处理同一 Host 的检查，减少 PROJECT_CONTROL_BUSY 后再请求模型的轮次。",
+      "评估将开发场景已有上下文改为按需读取，并按阶段使用已有工具集边界；先测量，不直接改 Prompt/Skill/Schema。",
+      "原始轮后期 locale 重读可用已有读取证据避免重复，仅在文件变更时刷新。",
+      "模型流式停顿和连接失败按模型/传输问题记录，本次不修复。"
+    ],
+    "noAdditionalLiveRunNeeded": true,
+    "reason": "Original and diagnostic both spend many read-only rounds without writes; terminal error differs but retry and streaming evidence explain the diagnostic endpoint. No contradictory timing evidence."
+  }
+}

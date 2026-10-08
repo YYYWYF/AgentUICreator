@@ -1,0 +1,26 @@
+{
+  "model": "mimo-v2.6-flash",
+  "singleRequestTimeoutSeconds": 120.0,
+  "overallTimeoutSeconds": 600,
+  "maxTokens": 8192,
+  "maxRetries": 2,
+  "rawTraceEnabled": false,
+  "commit": "d37a8e2653cf8f5f20e63c5ab80895e19aa1d1cf",
+  "scenario": "B",
+  "host": "React + Ant Design 5",
+  "skillsRoot": "/Users/yifei/.codex/worktrees/creator-timeout-diagnosis/AgentUICreator/packages/creator/skills",
+  "modelCallBudget": 24,
+  "originalEvidenceDirectory": "/Users/yifei/.codex/visualizations/2026/10/08/01a11971-df82-7e90-88d8-47db50c95f72/ui-selection/B",
+  "diagnosticEvidenceDirectory": "/Users/yifei/.codex/visualizations/2026/10/08/01a11a4b-3999-7a02-a065-fd977b233e76/timeout-diagnosis/B",
+  "fixtureSourceHashDrift": [],
+  "liveRuns": 1,
+  "diagnosticChangesOnly": true,
+  "fixturePackageVersions": {
+    "react": "19.3.0",
+    "antd": "5.29.3"
+  },
+  "requestSha256": "1ee361669773bf2caf5b9871e58659bf4fb295bcdc524a67192566effcf218b1",
+  "fixtureReuse": "Original B source; dependency links reused, framework packages rebuilt at baseline; control entry repointed to baseline artifact.",
+  "modelRequestBodiesRecorded": false,
+  "toolBodiesInPublishedArtifacts": false
+}
