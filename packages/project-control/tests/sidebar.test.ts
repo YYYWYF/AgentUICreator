@@ -6,6 +6,7 @@ import { resolveAppUIComposition } from "../src/framework/contracts/app-ui-compo
 import { parseAppUIRuntimeModel } from "../src/framework/contracts/app-ui-runtime-model";
 import { parseUIPluginManifest } from "../src/framework/contracts/ui-plugin";
 import { applyAppUIOperations, appUIOperationSchema } from "../src/project/app-ui-operations";
+import { satisfiesAgentUIPackageRange } from "../src/project/source-registry/inspector";
 import { projectWorkspaceTopology } from "../src/project/workspace-topology";
 
 const plugin = (id: string) => ({ id, pluginId: id, enabled: true });
@@ -54,6 +55,43 @@ describe("Sidebar contract and deterministic operations", () => {
     const empty: AppUIModel = { root: { type: "slot", plugins: [] } };
     const replaced = applyAppUIOperations(empty, [op({ type: "replace_layout_node", nodeRef: "l0", node: model().root })]);
     expect(replaced).toEqual(model());
+  });
+  it("preserves Sidebar Slot local refs across an atomic mutation batch", () => {
+    const source: AppUIModel = { root: { type: "slot", plugins: [] } };
+    const node = { type: "sidebar", localRef: "$sidebar", defaultActive: "history", items: [{ id: "history", child: { type: "slot", localRef: "$history", plugins: [plugin("history")] } }], content: { type: "slot", plugins: [] } };
+    const result = applyAppUIOperations(source, [
+      op({ type: "replace_layout_node", nodeRef: "l0", node }),
+      op({ type: "update_layout_node_props", nodeRef: "$sidebar", set: { defaultActive: null } }),
+      op({ type: "insert_plugin", target: { type: "layout_slot", slotRef: "$history" }, plugin: plugin("files") }),
+      op({ type: "remove_plugin", instanceId: "history" }),
+    ]);
+    expect(parseAppUIModel(result).root.type).toBe("sidebar");
+    expect(JSON.stringify(result)).not.toContain("localRef");
+    expect(source.root.type).toBe("slot");
+    expect(() => parseAppUIModel(applyAppUIOperations(source, [op({ type: "replace_layout_node", nodeRef: "l0", node: { ...node, defaultActive: "missing" } })]))).toThrow();
+    expect(source.root.type).toBe("slot");
+  });
+  it.each([
+    { type: "slot", plugins: [] },
+    { type: "slot", plugins: [plugin("history"), plugin("files")] },
+    { type: "row", children: [] },
+    { type: "column", children: [] },
+    { type: "stack", children: [] },
+    { type: "panel", child: { type: "slot", plugins: [] } },
+  ])("rejects invalid Sidebar mutation children: %j", child => {
+    expect(() => op({ type: "replace_layout_node", nodeRef: "l0", node: {
+      type: "sidebar", defaultActive: null, items: [{ id: "history", child }], content: { type: "slot", plugins: [] },
+    } })).toThrow();
+  });
+  it("requires Sidebar-capable package versions in Source Registry", () => {
+    for (const [item, name, oldVersion, version] of [
+      ["foundation-core", "@agent-ui/react", "0.1.1", "0.1.2"],
+      ["foundation-core-contracts", "@agent-ui/runtime-react", "0.1.0", "0.1.1"],
+    ]) {
+      const descriptor = JSON.parse(readFileSync(new URL(`../../source-registry/registry/items/${item}/item.json`, import.meta.url), "utf8"));
+      expect(satisfiesAgentUIPackageRange(oldVersion, descriptor.packages[name!])).toBe(false);
+      expect(satisfiesAgentUIPackageRange(version, descriptor.packages[name!])).toBe(true);
+    }
   });
   it("validates icons without interpreting code and preserves locale fallbacks", () => {
     const manifest = { id: "test", name: "Test", description: "Test", version: "1.0.0", sidebar: { icon: "folder", labels: { "zh-CN": "文件" } } };

@@ -166,7 +166,6 @@ export type UIPluginSetupCleanup = void | (() => void);
 
 export interface UIPluginRenderSlotOptions {
   sizing?: "content" | "fill";
-  sidebar?: { icon: import("@agent-ui/react").AgentUISidebarIcon; labels?: { "en-US"?: string | undefined; "zh-CN"?: string | undefined } | undefined } | undefined;
   layout?: "stack" | "inline";
 }
 

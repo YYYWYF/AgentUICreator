@@ -1,4 +1,6 @@
 import json
+
+import pytest
 from pathlib import Path
 
 from jsonschema import Draft202012Validator
@@ -15,7 +17,7 @@ def test_sidebar_creator_operations_and_layout_schema():
         {"type": "remove_sidebar_item", "sidebarRef": "l0", "itemId": "files"},
         {"type": "reorder_sidebar_items", "sidebarRef": "l0", "itemIds": ["history", "files"]},
         {"type": "update_layout_node_props", "nodeRef": "l0", "set": {"defaultActive": None}},
-        {"type": "replace_layout_node", "nodeRef": "l0", "node": {"type": "sidebar", "defaultActive": None, "items": [{"id": "history", "child": slot}], "content": slot}},
+        {"type": "replace_layout_node", "nodeRef": "l0", "node": {"type": "sidebar", "defaultActive": None, "items": [{"id": "history", "child": {"type": "slot", "localRef": "$history", "plugins": [{"id": "history", "pluginId": "agent-conversations", "enabled": True}]}}], "content": slot}},
     ]:
         validator.validate(operation)
 
@@ -31,3 +33,21 @@ def test_sidebar_diagnostics_include_both_branches():
 def test_sidebar_moves_keep_instance_resource_scope():
     resources = resource_keys_for_tool_call("mutate_app_ui_model", {"operations": [{"type": "insert_sidebar_item", "sidebarRef": "l0", "itemId": "files", "instanceId": "files-main"}]})
     assert "plugin-instance:files-main" in resources
+
+
+@pytest.mark.parametrize("child", [
+    {"type": "slot", "plugins": []},
+    {"type": "slot", "plugins": [{"id": "a", "pluginId": "a", "enabled": True}] * 2},
+    {"type": "row", "children": []},
+    {"type": "column", "children": []},
+    {"type": "stack", "children": []},
+    {"type": "panel", "child": {"type": "slot", "plugins": []}},
+    {"type": "slot", "localRef": "invalid", "plugins": [{"id": "a", "pluginId": "a", "enabled": True}]},
+])
+def test_sidebar_external_schema_rejects_invalid_item_children(child):
+    schema = json.loads((Path(__file__).resolve().parents[3] / "contracts/creator/app-ui-model-operation.schema.json").read_text())
+    operation = {"type": "replace_layout_node", "nodeRef": "l0", "node": {
+        "type": "sidebar", "defaultActive": None, "items": [{"id": "history", "child": child}],
+        "content": {"type": "slot", "plugins": []},
+    }}
+    assert not Draft202012Validator(schema).is_valid(operation)

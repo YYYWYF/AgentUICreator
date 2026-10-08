@@ -59,7 +59,7 @@ const pluginMovePlacementSchema = z.discriminatedUnion("type", [
 ]);
 
 type AppUILayoutMutationNode =
-  | ({ type: "sidebar"; defaultActive: string | null; items: { id: string; child: AppUILayoutMutationNode }[]; content: AppUILayoutMutationNode } & { localRef?: string | undefined })
+  | ({ type: "sidebar"; defaultActive: string | null; items: { id: string; child: { type: "slot"; plugins: AppUIPluginNode[]; localRef?: string | undefined } }[]; content: AppUILayoutMutationNode } & { localRef?: string | undefined })
   | ({ type: "row"; children: AppUILayoutMutationNode[]; gap?: number | undefined; sizes?: string[] | undefined; responsive?: AppUIRowNode["responsive"] } & { localRef?: string | undefined })
   | ({ type: "column"; children: AppUILayoutMutationNode[]; gap?: number | undefined; sizes?: string[] | undefined } & { localRef?: string | undefined })
   | ({ type: "stack"; children: AppUILayoutMutationNode[]; activeIndex?: number | undefined } & { localRef?: string | undefined })
@@ -97,7 +97,7 @@ const mutationLayoutNodeSchema: z.ZodType<AppUILayoutMutationNode> = z.lazy(() =
     z.strictObject({
       type: z.literal("sidebar"), localRef: z.string().regex(/^\$[A-Za-z][A-Za-z0-9_-]*$/).optional(),
       defaultActive: nonBlankStringSchema.nullable(),
-      items: z.array(z.strictObject({ id: nonBlankStringSchema, child: mutationLayoutNodeSchema })),
+      items: z.array(z.strictObject({ id: nonBlankStringSchema, child: z.strictObject({ type: z.literal("slot"), localRef: z.string().regex(/^\$[A-Za-z][A-Za-z0-9_-]*$/).optional(), plugins: z.array(appUIPluginNodeSchema).length(1) }) })),
       content: mutationLayoutNodeSchema,
     }),
     z.strictObject({

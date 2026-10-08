@@ -1,0 +1,33 @@
+{
+  "name": "sidebar-assistant-consumer",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@assistant-ui/react-lexical": "0.2.15",
+    "@lexical/history": "0.51.0",
+    "@lexical/plain-text": "0.51.0",
+    "@lexical/react": "0.51.0",
+    "@lexical/utils": "0.51.0",
+    "lexical": "0.51.0",
+    "lucide-react": "1.41.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "zod": "^4.5.4",
+    "@agent-ui/runtime-core": "file:/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/runtime-core.tgz",
+    "@agent-ui/react": "file:/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/react.tgz",
+    "@agent-ui/runtime-conversation": "file:/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/runtime-conversation.tgz",
+    "@agent-ui/runtime-react": "file:/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/runtime-react.tgz",
+    "@agent-ui/plugins": "file:/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/plugins.tgz"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@tailwindcss/vite": "4.3.3",
+    "@vitejs/plugin-react": "^6.1.1",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.20.6",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2"
+  }
+}

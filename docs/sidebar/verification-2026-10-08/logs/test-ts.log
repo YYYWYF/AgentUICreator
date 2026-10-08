@@ -1,0 +1,194 @@
+[WARN] Your node_modules are out of sync with your lockfile. The workspace structure has changed since last install
+$ node scripts/test-workspace-ts.mjs
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-lexical-boundary.mjs
+@agent-ui/react public declaration boundary: OK (7 declarations)
+Lexical optional facade and Source Plugin boundaries: OK
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-consumer-types.mjs
+@agent-ui/runtime-conversation public declaration boundary: OK (9 reachable declarations)
+@agent-ui/runtime-conversation published-package consumer typecheck: OK (isolated tarball install, skipLibCheck: false)
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs
+$ node scripts/build.mjs
+Official package service metadata verified against reference definitions.
+$ tsc -p tsconfig.build.json && node --import tsx scripts/verify-package-services.mjs
+Official package service metadata verified against reference definitions.
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json
+$ node scripts/build.mjs
+$ node scripts/check-project-control-contract.mjs
+ProjectControl contract inventory is aligned.
+✔ parses regular, setup-only, and live-model modes (0.637667ms)
+✔ uses the live marker and live test selection only in live-model mode (0.0805ms)
+✔ regular and live-model modes use the same PYTHONPATH (0.070291ms)
+✔ loads live model settings from the Creator host environment file (0.156708ms)
+✔ package live-model script delegates portably to the Node runner (1.98875ms)
+✔ official Composer acceptance selects only its live test (0.299416ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 37.17625
+Scope: 18 of 19 workspace projects
+packages/bootstrap test$ vitest run
+packages/runtime-core test$ vitest run
+packages/runtime-react test$ vitest run
+packages/source-registry test$ vitest run
+packages/source-registry test:  RUN  v4.1.11 /Users/yifei/Coding/AgentUICreator/packages/source-registry
+packages/runtime-core test:  RUN  v4.1.11 /Users/yifei/Coding/AgentUICreator/packages/runtime-core
+packages/runtime-react test: (!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+packages/runtime-react test:   - import "../../scripts/generated-source-test-config" without a file extension (vitest.config.ts:3:43). Add the file extension
+packages/runtime-react test:   - ESM syntax in a file loaded as CommonJS (../../scripts/generated-source-test-config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+packages/runtime-react test:   - import "../../src/generate-plugin-registry" without a file extension (../project-control/tests/support/generated-project.ts:5:46). Add the file extension
+packages/runtime-react test:   - import "./framework/contracts/app-ui-model" without a file extension (../project-control/src/generate-plugin-registry.ts:6:37). Add the file extension
+packages/runtime-react test:   - import "./project/project-mode" without a file extension (../project-control/src/generate-plugin-registry.ts:7:42). Add the file extension
+packages/runtime-react test:   - import "./framework/contracts/agent-ui-project" without a file extension (../project-control/src/generate-plugin-registry.ts:8:43). Add the file extension
+packages/runtime-react test:   - import "./project/agent-ui-project-paths" without a file extension (../project-control/src/generate-plugin-registry.ts:9:95). Add the file extension
+packages/runtime-react test:   - import "./project/creator-cancel-marker" without a file extension (../project-control/src/generate-plugin-registry.ts:10:44). Add the file extension
+packages/runtime-react test:   - import "./project/registry-generator" without a file extension (../project-control/src/generate-plugin-registry.ts:13:8). Add the file extension
+packages/runtime-react test:   - import "./panel-dimension" without a file extension (../project-control/src/framework/contracts/app-ui-model.ts:3:42). Add the file extension
+packages/runtime-react test:   - import "../framework/contracts/agent-ui-project" without a file extension (../project-control/src/project/project-mode.ts:7:8). Add the file extension
+packages/runtime-react test:   - import "../framework/contracts/app-ui-model" without a file extension (../project-control/src/project/registry-generator.ts:18:8). Add the file extension
+packages/runtime-react test:   - import "../framework/contracts/agent-ui-project" without a file extension (../project-control/src/project/agent-ui-project-paths.ts:3:43). Add the file extension
+packages/runtime-react test:   - import "../framework/contracts/app-ui-compiler" without a file extension (../project-control/src/project/registry-generator.ts:19:55). Add the file extension
+packages/runtime-react test:   - import "./types" without a file extension (../project-control/src/project/agent-ui-project-paths.ts:4:45). Add the file extension
+packages/runtime-react test:   - import "../framework/contracts/app-ui-composition" without a file extension (../project-control/src/project/registry-generator.ts:24:8). Add the file extension
+packages/runtime-react test:   - import "./project-config" without a file extension (../project-control/src/project/agent-ui-project-paths.ts:5:40). Add the file extension
+packages/runtime-react test:   - import "./agent-ui-project-paths" without a file extension (../project-control/src/project/registry-generator.ts:25:42). Add the file extension
+packages/runtime-react test:   - import "./plugin-assets" without a file extension (../project-control/src/project/registry-generator.ts:26:37). Add the file extension
+packages/runtime-react test:   - import "./agent-ui-mode" without a file extension (../project-control/src/framework/contracts/agent-ui-project.ts:6:8). Add the file extension
+packages/runtime-react test:   - import "./data-message-ui-analyzer" without a file extension (../project-control/src/project/registry-generator.ts:27:39). Add the file extension
+packages/runtime-react test:   - import "./service-dependency-inspector" without a file extension (../project-control/src/project/registry-generator.ts:32:8). Add the file extension
+packages/runtime-react test:   - import "./types" without a file extension (../project-control/src/project/project-config.ts:1:45). Add the file extension
+packages/runtime-react test:   - import "./types" without a file extension (../project-control/src/project/registry-generator.ts:39:8). Add the file extension
+packages/runtime-react test:   - import "./agent-ui-workspace" without a file extension (../project-control/src/framework/contracts/agent-ui-mode.ts:3:45). Add the file extension
+packages/runtime-react test:   - import "../framework/contracts/app-ui-model" without a file extension (../project-control/src/project/service-dependency-inspector.ts:9:8). Add the file extension
+packages/runtime-react test:   - import "../framework/contracts/ui-plugin" without a file extension (../project-control/src/project/plugin-assets.ts:5:39). Add the file extension
+packages/runtime-react test:   - import "../framework/contracts/data-message-ui" without a file extension (../project-control/src/project/data-message-ui-analyzer.ts:22:42). Add the file extension
+packages/runtime-react test:   - import "./app-ui-model" without a file extension (../project-control/src/framework/contracts/app-ui-compiler.ts:8:8). Add the file extension
+packages/runtime-react test:   - import "./types" without a file extension (../project-control/src/project/service-dependency-inspector.ts:26:8). Add the file extension
+packages/runtime-react test:   - import "./agent-ui-project-paths" without a file extension (../project-control/src/project/plugin-assets.ts:6:42). Add the file extension
+packages/runtime-react test:   - import "./types" without a file extension (../project-control/src/project/data-message-ui-analyzer.ts:23:48). Add the file extension
+packages/runtime-react test:   - import "./app-ui-runtime-model" without a file extension (../project-control/src/framework/contracts/app-ui-compiler.ts:14:8). Add the file extension
+packages/runtime-react test:   - import "./types" without a file extension (../project-control/src/project/plugin-assets.ts:12:8). Add the file extension
+packages/runtime-react test:   - import "./app-ui-composition" without a file extension (../project-control/src/framework/contracts/app-ui-compiler.ts:23:8). Add the file extension
+packages/runtime-react test:   - import "./app-ui-runtime-model" without a file extension (../project-control/src/framework/contracts/app-ui-composition.ts:4:8). Add the file extension
+packages/runtime-react test:   - import "./panel-dimension" without a file extension (../project-control/src/framework/contracts/app-ui-runtime-model.ts:3:42). Add the file extension
+packages/runtime-react test:   - import "./app-ui-runtime-model" without a file extension (../project-control/src/framework/contracts/ui-plugin.ts:9:49). Add the file extension
+packages/runtime-react test:   - import "./app-ui-model" without a file extension (../project-control/src/framework/contracts/ui-plugin.ts:10:43). Add the file extension
+packages/runtime-react test:   - import "./app-ui-composition" without a file extension (../project-control/src/framework/contracts/ui-plugin.ts:11:48). Add the file extension
+packages/runtime-react test:   - import "./custom-event-protocol" without a file extension (../project-control/src/framework/contracts/ui-plugin.ts:12:39). Add the file extension
+packages/runtime-react test: Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+packages/runtime-react test:  RUN  v4.1.11 /Users/yifei/Coding/AgentUICreator/packages/runtime-react
+packages/bootstrap test: (!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+packages/bootstrap test:   - import "../../scripts/generated-source-test-config" without a file extension (vitest.config.ts:3:43). Add the file extension
+packages/bootstrap test:   - ESM syntax in a file loaded as CommonJS (../../scripts/generated-source-test-config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+packages/bootstrap test:   - import "../../src/generate-plugin-registry" without a file extension (../project-control/tests/support/generated-project.ts:5:46). Add the file extension
+packages/bootstrap test:   - import "./framework/contracts/app-ui-model" without a file extension (../project-control/src/generate-plugin-registry.ts:6:37). Add the file extension
+packages/bootstrap test:   - import "./project/project-mode" without a file extension (../project-control/src/generate-plugin-registry.ts:7:42). Add the file extension
+packages/bootstrap test:   - import "./framework/contracts/agent-ui-project" without a file extension (../project-control/src/generate-plugin-registry.ts:8:43). Add the file extension
+packages/bootstrap test:   - import "./project/agent-ui-project-paths" without a file extension (../project-control/src/generate-plugin-registry.ts:9:95). Add the file extension
+packages/bootstrap test:   - import "./project/creator-cancel-marker" without a file extension (../project-control/src/generate-plugin-registry.ts:10:44). Add the file extension
+packages/bootstrap test:   - import "./project/registry-generator" without a file extension (../project-control/src/generate-plugin-registry.ts:13:8). Add the file extension
+packages/bootstrap test:   - import "../framework/contracts/app-ui-model" without a file extension (../project-control/src/project/registry-generator.ts:18:8). Add the file extension
+packages/bootstrap test:   - import "../framework/contracts/agent-ui-project" without a file extension (../project-control/src/project/agent-ui-project-paths.ts:3:43). Add the file extension
+packages/bootstrap test:   - import "../framework/contracts/agent-ui-project" without a file extension (../project-control/src/project/project-mode.ts:7:8). Add the file extension
+packages/bootstrap test:   - import "../framework/contracts/app-ui-compiler" without a file extension (../project-control/src/project/registry-generator.ts:19:55). Add the file extension
+packages/bootstrap test:   - import "./types" without a file extension (../project-control/src/project/agent-ui-project-paths.ts:4:45). Add the file extension
+packages/bootstrap test:   - import "./panel-dimension" without a file extension (../project-control/src/framework/contracts/app-ui-model.ts:3:42). Add the file extension
+packages/bootstrap test:   - import "../framework/contracts/app-ui-composition" without a file extension (../project-control/src/project/registry-generator.ts:24:8). Add the file extension
+packages/bootstrap test:   - import "./project-config" without a file extension (../project-control/src/project/agent-ui-project-paths.ts:5:40). Add the file extension
+packages/bootstrap test:   - import "./agent-ui-project-paths" without a file extension (../project-control/src/project/registry-generator.ts:25:42). Add the file extension
+packages/bootstrap test:   - import "./plugin-assets" without a file extension (../project-control/src/project/registry-generator.ts:26:37). Add the file extension
+packages/bootstrap test:   - import "./agent-ui-mode" without a file extension (../project-control/src/framework/contracts/agent-ui-project.ts:6:8). Add the file extension
+packages/bootstrap test:   - import "./data-message-ui-analyzer" without a file extension (../project-control/src/project/registry-generator.ts:27:39). Add the file extension
+packages/bootstrap test:   - import "./service-dependency-inspector" without a file extension (../project-control/src/project/registry-generator.ts:32:8). Add the file extension
+packages/bootstrap test:   - import "./types" without a file extension (../project-control/src/project/registry-generator.ts:39:8). Add the file extension
+packages/bootstrap test:   - import "./types" without a file extension (../project-control/src/project/project-config.ts:1:45). Add the file extension
+packages/bootstrap test:   - import "./agent-ui-workspace" without a file extension (../project-control/src/framework/contracts/agent-ui-mode.ts:3:45). Add the file extension
+packages/bootstrap test:   - import "./app-ui-model" without a file extension (../project-control/src/framework/contracts/app-ui-compiler.ts:8:8). Add the file extension
+packages/bootstrap test:   - import "../framework/contracts/app-ui-model" without a file extension (../project-control/src/project/service-dependency-inspector.ts:9:8). Add the file extension
+packages/bootstrap test:   - import "../framework/contracts/ui-plugin" without a file extension (../project-control/src/project/plugin-assets.ts:5:39). Add the file extension
+packages/bootstrap test:   - import "../framework/contracts/data-message-ui" without a file extension (../project-control/src/project/data-message-ui-analyzer.ts:22:42). Add the file extension
+packages/bootstrap test:   - import "./app-ui-runtime-model" without a file extension (../project-control/src/framework/contracts/app-ui-compiler.ts:14:8). Add the file extension
+packages/bootstrap test:   - import "./types" without a file extension (../project-control/src/project/service-dependency-inspector.ts:26:8). Add the file extension
+packages/bootstrap test:   - import "./agent-ui-project-paths" without a file extension (../project-control/src/project/plugin-assets.ts:6:42). Add the file extension
+packages/bootstrap test:   - import "./types" without a file extension (../project-control/src/project/data-message-ui-analyzer.ts:23:48). Add the file extension
+packages/bootstrap test:   - import "./app-ui-runtime-model" without a file extension (../project-control/src/framework/contracts/app-ui-composition.ts:4:8). Add the file extension
+packages/bootstrap test:   - import "./app-ui-composition" without a file extension (../project-control/src/framework/contracts/app-ui-compiler.ts:23:8). Add the file extension
+packages/bootstrap test:   - import "./types" without a file extension (../project-control/src/project/plugin-assets.ts:12:8). Add the file extension
+packages/bootstrap test:   - import "./panel-dimension" without a file extension (../project-control/src/framework/contracts/app-ui-runtime-model.ts:3:42). Add the file extension
+packages/bootstrap test:   - import "./app-ui-runtime-model" without a file extension (../project-control/src/framework/contracts/ui-plugin.ts:9:49). Add the file extension
+packages/bootstrap test:   - import "./app-ui-model" without a file extension (../project-control/src/framework/contracts/ui-plugin.ts:10:43). Add the file extension
+packages/bootstrap test:   - import "./app-ui-composition" without a file extension (../project-control/src/framework/contracts/ui-plugin.ts:11:48). Add the file extension
+packages/bootstrap test:   - import "./custom-event-protocol" without a file extension (../project-control/src/framework/contracts/ui-plugin.ts:12:39). Add the file extension
+packages/bootstrap test: Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+packages/bootstrap test:  RUN  v4.1.11 /Users/yifei/Coding/AgentUICreator/packages/bootstrap
+packages/runtime-core test:  Test Files  3 passed (3)
+packages/runtime-core test:       Tests  31 passed (31)
+packages/runtime-core test:    Start at  12:57:45
+packages/runtime-core test:    Duration  318ms (transform 462ms, setup 0ms, import 523ms, tests 15ms, environment 0ms)
+packages/runtime-core test: Done
+packages/source-registry test:  Test Files  9 passed (9)
+packages/source-registry test:       Tests  29 passed (29)
+packages/source-registry test:    Start at  12:57:45
+packages/source-registry test:    Duration  657ms (transform 730ms, setup 0ms, import 1.08s, tests 2.12s, environment 1ms)
+packages/source-registry test: Done
+packages/bootstrap test:  Test Files  5 passed (5)
+packages/bootstrap test:       Tests  35 passed (35)
+packages/bootstrap test:    Start at  12:57:45
+packages/bootstrap test:    Duration  2.44s (transform 200ms, setup 32ms, import 350ms, tests 1.96s, environment 1.47s)
+packages/bootstrap test: Done
+packages/runtime-react test:  ❯ tests/migrated/plugin-error-boundary.test.tsx (4 tests | 2 failed) 31ms
+packages/runtime-react test:      × isolates a dynamically inserted render failure in a top-right notification 22ms
+packages/runtime-react test:      × lets the user dismiss one failure without remounting healthy plugins 3ms
+packages/runtime-react test: ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+packages/runtime-react test:  FAIL  tests/migrated/plugin-error-boundary.test.tsx > PluginErrorBoundary > isolates a dynamically inserted render failure in a top-right notification
+packages/runtime-react test: AssertionError: expected '!Plugin failedRender Failure Plugin ·…' to contain '插件运行失败'
+packages/runtime-react test: Expected: "插件运行失败"
+packages/runtime-react test: Received: "!Plugin failedRender Failure Plugin · render-failure-mainRender fixture failed.×"
+packages/runtime-react test:  ❯ tests/migrated/plugin-error-boundary.test.tsx:216:37
+packages/runtime-react test:     214|     const [renderFailure] = findFailures();
+packages/runtime-react test:     215|     expect(renderFailure).toBeDefined();
+packages/runtime-react test:     216|     expect(getText(renderFailure!)).toContain("插件运行失败");
+packages/runtime-react test:        |                                     ^
+packages/runtime-react test:     217|     expect(getText(renderFailure!)).toContain("Render fixture failed."…
+packages/runtime-react test:     218|     expect(
+packages/runtime-react test: ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+packages/runtime-react test:  FAIL  tests/migrated/plugin-error-boundary.test.tsx > PluginErrorBoundary > lets the user dismiss one failure without remounting healthy plugins
+packages/runtime-react test: Error: No instances found with props: {"aria-label":"关闭 Render Failure Plugin 错误提示"}
+packages/runtime-react test:  ❯ expectOne ../../node_modules/.pnpm/react-test-renderer@19.2.8_react@19.3.0/node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15161:13
+packages/runtime-react test:  ❯ ReactTestInstance.process.env.NODE_ENV._proto.findByProps ../../node_modules/.pnpm/react-test-renderer@19.2.8_react@19.3.0/node_modules/react-test-renderer/cjs/react-test-renderer.development.js:17219:18
+packages/runtime-react test:  ❯ tests/migrated/plugin-error-boundary.test.tsx:249:10
+packages/runtime-react test:     247|     await act(async () => {
+packages/runtime-react test:     248|       renderer?.root
+packages/runtime-react test:     249|         .findByProps({ "aria-label": "关闭 Render Failure Plugin 错误提示" })
+packages/runtime-react test:        |          ^
+packages/runtime-react test:     250|         .props.onClick();
+packages/runtime-react test:     251|     });
+packages/runtime-react test:  ❯ process.env.NODE_ENV.exports.act ../../node_modules/.pnpm/react@19.3.0/node_modules/react/cjs/react.development.js:890:22
+packages/runtime-react test:  ❯ tests/migrated/plugin-error-boundary.test.tsx:247:11
+packages/runtime-react test: ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+packages/runtime-react test:  Test Files  1 failed | 18 passed (19)
+packages/runtime-react test:       Tests  2 failed | 164 passed (166)
+packages/runtime-react test:    Start at  12:57:45
+packages/runtime-react test:    Duration  8.19s (transform 2.46s, setup 57ms, import 8.71s, tests 2.41s, environment 3.79s)
+packages/runtime-react test: Failed
+/Users/yifei/Coding/AgentUICreator/packages/runtime-react:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @agent-ui/runtime-react@0.1.1 test: `vitest run`
+Exit status 1
+file:///Users/yifei/Coding/AgentUICreator/scripts/test-workspace-ts.mjs:20
+  if (result.status !== 0) throw new Error(`Workspace TypeScript tests failed: ${command} ${args.join(" ")}`);
+                                 ^
+
+Error: Workspace TypeScript tests failed: pnpm -r --if-present test
+    at run (file:///Users/yifei/Coding/AgentUICreator/scripts/test-workspace-ts.mjs:20:34)
+    at file:///Users/yifei/Coding/AgentUICreator/scripts/test-workspace-ts.mjs:25:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)
+    at async node:internal/modules/esm/loader:647:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.20.0
+[ELIFECYCLE] Command failed with exit code 1.

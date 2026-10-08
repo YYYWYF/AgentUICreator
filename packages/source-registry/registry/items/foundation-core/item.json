@@ -52,6 +52,6 @@
     }
   ],
   "packages": {
-    "@agent-ui/react": "^0.1.1"
+    "@agent-ui/react": "^0.1.2"
   }
 }

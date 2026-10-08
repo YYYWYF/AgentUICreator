@@ -24,6 +24,19 @@
       },
       "description": "Explicit CSS Grid track size such as 280px, 1fr, minmax(0, 1fr), or 24rem. Numeric track sizes are not accepted by Creator."
     },
+    "sidebarItemSlot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "plugins"],
+      "properties": {
+        "type": { "const": "slot" },
+        "localRef": { "type": "string", "pattern": "^\\$[A-Za-z][A-Za-z0-9_-]*$" },
+        "plugins": {
+          "type": "array", "minItems": 1, "maxItems": 1,
+          "items": { "$ref": "#/$defs/plugin" }
+        }
+      }
+    },
     "sidebarLayoutNode": {
       "type": "object",
       "additionalProperties": false,
@@ -42,9 +55,10 @@
           "pattern": "^\\$[A-Za-z][A-Za-z0-9_-]*$"
         },
         "defaultActive": {
-          "type": [
-            "string",
-            "null"
+          "description": "Null or an existing item ID. Item IDs must be unique; reference membership is checked atomically against the final model.",
+          "anyOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/nonBlankString", "pattern": "\\S" }
           ]
         },
         "items": {
@@ -61,7 +75,7 @@
                 "$ref": "#/$defs/nonBlankString"
               },
               "child": {
-                "$ref": "#/$defs/layoutNode"
+                "$ref": "#/$defs/sidebarItemSlot"
               }
             }
           }

@@ -1,0 +1,33 @@
+$ node scripts/audit-ui-copy.mjs
+{
+  "parity": [
+    {
+      "owner": "creator",
+      "locales": [
+        "en-US",
+        "zh-CN"
+      ],
+      "keys": 666
+    },
+    {
+      "owner": "presentation",
+      "locales": [
+        "en-US",
+        "zh-CN"
+      ],
+      "keys": 281
+    },
+    {
+      "owner": "generated",
+      "locales": [
+        "en-US",
+        "zh-CN"
+      ],
+      "keys": 357
+    }
+  ],
+  "copyCandidates": 34,
+  "duplicateValues": 15,
+  "unusedCandidates": 53,
+  "failures": []
+}

@@ -1,0 +1,62 @@
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-lexical-boundary.mjs
+@agent-ui/react public declaration boundary: OK (7 declarations)
+Lexical optional facade and Source Plugin boundaries: OK
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-consumer-types.mjs
+@agent-ui/runtime-conversation public declaration boundary: OK (9 reachable declarations)
+file:///Users/yifei/Coding/AgentUICreator/packages/runtime-conversation/scripts/check-consumer-types.mjs:24
+  if (exitCode !== 0) throw new Error(output.trim() || `${command} exited with code ${exitCode}`);
+                            ^
+
+Error: Progress: resolved 1, reused 0, downloaded 0, added 0
+Progress: resolved 62, reused 61, downloaded 1, added 0
+[WARN] Request took 14027ms: https://registry.npmjs.org/use-sync-external-store
+Progress: resolved 63, reused 61, downloaded 1, added 0
+Progress: resolved 106, reused 105, downloaded 1, added 0
+Progress: resolved 107, reused 106, downloaded 1, added 0
+Progress: resolved 108, reused 107, downloaded 1, added 0
+Progress: resolved 109, reused 108, downloaded 1, added 0
+Progress: resolved 111, reused 110, downloaded 1, added 0
+Progress: resolved 118, reused 117, downloaded 1, added 0
+Progress: resolved 119, reused 118, downloaded 1, added 0
+Progress: resolved 130, reused 129, downloaded 1, added 0
+Progress: resolved 140, reused 138, downloaded 1, added 0
+Progress: resolved 143, reused 142, downloaded 1, added 0
+[WARN] Request took 10032ms: https://registry.npmjs.org/@radix-ui%2Freact-checkbox
+Progress: resolved 144, reused 143, downloaded 1, added 0
+[WARN] Request took 11664ms: https://registry.npmjs.org/@radix-ui%2Freact-select
+Progress: resolved 145, reused 144, downloaded 1, added 0
+[WARN] Request took 12691ms: https://registry.npmjs.org/@radix-ui%2Freact-alert-dialog
+[WARN] Request took 12941ms: https://registry.npmjs.org/@radix-ui%2Freact-accessible-icon
+Progress: resolved 147, reused 146, downloaded 1, added 0
+[WARN] Request took 13126ms: https://registry.npmjs.org/@radix-ui%2Freact-radio-group
+[WARN] Request took 13441ms: https://registry.npmjs.org/@radix-ui%2Freact-dismissable-layer
+[WARN] Request took 13550ms: https://registry.npmjs.org/@radix-ui%2Freact-toolbar
+[WARN] Request took 13936ms: https://registry.npmjs.org/@radix-ui%2Freact-popover
+Progress: resolved 151, reused 150, downloaded 1, added 0
+[ERR_PNPM_BROKEN_METADATA_JSON] The operation was aborted due to timeout
+
+This error happened while installing the dependencies of @agent-ui/react@0.1.1
+ at @assistant-ui/react@0.15.23
+ at radix-ui@1.7.0
+Progress: resolved 152, reused 150, downloaded 1, added 0
+    at run (file:///Users/yifei/Coding/AgentUICreator/packages/runtime-conversation/scripts/check-consumer-types.mjs:24:29)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async file:///Users/yifei/Coding/AgentUICreator/packages/runtime-conversation/scripts/check-consumer-types.mjs:52:3
+
+Node.js v24.20.0
+/Users/yifei/Coding/AgentUICreator/packages/runtime-conversation:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @agent-ui/runtime-conversation@0.1.0 build: `tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-consumer-types.mjs`
+Exit status 1
+file:///Users/yifei/Coding/AgentUICreator/scripts/prepare-host-packages.mjs:11
+    if (result.status !== 0) throw new Error(`Host package preparation failed: @agent-ui/${name}`);
+                                   ^
+
+Error: Host package preparation failed: @agent-ui/runtime-conversation
+    at prepareHostPackages (file:///Users/yifei/Coding/AgentUICreator/scripts/prepare-host-packages.mjs:11:36)
+    at file:///Users/yifei/Coding/AgentUICreator/scripts/prepare-host-packages.mjs:14:57
+    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)
+    at async node:internal/modules/esm/loader:647:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.20.0

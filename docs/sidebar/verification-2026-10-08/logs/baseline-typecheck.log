@@ -1,0 +1,54 @@
+[WARN] Your node_modules are out of sync with your lockfile. The workspace structure has changed since last install
+$ node scripts/typecheck-workspace.mjs
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-lexical-boundary.mjs
+@agent-ui/react public declaration boundary: OK (7 declarations)
+Lexical optional facade and Source Plugin boundaries: OK
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-consumer-types.mjs
+@agent-ui/runtime-conversation public declaration boundary: OK (9 reachable declarations)
+@agent-ui/runtime-conversation published-package consumer typecheck: OK (isolated tarball install, skipLibCheck: false)
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs
+$ node scripts/build.mjs
+Official package service metadata verified against reference definitions.
+$ tsc -p tsconfig.build.json && node --import tsx scripts/verify-package-services.mjs
+Official package service metadata verified against reference definitions.
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json
+$ node scripts/build.mjs
+$ pnpm prepare:shell && tsc --noEmit && vite build && vite build --config vite.host.config.ts && tsc -p tsconfig.types.json && node scripts/finish-build.mjs
+$ node scripts/prepare-shell.mjs
+file:///private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-baseline-pnobbtl9/packages/project-control/dist/runtime/project-control-runtime.mjs:38700
+        throw new AgentUIInitializationError(
+              ^
+
+AgentUIInitializationError: Agent UI package requirements are not installed or are incompatible.
+    at Object.preflightSources (file:///private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-baseline-pnobbtl9/packages/project-control/dist/runtime/project-control-runtime.mjs:38700:15)
+    at async initializeAgentUIProject (file:///private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-baseline-pnobbtl9/packages/bootstrap/dist/initialize-agent-ui-project.js:66:23)
+    at async file:///private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-baseline-pnobbtl9/packages/web-component/scripts/prepare-shell.mjs:19:1 {
+  code: 'AGENT_UI_PACKAGE_REQUIREMENTS_UNMET',
+  details: [
+    {
+      code: 'AGENT_UI_PACKAGE_MISSING',
+      message: 'Agent UI source requires package @agent-ui/plugins ^0.1.0.',
+      packageName: '@agent-ui/plugins'
+    }
+  ]
+}
+
+Node.js v24.20.0
+[ELIFECYCLE] Command failed with exit code 1.
+/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-baseline-pnobbtl9/packages/web-component:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @agentui/web-component@0.1.0 build: `pnpm prepare:shell && tsc --noEmit && vite build && vite build --config vite.host.config.ts && tsc -p tsconfig.types.json && node scripts/finish-build.mjs`
+Exit status 1
+file:///private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-baseline-pnobbtl9/scripts/typecheck-workspace.mjs:14
+if (bridge.status !== 0) throw new Error("Web Component declaration preparation failed");
+                               ^
+
+Error: Web Component declaration preparation failed
+    at file:///private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-baseline-pnobbtl9/scripts/typecheck-workspace.mjs:14:32
+    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)
+    at async node:internal/modules/esm/loader:647:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.20.0
+[ELIFECYCLE] Command failed with exit code 1.

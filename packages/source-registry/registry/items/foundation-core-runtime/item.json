@@ -198,7 +198,7 @@
   "packages": {
     "react": "^19.2.0",
     "@agent-ui/runtime-core": "^0.1.0",
-    "@agent-ui/runtime-react": "^0.1.0",
-    "@agent-ui/react": "^0.1.1"
+    "@agent-ui/runtime-react": "^0.1.1",
+    "@agent-ui/react": "^0.1.2"
   }
 }

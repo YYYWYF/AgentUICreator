@@ -1,0 +1,44 @@
+{
+  "root": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg",
+  "archives": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives",
+  "packages": {
+    "@agent-ui/runtime-core": {
+      "version": "0.1.0",
+      "archive": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/runtime-core.tgz"
+    },
+    "@agent-ui/react": {
+      "version": "0.1.2",
+      "archive": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/react.tgz"
+    },
+    "@agent-ui/runtime-conversation": {
+      "version": "0.1.0",
+      "archive": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/runtime-conversation.tgz"
+    },
+    "@agent-ui/runtime-react": {
+      "version": "0.1.1",
+      "archive": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/runtime-react.tgz"
+    },
+    "@agent-ui/plugins": {
+      "version": "0.1.0",
+      "archive": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/plugins.tgz"
+    }
+  },
+  "hosts": [
+    {
+      "mode": "platform",
+      "root": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/platform",
+      "install": "passed",
+      "generation": "passed",
+      "typecheck": "passed",
+      "build": "passed"
+    },
+    {
+      "mode": "assistant",
+      "root": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/assistant",
+      "install": "passed",
+      "generation": "passed",
+      "typecheck": "passed",
+      "build": "passed"
+    }
+  ]
+}

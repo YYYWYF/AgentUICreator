@@ -1,0 +1,2 @@
+$ node scripts/check-project-control-contract.mjs
+ProjectControl contract inventory is aligned.

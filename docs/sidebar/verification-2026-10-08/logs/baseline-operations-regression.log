@@ -1,0 +1,918 @@
+[WARN] Your node_modules are out of sync with your lockfile. The workspace structure has changed since last install
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../scripts/generated-source-test-config" without a file extension (vitest.config.ts:3:43). Add the file extension
+  - ESM syntax in a file loaded as CommonJS (../../scripts/generated-source-test-config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+  - import "../../src/generate-plugin-registry" without a file extension (tests/support/generated-project.ts:5:46). Add the file extension
+  - import "./framework/contracts/app-ui-model" without a file extension (src/generate-plugin-registry.ts:6:37). Add the file extension
+  - import "./project/project-mode" without a file extension (src/generate-plugin-registry.ts:7:42). Add the file extension
+  - import "./framework/contracts/agent-ui-project" without a file extension (src/generate-plugin-registry.ts:8:43). Add the file extension
+  - import "./project/agent-ui-project-paths" without a file extension (src/generate-plugin-registry.ts:9:95). Add the file extension
+  - import "./project/creator-cancel-marker" without a file extension (src/generate-plugin-registry.ts:10:44). Add the file extension
+  - import "./project/registry-generator" without a file extension (src/generate-plugin-registry.ts:13:8). Add the file extension
+  - import "./panel-dimension" without a file extension (src/framework/contracts/app-ui-model.ts:3:42). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (src/project/agent-ui-project-paths.ts:3:43). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (src/project/project-mode.ts:7:8). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (src/project/registry-generator.ts:18:8). Add the file extension
+  - import "./types" without a file extension (src/project/agent-ui-project-paths.ts:4:45). Add the file extension
+  - import "../framework/contracts/app-ui-compiler" without a file extension (src/project/registry-generator.ts:19:55). Add the file extension
+  - import "../framework/contracts/app-ui-composition" without a file extension (src/project/registry-generator.ts:24:8). Add the file extension
+  - import "./project-config" without a file extension (src/project/agent-ui-project-paths.ts:5:40). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/registry-generator.ts:25:42). Add the file extension
+  - import "./plugin-assets" without a file extension (src/project/registry-generator.ts:26:37). Add the file extension
+  - import "./data-message-ui-analyzer" without a file extension (src/project/registry-generator.ts:27:39). Add the file extension
+  - import "./agent-ui-mode" without a file extension (src/framework/contracts/agent-ui-project.ts:6:8). Add the file extension
+  - import "./service-dependency-inspector" without a file extension (src/project/registry-generator.ts:32:8). Add the file extension
+  - import "./types" without a file extension (src/project/project-config.ts:1:45). Add the file extension
+  - import "./types" without a file extension (src/project/registry-generator.ts:39:8). Add the file extension
+  - import "./agent-ui-workspace" without a file extension (src/framework/contracts/agent-ui-mode.ts:3:45). Add the file extension
+  - import "../framework/contracts/ui-plugin" without a file extension (src/project/plugin-assets.ts:5:39). Add the file extension
+  - import "../framework/contracts/data-message-ui" without a file extension (src/project/data-message-ui-analyzer.ts:22:42). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (src/project/service-dependency-inspector.ts:9:8). Add the file extension
+  - import "./app-ui-model" without a file extension (src/framework/contracts/app-ui-compiler.ts:8:8). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/app-ui-composition.ts:4:8). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/plugin-assets.ts:6:42). Add the file extension
+  - import "./types" without a file extension (src/project/data-message-ui-analyzer.ts:23:48). Add the file extension
+  - import "./types" without a file extension (src/project/service-dependency-inspector.ts:26:8). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/app-ui-compiler.ts:14:8). Add the file extension
+  - import "./types" without a file extension (src/project/plugin-assets.ts:12:8). Add the file extension
+  - import "./app-ui-composition" without a file extension (src/framework/contracts/app-ui-compiler.ts:23:8). Add the file extension
+  - import "./panel-dimension" without a file extension (src/framework/contracts/app-ui-runtime-model.ts:3:42). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/ui-plugin.ts:9:49). Add the file extension
+  - import "./app-ui-model" without a file extension (src/framework/contracts/ui-plugin.ts:10:43). Add the file extension
+  - import "./app-ui-composition" without a file extension (src/framework/contracts/ui-plugin.ts:11:48). Add the file extension
+  - import "./custom-event-protocol" without a file extension (src/framework/contracts/ui-plugin.ts:12:39). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 /private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-baseline-pnobbtl9/packages/project-control
+
+ ❯ tests/migrated/app-ui-transaction.test.ts (41 tests | 40 failed) 62998ms
+     × commits the authoring model only after it compiles 83ms
+     × removes an existing instance without rewriting the capability catalog 69ms
+     × rejects generic removal of an application Headless Plugin 71ms
+     × rejects generic default removal of an application Headless Plugin 70ms
+     × rejects disabling an application Headless Plugin through generic mutation 69ms
+     × rejects replacing an application Headless Plugin through generic mutation 70ms
+     × removes a history panel in one mutation without catalog churn 77ms
+     × reflows a dedicated history region without a follow-up Layout operation 76ms
+     × productizes default removal with Host-owned reflow metadata 131ms
+     × does not partially commit when deterministic reflow preconditions fail 87ms
+     × writes a CompositionRevision before a model plus catalog transaction 69ms
+     × lowers an authoring-default insertion into one deterministic visual region 71ms
+     × caps both side tracks when a default insertion joins a narrow root Row 72ms
+     × preserves an existing navigation rail when inserting a bounded side panel 71ms
+     × lowers an authoring-default insertion when the anchor is a root Panel 69ms
+     × lowers an authoring-default insertion when the anchor is a root Slot 69ms
+     × preserves the current root Panel size over the anchor manifest recommendation 69ms
+     × closes the Productized Remove to Add round-trip from the real canonical output 70ms
+     × restores the Center-only Workspace after Productized Add then Remove 71ms
+     × fails closed when a root anchor has no deterministic track size 71ms
+     × fails closed when a root Slot is shared by multiple Plugins 79ms
+     × fails closed when authoring-default placement is not available 83ms
+     × fails closed when the authoring-default anchor is ambiguous 72ms
+     × fails closed when an authoring-default Plugin has an unresolved required Service 143ms
+     × fails closed when the authoring-default anchor is inside an unsupported Layout 70ms
+     × strips transaction localRefs before writing AppUIModel 70ms
+     × does not write a draft that fails deterministic compilation 72ms
+     × does not apply a fabricated 560px container to unrelated three-column edits 74ms
+     × rejects cancellation at the transaction commit boundary without changing the model 30006ms
+     × finishes an atomic transaction after cancellation arrives past the commit point 30010ms
+     × rejects a stale source hash before changing either transaction file 130ms
+     × preserves source bytes for an already-satisfied semantic operation 69ms
+     × reports a Layout Slot target for width incompatibility 69ms
+     × reports a Plugin child Slot target for width incompatibility 68ms
+     × does not let a semantic Plugin Slot move bypass width admission 70ms
+     × uses the starting snapshot target for replace width errors 68ms
+     × commits a deterministic relative Plugin move as one semantic transaction 68ms
+     × lowers a Workspace Region Action through the Host private binding 70ms
+     × commits a Plugin Slot move with manifest compatibility and dedicated cleanup 68ms
+     × rejects an incompatible Plugin Slot move before changing either artifact 68ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 40 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > commits the authoring model only after it compiles
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:116:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > removes an existing instance without rewriting the capability catalog
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:136:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects generic removal of an application Headless Plugin
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "HEADLESS_PLUGIN_LIFECYCLE_PROTECTED",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:167:8
+    165|         instanceId: "conversation-service-main",
+    166|       }],
+    167|     })).rejects.toMatchObject({ code: "HEADLESS_PLUGIN_LIFECYCLE_PROTE…
+       |        ^
+    168|
+    169|     expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.jso…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects generic default removal of an application Headless Plugin
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "HEADLESS_PLUGIN_LIFECYCLE_PROTECTED",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:182:8
+    180|         instanceId: "conversation-service-main",
+    181|       }],
+    182|     })).rejects.toMatchObject({ code: "HEADLESS_PLUGIN_LIFECYCLE_PROTE…
+       |        ^
+    183|   });
+    184|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects disabling an application Headless Plugin through generic mutation
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "HEADLESS_PLUGIN_LIFECYCLE_PROTECTED",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:195:8
+    193|         enabled: false,
+    194|       }],
+    195|     })).rejects.toMatchObject({ code: "HEADLESS_PLUGIN_LIFECYCLE_PROTE…
+       |        ^
+    196|   });
+    197|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects replacing an application Headless Plugin through generic mutation
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "HEADLESS_PLUGIN_LIFECYCLE_PROTECTED",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:212:8
+    210|         },
+    211|       }],
+    212|     })).rejects.toMatchObject({ code: "HEADLESS_PLUGIN_LIFECYCLE_PROTE…
+       |        ^
+    213|   });
+    214|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > removes a history panel in one mutation without catalog churn
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:246:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > reflows a dedicated history region without a follow-up Layout operation
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:292:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > productizes default removal with Host-owned reflow metadata
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:339:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > does not partially commit when deterministic reflow preconditions fail
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "LAYOUT_REFLOW_REGION_NOT_EMPTY",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:394:8
+    392|         reflow: "collapse-empty-region",
+    393|       }],
+    394|     })).rejects.toMatchObject({ code: "LAYOUT_REFLOW_REGION_NOT_EMPTY"…
+       |        ^
+    395|
+    396|     expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.jso…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > writes a CompositionRevision before a model plus catalog transaction
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:404:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > lowers an authoring-default insertion into one deterministic visual region
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:484:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > caps both side tracks when a default insertion joins a narrow root Row
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:563:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > preserves an existing navigation rail when inserting a bounded side panel
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:609:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > lowers an authoring-default insertion when the anchor is a root Panel
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:668:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > lowers an authoring-default insertion when the anchor is a root Slot
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:749:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > preserves the current root Panel size over the anchor manifest recommendation
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:815:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > closes the Productized Remove to Add round-trip from the real canonical output
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:893:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > restores the Center-only Workspace after Productized Add then Remove
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:998:17
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when a root anchor has no deterministic track size
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1075:8
+    1073|         },
+    1074|       }],
+    1075|     })).rejects.toMatchObject({
+       |        ^
+    1076|       code: "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
+    1077|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when a root Slot is shared by multiple Plugins
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1132:8
+    1130|         },
+    1131|       }],
+    1132|     })).rejects.toMatchObject({
+       |        ^
+    1133|       code: "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
+    1134|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when authoring-default placement is not available
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "AUTHORING_DEFAULT_PLACEMENT_UNAVAILABLE",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1155:8
+    1153|         plugin: { id: "unplaced-main", pluginId: "unplaced", enabled: …
+    1154|       }],
+    1155|     })).rejects.toMatchObject({
+       |        ^
+    1156|       code: "AUTHORING_DEFAULT_PLACEMENT_UNAVAILABLE",
+    1157|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when the authoring-default anchor is ambiguous
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "AUTHORING_DEFAULT_PLACEMENT_AMBIGUOUS",
+-   "details": {
+-     "anchorPluginId": "conversation-surface",
+-     "matchingInstanceIds": [
+-       "conversation-surface-main-a",
+-       "conversation-surface-main-b",
+-     ],
+-   },
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1226:19
+    1224|     }).catch((value: unknown) => value);
+    1225|
+    1226|     expect(error).toMatchObject({
+       |                   ^
+    1227|       code: "AUTHORING_DEFAULT_PLACEMENT_AMBIGUOUS",
+    1228|       details: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when an authoring-default Plugin has an unresolved required Service
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "AUTHORING_DEFAULT_PLACEMENT_UNAVAILABLE",
+-   "details": {
+-     "missingRequiredServices": [
+-       "missing.service",
+-     ],
+-     "pluginId": "needs-service",
+-   },
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1310:19
+    1308|     }).catch((value: unknown) => value);
+    1309|
+    1310|     expect(error).toMatchObject({
+       |                   ^
+    1311|       code: "AUTHORING_DEFAULT_PLACEMENT_UNAVAILABLE",
+    1312|       details: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when the authoring-default anchor is inside an unsupported Layout
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
+-   "details": {
+-     "actualParentType": "stack",
+-     "anchorInstanceId": "conversation-surface-main",
+-     "expectedParentType": "row",
+-   },
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1370:19
+    1368|     }).catch((value: unknown) => value);
+    1369|
+    1370|     expect(error).toMatchObject({
+       |                   ^
+    1371|       code: "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
+    1372|       details: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > strips transaction localRefs before writing AppUIModel
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:1398:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > does not write a draft that fails deterministic compilation
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "PLUGIN_REGISTRY_GENERATION_FAILED",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1452:8
+    1450|         target: { type: "layout_slot", slotRef: "l0" },
+    1451|       }],
+    1452|     })).rejects.toMatchObject({ code: "PLUGIN_REGISTRY_GENERATION_FAIL…
+       |        ^
+    1453|
+    1454|     expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.jso…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > does not apply a fabricated 560px container to unrelated three-column edits
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:1472:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects cancellation at the transaction commit boundary without changing the model
+Error: Test timed out in 30000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/migrated/app-ui-transaction.test.ts:1483:3
+    1481|   });
+    1482|
+    1483|   it("rejects cancellation at the transaction commit boundary without …
+       |   ^
+    1484|     const { projectRoot, source } = await createProject();
+    1485|     const marker = ".agentuicreator/control/cancel-11111111-1111-4111-…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > finishes an atomic transaction after cancellation arrives past the commit point
+Error: Test timed out in 30000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/migrated/app-ui-transaction.test.ts:1501:3
+    1499|   });
+    1500|
+    1501|   it("finishes an atomic transaction after cancellation arrives past t…
+       |   ^
+    1502|     const { projectRoot, source } = await createProject();
+    1503|     const marker = ".agentuicreator/control/cancel-22222222-2222-4222-…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects a stale source hash before changing either transaction file
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { code: 'APP_UI_MODEL_HASH_CONFLICT' }
+
+- Expected
++ Received
+
+- {
+-   "code": "APP_UI_MODEL_HASH_CONFLICT",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1535:8
+    1533|         enabled: false,
+    1534|       }],
+    1535|     })).rejects.toMatchObject({ code: "APP_UI_MODEL_HASH_CONFLICT" });
+       |        ^
+    1536|
+    1537|     expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.jso…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > preserves source bytes for an already-satisfied semantic operation
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:1544:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > reports a Layout Slot target for width incompatibility
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "PLUGIN_WIDTH_INCOMPATIBLE",
+-   "details": {
+-     "instanceId": "sample-main",
+-     "pluginId": "sample",
+-     "target": {
+-       "slotRef": "l0",
+-       "type": "layout_slot",
+-     },
+-   },
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1575:19
+    1573|     }).catch((value: unknown) => value);
+    1574|
+    1575|     expect(error).toMatchObject({
+       |                   ^
+    1576|       code: "PLUGIN_WIDTH_INCOMPATIBLE",
+    1577|       details: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > reports a Plugin child Slot target for width incompatibility
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "PLUGIN_WIDTH_INCOMPATIBLE",
+-   "details": {
+-     "instanceId": "child-main",
+-     "pluginId": "sample",
+-     "target": {
+-       "parentInstanceId": "owner-main",
+-       "slot": "content",
+-       "type": "plugin_slot",
+-     },
+-   },
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1632:19
+    1630|     }).catch((value: unknown) => value);
+    1631|
+    1632|     expect(error).toMatchObject({
+       |                   ^
+    1633|       code: "PLUGIN_WIDTH_INCOMPATIBLE",
+    1634|       details: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > does not let a semantic Plugin Slot move bypass width admission
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "PLUGIN_WIDTH_INCOMPATIBLE",
+-   "details": {
+-     "instanceId": "child-main",
+-     "pluginId": "sample",
+-     "target": {
+-       "parentInstanceId": "owner-main",
+-       "slot": "content",
+-       "type": "plugin_slot",
+-     },
+-   },
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1703:19
+    1701|     }).catch((value: unknown) => value);
+    1702|
+    1703|     expect(error).toMatchObject({
+       |                   ^
+    1704|       code: "PLUGIN_WIDTH_INCOMPATIBLE",
+    1705|       details: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > uses the starting snapshot target for replace width errors
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "PLUGIN_WIDTH_INCOMPATIBLE",
+-   "details": {
+-     "instanceId": "replacement-main",
+-     "pluginId": "sample",
+-     "target": {
+-       "slotRef": "l0",
+-       "type": "layout_slot",
+-     },
+-   },
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1740:19
+    1738|     }).catch((value: unknown) => value);
+    1739|
+    1740|     expect(error).toMatchObject({
+       |                   ^
+    1741|       code: "PLUGIN_WIDTH_INCOMPATIBLE",
+    1742|       details: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > commits a deterministic relative Plugin move as one semantic transaction
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:1784:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[37/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > lowers a Workspace Region Action through the Host private binding
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:1870:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[38/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > commits a Plugin Slot move with manifest compatibility and dedicated cleanup
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:1958:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39/40]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects an incompatible Plugin Slot move before changing either artifact
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "AUTHORING_MOVE_INCOMPATIBLE",
+-   "details": {
+-     "reason": "slot-capability-mismatch",
+-   },
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:2060:19
+    2058|     }).catch((value: unknown) => value);
+    2059|
+    2060|     expect(error).toMatchObject({
+       |                   ^
+    2061|       code: "AUTHORING_MOVE_INCOMPATIBLE",
+    2062|       details: { reason: "slot-capability-mismatch" },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[40/40]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 2 unhandled errors during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+
+This error originated in "tests/migrated/app-ui-transaction.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "rejects cancellation at the transaction commit boundary without changing the model". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+
+This error originated in "tests/migrated/app-ui-transaction.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "finishes an atomic transaction after cancellation arrives past the commit point". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  40 failed | 59 passed (99)
+     Errors  2 errors
+   Start at  13:00:47
+   Duration  63.39s (transform 184ms, setup 20ms, import 252ms, tests 63.01s, environment 322ms)
+
+undefined
+/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-baseline-pnobbtl9/packages/project-control:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run tests/migrated/app-ui-operations.test.ts tests/migrated/app-ui-transaction.test.ts

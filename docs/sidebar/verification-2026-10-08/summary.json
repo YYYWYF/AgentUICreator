@@ -1,0 +1,249 @@
+{
+  "date": "2026-10-08",
+  "branch": "dev",
+  "baseline": "770a679",
+  "scope": "Contract fixes, package guards and reproducible verification; browser/visual acceptance excluded by final user instruction",
+  "checks": [
+    {
+      "command": "pnpm --filter @agent-ui/project-control exec vitest run tests/sidebar.test.ts",
+      "status": "passed",
+      "classification": null,
+      "detail": "17 passed",
+      "artifacts": [
+        "logs/sidebar-contract.log"
+      ]
+    },
+    {
+      "command": "pnpm --filter @agent-ui/react exec vitest run tests/sidebar-frame.test.tsx",
+      "status": "passed",
+      "classification": null,
+      "detail": "3 passed",
+      "artifacts": [
+        "logs/sidebar-frame-final.log"
+      ]
+    },
+    {
+      "command": "PYTHONPATH=packages/creator-python packages/creator-python/.venv/bin/python -m pytest packages/creator-python/tests/test_sidebar_contract.py -q",
+      "status": "passed",
+      "classification": null,
+      "detail": "10 passed",
+      "artifacts": [
+        "logs/sidebar-python.log"
+      ]
+    },
+    {
+      "command": "pnpm --filter @agent-ui/creator-workbench exec playwright test -c playwright.sidebar.config.ts",
+      "status": "not_run",
+      "classification": "user_excluded",
+      "detail": "Latest instruction: 不要验收; no browser interaction or screenshot acceptance performed",
+      "artifacts": []
+    },
+    {
+      "command": "pnpm check:i18n",
+      "status": "passed",
+      "classification": null,
+      "detail": null,
+      "artifacts": [
+        "logs/i18n.log"
+      ]
+    },
+    {
+      "command": "pnpm check:project-control-contract",
+      "status": "passed",
+      "classification": null,
+      "detail": null,
+      "artifacts": [
+        "logs/project-control-contract.log"
+      ]
+    },
+    {
+      "command": "pnpm check:assistant-ui-upstream",
+      "status": "passed",
+      "classification": null,
+      "detail": null,
+      "artifacts": [
+        "logs/upstream.log"
+      ]
+    },
+    {
+      "command": "pnpm verify:assistant-ui-upgrade-contract",
+      "status": "passed",
+      "classification": null,
+      "detail": "33 tests passed",
+      "artifacts": [
+        "logs/upgrade-contract.log"
+      ]
+    },
+    {
+      "command": "pnpm --filter @agent-ui/project-control typecheck",
+      "status": "passed",
+      "classification": null,
+      "detail": null,
+      "artifacts": [
+        "logs/project-control-typecheck.log"
+      ]
+    },
+    {
+      "command": "pnpm --filter @agent-ui/react typecheck",
+      "status": "passed",
+      "classification": null,
+      "detail": null,
+      "artifacts": [
+        "logs/react-typecheck.log"
+      ]
+    },
+    {
+      "command": "pnpm --filter @agent-ui/runtime-react typecheck",
+      "status": "passed",
+      "classification": null,
+      "detail": null,
+      "artifacts": [
+        "logs/runtime-react-typecheck.log"
+      ]
+    },
+    {
+      "command": "pnpm --filter @agent-ui/creator-workbench exec tsc --noEmit -p tsconfig.sidebar-tests.json",
+      "status": "passed",
+      "classification": null,
+      "detail": null,
+      "artifacts": [
+        "logs/sidebar-e2e-typecheck.log"
+      ]
+    },
+    {
+      "command": "pnpm --filter @agent-ui/react exec vitest run tests/assistant-ui-portal-sync.test.mjs",
+      "status": "passed",
+      "classification": null,
+      "detail": null,
+      "artifacts": [
+        "logs/portal-sync.log"
+      ]
+    },
+    {
+      "command": "checkProductAdapters() from sync-product-adapters.mjs",
+      "status": "passed",
+      "classification": null,
+      "detail": null,
+      "artifacts": [
+        "logs/adapter-generation.log"
+      ]
+    },
+    {
+      "command": "git diff --exit-code 770a679 -- packages/react/src/internal/vendor/assistant-ui",
+      "status": "passed",
+      "classification": null,
+      "detail": "Empty diff; vendor unchanged",
+      "artifacts": [
+        "logs/vendor-clean.log"
+      ]
+    },
+    {
+      "command": "node scripts/verify-sidebar-consumer.mjs",
+      "status": "passed",
+      "classification": null,
+      "detail": "Independent tarball installation, fresh platform/assistant generation, strict typecheck, production build, isolated package resolution. Retry used the existing pnpm store.",
+      "artifacts": [
+        "consumer.json"
+      ]
+    },
+    {
+      "command": "pnpm typecheck",
+      "status": "failed",
+      "classification": "baseline_existing",
+      "detail": "Web Component shell missing @agent-ui/plugins; identical pnpm typecheck failure on clean 770a679: logs/baseline-typecheck.log",
+      "artifacts": [
+        "logs/typecheck.log"
+      ]
+    },
+    {
+      "command": "pnpm test:ts",
+      "status": "failed",
+      "classification": "baseline_existing",
+      "detail": "Runtime React: 164 passed, 2 failed; same two plugin-error-boundary failures on clean 770a679: logs/baseline-runtime-errors.log; recursive runner stops here, later suites are not all verified",
+      "artifacts": [
+        "logs/test-ts.log"
+      ]
+    },
+    {
+      "command": "pnpm verify:ui",
+      "status": "passed",
+      "classification": null,
+      "detail": "All three existing Host reports passed with no errors; this is static verification, not browser acceptance",
+      "artifacts": [
+        "logs/verify-ui.log"
+      ]
+    },
+    {
+      "command": "pnpm --filter @agent-ui/project-control exec vitest run tests/migrated/app-ui-operations.test.ts tests/migrated/app-ui-transaction.test.ts",
+      "status": "failed",
+      "classification": "baseline_existing",
+      "detail": "59 passed / 40 failed / 2 errors; same results and failed case names on clean 770a679: logs/baseline-operations-regression.log",
+      "artifacts": [
+        "logs/sidebar-operations-regression.log"
+      ]
+    },
+    {
+      "command": "pnpm --filter @agent-ui/source-registry exec vitest run tests/release.test.ts",
+      "status": "passed",
+      "classification": null,
+      "detail": "3 passed",
+      "artifacts": [
+        "logs/registry-release-tests.log"
+      ]
+    },
+    {
+      "command": "pnpm --filter @agent-ui/source-registry release:verify",
+      "status": "failed",
+      "classification": "baseline_existing",
+      "detail": "conversation-quote version/changelog drift; baseline gate stops earlier at conversation-command-source; baseline quote digest/version comparison proves the same quote drift: logs/baseline-quote-release.log",
+      "artifacts": [
+        "logs/release-verify.log"
+      ]
+    },
+    {
+      "command": "node scripts/prepare-host-packages.mjs (initial attempt)",
+      "status": "failed",
+      "classification": "network_environment",
+      "detail": "Runtime Conversation isolated consumer dependency metadata timeout; subsequent package preparation within pnpm typecheck succeeded",
+      "artifacts": [
+        "logs/build-packages.log"
+      ]
+    },
+    {
+      "command": "Independent consumer install (initial attempt)",
+      "status": "failed",
+      "classification": "network_environment",
+      "detail": "Initial install failed on metadata timeout; retained initial result in logs/consumer.log; successful retry logs are consumer-platform-install.log and consumer-assistant-install.log",
+      "artifacts": [
+        "logs/consumer.log"
+      ]
+    },
+    {
+      "command": "npm view @agent-ui/react version dist.tarball --json --fetch-retries=0 --fetch-timeout=20000",
+      "status": "blocked",
+      "classification": "publication_dependency",
+      "detail": "npm registry returns E404 (missing or inaccessible); public npm availability remains blocked; local packed Sidebar APIs verified",
+      "artifacts": [
+        "logs/published-react.log"
+      ]
+    },
+    {
+      "command": "npm view @agent-ui/runtime-react version dist.tarball --json --fetch-retries=0 --fetch-timeout=20000",
+      "status": "blocked",
+      "classification": "publication_dependency",
+      "detail": "npm registry returns E404 (missing or inaccessible); public npm availability remains blocked; local packed Sidebar APIs verified",
+      "artifacts": [
+        "logs/published-runtime-react.log"
+      ]
+    }
+  ],
+  "confirmed_new_regressions": [],
+  "delivery_blockers": [
+    "Public npm publication unavailable or inaccessible (E404); no npm publish performed",
+    "Web Component compilation blocked by baseline missing @agent-ui/plugins dependency",
+    "Browser/visual/real interaction acceptance not executed by user instruction"
+  ],
+  "consumer": "consumer.json",
+  "baseline_evidence": "baseline.json",
+  "screenshots": []
+}
