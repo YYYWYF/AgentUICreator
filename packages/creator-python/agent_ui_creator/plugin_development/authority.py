@@ -10,6 +10,7 @@ from typing import Literal
 from uuid import uuid4
 
 from ..project_paths import agent_ui_source_path
+from ..minimal_agent.path_policy import MinimalAgentPathPolicy
 from .delivery import PluginAuthoringContract
 from .commission import explicitly_commissions_plugin_development
 
@@ -197,19 +198,28 @@ class PluginDevelopmentAuthority:
 
     def _component_hashes(self, references: list[str]) -> tuple[tuple[str, str], ...]:
         hashes: list[tuple[str, str]] = []
+        policy = MinimalAgentPathPolicy.development()
         for reference in references:
-            if not isinstance(reference, str) or not reference.strip() or ".." in Path(reference).parts:
-                raise PluginDevelopmentError("组件依据路径无效。")
-            relative = reference.lstrip("/")
-            direct = (self.project_root / relative).resolve()
-            managed = (self.project_root / agent_ui_source_path(
-                self.project_root, relative
-            ).lstrip("/")).resolve()
-            target = direct if direct.is_file() else managed
-            if not target.is_relative_to(self.project_root) or not target.is_file():
-                raise PluginDevelopmentError("适配组件依据不存在于当前工程。")
-            hashes.append((target.relative_to(self.project_root).as_posix(),
-                           hashlib.sha256(target.read_bytes()).hexdigest()))
+            try:
+                if not isinstance(reference, str) or reference != reference.strip() or ":" in reference:
+                    raise ValueError("invalid path")
+                relative = policy.assert_read(reference).lstrip("/")
+                direct = (self.project_root / relative).resolve()
+                if not direct.is_relative_to(self.project_root):
+                    raise ValueError("outside project")
+                target = direct if direct.is_file() else (self.project_root / agent_ui_source_path(
+                    self.project_root, relative
+                ).lstrip("/")).resolve()
+                if not target.is_relative_to(self.project_root) or not target.is_file():
+                    raise ValueError("missing source")
+                resolved_relative = target.relative_to(self.project_root).as_posix()
+                policy.assert_read(resolved_relative)
+                hashes.append((resolved_relative, hashlib.sha256(target.read_bytes()).hexdigest()))
+            except (OSError, ValueError, RuntimeError) as error:
+                raise PluginDevelopmentError(
+                    "componentBasisRefs 组件依据路径无效、不可读取或不属于当前宿主工程；"
+                    "请补充真实可读取的宿主页面、组件或 UI 使用入口。"
+                ) from error
         return tuple(hashes)
 
     @staticmethod
@@ -234,11 +244,13 @@ class PluginDevelopmentAuthority:
         ).lstrip("/")
         if self._target_fingerprint(root) != record.target_fingerprint:
             raise PluginDevelopmentError("相关 Plugin 源码已变化；必须刷新开发方案。")
-        for relative, expected_hash in record.component_basis_hashes:
-            target = (self.project_root / relative).resolve()
-            if (not target.is_relative_to(self.project_root) or not target.is_file()
-                    or hashlib.sha256(target.read_bytes()).hexdigest() != expected_hash):
-                raise PluginDevelopmentError("相关组件源码已变化；必须刷新适配方案。")
+        if record.component_basis_hashes:
+            try:
+                current_hashes = self._component_hashes(list(record.component_basis_refs))
+            except PluginDevelopmentError as error:
+                raise PluginDevelopmentError("相关组件依据已失效；必须刷新开发方案。") from error
+            if current_hashes != record.component_basis_hashes:
+                raise PluginDevelopmentError("相关组件源码已变化；必须刷新开发方案。")
 
     def prepare(
         self, *, work_kind: WorkKind, target_plugin_id: str,
@@ -273,15 +285,34 @@ class PluginDevelopmentAuthority:
         references = component_basis_refs or []
         if work_kind == "adapt-component" and not references:
             raise PluginDevelopmentError("组件适配方案必须绑定现有组件源码。")
-        component_hashes = self._component_hashes(references) if work_kind == "adapt-component" else ()
+        if delivery_contract is not None:
+            delivery_contract = PluginAuthoringContract.model_validate(delivery_contract).model_dump()
         if self.intent == "conditional":
             if not (self._plugin_inventory_complete and self._source_inventory_complete):
                 raise PluginDevelopmentError("条件授权需要完整的现有插件和正式资源检查。")
             if (self._matching_existing or target_plugin_id in self._existing_plugin_ids
                     or target_plugin_id in self._source_plugin_ids):
                 return {"status": "reuse-existing", "targetPluginId": target_plugin_id}
-        if delivery_contract is not None:
-            delivery_contract = PluginAuthoringContract.model_validate(delivery_contract).model_dump()
+        visual_creation = work_kind == "create-plugin" and delivery_contract is not None and (
+            delivery_contract["renderingCategory"] in {"panel", "semantic-slot"}
+        )
+        if visual_creation and not references:
+            raise PluginDevelopmentError(
+                "新建可视化 Plugin 必须提供 componentBasisRefs 宿主 UI 依据；"
+                "请读取相关页面、组件或实际 UI 使用入口，并在 uiScope 说明选型。"
+            )
+        component_hashes = self._component_hashes(references) if work_kind in {
+            "create-plugin", "adapt-component"
+        } else ()
+        if visual_creation and not any(
+            Path(relative).suffix.lower() in {".tsx", ".jsx", ".ts", ".js", ".mjs", ".cjs", ".vue", ".svelte", ".html"}
+            and not relative.endswith(".d.ts")
+            for relative, _ in component_hashes
+        ):
+            raise PluginDevelopmentError(
+                "componentBasisRefs 不能仅包含 package.json、主题样式或配置；"
+                "请补充相关宿主页面、组件实现或实际 UI 使用入口。"
+            )
         values: dict[str, object] = {
             "deliveryContract": delivery_contract,
             "deliveryScope": self.delivery_scope,

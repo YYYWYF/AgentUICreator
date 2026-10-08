@@ -1,0 +1,51 @@
+.FFFFF.FFFFFF......FF..FF............................................... [ 46%]
+...F..................................FFF..............F........F.F..... [ 92%]
+FFF.FF.FFFFF                                                             [100%]
+=============================== warnings summary ===============================
+packages/creator-python/.venv/lib/python3.14/site-packages/google/genai/types.py:42
+  /Users/yifei/Coding/AgentUICreator/packages/creator-python/.venv/lib/python3.14/site-packages/google/genai/types.py:42: DeprecationWarning: '_UnionGenericAlias' is deprecated and slated for removal in Python 3.17
+    VersionedUnionType = Union[builtin_types.UnionType, _UnionGenericAlias]
+
+tests/test_recovery_completion.py::test_real_agent_recovery_converges_and_logs_completion[True]
+  /tmp/creator-ui-basis-base/packages/creator-python/agent_ui_creator/streaming/deepagent_v3_runner.py:64: LangChainBetaWarning: The v3 streaming protocol on Pregel is experimental.
+    stream = await graph.astream_events(
+
+tests/test_recovery_completion.py::test_real_agent_recovery_converges_and_logs_completion[True]
+  /Users/yifei/Coding/AgentUICreator/packages/creator-python/.venv/lib/python3.14/site-packages/langgraph/pregel/main.py:3612: LangChainBetaWarning: The v3 streaming protocol on Pregel is experimental.
+    return AsyncGraphRunStream(graph_aiter, mux)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED packages/creator-python/tests/test_creator_validation.py::test_validation_runs_known_commands
+FAILED packages/creator-python/tests/test_creator_validation.py::test_validation_result_cached_for_same_revision
+FAILED packages/creator-python/tests/test_creator_validation.py::test_source_edit_invalidates_validation
+FAILED packages/creator-python/tests/test_creator_validation.py::test_plugin_declaration_edit_synchronizes_generated_registry_before_validation
+FAILED packages/creator-python/tests/test_creator_validation.py::test_failed_validation_returns_diagnostics_not_run_error
+FAILED packages/creator-python/tests/test_creator_validation.py::test_composition_validation_blocker_is_unrelated_and_not_auto_repairable
+FAILED packages/creator-python/tests/test_creator_validation.py::test_validation_failure_in_changed_source_is_attributed_to_current_run
+FAILED packages/creator-python/tests/test_creator_validation.py::test_validation_failure_in_committed_scope_is_attributed_in_scope
+FAILED packages/creator-python/tests/test_creator_validation.py::test_validation_failure_in_same_change_layer_but_different_resource_is_unrelated
+FAILED packages/creator-python/tests/test_creator_validation.py::test_validation_becomes_stale_if_revision_changes
+FAILED packages/creator-python/tests/test_creator_validation.py::test_attribution_failure_preserves_evidence_and_finishes_validation
+FAILED packages/creator-python/tests/test_creator_validation_differential.py::test_new_error_is_introduced_evidence_and_is_repairable
+FAILED packages/creator-python/tests/test_creator_validation_differential.py::test_repairing_introduced_error_returns_success_and_preserves_warning
+FAILED packages/creator-python/tests/test_creator_validation_differential.py::test_composition_completion_reports_seven_existing_errors_as_warning
+FAILED packages/creator-python/tests/test_creator_validation_differential.py::test_clean_mode_requires_zero_remaining_diagnostics
+FAILED packages/creator-python/tests/test_plugin_delivery.py::test_behavior_tool_runs_real_project_browser_tests
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_targeted_existing_error_requires_resolution_not_just_delta_pass
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_moved_diagnostic_is_still_unresolved_and_existing_repair_limit_applies
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_clean_goal_cannot_be_downgraded_to_delta
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_ordinary_runtime_verification_keeps_global_failure_semantics
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_runtime_pending_ambiguity_and_owner_constraint
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_all_current_runtime_uses_no_array_and_preserves_scope_guard
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_model_facing_debugging_schemas_hide_legacy_complex_arguments
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_old_static_warning_does_not_block_current_task_runtime_tail_repair
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_runtime_non_plugin_targets_use_semantic_layers_and_resources
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_undeclared_subscription_repairs_only_consuming_manifest
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_ordinary_post_mutation_runtime_error_allows_scoped_repair
+FAILED packages/creator-python/tests/test_domain_write_agent.py::test_domain_write_golden_scenario_uses_inspect_then_one_atomic_mutation
+FAILED packages/creator-python/tests/test_domain_write_agent.py::test_application_config_handoff_reads_only_the_host_owner_first
+FAILED packages/creator-python/tests/test_domain_write_agent.py::test_plugin_source_handoff_reads_within_the_host_owner_root_first
+FAILED packages/creator-python/tests/test_domain_write_agent.py::test_workspace_integrity_terminal_blocker_stops_before_next_model_call
+FAILED packages/creator-python/tests/test_domain_write_agent.py::test_validation_attribution_degradation_finishes_as_terminal_blocker
+32 failed, 124 passed, 3 warnings in 22.22s

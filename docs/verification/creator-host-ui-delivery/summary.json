@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-08",
+  "baselineRevision": "95079462447ae37f54de96c5f64b80df66a4e177",
+  "implementation": "COMPLETE",
+  "acceptance": "NOT_RUN",
+  "acceptanceReason": "User explicitly requested no acceptance",
+  "scenarios": {
+    "A": {
+      "status": "NOT_RUN"
+    },
+    "B": {
+      "status": "NOT_RUN"
+    },
+    "C": {
+      "status": "NOT_RUN"
+    },
+    "visual": {
+      "status": "NOT_RUN"
+    }
+  },
+  "checks": {
+    "newTests": {
+      "passed": 33,
+      "failed": 0
+    },
+    "developmentRegression": {
+      "passed": 17,
+      "failed": 60,
+      "newFailures": 0
+    },
+    "p0Regression": {
+      "passed": 124,
+      "failed": 32,
+      "newFailures": 0
+    },
+    "i18n": "PASS",
+    "compileall": "PASS",
+    "diffCheck": "PASS",
+    "assistantUiUpstreamBoundary": "PASS"
+  },
+  "ci": "NOT_RUN",
+  "releaseAcceptance": "NOT_RUN",
+  "generatedPluginEvidence": false
+}

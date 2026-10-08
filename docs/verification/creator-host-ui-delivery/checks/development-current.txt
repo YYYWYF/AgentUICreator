@@ -1,0 +1,70 @@
+.FF.....FFFFFFFFFFF.FFFFF.FFFFFFFF....FF..FFFFFFFFFFFFFF.FFFFF.FFFFFFFFF [ 93%]
+FFFF.                                                                    [100%]
+=============================== warnings summary ===============================
+packages/creator-python/.venv/lib/python3.14/site-packages/google/genai/types.py:42
+  /Users/yifei/Coding/AgentUICreator/packages/creator-python/.venv/lib/python3.14/site-packages/google/genai/types.py:42: DeprecationWarning: '_UnionGenericAlias' is deprecated and slated for removal in Python 3.17
+    VersionedUnionType = Union[builtin_types.UnionType, _UnionGenericAlias]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_model_plan_cannot_reduce_full_user_delivery_scope
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_explicit_development_cannot_finish_as_zero_write_clarification
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_direct_grant_is_task_and_identity_scoped
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_model_explicit_label_cannot_authorize_plain_feature_request
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_pending_requires_bound_question_and_explicit_choice
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_decline_does_not_grant_or_change_project[adjust]
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_decline_does_not_grant_or_change_project[defer]
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_conditional_grant_requires_complete_host_discovery
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_atomic_creation_service_rejects_ungranted_call_without_files
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_atomic_creation_service_checks_bound_identity_inside_commit
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_pending_blocks_every_target_write_but_ordinary_edit_stays_available
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_existing_plugin_placeholder_copy_requires_locale_value
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_unselected_customized_source_cannot_be_directly_edited_for_capability_request
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_approved_grant_cannot_edit_other_plugin_or_agent_contract
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_authorized_composition_cannot_insert_another_plugin_in_any_slot
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_platform_panel_grant_requires_independent_root_drawer_track
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_locale_exact_edit_error_points_to_existing_single_line_anchor
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_approved_plugin_grant_allows_only_canonical_locale_edits[None]
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_adapted_component_change_invalidates_bound_grant
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_related_plugin_change_invalidates_plan_but_own_write_can_continue
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_unrelated_project_change_does_not_invalidate_bound_plan
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_conditional_existing_source_item_returns_reuse_without_grant
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_revoked_and_expired_grants_cannot_write
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_decision_rejects_wrong_project_thread_or_task[project_key]
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_decision_rejects_wrong_project_thread_or_task[thread_id]
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_decision_rejects_wrong_project_thread_or_task[task_id]
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_prepare_plan_accepts_observed_nested_plan_fields_without_grant_expansion
+FAILED packages/creator-python/tests/test_plugin_development_authority.py::test_partial_or_failed_discovery_does_not_activate_conditional_grant
+FAILED packages/creator-python/tests/test_plugin_development_golden.py::test_full_plugin_creation_golden_scenario
+FAILED packages/creator-python/tests/test_plugin_development_golden.py::test_existing_component_is_adopted_through_thin_plugin_adapter
+FAILED packages/creator-python/tests/test_plugin_development_golden.py::test_application_gate_creation_golden_keeps_layout_unchanged
+FAILED packages/creator-python/tests/test_plugin_development_golden.py::test_already_satisfied_semantic_noop_golden_scenario
+FAILED packages/creator-python/tests/test_plugin_development_golden.py::test_existing_plugin_multi_file_change_uses_one_atomic_mutation
+FAILED packages/creator-python/tests/test_plugin_development_golden.py::test_existing_optional_service_is_reused_without_ownership_question
+FAILED packages/creator-python/tests/test_plugin_development_golden.py::test_missing_shared_service_stops_for_ownership_clarification
+FAILED packages/creator-python/tests/test_plugin_development_golden.py::test_explicit_service_ownership_does_not_repeat_confirmation
+FAILED packages/creator-python/tests/test_plugin_development_golden.py::test_service_authorization_multi_turn_creation_golden
+FAILED packages/creator-python/tests/test_plugin_development_golden.py::test_runtime_repair_cannot_bypass_service_authorization_golden
+FAILED packages/creator-python/tests/test_plugin_development_golden.py::test_generic_edit_cannot_bypass_service_ownership_gate
+FAILED packages/creator-python/tests/test_plugin_development_golden.py::test_existing_plugin_single_file_change_still_uses_edit_file
+FAILED packages/creator-python/tests/test_plugin_development_golden.py::test_failed_validation_repairs_before_completion
+FAILED packages/creator-python/tests/test_plugin_development_golden.py::test_runtime_error_repairs_before_completion
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_pending_proposal_decline_resumes_as_honest_no_change[defer-\u6682\u4e0d\u5f00\u53d1]
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_pending_proposal_decline_resumes_as_honest_no_change[adjust-\u5df2\u7ed3\u675f\u5f53\u524d\u5f00\u53d1\u65b9\u6848]
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_deferred_development_does_not_block_new_task_source_transaction
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_wrong_decision_answer_cannot_activate_grant
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_abandon_pending_question_revokes_grant_and_invalidates_resume
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_stop_after_source_commit_reports_retained_file_and_blocks_next_commit
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_stop_before_atomic_plugin_source_commit_leaves_no_target_files
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_cancelled_run_transaction_undo_is_explicit_idempotent_and_conflict_safe
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_headless_request_without_decision_answer_cannot_continue_or_grant
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_approved_resume_loads_skill_before_create_becomes_visible
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_concurrent_approval_resume_applies_only_once
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_approved_resume_can_create_bound_plugin_after_skill_and_validation
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_direct_development_commission_does_not_ask_again
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_server_tool_admission_rejects_other_plugin_composition_before_write
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_server_tool_admission_rejects_new_platform_panel_in_navigation_slot
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_server_tool_admission_requires_declared_relative_plugin_placement
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_ordinary_question_preserves_existing_development_scope
+FAILED packages/creator-python/tests/test_plugin_development_server.py::test_sidecar_restart_does_not_resume_or_authorize_pending_plan
+60 failed, 17 passed, 1 warning in 18.47s

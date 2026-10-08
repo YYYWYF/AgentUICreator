@@ -10,6 +10,18 @@
 
 ## No suitable UI system
 
+For new `panel` / `semantic-slot` plans, bind `componentBasisRefs` to inspected
+Host pages/components/UI entry points, plus relevant Provider, theme and dependency
+files. Package metadata or styles alone cannot establish UI investigation. The
+Host fixes content hashes and rejects stale evidence at authorization resume and
+before writing; refresh the plan when source changes. File existence does not
+prove the selection is correct. Explain the selected system, actual imports,
+Provider/theme and rejected alternatives in `uiScope`, and name reused controls
+in `deliveryContract.reusedComponents`. A negative investigation is valid with
+real page and dependency evidence and a reasoned existing-stack or approved Antd
+choice; it does not waive evidence. Public `@agent-ui/react` controls are available
+foundations, but familiarity is no reason to replace the Host's Design System.
+
 Only after targeted source evidence establishes that no suitable reusable UI exists, recommend Ant Design 5 for a compatible React target. Present the exact additional dependencies/ranges (normally `antd@^5`, add others only when required), package manager from project/workspace facts, and necessary Provider/style changes. Obtain explicit dependency approval with `ask_user_question`; a Plugin development grant alone is insufficient. Reuse a Host installer that supports those exact approved packages. Do not repurpose `apply_agent_ui_source_item` as an arbitrary package installer, invent a tool, edit package.json to simulate installation, or silently upgrade existing dependencies. If the Host has no supported installer, state the blocker and the exact command for the user to run; continue only after observing successful installation and integration. If declined, implement with the existing stack and scoped styles/tokens without new dependencies.
 
 Vue/HTML/Web Component consumers retain the existing compatibility bridge. A Vue component cannot be imported into the canonical React Plugin; use compatible existing producer components and bridge theme mechanisms. React Antd is not a universal consumer fallback, and dependencies belong to the actual producer/target that uses them. Inspect available boundary/theme seams; report unavailable seams instead of adding a UI Adapter or changing Runtime protocol.

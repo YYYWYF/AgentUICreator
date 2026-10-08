@@ -64,6 +64,15 @@ existing development plan. Use actual exported APIs,
 not guessed Button, Checkbox, Dialog, or overlay names. If the user did not
 specify a component, use the project's mature default controls and tokens; do
 not make an unstyled native form or placeholder panel the product result.
+For a new `panel` or `semantic-slot`, `componentBasisRefs` must include a real
+Host page, component implementation or UI entry point; package.json alone is
+insufficient. In `uiScope`, name the selected UI system, expected component
+imports, source evidence, Provider/theme/style convention and why other discovered
+systems were not selected. List actual reused components in
+`deliveryContract.reusedComponents`. If none fit, record inspected page and
+dependency evidence and explain the existing-primitives or approved-dependency
+choice. `@agent-ui/react` familiarity never outranks the Host's adopted Design
+System. The Host checks facts and freshness; Creator owns semantic selection.
 Once one closest Plugin, the used public control, and the relevant locale/theme
 conventions are known, stop exploratory reads and implement. Inspect another
 component or contract section only for a concrete API or ownership question;
