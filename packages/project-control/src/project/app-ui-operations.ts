@@ -59,6 +59,7 @@ const pluginMovePlacementSchema = z.discriminatedUnion("type", [
 ]);
 
 type AppUILayoutMutationNode =
+  | ({ type: "sidebar"; defaultActive: string | null; items: { id: string; child: AppUILayoutMutationNode }[]; content: AppUILayoutMutationNode } & { localRef?: string | undefined })
   | ({ type: "row"; children: AppUILayoutMutationNode[]; gap?: number | undefined; sizes?: string[] | undefined; responsive?: AppUIRowNode["responsive"] } & { localRef?: string | undefined })
   | ({ type: "column"; children: AppUILayoutMutationNode[]; gap?: number | undefined; sizes?: string[] | undefined } & { localRef?: string | undefined })
   | ({ type: "stack"; children: AppUILayoutMutationNode[]; activeIndex?: number | undefined } & { localRef?: string | undefined })
@@ -66,6 +67,7 @@ type AppUILayoutMutationNode =
   | ({ type: "slot"; plugins: AppUIPluginNode[] } & { localRef?: string | undefined });
 
 type LayoutNodeProps = {
+  defaultActive?: string | null | undefined;
   gap?: number | undefined;
   sizes?: string[] | undefined;
   responsive?: AppUIRowNode["responsive"];
@@ -78,6 +80,7 @@ type LayoutNodeProps = {
 };
 
 const layoutNodePropsSchema: z.ZodType<LayoutNodeProps> = z.strictObject({
+  defaultActive: nonBlankStringSchema.nullable().optional(),
   gap: z.number().nonnegative().optional(),
   sizes: z.array(layoutTrackSizeSchema).optional(),
   responsive: rowDrawerPolicySchema.optional(),
@@ -91,6 +94,12 @@ const layoutNodePropsSchema: z.ZodType<LayoutNodeProps> = z.strictObject({
 
 const mutationLayoutNodeSchema: z.ZodType<AppUILayoutMutationNode> = z.lazy(() =>
   z.union([
+    z.strictObject({
+      type: z.literal("sidebar"), localRef: z.string().regex(/^\$[A-Za-z][A-Za-z0-9_-]*$/).optional(),
+      defaultActive: nonBlankStringSchema.nullable(),
+      items: z.array(z.strictObject({ id: nonBlankStringSchema, child: mutationLayoutNodeSchema })),
+      content: mutationLayoutNodeSchema,
+    }),
     z.strictObject({
       type: z.literal("row"),
       localRef: z.string().regex(/^\$[A-Za-z][A-Za-z0-9_-]*$/).optional(),
@@ -141,6 +150,10 @@ export const appUIPluginTargetSchema = z.discriminatedUnion("type", [
 ]);
 
 export const appUIOperationSchema = z.discriminatedUnion("type", [
+  z.strictObject({ type: z.literal("insert_sidebar_item"), sidebarRef: layoutRefSchema, itemId: nonBlankStringSchema,
+    plugin: appUIPluginNodeSchema.optional(), instanceId: nonBlankStringSchema.optional(), index: indexSchema }),
+  z.strictObject({ type: z.literal("remove_sidebar_item"), sidebarRef: layoutRefSchema, itemId: nonBlankStringSchema }),
+  z.strictObject({ type: z.literal("reorder_sidebar_items"), sidebarRef: layoutRefSchema, itemIds: z.array(nonBlankStringSchema) }),
   z.strictObject({
     type: z.literal("execute_creator_action"),
     actionId: nonBlankStringSchema,
@@ -256,7 +269,7 @@ interface CurrentNodeEntry {
   node: AppUILayoutNode;
   path: string;
   parent?: AppUILayoutNode | undefined;
-  parentKind: "root" | "children" | "panel";
+  parentKind: "root" | "children" | "panel" | "sidebar-item" | "sidebar-content";
   index?: number | undefined;
 }
 
@@ -414,6 +427,13 @@ function materializeMutationNode(
       ...(input.maxWidth === undefined ? {} : { maxWidth: input.maxWidth }),
       ...(input.resizable === undefined ? {} : { resizable: input.resizable }),
     };
+  } else if (input.type === "sidebar") {
+    node = { type: "sidebar", defaultActive: input.defaultActive,
+      items: input.items.map(item => {
+        const child = materializeMutationNode(item.child, context);
+        if (child.type !== "slot") operationError("SIDEBAR_ITEM_REQUIRES_SLOT", "Sidebar entries require a single-plugin Slot.");
+        return { id: item.id, child };
+      }), content: materializeMutationNode(input.content, context) };
   } else if (input.type === "slot") {
     node = { type: "slot", plugins: structuredClone(input.plugins) };
   } else {
@@ -430,6 +450,9 @@ function visitMutationLayoutNode(
   visit(node);
   if (node.type === "row" || node.type === "column" || node.type === "stack") {
     node.children.forEach((child) => visitMutationLayoutNode(child, visit));
+  } else if (node.type === "sidebar") {
+    node.items.forEach(item => visitMutationLayoutNode(item.child, visit));
+    visitMutationLayoutNode(node.content, visit);
   } else if (node.type === "panel") {
     visitMutationLayoutNode(node.child, visit);
   }
@@ -679,7 +702,7 @@ function isWorkspaceRoot(
 ): parent is AppUIRowNode {
   return (
     context.workspacePolicy !== undefined &&
-    context.model.root === parent &&
+    (context.model.root.type === "sidebar" ? context.model.root.content : context.model.root) === parent &&
     parent.type === "row"
   );
 }
@@ -1449,6 +1472,7 @@ function subtreePluginIds(node: AppUILayoutNode): string[] {
   const visit = (current: AppUILayoutNode): void => {
     if (current.type === "slot") current.plugins.forEach(visitPlugin);
     else if (current.type === "panel") visit(current.child);
+    else if (current.type === "sidebar") { current.items.forEach(item => visit(item.child)); visit(current.content); }
     else current.children.forEach(visit);
   };
   visit(node);
@@ -1472,6 +1496,15 @@ function replaceNode(context: MutationContext, oldNode: AppUILayoutNode, replace
     return;
   }
   if (entry.parent === undefined) operationError("LAYOUT_PARENT_NOT_FOUND", "The Layout parent is missing.");
+  if (entry.parentKind === "sidebar-content" && entry.parent.type === "sidebar") {
+    entry.parent.content = replacement;
+    return;
+  }
+  if (entry.parentKind === "sidebar-item" && entry.parent.type === "sidebar") {
+    if (replacement.type !== "slot") operationError("SIDEBAR_ITEM_REQUIRES_SLOT", "Sidebar entries require a Slot.");
+    entry.parent.items[entry.index!]!.child = replacement;
+    return;
+  }
   if (entry.parentKind === "panel") {
     (entry.parent as AppUIPanelNode).child = replacement;
     return;
@@ -1481,6 +1514,7 @@ function replaceNode(context: MutationContext, oldNode: AppUILayoutNode, replace
 }
 
 const layoutPropKeys: Record<AppUILayoutNode["type"], ReadonlySet<string>> = {
+  sidebar: new Set(["defaultActive"]),
   row: new Set(["gap", "sizes", "responsive"]),
   column: new Set(["gap", "sizes"]),
   stack: new Set(["activeIndex"]),
@@ -1578,6 +1612,32 @@ function insertRelative(context: MutationContext, operation: Extract<AppUIOperat
 
 function applyOperation(context: MutationContext, operation: AppUIOperation): void {
   switch (operation.type) {
+    case "insert_sidebar_item": {
+      const node = requiredNode(context, operation.sidebarRef);
+      if (node.type !== "sidebar") operationError("SIDEBAR_REQUIRED", "Target must be a Sidebar.");
+      if (node.items.some(item => item.id === operation.itemId)) operationError("SIDEBAR_ITEM_DUPLICATE", "Sidebar item id already exists.");
+      if ((operation.plugin === undefined) === (operation.instanceId === undefined)) operationError("SIDEBAR_PLUGIN_REQUIRED", "Supply exactly one plugin or existing instanceId.");
+      if (operation.plugin) assertUniquePluginIds(context.model, operation.plugin);
+      const plugin = operation.plugin ? structuredClone(operation.plugin) : detachPlugin(context, operation.instanceId!).plugin;
+      insertAt(node.items, { id: operation.itemId, child: { type: "slot", plugins: [plugin] } }, operation.index, "Sidebar items");
+      return;
+    }
+    case "remove_sidebar_item": {
+      const node = requiredNode(context, operation.sidebarRef);
+      if (node.type !== "sidebar") operationError("SIDEBAR_REQUIRED", "Target must be a Sidebar.");
+      const index = node.items.findIndex(item => item.id === operation.itemId);
+      if (index < 0) operationError("SIDEBAR_ITEM_NOT_FOUND", "Sidebar item does not exist.");
+      node.items.splice(index, 1);
+      if (node.defaultActive === operation.itemId) node.defaultActive = null;
+      return;
+    }
+    case "reorder_sidebar_items": {
+      const node = requiredNode(context, operation.sidebarRef);
+      if (node.type !== "sidebar") operationError("SIDEBAR_REQUIRED", "Target must be a Sidebar.");
+      if (operation.itemIds.length !== node.items.length || new Set(operation.itemIds).size !== node.items.length || operation.itemIds.some(id => !node.items.some(item => item.id === id))) operationError("SIDEBAR_REORDER_INVALID", "Include every Sidebar item exactly once.");
+      node.items = operation.itemIds.map(id => node.items.find(item => item.id === id)!);
+      return;
+    }
     case "execute_creator_action":
       operationError(
         "SEMANTIC_OPERATION_NOT_LOWERED",
@@ -1714,6 +1774,11 @@ export function applyAppUIOperations(
     if (preserveStackActive) restoreStackActiveStates(model, states);
   }
   for (const { node } of walkAppUILayout(model.root)) {
+    if (node.type === "sidebar") {
+      const removedIds = node.items.filter(item => item.child.plugins.length === 0).map(item => item.id);
+      node.items = node.items.filter(item => item.child.plugins.length > 0);
+      if (node.defaultActive !== null && removedIds.includes(node.defaultActive)) node.defaultActive = null;
+    }
     if (node.type === "row" && node.responsive !== undefined && (
       node.responsive.primaryIndex >= node.children.length ||
       node.responsive.primaryIndex >= node.responsive.drawerIndex ||

@@ -9,6 +9,7 @@ export type {
   RowNode,
   RowDrawerPolicy,
   SlotNode,
+  SidebarNode,
   StackNode,
 } from "./layout/types.js";
 export { isGridTrackOnlyDimension } from "./layout/panelDimension.js";

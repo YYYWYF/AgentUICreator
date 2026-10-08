@@ -23,6 +23,7 @@ import {
 } from "./app-ui-composition";
 
 export type AppUICompilerIssueCode =
+  | "sidebar-navigation-required"
   | "plugin-not-found"
   | "plugin-slot-not-declared"
   | "plugin-slot-cardinality"
@@ -79,6 +80,11 @@ function compileLayout(
       ...(node.resizable === undefined ? {} : { resizable: node.resizable }),
       child: compileLayout(node.child, paths),
     };
+  }
+  if (node.type === "sidebar") {
+    return { type: "sidebar", id: resolveRuntimeLayoutNodeId(path), defaultActive: node.defaultActive,
+      items: node.items.map(item => ({ id: item.id, child: compileLayout(item.child, paths) as import("./app-ui-runtime-model").RuntimeSlotNode })),
+      content: compileLayout(node.content, paths) };
   }
   const children = node.children.map((child) =>
     compileLayout(child, paths),
@@ -269,6 +275,16 @@ export function compileAppUIModel(
     }
   }
 
+  for (const { node, path } of walkAppUILayout(model.root)) {
+    if (node.type !== "sidebar") continue;
+    for (const item of node.items) {
+      const plugin = item.child.plugins[0]!;
+      const entry = pluginCatalog[plugin.pluginId];
+      if (entry?.sidebar === undefined || entry.requiresRenderScope || entry.dataMessageUI || entry.capabilities?.includes("headless") || entry.applicationGate) {
+        issues.push({ code: "sidebar-navigation-required", instanceId: plugin.id, pluginId: plugin.pluginId, path, message: `Sidebar plugin "${plugin.pluginId}" requires navigation metadata and a visual content component.` });
+      }
+    }
+  }
   if (issues.length > 0) throw new AppUICompilerError(issues);
 
   const runtimeModel = parseAppUIRuntimeModel({

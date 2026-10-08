@@ -117,6 +117,7 @@ export function createPluginCompositionCatalog<TState = unknown>(
       definition.manifest.id,
       {
         childSlots: definition.manifest.slots?.children ?? {},
+        ...(definition.manifest.sidebar === undefined ? {} : { sidebar: definition.manifest.sidebar }),
         ...(definition.manifest.application?.gate === undefined
           ? {}
           : {

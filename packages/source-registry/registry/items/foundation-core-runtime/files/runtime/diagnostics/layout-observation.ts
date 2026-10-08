@@ -14,6 +14,7 @@ const LAYOUT_NODE_TYPES = new Set<RuntimeLayoutNodeObservation["type"]>([
   "panel",
   "stack",
   "slot",
+  "sidebar",
 ]);
 
 export interface RuntimeLayoutGeometry {

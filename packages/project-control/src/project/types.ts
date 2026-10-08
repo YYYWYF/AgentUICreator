@@ -88,6 +88,7 @@ export interface PluginAsset {
   runtimeImport?: string;
   pluginId: string;
   manifest: UIPluginManifest;
+  sidebar?: UIPluginManifest["sidebar"];
   name: string;
   description: string;
   directory: string;
@@ -198,7 +199,10 @@ export interface GeneratePluginCatalogResult {
 
 export interface CompactLayoutNode {
   nodeRef: string;
-  type: "row" | "column" | "stack" | "panel" | "slot";
+  type: "row" | "column" | "stack" | "panel" | "slot" | "sidebar";
+  defaultActive?: string | null | undefined;
+  items?: { id: string; child: CompactLayoutNode }[] | undefined;
+  content?: CompactLayoutNode | undefined;
   gap?: number | undefined;
   sizes?: AppUILayoutTrackSize[] | undefined;
   activeIndex?: number | undefined;
@@ -320,6 +324,7 @@ export interface CompositionPluginCapabilitySummary {
     index: number;
   }>;
   selectionOwner: "composition";
+  sidebar?: UIPluginManifest["sidebar"];
   authoring?: NonNullable<UIPluginManifest["authoring"]> | undefined;
   requiredServices: {
     names: string[];

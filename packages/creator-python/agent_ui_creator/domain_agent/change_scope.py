@@ -173,16 +173,17 @@ def _resource_keys_for_app_ui_operations(
             "move_plugin",
             "replace_plugin",
             "set_plugin_enabled",
+            "insert_sidebar_item",
         }:
             _append_resource(
                 resources,
                 _resource_key("plugin-instance", operation.get("instanceId")),
             )
-        if operation_type in {"insert_plugin", "replace_plugin"}:
+        if operation_type in {"insert_plugin", "replace_plugin", "insert_sidebar_item"}:
             _append_plugin_node_resources(
                 resources,
                 operation.get("plugin")
-                if operation_type == "insert_plugin"
+                if operation_type in {"insert_plugin", "insert_sidebar_item"}
                 else operation.get("replacement"),
             )
         target = operation.get("target")

@@ -49,7 +49,15 @@ export interface AppUISlotNode {
   plugins: AppUIPluginNode[];
 }
 
+export interface AppUISidebarNode {
+  type: "sidebar";
+  defaultActive: string | null;
+  items: { id: string; child: AppUISlotNode }[];
+  content: AppUILayoutNode;
+}
+
 export type AppUILayoutNode =
+  | AppUISidebarNode
   | AppUIRowNode
   | AppUIColumnNode
   | AppUIStackNode
@@ -65,7 +73,7 @@ export interface AppUILayoutWalkEntry {
   node: AppUILayoutNode;
   path: string;
   parent?: AppUILayoutNode | undefined;
-  parentKind: "root" | "children" | "panel";
+  parentKind: "root" | "children" | "panel" | "sidebar-item" | "sidebar-content";
   index?: number | undefined;
 }
 
@@ -123,6 +131,12 @@ export const appUIPluginNodeSchema: z.ZodType<AppUIPluginNode> = z.lazy(() =>
 export const layoutNodeSchema: z.ZodType<AppUILayoutNode> = z.lazy(() =>
   z.union([
     z.strictObject({
+      type: z.literal("sidebar"),
+      defaultActive: nonBlankStringSchema.nullable(),
+      items: z.array(z.strictObject({ id: nonBlankStringSchema, child: z.strictObject({ type: z.literal("slot"), plugins: z.array(appUIPluginNodeSchema).length(1) }) })),
+      content: layoutNodeSchema,
+    }),
+    z.strictObject({
       type: z.literal("row"),
       children: z.array(layoutNodeSchema),
       gap: nonNegativeNumberSchema.optional(),
@@ -175,6 +189,9 @@ export function walkAppUILayout(root: AppUILayoutNode): AppUILayoutWalkEntry[] {
       node.children.forEach((child, childIndex) =>
         visit(child, `${path}.children[${childIndex}]`, node, "children", childIndex),
       );
+    } else if (node.type === "sidebar") {
+      node.items.forEach((item, index) => visit(item.child, `${path}.items[${index}].child`, node, "sidebar-item", index));
+      visit(node.content, `${path}.content`, node, "sidebar-content");
     } else if (node.type === "panel") {
       visit(node.child, `${path}.child`, node, "panel");
     }
@@ -253,6 +270,13 @@ export const appUIModelSchema = appUIModelShapeSchema.superRefine((model, contex
         context.addIssue({ code: "custom", path: [...path, "activeIndex"], message: "activeIndex must be less than children.length", input: node.activeIndex });
       }
       node.children.forEach((child, index) => visitLayout(child, [...path, "children", index]));
+    } else if (node.type === "sidebar") {
+      const ids = node.items.map(item => item.id);
+      if (new Set(ids).size !== ids.length || (node.defaultActive !== null && !ids.includes(node.defaultActive))) {
+        context.addIssue({ code: "custom", path, message: "Sidebar item ids must be unique and defaultActive must reference an item or be null" });
+      }
+      node.items.forEach((item, index) => visitLayout(item.child, [...path, "items", index, "child"]));
+      visitLayout(node.content, [...path, "content"]);
     } else if (node.type === "panel") {
       if (node.minWidth !== undefined && node.maxWidth !== undefined && node.minWidth > node.maxWidth) {
         context.addIssue({ code: "custom", path: [...path, "minWidth"], message: "minWidth must not be greater than maxWidth", input: node.minWidth });

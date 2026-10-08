@@ -14,6 +14,11 @@
   height: 100%;
 }
 
+.app-ui-layout-sidebar {
+  width: 100%;
+  height: 100%;
+}
+
 .app-ui-layout-row,
 .app-ui-layout-column {
   display: grid;

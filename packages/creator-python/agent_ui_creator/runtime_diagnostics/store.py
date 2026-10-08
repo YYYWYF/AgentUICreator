@@ -140,7 +140,7 @@ class RuntimeLayoutNodeObservation(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     nodeId: str = Field(min_length=1, max_length=200)
-    type: Literal["row", "column", "panel", "stack", "slot"]
+    type: Literal["row", "column", "panel", "stack", "slot", "sidebar"]
     rect: RuntimeRect
     trackWidths: list[
         Annotated[float, Field(ge=0, le=MAX_RUNTIME_GEOMETRY_COORDINATE, allow_inf_nan=False)]

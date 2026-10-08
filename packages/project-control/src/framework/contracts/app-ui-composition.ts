@@ -22,6 +22,7 @@ export type PluginSlotCatalog = Readonly<
 >;
 
 export interface PluginCompositionCatalogEntry {
+  readonly sidebar?: { readonly icon: string; readonly labels?: { readonly "en-US"?: string | undefined; readonly "zh-CN"?: string | undefined } | undefined } | undefined;
   readonly childSlots?: Readonly<Record<string, PluginChildSlotDefinition>>;
   readonly applicationGate?: {
     readonly service: string;
@@ -103,6 +104,11 @@ function collectLayoutSlots(
   }
   if (node.type === "panel") {
     collectLayoutSlots(node.child, result);
+    return;
+  }
+  if (node.type === "sidebar") {
+    node.items.forEach(item => collectLayoutSlots(item.child, result));
+    collectLayoutSlots(node.content, result);
     return;
   }
   node.children.forEach((child) => collectLayoutSlots(child, result));

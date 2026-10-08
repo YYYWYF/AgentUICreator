@@ -3,6 +3,7 @@ import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
 
 import {
   type ConversationThreadListItemLabels,
+  useAgentUISidebarNavigation,
   ConversationIf,
   ConversationThreadListItem,
   ConversationThreadListItemByIndex,
@@ -18,6 +19,7 @@ import { createContext, Fragment, useContext, useState, type FC } from "react";
 const ThreadListLabelsContext = createContext<ConversationThreadListItemLabels | undefined>(undefined);
 
 function PolicyThreadListItem() {
+  const onNavigate = useAgentUISidebarNavigation();
   const labels = useContext(ThreadListLabelsContext);
   if (labels === undefined) throw new Error("Thread List labels are missing.");
   const disabledByConversation = useConversationState(
@@ -32,6 +34,7 @@ function PolicyThreadListItem() {
       inert={disabled || undefined}
     >
       <ConversationThreadListItem
+        onNavigate={onNavigate}
         actions={{ rename: false, archive: false, delete: true }}
         labels={labels}
       />
@@ -128,13 +131,14 @@ const PolicyThreadListItems: FC<{ searchQuery?: string }> = ({
 
 export function PolicyThreadList({ labels }: { labels: ConversationThreadListItemLabels }) {
   const messages = useAgentUILocale("threadList");
+  const onNavigate = useAgentUISidebarNavigation();
   const [search, setSearch] = useState("");
   const hasThreads = useConversationState((s) => s.threads.threadIds.length > 0);
 
   return (
     <ThreadListLabelsContext.Provider value={labels}>
       <ConversationThreadListRoot>
-        <ConversationThreadListNew>{messages.newThread}</ConversationThreadListNew>
+        <ConversationThreadListNew onClick={onNavigate}>{messages.newThread}</ConversationThreadListNew>
         {hasThreads && (
           <ConversationThreadListSearch value={search} onValueChange={setSearch}
             placeholder={messages.search} aria-label={messages.search} />

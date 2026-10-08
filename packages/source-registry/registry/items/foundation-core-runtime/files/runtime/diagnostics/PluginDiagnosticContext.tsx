@@ -66,6 +66,11 @@ function indexPluginLocations(
     return;
   }
 
+  if (node.type === "sidebar") {
+    node.items.forEach((item, index) => indexPluginLocations(item.child, `${nodePath}.items[${index}].child`, slotPaths));
+    indexPluginLocations(node.content, `${nodePath}.content`, slotPaths);
+    return;
+  }
   node.children.forEach((child, index) => {
     indexPluginLocations(child, `${nodePath}.children[${index}]`, slotPaths);
   });

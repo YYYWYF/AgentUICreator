@@ -1,6 +1,6 @@
 ---
 name: ui-layout
-description: Use for Layout Tree decisions involving Row, Column, Stack, Panel, Slot, dimensions, resizing, placement, and composition of existing plugin nodes.
+description: Use for Layout Tree decisions involving Row, Column, Stack, Panel, Slot, Sidebar, dimensions, resizing, placement, and composition of existing plugin nodes.
 compatibility: Agent UI Plugin Creator AppUIModel and deterministic compiler boundary.
 allowed-tools: read_file ls glob grep inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin mutate_app_ui_model execute
 ---
@@ -17,6 +17,7 @@ custom Layout placement or geometry.
 
 ## Node semantics
 
+- `sidebar`: wraps the main `content` and ordered single-plugin navigation `items`.
 - `row`: lays out children horizontally. Optional `sizes` correspond by index to `children`.
 - `column`: lays out children vertically. Optional `sizes` correspond by index to `children`.
 - `stack`: overlays or switches among children; `activeIndex` selects a direct child by index.
@@ -56,3 +57,33 @@ change through `mutate_app_ui_model` with
 the exact inspected hash. Prefer one batch, use `insert_layout_relative` for
 deterministic left/right/above/below placement, and use `$localRef` when a later
 operation must reference a node created in the same transaction.
+
+## Generic Sidebar
+
+`sidebar` is a Layout container, not a Plugin. It has `defaultActive: null | itemId`,
+ordered `items: [{ id, child: { type: "slot", plugins: [oneVisualPlugin] } }]`, and
+`content` containing the ordinary Layout Tree. Never store icons, labels or live
+collapse state in AppUIModel. The selected Plugin manifest must declare `sidebar`
+with a supported Lucide icon and optional `en-US`/`zh-CN` labels (Plugin name fallback).
+Supported icons: `messages-square`, `folder`, `folder-open`, `files`, `search`,
+`settings`, `database`, `chart-no-axes-combined`, `list`, `bot`, `book-open`, `star`,
+`circle-help`. Inspect the manifest before choosing a Sidebar placement; edit
+Plugin navigation metadata only when the user asks to change its icon or label.
+
+Use deterministic `mutate_app_ui_model` operations:
+
+- `insert_sidebar_item`: `sidebarRef`, unique `itemId`, optional `index`, and
+  exactly one of `plugin` (new instance) or `instanceId` (move existing instance).
+- `remove_sidebar_item`: `sidebarRef`, `itemId`. Removes its composition entry;
+  preserves Plugin source. Moving out instead uses `move_plugin` to an observed
+  ordinary `layout_slot` or `plugin_slot`; the empty Sidebar item is pruned.
+- `reorder_sidebar_items`: `sidebarRef`, `itemIds` containing every item exactly once.
+- `update_layout_node_props`: `nodeRef`, `set: { defaultActive: null | itemId }`.
+
+These operations participate in the existing atomic transaction and final
+composition validation. For a project without Sidebar, use `replace_layout_node`
+with a complete Sidebar container preserving existing Plugin instances in its
+`content` and moving selected instances into its items. Do not infer tree changes
+from strings or DOM selectors. Desktop rail is 48px with a 280px active panel;
+containers narrower than 648px use a scoped Sheet. Only new platform/assistant
+presets adopt Sidebar automatically; preserve existing project layouts.

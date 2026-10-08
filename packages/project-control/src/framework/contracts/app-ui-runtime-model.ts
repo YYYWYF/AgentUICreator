@@ -10,6 +10,7 @@ export type {
   PanelNode as RuntimePanelNode,
   RowNode as RuntimeRowNode,
   SlotNode as RuntimeSlotNode,
+  SidebarNode as RuntimeSidebarNode,
   StackNode as RuntimeStackNode,
 } from "@agent-ui/runtime-react";
 
@@ -52,6 +53,12 @@ export const runtimePanelDimensionSchema: z.ZodType<PanelDimension> = z.union([
 
 export const runtimeLayoutNodeSchema: z.ZodType<LayoutNode> = z.lazy(() =>
   z.union([
+    z.strictObject({
+      type: z.literal("sidebar"), id: nonBlankStringSchema,
+      defaultActive: nonBlankStringSchema.nullable(),
+      items: z.array(z.strictObject({ id: nonBlankStringSchema, child: z.strictObject({ type: z.literal("slot"), id: nonBlankStringSchema, slotId: nonBlankStringSchema }) })),
+      content: runtimeLayoutNodeSchema,
+    }),
     z.strictObject({
       type: z.literal("row"), id: nonBlankStringSchema,
       children: z.array(runtimeLayoutNodeSchema),
@@ -137,6 +144,15 @@ export const appUIRuntimeModelSchema = appUIRuntimeModelShapeSchema.superRefine(
           context.addIssue({ code: "custom", path: [...path, "active"], message: `Stack active id "${node.active}" must reference a direct child`, input: node.active });
         }
         node.children.forEach((child, index) => visit(child, [...path, "children", index]));
+      } else if (node.type === "sidebar") {
+        const ids = node.items.map(item => item.id);
+        if (new Set(ids).size !== ids.length || (node.defaultActive !== null && !ids.includes(node.defaultActive))) context.addIssue({ code: "custom", path, message: "Invalid Sidebar items/defaultActive" });
+        node.items.forEach((item, index) => {
+          const instances = Object.values(model.pluginInstances).filter(instance => instance.mount?.slotId === item.child.slotId);
+          if (instances.length !== 1) context.addIssue({ code: "custom", path: [...path, "items", index], message: "Sidebar item Slot must contain exactly one plugin instance" });
+          visit(item.child, [...path, "items", index, "child"]);
+        });
+        visit(node.content, [...path, "content"]);
       } else if (node.type === "panel") {
         if (node.minWidth !== undefined && node.maxWidth !== undefined && node.minWidth > node.maxWidth) {
           context.addIssue({ code: "custom", path: [...path, "minWidth"], message: "minWidth must not be greater than maxWidth", input: node.minWidth });

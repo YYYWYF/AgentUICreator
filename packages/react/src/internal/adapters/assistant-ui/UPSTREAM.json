@@ -108,12 +108,12 @@
     {
       "localPath": "components/ui/sheet.tsx",
       "upstreamInstalledSha256": "56d09016b4d57fb14b3a0dbdfdb57d9920b6ef8737b4229c39a7ec27dab5b6da",
-      "installedSha256": "847ea1989eb43765d0e9a8f502f00a372c6840a6d7d92a19ef1394c389142946"
+      "installedSha256": "56d50a63014b9167de4bc0a058ca3171f827d2c9852565aa231c673269a0c1f0"
     },
     {
       "localPath": "components/ui/sidebar.tsx",
       "upstreamInstalledSha256": "6289a09ebea0df90e6445396fad6f29a42795e2e24dc26513c479084ceb77b23",
-      "installedSha256": "6898d4fa7b4b905a4ff9fe0a234a2291e2deec3ddaf8eb6e681c557943a97e76"
+      "installedSha256": "b78f463ad685d46cee2a4e07cef96b7ab20d1ef7465de3ee59c10d440e934d14"
     },
     {
       "localPath": "components/ui/tooltip.tsx",

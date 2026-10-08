@@ -1,0 +1,58 @@
+import { act } from "react";
+import { createRoot } from "react-dom/client";
+import { afterEach, expect, it, vi } from "vitest";
+import { AgentUISidebarFrame, useAgentUISidebarNavigation } from "../src/internal/sidebar-frame";
+import { AgentUIRoot } from "../src/internal/style-boundary/AgentUIRoot";
+
+const hosts: HTMLDivElement[] = [];
+afterEach(() => { hosts.forEach(host => host.remove()); hosts.length = 0; vi.restoreAllMocks(); });
+function Navigate() { const navigate = useAgentUISidebarNavigation(); return <button onClick={navigate}>Navigate</button>; }
+const items = [
+  { id: "history", icon: "messages-square" as const, label: "History", content: <button>History content</button> },
+  { id: "files", icon: "folder" as const, label: "Files", content: <Navigate /> },
+];
+async function mount(width: number, defaultActive: string | null = null) {
+  vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(() => ({ width, height: 500, left: 0, right: width, top: 0, bottom: 500, x: 0, y: 0, toJSON() {} }));
+  const host = document.createElement("div"); document.body.append(host); hosts.push(host); const root = createRoot(host);
+  const render = (list = items, initial = defaultActive) => <AgentUIRoot theme="light"><AgentUISidebarFrame items={list} defaultActive={initial}><button>Main</button></AgentUISidebarFrame></AgentUIRoot>;
+  await act(async () => root.render(render()));
+  return { root, host, render };
+}
+async function click(host: HTMLElement, label: string) {
+  const button = Array.from(host.querySelectorAll<HTMLButtonElement>("button")).find(element => element.getAttribute("aria-label") === label || element.textContent === label);
+  expect(button).toBeDefined(); await act(async () => button!.click());
+}
+it("toggles, switches and unmounts inactive panels without changing initialization", async () => {
+  const { root, host, render } = await mount(900);
+  try {
+    expect(host.querySelector("[data-sidebar-active]")?.getAttribute("data-sidebar-active")).toBe("");
+    await click(host, "History"); expect(host.textContent).toContain("History content");
+    await click(host, "Files"); expect(host.textContent).not.toContain("History content"); expect(host.textContent).toContain("Navigate");
+    await click(host, "Navigate"); expect(host.textContent).toContain("Navigate");
+    await act(async () => root.render(render(items, "history"))); expect(host.textContent).toContain("Navigate");
+    await click(host, "Files"); expect(host.textContent).not.toContain("Navigate");
+    await click(host, "History"); await act(async () => root.render(render(items.filter(item => item.id !== "history"))));
+    expect(host.querySelector("[data-sidebar-active]")?.getAttribute("data-sidebar-active")).toBe("");
+  } finally { await act(async () => root.unmount()); }
+});
+it("uses container width, keeps Sheet local, and closes on explicit navigation", async () => {
+  const { root, host } = await mount(416);
+  try {
+    await click(host, "Files");
+    expect(host.querySelector("[data-sidebar-mode]")?.getAttribute("data-sidebar-mode")).toBe("drawer");
+    expect(host.querySelector('[data-slot="sheet-content"]')?.closest(".agent-ui-sidebar-portal")).not.toBeNull();
+    expect(host.querySelector<HTMLElement>('[data-slot="sheet-content"]')?.style.position).toBe("absolute");
+    await click(host, "Navigate"); expect(host.querySelector("[data-sidebar-active]")?.getAttribute("data-sidebar-active")).toBe("");
+  } finally { await act(async () => root.unmount()); }
+});
+it("isolates active state between multiple Agent instances and never writes cookies", async () => {
+  const { root, host } = await mount(900);
+  const cookieBefore = document.cookie;
+  try {
+    await act(async () => root.render(<><AgentUIRoot key="first" theme="light"><AgentUISidebarFrame items={items} defaultActive="history">Main</AgentUISidebarFrame></AgentUIRoot><AgentUIRoot key="second" theme="dark"><AgentUISidebarFrame items={items} defaultActive={null}>Main</AgentUISidebarFrame></AgentUIRoot></>));
+    const frames = host.querySelectorAll<HTMLElement>("[data-sidebar-active]");
+    await click(frames[1]!, "Files");
+    expect(frames[0]!.getAttribute("data-sidebar-active")).toBe("history"); expect(frames[1]!.getAttribute("data-sidebar-active")).toBe("files");
+    expect(document.cookie).toBe(cookieBefore);
+  } finally { await act(async () => root.unmount()); }
+});

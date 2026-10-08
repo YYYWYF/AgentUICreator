@@ -105,13 +105,14 @@ export function projectWorkspaceTopology(
   model: AppUIModel,
   policy: AgentUIWorkspacePolicy,
 ): WorkspaceTopology {
-  if (model.root.type !== "row") {
+  const workspaceRoot = model.root.type === "sidebar" ? model.root.content : model.root;
+  if (workspaceRoot.type !== "row") {
     unsupported("The canonical Workspace root must be a Row.", {
       rootType: model.root.type,
     });
   }
 
-  const root = model.root;
+  const root = workspaceRoot;
   const regions = availableRegions(policy);
   if (root.children.length > regions.length) {
     unsupported("The Workspace Row has more children than the Mode supports.", {
@@ -145,7 +146,7 @@ export function projectWorkspaceTopology(
   }
 
   const assignment = assignments[0]!;
-  const refs = buildLayoutRefIndex(root);
+  const refs = buildLayoutRefIndex(model.root);
   const rootRef = refs.byNode.get(root);
   if (rootRef === undefined) {
     unsupported("The canonical Workspace Row has no stable Layout reference.");

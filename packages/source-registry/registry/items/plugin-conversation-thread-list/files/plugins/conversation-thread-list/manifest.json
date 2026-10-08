@@ -2,7 +2,7 @@
   "id": "conversation-thread-list",
   "name": "Conversation Thread List",
   "description": "Uses the public Conversation thread list with AgentUICreator policy and data binding.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "capabilities": [
     "conversation-create",
     "conversation-history",
@@ -24,6 +24,13 @@
     },
     "recommendedSize": {
       "width": "280px"
+    }
+  },
+  "sidebar": {
+    "icon": "messages-square",
+    "labels": {
+      "en-US": "History",
+      "zh-CN": "历史会话"
     }
   }
 }

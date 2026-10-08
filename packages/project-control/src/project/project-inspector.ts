@@ -75,6 +75,11 @@ function compactLayout(
     };
   }
 
+  if (node.type === "sidebar") {
+    return { nodeRef, type: node.type, defaultActive: node.defaultActive,
+      items: node.items.map((item, index) => ({ id: item.id, child: compactLayout(item.child, `${nodePath}.items[${index}].child`, refIndex.byNode.get(item.child)!, refIndex) })),
+      content: compactLayout(node.content, `${nodePath}.content`, refIndex.byNode.get(node.content)!, refIndex) };
+  }
   return {
     nodeRef,
     type: node.type,
@@ -313,6 +318,7 @@ async function inspectUICompositionData(
   })));
   const selectedPluginIds = generation.activeComposition.selectedPluginIds;
   const pluginAssets = generation.assets.map(({ manifest: _manifest, ...asset }) => ({
+    ...(_manifest.sidebar === undefined ? {} : { sidebar: _manifest.sidebar }),
     ...asset,
     selected: selectedPluginIds.includes(asset.pluginId),
   }));
@@ -413,6 +419,7 @@ async function inspectUICompositionData(
         };
       })(),
       ...(asset.layoutWidth === undefined ? {} : { layoutWidth: asset.layoutWidth }),
+      ...(asset.sidebar === undefined ? {} : { sidebar: structuredClone(asset.sidebar) }),
       ...(asset.childSlots === undefined ? {} : { childSlots: structuredClone(asset.childSlots) }),
     })),
     activeComposition: {

@@ -8,7 +8,6 @@ import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
 
-import { useIsMobile } from "../../../../vendor/assistant-ui/hooks/use-mobile.js";
 import { cn } from "../../../../vendor/assistant-ui/lib/utils.js";
 import { Button } from "../../../../vendor/assistant-ui/components/ui/button.js";
 import { Input } from "../../../../vendor/assistant-ui/components/ui/input.js";
@@ -57,6 +56,7 @@ function useSidebar() {
 
 function SidebarProvider({
   defaultOpen = true,
+  isMobile = false,
   open: openProp,
   onOpenChange: setOpenProp,
   className,
@@ -65,10 +65,10 @@ function SidebarProvider({
   ...props
 }: React.ComponentProps<"div"> & {
   defaultOpen?: boolean;
+  isMobile?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
-  const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
 
   const [_open, _setOpen] = React.useState(defaultOpen);
@@ -82,7 +82,7 @@ function SidebarProvider({
         _setOpen(openState);
       }
 
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+
     },
     [setOpenProp, open],
   );
@@ -91,20 +91,7 @@ function SidebarProvider({
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
   }, [isMobile, setOpen, setOpenMobile]);
 
-  React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-        (event.metaKey || event.ctrlKey)
-      ) {
-        event.preventDefault();
-        toggleSidebar();
-      }
-    };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggleSidebar]);
 
   const state = open ? "expanded" : "collapsed";
 

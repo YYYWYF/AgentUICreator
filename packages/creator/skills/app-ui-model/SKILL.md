@@ -344,3 +344,20 @@ A hash conflict requires source refresh. A candidate admission failure allows at
 AppUIModel health classification excludes Plugin definition/source consistency and inventory integrity. A healthy model with a broken Plugin stays in normal debugging attribution; never use model replacement to repair its owning source. Candidate commit admission still checks these workspace contracts. Compiler diagnostics preserve code, canonical path, Plugin/instance identity and local Slot.
 
 For a hide/purge task, an invalid AppUIModel returns `APP_UI_MODEL_RECOVERY_REMOVAL_BLOCKED`. Stop that removal task and request a separate Recovery task before retrying removal. Removal authority never grants full-model replacement.
+
+## Sidebar layout contract
+
+A `sidebar` wraps `content` and an ordered `items` array. Each item has a unique
+`id` and exactly one visual Plugin in its `child` Slot. `defaultActive` is null
+or an existing item id and only initializes local runtime selection. Plugin
+navigation metadata lives in its manifest (`sidebar.icon`, optional localized
+`sidebar.labels`); icons and labels must not be duplicated in AppUIModel.
+Runtime Layout Slot nodes continue to contain only Slot IDs, never Plugin IDs.
+
+Use Host `insert_sidebar_item`, `remove_sidebar_item`, `reorder_sidebar_items`
+and `update_layout_node_props` operations. Move existing instances into Sidebar
+with `insert_sidebar_item.instanceId`; move them back with `move_plugin` to an
+observed Slot. Empty Sidebar entries are removed at the end of the atomic batch,
+clearing the default only when its item was removed. See `ui-layout` for exact
+arguments and supported icon names. Do not persist interaction state or edit
+Runtime code to fulfill application composition requests.

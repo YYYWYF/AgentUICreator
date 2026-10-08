@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
-import type { LayoutNode, LayoutTrackSize, PanelDimension, RowNode, SlotNode } from "./types.js";
+import type { LayoutNode, LayoutTrackSize, PanelDimension, RowNode, SidebarNode, SlotNode } from "./types.js";
 import { isGridTrackOnlyDimension } from "./panelDimension.js";
 
 import "./layout.css";
@@ -9,6 +9,7 @@ export interface LayoutRendererProps {
   root: LayoutNode;
   theme?: string | undefined;
   renderSlot?: ((slot: SlotNode) => ReactNode) | undefined;
+  renderSidebar?: ((node: SidebarNode, renderNode: (node: LayoutNode) => ReactNode) => ReactNode) | undefined;
   className?: string | undefined;
   drawerLabels?: {
     open: string;
@@ -21,6 +22,7 @@ export interface LayoutRendererProps {
 interface LayoutNodeViewProps {
   node: LayoutNode;
   renderSlot?: ((slot: SlotNode) => ReactNode) | undefined;
+  renderSidebar?: ((node: SidebarNode, renderNode: (node: LayoutNode) => ReactNode) => ReactNode) | undefined;
   drawerLabels?: LayoutRendererProps["drawerLabels"];
 }
 
@@ -49,13 +51,14 @@ function renderChildren(
   children: LayoutNode[],
   renderSlot: LayoutNodeViewProps["renderSlot"],
   drawerLabels: LayoutNodeViewProps["drawerLabels"],
+  renderSidebar: LayoutNodeViewProps["renderSidebar"],
 ): ReactNode {
   return children.map((child) => (
-    <LayoutNodeView key={child.id} node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} />
+    <LayoutNodeView key={child.id} node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />
   ));
 }
 
-function ResponsiveRow({ node, renderSlot, drawerLabels }: LayoutNodeViewProps & { node: RowNode }) {
+function ResponsiveRow({ node, renderSlot, drawerLabels, renderSidebar }: LayoutNodeViewProps & { node: RowNode }) {
   if (drawerLabels === undefined) {
     throw new Error("Responsive Row requires project locale drawer labels.");
   }
@@ -124,15 +127,19 @@ function ResponsiveRow({ node, renderSlot, drawerLabels }: LayoutNodeViewProps &
             onClose={() => setDrawerOpen(false)}
           >
             <button className="app-ui-layout-drawer-close" type="button" onClick={() => setDrawerOpen(false)} aria-label={labels.close}>{labels.close}</button>
-            <LayoutNodeView node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} />
+            <LayoutNodeView node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />
           </dialog>
-        ) : <LayoutNodeView key={child.id} node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} />)}
+        ) : <LayoutNodeView key={child.id} node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />)}
       </div>
     </div>
   );
 }
 
-function LayoutNodeView({ node, renderSlot, drawerLabels }: LayoutNodeViewProps) {
+function LayoutNodeView({ node, renderSlot, drawerLabels, renderSidebar }: LayoutNodeViewProps) {
+  if (node.type === "sidebar") {
+    if (!renderSidebar) throw new Error("Sidebar requires a Host renderSidebar adapter.");
+    return <div className="app-ui-layout-node app-ui-layout-sidebar" data-layout-node-id={node.id} data-layout-type="sidebar">{renderSidebar(node, child => <LayoutNodeView key={child.id} node={child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />)}</div>;
+  }
   if (node.type === "row") {
     if (node.responsive !== undefined && (
       node.responsive.primaryIndex >= node.children.length ||
@@ -142,7 +149,7 @@ function LayoutNodeView({ node, renderSlot, drawerLabels }: LayoutNodeViewProps)
       throw new Error(`Invalid responsive Row indices for "${node.id}".`);
     }
     if (node.responsive !== undefined && node.responsive.drawerIndex < node.children.length) {
-      return <ResponsiveRow node={node} renderSlot={renderSlot} drawerLabels={drawerLabels} />;
+      return <ResponsiveRow node={node} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />;
     }
     const style: CSSProperties = {
       gap: node.gap,
@@ -156,7 +163,7 @@ function LayoutNodeView({ node, renderSlot, drawerLabels }: LayoutNodeViewProps)
         data-layout-type={node.type}
         style={style}
       >
-        {renderChildren(node.children, renderSlot, drawerLabels)}
+        {renderChildren(node.children, renderSlot, drawerLabels, renderSidebar)}
       </div>
     );
   }
@@ -174,7 +181,7 @@ function LayoutNodeView({ node, renderSlot, drawerLabels }: LayoutNodeViewProps)
         data-layout-type={node.type}
         style={style}
       >
-        {renderChildren(node.children, renderSlot, drawerLabels)}
+        {renderChildren(node.children, renderSlot, drawerLabels, renderSidebar)}
       </div>
     );
   }
@@ -191,7 +198,7 @@ function LayoutNodeView({ node, renderSlot, drawerLabels }: LayoutNodeViewProps)
         data-layout-type={node.type}
       >
         {activeChild === undefined ? null : (
-          <LayoutNodeView node={activeChild} renderSlot={renderSlot} drawerLabels={drawerLabels} />
+          <LayoutNodeView node={activeChild} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />
         )}
       </div>
     );
@@ -215,7 +222,7 @@ function LayoutNodeView({ node, renderSlot, drawerLabels }: LayoutNodeViewProps)
         data-resizable={node.resizable === true}
         style={style}
       >
-        <LayoutNodeView node={node.child} renderSlot={renderSlot} drawerLabels={drawerLabels} />
+        <LayoutNodeView node={node.child} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />
       </div>
     );
   }
@@ -243,6 +250,7 @@ export function LayoutRenderer({
   root,
   theme,
   renderSlot,
+  renderSidebar,
   className,
   drawerLabels,
 }: LayoutRendererProps) {
@@ -255,7 +263,7 @@ export function LayoutRenderer({
       className={rootClassName}
       data-theme={theme}
     >
-      <LayoutNodeView node={root} renderSlot={renderSlot} drawerLabels={drawerLabels} />
+      <LayoutNodeView node={root} renderSlot={renderSlot} drawerLabels={drawerLabels} renderSidebar={renderSidebar} />
     </div>
   );
 }

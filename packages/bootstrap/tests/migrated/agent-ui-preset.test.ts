@@ -1,5 +1,5 @@
 import { generatedProjectFixture } from "../../../project-control/tests/support/generated-project";
-import { readFile } from "node:fs/promises";
+import { mkdir, writeFile, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -16,7 +16,10 @@ import {
   agentUIPresetRegistry,
 } from "../../../project-control/src/framework/presets/index";
 import { agentUIModeRegistry } from "../../../project-control/src/framework/modes/index";
-import { generatePluginRegistry } from "../../../project-control/tests/support/fixture-project-paths";
+import { generatePluginRegistry } from "../../../project-control/src/project/registry-generator";
+import { uiProjectControlConfig } from "../../../project-control/src/project/project-config";
+import { resolveAgentUIProjectPaths } from "../../../project-control/src/project/agent-ui-project-paths";
+import { loadAgentUISourceRegistry } from "../../../source-registry/src/loader";
 import { projectWorkspaceTopology } from "../../../project-control/src/project/workspace-topology";
 
 function collectLayoutPluginIds(
@@ -24,6 +27,7 @@ function collectLayoutPluginIds(
 ): string[] {
   if (node.type === "slot") return node.plugins.map((plugin) => plugin.pluginId);
   if (node.type === "panel") return collectLayoutPluginIds(node.child);
+  if (node.type === "sidebar") return [...node.items.flatMap(item => collectLayoutPluginIds(item.child)), ...collectLayoutPluginIds(node.content)];
   return node.children.flatMap(collectLayoutPluginIds);
 }
 
@@ -96,6 +100,13 @@ describe("Agent UI Preset", () => {
   it("returns a fresh valid AppUIModel and compiles every default preset", async () => {
     const projectRoot = await generatedProjectFixture();
 
+    const registry = await loadAgentUISourceRegistry();
+    const editComposer = registry.byId.get("plugin/assistant-ui-lexical-edit-composer")!;
+    for (const file of editComposer.loadedFiles) {
+      const destination = path.join(projectRoot, "agent-ui", file.target);
+      await mkdir(path.dirname(destination), { recursive: true });
+      await writeFile(destination, file.content);
+    }
     for (const preset of agentUIPresetRegistry.list()) {
       const first = preset.createAppUIModel();
       const second = preset.createAppUIModel();
@@ -106,7 +117,7 @@ describe("Agent UI Preset", () => {
       }
       expect(parseAppUIModel(first)).toEqual(first);
 
-      const generation = await generatePluginRegistry(projectRoot, first);
+      const generation = await generatePluginRegistry(projectRoot, first, { config: uiProjectControlConfig, paths: resolveAgentUIProjectPaths(projectRoot, { mode: preset.mode, sourceRoot: "agent-ui" }) });
       expect(generation.errors).toEqual([]);
       expect(() =>
         compileAppUIModel(
@@ -118,9 +129,9 @@ describe("Agent UI Preset", () => {
   });
 
   it.each([
-    ["assistant", "assistant/default", false, ["center"]],
+    ["assistant", "assistant/default", true, ["center"]],
     ["embedded", "embedded/default", false, ["center"]],
-    ["platform", "platform/default", true, ["left", "center"]],
+    ["platform", "platform/default", true, ["center"]],
   ] as const)(
     "%s has the expected conversation and Workspace topology",
     async (mode, presetId, hasThreadList, occupiedRegions) => {
@@ -149,7 +160,7 @@ describe("Agent UI Preset", () => {
     },
   );
 
-  it("keeps the checked-in Platform composition as the Platform preset baseline", async () => {
+  it("preserves existing Platform layouts while new presets adopt Sidebar", async () => {
     const projectRoot = await generatedProjectFixture();
     const currentAppUIModel = parseAppUIModelJson(
       await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
@@ -161,6 +172,8 @@ describe("Agent UI Preset", () => {
       ),
     );
 
-    expect(platformPresetModel).toEqual(currentAppUIModel);
+    expect(currentAppUIModel.root.type).toBe("row");
+    expect(platformPresetModel.root.type).toBe("sidebar");
+    expect(collectLayoutPluginIds(platformPresetModel.root)).toEqual(collectLayoutPluginIds(currentAppUIModel.root));
   });
 });

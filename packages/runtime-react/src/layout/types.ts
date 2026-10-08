@@ -51,7 +51,16 @@ export interface SlotNode {
   slotId: string;
 }
 
+export interface SidebarNode {
+  type: "sidebar";
+  id: string;
+  defaultActive: string | null;
+  items: { id: string; child: SlotNode }[];
+  content: LayoutNode;
+}
+
 export type LayoutNode =
+  | SidebarNode
   | RowNode
   | ColumnNode
   | StackNode

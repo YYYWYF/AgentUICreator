@@ -63,7 +63,8 @@ export type RuntimeLayoutNodeType =
   | "column"
   | "panel"
   | "stack"
-  | "slot";
+  | "slot"
+  | "sidebar";
 
 export interface RuntimeLayoutNodeObservation {
   nodeId: string;

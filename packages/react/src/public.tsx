@@ -82,6 +82,7 @@ export interface ConversationThreadListItemLabels {
   delete: string;
 }
 export interface ConversationThreadListItemProps {
+  onNavigate?: (() => void) | undefined;
   actions?: ConversationThreadListItemActions;
   labels?: ConversationThreadListItemLabels;
 }
@@ -1382,3 +1383,9 @@ export function ConversationActionMoreMenuItem(props: {
 
 export { AgentUILocaleProvider, useAgentUILocale, useAgentUILocaleCode, resolveAgentUILocaleMessages, AGENT_UI_PRESENTATION_LOCALES } from "./locale.js";
 export type { AgentUILocaleCode, AgentUILocaleMessages, AgentUILocaleOverrides } from "./locale.js";
+
+import { AgentUISidebarFrame as InternalSidebarFrame, useAgentUISidebarNavigation as internalSidebarNavigation } from "./internal/sidebar-frame.js";
+export type AgentUISidebarIcon = "messages-square" | "folder" | "folder-open" | "files" | "search" | "settings" | "database" | "chart-no-axes-combined" | "list" | "bot" | "book-open" | "star" | "circle-help";
+export interface AgentUISidebarItem { id: string; icon: AgentUISidebarIcon; label: string; content: ReactNode; }
+export function AgentUISidebarFrame(props: { items: readonly AgentUISidebarItem[]; defaultActive: string | null; children: ReactNode }) { return <InternalSidebarFrame {...props} />; }
+export function useAgentUISidebarNavigation(): () => void { return internalSidebarNavigation(); }

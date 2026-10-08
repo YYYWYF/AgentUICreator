@@ -1,4 +1,4 @@
-import { useAgentUILocale as useAgentUIPresentationLocale } from "@agent-ui/react";
+import { AgentUISidebarFrame, useAgentUILocaleCode, useAgentUILocale as useAgentUIPresentationLocale } from "@agent-ui/react";
 import {
   useCallback,
   useEffect,
@@ -500,11 +500,22 @@ function UIPluginRuntimeContent<TState = unknown>({
   }, [diagnostics, model, pluginFailures]);
 
   const drawerLabels = useAgentUILocale("layout");
+  const presentationLocale = useAgentUILocaleCode();
   const applicationSurface = application.phase === "ready" ? (
     <LayoutRenderer
       className={className}
       root={model.root}
       drawerLabels={drawerLabels}
+      renderSidebar={(node, renderNode) => {
+        const items = node.items.flatMap(item => {
+          const instances = Object.values(model.pluginInstances).filter(instance => instance.mount?.slotId === item.child.slotId && instance.enabled);
+          if (instances.length !== 1) return [];
+          const manifest = registry.get(instances[0]!.pluginId)?.manifest;
+          if (!manifest?.sidebar) return [];
+          return [{ id: item.id, icon: manifest.sidebar.icon, label: manifest.sidebar.labels?.[presentationLocale] ?? manifest.name, content: renderNode(item.child) }];
+        });
+        return <AgentUISidebarFrame key={node.id} items={items} defaultActive={node.defaultActive}>{renderNode(node.content)}</AgentUISidebarFrame>;
+      }}
       renderSlot={(slot: SlotNode) => (
         <LayoutSlotOutlet
           actions={actions}

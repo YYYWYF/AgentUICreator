@@ -27,16 +27,11 @@
     }
   ],
   "root": {
-    "type": "row",
-    "responsive": {
-      "type": "trailing-drawer",
-      "primaryIndex": 1,
-      "drawerIndex": 2,
-      "minPrimaryWidth": 320
-    },
-    "children": [
+    "type": "sidebar",
+    "defaultActive": null,
+    "items": [
       {
-        "type": "panel",
+        "id": "history",
         "child": {
           "type": "slot",
           "plugins": [
@@ -47,156 +42,166 @@
             }
           ]
         }
-      },
-      {
-        "type": "panel",
-        "child": {
-          "type": "slot",
-          "plugins": [
-            {
-              "id": "agent-conversation-surface-main",
-              "pluginId": "conversation-surface",
-              "enabled": true,
-              "slots": {
-                "emptySuggestions": [
-                  {
-                    "id": "conversation-suggestions-main",
-                    "pluginId": "conversation-suggestions",
-                    "enabled": true
-                  }
-                ],
-                "composer": [
-                  {
-                    "id": "assistant-ui-composer-main",
-                    "pluginId": "assistant-ui-composer",
-                    "enabled": true,
-                    "slots": {
-                      "leadingActions": [
-                        {
-                          "id": "assistant-ui-add-attachment-action-main",
-                          "pluginId": "assistant-ui-add-attachment-action",
-                          "enabled": true
-                        }
-                      ],
-                      "trailingActions": [
-                        {
-                          "id": "assistant-ui-dictation-action-main",
-                          "pluginId": "assistant-ui-dictation-action",
-                          "enabled": true
-                        }
-                      ],
-                      "submitAction": [
-                        {
-                          "id": "assistant-ui-submit-action-main",
-                          "pluginId": "assistant-ui-submit-action",
-                          "enabled": true
-                        }
-                      ],
-                      "beforeInput": [
-                        {
-                          "id": "conversation-quote-main",
-                          "pluginId": "conversation-quote",
-                          "enabled": true
-                        }
-                      ],
-                      "triggers": [
-                        {
-                          "id": "assistant-ui-mention-trigger-main",
-                          "pluginId": "assistant-ui-mention-trigger",
-                          "enabled": true
-                        },
-                        {
-                          "id": "assistant-ui-slash-command-trigger-main",
-                          "pluginId": "assistant-ui-slash-command-trigger",
-                          "enabled": true
-                        }
-                      ],
-                      "input": [
-                        {
-                          "id": "assistant-ui-lexical-composer-input-main",
-                          "pluginId": "assistant-ui-lexical-composer-input",
-                          "enabled": true
-                        }
-                      ]
-                    }
-                  }
-                ],
-                "reasoningGroup": [
-                  {
-                    "id": "assistant-ui-reasoning-main",
-                    "pluginId": "assistant-ui-reasoning",
-                    "enabled": true
-                  }
-                ],
-                "toolGroup": [
-                  {
-                    "id": "assistant-ui-tool-group-main",
-                    "pluginId": "assistant-ui-tool-group",
-                    "enabled": true
-                  }
-                ],
-                "toolFallback": [
-                  {
-                    "id": "assistant-ui-tool-fallback-main",
-                    "pluginId": "assistant-ui-tool-fallback",
-                    "enabled": true
-                  }
-                ],
-                "taskGroup": [
-                  {
-                    "id": "task-group-main",
-                    "pluginId": "task-group",
-                    "enabled": true
-                  }
-                ],
-                "assistantResponseFooter": [
-                  {
-                    "id": "assistant-ui-response-footer-main",
-                    "pluginId": "assistant-ui-response-footer",
-                    "enabled": true,
-                    "slots": {
-                      "actions": [
-                        {
-                          "id": "assistant-ui-copy-action-main",
-                          "pluginId": "assistant-ui-copy-action",
-                          "enabled": true
-                        },
-                        {
-                          "id": "assistant-ui-reload-action-main",
-                          "pluginId": "assistant-ui-reload-action",
-                          "enabled": true
-                        },
-                        {
-                          "id": "assistant-ui-feedback-actions-main",
-                          "pluginId": "assistant-ui-feedback-actions",
-                          "enabled": true
-                        },
-                        {
-                          "id": "assistant-ui-export-markdown-action-main",
-                          "pluginId": "assistant-ui-export-markdown-action",
-                          "enabled": true
-                        }
-                      ]
-                    }
-                  }
-                ],
-                "userEditComposer": [
-                  {
-                    "id": "assistant-ui-lexical-edit-composer-main",
-                    "pluginId": "assistant-ui-lexical-edit-composer",
-                    "enabled": true
-                  }
-                ]
-              }
-            }
-          ]
-        }
       }
     ],
-    "gap": 0,
-    "sizes": [
-      "280px",
-      "minmax(0, 1fr)"
-    ]
+    "content": {
+      "type": "row",
+      "responsive": {
+        "type": "trailing-drawer",
+        "primaryIndex": 0,
+        "drawerIndex": 1,
+        "minPrimaryWidth": 320
+      },
+      "children": [
+        {
+          "type": "panel",
+          "child": {
+            "type": "slot",
+            "plugins": [
+              {
+                "id": "agent-conversation-surface-main",
+                "pluginId": "conversation-surface",
+                "enabled": true,
+                "slots": {
+                  "emptySuggestions": [
+                    {
+                      "id": "conversation-suggestions-main",
+                      "pluginId": "conversation-suggestions",
+                      "enabled": true
+                    }
+                  ],
+                  "composer": [
+                    {
+                      "id": "assistant-ui-composer-main",
+                      "pluginId": "assistant-ui-composer",
+                      "enabled": true,
+                      "slots": {
+                        "leadingActions": [
+                          {
+                            "id": "assistant-ui-add-attachment-action-main",
+                            "pluginId": "assistant-ui-add-attachment-action",
+                            "enabled": true
+                          }
+                        ],
+                        "trailingActions": [
+                          {
+                            "id": "assistant-ui-dictation-action-main",
+                            "pluginId": "assistant-ui-dictation-action",
+                            "enabled": true
+                          }
+                        ],
+                        "submitAction": [
+                          {
+                            "id": "assistant-ui-submit-action-main",
+                            "pluginId": "assistant-ui-submit-action",
+                            "enabled": true
+                          }
+                        ],
+                        "beforeInput": [
+                          {
+                            "id": "conversation-quote-main",
+                            "pluginId": "conversation-quote",
+                            "enabled": true
+                          }
+                        ],
+                        "triggers": [
+                          {
+                            "id": "assistant-ui-mention-trigger-main",
+                            "pluginId": "assistant-ui-mention-trigger",
+                            "enabled": true
+                          },
+                          {
+                            "id": "assistant-ui-slash-command-trigger-main",
+                            "pluginId": "assistant-ui-slash-command-trigger",
+                            "enabled": true
+                          }
+                        ],
+                        "input": [
+                          {
+                            "id": "assistant-ui-lexical-composer-input-main",
+                            "pluginId": "assistant-ui-lexical-composer-input",
+                            "enabled": true
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "reasoningGroup": [
+                    {
+                      "id": "assistant-ui-reasoning-main",
+                      "pluginId": "assistant-ui-reasoning",
+                      "enabled": true
+                    }
+                  ],
+                  "toolGroup": [
+                    {
+                      "id": "assistant-ui-tool-group-main",
+                      "pluginId": "assistant-ui-tool-group",
+                      "enabled": true
+                    }
+                  ],
+                  "toolFallback": [
+                    {
+                      "id": "assistant-ui-tool-fallback-main",
+                      "pluginId": "assistant-ui-tool-fallback",
+                      "enabled": true
+                    }
+                  ],
+                  "taskGroup": [
+                    {
+                      "id": "task-group-main",
+                      "pluginId": "task-group",
+                      "enabled": true
+                    }
+                  ],
+                  "assistantResponseFooter": [
+                    {
+                      "id": "assistant-ui-response-footer-main",
+                      "pluginId": "assistant-ui-response-footer",
+                      "enabled": true,
+                      "slots": {
+                        "actions": [
+                          {
+                            "id": "assistant-ui-copy-action-main",
+                            "pluginId": "assistant-ui-copy-action",
+                            "enabled": true
+                          },
+                          {
+                            "id": "assistant-ui-reload-action-main",
+                            "pluginId": "assistant-ui-reload-action",
+                            "enabled": true
+                          },
+                          {
+                            "id": "assistant-ui-feedback-actions-main",
+                            "pluginId": "assistant-ui-feedback-actions",
+                            "enabled": true
+                          },
+                          {
+                            "id": "assistant-ui-export-markdown-action-main",
+                            "pluginId": "assistant-ui-export-markdown-action",
+                            "enabled": true
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "userEditComposer": [
+                    {
+                      "id": "assistant-ui-lexical-edit-composer-main",
+                      "pluginId": "assistant-ui-lexical-edit-composer",
+                      "enabled": true
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "gap": 0,
+      "sizes": [
+        "minmax(0, 1fr)"
+      ]
+    }
   }
 }

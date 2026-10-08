@@ -10,5 +10,11 @@
     "changes": [
       "Use the shared Agent UI locale messages for list and history errors, retry controls and accessibility copy."
     ]
+  },
+  "0.0.3": {
+    "summary": "Support generic Sidebar navigation",
+    "changes": [
+      "Declare localized navigation metadata and explicitly close the container drawer after thread navigation."
+    ]
   }
 }

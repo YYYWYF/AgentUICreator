@@ -107,6 +107,28 @@ function applyThreadListGroupIdentity(source, localPath) {
 
 export function applyProductAdaptations(source, localPath) {
   let installed = applyThreadListGroupIdentity(applyAgentUIPortalContainerBridge(source, localPath), localPath);
+  // Sidebar shell state is container-owned, never shared through browser globals.
+  if (localPath === "components/ui/sidebar.tsx") {
+    installed = replaceExactlyOnce(installed, 'import { useIsMobile } from "../../hooks/use-mobile";\n', '', localPath);
+    installed = replaceExactlyOnce(installed, '  defaultOpen = true,\n', '  defaultOpen = true,\n  isMobile = false,\n', localPath);
+    installed = replaceExactlyOnce(installed, '  defaultOpen?: boolean;\n', '  defaultOpen?: boolean;\n  isMobile?: boolean;\n', localPath);
+    installed = replaceExactlyOnce(installed, '  const isMobile = useIsMobile();\n', '', localPath);
+    installed = replaceExactlyOnce(installed, '      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;', '', localPath);
+    const start = installed.indexOf('  React.useEffect(() => {\n    const handleKeyDown');
+    const end = installed.indexOf('  }, [toggleSidebar]);', start);
+    if (start < 0 || end < 0) throw new Error('Sidebar keyboard seam changed; review upstream.');
+    installed = installed.slice(0, start) + installed.slice(end + '  }, [toggleSidebar]);'.length);
+  }
+  if (localPath === "components/ui/sheet.tsx") {
+    installed = replaceExactlyOnce(installed, '  showCloseButton = true,\n', '  showCloseButton = true,\n  container,\n  contained = false,\n', localPath);
+    installed = replaceExactlyOnce(installed, '  showCloseButton?: boolean;\n', '  showCloseButton?: boolean;\n  container?: HTMLElement | null;\n  contained?: boolean;\n', localPath);
+    installed = replaceExactlyOnce(installed, '    <SheetPortal>\n      <SheetOverlay />', '    <SheetPortal {...(container ? { container } : {})}>\n      <SheetOverlay {...(contained ? { style: { position: "absolute" } } : {})} />', localPath);
+    installed = replaceExactlyOnce(installed, '        data-side={side}\n', '        data-side={side}\n        {...(contained ? { style: { position: "absolute", width: "min(280px, calc(100% - 48px))", maxWidth: "none" } } : {})}\n', localPath);
+    // Only allow nested shell containers within the owning AgentUIRoot.
+    installed = replaceExactlyOnce(installed, 'function SheetPortal({ ...props }: Omit<SheetPrimitive.Portal.Props, "container">)', 'function SheetPortal({ container, ...props }: SheetPrimitive.Portal.Props)', localPath);
+    installed = replaceExactlyOnce(installed, '  if (portalContainer === null) return null;', '  if (portalContainer === null) return null;\n  const nestedContainer = container instanceof HTMLElement && portalContainer?.closest("[data-agent-ui-root]")?.contains(container) ? container : undefined;', localPath);
+    installed = replaceExactlyOnce(installed, '...(portalContainer === undefined ? {} : { container: portalContainer })', '...((nestedContainer ?? portalContainer) === undefined ? {} : { container: nestedContainer ?? portalContainer })', localPath);
+  }
   if (localPath === "components/assistant-ui/elements/quote.aui.tsx") {
     installed = replaceExactlyOnce(installed, '  SelectionToolbarPrimitive,\n', '', localPath);
     installed = replaceExactlyOnce(installed, 'import { QuoteIcon', 'import { SelectionToolbarPrimitive } from "../../../../../quote-selection-adapter.js";\nimport { QuoteIcon', localPath);

@@ -60,7 +60,7 @@ const runtimeCompositionSlotSchema = z.strictObject({
 
 const runtimeLayoutNodeSchema = z.strictObject({
   nodeId: runtimeIdentifierSchema,
-  type: z.enum(["row", "column", "panel", "stack", "slot"]),
+  type: z.enum(["row", "column", "panel", "stack", "slot", "sidebar"]),
   rect: runtimeRectSchema,
 });
 

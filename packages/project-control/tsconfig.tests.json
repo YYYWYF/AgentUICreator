@@ -119,6 +119,7 @@
   "include": [
     "tests/migrated/**/*.ts",
     "tests/migrated/**/*.tsx",
-    "tests/host-public-entry.integration.test.ts"
+    "tests/host-public-entry.integration.test.ts",
+    "tests/sidebar.test.ts"
   ]
 }

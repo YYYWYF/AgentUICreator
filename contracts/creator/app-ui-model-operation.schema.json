@@ -24,10 +24,58 @@
       },
       "description": "Explicit CSS Grid track size such as 280px, 1fr, minmax(0, 1fr), or 24rem. Numeric track sizes are not accepted by Creator."
     },
+    "sidebarLayoutNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "defaultActive",
+        "items",
+        "content"
+      ],
+      "properties": {
+        "type": {
+          "const": "sidebar"
+        },
+        "localRef": {
+          "type": "string",
+          "pattern": "^\\$[A-Za-z][A-Za-z0-9_-]*$"
+        },
+        "defaultActive": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "child"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/nonBlankString"
+              },
+              "child": {
+                "$ref": "#/$defs/layoutNode"
+              }
+            }
+          }
+        },
+        "content": {
+          "$ref": "#/$defs/layoutNode"
+        }
+      }
+    },
     "layoutNodeProps": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "defaultActive": { "type": ["string", "null"] },
         "gap": { "type": "number", "minimum": 0 },
         "sizes": {
           "type": "array",
@@ -161,7 +209,8 @@
             "localRef": { "type": "string", "pattern": "^\\$[A-Za-z][A-Za-z0-9_-]*$" },
             "plugins": { "type": "array", "items": { "$ref": "#/$defs/plugin" } }
           }
-        }
+        },
+        { "$ref": "#/$defs/sidebarLayoutNode" }
       ]
     },
     "index": { "type": "integer", "minimum": 0 },
@@ -332,6 +381,79 @@
         "node": { "$ref": "#/$defs/layoutNode" },
         "size": { "$ref": "#/$defs/layoutTrackSize" },
         "anchorSize": { "$ref": "#/$defs/layoutTrackSize" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "sidebarRef",
+        "itemId"
+      ],
+      "properties": {
+        "type": {
+          "const": "insert_sidebar_item"
+        },
+        "sidebarRef": {
+          "$ref": "#/$defs/layoutRef"
+        },
+        "itemId": {
+          "$ref": "#/$defs/nonBlankString"
+        },
+        "plugin": {
+          "$ref": "#/$defs/plugin"
+        },
+        "instanceId": {
+          "$ref": "#/$defs/nonBlankString"
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "sidebarRef",
+        "itemId"
+      ],
+      "properties": {
+        "type": {
+          "const": "remove_sidebar_item"
+        },
+        "sidebarRef": {
+          "$ref": "#/$defs/layoutRef"
+        },
+        "itemId": {
+          "$ref": "#/$defs/nonBlankString"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "sidebarRef",
+        "itemIds"
+      ],
+      "properties": {
+        "type": {
+          "const": "reorder_sidebar_items"
+        },
+        "sidebarRef": {
+          "$ref": "#/$defs/layoutRef"
+        },
+        "itemIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonBlankString"
+          }
+        }
       }
     }
   ]

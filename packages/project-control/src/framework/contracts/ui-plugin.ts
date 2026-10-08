@@ -33,6 +33,7 @@ export interface UIPluginManifest {
   capabilities?: string[] | undefined;
   /** This Plugin requires a runtime entity scope and cannot mount as static content. */
   requiresRenderScope?: boolean | undefined;
+  sidebar?: { icon: import("@agent-ui/react").AgentUISidebarIcon; labels?: { "en-US"?: string | undefined; "zh-CN"?: string | undefined } | undefined } | undefined;
   layout?:
     | {
         width?: "narrow" | "wide" | undefined;
@@ -165,6 +166,7 @@ export type UIPluginSetupCleanup = void | (() => void);
 
 export interface UIPluginRenderSlotOptions {
   sizing?: "content" | "fill";
+  sidebar?: { icon: import("@agent-ui/react").AgentUISidebarIcon; labels?: { "en-US"?: string | undefined; "zh-CN"?: string | undefined } | undefined } | undefined;
   layout?: "stack" | "inline";
 }
 
@@ -283,9 +285,12 @@ const childSlotAcceptsSchema = z.strictObject({
   anyOfCapabilities: z.array(childSlotCapabilitySchema).min(1).max(16),
 });
 
+const sidebarIconSchema = z.enum(["messages-square", "folder", "folder-open", "files", "search", "settings", "database", "chart-no-axes-combined", "list", "bot", "book-open", "star", "circle-help"]);
+
 const manifestShapeSchema: z.ZodType<UIPluginManifest> = z.strictObject({
   id: nonBlankStringSchema,
   name: nonBlankStringSchema,
+  sidebar: z.strictObject({ icon: sidebarIconSchema, labels: z.strictObject({ "en-US": nonBlankStringSchema.optional(), "zh-CN": nonBlankStringSchema.optional() }).optional() }).optional(),
   description: nonBlankStringSchema,
   version: nonBlankStringSchema,
   capabilities: z.array(nonBlankStringSchema).optional(),

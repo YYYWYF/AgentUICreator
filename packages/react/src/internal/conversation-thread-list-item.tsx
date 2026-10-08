@@ -25,6 +25,7 @@ export interface ConversationThreadListItemLabels {
 
 export interface ConversationThreadListItemProps {
   /** Omitted: preserve upstream presentation. Supplied: opt in to each action. */
+  onNavigate?: (() => void) | undefined;
   actions?: ConversationThreadListItemActions;
   /** Product integrations supply these through their locale layer. */
   labels?: ConversationThreadListItemLabels;
@@ -37,11 +38,12 @@ const defaultLabels: ConversationThreadListItemLabels = {
 
 export function ConversationThreadListItemComposition(props: ConversationThreadListItemProps) {
   const messages = useAgentUILocale("threadList");
-  return <ConfiguredThreadListItem actions={props.actions ?? { rename: true, archive: true, delete: true }} labels={props.labels ?? messages} />;
+  return <ConfiguredThreadListItem actions={props.actions ?? { rename: true, archive: true, delete: true }} labels={props.labels ?? messages} onNavigate={props.onNavigate} />;
 }
 
 /** Presentation only: all actions and navigation remain assistant-ui-owned. */
-function ConfiguredThreadListItem({ actions, labels }: {
+function ConfiguredThreadListItem({ actions, labels, onNavigate }: {
+  onNavigate?: (() => void) | undefined;
   actions: ConversationThreadListItemActions;
   labels: ConversationThreadListItemLabels;
 }) {
@@ -66,6 +68,7 @@ function ConfiguredThreadListItem({ actions, labels }: {
       ) : (
         <ThreadListItemPrimitive.Trigger
           ref={triggerRef}
+          onClick={onNavigate}
           data-slot="aui_thread-list-item-trigger"
           className="focus-visible:ring-ring/50 flex h-full min-w-0 flex-1 items-center rounded-md px-2.5 text-start text-sm outline-none group-hover:pe-9 group-has-focus-visible:pe-9 group-has-data-[state=open]:pe-9 group-data-active:pe-9 focus-visible:ring-1"
         >

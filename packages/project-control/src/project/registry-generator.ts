@@ -286,6 +286,7 @@ export function pluginCompositionCatalogFromFacts(
         asset.pluginId,
         {
           childSlots: asset.childSlots ?? {},
+          ...(asset.manifest.sidebar === undefined ? {} : { sidebar: asset.manifest.sidebar }),
           ...(asset.applicationGate === undefined
             ? {}
             : { applicationGate: asset.applicationGate }),
