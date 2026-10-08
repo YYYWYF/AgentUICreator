@@ -53,7 +53,7 @@ def session(root):
 
 def passed(validation, revision, status='passed'):
     validation.current_result = lambda: SimpleNamespace(status=status, revision=revision, checks=[
-        SimpleNamespace(command=command, status=status, revision=revision)
+        SimpleNamespace(check_id=command, command=command, status=status, revision=revision)
         for command in ('pnpm verify:ui', 'pnpm typecheck')])
 
 
@@ -402,3 +402,29 @@ def test_concurrent_duplicate_undo_executes_once(tmp_path):
     assert {result['status'] for result in results} == {'undone', 'already_observed'}
     assert queries.evidence.undo_attempts == queries.evidence.duplicate_recovery_calls == 1
     assert activity.revision == 1 and (tmp_path / path).read_text() == 'old'
+
+
+@pytest.mark.parametrize('manager', ['npm', 'pnpm'])
+def test_recovery_uses_service_check_ids_at_current_revision(tmp_path, manager):
+    from agent_ui_creator.validation import CreatorValidationService
+    from test_creator_validation import FakeValidationRunner
+    queries, activity, _, runtime, gate = session(tmp_path)
+    path = 'src/agent-ui/plugins/a.ts'
+    record(tmp_path, 'A', [(path, 'old', 'new')])
+    detail = queries.inspect('A')
+    runner = FakeValidationRunner()
+    runner.command_label = lambda command: f'{manager} run {command.split()[1]}'
+    service = CreatorValidationService(project_root=tmp_path, activity=activity, runner=runner)
+    gate.validation = service
+    asyncio.run(service.ensure_baseline())
+    queries.undo('A', detail['transactionId'], [path])
+    result = asyncio.run(service.validate())
+    assert result.revision == activity.revision
+    assert gate.review('完成').completion == 'recovered'
+    from dataclasses import replace
+    service.latest_result = replace(result, evidence=replace(result.evidence, revision=result.revision - 1))
+    assert service.current_result() is None
+    assert not gate.review('完成').accepted
+    service.latest_result = result
+    assert gate.review('完成').completion == 'recovered'
+    runtime.current_result.assert_not_called()

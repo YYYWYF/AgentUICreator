@@ -162,7 +162,7 @@ class CreatorDevelopmentCompletionGate:
             return []
         validation = self.validation.current_result()
         static_passed = validation is not None and validation.status == "passed" and all(
-            any(check.command == command and check.status == "passed" for check in validation.checks)
+            any(check.check_id == command and check.status == "passed" for check in validation.checks)
             for command in CREATOR_COMPLETION_VALIDATIONS
         )
         reports = []
@@ -392,7 +392,7 @@ class CreatorDevelopmentCompletionGate:
         validation = self.validation.current_result()
         passed = validation is not None and validation.status == "passed" and (
             validation.revision == self.activity.revision
-        ) and all(any(check.command == command and check.status == "passed"
+        ) and all(any(check.check_id == command and check.status == "passed"
                       and check.revision == self.activity.revision for check in validation.checks)
                   for command in CREATOR_COMPLETION_VALIDATIONS)
         if not passed:
@@ -615,7 +615,7 @@ class CreatorDevelopmentCompletionGate:
                     (
                         item
                         for item in validation.checks
-                        if item.command == command
+                        if item.check_id == command
                     ),
                     None,
                 )
@@ -642,7 +642,9 @@ class CreatorDevelopmentCompletionGate:
                 )
             )
 
-        if validation is None or validation.status != "passed":
+        if validation is None or validation.status != "passed" or any(
+            check["status"] != "passed" for check in checks
+        ):
             self.activity.record_verification(
                 {
                     "status": "failed",

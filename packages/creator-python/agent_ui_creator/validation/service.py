@@ -155,9 +155,10 @@ class CreatorValidationService:
 
     @staticmethod
     def _from_receipt(
-        receipt: dict[str, object], *, source: str, revision: int
+        receipt: dict[str, object], *, check_id: CreatorValidationCommand, source: str, revision: int
     ) -> CreatorValidationCheck:
         return CreatorValidationCheck(
+            check_id=check_id,
             command=str(receipt["command"]),
             status=(
                 "passed" if receipt.get("status") == "passed" else "failed"
@@ -468,7 +469,7 @@ class CreatorValidationService:
                         differential = self._build_differential(mode, current)
                 checks.append(
                     self._from_receipt(
-                        cached, source="cached", revision=target_revision
+                        cached, check_id=command, source="cached", revision=target_revision
                     )
                 )
                 continue
@@ -501,7 +502,7 @@ class CreatorValidationService:
             if recorded is not None:
                 checks.append(
                     self._from_receipt(
-                        recorded, source="executed", revision=target_revision
+                        recorded, check_id=command, source="executed", revision=target_revision
                     )
                 )
             if self.activity.revision != target_revision:

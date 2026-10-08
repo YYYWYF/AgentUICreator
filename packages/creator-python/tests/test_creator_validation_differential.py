@@ -82,6 +82,10 @@ def test_differential_baseline_and_post_clean(tmp_path):
     result = asyncio.run(service.validate())
 
     assert result.status == "passed"
+    assert [check.check_id for check in result.checks] == ["pnpm verify:ui", "pnpm typecheck"]
+    cached = asyncio.run(service.validate())
+    assert all(check.source == "cached" for check in cached.checks)
+    assert [check.check_id for check in cached.checks] == [check.check_id for check in result.checks]
     assert result.differential.to_dict() == {
         "validationMode": "delta",
         "differentialStatus": "available",

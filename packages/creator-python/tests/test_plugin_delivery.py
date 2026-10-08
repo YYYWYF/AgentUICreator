@@ -241,7 +241,7 @@ def test_completion_gate_overrides_model_success_for_unmounted_plugin(tmp_path):
         status="authorized", target_plugin_id="checklist", delivery_contract=CONTRACT, scope_hash="scope",
         public_result=lambda: {"status": "authorized", "workKind": "create-plugin"}),
         blocked_customized_source_plugin_id=None)
-    validation = SimpleNamespace(current_result=lambda: SimpleNamespace(status="passed", checks=[], differential=None))
+    validation = SimpleNamespace(current_result=lambda: SimpleNamespace(status="passed", checks=[], differential=None, failure_semantics=None))
     runtime = SimpleNamespace(current_result=lambda: None, current_layout=lambda: None)
     gate = CreatorDevelopmentCompletionGate(activity=activity, validation=validation, runtime=runtime,
         repair_state=CreatorRepairState(), verification_mode="static_only", plugin_development_authority=authority)
@@ -265,7 +265,7 @@ def test_static_completion_gate_accepts_current_composition_without_runtime_clai
                                                   "workKind": "create-plugin"}),
         blocked_customized_source_plugin_id=None,
         installed_source_plugin_ids=())
-    checks = [SimpleNamespace(command=command, status="passed", revision=activity.revision,
+    checks = [SimpleNamespace(check_id=command, command=command, status="passed", revision=activity.revision,
                               source="executed", exit_code=0)
               for command in CREATOR_COMPLETION_VALIDATIONS]
     validation = SimpleNamespace(current_result=lambda: SimpleNamespace(
@@ -350,3 +350,69 @@ def test_ui_navigation_preserves_host_dependency_evidence_and_vue_candidates(tmp
     assert result["uiContext"] == context
     assert [item["sourcePath"] for item in result["components"]] == ["/src/components/HostCard.vue"]
     assert "recommendedLibrary" not in result
+
+
+@pytest.mark.parametrize("manager", ["npm", "pnpm"])
+@pytest.mark.parametrize("failed_script", [None, "typecheck", "build"])
+def test_real_service_to_delivery_gate(tmp_path, manager, failed_script):
+    from agent_ui_creator.validation import CreatorValidationService
+    artifacts(tmp_path)
+    write(tmp_path, "plugins/registry.generated.ts", 'import("./checklist/definition")')
+    compose(tmp_path)
+    write(tmp_path, "package.json", {"scripts": {
+        name: f"node -e 'process.exit({int(name == failed_script)})'"
+        for name in ("verify:ui", "typecheck", "build")}})
+    activity = CreatorActivityRecorder(tmp_path)
+    (tmp_path / ("package-lock.json" if manager == "npm" else "pnpm-lock.yaml")).write_text("{}")
+    activity.begin("real-validation")
+    path = "/agent-ui/plugins/checklist/index.tsx"
+    activity.capture_before_content(path, None)
+    service = CreatorValidationService(project_root=tmp_path, activity=activity)
+    asyncio.run(service.ensure_baseline())
+    activity.touch(path)
+    authority = SimpleNamespace(active=SimpleNamespace(
+        status="authorized", target_plugin_id="checklist", delivery_contract=CONTRACT,
+        scope_hash="scope", public_result=lambda: {"status": "authorized", "workKind": "create-plugin"}),
+        blocked_customized_source_plugin_id=None, installed_source_plugin_ids=())
+    gate = CreatorDevelopmentCompletionGate(activity=activity, validation=service,
+        runtime=SimpleNamespace(current_result=lambda: None, current_layout=lambda: None),
+        repair_state=service.repair_state, verification_mode="static_only",
+        plugin_development_authority=authority)
+    result = asyncio.run(service.validate(mode="clean", include_build=True))
+    ids = [*CREATOR_COMPLETION_VALIDATIONS, "pnpm build"]
+    assert [check.check_id for check in result.checks] == ids
+    assert [check.command for check in result.checks] == [f"{manager} run {name}" for name in ("verify:ui", "typecheck", "build")]
+    assert all(check.to_dict()["checkId"] == check.check_id for check in result.checks)
+    assert (result.status == "passed") == (failed_script is None)
+    assert gate.review("交付完成").accepted == (failed_script is None)
+    assert (gate.inspect_deliveries()[0]["delivery"]["status"] == "statically-verified") == (failed_script is None)
+    cached = asyncio.run(service.validate(mode="clean"))
+    assert all(check.source == "cached" for check in cached.checks)
+    assert cached.status == result.status
+    assert [check.check_id for check in cached.checks] == ids
+    activity.touch(path)
+    assert service.current_result() is None
+    assert not gate.review("交付完成").accepted
+    fresh = asyncio.run(service.validate(mode="clean"))
+    assert len(fresh.checks) == 3
+    assert all(check.source == "executed" and check.revision == activity.revision for check in fresh.checks)
+
+
+def test_final_gate_rejects_missing_required_identity(tmp_path):
+    from dataclasses import replace
+    from agent_ui_creator.validation import CreatorValidationService
+    from test_creator_validation import FakeValidationRunner
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("missing-check")
+    write(tmp_path, "plugins/example.ts", "new source")
+    activity.capture_before_content("plugins/example.ts", None)
+    service = CreatorValidationService(project_root=tmp_path, activity=activity, runner=FakeValidationRunner())
+    asyncio.run(service.ensure_baseline())
+    activity.touch("plugins/example.ts")
+    result = asyncio.run(service.validate())
+    incomplete = replace(result, evidence=replace(result.evidence, checks=result.checks[:1]))
+    gate = CreatorDevelopmentCompletionGate(activity=activity,
+        validation=SimpleNamespace(current_result=lambda: incomplete),
+        runtime=SimpleNamespace(current_result=lambda: None), repair_state=CreatorRepairState(),
+        verification_mode="static_only")
+    assert not gate.review("完成").accepted

@@ -378,6 +378,7 @@ def test_attribution_failure_preserves_evidence_and_finishes_validation(
     assert service.latest_evidence is result.evidence
     assert [check.to_dict() for check in result.checks] == [
         {
+            "checkId": "pnpm verify:ui",
             "command": "pnpm verify:ui",
             "status": "failed",
             "exitCode": 1,
@@ -387,6 +388,7 @@ def test_attribution_failure_preserves_evidence_and_finishes_validation(
             "source": "executed",
         },
         {
+            "checkId": "pnpm typecheck",
             "command": "pnpm typecheck",
             "status": "passed",
             "exitCode": 0,

@@ -25,6 +25,7 @@ class CommandExecutionResult:
 
 @dataclass(frozen=True, slots=True)
 class CreatorValidationCheck:
+    check_id: CreatorValidationCommand
     command: str
     status: Literal["passed", "failed"]
     exit_code: int | None
@@ -35,6 +36,7 @@ class CreatorValidationCheck:
 
     def to_dict(self) -> dict[str, object]:
         return {
+            "checkId": self.check_id,
             "command": self.command,
             "status": self.status,
             "exitCode": self.exit_code,
