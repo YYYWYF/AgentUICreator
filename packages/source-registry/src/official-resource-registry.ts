@@ -61,6 +61,7 @@ export const officialResourceRegistry = createOfficialResourceRegistry([
   { id: "composer-trigger-demo", label: "输入触发器 Demo", implementation: { type: "source-plugin", sourceItemId: "demo/composer-triggers", pluginId: "composer-trigger-demo", placement: "application" } },
   { id: "message-feedback", discoverable: true, label: "消息反馈", implementation: { type: "plugin", pluginId: "assistant-ui-feedback-actions" } },
   { id: "conversation-quote", discoverable: true, label: "引用回复", implementation: { type: "plugin", pluginId: "conversation-quote" } },
+  { id: "thinking-indicator", discoverable: true, label: "思考占位", implementation: { type: "plugin", pluginId: "assistant-ui-thinking-indicator", slot: "thinkingIndicator" } },
   { id: "reasoning", discoverable: true, label: "推理展示", implementation: { type: "plugin", pluginId: "assistant-ui-reasoning", slot: "reasoningGroup" } },
   { id: "tool-timeline", discoverable: true, label: "工具时间线", implementation: { type: "plugin", pluginId: "assistant-ui-tool-timeline", slot: "toolTimeline" } },
   { id: "tool-group", discoverable: true, label: "工具分组", implementation: { type: "plugin", pluginId: "assistant-ui-tool-group", slot: "toolGroup" } },

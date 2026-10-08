@@ -27,3 +27,23 @@ Only after targeted source evidence establishes that no suitable reusable UI exi
 Vue/HTML/Web Component consumers retain the existing compatibility bridge. A Vue component cannot be imported into the canonical React Plugin; use compatible existing producer components and bridge theme mechanisms. React Antd is not a universal consumer fallback, and dependencies belong to the actual producer/target that uses them. Inspect available boundary/theme seams; report unavailable seams instead of adding a UI Adapter or changing Runtime protocol.
 
 Project-owned custom Plugins may import Host business components. Official Plugins preserve existing independent package/source ownership and upgrade contracts; do not bind them to a Host-specific path. Reuse Button/Input/Select/Dialog/Card where available, retain native semantic markup for structure, and avoid a second Design System, hard-coded colors or global CSS. Record selected component/API and theme paths, additions/approval and verification method in the existing development plan/delivery contract; do not create another decision schema.
+
+## Thinking and tool execution presentation
+
+Use Source Registry `plugin/assistant-ui-tool-timeline` in the optional message-level
+`conversation-surface.toolTimeline` renderer Slot (not `toolGroup`). It summarizes
+ordinary tools once per message and reuses the installed ToolFallback for original
+details. Keep `toolGroup`, `toolFallback`, TaskGroup and dedicated tool UIs installed.
+Approval, waiting input and failures stay visible outside collapsed summaries.
+
+Use `plugin/assistant-ui-thinking-indicator` in
+`conversation-surface.thinkingIndicator`. For “只显示正在思考，不展示具体内容” /
+“only show thinking”, enable ThinkingIndicator and disable the Reasoning **display
+instance**. Never remove reasoning data from the Runtime. For detailed reasoning,
+enable `assistant-ui-reasoning`. For an initial placeholder followed by detailed
+reasoning, enable both. Answer text, approval and active tool timeline take priority
+over the placeholder. Keep optional renderer placement and Add/Restore deterministic;
+validate after removing or disabling any one of these independent plugins.
+
+New Assistant/Platform presets enable both renderers alongside Reasoning. Embedded
+and existing projects require an explicit composition change; never auto-migrate them.

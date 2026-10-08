@@ -1,0 +1,26 @@
+{
+  "id": "plugin/assistant-ui-thinking-indicator",
+  "kind": "agent-component",
+  "description": "Official thinking placeholder without displaying reasoning content.",
+  "files": [
+    {
+      "source": "files/plugins/assistant-ui-thinking-indicator/definition.ts",
+      "target": "plugins/assistant-ui-thinking-indicator/definition.ts"
+    },
+    {
+      "source": "files/plugins/assistant-ui-thinking-indicator/index.tsx",
+      "target": "plugins/assistant-ui-thinking-indicator/index.tsx"
+    },
+    {
+      "source": "files/plugins/assistant-ui-thinking-indicator/manifest.json",
+      "target": "plugins/assistant-ui-thinking-indicator/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0",
+    "@agent-ui/react": "^0.1.5"
+  }
+}

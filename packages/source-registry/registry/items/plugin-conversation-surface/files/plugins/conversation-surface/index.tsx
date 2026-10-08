@@ -43,6 +43,7 @@ export function ConversationSurfacePlugin({
     switch (slotName) {
       case "userEditComposer": return renderScopedSlot("userEditComposer", scope, fallback);
       case "reasoningGroup": return renderScopedSlot("reasoningGroup", scope, fallback);
+      case "thinkingIndicator": return renderScopedSlot("thinkingIndicator", scope, fallback);
       case "toolTimeline": return renderScopedSlot("toolTimeline", scope, fallback);
       case "toolGroup": return renderScopedSlot("toolGroup", scope, fallback);
       case "toolFallback": return renderScopedSlot("toolFallback", scope, fallback);

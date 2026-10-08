@@ -236,5 +236,18 @@
     "scenarios": [
       "web-search"
     ]
+  },
+  "assistant-ui-tool-timeline": {
+    "kind": "visual",
+    "scenarios": [
+      "tool-timeline-thinking"
+    ]
+  },
+  "assistant-ui-thinking-indicator": {
+    "kind": "visual",
+    "scenarios": [
+      "thinking-placeholder",
+      "tool-timeline-thinking"
+    ]
   }
 }

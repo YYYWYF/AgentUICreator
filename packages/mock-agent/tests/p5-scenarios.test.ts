@@ -119,7 +119,7 @@ describe("P5-A mock scenarios", () => {
   });
 
   it("keeps the live catalog limited to showcase scenarios", () => {
-    expect(showcaseMockScenarios).toHaveLength(31);
+    expect(showcaseMockScenarios).toHaveLength(33);
     expect(showcaseMockScenarios.map(({ id }) => id)).not.toContain("quote-reply");
     expect(showcaseMockScenarios.map(({ id }) => id)).toContain("source-citations");
     expect(showcaseMockScenarios.map(({ id }) => id)).toContain("file-output");

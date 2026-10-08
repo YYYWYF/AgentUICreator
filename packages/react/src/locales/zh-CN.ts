@@ -1,5 +1,11 @@
 export const zhCN = {
+  "thinkingIndicator": {
+    "thinking": "正在思考...",
+    "working": "正在处理...",
+    "elapsed": "本页已观察 {seconds} 秒"
+},
   "toolTimeline": {
+    "pendingSummary": "工具执行 · {count} 个步骤",
     "summary": "已执行 {count} 个步骤",
     "active": "正在执行 {count} 个步骤",
     "details": "原始工具详情",

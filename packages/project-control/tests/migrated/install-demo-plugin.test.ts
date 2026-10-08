@@ -11,6 +11,8 @@ vi.mock("../../src/project/agent-ui-project-paths", () => ({
 }));
 vi.mock("../../src/project/source-registry/index", () => ({
   inspectAgentUISources: vi.fn(async () => ({ stateHash: "hash", items: [
+    { id: "plugin/assistant-ui-tool-timeline", status: "missing" },
+    { id: "plugin/assistant-ui-thinking-indicator", status: "missing" },
     { id: "plugin/assistant-ui-reasoning", status: "missing" },
     { id: "plugin/assistant-ui-tool-fallback", status: "customized" },
     { id: "plugin/conversation-quote", status: "missing" },
@@ -22,6 +24,8 @@ vi.mock("../../src/project/source-registry/project-mutation", () => ({
 }));
 vi.mock("../../src/project/plugin-assets", () => ({
   collectPluginAssets: vi.fn(async () => ({ errors: [], assets: [
+    { pluginId: "assistant-ui-tool-timeline", authoring: { defaultPlacement: { type: "plugin_slot", parentPluginId: "conversation-surface", slot: "toolTimeline" } } },
+    { pluginId: "assistant-ui-thinking-indicator", authoring: { defaultPlacement: { type: "plugin_slot", parentPluginId: "conversation-surface", slot: "thinkingIndicator" } } },
     { pluginId: "assistant-ui-reasoning", authoring: { defaultPlacement: { type: "plugin_slot", parentPluginId: "conversation-surface", slot: "reasoningGroup" } } },
     { pluginId: "assistant-ui-tool-fallback", authoring: { defaultPlacement: { type: "plugin_slot", parentPluginId: "conversation-surface", slot: "toolFallback" } } },
     { pluginId: "conversation-quote", authoring: { defaultPlacement: { type: "plugin_slot", parentPluginId: "assistant-ui-composer", slot: "beforeInput" } } },
@@ -85,5 +89,14 @@ it("repairs a misplaced Quote and enables its manifest parent", async () => {
   expect(mutateAppUIModel).toHaveBeenCalledWith(root, expect.objectContaining({ operations: [
     { type: "move_plugin_to", instanceId: "quote", placement: { type: "plugin_slot", parentInstanceId: "assistant-ui-composer-main", slot: "beforeInput" } },
     { type: "set_plugin_enabled", instanceId: "assistant-ui-composer-main", enabled: true },
+  ] }));
+});
+
+it.each(["assistant-ui-tool-timeline", "assistant-ui-thinking-indicator"])("installs and places official message renderer %s", async id => {
+  const root = await project([{ id: "surface", pluginId: "conversation-surface", enabled: true }]);
+  await installDemoPlugin(root, id);
+  expect(applyAgentUISourceProjectMutation).toHaveBeenCalledWith(root, { itemId: `plugin/${id}`, expectedStateHash: "hash" }, { config: {} });
+  expect(mutateAppUIModel).toHaveBeenCalledWith(root, expect.objectContaining({ operations: [
+    { type: "insert_plugin_default", plugin: { id: `${id}-main`, pluginId: id, enabled: true } },
   ] }));
 });

@@ -20,6 +20,14 @@ export interface TimelineCall {
   readonly summarized: boolean;
   readonly protected: boolean;
 }
+export function hasPendingToolAction(part: TimelinePart): boolean {
+  if (part.status?.type === "requires-action") return true;
+  const approval = part.approval;
+  if (typeof approval === "object" && approval !== null &&
+      (approval as { approved?: unknown }).approved === undefined &&
+      (approval as { resolution?: unknown }).resolution === undefined) return true;
+  return part.interrupt != null && part.status?.type !== "complete" && part.status?.type !== "incomplete";
+}
 export function projectToolTimeline(parts: readonly TimelinePart[], namedTools: Readonly<Record<string, readonly unknown[] | undefined>> = {}) {
   const seen = new Set<string>();
   const calls: TimelineCall[] = [];
@@ -27,8 +35,7 @@ export function projectToolTimeline(parts: readonly TimelinePart[], namedTools: 
     if (part.type !== "tool-call" || !part.toolCallId || seen.has(part.toolCallId)) return;
     seen.add(part.toolCallId);
     const status = part.isError ? "incomplete" : part.status?.type ?? "unknown";
-    const protectedCall = status === "requires-action" || status === "incomplete" ||
-      part.approval != null || part.interrupt != null;
+    const protectedCall = status === "incomplete" || hasPendingToolAction(part);
     calls.push({ toolCallId: part.toolCallId, toolName: part.toolName ?? "", index, status,
       reason: part.isError ? "error" : part.status?.reason,
       summarized: part.messages === undefined && !part.mcp && !namedTools[part.toolName ?? ""]?.length,
@@ -36,7 +43,7 @@ export function projectToolTimeline(parts: readonly TimelinePart[], namedTools: 
   });
   const summarized = calls.filter(call => call.summarized);
   return { calls, summarized, anchorId: summarized[0]?.toolCallId,
-    streaming: summarized.some(call => call.status === "running"),
+    streaming: calls.some(call => call.status === "running"),
     detailIndices: summarized.filter(call => !call.protected).map(call => call.index) };
 }
 

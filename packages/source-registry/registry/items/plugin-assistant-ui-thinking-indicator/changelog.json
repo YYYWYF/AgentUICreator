@@ -1,0 +1,8 @@
+{
+  "0.0.1": {
+    "summary": "Official thinking indicator",
+    "changes": [
+      "Message-scoped placeholder with reasoning, timeline and approval priority."
+    ]
+  }
+}

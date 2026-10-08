@@ -211,6 +211,10 @@
     {
       "id": "plugin/assistant-ui-tool-timeline",
       "path": "items/plugin-assistant-ui-tool-timeline/item.json"
+    },
+    {
+      "id": "plugin/assistant-ui-thinking-indicator",
+      "path": "items/plugin-assistant-ui-thinking-indicator/item.json"
     }
   ]
 }

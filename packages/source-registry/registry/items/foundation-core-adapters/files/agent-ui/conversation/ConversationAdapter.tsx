@@ -20,6 +20,7 @@ import {
   ScopedToolFallback,
   ScopedToolGroup,
   ScopedToolTimeline,
+  ScopedThinkingIndicator,
 } from "./ScopedRendererBridge";
 
 export interface ConversationEmptyStateProps {
@@ -62,12 +63,13 @@ export function ConversationWelcomeFallback() {
   );
 }
 
-export function createConversationSemanticThreadComponents(rendererSlots: { toolTimeline?: boolean; reasoningGroup?: boolean } = {}): ConversationThreadComponents {
+export function createConversationSemanticThreadComponents(rendererSlots: { toolTimeline?: boolean; reasoningGroup?: boolean; thinkingIndicator?: boolean } = {}): ConversationThreadComponents {
   return {
     UserEditComposer: ScopedUserEditComposer,
     Welcome: ConversationEmptyState,
     ReasoningGroup: ScopedReasoningGroup,
     ToolGroup: ScopedToolGroup,
+    ...(rendererSlots.thinkingIndicator ? { ThinkingIndicator: ScopedThinkingIndicator, reasoningVisible: rendererSlots.reasoningGroup === true } : {}),
     ...(rendererSlots.toolTimeline ? { ToolTimeline: ScopedToolTimeline } : {}),
     TaskGroup: ScopedTaskGroup,
     ToolFallback: ScopedToolFallback,
@@ -83,12 +85,12 @@ export function ConversationAdapter({
   renderScopedSlot,
   rendererSlots = {},
 }: ConversationEmptyStateProps & {
-  rendererSlots?: { toolTimeline?: boolean; reasoningGroup?: boolean };
+  rendererSlots?: { toolTimeline?: boolean; reasoningGroup?: boolean; thinkingIndicator?: boolean };
   labels?: ConversationThreadLabels;
   renderScopedSlot?: UIPluginComponentProps["renderScopedSlot"];
 } = {}) {
   const theme = useAgentUITheme();
-  const components = useMemo(() => createConversationSemanticThreadComponents(rendererSlots), [rendererSlots.toolTimeline, rendererSlots.reasoningGroup]);
+  const components = useMemo(() => createConversationSemanticThreadComponents(rendererSlots), [rendererSlots.toolTimeline, rendererSlots.reasoningGroup, rendererSlots.thinkingIndicator]);
   const emptyState = useMemo(
     () => ({ welcome, suggestions }),
     [welcome, suggestions],

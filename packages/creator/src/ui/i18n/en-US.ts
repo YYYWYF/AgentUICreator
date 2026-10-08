@@ -28,6 +28,8 @@ export const enUS = {
     "resource_conversation-composer": "Conversation composer",
     "resource_message-feedback": "Message feedback",
     "resource_conversation-quote": "Quote reply",
+    "resource_tool-timeline": "Tool timeline",
+    "resource_thinking-indicator": "Thinking placeholder",
     "resource_reasoning": "Reasoning",
     "resource_tool-group": "Tool groups",
     "resource_tool-approval": "Tool calls and approval",
@@ -431,6 +433,8 @@ export const enUS = {
     "callToolsInParallel": "Call tools in parallel",
     "reasonBeforeResponding": "Reason before responding",
     "previewLongReasoning": "Preview long reasoning",
+    "toolTimelineThinking": "Thinking → Tool timeline → Answer",
+    "thinkingPlaceholder": "Thinking placeholder",
     "reasonCallToolsAndRespond": "Reason, call tools, and respond",
     "streamPlainText": "Stream plain text",
     "streamMarkdown": "Stream Markdown",
@@ -648,6 +652,8 @@ export const enUS = {
     "thisQuestionSAgentExecutionHasExpiredStart": "This question's Agent execution has expired. Start a new request."
   },
   "mockDescriptions": {
+    "tool-timeline-thinking": "Compare placeholder-only, reasoning-only and both; expand three same-name tools and original details.",
+    "thinking-placeholder": "Stream reasoning with ThinkingIndicator enabled and the Reasoning display instance disabled.",
     "parallel-tools": "Run three tools concurrently in a deterministic interleaved order.",
     "nested-subagent-error": "Show attributed SUBAGENT_ERROR content. Preserve the transcript before the error and mark the nested assistant message incomplete.",
     "multimodal-input": "Send text, a small image, or a PDF using standard AG-UI multimodal input. A fixed response does not verify attachments; inspect the actual request.",

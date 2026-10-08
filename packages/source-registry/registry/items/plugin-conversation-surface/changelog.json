@@ -16,5 +16,11 @@
     "changes": [
       "Add optional toolTimeline Slot; ordinary summaries preserve protected actions and dedicated UIs."
     ]
+  },
+  "0.0.4": {
+    "summary": "Independent thinking placeholder renderer",
+    "changes": [
+      "Coordinate reasoning, tool timeline and legacy loading through active semantic Slots."
+    ]
   }
 }

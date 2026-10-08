@@ -1,3 +1,4 @@
+import { toolTimelineThinkingScenario, thinkingPlaceholderScenario } from "./tool-timeline-thinking.js";
 import { composerMentionContextScenario } from "./composer-mention-context.js";
 import { webSearchScenario } from "./web-search.js";
 import { retrievalChunksScenario } from "./retrieval-chunks.js";
@@ -39,6 +40,7 @@ import { toolLongRunningScenario } from "./tool-long-running.js";
 import type { MockScenario } from "../scenario.js";
 
 export {
+  toolTimelineThinkingScenario, thinkingPlaceholderScenario,
   composerMentionContextScenario,
   webSearchScenario,
   retrievalChunksScenario,
@@ -98,6 +100,7 @@ export const backendReferenceMockScenarios: MockScenario[] = [
 ];
 
 export const frontendPresentationMockScenarios: MockScenario[] = [
+  toolTimelineThinkingScenario, thinkingPlaceholderScenario,
   resumableLongRunScenario,
   resumableAgentPlanScenario,
   cancelBeforeFirstOutputScenario,

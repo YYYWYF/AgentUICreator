@@ -33,6 +33,8 @@ export async function createI18nPluginHost(releaseIds: readonly string[]) {
   }
   const model = JSON.parse(await readFile(path.join(root, "agent-ui/app-ui/app-ui.json"), "utf8"));
   const surface = model.root.children[1].child.plugins[0];
+  surface.slots.toolTimeline = [{ id: "timeline-main", pluginId: "assistant-ui-tool-timeline", enabled: true }];
+  surface.slots.thinkingIndicator = [{ id: "thinking-main", pluginId: "assistant-ui-thinking-indicator", enabled: true }];
   surface.slots.headerActions = [{ id: "theme-switch-main", pluginId: "theme-switch", enabled: true }];
   surface.slots.userEditComposer = [{ id: "lexical-edit-main", pluginId: "assistant-ui-lexical-edit-composer", enabled: true }];
   surface.slots.composer[0].slots.input = [{ id: "lexical-input-main", pluginId: "assistant-ui-lexical-composer-input", enabled: true }];
@@ -84,7 +86,13 @@ export async function createI18nPluginHost(releaseIds: readonly string[]) {
   `);
   const server = await createServer({ configFile: false, root, plugins: [react(), tailwindcss(), createMockAgentVitePlugin({ endpoint: "/agent", scenarios: builtinMockScenarios, defaultScenarioId: "simple-chat" }), createMockConversationApiVitePlugin({ endpoint: "/__agent-ui/mock-data" })], resolve: { dedupe: ["react", "react-dom"] }, optimizeDeps: { noDiscovery: true, include: ["react", "react-dom/client", "@agent-ui/react", "@agent-ui/react/lexical", "@agent-ui/runtime-conversation", "@agent-ui/runtime-core", "@agent-ui/runtime-react", "@base-ui/react/**", "@assistant-ui/react", "@assistant-ui/react-markdown", "@assistant-ui/react-lexical", "@assistant-ui/react-generative-ui", "@assistant-ui/react-hook-form", "lexical", "@ag-ui/client", "@ag-ui/core", "zod", "zustand"] }, server: { host: "127.0.0.1", port: 0, fs: { allow: [root, repositoryRoot] } } });
   await server.listen();
-  return { setLegacyFooter: async (legacy: boolean) => {
+  return { setMessagePresentation: async (options: { timeline: boolean; thinking: boolean; reasoning: boolean }) => {
+    surface.slots.toolTimeline[0].enabled = options.timeline;
+    surface.slots.thinkingIndicator[0].enabled = options.thinking;
+    surface.slots.reasoningGroup[0].enabled = options.reasoning;
+    await writeFile(path.join(root, "agent-ui/app-ui/app-ui.json"), JSON.stringify(model));
+    await writeGeneratedPluginRegistry(root);
+  }, setLegacyFooter: async (legacy: boolean) => {
     const footer = surface.slots.assistantResponseFooter ?? surface.slots.assistantMessageFooter;
     delete surface.slots.assistantResponseFooter; delete surface.slots.assistantMessageFooter;
     footer[0].pluginId = legacy ? "assistant-ui-message-footer" : "assistant-ui-response-footer";

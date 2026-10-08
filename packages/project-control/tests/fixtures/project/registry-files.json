@@ -220,5 +220,8 @@
   "agent-ui/conversation/useConversationRendererSlots.ts": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/useConversationRendererSlots.ts",
   "plugins/assistant-ui-tool-timeline/definition.ts": "packages/source-registry/registry/items/plugin-assistant-ui-tool-timeline/files/plugins/assistant-ui-tool-timeline/definition.ts",
   "plugins/assistant-ui-tool-timeline/index.tsx": "packages/source-registry/registry/items/plugin-assistant-ui-tool-timeline/files/plugins/assistant-ui-tool-timeline/index.tsx",
-  "plugins/assistant-ui-tool-timeline/manifest.json": "packages/source-registry/registry/items/plugin-assistant-ui-tool-timeline/files/plugins/assistant-ui-tool-timeline/manifest.json"
+  "plugins/assistant-ui-tool-timeline/manifest.json": "packages/source-registry/registry/items/plugin-assistant-ui-tool-timeline/files/plugins/assistant-ui-tool-timeline/manifest.json",
+  "plugins/assistant-ui-thinking-indicator/definition.ts": "packages/source-registry/registry/items/plugin-assistant-ui-thinking-indicator/files/plugins/assistant-ui-thinking-indicator/definition.ts",
+  "plugins/assistant-ui-thinking-indicator/index.tsx": "packages/source-registry/registry/items/plugin-assistant-ui-thinking-indicator/files/plugins/assistant-ui-thinking-indicator/index.tsx",
+  "plugins/assistant-ui-thinking-indicator/manifest.json": "packages/source-registry/registry/items/plugin-assistant-ui-thinking-indicator/files/plugins/assistant-ui-thinking-indicator/manifest.json"
 }

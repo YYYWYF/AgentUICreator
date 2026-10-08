@@ -26,7 +26,7 @@ async function showThreadList(page: Page, info: TestInfo) {
   await expect(sidebar).toBeVisible();
   return sidebar;
 }
-const scenarios = ["simple-chat", "reasoning-tool-success", "tool-error", "tool-long-running", "web-search", "retrieval-chunks", "source-citations", "file-output", "data-message-chart", "agent-status", "agent-plan", "agent-state-sync", "nested-subagent-task-group", "markdown-showcase"];
+const scenarios = ["tool-timeline-thinking", "thinking-placeholder", "simple-chat", "reasoning-tool-success", "tool-error", "tool-long-running", "web-search", "retrieval-chunks", "source-citations", "file-output", "data-message-chart", "agent-status", "agent-plan", "agent-state-sync", "nested-subagent-task-group", "markdown-showcase"];
 for (const scenario of ["empty", ...scenarios]) {
   test(`surface evidence: ${scenario}`, async ({ page }, info) => {
     const errors: string[] = []; page.on("pageerror", error => errors.push(error.message));

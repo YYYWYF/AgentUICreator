@@ -77,16 +77,25 @@ async function openToolGroups(container: HTMLElement) {
   if (trigger) await act(async () => trigger.click());
 }
 
+import { useConversationRendererSlots } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/useConversationRendererSlots";
+import { AssistantUiToolTimelinePlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-tool-timeline/files/plugins/assistant-ui-tool-timeline/index";
+import { AssistantUiThinkingIndicatorPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-thinking-indicator/files/plugins/assistant-ui-thinking-indicator/index";
+
 function Host({ renderScopedSlot }: UIPluginComponentProps) {
   useEffect(() => { hostMounts += 1; }, []);
-  return <ConversationAdapter renderScopedSlot={renderScopedSlot} />;
+  const rendererSlots = useConversationRendererSlots();
+  return <ConversationAdapter rendererSlots={rendererSlots} renderScopedSlot={renderScopedSlot} />;
 }
 
 const definitions: UIPluginDefinition[] = [
+  { manifest: { id: "timeline-test", name: "Timeline", description: "Timeline", version: "1.0.0", capabilities: ["conversation-tool-timeline-renderer"], requiresRenderScope: true }, Component: AssistantUiToolTimelinePlugin },
+  { manifest: { id: "thinking-test", name: "Thinking", description: "Thinking", version: "1.0.0", capabilities: ["conversation-thinking-indicator-renderer"], requiresRenderScope: true }, Component: AssistantUiThinkingIndicatorPlugin },
   {
     manifest: {
       id: "conversation-test-host", name: "Conversation test host", description: "Conversation integration host", version: "1.0.0",
       slots: { children: {
+        toolTimeline: { description: "Timeline", cardinality: "one", mode: "renderer", optional: true, accepts: { anyOfCapabilities: ["conversation-tool-timeline-renderer"] } },
+        thinkingIndicator: { description: "Thinking", cardinality: "one", mode: "renderer", optional: true, accepts: { anyOfCapabilities: ["conversation-thinking-indicator-renderer"] } },
         reasoningGroup: { description: "Reasoning renderer", cardinality: "one", mode: "renderer", optional: true,
           accepts: { anyOfCapabilities: ["conversation-reasoning-renderer"] } },
         toolGroup: { description: "Tool group renderer", cardinality: "one", mode: "renderer", optional: true,
@@ -138,11 +147,15 @@ function createModel(options: {
   toolGroup?: boolean;
   toolFallback?: boolean;
   taskGroup?: boolean;
+  timeline?: boolean;
+  thinking?: boolean;
 } = {}): AppUIRuntimeModel {
   const reasoning = options.reasoning ?? "enabled";
   return parseAppUIRuntimeModel({
     root: { type: "slot", id: "root", slotId: "root-slot" },
     pluginInstances: {
+      ...(options.timeline ? { timeline: { id: "timeline", pluginId: "timeline-test", enabled: true, mount: { slotId: "plugin:host:toolTimeline" } } } : {}),
+      ...(options.thinking ? { thinking: { id: "thinking", pluginId: "thinking-test", enabled: true, mount: { slotId: "plugin:host:thinkingIndicator" } } } : {}),
       host: { id: "host", pluginId: "conversation-test-host", enabled: true, mount: { slotId: "root-slot" } },
       ...(reasoning === "removed" ? {} : {
         reasoning: { id: "reasoning", pluginId: "reasoning-test", enabled: reasoning === "enabled",
@@ -437,4 +450,73 @@ describe("Conversation scoped renderer integration", () => {
     const approved = findToolCallPart(runtime.thread.getState().messages);
     expect(approved).toMatchObject({ approval: { id: "approval-1", approved: true } });
   });
+});
+
+
+describe("message presentation plugin lifecycle", () => {
+  it("T08/T10/T13 preserves reasoning data and hands off independently", async () => {
+    const initial = message([{ type: "reasoning", text: "Hidden private reasoning", status: { type: "running" } }], { type: "running" });
+    const { container, root, runtime } = await mount([initial], undefined, createModel({ thinking: true, reasoning: "disabled" }));
+    expect(container.querySelectorAll('[data-slot="thinking-indicator"]')).toHaveLength(1);
+    expect(container.querySelector('[data-slot="aui_assistant-message-indicator"]')).toBeNull();
+    expect(container.textContent).not.toContain("Hidden private reasoning");
+    expect(runtime.thread.getState().messages[0]?.content[0]).toMatchObject({ text: "Hidden private reasoning" });
+    await act(async () => root.render(<RuntimeFixture chatModel={{ run: async () => ({ content: [] }) }} initialMessages={[initial]}
+      model={createModel({ thinking: true, reasoning: "enabled" })} onRuntime={() => undefined} />));
+    expect(container.querySelector('[data-slot="thinking-indicator"]')).toBeNull();
+    expect(container.querySelector('[data-slot="reasoning-root"]')).not.toBeNull();
+    await act(async () => runtime.thread.reset([message([{ type: "text", text: "Final" }])]));
+    expect(container.querySelector('[data-slot="thinking-indicator"]')).toBeNull();
+  });
+  it("T02/T11/T15 coordinates Timeline, Thinking and disabled Timeline fallback", async () => {
+    const initial = message([{ type: "tool-call", toolCallId: "t1", toolName: "read_file", args: {}, argsText: "{}" }], { type: "running" });
+    const { container, root } = await mount([initial], undefined, createModel({ timeline: true, thinking: true }));
+    expect(container.querySelectorAll('[data-slot="tool-timeline"]')).toHaveLength(1);
+    expect(container.querySelector('[data-slot="thinking-indicator"]')).toBeNull();
+    expect(container.querySelector('[data-slot="tool-group-root"]')).toBeNull();
+    await act(async () => root.render(<RuntimeFixture chatModel={{ run: async () => ({ content: [] }) }} initialMessages={[initial]}
+      model={createModel({ timeline: false, thinking: false })} onRuntime={() => undefined} />));
+    expect(container.querySelector('[data-slot="tool-timeline"]')).toBeNull();
+    expect(container.querySelector('[data-slot="tool-group-root"]')).not.toBeNull();
+    expect(container.querySelector('[data-slot="aui_assistant-message-indicator"]')).not.toBeNull();
+  });
+  it("T05 keeps approval actions outside a collapsed timeline", async () => {
+    const initial = message([{ type: "tool-call", toolCallId: "approve", toolName: "confirm_action", args: {}, argsText: "{}",
+      approval: { id: "approval-1", prompt: "Confirm operation?" } }], { type: "requires-action", reason: "tool-calls" });
+    const { container } = await mount([initial], undefined, createModel({ timeline: true, thinking: true }));
+    expect(container.querySelector('[data-slot="thinking-indicator"]')).toBeNull();
+    expect(container.querySelector('[data-slot="tool-fallback-root"]')).not.toBeNull();
+    expect(container.querySelector('[data-slot="tool-fallback-approval"]')).not.toBeNull();
+    expect(container.textContent).toContain("Confirm operation?");
+  });
+});
+
+it("T06/T07 keeps specialized Tool UI and TaskGroup once alongside ordinary summary", async () => {
+  const { container } = await mount([message([
+    { type: "tool-call", toolCallId: "ordinary", toolName: "read_file", args: {}, argsText: "{}", result: {} },
+    { type: "tool-call", toolCallId: "named", toolName: "search_files", args: {}, argsText: "{}", result: { files: ["src/App.tsx"] } },
+    { type: "tool-call", toolCallId: "task", toolName: "agent_task", args: {}, argsText: "{}", messages: [message([{ type: "text", text: "nested" }])] },
+  ])], undefined, createModel({ timeline: true, thinking: true }));
+  expect(container.querySelectorAll('[data-slot="tool-timeline"]')).toHaveLength(1);
+  expect(container.querySelectorAll('[data-slot="tool-call"]')).toHaveLength(1);
+  expect(container.querySelectorAll('[data-slot="task-card"]')).toHaveLength(1);
+  expect(container.textContent).toContain("Executed 3 steps");
+});
+
+it("T13 keeps page-local elapsed across label changes and resets for message switch/cancel", async () => {
+  vi.useFakeTimers();
+  try {
+    const { container, runtime } = await mount([message([], { type: "running" })], undefined, createModel({ thinking: true, reasoning: "disabled" }));
+    expect(container.textContent).toContain("Thinking...");
+    expect(container.textContent).not.toContain("Observed");
+    await act(async () => { await vi.advanceTimersByTimeAsync(2100); });
+    expect(container.textContent).toContain("Observed 2s on this page");
+    await act(async () => runtime.thread.reset([message([{ type: "tool-call", toolCallId: "work", toolName: "read_file", args: {}, argsText: "{}" }], { type: "running" })]));
+    expect(container.textContent).toContain("Working...");
+    expect(container.textContent).toContain("Observed 2s on this page");
+    await act(async () => runtime.thread.reset([{ ...message([], { type: "running" }), id: "new-message" }]));
+    expect(container.textContent).not.toContain("Observed");
+    await act(async () => runtime.thread.reset([message([], { type: "incomplete", reason: "cancelled" })]));
+    expect(container.querySelector('[data-slot="thinking-indicator"]')).toBeNull();
+  } finally { vi.useRealTimers(); }
 });

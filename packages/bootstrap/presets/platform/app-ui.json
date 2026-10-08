@@ -191,6 +191,20 @@
                       "pluginId": "assistant-ui-lexical-edit-composer",
                       "enabled": true
                     }
+                  ],
+                  "toolTimeline": [
+                    {
+                      "id": "assistant-ui-tool-timeline-main",
+                      "pluginId": "assistant-ui-tool-timeline",
+                      "enabled": true
+                    }
+                  ],
+                  "thinkingIndicator": [
+                    {
+                      "id": "assistant-ui-thinking-indicator-main",
+                      "pluginId": "assistant-ui-thinking-indicator",
+                      "enabled": true
+                    }
                   ]
                 }
               }

@@ -26,7 +26,7 @@ export function InternalConversationToolTimeline({ children }: { children?: Reac
     }
     return messages.unknown;
   };
-  const steps = projection.summarized.map((call, index) => {
+  const steps = projection.calls.map((call, index) => {
     const kind = timelineToolKind(call.toolName);
     return {
       // Pinned upstream keys by chip, not a newer TimelineStep.id. Unique,
@@ -36,10 +36,10 @@ export function InternalConversationToolTimeline({ children }: { children?: Reac
       icon: icons[kind],
     };
   });
-  if (!steps.length) return null;
-  return <div data-slot="agent-ui-tool-timeline" className="min-w-0 max-w-full [&_button]:focus-visible:ring-2 [&_button]:focus-visible:ring-ring [&_[data-slot=collapsible-trigger]]:min-w-0 [&_[data-slot=collapsible-trigger]]:max-w-full [&_[data-slot=collapsible-trigger]]:break-words [&_span]:min-w-0 [&_span]:break-all [&_span]:motion-reduce:animate-none">
+  if (!projection.anchorId) return null;
+  return <div data-slot="agent-ui-tool-timeline" className="min-w-0 max-w-full [&_button]:focus-visible:ring-2 [&_button]:focus-visible:ring-ring [&_[data-slot=collapsible-trigger]]:min-w-0 [&_[data-slot=collapsible-trigger]]:max-w-full [&_[data-slot=collapsible-trigger]]:break-words [&_div]:min-w-0 [&_div]:motion-reduce:animate-none [&_button]:motion-reduce:transition-none [&_span]:max-w-full [&_span]:min-w-0 [&_span]:break-all [&_span]:motion-reduce:animate-none">
     <ToolTimeline steps={steps} visibleSteps={steps.length} streaming={projection.streaming}
-      restingLabel={formatPresentationMessage(messages.summary, { count: steps.length })}
+      restingLabel={formatPresentationMessage(projection.calls.every(call => call.status === "complete") ? messages.summary : messages.pendingSummary, { count: steps.length })}
       activeLabel={formatPresentationMessage(messages.active, { count: steps.length })}
       stats={[]} open={open} onOpenChange={setOpen} className="min-w-0 max-w-full" />
     {open && children ? <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>

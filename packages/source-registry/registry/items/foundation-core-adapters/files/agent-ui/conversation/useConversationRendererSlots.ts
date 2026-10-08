@@ -14,5 +14,6 @@ export function useConversationRendererSlots() {
   };
   const timeline = useSyncExternalStore(runtime.slots.subscribe, () => active("toolTimeline"), () => false);
   const reasoning = useSyncExternalStore(runtime.slots.subscribe, () => active("reasoningGroup"), () => false);
-  return { toolTimeline: timeline, reasoningGroup: reasoning };
+  const thinking = useSyncExternalStore(runtime.slots.subscribe, () => active("thinkingIndicator"), () => false);
+  return { toolTimeline: timeline, reasoningGroup: reasoning, thinkingIndicator: thinking };
 }

@@ -104,6 +104,8 @@ import { Image as InternalImage } from "./internal/adapters/assistant-ui/compone
 import { ToolCall as InternalToolCall } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.js";
 import { ToolFallback as InternalToolFallback } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
 import { MarkdownText as InternalMarkdownText } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/markdown-text.js";
+import { InternalConversationToolTimeline } from "./internal/conversation-tool-timeline.js";
+import { InternalConversationThinkingIndicator } from "./internal/conversation-thinking-indicator.js";
 import { Reasoning as InternalReasoning } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
 import {
   ReasoningRoot as InternalReasoningRoot,
@@ -263,6 +265,8 @@ export type ConversationThreadComponents = {
   AssistantMessageFooter?: ComponentType | undefined;
   Welcome?: ComponentType | undefined;
   ToolFallback?: ComponentType<ConversationToolCallProps> | undefined;
+  ThinkingIndicator?: ComponentType<ConversationThinkingIndicatorRenderScope> | undefined;
+  reasoningVisible?: boolean | undefined;
   ToolTimeline?: ComponentType<{ children?: ReactNode }> | undefined;
   ToolGroup?: ComponentType<{ children?: ReactNode; group: unknown }> | undefined;
   ReasoningGroup?: ComponentType<{ children?: ReactNode; group: unknown }> | undefined;
@@ -1400,7 +1404,14 @@ export const AgentUISidebarMenuButton: ComponentType<React.ButtonHTMLAttributes<
 
 /** One scoped timeline per assistant message; children reuse existing tool detail renderers. */
 export interface ConversationToolTimelineRenderScope { readonly children?: ReactNode; }
-import { InternalConversationToolTimeline } from "./internal/conversation-tool-timeline.js";
 export function ConversationToolTimeline({ children }: { children?: ReactNode }) {
   return <InternalConversationToolTimeline>{children}</InternalConversationToolTimeline>;
+}
+
+export interface ConversationThinkingIndicatorRenderScope {
+  readonly reasoningVisible: boolean;
+  readonly timelineVisible: boolean;
+}
+export function ConversationThinkingIndicator(props: ConversationThinkingIndicatorRenderScope) {
+  return <InternalConversationThinkingIndicator {...props} />;
 }

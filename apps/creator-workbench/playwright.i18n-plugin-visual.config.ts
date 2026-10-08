@@ -1,6 +1,6 @@
 import { defineConfig } from "@playwright/test";
 export default defineConfig({
-  testDir: "./tests", testMatch: "i18n-plugin-visual.spec.ts", timeout: 60_000, workers: 1,
+  testDir: "./tests", testMatch: ["i18n-plugin-visual.spec.ts", "tool-timeline-thinking.spec.ts"], timeout: 60_000, workers: 1,
   forbidOnly: !!process.env.CI, fullyParallel: false, retries: 0,
   outputDir: "test-results/i18n-plugin-visual",
   reporter: [["list"], ["json", { outputFile: "test-results/i18n-plugin-visual/results.json" }], ["html", { outputFolder: "playwright-report/i18n-plugin-visual", open: "never" }]],

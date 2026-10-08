@@ -9,6 +9,7 @@
     "playwright.i18n-plugin-visual.config.ts",
     "tests/creator-theme-host.spec.ts",
     "tests/creator-install-sync-host.spec.ts",
-    "playwright.theme-commands.config.ts"
+    "playwright.theme-commands.config.ts",
+    "tests/tool-timeline-thinking.spec.ts"
   ]
 }

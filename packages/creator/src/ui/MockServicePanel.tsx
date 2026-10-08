@@ -39,6 +39,8 @@ function getDemoTitles(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_M
   "nested-subagent-recursive": localeMessages.mock.recursiveSubagentDelegation,
   "nested-subagent-task-group": localeMessages.mock.groupMultipleSubagents,
   "parallel-tools": localeMessages.mock.callToolsInParallel,
+  "tool-timeline-thinking": localeMessages.mock.toolTimelineThinking,
+  "thinking-placeholder": localeMessages.mock.thinkingPlaceholder,
   "reasoning-chat": localeMessages.mock.reasonBeforeResponding,
   "reasoning-long-preview": localeMessages.mock.previewLongReasoning,
   "reasoning-tool-success": localeMessages.mock.reasonCallToolsAndRespond,
@@ -91,7 +93,7 @@ function getDemoFocusTags(localeMessages: CreatorLocaleMessages = DEFAULT_CREATO
 
 function getDemoGroups(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) { return [
   { title: localeMessages.mock.messagesAndContext, ids: ["simple-chat", "multi-message-response", "markdown-showcase", "multimodal-input", "composer-mention-context"] },
-  { title: localeMessages.mock.reasoningAndTools, ids: ["reasoning-chat", "reasoning-tool-success", "parallel-tools", "tool-error", "frontend-tool-open-dialog", "frontend-tool-fill-form", "web-search", "retrieval-chunks"] },
+  { title: localeMessages.mock.reasoningAndTools, ids: ["tool-timeline-thinking", "thinking-placeholder", "reasoning-chat", "reasoning-tool-success", "parallel-tools", "tool-error", "frontend-tool-open-dialog", "frontend-tool-fill-form", "web-search", "retrieval-chunks"] },
   { title: localeMessages.mock.questionsAndApprovals, ids: ["ask-user-question", "approval-resume"] },
   { title: localeMessages.mock.stateAndExecutionPlans, ids: ["agent-state-sync", "agent-plan", "agent-status"] },
   { title: localeMessages.mock.structuredResultsAndInteractiveUI, ids: ["file-output", "source-citations", "data-message-chart", "a2ui-form-controls", "a2ui-interactive-order"] },

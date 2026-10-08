@@ -1,5 +1,11 @@
 export const enUS = {
+  "thinkingIndicator": {
+    "thinking": "Thinking...",
+    "working": "Working...",
+    "elapsed": "Observed {seconds}s on this page"
+},
   "toolTimeline": {
+    "pendingSummary": "Tool execution · {count} steps",
     "summary": "Executed {count} steps",
     "active": "Executing {count} steps",
     "details": "Original tool details",

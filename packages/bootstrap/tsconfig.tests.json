@@ -102,6 +102,7 @@
       "../source-registry/registry/items/foundation-core-runtime/files",
       "../source-registry/registry/items/plugin-assistant-ui-tool-group/files",
       "../source-registry/registry/items/plugin-assistant-ui-tool-timeline/files",
+      "../source-registry/registry/items/plugin-assistant-ui-thinking-indicator/files",
       "../source-registry/registry/items/plugin-task-group/files",
       "../source-registry/registry/items/foundation-core-adapters/files",
       "../source-registry/registry/items/plugin-assistant-ui-submit-action/files",

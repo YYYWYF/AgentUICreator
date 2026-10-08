@@ -1,0 +1,24 @@
+{
+  "id": "assistant-ui-thinking-indicator",
+  "name": "Assistant UI Thinking Indicator",
+  "description": "Official thinking placeholder without displaying reasoning content.",
+  "version": "0.0.1",
+  "capabilities": [
+    "conversation-thinking-indicator-renderer"
+  ],
+  "requiresRenderScope": true,
+  "authoring": {
+    "intents": [
+      "show thinking without reasoning content",
+      "show a thinking placeholder before detailed reasoning",
+      "只显示正在思考，不展示具体内容",
+      "思考开始先显示占位，收到思考内容后显示详细过程"
+    ],
+    "visualRole": "assistant thinking status placeholder",
+    "defaultPlacement": {
+      "type": "plugin_slot",
+      "parentPluginId": "conversation-surface",
+      "slot": "thinkingIndicator"
+    }
+  }
+}

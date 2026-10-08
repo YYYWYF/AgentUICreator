@@ -1,6 +1,7 @@
 import { createContext, useContext, type ReactNode } from "react";
 import {
   ConversationCanonicalAssistantResponseFooter,
+  type ConversationThinkingIndicatorRenderScope,
   ConversationCanonicalUserEditComposer,
   type ConversationUserEditComposerRenderScope,
   type ConversationTaskGroupRenderScope,
@@ -93,4 +94,10 @@ export function ScopedToolTimeline({ children }: { children?: ReactNode }) {
   const renderScopedSlot = useContext(ScopedRendererBridgeContext);
   if (renderScopedSlot === null) return children;
   return renderScopedSlot("toolTimeline", { kind: "conversation.tool-timeline", value: { children } }, children);
+}
+
+export function ScopedThinkingIndicator(value: ConversationThinkingIndicatorRenderScope) {
+  const renderScopedSlot = useContext(ScopedRendererBridgeContext);
+  if (renderScopedSlot === null) return null;
+  return renderScopedSlot("thinkingIndicator", { kind: "conversation.thinking-indicator", value });
 }

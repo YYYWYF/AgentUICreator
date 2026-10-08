@@ -28,6 +28,8 @@ export const zhCN = {
     "resource_conversation-composer": "会话输入框",
     "resource_message-feedback": "消息反馈",
     "resource_conversation-quote": "引用回复",
+    "resource_tool-timeline": "工具时间线",
+    "resource_thinking-indicator": "思考占位",
     "resource_reasoning": "推理展示",
     "resource_tool-group": "工具分组",
     "resource_tool-approval": "工具调用与审批",
@@ -431,6 +433,8 @@ export const zhCN = {
     "callToolsInParallel": "并行调用多个工具",
     "reasonBeforeResponding": "思考后回复",
     "previewLongReasoning": "长篇思考内容预览",
+    "toolTimelineThinking": "思考 → 工具时间线 → 回答",
+    "thinkingPlaceholder": "思考占位",
     "reasonCallToolsAndRespond": "思考、调用工具并回答",
     "streamPlainText": "纯文本流式回复",
     "streamMarkdown": "流式展示 Markdown 内容",
@@ -648,6 +652,8 @@ export const zhCN = {
     "thisQuestionSAgentExecutionHasExpiredStart": "这个问题对应的 Agent 执行状态已经失效，请重新发起请求。"
   },
   "mockDescriptions": {
+    "tool-timeline-thinking": "切换简洁占位、详细思考和两者组合；展开三次同名工具的摘要及原始详情。",
+    "thinking-placeholder": "持续 reasoning 时的简洁占位；启用 ThinkingIndicator 并关闭 Reasoning 展示实例。",
     "parallel-tools": "三个工具以确定性的交错顺序并行执行。",
     "nested-subagent-error": "展示带有归属内容的 SUBAGENT_ERROR nested reference case：nested assistant message 标记为 incomplete/error，保留错误前的 transcript。",
     "multimodal-input": "发送文本、小图片或 PDF 附件，使用标准 AG-UI 多模态输入。固定回复不代表附件已经验收，请检查实际请求。",

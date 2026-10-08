@@ -103,6 +103,8 @@ export type ThreadComponents = {
   AssistantMessageFooter?: ComponentType | undefined;
   Welcome?: ComponentType | undefined;
   ToolFallback?: ToolCallMessagePartComponent | undefined;
+  ThinkingIndicator?: ComponentType<{ reasoningVisible: boolean; timelineVisible: boolean }> | undefined;
+  reasoningVisible?: boolean | undefined;
   ToolTimeline?: ComponentType<PropsWithChildren> | undefined;
   ToolGroup?:
     | ComponentType<PropsWithChildren<{ group: ThreadGroupPart }>>
@@ -255,6 +257,7 @@ const ThreadRoot: FC<{
         className="relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth"
       >
         <div
+          data-slot="agent-ui-thread-content"
           className={cn(
             "mx-auto flex w-full max-w-(--thread-max-width) flex-1 flex-col px-4 pt-4",
             isEmpty && "justify-center",
@@ -614,6 +617,8 @@ const AssistantMessage: FC = () => {
     ToolFallback: ToolFallbackComponent = ToolFallback,
     ToolGroup,
     ToolTimeline,
+    ThinkingIndicator,
+    reasoningVisible = true,
     ReasoningGroup,
     TaskGroup: TaskGroupComponent,
     AssistantResponseFooter,
@@ -659,6 +664,7 @@ const AssistantMessage: FC = () => {
           </div>
         ) : (
           <div data-slot="aui_assistant-message-parts">
+            {ThinkingIndicator ? <ThinkingIndicator reasoningVisible={reasoningVisible} timelineVisible={!!ToolTimeline} /> : null}
             <MessagePrimitive.GroupedParts groupBy={groupBy}>
               {({ part, children }) => {
                 switch (part.type) {
@@ -689,6 +695,7 @@ const AssistantMessage: FC = () => {
                       </ToolGroupRoot>
                     );
                   case "group-reasoning": {
+                    if (ThinkingIndicator && (!reasoningVisible || !part.indices.some(index => parts[index]?.type === "reasoning" && parts[index].text))) return null;
                     if (ReasoningGroup) {
                       return (
                         <ReasoningGroup group={part}>{children}</ReasoningGroup>
@@ -707,6 +714,7 @@ const AssistantMessage: FC = () => {
                   case "text":
                     return <QuoteSelectableText />;
                   case "reasoning":
+                    if (ThinkingIndicator && (!reasoningVisible || !part.text)) return null;
                     return <Reasoning {...part} />;
                   case "tool-call": {
                     const call = timeline.calls.find(call => call.toolCallId === part.toolCallId);
@@ -739,6 +747,7 @@ const AssistantMessage: FC = () => {
                       </div>
                     );
                   case "indicator":
+                    if (ThinkingIndicator) return null;
                     return (
                       <span
                         data-slot="aui_assistant-message-indicator"
