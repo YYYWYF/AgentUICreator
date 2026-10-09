@@ -1,0 +1,9 @@
+{
+  "status": "NOT_RUN",
+  "reason": "Creator generated no plugin; original Host screenshots cannot satisfy plugin acceptance",
+  "screenshots": [],
+  "domAssertions": [],
+  "interactions": [],
+  "computedStyles": [],
+  "runtimeErrors": "NOT_OBSERVED; browser test not executed"
+}

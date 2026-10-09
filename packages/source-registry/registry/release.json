@@ -3,7 +3,7 @@
   "contractVersion": 1,
   "plugins": {
     "conversation-command-source": {
-      "version": "0.0.1"
+      "version": "0.0.2"
     },
     "assistant-ui-copy-action": {
       "version": "0.0.1"
@@ -111,7 +111,7 @@
       "version": "0.0.2"
     },
     "agent-identity": {
-      "version": "0.0.1"
+      "version": "0.0.2"
     },
     "assistant-ui-tool-timeline": {
       "version": "0.0.1"

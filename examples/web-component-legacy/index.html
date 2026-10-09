@@ -7,9 +7,9 @@
 const ui = document.querySelector('agent-ui');
 // Property assignment deliberately precedes Custom Element registration.
 ui.config = { conversationDataEndpoint: '/api' };
-ui.addEventListener('ready', event => console.info('ready', event.detail));
+ui.addEventListener('agent-ready', event => console.info('agent-ready', event.detail));
 ui.addEventListener('thread-change', event => console.info('thread-change', event.detail));
-ui.addEventListener('error', event => console.error('error', event.detail));
+ui.addEventListener('agent-error', event => console.error('agent-error', event.detail));
 </script>
 <script src="/agent-ui.js"></script>
 <script type="module" src="/src/attachments.ts"></script>

@@ -70,8 +70,8 @@ const CodeHeader: FC<CodeHeaderProps> = ({ language, code }) => {
   };
 
   return (
-    <div className="aui-code-header-root border-border/50 bg-muted/50 mt-3 flex items-center justify-between rounded-t-xl border border-b-0 px-3.5 py-1.5 text-xs">
-      <span className="aui-code-header-language text-muted-foreground font-medium lowercase">
+    <div data-slot="agent-ui-code-header" className="aui-code-header-root border-border/50 bg-muted/50 mt-3 flex items-center justify-between rounded-t-xl border border-b-0 px-3.5 py-1.5 text-xs">
+      <span data-slot="agent-ui-code-language" className="aui-code-header-language text-muted-foreground font-medium lowercase">
         {language}
       </span>
       <TooltipIconButton tooltip={localeMessages.common.copy} onClick={onCopy}>

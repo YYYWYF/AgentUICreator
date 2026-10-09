@@ -9,5 +9,7 @@ and mock attachment adapter with your Host APIs for deployment.
 
 The mock default exercises reasoning and a tool response; the official embedded
 preset also supplies Markdown, attachments, slash commands and quote context.
-Locale/theme controls and deliberately hostile Host styles are provided for later
-manual checks. Demo compilation is not browser or visual acceptance.
+Locale/theme controls and deliberately hostile Host styles exercise both isolation
+directions. Run `pnpm test:web-component` for the Chromium/Vue acceptance suite,
+which also checks Slash, Quote, attachments, tools, history identity, errors and
+unmount/remount. Compilation and browser acceptance are recorded separately.

@@ -848,7 +848,7 @@ export function ConversationCanonicalMessageError() {
 }
 
 export function ConversationMarkdownText() {
-  return <InternalMarkdownText />;
+  return <div data-slot="agent-ui-markdown"><InternalMarkdownText /></div>;
 }
 
 export function ConversationReasoning() {

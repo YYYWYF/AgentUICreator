@@ -107,6 +107,10 @@ function applyThreadListGroupIdentity(source, localPath) {
 
 export function applyProductAdaptations(source, localPath) {
   let installed = applyThreadListGroupIdentity(applyAgentUIPortalContainerBridge(source, localPath), localPath);
+  if (localPath === "components/assistant-ui/elements/markdown-text.tsx") {
+    installed = replaceExactlyOnce(installed, '<div className="aui-code-header-root', '<div data-slot="agent-ui-code-header" className="aui-code-header-root', localPath);
+    installed = replaceExactlyOnce(installed, '<span className="aui-code-header-language', '<span data-slot="agent-ui-code-language" className="aui-code-header-language', localPath);
+  }
   // Sidebar shell state is container-owned, never shared through browser globals.
   if (localPath === "components/ui/sidebar.tsx") {
     installed = replaceExactlyOnce(installed, 'import { useIsMobile } from "../../hooks/use-mobile";\n', '', localPath);

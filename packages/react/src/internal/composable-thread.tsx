@@ -435,7 +435,7 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
           <ComposerInputHostContext.Provider value={{ variant: "primary", placeholder, inputAriaLabel, autoFocus: resolvedAutoFocus }}>
             {input ?? <ComposerTextareaInput />}
           </ComposerInputHostContext.Provider>
-          <div className="aui-composer-action-wrapper relative flex items-center justify-between">
+          <div data-slot="aui_composer-actions" className="aui-composer-action-wrapper relative flex items-center justify-between">
             <div
               data-slot="aui_composer-leading-actions"
               className="flex items-center gap-1.5"
@@ -466,12 +466,13 @@ const ComposerAddAttachmentOverride: FC<{ label: string }> = ({ label }) => {
           side="bottom"
           variant="ghost"
           size="icon"
+          data-slot="agent-ui-composer-tool"
           className="aui-composer-add-attachment text-muted-foreground hover:text-foreground hover:bg-muted-foreground/15 dark:border-muted-foreground/15 dark:hover:bg-muted-foreground/30 size-7 rounded-full active:scale-[0.96] motion-reduce:transition-none"
           aria-label={label}
         />
       }
     >
-      <PlusIcon className="aui-attachment-add-icon size-4" />
+      <PlusIcon data-slot="agent-ui-composer-tool-icon" className="aui-attachment-add-icon size-4" />
     </ComposerPrimitive.AddAttachment>
   );
 };
@@ -501,10 +502,11 @@ export const ComposerDictateAction: FC<ComposerDictateActionProps> = ({
         type="button"
         variant="ghost"
         size="icon"
+        data-slot="agent-ui-composer-tool"
         className="aui-composer-dictate text-muted-foreground hover:text-foreground size-7 rounded-full"
         aria-label={ariaLabel}
       >
-        <MicIcon className="aui-composer-dictate-icon size-4" />
+        <MicIcon data-slot="agent-ui-composer-tool-icon" className="aui-composer-dictate-icon size-4" />
       </TooltipIconButton>
     </ComposerPrimitive.Dictate>
   </AuiIf>
@@ -527,10 +529,11 @@ export const ComposerStopDictationAction: FC<ComposerStopDictationActionProps> =
         type="button"
         variant="ghost"
         size="icon"
+        data-slot="agent-ui-composer-recording-stop"
         className="aui-composer-stop-dictation text-destructive size-7 rounded-full"
         aria-label={ariaLabel}
       >
-        <SquareIcon className="aui-composer-stop-dictation-icon size-3.5 animate-pulse fill-current" />
+        <SquareIcon data-slot="agent-ui-composer-recording-stop-icon" className="aui-composer-stop-dictation-icon size-3.5 animate-pulse fill-current" />
       </TooltipIconButton>
     </ComposerPrimitive.StopDictation>
   </AuiIf>
@@ -577,8 +580,8 @@ export const ComposerCancelAction: FC<{ label: string }> = ({ label }) => (
 const MessageError: FC = () => {
   return (
     <MessagePrimitive.Error>
-      <ErrorPrimitive.Root className="aui-message-error-root border-destructive bg-destructive/10 text-destructive dark:bg-destructive/5 mt-2 rounded-md border p-3 text-sm">
-        <ErrorPrimitive.Message className="aui-message-error-message line-clamp-2" />
+      <ErrorPrimitive.Root data-slot="agent-ui-message-error" className="aui-message-error-root border-destructive bg-destructive/10 text-destructive dark:bg-destructive/5 mt-2 rounded-md border p-3 text-sm">
+        <ErrorPrimitive.Message data-slot="agent-ui-message-error-text" className="aui-message-error-message line-clamp-2" />
       </ErrorPrimitive.Root>
     </MessagePrimitive.Error>
   );

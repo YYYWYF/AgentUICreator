@@ -16,5 +16,5 @@ export function QuoteSelectableText() {
     observer.observe(element, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, []);
-  return <div ref={ref} data-aui-quote-selectable="true"><MarkdownText /></div>;
+  return <div ref={ref} data-slot="agent-ui-markdown" data-aui-quote-selectable="true"><MarkdownText /></div>;
 }

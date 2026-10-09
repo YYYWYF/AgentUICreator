@@ -2,7 +2,7 @@
   "id": "agent-identity",
   "name": "Agent Identity",
   "description": "Displays configurable Agent name, logo and optional description in a normal Layout Slot.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "agent-identity"
   ],

@@ -4,7 +4,7 @@ import { executeCreatorCommand } from "./workspaceClient.js";
 import { useCreatorCommandState } from "./commands/useCreatorCommandState.js";
 import { CreatorCommandMenu } from "./commands/CreatorCommandMenu.js";
 import { useRef as useLocaleMessagesRef } from "react";
-import { localizeCreatorPresentation, CreatorLocaleProvider, useCreatorLocaleState, type CreatorLocaleCode, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
+import { localizeCreatorPresentation, CreatorLocaleProvider, type CreatorLocaleCode, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
 import { AgentConnectionPanel, CONNECTION_CHANGED, readAgentConnection } from "./AgentConnectionPanel.js";
 import { publishCreatorRefresh, readRefreshJson, type CreatorRefreshData } from "./creatorRefresh.js";
 import {
@@ -84,7 +84,6 @@ function CreatorSettings({ busy, ready, onCheckUpdates, onAgent, onMock }: {
   onAgent: () => void; onMock: () => void;
 }) {
   const localeMessages = useAgentUILocale();
-  const localeState = useCreatorLocaleState();
   const [open, setOpen] = useState(false);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
   const anchor = useRef<HTMLDivElement>(null);
@@ -98,7 +97,6 @@ function CreatorSettings({ busy, ready, onCheckUpdates, onAgent, onMock }: {
           </Button>
         </PopoverTrigger>
         <PopoverContent container={portalContainer} align="end" className="creator-settings-menu" aria-label={localeMessages.creatorWorkbench.settings}>
-          <select aria-label={localeMessages.creatorWorkbench.language} value={localeState.locale} onChange={event => localeState.setLocale(event.target.value as CreatorLocaleCode)}><option value="zh-CN">{localeMessages.creatorWorkbench.chineseName}</option><option value="en-US">{localeMessages.creatorWorkbench.englishName}</option></select>
           <Button variant="ghost" size="sm" disabled={!ready} onClick={() => { setOpen(false); onAgent(); }}><Plug aria-hidden="true" />{localeMessages.creatorWorkbench.connectAgent}</Button>
           <Button variant="ghost" size="sm" onClick={() => { setOpen(false); onMock(); }}><FlaskConical aria-hidden="true" />{localeMessages.creatorWorkbench.demosAndReplay}</Button>
           <Button variant="ghost" size="sm" disabled={busy || !ready} onClick={() => { setOpen(false); onCheckUpdates(); }}><RefreshCw aria-hidden="true" />{localeMessages.creatorWorkbench.pluginUpdates}</Button>

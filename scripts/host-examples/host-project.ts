@@ -1,5 +1,6 @@
 import { createAgentUIInitializationHost } from "../../packages/project-control/dist/runtime/project-control-runtime.mjs";
-import { access } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -42,8 +43,48 @@ async function main() {
     return;
   }
 
-  if ((command !== "init" && command !== "ensure") || (mode !== "assistant" && mode !== "embedded" && mode !== "platform")) {
-    throw new Error("Usage: host-project.ts inspect project | init|ensure assistant|embedded|platform project");
+  if ((command !== "init" && command !== "ensure" && command !== "adopt-sidebar") || (mode !== "assistant" && mode !== "embedded" && mode !== "platform")) {
+    throw new Error("Usage: host-project.ts inspect project | init|ensure|adopt-sidebar assistant|embedded|platform project");
+  }
+  if (command === "adopt-sidebar") {
+    const state = await inspectCreatorProject(projectRoot);
+    if (state.status !== "ready" || state.projectConfig.mode !== mode || state.projectConfig.sourceRoot !== sourceRoot || mode === "embedded") {
+      throw new Error("Sidebar adoption requires a ready platform or assistant Host with src/agent-ui.");
+    }
+    const source = await readFile(path.join(projectRoot, sourceRoot, "app-ui/app-ui.json"), "utf8");
+    const model = JSON.parse(source);
+    const root = model.root;
+    if (root.type === "sidebar" && root.header) return;
+    const history = root.children?.[0];
+    if (root.type !== "sidebar" && (root.type !== "row" || history?.type !== "panel" || history.child?.type !== "slot" ||
+        history.child.plugins?.length !== 1 || history.child.plugins[0].pluginId !== "conversation-thread-list" || root.children.length < 2)) {
+      throw new Error("Sidebar adoption requires the legacy default history-first Row; customized layouts must be migrated explicitly.");
+    }
+    const sources = await handleUIProjectControlRequest({ operation: "inspect_agent_ui_sources", input: {} }, projectRoot);
+    if (!sources.ok) throw new Error("Could not inspect managed Host sources");
+    const installed = await handleUIProjectControlRequest({ operation: "apply_agent_ui_source_item", input: {
+      itemId: "plugin/agent-identity", expectedStateHash: (sources.result as { stateHash: string }).stateHash,
+    } }, projectRoot);
+    if (!installed.ok) throw new Error(`Could not install Agent identity: ${JSON.stringify(installed.error)}`);
+    const content = root.type === "sidebar" ? root.content : { ...root, children: root.children.slice(1) };
+    if (root.type !== "sidebar" && content.sizes) content.sizes = content.sizes.slice(1);
+    if (root.type !== "sidebar" && content.responsive) {
+      if (content.responsive.primaryIndex < 1 || content.responsive.drawerIndex < 1) throw new Error("Unsupported responsive history placement.");
+      content.responsive = { ...content.responsive, primaryIndex: content.responsive.primaryIndex - 1, drawerIndex: content.responsive.drawerIndex - 1 };
+    }
+    const result = await handleUIProjectControlRequest({ operation: "mutate_app_ui_model", input: {
+      appUIModelHash: createHash("sha256").update(source).digest("hex"),
+      operations: [{ type: "replace_layout_node", nodeRef: "l0", node: {
+        ...(root.type === "sidebar" ? root : {
+          type: "sidebar", defaultActive: mode === "platform" ? "history" : null,
+          items: [{ id: "history", child: history.child }], content,
+        }),
+        header: { type: "slot", plugins: [{ id: "agent-identity-main", pluginId: "agent-identity", enabled: true }] },
+      } }],
+    } }, projectRoot);
+    if (!result.ok) throw new Error(`${result.error.code}: ${result.error.message}`);
+    console.log("Adopted the default Sidebar with Agent identity Header, preserving existing plugin configuration.");
+    return;
   }
   if (command === "ensure" && await access(path.join(projectRoot, ".agent-ui/project.json")).then(() => true, () => false)) {
     const migration = await handleUIProjectControlRequest({ operation: "migrate_official_package_plugin", input: { pluginId: "assistant-ui-composer" } }, projectRoot);

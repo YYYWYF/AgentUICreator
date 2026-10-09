@@ -1,0 +1,205 @@
+{
+  "scenario": "B",
+  "commit": "d058e342dd7fc2f539ae154c9ba3c7d4d1f6daef",
+  "activityRevision": 0,
+  "fixtureSource": {
+    "method": "reuse existing unchanged A/B/C fixtures",
+    "reason": "fresh initialization rejected baseline agent-identity global selector",
+    "packageArtifactsCommit": "d058e342dd7fc2f539ae154c9ba3c7d4d1f6daef",
+    "fixtureSource": "/Users/yifei/.codex/visualizations/2026/10/08/01a11971-df82-7e90-88d8-47db50c95f72/ui-selection"
+  },
+  "installedAntdVersion": "5.29.3",
+  "actualImports": [
+    "Button",
+    "Input",
+    "Card",
+    "ConfigProvider",
+    "theme"
+  ],
+  "provider": "ConfigProvider surrounds AgentMount",
+  "themeAlgorithms": [
+    "theme.defaultAlgorithm",
+    "theme.darkAlgorithm"
+  ],
+  "files": {
+    "src/App.tsx": {
+      "beforeSha256": "6cb02d4224a06fc57b6cb0f003ababcb39931c42f658335bc47b951f13aaaba7",
+      "afterSha256": "6cb02d4224a06fc57b6cb0f003ababcb39931c42f658335bc47b951f13aaaba7"
+    },
+    "src/AgentMount.tsx": {
+      "beforeSha256": "66a0cfa15f8e6d2393046966e9e581be64697f20496828211f4f8e5de61a418b",
+      "afterSha256": "66a0cfa15f8e6d2393046966e9e581be64697f20496828211f4f8e5de61a418b"
+    },
+    "src/design-system/system.css": {
+      "beforeSha256": "25032f14cb7b19f75ccd2b0981529d83e36777fcd37d4efdf07a7efa4a780377",
+      "afterSha256": "25032f14cb7b19f75ccd2b0981529d83e36777fcd37d4efdf07a7efa4a780377"
+    },
+    "package.json": {
+      "beforeSha256": "f1bd35cc502e00ff8e328107ef812b5cd4b5ea7fbb77e0e5cf8f73a16ad2ea2b",
+      "afterSha256": "f1bd35cc502e00ff8e328107ef812b5cd4b5ea7fbb77e0e5cf8f73a16ad2ea2b"
+    }
+  },
+  "sourceReads": [
+    {
+      "name": "read_file",
+      "arguments": {
+        "file_path": "/skills/ui-plugin-development/SKILL.md",
+        "limit": 1000
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "file_path": "/skills/ui-plugin-development/references/default-ui-composition.md",
+        "limit": 1000
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "file_path": "/src/App.tsx",
+        "limit": 200
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "file_path": "/src/AgentMount.tsx",
+        "limit": 300
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "file_path": "/src/design-system/system.css",
+        "limit": 300
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "file_path": "/package.json",
+        "limit": 200
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "file_path": "/src/agent-ui/agent-ui/i18n/locale-types.ts",
+        "limit": 300
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "file_path": "/src/agent-ui/agent-ui/i18n/locale-types.ts",
+        "limit": 400
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "file_path": "/src/agent-ui/plugins/conversation-thread-list/index.tsx",
+        "limit": 300
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "file_path": "/src/agent-ui/plugins/conversation-thread-list/manifest.json"
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "file_path": "/src/agent-ui/plugins/conversation-thread-list/definition.ts"
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "file_path": "/src/agent-ui/plugins/conversation-thread-list/styles.css",
+        "limit": 80
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "file_path": "/src/host.css",
+        "limit": 120
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "file_path": "/src/main.tsx",
+        "limit": 60
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "limit": 80,
+        "file_path": "/src/agent-ui/runtime/mode-shell/mode-shell.css"
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "limit": 80,
+        "file_path": "/src/agent-ui/runtime/mode-shell/PlatformShell.tsx"
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "limit": 100,
+        "file_path": "/vite-runtime-aliases.ts"
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "limit": 150,
+        "file_path": "/vite.config.ts"
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "file_path": "/src/agent-ui/index.ts"
+      }
+    },
+    {
+      "name": "read_file",
+      "arguments": {
+        "file_path": "/README.md",
+        "limit": 80
+      }
+    }
+  ],
+  "proposedPlans": [
+    {
+      "name": "prepare_ui_plugin_development",
+      "arguments": {
+        "deliveryContract": "<parameter=capability>business-notes",
+        "renderingCategory": "panel",
+        "placement": "relative after conversation-surface in the root Row (right-side business panel), recommendedSize.width=280px",
+        "lifecycle": "persistent visual side panel; notes kept in private React state for the session; no backend, no new Service, no AG-UI events, no Frontend Tools",
+        "dependencies": "[\"AGENT_UI_LOCALE_SERVICE (optionalInject, for useAgentUILocale)\", \"AGENT_UI_THEME_SERVICE (optionalInject, for AgentUIRoot theme parity)\"]",
+        "reusedComponents": "[\"@agent-ui/react public Button\", \"@agent-ui/react public Input\", \"@agent-ui/react Popover/Dialog facade (explanation overlay)\", \"useAgentUILocale existing namespace layer\", \"AgentUIRoot CSS theme tokens (--card/--border/--primary/--muted-foreground)\"]",
+        "verificationMethod": "runtime",
+        "interactions": "[\"type a note into the notes input\", \"click the add button and see the note appended to the notes list\", \"click the explanation button and open the explanation overlay, close it again\"]",
+        "geometry": "[]"
+      }
+    },
+    {
+      "name": "prepare_ui_plugin_development",
+      "arguments": {}
+    }
+  ],
+  "acceptedPlan": null,
+  "componentBasisRefs": null,
+  "uiScope": null,
+  "hashAuthorization": "NOT_RUN; invalid tool arguments never reached Host authority"
+}

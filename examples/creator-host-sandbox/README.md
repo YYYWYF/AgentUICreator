@@ -52,6 +52,10 @@ Mock 服务停止后该地址不可用，再次启动需要复制新地址并更
 
 ## Ownership and reset
 
+New projects default to the violet theme through the generated `agent-ui/theme/theme-config.ts`. Platform and Assistant projects default to a collapsed Sidebar: a 48px navigation rail opens the history panel (a contained drawer in narrow containers). Embedded retains its lightweight layout. Refresh reads the saved AppUIModel, so existing projects keep their layout until explicitly migrated.
+
+For an existing Platform sandbox with the legacy history-first layout, run `pnpm --filter @agent-ui/creator-host-sandbox adopt:sidebar` from the workspace root. This upgrades managed sources, installs `agent-identity`, and adds the identity Header through the validated AppUIModel transaction. Legacy history-first layouts move the existing history plugin into the Sidebar, preserving plugin configuration and adjusting content track indices. An existing Sidebar gains the Header while preserving its items and content; repeating the command preserves an existing Header. Customized layouts that do not match the legacy structure require explicit layout editing.
+
 Each Host owns its `src/App.tsx`, `src/AgentMount.tsx`, `src/main.tsx`, `src/host.css`, Vite config, package file, and `scripts/ui-project-control.ts`. Creator owns `src/agent-ui/**` after initialization; `.agent-ui/**` is control-plane metadata. The Host integrates Agent UI only through `import { Agent } from "./agent-ui"` and `<Agent />`.
 
 The fixed `scripts/ui-project-control.ts` entry is used by the development-only Creator sidecar. These three workspace examples delegate to the shared `@agent-ui/project-control` package; the entry supplies each Host's own project root. It is outside `src/` and is not included in the Host's production bundle. Initialization is owned by `@agent-ui/bootstrap`. Run `pnpm install` at the workspace root before using Creator so each Host has its local `node_modules/.bin/tsx` executable.

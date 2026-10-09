@@ -33,7 +33,7 @@
     {
       "localPath": "components/assistant-ui/elements/markdown-text.tsx",
       "upstreamInstalledSha256": "b041132faa98790395e4161329249eb1a38642ce7a5603042a67e7ab7ff72808",
-      "installedSha256": "a44545e956a3fe1b292f7c55b0bc94738814a30fbb3bc2c5ac38f8cd76bea03d"
+      "installedSha256": "98a363cf9b4840c8e7fbd60e3bb09ef3ca40720f35b65b5f281131e7086140fa"
     },
     {
       "localPath": "components/assistant-ui/elements/media-player.tsx",

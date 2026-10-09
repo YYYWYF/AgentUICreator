@@ -1,0 +1,37 @@
+file:///Users/yifei/.codex/worktrees/host-ui-p1-acceptance/AgentUICreator/packages/bootstrap/dist/initialize-agent-ui-project.js:108
+            throw new AgentUIInitializationError("AGENT_UI_INITIALIZATION_VERIFICATION_FAILED", "Prospective Agent UI project failed static verification.", verification.errors);
+                  ^
+
+AgentUIInitializationError: Prospective Agent UI project failed static verification.
+    at initializeAgentUIProject (file:///Users/yifei/.codex/worktrees/host-ui-p1-acceptance/AgentUICreator/packages/bootstrap/dist/initialize-agent-ui-project.js:108:19)
+    at async file:///Users/yifei/.codex/worktrees/host-ui-p1-acceptance/AgentUICreator/[eval1]:4:1 {
+  code: 'AGENT_UI_INITIALIZATION_VERIFICATION_FAILED',
+  details: [
+    {
+      code: 'PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED',
+      pluginId: 'agent-identity',
+      message: 'Plugin "agent-identity" contains global selector "[data-slot="sidebar"][data-state="collapsed"] .agent-identity-heading" at src/agent-ui/plugins/agent-identity/styles.css:10. Plugin styles must be scoped under a Plugin-owned root selector.'
+    }
+  ]
+}
+
+Node.js v24.20.0
+Traceback (most recent call last):
+  File "/tmp/host-ui-p1-20261009/run.py", line 7, in <module>
+    runpy.run_path(str(Path.cwd()/'packages/creator-python/tests/live/ui_selection_acceptance.py'),run_name='__main__')
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 294, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/yifei/.codex/worktrees/host-ui-p1-acceptance/AgentUICreator/packages/creator-python/tests/live/ui_selection_acceptance.py", line 173, in <module>
+    if sys.argv[1]=='setup': setup()
+                             ~~~~~^^
+  File "/Users/yifei/.codex/worktrees/host-ui-p1-acceptance/AgentUICreator/packages/creator-python/tests/live/ui_selection_acceptance.py", line 39, in setup
+    project = fresh_host(OUTPUT)
+  File "/Users/yifei/.codex/worktrees/host-ui-p1-acceptance/AgentUICreator/packages/creator-python/tests/live/test_official_composer.py", line 118, in fresh_host
+    subprocess.run(["node", "--input-type=module", "-e", script, str(project)], cwd=ROOT, check=True)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['node', '--input-type=module', '-e', '\nimport { initializeAgentUIProject } from "./packages/bootstrap/dist/index.js";\nimport { createAgentUIInitializationHost } from "./packages/project-control/dist/runtime/project-control-runtime.mjs";\nawait initializeAgentUIProject({ projectRoot: process.argv[1], mode: "platform", sourceRoot: "src/agent-ui" }, createAgentUIInitializationHost());\n', '/private/tmp/host-ui-p1-20261009/fixtures/composer-host']' returned non-zero exit status 1.

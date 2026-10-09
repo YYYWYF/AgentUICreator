@@ -4,5 +4,11 @@
     "changes": [
       "Compose existing Sidebar primitives; edit config.ts for branding."
     ]
+  },
+  "0.0.2": {
+    "summary": "Allow identity installation through Host style validation",
+    "changes": [
+      "Scope collapsed and drawer heading selectors to the Agent identity plugin."
+    ]
   }
 }

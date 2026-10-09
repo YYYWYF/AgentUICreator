@@ -17,6 +17,7 @@
     "init:assistant": "node --import tsx ../../scripts/host-examples/host-project.ts init assistant creator-host-sandbox",
     "init:embedded": "node --import tsx ../../scripts/host-examples/host-project.ts init embedded creator-host-sandbox",
     "init:platform": "node --import tsx ../../scripts/host-examples/host-project.ts init platform creator-host-sandbox",
+    "adopt:sidebar": "node ../../scripts/prepare-host-packages.mjs && node --import tsx ../../scripts/host-examples/host-project.ts ensure platform creator-host-sandbox && node --import tsx ../../scripts/host-examples/host-project.ts adopt-sidebar platform creator-host-sandbox",
     "verify:ui": "node --import tsx scripts/verify-ui.ts",
     "pretypecheck": "node ../../scripts/prepare-host-packages.mjs && node --import tsx ../../scripts/host-examples/host-project.ts ensure platform creator-host-sandbox",
     "preinspect": "node ../../scripts/prepare-host-packages.mjs",

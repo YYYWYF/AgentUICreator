@@ -60,12 +60,12 @@ describe("Adaptable Violet brand boundary", () => {
     expect(shell[2]).toContain("background: var(--card);");
     expect(shell[2]).toContain("background-image: none;");
     expect(shell[2]).toContain("border-color: var(--input);");
-    const hover = rules(css).find(rule => rule[1]!.trim().endsWith(":hover"))!;
+    const hover = rules(css).find(rule => rule[1]!.trim().endsWith('[data-slot="aui_composer-shell"]:hover'))!;
     const focus = rules(css).find(rule => rule[1]!.trim().endsWith(":focus-within"))!;
     expect(hover[2]).toContain("border-color: var(--agent-brand-hover-border);");
     expect(hover[2]).not.toMatch(/background|box-shadow/u);
-    expect(focus[2]).toContain("border-color: var(--agent-brand-focus-border);");
-    expect(focus[2]).toContain("box-shadow: 0 0 0 1px var(--agent-brand-focus-ring);");
+    expect(focus[2]).toContain("border-color: var(--agent-composer-focus-border);");
+    expect(focus[2]).toContain("box-shadow: 0 0 0 1px var(--agent-composer-focus-ring), var(--agent-composer-shadow);");
     expect(css).not.toContain("color-mix(");
     for (const path of ["../src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx", "../src/internal/composable-thread.tsx"]) {
       expect(await read(path)).toContain('data-slot="aui_composer-shell"');
@@ -85,7 +85,7 @@ describe("Adaptable Violet brand boundary", () => {
     const user = rules(css).find(rule => rule[1]!.trim().endsWith('[data-slot="aui_user-message-content"]'))!;
     const active = rules(css).find(rule => rule[1]!.trim().endsWith('[data-active="true"]'))!;
     const hover = rules(css).find(rule => rule[1]!.trim().endsWith('[data-slot="aui_thread-list-item"]:hover'))!;
-    expect(user[2]).toContain("background-color: var(--agent-brand-selected);");
+    expect(user[2]).toContain("background-color: var(--agent-brand-surface);");
     expect(active[2]).toContain("background-color: var(--agent-brand-selected);");
     expect(hover[2]).toContain("background-color: var(--muted);");
     expect(css.indexOf(active[1]!.trim())).toBeGreaterThan(css.indexOf(hover[1]!.trim()));

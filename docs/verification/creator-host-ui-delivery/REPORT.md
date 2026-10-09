@@ -1,55 +1,54 @@
-# 宿主 UI 选型证据闭环修复
+# 宿主 UI 智能复用 P1 最终验收结果
 
-日期：2026-10-08。基线：`95079462447ae37f54de96c5f64b80df66a4e177`（dev）。
+日期：2026-10-09（Asia/Shanghai）。基线：`d058e342dd7fc2f539ae154c9ba3c7d4d1f6daef`。
 
-遵照用户最后指令“做完推送，不要验收”，本次完成方案第一阶段的实现、确定性回归和推送；第二阶段真实 Creator / 浏览器验收未执行，不创建验收成功提交，不宣称功能签收或仓库发布通过。
+**HOST_UI_INTELLIGENT_REUSE = FAIL，未签收。** B 的真实模型提案选择了错误的组件体系，同时存在工具参数协议错误和 Host 环境阻塞。没有生成插件，A/C 及插件浏览器视觉验收按停止条件未执行。
 
-## 实现
-
-- `create-plugin` 的 `panel` / `semantic-slot` 计划必须提供 `componentBasisRefs`，且至少包含页面、组件或 UI 使用入口的源码类型文件。只有 package.json、JSON 配置、样式或声明文件不满足入口要求。这是结构性事实约束，不解析 import、统计包名或替 AI 判断组件库。
-- 复用现有 `_component_hashes()`、proposal hashes 和 `_assert_basis_fresh()`。新插件依据在计划准备时固定内容哈希，恢复开发授权及首次创建写入前复核。依据删除、修改、依赖变化、符号链接改指向均要求刷新方案。
-- 复用 Creator 现有读取路径策略，校验请求路径及解析后的真实路径。拒绝工程外文件、缺失文件、目录、路径穿越、环境文件和 node_modules / 构建产物等禁读位置。继续支持工程虚拟路径及既有 sourceRoot 逻辑路径。
-- Application / headless / 无交付契约的既有非目标入口不增加强制依据要求；已有能力扩展、条件请求复用已有资源不被新建视觉插件约束误拦截。适配组件的原有依据约束保留。
-- Skill 和现有 composition reference 明确使用 `uiScope`、`componentBasisRefs`、`deliveryContract.reusedComponents` 记录 UI 体系、真实 imports、源码、Provider/主题及其他体系未选原因。负面调查也是合法计划，但不免除实际调查依据。没有新增 Schema、工具、UI Adapter 或库选择服务，也没有改模型默认配置、预算、超时、重试或 P0 完成门。
-
-文件存在、哈希固定和源码后缀检查不能证明源码内容与业务相关，也不能证明 Creator 的语义选型正确；这些仍需真实生成代码和产品验收。
-
-## 必要代码检查
-
-新增测试：`test_plugin_development_ui_basis.py`，**33 passed**。覆盖 panel / semantic-slot 缺少依据、仅元数据或样式、路径边界和禁读位置、哈希、授权恢复、首次写入前失效及刷新、符号链接、Antd / 自研混合 / 无合适组件的计划、非目标入口、条件复用、既有适配与无关文件变化。组件库场景测试仅验证 Host 接受有事实依据的计划，不模拟或证明模型的选择正确。
-
-相关授权回归：`test_plugin_development_authority.py`、`test_plugin_development_golden.py`、`test_plugin_development_server.py`，修改前后均 **17 passed / 60 failed**，失败名称完全相同。
-
-P0 扩大回归：`test_creator_validation.py`、`test_creator_validation_differential.py`、`test_validation_command_runner.py`、`test_plugin_delivery.py`、`test_recovery_completion.py`、`test_debugging_completion.py`、`test_domain_write_agent.py`，当前与独立导出的基线源码均 **124 passed / 32 failed**，失败名称完全相同。历史测试未改，也未为旧断言调整无关生产逻辑。
-
-完整失败名称、基线计数和当前计数保存在 `regression-comparison.json`，pytest 原始概要输出在 `checks/`。基线授权回归在编辑前运行；P0 基线以 `git archive HEAD` 导出 Python 源码、Skill、contracts 及必要工作区元数据，用同一 Python 环境和未修改的测试运行。初始化时缺少合同资源定位元数据的收集失败已补齐导出环境后重跑，未改生产行为。
-
-`pnpm check:i18n`、Python compileall 和修改文件 whitespace 检查通过。`node packages/react/scripts/check-assistant-ui-upstream.mjs` 返回 `assistant-ui upstream-owned Elements: OK`。此次提交无 vendor、AG-UI、Runtime、Plugin 协议、官方插件 ownership 或依赖变更；未运行完整升级和发布 gate。工作区其他已有改动不纳入本提交。
-
-复现新增测试：
-
-```sh
-PYTHONPATH=packages/creator-python packages/creator-python/.venv/bin/python -m pytest packages/creator-python/tests/test_plugin_development_ui_basis.py -q
-```
-
-## 未执行的产品验收
-
-| 场景 | 状态 |
+| 项目 | 结果 |
 | --- | --- |
-| B：Ant Design 5 真实 Creator 生成、挂载、验证、交付 | NOT_RUN：用户要求不验收 |
-| A：自研 Design System 真实生成与交付 | NOT_RUN：用户要求不验收 |
-| C：混合组件库真实生成与交付 | NOT_RUN：用户要求不验收 |
-| A/B 明暗 × 桌面/窄视图、输入/添加/弹层、Portal/Focus/隔离 | NOT_RUN：用户要求不验收 |
+| 真实模型工具 Smoke | PASS，mimo-v2.6-flash，合法 value=41；消费 PROBE_RESULT_42 |
+| B 宿主源码调查 | 已实际读取 src/App.tsx、AgentMount.tsx、主题 CSS、package.json 等 |
+| B UI 选型 | FAIL_UI_SELECTION：提案选择 @agent-ui/react 控件及 AgentUI tokens |
+| Host 接收、授权及依据哈希 | NOT_RUN：模型工具参数不合法，提案未到达 Host |
+| 插件创建、注册、挂载 | NOT_RUN，没有源码写入 |
+| 最终 revision 静态验证和 Build | NOT_RUN，没有插件交付回执 |
+| B 插件视觉与交互 | NOT_RUN，没有真实生成插件 |
+| A/C | NOT_RUN，B 未通过 |
 
-没有本次模型调用日志、真实开发计划、生成插件 diff/import 证据、最终 revision 交付回执、浏览器交互记录或截图。既有 Host 基线截图不充当生成插件截图。未排查或重跑 MiMo 超时/网络问题，未用 Fake Model 或手写插件冒充 Creator 成果。
+## 真实运行证据
 
-## 独立 CI 修复清单
+沿用原 ui_selection_acceptance.py、ObservedHost/ProjectControlClient、真实 Creator、既有 Skill、完成门和 static_only 模式，没有 Fake Model 或手写业务插件。运行用隔离工作树的基线 Python、Skill 及编译包，Host 是复制的既有 Fixture，用户宿主工程未修改。模型配置来自现有工具宿主配置，不复制密钥到报告。
 
-沿用方案和既有记录中的待查项，不在此次修复内处理，也未重新运行 GitHub Actions 来确认当前状态：
+Smoke 耗时 13.32 秒并通过。但小规模工具兼容通过不证明完整 Creator 能交付。B 耗时 313.42 秒：指标为 22 次模型调用、21 次 transport attempt、52 个工具调用、50 个有效调用、2 个参数失败。无 transport failure。配置保持 maxTokens=2048、单请求 120 秒、整体 600 秒、maxRetries=2、模型调用预算 24，未修改默认配置、Prompt、Skill、预算或超时。
 
-- 包入口解析失败。
-- `@agent-ui/plugins` 缺失。
-- Host 初始化与官方 Composer 身份相关问题。
-- 视觉断言失败。
+模型读取 src/App.tsx 后，实际发出 prepare_ui_plugin_development 提案，其中 reusedComponents 为 `@agent-ui/react public Button`、`@agent-ui/react public Input`、`@agent-ui/react Popover/Dialog facade` 以及 AgentUIRoot CSS theme tokens。宿主页面真实 import Antd 的 Button/Input/Card，ConfigProvider 包围 AgentMount，并使用默认/暗色算法。故本次模型提出的 UI 复用方案不符合 B 要求，标记 FAIL_UI_SELECTION；该证据来自真实模型输出，而非对模型意图的推测。
 
-实现及确定性新增测试完成，不等于真实 UI 智能复用产品验收或整个仓库可发布。
+须区分：这是**模型提出的未被 Host 接收的计划**，不是 Host 授权成功的计划。deliveryContract 被生成为字符串 `<parameter=capability>business-notes`，其余契约字段错误地放在顶层；另一个同名调用参数为空。协议诊断分别为 deliveryContract/model_type 与 deliveryContract/missing。提案没有合法 componentBasisRefs/uiScope，Host 没有接受开发计划或核验依据哈希。
+
+第 21 个 trace finishReason=length、输出 2048 tokens；既有一次 bounded continuation 后仍报 ModelResponseTruncatedError。第 22 个 trace 虽有 tool_calls，参数校验仍失败。归入 MODEL_PROTOCOL_ERROR，不能把它描述为网络超时或单纯 NO_PROGRESS，也不能仅因协议错误抹去明确的错误 UI 提案。之前的多轮读取/搜索未推进到授权；日志仍保留，不推定唯一根因。
+
+activity files=[]、validations=[]，projectRevision=0，deliveries=[]，源文件和依赖变更列表为空。没有 create_custom_plugin、Registry/AppUIModel 写入，没有 statically-verified 回执，也没有 Runtime 或浏览器成功证据。没有重复 600 秒 MiMo 测试；不增大 token 预算、不改提示词来获取通过结果。
+
+## Host 环境限制
+
+1. 隔离基线离线 pnpm install 和真实 Host package builds 成功，但现有 fresh_host 初始化失败：AGENT_UI_INITIALIZATION_VERIFICATION_FAILED，官方 agent-identity/styles.css:10 的 `[data-slot="sidebar"][data-state="collapsed"] .agent-identity-heading` 被 PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED 拒绝。原始诊断在 checks/p1-final/setup.log。
+2. 优先复用既有 A/B/C Fixture，保留源码、项目配置和 source-lock，并重链接基线编译包。B 实际安装 antd 5.29.3，React 页面有真实 Antd 控件、Provider 和明暗算法。恢复必要 .agent-ui 元数据后 verify:ui 通过；第一次缺失元数据的诊断不作为最终 verify:ui 结果。
+3. 旧 Fixture 的 framework/runtime 源码与基线 runtime-core 的 SidebarNode 合同不匹配。测试前 typecheck/build 已报 children/slotId 等 TS2339 及隐式参数类型错误，因此 Host **不满足干净基线前置条件**。这些错误早于 Creator，不能归因于生成插件；也不能把这个诊断性 B 运行作为完整有效端到端验收。React 浏览器可运行性未验证。
+
+本轮没有修复上述生产代码、改写 Fixture 的 framework/runtime 或放宽校验。最小后续建议：独立修复官方 agent-identity 的插件根作用域选择器；以同一基线发布物准备合同一致的 Host 后重跑 B。模型侧先定位截断续写与契约对象结构错误，再确定是否需要另一个已验证的真实模型对照；本轮不改预算或默认配置。选型偏差也须独立跟踪，不能只解决参数结构就签收。
+
+## 确定性回归及边界
+
+- test_plugin_development_ui_basis.py：33 passed。
+- 授权回归：17 passed / 60 failed，与原始失败名称完全相同，新增失败 0。
+- P0 回归：125 passed / 31 failed，新增失败 0。历史记录为 124/32，本次 test_behavior_tool_runs_real_project_browser_tests 不再失败；不据此宣称所有 P0 问题已修复。
+
+回归运行于指定基线，并按原始失败名称比较。完整诊断在 checks/p1-final，比较在 regression-comparison.json。历史 60/31 项失败仍为失败，仓库 CI 未重跑、不能记为 PASS。
+
+生产实现和现有测试断言零改动：P0 验证、PluginDevelopmentAuthority、assistant-ui vendor、AG-UI/Runtime、官方插件 ownership、UI 依赖均未修改。仅交付本轮报告和证据；此前第一阶段报告保存在 phase1-REPORT.md / phase1-summary.json。
+
+## 交付文件
+
+summary.json 汇总阶段状态；model-tool-timeline.json 保留模型及工具时序、协议指标、真实提案；host-ui-evidence.json 保留源码 SHA256、依赖版本和 Provider/主题事实；delivery-receipts.json 明确没有有效开发计划/交付；generated-source-diff/result.json 记录零源码变更；visual/results.json 明确 NOT_RUN，不用 Host 基线截图替代插件截图。environment.json 记录提交、运行环境和隔离原始证据路径。
+
+B 完整成功案例未取得，任务要求的成功验收条件尚未达成。按本轮测试范围输出失败及阻塞证据，不扩展修复架构，不执行 A/C 的完整模型测试，不签收整个功能。

@@ -1,0 +1,19 @@
+
+> @agent-ui/creator-host-sandbox@0.1.0 build
+> tsc --noEmit && vite build
+
+src/agent-ui/framework/contracts/app-ui-composition.ts(108,8): error TS2339: Property 'children' does not exist on type 'ColumnNode | RowNode | SidebarNode | StackNode'.
+  Property 'children' does not exist on type 'SidebarNode'.
+src/agent-ui/framework/contracts/app-ui-composition.ts(108,26): error TS7006: Parameter 'child' implicitly has an 'any' type.
+src/agent-ui/framework/contracts/app-ui-runtime-model.ts(145,35): error TS2339: Property 'slotId' does not exist on type 'SidebarNode | SlotNode'.
+  Property 'slotId' does not exist on type 'SidebarNode'.
+src/agent-ui/framework/contracts/app-ui-runtime-model.ts(146,109): error TS2339: Property 'slotId' does not exist on type 'SidebarNode | SlotNode'.
+  Property 'slotId' does not exist on type 'SidebarNode'.
+src/agent-ui/framework/contracts/app-ui-runtime-model.ts(146,166): error TS2339: Property 'slotId' does not exist on type 'SidebarNode | SlotNode'.
+  Property 'slotId' does not exist on type 'SidebarNode'.
+src/agent-ui/framework/contracts/app-ui-runtime-model.ts(148,26): error TS2339: Property 'slotId' does not exist on type 'SidebarNode | SlotNode'.
+  Property 'slotId' does not exist on type 'SidebarNode'.
+src/agent-ui/runtime/diagnostics/PluginDiagnosticContext.tsx(69,8): error TS2339: Property 'children' does not exist on type 'ColumnNode | RowNode | SidebarNode | StackNode'.
+  Property 'children' does not exist on type 'SidebarNode'.
+src/agent-ui/runtime/diagnostics/PluginDiagnosticContext.tsx(69,26): error TS7006: Parameter 'child' implicitly has an 'any' type.
+src/agent-ui/runtime/diagnostics/PluginDiagnosticContext.tsx(69,33): error TS7006: Parameter 'index' implicitly has an 'any' type.

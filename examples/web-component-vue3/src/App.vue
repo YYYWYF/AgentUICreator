@@ -20,8 +20,8 @@ const error = ref("");
 <style>
 /* Deliberately hostile Host styles; the bridge owns its Shadow DOM CSS. */
 * { box-sizing: content-box; }
-button { background: #ffc; color: #900; border: 4px dotted red; }
-input { font-size: 32px; background: yellow; }
+button { background: #ffc; color: #900; border: 10px solid red; }
+input { font-size: 40px; background: yellow; }
 p { color: red; font-size: 32px; }
 body { margin: 24px; background: #f3f3f3; }
 .controls { margin-bottom: 16px; display: flex; gap: 16px; align-items: center; }

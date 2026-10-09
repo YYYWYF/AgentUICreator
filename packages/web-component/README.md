@@ -6,7 +6,7 @@ It bundles React, React DOM, assistant-ui and the official embedded preset's
 React plugins. Host applications do not declare React or compile TSX.
 
 ```ts
-import "@agentui/web-component";
+import "@agentui/web-component/register";
 const element = document.createElement("agent-ui");
 element.config = {
   endpoint: "/agent",
@@ -55,9 +55,9 @@ Events are `CustomEvent`s with `bubbles: true` and `composed: true`:
 
 | Event | Detail | Meaning |
 | --- | --- | --- |
-| `ready` | `{ threadId }` | Valid composition mounted with the canonical Runtime; not a network-health promise |
+| `agent-ready` | `{ threadId }` | Valid composition mounted with the canonical Runtime; not a network-health promise |
 | `thread-change` | `{ threadId }` | Initial or subsequently active identity |
-| `error` | `{ code, error }` | Configuration/composition or Runtime error; backend detail is data |
+| `agent-error` | `{ code, error }` | Configuration/composition or Runtime error; backend detail is data |
 
 Connection identity changes (`endpoint`, `threadId`, history base) restart the
 session, cancelling the active run. Locale/theme changes preserve drafts and the
@@ -88,13 +88,43 @@ Both demos consume the built bundle, serve the existing mock AG-UI/history APIs,
 and deliberately apply hostile Host CSS. Vue's wrapper uses `createElement`, so
 custom-element template compiler configuration is unnecessary.
 
-This first phase does not publish to npm, add `/install` framework detection,
-create Vue 2 wrappers, Vue feature plugins, Vue slots, Vue Tool UI registration,
-or a second renderer. Browser/visual acceptance is separate and was not run for
-this change. The existing product Portal wrappers target `AgentUIRoot` inside the
-Shadow Root. The product Quote adapter also listens for non-composed Shadow
-Root scroll events and invokes upstream dismissal; this is replayed by its
-guarded generation recipe. Pristine assistant-ui vendor sources are unchanged.
+## Install and customize the producer project
+
+`/install web-component-bridge` discovers the compatibility resource through the
+existing official resource catalog and dependency/install/apply mechanism. Its
+kind is `compatibility`, with `vue`, `legacy` and `html` targets. It does not add a
+framework renderer or change UI Plugin manifest kinds.
+
+The resource installs a project-owned library entry and build configuration:
+
+```sh
+pnpm exec vite build --config src/agent-ui/integrations/web-component-bridge/vite.config.ts
+```
+
+Adjust `src/agent-ui` to the project's configured sourceRoot. The result is
+`dist/agent-ui-web-component/agent-ui.js`, an ESM bundle with Shadow CSS included.
+Load this compiled file in the Vue/HTML consumer. The build configuration and
+React dependencies live in the canonical Agent UI **producer** project. The Vue
+consumer only loads the output. Edit the producer's AppUIModel and React Plugins,
+then rebuild; the consumer does not gain a separate set of Plugins.
+
+The default package preset and native React Hosts share the generated
+`application/AgentSurface.tsx`. `AgentUIBridgeRoot` reexports the product-owned
+compatibility composition. `@agentui/web-component/host` exports the thin Custom
+Element factory used by project-specific bundles, without importing the default
+preset. Ordinary React entries never load that factory or create Shadow DOM.
+
+```sh
+pnpm test:web-component
+```
+
+This verifies element lifecycle, standalone distribution, resource installation,
+local Plugin edits reaching the bundle, a fresh native React build/typecheck, and
+four Chromium/Vue acceptance cases. Browser checks cover streaming, Markdown,
+tools, Slash, Quote, attachments, history identity, theme/locale updates, portals,
+errors, CSS isolation, unmount/remount and one request per send. Mock endpoints
+provide browser evidence; real backend acceptance and npm publishing are separate.
+Pristine assistant-ui vendor sources remain unchanged.
 
 The bridge targets modern browsers with Custom Elements, Shadow DOM and the
 existing React Runtime browser APIs; “legacy” describes the Host framework, not

@@ -1,21 +1,53 @@
 {
-  "date": "2026-10-08",
-  "baselineRevision": "95079462447ae37f54de96c5f64b80df66a4e177",
-  "implementation": "COMPLETE",
-  "acceptance": "NOT_RUN",
-  "acceptanceReason": "User explicitly requested no acceptance",
+  "date": "2026-10-09",
+  "baselineRevision": "d058e342dd7fc2f539ae154c9ba3c7d4d1f6daef",
+  "HOST_UI_INTELLIGENT_REUSE": "FAIL",
+  "acceptance": "FAIL",
+  "signedOff": false,
+  "model": "mimo-v2.6-flash",
+  "smoke": {
+    "model": "mimo-v2.6-flash",
+    "timeoutSeconds": 120.0,
+    "maxTokens": 2048,
+    "realModel": true,
+    "toolCalls": [
+      {
+        "name": "acceptance_probe",
+        "args": {
+          "value": 41
+        },
+        "id": "call_e9909dbd05034d44bdfe63a9",
+        "type": "tool_call"
+      }
+    ],
+    "consumedResult": true,
+    "status": "PASS",
+    "durationSeconds": 13.32253612484783
+  },
   "scenarios": {
-    "A": {
-      "status": "NOT_RUN"
-    },
     "B": {
-      "status": "NOT_RUN"
+      "status": "FAIL",
+      "classification": "FAIL_UI_SELECTION",
+      "additionalClassifications": [
+        "MODEL_PROTOCOL_ERROR",
+        "BLOCKED_ENVIRONMENT"
+      ],
+      "realCreatorInvoked": true,
+      "hostSourceRead": true,
+      "hostAcceptedPlan": false,
+      "generatedPlugin": false,
+      "registryAndMount": false,
+      "finalValidation": "NOT_RUN",
+      "deliveryStatus": null,
+      "visual": "NOT_RUN"
+    },
+    "A": {
+      "status": "NOT_RUN",
+      "reason": "B did not pass"
     },
     "C": {
-      "status": "NOT_RUN"
-    },
-    "visual": {
-      "status": "NOT_RUN"
+      "status": "NOT_RUN",
+      "reason": "B did not pass"
     }
   },
   "checks": {
@@ -29,16 +61,57 @@
       "newFailures": 0
     },
     "p0Regression": {
-      "passed": 124,
-      "failed": 32,
+      "passed": 125,
+      "failed": 31,
       "newFailures": 0
-    },
-    "i18n": "PASS",
-    "compileall": "PASS",
-    "diffCheck": "PASS",
-    "assistantUiUpstreamBoundary": "PASS"
+    }
   },
+  "hostBaseline": {
+    "freshInitialization": "BLOCKED_ENVIRONMENT",
+    "reusedFixture": {
+      "verify:ui": "PASS",
+      "typecheck": "FAIL",
+      "build": "FAIL"
+    },
+    "fixtureMeetsPrerequisites": false
+  },
+  "modelRun": {
+    "modelCalls": 22,
+    "modelTransportAttempts": 21,
+    "modelTransportFailures": 0,
+    "toolCalls": 52,
+    "validToolCalls": 50,
+    "invalidToolCalls": 2,
+    "toolArgumentParseFailures": 2,
+    "modelTruncatedTurns": 1,
+    "modelTruncationRepairAttempts": 1,
+    "modelTruncationRepairFailures": 1,
+    "inputTokens": 1326310,
+    "outputTokens": 16518
+  },
+  "durationSeconds": 313.41903949994594,
+  "sourceChangedFiles": [],
   "ci": "NOT_RUN",
-  "releaseAcceptance": "NOT_RUN",
-  "generatedPluginEvidence": false
+  "productionImplementationChanged": false,
+  "environment": {
+    "model": "mimo-v2.6-flash",
+    "singleRequestTimeoutSeconds": 120.0,
+    "overallTimeoutSeconds": 600,
+    "maxTokens": 2048,
+    "maxRetries": 2,
+    "rawTraceEnabled": false,
+    "commit": "d058e342dd7fc2f539ae154c9ba3c7d4d1f6daef",
+    "scenario": "B",
+    "host": "React + Ant Design 5",
+    "skillsRoot": "/Users/yifei/.codex/worktrees/host-ui-p1-acceptance/AgentUICreator/packages/creator/skills",
+    "modelCallBudget": 24,
+    "os": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "python": "3.14.7",
+    "node": "24.20.0",
+    "npm": "11.19.0",
+    "pnpm": "11.24.0",
+    "timezone": "Asia/Shanghai",
+    "rawEvidenceDirectory": "/Users/yifei/.codex/visualizations/2026/10/09/01a11e49-1619-7d50-9fc2-2898803f269f/host-ui-p1/raw-evidence",
+    "worktree": "/Users/yifei/.codex/worktrees/host-ui-p1-acceptance/AgentUICreator"
+  }
 }

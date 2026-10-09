@@ -47,7 +47,8 @@
     "verify:creator-distribution": "node scripts/verify-creator-distribution.mjs",
     "check:project-control-contract": "node scripts/check-project-control-contract.mjs",
     "check:i18n": "node scripts/audit-ui-copy.mjs",
-    "audit:ui-copy": "node scripts/audit-ui-copy.mjs --output docs/i18n/ui-copy-audit.json"
+    "audit:ui-copy": "node scripts/audit-ui-copy.mjs --output docs/i18n/ui-copy-audit.json",
+    "test:web-component": "pnpm --filter @agentui/web-component build && pnpm --filter @agentui/web-component test && pnpm --filter @agentui/web-component test:distribution && pnpm --filter @agentui/web-component test:installation && pnpm --filter @agent-ui/creator-workbench exec tsc --noEmit -p tsconfig.web-component-tests.json && pnpm --filter @agent-ui/creator-workbench exec playwright test -c playwright.web-component.config.ts"
   },
   "devDependencies": {
     "typescript-ui-audit": "npm:typescript@5.9.3"

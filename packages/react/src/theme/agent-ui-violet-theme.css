@@ -16,6 +16,10 @@
   --agent-brand-hover-border: color-mix(in oklab, var(--background) 78%, var(--agent-brand));
   --agent-brand-focus-border: var(--agent-brand-solid);
   --agent-brand-focus-ring: color-mix(in oklab, var(--agent-brand) 20%, transparent);
+  /* Composer focus stays soft; keyboard control outlines retain their contrast. */
+  --agent-composer-focus-border: color-mix(in srgb, var(--agent-brand) 34%, var(--background));
+  --agent-composer-focus-ring: color-mix(in srgb, var(--agent-brand) 7%, transparent);
+  --agent-composer-shadow: 0 8px 26px color-mix(in srgb, var(--agent-brand) 7%, transparent);
   --agent-brand-active: var(--agent-brand);
 
   --background: oklch(1 0 0);
@@ -33,6 +37,8 @@
   --accent: var(--muted);
   --accent-foreground: var(--foreground);
   --destructive: oklch(0.577 0.245 27.325);
+  --agent-error-surface: color-mix(in oklab, var(--card) 95%, var(--destructive));
+  --agent-error-border: color-mix(in oklab, var(--card) 75%, var(--destructive));
   --border: oklch(0.922 0 0);
   --input: var(--border);
   --ring: var(--agent-brand-focus-border);

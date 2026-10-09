@@ -1,0 +1,69 @@
+{
+  "acceptedDevelopmentPlan": null,
+  "hostOperations": [
+    {
+      "operation": "inspect_ui_project",
+      "input": {}
+    },
+    {
+      "operation": "inspect_ui_project",
+      "input": {}
+    },
+    {
+      "operation": "inspect_agent_ui_sources",
+      "input": {}
+    },
+    {
+      "operation": "inspect_ui_project",
+      "input": {}
+    },
+    {
+      "operation": "inspect_ui_project",
+      "input": {}
+    },
+    {
+      "operation": "inspect_ui_project",
+      "input": {
+        "view": "composition"
+      }
+    },
+    {
+      "operation": "inspect_ui_project",
+      "input": {
+        "view": "composition"
+      }
+    },
+    {
+      "operation": "inspect_ui_project",
+      "input": {
+        "view": "composition"
+      }
+    }
+  ],
+  "activity": {
+    "files": [],
+    "validations": [],
+    "verification": {
+      "status": "not-run",
+      "projectRevision": 0,
+      "auditAttempts": 0,
+      "checks": []
+    }
+  },
+  "deliveries": [],
+  "outcome": {
+    "scenario": "B",
+    "model": "mimo-v2.6-flash",
+    "realCreatorInvoked": true,
+    "maxTokens": 2048,
+    "completion": "error",
+    "errorType": "ModelResponseTruncatedError",
+    "error": "Creator model response remained truncated after one bounded continuation attempt.",
+    "developmentPlan": null,
+    "deliveries": []
+  },
+  "finalStaticValidation": "NOT_RUN",
+  "includeBuild": null,
+  "verificationMode": "static_only",
+  "hostRevision": 0
+}

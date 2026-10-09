@@ -1,0 +1,5 @@
+/Users/yifei/.codex/worktrees/host-ui-p1-acceptance/AgentUICreator/packages/creator-python/agent_ui_creator/streaming/deepagent_v3_runner.py:64: LangChainBetaWarning: The v3 streaming protocol on Pregel is experimental.
+  stream = await graph.astream_events(
+/Users/yifei/Coding/AgentUICreator/packages/creator-python/.venv/lib/python3.14/site-packages/langgraph/pregel/main.py:3612: LangChainBetaWarning: The v3 streaming protocol on Pregel is experimental.
+  return AsyncGraphRunStream(graph_aiter, mux)
+{"scenario": "B", "model": "mimo-v2.6-flash", "realCreatorInvoked": true, "maxTokens": 2048, "completion": "error", "errorType": "ModelResponseTruncatedError", "error": "Creator model response remained truncated after one bounded continuation attempt.", "developmentPlan": null, "deliveries": []}

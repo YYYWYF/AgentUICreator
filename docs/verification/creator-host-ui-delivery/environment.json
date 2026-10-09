@@ -1,0 +1,21 @@
+{
+  "model": "mimo-v2.6-flash",
+  "singleRequestTimeoutSeconds": 120.0,
+  "overallTimeoutSeconds": 600,
+  "maxTokens": 2048,
+  "maxRetries": 2,
+  "rawTraceEnabled": false,
+  "commit": "d058e342dd7fc2f539ae154c9ba3c7d4d1f6daef",
+  "scenario": "B",
+  "host": "React + Ant Design 5",
+  "skillsRoot": "/Users/yifei/.codex/worktrees/host-ui-p1-acceptance/AgentUICreator/packages/creator/skills",
+  "modelCallBudget": 24,
+  "os": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "python": "3.14.7",
+  "node": "24.20.0",
+  "npm": "11.19.0",
+  "pnpm": "11.24.0",
+  "timezone": "Asia/Shanghai",
+  "rawEvidenceDirectory": "/Users/yifei/.codex/visualizations/2026/10/09/01a11e49-1619-7d50-9fc2-2898803f269f/host-ui-p1/raw-evidence",
+  "worktree": "/Users/yifei/.codex/worktrees/host-ui-p1-acceptance/AgentUICreator"
+}
