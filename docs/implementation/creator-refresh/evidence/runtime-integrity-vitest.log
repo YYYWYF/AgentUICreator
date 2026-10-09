@@ -1,0 +1,53 @@
+[WARN] Your node_modules are out of sync with your lockfile. The workspace structure has changed since last install
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../scripts/generated-source-test-config" without a file extension (vitest.config.ts:3:43). Add the file extension
+  - ESM syntax in a file loaded as CommonJS (../../scripts/generated-source-test-config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+  - import "../../src/generate-plugin-registry" without a file extension (tests/support/generated-project.ts:5:46). Add the file extension
+  - import "./framework/contracts/app-ui-model" without a file extension (src/generate-plugin-registry.ts:6:37). Add the file extension
+  - import "./project/project-mode" without a file extension (src/generate-plugin-registry.ts:7:42). Add the file extension
+  - import "./framework/contracts/agent-ui-project" without a file extension (src/generate-plugin-registry.ts:8:43). Add the file extension
+  - import "./project/agent-ui-project-paths" without a file extension (src/generate-plugin-registry.ts:9:95). Add the file extension
+  - import "./project/creator-cancel-marker" without a file extension (src/generate-plugin-registry.ts:10:44). Add the file extension
+  - import "./project/registry-generator" without a file extension (src/generate-plugin-registry.ts:13:8). Add the file extension
+  - import "./panel-dimension" without a file extension (src/framework/contracts/app-ui-model.ts:3:42). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (src/project/project-mode.ts:7:8). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (src/project/registry-generator.ts:18:8). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (src/project/agent-ui-project-paths.ts:3:43). Add the file extension
+  - import "../framework/contracts/app-ui-compiler" without a file extension (src/project/registry-generator.ts:19:55). Add the file extension
+  - import "./types" without a file extension (src/project/agent-ui-project-paths.ts:4:45). Add the file extension
+  - import "../framework/contracts/app-ui-composition" without a file extension (src/project/registry-generator.ts:24:8). Add the file extension
+  - import "./project-config" without a file extension (src/project/agent-ui-project-paths.ts:5:40). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/registry-generator.ts:25:42). Add the file extension
+  - import "./plugin-assets" without a file extension (src/project/registry-generator.ts:26:37). Add the file extension
+  - import "./data-message-ui-analyzer" without a file extension (src/project/registry-generator.ts:27:39). Add the file extension
+  - import "./service-dependency-inspector" without a file extension (src/project/registry-generator.ts:32:8). Add the file extension
+  - import "./types" without a file extension (src/project/registry-generator.ts:39:8). Add the file extension
+  - import "./agent-ui-mode" without a file extension (src/framework/contracts/agent-ui-project.ts:6:8). Add the file extension
+  - import "./types" without a file extension (src/project/project-config.ts:1:45). Add the file extension
+  - import "./agent-ui-workspace" without a file extension (src/framework/contracts/agent-ui-mode.ts:3:45). Add the file extension
+  - import "./app-ui-model" without a file extension (src/framework/contracts/app-ui-compiler.ts:8:8). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (src/project/service-dependency-inspector.ts:9:8). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/app-ui-composition.ts:4:8). Add the file extension
+  - import "../framework/contracts/data-message-ui" without a file extension (src/project/data-message-ui-analyzer.ts:22:42). Add the file extension
+  - import "../framework/contracts/ui-plugin" without a file extension (src/project/plugin-assets.ts:5:39). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/app-ui-compiler.ts:14:8). Add the file extension
+  - import "./types" without a file extension (src/project/service-dependency-inspector.ts:26:8). Add the file extension
+  - import "./types" without a file extension (src/project/data-message-ui-analyzer.ts:23:48). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/plugin-assets.ts:6:42). Add the file extension
+  - import "./app-ui-composition" without a file extension (src/framework/contracts/app-ui-compiler.ts:23:8). Add the file extension
+  - import "./types" without a file extension (src/project/plugin-assets.ts:12:8). Add the file extension
+  - import "./panel-dimension" without a file extension (src/framework/contracts/app-ui-runtime-model.ts:3:42). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/ui-plugin.ts:9:49). Add the file extension
+  - import "./app-ui-model" without a file extension (src/framework/contracts/ui-plugin.ts:10:43). Add the file extension
+  - import "./app-ui-composition" without a file extension (src/framework/contracts/ui-plugin.ts:11:48). Add the file extension
+  - import "./custom-event-protocol" without a file extension (src/framework/contracts/ui-plugin.ts:12:39). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 /Users/yifei/Coding/AgentUICreator/packages/project-control
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  11:04:41
+   Duration  531ms (transform 11ms, setup 11ms, import 6ms, tests 76ms, environment 367ms)
+

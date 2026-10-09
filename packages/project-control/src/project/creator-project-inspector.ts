@@ -1,3 +1,5 @@
+import { assertRuntimeBuildCurrent } from "../runtime-integrity.mjs";
+declare const __PROJECT_CONTROL_BUILD_ID__: string;
 import { readFile, realpath } from "node:fs/promises";
 import path from "node:path";
 
@@ -157,6 +159,7 @@ export async function inspectCreatorProject(
   projectRoot: string,
   config: UIProjectControlConfig = uiProjectControlConfig,
 ): Promise<CreatorProjectState> {
+  assertRuntimeBuildCurrent(typeof __PROJECT_CONTROL_BUILD_ID__ === "undefined" ? undefined : __PROJECT_CONTROL_BUILD_ID__);
   const state = await inspectCreatorProjectCore(projectRoot, config);
   const metadataRoot = path.join(path.resolve(projectRoot), config.agentUI.metadataRoot);
   if (await optionalFile(path.join(metadataRoot, "project.json")) === undefined ||

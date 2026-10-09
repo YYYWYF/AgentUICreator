@@ -1,0 +1,246 @@
+[WARN] Your node_modules are out of sync with your lockfile. The workspace structure has changed since last install
+$ vitest run
+
+ RUN  v4.1.11 /Users/yifei/Coding/AgentUICreator/packages/creator
+
+ ❯ tests/CreatorProjectSetup.test.tsx (5 tests | 3 failed) 73ms
+     × shows all modes and suggested source root before selection 28ms
+     × keeps package details in Setup 10ms
+     × disables editing during initialization 4ms
+ ❯ tests/mock-demo-compatibility.test.ts (25 tests | 2 failed) 11ms
+     × requires real chart registration and rejects partial Plugin source 4ms
+     × projects missing dependencies as installable, incompatible existing versions as conflicts, and stale integration files as missing 1ms
+stderr | tests/creator-vite-resource-install.test.ts > prefers the Official Resource installer and forwards the stable resource ID
+[Creator] runtime=python agentMode=domain-write
+
+stderr | tests/creator-vite-resource-install.test.ts > resolves IDs internally for the old Host option for one compatibility cycle
+[Creator] runtime=python agentMode=domain-write
+
+ ❯ tests/creator-vite-resource-install.test.ts (2 tests | 2 failed) 11ms
+   × prefers the Official Resource installer and forwards the stable resource ID 9ms
+   × resolves IDs internally for the old Host option for one compatibility cycle 1ms
+ ❯ tests/creator-vite-runtime-routing.test.ts (3 tests | 2 failed) 12ms
+     × routes run, diagnostics, and visual observations through Python 5ms
+     × surfaces Python startup failures without another runtime fallback 1ms
+ ❯ tests/MockServicePanel.test.tsx (16 tests | 1 failed) 579ms
+     × places all 31 conversation demos into seven groups without a catch-all 40ms
+ ❯ tests/python-creator-sidecar.integration.test.ts (16 tests | 2 failed) 29658ms
+     × runs Node to Vite proxy to Python minimal agent with real file tools 1815ms
+     × runs default Python domain-write through inspect and one semantic mutation 3983ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 12 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/CreatorProjectSetup.test.tsx > CreatorProjectSetup > shows all modes and suggested source root before selection
+Error: Missing button: Assistant
+ ❯ button tests/CreatorProjectSetup.test.tsx:46:34
+     44| function button(container: HTMLElement, text: string): HTMLButtonEleme…
+     45|   const match = Array.from(container.querySelectorAll("button")).find(…
+     46|   if (match === undefined) throw new Error(`Missing button: ${text}`);
+       |                                  ^
+     47|   return match;
+     48| }
+ ❯ tests/CreatorProjectSetup.test.tsx:61:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/12]⎯
+
+ FAIL  tests/CreatorProjectSetup.test.tsx > CreatorProjectSetup > keeps package details in Setup
+Error: Missing button: Assistant
+ ❯ button tests/CreatorProjectSetup.test.tsx:46:34
+     44| function button(container: HTMLElement, text: string): HTMLButtonEleme…
+     45|   const match = Array.from(container.querySelectorAll("button")).find(…
+     46|   if (match === undefined) throw new Error(`Missing button: ${text}`);
+       |                                  ^
+     47|   return match;
+     48| }
+ ❯ tests/CreatorProjectSetup.test.tsx:97:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/12]⎯
+
+ FAIL  tests/CreatorProjectSetup.test.tsx > CreatorProjectSetup > disables editing during initialization
+Error: Missing button: Assistant
+ ❯ button tests/CreatorProjectSetup.test.tsx:46:34
+     44| function button(container: HTMLElement, text: string): HTMLButtonEleme…
+     45|   const match = Array.from(container.querySelectorAll("button")).find(…
+     46|   if (match === undefined) throw new Error(`Missing button: ${text}`);
+       |                                  ^
+     47|   return match;
+     48| }
+ ❯ tests/CreatorProjectSetup.test.tsx:103:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/12]⎯
+
+ FAIL  tests/MockServicePanel.test.tsx > Creator Mock service panel > places all 31 conversation demos into seven groups without a catch-all
+AssertionError: expected <div …(2)>…(2)</div>
+…(32) to have a length of 31 but got 33
+
+- Expected
++ Received
+
+- 31
++ 33
+
+ ❯ tests/MockServicePanel.test.tsx:53:90
+     51|       "结构化结果与交互界面", "子智能体协作", "运行控制与恢复",
+     52|     ]);
+     53|     expect(container.querySelectorAll(".creator-mock-scenarios .creato…
+       |                                                                                          ^
+     54|     expect(container.textContent).not.toContain("其他示例");
+     55|     expect(container.textContent).toContain("刷新后恢复执行计划进度");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/12]⎯
+
+ FAIL  tests/creator-vite-resource-install.test.ts > prefers the Official Resource installer and forwards the stable resource ID
+Error: ENOENT: no such file or directory, lstat '/test'
+ ❯ createCreatorCommandHandler src/commands/command-api.ts:13:64
+     11|
+     12| export function createCreatorCommandHandler(workspaces: CreatorWorkspa…
+     13|   const legacyWorkspaceId = root ? createHash("sha256").update(realpat…
+       |                                                                ^
+     14|   return async (request: IncomingMessage, response: ServerResponse) =>…
+     15|     response.setHeader("Content-Type", "application/json; charset=utf-…
+ ❯ configureServer src/vitePlugin.ts:148:57
+ ❯ resourceInstaller tests/creator-vite-resource-install.test.ts:12:3
+ ❯ tests/creator-vite-resource-install.test.ts:19:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/12]⎯
+
+ FAIL  tests/creator-vite-resource-install.test.ts > resolves IDs internally for the old Host option for one compatibility cycle
+Error: ENOENT: no such file or directory, lstat '/test'
+ ❯ createCreatorCommandHandler src/commands/command-api.ts:13:64
+     11|
+     12| export function createCreatorCommandHandler(workspaces: CreatorWorkspa…
+     13|   const legacyWorkspaceId = root ? createHash("sha256").update(realpat…
+       |                                                                ^
+     14|   return async (request: IncomingMessage, response: ServerResponse) =>…
+     15|     response.setHeader("Content-Type", "application/json; charset=utf-…
+ ❯ configureServer src/vitePlugin.ts:148:57
+ ❯ resourceInstaller tests/creator-vite-resource-install.test.ts:12:3
+ ❯ tests/creator-vite-resource-install.test.ts:27:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/12]⎯
+
+ FAIL  tests/creator-vite-runtime-routing.test.ts > Creator Vite Python routing > routes run, diagnostics, and visual observations through Python
+Error: ENOENT: no such file or directory, lstat '/private/tmp/python-project'
+ ❯ createCreatorCommandHandler src/commands/command-api.ts:13:64
+     11|
+     12| export function createCreatorCommandHandler(workspaces: CreatorWorkspa…
+     13|   const legacyWorkspaceId = root ? createHash("sha256").update(realpat…
+       |                                                                ^
+     14|   return async (request: IncomingMessage, response: ServerResponse) =>…
+     15|     response.setHeader("Content-Type", "application/json; charset=utf-…
+ ❯ configureServer src/vitePlugin.ts:148:57
+ ❯ configuredMiddlewares tests/creator-vite-runtime-routing.test.ts:68:3
+ ❯ tests/creator-vite-runtime-routing.test.ts:118:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/12]⎯
+
+ FAIL  tests/creator-vite-runtime-routing.test.ts > Creator Vite Python routing > surfaces Python startup failures without another runtime fallback
+Error: ENOENT: no such file or directory, lstat '/private/tmp/failing-python-project'
+ ❯ createCreatorCommandHandler src/commands/command-api.ts:13:64
+     11|
+     12| export function createCreatorCommandHandler(workspaces: CreatorWorkspa…
+     13|   const legacyWorkspaceId = root ? createHash("sha256").update(realpat…
+       |                                                                ^
+     14|   return async (request: IncomingMessage, response: ServerResponse) =>…
+     15|     response.setHeader("Content-Type", "application/json; charset=utf-…
+ ❯ configureServer src/vitePlugin.ts:148:57
+ ❯ configuredMiddlewares tests/creator-vite-runtime-routing.test.ts:68:3
+ ❯ tests/creator-vite-runtime-routing.test.ts:173:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/12]⎯
+
+ FAIL  tests/mock-demo-compatibility.test.ts > Official Resource readiness projection > requires real chart registration and rejects partial Plugin source
+AssertionError: expected 'conflict' to be 'missing' // Object.is equality
+
+Expected: "missing"
+Received: "conflict"
+
+ ❯ tests/mock-demo-compatibility.test.ts:38:192
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/12]⎯
+
+ FAIL  tests/mock-demo-compatibility.test.ts > Official Resource readiness projection > projects missing dependencies as installable, incompatible existing versions as conflicts, and stale integration files as missing
+AssertionError: expected 'conflict' to be 'missing' // Object.is equality
+
+Expected: "missing"
+Received: "conflict"
+
+ ❯ tests/mock-demo-compatibility.test.ts:49:68
+     47|     sources.integrationRegistryReady = false; expect(inspect().status)…
+     48|     sources.integrationRegistryReady = true;
+     49|     sources.items[1]!.status = "partial"; expect(inspect().status).toB…
+       |                                                                    ^
+     50|     sources.items[1]!.status = "managed";
+     51|     const conflict = { ...item, resolvedRequirements: [{ name: "@assis…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/12]⎯
+
+ FAIL  tests/python-creator-sidecar.integration.test.ts > Python Creator real sidecar integration > runs Node to Vite proxy to Python minimal agent with real file tools
+AssertionError: expected [ 'RUN_STARTED', 'RUN_ERROR' ] to deeply equal [ 'RUN_STARTED', …(16) ]
+
+- Expected
++ Received
+
+  [
+    "RUN_STARTED",
+-   "TOOL_CALL_START",
+-   "TOOL_CALL_ARGS",
+-   "TOOL_CALL_END",
+-   "TOOL_CALL_RESULT",
+-   "TOOL_CALL_START",
+-   "TOOL_CALL_ARGS",
+-   "TOOL_CALL_END",
+-   "TOOL_CALL_RESULT",
+-   "TOOL_CALL_START",
+-   "TOOL_CALL_ARGS",
+-   "TOOL_CALL_END",
+-   "TOOL_CALL_RESULT",
+-   "TEXT_MESSAGE_START",
+-   "TEXT_MESSAGE_CONTENT",
+-   "TEXT_MESSAGE_END",
+-   "RUN_FINISHED",
++   "RUN_ERROR",
+  ]
+
+ ❯ tests/python-creator-sidecar.integration.test.ts:758:47
+    756|     }
+    757|
+    758|     expect(events.map((event) => event.type)).toEqual([
+       |                                               ^
+    759|       "RUN_STARTED",
+    760|       "TOOL_CALL_START",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/12]⎯
+
+ FAIL  tests/python-creator-sidecar.integration.test.ts > Python Creator real sidecar integration > runs default Python domain-write through inspect and one semantic mutation
+AssertionError: expected [] to deeply equal [ 'inspect_app_ui_model', …(1) ]
+
+- Expected
++ Received
+
+- [
+-   "inspect_app_ui_model",
+-   "mutate_app_ui_model",
+- ]
++ []
+
+ ❯ tests/python-creator-sidecar.integration.test.ts:951:24
+    949|       .map((event) => event.toolCallName);
+    950|
+    951|     expect(toolStarts).toEqual([
+       |                        ^
+    952|       "inspect_app_ui_model",
+    953|       "mutate_app_ui_model",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/12]⎯
+
+
+ Test Files  6 failed | 34 passed (40)
+      Tests  12 failed | 264 passed (276)
+   Start at  11:07:29
+   Duration  30.50s (transform 8.54s, setup 0ms, import 16.04s, tests 38.60s, environment 3.76s)
+
+/Users/yifei/Coding/AgentUICreator/packages/creator:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @agent-ui/creator@0.1.0 test: `vitest run`
+Exit status 1

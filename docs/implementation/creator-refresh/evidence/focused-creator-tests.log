@@ -1,0 +1,10 @@
+[WARN] Your node_modules are out of sync with your lockfile. The workspace structure has changed since last install
+
+ RUN  v4.1.11 /Users/yifei/Coding/AgentUICreator/packages/creator
+
+
+ Test Files  3 passed (3)
+      Tests  28 passed (28)
+   Start at  11:10:55
+   Duration  1.22s (transform 243ms, setup 0ms, import 540ms, tests 827ms, environment 432ms)
+

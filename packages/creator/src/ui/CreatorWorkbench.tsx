@@ -1865,6 +1865,8 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
         else if (!agentRef.current) agentRef.current = new CreatorAgentClient(id!, threadId, storedConversation(id!, localeMessages).agentMessages);
       } else installWorkspace(next);
       if (!id) { setRefreshMessage(localeMessages.creatorWorkbench.projectStateRefreshedOpenAProjectFirst); return; }
+      if (next.status !== "ready") { setRefreshMessage(localeMessages.creatorWorkbench.refreshWorkspaceNotReady); return; }
+      if (next.runtime.status !== "ready") { setRefreshMessage(localeMessages.creatorWorkbench.refreshRuntimeUnavailable); return; }
       const refreshedSession = sessionRef.current;
       const data: CreatorRefreshData = { projectId: id };
       const results = await Promise.allSettled([
@@ -2074,6 +2076,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
               <h1>{localeMessages.creatorWorkbench.creator}</h1>
             </div>
             <div className="creator-panel-header-actions creator-ui-scope">
+            <div className="creator-header-quick-actions">
             <div className="creator-workspace-control" ref={workspaceControl}>
               <Button size="icon-sm" variant="ghost"
                 aria-controls="creator-workspace-menu" aria-expanded={showWorkspaceSelector}
@@ -2160,6 +2163,12 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
               <Button variant="ghost" size="icon-sm" aria-label={localeMessages.creatorWorkbench.refresh} title={localeMessages.creatorWorkbench.reloadCurrentProjectAndPanelData}
                 disabled={refreshing || workspaceBusy || isRunning || questionPending || setupDraft.initializing}
                 onClick={() => void refreshCreator()}><RefreshCw aria-hidden="true" className={refreshing ? "creator-tool-group-spinner" : undefined} /></Button>
+              <CreatorSettings ready={workspaceState?.status === "ready"}
+                onAgent={() => { setAgentPanelOpen(true); setMockPanelOpen(false); setUpdatePageOpen(false); }}
+                onMock={() => { setMockPanelOpen(true); setAgentPanelOpen(false); setUpdatePageOpen(false); }}
+                busy={isRunning || questionPending}
+                onCheckUpdates={() => { setAgentPanelOpen(false); setMockPanelOpen(false); setUpdatePageOpen(true); setUpdateCheckRequest(value => value + 1); }} />
+            </div>
               <div
                 className="creator-panel-dev-studio-dock"
                 data-slot="agent-ui-dev-studio-dock"
@@ -2171,11 +2180,6 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
               >
                 <X aria-hidden="true" />
               </Button>}
-              <CreatorSettings ready={workspaceState?.status === "ready"}
-                onAgent={() => { setAgentPanelOpen(true); setMockPanelOpen(false); setUpdatePageOpen(false); }}
-                onMock={() => { setMockPanelOpen(true); setAgentPanelOpen(false); setUpdatePageOpen(false); }}
-                busy={isRunning || questionPending}
-                onCheckUpdates={() => { setAgentPanelOpen(false); setMockPanelOpen(false); setUpdatePageOpen(true); setUpdateCheckRequest(value => value + 1); }} />
             </div>
           </header>
 
@@ -2204,12 +2208,12 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
                   sourceRoot={workspaceState.project.sourceRoot} />
               ) : null}
               {workspaceState?.status === "broken" ? (
-                <div className="creator-panel-empty creator-panel-empty--error"><AlertCircle aria-hidden="true" /><strong>{localeMessages.creatorWorkbench.projectConfigurationNeedsRepair}</strong>{workspaceState.issues.map((issue) => <p key={issue.code}>{issue.message}</p>)}
+                <div className="creator-panel-empty creator-panel-empty--error"><AlertCircle aria-hidden="true" /><strong>{workspaceState.issues.some(issue => issue.code.startsWith("CREATOR_")) ? localeMessages.creatorWorkbench.creatorServiceTemporarilyUnavailable : localeMessages.creatorWorkbench.projectConfigurationNeedsRepair}</strong><p>{workspaceState.issues.some(issue => issue.code === "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED") ? localeMessages.creatorWorkbench.projectControlRestartRequired : localeMessages.creatorWorkbench.projectInspectionFailedAdvice}</p>
                   <Button size="sm" variant="outline" type="button" disabled={workspaceBusy} onClick={() => void refreshWorkspace()}><RefreshCw aria-hidden="true" />{localeMessages.creatorWorkbench.recheckProject}</Button>
-                  <details><summary>{localeMessages.creatorWorkbench.viewTechnicalDetails}</summary>{workspaceState.issues.map(issue => <code key={issue.code}>{issue.code}</code>)}</details>
+                  <details><summary>{localeMessages.creatorWorkbench.viewTechnicalDetails}</summary>{workspaceState.issues.map((issue, index) => <pre key={`${issue.code}-${index}`}>{issue.code}{"\n"}{issue.message}</pre>)}</details>
                 </div>
               ) : (workspaceState?.status === "ready") && workspaceState.runtime.status === "unavailable" ? (
-                <div className="creator-panel-empty creator-panel-empty--error"><AlertCircle aria-hidden="true" /><strong>{localeMessages.creatorWorkbench.creatorServiceTemporarilyUnavailable}</strong><p>{workspaceState.runtime.message}</p>
+                <div className="creator-panel-empty creator-panel-empty--error"><AlertCircle aria-hidden="true" /><strong>{localeMessages.creatorWorkbench.creatorServiceTemporarilyUnavailable}</strong><p>{workspaceState.runtime.code === "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED" ? localeMessages.creatorWorkbench.projectControlRestartRequired : workspaceState.runtime.message}</p>
                   <Button size="sm" variant="outline" type="button" disabled={workspaceBusy} onClick={() => void refreshWorkspace()}><RefreshCw aria-hidden="true" />{localeMessages.creatorWorkbench.reconnect}</Button>
                   <details><summary>{localeMessages.creatorWorkbench.viewTechnicalDetails}</summary><code>{workspaceState.runtime.code}</code></details>
                 </div>

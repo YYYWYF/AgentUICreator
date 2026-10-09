@@ -56,7 +56,7 @@ export default defineConfig({
     createCreatorDevServerPlugin({
       workspaceManager,
       installMockPlugin: installDemoPlugin,
-      installOfficialAgentUIResource,
+      installOfficialAgentUIResource: async (projectRoot, resourceId) => { await installOfficialAgentUIResource(projectRoot, resourceId); },
       // Host adapter calls the same formal protocol as Python Creator tools.
       inspectMockProject: async target => {
         const composition = await handleUIProjectControlRequest({ operation: "inspect_ui_project", input: { view: "composition" } }, target.projectRoot);

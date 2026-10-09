@@ -1,0 +1,12 @@
+[WARN] Your node_modules are out of sync with your lockfile. The workspace structure has changed since last install
+{
+  "runtime": "/Users/yifei/Coding/AgentUICreator/packages/project-control/dist/runtime/project-control-runtime.mjs",
+  "schema": "sidebar",
+  "realSource": "ready",
+  "realCompiled": "ready",
+  "headerFooterCompiled": "ready",
+  "illegalSourceRejected": true,
+  "illegalCompiledRejected": "broken",
+  "modelHash": "0ecde20aab78824e599225e95385800f3403a7c51a9e7614b7824bbbf4000cbc",
+  "unchanged": true
+}

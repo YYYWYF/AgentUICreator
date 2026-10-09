@@ -1,0 +1,400 @@
+{
+  "status": "broken",
+  "issues": [
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/agent-identity/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-add-attachment-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-copy-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-dictation-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-export-markdown-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-feedback-actions/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-lexical-composer-input/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-lexical-edit-composer/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-mention-trigger/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-reasoning/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-reload-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-response-footer/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-slash-command-trigger/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-submit-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-tool-fallback/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-tool-group/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/conversation-command-source/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/conversation-data-source/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/conversation-quote/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/conversation-service/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/conversation-suggestions/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/conversation-surface/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/conversation-thread-list/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/locale-provider/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/task-group/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/theme-provider/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/agent-identity/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/assistant-ui-add-attachment-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "OFFICIAL_PLUGIN_PACKAGE_MISSING",
+      "message": "Install @agent-ui/plugins/assistant-ui-composer before selecting this Plugin.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/assistant-ui-copy-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/assistant-ui-dictation-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/assistant-ui-export-markdown-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/assistant-ui-feedback-actions/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/assistant-ui-lexical-composer-input/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/assistant-ui-lexical-edit-composer/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/assistant-ui-mention-trigger/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/assistant-ui-reasoning/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/assistant-ui-reload-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/assistant-ui-response-footer/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/assistant-ui-slash-command-trigger/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/assistant-ui-submit-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/assistant-ui-tool-fallback/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/assistant-ui-tool-group/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/conversation-command-source/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/conversation-data-source/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/conversation-quote/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/conversation-service/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/conversation-suggestions/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/conversation-surface/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/conversation-thread-list/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/locale-provider/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/task-group/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "selected-plugin-definition-parse",
+      "message": "src/agent-ui/plugins/theme-provider/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/agent-identity/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-add-attachment-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-copy-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-dictation-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-export-markdown-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-feedback-actions/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-lexical-composer-input/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-lexical-edit-composer/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-mention-trigger/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-reasoning/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-reload-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-response-footer/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-slash-command-trigger/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-submit-action/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-tool-fallback/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/assistant-ui-tool-group/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/conversation-command-source/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/conversation-data-source/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/conversation-quote/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/conversation-service/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/conversation-suggestions/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/conversation-surface/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/conversation-thread-list/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/locale-provider/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/task-group/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    },
+    {
+      "code": "plugin-service-definition-unresolved",
+      "message": "src/agent-ui/plugins/theme-provider/definition.ts is not part of the TypeScript project.",
+      "severity": "error"
+    }
+  ]
+}

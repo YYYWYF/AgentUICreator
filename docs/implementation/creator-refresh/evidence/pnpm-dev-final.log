@@ -1,0 +1,81 @@
+[WARN] Your node_modules are out of sync with your lockfile. The workspace structure has changed since last install
+$ node scripts/dev-workbench.mjs -- --workbench-port 5194 --host-port 5196
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-lexical-boundary.mjs
+@agent-ui/react public declaration boundary: OK (7 declarations)
+Lexical optional facade and Source Plugin boundaries: OK
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-consumer-types.mjs
+@agent-ui/runtime-conversation public declaration boundary: OK (9 reachable declarations)
+@agent-ui/runtime-conversation published-package consumer typecheck: OK (isolated tarball install, skipLibCheck: false)
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs
+$ node scripts/build.mjs
+Official package service metadata verified against reference definitions.
+$ tsc -p tsconfig.build.json && node --import tsx scripts/verify-package-services.mjs
+Official package service metadata verified against reference definitions.
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json
+$ node scripts/build.mjs
+$ node scripts/clean-dist.mjs && pnpm build:ui && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs
+$ node scripts/build-ui.mjs
+≈ tailwindcss v4.3.3
+
+Done in 332ms
+Preserving the Host foundation: Agent UI source dependency foundation/core-adapters was customized by the project and cannot be synchronized automatically; foundation/core requires changed dependency source.
+Preserving plugin/conversation-surface: Agent UI source dependency foundation/core-adapters was customized by the project and cannot be synchronized automatically; plugin/conversation-surface requires changed dependency source.
+$ node ../../scripts/prepare-workbench.mjs
+$ node ../../scripts/prepare-host-packages.mjs && node --import tsx ../../scripts/host-examples/host-project.ts ensure platform creator-host-sandbox
+$ vite --host 127.0.0.1 --port 5194 --strictPort
+[Creator] runtime=python agentMode=domain-write
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../packages/creator/src/mock/demo-compatibility" without a file extension (vite.config.ts:16:43). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+[agent-ui-creator-python] python runtime: source=managed_venv executable=/Users/yifei/Coding/AgentUICreator/packages/creator-python/.venv/bin/python
+Preserving the Host foundation: Agent UI source dependency foundation/core-adapters was customized by the project and cannot be synchronized automatically; foundation/core requires changed dependency source.
+Preserving plugin/conversation-surface: Agent UI source dependency foundation/core-adapters was customized by the project and cannot be synchronized automatically; plugin/conversation-surface requires changed dependency source.
+$ vite --host 127.0.0.1 --port 5176 --strictPort --config /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/host-preview.vite.config.ts --host 127.0.0.1 --port 5196 --strictPort
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../examples/creator-host-sandbox/vite.config" without a file extension (../../apps/creator-workbench/host-preview.vite.config.ts:4:24). Add the file extension
+  - import "./vite-runtime-aliases" without a file extension (vite.config.ts:5:32). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+  VITE v8.3.0  ready in 251 ms
+
+  ➜  Local:   http://127.0.0.1:5196/
+[agent-ui-creator-python] INFO:     Started server process [29002]
+[agent-ui-creator-python] INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+[agent-ui-creator-python] python hot reload enabled root=/Users/yifei/Coding/AgentUICreator/packages/creator-python/agent_ui_creator
+[agent-ui-creator-python] python sidecar ready pid=29002 port=54453 pythonSource=managed_venv agentMode=domain-write
+
+  VITE v8.3.0  ready in 6211 ms
+
+  ➜  Local:   http://127.0.0.1:5194/
+11:03:33 AM [vite] (client) [optimizer] bundling dependencies...
+11:03:33 AM [vite] (client) dependency optimized: html-to-image
+11:03:33 AM [vite] (client) optimized dependencies changed. reloading
+[agent-ui-creator-python] INFO:     Shutting down
+[agent-ui-creator-python] INFO:     Waiting for application shutdown.
+[agent-ui-creator-python] INFO:     Application shutdown complete.
+[agent-ui-creator-python] INFO:     Finished server process [29002]
+[agent-ui-creator-python] python runtime: source=managed_venv executable=/Users/yifei/Coding/AgentUICreator/packages/creator-python/.venv/bin/python
+[agent-ui-creator-python] INFO:     Started server process [30551]
+[agent-ui-creator-python] INFO:     Waiting for application startup.
+[agent-ui-creator-python] INFO:     Application startup complete.
+[agent-ui-creator-python] python hot reload enabled root=/Users/yifei/Coding/AgentUICreator/packages/creator-python/agent_ui_creator
+[agent-ui-creator-python] python sidecar ready pid=30551 port=54922 pythonSource=managed_venv agentMode=domain-write
+[agent-ui-creator-python] INFO:     Shutting down
+[agent-ui-creator-python] INFO:     Waiting for application shutdown.
+[agent-ui-creator-python] INFO:     Application shutdown complete.
+INFO:     Finished server process [30551]
+[agent-ui-creator-python] python runtime: source=managed_venv executable=/Users/yifei/Coding/AgentUICreator/packages/creator-python/.venv/bin/python
+[agent-ui-creator-python] INFO:     Started server process [30567]
+[agent-ui-creator-python] INFO:     Waiting for application startup.
+[agent-ui-creator-python] INFO:     Application startup complete.
+[agent-ui-creator-python] python hot reload enabled root=/Users/yifei/Coding/AgentUICreator/packages/creator-python/agent_ui_creator
+[agent-ui-creator-python] python sidecar ready pid=30567 port=54960 pythonSource=managed_venv agentMode=domain-write
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @agent-ui/creator-workbench@0.1.0 dev: `vite --host 127.0.0.1 --port 5194 --strictPort`
+Exit status 143
+/Users/yifei/Coding/AgentUICreator/examples/creator-host-sandbox:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @agent-ui/creator-host-sandbox@0.1.0 dev: `vite --host 127.0.0.1 --port 5176 --strictPort --config /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/host-preview.vite.config.ts --host 127.0.0.1 --port 5196 --strictPort`
+Exit status 143

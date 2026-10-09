@@ -100,8 +100,9 @@ describe("Creator Project Inspector", () => {
 
   it("marks invalid AppUIModel and unsupported config as broken", async () => {
     const root = await project();
-    await model(root, "app-ui/app-ui.json");
-    await writeFile(path.join(root, "app-ui/app-ui.json"), "{");
+    await config(root, { mode: "platform", sourceRoot: "agent-ui" });
+    await model(root, "agent-ui/app-ui/app-ui.json");
+    await writeFile(path.join(root, "agent-ui/app-ui/app-ui.json"), "{");
     expect(await inspectCreatorProject(root)).toMatchObject({ status: "broken" });
     await config(root, { mode: "platform", sourceRoot: "agent-ui", unexpectedField: true });
     expect(await inspectCreatorProject(root)).toMatchObject({

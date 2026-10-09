@@ -1,0 +1,62 @@
+[
+  {
+    "round": 1,
+    "url": "http://127.0.0.1:5174/__agent-ui/creator/workspace/refresh",
+    "status": 200,
+    "result": "ready"
+  },
+  {
+    "round": 1,
+    "url": "http://127.0.0.1:5174/__agent-ui/creator/connection",
+    "status": 200,
+    "result": "read"
+  },
+  {
+    "round": 1,
+    "url": "http://127.0.0.1:5174/__agent-ui/creator/mock",
+    "status": 200,
+    "result": "stopped"
+  },
+  {
+    "round": 1,
+    "url": "http://127.0.0.1:5174/__agent-ui/creator/mock/compatibility",
+    "status": 200,
+    "result": "checked"
+  },
+  {
+    "round": 1,
+    "url": "http://127.0.0.1:5174/__creator/updates/check",
+    "status": 200,
+    "result": "read"
+  },
+  {
+    "round": 2,
+    "url": "http://127.0.0.1:5174/__agent-ui/creator/workspace/refresh",
+    "status": 200,
+    "result": "ready"
+  },
+  {
+    "round": 2,
+    "url": "http://127.0.0.1:5174/__agent-ui/creator/connection",
+    "status": 200,
+    "result": "read"
+  },
+  {
+    "round": 2,
+    "url": "http://127.0.0.1:5174/__agent-ui/creator/mock",
+    "status": 200,
+    "result": "stopped"
+  },
+  {
+    "round": 2,
+    "url": "http://127.0.0.1:5174/__agent-ui/creator/mock/compatibility",
+    "status": 200,
+    "result": "checked"
+  },
+  {
+    "round": 2,
+    "url": "http://127.0.0.1:5174/__creator/updates/check",
+    "status": 200,
+    "result": "read"
+  }
+]

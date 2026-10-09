@@ -92,7 +92,13 @@ export class CreatorWorkspaceManager {
     try {
       inspection = knownInspection ?? await this.#inspect(workspace.projectRoot);
     } catch (error) {
-      inspection = { status: "broken", issues: [{ code: "CREATOR_WORKSPACE_INSPECTION_FAILED", message: error instanceof Error ? error.message : String(error) }] };
+      const toolOutdated = typeof error === "object" && error !== null && "code" in error && error.code === "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED";
+      if (toolOutdated && this.#state.status === "ready" && this.#state.workspace.id === workspace.id) {
+        this.#state = { ...this.#state, runtime: { status: "unavailable", code: error.code as string,
+          message: error instanceof Error ? error.message : String(error) } };
+        return this.#state;
+      }
+      inspection = { status: "broken", issues: [{ code: typeof error === "object" && error !== null && "code" in error && error.code === "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED" ? error.code : "CREATOR_WORKSPACE_INSPECTION_FAILED", message: error instanceof Error ? error.message : String(error) }] };
     }
     if (inspection.status === "ready") {
       const projectState = { status: inspection.status, workspace, project: inspection.projectConfig,
@@ -206,7 +212,6 @@ export class CreatorWorkspaceManager {
       if (this.#state.status === "none") return this.#state;
       const workspace = this.#state.workspace;
       await this.#stopCurrent();
-      this.#state = { status: "none" };
       return this.#inspectCurrent(workspace);
     });
   }

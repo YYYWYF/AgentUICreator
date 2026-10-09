@@ -1,0 +1,212 @@
+{
+  "reproductionRef": "770a6793^:packages/project-control/src/framework/contracts/app-ui-model.ts",
+  "oldCompiledValidator": [
+    {
+      "code": "invalid_union",
+      "errors": [
+        [
+          {
+            "code": "invalid_value",
+            "values": [
+              "row"
+            ],
+            "path": [
+              "type"
+            ],
+            "message": "Invalid input: expected \"row\""
+          },
+          {
+            "expected": "array",
+            "code": "invalid_type",
+            "path": [
+              "children"
+            ],
+            "message": "Invalid input: expected array, received undefined"
+          },
+          {
+            "code": "unrecognized_keys",
+            "keys": [
+              "defaultActive",
+              "header",
+              "items",
+              "content"
+            ],
+            "path": [],
+            "message": "Unrecognized keys: \"defaultActive\", \"header\", \"items\", \"content\""
+          }
+        ],
+        [
+          {
+            "code": "invalid_value",
+            "values": [
+              "column"
+            ],
+            "path": [
+              "type"
+            ],
+            "message": "Invalid input: expected \"column\""
+          },
+          {
+            "expected": "array",
+            "code": "invalid_type",
+            "path": [
+              "children"
+            ],
+            "message": "Invalid input: expected array, received undefined"
+          },
+          {
+            "code": "unrecognized_keys",
+            "keys": [
+              "defaultActive",
+              "header",
+              "items",
+              "content"
+            ],
+            "path": [],
+            "message": "Unrecognized keys: \"defaultActive\", \"header\", \"items\", \"content\""
+          }
+        ],
+        [
+          {
+            "code": "invalid_value",
+            "values": [
+              "stack"
+            ],
+            "path": [
+              "type"
+            ],
+            "message": "Invalid input: expected \"stack\""
+          },
+          {
+            "expected": "array",
+            "code": "invalid_type",
+            "path": [
+              "children"
+            ],
+            "message": "Invalid input: expected array, received undefined"
+          },
+          {
+            "code": "unrecognized_keys",
+            "keys": [
+              "defaultActive",
+              "header",
+              "items",
+              "content"
+            ],
+            "path": [],
+            "message": "Unrecognized keys: \"defaultActive\", \"header\", \"items\", \"content\""
+          }
+        ],
+        [
+          {
+            "code": "invalid_value",
+            "values": [
+              "panel"
+            ],
+            "path": [
+              "type"
+            ],
+            "message": "Invalid input: expected \"panel\""
+          },
+          {
+            "code": "invalid_union",
+            "errors": [
+              [
+                {
+                  "expected": "object",
+                  "code": "invalid_type",
+                  "path": [],
+                  "message": "Invalid input: expected object, received undefined"
+                }
+              ],
+              [
+                {
+                  "expected": "object",
+                  "code": "invalid_type",
+                  "path": [],
+                  "message": "Invalid input: expected object, received undefined"
+                }
+              ],
+              [
+                {
+                  "expected": "object",
+                  "code": "invalid_type",
+                  "path": [],
+                  "message": "Invalid input: expected object, received undefined"
+                }
+              ],
+              [
+                {
+                  "expected": "object",
+                  "code": "invalid_type",
+                  "path": [],
+                  "message": "Invalid input: expected object, received undefined"
+                }
+              ],
+              [
+                {
+                  "expected": "object",
+                  "code": "invalid_type",
+                  "path": [],
+                  "message": "Invalid input: expected object, received undefined"
+                }
+              ]
+            ],
+            "path": [
+              "child"
+            ],
+            "message": "Invalid input"
+          },
+          {
+            "code": "unrecognized_keys",
+            "keys": [
+              "defaultActive",
+              "header",
+              "items",
+              "content"
+            ],
+            "path": [],
+            "message": "Unrecognized keys: \"defaultActive\", \"header\", \"items\", \"content\""
+          }
+        ],
+        [
+          {
+            "code": "invalid_value",
+            "values": [
+              "slot"
+            ],
+            "path": [
+              "type"
+            ],
+            "message": "Invalid input: expected \"slot\""
+          },
+          {
+            "expected": "array",
+            "code": "invalid_type",
+            "path": [
+              "plugins"
+            ],
+            "message": "Invalid input: expected array, received undefined"
+          },
+          {
+            "code": "unrecognized_keys",
+            "keys": [
+              "defaultActive",
+              "header",
+              "items",
+              "content"
+            ],
+            "path": [],
+            "message": "Unrecognized keys: \"defaultActive\", \"header\", \"items\", \"content\""
+          }
+        ]
+      ],
+      "path": [
+        "root"
+      ],
+      "message": "Invalid input"
+    }
+  ],
+  "currentCompiledValidator": "ready",
+  "sameAppUIModel": true
+}

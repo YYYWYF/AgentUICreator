@@ -1,0 +1,1988 @@
+[
+  {
+    "round": 1,
+    "url": "http://127.0.0.1:5174/__agent-ui/creator/workspace/refresh",
+    "status": 200,
+    "body": {
+      "status": "ready",
+      "workspace": {
+        "id": "3807feeafb0c916db7e0f0b93588913671785bffc59328a96b2cdefe445ef638",
+        "name": "creator-host-sandbox",
+        "displayPath": "/Users/yifei/Coding/AgentUICreator/examples/creator-host-sandbox"
+      },
+      "project": {
+        "mode": "platform",
+        "sourceRoot": "src/agent-ui"
+      },
+      "runtime": {
+        "status": "ready"
+      }
+    }
+  },
+  {
+    "round": 1,
+    "url": "http://127.0.0.1:5174/__agent-ui/creator/connection",
+    "status": 200,
+    "body": {
+      "activeSource": "mock",
+      "configured": true,
+      "running": false
+    }
+  },
+  {
+    "round": 1,
+    "url": "http://127.0.0.1:5174/__agent-ui/creator/mock",
+    "status": 200,
+    "body": {
+      "status": "stopped",
+      "endpoint": null,
+      "scenarioId": "reasoning-tool-success",
+      "selection": {
+        "type": "builtin",
+        "id": "reasoning-tool-success"
+      },
+      "projectId": "3807feeafb0c916db7e0f0b93588913671785bffc59328a96b2cdefe445ef638",
+      "recordings": [
+        {
+          "id": "local:我的回放示例.jsonl",
+          "title": "我的回放示例",
+          "fileName": "我的回放示例.jsonl",
+          "eventCount": 8,
+          "durationMs": 3200,
+          "status": "ready"
+        }
+      ],
+      "speed": 1,
+      "scenarios": [
+        {
+          "id": "composer-mention-context",
+          "title": "Composer · Mention Backend Context",
+          "description": "服务端按稳定员工 ID 查询示例花名册，将安全字段注入 AG-UI Context 后回答。",
+          "resources": [
+            "conversation-lexical-input",
+            "conversation-command-source",
+            "conversation-mention",
+            "composer-trigger-demo"
+          ],
+          "category": "basics"
+        },
+        {
+          "id": "web-search",
+          "title": "Web Search",
+          "description": "标准 AG-UI 工具调用，通过独立 UI Plugin 展示网页搜索结果。",
+          "resources": [
+            "web-search"
+          ],
+          "category": "tools",
+          "capabilities": [
+            "tool"
+          ]
+        },
+        {
+          "id": "retrieval-chunks",
+          "title": "Retrieval Chunks",
+          "description": "标准 AG-UI 工具调用，通过独立 UI Plugin 展示检索片段。",
+          "resources": [
+            "retrieval-chunks"
+          ],
+          "category": "tools",
+          "capabilities": [
+            "tool"
+          ]
+        },
+        {
+          "id": "source-citations",
+          "title": "Tool Result：Source Citations",
+          "description": "search_sources 返回应用自定义来源结构，由 named Tool UI 展示官方 Sources。",
+          "resources": [
+            "source-citations-message"
+          ],
+          "category": "presentation",
+          "capabilities": [
+            "tool",
+            "sources"
+          ]
+        },
+        {
+          "id": "multimodal-input",
+          "title": "Multimodal Input",
+          "description": "发送文本、小图片或 PDF 附件，使用标准 AG-UI 多模态输入。固定回复不代表附件已经验收，请检查实际请求。",
+          "category": "basics"
+        },
+        {
+          "id": "concurrent-conversations",
+          "title": "Concurrent Conversations",
+          "description": "在两个会话分别发送 AAA / BBB，观察交错的慢速 stream 和独立 Stop。",
+          "category": "advanced"
+        },
+        {
+          "id": "simple-chat",
+          "title": "Simple Chat",
+          "description": "模拟一次纯文本流式回复。",
+          "category": "basics"
+        },
+        {
+          "id": "markdown-showcase",
+          "title": "Markdown Showcase",
+          "description": "展示 Markdown / GFM 常见文本类型及代码块的流式渲染。",
+          "category": "basics"
+        },
+        {
+          "id": "reasoning-chat",
+          "title": "Reasoning + Message",
+          "description": "模拟一次思考和最终回复。",
+          "resources": [
+            "reasoning"
+          ],
+          "category": "basics",
+          "capabilities": [
+            "reasoning"
+          ]
+        },
+        {
+          "id": "reasoning-tool-success",
+          "title": "Reasoning → Tool → Answer",
+          "description": "模拟一次思考、工具调用、再次思考和最终回复。",
+          "resources": [
+            "reasoning",
+            "tool-group",
+            "tool-approval"
+          ],
+          "category": "basics",
+          "capabilities": [
+            "reasoning",
+            "tool"
+          ]
+        },
+        {
+          "id": "parallel-tools",
+          "title": "Parallel Tools",
+          "description": "三个工具以确定性的交错顺序并行执行。",
+          "resources": [
+            "tool-group",
+            "tool-approval"
+          ],
+          "category": "tools",
+          "capabilities": [
+            "tool",
+            "parallel-tool"
+          ]
+        },
+        {
+          "id": "tool-error",
+          "title": "Run Error During Tool",
+          "description": "Tool call 已建立但尚未产生结果时，Agent Run 通过标准 RUN_ERROR 失败。",
+          "resources": [
+            "tool-group",
+            "tool-approval"
+          ],
+          "category": "tools",
+          "capabilities": [
+            "tool",
+            "run-error"
+          ]
+        },
+        {
+          "id": "approval-resume",
+          "title": "AG-UI Tool Approval",
+          "description": "Human in the Loop · Allow / Deny → Resume",
+          "resources": [
+            "reasoning",
+            "tool-group",
+            "tool-approval"
+          ],
+          "category": "human-in-loop",
+          "capabilities": [
+            "reasoning",
+            "tool",
+            "approval"
+          ]
+        },
+        {
+          "id": "agent-state-sync",
+          "title": "AG-UI State → Job Progress",
+          "description": "使用 ToolCall 锚定 CI Job，再通过 STATE_DELTA 实时推进 transcript 中的 assistant-ui JobProgress。",
+          "resources": [
+            "tool-group",
+            "tool-approval",
+            "job-progress-message"
+          ],
+          "category": "state",
+          "capabilities": [
+            "state-sync"
+          ]
+        },
+        {
+          "id": "nested-subagent-conversation",
+          "title": "AG-UI Subagent → Task Card",
+          "description": "标准 AG-UI Subagent 参考案例：父 ToolCall 启动 Researcher，SUBAGENT_* 事件由 react-ag-ui 投影为 nested messages，最终由 assistant-ui TaskCard 展示。",
+          "resources": [
+            "reasoning",
+            "tool-group",
+            "tool-approval",
+            "task-group"
+          ],
+          "category": "multi-agent",
+          "capabilities": [
+            "reasoning",
+            "tool",
+            "subagent"
+          ]
+        },
+        {
+          "id": "tool-timeline-thinking",
+          "title": "Thinking → Tool Timeline → Answer",
+          "description": "切换 ThinkingIndicator-only、Reasoning-only、Both；展开三次同名工具的摘要及原始详情。",
+          "resources": [
+            "tool-timeline",
+            "thinking-indicator",
+            "reasoning",
+            "tool-approval"
+          ],
+          "category": "tools",
+          "capabilities": [
+            "reasoning",
+            "tool"
+          ]
+        },
+        {
+          "id": "thinking-placeholder",
+          "title": "Thinking Placeholder",
+          "description": "持续 reasoning 时的简洁占位演示；启用 ThinkingIndicator 并关闭 Reasoning 展示实例。",
+          "resources": [
+            "thinking-indicator"
+          ],
+          "category": "basics",
+          "capabilities": [
+            "reasoning"
+          ]
+        },
+        {
+          "id": "resumable-long-run",
+          "title": "长任务：刷新后继续",
+          "description": "首段输出后刷新页面，重新订阅同一个 Mock Run。",
+          "category": "advanced"
+        },
+        {
+          "id": "resumable-agent-plan",
+          "title": "AgentPlan Activity：刷新后继续",
+          "description": "刷新后恢复同一个 Run 的最新 Activity 快照，并继续接收增量。",
+          "resources": [
+            "agent-plan-message"
+          ],
+          "category": "advanced",
+          "capabilities": [
+            "plan"
+          ]
+        },
+        {
+          "id": "cancel-before-first-output",
+          "title": "Cancel Before First Output",
+          "description": "运行开始后等待 10 秒再输出；等待期间点击 Stop 可查看空响应取消展示。",
+          "category": "presentation"
+        },
+        {
+          "id": "file-output",
+          "title": "Tool Result：File Output",
+          "description": "Backend generate_file 返回虚拟 PDF URL，由 named Tool UI 展示官方文件卡片和下载入口。",
+          "resources": [
+            "generated-file-message",
+            "tool-group",
+            "tool-approval"
+          ],
+          "category": "presentation",
+          "capabilities": [
+            "tool"
+          ]
+        },
+        {
+          "id": "a2ui-form-controls",
+          "title": "A2UI · Form Controls",
+          "description": "Official Basic Catalog controls, using native surface conversion and action continuation.",
+          "resources": [
+            "a2ui"
+          ],
+          "category": "presentation",
+          "capabilities": [
+            "a2ui"
+          ]
+        },
+        {
+          "id": "a2ui-interactive-order",
+          "title": "A2UI · Interactive Order Card",
+          "description": "A declarative Basic Catalog surface with native A2UI action continuation.",
+          "resources": [
+            "a2ui"
+          ],
+          "category": "presentation",
+          "capabilities": [
+            "a2ui"
+          ]
+        },
+        {
+          "id": "frontend-tool-open-dialog",
+          "title": "Frontend Tool · Open Dialog",
+          "description": "标准 AG-UI 工具调用 → 浏览器弹窗能力 → Tool Result → continuation。",
+          "resources": [
+            "frontend-tool-dialog-demo"
+          ],
+          "category": "tools",
+          "capabilities": [
+            "tool"
+          ]
+        },
+        {
+          "id": "frontend-tool-fill-form",
+          "title": "Frontend Tool · Fill Form",
+          "description": "标准 AG-UI Frontend Tool 填写表单，不提交表单。",
+          "resources": [
+            "frontend-tool-form-demo"
+          ],
+          "category": "tools",
+          "capabilities": [
+            "tool"
+          ]
+        },
+        {
+          "id": "ask-user-question",
+          "title": "询问用户偏好",
+          "description": "assistant-ui Human Tool · 提问、选择、Tool Result、继续回答",
+          "resources": [
+            "ask-user-question-demo"
+          ],
+          "category": "human-in-loop",
+          "capabilities": [
+            "tool"
+          ]
+        },
+        {
+          "id": "multi-message-response",
+          "title": "Multi-message Response",
+          "description": "一次回答包含三条连续 assistant 消息，共用一组 Response 操作。",
+          "category": "basics"
+        },
+        {
+          "id": "data-message-chart",
+          "title": "Data Message / Custom Chart",
+          "description": "标准 AG-UI CUSTOM 在 assistant 消息中渲染图表。",
+          "resources": [
+            "chart-message"
+          ],
+          "category": "presentation"
+        },
+        {
+          "id": "nested-subagent-task-group",
+          "title": "AG-UI Subagent Task Group",
+          "description": "多个 sibling nested Subagent 通过标准 AG-UI 事件自然组成 official TaskGroup。",
+          "resources": [
+            "reasoning",
+            "tool-group",
+            "tool-approval",
+            "task-group"
+          ],
+          "category": "multi-agent",
+          "capabilities": [
+            "tool",
+            "subagent"
+          ]
+        },
+        {
+          "id": "agent-plan",
+          "title": "AG-UI Activity → AgentPlan",
+          "description": "通过标准 AG-UI Activity 快照和增量权威更新 AgentPlan。",
+          "resources": [
+            "agent-plan-message"
+          ],
+          "category": "presentation",
+          "capabilities": [
+            "plan"
+          ]
+        },
+        {
+          "id": "agent-status",
+          "title": "Application-defined Tool Args → AgentStatus",
+          "description": "用 application-defined tool args 提供 AgentStatus 文案；state 由前端 ToolCall 状态推导。",
+          "resources": [
+            "tool-group",
+            "tool-approval",
+            "agent-status-message"
+          ],
+          "category": "presentation",
+          "capabilities": [
+            "tool",
+            "agent-status"
+          ]
+        },
+        {
+          "id": "nested-subagent-recursive",
+          "title": "Recursive AG-UI Subagents",
+          "description": "通过标准 AG-UI attribution 展示 Subagent A 委托 child Tool 并递归生成 Subagent B 的 nested TaskCard。",
+          "resources": [
+            "reasoning",
+            "tool-group",
+            "tool-approval",
+            "task-group"
+          ],
+          "category": "advanced",
+          "capabilities": [
+            "reasoning",
+            "tool",
+            "subagent"
+          ]
+        },
+        {
+          "id": "nested-subagent-error",
+          "title": "AG-UI Subagent Error",
+          "description": "展示带有归属内容的 SUBAGENT_ERROR nested reference case：nested assistant message 标记为 incomplete/error，保留错误前的 transcript。",
+          "resources": [
+            "tool-group",
+            "tool-approval",
+            "task-group"
+          ],
+          "category": "advanced",
+          "capabilities": [
+            "tool",
+            "subagent"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "round": 1,
+    "url": "http://127.0.0.1:5174/__agent-ui/creator/mock/compatibility",
+    "status": 200,
+    "body": {
+      "projectId": "3807feeafb0c916db7e0f0b93588913671785bffc59328a96b2cdefe445ef638",
+      "status": "checked",
+      "requirements": [
+        {
+          "id": "conversation-lexical-input",
+          "name": "输入态提及 Chip",
+          "scenarioIds": [
+            "composer-mention-context"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 输入态提及 Chip 资源。"
+          }
+        },
+        {
+          "id": "conversation-command-source",
+          "name": "会话命令来源",
+          "scenarioIds": [
+            "composer-mention-context"
+          ],
+          "status": "ready",
+          "installable": true
+        },
+        {
+          "id": "conversation-mention",
+          "name": "提及对象",
+          "scenarioIds": [
+            "composer-mention-context"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 提及对象 资源。"
+          }
+        },
+        {
+          "id": "composer-trigger-demo",
+          "name": "输入触发器 Demo",
+          "scenarioIds": [
+            "composer-mention-context"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 输入触发器 Demo 资源。"
+          }
+        },
+        {
+          "id": "web-search",
+          "name": "网页搜索",
+          "scenarioIds": [
+            "web-search"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 网页搜索 资源。"
+          }
+        },
+        {
+          "id": "retrieval-chunks",
+          "name": "文档检索",
+          "scenarioIds": [
+            "retrieval-chunks"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 文档检索 资源。"
+          }
+        },
+        {
+          "id": "source-citations-message",
+          "name": "来源引用",
+          "scenarioIds": [
+            "source-citations"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 来源引用 资源。"
+          }
+        },
+        {
+          "id": "reasoning",
+          "name": "推理展示",
+          "scenarioIds": [
+            "reasoning-chat",
+            "reasoning-tool-success",
+            "approval-resume",
+            "nested-subagent-conversation",
+            "tool-timeline-thinking",
+            "nested-subagent-task-group",
+            "nested-subagent-recursive"
+          ],
+          "status": "ready",
+          "installable": true
+        },
+        {
+          "id": "tool-group",
+          "name": "工具分组",
+          "scenarioIds": [
+            "reasoning-tool-success",
+            "parallel-tools",
+            "tool-error",
+            "approval-resume",
+            "agent-state-sync",
+            "nested-subagent-conversation",
+            "file-output",
+            "nested-subagent-task-group",
+            "agent-status",
+            "nested-subagent-recursive",
+            "nested-subagent-error"
+          ],
+          "status": "ready",
+          "installable": true
+        },
+        {
+          "id": "tool-approval",
+          "name": "工具调用与审批",
+          "scenarioIds": [
+            "reasoning-tool-success",
+            "parallel-tools",
+            "tool-error",
+            "approval-resume",
+            "agent-state-sync",
+            "nested-subagent-conversation",
+            "tool-timeline-thinking",
+            "file-output",
+            "nested-subagent-task-group",
+            "agent-status",
+            "nested-subagent-recursive",
+            "nested-subagent-error"
+          ],
+          "status": "ready",
+          "installable": true
+        },
+        {
+          "id": "job-progress-message",
+          "name": "进度展示",
+          "scenarioIds": [
+            "agent-state-sync"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 进度展示 资源。"
+          }
+        },
+        {
+          "id": "task-group",
+          "name": "任务卡片",
+          "scenarioIds": [
+            "nested-subagent-conversation",
+            "nested-subagent-task-group",
+            "nested-subagent-recursive",
+            "nested-subagent-error"
+          ],
+          "status": "ready",
+          "installable": true
+        },
+        {
+          "id": "tool-timeline",
+          "name": "工具时间线",
+          "scenarioIds": [
+            "tool-timeline-thinking"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 工具时间线 资源。"
+          }
+        },
+        {
+          "id": "thinking-indicator",
+          "name": "思考占位",
+          "scenarioIds": [
+            "tool-timeline-thinking",
+            "thinking-placeholder"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 思考占位 资源。"
+          }
+        },
+        {
+          "id": "agent-plan-message",
+          "name": "计划展示",
+          "scenarioIds": [
+            "resumable-agent-plan",
+            "agent-plan"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 计划展示 资源。"
+          }
+        },
+        {
+          "id": "generated-file-message",
+          "name": "文件输出",
+          "scenarioIds": [
+            "file-output"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 文件输出 资源。"
+          }
+        },
+        {
+          "id": "a2ui",
+          "name": "A2UI",
+          "scenarioIds": [
+            "a2ui-form-controls",
+            "a2ui-interactive-order"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 A2UI 资源。"
+          }
+        },
+        {
+          "id": "frontend-tool-dialog-demo",
+          "name": "弹窗 Frontend Tool Demo",
+          "scenarioIds": [
+            "frontend-tool-open-dialog"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 弹窗 Frontend Tool Demo 资源。"
+          }
+        },
+        {
+          "id": "frontend-tool-form-demo",
+          "name": "表单 Frontend Tool Demo",
+          "scenarioIds": [
+            "frontend-tool-fill-form"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 表单 Frontend Tool Demo 资源。"
+          }
+        },
+        {
+          "id": "ask-user-question-demo",
+          "name": "询问用户偏好 Demo",
+          "scenarioIds": [
+            "ask-user-question"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 询问用户偏好 Demo 资源。"
+          }
+        },
+        {
+          "id": "chart-message",
+          "name": "图表",
+          "scenarioIds": [
+            "data-message-chart"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 图表 资源。"
+          }
+        },
+        {
+          "id": "agent-status-message",
+          "name": "状态展示",
+          "scenarioIds": [
+            "agent-status"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 状态展示 资源。"
+          }
+        }
+      ],
+      "canInstall": true,
+      "canInstallResources": true
+    }
+  },
+  {
+    "round": 1,
+    "url": "http://127.0.0.1:5174/__creator/updates/check",
+    "status": 200,
+    "body": {
+      "releaseVersion": "0.1.1",
+      "compatibility": "compatible",
+      "plugins": [
+        {
+          "pluginId": "assistant-ui-add-attachment-action",
+          "name": "Assistant UI Add Attachment Action",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-copy-action",
+          "name": "Assistant UI Copy Action",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-dictation-action",
+          "name": "Assistant UI Dictation Action",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-export-markdown-action",
+          "name": "Assistant UI Export Markdown Action",
+          "currentVersion": "0.0.2",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-mention-trigger",
+          "name": "Assistant Ui Mention Trigger",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-reasoning",
+          "name": "Assistant UI Reasoning Renderer",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-reload-action",
+          "name": "Assistant UI Reload Action",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-response-footer",
+          "name": "Assistant UI Response Footer",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-slash-command-trigger",
+          "name": "Assistant Ui Slash Command Trigger",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-submit-action",
+          "name": "Assistant UI Submit Action",
+          "currentVersion": "0.0.2",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-tool-fallback",
+          "name": "Assistant UI Tool Fallback Renderer",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-tool-group",
+          "name": "Assistant UI Tool Group Renderer",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "conversation-command-source",
+          "name": "Conversation Command Source",
+          "currentVersion": "0.0.2",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "conversation-data-source",
+          "name": "Conversation Data Source",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "conversation-quote",
+          "name": "Conversation Quote",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "conversation-service",
+          "name": "Conversation Service",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "conversation-suggestions",
+          "name": "Conversation Suggestions",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "conversation-surface",
+          "name": "Conversation Surface (Mock 0.1.1)",
+          "currentVersion": "0.0.2",
+          "targetVersion": "0.0.2",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "conversation-thread-list",
+          "name": "Conversation Thread List",
+          "currentVersion": "0.0.5",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "customized",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "locale-provider",
+          "name": "Headless Locale Service Provider",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "task-group",
+          "name": "Task Group",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "theme-provider",
+          "name": "Headless Theme Service Provider",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        }
+      ],
+      "fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  {
+    "round": 2,
+    "url": "http://127.0.0.1:5174/__agent-ui/creator/workspace/refresh",
+    "status": 200,
+    "body": {
+      "status": "ready",
+      "workspace": {
+        "id": "3807feeafb0c916db7e0f0b93588913671785bffc59328a96b2cdefe445ef638",
+        "name": "creator-host-sandbox",
+        "displayPath": "/Users/yifei/Coding/AgentUICreator/examples/creator-host-sandbox"
+      },
+      "project": {
+        "mode": "platform",
+        "sourceRoot": "src/agent-ui"
+      },
+      "runtime": {
+        "status": "ready"
+      }
+    }
+  },
+  {
+    "round": 2,
+    "url": "http://127.0.0.1:5174/__agent-ui/creator/connection",
+    "status": 200,
+    "body": {
+      "activeSource": "mock",
+      "configured": true,
+      "running": false
+    }
+  },
+  {
+    "round": 2,
+    "url": "http://127.0.0.1:5174/__agent-ui/creator/mock",
+    "status": 200,
+    "body": {
+      "status": "stopped",
+      "endpoint": null,
+      "scenarioId": "reasoning-tool-success",
+      "selection": {
+        "type": "builtin",
+        "id": "reasoning-tool-success"
+      },
+      "projectId": "3807feeafb0c916db7e0f0b93588913671785bffc59328a96b2cdefe445ef638",
+      "recordings": [
+        {
+          "id": "local:我的回放示例.jsonl",
+          "title": "我的回放示例",
+          "fileName": "我的回放示例.jsonl",
+          "eventCount": 8,
+          "durationMs": 3200,
+          "status": "ready"
+        }
+      ],
+      "speed": 1,
+      "scenarios": [
+        {
+          "id": "composer-mention-context",
+          "title": "Composer · Mention Backend Context",
+          "description": "服务端按稳定员工 ID 查询示例花名册，将安全字段注入 AG-UI Context 后回答。",
+          "resources": [
+            "conversation-lexical-input",
+            "conversation-command-source",
+            "conversation-mention",
+            "composer-trigger-demo"
+          ],
+          "category": "basics"
+        },
+        {
+          "id": "web-search",
+          "title": "Web Search",
+          "description": "标准 AG-UI 工具调用，通过独立 UI Plugin 展示网页搜索结果。",
+          "resources": [
+            "web-search"
+          ],
+          "category": "tools",
+          "capabilities": [
+            "tool"
+          ]
+        },
+        {
+          "id": "retrieval-chunks",
+          "title": "Retrieval Chunks",
+          "description": "标准 AG-UI 工具调用，通过独立 UI Plugin 展示检索片段。",
+          "resources": [
+            "retrieval-chunks"
+          ],
+          "category": "tools",
+          "capabilities": [
+            "tool"
+          ]
+        },
+        {
+          "id": "source-citations",
+          "title": "Tool Result：Source Citations",
+          "description": "search_sources 返回应用自定义来源结构，由 named Tool UI 展示官方 Sources。",
+          "resources": [
+            "source-citations-message"
+          ],
+          "category": "presentation",
+          "capabilities": [
+            "tool",
+            "sources"
+          ]
+        },
+        {
+          "id": "multimodal-input",
+          "title": "Multimodal Input",
+          "description": "发送文本、小图片或 PDF 附件，使用标准 AG-UI 多模态输入。固定回复不代表附件已经验收，请检查实际请求。",
+          "category": "basics"
+        },
+        {
+          "id": "concurrent-conversations",
+          "title": "Concurrent Conversations",
+          "description": "在两个会话分别发送 AAA / BBB，观察交错的慢速 stream 和独立 Stop。",
+          "category": "advanced"
+        },
+        {
+          "id": "simple-chat",
+          "title": "Simple Chat",
+          "description": "模拟一次纯文本流式回复。",
+          "category": "basics"
+        },
+        {
+          "id": "markdown-showcase",
+          "title": "Markdown Showcase",
+          "description": "展示 Markdown / GFM 常见文本类型及代码块的流式渲染。",
+          "category": "basics"
+        },
+        {
+          "id": "reasoning-chat",
+          "title": "Reasoning + Message",
+          "description": "模拟一次思考和最终回复。",
+          "resources": [
+            "reasoning"
+          ],
+          "category": "basics",
+          "capabilities": [
+            "reasoning"
+          ]
+        },
+        {
+          "id": "reasoning-tool-success",
+          "title": "Reasoning → Tool → Answer",
+          "description": "模拟一次思考、工具调用、再次思考和最终回复。",
+          "resources": [
+            "reasoning",
+            "tool-group",
+            "tool-approval"
+          ],
+          "category": "basics",
+          "capabilities": [
+            "reasoning",
+            "tool"
+          ]
+        },
+        {
+          "id": "parallel-tools",
+          "title": "Parallel Tools",
+          "description": "三个工具以确定性的交错顺序并行执行。",
+          "resources": [
+            "tool-group",
+            "tool-approval"
+          ],
+          "category": "tools",
+          "capabilities": [
+            "tool",
+            "parallel-tool"
+          ]
+        },
+        {
+          "id": "tool-error",
+          "title": "Run Error During Tool",
+          "description": "Tool call 已建立但尚未产生结果时，Agent Run 通过标准 RUN_ERROR 失败。",
+          "resources": [
+            "tool-group",
+            "tool-approval"
+          ],
+          "category": "tools",
+          "capabilities": [
+            "tool",
+            "run-error"
+          ]
+        },
+        {
+          "id": "approval-resume",
+          "title": "AG-UI Tool Approval",
+          "description": "Human in the Loop · Allow / Deny → Resume",
+          "resources": [
+            "reasoning",
+            "tool-group",
+            "tool-approval"
+          ],
+          "category": "human-in-loop",
+          "capabilities": [
+            "reasoning",
+            "tool",
+            "approval"
+          ]
+        },
+        {
+          "id": "agent-state-sync",
+          "title": "AG-UI State → Job Progress",
+          "description": "使用 ToolCall 锚定 CI Job，再通过 STATE_DELTA 实时推进 transcript 中的 assistant-ui JobProgress。",
+          "resources": [
+            "tool-group",
+            "tool-approval",
+            "job-progress-message"
+          ],
+          "category": "state",
+          "capabilities": [
+            "state-sync"
+          ]
+        },
+        {
+          "id": "nested-subagent-conversation",
+          "title": "AG-UI Subagent → Task Card",
+          "description": "标准 AG-UI Subagent 参考案例：父 ToolCall 启动 Researcher，SUBAGENT_* 事件由 react-ag-ui 投影为 nested messages，最终由 assistant-ui TaskCard 展示。",
+          "resources": [
+            "reasoning",
+            "tool-group",
+            "tool-approval",
+            "task-group"
+          ],
+          "category": "multi-agent",
+          "capabilities": [
+            "reasoning",
+            "tool",
+            "subagent"
+          ]
+        },
+        {
+          "id": "tool-timeline-thinking",
+          "title": "Thinking → Tool Timeline → Answer",
+          "description": "切换 ThinkingIndicator-only、Reasoning-only、Both；展开三次同名工具的摘要及原始详情。",
+          "resources": [
+            "tool-timeline",
+            "thinking-indicator",
+            "reasoning",
+            "tool-approval"
+          ],
+          "category": "tools",
+          "capabilities": [
+            "reasoning",
+            "tool"
+          ]
+        },
+        {
+          "id": "thinking-placeholder",
+          "title": "Thinking Placeholder",
+          "description": "持续 reasoning 时的简洁占位演示；启用 ThinkingIndicator 并关闭 Reasoning 展示实例。",
+          "resources": [
+            "thinking-indicator"
+          ],
+          "category": "basics",
+          "capabilities": [
+            "reasoning"
+          ]
+        },
+        {
+          "id": "resumable-long-run",
+          "title": "长任务：刷新后继续",
+          "description": "首段输出后刷新页面，重新订阅同一个 Mock Run。",
+          "category": "advanced"
+        },
+        {
+          "id": "resumable-agent-plan",
+          "title": "AgentPlan Activity：刷新后继续",
+          "description": "刷新后恢复同一个 Run 的最新 Activity 快照，并继续接收增量。",
+          "resources": [
+            "agent-plan-message"
+          ],
+          "category": "advanced",
+          "capabilities": [
+            "plan"
+          ]
+        },
+        {
+          "id": "cancel-before-first-output",
+          "title": "Cancel Before First Output",
+          "description": "运行开始后等待 10 秒再输出；等待期间点击 Stop 可查看空响应取消展示。",
+          "category": "presentation"
+        },
+        {
+          "id": "file-output",
+          "title": "Tool Result：File Output",
+          "description": "Backend generate_file 返回虚拟 PDF URL，由 named Tool UI 展示官方文件卡片和下载入口。",
+          "resources": [
+            "generated-file-message",
+            "tool-group",
+            "tool-approval"
+          ],
+          "category": "presentation",
+          "capabilities": [
+            "tool"
+          ]
+        },
+        {
+          "id": "a2ui-form-controls",
+          "title": "A2UI · Form Controls",
+          "description": "Official Basic Catalog controls, using native surface conversion and action continuation.",
+          "resources": [
+            "a2ui"
+          ],
+          "category": "presentation",
+          "capabilities": [
+            "a2ui"
+          ]
+        },
+        {
+          "id": "a2ui-interactive-order",
+          "title": "A2UI · Interactive Order Card",
+          "description": "A declarative Basic Catalog surface with native A2UI action continuation.",
+          "resources": [
+            "a2ui"
+          ],
+          "category": "presentation",
+          "capabilities": [
+            "a2ui"
+          ]
+        },
+        {
+          "id": "frontend-tool-open-dialog",
+          "title": "Frontend Tool · Open Dialog",
+          "description": "标准 AG-UI 工具调用 → 浏览器弹窗能力 → Tool Result → continuation。",
+          "resources": [
+            "frontend-tool-dialog-demo"
+          ],
+          "category": "tools",
+          "capabilities": [
+            "tool"
+          ]
+        },
+        {
+          "id": "frontend-tool-fill-form",
+          "title": "Frontend Tool · Fill Form",
+          "description": "标准 AG-UI Frontend Tool 填写表单，不提交表单。",
+          "resources": [
+            "frontend-tool-form-demo"
+          ],
+          "category": "tools",
+          "capabilities": [
+            "tool"
+          ]
+        },
+        {
+          "id": "ask-user-question",
+          "title": "询问用户偏好",
+          "description": "assistant-ui Human Tool · 提问、选择、Tool Result、继续回答",
+          "resources": [
+            "ask-user-question-demo"
+          ],
+          "category": "human-in-loop",
+          "capabilities": [
+            "tool"
+          ]
+        },
+        {
+          "id": "multi-message-response",
+          "title": "Multi-message Response",
+          "description": "一次回答包含三条连续 assistant 消息，共用一组 Response 操作。",
+          "category": "basics"
+        },
+        {
+          "id": "data-message-chart",
+          "title": "Data Message / Custom Chart",
+          "description": "标准 AG-UI CUSTOM 在 assistant 消息中渲染图表。",
+          "resources": [
+            "chart-message"
+          ],
+          "category": "presentation"
+        },
+        {
+          "id": "nested-subagent-task-group",
+          "title": "AG-UI Subagent Task Group",
+          "description": "多个 sibling nested Subagent 通过标准 AG-UI 事件自然组成 official TaskGroup。",
+          "resources": [
+            "reasoning",
+            "tool-group",
+            "tool-approval",
+            "task-group"
+          ],
+          "category": "multi-agent",
+          "capabilities": [
+            "tool",
+            "subagent"
+          ]
+        },
+        {
+          "id": "agent-plan",
+          "title": "AG-UI Activity → AgentPlan",
+          "description": "通过标准 AG-UI Activity 快照和增量权威更新 AgentPlan。",
+          "resources": [
+            "agent-plan-message"
+          ],
+          "category": "presentation",
+          "capabilities": [
+            "plan"
+          ]
+        },
+        {
+          "id": "agent-status",
+          "title": "Application-defined Tool Args → AgentStatus",
+          "description": "用 application-defined tool args 提供 AgentStatus 文案；state 由前端 ToolCall 状态推导。",
+          "resources": [
+            "tool-group",
+            "tool-approval",
+            "agent-status-message"
+          ],
+          "category": "presentation",
+          "capabilities": [
+            "tool",
+            "agent-status"
+          ]
+        },
+        {
+          "id": "nested-subagent-recursive",
+          "title": "Recursive AG-UI Subagents",
+          "description": "通过标准 AG-UI attribution 展示 Subagent A 委托 child Tool 并递归生成 Subagent B 的 nested TaskCard。",
+          "resources": [
+            "reasoning",
+            "tool-group",
+            "tool-approval",
+            "task-group"
+          ],
+          "category": "advanced",
+          "capabilities": [
+            "reasoning",
+            "tool",
+            "subagent"
+          ]
+        },
+        {
+          "id": "nested-subagent-error",
+          "title": "AG-UI Subagent Error",
+          "description": "展示带有归属内容的 SUBAGENT_ERROR nested reference case：nested assistant message 标记为 incomplete/error，保留错误前的 transcript。",
+          "resources": [
+            "tool-group",
+            "tool-approval",
+            "task-group"
+          ],
+          "category": "advanced",
+          "capabilities": [
+            "tool",
+            "subagent"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "round": 2,
+    "url": "http://127.0.0.1:5174/__agent-ui/creator/mock/compatibility",
+    "status": 200,
+    "body": {
+      "projectId": "3807feeafb0c916db7e0f0b93588913671785bffc59328a96b2cdefe445ef638",
+      "status": "checked",
+      "requirements": [
+        {
+          "id": "conversation-lexical-input",
+          "name": "输入态提及 Chip",
+          "scenarioIds": [
+            "composer-mention-context"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 输入态提及 Chip 资源。"
+          }
+        },
+        {
+          "id": "conversation-command-source",
+          "name": "会话命令来源",
+          "scenarioIds": [
+            "composer-mention-context"
+          ],
+          "status": "ready",
+          "installable": true
+        },
+        {
+          "id": "conversation-mention",
+          "name": "提及对象",
+          "scenarioIds": [
+            "composer-mention-context"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 提及对象 资源。"
+          }
+        },
+        {
+          "id": "composer-trigger-demo",
+          "name": "输入触发器 Demo",
+          "scenarioIds": [
+            "composer-mention-context"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 输入触发器 Demo 资源。"
+          }
+        },
+        {
+          "id": "web-search",
+          "name": "网页搜索",
+          "scenarioIds": [
+            "web-search"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 网页搜索 资源。"
+          }
+        },
+        {
+          "id": "retrieval-chunks",
+          "name": "文档检索",
+          "scenarioIds": [
+            "retrieval-chunks"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 文档检索 资源。"
+          }
+        },
+        {
+          "id": "source-citations-message",
+          "name": "来源引用",
+          "scenarioIds": [
+            "source-citations"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 来源引用 资源。"
+          }
+        },
+        {
+          "id": "reasoning",
+          "name": "推理展示",
+          "scenarioIds": [
+            "reasoning-chat",
+            "reasoning-tool-success",
+            "approval-resume",
+            "nested-subagent-conversation",
+            "tool-timeline-thinking",
+            "nested-subagent-task-group",
+            "nested-subagent-recursive"
+          ],
+          "status": "ready",
+          "installable": true
+        },
+        {
+          "id": "tool-group",
+          "name": "工具分组",
+          "scenarioIds": [
+            "reasoning-tool-success",
+            "parallel-tools",
+            "tool-error",
+            "approval-resume",
+            "agent-state-sync",
+            "nested-subagent-conversation",
+            "file-output",
+            "nested-subagent-task-group",
+            "agent-status",
+            "nested-subagent-recursive",
+            "nested-subagent-error"
+          ],
+          "status": "ready",
+          "installable": true
+        },
+        {
+          "id": "tool-approval",
+          "name": "工具调用与审批",
+          "scenarioIds": [
+            "reasoning-tool-success",
+            "parallel-tools",
+            "tool-error",
+            "approval-resume",
+            "agent-state-sync",
+            "nested-subagent-conversation",
+            "tool-timeline-thinking",
+            "file-output",
+            "nested-subagent-task-group",
+            "agent-status",
+            "nested-subagent-recursive",
+            "nested-subagent-error"
+          ],
+          "status": "ready",
+          "installable": true
+        },
+        {
+          "id": "job-progress-message",
+          "name": "进度展示",
+          "scenarioIds": [
+            "agent-state-sync"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 进度展示 资源。"
+          }
+        },
+        {
+          "id": "task-group",
+          "name": "任务卡片",
+          "scenarioIds": [
+            "nested-subagent-conversation",
+            "nested-subagent-task-group",
+            "nested-subagent-recursive",
+            "nested-subagent-error"
+          ],
+          "status": "ready",
+          "installable": true
+        },
+        {
+          "id": "tool-timeline",
+          "name": "工具时间线",
+          "scenarioIds": [
+            "tool-timeline-thinking"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 工具时间线 资源。"
+          }
+        },
+        {
+          "id": "thinking-indicator",
+          "name": "思考占位",
+          "scenarioIds": [
+            "tool-timeline-thinking",
+            "thinking-placeholder"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 思考占位 资源。"
+          }
+        },
+        {
+          "id": "agent-plan-message",
+          "name": "计划展示",
+          "scenarioIds": [
+            "resumable-agent-plan",
+            "agent-plan"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 计划展示 资源。"
+          }
+        },
+        {
+          "id": "generated-file-message",
+          "name": "文件输出",
+          "scenarioIds": [
+            "file-output"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 文件输出 资源。"
+          }
+        },
+        {
+          "id": "a2ui",
+          "name": "A2UI",
+          "scenarioIds": [
+            "a2ui-form-controls",
+            "a2ui-interactive-order"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 A2UI 资源。"
+          }
+        },
+        {
+          "id": "frontend-tool-dialog-demo",
+          "name": "弹窗 Frontend Tool Demo",
+          "scenarioIds": [
+            "frontend-tool-open-dialog"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 弹窗 Frontend Tool Demo 资源。"
+          }
+        },
+        {
+          "id": "frontend-tool-form-demo",
+          "name": "表单 Frontend Tool Demo",
+          "scenarioIds": [
+            "frontend-tool-fill-form"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 表单 Frontend Tool Demo 资源。"
+          }
+        },
+        {
+          "id": "ask-user-question-demo",
+          "name": "询问用户偏好 Demo",
+          "scenarioIds": [
+            "ask-user-question"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 询问用户偏好 Demo 资源。"
+          }
+        },
+        {
+          "id": "chart-message",
+          "name": "图表",
+          "scenarioIds": [
+            "data-message-chart"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 图表 资源。"
+          }
+        },
+        {
+          "id": "agent-status-message",
+          "name": "状态展示",
+          "scenarioIds": [
+            "agent-status"
+          ],
+          "status": "missing",
+          "installable": true,
+          "issue": {
+            "code": "RESOURCE_NOT_INSTALLED",
+            "message": "当前项目尚未安装 状态展示 资源。"
+          }
+        }
+      ],
+      "canInstall": true,
+      "canInstallResources": true
+    }
+  },
+  {
+    "round": 2,
+    "url": "http://127.0.0.1:5174/__creator/updates/check",
+    "status": 200,
+    "body": {
+      "releaseVersion": "0.1.1",
+      "compatibility": "compatible",
+      "plugins": [
+        {
+          "pluginId": "assistant-ui-add-attachment-action",
+          "name": "Assistant UI Add Attachment Action",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-copy-action",
+          "name": "Assistant UI Copy Action",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-dictation-action",
+          "name": "Assistant UI Dictation Action",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-export-markdown-action",
+          "name": "Assistant UI Export Markdown Action",
+          "currentVersion": "0.0.2",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-mention-trigger",
+          "name": "Assistant Ui Mention Trigger",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-reasoning",
+          "name": "Assistant UI Reasoning Renderer",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-reload-action",
+          "name": "Assistant UI Reload Action",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-response-footer",
+          "name": "Assistant UI Response Footer",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-slash-command-trigger",
+          "name": "Assistant Ui Slash Command Trigger",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-submit-action",
+          "name": "Assistant UI Submit Action",
+          "currentVersion": "0.0.2",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-tool-fallback",
+          "name": "Assistant UI Tool Fallback Renderer",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "assistant-ui-tool-group",
+          "name": "Assistant UI Tool Group Renderer",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "conversation-command-source",
+          "name": "Conversation Command Source",
+          "currentVersion": "0.0.2",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "conversation-data-source",
+          "name": "Conversation Data Source",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "conversation-quote",
+          "name": "Conversation Quote",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "conversation-service",
+          "name": "Conversation Service",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "conversation-suggestions",
+          "name": "Conversation Suggestions",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "conversation-surface",
+          "name": "Conversation Surface (Mock 0.1.1)",
+          "currentVersion": "0.0.2",
+          "targetVersion": "0.0.2",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "conversation-thread-list",
+          "name": "Conversation Thread List",
+          "currentVersion": "0.0.5",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "customized",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "locale-provider",
+          "name": "Headless Locale Service Provider",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "task-group",
+          "name": "Task Group",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        },
+        {
+          "pluginId": "theme-provider",
+          "name": "Headless Theme Service Provider",
+          "currentVersion": "0.0.1",
+          "targetVersion": "0.0.1",
+          "sourceRelease": "0.1.0",
+          "status": "managed",
+          "updateAvailable": false,
+          "changelog": []
+        }
+      ],
+      "fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+]

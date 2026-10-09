@@ -1,0 +1,18 @@
+Observed 2026-10-09, Asia/Shanghai.
+Failing endpoint: http://127.0.0.1:5174/__agent-ui/creator/workspace
+Listener: Node PID 82498, started Wed Oct 7 09:25:12 2026.
+Supervisor: PID 82030, node scripts/dev-workbench.mjs, started Wed Oct 7 09:25:00.
+Runtime on disk at initial inspection: packages/project-control/dist/runtime/project-control-runtime.mjs
+Initial Runtime mtime: Oct 9 10:00:45 2026.
+@agent-ui/project-control/dev exports that exact dist/runtime/project-control-runtime.mjs.
+apps/creator-workbench/vite.config.ts imports inspectCreatorProject from that export.
+Host .agent-ui/control/project-control.mjs imports the absolute file URL:
+file:///Users/yifei/Coding/AgentUICreator/packages/project-control/dist/runtime/project-control-runtime.mjs
+Failing live inspection listed only row, column, stack, panel, slot union alternatives.
+Disk Runtime contains Sidebar uniqueness/defaultActive and Header/Footer checks.
+The same absolute Host inspected in fresh Node after standard preparation is ready.
+Historical pre-Sidebar schema compilation reproduces the same invalid_union alternatives
+(see old-validator-reproduction.json); this is a controlled reproduction, not a claim
+that the cached live module's exact historical commit can be recovered from disk.
+Conclusion: stale in-memory Node module, not a malformed Sidebar or wrong managed entry.
+Legacy preparation flags could also bypass rebuilding because prior scripts trusted "1".

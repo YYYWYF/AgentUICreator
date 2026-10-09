@@ -1,0 +1,10 @@
+[WARN] Your node_modules are out of sync with your lockfile. The workspace structure has changed since last install
+
+Running 2 tests using 1 worker
+
+(node:34865) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/creator-refresh-dialogue.spec.ts:4:1 › real Creator dialogue can inspect the Sidebar after a toolbar refresh (21.2s)
+  ✓  2 tests/creator-refresh.e2e.spec.ts:20:1 › real Sidebar workspace refresh completes all resources twice and remains usable (8.2s)
+
+  2 passed (29.9s)

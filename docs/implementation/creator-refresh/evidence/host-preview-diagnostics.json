@@ -1,0 +1,16 @@
+{
+  "errors": [
+    "http://127.0.0.1:5194/__agent-ui/creator/connection net::ERR_ABORTED",
+    "http://127.0.0.1:5196/__agent-ui/mock-data/conversations net::ERR_ABORTED"
+  ],
+  "frames": [
+    {
+      "url": "http://127.0.0.1:5194/",
+      "body": "Creator\nAgent UI 已创建\n接下来把它引入你自己的应用。\n查看接入方法\n告诉 Creator 你想了解、检查或修改什么。\n\n可以分析当前 Agent UI、设计修改方案，或直接描述你想要的效果。\n\n告诉 Creator\n清空会话\n发送"
+    },
+    {
+      "url": "http://127.0.0.1:5196/?creator-preview=",
+      "body": "语言 \n简体中文\nEnglish\n智能助手\n切换侧边栏\n新建会话\n历史：基础会话\n更多选项\n历史：已完成工具调用\n更多选项\n历史：推理内容\n更多选项\n历史：已完成前端工具\n更多选项\n历史：图片与文件内容\n更多选项\n历史：长会话\n更多选项\n新会话\n更多选项\n今天有什么可以帮你？\n分析 Agent UI 架构\n检查布局、Plugin 与 Service 边界\n调试当前问题\n定位当前界面的异常行为\n建议下一步\n给出一个可执行的后续动作\n\n\n\n\n发送消息…\n添加附件\n发送"
+    }
+  ]
+}

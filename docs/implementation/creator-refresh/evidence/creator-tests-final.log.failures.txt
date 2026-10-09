@@ -1,0 +1,12 @@
+tests/CreatorProjectSetup.test.tsx > CreatorProjectSetup > shows all modes and suggested source root before selection
+tests/CreatorProjectSetup.test.tsx > CreatorProjectSetup > keeps package details in Setup
+tests/CreatorProjectSetup.test.tsx > CreatorProjectSetup > disables editing during initialization
+tests/MockServicePanel.test.tsx > Creator Mock service panel > places all 31 conversation demos into seven groups without a catch-all
+tests/creator-vite-resource-install.test.ts > prefers the Official Resource installer and forwards the stable resource ID
+tests/creator-vite-resource-install.test.ts > resolves IDs internally for the old Host option for one compatibility cycle
+tests/creator-vite-runtime-routing.test.ts > Creator Vite Python routing > routes run, diagnostics, and visual observations through Python
+tests/creator-vite-runtime-routing.test.ts > Creator Vite Python routing > surfaces Python startup failures without another runtime fallback
+tests/mock-demo-compatibility.test.ts > Official Resource readiness projection > requires real chart registration and rejects partial Plugin source
+tests/mock-demo-compatibility.test.ts > Official Resource readiness projection > projects missing dependencies as installable, incompatible existing versions as conflicts, and stale integration files as missing
+tests/python-creator-sidecar.integration.test.ts > Python Creator real sidecar integration > runs Node to Vite proxy to Python minimal agent with real file tools
+tests/python-creator-sidecar.integration.test.ts > Python Creator real sidecar integration > runs default Python domain-write through inspect and one semantic mutation

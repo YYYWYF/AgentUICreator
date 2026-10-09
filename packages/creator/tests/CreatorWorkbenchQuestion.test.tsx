@@ -264,3 +264,36 @@ it("refreshes project data once without clearing the conversation or draft", asy
   expect(sessionStorage.getItem('agent-ui-creator-conversation:workspace-1')).toBe(original);
   expect(container.querySelector('.creator-refresh-status')?.textContent).toContain('已刷新项目状态');
 });
+
+it("stops resource refresh when workspace inspection fails and keeps full issues in details", async () => {
+  sessionStorage.clear();
+  const calls: string[] = [];
+  const issues = JSON.stringify([{ code: 'invalid_union', path: ['root'] }]);
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+    calls.push(url);
+    return new Response(JSON.stringify({ status: 'broken', workspace: { id: 'workspace-1', name: 'Project', displayPath: '/project' }, issues: [{ code: 'AGENT_UI_APP_UI_MODEL_INVALID', message: issues }] }));
+  }));
+  const { container } = await mount();
+  await act(async () => { container.querySelector<HTMLButtonElement>('button[aria-label="刷新"]')!.click(); });
+  expect(calls).toEqual(['/__agent-ui/creator/workspace/refresh']);
+  expect(container.querySelector('.creator-refresh-status')?.textContent).toContain('相关资源尚未刷新');
+  expect(container.querySelector('.creator-panel-empty--error p')?.textContent).not.toContain('invalid_union');
+  expect(container.querySelector('details pre')?.textContent).toContain(issues);
+});
+
+it("identifies a resource failure without reporting full refresh success", async () => {
+  sessionStorage.clear();
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+    if (url.endsWith('/updates/check')) return new Response('{}', { status: 503 });
+    const value = url.endsWith('/workspace/refresh')
+      ? { status: 'ready', workspace: { id: 'workspace-1', name: 'Project', displayPath: '/project' }, project: { mode: 'platform', sourceRoot: 'agent-ui' }, runtime: { status: 'ready' } }
+      : url.endsWith('/connection') ? { activeSource: 'mock', configured: true, running: false }
+      : url.endsWith('/compatibility') ? { projectId: 'workspace-1', status: 'checked', requirements: [] }
+      : { projectId: 'workspace-1', recordings: [], scenarios: [] };
+    return new Response(JSON.stringify(value));
+  }));
+  const { container } = await mount();
+  await act(async () => { container.querySelector<HTMLButtonElement>('button[aria-label="刷新"]')!.click(); });
+  expect(container.querySelector('.creator-refresh-status')?.textContent).toContain('插件更新');
+  expect(container.querySelector('.creator-refresh-status')?.textContent).toContain('部分刷新');
+});

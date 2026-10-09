@@ -1,0 +1,29 @@
+[WARN] Your node_modules are out of sync with your lockfile. The workspace structure has changed since last install
+
+Running 1 test using 1 worker
+
+(node:32325) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/creator-refresh-dialogue.spec.ts:4:1 › real Creator dialogue can inspect the Sidebar after a toolbar refresh (2.1m)
+
+
+  1) tests/creator-refresh-dialogue.spec.ts:4:1 › real Creator dialogue can inspect the Sidebar after a toolbar refresh 
+
+    TimeoutError: page.waitForResponse: Timeout 120000ms exceeded while waiting for event "response"
+
+      14 |   await page.getByRole("button", { name: "刷新", exact: true }).click();
+      15 |   await expect(page.locator(".creator-refresh-status")).toContainText("已刷新项目状态", { timeout: 60_000 });
+    > 16 |   const reply = page.waitForResponse(response => new URL(response.url()).pathname === "/__agent-ui/creator" && response.request().method() === "POST", { timeout: 120_000 });
+         |                      ^
+      17 |   await input.fill("这是刷新后的只读验收。请调用 inspect_app_ui_model 检查当前项目，用一句话说明根布局类型。不要修改任何文件，不要执行安装、同步或修复操作。");
+      18 |   await page.getByRole("button", { name: "发送", exact: true }).click();
+      19 |   const response = await reply;
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/creator-refresh-dialogue.spec.ts:16:22
+
+    Error Context: test-results/creator-refresh-dialogue-r-9e29b-bar-after-a-toolbar-refresh/error-context.md
+
+  1 failed
+    tests/creator-refresh-dialogue.spec.ts:4:1 › real Creator dialogue can inspect the Sidebar after a toolbar refresh 
+undefined
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: playwright test -c playwright.refresh.config.ts creator-refresh-dialogue.spec.ts

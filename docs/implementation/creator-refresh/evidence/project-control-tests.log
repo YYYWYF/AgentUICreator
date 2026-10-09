@@ -1,0 +1,3006 @@
+[WARN] Your node_modules are out of sync with your lockfile. The workspace structure has changed since last install
+$ vitest run
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../scripts/generated-source-test-config" without a file extension (vitest.config.ts:3:43). Add the file extension
+  - ESM syntax in a file loaded as CommonJS (../../scripts/generated-source-test-config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+  - import "../../src/generate-plugin-registry" without a file extension (tests/support/generated-project.ts:5:46). Add the file extension
+  - import "./framework/contracts/app-ui-model" without a file extension (src/generate-plugin-registry.ts:6:37). Add the file extension
+  - import "./project/project-mode" without a file extension (src/generate-plugin-registry.ts:7:42). Add the file extension
+  - import "./framework/contracts/agent-ui-project" without a file extension (src/generate-plugin-registry.ts:8:43). Add the file extension
+  - import "./project/agent-ui-project-paths" without a file extension (src/generate-plugin-registry.ts:9:95). Add the file extension
+  - import "./project/creator-cancel-marker" without a file extension (src/generate-plugin-registry.ts:10:44). Add the file extension
+  - import "./project/registry-generator" without a file extension (src/generate-plugin-registry.ts:13:8). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (src/project/registry-generator.ts:18:8). Add the file extension
+  - import "./panel-dimension" without a file extension (src/framework/contracts/app-ui-model.ts:3:42). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (src/project/project-mode.ts:7:8). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (src/project/agent-ui-project-paths.ts:3:43). Add the file extension
+  - import "../framework/contracts/app-ui-compiler" without a file extension (src/project/registry-generator.ts:19:55). Add the file extension
+  - import "./types" without a file extension (src/project/agent-ui-project-paths.ts:4:45). Add the file extension
+  - import "../framework/contracts/app-ui-composition" without a file extension (src/project/registry-generator.ts:24:8). Add the file extension
+  - import "./project-config" without a file extension (src/project/agent-ui-project-paths.ts:5:40). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/registry-generator.ts:25:42). Add the file extension
+  - import "./plugin-assets" without a file extension (src/project/registry-generator.ts:26:37). Add the file extension
+  - import "./agent-ui-mode" without a file extension (src/framework/contracts/agent-ui-project.ts:6:8). Add the file extension
+  - import "./types" without a file extension (src/project/project-config.ts:1:45). Add the file extension
+  - import "./data-message-ui-analyzer" without a file extension (src/project/registry-generator.ts:27:39). Add the file extension
+  - import "./service-dependency-inspector" without a file extension (src/project/registry-generator.ts:32:8). Add the file extension
+  - import "./types" without a file extension (src/project/registry-generator.ts:39:8). Add the file extension
+  - import "./agent-ui-workspace" without a file extension (src/framework/contracts/agent-ui-mode.ts:3:45). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (src/project/service-dependency-inspector.ts:9:8). Add the file extension
+  - import "./app-ui-model" without a file extension (src/framework/contracts/app-ui-compiler.ts:8:8). Add the file extension
+  - import "../framework/contracts/ui-plugin" without a file extension (src/project/plugin-assets.ts:5:39). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/app-ui-composition.ts:4:8). Add the file extension
+  - import "../framework/contracts/data-message-ui" without a file extension (src/project/data-message-ui-analyzer.ts:22:42). Add the file extension
+  - import "./types" without a file extension (src/project/service-dependency-inspector.ts:26:8). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/app-ui-compiler.ts:14:8). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/plugin-assets.ts:6:42). Add the file extension
+  - import "./types" without a file extension (src/project/data-message-ui-analyzer.ts:23:48). Add the file extension
+  - import "./app-ui-composition" without a file extension (src/framework/contracts/app-ui-compiler.ts:23:8). Add the file extension
+  - import "./types" without a file extension (src/project/plugin-assets.ts:12:8). Add the file extension
+  - import "./panel-dimension" without a file extension (src/framework/contracts/app-ui-runtime-model.ts:3:42). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/ui-plugin.ts:9:49). Add the file extension
+  - import "./app-ui-model" without a file extension (src/framework/contracts/ui-plugin.ts:10:43). Add the file extension
+  - import "./app-ui-composition" without a file extension (src/framework/contracts/ui-plugin.ts:11:48). Add the file extension
+  - import "./custom-event-protocol" without a file extension (src/framework/contracts/ui-plugin.ts:12:39). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 /Users/yifei/Coding/AgentUICreator/packages/project-control
+
+ ❯ tests/migrated/app-ui-transaction.test.ts (41 tests | 40 failed) 73078ms
+     × commits the authoring model only after it compiles 423ms
+     × removes an existing instance without rewriting the capability catalog 478ms
+     × rejects generic removal of an application Headless Plugin 425ms
+     × rejects generic default removal of an application Headless Plugin 541ms
+     × rejects disabling an application Headless Plugin through generic mutation 485ms
+     × rejects replacing an application Headless Plugin through generic mutation 325ms
+     × removes a history panel in one mutation without catalog churn 273ms
+     × reflows a dedicated history region without a follow-up Layout operation 407ms
+     × productizes default removal with Host-owned reflow metadata 520ms
+     × does not partially commit when deterministic reflow preconditions fail 283ms
+     × writes a CompositionRevision before a model plus catalog transaction 317ms
+     × lowers an authoring-default insertion into one deterministic visual region 384ms
+     × caps both side tracks when a default insertion joins a narrow root Row 375ms
+     × preserves an existing navigation rail when inserting a bounded side panel 275ms
+     × lowers an authoring-default insertion when the anchor is a root Panel 510ms
+     × lowers an authoring-default insertion when the anchor is a root Slot 303ms
+     × preserves the current root Panel size over the anchor manifest recommendation 358ms
+     × closes the Productized Remove to Add round-trip from the real canonical output 328ms
+     × restores the Center-only Workspace after Productized Add then Remove 347ms
+     × fails closed when a root anchor has no deterministic track size 294ms
+     × fails closed when a root Slot is shared by multiple Plugins 282ms
+     × fails closed when authoring-default placement is not available 292ms
+     × fails closed when the authoring-default anchor is ambiguous 307ms
+     × fails closed when an authoring-default Plugin has an unresolved required Service 482ms
+     × fails closed when the authoring-default anchor is inside an unsupported Layout 269ms
+     × strips transaction localRefs before writing AppUIModel 282ms
+     × does not write a draft that fails deterministic compilation 213ms
+     × does not apply a fabricated 560px container to unrelated three-column edits 250ms
+     × rejects cancellation at the transaction commit boundary without changing the model 30008ms
+     × finishes an atomic transaction after cancellation arrives past the commit point 30011ms
+     × rejects a stale source hash before changing either transaction file 234ms
+     × preserves source bytes for an already-satisfied semantic operation 228ms
+     × reports a Layout Slot target for width incompatibility 226ms
+     × reports a Plugin child Slot target for width incompatibility 227ms
+     × does not let a semantic Plugin Slot move bypass width admission 255ms
+     × uses the starting snapshot target for replace width errors 342ms
+     × commits a deterministic relative Plugin move as one semantic transaction 359ms
+     × lowers a Workspace Region Action through the Host private binding 380ms
+     × commits a Plugin Slot move with manifest compatibility and dedicated cleanup 275ms
+     × rejects an incompatible Plugin Slot move before changing either artifact 261ms
+ ❯ tests/migrated/source-project-mutation.test.ts (40 tests | 31 failed) 79475ms
+   × Mock and ProjectControl install byte-identical source and registries 6922ms
+   × installs A2UI and repairs stale generated output without changing composition 3425ms
+   × removes integration/a2ui and its generated imports 2524ms
+   × removes demo/frontend-tool-form and its generated imports 4187ms
+   × installs Tool resources without inserting a Demo Plugin instance 1742ms
+   × rejects removal while a disabled AppUIModel instance still references an owned asset 2255ms
+   × rejects removal of a dependency before any project write 2368ms
+   × rolls back source and all generated writes after source failure 5980ms
+   × rolls back source and all generated writes after plugin failure 2190ms
+   × rolls back source and all generated writes after tools failure 2010ms
+   × rolls back source and all generated writes after integrations failure 1826ms
+   × rolls back source and all generated writes after verify failure 2038ms
+   × recovers before recover after a generated crash 987ms
+   × recovers before inspect after a generated crash 983ms
+   × recovers before apply after a generated crash 2727ms
+   × recovers before remove after a generated crash 947ms
+   × protects customized source without repairing registries around the admission failure 2347ms
+   × commits verification warnings without rolling back 1774ms
+   × does not touch an active owner's journals or files during recover 1179ms
+   × does not touch an active owner's journals or files during inspect 1201ms
+   × does not touch an active owner's journals or files during mock 1136ms
+   × does not touch an active owner's journals or files during apply 1707ms
+   × does not touch an active owner's journals or files during remove 1559ms
+   × recovers a current journal only after its owner has exited 1452ms
+   × treats EPERM as a living owner and preserves its transaction 1299ms
+   × propagates unexpected process liveness errors without recovering 3647ms
+   × rejects invalid owner PID 0 before probing or restoring 1210ms
+   × rejects invalid owner PID -1 before probing or restoring 1352ms
+   × rejects invalid owner PID 1.5 before probing or restoring 1850ms
+   × recovers a dead create-only winner and retries fresh admission once 2172ms
+   × keeps another Node process's active mutation untouched and recovers after it exits 1653ms
+ ❯ tests/migrated/agent-ui-initialization.test.ts (0 test)
+context canceled
+context canceled
+context canceled
+ ❯ tests/host-public-entry.integration.test.ts (4 tests | 3 failed) 41932ms
+   × a plain temporary Host can initialize assistant and bundle the public Agent entry without metadata 133ms
+   × a plain temporary Host can initialize embedded and bundle the public Agent entry without metadata 11300ms
+   × a plain temporary Host can initialize platform and bundle the public Agent entry without metadata 30461ms
+ ❯ tests/migrated/verify-ui.test.ts (36 tests | 13 failed) 54297ms
+     × blocks direct Portal primitive imports in a generated user Plugin and accepts the public facade 1434ms
+     × blocks global Plugin CSS and accepts the same Plugin after scoping 1126ms
+     × accepts an enabled Data Message UI without a mount or headless classification 674ms
+     × checks duplicate names only for enabled instances: false 1435ms
+     × ignores unregistered names when checking enabled Plugin conflicts 1465ms
+     × resolves an inline renderer in the default definition 2493ms
+     × blocks 'DATA_MESSAGE_UI_DEFINITION_NOT_STATIC' only when its Plugin is selected 2905ms
+     × blocks 'DATA_MESSAGE_UI_RENDERER_MISSING' only when its Plugin is selected 3819ms
+     × blocks 'DATA_MESSAGE_UI_MANIFEST_MISSING' only when its Plugin is selected 2617ms
+     × checks same-named renderers only after both Plugins are selected 2946ms
+     × reports limited Creator readiness without failing verification 2211ms
+     × allows an explicitly headless plugin in application scope 1236ms
+     × accepts matching manifest and rendered child Slots 1119ms
+context canceled
+ ❯ tests/migrated/creator-action-catalog.test.ts (33 tests | 10 failed) 11340ms
+     × rejects a business panel that would displace the reserved responsive primary 381ms
+     × plans a right-side Plugin without writing source or changing authored tracks 333ms
+     × rejects a mismatched child Slot before source creation 258ms
+     × adds any compatible absent Plugin to its declared child Slot and preserves Add identity 255ms
+     × rebuilds a Suggestions Add Action after Remove and restores the child Slot 252ms
+     × rebuilds and lowers the Reasoning Renderer Add Action after Remove 380ms
+     × emits Theme Switch Add only for the Conversation headerActions Slot 493ms
+     × emits and executes the Conversation Thread List Add Action when absent 581ms
+     × adds an absent Workspace Plugin explicitly to left 434ms
+     × adds an absent Workspace Plugin explicitly to right 341ms
+ ❯ tests/migrated/project-inspector.test.ts (5 tests | 3 failed) 10048ms
+     × discovers the canonical assistant-ui conversation Slots 4122ms
+     × bounds the current Composition snapshot independently of the full project snapshot 4736ms
+     × returns a compact, revision-bound project snapshot 1184ms
+ ❯ tests/migrated/conversation-quote-resource-install.test.ts (3 tests | 3 failed) 10277ms
+   × freshly installs the Quote Resource under the manifest's composer slot 4631ms
+   × keeps the model unchanged on idempotent Quote Resource reinstall 3003ms
+   × restores an existing Quote Resource from application scope to the composer 2641ms
+ ❯ tests/app-ui-recovery.test.ts (34 tests | 5 failed) 11172ms
+     × Plugin context remains inspectable while the model is broken 74ms
+     × keeps a healthy model with broken Plugin child Slot source in normal debugging 1414ms
+     × does not classify Plugin definition syntax errors as model corruption 385ms
+     × does not classify Plugin definition missing export errors as model corruption 322ms
+     × does not classify Plugin definition missing file errors as model corruption 197ms
+ ❯ tests/migrated/ui-project-control.test.ts (21 tests | 21 failed) 6514ms
+     × returns the target-owned project inspection through the current contract 403ms
+     × returns the bounded authoritative Composition view 403ms
+     × executes a Workspace Region Creator Action through the transaction Host 358ms
+     × rejects an unknown Creator Action id at the Host boundary 310ms
+     × rejects execute_creator_action mixed with another transaction operation 283ms
+     × does not let an old Remove action delete a replacement instance 429ms
+     × returns the exact AppUIModel source and hash 356ms
+     × includes canonical manifest descriptions when listing UI plugins 290ms
+     × returns authoring Slot targets and configured plugins 364ms
+     × rejects stale layout Slot refs before interpreting the target 393ms
+     × keeps plugin child Slot inspection independent of layout hashes 264ms
+     × verifies Runtime composition in authoring terms for Layout Slots 256ms
+     × reports missing, plugin-mismatch, and slot-mismatch without Runtime ids 295ms
+     × verifies Plugin child Slots without exposing their Runtime ids 271ms
+     × rejects stale AppUIModel hashes before Runtime comparison 364ms
+     × routes a hash-bound semantic mutation through the fixed protocol 333ms
+     × bounds plugin source while preserving precise asset and instance metadata 297ms
+     × returns a Plugin Service dependency summary 256ms
+     × routes the complete Service topology inspection 210ms
+     × routes target-owned plugin source reference analysis 184ms
+     × reports incompatible requests and missing plugins as structured errors 191ms
+ ❯ tests/migrated/plugin-updates.test.ts (7 tests | 2 failed) 13804ms
+   × upgrades a project initialized from the current Registry along the default Mock release chain 439ms
+   × blocks an older package release even when its Plugin version would advance 572ms
+ ❯ tests/migrated/ask-user-question-resource-install.test.ts (1 test | 1 failed) 5708ms
+   × installs and activates the optional Human Tool in application scope 5706ms
+ ❯ tests/migrated/plugin-purge.test.ts (0 test)
+ ❯ tests/migrated/a2ui-resource-install.test.ts (5 tests | 4 failed) 10004ms
+   × installs a pluginless/tool-less A2UI resource without changing AppUIModel 1297ms
+   × installs Generative UI alone without changing layout or mounting Tool permission 984ms
+   × installs the Official A2UI Resource and supplements missing dependencies 2916ms
+   × does not install Source or report readiness after package installation fails, and remains retryable 4560ms
+ ❯ tests/migrated/plugin-update-adoption.test.ts (3 tests | 3 failed) 3460ms
+   × regenerates real derived registries for manual merges before verifying and advancing the baseline 1588ms
+   × rolls back regenerated artifacts and lock while preserving merged source and a retryable plan 1178ms
+   × naturally reports managed when the manually merged bytes exactly match the target 692ms
+ ❯ tests/migrated/generative-ui-installed-upgrade.test.ts (1 test | 1 failed) 3985ms
+   × upgrades installed Generative UI dependency source and lock without rewriting A2UI 3983ms
+ ❯ tests/migrated/managed-source-root.test.ts (0 test)
+ ❯ tests/migrated/creator-project-inspector.test.ts (0 test)
+ ❯ tests/migrated/source-project-mutation-architecture.test.ts (1 test | 1 failed) 1037ms
+   × restricts low-level Source apply/remove to the canonical Host orchestrator 1035ms
+ ❯ tests/migrated/fresh-user-host.test.ts (7 tests | 7 failed) 503ms
+     × initializes and mutates 'assistant' at 'src/agent-ui' 100ms
+     × initializes and mutates 'assistant' at 'client/custom-agent' 68ms
+     × initializes and mutates 'embedded' at 'src/agent-ui' 70ms
+     × initializes and mutates 'embedded' at 'client/custom-agent' 65ms
+     × initializes and mutates 'platform' at 'src/agent-ui' 61ms
+     × initializes and mutates 'platform' at 'client/custom-agent' 67ms
+   × upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIModel 70ms
+ ❯ tests/migrated/feature-removal-real-preset.test.ts (0 test)
+ ❯ tests/migrated/composer-trigger-resource-install.test.ts (0 test)
+ ❯ tests/migrated/service-dependency-inspector.test.ts (7 tests | 1 failed) 1429ms
+     × distinguishes required missing, optional unavailable, and collisions 233ms
+ ❯ tests/migrated/project-control-contract.test.ts (4 tests | 1 failed) 2133ms
+     × agrees with canonical JSON Schema for every valid and invalid fixture 1529ms
+ ❯ tests/creator-resource-commands.test.ts (0 test)
+ ❯ tests/runtime-integrity.test.mjs (0 test)
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/creator-resource-commands.test.ts [ tests/creator-resource-commands.test.ts ]
+ FAIL  tests/migrated/agent-ui-initialization.test.ts [ tests/migrated/agent-ui-initialization.test.ts ]
+ FAIL  tests/migrated/composer-trigger-resource-install.test.ts [ tests/migrated/composer-trigger-resource-install.test.ts ]
+ FAIL  tests/migrated/creator-project-inspector.test.ts [ tests/migrated/creator-project-inspector.test.ts ]
+ FAIL  tests/migrated/feature-removal-real-preset.test.ts [ tests/migrated/feature-removal-real-preset.test.ts ]
+ FAIL  tests/migrated/managed-source-root.test.ts [ tests/migrated/managed-source-root.test.ts ]
+ FAIL  tests/migrated/plugin-purge.test.ts [ tests/migrated/plugin-purge.test.ts ]
+TypeError: The URL must be of scheme file
+ ❯ src/runtime-integrity.mjs:5:21
+      3| import { fileURLToPath } from "node:url";
+      4| import path from "node:path";
+      5| const packageRoot = fileURLToPath(new URL("..", import.meta.url));
+       |                     ^
+      6| export function assertRuntimeBuildCurrent(buildId) {
+      7|   if (!buildId) return; // Direct source tests have no compiled module…
+ ❯ src/project/creator-project-inspector.ts:1:43
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/158]⎯
+
+ FAIL  tests/runtime-integrity.test.mjs [ tests/runtime-integrity.test.mjs ]
+Error: Cannot find module '/Users/yifei/Coding/AgentUICreator/packages/project-control/tests/runtime-integrity.test.mjs'
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/158]⎯
+
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 150 ⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/app-ui-recovery.test.ts > invalid AppUIModel Recovery > Plugin context remains inspectable while the model is broken
+AssertionError: expected { ok: true, result: { …(4) } } to match object { ok: true, result: { …(2) } }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "result": {
+      "pluginAssets": [
+        {
++         "authoring": {
++           "defaultPlacement": {
++             "parentPluginId": "conversation-surface",
++             "slot": "composer",
++             "type": "plugin_slot",
++           },
++           "intents": [
++             "show the primary conversation composer",
++             "compose conversation input actions",
++           ],
++           "visualRole": "conversation composer",
++         },
++         "capabilities": [
++           "conversation-composer",
++         ],
++         "childSlots": {
++           "beforeInput": {
++             "accepts": {
++               "anyOfCapabilities": [
++                 "conversation-composer-before-input",
++               ],
++             },
++             "cardinality": "many",
++             "description": "Content displayed between attachments and the composer input.",
++             "optional": true,
++           },
++           "input": {
++             "accepts": {
++               "anyOfCapabilities": [
++                 "conversation-composer-input",
++               ],
++             },
++             "cardinality": "one",
++             "description": "Optional text input presentation; falls back to the canonical textarea.",
++             "optional": true,
++           },
++           "leadingActions": {
++             "accepts": {
++               "anyOfCapabilities": [
++                 "conversation-composer-leading-action",
++               ],
++             },
++             "cardinality": "many",
++             "description": "Inline actions displayed on the leading side of the composer.",
++             "optional": true,
++           },
++           "submitAction": {
++             "accepts": {
++               "anyOfCapabilities": [
++                 "conversation-composer-submit-action",
++               ],
++             },
++             "cardinality": "one",
++             "description": "The primary send or stop action for the composer.",
++             "optional": true,
++           },
++           "trailingActions": {
++             "accepts": {
++               "anyOfCapabilities": [
++                 "conversation-composer-trailing-action",
++               ],
++             },
++             "cardinality": "many",
++             "description": "Inline actions displayed before the composer submit action.",
++             "optional": true,
++           },
++           "triggers": {
++             "accepts": {
++               "anyOfCapabilities": [
++                 "conversation-composer-trigger",
++               ],
++             },
++             "cardinality": "many",
++             "description": "Optional conversation input triggers.",
++             "optional": true,
++           },
++         },
++         "definitionPath": "@agent-ui/plugins/assistant-ui-composer",
++         "description": "Renders the canonical assistant-ui conversation composer with composable action Slots.",
++         "directory": "assistant-ui-composer",
++         "manifestPath": "plugin/assistant-ui-composer",
++         "name": "Assistant UI Composer",
++         "ownership": "official_package",
++         "pluginId": "assistant-ui-composer",
++         "referenceSourceItemId": "plugin/assistant-ui-composer",
++         "runtimeImport": "@agent-ui/plugins/assistant-ui-composer",
++         "selected": false,
++       },
++       {
++         "capabilities": [],
++         "childSlots": {},
++         "definitionPath": "agent-ui/plugins/sample/definition.ts",
++         "description": "fixture",
++         "directory": "sample",
++         "manifestPath": "agent-ui/plugins/sample/manifest.json",
++         "name": "sample",
++         "ownership": "project_source",
+          "pluginId": "sample",
++         "selected": false,
+        },
+      ],
+      "recoveryOnly": true,
+    },
+  }
+
+ ❯ tests/app-ui-recovery.test.ts:94:100
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/158]⎯
+
+ FAIL  tests/app-ui-recovery.test.ts > invalid AppUIModel Recovery > keeps a healthy model with broken Plugin child Slot source in normal debugging
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: true, result: { …(1) } }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "result": {
+-     "issues": ArrayContaining [
+-       ObjectContaining {
+-         "code": "plugin-child-slot-rendered-not-declared",
+-       },
+-     ],
+-   },
++   "ok": false,
+  }
+
+ ❯ tests/app-ui-recovery.test.ts:126:103
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/158]⎯
+
+ FAIL  tests/app-ui-recovery.test.ts > invalid AppUIModel Recovery > does not classify Plugin definition syntax errors as model corruption
+ FAIL  tests/app-ui-recovery.test.ts > invalid AppUIModel Recovery > does not classify Plugin definition missing export errors as model corruption
+ FAIL  tests/app-ui-recovery.test.ts > invalid AppUIModel Recovery > does not classify Plugin definition missing file errors as model corruption
+AppUITransactionError: Workspace declarations prevent model health classification; repair their owning source first.
+ ❯ inspectAppUIModelSource src/project/app-ui-recovery.ts:47:13
+     45|   catch (error) {
+     46|     if ((error as { details?: { workspaceIntegrity?: boolean } }).deta…
+     47|       throw new AppUITransactionError("APP_UI_MODEL_WORKSPACE_INTEGRIT…
+       |             ^
+     48|         ...raw, diagnostics: appUIModelDiagnostics(error, "workspace"),
+     49|       });
+ ❯ tests/app-ui-recovery.test.ts:155:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/158]⎯
+
+ FAIL  tests/host-public-entry.integration.test.ts > a plain temporary Host can initialize assistant and bundle the public Agent entry without metadata
+AgentUIInitializationError: Agent UI package requirements are not installed or are incompatible.
+ ❯ Object.preflightSources src/project/bootstrap-host.ts:52:15
+     50|       const packageInspection = await inspectAgentUIPackages(projectRo…
+     51|       if (packageInspection.issues.length > 0) {
+     52|         throw new AgentUIInitializationError(
+       |               ^
+     53|           "AGENT_UI_PACKAGE_REQUIREMENTS_UNMET",
+     54|           "Agent UI package requirements are not installed or are inco…
+ ❯ initializeAgentUIProject ../bootstrap/src/initialize-agent-ui-project.ts:119:21
+ ❯ tests/host-public-entry.integration.test.ts:78:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/158]⎯
+
+ FAIL  tests/host-public-entry.integration.test.ts > a plain temporary Host can initialize embedded and bundle the public Agent entry without metadata
+ FAIL  tests/host-public-entry.integration.test.ts > a plain temporary Host can initialize platform and bundle the public Agent entry without metadata
+AssertionError: The input did not match the regular expression /<PluginDataMessageUIHost/u. Input:
+
+'import { agentUILocaleConfig } from "../agent-ui/i18n/locale-config";\n' +
+  'import type { AgentUILocaleCode } from "../agent-ui/i18n/locale-types";\n' +
+  'import { usePreviewAgentEnvironment } from "./preview-environment";\n' +
+  'import type { ConversationRuntimeProviderProps } from "@agent-ui/runtime-conversation";\n' +
+  'import { useEffect, useMemo, useState, useSyncExternalStore } from "react";\n' +
+  'import {\n' +
+  '  ConversationRuntimeProvider,\n' +
+  '} from "@agent-ui/runtime-conversation";\n' +
+  '\n' +
+  'import appUIModelSource from "../app-ui/app-ui.json?raw";\n' +
+  'import type { AppAgentState } from "../agent-contract/agent-state";\n' +
+  'import { appFrontendTools } from "../agent-contract/agent-tools";\n' +
+  'import { generatedFrontendToolUIs } from "../agent-ui/conversation/frontend-tool-uis.generated";\n' +
+  'import {\n' +
+  '  capabilityCatalogRevision,\n' +
+  '  pluginCapabilityCatalog,\n' +
+  '} from "../plugins";\n' +
+  'import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../runtime/tools";\n' +
+  'import type { RuntimeDiagnostic } from "../runtime/diagnostics";\n' +
+  'import { publishAgentUIObservation, type AgentObservability } from "./observability";\n' +
+  'import {\n' +
+  '  getConversationStarterSuggestions,\n' +
+  '  conversationMessageQueueEnabled,\n' +
+  '} from "../agent-ui/conversation/config";\n' +
+  'import { useConversationServiceThreadBinding, type ConversationRunResumeProvider } from "../agent-ui/conversation/threads/conversation-service-thread-binding";\n' +
+  'import { GeneratedConversationIntegrations } from "../agent-ui/conversation/integrations.generated";\n' +
+  'import { conversationToolkit as baseConversationToolkit } from "../agent-ui/conversation/toolkit";\n' +
+  'import { agentCompositionStore } from "./composition-store";\n' +
+  'import { ApplicationSessionBoundary, useApplicationSessionEpoch } from "./ApplicationSessionBoundary";\n' +
+  'import { AgentSurface } from "./AgentSurface";\n' +
+  '\n' +
+  'import "../agent-ui/conversation/styles.css";\n' +
+  '\n' +
+  '// The revision descriptor is optional until the first project-control mutation.\n' +
+  'const revisionSources = import.meta.glob<string>("../app-ui/composition-revision.generated.json", { eager: true, query: "?raw", import: "default" });\n' +
+  'const revisionDescriptorSource = revisionSources["../app-ui/composition-revision.generated.json"];\n' +
+  '\n' +
+  'export interface AgentProps {\n' +
+  '  /** Optional Host-owned presentation locale; never sent to AG-UI. */\n' +
+  '  locale?: AgentUILocaleCode;\n' +
+  "  /** The Host application's AG-UI endpoint. Defaults to VITE_AGENT_ENDPOINT or /agent. */\n" +
+  '  endpoint?: string;\n' +
+  '  observability?: AgentObservability;\n' +
+  '  /** Application errors and Agent run errors reported by the conversation provider. */\n' +
+  '  onError?: ConversationRuntimeProviderProps["onError"];\n' +
+  '  /** Application-owned feedback persistence. */\n' +
+  '  feedbackAdapter?: ConversationRuntimeProviderProps["feedbackAdapter"];\n' +
+  '  /** Application-owned official assistant-ui attachment adapter. */\n' +
+  '  attachmentAdapter?: ConversationRuntimeProviderProps["attachmentAdapter"];\n' +
+  '  /** Application-owned official assistant-ui speech-to-text adapter. */\n' +
+  '  dictationAdapter?: ConversationRuntimeProviderProps["dictationAdapter"];\n' +
+  '  /** Optional application-owned durable run capability for persisted conversations. */\n' +
+  '  runResumeProvider?: ConversationRunResumeProvider<AppAgentState> | undefined;\n' +
+  '  /** Host-owned persisted thread to reopen after refresh; omitted starts a new conversation. */\n' +
+  '  initialThreadId?: string | undefined;\n' +
+  '}\n' +
+  '\n' +
+  'function AgentSession({ locale, endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {\n' +
+  '  const [presentationLocale, setPresentationLocale] = useState<AgentUILocaleCode>(locale ?? agentUILocaleConfig.defaultLocale);\n' +
+  '  const suggestions = useMemo(() => getConversationStarterSuggestions(locale ?? presentationLocale), [locale, presentationLocale]);\n' +
+  '  const frontendToolRuntime = useMemo(() => new AppFrontendToolRuntime(new AppFrontendToolRegistry(appFrontendTools)), []);\n' +
+  '  const composition = useSyncExternalStore(\n' +
+  '    agentCompositionStore.subscribe,\n' +
+  '    agentCompositionStore.getSnapshot,\n' +
+  '    agentCompositionStore.getSnapshot,\n' +
+  '  );\n' +
+  '  useEffect(() => {\n' +
+  '    if (!import.meta.env.DEV && observability === undefined) return;\n' +
+  '    const report = () => {\n' +
+  '      const candidate = agentCompositionStore.getCandidateDiagnostic();\n' +
+  '      if (candidate?.appUIModelHash === undefined) return;\n' +
+  '      const diagnostic: RuntimeDiagnostic = {\n' +
+  '        kind: "runtime-composition", status: candidate.status,\n' +
+  '        appUIModelHash: candidate.appUIModelHash, compositionRevision: candidate.revision,\n' +
+  '        capabilityCatalogRevision: candidate.capabilityCatalogRevision, occurredAt: candidate.occurredAt,\n' +
+  '        ...(candidate.errorMessage === undefined ? {} : { errorMessage: candidate.errorMessage }),\n' +
+  '      };\n' +
+  '      observability?.onRuntimeDiagnostic?.(diagnostic);\n' +
+  '      publishAgentUIObservation({ type: "runtime-diagnostic", diagnostic });\n' +
+  '    };\n' +
+  '    const unsubscribe = agentCompositionStore.subscribeDiagnostics(report);\n' +
+  '    report();\n' +
+  '    return unsubscribe;\n' +
+  '  }, [observability]);\n' +
+  '  const toolkit = composition?.conversationToolkit ?? baseConversationToolkit;\n' +
+  '\n' +
+  '  useEffect(() => {\n' +
+  '    agentCompositionStore.stageCandidate({\n' +
+  '      baseConversationToolkit,\n' +
+  '      appUIModelSource,\n' +
+  '      revisionDescriptorSource,\n' +
+  '      capabilityCatalog: pluginCapabilityCatalog,\n' +
+  '      capabilityCatalogRevision,\n' +
+  '    });\n' +
+  '  }, [appUIModelSource, revisionDescriptorSource, capabilityCatalogRevision, pluginCapabilityCatalog, baseConversationToolkit]);\n' +
+  '\n' +
+  '  if (composition === undefined) return null;\n' +
+  '  return (\n' +
+  '    <ApplicationSessionBoundary composition={composition} frontendTools={frontendToolRuntime} observability={observability} locale={locale ?? presentationLocale}>\n' +
+  '    <AuthenticatedConversation {...{ locale, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }} />\n' +
+  '    </ApplicationSessionBoundary>\n' +
+  '  );\n' +
+  '}\n' +
+  '\n' +
+  'function AuthenticatedConversation({ locale, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }: { [K in keyof AgentProps]: AgentProps[K] | undefined } & {\n' +
+  '  endpoint: string;\n' +
+  '  presentationLocale: AgentUILocaleCode;\n' +
+  '  setPresentationLocale: (locale: AgentUILocaleCode) => void;\n' +
+  '  suggestions: ReturnType<typeof getConversationStarterSuggestions>;\n' +
+  '  frontendToolRuntime: AppFrontendToolRuntime;\n' +
+  '  composition: NonNullable<ReturnType<typeof agentCompositionStore.getSnapshot>>;\n' +
+  '  toolkit: typeof baseConversationToolkit;\n' +
+  '}) {\n' +
+  '  const epoch = useApplicationSessionEpoch();\n' +
+  '  const threadBinding = useConversationServiceThreadBinding<AppAgentState>(runResumeProvider, epoch === 0 ? initialThreadId : undefined);\n' +
+  '  return (\n' +
+  '    <ConversationRuntimeProvider<AppAgentState>\n' +
+  '      endpoint={endpoint}\n' +
+  '      enableMessageQueue={conversationMessageQueueEnabled}\n' +
+  '      feedbackAdapter={feedbackAdapter}\n' +
+  '      onError={onError}\n' +
+  '      attachmentAdapter={attachmentAdapter}\n' +
+  '      dictationAdapter={dictationAdapter}\n' +
+  '      frontendTools={frontendToolRuntime}\n' +
+  '      frontendToolUIs={generatedFrontendToolUIs}\n' +
+  '      suggestions={suggestions}\n' +
+  '      threadBinding={threadBinding}\n' +
+  '      toolkit={toolkit}\n' +
+  '    >\n' +
+  '      <GeneratedConversationIntegrations>\n' +
+  '        {composition === undefined ? null : <AgentSurface presentationLocale={presentationLocale} locale={locale} onLocaleChange={setPresentationLocale} frontendToolRuntime={frontendToolRuntime} composition={composition} observability={observability} />}\n' +
+  '      </GeneratedConversationIntegrations>\n' +
+  '    </ConversationRuntimeProvider>\n' +
+  '  );\n' +
+  '}\n' +
+  '\n' +
+  '/** Source changes start a new session, including bindings, services and tool state. */\n' +
+  'export function Agent(props: AgentProps = {}) {\n' +
+  '  const preview = usePreviewAgentEnvironment();\n' +
+  '  if (import.meta.env.DEV && new URLSearchParams(window.location.search).has("creator-preview") && !preview) return null;\n' +
+  '  return <AgentSession key={preview?.identity ?? "product"} {...props} {...(preview ? { endpoint: preview.runtimeEndpoint, initialThreadId: undefined, ...(preview.conversationDataEndpointOverride ? { runResumeProvider: undefined } : {}) } : {})} />;\n' +
+  '}\n'
+
+
+- Expected:
+/<PluginDataMessageUIHost/u
+
++ Received:
+"import { agentUILocaleConfig } from \"../agent-ui/i18n/locale-config\";
+import type { AgentUILocaleCode } from \"../agent-ui/i18n/locale-types\";
+import { usePreviewAgentEnvironment } from \"./preview-environment\";
+import type { ConversationRuntimeProviderProps } from \"@agent-ui/runtime-conversation\";
+import { useEffect, useMemo, useState, useSyncExternalStore } from \"react\";
+import {
+  ConversationRuntimeProvider,
+} from \"@agent-ui/runtime-conversation\";
+
+import appUIModelSource from \"../app-ui/app-ui.json?raw\";
+import type { AppAgentState } from \"../agent-contract/agent-state\";
+import { appFrontendTools } from \"../agent-contract/agent-tools\";
+import { generatedFrontendToolUIs } from \"../agent-ui/conversation/frontend-tool-uis.generated\";
+import {
+  capabilityCatalogRevision,
+  pluginCapabilityCatalog,
+} from \"../plugins\";
+import { AppFrontendToolRegistry, AppFrontendToolRuntime } from \"../runtime/tools\";
+import type { RuntimeDiagnostic } from \"../runtime/diagnostics\";
+import { publishAgentUIObservation, type AgentObservability } from \"./observability\";
+import {
+  getConversationStarterSuggestions,
+  conversationMessageQueueEnabled,
+} from \"../agent-ui/conversation/config\";
+import { useConversationServiceThreadBinding, type ConversationRunResumeProvider } from \"../agent-ui/conversation/threads/conversation-service-thread-binding\";
+import { GeneratedConversationIntegrations } from \"../agent-ui/conversation/integrations.generated\";
+import { conversationToolkit as baseConversationToolkit } from \"../agent-ui/conversation/toolkit\";
+import { agentCompositionStore } from \"./composition-store\";
+import { ApplicationSessionBoundary, useApplicationSessionEpoch } from \"./ApplicationSessionBoundary\";
+import { AgentSurface } from \"./AgentSurface\";
+
+import \"../agent-ui/conversation/styles.css\";
+
+// The revision descriptor is optional until the first project-control mutation.
+const revisionSources = import.meta.glob<string>(\"../app-ui/composition-revision.generated.json\", { eager: true, query: \"?raw\", import: \"default\" });
+const revisionDescriptorSource = revisionSources[\"../app-ui/composition-revision.generated.json\"];
+
+export interface AgentProps {
+  /** Optional Host-owned presentation locale; never sent to AG-UI. */
+  locale?: AgentUILocaleCode;
+  /** The Host application's AG-UI endpoint. Defaults to VITE_AGENT_ENDPOINT or /agent. */
+  endpoint?: string;
+  observability?: AgentObservability;
+  /** Application errors and Agent run errors reported by the conversation provider. */
+  onError?: ConversationRuntimeProviderProps[\"onError\"];
+  /** Application-owned feedback persistence. */
+  feedbackAdapter?: ConversationRuntimeProviderProps[\"feedbackAdapter\"];
+  /** Application-owned official assistant-ui attachment adapter. */
+  attachmentAdapter?: ConversationRuntimeProviderProps[\"attachmentAdapter\"];
+  /** Application-owned official assistant-ui speech-to-text adapter. */
+  dictationAdapter?: ConversationRuntimeProviderProps[\"dictationAdapter\"];
+  /** Optional application-owned durable run capability for persisted conversations. */
+  runResumeProvider?: ConversationRunResumeProvider<AppAgentState> | undefined;
+  /** Host-owned persisted thread to reopen after refresh; omitted starts a new conversation. */
+  initialThreadId?: string | undefined;
+}
+
+function AgentSession({ locale, endpoint = import.meta.env.VITE_AGENT_ENDPOINT || \"/agent\", observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
+  const [presentationLocale, setPresentationLocale] = useState<AgentUILocaleCode>(locale ?? agentUILocaleConfig.defaultLocale);
+  const suggestions = useMemo(() => getConversationStarterSuggestions(locale ?? presentationLocale), [locale, presentationLocale]);
+  const frontendToolRuntime = useMemo(() => new AppFrontendToolRuntime(new AppFrontendToolRegistry(appFrontendTools)), []);
+  const composition = useSyncExternalStore(
+    agentCompositionStore.subscribe,
+    agentCompositionStore.getSnapshot,
+    agentCompositionStore.getSnapshot,
+  );
+  useEffect(() => {
+    if (!import.meta.env.DEV && observability === undefined) return;
+    const report = () => {
+      const candidate = agentCompositionStore.getCandidateDiagnostic();
+      if (candidate?.appUIModelHash === undefined) return;
+      const diagnostic: RuntimeDiagnostic = {
+        kind: \"runtime-composition\", status: candidate.status,
+        appUIModelHash: candidate.appUIModelHash, compositionRevision: candidate.revision,
+        capabilityCatalogRevision: candidate.capabilityCatalogRevision, occurredAt: candidate.occurredAt,
+        ...(candidate.errorMessage === undefined ? {} : { errorMessage: candidate.errorMessage }),
+      };
+      observability?.onRuntimeDiagnostic?.(diagnostic);
+      publishAgentUIObservation({ type: \"runtime-diagnostic\", diagnostic });
+    };
+    const unsubscribe = agentCompositionStore.subscribeDiagnostics(report);
+    report();
+    return unsubscribe;
+  }, [observability]);
+  const toolkit = composition?.conversationToolkit ?? baseConversationToolkit;
+
+  useEffect(() => {
+    agentCompositionStore.stageCandidate({
+      baseConversationToolkit,
+      appUIModelSource,
+      revisionDescriptorSource,
+      capabilityCatalog: pluginCapabilityCatalog,
+      capabilityCatalogRevision,
+    });
+  }, [appUIModelSource, revisionDescriptorSource, capabilityCatalogRevision, pluginCapabilityCatalog, baseConversationToolkit]);
+
+  if (composition === undefined) return null;
+  return (
+    <ApplicationSessionBoundary composition={composition} frontendTools={frontendToolRuntime} observability={observability} locale={locale ?? presentationLocale}>
+    <AuthenticatedConversation {...{ locale, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }} />
+    </ApplicationSessionBoundary>
+  );
+}
+
+function AuthenticatedConversation({ locale, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }: { [K in keyof AgentProps]: AgentProps[K] | undefined } & {
+  endpoint: string;
+  presentationLocale: AgentUILocaleCode;
+  setPresentationLocale: (locale: AgentUILocaleCode) => void;
+  suggestions: ReturnType<typeof getConversationStarterSuggestions>;
+  frontendToolRuntime: AppFrontendToolRuntime;
+  composition: NonNullable<ReturnType<typeof agentCompositionStore.getSnapshot>>;
+  toolkit: typeof baseConversationToolkit;
+}) {
+  const epoch = useApplicationSessionEpoch();
+  const threadBinding = useConversationServiceThreadBinding<AppAgentState>(runResumeProvider, epoch === 0 ? initialThreadId : undefined);
+  return (
+    <ConversationRuntimeProvider<AppAgentState>
+      endpoint={endpoint}
+      enableMessageQueue={conversationMessageQueueEnabled}
+      feedbackAdapter={feedbackAdapter}
+      onError={onError}
+      attachmentAdapter={attachmentAdapter}
+      dictationAdapter={dictationAdapter}
+      frontendTools={frontendToolRuntime}
+      frontendToolUIs={generatedFrontendToolUIs}
+      suggestions={suggestions}
+      threadBinding={threadBinding}
+      toolkit={toolkit}
+    >
+      <GeneratedConversationIntegrations>
+        {composition === undefined ? null : <AgentSurface presentationLocale={presentationLocale} locale={locale} onLocaleChange={setPresentationLocale} frontendToolRuntime={frontendToolRuntime} composition={composition} observability={observability} />}
+      </GeneratedConversationIntegrations>
+    </ConversationRuntimeProvider>
+  );
+}
+
+/** Source changes start a new session, including bindings, services and tool state. */
+export function Agent(props: AgentProps = {}) {
+  const preview = usePreviewAgentEnvironment();
+  if (import.meta.env.DEV && new URLSearchParams(window.location.search).has(\"creator-preview\") && !preview) return null;
+  return <AgentSession key={preview?.identity ?? \"product\"} {...props} {...(preview ? { endpoint: preview.runtimeEndpoint, initialThreadId: undefined, ...(preview.conversationDataEndpointOverride ? { runResumeProvider: undefined } : {}) } : {})} />;
+}
+"
+
+ ❯ tests/host-public-entry.integration.test.ts:85:14
+     83|         plugin.pluginId === "chart-message"), false);
+     84|       await assert.rejects(readFile(path.join(projectRoot, "src/agent-…
+     85|       assert.match(await readFile(
+       |              ^
+     86|         path.join(projectRoot, "src/agent-ui/application/Agent.tsx"), …
+     87|       ), /<PluginDataMessageUIHost/u);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/158]⎯
+
+ FAIL  tests/migrated/a2ui-resource-install.test.ts > installs a pluginless/tool-less A2UI resource without changing AppUIModel
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ installOptionalAgentUIResource src/project/install-optional-agent-ui-resource.ts:17:3
+ ❯ installMockResource src/project/install-scenario-resources.ts:28:3
+ ❯ tests/migrated/a2ui-resource-install.test.ts:31:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/158]⎯
+
+ FAIL  tests/migrated/a2ui-resource-install.test.ts > installs Generative UI alone without changing layout or mounting Tool permission
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ installOptionalAgentUIResource src/project/install-optional-agent-ui-resource.ts:17:3
+ ❯ installMockResource src/project/install-scenario-resources.ts:28:3
+ ❯ tests/migrated/a2ui-resource-install.test.ts:56:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/158]⎯
+
+ FAIL  tests/migrated/a2ui-resource-install.test.ts > installs the Official A2UI Resource and supplements missing dependencies
+OfficialResourceError: Official resource installation failed.
+ ❯ installOfficialAgentUIResource src/project/install-official-agent-ui-resource.ts:58:11
+     56|   catch (error) {
+     57|     if (error instanceof OfficialResourceError) throw error;
+     58|     throw new OfficialResourceError("RESOURCE_INSTALL_FAILED", "Offici…
+       |           ^
+     59|       message: error.message, stack: error.stack,
+     60|       ...("code" in error ? { code: error.code } : {}), ...("details" …
+ ❯ tests/migrated/a2ui-resource-install.test.ts:86:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/158]⎯
+
+ FAIL  tests/migrated/a2ui-resource-install.test.ts > does not install Source or report readiness after package installation fails, and remains retryable
+OfficialResourceError: Official resource installation failed.
+ ❯ installOfficialAgentUIResource src/project/install-official-agent-ui-resource.ts:58:11
+     56|   catch (error) {
+     57|     if (error instanceof OfficialResourceError) throw error;
+     58|     throw new OfficialResourceError("RESOURCE_INSTALL_FAILED", "Offici…
+       |           ^
+     59|       message: error.message, stack: error.stack,
+     60|       ...("code" in error ? { code: error.code } : {}), ...("details" …
+ ❯ tests/migrated/a2ui-resource-install.test.ts:110:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > commits the authoring model only after it compiles
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:116:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > removes an existing instance without rewriting the capability catalog
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:136:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects generic removal of an application Headless Plugin
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "HEADLESS_PLUGIN_LIFECYCLE_PROTECTED",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:167:8
+    165|         instanceId: "conversation-service-main",
+    166|       }],
+    167|     })).rejects.toMatchObject({ code: "HEADLESS_PLUGIN_LIFECYCLE_PROTE…
+       |        ^
+    168|
+    169|     expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.jso…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects generic default removal of an application Headless Plugin
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "HEADLESS_PLUGIN_LIFECYCLE_PROTECTED",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:182:8
+    180|         instanceId: "conversation-service-main",
+    181|       }],
+    182|     })).rejects.toMatchObject({ code: "HEADLESS_PLUGIN_LIFECYCLE_PROTE…
+       |        ^
+    183|   });
+    184|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects disabling an application Headless Plugin through generic mutation
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "HEADLESS_PLUGIN_LIFECYCLE_PROTECTED",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:195:8
+    193|         enabled: false,
+    194|       }],
+    195|     })).rejects.toMatchObject({ code: "HEADLESS_PLUGIN_LIFECYCLE_PROTE…
+       |        ^
+    196|   });
+    197|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects replacing an application Headless Plugin through generic mutation
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "HEADLESS_PLUGIN_LIFECYCLE_PROTECTED",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:212:8
+    210|         },
+    211|       }],
+    212|     })).rejects.toMatchObject({ code: "HEADLESS_PLUGIN_LIFECYCLE_PROTE…
+       |        ^
+    213|   });
+    214|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > removes a history panel in one mutation without catalog churn
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:246:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > reflows a dedicated history region without a follow-up Layout operation
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:292:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > productizes default removal with Host-owned reflow metadata
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:339:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > does not partially commit when deterministic reflow preconditions fail
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "LAYOUT_REFLOW_REGION_NOT_EMPTY",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:394:8
+    392|         reflow: "collapse-empty-region",
+    393|       }],
+    394|     })).rejects.toMatchObject({ code: "LAYOUT_REFLOW_REGION_NOT_EMPTY"…
+       |        ^
+    395|
+    396|     expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.jso…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > writes a CompositionRevision before a model plus catalog transaction
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:404:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > lowers an authoring-default insertion into one deterministic visual region
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:484:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > caps both side tracks when a default insertion joins a narrow root Row
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:563:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > preserves an existing navigation rail when inserting a bounded side panel
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:609:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > lowers an authoring-default insertion when the anchor is a root Panel
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:668:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > lowers an authoring-default insertion when the anchor is a root Slot
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:749:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > preserves the current root Panel size over the anchor manifest recommendation
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:815:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > closes the Productized Remove to Add round-trip from the real canonical output
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:893:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > restores the Center-only Workspace after Productized Add then Remove
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:998:17
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when a root anchor has no deterministic track size
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1075:8
+    1073|         },
+    1074|       }],
+    1075|     })).rejects.toMatchObject({
+       |        ^
+    1076|       code: "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
+    1077|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when a root Slot is shared by multiple Plugins
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1132:8
+    1130|         },
+    1131|       }],
+    1132|     })).rejects.toMatchObject({
+       |        ^
+    1133|       code: "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
+    1134|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when authoring-default placement is not available
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "AUTHORING_DEFAULT_PLACEMENT_UNAVAILABLE",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1155:8
+    1153|         plugin: { id: "unplaced-main", pluginId: "unplaced", enabled: …
+    1154|       }],
+    1155|     })).rejects.toMatchObject({
+       |        ^
+    1156|       code: "AUTHORING_DEFAULT_PLACEMENT_UNAVAILABLE",
+    1157|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when the authoring-default anchor is ambiguous
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "AUTHORING_DEFAULT_PLACEMENT_AMBIGUOUS",
+-   "details": {
+-     "anchorPluginId": "conversation-surface",
+-     "matchingInstanceIds": [
+-       "conversation-surface-main-a",
+-       "conversation-surface-main-b",
+-     ],
+-   },
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1226:19
+    1224|     }).catch((value: unknown) => value);
+    1225|
+    1226|     expect(error).toMatchObject({
+       |                   ^
+    1227|       code: "AUTHORING_DEFAULT_PLACEMENT_AMBIGUOUS",
+    1228|       details: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when an authoring-default Plugin has an unresolved required Service
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "AUTHORING_DEFAULT_PLACEMENT_UNAVAILABLE",
+-   "details": {
+-     "missingRequiredServices": [
+-       "missing.service",
+-     ],
+-     "pluginId": "needs-service",
+-   },
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1310:19
+    1308|     }).catch((value: unknown) => value);
+    1309|
+    1310|     expect(error).toMatchObject({
+       |                   ^
+    1311|       code: "AUTHORING_DEFAULT_PLACEMENT_UNAVAILABLE",
+    1312|       details: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when the authoring-default anchor is inside an unsupported Layout
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
+-   "details": {
+-     "actualParentType": "stack",
+-     "anchorInstanceId": "conversation-surface-main",
+-     "expectedParentType": "row",
+-   },
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1370:19
+    1368|     }).catch((value: unknown) => value);
+    1369|
+    1370|     expect(error).toMatchObject({
+       |                   ^
+    1371|       code: "AUTHORING_DEFAULT_PLACEMENT_UNSUPPORTED",
+    1372|       details: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > strips transaction localRefs before writing AppUIModel
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:1398:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[37/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > does not write a draft that fails deterministic compilation
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { Object (code) }
+
+- Expected
++ Received
+
+- {
+-   "code": "PLUGIN_REGISTRY_GENERATION_FAILED",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1452:8
+    1450|         target: { type: "layout_slot", slotRef: "l0" },
+    1451|       }],
+    1452|     })).rejects.toMatchObject({ code: "PLUGIN_REGISTRY_GENERATION_FAIL…
+       |        ^
+    1453|
+    1454|     expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.jso…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[38/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > does not apply a fabricated 560px container to unrelated three-column edits
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:1472:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects cancellation at the transaction commit boundary without changing the model
+Error: Test timed out in 30000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/migrated/app-ui-transaction.test.ts:1483:3
+    1481|   });
+    1482|
+    1483|   it("rejects cancellation at the transaction commit boundary without …
+       |   ^
+    1484|     const { projectRoot, source } = await createProject();
+    1485|     const marker = ".agentuicreator/control/cancel-11111111-1111-4111-…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[40/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > finishes an atomic transaction after cancellation arrives past the commit point
+Error: Test timed out in 30000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/migrated/app-ui-transaction.test.ts:1501:3
+    1499|   });
+    1500|
+    1501|   it("finishes an atomic transaction after cancellation arrives past t…
+       |   ^
+    1502|     const { projectRoot, source } = await createProject();
+    1503|     const marker = ".agentuicreator/control/cancel-22222222-2222-4222-…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[41/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects a stale source hash before changing either transaction file
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { code: 'APP_UI_MODEL_HASH_CONFLICT' }
+
+- Expected
++ Received
+
+- {
+-   "code": "APP_UI_MODEL_HASH_CONFLICT",
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1535:8
+    1533|         enabled: false,
+    1534|       }],
+    1535|     })).rejects.toMatchObject({ code: "APP_UI_MODEL_HASH_CONFLICT" });
+       |        ^
+    1536|
+    1537|     expect(await readFile(path.join(projectRoot, "app-ui", "app-ui.jso…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[42/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > preserves source bytes for an already-satisfied semantic operation
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:1544:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[43/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > reports a Layout Slot target for width incompatibility
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "PLUGIN_WIDTH_INCOMPATIBLE",
+-   "details": {
+-     "instanceId": "sample-main",
+-     "pluginId": "sample",
+-     "target": {
+-       "slotRef": "l0",
+-       "type": "layout_slot",
+-     },
+-   },
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1575:19
+    1573|     }).catch((value: unknown) => value);
+    1574|
+    1575|     expect(error).toMatchObject({
+       |                   ^
+    1576|       code: "PLUGIN_WIDTH_INCOMPATIBLE",
+    1577|       details: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[44/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > reports a Plugin child Slot target for width incompatibility
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "PLUGIN_WIDTH_INCOMPATIBLE",
+-   "details": {
+-     "instanceId": "child-main",
+-     "pluginId": "sample",
+-     "target": {
+-       "parentInstanceId": "owner-main",
+-       "slot": "content",
+-       "type": "plugin_slot",
+-     },
+-   },
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1632:19
+    1630|     }).catch((value: unknown) => value);
+    1631|
+    1632|     expect(error).toMatchObject({
+       |                   ^
+    1633|       code: "PLUGIN_WIDTH_INCOMPATIBLE",
+    1634|       details: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[45/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > does not let a semantic Plugin Slot move bypass width admission
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "PLUGIN_WIDTH_INCOMPATIBLE",
+-   "details": {
+-     "instanceId": "child-main",
+-     "pluginId": "sample",
+-     "target": {
+-       "parentInstanceId": "owner-main",
+-       "slot": "content",
+-       "type": "plugin_slot",
+-     },
+-   },
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1703:19
+    1701|     }).catch((value: unknown) => value);
+    1702|
+    1703|     expect(error).toMatchObject({
+       |                   ^
+    1704|       code: "PLUGIN_WIDTH_INCOMPATIBLE",
+    1705|       details: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[46/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > uses the starting snapshot target for replace width errors
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "PLUGIN_WIDTH_INCOMPATIBLE",
+-   "details": {
+-     "instanceId": "replacement-main",
+-     "pluginId": "sample",
+-     "target": {
+-       "slotRef": "l0",
+-       "type": "layout_slot",
+-     },
+-   },
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:1740:19
+    1738|     }).catch((value: unknown) => value);
+    1739|
+    1740|     expect(error).toMatchObject({
+       |                   ^
+    1741|       code: "PLUGIN_WIDTH_INCOMPATIBLE",
+    1742|       details: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[47/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > commits a deterministic relative Plugin move as one semantic transaction
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:1784:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[48/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > lowers a Workspace Region Action through the Host private binding
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:1870:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[49/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > commits a Plugin Slot move with manifest compatibility and dedicated cleanup
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/app-ui-transaction.test.ts:1958:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[50/158]⎯
+
+ FAIL  tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects an incompatible Plugin Slot move before changing either artifact
+AssertionError: expected Error: Invalid Agent UI project configura… to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "AUTHORING_MOVE_INCOMPATIBLE",
+-   "details": {
+-     "reason": "slot-capability-mismatch",
+-   },
++ Error {
++   "message": "Invalid Agent UI project configuration.",
+  }
+
+ ❯ tests/migrated/app-ui-transaction.test.ts:2060:19
+    2058|     }).catch((value: unknown) => value);
+    2059|
+    2060|     expect(error).toMatchObject({
+       |                   ^
+    2061|       code: "AUTHORING_MOVE_INCOMPATIBLE",
+    2062|       details: { reason: "slot-capability-mismatch" },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[51/158]⎯
+
+ FAIL  tests/migrated/ask-user-question-resource-install.test.ts > installs and activates the optional Human Tool in application scope
+OfficialResourceError: Official resource installation failed.
+ ❯ installOfficialAgentUIResource src/project/install-official-agent-ui-resource.ts:58:11
+     56|   catch (error) {
+     57|     if (error instanceof OfficialResourceError) throw error;
+     58|     throw new OfficialResourceError("RESOURCE_INSTALL_FAILED", "Offici…
+       |           ^
+     59|       message: error.message, stack: error.stack,
+     60|       ...("code" in error ? { code: error.code } : {}), ...("details" …
+ ❯ tests/migrated/ask-user-question-resource-install.test.ts:24:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[52/158]⎯
+
+ FAIL  tests/migrated/conversation-quote-resource-install.test.ts > freshly installs the Quote Resource under the manifest's composer slot
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/migrated/conversation-quote-resource-install.test.ts:32:98
+     30| it("freshly installs the Quote Resource under the manifest's composer …
+     31|   const root = await project();
+     32|   expect((await locations(root)).some(({ plugin }) => plugin.pluginId …
+       |                                                                                                  ^
+     33|   await rm(path.join(root, "agent-ui/plugins/conversation-quote"), { r…
+     34|   await installOfficialAgentUIResource(root, "conversation-quote");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[53/158]⎯
+
+ FAIL  tests/migrated/conversation-quote-resource-install.test.ts > keeps the model unchanged on idempotent Quote Resource reinstall
+OfficialResourceError: Official resource installation failed.
+ ❯ installOfficialAgentUIResource src/project/install-official-agent-ui-resource.ts:58:11
+     56|   catch (error) {
+     57|     if (error instanceof OfficialResourceError) throw error;
+     58|     throw new OfficialResourceError("RESOURCE_INSTALL_FAILED", "Offici…
+       |           ^
+     59|       message: error.message, stack: error.stack,
+     60|       ...("code" in error ? { code: error.code } : {}), ...("details" …
+ ❯ tests/migrated/conversation-quote-resource-install.test.ts:39:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[54/158]⎯
+
+ FAIL  tests/migrated/conversation-quote-resource-install.test.ts > restores an existing Quote Resource from application scope to the composer
+OfficialResourceError: Official resource installation failed.
+ ❯ installOfficialAgentUIResource src/project/install-official-agent-ui-resource.ts:58:11
+     56|   catch (error) {
+     57|     if (error instanceof OfficialResourceError) throw error;
+     58|     throw new OfficialResourceError("RESOURCE_INSTALL_FAILED", "Offici…
+       |           ^
+     59|       message: error.message, stack: error.stack,
+     60|       ...("code" in error ? { code: error.code } : {}), ...("details" …
+ ❯ tests/migrated/conversation-quote-resource-install.test.ts:51:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[55/158]⎯
+
+ FAIL  tests/migrated/creator-action-catalog.test.ts > new Plugin placement preflight > rejects a business panel that would displace the reserved responsive primary
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ preflightCreatorPluginPlacement src/project/creator-placement-preflight.ts:26:18
+ ❯ tests/migrated/creator-action-catalog.test.ts:199:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[56/158]⎯
+
+ FAIL  tests/migrated/creator-action-catalog.test.ts > new Plugin placement preflight > plans a right-side Plugin without writing source or changing authored tracks
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ preflightCreatorPluginPlacement src/project/creator-placement-preflight.ts:26:18
+ ❯ tests/migrated/creator-action-catalog.test.ts:220:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[57/158]⎯
+
+ FAIL  tests/migrated/creator-action-catalog.test.ts > new Plugin placement preflight > rejects a mismatched child Slot before source creation
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ preflightCreatorPluginPlacement src/project/creator-placement-preflight.ts:26:18
+ ❯ tests/migrated/creator-action-catalog.test.ts:257:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[58/158]⎯
+
+ FAIL  tests/migrated/creator-action-catalog.test.ts > Creator Action Catalog > adds any compatible absent Plugin to its declared child Slot and preserves Add identity
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/creator-action-catalog.test.ts:434:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[59/158]⎯
+
+ FAIL  tests/migrated/creator-action-catalog.test.ts > Creator Action Catalog > rebuilds a Suggestions Add Action after Remove and restores the child Slot
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/creator-action-catalog.test.ts:518:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[60/158]⎯
+
+ FAIL  tests/migrated/creator-action-catalog.test.ts > Creator Action Catalog > rebuilds and lowers the Reasoning Renderer Add Action after Remove
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/creator-action-catalog.test.ts:617:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[61/158]⎯
+
+ FAIL  tests/migrated/creator-action-catalog.test.ts > Creator Action Catalog > emits Theme Switch Add only for the Conversation headerActions Slot
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/creator-action-catalog.test.ts:749:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[62/158]⎯
+
+ FAIL  tests/migrated/creator-action-catalog.test.ts > Creator Action Catalog > emits and executes the Conversation Thread List Add Action when absent
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/creator-action-catalog.test.ts:824:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[63/158]⎯
+
+ FAIL  tests/migrated/creator-action-catalog.test.ts > Creator Action Catalog > adds an absent Workspace Plugin explicitly to left
+ FAIL  tests/migrated/creator-action-catalog.test.ts > Creator Action Catalog > adds an absent Workspace Plugin explicitly to right
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+ ❯ tests/migrated/creator-action-catalog.test.ts:876:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[64/158]⎯
+
+ FAIL  tests/migrated/fresh-user-host.test.ts > fresh user Host architecture regression > initializes and mutates 'assistant' at 'src/agent-ui'
+ FAIL  tests/migrated/fresh-user-host.test.ts > fresh user Host architecture regression > initializes and mutates 'assistant' at 'client/custom-agent'
+ FAIL  tests/migrated/fresh-user-host.test.ts > fresh user Host architecture regression > initializes and mutates 'embedded' at 'src/agent-ui'
+ FAIL  tests/migrated/fresh-user-host.test.ts > fresh user Host architecture regression > initializes and mutates 'embedded' at 'client/custom-agent'
+ FAIL  tests/migrated/fresh-user-host.test.ts > fresh user Host architecture regression > initializes and mutates 'platform' at 'src/agent-ui'
+ FAIL  tests/migrated/fresh-user-host.test.ts > fresh user Host architecture regression > initializes and mutates 'platform' at 'client/custom-agent'
+AgentUIInitializationError: Agent UI package requirements are not installed or are incompatible.
+ ❯ Object.preflightSources src/project/bootstrap-host.ts:52:15
+     50|       const packageInspection = await inspectAgentUIPackages(projectRo…
+     51|       if (packageInspection.issues.length > 0) {
+     52|         throw new AgentUIInitializationError(
+       |               ^
+     53|           "AGENT_UI_PACKAGE_REQUIREMENTS_UNMET",
+     54|           "Agent UI package requirements are not installed or are inco…
+ ❯ initializeAgentUIProject ../bootstrap/src/initialize-agent-ui-project.ts:119:21
+ ❯ tests/migrated/fresh-user-host.test.ts:66:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[65/158]⎯
+
+ FAIL  tests/migrated/fresh-user-host.test.ts > upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIModel
+AgentUIInitializationError: Agent UI package requirements are not installed or are incompatible.
+ ❯ Object.preflightSources src/project/bootstrap-host.ts:52:15
+     50|       const packageInspection = await inspectAgentUIPackages(projectRo…
+     51|       if (packageInspection.issues.length > 0) {
+     52|         throw new AgentUIInitializationError(
+       |               ^
+     53|           "AGENT_UI_PACKAGE_REQUIREMENTS_UNMET",
+     54|           "Agent UI package requirements are not installed or are inco…
+ ❯ initializeAgentUIProject ../bootstrap/src/initialize-agent-ui-project.ts:119:21
+ ❯ tests/migrated/fresh-user-host.test.ts:151:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[66/158]⎯
+
+ FAIL  tests/migrated/generative-ui-installed-upgrade.test.ts > upgrades installed Generative UI dependency source and lock without rewriting A2UI
+AgentUISourceError: Agent UI source item foundation/core-contracts is blocked; refusing to overwrite project source.
+ ❯ stateError src/project/source-registry/installer.ts:68:10
+     66|         ? "AGENT_UI_SOURCE_PARTIAL"
+     67|         : "AGENT_UI_SOURCE_PATH_CONFLICT";
+     68|   return new AgentUISourceError(
+       |          ^
+     69|     code,
+     70|     `Agent UI source item ${itemId} is ${status}; refusing to overwrit…
+ ❯ preflightAgentUISourceApply src/project/source-registry/installer.ts:165:61
+ ❯ applyAgentUISourceItem src/project/source-registry/installer.ts:202:59
+ ❯ tests/migrated/generative-ui-installed-upgrade.test.ts:65:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[67/158]⎯
+
+ FAIL  tests/migrated/plugin-update-adoption.test.ts > regenerates real derived registries for manual merges before verifying and advancing the baseline
+Error: 插件没有可用升级。
+ ❯ src/project/source-registry/updates.ts:62:131
+     60|       const locked = ctx.lock.items[`plugin/${id}`];
+     61|       const target = release.descriptor.plugins[id];
+     62|       if (!locked || !target || (locked.pluginVersion && comparePlugin…
+       |                                                                                                                                   ^
+     63|       return resolveAgentUISourceItemClosure(release.registry, `plugin…
+     64|     }));
+ ❯ AgentUIUpdateService.plan src/project/source-registry/updates.ts:59:39
+ ❯ fixture tests/migrated/plugin-update-adoption.test.ts:52:16
+ ❯ tests/migrated/plugin-update-adoption.test.ts:62:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[68/158]⎯
+
+ FAIL  tests/migrated/plugin-update-adoption.test.ts > rolls back regenerated artifacts and lock while preserving merged source and a retryable plan
+Error: 插件没有可用升级。
+ ❯ src/project/source-registry/updates.ts:62:131
+     60|       const locked = ctx.lock.items[`plugin/${id}`];
+     61|       const target = release.descriptor.plugins[id];
+     62|       if (!locked || !target || (locked.pluginVersion && comparePlugin…
+       |                                                                                                                                   ^
+     63|       return resolveAgentUISourceItemClosure(release.registry, `plugin…
+     64|     }));
+ ❯ AgentUIUpdateService.plan src/project/source-registry/updates.ts:59:39
+ ❯ fixture tests/migrated/plugin-update-adoption.test.ts:52:16
+ ❯ tests/migrated/plugin-update-adoption.test.ts:72:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[69/158]⎯
+
+ FAIL  tests/migrated/plugin-update-adoption.test.ts > naturally reports managed when the manually merged bytes exactly match the target
+Error: 插件没有可用升级。
+ ❯ src/project/source-registry/updates.ts:62:131
+     60|       const locked = ctx.lock.items[`plugin/${id}`];
+     61|       const target = release.descriptor.plugins[id];
+     62|       if (!locked || !target || (locked.pluginVersion && comparePlugin…
+       |                                                                                                                                   ^
+     63|       return resolveAgentUISourceItemClosure(release.registry, `plugin…
+     64|     }));
+ ❯ AgentUIUpdateService.plan src/project/source-registry/updates.ts:59:39
+ ❯ fixture tests/migrated/plugin-update-adoption.test.ts:52:16
+ ❯ tests/migrated/plugin-update-adoption.test.ts:88:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[70/158]⎯
+
+ FAIL  tests/migrated/plugin-updates.test.ts > upgrades a project initialized from the current Registry along the default Mock release chain
+AssertionError: expected { files: { …(4) }, …(2) } to match object { pluginVersion: '0.0.1', …(1) }
+(5 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "pluginVersion": "0.0.1",
++   "pluginVersion": "0.0.4",
+    "sourceRelease": "0.1.0",
+  }
+
+ ❯ tests/migrated/plugin-updates.test.ts:113:101
+    111| it("upgrades a project initialized from the current Registry along the…
+    112|   const f = await fixture(true);
+    113|   expect((await readAgentUISourceLock(f.root, f.config)).lock.items["p…
+       |                                                                                                     ^
+    114|   const inspection = await f.service.inspect(f.root);
+    115|   expect(inspection.releaseVersion).toBe("0.1.1");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[71/158]⎯
+
+ FAIL  tests/migrated/plugin-updates.test.ts > blocks an older package release even when its Plugin version would advance
+Error: 插件没有可用升级。
+ ❯ src/project/source-registry/updates.ts:62:131
+     60|       const locked = ctx.lock.items[`plugin/${id}`];
+     61|       const target = release.descriptor.plugins[id];
+     62|       if (!locked || !target || (locked.pluginVersion && comparePlugin…
+       |                                                                                                                                   ^
+     63|       return resolveAgentUISourceItemClosure(release.registry, `plugin…
+     64|     }));
+ ❯ AgentUIUpdateService.plan src/project/source-registry/updates.ts:59:39
+ ❯ tests/migrated/plugin-updates.test.ts:125:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[72/158]⎯
+
+ FAIL  tests/migrated/project-control-contract.test.ts > ProjectControl canonical wire contract > agrees with canonical JSON Schema for every valid and invalid fixture
+AssertionError: mutate_app_ui_model.result.json: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/migrated/project-control-contract.test.ts:37:36
+     35|       let accepted = true;
+     36|       try { validateProjectControlResult(entry.operation, value); } ca…
+     37|       expect(accepted, entry.file).toBe(entry.valid);
+       |                                    ^
+     38|       expect(canonical[entry.file], entry.file).toBe(entry.valid);
+     39|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[73/158]⎯
+
+ FAIL  tests/migrated/project-inspector.test.ts > inspectUIProject > discovers the canonical assistant-ui conversation Slots
+CreatorAuthoringTargetCatalogError: Authoring target conversation.starter-suggestions.ownerPath does not exist.
+ ❯ fail src/project/creator-authoring-target-catalog.ts:47:9
+     45|
+     46| function fail(message: string, details?: unknown): never {
+     47|   throw new CreatorAuthoringTargetCatalogError(
+       |         ^
+     48|     "CREATOR_AUTHORING_TARGET_CATALOG_INVALID",
+     49|     message,
+ ❯ requireFile src/project/creator-authoring-target-catalog.ts:99:5
+ ❯ buildCreatorAuthoringTargetCatalog src/project/creator-authoring-target-catalog.ts:221:5
+ ❯ inspectUICompositionData src/project/project-inspector.ts:354:7
+ ❯ inspectUIProject src/project/project-inspector.ts:168:23
+ ❯ tests/migrated/project-inspector.test.ts:71:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[74/158]⎯
+
+ FAIL  tests/migrated/project-inspector.test.ts > inspectUIProject > bounds the current Composition snapshot independently of the full project snapshot
+CreatorAuthoringTargetCatalogError: Authoring target conversation.starter-suggestions.ownerPath does not exist.
+ ❯ fail src/project/creator-authoring-target-catalog.ts:47:9
+     45|
+     46| function fail(message: string, details?: unknown): never {
+     47|   throw new CreatorAuthoringTargetCatalogError(
+       |         ^
+     48|     "CREATOR_AUTHORING_TARGET_CATALOG_INVALID",
+     49|     message,
+ ❯ requireFile src/project/creator-authoring-target-catalog.ts:99:5
+ ❯ buildCreatorAuthoringTargetCatalog src/project/creator-authoring-target-catalog.ts:221:5
+ ❯ inspectUICompositionData src/project/project-inspector.ts:354:7
+ ❯ inspectUIComposition src/project/project-inspector.ts:476:7
+ ❯ tests/migrated/project-inspector.test.ts:146:36
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[75/158]⎯
+
+ FAIL  tests/migrated/project-inspector.test.ts > inspectUIProject > returns a compact, revision-bound project snapshot
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/migrated/project-inspector.test.ts:312:57
+    310|       }),
+    311|     );
+    312|     expect(result.capabilityCatalog.generatedFileFresh).toBe(true);
+       |                                                         ^
+    313|     expect(result.activeComposition).toMatchObject({
+    314|       selectedPluginIds: ["renderer", "sample"],
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[76/158]⎯
+
+ FAIL  tests/migrated/service-dependency-inspector.test.ts > service dependency inspector > distinguishes required missing, optional unavailable, and collisions
+AssertionError: expected 'inactive' to be 'required-missing' // Object.is equality
+
+Expected: "required-missing"
+Received: "inactive"
+
+ ❯ tests/migrated/service-dependency-inspector.test.ts:218:49
+    216|       assets,
+    217|     );
+    218|     expect(requiredMissing.services[0]?.status).toBe("required-missing…
+       |                                                 ^
+    219|     expect(requiredMissing.issues).toContainEqual(
+    220|       expect.objectContaining({ code: "required-service-missing" }),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[77/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation-architecture.test.ts > restricts low-level Source apply/remove to the canonical Host orchestrator
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "packages/project-control/src/project/plugin-purge.ts",
++ ]
+
+ ❯ tests/migrated/source-project-mutation-architecture.test.ts:30:21
+     28|     }
+     29|   }
+     30|   expect(offenders).toEqual([]);
+       |                     ^
+     31| });
+     32|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[78/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation.test.ts > Mock and ProjectControl install byte-identical source and registries
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ Module.installOptionalAgentUIResource src/project/install-optional-agent-ui-resource.ts:17:3
+ ❯ tests/migrated/source-project-mutation.test.ts:163:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[79/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation.test.ts > installs A2UI and repairs stale generated output without changing composition
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ tests/migrated/source-project-mutation.test.ts:171:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[80/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation.test.ts > removes integration/a2ui and its generated imports
+ FAIL  tests/migrated/source-project-mutation.test.ts > removes demo/frontend-tool-form and its generated imports
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ tests/migrated/source-project-mutation.test.ts:183:36
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[81/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation.test.ts > installs Tool resources without inserting a Demo Plugin instance
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ tests/migrated/source-project-mutation.test.ts:193:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[82/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation.test.ts > rejects removal while a disabled AppUIModel instance still references an owned asset
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ tests/migrated/source-project-mutation.test.ts:209:55
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[83/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation.test.ts > rejects removal of a dependency before any project write
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ tests/migrated/source-project-mutation.test.ts:216:30
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[84/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation.test.ts > rolls back source and all generated writes after source failure
+ FAIL  tests/migrated/source-project-mutation.test.ts > rolls back source and all generated writes after plugin failure
+ FAIL  tests/migrated/source-project-mutation.test.ts > rolls back source and all generated writes after tools failure
+ FAIL  tests/migrated/source-project-mutation.test.ts > rolls back source and all generated writes after integrations failure
+ FAIL  tests/migrated/source-project-mutation.test.ts > rolls back source and all generated writes after verify failure
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ tests/migrated/source-project-mutation.test.ts:225:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[85/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation.test.ts > recovers before recover after a generated crash
+ FAIL  tests/migrated/source-project-mutation.test.ts > recovers before inspect after a generated crash
+ FAIL  tests/migrated/source-project-mutation.test.ts > recovers before apply after a generated crash
+ FAIL  tests/migrated/source-project-mutation.test.ts > recovers before remove after a generated crash
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ tests/migrated/source-project-mutation.test.ts:232:8
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[86/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation.test.ts > protects customized source without repairing registries around the admission failure
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ tests/migrated/source-project-mutation.test.ts:245:30
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[87/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation.test.ts > commits verification warnings without rolling back
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ tests/migrated/source-project-mutation.test.ts:255:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[88/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation.test.ts > does not touch an active owner's journals or files during recover
+ FAIL  tests/migrated/source-project-mutation.test.ts > does not touch an active owner's journals or files during inspect
+ FAIL  tests/migrated/source-project-mutation.test.ts > does not touch an active owner's journals or files during mock
+ FAIL  tests/migrated/source-project-mutation.test.ts > does not touch an active owner's journals or files during apply
+ FAIL  tests/migrated/source-project-mutation.test.ts > does not touch an active owner's journals or files during remove
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ tests/migrated/source-project-mutation.test.ts:277:64
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[89/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation.test.ts > recovers a current journal only after its owner has exited
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ tests/migrated/source-project-mutation.test.ts:296:64
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[90/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation.test.ts > treats EPERM as a living owner and preserves its transaction
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ tests/migrated/source-project-mutation.test.ts:303:64
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[91/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation.test.ts > propagates unexpected process liveness errors without recovering
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ tests/migrated/source-project-mutation.test.ts:311:64
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[92/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation.test.ts > rejects invalid owner PID 0 before probing or restoring
+ FAIL  tests/migrated/source-project-mutation.test.ts > rejects invalid owner PID -1 before probing or restoring
+ FAIL  tests/migrated/source-project-mutation.test.ts > rejects invalid owner PID 1.5 before probing or restoring
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ tests/migrated/source-project-mutation.test.ts:319:64
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[93/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation.test.ts > recovers a dead create-only winner and retries fresh admission once
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ tests/migrated/source-project-mutation.test.ts:334:10
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[94/158]⎯
+
+ FAIL  tests/migrated/source-project-mutation.test.ts > keeps another Node process's active mutation untouched and recovers after it exits
+AgentUISourceError: Source mutation did not leave a valid UI project.
+ ❯ mutateAttempt src/project/source-registry/project-mutation.ts:251:49
+
+ ❯ exclusive src/project/source-registry/project-mutation.ts:54:16
+ ❯ tests/migrated/source-project-mutation.test.ts:345:64
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[95/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > returns the target-owned project inspection through the current contract
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/migrated/ui-project-control.test.ts:158:25
+    156|     );
+    157|
+    158|     expect(response.ok).toBe(true);
+       |                         ^
+    159|     expect(response).toMatchObject({
+    160|       result: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[96/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > returns the bounded authoritative Composition view
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: true, result: { …(5) } }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "result": {
+-     "appUIModel": {
+-       "hash": StringMatching /^[a-f0-9]{64}$/u,
+-       "slots": [
+-         ObjectContaining {
+-           "nodeRef": "l0",
+-         },
+-       ],
+-     },
+-     "capabilityCatalogRevision": "b72afadb67297d9baca02ddb743dc9668d9f5934805c1b43a0c1dc4820bb60cc",
+-     "capabilitySummaries": [
+-       ObjectContaining {
+-         "description": "Fixture",
+-         "name": "Sample",
+-         "pluginId": "sample",
+-         "selected": true,
+-       },
+-     ],
+-     "pluginInstances": [
+-       ObjectContaining {
+-         "enabled": true,
+-         "id": "sample-main",
+-         "pluginId": "sample",
+-         "target": {
+-           "slotRef": "l0",
+-           "type": "layout_slot",
+-         },
+-       },
+-     ],
+-     "view": "composition",
+-   },
++   "ok": false,
+  }
+
+ ❯ tests/migrated/ui-project-control.test.ts:180:22
+    178|     );
+    179|
+    180|     expect(response).toMatchObject({
+       |                      ^
+    181|       ok: true,
+    182|       result: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[97/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > executes a Workspace Region Creator Action through the transaction Host
+Error: Expected Composition inspection to succeed.
+ ❯ tests/migrated/ui-project-control.test.ts:229:31
+    227|       projectRoot,
+    228|     );
+    229|     if (!inspection.ok) throw new Error("Expected Composition inspecti…
+       |                               ^
+    230|     const composition = inspection.result as {
+    231|       appUIModel: { hash: string };
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[98/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > rejects an unknown Creator Action id at the Host boundary
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: false, …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "error": {
+-     "code": "CREATOR_ACTION_NOT_AVAILABLE",
++     "code": "CONTROL_OPERATION_FAILED",
+    },
+    "ok": false,
+  }
+
+ ❯ tests/migrated/ui-project-control.test.ts:314:22
+    312|     );
+    313|
+    314|     expect(response).toMatchObject({
+       |                      ^
+    315|       ok: false,
+    316|       error: { code: "CREATOR_ACTION_NOT_AVAILABLE" },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[99/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > rejects execute_creator_action mixed with another transaction operation
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: false, …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "error": {
+-     "code": "CREATOR_ACTION_TRANSACTION_INVALID",
++     "code": "CONTROL_OPERATION_FAILED",
+    },
+    "ok": false,
+  }
+
+ ❯ tests/migrated/ui-project-control.test.ts:345:22
+    343|     );
+    344|
+    345|     expect(response).toMatchObject({
+       |                      ^
+    346|       ok: false,
+    347|       error: { code: "CREATOR_ACTION_TRANSACTION_INVALID" },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[100/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > does not let an old Remove action delete a replacement instance
+Error: Expected Composition inspection to succeed.
+ ❯ tests/migrated/ui-project-control.test.ts:360:31
+    358|       projectRoot,
+    359|     );
+    360|     if (!inspection.ok) throw new Error("Expected Composition inspecti…
+       |                               ^
+    361|     const composition = inspection.result as {
+    362|       appUIModel: { hash: string };
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[101/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > returns the exact AppUIModel source and hash
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/migrated/ui-project-control.test.ts:443:25
+    441|     );
+    442|
+    443|     expect(response.ok).toBe(true);
+       |                         ^
+    444|     expect(response).toMatchObject({
+    445|       result: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[102/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > includes canonical manifest descriptions when listing UI plugins
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: true, result: { …(1) } }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "result": {
+-     "pluginAssets": [
+-       ObjectContaining {
+-         "description": "Fixture",
+-         "name": "Sample",
+-         "pluginId": "sample",
+-       },
+-     ],
+-   },
++   "ok": false,
+  }
+
+ ❯ tests/migrated/ui-project-control.test.ts:460:22
+    458|     );
+    459|
+    460|     expect(response).toMatchObject({
+       |                      ^
+    461|       ok: true,
+    462|       result: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[103/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > returns authoring Slot targets and configured plugins
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: true, result: { …(2) } }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "result": {
+-     "selected": ObjectContaining {
+-       "target": {
+-         "slotRef": "l0",
+-         "type": "layout_slot",
+-       },
+-     },
+-     "slots": [
+-       ObjectContaining {
+-         "nodeRef": "l0",
+-         "plugins": [
+-           ObjectContaining {
+-             "enabled": true,
+-             "id": "sample-main",
+-             "pluginId": "sample",
+-           },
+-         ],
+-         "target": {
+-           "slotRef": "l0",
+-           "type": "layout_slot",
+-         },
+-       },
+-     ],
+-   },
++   "ok": false,
+  }
+
+ ❯ tests/migrated/ui-project-control.test.ts:490:22
+    488|     );
+    489|
+    490|     expect(response).toMatchObject({
+       |                      ^
+    491|       ok: true,
+    492|       result: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[104/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > rejects stale layout Slot refs before interpreting the target
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: false, …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "error": {
+-     "code": "APP_UI_MODEL_HASH_CONFLICT",
++     "code": "CONTROL_OPERATION_FAILED",
+    },
+    "ok": false,
+  }
+
+ ❯ tests/migrated/ui-project-control.test.ts:541:27
+    539|     );
+    540|
+    541|     expect(staleResponse).toMatchObject({
+       |                           ^
+    542|       ok: false,
+    543|       error: { code: "APP_UI_MODEL_HASH_CONFLICT" },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[105/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > keeps plugin child Slot inspection independent of layout hashes
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: true, …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "result": {
+-     "selected": {
+-       "target": {
+-         "parentInstanceId": "sample-main",
+-         "slot": "message",
+-         "type": "plugin_slot",
+-       },
+-     },
+-   },
++   "ok": false,
+  }
+
+ ❯ tests/migrated/ui-project-control.test.ts:593:22
+    591|     );
+    592|
+    593|     expect(response).toMatchObject({
+       |                      ^
+    594|       ok: true,
+    595|       result: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[106/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > verifies Runtime composition in authoring terms for Layout Slots
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: true, result: { …(2) } }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "result": {
+-     "checks": [
+-       {
+-         "actual": {
+-           "mounted": true,
+-           "pluginId": "sample",
+-         },
+-         "expected": {
+-           "pluginId": "sample",
+-           "target": {
+-             "slotRef": "l0",
+-             "type": "layout_slot",
+-           },
+-         },
+-         "instanceId": "sample-main",
+-         "status": "passed",
+-       },
+-     ],
+-     "verified": true,
+-   },
++   "ok": false,
+  }
+
+ ❯ tests/migrated/ui-project-control.test.ts:639:22
+    637|     );
+    638|
+    639|     expect(response).toMatchObject({
+       |                      ^
+    640|       ok: true,
+    641|       result: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[107/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > reports missing, plugin-mismatch, and slot-mismatch without Runtime ids
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: true, …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "result": {
+-     "checks": [
+-       {
+-         "status": "missing",
+-       },
+-     ],
+-   },
++   "ok": false,
+  }
+
+ ❯ tests/migrated/ui-project-control.test.ts:724:21
+    722|     }]));
+    723|
+    724|     expect(missing).toMatchObject({ ok: true, result: { checks: [{ sta…
+       |                     ^
+    725|     expect(pluginMismatch).toMatchObject({ ok: true, result: { checks:…
+    726|     expect(slotMismatch).toMatchObject({ ok: true, result: { checks: […
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[108/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > verifies Plugin child Slots without exposing their Runtime ids
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: true, result: { …(2) } }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "result": {
+-     "checks": [
+-       ObjectContaining {
+-         "instanceId": "sample-main",
+-         "status": "passed",
+-       },
+-       {
+-         "expected": {
+-           "target": {
+-             "parentInstanceId": "sample-main",
+-             "slot": "content",
+-             "type": "plugin_slot",
+-           },
+-         },
+-         "instanceId": "child-main",
+-       },
+-     ],
+-     "verified": true,
+-   },
++   "ok": false,
+  }
+
+ ❯ tests/migrated/ui-project-control.test.ts:789:22
+    787|     );
+    788|
+    789|     expect(response).toMatchObject({
+       |                      ^
+    790|       ok: true,
+    791|       result: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[109/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > rejects stale AppUIModel hashes before Runtime comparison
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: false, …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "error": {
+-     "code": "APP_UI_MODEL_HASH_CONFLICT",
++     "code": "CONTROL_OPERATION_FAILED",
+    },
+    "ok": false,
+  }
+
+ ❯ tests/migrated/ui-project-control.test.ts:847:22
+    845|     );
+    846|
+    847|     expect(response).toMatchObject({
+       |                      ^
+    848|       ok: false,
+    849|       error: { code: "APP_UI_MODEL_HASH_CONFLICT" },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[110/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > routes a hash-bound semantic mutation through the fixed protocol
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: true, result: { …(2) } }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "result": {
+-     "changedPaths": [
+-       "app-ui/app-ui.json",
+-     ],
+-     "diff": {
+-       "plugins": {
+-         "updated": [
+-           "sample-main",
+-         ],
+-       },
+-     },
+-   },
++   "ok": false,
+  }
+
+ ❯ tests/migrated/ui-project-control.test.ts:875:22
+    873|     );
+    874|
+    875|     expect(response).toMatchObject({
+       |                      ^
+    876|       ok: true,
+    877|       result: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[111/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > bounds plugin source while preserving precise asset and instance metadata
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/migrated/ui-project-control.test.ts:901:25
+    899|     );
+    900|
+    901|     expect(response.ok).toBe(true);
+       |                         ^
+    902|     expect(response).toMatchObject({
+    903|       result: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[112/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > returns a Plugin Service dependency summary
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: true, …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "result": {
+-     "services": {
+-       "optional": [
+-         "agent-ui.theme",
+-       ],
+-       "provides": [],
+-       "required": [
+-         "workspace.files",
+-       ],
+-     },
+-   },
++   "ok": false,
+  }
+
+ ❯ tests/migrated/ui-project-control.test.ts:931:22
+    929|     );
+    930|
+    931|     expect(response).toMatchObject({
+       |                      ^
+    932|       ok: true,
+    933|       result: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[113/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > routes the complete Service topology inspection
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: true, result: { …(3) } }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "result": {
+-     "issues": [],
+-     "plugins": [
+-       ObjectContaining {
+-         "optionalInject": [
+-           "agent-ui.theme",
+-         ],
+-         "pluginId": "sample",
+-       },
+-     ],
+-     "services": [
+-       ObjectContaining {
+-         "name": "agent-ui.theme",
+-         "status": "optional-unavailable",
+-       },
+-     ],
+-   },
++   "ok": false,
+  }
+
+ ❯ tests/migrated/ui-project-control.test.ts:955:22
+    953|     );
+    954|
+    955|     expect(response).toMatchObject({
+       |                      ^
+    956|       ok: true,
+    957|       result: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[114/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > routes target-owned plugin source reference analysis
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: true, result: { …(3) } }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "result": {
+-     "directory": "sample",
+-     "pluginId": "sample",
+-     "references": ArrayContaining [
+-       ObjectContaining {
+-         "kind": "module",
+-         "path": "plugins/consumer/index.ts",
+-       },
+-     ],
+-   },
++   "ok": false,
+  }
+
+ ❯ tests/migrated/ui-project-control.test.ts:993:22
+    991|     );
+    992|
+    993|     expect(response).toMatchObject({
+       |                      ^
+    994|       ok: true,
+    995|       result: {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[115/158]⎯
+
+ FAIL  tests/migrated/ui-project-control.test.ts > ui-project-control > reports incompatible requests and missing plugins as structured errors
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: false, …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "error": {
+-     "code": "UI_PLUGIN_NOT_FOUND",
++     "code": "CONTROL_OPERATION_FAILED",
+    },
+    "ok": false,
+  }
+
+ ❯ tests/migrated/ui-project-control.test.ts:1027:21
+    1025|       error: { code: "INVALID_REQUEST" },
+    1026|     });
+    1027|     expect(missing).toMatchObject({
+       |                     ^
+    1028|       ok: false,
+    1029|       error: { code: "UI_PLUGIN_NOT_FOUND" },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[116/158]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > blocks direct Portal primitive imports in a generated user Plugin and accepts the public facade
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:211:25
+    209|       'import { AgentUIDialog, AgentUIPopover, AgentUITooltip } from "…
+    210|     const safe = await verifyUIProject(projectRoot, fixtureConfig);
+    211|     expect(safe.status).toBe("passed");
+       |                         ^
+    212|   });
+    213|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[117/158]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > blocks global Plugin CSS and accepts the same Plugin after scoping
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:224:27
+    222|     await writeFile(stylesheet, ".sample button { color: var(--primary…
+    223|     const scoped = await verifyUIProject(projectRoot, fixtureConfig);
+    224|     expect(scoped.status).toBe("passed");
+       |                           ^
+    225|   });
+    226|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[118/158]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > accepts an enabled Data Message UI without a mount or headless classification
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:235:27
+    233|     });
+    234|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    235|     expect(result.status).toBe("passed");
+       |                           ^
+    236|     expect(result.activeComposition.headlessPluginIds).toEqual([]);
+    237|     expect(result.warnings).not.toContainEqual(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[119/158]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > checks duplicate names only for enabled instances: false
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:337:27
+    335|     await addSecondDataMessageUI(projectRoot, enabled);
+    336|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    337|     expect(result.status).toBe(status);
+       |                           ^
+    338|     expect(result.errors.some((issue) => issue.code === "DATA_MESSAGE_…
+    339|     if (conflict) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[120/158]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > ignores unregistered names when checking enabled Plugin conflicts
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:355:27
+    353|     await addSecondDataMessageUI(projectRoot, true, "debug");
+    354|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    355|     expect(result.status).toBe("passed");
+       |                           ^
+    356|     expect(result.errors.some((issue) => issue.code === "DATA_MESSAGE_…
+    357|       .toBe(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[121/158]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > resolves an inline renderer in the default definition
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:383:27
+    381|     });
+    382|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    383|     expect(result.status).toBe("passed");
+       |                           ^
+    384|   });
+    385|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[122/158]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > blocks 'DATA_MESSAGE_UI_DEFINITION_NOT_STATIC' only when its Plugin is selected
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > blocks 'DATA_MESSAGE_UI_RENDERER_MISSING' only when its Plugin is selected
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > blocks 'DATA_MESSAGE_UI_MANIFEST_MISSING' only when its Plugin is selected
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:437:31
+    435|     }));
+    436|     const unselected = await verifyUIProject(projectRoot, fixtureConfi…
+    437|     expect(unselected.status).toBe("passed");
+       |                               ^
+    438|     expect(unselected.activeComposition.selectedPluginIds).toEqual(["s…
+    439|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[123/158]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > checks same-named renderers only after both Plugins are selected
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:474:31
+    472|     await writeModelAndRegistry(projectRoot, unselectedModel);
+    473|     const unselected = await verifyUIProject(projectRoot, fixtureConfi…
+    474|     expect(unselected.status).toBe("passed");
+       |                               ^
+    475|     expect(unselected.errors.some((issue) => issue.code === "DATA_MESS…
+    476|       .toBe(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[124/158]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > reports limited Creator readiness without failing verification
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:513:27
+    511|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    512|
+    513|     expect(result.status).toBe("passed");
+       |                           ^
+    514|     expect(result.creatorReadiness.plugins).toContainEqual(
+    515|       expect.objectContaining({
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[125/158]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > allows an explicitly headless plugin in application scope
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:581:27
+    579|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    580|
+    581|     expect(result.status).toBe("passed");
+       |                           ^
+    582|     expect(result.activeComposition.headlessPluginIds).toEqual(["sampl…
+    583|     expect(result.capabilityCatalog.generatedFileFresh).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[126/158]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > accepts matching manifest and rendered child Slots
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:704:27
+    702|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    703|
+    704|     expect(result.status).toBe("passed");
+       |                           ^
+    705|   });
+    706|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[127/158]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 2 unhandled errors during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+
+This error originated in "tests/migrated/app-ui-transaction.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "rejects cancellation at the transaction commit boundary without changing the model". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid Agent UI project configuration.
+ ❯ readAgentUIProjectConfig src/project/project-mode.ts:33:11
+     31|       throw error;
+     32|     }
+     33|     throw new Error("Invalid Agent UI project configuration.");
+       |           ^
+     34|   }
+     35| }
+ ❯ runTransaction src/project/app-ui-transaction.ts:1069:25
+ ❯ withProjectLock src/project/app-ui-transaction.ts:287:12
+
+This error originated in "tests/migrated/app-ui-transaction.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "finishes an atomic transaction after cancellation arrives past the commit point". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  26 failed | 26 passed (52)
+      Tests  150 failed | 385 passed (535)
+     Errors  2 errors
+   Start at  10:58:04
+   Duration  218.94s (transform 11.48s, setup 607ms, import 25.67s, tests 358.58s, environment 37.50s)
+
+/Users/yifei/Coding/AgentUICreator/packages/project-control:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @agent-ui/project-control@0.1.0 test: `vitest run`
+Exit status 1

@@ -1,0 +1,182 @@
+tests/app-ui-recovery.test.ts > invalid AppUIModel Recovery > Plugin context remains inspectable while the model is broken
+tests/app-ui-recovery.test.ts > invalid AppUIModel Recovery > keeps a healthy model with broken Plugin child Slot source in normal debugging
+tests/app-ui-recovery.test.ts > invalid AppUIModel Recovery > does not classify Plugin definition syntax errors as model corruption
+tests/app-ui-recovery.test.ts > invalid AppUIModel Recovery > does not classify Plugin definition missing export errors as model corruption
+tests/app-ui-recovery.test.ts > invalid AppUIModel Recovery > does not classify Plugin definition missing file errors as model corruption
+tests/creator-resource-commands.test.ts > catalog only exposes explicit discoverable resources and never installation internals
+tests/creator-resource-commands.test.ts > preserves customized source bytes when re-enabling a resource and is idempotent
+tests/creator-resource-commands.test.ts > duplicate resources conflict before writes
+tests/creator-resource-commands.test.ts > sync handles fresh, stale and missing registry and touches no other generated artifacts
+tests/creator-resource-commands.test.ts > preserves customized provided Plugin source when re-enabling Reasoning
+tests/host-public-entry.integration.test.ts > a plain temporary Host can initialize assistant and bundle the public Agent entry without metadata
+tests/host-public-entry.integration.test.ts > a plain temporary Host can initialize embedded and bundle the public Agent entry without metadata
+tests/host-public-entry.integration.test.ts > a plain temporary Host can initialize platform and bundle the public Agent entry without metadata
+tests/migrated/a2ui-resource-install.test.ts > installs a pluginless/tool-less A2UI resource without changing AppUIModel
+tests/migrated/a2ui-resource-install.test.ts > installs Generative UI alone without changing layout or mounting Tool permission
+tests/migrated/a2ui-resource-install.test.ts > installs the Official A2UI Resource and supplements missing dependencies
+tests/migrated/a2ui-resource-install.test.ts > does not install Source or report readiness after package installation fails, and remains retryable
+tests/migrated/agent-ui-initialization.test.ts > deterministic Agent UI initializer > initializes platform at packages/web/agent-ui into a ready project
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > commits the authoring model only after it compiles
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > removes an existing instance without rewriting the capability catalog
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects generic removal of an application Headless Plugin
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects generic default removal of an application Headless Plugin
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects disabling an application Headless Plugin through generic mutation
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects replacing an application Headless Plugin through generic mutation
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > removes a history panel in one mutation without catalog churn
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > reflows a dedicated history region without a follow-up Layout operation
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > productizes default removal with Host-owned reflow metadata
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > does not partially commit when deterministic reflow preconditions fail
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > writes a CompositionRevision before a model plus catalog transaction
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > lowers an authoring-default insertion into one deterministic visual region
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > caps both side tracks when a default insertion joins a narrow root Row
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > preserves an existing navigation rail when inserting a bounded side panel
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > lowers an authoring-default insertion when the anchor is a root Panel
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > lowers an authoring-default insertion when the anchor is a root Slot
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > preserves the current root Panel size over the anchor manifest recommendation
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > closes the Productized Remove to Add round-trip from the real canonical output
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > restores the Center-only Workspace after Productized Add then Remove
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when a root anchor has no deterministic track size
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when a root Slot is shared by multiple Plugins
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when authoring-default placement is not available
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when the authoring-default anchor is ambiguous
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when an authoring-default Plugin has an unresolved required Service
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > fails closed when the authoring-default anchor is inside an unsupported Layout
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > strips transaction localRefs before writing AppUIModel
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > does not write a draft that fails deterministic compilation
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > does not apply a fabricated 560px container to unrelated three-column edits
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects cancellation at the transaction commit boundary without changing the model
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > finishes an atomic transaction after cancellation arrives past the commit point
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects a stale source hash before changing either transaction file
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > preserves source bytes for an already-satisfied semantic operation
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > reports a Layout Slot target for width incompatibility
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > reports a Plugin child Slot target for width incompatibility
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > does not let a semantic Plugin Slot move bypass width admission
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > uses the starting snapshot target for replace width errors
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > commits a deterministic relative Plugin move as one semantic transaction
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > lowers a Workspace Region Action through the Host private binding
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > commits a Plugin Slot move with manifest compatibility and dedicated cleanup
+tests/migrated/app-ui-transaction.test.ts > AppUIModel transaction > rejects an incompatible Plugin Slot move before changing either artifact
+tests/migrated/ask-user-question-resource-install.test.ts > installs and activates the optional Human Tool in application scope
+tests/migrated/composer-trigger-resource-install.test.ts > installs independent triggers and explicit Demo in platform under the configured source root
+tests/migrated/composer-trigger-resource-install.test.ts > installs independent triggers and explicit Demo in assistant under the configured source root
+tests/migrated/composer-trigger-resource-install.test.ts > installs independent triggers and explicit Demo in embedded under the configured source root
+tests/migrated/conversation-quote-resource-install.test.ts > freshly installs the Quote Resource under the manifest's composer slot
+tests/migrated/conversation-quote-resource-install.test.ts > keeps the model unchanged on idempotent Quote Resource reinstall
+tests/migrated/conversation-quote-resource-install.test.ts > restores an existing Quote Resource from application scope to the composer
+tests/migrated/creator-action-catalog.test.ts > new Plugin placement preflight > rejects a business panel that would displace the reserved responsive primary
+tests/migrated/creator-action-catalog.test.ts > new Plugin placement preflight > plans a right-side Plugin without writing source or changing authored tracks
+tests/migrated/creator-action-catalog.test.ts > new Plugin placement preflight > rejects a mismatched child Slot before source creation
+tests/migrated/creator-action-catalog.test.ts > Creator Action Catalog > adds any compatible absent Plugin to its declared child Slot and preserves Add identity
+tests/migrated/creator-action-catalog.test.ts > Creator Action Catalog > rebuilds a Suggestions Add Action after Remove and restores the child Slot
+tests/migrated/creator-action-catalog.test.ts > Creator Action Catalog > rebuilds and lowers the Reasoning Renderer Add Action after Remove
+tests/migrated/creator-action-catalog.test.ts > Creator Action Catalog > emits Theme Switch Add only for the Conversation headerActions Slot
+tests/migrated/creator-action-catalog.test.ts > Creator Action Catalog > emits and executes the Conversation Thread List Add Action when absent
+tests/migrated/creator-action-catalog.test.ts > Creator Action Catalog > adds an absent Workspace Plugin explicitly to left
+tests/migrated/creator-action-catalog.test.ts > Creator Action Catalog > adds an absent Workspace Plugin explicitly to right
+tests/migrated/creator-project-inspector.test.ts > Creator Project Inspector > marks invalid AppUIModel and unsupported config as broken
+tests/migrated/feature-removal-real-preset.test.ts > real default preset Feature Removal > removes Slash composition and restores official resources in assistant
+tests/migrated/feature-removal-real-preset.test.ts > real default preset Feature Removal > removes Slash composition and restores official resources in embedded
+tests/migrated/feature-removal-real-preset.test.ts > real default preset Feature Removal > removes Slash composition and restores official resources in platform
+tests/migrated/feature-removal-real-preset.test.ts > real default preset Feature Removal > retains the real Command Source for another required consumer
+tests/migrated/feature-removal-real-preset.test.ts > real default preset Feature Removal > retains a business Mention Provider without explicit cleanup ownership
+tests/migrated/fresh-user-host.test.ts > fresh user Host architecture regression > initializes and mutates 'assistant' at 'src/agent-ui'
+tests/migrated/fresh-user-host.test.ts > fresh user Host architecture regression > initializes and mutates 'assistant' at 'client/custom-agent'
+tests/migrated/fresh-user-host.test.ts > fresh user Host architecture regression > initializes and mutates 'embedded' at 'src/agent-ui'
+tests/migrated/fresh-user-host.test.ts > fresh user Host architecture regression > initializes and mutates 'embedded' at 'client/custom-agent'
+tests/migrated/fresh-user-host.test.ts > fresh user Host architecture regression > initializes and mutates 'platform' at 'src/agent-ui'
+tests/migrated/fresh-user-host.test.ts > fresh user Host architecture regression > initializes and mutates 'platform' at 'client/custom-agent'
+tests/migrated/fresh-user-host.test.ts > upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIModel
+tests/migrated/generative-ui-installed-upgrade.test.ts > upgrades installed Generative UI dependency source and lock without rewriting A2UI
+tests/migrated/managed-source-root.test.ts > Managed source paths > discovers only sourceRoot plugins and reports project-relative asset paths
+tests/migrated/plugin-purge.test.ts > Host Plugin purge > hide preserves source ownership and Providers
+tests/migrated/plugin-purge.test.ts > Host Plugin purge > plans without live writes and purges managed Slash and its orphan Provider
+tests/migrated/plugin-purge.test.ts > Host Plugin purge > retains a shared Provider for a disabled optional consumer
+tests/migrated/plugin-purge.test.ts > Host Plugin purge > removes every user-authored Plugin file and nested directory
+tests/migrated/plugin-purge.test.ts > Host Plugin purge > rejects stale hashes without writes
+tests/migrated/plugin-purge.test.ts > Host Plugin purge > allows customized managed files but refuses unowned additions
+tests/migrated/plugin-purge.test.ts > Host Plugin purge > preserves shared files and rejects source dependency ownership conflicts
+tests/migrated/plugin-purge.test.ts > Host Plugin purge > recovers the unified before state after crash at mutation 1
+tests/migrated/plugin-purge.test.ts > Host Plugin purge > recovers the unified before state after crash at mutation 3
+tests/migrated/plugin-purge.test.ts > Host Plugin purge > recovers the unified before state after crash at mutation 6
+tests/migrated/plugin-purge.test.ts > Host Plugin purge > does not overwrite external edits when commit admission fails
+tests/migrated/plugin-purge.test.ts > Host Plugin purge > rolls back every domain after a file deletion failure
+tests/migrated/plugin-purge.test.ts > Host Plugin purge > fails closed for installed items with unprovable source dependencies
+tests/migrated/plugin-purge.test.ts > Host Plugin purge > refuses symlink traversal before any live mutation
+tests/migrated/plugin-purge.test.ts > Host Plugin purge > rejects an installed Source Item requiring the removed Provider
+tests/migrated/plugin-purge.test.ts > Host Plugin purge > refuses purge when a tsconfig application imports Plugin source outside sourceRoot
+tests/migrated/plugin-update-adoption.test.ts > regenerates real derived registries for manual merges before verifying and advancing the baseline
+tests/migrated/plugin-update-adoption.test.ts > rolls back regenerated artifacts and lock while preserving merged source and a retryable plan
+tests/migrated/plugin-update-adoption.test.ts > naturally reports managed when the manually merged bytes exactly match the target
+tests/migrated/plugin-updates.test.ts > upgrades a project initialized from the current Registry along the default Mock release chain
+tests/migrated/plugin-updates.test.ts > blocks an older package release even when its Plugin version would advance
+tests/migrated/project-control-contract.test.ts > ProjectControl canonical wire contract > agrees with canonical JSON Schema for every valid and invalid fixture
+tests/migrated/project-inspector.test.ts > inspectUIProject > discovers the canonical assistant-ui conversation Slots
+tests/migrated/project-inspector.test.ts > inspectUIProject > bounds the current Composition snapshot independently of the full project snapshot
+tests/migrated/project-inspector.test.ts > inspectUIProject > returns a compact, revision-bound project snapshot
+tests/migrated/service-dependency-inspector.test.ts > service dependency inspector > distinguishes required missing, optional unavailable, and collisions
+tests/migrated/source-project-mutation-architecture.test.ts > restricts low-level Source apply/remove to the canonical Host orchestrator
+tests/migrated/source-project-mutation.test.ts > Mock and ProjectControl install byte-identical source and registries
+tests/migrated/source-project-mutation.test.ts > installs A2UI and repairs stale generated output without changing composition
+tests/migrated/source-project-mutation.test.ts > removes integration/a2ui and its generated imports
+tests/migrated/source-project-mutation.test.ts > removes demo/frontend-tool-form and its generated imports
+tests/migrated/source-project-mutation.test.ts > installs Tool resources without inserting a Demo Plugin instance
+tests/migrated/source-project-mutation.test.ts > rejects removal while a disabled AppUIModel instance still references an owned asset
+tests/migrated/source-project-mutation.test.ts > rejects removal of a dependency before any project write
+tests/migrated/source-project-mutation.test.ts > rolls back source and all generated writes after source failure
+tests/migrated/source-project-mutation.test.ts > rolls back source and all generated writes after plugin failure
+tests/migrated/source-project-mutation.test.ts > rolls back source and all generated writes after tools failure
+tests/migrated/source-project-mutation.test.ts > rolls back source and all generated writes after integrations failure
+tests/migrated/source-project-mutation.test.ts > rolls back source and all generated writes after verify failure
+tests/migrated/source-project-mutation.test.ts > recovers before recover after a generated crash
+tests/migrated/source-project-mutation.test.ts > recovers before inspect after a generated crash
+tests/migrated/source-project-mutation.test.ts > recovers before apply after a generated crash
+tests/migrated/source-project-mutation.test.ts > recovers before remove after a generated crash
+tests/migrated/source-project-mutation.test.ts > protects customized source without repairing registries around the admission failure
+tests/migrated/source-project-mutation.test.ts > commits verification warnings without rolling back
+tests/migrated/source-project-mutation.test.ts > does not touch an active owner's journals or files during recover
+tests/migrated/source-project-mutation.test.ts > does not touch an active owner's journals or files during inspect
+tests/migrated/source-project-mutation.test.ts > does not touch an active owner's journals or files during mock
+tests/migrated/source-project-mutation.test.ts > does not touch an active owner's journals or files during apply
+tests/migrated/source-project-mutation.test.ts > does not touch an active owner's journals or files during remove
+tests/migrated/source-project-mutation.test.ts > recovers a current journal only after its owner has exited
+tests/migrated/source-project-mutation.test.ts > treats EPERM as a living owner and preserves its transaction
+tests/migrated/source-project-mutation.test.ts > propagates unexpected process liveness errors without recovering
+tests/migrated/source-project-mutation.test.ts > rejects invalid owner PID 0 before probing or restoring
+tests/migrated/source-project-mutation.test.ts > rejects invalid owner PID -1 before probing or restoring
+tests/migrated/source-project-mutation.test.ts > rejects invalid owner PID 1.5 before probing or restoring
+tests/migrated/source-project-mutation.test.ts > recovers a dead create-only winner and retries fresh admission once
+tests/migrated/source-project-mutation.test.ts > keeps another Node process's active mutation untouched and recovers after it exits
+tests/migrated/ui-project-control.test.ts > ui-project-control > returns the target-owned project inspection through the current contract
+tests/migrated/ui-project-control.test.ts > ui-project-control > returns the bounded authoritative Composition view
+tests/migrated/ui-project-control.test.ts > ui-project-control > executes a Workspace Region Creator Action through the transaction Host
+tests/migrated/ui-project-control.test.ts > ui-project-control > rejects an unknown Creator Action id at the Host boundary
+tests/migrated/ui-project-control.test.ts > ui-project-control > rejects execute_creator_action mixed with another transaction operation
+tests/migrated/ui-project-control.test.ts > ui-project-control > does not let an old Remove action delete a replacement instance
+tests/migrated/ui-project-control.test.ts > ui-project-control > returns the exact AppUIModel source and hash
+tests/migrated/ui-project-control.test.ts > ui-project-control > includes canonical manifest descriptions when listing UI plugins
+tests/migrated/ui-project-control.test.ts > ui-project-control > returns authoring Slot targets and configured plugins
+tests/migrated/ui-project-control.test.ts > ui-project-control > rejects stale layout Slot refs before interpreting the target
+tests/migrated/ui-project-control.test.ts > ui-project-control > keeps plugin child Slot inspection independent of layout hashes
+tests/migrated/ui-project-control.test.ts > ui-project-control > verifies Runtime composition in authoring terms for Layout Slots
+tests/migrated/ui-project-control.test.ts > ui-project-control > reports missing, plugin-mismatch, and slot-mismatch without Runtime ids
+tests/migrated/ui-project-control.test.ts > ui-project-control > verifies Plugin child Slots without exposing their Runtime ids
+tests/migrated/ui-project-control.test.ts > ui-project-control > rejects stale AppUIModel hashes before Runtime comparison
+tests/migrated/ui-project-control.test.ts > ui-project-control > routes a hash-bound semantic mutation through the fixed protocol
+tests/migrated/ui-project-control.test.ts > ui-project-control > bounds plugin source while preserving precise asset and instance metadata
+tests/migrated/ui-project-control.test.ts > ui-project-control > returns a Plugin Service dependency summary
+tests/migrated/ui-project-control.test.ts > ui-project-control > routes the complete Service topology inspection
+tests/migrated/ui-project-control.test.ts > ui-project-control > routes target-owned plugin source reference analysis
+tests/migrated/ui-project-control.test.ts > ui-project-control > reports incompatible requests and missing plugins as structured errors
+tests/migrated/verify-ui.test.ts > verifyUIProject > blocks direct Portal primitive imports in a generated user Plugin and accepts the public facade
+tests/migrated/verify-ui.test.ts > verifyUIProject > blocks global Plugin CSS and accepts the same Plugin after scoping
+tests/migrated/verify-ui.test.ts > verifyUIProject > accepts an enabled Data Message UI without a mount or headless classification
+tests/migrated/verify-ui.test.ts > verifyUIProject > checks duplicate names only for enabled instances: false
+tests/migrated/verify-ui.test.ts > verifyUIProject > ignores unregistered names when checking enabled Plugin conflicts
+tests/migrated/verify-ui.test.ts > verifyUIProject > resolves an inline renderer in the default definition
+tests/migrated/verify-ui.test.ts > verifyUIProject > blocks 'DATA_MESSAGE_UI_DEFINITION_NOT_STATIC' only when its Plugin is selected
+tests/migrated/verify-ui.test.ts > verifyUIProject > blocks 'DATA_MESSAGE_UI_RENDERER_MISSING' only when its Plugin is selected
+tests/migrated/verify-ui.test.ts > verifyUIProject > blocks 'DATA_MESSAGE_UI_MANIFEST_MISSING' only when its Plugin is selected
+tests/migrated/verify-ui.test.ts > verifyUIProject > checks same-named renderers only after both Plugins are selected
+tests/migrated/verify-ui.test.ts > verifyUIProject > reports limited Creator readiness without failing verification
+tests/migrated/verify-ui.test.ts > verifyUIProject > allows an explicitly headless plugin in application scope
+tests/migrated/verify-ui.test.ts > verifyUIProject > accepts matching manifest and rendered child Slots

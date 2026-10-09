@@ -1,3 +1,5 @@
+import { assertRuntimeBuildCurrent } from "./runtime-integrity.mjs";
+declare const __PROJECT_CONTROL_BUILD_ID__: string;
 import { createCustomPlugin, createCustomPluginInputSchema } from "./project/create-custom-plugin";
 import { migrateOfficialPackagePlugin } from "./project/migrate-official-package-plugin";
 import { officialPackagePlugin, loadAgentUISourceRegistry } from "@agent-ui/source-registry";
@@ -571,6 +573,7 @@ export async function handleUIProjectControlRequest(
 ): Promise<UIProjectControlResponse> {
   let release: (() => Promise<void>) | undefined;
   try {
+    assertRuntimeBuildCurrent(typeof __PROJECT_CONTROL_BUILD_ID__ === "undefined" ? undefined : __PROJECT_CONTROL_BUILD_ID__);
     const parsed = requestSchema.parse(input);
     if (["plan_agent_ui_integration", "apply_agent_ui_integration", "prepare_agent_ui_integration_asset", "verify_agent_ui_integration"].includes(parsed.operation)) {
       if (parsed.operation === "apply_agent_ui_integration" || parsed.operation === "prepare_agent_ui_integration_asset") release = await acquireProjectControlLock(projectRoot);
