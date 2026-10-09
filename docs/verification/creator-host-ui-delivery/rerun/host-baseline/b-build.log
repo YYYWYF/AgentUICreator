@@ -1,0 +1,7 @@
+
+> @agent-ui/creator-host-sandbox@0.1.0 build
+> tsc --noEmit && vite build
+
+src/App.tsx(10,254): error TS2604: JSX element type 'Card' does not have any construct or call signatures.
+src/App.tsx(10,254): error TS2786: 'Card' cannot be used as a JSX component.
+  Its type 'CardInterface' is not a valid JSX element type.

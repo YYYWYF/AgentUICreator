@@ -1,0 +1,12 @@
+{
+  "status": "NOT_RUN",
+  "reason": "复杂工具组件依据传递门槛未通过，按停止条件未启动 ui_selection_acceptance.py B。",
+  "realCreatorInvoked": false,
+  "sourceReadByCreator": false,
+  "developmentPlan": null,
+  "hostAuthorization": "NOT_RUN",
+  "basisHashesPinned": "NOT_RUN",
+  "deliveries": [],
+  "toolTimeline": [],
+  "isolatedProbeIsNotCreatorB": true
+}

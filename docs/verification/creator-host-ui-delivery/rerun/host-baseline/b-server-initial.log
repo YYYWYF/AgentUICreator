@@ -1,0 +1,38 @@
+
+> @agent-ui/creator-host-sandbox@0.1.0 dev
+> vite --host 127.0.0.1 --port 5176 --strictPort --port 5292
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite-runtime-aliases" without a file extension (vite.config.ts:5:32). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+  VITE v8.3.0  ready in 915 ms
+
+  ➜  Local:   http://127.0.0.1:5292/
+11:30:52 AM [vite] (client) [console.error] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+11:30:52 AM [vite] (client) [console.error] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+11:30:52 AM [vite] (client) [Unhandled error] TypeError: Cannot read properties of null (reading 'useContext')
+ > exports.useContext ../../dependencies/node_modules/react/cjs/react.development.js:1258:24
+ > ConfigProvider ../../dependencies/node_modules/antd/es/config-provider/index.js:407:24
+ > Object.react_stack_bottom_frame ../../../../../../../../../worktrees/host-ui-rerun/AgentUICreator/node_modules/.pnpm/react-dom@19.3.0_react@19.3.0/node_modules/react-dom/cjs/react-dom-client.development.js:28571:19
+ > renderWithHooks ../../../../../../../../../worktrees/host-ui-rerun/AgentUICreator/node_modules/.pnpm/react-dom@19.3.0_react@19.3.0/node_modules/react-dom/cjs/react-dom-client.development.js:8030:21
+ > updateFunctionComponent ../../../../../../../../../worktrees/host-ui-rerun/AgentUICreator/node_modules/.pnpm/react-dom@19.3.0_react@19.3.0/node_modules/react-dom/cjs/react-dom-client.development.js:10569:18
+ > beginWork ../../../../../../../../../worktrees/host-ui-rerun/AgentUICreator/node_modules/.pnpm/react-dom@19.3.0_react@19.3.0/node_modules/react-dom/cjs/react-dom-client.development.js:12205:17
+ > runWithFiberInDEV ../../../../../../../../../worktrees/host-ui-rerun/AgentUICreator/node_modules/.pnpm/react-dom@19.3.0_react@19.3.0/node_modules/react-dom/cjs/react-dom-client.development.js:1045:29
+ > performUnitOfWork ../../../../../../../../../worktrees/host-ui-rerun/AgentUICreator/node_modules/.pnpm/react-dom@19.3.0_react@19.3.0/node_modules/react-dom/cjs/react-dom-client.development.js:19176:21
+ > workLoopSync ../../../../../../../../../worktrees/host-ui-rerun/AgentUICreator/node_modules/.pnpm/react-dom@19.3.0_react@19.3.0/node_modules/react-dom/cjs/react-dom-client.development.js:19004:40
+ > renderRootSync ../../../../../../../../../worktrees/host-ui-rerun/AgentUICreator/node_modules/.pnpm/react-dom@19.3.0_react@19.3.0/node_modules/react-dom/cjs/react-dom-client.development.js:18985:10
+
+11:30:52 AM [vite] (client) [console.warn] An error occurred in the <ConfigProvider> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+

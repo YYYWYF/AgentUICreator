@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-09",
+  "timezone": "Asia/Shanghai",
+  "baseline": "62b7321c8e9767117abbe0b9f226c16b26d061c6",
+  "worktree": "/Users/yifei/.codex/worktrees/host-ui-rerun/AgentUICreator",
+  "rawEvidenceDirectory": "/Users/yifei/.codex/visualizations/2026/10/09/01a11eb2-31ff-77f3-b1f8-e7c533352a55/host-ui-rerun/raw",
+  "HOST_ENVIRONMENT": "PASS",
+  "CSS": "RESOLVED",
+  "SidebarHostContract": "RESOLVED",
+  "ComplexToolCall": "FAIL",
+  "ComplexToolSchemaValidation": "PASS",
+  "ComplexToolFailureReason": "MISSING_COMPONENT_BASIS_REFS",
+  "HostUISelection": "NOT_RUN",
+  "RealPluginDelivery": "NOT_RUN",
+  "PluginVisualAcceptance": "NOT_RUN",
+  "SCENARIO_B": "NOT_RUN",
+  "HOST_UI_INTELLIGENT_REUSE": "NOT_ACCEPTED",
+  "overallResult": "STOPPED_AT_MODEL_PROTOCOL_ACCEPTANCE",
+  "models": [
+    {
+      "name": "mimo-v2.6-flash",
+      "purpose": "isolated-complex-tool-probe",
+      "durationSeconds": 21.596827375004068,
+      "transportAttempts": 1,
+      "maxTokens": 2048,
+      "timeoutSeconds": 120.0,
+      "maxRetries": 2,
+      "finishReason": "tool_calls",
+      "inputTokens": 2112,
+      "outputTokens": 1014
+    }
+  ],
+  "productionChanges": false,
+  "defaultModelConfigurationChanged": false,
+  "productionPromptChanged": false,
+  "schemaChanged": false,
+  "historicalEvidenceOverwritten": false,
+  "A": "NOT_RUN",
+  "C": "NOT_RUN"
+}

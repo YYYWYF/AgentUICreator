@@ -1,0 +1,18 @@
+{
+  "status": "FAIL",
+  "reasonCode": "MISSING_COMPONENT_BASIS_REFS",
+  "schemaValidation": "PASS",
+  "schemaValidationErrors": [],
+  "deliveryContractObject": true,
+  "rawComponentBasisRefsPresent": false,
+  "schemaDefaultComponentBasisRefs": [],
+  "uiScope": "notes input, notes list, help overlay",
+  "uiScopeExplainsSelectionBasis": false,
+  "emptyArguments": false,
+  "finishReason": "tool_calls",
+  "truncated": false,
+  "toolExecuted": false,
+  "hostAuthorized": false,
+  "noArgumentRepairOrInjection": true,
+  "note": "原始调用未包含 componentBasisRefs。Pydantic 默认值使结构合法，但不满足本轮明确的组件依据传递门槛；reuseEvidenceRefs 中的描述不等于 componentBasisRefs。探针不是完整 Creator 工作流，不能据此判断生产 Prompt 下的选型或可修复性。"
+}

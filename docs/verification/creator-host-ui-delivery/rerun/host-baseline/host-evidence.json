@@ -1,0 +1,32 @@
+{
+  "commit": "62b7321c8e9767117abbe0b9f226c16b26d061c6",
+  "sourceHashes": {
+    "src/App.tsx": "6cb02d4224a06fc57b6cb0f003ababcb39931c42f658335bc47b951f13aaaba7",
+    "src/AgentMount.tsx": "66a0cfa15f8e6d2393046966e9e581be64697f20496828211f4f8e5de61a418b",
+    "src/design-system/system.css": "25032f14cb7b19f75ccd2b0981529d83e36777fcd37d4efdf07a7efa4a780377",
+    "package.json": "f1bd35cc502e00ff8e328107ef812b5cd4b5ea7fbb77e0e5cf8f73a16ad2ea2b",
+    "src/agent-ui/app-ui/app-ui.json": "588fa9cee09be2828ae0a82dde3b262e529a72b04cb00f66044d3db2cadafc17",
+    "src/agent-ui/plugins/registry.generated.ts": "e132675985caef81ceba3f208b35fb8ad6098bc3a02c224c1577c5ad9f96cacd",
+    "src/agent-ui/plugins/agent-identity/styles.css": "5e21dab416076dfe66534bb1b0898062f5bcea5231b41aedb13c1b276adb6e60"
+  },
+  "versions": {
+    "antd": "5.29.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "typescript": "7.0.2"
+  },
+  "packageManager": "npm@11.0.0",
+  "freshHost": true,
+  "legacyFrameworkReused": false,
+  "freshNodeProcess": true,
+  "dependencyPreparation": [
+    "external Antd 5.29.3 package installed",
+    "existing Host @types directory linked for external declaration resolution",
+    "external React and ReactDOM peers linked to same Host React copies before final checks; Vite restarted with --force"
+  ],
+  "firstDependencyPreparationErrors": [
+    "TS2604/TS2786 Card; external dependency did not resolve Host React declarations",
+    "invalid hook call from external duplicate React; retained first browser log"
+  ],
+  "productionChanges": false
+}

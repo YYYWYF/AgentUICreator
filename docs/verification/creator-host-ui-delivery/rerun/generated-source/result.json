@@ -1,0 +1,11 @@
+{
+  "status": "NOT_RUN",
+  "changedFiles": [],
+  "newPlugins": [],
+  "businessPluginWrittenByCodex": false,
+  "registered": false,
+  "mounted": false,
+  "finalRevisionValidated": false,
+  "postGenerationTypecheck": "NOT_RUN",
+  "postGenerationBuild": "NOT_RUN"
+}

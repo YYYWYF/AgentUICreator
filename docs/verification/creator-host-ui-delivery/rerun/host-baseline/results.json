@@ -1,0 +1,36 @@
+{
+  "initialization": {
+    "exitCode": 0,
+    "status": "PASS"
+  },
+  "platformVerifyUI": {
+    "exitCode": 0,
+    "status": "PASS"
+  },
+  "CSS": "RESOLVED",
+  "B": {
+    "verifyUI": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "b-verify-final.log"
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "b-typecheck-final.log"
+    },
+    "build": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "b-build-final.log"
+    },
+    "browserBaseline": "PASS",
+    "SidebarTypeErrors": false,
+    "modelValid": true,
+    "registryValid": true
+  },
+  "HOST_ENVIRONMENT": "PASS",
+  "initialDependencyLinkingErrorsRetained": true,
+  "productionSourceChanged": false,
+  "restartRequiredObserved": false
+}

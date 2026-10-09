@@ -1,0 +1,20 @@
+Scope: all 19 workspace projects
+[WARN] There are cyclic workspace dependencies: /Users/yifei/.codex/worktrees/host-ui-rerun/AgentUICreator/packages/project-control, /Users/yifei/.codex/worktrees/host-ui-rerun/AgentUICreator/packages/web-component
+✓ Lockfile passes supply-chain policies (verified 1d ago)
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +426
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Packages are cloned from the content-addressable store to the virtual store.
+  Content-addressable store is at: /Users/yifei/Library/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 426, reused 426, downloaded 0, added 129
+Progress: resolved 426, reused 426, downloaded 0, added 425
+Progress: resolved 426, reused 426, downloaded 0, added 426, done
+[WARN] Failed to create bin at /Users/yifei/.codex/worktrees/host-ui-rerun/AgentUICreator/apps/creator-workbench/node_modules/.bin/agent-ui-creator. ENOENT: no such file or directory, open '/Users/yifei/.codex/worktrees/host-ui-rerun/AgentUICreator/packages/creator/dist/cli.js'
+
+devDependencies:
++ typescript-ui-audit <- typescript 5.9.3
+
+[WARN] Failed to create bin at /Users/yifei/.codex/worktrees/host-ui-rerun/AgentUICreator/apps/creator-workbench/node_modules/.bin/agent-ui-creator. ENOENT: no such file or directory, open '/Users/yifei/.codex/worktrees/host-ui-rerun/AgentUICreator/apps/creator-workbench/node_modules/@agent-ui/creator/dist/cli.js'
+Done in 3s using pnpm v11.24.0

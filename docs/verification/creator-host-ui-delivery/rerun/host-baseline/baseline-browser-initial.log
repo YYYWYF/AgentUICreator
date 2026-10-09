@@ -1,0 +1,10 @@
+locator.waitFor: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('.acme-host .ant-card').first() to be visible[22m
+
+    at /Users/yifei/.codex/visualizations/2026/10/09/01a11eb2-31ff-77f3-b1f8-e7c533352a55/host-ui-rerun/raw/baseline-browser.cjs:4:252 {
+  log: [
+    "  - waiting for locator('.acme-host .ant-card').first() to be visible"
+  ],
+  name: 'TimeoutError'
+}

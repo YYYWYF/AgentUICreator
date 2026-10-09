@@ -1,0 +1,214 @@
+{
+  "$defs": {
+    "GeometryExpectation": {
+      "additionalProperties": false,
+      "properties": {
+        "instanceId": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Instanceid",
+          "type": "string"
+        },
+        "property": {
+          "enum": [
+            "x",
+            "y",
+            "width",
+            "height"
+          ],
+          "title": "Property",
+          "type": "string"
+        },
+        "expected": {
+          "maximum": 1000000,
+          "minimum": -1000000,
+          "title": "Expected",
+          "type": "number"
+        },
+        "tolerance": {
+          "default": 1,
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Tolerance",
+          "type": "number"
+        }
+      },
+      "required": [
+        "instanceId",
+        "property",
+        "expected"
+      ],
+      "title": "GeometryExpectation",
+      "type": "object"
+    },
+    "PluginAuthoringContract": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Capability",
+          "type": "string"
+        },
+        "renderingCategory": {
+          "enum": [
+            "panel",
+            "semantic-slot",
+            "application"
+          ],
+          "title": "Renderingcategory",
+          "type": "string"
+        },
+        "placement": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Placement",
+          "type": "string"
+        },
+        "lifecycle": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Lifecycle",
+          "type": "string"
+        },
+        "dependencies": {
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Dependencies",
+          "type": "array"
+        },
+        "reusedComponents": {
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Reusedcomponents",
+          "type": "array"
+        },
+        "verificationMethod": {
+          "enum": [
+            "runtime",
+            "browser-test"
+          ],
+          "title": "Verificationmethod",
+          "type": "string"
+        },
+        "geometry": {
+          "items": {
+            "$ref": "#/$defs/GeometryExpectation"
+          },
+          "maxItems": 32,
+          "title": "Geometry",
+          "type": "array"
+        },
+        "interactions": {
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Interactions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "capability",
+        "renderingCategory",
+        "placement",
+        "lifecycle",
+        "dependencies",
+        "verificationMethod"
+      ],
+      "title": "PluginAuthoringContract",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "deliveryContract": {
+      "$ref": "#/$defs/PluginAuthoringContract"
+    },
+    "workKind": {
+      "default": "create-plugin",
+      "enum": [
+        "create-plugin",
+        "adapt-component",
+        "extend-capability"
+      ],
+      "title": "Workkind",
+      "type": "string"
+    },
+    "targetPluginId": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Targetpluginid",
+      "type": "string"
+    },
+    "desiredOutcome": {
+      "maxLength": 1200,
+      "minLength": 1,
+      "title": "Desiredoutcome",
+      "type": "string"
+    },
+    "missingCapabilities": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 12,
+      "minItems": 1,
+      "title": "Missingcapabilities",
+      "type": "array"
+    },
+    "reuseEvidenceRefs": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 24,
+      "title": "Reuseevidencerefs",
+      "type": "array"
+    },
+    "uiScope": {
+      "default": "",
+      "maxLength": 500,
+      "title": "Uiscope",
+      "type": "string"
+    },
+    "dataScope": {
+      "default": "",
+      "maxLength": 500,
+      "title": "Datascope",
+      "type": "string"
+    },
+    "excludedOperations": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 12,
+      "title": "Excludedoperations",
+      "type": "array"
+    },
+    "componentBasisRefs": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 12,
+      "title": "Componentbasisrefs",
+      "type": "array"
+    }
+  },
+  "required": [
+    "deliveryContract",
+    "targetPluginId",
+    "desiredOutcome",
+    "missingCapabilities"
+  ],
+  "title": "PrepareUIPluginDevelopmentInput",
+  "type": "object"
+}

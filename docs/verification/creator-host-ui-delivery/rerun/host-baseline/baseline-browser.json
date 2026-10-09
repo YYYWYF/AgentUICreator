@@ -1,0 +1,46 @@
+[
+  {
+    "width": 1440,
+    "theme": "light",
+    "errors": [],
+    "evidence": {
+      "theme": "light",
+      "cardBackground": "rgb(255, 255, 255)",
+      "agentVisible": 8,
+      "controls": 2
+    }
+  },
+  {
+    "width": 1440,
+    "theme": "dark",
+    "errors": [],
+    "evidence": {
+      "theme": "dark",
+      "cardBackground": "rgb(20, 20, 20)",
+      "agentVisible": 8,
+      "controls": 2
+    }
+  },
+  {
+    "width": 420,
+    "theme": "light",
+    "errors": [],
+    "evidence": {
+      "theme": "light",
+      "cardBackground": "rgb(255, 255, 255)",
+      "agentVisible": 8,
+      "controls": 2
+    }
+  },
+  {
+    "width": 420,
+    "theme": "dark",
+    "errors": [],
+    "evidence": {
+      "theme": "dark",
+      "cardBackground": "rgb(20, 20, 20)",
+      "agentVisible": 8,
+      "controls": 2
+    }
+  }
+]

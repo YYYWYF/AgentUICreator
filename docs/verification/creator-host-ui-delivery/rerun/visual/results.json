@@ -1,0 +1,28 @@
+{
+  "status": "NOT_RUN",
+  "reason": "没有真实生成的业务备注插件；Host 基线截图只放 host-baseline，不作为插件截图。",
+  "pluginScreenshots": [],
+  "interactions": "NOT_RUN",
+  "matrix": [
+    {
+      "width": 1440,
+      "theme": "Light",
+      "status": "NOT_RUN"
+    },
+    {
+      "width": 1440,
+      "theme": "Dark",
+      "status": "NOT_RUN"
+    },
+    {
+      "width": 420,
+      "theme": "Light",
+      "status": "NOT_RUN"
+    },
+    {
+      "width": 420,
+      "theme": "Dark",
+      "status": "NOT_RUN"
+    }
+  ]
+}
