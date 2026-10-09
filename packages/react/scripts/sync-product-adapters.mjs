@@ -107,6 +107,29 @@ function applyThreadListGroupIdentity(source, localPath) {
 
 export function applyProductAdaptations(source, localPath) {
   let installed = applyThreadListGroupIdentity(applyAgentUIPortalContainerBridge(source, localPath), localPath);
+  if (localPath === "components/assistant-ui/elements/thinking-indicator.tsx") {
+    installed = replaceExactlyOnce(installed, '      <span\n        aria-hidden', '      <span\n        data-slot="agent-ui-thinking-dot"\n        aria-hidden', localPath);
+  }
+  if (localPath === "components/assistant-ui/elements/agent-status.tsx") {
+    installed = replaceExactlyOnce(installed, '      data-slot="agent-status"', '      data-slot="agent-status"\n      data-agent-state={state}', localPath);
+    installed = replaceExactlyOnce(installed, '        <span\n          aria-hidden', '        <span\n          data-slot="agent-ui-status-dot"\n          aria-hidden', localPath);
+  }
+  if (localPath === "components/assistant-ui/elements/job-progress.tsx") {
+    installed = replaceExactlyOnce(installed, '        <span\n          className={cn(\n            "block h-full', '        <span\n          data-slot="agent-ui-job-progress-fill"\n          className={cn(\n            "block h-full', localPath);
+  }
+  if (localPath === "components/assistant-ui/elements/retrieval-chunks.tsx") {
+    installed = replaceExactlyOnce(installed, '              <span\n                className="block h-full', '              <span\n                data-slot="agent-ui-retrieval-score-fill"\n                className="block h-full', localPath);
+  }
+  if (localPath === "components/assistant-ui/elements/thread-list.aui.tsx") {
+    for (const [before, after] of [
+      ['  TrashIcon,', '  TrashIcon,\n  XIcon,'],
+      ['    onValueChange: (value: string) => void;', '    onValueChange: (value: string) => void;\n    clearLabel?: string;'],
+      ['>(({ className, value, onValueChange, ...props }, ref) => {', '>(({ className, value, onValueChange, clearLabel, ...props }, ref) => {\n  const searchRef = useRef<HTMLInputElement>(null);'],
+      ['        ref={ref}\n        type="search"', '        ref={(node) => {\n          searchRef.current = node;\n          if (typeof ref === "function") ref(node);\n          else if (ref) ref.current = node;\n        }}\n        type={clearLabel ? "text" : "search"}\n        role={clearLabel ? "searchbox" : undefined}'],
+      ['className={cn("h-8 ps-8 text-sm", className)}', 'className={cn("h-8 ps-8 text-sm", clearLabel && "pe-9", className)}'],
+      ['        {...props}\n      />\n    </div>\n  );\n});\n\nThreadListSearch', '        {...props}\n        onKeyDown={(event) => {\n          props.onKeyDown?.(event);\n          if (!event.defaultPrevented && clearLabel && value && event.key === "Escape") {\n            event.preventDefault();\n            event.stopPropagation();\n            onValueChange("");\n          }\n        }}\n      />\n      {clearLabel && value && (\n        <Button type="button" variant="ghost" size="icon" data-slot="agent-ui-thread-search-clear"\n          aria-label={clearLabel} className="absolute end-1 top-1/2 size-7 -translate-y-1/2"\n          onClick={() => { onValueChange(""); searchRef.current?.focus(); }}>\n          <XIcon className="size-3.5" />\n        </Button>\n      )}\n    </div>\n  );\n});\n\nThreadListSearch'],
+    ]) installed = replaceExactlyOnce(installed, before, after, localPath);
+  }
   if (localPath === "components/assistant-ui/elements/markdown-text.tsx") {
     installed = replaceExactlyOnce(installed, '<div className="aui-code-header-root', '<div data-slot="agent-ui-code-header" className="aui-code-header-root', localPath);
     installed = replaceExactlyOnce(installed, '<span className="aui-code-header-language', '<span data-slot="agent-ui-code-language" className="aui-code-header-language', localPath);
@@ -169,6 +192,7 @@ const defaultVendorRoot = path.join(packageRoot, "src/internal/vendor/assistant-
 const adapterRoot = path.join(packageRoot, "src/internal/adapters/assistant-ui");
 const hash = value => createHash("sha256").update(value).digest("hex");
 const seeded = new Set([...PORTAL_BRIDGE_FILES, ...SEARCH_LABELS_SEAM_FILES, ...Object.keys(localizationRecipes),
+  "components/assistant-ui/elements/thinking-indicator.tsx", "components/assistant-ui/elements/agent-status.tsx", "components/assistant-ui/elements/job-progress.tsx",
   "components/assistant-ui/elements/quote.aui.tsx", "components/assistant-ui/elements/composer-trigger-popover.aui.tsx"]);
 function dependency(importPath, filename, files) {
   if (!importPath.startsWith(".")) return undefined;

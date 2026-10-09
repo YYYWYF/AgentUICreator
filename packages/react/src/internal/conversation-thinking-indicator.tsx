@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuiState } from "@assistant-ui/react";
 import { useAgentUILocale, formatPresentationMessage } from "../locale.js";
-import { ThinkingIndicator } from "./vendor/assistant-ui/components/assistant-ui/elements/thinking-indicator.js";
+import { ThinkingIndicator } from "./adapters/assistant-ui/components/assistant-ui/elements/thinking-indicator.js";
 import { thinkingPresentation, type ThinkingPresentationPolicy } from "./thinking-indicator-policy.js";
 export function InternalConversationThinkingIndicator(policy: ThinkingPresentationPolicy) {
   const messages = useAgentUILocale("thinkingIndicator");

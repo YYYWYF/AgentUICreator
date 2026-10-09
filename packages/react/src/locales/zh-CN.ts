@@ -75,6 +75,7 @@ export const zhCN = {
     "historyFailed": "历史会话加载失败",
     "newThread": "新建会话",
     "search": "搜索会话",
+    "clearSearch": "清除搜索",
     "today": "今天",
     "yesterday": "昨天",
     "earlier": "更早"

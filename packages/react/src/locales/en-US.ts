@@ -75,6 +75,7 @@ export const enUS = {
     "historyFailed": "Could not load conversation history",
     "newThread": "New Thread",
     "search": "Search threads",
+    "clearSearch": "Clear search",
     "today": "Today",
     "yesterday": "Yesterday",
     "earlier": "Earlier"

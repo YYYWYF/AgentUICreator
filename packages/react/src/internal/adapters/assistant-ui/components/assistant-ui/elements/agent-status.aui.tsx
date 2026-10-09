@@ -14,7 +14,7 @@ import { cn } from "../../../../../vendor/assistant-ui/lib/utils.js";
 import {
   AgentStatus as AgentStatusBase,
   type AgentState,
-} from "../../../../../vendor/assistant-ui/components/assistant-ui/elements/agent-status.js";
+} from "./agent-status";
 import { mono } from "../../../../../vendor/assistant-ui/components/assistant-ui/elements/surfaces.js";
 import { TaskStateIcon } from "./task-card";
 import {

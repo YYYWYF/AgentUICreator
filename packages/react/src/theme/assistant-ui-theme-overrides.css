@@ -130,6 +130,15 @@
   box-shadow: 0 0 0 1px var(--agent-composer-focus-ring);
 }
 
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-thread-search-clear"] {
+  color: var(--muted-foreground);
+  border-radius: 6px;
+}
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-thread-search-clear"]:hover {
+  color: var(--agent-brand);
+  background: var(--agent-brand-selected);
+}
+
 /* Conversation menus share product hooks within the scoped portal boundary. */
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="agent-ui-thread-action-menu"], [data-slot="agent-ui-message-action-menu"]) {
   padding: 4px;
@@ -156,6 +165,10 @@
 
 /* Phase 4A — High-Fidelity Surfaces. State comes from product adapters,
  * never inferred from vendor markup. Static surfaces stay white/neutral. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="agent-ui-thinking-dot"], [data-slot="agent-status"][data-agent-state="working"] [data-slot="agent-ui-status-dot"], [data-slot="job-progress"][data-state="running"] [data-slot="agent-ui-job-progress-fill"], [data-slot="agent-ui-retrieval-score-fill"]) {
+  background-color: var(--agent-brand);
+}
+
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="reasoning-root"] {
   background-color: var(--card);
   border: 1px solid var(--border);
@@ -480,4 +493,13 @@
   background: var(--agent-brand-surface);
   font-weight: 600;
   box-shadow: inset 0 -1px 0 var(--border);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="aui_thread-list-search"], [data-slot="tool-fallback-args"], [data-slot="tool-fallback-result"], [data-slot="agent-ui-tool-timeline"], [data-slot="agent-ui-message-error-text"])::selection {
+  background: var(--agent-brand-border);
+  color: var(--foreground);
+}
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="aui_thread-list-search"], [data-slot="tool-fallback-args"], [data-slot="tool-fallback-result"], [data-slot="agent-ui-tool-timeline"], [data-slot="agent-ui-message-error-text"]) *::selection {
+  background: var(--agent-brand-border);
+  color: var(--foreground);
 }

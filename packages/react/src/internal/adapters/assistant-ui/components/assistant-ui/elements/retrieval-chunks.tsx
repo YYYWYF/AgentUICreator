@@ -102,6 +102,7 @@ export function RetrievalChunks({
               className="bg-foreground/[0.06] h-[2px] w-full overflow-hidden rounded-full"
             >
               <span
+                data-slot="agent-ui-retrieval-score-fill"
                 className="block h-full rounded-full bg-blue-500/70 transition-[width] duration-500 dark:bg-blue-400/70"
                 style={{ width: `${pct(chunk.score, 1)}%` }}
               />

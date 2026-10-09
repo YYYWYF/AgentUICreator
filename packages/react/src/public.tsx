@@ -148,13 +148,13 @@ import {
   useThreadListGroups as useInternalConversationThreadListGroups,
 } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/thread-list.aui.js";
 import { AgentPlan as InternalAgentPlan } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/agent-plan.js";
-import { AgentStatus as InternalAgentStatus } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.js";
+import { AgentStatus as InternalAgentStatus } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.js";
 import {
   AgentStatus as InternalTaskAgentStatus,
   TaskTray as InternalTaskTray,
 } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.aui.js";
 import { SubagentList as InternalSubagentList } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.js";
-import { JobProgress as InternalJobProgress } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.js";
+import { JobProgress as InternalJobProgress } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/job-progress.js";
 import { ConversationTaskGroupComposition as InternalTaskGroup } from "./internal/conversation-task-group.js";
 import { Badge as InternalBadge } from "./internal/vendor/assistant-ui/components/ui/badge.js";
 import { Input as InternalInput } from "./internal/vendor/assistant-ui/components/ui/input.js";
@@ -840,8 +840,8 @@ export function ConversationBranchPicker({
 export function ConversationCanonicalMessageError() {
   return (
     <MessagePrimitive.Error>
-      <ErrorPrimitive.Root className="aui-message-error-root border-destructive bg-destructive/10 text-destructive dark:bg-destructive/5 mt-2 rounded-md border p-3 text-sm">
-        <ErrorPrimitive.Message className="aui-message-error-message line-clamp-2" />
+      <ErrorPrimitive.Root data-slot="agent-ui-message-error" className="aui-message-error-root border-destructive bg-destructive/10 text-destructive dark:bg-destructive/5 mt-2 rounded-md border p-3 text-sm">
+        <ErrorPrimitive.Message data-slot="agent-ui-message-error-text" className="aui-message-error-message line-clamp-2" />
       </ErrorPrimitive.Root>
     </MessagePrimitive.Error>
   );
@@ -929,7 +929,7 @@ export function ConversationThreadListSearch(
   }>,
 ) {
   const messages = useAgentUILocale("threadList");
-  return <InternalConversationThreadListSearch {...props} placeholder={props.placeholder ?? messages.search} aria-label={props["aria-label"] ?? messages.search} />;
+  return <InternalConversationThreadListSearch {...props} clearLabel={messages.clearSearch} placeholder={props.placeholder ?? messages.search} aria-label={props["aria-label"] ?? messages.search} />;
 }
 
 export function ConversationThreadListItemByIndex({

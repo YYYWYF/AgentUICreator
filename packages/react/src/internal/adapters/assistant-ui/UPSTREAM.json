@@ -8,7 +8,12 @@
     {
       "localPath": "components/assistant-ui/elements/agent-status.aui.tsx",
       "upstreamInstalledSha256": "1c6661f8459e3b73052ed40deb7730637ca21fcf84eb719e797046a877f5e417",
-      "installedSha256": "0732c3fafb8a0fef63deeb7cae2b39c0b2c2fb5412ef22a18678fea923698132"
+      "installedSha256": "12226bbddb928c9ab375165b72e6be8b3782cd24c74f73436dea7f04e7641bb4"
+    },
+    {
+      "localPath": "components/assistant-ui/elements/agent-status.tsx",
+      "upstreamInstalledSha256": "4ef2a0f692453f4bd0561954b8f0ec2ffb1ea338aa6ea1bd02b5dd3f423427fa",
+      "installedSha256": "efaa83c83636ce97c22b0df5dd74b362a35ae36abc3996a9499ab230fc2292e0"
     },
     {
       "localPath": "components/assistant-ui/elements/attachment.aui.tsx",
@@ -29,6 +34,11 @@
       "localPath": "components/assistant-ui/elements/image.tsx",
       "upstreamInstalledSha256": "2d5993bb290a111d6a2292fd8cb575dde84b8036a67e94ab63e1580edeef91d6",
       "installedSha256": "b0bd809184f69e5e7f90b9c6c153181c7394e3dc91318980b8b0982b52898985"
+    },
+    {
+      "localPath": "components/assistant-ui/elements/job-progress.tsx",
+      "upstreamInstalledSha256": "8286fd088337d8b4adc4e885c6fbb82a99a864c5dde1d128f31504930df7b815",
+      "installedSha256": "5c6603547dd4489207f95f19edaa5d9374eeb9aaa56477ff3000aefac82179b9"
     },
     {
       "localPath": "components/assistant-ui/elements/markdown-text.tsx",
@@ -58,7 +68,7 @@
     {
       "localPath": "components/assistant-ui/elements/retrieval-chunks.tsx",
       "upstreamInstalledSha256": "48ec963d0e43af96fc747f9b7e9fe271196b9e867c0d0c956e60d5e3d8e1ac5f",
-      "installedSha256": "6e855f21434afdd656105b59f3398b42692ab050ffb593dc3e0df7e19a9c1178"
+      "installedSha256": "5a5769c8c49f6e1316d5a157f1c9627edb9e31552ead6ec6d22641d08606eec3"
     },
     {
       "localPath": "components/assistant-ui/elements/task-card.aui.tsx",
@@ -71,9 +81,14 @@
       "installedSha256": "b83028b746e537bb2b22c08bfdaabd222f9c03a3adb63a284f7970455380e392"
     },
     {
+      "localPath": "components/assistant-ui/elements/thinking-indicator.tsx",
+      "upstreamInstalledSha256": "6396e7dc517884ae8eafa436dbaebc6bc02fb958a50996aef816f3f5be66584e",
+      "installedSha256": "94860f4e9db3ed9e06c2e787fdfedc4cd7c491086dd15a8beadc3ae40cfea8f2"
+    },
+    {
       "localPath": "components/assistant-ui/elements/thread-list.aui.tsx",
       "upstreamInstalledSha256": "dba97aed1ac096e2fbaaebb92e334ec877716e430e7157929d38e8311d358364",
-      "installedSha256": "b158587c9a7cb0d0c9191bc5ec5869511a9c01a845166c2634087b58bd4aae1f"
+      "installedSha256": "fe34bbb70a3f31de11c038fd9d5f3dc7e99facd59442b46ff14da5c1a891e7a2"
     },
     {
       "localPath": "components/assistant-ui/elements/tool-fallback.aui.tsx",
