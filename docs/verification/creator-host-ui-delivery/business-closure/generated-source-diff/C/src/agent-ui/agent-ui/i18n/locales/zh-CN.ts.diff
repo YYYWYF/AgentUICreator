@@ -1,0 +1,24 @@
+--- a/src/agent-ui/agent-ui/i18n/locales/zh-CN.ts
++++ b/src/agent-ui/agent-ui/i18n/locales/zh-CN.ts
+@@ -116,6 +116,21 @@
+     nextLabel: "给出一个可执行的后续动作",
+     nextPrompt: "根据当前上下文建议下一步",
+   },
++  businessNotes: {
++    title: "业务备注",
++    subtitle: "记录当前工作中的临时想法与要点。",
++    inputLabel: "新备注",
++    inputPlaceholder: "输入备注内容…",
++    addNote: "添加备注",
++    blankNote: "请输入非空备注。",
++    listLabel: "备注列表",
++    emptyTitle: "还没有备注",
++    emptyDescription: "添加的备注会显示在这里。",
++    help: "说明",
++    helpTitle: "关于业务备注",
++    helpDescription: "用于记录当前工作中的临时想法与要点。备注仅保存在当前界面状态中，刷新后不会保留。",
++    closeHelp: "关闭说明",
++  },
+   theme: {
+     settings: "主题设置",
+     light: "浅色",

@@ -459,7 +459,9 @@ async function inspectUICompositionData(
     capabilityCatalogSource: generation.capabilityCatalog.source,
     capabilityCatalogPluginIds: generation.capabilityCatalog.pluginIds,
     issues: generation.errors,
-    pluginAssets,
+    // Sidebar presentation is exposed through capabilitySummaries. The inventory
+    // wire contract contains asset facts only, not this internal manifest seam.
+    pluginAssets: pluginAssets.map(({ sidebar: _sidebar, ...asset }) => asset),
   };
 }
 

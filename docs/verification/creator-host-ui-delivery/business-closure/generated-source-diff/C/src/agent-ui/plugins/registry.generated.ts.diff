@@ -1,0 +1,50 @@
+--- a/src/agent-ui/plugins/registry.generated.ts
++++ b/src/agent-ui/plugins/registry.generated.ts
+@@ -4,7 +4,7 @@
+  */
+ import { createPluginCapabilityCatalog } from "../runtime/composition";
+ 
+-export const capabilityCatalogRevision = "0416e8a0d4e1005629d80975e1e631a8cc4c0c97a4c42489d66e9b354fee4306";
++export const capabilityCatalogRevision = "01ec4a9db7755272043d8789d05058aa091278a3dbb3bf54082be79b8138dc82";
+ 
+ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
+   {
+@@ -661,6 +661,38 @@
+     optionalInject: [],
+     loadDefinition: () =>
+       import("./assistant-ui-tool-timeline/definition").then(
++        ({ default: definition }) => definition,
++      ),
++  },
++  {
++    manifest: {
++      "id": "business-notes",
++      "name": "Business Notes",
++      "sidebar": {
++        "icon": "list",
++        "labels": {
++          "en-US": "Business notes",
++          "zh-CN": "业务备注"
++        }
++      },
++      "description": "A private workspace for drafting and keeping lightweight business notes.",
++      "version": "1.0.0",
++      "capabilities": [
++        "business-notes"
++      ],
++      "authoring": {
++        "intents": [
++          "add business notes",
++          "open the business notes panel"
++        ],
++        "visualRole": "business notes panel in Sidebar"
++      }
++    },
++    provides: [],
++    inject: [],
++    optionalInject: ["agent-ui.locale"],
++    loadDefinition: () =>
++      import("./business-notes/definition").then(
+         ({ default: definition }) => definition,
+       ),
+   },

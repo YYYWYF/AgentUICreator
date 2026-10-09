@@ -1,0 +1,22 @@
+--- a/src/agent-ui/agent-ui/i18n/locales/en-US.ts
++++ b/src/agent-ui/agent-ui/i18n/locales/en-US.ts
+@@ -105,6 +105,19 @@
+     archive: "Archive",
+     delete: "Delete",
+   },
++    businessNotes: {
++      title: "Business notes",
++      inputLabel: "New note",
++      inputPlaceholder: "Write a note…",
++      addNote: "Add note",
++      listLabel: "Business notes",
++      emptyState: "No notes yet. Add a note to get started.",
++      blankNoteError: "Enter a note before adding it.",
++      openHelp: "About business notes",
++      helpTitle: "About business notes",
++      helpDescription: "Notes stay in this open panel only and are cleared when it closes.",
++      closeHelp: "Close",
++    },
+   starterSuggestions: {
+     architectureTitle: "Analyze Agent UI architecture",
+     architectureLabel: "Review layout, Plugin, and Service boundaries",

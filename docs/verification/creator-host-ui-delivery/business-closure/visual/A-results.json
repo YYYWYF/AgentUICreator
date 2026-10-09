@@ -1,0 +1,594 @@
+[
+  {
+    "scenario": "A",
+    "width": 1440,
+    "theme": "light",
+    "locale": "zh-CN",
+    "errors": [],
+    "status": "PASS",
+    "sourceHashes": {
+      "index.tsx": "162a4fa387adafcc2982bab6fabf28ea5cdbdb962daeec0a3f05ce5f06426a77",
+      "styles.css": "b223d25455139c8802ae4ce583cf6c9b216f6a38601633c4d108a123a70be342",
+      "manifest.json": "1ba6f84b024ceafbacbe94d9650d9c11b3d8046abfc45dafb5d40ee6e25df05d",
+      "definition.ts": "93d13263a9227fbef7cb277a97e5a77357f20b9e74c04e955d7a5eed62df16c1"
+    },
+    "pluginVisible": true,
+    "panelScreenshot": "A-1440-light-zh-CN-panel.png",
+    "dialogRect": {
+      "x": 464,
+      "y": 422,
+      "width": 512,
+      "height": 156
+    },
+    "screenshot": "A-1440-light-zh-CN.png",
+    "nativeChromeFocus": true,
+    "pluginRect": {
+      "x": 64,
+      "y": 170,
+      "width": 231,
+      "height": 238
+    },
+    "controlRects": {
+      "input": {
+        "x": 81,
+        "y": 283.59375,
+        "width": 197,
+        "height": 42
+      },
+      "add": {
+        "x": 81,
+        "y": 335.59375,
+        "width": 98,
+        "height": 42
+      },
+      "help": {
+        "x": 133,
+        "y": 173.296875,
+        "width": 162,
+        "height": 42
+      }
+    },
+    "controls": {
+      "className": "acme-input ",
+      "color": "rgb(25, 33, 58)",
+      "background": "rgb(255, 255, 255)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(200, 210, 228)"
+    },
+    "hostControls": {
+      "className": "acme-input ",
+      "color": "rgb(25, 33, 58)",
+      "background": "rgb(255, 255, 255)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(200, 210, 228)"
+    },
+    "composerBefore": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "composerAfter": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  },
+  {
+    "scenario": "A",
+    "width": 1440,
+    "theme": "light",
+    "locale": "en-US",
+    "errors": [],
+    "status": "PASS",
+    "sourceHashes": {
+      "index.tsx": "162a4fa387adafcc2982bab6fabf28ea5cdbdb962daeec0a3f05ce5f06426a77",
+      "styles.css": "b223d25455139c8802ae4ce583cf6c9b216f6a38601633c4d108a123a70be342",
+      "manifest.json": "1ba6f84b024ceafbacbe94d9650d9c11b3d8046abfc45dafb5d40ee6e25df05d",
+      "definition.ts": "93d13263a9227fbef7cb277a97e5a77357f20b9e74c04e955d7a5eed62df16c1"
+    },
+    "pluginVisible": true,
+    "panelScreenshot": "A-1440-light-en-US-panel.png",
+    "dialogRect": {
+      "x": 464,
+      "y": 410,
+      "width": 512,
+      "height": 180
+    },
+    "screenshot": "A-1440-light-en-US.png",
+    "nativeChromeFocus": true,
+    "pluginRect": {
+      "x": 64,
+      "y": 166,
+      "width": 231,
+      "height": 280
+    },
+    "controlRects": {
+      "input": {
+        "x": 81,
+        "y": 352.484375,
+        "width": 197,
+        "height": 42
+      },
+      "add": {
+        "x": 81,
+        "y": 404.484375,
+        "width": 99.59375,
+        "height": 42
+      },
+      "help": {
+        "x": 104.46875,
+        "y": 205.734375,
+        "width": 190.53125,
+        "height": 42
+      }
+    },
+    "controls": {
+      "className": "acme-input ",
+      "color": "rgb(25, 33, 58)",
+      "background": "rgb(255, 255, 255)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(200, 210, 228)"
+    },
+    "hostControls": {
+      "className": "acme-input ",
+      "color": "rgb(25, 33, 58)",
+      "background": "rgb(255, 255, 255)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(200, 210, 228)"
+    },
+    "composerBefore": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "composerAfter": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  },
+  {
+    "scenario": "A",
+    "width": 1440,
+    "theme": "dark",
+    "locale": "zh-CN",
+    "errors": [],
+    "status": "PASS",
+    "sourceHashes": {
+      "index.tsx": "162a4fa387adafcc2982bab6fabf28ea5cdbdb962daeec0a3f05ce5f06426a77",
+      "styles.css": "b223d25455139c8802ae4ce583cf6c9b216f6a38601633c4d108a123a70be342",
+      "manifest.json": "1ba6f84b024ceafbacbe94d9650d9c11b3d8046abfc45dafb5d40ee6e25df05d",
+      "definition.ts": "93d13263a9227fbef7cb277a97e5a77357f20b9e74c04e955d7a5eed62df16c1"
+    },
+    "pluginVisible": true,
+    "panelScreenshot": "A-1440-dark-zh-CN-panel.png",
+    "dialogRect": {
+      "x": 464,
+      "y": 422,
+      "width": 512,
+      "height": 156
+    },
+    "screenshot": "A-1440-dark-zh-CN.png",
+    "nativeChromeFocus": true,
+    "pluginRect": {
+      "x": 64,
+      "y": 170,
+      "width": 231,
+      "height": 238
+    },
+    "controlRects": {
+      "input": {
+        "x": 81,
+        "y": 283.59375,
+        "width": 197,
+        "height": 42
+      },
+      "add": {
+        "x": 81,
+        "y": 335.59375,
+        "width": 98,
+        "height": 42
+      },
+      "help": {
+        "x": 133,
+        "y": 173.296875,
+        "width": 162,
+        "height": 42
+      }
+    },
+    "controls": {
+      "className": "acme-input ",
+      "color": "rgb(238, 242, 255)",
+      "background": "rgb(32, 42, 64)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(71, 86, 117)"
+    },
+    "hostControls": {
+      "className": "acme-input ",
+      "color": "rgb(238, 242, 255)",
+      "background": "rgb(32, 42, 64)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(71, 86, 117)"
+    },
+    "composerBefore": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "composerAfter": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  },
+  {
+    "scenario": "A",
+    "width": 1440,
+    "theme": "dark",
+    "locale": "en-US",
+    "errors": [],
+    "status": "PASS",
+    "sourceHashes": {
+      "index.tsx": "162a4fa387adafcc2982bab6fabf28ea5cdbdb962daeec0a3f05ce5f06426a77",
+      "styles.css": "b223d25455139c8802ae4ce583cf6c9b216f6a38601633c4d108a123a70be342",
+      "manifest.json": "1ba6f84b024ceafbacbe94d9650d9c11b3d8046abfc45dafb5d40ee6e25df05d",
+      "definition.ts": "93d13263a9227fbef7cb277a97e5a77357f20b9e74c04e955d7a5eed62df16c1"
+    },
+    "pluginVisible": true,
+    "panelScreenshot": "A-1440-dark-en-US-panel.png",
+    "dialogRect": {
+      "x": 464,
+      "y": 410,
+      "width": 512,
+      "height": 180
+    },
+    "screenshot": "A-1440-dark-en-US.png",
+    "nativeChromeFocus": true,
+    "pluginRect": {
+      "x": 64,
+      "y": 166,
+      "width": 231,
+      "height": 280
+    },
+    "controlRects": {
+      "input": {
+        "x": 81,
+        "y": 352.484375,
+        "width": 197,
+        "height": 42
+      },
+      "add": {
+        "x": 81,
+        "y": 404.484375,
+        "width": 99.59375,
+        "height": 42
+      },
+      "help": {
+        "x": 104.46875,
+        "y": 205.734375,
+        "width": 190.53125,
+        "height": 42
+      }
+    },
+    "controls": {
+      "className": "acme-input ",
+      "color": "rgb(238, 242, 255)",
+      "background": "rgb(32, 42, 64)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(71, 86, 117)"
+    },
+    "hostControls": {
+      "className": "acme-input ",
+      "color": "rgb(238, 242, 255)",
+      "background": "rgb(32, 42, 64)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(71, 86, 117)"
+    },
+    "composerBefore": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "composerAfter": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  },
+  {
+    "scenario": "A",
+    "width": 420,
+    "theme": "light",
+    "locale": "zh-CN",
+    "errors": [],
+    "status": "PASS",
+    "sourceHashes": {
+      "index.tsx": "162a4fa387adafcc2982bab6fabf28ea5cdbdb962daeec0a3f05ce5f06426a77",
+      "styles.css": "b223d25455139c8802ae4ce583cf6c9b216f6a38601633c4d108a123a70be342",
+      "manifest.json": "1ba6f84b024ceafbacbe94d9650d9c11b3d8046abfc45dafb5d40ee6e25df05d",
+      "definition.ts": "93d13263a9227fbef7cb277a97e5a77357f20b9e74c04e955d7a5eed62df16c1"
+    },
+    "pluginVisible": true,
+    "panelScreenshot": "A-420-light-zh-CN-panel.png",
+    "dialogRect": {
+      "x": 16,
+      "y": 428,
+      "width": 388,
+      "height": 144
+    },
+    "screenshot": "A-420-light-zh-CN.png",
+    "nativeChromeFocus": true,
+    "pluginRect": {
+      "x": 16,
+      "y": 142,
+      "width": 279,
+      "height": 364
+    },
+    "controlRects": {
+      "input": {
+        "x": 33,
+        "y": 275.296875,
+        "width": 245,
+        "height": 38
+      },
+      "add": {
+        "x": 33,
+        "y": 323.296875,
+        "width": 245,
+        "height": 38
+      },
+      "help": {
+        "x": 16,
+        "y": 176.296875,
+        "width": 279,
+        "height": 38
+      }
+    },
+    "controls": {
+      "className": "acme-input ",
+      "color": "rgb(25, 33, 58)",
+      "background": "rgb(255, 255, 255)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(200, 210, 228)"
+    },
+    "hostControls": {
+      "className": "acme-input ",
+      "color": "rgb(25, 33, 58)",
+      "background": "rgb(255, 255, 255)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(200, 210, 228)"
+    },
+    "composerBefore": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "composerAfter": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  },
+  {
+    "scenario": "A",
+    "width": 420,
+    "theme": "light",
+    "locale": "en-US",
+    "errors": [],
+    "status": "PASS",
+    "sourceHashes": {
+      "index.tsx": "162a4fa387adafcc2982bab6fabf28ea5cdbdb962daeec0a3f05ce5f06426a77",
+      "styles.css": "b223d25455139c8802ae4ce583cf6c9b216f6a38601633c4d108a123a70be342",
+      "manifest.json": "1ba6f84b024ceafbacbe94d9650d9c11b3d8046abfc45dafb5d40ee6e25df05d",
+      "definition.ts": "93d13263a9227fbef7cb277a97e5a77357f20b9e74c04e955d7a5eed62df16c1"
+    },
+    "pluginVisible": true,
+    "panelScreenshot": "A-420-light-en-US-panel.png",
+    "dialogRect": {
+      "x": 16,
+      "y": 418,
+      "width": 388,
+      "height": 164
+    },
+    "screenshot": "A-420-light-en-US.png",
+    "nativeChromeFocus": true,
+    "pluginRect": {
+      "x": 16,
+      "y": 138,
+      "width": 279,
+      "height": 424
+    },
+    "controlRects": {
+      "input": {
+        "x": 33,
+        "y": 271.296875,
+        "width": 245,
+        "height": 38
+      },
+      "add": {
+        "x": 33,
+        "y": 319.296875,
+        "width": 245,
+        "height": 38
+      },
+      "help": {
+        "x": 16,
+        "y": 172.296875,
+        "width": 279,
+        "height": 38
+      }
+    },
+    "controls": {
+      "className": "acme-input ",
+      "color": "rgb(25, 33, 58)",
+      "background": "rgb(255, 255, 255)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(200, 210, 228)"
+    },
+    "hostControls": {
+      "className": "acme-input ",
+      "color": "rgb(25, 33, 58)",
+      "background": "rgb(255, 255, 255)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(200, 210, 228)"
+    },
+    "composerBefore": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "composerAfter": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  },
+  {
+    "scenario": "A",
+    "width": 420,
+    "theme": "dark",
+    "locale": "zh-CN",
+    "errors": [],
+    "status": "PASS",
+    "sourceHashes": {
+      "index.tsx": "162a4fa387adafcc2982bab6fabf28ea5cdbdb962daeec0a3f05ce5f06426a77",
+      "styles.css": "b223d25455139c8802ae4ce583cf6c9b216f6a38601633c4d108a123a70be342",
+      "manifest.json": "1ba6f84b024ceafbacbe94d9650d9c11b3d8046abfc45dafb5d40ee6e25df05d",
+      "definition.ts": "93d13263a9227fbef7cb277a97e5a77357f20b9e74c04e955d7a5eed62df16c1"
+    },
+    "pluginVisible": true,
+    "panelScreenshot": "A-420-dark-zh-CN-panel.png",
+    "dialogRect": {
+      "x": 16,
+      "y": 428,
+      "width": 388,
+      "height": 144
+    },
+    "screenshot": "A-420-dark-zh-CN.png",
+    "nativeChromeFocus": true,
+    "pluginRect": {
+      "x": 16,
+      "y": 142,
+      "width": 279,
+      "height": 364
+    },
+    "controlRects": {
+      "input": {
+        "x": 33,
+        "y": 275.296875,
+        "width": 245,
+        "height": 38
+      },
+      "add": {
+        "x": 33,
+        "y": 323.296875,
+        "width": 245,
+        "height": 38
+      },
+      "help": {
+        "x": 16,
+        "y": 176.296875,
+        "width": 279,
+        "height": 38
+      }
+    },
+    "controls": {
+      "className": "acme-input ",
+      "color": "rgb(238, 242, 255)",
+      "background": "rgb(32, 42, 64)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(71, 86, 117)"
+    },
+    "hostControls": {
+      "className": "acme-input ",
+      "color": "rgb(238, 242, 255)",
+      "background": "rgb(32, 42, 64)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(71, 86, 117)"
+    },
+    "composerBefore": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "composerAfter": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  },
+  {
+    "scenario": "A",
+    "width": 420,
+    "theme": "dark",
+    "locale": "en-US",
+    "errors": [],
+    "status": "PASS",
+    "sourceHashes": {
+      "index.tsx": "162a4fa387adafcc2982bab6fabf28ea5cdbdb962daeec0a3f05ce5f06426a77",
+      "styles.css": "b223d25455139c8802ae4ce583cf6c9b216f6a38601633c4d108a123a70be342",
+      "manifest.json": "1ba6f84b024ceafbacbe94d9650d9c11b3d8046abfc45dafb5d40ee6e25df05d",
+      "definition.ts": "93d13263a9227fbef7cb277a97e5a77357f20b9e74c04e955d7a5eed62df16c1"
+    },
+    "pluginVisible": true,
+    "panelScreenshot": "A-420-dark-en-US-panel.png",
+    "dialogRect": {
+      "x": 16,
+      "y": 418,
+      "width": 388,
+      "height": 164
+    },
+    "screenshot": "A-420-dark-en-US.png",
+    "nativeChromeFocus": true,
+    "pluginRect": {
+      "x": 16,
+      "y": 138,
+      "width": 279,
+      "height": 424
+    },
+    "controlRects": {
+      "input": {
+        "x": 33,
+        "y": 271.296875,
+        "width": 245,
+        "height": 38
+      },
+      "add": {
+        "x": 33,
+        "y": 319.296875,
+        "width": 245,
+        "height": 38
+      },
+      "help": {
+        "x": 16,
+        "y": 172.296875,
+        "width": 279,
+        "height": 38
+      }
+    },
+    "controls": {
+      "className": "acme-input ",
+      "color": "rgb(238, 242, 255)",
+      "background": "rgb(32, 42, 64)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(71, 86, 117)"
+    },
+    "hostControls": {
+      "className": "acme-input ",
+      "color": "rgb(238, 242, 255)",
+      "background": "rgb(32, 42, 64)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(71, 86, 117)"
+    },
+    "composerBefore": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "composerAfter": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  }
+]

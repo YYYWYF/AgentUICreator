@@ -1,0 +1,2270 @@
+{
+  "B": {
+    "outcome": {
+      "scenario": "B",
+      "model": "gpt-6-luna",
+      "realCreatorInvoked": true,
+      "maxTokens": 8192,
+      "interrupted": false,
+      "completion": "success",
+      "text": "已补齐 business-notes 的主题样式，未改动 Composition、实例挂载、locale 或业务状态逻辑。\n\n- **Input**：从现有 Ant Design 主题变量读取字体、文字色、背景、边框及 hover/focus/disabled 状态。\n- **Button 与 Typography**：使用同一 Host 字体 token。\n- **说明 Modal**：通过 Portal 内的主题变量包装层传递 token，并为 Modal 内容应用主题样式；保留原有打开、取消、关闭与焦点相关设置。\n- **样式范围**：仅修改 `business-notes` 的 `index.tsx` 和 `styles.css`，未硬编码主题颜色或增改依赖。\n\n**静态回执：通过。** `verify:ui`、typecheck 和 build 均通过；当前静态 Composition 仍包含已挂载的 `business-notes-main`，无新增诊断。Build 有 Vite 配置兼容性和 chunk size 警告，但未失败。\n\n当前策略为 `static_only`，因此本轮没有运行浏览器或 Runtime 验证。你提到的先前八组浏览器测试结果未在本轮重跑；我不能据此声称本轮样式改动已通过浏览器验收。\n\n当前静态验证通过；Runtime / 浏览器行为未由 Creator 验证。",
+      "developmentPlan": {
+        "status": "authorized",
+        "proposalId": "69d8942f-a6e5-4487-8300-aec97a933106",
+        "scopeHash": "58fcd606aeda15a2a1b7bb09bf8afcea45d8d706c4f33efdd465633995f52d73",
+        "workKind": "extend-capability",
+        "targetPluginId": "business-notes",
+        "desiredOutcome": "Finish the already commissioned and mounted business-notes Plugin's remaining theme-style work by consuming its existing Host-token CSS variables in styles.css and making those variables available to the Ant Design help Modal inside its Portal. Preserve public Modal behavior and all existing interactions. Then run current-revision static verify:ui/typecheck/build with includeBuild=true; do not claim browser acceptance under static_only policy.",
+        "missingCapabilities": [
+          "Scoped CSS does not yet consume the existing themeStyle variables for Ant Design Input, Button and Typography.",
+          "The portaled help Modal does not yet receive the Plugin's Host theme variables and scoped modal styling."
+        ],
+        "reuseEvidenceRefs": [
+          "Existing project-owned business-notes Plugin, selected and enabled as business-notes-main; current Ant Design controls and theme.useToken implementation are reused."
+        ],
+        "uiScope": "Use the Host's actual Ant Design system: /src/App.tsx imports Button, Input, Card, ConfigProvider and theme from antd, and provides the light/dark algorithm and fontFamily tokens around AgentMount. /src/design-system/system.css supplies the Host surface/text/border theme conventions. The existing business-notes source already uses Ant Design Input, Button, Modal, Typography and theme.useToken; continue those public controls and token APIs. Do not switch to Agent UI primitives or add dependencies",
+        "dataScope": "Presentation only. Keep notes and draft local state, locale, Modal content and business behavior unchanged.",
+        "excludedOperations": [
+          "Do not change Composition, placement, instance identity or enabled state.",
+          "Do not alter Modal overlay, Escape, Tab, focus return, or other public behavior.",
+          "Do not change locale, Composer, Host page, Runtime, framework, vendor, Sidebar or base styles.",
+          "Do not install or upgrade dependencies."
+        ],
+        "componentBasisRefs": [
+          "/src/App.tsx",
+          "/src/design-system/system.css"
+        ],
+        "grantSource": "explicit-request",
+        "deliveryContract": {
+          "capability": "Complete the existing business-notes Plugin's scoped theme styling so Ant Design Input matches the Host's configured font, text color, container background, border and state tokens; Button and Typography use the Host font; and the help Modal consumes the same Host theme tokens across its Portal boundary.",
+          "renderingCategory": "panel",
+          "placement": "Preserve the existing mounted business-notes-main instance in its current Layout Slot; no Composition changes.",
+          "lifecycle": "Preserve the current React state, Modal open/close, overlay, Escape, Tab, and focus-return behavior; only complete Plugin-local theme styling.",
+          "dependencies": [
+            "Existing Ant Design controls and ConfigProvider theme tokens; no new dependencies or Service changes."
+          ],
+          "reusedComponents": [
+            "Existing Ant Design Input, Button, Typography, Modal, and theme.useToken usage in business-notes."
+          ],
+          "verificationMethod": "runtime",
+          "geometry": [],
+          "interactions": []
+        },
+        "deliveryScope": "full"
+      },
+      "deliveries": [
+        {
+          "pluginId": "business-notes",
+          "projectRevision": 2,
+          "decision": {
+            "type": "extend-capability"
+          },
+          "deliveryScope": "full",
+          "authorization": {
+            "status": "authorized",
+            "grantSource": "explicit-request"
+          },
+          "contract": {
+            "capability": "Complete the existing business-notes Plugin's scoped theme styling so Ant Design Input matches the Host's configured font, text color, container background, border and state tokens; Button and Typography use the Host font; and the help Modal consumes the same Host theme tokens across its Portal boundary.",
+            "renderingCategory": "panel",
+            "placement": "Preserve the existing mounted business-notes-main instance in its current Layout Slot; no Composition changes.",
+            "lifecycle": "Preserve the current React state, Modal open/close, overlay, Escape, Tab, and focus-return behavior; only complete Plugin-local theme styling.",
+            "dependencies": [
+              "Existing Ant Design controls and ConfigProvider theme tokens; no new dependencies or Service changes."
+            ],
+            "reusedComponents": [
+              "Existing Ant Design Input, Button, Typography, Modal, and theme.useToken usage in business-notes."
+            ],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": []
+          },
+          "delivery": {
+            "status": "statically-verified",
+            "lastSuccessfulStage": "composed",
+            "stages": {
+              "created": true,
+              "registered": true,
+              "composed": true,
+              "verified": false
+            },
+            "blockers": [],
+            "instanceIds": [
+              "business-notes-main"
+            ]
+          },
+          "verification": {
+            "static": "pass",
+            "runtime": "not-run",
+            "geometry": "not-run",
+            "interaction": "not-required"
+          }
+        }
+      ]
+    },
+    "activity": {
+      "files": [
+        {
+          "path": "src/agent-ui/plugins/business-notes/index.tsx",
+          "status": "modified",
+          "diff": "--- a/src/agent-ui/plugins/business-notes/index.tsx\n+++ b/src/agent-ui/plugins/business-notes/index.tsx\n@@ -27,6 +27,18 @@\n     backgroundColor: token.colorBgContainer,\n     color: token.colorText,\n     fontFamily: token.fontFamily,\n+    \"--business-notes-font-family\": token.fontFamily,\n+    \"--business-notes-text\": token.colorText,\n+    \"--business-notes-input-background\": token.colorBgContainer,\n+    \"--business-notes-input-border\": token.colorBorder,\n+    \"--business-notes-input-hover-border\": token.colorPrimaryHover,\n+    \"--business-notes-input-focus-border\": token.colorPrimary,\n+    \"--business-notes-input-disabled-background\": token.colorBgContainerDisabled,\n+    \"--business-notes-input-disabled-text\": token.colorTextDisabled,\n+    \"--business-notes-modal-background\": token.colorBgElevated,\n+  } as CSSProperties;\n+\n+  const themeVariables = {\n     \"--business-notes-font-family\": token.fontFamily,\n     \"--business-notes-text\": token.colorText,\n     \"--business-notes-input-background\": token.colorBgContainer,\n@@ -128,6 +140,11 @@\n       </div>\n \n       <Modal\n+        modalRender={(node) => (\n+          <div className=\"business-notes-modal-theme\" style={themeVariables}>\n+            {node}\n+          </div>\n+        )}\n         title={\n             <div className=\"business-notes-modal-title\">\n               <Typography.Text strong>{labels.helpTitle}</Typography.Text>",
+          "truncated": false
+        },
+        {
+          "path": "src/agent-ui/plugins/business-notes/styles.css",
+          "status": "modified",
+          "diff": "--- a/src/agent-ui/plugins/business-notes/styles.css\n+++ b/src/agent-ui/plugins/business-notes/styles.css\n@@ -7,6 +7,8 @@\n   flex-direction: column;\n   overflow: hidden;\n   padding: 0.75rem;\n+  color: var(--business-notes-text);\n+  font-family: var(--business-notes-font-family);\n }\n \n .business-notes-modal-title {\n@@ -40,9 +42,52 @@\n   margin-bottom: 0.75rem;\n }\n \n-.business-notes-input-row .ant-input {\n+.business-notes-plugin .business-notes-input-row .ant-input {\n   flex: 1;\n   min-width: 0;\n+  color: var(--business-notes-text);\n+  font-family: var(--business-notes-font-family);\n+  background-color: var(--business-notes-input-background);\n+  border-color: var(--business-notes-input-border);\n+}\n+\n+.business-notes-plugin .business-notes-input-row .ant-input:hover:not(:disabled) {\n+  border-color: var(--business-notes-input-hover-border);\n+}\n+\n+.business-notes-plugin .business-notes-input-row .ant-input:focus {\n+  border-color: var(--business-notes-input-focus-border);\n+}\n+\n+.business-notes-plugin .business-notes-input-row .ant-input:disabled {\n+  color: var(--business-notes-input-disabled-text);\n+  background-color: var(--business-notes-input-disabled-background);\n+  border-color: var(--business-notes-input-border);\n+}\n+\n+.business-notes-plugin .ant-btn,\n+.business-notes-plugin .ant-typography {\n+  font-family: var(--business-notes-font-family);\n+}\n+\n+.business-notes-modal-theme {\n+  color: var(--business-notes-text);\n+  font-family: var(--business-notes-font-family);\n+}\n+\n+.business-notes-modal-theme .ant-modal-content,\n+.business-notes-modal-theme .ant-modal-header {\n+  color: var(--business-notes-text);\n+  font-family: var(--business-notes-font-family);\n+  background-color: var(--business-notes-modal-background);\n+}\n+\n+.business-notes-modal-theme .ant-modal-title,\n+.business-notes-modal-theme .ant-modal-body,\n+.business-notes-modal-theme .ant-typography,\n+.business-notes-modal-theme .ant-btn {\n+  color: var(--business-notes-text);\n+  font-family: var(--business-notes-font-family);\n }\n \n .business-notes-list {",
+          "truncated": false
+        }
+      ],
+      "validations": [
+        {
+          "command": "npm run verify:ui",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "> @agent-ui/creator-host-sandbox@0.1.0 verify:ui\n> node --import tsx scripts/verify-ui.ts\n\n{\n  \"status\": \"passed\",\n  \"model\": {\n    \"valid\": true,\n    \"mountedInstanceIds\": [\n      \"agent-conversation-surface-main\",\n      \"agent-identity-main\",\n      \"assistant-ui-add-attachment-action-main\",\n      \"assistant-ui-composer-main\",\n      \"assistant-ui-copy-action-main\",\n      \"assistant-ui-dictation-action-main\",\n      \"assistant-ui-export-markdown-action-main\",\n      \"assistant-ui-feedback-actions-main\",\n      \"assistant-ui-lexical-composer-input-main\",\n      \"assistant-ui-lexical-edit-composer-main\",\n      \"assistant-ui-mention-trigger-main\",\n      \"assistant-ui-reasoning-main\",\n      \"assistant-ui-reload-action-main\",\n      \"assistant-ui-response-footer-main\",\n      \"assistant-ui-slash-command-trigger-main\",\n      \"assistant-ui-submit-action-main\",\n      \"assistant-ui-thinking-indicator-main\",\n      \"assistant-ui-tool-fallback-main\",\n      \"assistant-ui-tool-group-main\",\n      \"assistant-ui-tool-timeline-main\",\n      \"business-notes-main\",\n      \"conversation-quote-main\",\n      \"conversation-suggestions-main\",\n      \"conversation-thread-list-main\",\n      \"task-group-main\"\n    ],\n    \"unmountedEnabledInstanceIds\": []\n  },\n  \"capabilityCatalog\": {\n    \"pluginIds\": [\n      \"agent-identity\",\n      \"assistant-ui-add-attachment-action\",\n      \"assistant-ui-composer\",\n      \"assistant-ui-copy-action\",\n      \"assistant-ui-dictation-action\",\n      \"assistant-ui-export-markdown-action\",\n      \"assistant-ui-feedback-actions\",\n      \"assistant-ui-lexical-composer-input\",\n      \"assistant-ui-lexical-edit-composer\",\n      \"assistant-ui-mention-trigger\",\n      \"assistant-ui-reasoning\",\n      \"assistant-ui-reload-action\",\n      \"assistant-ui-response-footer\",\n      \"assistant-ui-slash-command-trigger\",\n      \"assistant-ui-submit-action\",\n      \"assistant-ui-thinking-indicator\",\n      \"assistant-ui-tool-fallback\",\n      \"assistant-ui-tool-group\",\n      \"assistant-ui-tool-timeline\",\n      \"business-notes\",\n      \"conversation-command-source\",\n      \"conversation-data-source\",\n      \"conversation-quote\",\n      \"conversation-service\",\n      \"conversation-suggestions\",\n      \"conversation-surface\",\n      \"conversation-thread-list\",\n      \"locale-provider\",\n      \"task-group\",\n      \"theme-provider\"\n    ],\n    \"generatedFileFresh\": true\n  },\n  \"activeComposition\": {\n    \"selectedPluginIds\": [\n      \"agent-identity\",\n      \"assistant-ui-add-attachment-action\",\n      \"assistant-ui-composer\",\n      \"assistant-ui-copy-action\",\n      \"assistant-ui-dictation-action\",\n      \"assistant-ui-export-markdown-action\",\n      \"assistant-ui-feedback-actions\",\n      \"assistant-ui-lexical-composer-input\",\n      \"assistant-ui-lexical-edit-composer\",\n      \"assistant-ui-mention-trigger\",\n      \"assistant-ui-reasoning\",\n      \"assistant-ui-reload-action\",\n      \"assistant-ui-response-footer\",\n      \"assistant-ui-slash-command-trigger\",\n      \"assistant-ui-submit-action\",\n      \"assistant-ui-thinking-indicator\",\n      \"assistant-ui-tool-fallback\",\n      \"assistant-ui-tool-group\",\n      \"assistant-ui-tool-timeline\",\n      \"business-notes\",\n      \"conversation-command-source\",\n      \"conversation-data-source\",\n      \"conversation-quote\",\n      \"conversation-service\",\n      \"conversation-suggestions\",\n      \"conversation-surface\",\n      \"conversation-thread-list\",\n      \"locale-provider\",\n      \"task-group\",\n      \"theme-provider\"\n    ],\n    \"resolvedPluginIds\": [\n      \"agent-identity\",\n      \"assistant-ui-add-attachment-action\",\n      \"assistant-ui-composer\",\n      \"assistant-ui-copy-action\",\n      \"assistant-ui-dictation-action\",\n      \"assistant-ui-export-markdown-action\",\n      \"assistant-ui-feedback-actions\",\n      \"assistant-ui-lexical-composer-input\",\n      \"assistant-ui-lexical-edit-composer\",\n      \"assistant-ui-mention-trigger\",\n      \"assistant-ui-reasoning\",\n      \"assistant-ui-reload-action\",\n      \"assistant-ui-response-footer\",\n      \"assistant-ui-slash-command-trigger\",\n      \"assistant-ui-submit-action\",\n      \"assistant-ui-thinking-indicator\",\n      \"assistant-ui-tool-fallback\",\n      \"assistant-ui-tool-group\",\n      \"assistant-ui-tool-timeline\",\n      \"business-notes\",\n      \"conversation-command-source\",\n      \"conversation-data-source\",\n      \"conversation-quote\",\n      \"conversation-service\",\n      \"conversation-suggestions\",\n      \"conversation-surface\",\n      \"conversation-thread-list\",\n      \"locale-provider\",\n      \"task-group\",\n      \"theme-provider\"\n    ],\n    \"headlessPluginIds\": [\n      \"conversation-command-source\",\n      \"conversation-data-source\",\n      \"conversation-service\",\n      \"locale-provider\",\n      \"theme-provider\"\n    ]\n  },\n  \"services\": [\n    {\n      \"name\": \"agent-ui.conversation-data-source\",\n      \"contractPaths\": [\n        \"src/agent-ui/services/conversations/data-source.ts\"\n      ],\n      \"status\": \"available\",\n      \"providers\": [\n        {\n          \"pluginId\": \"conversation-data-source\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"agent-conversation-data-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        }\n      ],\n      \"requiredConsumers\": [\n        {\n          \"pluginId\": \"conversation-service\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"agent-conversation-service-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        }\n      ],\n      \"optionalConsumers\": []\n    },\n    {\n      \"name\": \"agent-ui.conversations\",\n      \"contractPaths\": [\n        \"src/agent-ui/services/conversations/service.ts\"\n      ],\n      \"status\": \"available\",\n      \"providers\": [\n        {\n          \"pluginId\": \"conversation-service\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"agent-conversation-service-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        }\n      ],\n      \"requiredConsumers\": [\n        {\n          \"pluginId\": \"conversation-surface\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"agent-conversation-surface-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        },\n        {\n          \"pluginId\": \"conversation-thread-list\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"conversation-thread-list-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        }\n      ],\n      \"optionalConsumers\": []\n    },\n    {\n      \"name\": \"agent-ui.locale\",\n      \"contractPaths\": [\n        \"src/agent-ui/services/agent-ui-locale.ts\"\n      ],\n      \"status\": \"available\",\n      \"providers\": [\n        {\n          \"pluginId\": \"locale-provider\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"locale-provider-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        }\n      ],\n      \"requiredConsumers\": [],\n      \"optionalConsumers\": [\n        {\n          \"pluginId\": \"agent-identity\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"agent-identity-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n         \n… 验证输出过长，已截断",
+          "truncated": true,
+          "revision": 2,
+          "validationMode": "delta"
+        },
+        {
+          "command": "npm run typecheck",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "{\"exitCode\":0,\"newDiagnostics\":[],\"unchangedDiagnosticCount\":0,\"unchangedDiagnostics\":[],\"resolvedDiagnosticCount\":0}",
+          "truncated": false,
+          "revision": 2,
+          "validationMode": "delta"
+        },
+        {
+          "command": "npm run build",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "> @agent-ui/creator-host-sandbox@0.1.0 build\n> tsc --noEmit && vite build\n\n\u001b[36mvite v8.3.0 \u001b[32mbuilding client environment for production...\u001b[36m\u001b[39m\ntransforming...\n✓ 7154 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                                    1.39 kB │ gzip:   0.47 kB\ndist/assets/definition-4QIysg6V.css                0.89 kB │ gzip:   0.42 kB\ndist/assets/composable-thread-CcdakA0V.css         0.96 kB │ gzip:   0.33 kB\ndist/assets/definition-CKHneGlK.css                1.01 kB │ gzip:   0.39 kB\ndist/assets/definition-BZQDiHcN.css                1.07 kB │ gzip:   0.46 kB\ndist/assets/definition-Z4lhdSEi.css                1.92 kB │ gzip:   0.53 kB\ndist/assets/definition-C3hUqfMu.css                2.24 kB │ gzip:   0.52 kB\ndist/assets/plugins-rPzCi-Bb.css                   5.80 kB │ gzip:   1.50 kB\ndist/assets/index-B6K-f4lF.css                   168.45 kB │ gzip:  24.68 kB\ndist/assets/agent-ui-theme-C8kIjt_b.js             0.03 kB │ gzip:   0.05 kB\ndist/assets/theme-config-BAxWw0ID.js               0.03 kB │ gzip:   0.05 kB\ndist/assets/agent-ui-locale-DiJqumUk.js            0.03 kB │ gzip:   0.05 kB\ndist/assets/theme-contract-B_bDciBf.js             0.20 kB │ gzip:   0.15 kB\ndist/assets/data-source-BjGsISWZ.js                0.28 kB │ gzip:   0.17 kB\ndist/assets/composer-triggers-D0gt51Pq.js          0.45 kB │ gzip:   0.30 kB\ndist/assets/definition-B-VayO9g.js                 0.68 kB │ gzip:   0.40 kB\ndist/assets/definition-BXNwQ9V6.js                 0.68 kB │ gzip:   0.41 kB\ndist/assets/definition-C24fY9oK.js                 0.70 kB │ gzip:   0.41 kB\ndist/assets/definition-ssAIL0tV.js                 0.71 kB │ gzip:   0.40 kB\ndist/assets/definition-tVHIFW2X.js                 0.75 kB │ gzip:   0.45 kB\ndist/assets/definition-COouExU0.js                 0.75 kB │ gzip:   0.45 kB\ndist/assets/definition-QWc18Klv.js                 0.77 kB │ gzip:   0.43 kB\ndist/assets/definition-DoYLkkRT.js                 0.79 kB │ gzip:   0.45 kB\ndist/assets/definition-DDLdrTtp.js                 0.79 kB │ gzip:   0.47 kB\ndist/assets/definition-Co9uwZyv.js                 0.81 kB │ gzip:   0.48 kB\ndist/assets/definition-xhov16k9.js                 0.84 kB │ gzip:   0.47 kB\ndist/assets/definition-D7ABJ0Fi.js                 0.86 kB │ gzip:   0.51 kB\ndist/assets/definition-Dvvr-sbd.js                 0.86 kB │ gzip:   0.49 kB\ndist/assets/definition-Bt7eHyjk.js                 0.87 kB │ gzip:   0.50 kB\ndist/assets/definition-D4fksdAJ.js                 0.90 kB │ gzip:   0.51 kB\ndist/assets/definition-BT8PUYwf.js                 0.91 kB │ gzip:   0.57 kB\ndist/assets/definition-DfXLhlvd.js                 0.94 kB │ gzip:   0.51 kB\ndist/assets/definition-kJKvG_HR.js                 0.96 kB │ gzip:   0.59 kB\ndist/assets/definition-CTTdCxtI.js                 0.97 kB │ gzip:   0.53 kB\ndist/assets/definition-CZCHgAKi.js                 0.98 kB │ gzip:   0.58 kB\ndist/assets/definition-IjTSWlAb.js                 1.02 kB │ gzip:   0.64 kB\ndist/assets/definition-C-ARJXcS.js                 1.02 kB │ gzip:   0.61 kB\ndist/assets/definition-CYntMgvI.js                 1.02 kB │ gzip:   0.48 kB\ndist/assets/definition-Cksk4tnv.js                 1.06 kB │ gzip:   0.64 kB\ndist/assets/definition-_TQZ0yXB.js                 1.23 kB │ gzip:   0.61 kB\ndist/assets/createLucideIcon-CBZRExQ0.js           1.38 kB │ gzip:   0.77 kB\ndist/assets/definition-CW-uZrgR.js                 2.04 kB │ gzip:   1.01 kB\ndist/assets/definition-C-MQ4NQc.js                 5.09 kB │ gzip:   2.05 kB\ndist/assets/locale-registry-CY_V6Vhd.js            7.21 kB │ gzip:   3.18 kB\ndist/assets/definition-DvDLw1KT.js                 8.51 kB │ gzip:   2.62 kB\ndist/assets/locale-CvcvhG4b.js                    29.98 kB │ gzip:  12.03 kB\ndist/assets/plugins-CYG6mxHm.js                   53.55 kB │ gzip:  14.76 kB\ndist/assets/public-oRlpHKi4.js                    95.42 kB │ gzip:  30.45 kB\ndist/assets/assistant-ui-composer-U3GnTpeR.js     97.63 kB │ gzip:  27.74 kB\ndist/assets/ui-plugin-CRe-XHC1.js                 99.62 kB │ gzip:  28.24 kB\ndist/assets/definition-CCZF1Bnk.js               212.02 kB │ gzip:  65.35 kB\ndist/assets/lexical-taHOqp5H.js                  230.95 kB │ gzip:  73.72 kB\ndist/assets/composable-thread-DsXNAXFm.js        724.89 kB │ gzip: 223.11 kB\ndist/assets/index-BND-NXOg.js                  1,128.30 kB │ gzip: 323.07 kB\n\n\u001b[32m✓ built in 473ms\u001b[39m\n\u001b[33m(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:\n  - import \"./vite-runtime-aliases\" without a file extension (vite.config.ts:5:32). Add the file extension\nSet `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.\u001b[39m\n\u001b[33m[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\u001b[39m",
+          "truncated": false,
+          "revision": 2,
+          "validationMode": "delta"
+        }
+      ],
+      "verification": {
+        "status": "changed-and-statically-verified",
+        "verificationMode": "static_only",
+        "runtimeStatus": "not-run",
+        "projectRevision": 2,
+        "auditAttempts": 0,
+        "checks": [
+          {
+            "id": "net-project-change",
+            "status": "passed",
+            "evidence": "2 net changed file(s)."
+          },
+          {
+            "id": "pnpm verify:ui",
+            "status": "passed",
+            "evidence": "revision=2; source=executed; exitCode=0"
+          },
+          {
+            "id": "pnpm typecheck",
+            "status": "passed",
+            "evidence": "revision=2; source=executed; exitCode=0"
+          }
+        ]
+      },
+      "pluginDeliveries": [
+        {
+          "pluginId": "business-notes",
+          "projectRevision": 2,
+          "decision": {
+            "type": "extend-capability"
+          },
+          "deliveryScope": "full",
+          "authorization": {
+            "status": "authorized",
+            "grantSource": "explicit-request"
+          },
+          "contract": {
+            "capability": "Complete the existing business-notes Plugin's scoped theme styling so Ant Design Input matches the Host's configured font, text color, container background, border and state tokens; Button and Typography use the Host font; and the help Modal consumes the same Host theme tokens across its Portal boundary.",
+            "renderingCategory": "panel",
+            "placement": "Preserve the existing mounted business-notes-main instance in its current Layout Slot; no Composition changes.",
+            "lifecycle": "Preserve the current React state, Modal open/close, overlay, Escape, Tab, and focus-return behavior; only complete Plugin-local theme styling.",
+            "dependencies": [
+              "Existing Ant Design controls and ConfigProvider theme tokens; no new dependencies or Service changes."
+            ],
+            "reusedComponents": [
+              "Existing Ant Design Input, Button, Typography, Modal, and theme.useToken usage in business-notes."
+            ],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": []
+          },
+          "delivery": {
+            "status": "statically-verified",
+            "lastSuccessfulStage": "composed",
+            "stages": {
+              "created": true,
+              "registered": true,
+              "composed": true,
+              "verified": false
+            },
+            "blockers": [],
+            "instanceIds": [
+              "business-notes-main"
+            ]
+          },
+          "verification": {
+            "static": "pass",
+            "runtime": "not-run",
+            "geometry": "not-run",
+            "interaction": "not-required"
+          }
+        }
+      ]
+    },
+    "hostCalls": [
+      {
+        "operation": "inspect_agent_ui_sources",
+        "input": {},
+        "result": {},
+        "resultSha256": "b756ecaac533ff01d6df274319536ff6556fa5b04f9a94362cdd6ddd4b7b51f3"
+      },
+      {
+        "operation": "inspect_ui_plugin",
+        "input": {
+          "pluginId": "business-notes"
+        },
+        "result": {},
+        "resultSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      {
+        "operation": "inspect_ui_plugin",
+        "input": {
+          "pluginId": "business-notes"
+        },
+        "result": {
+          "appUIModelHash": "ddc49ece481e125f5db1c54853d7995d2727389ae8248be0ec22a94c55265a2f"
+        },
+        "resultSha256": "30f792a8220a9f4493cf17cb1a66e27a522aecf59179235d4eacdb6980463462"
+      }
+    ],
+    "prepareDecisions": [
+      {
+        "input": {
+          "delivery_contract": "capability='业务备注面板：输入备注、点击添加后显示备注列表，提供按钮打开说明弹层；使用 React 本地状态，无后端或 Service。' renderingCategory='panel' placement='挂载为宿主现有 Sidebar 的新导航项（sidebar item），复用其窄屏抽屉，不增加主会话横向轨道。' lifecycle='本地 React useState 管理输入草稿、备注列表和弹层开关；激活时无状态，卸载时状态自然释放。' dependencies=['agent-ui.locale（optionalInject，用于文案）', 'agent-ui.theme（optionalInject，用于暗色/浅色主题适配）'] reusedComponents=['Ant Design 5 Button（来自 App.tsx 直接使用）', 'Ant Design 5 Input（来自 App.tsx 直接使用）', 'Ant Design 5 List/Modal/Space/Typography/Empty（同库组件，ConfigProvider 已包裹 AgentMount）'] verificationMethod='runtime' geometry=[] interactions=['输入备注文本并点击添加后列表显示该备注', '仅空白/空输入时添加按钮禁用或点击无效果', '点击说明按钮打开 Ant Design Modal 弹层', '按 Esc 或点击关闭按钮可关闭弹层并返回焦点', '空列表时展示空状态']",
+          "work_kind": "create-plugin",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "在当前 Agent 界面新增一个名为“业务备注”的 Sidebar 导航项。面板内提供输入框和“添加”按钮，点击后将非空备注加入列表；列表为空时显示空状态。提供“说明”按钮打开 Modal 弹层，支持键盘 Esc 关闭与焦点返回。所有文案走现有 agent-ui/i18n locale 层且中英文齐全，明暗主题和窄视图均可用。使用 React 本地状态，不新增后端/Service/Frontend Tool/Custom Event。复用宿主 Ant Design 5 控件与主题，不修改 assistant-ui vendor、Runtime 或 framework，不安装或升级依赖。",
+          "missing_capabilities": [
+            "当前 installed Plugin 与 Source Item 中没有业务备注或通用笔记面板能力"
+          ],
+          "reuse_evidence_refs": [
+            "inspect_ui_project(view='composition') 显示当前 sidebar 仅有一个 history item，content 为 conversation-surface，没有可用笔记 Plugin",
+            "conversation-thread-list 使用 sidebar.icon/labels 与 RailAction 作为 Sidebar 导航项参考"
+          ],
+          "ui_scope": "宿主页面 /src/App.tsx 直接 import 并使用 Ant Design 5 的 ConfigProvider、Button、Input、Card、theme，因此选择复用 Ant Design 5 作为本插件的 UI 体系。ConfigProvider 包裹 AgentMount，插件位于其 React 子树中，可直接继承主题算法与 token。/src/design-system/system.css 定义了宿主 .acme-* 自定义 token，可作为补充样式参考。conversation-thread-list 虽然内部使用 @agent-ui/react 的 Button/Tooltip，但属于该插件自身选择，不能覆盖宿主 App 的控件决策；因此本插件使用 antd Button/Input/List/Modal/Space/Typography/Empty，不引入新的 AgentUI primitives 或第三方库。",
+          "data_scope": "无外部数据；状态仅存在于组件本地 useState。",
+          "excluded_operations": [
+            "不创建 Service 或 Service Contract",
+            "不添加 Frontend Tool",
+            "不添加 Application Event",
+            "不修改 assistant-ui vendor、Runtime 或 framework",
+            "不安装/升级/新增依赖",
+            "不创建 Plugin-local locale 文件"
+          ],
+          "component_basis_refs": [
+            "/src/App.tsx",
+            "/src/design-system/system.css",
+            "/src/agent-ui/plugins/conversation-thread-list/manifest.json",
+            "/src/agent-ui/plugins/conversation-thread-list/index.tsx"
+          ]
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "d9c1732c-6369-4e6b-83db-05f0d48386ed",
+          "scopeHash": "f9ae6bdd575503413c143e92deb91ced8af7789ce4d7d3ff35a022df31e38fd9",
+          "workKind": "create-plugin",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "在当前 Agent 界面新增一个名为“业务备注”的 Sidebar 导航项。面板内提供输入框和“添加”按钮，点击后将非空备注加入列表；列表为空时显示空状态。提供“说明”按钮打开 Modal 弹层，支持键盘 Esc 关闭与焦点返回。所有文案走现有 agent-ui/i18n locale 层且中英文齐全，明暗主题和窄视图均可用。使用 React 本地状态，不新增后端/Service/Frontend Tool/Custom Event。复用宿主 Ant Design 5 控件与主题，不修改 assistant-ui vendor、Runtime 或 framework，不安装或升级依赖。",
+          "missingCapabilities": [
+            "当前 installed Plugin 与 Source Item 中没有业务备注或通用笔记面板能力"
+          ],
+          "reuseEvidenceRefs": [
+            "inspect_ui_project(view='composition') 显示当前 sidebar 仅有一个 history item，content 为 conversation-surface，没有可用笔记 Plugin",
+            "conversation-thread-list 使用 sidebar.icon/labels 与 RailAction 作为 Sidebar 导航项参考"
+          ],
+          "uiScope": "宿主页面 /src/App.tsx 直接 import 并使用 Ant Design 5 的 ConfigProvider、Button、Input、Card、theme，因此选择复用 Ant Design 5 作为本插件的 UI 体系。ConfigProvider 包裹 AgentMount，插件位于其 React 子树中，可直接继承主题算法与 token。/src/design-system/system.css 定义了宿主 .acme-* 自定义 token，可作为补充样式参考。conversation-thread-list 虽然内部使用 @agent-ui/react 的 Button/Tooltip，但属于该插件自身选择，不能覆盖宿主 App 的控件决策；因此本插件使用 antd Button/Input/List/Modal/Space/Typography/Empty，不引入新的 AgentUI primitives 或第三方库。",
+          "dataScope": "无外部数据；状态仅存在于组件本地 useState。",
+          "excludedOperations": [
+            "不创建 Service 或 Service Contract",
+            "不添加 Frontend Tool",
+            "不添加 Application Event",
+            "不修改 assistant-ui vendor、Runtime 或 framework",
+            "不安装/升级/新增依赖",
+            "不创建 Plugin-local locale 文件"
+          ],
+          "componentBasisRefs": [
+            "/src/App.tsx",
+            "/src/design-system/system.css",
+            "/src/agent-ui/plugins/conversation-thread-list/manifest.json",
+            "/src/agent-ui/plugins/conversation-thread-list/index.tsx"
+          ],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "业务备注面板：输入备注、点击添加后显示备注列表，提供按钮打开说明弹层；使用 React 本地状态，无后端或 Service。",
+            "renderingCategory": "panel",
+            "placement": "挂载为宿主现有 Sidebar 的新导航项（sidebar item），复用其窄屏抽屉，不增加主会话横向轨道。",
+            "lifecycle": "本地 React useState 管理输入草稿、备注列表和弹层开关；激活时无状态，卸载时状态自然释放。",
+            "dependencies": [
+              "agent-ui.locale（optionalInject，用于文案）",
+              "agent-ui.theme（optionalInject，用于暗色/浅色主题适配）"
+            ],
+            "reusedComponents": [
+              "Ant Design 5 Button（来自 App.tsx 直接使用）",
+              "Ant Design 5 Input（来自 App.tsx 直接使用）",
+              "Ant Design 5 List/Modal/Space/Typography/Empty（同库组件，ConfigProvider 已包裹 AgentMount）"
+            ],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": [
+              "输入备注文本并点击添加后列表显示该备注",
+              "仅空白/空输入时添加按钮禁用或点击无效果",
+              "点击说明按钮打开 Ant Design Modal 弹层",
+              "按 Esc 或点击关闭按钮可关闭弹层并返回焦点",
+              "空列表时展示空状态"
+            ]
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='业务备注面板：输入备注、点击添加后显示备注列表，提供按钮打开说明弹层；使用 React 本地状态，无后端或 Service。' renderingCategory='panel' placement='挂载为宿主现有 Sidebar 的新导航项（sidebar item），复用其窄屏抽屉，不增加主会话横向轨道。' lifecycle='本地 React useState 管理输入草稿、备注列表和弹层开关；激活时无状态，卸载时状态自然释放。' dependencies=['agent-ui.locale（optionalInject，用于文案）', 'agent-ui.theme（optionalInject，用于暗色/浅色主题适配）'] reusedComponents=['Ant Design 5 Button（来自 App.tsx 直接使用）', 'Ant Design 5 Input（来自 App.tsx 直接使用）', 'Ant Design 5 List/Modal/Space/Typography/Empty（同库组件，ConfigProvider 已包裹 AgentMount）'] verificationMethod='runtime' geometry=[] interactions=['输入备注文本并点击添加后列表显示该备注', '仅空白/空输入时添加按钮禁用或点击无效果', '点击说明按钮打开 Ant Design Modal 弹层', '按 Esc 或点击关闭按钮可关闭弹层并返回焦点', '空列表时展示空状态']",
+          "work_kind": "create-plugin",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "在当前 Agent 界面新增一个名为“业务备注”的 Sidebar 导航项。面板内提供输入框和“添加”按钮，点击后将非空备注加入列表；列表为空时显示空状态。提供“说明”按钮打开 Modal 弹层，支持键盘 Esc 关闭与焦点返回。所有文案走现有 agent-ui/i18n locale 层且中英文齐全，明暗主题和窄视图均可用。使用 React 本地状态，不新增后端/Service/Frontend Tool/Custom Event。复用宿主 Ant Design 5 控件与主题，不修改 assistant-ui vendor、Runtime 或 framework，不安装或升级依赖。",
+          "missing_capabilities": [
+            "当前 installed Plugin 与 Source Item 中没有业务备注或通用笔记面板能力"
+          ],
+          "reuse_evidence_refs": [
+            "inspect_ui_project(view='composition') 显示当前 sidebar 仅有一个 history item，content 为 conversation-surface，没有可用笔记 Plugin",
+            "conversation-thread-list 使用 sidebar.icon/labels 与 RailAction 作为 Sidebar 导航项参考"
+          ],
+          "ui_scope": "宿主页面 /src/App.tsx 直接 import 并使用 Ant Design 5 的 ConfigProvider、Button、Input、Card、theme，因此选择复用 Ant Design 5 作为本插件的 UI 体系。ConfigProvider 包裹 AgentMount，插件位于其 React 子树中，可直接继承主题算法与 token。/src/design-system/system.css 定义了宿主 .acme-* 自定义 token，可作为补充样式参考。conversation-thread-list 虽然内部使用 @agent-ui/react 的 Button/Tooltip，但属于该插件自身选择，不能覆盖宿主 App 的控件决策；因此本插件使用 antd Button/Input/List/Modal/Space/Typography/Empty，不引入新的 AgentUI primitives 或第三方库。",
+          "data_scope": "无外部数据；状态仅存在于组件本地 useState。",
+          "excluded_operations": [
+            "不创建 Service 或 Service Contract",
+            "不添加 Frontend Tool",
+            "不添加 Application Event",
+            "不修改 assistant-ui vendor、Runtime 或 framework",
+            "不安装/升级/新增依赖",
+            "不创建 Plugin-local locale 文件"
+          ],
+          "component_basis_refs": [
+            "/src/App.tsx",
+            "/src/design-system/system.css",
+            "/src/agent-ui/plugins/conversation-thread-list/manifest.json",
+            "/src/agent-ui/plugins/conversation-thread-list/index.tsx"
+          ]
+        },
+        "error": {
+          "type": "PluginDevelopmentError",
+          "code": "PLUGIN_DEVELOPMENT_AUTHORIZATION_REQUIRED",
+          "message": "目标 Plugin 身份已经存在；请复用、修改或选择新身份。"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='业务备注面板：输入备注、点击添加后显示备注列表，提供按钮打开说明弹层；使用 React 本地状态，无后端或 Service。' renderingCategory='panel' placement='挂载为宿主现有 Sidebar 的新导航项（sidebar item），复用其窄屏抽屉，不增加主会话横向轨道。' lifecycle='本地 React useState 管理输入草稿、备注列表和弹层开关；激活时无状态，卸载时状态自然释放。' dependencies=['agent-ui.locale（optionalInject，用于文案）', 'agent-ui.theme（optionalInject，用于暗色/浅色主题适配）'] reusedComponents=['Ant Design 5 Button（来自 App.tsx 直接使用）', 'Ant Design 5 Input（来自 App.tsx 直接使用）', 'Ant Design 5 List/Modal/Space/Typography/Empty（同库组件，ConfigProvider 已包裹 AgentMount）'] verificationMethod='runtime' geometry=[] interactions=['输入备注文本并点击添加后列表显示该备注', '仅空白/空输入时添加按钮禁用或点击无效果', '点击说明按钮打开 Ant Design Modal 弹层', '按 Esc 或点击关闭按钮可关闭弹层并返回焦点', '空列表时展示空状态']",
+          "work_kind": "adapt-component",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "在已有 business-notes 插件源码基础上补齐交付缺口：说明弹层关闭按钮的无障碍名称使用统一 locale 关闭文案，面板背景和文字优先继承宿主实际 Ant Design theme token；然后将 business-notes 挂载为宿主现有 Sidebar 的新导航项，复用窄屏抽屉。保留已有备注输入、空白处理、列表、空状态和说明弹层的键盘/焦点交互。完成最终 revision 的 verify:ui、typecheck、build、Registry、Composition 与静态交付回执。",
+          "missing_capabilities": [
+            "business-notes 尚未挂载到 Composition 的 sidebar 中",
+            "弹层关闭按钮无障碍名称未走统一 locale",
+            "面板背景/文字未继承宿主 Ant Design theme token"
+          ],
+          "reuse_evidence_refs": [
+            "inspect_ui_project(view='composition') 显示当前 sidebar 仅有一个 history item，content 为 conversation-surface，没有可用笔记 Plugin",
+            "business-notes 源码已在 /src/agent-ui/plugins/business-notes/ 存在"
+          ],
+          "ui_scope": "宿主页面 /src/App.tsx 直接 import 并使用 Ant Design 5 的 ConfigProvider、Button、Input、Card、theme，因此选择复用 Ant Design 5 作为本插件的 UI 体系。ConfigProvider 包裹 AgentMount，插件位于其 React 子树中，可直接继承主题算法与 token。/src/design-system/system.css 定义了宿主 .acme-* 自定义 token，可作为补充样式参考。本插件使用 antd Button/Input/List/Modal/Space/Typography/Empty，不引入新的 AgentUI primitives 或第三方库。",
+          "data_scope": "无外部数据；状态仅存在于组件本地 useState。",
+          "excluded_operations": [
+            "不创建 Service 或 Service Contract",
+            "不添加 Frontend Tool",
+            "不添加 Application Event",
+            "不修改 assistant-ui vendor、Runtime 或 framework",
+            "不安装/升级/新增依赖",
+            "不创建 Plugin-local locale 文件",
+            "不创建新插件身份"
+          ],
+          "component_basis_refs": [
+            "/src/App.tsx",
+            "/src/design-system/system.css",
+            "/src/agent-ui/plugins/conversation-thread-list/manifest.json",
+            "/src/agent-ui/plugins/conversation-thread-list/index.tsx"
+          ]
+        },
+        "error": {
+          "type": "PluginDevelopmentError",
+          "code": "PLUGIN_DEVELOPMENT_AUTHORIZATION_REQUIRED",
+          "message": "目标 Plugin 身份已经存在；请复用、修改或选择新身份。"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='在现有 business-notes 插件上补齐交付缺口：说明弹层关闭按钮使用统一 locale 关闭文案，面板背景/文字继承宿主 Ant Design theme token；然后挂载为宿主 Sidebar 的新导航项。' renderingCategory='panel' placement='挂载为宿主现有 Sidebar 的新导航项（sidebar item），复用其窄屏抽屉，不增加主会话横向轨道。' lifecycle='本地 React useState 管理输入草稿、备注列表和弹层开关；激活时无状态，卸载时状态自然释放。' dependencies=['agent-ui.locale（optionalInject，用于文案）', 'agent-ui.theme（optionalInject，用于暗色/浅色主题适配）'] reusedComponents=['Ant Design 5 Button/Input/List/Modal/Space/Typography/Empty（ConfigProvider 已包裹 AgentMount）'] verificationMethod='runtime' geometry=[] interactions=['输入备注文本并点击添加后列表显示该备注', '仅空白/空输入时添加按钮禁用或点击无效果', '点击说明按钮打开 Ant Design Modal 弹层', '按 Esc 或点击关闭按钮可关闭弹层并返回焦点', '空列表时展示空状态']",
+          "work_kind": "extend-capability",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "在已有 business-notes 插件源码基础上补齐交付缺口：说明弹层关闭按钮的无障碍名称使用统一 locale 关闭文案，面板背景和文字优先继承宿主实际 Ant Design theme token；然后将 business-notes 挂载为宿主现有 Sidebar 的新导航项，复用窄屏抽屉。保留已有备注输入、空白处理、列表、空状态和说明弹层的键盘/焦点交互。完成最终 revision 的 verify:ui、typecheck、build、Registry、Composition 与静态交付回执。",
+          "missing_capabilities": [
+            "business-notes 尚未挂载到 Composition 的 sidebar 中",
+            "弹层关闭按钮无障碍名称未走统一 locale",
+            "面板背景/文字未继承宿主 Ant Design theme token"
+          ],
+          "reuse_evidence_refs": [
+            "inspect_ui_project(view='composition') 显示当前 sidebar 仅有一个 history item，content 为 conversation-surface",
+            "business-notes 源码已在 /src/agent-ui/plugins/business-notes/ 存在"
+          ],
+          "ui_scope": "宿主页面 /src/App.tsx 直接 import 并使用 Ant Design 5 的 ConfigProvider、Button、Input、Card、theme，ConfigProvider 包裹 AgentMount，插件位于其 React 子树中可直接继承主题算法与 token。本插件使用 antd Button/Input/List/Modal/Space/Typography/Empty，不引入新的 AgentUI primitives 或第三方库。",
+          "data_scope": "无外部数据；状态仅存在于组件本地 useState。",
+          "excluded_operations": [
+            "不创建 Service 或 Service Contract",
+            "不添加 Frontend Tool",
+            "不添加 Application Event",
+            "不修改 assistant-ui vendor、Runtime 或 framework",
+            "不安装/升级/新增依赖",
+            "不创建 Plugin-local locale 文件",
+            "不创建新插件身份"
+          ],
+          "component_basis_refs": [
+            "/src/App.tsx",
+            "/src/design-system/system.css",
+            "/src/agent-ui/plugins/conversation-thread-list/manifest.json",
+            "/src/agent-ui/plugins/conversation-thread-list/index.tsx"
+          ]
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "80bb1679-249d-4aa1-8c68-83d495e25d99",
+          "scopeHash": "617682d5c3b6239f206c9b630cb471c1ceb3e9236d1e999ce57736bcdce8212a",
+          "workKind": "extend-capability",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "在已有 business-notes 插件源码基础上补齐交付缺口：说明弹层关闭按钮的无障碍名称使用统一 locale 关闭文案，面板背景和文字优先继承宿主实际 Ant Design theme token；然后将 business-notes 挂载为宿主现有 Sidebar 的新导航项，复用窄屏抽屉。保留已有备注输入、空白处理、列表、空状态和说明弹层的键盘/焦点交互。完成最终 revision 的 verify:ui、typecheck、build、Registry、Composition 与静态交付回执。",
+          "missingCapabilities": [
+            "business-notes 尚未挂载到 Composition 的 sidebar 中",
+            "弹层关闭按钮无障碍名称未走统一 locale",
+            "面板背景/文字未继承宿主 Ant Design theme token"
+          ],
+          "reuseEvidenceRefs": [
+            "inspect_ui_project(view='composition') 显示当前 sidebar 仅有一个 history item，content 为 conversation-surface",
+            "business-notes 源码已在 /src/agent-ui/plugins/business-notes/ 存在"
+          ],
+          "uiScope": "宿主页面 /src/App.tsx 直接 import 并使用 Ant Design 5 的 ConfigProvider、Button、Input、Card、theme，ConfigProvider 包裹 AgentMount，插件位于其 React 子树中可直接继承主题算法与 token。本插件使用 antd Button/Input/List/Modal/Space/Typography/Empty，不引入新的 AgentUI primitives 或第三方库。",
+          "dataScope": "无外部数据；状态仅存在于组件本地 useState。",
+          "excludedOperations": [
+            "不创建 Service 或 Service Contract",
+            "不添加 Frontend Tool",
+            "不添加 Application Event",
+            "不修改 assistant-ui vendor、Runtime 或 framework",
+            "不安装/升级/新增依赖",
+            "不创建 Plugin-local locale 文件",
+            "不创建新插件身份"
+          ],
+          "componentBasisRefs": [
+            "/src/App.tsx",
+            "/src/design-system/system.css",
+            "/src/agent-ui/plugins/conversation-thread-list/manifest.json",
+            "/src/agent-ui/plugins/conversation-thread-list/index.tsx"
+          ],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "在现有 business-notes 插件上补齐交付缺口：说明弹层关闭按钮使用统一 locale 关闭文案，面板背景/文字继承宿主 Ant Design theme token；然后挂载为宿主 Sidebar 的新导航项。",
+            "renderingCategory": "panel",
+            "placement": "挂载为宿主现有 Sidebar 的新导航项（sidebar item），复用其窄屏抽屉，不增加主会话横向轨道。",
+            "lifecycle": "本地 React useState 管理输入草稿、备注列表和弹层开关；激活时无状态，卸载时状态自然释放。",
+            "dependencies": [
+              "agent-ui.locale（optionalInject，用于文案）",
+              "agent-ui.theme（optionalInject，用于暗色/浅色主题适配）"
+            ],
+            "reusedComponents": [
+              "Ant Design 5 Button/Input/List/Modal/Space/Typography/Empty（ConfigProvider 已包裹 AgentMount）"
+            ],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": [
+              "输入备注文本并点击添加后列表显示该备注",
+              "仅空白/空输入时添加按钮禁用或点击无效果",
+              "点击说明按钮打开 Ant Design Modal 弹层",
+              "按 Esc 或点击关闭按钮可关闭弹层并返回焦点",
+              "空列表时展示空状态"
+            ]
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='在现有 business-notes 插件上补齐交付缺口：说明弹层关闭按钮使用统一 locale 关闭文案，面板背景/文字继承宿主 Ant Design theme token；然后挂载为宿主 Sidebar 的新导航项。' renderingCategory='panel' placement='挂载为宿主现有 Sidebar 的新导航项（sidebar item），复用其窄屏抽屉，不增加主会话横向轨道。' lifecycle='本地 React useState 管理输入草稿、备注列表和弹层开关；激活时无状态，卸载时状态自然释放。' dependencies=['agent-ui.locale（optionalInject，用于文案）', 'agent-ui.theme（optionalInject，用于暗色/浅色主题适配）'] reusedComponents=[] verificationMethod='runtime' geometry=[] interactions=['输入备注文本并点击添加后列表显示该备注', '仅空白/空输入时添加按钮禁用或点击无效果', '点击说明按钮打开 Ant Design Modal 弹层', '按 Esc 或点击关闭按钮可关闭弹层并返回焦点', '空列表时展示空状态']",
+          "work_kind": "extend-capability",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "在已有 business-notes 插件源码基础上补齐交付缺口：说明弹层关闭按钮的无障碍名称使用统一 locale 关闭文案，面板背景和文字优先继承宿主实际 Ant Design theme token；然后将 business-notes 挂载为宿主现有 Sidebar 的新导航项，复用窄屏抽屉。保留已有备注输入、空白处理、列表、空状态和说明弹层的键盘/焦点交互。完成最终 revision 的 verify:ui、typecheck、build、Registry、Composition 与静态交付回执。",
+          "missing_capabilities": [
+            "business-notes 尚未挂载到 Composition 的 sidebar 中",
+            "弹层关闭按钮无障碍名称未走统一 locale",
+            "面板背景/文字未继承宿主 Ant Design theme token"
+          ],
+          "reuse_evidence_refs": [
+            "inspect_ui_project(view='composition') 显示当前 sidebar 仅有一个 history item，content 为 conversation-surface",
+            "business-notes 源码已在 /src/agent-ui/plugins/business-notes/ 存在"
+          ],
+          "ui_scope": "宿主页面 /src/App.tsx 直接 import 并使用 Ant Design 5 的 ConfigProvider、Button、Input、Card、theme，ConfigProvider 包裹 AgentMount，插件位于其 React 子树中可直接继承主题算法与 token。本插件使用 antd Button/Input/List/Modal/Space/Typography/Empty，不引入新的 AgentUI primitives 或第三方库。",
+          "data_scope": "无外部数据；状态仅存在于组件本地 useState。",
+          "excluded_operations": [
+            "不创建 Service 或 Service Contract",
+            "不添加 Frontend Tool",
+            "不添加 Application Event",
+            "不修改 assistant-ui vendor、Runtime 或 framework",
+            "不安装/升级/新增依赖",
+            "不创建 Plugin-local locale 文件",
+            "不创建新插件身份"
+          ],
+          "component_basis_refs": [
+            "/src/App.tsx",
+            "/src/design-system/system.css",
+            "/src/agent-ui/plugins/conversation-thread-list/manifest.json",
+            "/src/agent-ui/plugins/conversation-thread-list/index.tsx"
+          ]
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "1fffb8d5-167e-49be-8c8e-b2c3658f880e",
+          "scopeHash": "31bb263df97deb3418f57aaa49dbea38e390945b767ceae99ea02b204a57d248",
+          "workKind": "extend-capability",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "在已有 business-notes 插件源码基础上补齐交付缺口：说明弹层关闭按钮的无障碍名称使用统一 locale 关闭文案，面板背景和文字优先继承宿主实际 Ant Design theme token；然后将 business-notes 挂载为宿主现有 Sidebar 的新导航项，复用窄屏抽屉。保留已有备注输入、空白处理、列表、空状态和说明弹层的键盘/焦点交互。完成最终 revision 的 verify:ui、typecheck、build、Registry、Composition 与静态交付回执。",
+          "missingCapabilities": [
+            "business-notes 尚未挂载到 Composition 的 sidebar 中",
+            "弹层关闭按钮无障碍名称未走统一 locale",
+            "面板背景/文字未继承宿主 Ant Design theme token"
+          ],
+          "reuseEvidenceRefs": [
+            "inspect_ui_project(view='composition') 显示当前 sidebar 仅有一个 history item，content 为 conversation-surface",
+            "business-notes 源码已在 /src/agent-ui/plugins/business-notes/ 存在"
+          ],
+          "uiScope": "宿主页面 /src/App.tsx 直接 import 并使用 Ant Design 5 的 ConfigProvider、Button、Input、Card、theme，ConfigProvider 包裹 AgentMount，插件位于其 React 子树中可直接继承主题算法与 token。本插件使用 antd Button/Input/List/Modal/Space/Typography/Empty，不引入新的 AgentUI primitives 或第三方库。",
+          "dataScope": "无外部数据；状态仅存在于组件本地 useState。",
+          "excludedOperations": [
+            "不创建 Service 或 Service Contract",
+            "不添加 Frontend Tool",
+            "不添加 Application Event",
+            "不修改 assistant-ui vendor、Runtime 或 framework",
+            "不安装/升级/新增依赖",
+            "不创建 Plugin-local locale 文件",
+            "不创建新插件身份"
+          ],
+          "componentBasisRefs": [
+            "/src/App.tsx",
+            "/src/design-system/system.css",
+            "/src/agent-ui/plugins/conversation-thread-list/manifest.json",
+            "/src/agent-ui/plugins/conversation-thread-list/index.tsx"
+          ],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "在现有 business-notes 插件上补齐交付缺口：说明弹层关闭按钮使用统一 locale 关闭文案，面板背景/文字继承宿主 Ant Design theme token；然后挂载为宿主 Sidebar 的新导航项。",
+            "renderingCategory": "panel",
+            "placement": "挂载为宿主现有 Sidebar 的新导航项（sidebar item），复用其窄屏抽屉，不增加主会话横向轨道。",
+            "lifecycle": "本地 React useState 管理输入草稿、备注列表和弹层开关；激活时无状态，卸载时状态自然释放。",
+            "dependencies": [
+              "agent-ui.locale（optionalInject，用于文案）",
+              "agent-ui.theme（optionalInject，用于暗色/浅色主题适配）"
+            ],
+            "reusedComponents": [],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": [
+              "输入备注文本并点击添加后列表显示该备注",
+              "仅空白/空输入时添加按钮禁用或点击无效果",
+              "点击说明按钮打开 Ant Design Modal 弹层",
+              "按 Esc 或点击关闭按钮可关闭弹层并返回焦点",
+              "空列表时展示空状态"
+            ]
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='补齐现有 business-notes：说明弹层的关闭按钮名称使用统一 locale 的关闭文案；面板背景与文字优先继承 App.tsx 中 Ant Design ConfigProvider 的真实 theme token；保留现有备注流程。' renderingCategory='panel' placement='将现有 business-notes 插件挂载为当前 Sidebar 的新增导航项，复用窄屏抽屉；不增加会话横向轨道。' lifecycle='复用现有本地 React 状态和 Sidebar 导航生命周期，不引入持久化或 Runtime 状态。' dependencies=['沿用 business-notes 现有 optionalInject：agent-ui.locale、agent-ui.theme；不新增依赖或 Service。'] reusedComponents=['已有 business-notes Plugin', '宿主 App.tsx 中实际使用的 Ant Design 5 ConfigProvider、theme、Button、Input；现有 Plugin 的 List、Modal、Space、Typography、Empty'] verificationMethod='runtime' geometry=[] interactions=[]",
+          "work_kind": "extend-capability",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "继续交付已有 business-notes（禁止创建重复插件）。为说明弹层的关闭按钮设置统一 locale 的 labels.close 无障碍名称，并确保面板背景/文字优先使用宿主 Ant Design theme token。保留备注输入、空白处理、列表、空状态以及弹层 Esc/焦点交互。将现有 Plugin 加为 Sidebar 新导航项并复用窄屏抽屉，不增加主会话横向轨道。运行最终 revision 的 verify:ui、typecheck、build，并确认 Registry、Composition 和静态交付回执。不得复用前一任务授权、增加依赖、修改 Runtime/framework/vendor。",
+          "missing_capabilities": [
+            "说明弹层的弹窗关闭按钮没有使用统一 locale 的关闭文案作为无障碍名称",
+            "面板 CSS 含有固定背景/文字回退色，尚未完全以宿主实际 theme token 为优先",
+            "现有 business-notes 能力存在但未在当前 Sidebar Composition 中挂载"
+          ],
+          "reuse_evidence_refs": [
+            "当前完整 inspect_ui_project(view='composition')：Sidebar 当前只含 history 项；business-notes capability 已存在、selected=false；宽度 narrow，声明 sidebar 图标和 en-US/zh-CN 标签；agent-ui.locale 与 agent-ui.theme 可选服务均 available。",
+            "当前 inspect_agent_ui_sources：正式 Source Items 清单完整；已有业务备注实现来自项目中存在的 business-notes Plugin，不安装类似项目。",
+            "本次读取的现有文件 /src/agent-ui/plugins/business-notes/manifest.json、definition.ts、index.tsx、styles.css；definition 声明 locale/theme optionalInject，源码已有完整输入、列表、空状态和 Ant Design Modal。"
+          ],
+          "ui_scope": "沿用本次读取的 /src/App.tsx 所证实的 Ant Design 5 选型：宿主以 ConfigProvider theme 包裹 AgentMount，business-notes 已使用 antd Button/Input/List/Modal/Space/Typography/Empty，不切换到 AgentUI primitives，也不引依赖。通过 Ant Design theme.useToken 继承 ConfigProvider 的颜色 token；不探索 Conversation 或 Runtime。",
+          "data_scope": "只保留现有本地 useState，无共享状态、持久化、Service、Frontend Tool 或后台操作。",
+          "excluded_operations": [
+            "不创建新 Plugin 身份或重复目录",
+            "不新增 npm 依赖、不升级依赖",
+            "不修改 Runtime、framework、vendor 或 Agent 协议",
+            "不创建 Service、Frontend Tool、Application Event 或新 locale namespace"
+          ],
+          "component_basis_refs": [
+            "/src/App.tsx"
+          ]
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "5c247596-2b3f-49cc-9f58-6239bc594dc1",
+          "scopeHash": "534902386ea4a9410ec2bd589ee0e3ebc3a47e259282522c742b3da004c091ea",
+          "workKind": "extend-capability",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "继续交付已有 business-notes（禁止创建重复插件）。为说明弹层的关闭按钮设置统一 locale 的 labels.close 无障碍名称，并确保面板背景/文字优先使用宿主 Ant Design theme token。保留备注输入、空白处理、列表、空状态以及弹层 Esc/焦点交互。将现有 Plugin 加为 Sidebar 新导航项并复用窄屏抽屉，不增加主会话横向轨道。运行最终 revision 的 verify:ui、typecheck、build，并确认 Registry、Composition 和静态交付回执。不得复用前一任务授权、增加依赖、修改 Runtime/framework/vendor。",
+          "missingCapabilities": [
+            "说明弹层的弹窗关闭按钮没有使用统一 locale 的关闭文案作为无障碍名称",
+            "面板 CSS 含有固定背景/文字回退色，尚未完全以宿主实际 theme token 为优先",
+            "现有 business-notes 能力存在但未在当前 Sidebar Composition 中挂载"
+          ],
+          "reuseEvidenceRefs": [
+            "当前完整 inspect_ui_project(view='composition')：Sidebar 当前只含 history 项；business-notes capability 已存在、selected=false；宽度 narrow，声明 sidebar 图标和 en-US/zh-CN 标签；agent-ui.locale 与 agent-ui.theme 可选服务均 available。",
+            "当前 inspect_agent_ui_sources：正式 Source Items 清单完整；已有业务备注实现来自项目中存在的 business-notes Plugin，不安装类似项目。",
+            "本次读取的现有文件 /src/agent-ui/plugins/business-notes/manifest.json、definition.ts、index.tsx、styles.css；definition 声明 locale/theme optionalInject，源码已有完整输入、列表、空状态和 Ant Design Modal。"
+          ],
+          "uiScope": "沿用本次读取的 /src/App.tsx 所证实的 Ant Design 5 选型：宿主以 ConfigProvider theme 包裹 AgentMount，business-notes 已使用 antd Button/Input/List/Modal/Space/Typography/Empty，不切换到 AgentUI primitives，也不引依赖。通过 Ant Design theme.useToken 继承 ConfigProvider 的颜色 token；不探索 Conversation 或 Runtime。",
+          "dataScope": "只保留现有本地 useState，无共享状态、持久化、Service、Frontend Tool 或后台操作。",
+          "excludedOperations": [
+            "不创建新 Plugin 身份或重复目录",
+            "不新增 npm 依赖、不升级依赖",
+            "不修改 Runtime、framework、vendor 或 Agent 协议",
+            "不创建 Service、Frontend Tool、Application Event 或新 locale namespace"
+          ],
+          "componentBasisRefs": [
+            "/src/App.tsx"
+          ],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "补齐现有 business-notes：说明弹层的关闭按钮名称使用统一 locale 的关闭文案；面板背景与文字优先继承 App.tsx 中 Ant Design ConfigProvider 的真实 theme token；保留现有备注流程。",
+            "renderingCategory": "panel",
+            "placement": "将现有 business-notes 插件挂载为当前 Sidebar 的新增导航项，复用窄屏抽屉；不增加会话横向轨道。",
+            "lifecycle": "复用现有本地 React 状态和 Sidebar 导航生命周期，不引入持久化或 Runtime 状态。",
+            "dependencies": [
+              "沿用 business-notes 现有 optionalInject：agent-ui.locale、agent-ui.theme；不新增依赖或 Service。"
+            ],
+            "reusedComponents": [
+              "已有 business-notes Plugin",
+              "宿主 App.tsx 中实际使用的 Ant Design 5 ConfigProvider、theme、Button、Input；现有 Plugin 的 List、Modal、Space、Typography、Empty"
+            ],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": []
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='完成已有 business-notes 的本次交付：已补齐说明弹层关闭按钮使用 locale close 文案与 Ant Design theme token 配色，需将既有 Plugin 挂载为 Sidebar 新导航项。' renderingCategory='panel' placement='宿主当前 Sidebar 新增业务备注导航项，复用窄屏抽屉，不增加主会话横向轨道。' lifecycle='使用现有本地 React 状态；Sidebar item 激活时显示面板，卸载时释放。' dependencies=['不新增依赖；沿用现有 agent-ui.locale 与 agent-ui.theme optionalInject。'] reusedComponents=['已有 business-notes Plugin', '宿主 App.tsx 中的 Ant Design 5 ConfigProvider、theme 与该 Plugin 的 Ant Design 控件'] verificationMethod='runtime' geometry=[] interactions=[]",
+          "work_kind": "extend-capability",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "继续完成已经存在的 business-notes，不创建重复 Plugin。源码改动已完成并通过 verify:ui/typecheck：Modal 改用显式的 aria-label={labels.close} 关闭 Button 并保持 onCancel 键盘关闭；容器背景/文字继续来自 Ant Design theme.useToken，删除 CSS 固定配色。剩余目标是在当前 Sidebar 增加 business-notes 导航项、复用窄屏抽屉，不增加主会话横向轨道，随后运行最终 revision 的 verify:ui、typecheck、build(includeBuild=true) 并检查 Registry、Composition 与静态交付回执。保持已验证的 Ant Design 选型，不增依赖、不改 Runtime/framework/vendor。",
+          "missing_capabilities": [
+            "已存在的 business-notes Plugin 尚未在当前 AppUIModel Sidebar 中挂载"
+          ],
+          "reuse_evidence_refs": [
+            "最新完整 Composition snapshot：AppUIModel hash 588fa9cee09be2828ae0a82dde3b262e529a72b04cb00f66044d3db2cadafc17；Sidebar ref l0，当前仅有 history item，defaultActive 为 history；business-notes 未选中，声明窄宽和 Sidebar 导航元数据；locale/theme 服务 readiness available。",
+            "已完成的当前 revision 3 verify:ui 与 typecheck 通过，Plugin 源码静态同步成功。",
+            "本轮实际读过 /src/App.tsx 与现有 business-notes 源码，确认宿主 Ant Design 5 ConfigProvider/theme。"
+          ],
+          "ui_scope": "继续使用 /src/App.tsx 已直接证实的 Ant Design 5；插件已经通过 theme.useToken 读取宿主 ConfigProvider token，CSS 不再定义固定背景/文字颜色。保持现有 Button/Input/List/Modal/Space/Typography/Empty，不引入 AgentUI 替代方案。",
+          "data_scope": "原有本地 useState，无 Runtime/shared state 或后端操作。",
+          "excluded_operations": [
+            "不创建新 Plugin 身份或目录",
+            "不新增依赖或 Service",
+            "不修改 Runtime/framework/vendor 或 Agent 协议",
+            "不改 locale 字典/namespace"
+          ],
+          "component_basis_refs": [
+            "/src/App.tsx"
+          ]
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "d8a806cb-4b33-438c-b2d5-f07fb781bda8",
+          "scopeHash": "ce575c48a3ed21d0115a4de2b6aa86e636ef1a5d770a896aee8741636e9ee5b1",
+          "workKind": "extend-capability",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "继续完成已经存在的 business-notes，不创建重复 Plugin。源码改动已完成并通过 verify:ui/typecheck：Modal 改用显式的 aria-label={labels.close} 关闭 Button 并保持 onCancel 键盘关闭；容器背景/文字继续来自 Ant Design theme.useToken，删除 CSS 固定配色。剩余目标是在当前 Sidebar 增加 business-notes 导航项、复用窄屏抽屉，不增加主会话横向轨道，随后运行最终 revision 的 verify:ui、typecheck、build(includeBuild=true) 并检查 Registry、Composition 与静态交付回执。保持已验证的 Ant Design 选型，不增依赖、不改 Runtime/framework/vendor。",
+          "missingCapabilities": [
+            "已存在的 business-notes Plugin 尚未在当前 AppUIModel Sidebar 中挂载"
+          ],
+          "reuseEvidenceRefs": [
+            "最新完整 Composition snapshot：AppUIModel hash 588fa9cee09be2828ae0a82dde3b262e529a72b04cb00f66044d3db2cadafc17；Sidebar ref l0，当前仅有 history item，defaultActive 为 history；business-notes 未选中，声明窄宽和 Sidebar 导航元数据；locale/theme 服务 readiness available。",
+            "已完成的当前 revision 3 verify:ui 与 typecheck 通过，Plugin 源码静态同步成功。",
+            "本轮实际读过 /src/App.tsx 与现有 business-notes 源码，确认宿主 Ant Design 5 ConfigProvider/theme。"
+          ],
+          "uiScope": "继续使用 /src/App.tsx 已直接证实的 Ant Design 5；插件已经通过 theme.useToken 读取宿主 ConfigProvider token，CSS 不再定义固定背景/文字颜色。保持现有 Button/Input/List/Modal/Space/Typography/Empty，不引入 AgentUI 替代方案。",
+          "dataScope": "原有本地 useState，无 Runtime/shared state 或后端操作。",
+          "excludedOperations": [
+            "不创建新 Plugin 身份或目录",
+            "不新增依赖或 Service",
+            "不修改 Runtime/framework/vendor 或 Agent 协议",
+            "不改 locale 字典/namespace"
+          ],
+          "componentBasisRefs": [
+            "/src/App.tsx"
+          ],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "完成已有 business-notes 的本次交付：已补齐说明弹层关闭按钮使用 locale close 文案与 Ant Design theme token 配色，需将既有 Plugin 挂载为 Sidebar 新导航项。",
+            "renderingCategory": "panel",
+            "placement": "宿主当前 Sidebar 新增业务备注导航项，复用窄屏抽屉，不增加主会话横向轨道。",
+            "lifecycle": "使用现有本地 React 状态；Sidebar item 激活时显示面板，卸载时释放。",
+            "dependencies": [
+              "不新增依赖；沿用现有 agent-ui.locale 与 agent-ui.theme optionalInject。"
+            ],
+            "reusedComponents": [
+              "已有 business-notes Plugin",
+              "宿主 App.tsx 中的 Ant Design 5 ConfigProvider、theme 与该 Plugin 的 Ant Design 控件"
+            ],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": []
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='完成现有 business-notes 插件的本次交付：仅将既有能力加入当前宿主 Sidebar 的新导航项；不创建身份、不改已验证源码、不增加主会话横向轨道，并复用 Sidebar 窄屏抽屉。' renderingCategory='panel' placement='作为当前 Sidebar 的新增导航项，沿用其窄屏抽屉；以最新 Host Composition Snapshot 的 Sidebar ref 和最终操作验证为准。' lifecycle='复用现有 Plugin 及 Sidebar 导航生命周期；不引入新状态、Service 或 Runtime 配置。' dependencies=['沿用已解析的 agent-ui.locale 与 agent-ui.theme 可选 Service；本次不修改或新增 Service。'] reusedComponents=['现有 business-notes Plugin 及其 Sidebar manifest 元数据', '宿主现有 Sidebar 与其窄屏抽屉'] verificationMethod='runtime' geometry=[] interactions=[]",
+          "work_kind": "extend-capability",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "完成已存在的 business-notes 最后交付阶段，不重复创建或修改已验证源码。将其挂载为宿主现有 Sidebar 的新增导航项，复用窄屏抽屉，不增加会话横向轨道。然后运行 validate_creator_changes(includeBuild=true)，核对当前最终 Registry、Composition 与 inspect_ui_plugin_delivery 回执。遵守 static_only：只报告静态验证，不声称浏览器或 Runtime 验证。",
+          "missing_capabilities": [
+            "现有 business-notes 尚未选入当前 Composition / Sidebar；最新 Snapshot 显示 Sidebar ref l0 仅含 history 项，而 business-notes capability available、selected=false。"
+          ],
+          "reuse_evidence_refs": [
+            "最新完整 inspect_ui_project(view='composition') Snapshot 4ab0e89dca15f874261ac74ba1b1711a3d283b51778a8d8a56971360ea38ade1：AppUIModel hash 588fa9cee09be2828ae0a82dde3b262e529a72b04cb00f66044d3db2cadafc17；Sidebar l0 仅有 history，business-notes available 且未 selected，窄宽及 Sidebar icon/双语标签均已声明；agent-ui.locale/theme 可用。",
+            "读取 /src/agent-ui/plugins/business-notes/manifest.json，确认已有 Plugin identity business-notes、Sidebar 导航标签及窄面板声明。",
+            "读取 /prepare-observations.json，确认当前已有身份的最近 authorized extend-capability 提案聚焦 Sidebar Composition 挂载及最终验证；本次依据用户指示重新绑定当前交付计划，不沿用历史授权。",
+            "用户说明已验证源码已完成并通过 verify:ui/typecheck，本次明确要求不重复创建或修改源码。"
+          ],
+          "ui_scope": "本次仅做现有 Plugin 到宿主 Sidebar 的 AppUIModel Composition 挂载；复用 manifest 已声明导航信息和宿主现有窄屏抽屉。不改变 Ant Design 5 选型、组件、样式、locale 或 Plugin 行为，不新增依赖。",
+          "data_scope": "无数据层变更；沿用现有本地状态实现，不涉及 Backend、Service、Frontend Tool、Application Event 或 Runtime 状态。",
+          "excluded_operations": [
+            "不创建重复 Plugin 或新身份",
+            "不修改 business-notes 已验证源码、locale 或样式",
+            "不安装或升级依赖",
+            "不手工修改 Runtime Registry、Runtime/framework/vendor",
+            "不增加会话横向轨道",
+            "不宣称 static_only 下的浏览器或 Runtime 验证"
+          ],
+          "component_basis_refs": []
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "522585b7-10f5-4065-b97c-2e07381490e5",
+          "scopeHash": "53a0eed039a42e5b4422f03c772352c01cd0867c1f120554ed1ca0a940032343",
+          "workKind": "extend-capability",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "完成已存在的 business-notes 最后交付阶段，不重复创建或修改已验证源码。将其挂载为宿主现有 Sidebar 的新增导航项，复用窄屏抽屉，不增加会话横向轨道。然后运行 validate_creator_changes(includeBuild=true)，核对当前最终 Registry、Composition 与 inspect_ui_plugin_delivery 回执。遵守 static_only：只报告静态验证，不声称浏览器或 Runtime 验证。",
+          "missingCapabilities": [
+            "现有 business-notes 尚未选入当前 Composition / Sidebar；最新 Snapshot 显示 Sidebar ref l0 仅含 history 项，而 business-notes capability available、selected=false。"
+          ],
+          "reuseEvidenceRefs": [
+            "最新完整 inspect_ui_project(view='composition') Snapshot 4ab0e89dca15f874261ac74ba1b1711a3d283b51778a8d8a56971360ea38ade1：AppUIModel hash 588fa9cee09be2828ae0a82dde3b262e529a72b04cb00f66044d3db2cadafc17；Sidebar l0 仅有 history，business-notes available 且未 selected，窄宽及 Sidebar icon/双语标签均已声明；agent-ui.locale/theme 可用。",
+            "读取 /src/agent-ui/plugins/business-notes/manifest.json，确认已有 Plugin identity business-notes、Sidebar 导航标签及窄面板声明。",
+            "读取 /prepare-observations.json，确认当前已有身份的最近 authorized extend-capability 提案聚焦 Sidebar Composition 挂载及最终验证；本次依据用户指示重新绑定当前交付计划，不沿用历史授权。",
+            "用户说明已验证源码已完成并通过 verify:ui/typecheck，本次明确要求不重复创建或修改源码。"
+          ],
+          "uiScope": "本次仅做现有 Plugin 到宿主 Sidebar 的 AppUIModel Composition 挂载；复用 manifest 已声明导航信息和宿主现有窄屏抽屉。不改变 Ant Design 5 选型、组件、样式、locale 或 Plugin 行为，不新增依赖。",
+          "dataScope": "无数据层变更；沿用现有本地状态实现，不涉及 Backend、Service、Frontend Tool、Application Event 或 Runtime 状态。",
+          "excludedOperations": [
+            "不创建重复 Plugin 或新身份",
+            "不修改 business-notes 已验证源码、locale 或样式",
+            "不安装或升级依赖",
+            "不手工修改 Runtime Registry、Runtime/framework/vendor",
+            "不增加会话横向轨道",
+            "不宣称 static_only 下的浏览器或 Runtime 验证"
+          ],
+          "componentBasisRefs": [],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "完成现有 business-notes 插件的本次交付：仅将既有能力加入当前宿主 Sidebar 的新导航项；不创建身份、不改已验证源码、不增加主会话横向轨道，并复用 Sidebar 窄屏抽屉。",
+            "renderingCategory": "panel",
+            "placement": "作为当前 Sidebar 的新增导航项，沿用其窄屏抽屉；以最新 Host Composition Snapshot 的 Sidebar ref 和最终操作验证为准。",
+            "lifecycle": "复用现有 Plugin 及 Sidebar 导航生命周期；不引入新状态、Service 或 Runtime 配置。",
+            "dependencies": [
+              "沿用已解析的 agent-ui.locale 与 agent-ui.theme 可选 Service；本次不修改或新增 Service。"
+            ],
+            "reusedComponents": [
+              "现有 business-notes Plugin 及其 Sidebar manifest 元数据",
+              "宿主现有 Sidebar 与其窄屏抽屉"
+            ],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": []
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='将已有 business-notes Plugin 作为一个启用的新增 Sidebar 导航项挂载到当前 Sidebar；本次 Composition 操作限定为 insert_sidebar_item，不创建或修改源码。' renderingCategory='panel' placement='在最新 Host Snapshot 的 Sidebar l0 中追加 itemId business-notes，绑定新实例 business-notes-main / Plugin business-notes；保留现有 history 项与 defaultActive，不改 Sidebar content 或主会话轨道。由宿主现有 Sidebar 处理窄屏抽屉。' lifecycle='复用现有 Plugin 与 Sidebar item 激活/卸载生命周期；不新增状态、Runtime 配置或 Service。' dependencies=['沿用已解析的 agent-ui.locale、agent-ui.theme optional Service；本次不写入 Service。'] reusedComponents=['现有 business-notes Plugin，其 manifest 已声明 sidebar icon、双语 label 和 narrow 宽度', '宿主现有 Sidebar 导航与窄屏抽屉'] verificationMethod='runtime' geometry=[] interactions=[]",
+          "work_kind": "extend-capability",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "完成既有 business-notes 的当前交付，仅执行 AppUIModel 操作 insert_sidebar_item：将 Plugin business-notes 以实例 business-notes-main 和导航项 business-notes 追加到当前 Sidebar l0。保持 history/defaultActive 和原有 content 不变；不修改源码、Registry 手工文件、依赖、Runtime、framework 或 vendor。之后执行 validate_creator_changes(includeBuild=true)，并核查最新 Composition、最终 Registry 和静态 inspect_ui_plugin_delivery 回执。当前 policy 为 static_only，不声称浏览器或 Runtime 验证。",
+          "missing_capabilities": [
+            "最新 Composition 显示现有 business-notes capability available 但未 selected；Sidebar 当前只有 history，缺少要求的 business-notes 导航项。"
+          ],
+          "reuse_evidence_refs": [
+            "完整 Host Composition Snapshot hash 4ab0e89dca15f874261ac74ba1b1711a3d283b51778a8d8a56971360ea38ade1 / AppUIModel hash 588fa9cee09be2828ae0a82dde3b262e529a72b04cb00f66044d3db2cadafc17：Sidebar l0；history 唯一当前导航项；business-notes available、selected=false，Sidebar 元数据及窄宽声明存在。",
+            "/src/agent-ui/plugins/business-notes/manifest.json 已读，包含 Plugin id business-notes、icon book-open、en-US/zh-CN labels 和 narrow 宽度。",
+            "/prepare-observations.json 已读，历史记录显示之前有已授权的 extend-capability 计划，但本次依据用户明确指令建立新授权，不复用旧授权。",
+            "用户指明源码已真实 Creator 生成、修复并通过 verify:ui/typecheck，本次不得重复创建或改动源码。"
+          ],
+          "ui_scope": "只更改 AppUIModel Sidebar items；复用已存在的 business-notes 视觉 Plugin 和宿主窄屏抽屉。没有 UI 实现或控件变化。",
+          "data_scope": "无数据或 Runtime 改动，沿用现有 Plugin 本地状态。",
+          "excluded_operations": [
+            "不创建重复 Plugin identity",
+            "不改任何已验证源码、locale、manifest 或 CSS",
+            "不手工修改 Runtime Registry",
+            "不安装或升级依赖",
+            "不修改 Runtime/framework/vendor",
+            "不改变 Sidebar content、history defaultActive 或主会话横向轨道",
+            "不宣称 static_only 外的 Runtime/浏览器验证"
+          ],
+          "component_basis_refs": []
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "a44ff2d5-bcc0-465c-8781-52d754bc4102",
+          "scopeHash": "a1d74f4eea0cbc6f0d23c5b7e4e8e326839d6446a159781d4995d3a35898ec66",
+          "workKind": "extend-capability",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "完成既有 business-notes 的当前交付，仅执行 AppUIModel 操作 insert_sidebar_item：将 Plugin business-notes 以实例 business-notes-main 和导航项 business-notes 追加到当前 Sidebar l0。保持 history/defaultActive 和原有 content 不变；不修改源码、Registry 手工文件、依赖、Runtime、framework 或 vendor。之后执行 validate_creator_changes(includeBuild=true)，并核查最新 Composition、最终 Registry 和静态 inspect_ui_plugin_delivery 回执。当前 policy 为 static_only，不声称浏览器或 Runtime 验证。",
+          "missingCapabilities": [
+            "最新 Composition 显示现有 business-notes capability available 但未 selected；Sidebar 当前只有 history，缺少要求的 business-notes 导航项。"
+          ],
+          "reuseEvidenceRefs": [
+            "完整 Host Composition Snapshot hash 4ab0e89dca15f874261ac74ba1b1711a3d283b51778a8d8a56971360ea38ade1 / AppUIModel hash 588fa9cee09be2828ae0a82dde3b262e529a72b04cb00f66044d3db2cadafc17：Sidebar l0；history 唯一当前导航项；business-notes available、selected=false，Sidebar 元数据及窄宽声明存在。",
+            "/src/agent-ui/plugins/business-notes/manifest.json 已读，包含 Plugin id business-notes、icon book-open、en-US/zh-CN labels 和 narrow 宽度。",
+            "/prepare-observations.json 已读，历史记录显示之前有已授权的 extend-capability 计划，但本次依据用户明确指令建立新授权，不复用旧授权。",
+            "用户指明源码已真实 Creator 生成、修复并通过 verify:ui/typecheck，本次不得重复创建或改动源码。"
+          ],
+          "uiScope": "只更改 AppUIModel Sidebar items；复用已存在的 business-notes 视觉 Plugin 和宿主窄屏抽屉。没有 UI 实现或控件变化。",
+          "dataScope": "无数据或 Runtime 改动，沿用现有 Plugin 本地状态。",
+          "excludedOperations": [
+            "不创建重复 Plugin identity",
+            "不改任何已验证源码、locale、manifest 或 CSS",
+            "不手工修改 Runtime Registry",
+            "不安装或升级依赖",
+            "不修改 Runtime/framework/vendor",
+            "不改变 Sidebar content、history defaultActive 或主会话横向轨道",
+            "不宣称 static_only 外的 Runtime/浏览器验证"
+          ],
+          "componentBasisRefs": [],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "将已有 business-notes Plugin 作为一个启用的新增 Sidebar 导航项挂载到当前 Sidebar；本次 Composition 操作限定为 insert_sidebar_item，不创建或修改源码。",
+            "renderingCategory": "panel",
+            "placement": "在最新 Host Snapshot 的 Sidebar l0 中追加 itemId business-notes，绑定新实例 business-notes-main / Plugin business-notes；保留现有 history 项与 defaultActive，不改 Sidebar content 或主会话轨道。由宿主现有 Sidebar 处理窄屏抽屉。",
+            "lifecycle": "复用现有 Plugin 与 Sidebar item 激活/卸载生命周期；不新增状态、Runtime 配置或 Service。",
+            "dependencies": [
+              "沿用已解析的 agent-ui.locale、agent-ui.theme optional Service；本次不写入 Service。"
+            ],
+            "reusedComponents": [
+              "现有 business-notes Plugin，其 manifest 已声明 sidebar icon、双语 label 和 narrow 宽度",
+              "宿主现有 Sidebar 导航与窄屏抽屉"
+            ],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": []
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='将已有 business-notes Plugin 加入当前宿主 Sidebar，完成最后交付；不创建或修改源码。' renderingCategory='panel' placement='追加为最新 Host Composition Snapshot 中当前 Sidebar 的新增导航项，复用宿主窄屏抽屉，不增加主会话横向轨道。' lifecycle='沿用现有 Plugin 实例和 Sidebar item 激活/卸载生命周期；不引入新状态、Service 或 Runtime 配置。' dependencies=['沿用已解析的 agent-ui.locale 与 agent-ui.theme 可选 Service；本次不新增或修改 Service。'] reusedComponents=['现有 business-notes Plugin 与其 manifest Sidebar 元数据', '宿主现有 Sidebar 导航及窄屏抽屉'] verificationMethod='runtime' geometry=[] interactions=[]",
+          "work_kind": "extend-capability",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "完成已有 business-notes 插件的最后交付阶段：仅将既有 Plugin 作为宿主当前 Sidebar 的新增导航项挂载，复用窄屏抽屉，不增加主会话横向轨道。不要重复创建或修改已验证源码。随后执行 validate_creator_changes(includeBuild=true)，并检查最终 Registry、Composition 和 inspect_ui_plugin_delivery 回执。当前策略为 static_only，只报告静态验证，不声称浏览器或 Runtime 验证。",
+          "missing_capabilities": [
+            "现有 business-notes capability 尚未选入 Composition：最新 Host Snapshot 显示 Sidebar l0 目前仅有 history 项，business-notes available 且 selected=false。"
+          ],
+          "reuse_evidence_refs": [
+            "完整 inspect_ui_project(view='composition') Snapshot 4ab0e89dca15f874261ac74ba1b1711a3d283b51778a8d8a56971360ea38ade1：AppUIModel hash 588fa9cee09be2828ae0a82dde3b262e529a72b04cb00f66044d3db2cadafc17；Sidebar l0 只有 history；business-notes available、未 selected，manifest 声明窄宽及 sidebar icon/双语标签；agent-ui.locale/theme available。",
+            "已读取 /src/agent-ui/plugins/business-notes/manifest.json，确认已有 business-notes identity、Sidebar 导航元数据及 narrow 面板宽度。",
+            "已读取 /prepare-observations.json；本次按当前用户指令提交适用于已有身份的 extend-capability 完成交付计划，不复用历史 grant。",
+            "用户说明已有源码已真实 Creator 生成修复且 verify:ui/typecheck 通过，并要求不重复创建或修改源码。"
+          ],
+          "ui_scope": "仅修改 AppUIModel 的 Sidebar item Composition；使用已有 business-notes Plugin 和宿主 Sidebar，不修改控件、样式、locale 或 Plugin 行为，不增加依赖。",
+          "data_scope": "无数据层变更；复用既有本地状态，不涉及 Backend、Service、Frontend Tool、Application Event 或 Runtime 状态。",
+          "excluded_operations": [
+            "不创建重复 Plugin 或新身份",
+            "不修改已验证的 business-notes 源码、locale、manifest 或 CSS",
+            "不安装或升级依赖",
+            "不手工修改 Registry、Runtime、framework 或 vendor",
+            "不增加会话横向轨道",
+            "static_only 下不声称浏览器或 Runtime 验证"
+          ],
+          "component_basis_refs": []
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "22c50abb-a76b-4151-9b13-3ff0b0c9ed89",
+          "scopeHash": "3fa2d8320f7bc41590ee4b1bb6c0b11f013196519e8ddff13d78547bc9b964ee",
+          "workKind": "extend-capability",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "完成已有 business-notes 插件的最后交付阶段：仅将既有 Plugin 作为宿主当前 Sidebar 的新增导航项挂载，复用窄屏抽屉，不增加主会话横向轨道。不要重复创建或修改已验证源码。随后执行 validate_creator_changes(includeBuild=true)，并检查最终 Registry、Composition 和 inspect_ui_plugin_delivery 回执。当前策略为 static_only，只报告静态验证，不声称浏览器或 Runtime 验证。",
+          "missingCapabilities": [
+            "现有 business-notes capability 尚未选入 Composition：最新 Host Snapshot 显示 Sidebar l0 目前仅有 history 项，business-notes available 且 selected=false。"
+          ],
+          "reuseEvidenceRefs": [
+            "完整 inspect_ui_project(view='composition') Snapshot 4ab0e89dca15f874261ac74ba1b1711a3d283b51778a8d8a56971360ea38ade1：AppUIModel hash 588fa9cee09be2828ae0a82dde3b262e529a72b04cb00f66044d3db2cadafc17；Sidebar l0 只有 history；business-notes available、未 selected，manifest 声明窄宽及 sidebar icon/双语标签；agent-ui.locale/theme available。",
+            "已读取 /src/agent-ui/plugins/business-notes/manifest.json，确认已有 business-notes identity、Sidebar 导航元数据及 narrow 面板宽度。",
+            "已读取 /prepare-observations.json；本次按当前用户指令提交适用于已有身份的 extend-capability 完成交付计划，不复用历史 grant。",
+            "用户说明已有源码已真实 Creator 生成修复且 verify:ui/typecheck 通过，并要求不重复创建或修改源码。"
+          ],
+          "uiScope": "仅修改 AppUIModel 的 Sidebar item Composition；使用已有 business-notes Plugin 和宿主 Sidebar，不修改控件、样式、locale 或 Plugin 行为，不增加依赖。",
+          "dataScope": "无数据层变更；复用既有本地状态，不涉及 Backend、Service、Frontend Tool、Application Event 或 Runtime 状态。",
+          "excludedOperations": [
+            "不创建重复 Plugin 或新身份",
+            "不修改已验证的 business-notes 源码、locale、manifest 或 CSS",
+            "不安装或升级依赖",
+            "不手工修改 Registry、Runtime、framework 或 vendor",
+            "不增加会话横向轨道",
+            "static_only 下不声称浏览器或 Runtime 验证"
+          ],
+          "componentBasisRefs": [],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "将已有 business-notes Plugin 加入当前宿主 Sidebar，完成最后交付；不创建或修改源码。",
+            "renderingCategory": "panel",
+            "placement": "追加为最新 Host Composition Snapshot 中当前 Sidebar 的新增导航项，复用宿主窄屏抽屉，不增加主会话横向轨道。",
+            "lifecycle": "沿用现有 Plugin 实例和 Sidebar item 激活/卸载生命周期；不引入新状态、Service 或 Runtime 配置。",
+            "dependencies": [
+              "沿用已解析的 agent-ui.locale 与 agent-ui.theme 可选 Service；本次不新增或修改 Service。"
+            ],
+            "reusedComponents": [
+              "现有 business-notes Plugin 与其 manifest Sidebar 元数据",
+              "宿主现有 Sidebar 导航及窄屏抽屉"
+            ],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": []
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='完成已有 business-notes Plugin 的最后交付：将其作为宿主现有 Sidebar 的新增导航项启用，不创建重复身份或修改已验证源码。' renderingCategory='panel' placement='在最新 Composition Snapshot 指定的 Sidebar 中追加导航项，沿用宿主窄屏抽屉，不增加主会话横向轨道。' lifecycle='复用现有 Plugin 与 Sidebar item 的激活/卸载生命周期，不添加状态或 Runtime 配置。' dependencies=['沿用已解析的 agent-ui.locale 与 agent-ui.theme optional Services；本次不新增或修改 Service。'] reusedComponents=['现有 business-notes Plugin 与 manifest Sidebar 元数据', '宿主现有 Sidebar 导航及窄屏抽屉'] verificationMethod='runtime' geometry=[] interactions=[]",
+          "work_kind": "extend-capability",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "仅将已存在的 business-notes 挂载为宿主 Sidebar 的新增导航项；不改动已验证源码、Registry 手工文件、依赖、Runtime/framework/vendor。然后运行 validate_creator_changes(includeBuild=true)，检查最终 Composition、Registry 与 inspect_ui_plugin_delivery。当前 static_only 策略下只报告静态验证，不声称浏览器或 Runtime 验证。",
+          "missing_capabilities": [
+            "当前 Composition 中 business-notes 尚未选中，Sidebar 当前仅有 history 导航项。"
+          ],
+          "reuse_evidence_refs": [
+            "最新完整 inspect_ui_project(view='composition') Snapshot 4ab0e89dca15f874261ac74ba1b1711a3d283b51778a8d8a56971360ea38ade1：AppUIModel hash 588fa9cee09be2828ae0a82dde3b262e529a72b04cb00f66044d3db2cadafc17，Sidebar ref l0，当前只有 history，business-notes available 且 selected=false；locale/theme optional Services available。",
+            "已读取 /src/agent-ui/plugins/business-notes/manifest.json，确认现有 identity business-notes、narrow 宽度、Sidebar icon book-open 与双语 labels。",
+            "已读取 /prepare-observations.json，确认先前的授权计划属于历史记录；本次基于当前用户请求重新提交适用于现有 Plugin 身份的 extend-capability 交付计划，不依赖旧授权。",
+            "用户明确指出现有源码由 Creator 生成修复且 verify:ui/typecheck 已通过，本次不得重复创建或修改源码。"
+          ],
+          "ui_scope": "本次仅修改 AppUIModel 的 Sidebar item composition；复用现有 business-notes 插件及宿主 Sidebar/窄屏抽屉，不改控件、样式、locale 或 Plugin 行为。",
+          "data_scope": "无数据层变更；沿用插件本地状态，不涉及 Backend、Service、Frontend Tool、Application Event 或 Runtime 状态。",
+          "excluded_operations": [
+            "不创建重复 Plugin 或新身份",
+            "不修改 business-notes 已验证源码、locale、manifest 或 CSS",
+            "不安装或升级依赖",
+            "不手工修改 Registry",
+            "不修改 Runtime、framework 或 vendor",
+            "不增加主会话横向轨道",
+            "static_only 下不声称浏览器或 Runtime 验证"
+          ],
+          "component_basis_refs": []
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "0b0eab1c-2144-4bba-bac2-f367ea02a2a9",
+          "scopeHash": "fe2ae787358595f657f26663085131e5a59486a8a7a2c802fce3a1ee78b8d999",
+          "workKind": "extend-capability",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "仅将已存在的 business-notes 挂载为宿主 Sidebar 的新增导航项；不改动已验证源码、Registry 手工文件、依赖、Runtime/framework/vendor。然后运行 validate_creator_changes(includeBuild=true)，检查最终 Composition、Registry 与 inspect_ui_plugin_delivery。当前 static_only 策略下只报告静态验证，不声称浏览器或 Runtime 验证。",
+          "missingCapabilities": [
+            "当前 Composition 中 business-notes 尚未选中，Sidebar 当前仅有 history 导航项。"
+          ],
+          "reuseEvidenceRefs": [
+            "最新完整 inspect_ui_project(view='composition') Snapshot 4ab0e89dca15f874261ac74ba1b1711a3d283b51778a8d8a56971360ea38ade1：AppUIModel hash 588fa9cee09be2828ae0a82dde3b262e529a72b04cb00f66044d3db2cadafc17，Sidebar ref l0，当前只有 history，business-notes available 且 selected=false；locale/theme optional Services available。",
+            "已读取 /src/agent-ui/plugins/business-notes/manifest.json，确认现有 identity business-notes、narrow 宽度、Sidebar icon book-open 与双语 labels。",
+            "已读取 /prepare-observations.json，确认先前的授权计划属于历史记录；本次基于当前用户请求重新提交适用于现有 Plugin 身份的 extend-capability 交付计划，不依赖旧授权。",
+            "用户明确指出现有源码由 Creator 生成修复且 verify:ui/typecheck 已通过，本次不得重复创建或修改源码。"
+          ],
+          "uiScope": "本次仅修改 AppUIModel 的 Sidebar item composition；复用现有 business-notes 插件及宿主 Sidebar/窄屏抽屉，不改控件、样式、locale 或 Plugin 行为。",
+          "dataScope": "无数据层变更；沿用插件本地状态，不涉及 Backend、Service、Frontend Tool、Application Event 或 Runtime 状态。",
+          "excludedOperations": [
+            "不创建重复 Plugin 或新身份",
+            "不修改 business-notes 已验证源码、locale、manifest 或 CSS",
+            "不安装或升级依赖",
+            "不手工修改 Registry",
+            "不修改 Runtime、framework 或 vendor",
+            "不增加主会话横向轨道",
+            "static_only 下不声称浏览器或 Runtime 验证"
+          ],
+          "componentBasisRefs": [],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "完成已有 business-notes Plugin 的最后交付：将其作为宿主现有 Sidebar 的新增导航项启用，不创建重复身份或修改已验证源码。",
+            "renderingCategory": "panel",
+            "placement": "在最新 Composition Snapshot 指定的 Sidebar 中追加导航项，沿用宿主窄屏抽屉，不增加主会话横向轨道。",
+            "lifecycle": "复用现有 Plugin 与 Sidebar item 的激活/卸载生命周期，不添加状态或 Runtime 配置。",
+            "dependencies": [
+              "沿用已解析的 agent-ui.locale 与 agent-ui.theme optional Services；本次不新增或修改 Service。"
+            ],
+            "reusedComponents": [
+              "现有 business-notes Plugin 与 manifest Sidebar 元数据",
+              "宿主现有 Sidebar 导航及窄屏抽屉"
+            ],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": []
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='修复现有 business-notes 插件的宿主 Ant Design 主题一致性：从可达 ConfigProvider 的当前 token 派生字体、输入框背景/文字/边框以及说明 Modal 的样式，抵抗 Agent 容器基础样式覆盖，并随主题切换更新；不增加业务能力或改变交互。' renderingCategory='panel' placement='保持当前已启用的 business-notes-main，位于 Sidebar 的 business-notes Layout Slot；不改变 AppUIModel 或位置。' lifecycle='沿用现有 Plugin 注册、挂载和生命周期；仅更新该 Plugin 自有 index.tsx 与 styles.css。' dependencies=[] reusedComponents=['现有 business-notes 中的 Ant Design Input、Button、Space、Typography、Empty、List、Modal', '宿主 App.tsx 中的 Ant Design ConfigProvider 与 theme.useToken'] verificationMethod='runtime' geometry=[] interactions=[]",
+          "work_kind": "extend-capability",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "仅修复 business-notes 的主题样式缺陷，使其 Ant Design 控件与帮助弹层持续使用当前宿主 ConfigProvider token，而不触碰宿主页、Runtime/framework/vendor、Composer、Sidebar、基础样式或任何注册/挂载状态。保留现有双语 locale、业务交互、窄屏行为及宿主公开 Overlay API。",
+          "missing_capabilities": [
+            "插件范围内将动态宿主 token 应用于输入框背景、文字、边框与字体，并确保 Ant Design 按钮及说明弹层字体/文字/表面样式不受 Agent 容器基础 CSS 的覆盖。"
+          ],
+          "reuse_evidence_refs": [
+            "business-notes：已安装、已选中且当前启用的现有插件；复用其既有 Ant Design 实现和主题 token 接入，不创建新插件。"
+          ],
+          "ui_scope": "Host 页面 /src/App.tsx 实际导入并渲染 Ant Design Button、Input、Card、ConfigProvider、theme；ConfigProvider 的 dark/default algorithm 与 fontFamily token 包裹 AgentMount，Plugin 内 theme.useToken 可达。保持 Ant Design；不引入 Agent UI 控件、替换组件体系、CSS 全局规则或依赖。",
+          "data_scope": "只保留 Plugin 现有本地备注状态和 businessNotes locale；不新增数据、持久化、Service、Agent 操作或协议。",
+          "excluded_operations": [
+            "不修改宿主页 /src/App.tsx",
+            "不修改 Runtime、framework、vendor 或 Agent 容器基础样式",
+            "不修改 Composer、父级 Sidebar 或 AppUIModel",
+            "不修改其他 Plugin、locale、依赖或注册/挂载状态",
+            "不新增组件体系或业务交互"
+          ],
+          "component_basis_refs": [
+            "/src/App.tsx",
+            "/src/agent-ui/plugins/business-notes/index.tsx"
+          ]
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "ae3b6137-c1e4-447a-9e0e-35334e207a53",
+          "scopeHash": "ab81ba9556675bba1a6f3f43eeaf9c42706e2625655bf1558c86f97f8dc17557",
+          "workKind": "extend-capability",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "仅修复 business-notes 的主题样式缺陷，使其 Ant Design 控件与帮助弹层持续使用当前宿主 ConfigProvider token，而不触碰宿主页、Runtime/framework/vendor、Composer、Sidebar、基础样式或任何注册/挂载状态。保留现有双语 locale、业务交互、窄屏行为及宿主公开 Overlay API。",
+          "missingCapabilities": [
+            "插件范围内将动态宿主 token 应用于输入框背景、文字、边框与字体，并确保 Ant Design 按钮及说明弹层字体/文字/表面样式不受 Agent 容器基础 CSS 的覆盖。"
+          ],
+          "reuseEvidenceRefs": [
+            "business-notes：已安装、已选中且当前启用的现有插件；复用其既有 Ant Design 实现和主题 token 接入，不创建新插件。"
+          ],
+          "uiScope": "Host 页面 /src/App.tsx 实际导入并渲染 Ant Design Button、Input、Card、ConfigProvider、theme；ConfigProvider 的 dark/default algorithm 与 fontFamily token 包裹 AgentMount，Plugin 内 theme.useToken 可达。保持 Ant Design；不引入 Agent UI 控件、替换组件体系、CSS 全局规则或依赖。",
+          "dataScope": "只保留 Plugin 现有本地备注状态和 businessNotes locale；不新增数据、持久化、Service、Agent 操作或协议。",
+          "excludedOperations": [
+            "不修改宿主页 /src/App.tsx",
+            "不修改 Runtime、framework、vendor 或 Agent 容器基础样式",
+            "不修改 Composer、父级 Sidebar 或 AppUIModel",
+            "不修改其他 Plugin、locale、依赖或注册/挂载状态",
+            "不新增组件体系或业务交互"
+          ],
+          "componentBasisRefs": [
+            "/src/App.tsx",
+            "/src/agent-ui/plugins/business-notes/index.tsx"
+          ],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "修复现有 business-notes 插件的宿主 Ant Design 主题一致性：从可达 ConfigProvider 的当前 token 派生字体、输入框背景/文字/边框以及说明 Modal 的样式，抵抗 Agent 容器基础样式覆盖，并随主题切换更新；不增加业务能力或改变交互。",
+            "renderingCategory": "panel",
+            "placement": "保持当前已启用的 business-notes-main，位于 Sidebar 的 business-notes Layout Slot；不改变 AppUIModel 或位置。",
+            "lifecycle": "沿用现有 Plugin 注册、挂载和生命周期；仅更新该 Plugin 自有 index.tsx 与 styles.css。",
+            "dependencies": [],
+            "reusedComponents": [
+              "现有 business-notes 中的 Ant Design Input、Button、Space、Typography、Empty、List、Modal",
+              "宿主 App.tsx 中的 Ant Design ConfigProvider 与 theme.useToken"
+            ],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": []
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='修复现有 business-notes 插件的宿主 Ant Design 主题一致性：从可达 ConfigProvider 的当前 token 派生字体、输入框背景/文字/边框以及说明 Modal 的样式，抵抗 Agent 容器基础样式覆盖，并随主题切换更新；不增加业务能力或改变交互。' renderingCategory='panel' placement='保持当前已启用的 business-notes-main，位于 Sidebar 的 business-notes Layout Slot；不改变 AppUIModel 或位置。' lifecycle='沿用现有 Plugin 注册、挂载和生命周期；仅更新该 Plugin 自有 index.tsx 与 styles.css。' dependencies=[] reusedComponents=['现有 business-notes 中的 Ant Design Input、Button、Space、Typography、Empty、List、Modal', '宿主 App.tsx 中的 Ant Design ConfigProvider 与 theme.useToken'] verificationMethod='runtime' geometry=[] interactions=[]",
+          "work_kind": "extend-capability",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "仅修复现有 themeStyle 源码部分之后的剩余宿主主题修复：清理根节点样式绑定，给 Ant Design Input 应用动态宿主 token 与状态边框，在 Plugin 局部保持按钮字体，并为说明 Modal 使用局部 rootClassName 和当前 ConfigProvider token；不触碰业务交互、locale、布局、宿主页、Runtime/framework/vendor、Composer、Sidebar、基础样式或注册/挂载状态。",
+          "missing_capabilities": [
+            "插件局部 CSS 稳定压过 Agent 容器对 Ant Design 输入框的覆盖，同时从当前宿主 token 保持 light/dark 字体、背景、文字和边框一致。"
+          ],
+          "reuse_evidence_refs": [
+            "继续复用已安装、已启用的 business-notes Plugin、现有 Ant Design 组件以及其已存在的 theme.useToken 接入。"
+          ],
+          "ui_scope": "使用已检查的 /src/App.tsx：Ant Design ConfigProvider 通过 default/dark algorithm 与 fontFamily token 包裹 AgentMount；business-notes/index.tsx 已导入 Ant Design controls 和 theme.useToken。仅更新该 Plugin TSX/CSS，不引入 Agent UI 控件、全局选择器、CSS 基础重置或依赖。",
+          "data_scope": "保留本地 notes/draft/help 状态和现有 businessNotes locale，不增加数据、持久化、Service 或协议。",
+          "excluded_operations": [
+            "不修改宿主页 /src/App.tsx",
+            "不修改 Runtime/framework/vendor/Agent基础CSS",
+            "不修改 Composer、Sidebar 或 AppUIModel",
+            "不改其他 Plugin、locale、依赖及其注册或挂载",
+            "不添加或更换组件体系"
+          ],
+          "component_basis_refs": [
+            "/src/App.tsx",
+            "/src/agent-ui/plugins/business-notes/index.tsx"
+          ]
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "bd78bd76-08a6-4d60-978f-7c7fe728ac4c",
+          "scopeHash": "a05f19d3ab0a6467715649504eb69193f41e496c0fe1be3d5199bac9e47b16b8",
+          "workKind": "extend-capability",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "仅修复现有 themeStyle 源码部分之后的剩余宿主主题修复：清理根节点样式绑定，给 Ant Design Input 应用动态宿主 token 与状态边框，在 Plugin 局部保持按钮字体，并为说明 Modal 使用局部 rootClassName 和当前 ConfigProvider token；不触碰业务交互、locale、布局、宿主页、Runtime/framework/vendor、Composer、Sidebar、基础样式或注册/挂载状态。",
+          "missingCapabilities": [
+            "插件局部 CSS 稳定压过 Agent 容器对 Ant Design 输入框的覆盖，同时从当前宿主 token 保持 light/dark 字体、背景、文字和边框一致。"
+          ],
+          "reuseEvidenceRefs": [
+            "继续复用已安装、已启用的 business-notes Plugin、现有 Ant Design 组件以及其已存在的 theme.useToken 接入。"
+          ],
+          "uiScope": "使用已检查的 /src/App.tsx：Ant Design ConfigProvider 通过 default/dark algorithm 与 fontFamily token 包裹 AgentMount；business-notes/index.tsx 已导入 Ant Design controls 和 theme.useToken。仅更新该 Plugin TSX/CSS，不引入 Agent UI 控件、全局选择器、CSS 基础重置或依赖。",
+          "dataScope": "保留本地 notes/draft/help 状态和现有 businessNotes locale，不增加数据、持久化、Service 或协议。",
+          "excludedOperations": [
+            "不修改宿主页 /src/App.tsx",
+            "不修改 Runtime/framework/vendor/Agent基础CSS",
+            "不修改 Composer、Sidebar 或 AppUIModel",
+            "不改其他 Plugin、locale、依赖及其注册或挂载",
+            "不添加或更换组件体系"
+          ],
+          "componentBasisRefs": [
+            "/src/App.tsx",
+            "/src/agent-ui/plugins/business-notes/index.tsx"
+          ],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "修复现有 business-notes 插件的宿主 Ant Design 主题一致性：从可达 ConfigProvider 的当前 token 派生字体、输入框背景/文字/边框以及说明 Modal 的样式，抵抗 Agent 容器基础样式覆盖，并随主题切换更新；不增加业务能力或改变交互。",
+            "renderingCategory": "panel",
+            "placement": "保持当前已启用的 business-notes-main，位于 Sidebar 的 business-notes Layout Slot；不改变 AppUIModel 或位置。",
+            "lifecycle": "沿用现有 Plugin 注册、挂载和生命周期；仅更新该 Plugin 自有 index.tsx 与 styles.css。",
+            "dependencies": [],
+            "reusedComponents": [
+              "现有 business-notes 中的 Ant Design Input、Button、Space、Typography、Empty、List、Modal",
+              "宿主 App.tsx 中的 Ant Design ConfigProvider 与 theme.useToken"
+            ],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": []
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='Complete the existing business-notes host-theme integration: consume the current dynamic Ant Design token CSS variables for Input, Button/Typography and the help Modal, including a plugin-scoped theme bridge inside the existing Modal Portal.' renderingCategory='panel' placement='Preserve existing enabled business-notes-main instance in the Sidebar business-notes Layout Slot; no placement or AppUIModel change.' lifecycle='Keep the current plugin instance, local note state, public Ant Design Modal behavior, and existing Overlay/Esc/Tab/focus-return interactions unchanged.' dependencies=[] reusedComponents=['Existing Ant Design Input, Button, Typography and Modal imports in business-notes', 'The existing Host ConfigProvider/theme.useToken tokens and current dynamic themeStyle values'] verificationMethod='runtime' geometry=[] interactions=[]",
+          "work_kind": "extend-capability",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "Finish the already-mounted business-notes theme repair by making its scoped CSS consume the current live host theme variables for Ant Design Input font/text/background/border/states, Button and Typography font, and the help Modal theme. Carry the same variables across the existing Modal Portal without changing its public behavior. Preserve all existing business logic and the previously browser-tested Overlay/Esc/Tab/focus-return behavior. No new instance, locale, Composer, Host page, Runtime/framework/vendor, Sidebar, base styles, or dependencies.",
+          "missing_capabilities": [
+            "The existing plugin computes host token variables but styles.css does not consume them, and the Modal Portal has no plugin-scoped copy of those dynamic variables."
+          ],
+          "reuse_evidence_refs": [
+            "/src/agent-ui/plugins/business-notes/index.tsx",
+            "business-notes-main is already selected and enabled in the current Composition snapshot"
+          ],
+          "ui_scope": "Use the Host's actual Ant Design system: /src/App.tsx imports and renders Ant Design Button, Input, Card, ConfigProvider, and theme, and wraps AgentMount in that ConfigProvider; /src/design-system/system.css defines host visual conventions. The existing business-notes source already imports Ant Design Input, Button, Typography, Modal and theme.useToken. Keep those public controls and live ConfigProvider tokens; do not introduce @agent-ui/react controls or another design system. Apply only scoped",
+          "data_scope": "No data or behavior changes; local notes and modal state remain unchanged.",
+          "excluded_operations": [
+            "Do not change or recreate the business-notes AppUIModel instance or placement.",
+            "Do not change locale, Composer, host page, Runtime/framework/vendor, Sidebar or base styles.",
+            "Do not alter Modal behavior, overlay/focus interactions, business logic or dependencies."
+          ],
+          "component_basis_refs": [
+            "/src/App.tsx",
+            "/src/design-system/system.css"
+          ]
+        },
+        "result": {
+          "status": "pending",
+          "proposalId": "9ad3dfac-0fa9-4ec3-ac68-0484ed9dc05f",
+          "scopeHash": "139329868b692519434a0c2557db8e025fdcbf41024aca4e0a9e51b12e5e2063",
+          "workKind": "extend-capability",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "Finish the already-mounted business-notes theme repair by making its scoped CSS consume the current live host theme variables for Ant Design Input font/text/background/border/states, Button and Typography font, and the help Modal theme. Carry the same variables across the existing Modal Portal without changing its public behavior. Preserve all existing business logic and the previously browser-tested Overlay/Esc/Tab/focus-return behavior. No new instance, locale, Composer, Host page, Runtime/framework/vendor, Sidebar, base styles, or dependencies.",
+          "missingCapabilities": [
+            "The existing plugin computes host token variables but styles.css does not consume them, and the Modal Portal has no plugin-scoped copy of those dynamic variables."
+          ],
+          "reuseEvidenceRefs": [
+            "/src/agent-ui/plugins/business-notes/index.tsx",
+            "business-notes-main is already selected and enabled in the current Composition snapshot"
+          ],
+          "uiScope": "Use the Host's actual Ant Design system: /src/App.tsx imports and renders Ant Design Button, Input, Card, ConfigProvider, and theme, and wraps AgentMount in that ConfigProvider; /src/design-system/system.css defines host visual conventions. The existing business-notes source already imports Ant Design Input, Button, Typography, Modal and theme.useToken. Keep those public controls and live ConfigProvider tokens; do not introduce @agent-ui/react controls or another design system. Apply only scoped",
+          "dataScope": "No data or behavior changes; local notes and modal state remain unchanged.",
+          "excludedOperations": [
+            "Do not change or recreate the business-notes AppUIModel instance or placement.",
+            "Do not change locale, Composer, host page, Runtime/framework/vendor, Sidebar or base styles.",
+            "Do not alter Modal behavior, overlay/focus interactions, business logic or dependencies."
+          ],
+          "componentBasisRefs": [
+            "/src/App.tsx",
+            "/src/design-system/system.css"
+          ],
+          "grantSource": null,
+          "deliveryContract": {
+            "capability": "Complete the existing business-notes host-theme integration: consume the current dynamic Ant Design token CSS variables for Input, Button/Typography and the help Modal, including a plugin-scoped theme bridge inside the existing Modal Portal.",
+            "renderingCategory": "panel",
+            "placement": "Preserve existing enabled business-notes-main instance in the Sidebar business-notes Layout Slot; no placement or AppUIModel change.",
+            "lifecycle": "Keep the current plugin instance, local note state, public Ant Design Modal behavior, and existing Overlay/Esc/Tab/focus-return interactions unchanged.",
+            "dependencies": [],
+            "reusedComponents": [
+              "Existing Ant Design Input, Button, Typography and Modal imports in business-notes",
+              "The existing Host ConfigProvider/theme.useToken tokens and current dynamic themeStyle values"
+            ],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": []
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability=\"Complete the existing business-notes Plugin's scoped theme styling so Ant Design Input matches the Host's configured font, text color, container background, border and state tokens; Button and Typography use the Host font; and the help Modal consumes the same Host theme tokens across its Portal boundary.\" renderingCategory='panel' placement='Preserve the existing mounted business-notes-main instance in its current Layout Slot; no Composition changes.' lifecycle='Preserve the current React state, Modal open/close, overlay, Escape, Tab, and focus-return behavior; only complete Plugin-local theme styling.' dependencies=['Existing Ant Design controls and ConfigProvider theme tokens; no new dependencies or Service changes.'] reusedComponents=['Existing Ant Design Input, Button, Typography, Modal, and theme.useToken usage in business-notes.'] verificationMethod='runtime' geometry=[] interactions=[]",
+          "work_kind": "extend-capability",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "Finish the already commissioned and mounted business-notes Plugin's remaining theme-style work by consuming its existing Host-token CSS variables in styles.css and making those variables available to the Ant Design help Modal inside its Portal. Preserve public Modal behavior and all existing interactions. Then run current-revision static verify:ui/typecheck/build with includeBuild=true; do not claim browser acceptance under static_only policy.",
+          "missing_capabilities": [
+            "Scoped CSS does not yet consume the existing themeStyle variables for Ant Design Input, Button and Typography.",
+            "The portaled help Modal does not yet receive the Plugin's Host theme variables and scoped modal styling."
+          ],
+          "reuse_evidence_refs": [
+            "Existing project-owned business-notes Plugin, selected and enabled as business-notes-main; current Ant Design controls and theme.useToken implementation are reused."
+          ],
+          "ui_scope": "Use the Host's actual Ant Design system: /src/App.tsx imports Button, Input, Card, ConfigProvider and theme from antd, and provides the light/dark algorithm and fontFamily tokens around AgentMount. /src/design-system/system.css supplies the Host surface/text/border theme conventions. The existing business-notes source already uses Ant Design Input, Button, Modal, Typography and theme.useToken; continue those public controls and token APIs. Do not switch to Agent UI primitives or add dependencies",
+          "data_scope": "Presentation only. Keep notes and draft local state, locale, Modal content and business behavior unchanged.",
+          "excluded_operations": [
+            "Do not change Composition, placement, instance identity or enabled state.",
+            "Do not alter Modal overlay, Escape, Tab, focus return, or other public behavior.",
+            "Do not change locale, Composer, Host page, Runtime, framework, vendor, Sidebar or base styles.",
+            "Do not install or upgrade dependencies."
+          ],
+          "component_basis_refs": [
+            "/src/App.tsx",
+            "/src/design-system/system.css"
+          ]
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "69d8942f-a6e5-4487-8300-aec97a933106",
+          "scopeHash": "58fcd606aeda15a2a1b7bb09bf8afcea45d8d706c4f33efdd465633995f52d73",
+          "workKind": "extend-capability",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "Finish the already commissioned and mounted business-notes Plugin's remaining theme-style work by consuming its existing Host-token CSS variables in styles.css and making those variables available to the Ant Design help Modal inside its Portal. Preserve public Modal behavior and all existing interactions. Then run current-revision static verify:ui/typecheck/build with includeBuild=true; do not claim browser acceptance under static_only policy.",
+          "missingCapabilities": [
+            "Scoped CSS does not yet consume the existing themeStyle variables for Ant Design Input, Button and Typography.",
+            "The portaled help Modal does not yet receive the Plugin's Host theme variables and scoped modal styling."
+          ],
+          "reuseEvidenceRefs": [
+            "Existing project-owned business-notes Plugin, selected and enabled as business-notes-main; current Ant Design controls and theme.useToken implementation are reused."
+          ],
+          "uiScope": "Use the Host's actual Ant Design system: /src/App.tsx imports Button, Input, Card, ConfigProvider and theme from antd, and provides the light/dark algorithm and fontFamily tokens around AgentMount. /src/design-system/system.css supplies the Host surface/text/border theme conventions. The existing business-notes source already uses Ant Design Input, Button, Modal, Typography and theme.useToken; continue those public controls and token APIs. Do not switch to Agent UI primitives or add dependencies",
+          "dataScope": "Presentation only. Keep notes and draft local state, locale, Modal content and business behavior unchanged.",
+          "excludedOperations": [
+            "Do not change Composition, placement, instance identity or enabled state.",
+            "Do not alter Modal overlay, Escape, Tab, focus return, or other public behavior.",
+            "Do not change locale, Composer, Host page, Runtime, framework, vendor, Sidebar or base styles.",
+            "Do not install or upgrade dependencies."
+          ],
+          "componentBasisRefs": [
+            "/src/App.tsx",
+            "/src/design-system/system.css"
+          ],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "Complete the existing business-notes Plugin's scoped theme styling so Ant Design Input matches the Host's configured font, text color, container background, border and state tokens; Button and Typography use the Host font; and the help Modal consumes the same Host theme tokens across its Portal boundary.",
+            "renderingCategory": "panel",
+            "placement": "Preserve the existing mounted business-notes-main instance in its current Layout Slot; no Composition changes.",
+            "lifecycle": "Preserve the current React state, Modal open/close, overlay, Escape, Tab, and focus-return behavior; only complete Plugin-local theme styling.",
+            "dependencies": [
+              "Existing Ant Design controls and ConfigProvider theme tokens; no new dependencies or Service changes."
+            ],
+            "reusedComponents": [
+              "Existing Ant Design Input, Button, Typography, Modal, and theme.useToken usage in business-notes."
+            ],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": []
+          },
+          "deliveryScope": "full"
+        }
+      }
+    ]
+  },
+  "A": {
+    "outcome": {
+      "scenario": "A",
+      "model": "gpt-6-luna",
+      "realCreatorInvoked": true,
+      "maxTokens": 8192,
+      "interrupted": false,
+      "completion": "success",
+      "text": "已完成最小修改：仅在 `business-notes` 插件的 `styles.css` 中设定宿主字体栈 `Inter, system-ui, sans-serif`，并让原生 `dialog` 继承插件字体。宿主和 Agent 容器未改；未重复创建或挂载插件。焦点恢复 effect、Escape 处理、`showModal()` 及本地业务状态均未修改。\n\n最终 revision **1** 验证通过：`verify:ui`、typecheck、build 均通过，静态 Composition 仍包含已挂载的 `business-notes-main`。`inspect_ui_plugin_delivery` 返回空列表，没有 Host 跟踪的交付义务回执。本轮按 `static_only` 策略未运行浏览器验证；你提供的既有浏览器测试结果不代表本轮重新验证。构建通过，但输出了 Vite 配置兼容性和 chunk size 提示。",
+      "developmentPlan": null,
+      "deliveries": []
+    },
+    "activity": {
+      "files": [
+        {
+          "path": "src/agent-ui/plugins/business-notes/styles.css",
+          "status": "modified",
+          "diff": "--- a/src/agent-ui/plugins/business-notes/styles.css\n+++ b/src/agent-ui/plugins/business-notes/styles.css\n@@ -122,6 +122,14 @@\n   overflow-wrap: anywhere;\n }\n \n+.business-notes-plugin {\n+  font-family: Inter, system-ui, sans-serif;\n+}\n+\n+.business-notes-plugin .business-notes-dialog {\n+  font: inherit;\n+}\n+\n @media (max-width: 420px) {\n   .business-notes-header {\n     align-items: stretch;",
+          "truncated": false
+        }
+      ],
+      "validations": [
+        {
+          "command": "npm run verify:ui",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "> @agent-ui/creator-host-sandbox@0.1.0 verify:ui\n> node --import tsx scripts/verify-ui.ts\n\n{\n  \"status\": \"passed\",\n  \"model\": {\n    \"valid\": true,\n    \"mountedInstanceIds\": [\n      \"agent-conversation-surface-main\",\n      \"agent-identity-main\",\n      \"assistant-ui-add-attachment-action-main\",\n      \"assistant-ui-composer-main\",\n      \"assistant-ui-copy-action-main\",\n      \"assistant-ui-dictation-action-main\",\n      \"assistant-ui-export-markdown-action-main\",\n      \"assistant-ui-feedback-actions-main\",\n      \"assistant-ui-lexical-composer-input-main\",\n      \"assistant-ui-lexical-edit-composer-main\",\n      \"assistant-ui-mention-trigger-main\",\n      \"assistant-ui-reasoning-main\",\n      \"assistant-ui-reload-action-main\",\n      \"assistant-ui-response-footer-main\",\n      \"assistant-ui-slash-command-trigger-main\",\n      \"assistant-ui-submit-action-main\",\n      \"assistant-ui-thinking-indicator-main\",\n      \"assistant-ui-tool-fallback-main\",\n      \"assistant-ui-tool-group-main\",\n      \"assistant-ui-tool-timeline-main\",\n      \"business-notes-main\",\n      \"conversation-quote-main\",\n      \"conversation-suggestions-main\",\n      \"conversation-thread-list-main\",\n      \"task-group-main\"\n    ],\n    \"unmountedEnabledInstanceIds\": []\n  },\n  \"capabilityCatalog\": {\n    \"pluginIds\": [\n      \"agent-identity\",\n      \"assistant-ui-add-attachment-action\",\n      \"assistant-ui-composer\",\n      \"assistant-ui-copy-action\",\n      \"assistant-ui-dictation-action\",\n      \"assistant-ui-export-markdown-action\",\n      \"assistant-ui-feedback-actions\",\n      \"assistant-ui-lexical-composer-input\",\n      \"assistant-ui-lexical-edit-composer\",\n      \"assistant-ui-mention-trigger\",\n      \"assistant-ui-reasoning\",\n      \"assistant-ui-reload-action\",\n      \"assistant-ui-response-footer\",\n      \"assistant-ui-slash-command-trigger\",\n      \"assistant-ui-submit-action\",\n      \"assistant-ui-thinking-indicator\",\n      \"assistant-ui-tool-fallback\",\n      \"assistant-ui-tool-group\",\n      \"assistant-ui-tool-timeline\",\n      \"business-notes\",\n      \"conversation-command-source\",\n      \"conversation-data-source\",\n      \"conversation-quote\",\n      \"conversation-service\",\n      \"conversation-suggestions\",\n      \"conversation-surface\",\n      \"conversation-thread-list\",\n      \"locale-provider\",\n      \"task-group\",\n      \"theme-provider\"\n    ],\n    \"generatedFileFresh\": true\n  },\n  \"activeComposition\": {\n    \"selectedPluginIds\": [\n      \"agent-identity\",\n      \"assistant-ui-add-attachment-action\",\n      \"assistant-ui-composer\",\n      \"assistant-ui-copy-action\",\n      \"assistant-ui-dictation-action\",\n      \"assistant-ui-export-markdown-action\",\n      \"assistant-ui-feedback-actions\",\n      \"assistant-ui-lexical-composer-input\",\n      \"assistant-ui-lexical-edit-composer\",\n      \"assistant-ui-mention-trigger\",\n      \"assistant-ui-reasoning\",\n      \"assistant-ui-reload-action\",\n      \"assistant-ui-response-footer\",\n      \"assistant-ui-slash-command-trigger\",\n      \"assistant-ui-submit-action\",\n      \"assistant-ui-thinking-indicator\",\n      \"assistant-ui-tool-fallback\",\n      \"assistant-ui-tool-group\",\n      \"assistant-ui-tool-timeline\",\n      \"business-notes\",\n      \"conversation-command-source\",\n      \"conversation-data-source\",\n      \"conversation-quote\",\n      \"conversation-service\",\n      \"conversation-suggestions\",\n      \"conversation-surface\",\n      \"conversation-thread-list\",\n      \"locale-provider\",\n      \"task-group\",\n      \"theme-provider\"\n    ],\n    \"resolvedPluginIds\": [\n      \"agent-identity\",\n      \"assistant-ui-add-attachment-action\",\n      \"assistant-ui-composer\",\n      \"assistant-ui-copy-action\",\n      \"assistant-ui-dictation-action\",\n      \"assistant-ui-export-markdown-action\",\n      \"assistant-ui-feedback-actions\",\n      \"assistant-ui-lexical-composer-input\",\n      \"assistant-ui-lexical-edit-composer\",\n      \"assistant-ui-mention-trigger\",\n      \"assistant-ui-reasoning\",\n      \"assistant-ui-reload-action\",\n      \"assistant-ui-response-footer\",\n      \"assistant-ui-slash-command-trigger\",\n      \"assistant-ui-submit-action\",\n      \"assistant-ui-thinking-indicator\",\n      \"assistant-ui-tool-fallback\",\n      \"assistant-ui-tool-group\",\n      \"assistant-ui-tool-timeline\",\n      \"business-notes\",\n      \"conversation-command-source\",\n      \"conversation-data-source\",\n      \"conversation-quote\",\n      \"conversation-service\",\n      \"conversation-suggestions\",\n      \"conversation-surface\",\n      \"conversation-thread-list\",\n      \"locale-provider\",\n      \"task-group\",\n      \"theme-provider\"\n    ],\n    \"headlessPluginIds\": [\n      \"conversation-command-source\",\n      \"conversation-data-source\",\n      \"conversation-service\",\n      \"locale-provider\",\n      \"theme-provider\"\n    ]\n  },\n  \"services\": [\n    {\n      \"name\": \"agent-ui.conversation-data-source\",\n      \"contractPaths\": [\n        \"src/agent-ui/services/conversations/data-source.ts\"\n      ],\n      \"status\": \"available\",\n      \"providers\": [\n        {\n          \"pluginId\": \"conversation-data-source\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"agent-conversation-data-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        }\n      ],\n      \"requiredConsumers\": [\n        {\n          \"pluginId\": \"conversation-service\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"agent-conversation-service-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        }\n      ],\n      \"optionalConsumers\": []\n    },\n    {\n      \"name\": \"agent-ui.conversations\",\n      \"contractPaths\": [\n        \"src/agent-ui/services/conversations/service.ts\"\n      ],\n      \"status\": \"available\",\n      \"providers\": [\n        {\n          \"pluginId\": \"conversation-service\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"agent-conversation-service-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        }\n      ],\n      \"requiredConsumers\": [\n        {\n          \"pluginId\": \"conversation-surface\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"agent-conversation-surface-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        },\n        {\n          \"pluginId\": \"conversation-thread-list\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"conversation-thread-list-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        }\n      ],\n      \"optionalConsumers\": []\n    },\n    {\n      \"name\": \"agent-ui.locale\",\n      \"contractPaths\": [\n        \"src/agent-ui/services/agent-ui-locale.ts\"\n      ],\n      \"status\": \"available\",\n      \"providers\": [\n        {\n          \"pluginId\": \"locale-provider\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"locale-provider-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        }\n      ],\n      \"requiredConsumers\": [],\n      \"optionalConsumers\": [\n        {\n          \"pluginId\": \"agent-identity\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"agent-identity-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n         \n… 验证输出过长，已截断",
+          "truncated": true,
+          "revision": 1,
+          "validationMode": "delta"
+        },
+        {
+          "command": "npm run typecheck",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "{\"exitCode\":0,\"newDiagnostics\":[],\"unchangedDiagnosticCount\":0,\"unchangedDiagnostics\":[],\"resolvedDiagnosticCount\":0}",
+          "truncated": false,
+          "revision": 1,
+          "validationMode": "delta"
+        },
+        {
+          "command": "npm run build",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "> @agent-ui/creator-host-sandbox@0.1.0 build\n> tsc --noEmit && vite build\n\n\u001b[36mvite v8.3.0 \u001b[32mbuilding client environment for production...\u001b[36m\u001b[39m\ntransforming...\n✓ 5771 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                                  1.30 kB │ gzip:   0.46 kB\ndist/assets/definition-4QIysg6V.css              0.89 kB │ gzip:   0.42 kB\ndist/assets/composable-thread-CcdakA0V.css       0.96 kB │ gzip:   0.33 kB\ndist/assets/definition-CKHneGlK.css              1.01 kB │ gzip:   0.39 kB\ndist/assets/definition-BZQDiHcN.css              1.07 kB │ gzip:   0.46 kB\ndist/assets/definition-Z4lhdSEi.css              1.92 kB │ gzip:   0.53 kB\ndist/assets/definition-B7laButs.css              2.14 kB │ gzip:   0.69 kB\ndist/assets/plugins-rPzCi-Bb.css                 5.80 kB │ gzip:   1.50 kB\ndist/assets/index-B6K-f4lF.css                 168.45 kB │ gzip:  24.68 kB\ndist/assets/agent-ui-locale-DiJqumUk.js          0.03 kB │ gzip:   0.05 kB\ndist/assets/theme-config-DxQybds_.js             0.05 kB │ gzip:   0.07 kB\ndist/assets/theme-contract-B_bDciBf.js           0.20 kB │ gzip:   0.15 kB\ndist/assets/data-source-BjGsISWZ.js              0.28 kB │ gzip:   0.17 kB\ndist/assets/composer-triggers-D0gt51Pq.js        0.45 kB │ gzip:   0.30 kB\ndist/assets/definition-B-VayO9g.js               0.68 kB │ gzip:   0.40 kB\ndist/assets/definition-BXNwQ9V6.js               0.68 kB │ gzip:   0.41 kB\ndist/assets/definition-C24fY9oK.js               0.70 kB │ gzip:   0.41 kB\ndist/assets/definition-ssAIL0tV.js               0.71 kB │ gzip:   0.40 kB\ndist/assets/definition-tVHIFW2X.js               0.75 kB │ gzip:   0.45 kB\ndist/assets/definition-Syj-WjsR.js               0.75 kB │ gzip:   0.45 kB\ndist/assets/definition-QWc18Klv.js               0.77 kB │ gzip:   0.43 kB\ndist/assets/definition-B3qUnoEL.js               0.78 kB │ gzip:   0.45 kB\ndist/assets/definition-BkFPhvyf.js               0.79 kB │ gzip:   0.47 kB\ndist/assets/definition-HaGN0oh3.js               0.81 kB │ gzip:   0.47 kB\ndist/assets/definition-NVqx1cBr.js               0.81 kB │ gzip:   0.49 kB\ndist/assets/definition-C84DmQ78.js               0.84 kB │ gzip:   0.47 kB\ndist/assets/definition-XWkyUYwT.js               0.86 kB │ gzip:   0.49 kB\ndist/assets/definition-7lLcjiii.js               0.87 kB │ gzip:   0.50 kB\ndist/assets/definition-C85kEvZa.js               0.90 kB │ gzip:   0.51 kB\ndist/assets/definition-Dws0KLGx.js               0.91 kB │ gzip:   0.57 kB\ndist/assets/definition-SqsFvXvy.js               0.94 kB │ gzip:   0.51 kB\ndist/assets/definition-DtzfaZCe.js               0.96 kB │ gzip:   0.59 kB\ndist/assets/definition-BJH66kgE.js               0.97 kB │ gzip:   0.53 kB\ndist/assets/definition-q_0oQh8c.js               0.98 kB │ gzip:   0.58 kB\ndist/assets/definition-Bjwvlufu.js               1.02 kB │ gzip:   0.64 kB\ndist/assets/definition-B0cjHlKr.js               1.02 kB │ gzip:   0.60 kB\ndist/assets/definition-CYntMgvI.js               1.02 kB │ gzip:   0.48 kB\ndist/assets/definition-DrpV2-yF.js               1.06 kB │ gzip:   0.64 kB\ndist/assets/definition-_TQZ0yXB.js               1.23 kB │ gzip:   0.61 kB\ndist/assets/createLucideIcon-CBZRExQ0.js         1.38 kB │ gzip:   0.77 kB\ndist/assets/definition-CXSH6bgm.js               2.04 kB │ gzip:   1.02 kB\ndist/assets/definition-BUqb1fTM.js               3.23 kB │ gzip:   1.32 kB\ndist/assets/definition-BK8ChevR.js               5.09 kB │ gzip:   2.05 kB\ndist/assets/locale-registry-rsjTSZX0.js          7.32 kB │ gzip:   3.22 kB\ndist/assets/definition-B8iph5B8.js               8.50 kB │ gzip:   2.62 kB\ndist/assets/locale-CvcvhG4b.js                  29.98 kB │ gzip:  12.03 kB\ndist/assets/plugins-B1FOxNJz.js                 53.55 kB │ gzip:  14.76 kB\ndist/assets/public-oRlpHKi4.js                  95.42 kB │ gzip:  30.45 kB\ndist/assets/assistant-ui-composer-U3GnTpeR.js   97.63 kB │ gzip:  27.74 kB\ndist/assets/ui-plugin-CRe-XHC1.js               99.62 kB │ gzip:  28.24 kB\ndist/assets/lexical-taHOqp5H.js                230.95 kB │ gzip:  73.72 kB\ndist/assets/composable-thread-DsXNAXFm.js      724.89 kB │ gzip: 223.11 kB\ndist/assets/index-DCGO8ZA5.js                  773.61 kB │ gzip: 208.91 kB\n\n\u001b[32m✓ built in 330ms\u001b[39m\n\u001b[33m(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:\n  - import \"./vite-runtime-aliases\" without a file extension (vite.config.ts:5:32). Add the file extension\nSet `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.\u001b[39m\n\u001b[33m[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\u001b[39m",
+          "truncated": false,
+          "revision": 1,
+          "validationMode": "delta"
+        }
+      ],
+      "verification": {
+        "status": "changed-and-statically-verified",
+        "verificationMode": "static_only",
+        "runtimeStatus": "not-run",
+        "projectRevision": 1,
+        "auditAttempts": 0,
+        "checks": [
+          {
+            "id": "net-project-change",
+            "status": "passed",
+            "evidence": "1 net changed file(s)."
+          },
+          {
+            "id": "pnpm verify:ui",
+            "status": "passed",
+            "evidence": "revision=1; source=executed; exitCode=0"
+          },
+          {
+            "id": "pnpm typecheck",
+            "status": "passed",
+            "evidence": "revision=1; source=executed; exitCode=0"
+          }
+        ]
+      }
+    },
+    "hostCalls": [
+      {
+        "operation": "inspect_ui_plugin_source_references",
+        "input": {
+          "pluginId": "business-notes"
+        },
+        "result": {
+          "pluginId": "business-notes"
+        },
+        "resultSha256": "e1a3476f04b9d0a875cffd690af1db084c4529ee3cc2b2664a4e226dde2f9646"
+      },
+      {
+        "operation": "inspect_agent_ui_sources",
+        "input": {},
+        "result": {},
+        "resultSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      },
+      {
+        "operation": "inspect_agent_ui_sources",
+        "input": {},
+        "result": {},
+        "resultSha256": "d376b0444f3e545ce1720a310525b03256934af30a75d325c03228005fec2991"
+      }
+    ],
+    "prepareDecisions": [
+      {
+        "input": {
+          "delivery_contract": "capability='在现有 Agent Sidebar 抽屉中提供业务备注输入与列表，并提供可访问的说明弹层；空白内容不添加。' renderingCategory='semantic-slot' placement='在当前 AppUIModel Sidebar（l0）新增一个导航项，排在 history 项之后，内容仅渲染在 Sidebar 已有窄屏抽屉中，不添加主会话 Row/Column/横向轨道。' lifecycle='备注与说明弹层仅使用 React 本地状态，随 Sidebar 面板卸载而重置；弹层支持 Escape、Tab 焦点约束、关闭后焦点返回打开按钮。' dependencies=[] reusedComponents=['src/design-system 的 Button、Input、Card；复用 .acme-host 现有 light/dark CSS token。'] verificationMethod='browser-test' geometry=[] interactions=['添加非空备注后，备注显示在列表中；空白输入不添加，并正确显示空列表状态。', '说明按钮打开弹层；可通过键盘关闭/切换焦点，关闭后焦点返回打开按钮。']",
+          "work_kind": "create-plugin",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "创建并挂载独立 business-notes UI Plugin，提供本地备注列表与无障碍说明弹层，全部面板文案走统一 Agent UI locale（en-US、zh-CN），支持深浅主题与窄屏；新导航项置于现有 Sidebar 抽屉，不占用主会话横向轨道。",
+          "missing_capabilities": [
+            "当前已选 Plugin 与完整 Source Item inventory 没有提供业务备注录入/列表和说明弹层能力，需要新建 project-owned Plugin。"
+          ],
+          "reuse_evidence_refs": [
+            "完整 inspect_agent_ui_sources inventory：无业务备注 UI Source Item。",
+            "完整 Plugin capability inventory 与当前 Composition：无业务备注 Plugin；当前 Sidebar 仅有 history 项。",
+            "src/agent-ui/plugins/conversation-thread-list/manifest.json：现有 Sidebar 插件通过 sidebar.icon 和 en-US/zh-CN labels 声明导航项。"
+          ],
+          "ui_scope": "选择宿主自有 Design System：src/App.tsx 实际导入并渲染 ./design-system 的 Button、Input、Card；src/design-system/index.tsx 是这些公开控件导出，system.css 定义 .acme-host 的 --acme-surface/--acme-text/--acme-border/--acme-primary/--acme-radius，并通过 data-theme 支持 light/dark。AgentMount 位于 .acme-host 子树，Agent 入口使用现有 ConversationRuntimeProvider；新 Plugin 延续同一 React/宿主主题边界，使用宿主 Button/Input/Card 与这些继承 token。宿主 Design System 未导出 Dialog，因此弹层用 scoped semantic dialog markup + React 键盘/焦点管理，不引入第二套组件系统。拒绝用 Agent UI Button/Input 替代当前 App 明确",
+          "data_scope": "仅 React 本地备注列表和本地弹层状态；不持久化、不调用后端、不新增 Service/Runtime/AG-UI 操作。面板 UI copy 使用现有 useAgentUILocale namespace 并在统一 locale 类型与 en-US、zh-CN 字典补齐。",
+          "excluded_operations": [
+            "不修改 src/App.tsx、assistant-ui vendor、Runtime、framework 或后端。",
+            "不增加、重新安装、升级依赖。",
+            "不添加主会话横向轨道或独立 Sidebar/窄屏抽屉实现。"
+          ],
+          "component_basis_refs": [
+            "src/App.tsx",
+            "src/design-system/index.tsx",
+            "src/design-system/system.css",
+            "src/AgentMount.tsx",
+            "src/agent-ui/application/Agent.tsx",
+            "src/agent-ui/plugins/conversation-thread-list/index.tsx"
+          ]
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "0938ea8e-a5c7-4a21-bbb2-1f3e78c93b59",
+          "scopeHash": "88abef29d3b185645b8662889e20a280354736fce5bbcf2ef14175964357ed30",
+          "workKind": "create-plugin",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "创建并挂载独立 business-notes UI Plugin，提供本地备注列表与无障碍说明弹层，全部面板文案走统一 Agent UI locale（en-US、zh-CN），支持深浅主题与窄屏；新导航项置于现有 Sidebar 抽屉，不占用主会话横向轨道。",
+          "missingCapabilities": [
+            "当前已选 Plugin 与完整 Source Item inventory 没有提供业务备注录入/列表和说明弹层能力，需要新建 project-owned Plugin。"
+          ],
+          "reuseEvidenceRefs": [
+            "完整 inspect_agent_ui_sources inventory：无业务备注 UI Source Item。",
+            "完整 Plugin capability inventory 与当前 Composition：无业务备注 Plugin；当前 Sidebar 仅有 history 项。",
+            "src/agent-ui/plugins/conversation-thread-list/manifest.json：现有 Sidebar 插件通过 sidebar.icon 和 en-US/zh-CN labels 声明导航项。"
+          ],
+          "uiScope": "选择宿主自有 Design System：src/App.tsx 实际导入并渲染 ./design-system 的 Button、Input、Card；src/design-system/index.tsx 是这些公开控件导出，system.css 定义 .acme-host 的 --acme-surface/--acme-text/--acme-border/--acme-primary/--acme-radius，并通过 data-theme 支持 light/dark。AgentMount 位于 .acme-host 子树，Agent 入口使用现有 ConversationRuntimeProvider；新 Plugin 延续同一 React/宿主主题边界，使用宿主 Button/Input/Card 与这些继承 token。宿主 Design System 未导出 Dialog，因此弹层用 scoped semantic dialog markup + React 键盘/焦点管理，不引入第二套组件系统。拒绝用 Agent UI Button/Input 替代当前 App 明确",
+          "dataScope": "仅 React 本地备注列表和本地弹层状态；不持久化、不调用后端、不新增 Service/Runtime/AG-UI 操作。面板 UI copy 使用现有 useAgentUILocale namespace 并在统一 locale 类型与 en-US、zh-CN 字典补齐。",
+          "excludedOperations": [
+            "不修改 src/App.tsx、assistant-ui vendor、Runtime、framework 或后端。",
+            "不增加、重新安装、升级依赖。",
+            "不添加主会话横向轨道或独立 Sidebar/窄屏抽屉实现。"
+          ],
+          "componentBasisRefs": [
+            "src/App.tsx",
+            "src/design-system/index.tsx",
+            "src/design-system/system.css",
+            "src/AgentMount.tsx",
+            "src/agent-ui/application/Agent.tsx",
+            "src/agent-ui/plugins/conversation-thread-list/index.tsx"
+          ],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "在现有 Agent Sidebar 抽屉中提供业务备注输入与列表，并提供可访问的说明弹层；空白内容不添加。",
+            "renderingCategory": "semantic-slot",
+            "placement": "在当前 AppUIModel Sidebar（l0）新增一个导航项，排在 history 项之后，内容仅渲染在 Sidebar 已有窄屏抽屉中，不添加主会话 Row/Column/横向轨道。",
+            "lifecycle": "备注与说明弹层仅使用 React 本地状态，随 Sidebar 面板卸载而重置；弹层支持 Escape、Tab 焦点约束、关闭后焦点返回打开按钮。",
+            "dependencies": [],
+            "reusedComponents": [
+              "src/design-system 的 Button、Input、Card；复用 .acme-host 现有 light/dark CSS token。"
+            ],
+            "verificationMethod": "browser-test",
+            "geometry": [],
+            "interactions": [
+              "添加非空备注后，备注显示在列表中；空白输入不添加，并正确显示空列表状态。",
+              "说明按钮打开弹层；可通过键盘关闭/切换焦点，关闭后焦点返回打开按钮。"
+            ]
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='修复现有 business-notes 插件在窄屏 Sidebar 抽屉中的原生说明 dialog 键盘关闭行为：Escape 仅关闭 dialog、不关闭宿主 Sidebar，备注列表保留，焦点返回“查看业务备注说明”按钮，且 Tab 焦点仍限制在打开的原生 modal dialog 内。' renderingCategory='semantic-slot' placement='保持现有 business-notes-main 实例及当前 Sidebar item（l3 / business-notes）不变，不新增或复制实例。' lifecycle='只修改现有插件内部的键盘事件处理；继续使用 React 本地状态、宿主原生 dialog 与现有焦点返回逻辑，不改宿主页、Runtime、framework、vendor 或 Sidebar 实现。' dependencies=[] reusedComponents=['现有宿主 Button、Input、Card；原生 HTML <dialog> 的 modal、Escape 与焦点约束语义；现有 businessNotes locale。'] verificationMethod='browser-test' geometry=[] interactions=['420px 窄屏中打开说明 dialog 后按 Escape：dialog 关闭、父级 Sidebar 抽屉保持打开、备注列表仍在、焦点返回打开说明按钮。', '说明 dialog 打开期间按 Tab/Shift+Tab，焦点不得进入底层业务控件；不破坏原生 dialog 可访问语义。']",
+          "work_kind": "extend-capability",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "在已有且已注册、已挂载的 business-notes Plugin 中做最小、仅插件源文件范围的修复，阻止 dialog 的 Escape 按键关闭宿主 Sidebar；不创建新 Plugin、不复制实例，保留宿主自研控件、CSS token、双语 locale、原生 dialog 和其余已通过行为。最终完成当前 revision 的 verify:ui、typecheck、build(includeBuild=true)、Registry/Composition 静态交付回执；当前 static_only policy 下不宣称浏览器或 Runtime 验证已完成。",
+          "missing_capabilities": [
+            "现有 dialog 对 Escape 的处理未隔离宿主 Sidebar 的键盘监听，导致窄屏父级抽屉一并关闭；现有父级 Sidebar/宿主页明确排除在修复范围外。"
+          ],
+          "reuse_evidence_refs": [
+            "当前 Composition snapshot 5885ecc24145082298058a2e414644750a357308a661e4f9f2d1a049f832f75a：business-notes-main 已选中、enabled=true、位于 Sidebar item business-notes 的 l3 Slot；无需 Composition 改动。",
+            "本轮直接读取 /src/agent-ui/plugins/business-notes/index.tsx 与 styles.css：当前组件使用原生 dialog，且可在插件内部捕获 Escape 键。",
+            "本轮读取 /prepare-observations.json 仅用于确认已有测试观察记录；不复用其中旧 create-plugin grant 或授权。"
+          ],
+          "ui_scope": "只改现有 business-notes 插件的 dialog Escape 键事件边界；保留现有宿主 Design System Button/Input/Card、scoped acme token CSS 与 Agent UI locale，不引入新的组件系统，不改任何宿主页或父级 Sidebar 文件。",
+          "data_scope": "仅现有组件键盘事件处理；备注仍为现有 React 本地状态。",
+          "excluded_operations": [
+            "不创建、复制、删除或重挂载 Plugin/Composition 实例。",
+            "不修改宿主页、父级 Sidebar、Runtime、framework、vendor、Service、Agent contract 或 locale。",
+            "不增加、安装或升级依赖。",
+            "不更换原生 dialog、不破坏其 modal 可访问语义及 Tab 焦点约束。"
+          ],
+          "component_basis_refs": []
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "2e59b2ef-5955-4e5d-b348-445ec2e5b49d",
+          "scopeHash": "38b7006ff8d041b9722e31822abd5eb7b6d45c70d8bc74d3e77b29f96e67a5d2",
+          "workKind": "extend-capability",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "在已有且已注册、已挂载的 business-notes Plugin 中做最小、仅插件源文件范围的修复，阻止 dialog 的 Escape 按键关闭宿主 Sidebar；不创建新 Plugin、不复制实例，保留宿主自研控件、CSS token、双语 locale、原生 dialog 和其余已通过行为。最终完成当前 revision 的 verify:ui、typecheck、build(includeBuild=true)、Registry/Composition 静态交付回执；当前 static_only policy 下不宣称浏览器或 Runtime 验证已完成。",
+          "missingCapabilities": [
+            "现有 dialog 对 Escape 的处理未隔离宿主 Sidebar 的键盘监听，导致窄屏父级抽屉一并关闭；现有父级 Sidebar/宿主页明确排除在修复范围外。"
+          ],
+          "reuseEvidenceRefs": [
+            "当前 Composition snapshot 5885ecc24145082298058a2e414644750a357308a661e4f9f2d1a049f832f75a：business-notes-main 已选中、enabled=true、位于 Sidebar item business-notes 的 l3 Slot；无需 Composition 改动。",
+            "本轮直接读取 /src/agent-ui/plugins/business-notes/index.tsx 与 styles.css：当前组件使用原生 dialog，且可在插件内部捕获 Escape 键。",
+            "本轮读取 /prepare-observations.json 仅用于确认已有测试观察记录；不复用其中旧 create-plugin grant 或授权。"
+          ],
+          "uiScope": "只改现有 business-notes 插件的 dialog Escape 键事件边界；保留现有宿主 Design System Button/Input/Card、scoped acme token CSS 与 Agent UI locale，不引入新的组件系统，不改任何宿主页或父级 Sidebar 文件。",
+          "dataScope": "仅现有组件键盘事件处理；备注仍为现有 React 本地状态。",
+          "excludedOperations": [
+            "不创建、复制、删除或重挂载 Plugin/Composition 实例。",
+            "不修改宿主页、父级 Sidebar、Runtime、framework、vendor、Service、Agent contract 或 locale。",
+            "不增加、安装或升级依赖。",
+            "不更换原生 dialog、不破坏其 modal 可访问语义及 Tab 焦点约束。"
+          ],
+          "componentBasisRefs": [],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "修复现有 business-notes 插件在窄屏 Sidebar 抽屉中的原生说明 dialog 键盘关闭行为：Escape 仅关闭 dialog、不关闭宿主 Sidebar，备注列表保留，焦点返回“查看业务备注说明”按钮，且 Tab 焦点仍限制在打开的原生 modal dialog 内。",
+            "renderingCategory": "semantic-slot",
+            "placement": "保持现有 business-notes-main 实例及当前 Sidebar item（l3 / business-notes）不变，不新增或复制实例。",
+            "lifecycle": "只修改现有插件内部的键盘事件处理；继续使用 React 本地状态、宿主原生 dialog 与现有焦点返回逻辑，不改宿主页、Runtime、framework、vendor 或 Sidebar 实现。",
+            "dependencies": [],
+            "reusedComponents": [
+              "现有宿主 Button、Input、Card；原生 HTML <dialog> 的 modal、Escape 与焦点约束语义；现有 businessNotes locale。"
+            ],
+            "verificationMethod": "browser-test",
+            "geometry": [],
+            "interactions": [
+              "420px 窄屏中打开说明 dialog 后按 Escape：dialog 关闭、父级 Sidebar 抽屉保持打开、备注列表仍在、焦点返回打开说明按钮。",
+              "说明 dialog 打开期间按 Tab/Shift+Tab，焦点不得进入底层业务控件；不破坏原生 dialog 可访问语义。"
+            ]
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='修复现有 business-notes 说明原生 dialog 关闭后的焦点恢复：dialog 与 React 节点移除后，将焦点返回打开说明按钮；Escape 和关闭按钮两条路径均适用，同时保持宿主 Sidebar 打开、备注保留、原生 modal/Tab/inert 语义。' renderingCategory='semantic-slot' placement='保持当前 Sidebar item business-notes 下已挂载的 business-notes-main 实例不变；不进行 Composition 变更。' lifecycle='仅在现有 business-notes 插件的 index.tsx 内调整 dialog 关闭与焦点恢复时机；保留 Escape stopPropagation、原生 showModal、父级 Sidebar 与宿主框架不变。' dependencies=[] reusedComponents=['现有 React 状态与 refs', '宿主 Design System Button', '原生 HTML dialog 的 modal 与焦点语义', '当前业务备注列表和 locale，不改变数据或文案'] verificationMethod='browser-test' geometry=[] interactions=['420px 下从说明按钮打开原生 dialog，按 Escape 后仅关闭说明 dialog，Sidebar 保持打开、备注保留，焦点在 dialog 卸载后返回打开说明按钮。', '使用 dialog 内关闭按钮关闭时，同样在 dialog 卸载后恢复打开说明按钮焦点。', 'dialog 打开期间 Tab/Shift+Tab 继续由原生 modal dialog 限制，底层保持 inert。']",
+          "work_kind": "extend-capability",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "在现有、已注册并挂载的 business-notes 插件中做最小源码修复，使说明 dialog 在 Escape 和关闭按钮两种关闭路径上均于 React 移除后恢复触发按钮焦点；不创建、不复制、不重挂载插件或修改 AppUIModel。保留现有 Escape 隔离、原生 showModal/Tab/inert 语义、父 Sidebar 行为、备注状态，不修改宿主页、Sidebar、Runtime/framework/vendor，不增加依赖。修复后完成当前 revision 的 verify:ui、typecheck、build(includeBuild=true) 和静态交付检查；在 static_only 下不宣称浏览器或 Runtime 验收通过。",
+          "missing_capabilities": [
+            "当前同步在 closeHelp 与 dialog onClose 中调用 focus() 太早；宿主嵌套焦点管理在 dialog/React 节点移除后覆盖该焦点，窄屏下焦点最终落在父 Sidebar dialog 容器。需在插件内把恢复调度到 dialog 已关闭且 React 条件渲染已卸载之后，并覆盖 Escape 与按钮关闭。"
+          ],
+          "reuse_evidence_refs": [
+            "当前 composition snapshot 5885ecc24145082298058a2e414644750a357308a661e4f9f2d1a049f832f75a：business-notes-main enabled 并位于 Sidebar item business-notes 的 l3 Slot；不需 Composition 改动。",
+            "已读取 /src/agent-ui/plugins/business-notes/index.tsx：当前 onClose 与 closeHelp 同步 focus，且现有 onKeyDownCapture 隔离 Escape。",
+            "用户报告最新真实浏览器实测：桌面四组通过；420px 下 Escape 隔离有效且 Sidebar/备注保留，但焦点落在父 Sidebar dialog 容器；同步 onClose focus 会被宿主覆盖。"
+          ],
+          "ui_scope": "仅修改现有 business-notes/index.tsx 内原生说明 dialog 的关闭后焦点恢复时机。保留宿主 Design System Button/Input/Card、现有本地状态、locale、原生 dialog。不得修改父 Sidebar、宿主页、Runtime/framework/vendor、Registry 或 Composition。",
+          "data_scope": "仅说明 dialog 的关闭流程与焦点恢复调度；不改变备注数据、本地持久性、Service、Runtime、AG-UI 或 Agent 行为。",
+          "excluded_operations": [
+            "不创建、复制、删除、重挂载或重新插入 Plugin/Composition 实例。",
+            "不修改 AppUIModel/Sidebar Layout、宿主页、父 Sidebar、Runtime、framework/vendor 或 Service/Agent contracts。",
+            "不新增或升级依赖，不手工编辑 Registry。",
+            "不替换原生 dialog，不移除 Escape stopPropagation，不破坏 showModal、Tab 限制或底层 inert 语义。",
+            "static_only 验证不作为浏览器交互验收；不声称浏览器或 Runtime PASS。"
+          ],
+          "component_basis_refs": []
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "6a23808f-cc64-4ca1-988b-b90704ec8a60",
+          "scopeHash": "a60e863e5569560c3e2b7d71a297dec4a720ece07d828dd9473e4ec8263a6c75",
+          "workKind": "extend-capability",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "在现有、已注册并挂载的 business-notes 插件中做最小源码修复，使说明 dialog 在 Escape 和关闭按钮两种关闭路径上均于 React 移除后恢复触发按钮焦点；不创建、不复制、不重挂载插件或修改 AppUIModel。保留现有 Escape 隔离、原生 showModal/Tab/inert 语义、父 Sidebar 行为、备注状态，不修改宿主页、Sidebar、Runtime/framework/vendor，不增加依赖。修复后完成当前 revision 的 verify:ui、typecheck、build(includeBuild=true) 和静态交付检查；在 static_only 下不宣称浏览器或 Runtime 验收通过。",
+          "missingCapabilities": [
+            "当前同步在 closeHelp 与 dialog onClose 中调用 focus() 太早；宿主嵌套焦点管理在 dialog/React 节点移除后覆盖该焦点，窄屏下焦点最终落在父 Sidebar dialog 容器。需在插件内把恢复调度到 dialog 已关闭且 React 条件渲染已卸载之后，并覆盖 Escape 与按钮关闭。"
+          ],
+          "reuseEvidenceRefs": [
+            "当前 composition snapshot 5885ecc24145082298058a2e414644750a357308a661e4f9f2d1a049f832f75a：business-notes-main enabled 并位于 Sidebar item business-notes 的 l3 Slot；不需 Composition 改动。",
+            "已读取 /src/agent-ui/plugins/business-notes/index.tsx：当前 onClose 与 closeHelp 同步 focus，且现有 onKeyDownCapture 隔离 Escape。",
+            "用户报告最新真实浏览器实测：桌面四组通过；420px 下 Escape 隔离有效且 Sidebar/备注保留，但焦点落在父 Sidebar dialog 容器；同步 onClose focus 会被宿主覆盖。"
+          ],
+          "uiScope": "仅修改现有 business-notes/index.tsx 内原生说明 dialog 的关闭后焦点恢复时机。保留宿主 Design System Button/Input/Card、现有本地状态、locale、原生 dialog。不得修改父 Sidebar、宿主页、Runtime/framework/vendor、Registry 或 Composition。",
+          "dataScope": "仅说明 dialog 的关闭流程与焦点恢复调度；不改变备注数据、本地持久性、Service、Runtime、AG-UI 或 Agent 行为。",
+          "excludedOperations": [
+            "不创建、复制、删除、重挂载或重新插入 Plugin/Composition 实例。",
+            "不修改 AppUIModel/Sidebar Layout、宿主页、父 Sidebar、Runtime、framework/vendor 或 Service/Agent contracts。",
+            "不新增或升级依赖，不手工编辑 Registry。",
+            "不替换原生 dialog，不移除 Escape stopPropagation，不破坏 showModal、Tab 限制或底层 inert 语义。",
+            "static_only 验证不作为浏览器交互验收；不声称浏览器或 Runtime PASS。"
+          ],
+          "componentBasisRefs": [],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "修复现有 business-notes 说明原生 dialog 关闭后的焦点恢复：dialog 与 React 节点移除后，将焦点返回打开说明按钮；Escape 和关闭按钮两条路径均适用，同时保持宿主 Sidebar 打开、备注保留、原生 modal/Tab/inert 语义。",
+            "renderingCategory": "semantic-slot",
+            "placement": "保持当前 Sidebar item business-notes 下已挂载的 business-notes-main 实例不变；不进行 Composition 变更。",
+            "lifecycle": "仅在现有 business-notes 插件的 index.tsx 内调整 dialog 关闭与焦点恢复时机；保留 Escape stopPropagation、原生 showModal、父级 Sidebar 与宿主框架不变。",
+            "dependencies": [],
+            "reusedComponents": [
+              "现有 React 状态与 refs",
+              "宿主 Design System Button",
+              "原生 HTML dialog 的 modal 与焦点语义",
+              "当前业务备注列表和 locale，不改变数据或文案"
+            ],
+            "verificationMethod": "browser-test",
+            "geometry": [],
+            "interactions": [
+              "420px 下从说明按钮打开原生 dialog，按 Escape 后仅关闭说明 dialog，Sidebar 保持打开、备注保留，焦点在 dialog 卸载后返回打开说明按钮。",
+              "使用 dialog 内关闭按钮关闭时，同样在 dialog 卸载后恢复打开说明按钮焦点。",
+              "dialog 打开期间 Tab/Shift+Tab 继续由原生 modal dialog 限制，底层保持 inert。"
+            ]
+          },
+          "deliveryScope": "full"
+        }
+      }
+    ]
+  },
+  "C": {
+    "outcome": {
+      "scenario": "C",
+      "model": "gpt-6-luna",
+      "realCreatorInvoked": true,
+      "maxTokens": 8192,
+      "interrupted": false,
+      "completion": "success",
+      "text": "已完成 `business-notes` 的局部样式修复，只修改了 `styles.css`，没有新建插件或更改 Composition，因此未重挂载。\n\n- 插件内字体与宿主的 `Inter, system-ui, sans-serif` 对齐，覆盖控件和原生 dialog。\n- 响应式布局改为依据插件面板自身宽度换行、收缩，避免窄面板中的标题、说明按钮和输入区横向溢出。\n- 为原生 modal dialog 明确设置居中、视口边界和内容溢出处理；保留原生 modal 语义及现有 Esc、焦点恢复行为。\n\n最终 `verify:ui`、`typecheck` 和 `build` 均通过。静态结果仍显示 `business-notes-main` 已注册并挂载；这次没有重新执行真实浏览器检查，因此不声称浏览器样式已验证。\n\n当前静态验证通过；Runtime / 浏览器行为未由 Creator 验证。",
+      "developmentPlan": {
+        "status": "authorized",
+        "proposalId": "f9f1895d-db62-4fc2-8239-88acfad156f3",
+        "scopeHash": "6a60e3f98f256710a110394f0721f4ff627dd1206696f7b36fe7b5c1b257627f",
+        "workKind": "extend-capability",
+        "targetPluginId": "business-notes",
+        "desiredOutcome": "Fix only the approved Plugin's remaining real-browser styling defects: match the Host's Inter,system-ui,sans-serif typography locally; prevent English header/help-trigger and input layout from overflowing or clipping at the actual panel width, including narrow panels on a wide viewport; and locally center and constrain the native modal dialog within the viewport. Do not modify behavior, locale, Runtime, framework, vendor, Composer, Sidebar, Host page, or base CSS; do not create or remount a Plugin.",
+        "missingCapabilities": [
+          "The existing Plugin does not enforce Host typography for its controls and dialog.",
+          "Responsive styling is keyed to viewport width and does not wrap/shrink correctly at the actual panel width.",
+          "The native dialog lacks explicit local centering and viewport bounds when Host base styles reset its UA margin."
+        ],
+        "reuseEvidenceRefs": [
+          "business-notes existing Plugin source at /src/agent-ui/plugins/business-notes/index.tsx and /src/agent-ui/plugins/business-notes/styles.css was inspected; it already uses project Button, Input, and Card and owns the dialog behavior."
+        ],
+        "uiScope": "Existing Host UI selection is the project-owned design-system Button/Input/Card imported by /src/App.tsx and by the Plugin. /src/design-system/system.css defines the Host's Inter,system-ui,sans-serif font and acme control styles. App.tsx loads that stylesheet around AgentMount. Keep those public controls and copy their font convention only in Plugin-scoped CSS. Do not add Ant Design or AgentUI controls: Ant Design is not used for this mounted form, and no new dependency or Provider change is in/",
+        "dataScope": "No data, state, service, or Runtime changes; styles only.",
+        "excludedOperations": [
+          "No new Plugin identity or files",
+          "No AppUIModel or composition changes; preserve current registered mounted instance",
+          "No Runtime, framework, vendor, Composer, Sidebar, Host page, or base design-system CSS edits",
+          "No behavior, locale, or dependency changes"
+        ],
+        "componentBasisRefs": [
+          "/src/App.tsx",
+          "/src/design-system/system.css"
+        ],
+        "grantSource": "explicit-request",
+        "deliveryContract": {
+          "capability": "Repair the existing business-notes panel's Plugin-scoped font parity, panel-width-responsive layout, and native help-dialog positioning without changing behavior or composition.",
+          "renderingCategory": "panel",
+          "placement": "The already selected and mounted business-notes panel instance in its current Layout; no relocation, recreation, or remount.",
+          "lifecycle": "CSS-only extension of the existing business-notes Plugin; preserve its registration, mounted instance, locale, dialog interaction semantics, Escape handling, and focus restoration.",
+          "dependencies": [],
+          "reusedComponents": [
+            "Project Button",
+            "Input",
+            "Card from the existing design-system exports"
+          ],
+          "verificationMethod": "browser-test",
+          "geometry": [],
+          "interactions": []
+        },
+        "deliveryScope": "full"
+      },
+      "deliveries": [
+        {
+          "pluginId": "business-notes",
+          "projectRevision": 1,
+          "decision": {
+            "type": "extend-capability"
+          },
+          "deliveryScope": "full",
+          "authorization": {
+            "status": "authorized",
+            "grantSource": "explicit-request"
+          },
+          "contract": {
+            "capability": "Repair the existing business-notes panel's Plugin-scoped font parity, panel-width-responsive layout, and native help-dialog positioning without changing behavior or composition.",
+            "renderingCategory": "panel",
+            "placement": "The already selected and mounted business-notes panel instance in its current Layout; no relocation, recreation, or remount.",
+            "lifecycle": "CSS-only extension of the existing business-notes Plugin; preserve its registration, mounted instance, locale, dialog interaction semantics, Escape handling, and focus restoration.",
+            "dependencies": [],
+            "reusedComponents": [
+              "Project Button",
+              "Input",
+              "Card from the existing design-system exports"
+            ],
+            "verificationMethod": "browser-test",
+            "geometry": [],
+            "interactions": []
+          },
+          "delivery": {
+            "status": "statically-verified",
+            "lastSuccessfulStage": "composed",
+            "stages": {
+              "created": true,
+              "registered": true,
+              "composed": true,
+              "verified": false
+            },
+            "blockers": [],
+            "instanceIds": [
+              "business-notes-main"
+            ]
+          },
+          "verification": {
+            "static": "pass",
+            "runtime": "not-run",
+            "geometry": "not-run",
+            "interaction": "not-run"
+          }
+        }
+      ]
+    },
+    "activity": {
+      "files": [
+        {
+          "path": "src/agent-ui/plugins/business-notes/styles.css",
+          "status": "modified",
+          "diff": "--- a/src/agent-ui/plugins/business-notes/styles.css\n+++ b/src/agent-ui/plugins/business-notes/styles.css\n@@ -1,15 +1,35 @@\n .business-notes {\n   display: grid;\n   gap: 1rem;\n+  width: 100%;\n   min-width: 0;\n+  max-width: 100%;\n+  box-sizing: border-box;\n+  container-name: business-notes;\n+  container-type: inline-size;\n   color: var(--acme-text);\n+  font-family: Inter, system-ui, sans-serif;\n }\n \n .business-notes__header {\n   display: flex;\n+  flex-wrap: wrap;\n   align-items: flex-start;\n   justify-content: space-between;\n-  gap: 1rem;\n+  gap: 0.75rem 1rem;\n+  min-width: 0;\n+  max-width: 100%;\n+}\n+\n+.business-notes__header > div:first-child {\n+  flex: 1 1 12rem;\n+  min-width: 0;\n+}\n+\n+.business-notes__header > div:last-child {\n+  flex: 0 1 auto;\n+  min-width: 0;\n+  max-width: 100%;\n }\n \n .business-notes__title,\n@@ -23,6 +43,7 @@\n \n .business-notes__title {\n   font-size: 1.25rem;\n+  overflow-wrap: anywhere;\n }\n \n .business-notes__subtitle,\n@@ -30,9 +51,14 @@\n .business-notes__dialog p {\n   color: var(--acme-text);\n   opacity: 0.78;\n+  overflow-wrap: anywhere;\n }\n \n .business-notes__card {\n+  width: 100%;\n+  min-width: 0;\n+  max-width: 100%;\n+  box-sizing: border-box;\n   margin: 0;\n }\n \n@@ -49,6 +75,8 @@\n   display: flex;\n   align-items: stretch;\n   gap: 0.5rem;\n+  min-width: 0;\n+  max-width: 100%;\n }\n \n .business-notes__input {\n@@ -90,12 +118,20 @@\n }\n \n .business-notes__dialog {\n+  position: fixed;\n+  inset: 0;\n   width: min(32rem, calc(100vw - 2rem));\n   max-width: calc(100vw - 2rem);\n+  max-height: calc(100vh - 2rem);\n+  max-height: calc(100dvh - 2rem);\n+  box-sizing: border-box;\n+  overflow: auto;\n+  margin: auto;\n   border: 1px solid var(--acme-border);\n   border-radius: var(--acme-radius);\n   background: var(--acme-surface);\n   color: var(--acme-text);\n+  font-family: Inter, system-ui, sans-serif;\n   padding: 1.25rem;\n }\n \n@@ -112,13 +148,24 @@\n   justify-self: end;\n }\n \n+.business-notes button,\n+.business-notes input {\n+  font-family: inherit;\n+}\n+\n+.business-notes__help-trigger {\n+  max-width: 100%;\n+  white-space: normal;\n+  overflow-wrap: anywhere;\n+}\n+\n .business-notes button:focus-visible,\n .business-notes input:focus-visible {\n   outline: 2px solid var(--acme-primary);\n   outline-offset: 2px;\n }\n \n-@media (max-width: 32rem) {\n+@container business-notes (max-width: 32rem) {\n   .business-notes__entry {\n     align-items: stretch;\n     flex-direction: column;",
+          "truncated": false
+        }
+      ],
+      "validations": [
+        {
+          "command": "npm run verify:ui",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "> @agent-ui/creator-host-sandbox@0.1.0 verify:ui\n> node --import tsx scripts/verify-ui.ts\n\n{\n  \"status\": \"passed\",\n  \"model\": {\n    \"valid\": true,\n    \"mountedInstanceIds\": [\n      \"agent-conversation-surface-main\",\n      \"agent-identity-main\",\n      \"assistant-ui-add-attachment-action-main\",\n      \"assistant-ui-composer-main\",\n      \"assistant-ui-copy-action-main\",\n      \"assistant-ui-dictation-action-main\",\n      \"assistant-ui-export-markdown-action-main\",\n      \"assistant-ui-feedback-actions-main\",\n      \"assistant-ui-lexical-composer-input-main\",\n      \"assistant-ui-lexical-edit-composer-main\",\n      \"assistant-ui-mention-trigger-main\",\n      \"assistant-ui-reasoning-main\",\n      \"assistant-ui-reload-action-main\",\n      \"assistant-ui-response-footer-main\",\n      \"assistant-ui-slash-command-trigger-main\",\n      \"assistant-ui-submit-action-main\",\n      \"assistant-ui-thinking-indicator-main\",\n      \"assistant-ui-tool-fallback-main\",\n      \"assistant-ui-tool-group-main\",\n      \"assistant-ui-tool-timeline-main\",\n      \"business-notes-main\",\n      \"conversation-quote-main\",\n      \"conversation-suggestions-main\",\n      \"conversation-thread-list-main\",\n      \"task-group-main\"\n    ],\n    \"unmountedEnabledInstanceIds\": []\n  },\n  \"capabilityCatalog\": {\n    \"pluginIds\": [\n      \"agent-identity\",\n      \"assistant-ui-add-attachment-action\",\n      \"assistant-ui-composer\",\n      \"assistant-ui-copy-action\",\n      \"assistant-ui-dictation-action\",\n      \"assistant-ui-export-markdown-action\",\n      \"assistant-ui-feedback-actions\",\n      \"assistant-ui-lexical-composer-input\",\n      \"assistant-ui-lexical-edit-composer\",\n      \"assistant-ui-mention-trigger\",\n      \"assistant-ui-reasoning\",\n      \"assistant-ui-reload-action\",\n      \"assistant-ui-response-footer\",\n      \"assistant-ui-slash-command-trigger\",\n      \"assistant-ui-submit-action\",\n      \"assistant-ui-thinking-indicator\",\n      \"assistant-ui-tool-fallback\",\n      \"assistant-ui-tool-group\",\n      \"assistant-ui-tool-timeline\",\n      \"business-notes\",\n      \"conversation-command-source\",\n      \"conversation-data-source\",\n      \"conversation-quote\",\n      \"conversation-service\",\n      \"conversation-suggestions\",\n      \"conversation-surface\",\n      \"conversation-thread-list\",\n      \"locale-provider\",\n      \"task-group\",\n      \"theme-provider\"\n    ],\n    \"generatedFileFresh\": true\n  },\n  \"activeComposition\": {\n    \"selectedPluginIds\": [\n      \"agent-identity\",\n      \"assistant-ui-add-attachment-action\",\n      \"assistant-ui-composer\",\n      \"assistant-ui-copy-action\",\n      \"assistant-ui-dictation-action\",\n      \"assistant-ui-export-markdown-action\",\n      \"assistant-ui-feedback-actions\",\n      \"assistant-ui-lexical-composer-input\",\n      \"assistant-ui-lexical-edit-composer\",\n      \"assistant-ui-mention-trigger\",\n      \"assistant-ui-reasoning\",\n      \"assistant-ui-reload-action\",\n      \"assistant-ui-response-footer\",\n      \"assistant-ui-slash-command-trigger\",\n      \"assistant-ui-submit-action\",\n      \"assistant-ui-thinking-indicator\",\n      \"assistant-ui-tool-fallback\",\n      \"assistant-ui-tool-group\",\n      \"assistant-ui-tool-timeline\",\n      \"business-notes\",\n      \"conversation-command-source\",\n      \"conversation-data-source\",\n      \"conversation-quote\",\n      \"conversation-service\",\n      \"conversation-suggestions\",\n      \"conversation-surface\",\n      \"conversation-thread-list\",\n      \"locale-provider\",\n      \"task-group\",\n      \"theme-provider\"\n    ],\n    \"resolvedPluginIds\": [\n      \"agent-identity\",\n      \"assistant-ui-add-attachment-action\",\n      \"assistant-ui-composer\",\n      \"assistant-ui-copy-action\",\n      \"assistant-ui-dictation-action\",\n      \"assistant-ui-export-markdown-action\",\n      \"assistant-ui-feedback-actions\",\n      \"assistant-ui-lexical-composer-input\",\n      \"assistant-ui-lexical-edit-composer\",\n      \"assistant-ui-mention-trigger\",\n      \"assistant-ui-reasoning\",\n      \"assistant-ui-reload-action\",\n      \"assistant-ui-response-footer\",\n      \"assistant-ui-slash-command-trigger\",\n      \"assistant-ui-submit-action\",\n      \"assistant-ui-thinking-indicator\",\n      \"assistant-ui-tool-fallback\",\n      \"assistant-ui-tool-group\",\n      \"assistant-ui-tool-timeline\",\n      \"business-notes\",\n      \"conversation-command-source\",\n      \"conversation-data-source\",\n      \"conversation-quote\",\n      \"conversation-service\",\n      \"conversation-suggestions\",\n      \"conversation-surface\",\n      \"conversation-thread-list\",\n      \"locale-provider\",\n      \"task-group\",\n      \"theme-provider\"\n    ],\n    \"headlessPluginIds\": [\n      \"conversation-command-source\",\n      \"conversation-data-source\",\n      \"conversation-service\",\n      \"locale-provider\",\n      \"theme-provider\"\n    ]\n  },\n  \"services\": [\n    {\n      \"name\": \"agent-ui.conversation-data-source\",\n      \"contractPaths\": [\n        \"src/agent-ui/services/conversations/data-source.ts\"\n      ],\n      \"status\": \"available\",\n      \"providers\": [\n        {\n          \"pluginId\": \"conversation-data-source\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"agent-conversation-data-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        }\n      ],\n      \"requiredConsumers\": [\n        {\n          \"pluginId\": \"conversation-service\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"agent-conversation-service-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        }\n      ],\n      \"optionalConsumers\": []\n    },\n    {\n      \"name\": \"agent-ui.conversations\",\n      \"contractPaths\": [\n        \"src/agent-ui/services/conversations/service.ts\"\n      ],\n      \"status\": \"available\",\n      \"providers\": [\n        {\n          \"pluginId\": \"conversation-service\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"agent-conversation-service-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        }\n      ],\n      \"requiredConsumers\": [\n        {\n          \"pluginId\": \"conversation-surface\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"agent-conversation-surface-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        },\n        {\n          \"pluginId\": \"conversation-thread-list\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"conversation-thread-list-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        }\n      ],\n      \"optionalConsumers\": []\n    },\n    {\n      \"name\": \"agent-ui.locale\",\n      \"contractPaths\": [\n        \"src/agent-ui/services/agent-ui-locale.ts\"\n      ],\n      \"status\": \"available\",\n      \"providers\": [\n        {\n          \"pluginId\": \"locale-provider\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"locale-provider-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n              \"missingRequiredServices\": []\n            }\n          ]\n        }\n      ],\n      \"requiredConsumers\": [],\n      \"optionalConsumers\": [\n        {\n          \"pluginId\": \"agent-identity\",\n          \"selected\": true,\n          \"instances\": [\n            {\n              \"instanceId\": \"agent-identity-main\",\n              \"enabled\": true,\n              \"activeCandidate\": true,\n              \"resolved\": true,\n         \n… 验证输出过长，已截断",
+          "truncated": true,
+          "revision": 1,
+          "validationMode": "delta"
+        },
+        {
+          "command": "npm run typecheck",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "{\"exitCode\":0,\"newDiagnostics\":[],\"unchangedDiagnosticCount\":0,\"unchangedDiagnostics\":[],\"resolvedDiagnosticCount\":0}",
+          "truncated": false,
+          "revision": 1,
+          "validationMode": "delta"
+        },
+        {
+          "command": "npm run build",
+          "status": "passed",
+          "exitCode": 0,
+          "output": "> @agent-ui/creator-host-sandbox@0.1.0 build\n> tsc --noEmit && vite build\n\n\u001b[36mvite v8.3.0 \u001b[32mbuilding client environment for production...\u001b[36m\u001b[39m\ntransforming...\n✓ 7155 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                                  1.30 kB │ gzip:   0.45 kB\ndist/assets/definition-4QIysg6V.css              0.89 kB │ gzip:   0.42 kB\ndist/assets/composable-thread-CcdakA0V.css       0.96 kB │ gzip:   0.33 kB\ndist/assets/definition-CKHneGlK.css              1.01 kB │ gzip:   0.39 kB\ndist/assets/definition-BZQDiHcN.css              1.07 kB │ gzip:   0.46 kB\ndist/assets/definition-Z4lhdSEi.css              1.92 kB │ gzip:   0.53 kB\ndist/assets/definition-BrSGjIdD.css              2.51 kB │ gzip:   0.78 kB\ndist/assets/plugins-rPzCi-Bb.css                 5.80 kB │ gzip:   1.50 kB\ndist/assets/index-B6K-f4lF.css                 168.45 kB │ gzip:  24.68 kB\ndist/assets/agent-ui-locale-DiJqumUk.js          0.03 kB │ gzip:   0.05 kB\ndist/assets/theme-config-DxQybds_.js             0.05 kB │ gzip:   0.07 kB\ndist/assets/theme-contract-B_bDciBf.js           0.20 kB │ gzip:   0.15 kB\ndist/assets/data-source-BjGsISWZ.js              0.28 kB │ gzip:   0.17 kB\ndist/assets/composer-triggers-D0gt51Pq.js        0.45 kB │ gzip:   0.30 kB\ndist/assets/definition-B-VayO9g.js               0.68 kB │ gzip:   0.40 kB\ndist/assets/definition-BXNwQ9V6.js               0.68 kB │ gzip:   0.41 kB\ndist/assets/definition-C24fY9oK.js               0.70 kB │ gzip:   0.41 kB\ndist/assets/definition-ssAIL0tV.js               0.71 kB │ gzip:   0.40 kB\ndist/assets/definition-tVHIFW2X.js               0.75 kB │ gzip:   0.45 kB\ndist/assets/definition-bFQFhwW4.js               0.75 kB │ gzip:   0.45 kB\ndist/assets/definition-QWc18Klv.js               0.77 kB │ gzip:   0.43 kB\ndist/assets/definition-B3xBfj3e.js               0.78 kB │ gzip:   0.45 kB\ndist/assets/definition-BGVLme6p.js               0.79 kB │ gzip:   0.46 kB\ndist/assets/definition-CQ1BqszF.js               0.81 kB │ gzip:   0.47 kB\ndist/assets/definition-NVqx1cBr.js               0.81 kB │ gzip:   0.49 kB\ndist/assets/definition-BatXEXJN.js               0.84 kB │ gzip:   0.47 kB\ndist/assets/definition-Dpwm6y1v.js               0.86 kB │ gzip:   0.49 kB\ndist/assets/definition-BYD_9HDb.js               0.87 kB │ gzip:   0.50 kB\ndist/assets/definition-CP0vq5Oc.js               0.90 kB │ gzip:   0.50 kB\ndist/assets/definition-DDUDmsoF.js               0.91 kB │ gzip:   0.57 kB\ndist/assets/definition-dVYHZMjK.js               0.94 kB │ gzip:   0.50 kB\ndist/assets/definition-Cpb1_n8o.js               0.96 kB │ gzip:   0.59 kB\ndist/assets/definition-BM5fH0rr.js               0.97 kB │ gzip:   0.52 kB\ndist/assets/definition-CXjbDmDu.js               0.98 kB │ gzip:   0.58 kB\ndist/assets/definition--z0AahLe.js               1.02 kB │ gzip:   0.64 kB\ndist/assets/definition-BkH5H82a.js               1.02 kB │ gzip:   0.60 kB\ndist/assets/definition-CYntMgvI.js               1.02 kB │ gzip:   0.48 kB\ndist/assets/definition-C-lujAIg.js               1.06 kB │ gzip:   0.64 kB\ndist/assets/definition-_TQZ0yXB.js               1.23 kB │ gzip:   0.61 kB\ndist/assets/createLucideIcon-CBZRExQ0.js         1.38 kB │ gzip:   0.77 kB\ndist/assets/definition-Cb-rlGTZ.js               2.04 kB │ gzip:   1.01 kB\ndist/assets/definition-DjtFyvT4.js               3.55 kB │ gzip:   1.35 kB\ndist/assets/definition-D-e3C3HQ.js               5.09 kB │ gzip:   2.04 kB\ndist/assets/locale-registry-CgGXs6sc.js          7.57 kB │ gzip:   3.35 kB\ndist/assets/definition-hfgRVUR9.js               8.50 kB │ gzip:   2.62 kB\ndist/assets/locale-CvcvhG4b.js                  29.98 kB │ gzip:  12.03 kB\ndist/assets/plugins-nJfxsieC.js                 53.55 kB │ gzip:  14.76 kB\ndist/assets/public-oRlpHKi4.js                  95.42 kB │ gzip:  30.45 kB\ndist/assets/assistant-ui-composer-U3GnTpeR.js   97.63 kB │ gzip:  27.74 kB\ndist/assets/ui-plugin-CRe-XHC1.js               99.62 kB │ gzip:  28.24 kB\ndist/assets/lexical-taHOqp5H.js                230.95 kB │ gzip:  73.72 kB\ndist/assets/composable-thread-DsXNAXFm.js      724.89 kB │ gzip: 223.11 kB\ndist/assets/index-CctIhQXq.js                  773.72 kB │ gzip: 208.94 kB\n\n\u001b[32m✓ built in 441ms\u001b[39m\n\u001b[33m(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:\n  - import \"./vite-runtime-aliases\" without a file extension (vite.config.ts:5:32). Add the file extension\nSet `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.\u001b[39m\n\u001b[33m[plugin builtin:vite-reporter] \n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\u001b[39m",
+          "truncated": false,
+          "revision": 1,
+          "validationMode": "delta"
+        }
+      ],
+      "verification": {
+        "status": "changed-and-statically-verified",
+        "verificationMode": "static_only",
+        "runtimeStatus": "not-run",
+        "projectRevision": 1,
+        "auditAttempts": 0,
+        "checks": [
+          {
+            "id": "net-project-change",
+            "status": "passed",
+            "evidence": "1 net changed file(s)."
+          },
+          {
+            "id": "pnpm verify:ui",
+            "status": "passed",
+            "evidence": "revision=1; source=executed; exitCode=0"
+          },
+          {
+            "id": "pnpm typecheck",
+            "status": "passed",
+            "evidence": "revision=1; source=executed; exitCode=0"
+          }
+        ]
+      },
+      "pluginDeliveries": [
+        {
+          "pluginId": "business-notes",
+          "projectRevision": 1,
+          "decision": {
+            "type": "extend-capability"
+          },
+          "deliveryScope": "full",
+          "authorization": {
+            "status": "authorized",
+            "grantSource": "explicit-request"
+          },
+          "contract": {
+            "capability": "Repair the existing business-notes panel's Plugin-scoped font parity, panel-width-responsive layout, and native help-dialog positioning without changing behavior or composition.",
+            "renderingCategory": "panel",
+            "placement": "The already selected and mounted business-notes panel instance in its current Layout; no relocation, recreation, or remount.",
+            "lifecycle": "CSS-only extension of the existing business-notes Plugin; preserve its registration, mounted instance, locale, dialog interaction semantics, Escape handling, and focus restoration.",
+            "dependencies": [],
+            "reusedComponents": [
+              "Project Button",
+              "Input",
+              "Card from the existing design-system exports"
+            ],
+            "verificationMethod": "browser-test",
+            "geometry": [],
+            "interactions": []
+          },
+          "delivery": {
+            "status": "statically-verified",
+            "lastSuccessfulStage": "composed",
+            "stages": {
+              "created": true,
+              "registered": true,
+              "composed": true,
+              "verified": false
+            },
+            "blockers": [],
+            "instanceIds": [
+              "business-notes-main"
+            ]
+          },
+          "verification": {
+            "static": "pass",
+            "runtime": "not-run",
+            "geometry": "not-run",
+            "interaction": "not-run"
+          }
+        }
+      ]
+    },
+    "hostCalls": [
+      {
+        "operation": "inspect_ui_plugin_source_references",
+        "input": {
+          "pluginId": "business-notes"
+        },
+        "result": {
+          "pluginId": "business-notes"
+        },
+        "resultSha256": "d3d56cf63da8ddaac7e14b1b2f9c179390a88290834dd82b696c001eda4d0d94"
+      }
+    ],
+    "prepareDecisions": [
+      {
+        "input": {
+          "delivery_contract": "capability='业务备注侧栏：允许添加备注、查看当前内存中的备注列表，并通过可访问说明弹层查看用途说明。' renderingCategory='panel' placement='在当前 root Sidebar（snapshot ref l0）中新增 business-notes 导航项，追加到现有 history 项之后；复用 Host Sidebar 桌面面板与窄屏 Sheet，不增加会话 Row 或横向轨道。' lifecycle='通过 AppUIModel 的 Sidebar item 挂载一个 Plugin；备注数据仅由 Plugin React useState 持有，不持久化、不调用后端或 Service。弹层开启时按需呈现，关闭后焦点返回打开按钮。' dependencies=[] reusedComponents=['src/design-system/Button', 'src/design-system/Input', 'src/design-system/Card', 'Agent UI unified useAgentUILocale'] verificationMethod='runtime' geometry=[] interactions=['添加非空备注并显示在列表中；空白输入不添加', '初始无备注时显示空列表状态', '打开和关闭说明弹层，Escape 可关闭且焦点返回打开按钮', '桌面 Sidebar 与窄屏 Sidebar Sheet 中可用，适配明暗主题']",
+          "work_kind": "create-plugin",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "创建并挂载独立 business-notes UI Plugin，放入当前 Sidebar 的新导航项。提供备注输入与添加功能、空白校验和空列表状态；说明按钮打开可关闭的键盘可访问弹层，关闭/按 Escape 后焦点返回触发按钮。用 React 本地状态，支持现有明暗主题和窄视图，不增加依赖、不接后端/Service、不修改 vendor、Runtime 或 framework；所有新文案进入统一 Agent UI locale 类型及 en-US、zh-CN 字典。",
+          "missing_capabilities": [
+            "当前已选能力中没有业务备注表单、备注本地列表与说明弹层的组合能力",
+            "当前 Plugin manifest/Composition 没有该业务 Sidebar 导航项"
+          ],
+          "reuse_evidence_refs": [
+            "src/agent-ui/plugins/conversation-thread-list/index.tsx",
+            "src/agent-ui/plugins/conversation-thread-list/definition.ts"
+          ],
+          "ui_scope": "复用 src/App.tsx 实际渲染的项目自有 src/design-system Button/Input/Card；公开来源为 src/design-system/index.tsx，主题变量来自 system.css 的 .acme-host light/dark tokens，App.tsx 将 AgentMount 放在该主题容器内。ConfigProvider 仅被导出为 LegacyProvider，页面未用它包裹 UI；故不选择 Ant Design，也不以 @agent-ui/react 控件替换宿主控件。说明弹层用原生语义 dialog 并在 Plugin scoped CSS 中沿用宿主 tokens，不新增依赖。",
+          "data_scope": "Plugin 内 useState 管理备注和弹层状态；无 Service、后端、Runtime 状态或持久化。",
+          "excluded_operations": [
+            "不新增、安装或升级依赖",
+            "不修改 assistant-ui vendor、Agent Runtime、framework 或服务契约",
+            "不新增 Service、后端 API 或 Frontend Tool"
+          ],
+          "component_basis_refs": [
+            "src/App.tsx",
+            "src/AgentMount.tsx",
+            "src/design-system/index.tsx",
+            "src/design-system/system.css"
+          ]
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "8ab5e338-f7ab-4164-946b-c2b291e32f58",
+          "scopeHash": "f23a675ef3fbea7f8d262267474f02f8264527025d0c099668c2130e61432f14",
+          "workKind": "create-plugin",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "创建并挂载独立 business-notes UI Plugin，放入当前 Sidebar 的新导航项。提供备注输入与添加功能、空白校验和空列表状态；说明按钮打开可关闭的键盘可访问弹层，关闭/按 Escape 后焦点返回触发按钮。用 React 本地状态，支持现有明暗主题和窄视图，不增加依赖、不接后端/Service、不修改 vendor、Runtime 或 framework；所有新文案进入统一 Agent UI locale 类型及 en-US、zh-CN 字典。",
+          "missingCapabilities": [
+            "当前已选能力中没有业务备注表单、备注本地列表与说明弹层的组合能力",
+            "当前 Plugin manifest/Composition 没有该业务 Sidebar 导航项"
+          ],
+          "reuseEvidenceRefs": [
+            "src/agent-ui/plugins/conversation-thread-list/index.tsx",
+            "src/agent-ui/plugins/conversation-thread-list/definition.ts"
+          ],
+          "uiScope": "复用 src/App.tsx 实际渲染的项目自有 src/design-system Button/Input/Card；公开来源为 src/design-system/index.tsx，主题变量来自 system.css 的 .acme-host light/dark tokens，App.tsx 将 AgentMount 放在该主题容器内。ConfigProvider 仅被导出为 LegacyProvider，页面未用它包裹 UI；故不选择 Ant Design，也不以 @agent-ui/react 控件替换宿主控件。说明弹层用原生语义 dialog 并在 Plugin scoped CSS 中沿用宿主 tokens，不新增依赖。",
+          "dataScope": "Plugin 内 useState 管理备注和弹层状态；无 Service、后端、Runtime 状态或持久化。",
+          "excludedOperations": [
+            "不新增、安装或升级依赖",
+            "不修改 assistant-ui vendor、Agent Runtime、framework 或服务契约",
+            "不新增 Service、后端 API 或 Frontend Tool"
+          ],
+          "componentBasisRefs": [
+            "src/App.tsx",
+            "src/AgentMount.tsx",
+            "src/design-system/index.tsx",
+            "src/design-system/system.css"
+          ],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "业务备注侧栏：允许添加备注、查看当前内存中的备注列表，并通过可访问说明弹层查看用途说明。",
+            "renderingCategory": "panel",
+            "placement": "在当前 root Sidebar（snapshot ref l0）中新增 business-notes 导航项，追加到现有 history 项之后；复用 Host Sidebar 桌面面板与窄屏 Sheet，不增加会话 Row 或横向轨道。",
+            "lifecycle": "通过 AppUIModel 的 Sidebar item 挂载一个 Plugin；备注数据仅由 Plugin React useState 持有，不持久化、不调用后端或 Service。弹层开启时按需呈现，关闭后焦点返回打开按钮。",
+            "dependencies": [],
+            "reusedComponents": [
+              "src/design-system/Button",
+              "src/design-system/Input",
+              "src/design-system/Card",
+              "Agent UI unified useAgentUILocale"
+            ],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": [
+              "添加非空备注并显示在列表中；空白输入不添加",
+              "初始无备注时显示空列表状态",
+              "打开和关闭说明弹层，Escape 可关闭且焦点返回打开按钮",
+              "桌面 Sidebar 与窄屏 Sidebar Sheet 中可用，适配明暗主题"
+            ]
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='独立业务备注 Sidebar 页面：备注输入、添加、列表展示、空白输入不添加、空状态和用途说明弹层。' renderingCategory='panel' placement='在当前 root Sidebar Layout 节点 l0 新增 business-notes 导航项，紧接现有 history 项之后；复用 Host Sidebar 在桌面和窄屏 Sheet 中的呈现，不触碰主会话 Row/横向轨道。' lifecycle='作为独立 project-owned Plugin 挂载到 Sidebar item；备注和说明弹层状态使用 Plugin 本地 React useState，按 Sidebar 项启用时显示，不持久化、不使用后端或 Service。说明弹层关闭/Escape 后只关闭顶层弹层，父 Sidebar 抽屉保持打开，焦点返回打开说明按钮。' dependencies=[] reusedComponents=['src/design-system/Button', 'src/design-system/Input', 'src/design-system/Card', 'Agent UI unified useAgentUILocale'] verificationMethod='runtime' geometry=[] interactions=['添加非空备注并显示在列表中；空白输入不添加', '初始无备注时显示空列表状态', '打开和关闭说明弹层；Escape 仅关闭顶层说明弹层，父 Sidebar 抽屉保留，焦点返回打开按钮', '桌面 Sidebar 与窄屏 Sidebar Sheet 中可用，适配宿主明暗主题']",
+          "work_kind": "create-plugin",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "创建并挂载独立 business-notes UI Plugin，加入现有 Sidebar 的 history 之后作为新导航项，不新增或改变主会话横向轨道。实现备注输入、添加、当前列表、空白校验、空状态、说明弹层；说明支持 Esc 只关闭顶层且焦点返回触发按钮，父 Sidebar 抽屉保持打开。备注仅本地 React 状态；所有呈现文案通过 Agent UI locale 类型和 en-US / zh-CN 字典；沿用宿主深浅主题，不新增依赖，不改 Runtime/framework/vendor，不复制其他宿主插件。",
+          "missing_capabilities": [
+            "完整能力盘点确认当前插件和可用 Source Items 均无业务备注输入/本地列表/说明弹层能力；Sidebar 目前仅有 history 导航项。"
+          ],
+          "reuse_evidence_refs": [
+            "src/agent-ui/plugins/conversation-thread-list/manifest.json",
+            "src/agent-ui/plugins/conversation-thread-list/index.tsx",
+            "src/agent-ui/plugins/conversation-thread-list/definition.ts",
+            "inspect_agent_ui_sources:inventoryComplete=true; no matching business-notes capability"
+          ],
+          "ui_scope": "选择宿主自己的 Design System：真实页面 /src/App.tsx 使用并渲染来自 /src/design-system 的 Button、Input、Card；/src/design-system/index.tsx 的公开导出是包装原生 button/input/section 的 acme-button/acme-input/acme-card；/src/design-system/system.css 定义 .acme-host 明暗色变量及边框、背景、文字、主色、圆角；App 将 AgentMount 放在主题容器中，AgentMount 直接返回 Agent 且使用 Agent locale hook，确认 Plugin 位于主题继承的 React/DOM 子树内。原生 dialog 用于语义化说明弹层，并在本地处理 Esc/关闭/焦点恢复，不重写父 Sidebar。App.tsx 虽导入 antd ConfigProvider，但仅作为 LegacyProvider 导出，没有用于页面 UI；故不选 Ant Design。也不以 @agent-ui/react",
+          "data_scope": "Plugin 内 useState 持有备注数组、输入和弹层状态；本地、非持久化；无共享 Service、后端、Runtime 状态、Frontend Tool。",
+          "excluded_operations": [
+            "不新增、安装或升级任何依赖",
+            "不修改 Agent Runtime、framework、vendor、父 Sidebar 或宿主页面",
+            "不新增 Service、后端 API、Frontend Tool 或横向 Layout 轨道",
+            "不复用/复制其他宿主的 business-notes 插件"
+          ],
+          "component_basis_refs": [
+            "src/App.tsx",
+            "src/AgentMount.tsx",
+            "src/design-system/index.tsx",
+            "src/design-system/system.css"
+          ]
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "e8f50405-6243-4cf4-93e3-f0b24cf2106c",
+          "scopeHash": "83b9589b38f592bc121328d17e8f98ba2488d1fd9e6d39f425555fb70ad296af",
+          "workKind": "create-plugin",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "创建并挂载独立 business-notes UI Plugin，加入现有 Sidebar 的 history 之后作为新导航项，不新增或改变主会话横向轨道。实现备注输入、添加、当前列表、空白校验、空状态、说明弹层；说明支持 Esc 只关闭顶层且焦点返回触发按钮，父 Sidebar 抽屉保持打开。备注仅本地 React 状态；所有呈现文案通过 Agent UI locale 类型和 en-US / zh-CN 字典；沿用宿主深浅主题，不新增依赖，不改 Runtime/framework/vendor，不复制其他宿主插件。",
+          "missingCapabilities": [
+            "完整能力盘点确认当前插件和可用 Source Items 均无业务备注输入/本地列表/说明弹层能力；Sidebar 目前仅有 history 导航项。"
+          ],
+          "reuseEvidenceRefs": [
+            "src/agent-ui/plugins/conversation-thread-list/manifest.json",
+            "src/agent-ui/plugins/conversation-thread-list/index.tsx",
+            "src/agent-ui/plugins/conversation-thread-list/definition.ts",
+            "inspect_agent_ui_sources:inventoryComplete=true; no matching business-notes capability"
+          ],
+          "uiScope": "选择宿主自己的 Design System：真实页面 /src/App.tsx 使用并渲染来自 /src/design-system 的 Button、Input、Card；/src/design-system/index.tsx 的公开导出是包装原生 button/input/section 的 acme-button/acme-input/acme-card；/src/design-system/system.css 定义 .acme-host 明暗色变量及边框、背景、文字、主色、圆角；App 将 AgentMount 放在主题容器中，AgentMount 直接返回 Agent 且使用 Agent locale hook，确认 Plugin 位于主题继承的 React/DOM 子树内。原生 dialog 用于语义化说明弹层，并在本地处理 Esc/关闭/焦点恢复，不重写父 Sidebar。App.tsx 虽导入 antd ConfigProvider，但仅作为 LegacyProvider 导出，没有用于页面 UI；故不选 Ant Design。也不以 @agent-ui/react",
+          "dataScope": "Plugin 内 useState 持有备注数组、输入和弹层状态；本地、非持久化；无共享 Service、后端、Runtime 状态、Frontend Tool。",
+          "excludedOperations": [
+            "不新增、安装或升级任何依赖",
+            "不修改 Agent Runtime、framework、vendor、父 Sidebar 或宿主页面",
+            "不新增 Service、后端 API、Frontend Tool 或横向 Layout 轨道",
+            "不复用/复制其他宿主的 business-notes 插件"
+          ],
+          "componentBasisRefs": [
+            "src/App.tsx",
+            "src/AgentMount.tsx",
+            "src/design-system/index.tsx",
+            "src/design-system/system.css"
+          ],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "独立业务备注 Sidebar 页面：备注输入、添加、列表展示、空白输入不添加、空状态和用途说明弹层。",
+            "renderingCategory": "panel",
+            "placement": "在当前 root Sidebar Layout 节点 l0 新增 business-notes 导航项，紧接现有 history 项之后；复用 Host Sidebar 在桌面和窄屏 Sheet 中的呈现，不触碰主会话 Row/横向轨道。",
+            "lifecycle": "作为独立 project-owned Plugin 挂载到 Sidebar item；备注和说明弹层状态使用 Plugin 本地 React useState，按 Sidebar 项启用时显示，不持久化、不使用后端或 Service。说明弹层关闭/Escape 后只关闭顶层弹层，父 Sidebar 抽屉保持打开，焦点返回打开说明按钮。",
+            "dependencies": [],
+            "reusedComponents": [
+              "src/design-system/Button",
+              "src/design-system/Input",
+              "src/design-system/Card",
+              "Agent UI unified useAgentUILocale"
+            ],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": [
+              "添加非空备注并显示在列表中；空白输入不添加",
+              "初始无备注时显示空列表状态",
+              "打开和关闭说明弹层；Escape 仅关闭顶层说明弹层，父 Sidebar 抽屉保留，焦点返回打开按钮",
+              "桌面 Sidebar 与窄屏 Sidebar Sheet 中可用，适配宿主明暗主题"
+            ]
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='独立业务备注 Sidebar 页面：备注输入、非空添加、当前列表、空状态和用途说明弹层；沿用现有插件实现。' renderingCategory='panel' placement='使用当前 Composition Snapshot 中 root Sidebar（l0）新增 business-notes 导航项，追加到现有 history 项之后；复用 Host Sidebar 桌面面板与窄屏 Sheet，不新增或改变主会话 Row/横向轨道。' lifecycle='复用现有 business-notes Plugin identity 和已验证源码；通过 AppUIModel Sidebar item 挂载，备注与说明弹层状态保持 Plugin 本地 React state，无持久化、后端或 Service。此交付阶段不修改 Plugin 源码。' dependencies=[] reusedComponents=['现有 /src/agent-ui/plugins/business-notes 实现及统一 Agent UI locale、宿主 theme tokens'] verificationMethod='runtime' geometry=[] interactions=['添加非空备注并显示在列表中；空白输入不添加', '初始无备注时显示空列表状态', '打开和关闭说明弹层；Escape 关闭后焦点返回打开按钮', '桌面 Sidebar 与窄屏 Sidebar Sheet 中可用，适配宿主明暗主题']",
+          "work_kind": "extend-capability",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "完成当前既有 business-notes 插件的未完成交付阶段：不创建新身份、不改已验证源码；将现有 Plugin 作为 Sidebar 新导航项挂载在 history 之后，复用窄屏 Sidebar 抽屉且不改变主会话横向轨道。随后执行当前修订的 validate_creator_changes(includeBuild=true)，并检查最终 Registry、Composition 与 Plugin delivery 回执。当前 static_only 策略下只报告静态验证，不宣称浏览器或 Runtime 验证。",
+          "missing_capabilities": [
+            "现有 business-notes Plugin 尚未选入 Composition；当前 Sidebar 只有 history 项，因此待完成 Sidebar 导航项挂载。"
+          ],
+          "reuse_evidence_refs": [
+            "/prepare-observations.json 中 business-notes 的既有授权计划与交付范围",
+            "当前 Composition Snapshot：business-notes 已存在且未选择；Sidebar 仅含 history 导航项"
+          ],
+          "ui_scope": "本次仅复用已有并已验证的 business-notes 源码和它既有的宿主 UI/locale/theme 约定；不改任何 UI 源码、依赖、宿主控件或主题集成。",
+          "data_scope": "保持现有 Plugin 内存状态实现；本次不扩展、不迁移数据，也不增加 Service、后端、Runtime 状态或持久化。",
+          "excluded_operations": [
+            "不创建新的 Plugin identity，不重复创建或修改现有源码",
+            "不新增、安装或升级依赖",
+            "不改 Agent Runtime、framework、vendor、宿主页面或 Service 契约",
+            "不新增会话 Row、横向轨道、后端 API 或 Frontend Tool",
+            "不将 static_only 结果描述为浏览器或 Runtime 验证"
+          ],
+          "component_basis_refs": []
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "5cd85b83-cba8-4e51-b83e-4db631182286",
+          "scopeHash": "7e601c21ea752705f2ef63977250149a3553c034dd51d32fc988ed3a09d9701c",
+          "workKind": "extend-capability",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "完成当前既有 business-notes 插件的未完成交付阶段：不创建新身份、不改已验证源码；将现有 Plugin 作为 Sidebar 新导航项挂载在 history 之后，复用窄屏 Sidebar 抽屉且不改变主会话横向轨道。随后执行当前修订的 validate_creator_changes(includeBuild=true)，并检查最终 Registry、Composition 与 Plugin delivery 回执。当前 static_only 策略下只报告静态验证，不宣称浏览器或 Runtime 验证。",
+          "missingCapabilities": [
+            "现有 business-notes Plugin 尚未选入 Composition；当前 Sidebar 只有 history 项，因此待完成 Sidebar 导航项挂载。"
+          ],
+          "reuseEvidenceRefs": [
+            "/prepare-observations.json 中 business-notes 的既有授权计划与交付范围",
+            "当前 Composition Snapshot：business-notes 已存在且未选择；Sidebar 仅含 history 导航项"
+          ],
+          "uiScope": "本次仅复用已有并已验证的 business-notes 源码和它既有的宿主 UI/locale/theme 约定；不改任何 UI 源码、依赖、宿主控件或主题集成。",
+          "dataScope": "保持现有 Plugin 内存状态实现；本次不扩展、不迁移数据，也不增加 Service、后端、Runtime 状态或持久化。",
+          "excludedOperations": [
+            "不创建新的 Plugin identity，不重复创建或修改现有源码",
+            "不新增、安装或升级依赖",
+            "不改 Agent Runtime、framework、vendor、宿主页面或 Service 契约",
+            "不新增会话 Row、横向轨道、后端 API 或 Frontend Tool",
+            "不将 static_only 结果描述为浏览器或 Runtime 验证"
+          ],
+          "componentBasisRefs": [],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "独立业务备注 Sidebar 页面：备注输入、非空添加、当前列表、空状态和用途说明弹层；沿用现有插件实现。",
+            "renderingCategory": "panel",
+            "placement": "使用当前 Composition Snapshot 中 root Sidebar（l0）新增 business-notes 导航项，追加到现有 history 项之后；复用 Host Sidebar 桌面面板与窄屏 Sheet，不新增或改变主会话 Row/横向轨道。",
+            "lifecycle": "复用现有 business-notes Plugin identity 和已验证源码；通过 AppUIModel Sidebar item 挂载，备注与说明弹层状态保持 Plugin 本地 React state，无持久化、后端或 Service。此交付阶段不修改 Plugin 源码。",
+            "dependencies": [],
+            "reusedComponents": [
+              "现有 /src/agent-ui/plugins/business-notes 实现及统一 Agent UI locale、宿主 theme tokens"
+            ],
+            "verificationMethod": "runtime",
+            "geometry": [],
+            "interactions": [
+              "添加非空备注并显示在列表中；空白输入不添加",
+              "初始无备注时显示空列表状态",
+              "打开和关闭说明弹层；Escape 关闭后焦点返回打开按钮",
+              "桌面 Sidebar 与窄屏 Sidebar Sheet 中可用，适配宿主明暗主题"
+            ]
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability='修复 business-notes 现有面板的 Design System 字体继承、按实际容器宽度自适应换行/收缩，以及原生 modal dialog 视口内居中与限界；不改变业务功能或 Composition。' renderingCategory='panel' placement='保留当前已挂载的 business-notes Sidebar 面板位置，不移动、不重挂载。' lifecycle='只修改现有 business-notes Plugin 的局部呈现样式及必要的局部布局标记；保留既有 React 状态、原生 showModal 生命周期、Esc/onCancel 与焦点恢复行为。' dependencies=[] reusedComponents=['现有 Design System Button', '现有 Design System Input', '现有 Design System Card', '原生 HTML dialog'] verificationMethod='browser-test' geometry=[] interactions=[]",
+          "work_kind": "extend-capability",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "只修复现有已创建、注册、挂载的 business-notes：从宿主 Design System 继承 Inter,system-ui,sans-serif；header、说明按钮、输入布局根据 Sidebar 实际面板容器宽度换行/收缩，避免水平溢出与内容裁切并保留窄屏可用性；局部恢复原生 modal dialog 在视口内合理居中并限制边界，同时保留原生 modal/inert semantics。不得新建或重挂载，不改 Runtime/framework/vendor/Composer/Sidebar/宿主页/基础CSS，不引入依赖或更换自研 Button/Input/Card；保留现有 Esc stopPropagation/onCancel、requestAnimationFrame 焦点恢复和双语 locale。",
+          "missing_capabilities": [
+            "当前 business-notes 样式未锁定宿主字体",
+            "布局断点依赖 viewport 且无法避免 Sidebar 容器内横向溢出",
+            "原生 dialog 被宿主 UA margin reset 影响而未显式居中和限界"
+          ],
+          "reuse_evidence_refs": [
+            "/src/agent-ui/plugins/business-notes/manifest.json",
+            "/src/agent-ui/plugins/business-notes/index.tsx",
+            "/src/agent-ui/plugins/business-notes/styles.css"
+          ],
+          "ui_scope": "继续使用 Plugin 当前导入的项目自研 Design System Button/Input/Card（/src/design-system/index.tsx）；宿主页面 /src/App.tsx 同样使用这些控件并加载 /src/design-system/system.css，实际字体约定为 Inter,system-ui,sans-serif。dialog 保持原生 HTML，不引入 Ant Design、AgentUI 控件或新依赖。",
+          "data_scope": "无数据、业务行为、Runtime、Service、Agent contract 或 locale 变更。",
+          "excluded_operations": [
+            "不新建 Plugin、不复制 Plugin、不改变 pluginId",
+            "不修改 AppUIModel，不新增/删除/移动/重挂载实例",
+            "不修改宿主页、Sidebar、Design System 基础 CSS、Runtime、framework、vendor 或 Composer",
+            "不改变业务组、说明内容、locale、Esc/onCancel 与焦点恢复交互",
+            "不引入依赖或更换 Design System 控件"
+          ],
+          "component_basis_refs": [
+            "/src/App.tsx",
+            "/src/design-system/index.tsx",
+            "/src/design-system/system.css"
+          ]
+        },
+        "result": {
+          "status": "pending",
+          "proposalId": "da04d351-58b8-4cab-8ca2-419c6bf2e5cd",
+          "scopeHash": "de036cb02e9a525514804928a0f523d83bb4b1db4665c4b3c56addb0321f6203",
+          "workKind": "extend-capability",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "只修复现有已创建、注册、挂载的 business-notes：从宿主 Design System 继承 Inter,system-ui,sans-serif；header、说明按钮、输入布局根据 Sidebar 实际面板容器宽度换行/收缩，避免水平溢出与内容裁切并保留窄屏可用性；局部恢复原生 modal dialog 在视口内合理居中并限制边界，同时保留原生 modal/inert semantics。不得新建或重挂载，不改 Runtime/framework/vendor/Composer/Sidebar/宿主页/基础CSS，不引入依赖或更换自研 Button/Input/Card；保留现有 Esc stopPropagation/onCancel、requestAnimationFrame 焦点恢复和双语 locale。",
+          "missingCapabilities": [
+            "当前 business-notes 样式未锁定宿主字体",
+            "布局断点依赖 viewport 且无法避免 Sidebar 容器内横向溢出",
+            "原生 dialog 被宿主 UA margin reset 影响而未显式居中和限界"
+          ],
+          "reuseEvidenceRefs": [
+            "/src/agent-ui/plugins/business-notes/manifest.json",
+            "/src/agent-ui/plugins/business-notes/index.tsx",
+            "/src/agent-ui/plugins/business-notes/styles.css"
+          ],
+          "uiScope": "继续使用 Plugin 当前导入的项目自研 Design System Button/Input/Card（/src/design-system/index.tsx）；宿主页面 /src/App.tsx 同样使用这些控件并加载 /src/design-system/system.css，实际字体约定为 Inter,system-ui,sans-serif。dialog 保持原生 HTML，不引入 Ant Design、AgentUI 控件或新依赖。",
+          "dataScope": "无数据、业务行为、Runtime、Service、Agent contract 或 locale 变更。",
+          "excludedOperations": [
+            "不新建 Plugin、不复制 Plugin、不改变 pluginId",
+            "不修改 AppUIModel，不新增/删除/移动/重挂载实例",
+            "不修改宿主页、Sidebar、Design System 基础 CSS、Runtime、framework、vendor 或 Composer",
+            "不改变业务组、说明内容、locale、Esc/onCancel 与焦点恢复交互",
+            "不引入依赖或更换 Design System 控件"
+          ],
+          "componentBasisRefs": [
+            "/src/App.tsx",
+            "/src/design-system/index.tsx",
+            "/src/design-system/system.css"
+          ],
+          "grantSource": null,
+          "deliveryContract": {
+            "capability": "修复 business-notes 现有面板的 Design System 字体继承、按实际容器宽度自适应换行/收缩，以及原生 modal dialog 视口内居中与限界；不改变业务功能或 Composition。",
+            "renderingCategory": "panel",
+            "placement": "保留当前已挂载的 business-notes Sidebar 面板位置，不移动、不重挂载。",
+            "lifecycle": "只修改现有 business-notes Plugin 的局部呈现样式及必要的局部布局标记；保留既有 React 状态、原生 showModal 生命周期、Esc/onCancel 与焦点恢复行为。",
+            "dependencies": [],
+            "reusedComponents": [
+              "现有 Design System Button",
+              "现有 Design System Input",
+              "现有 Design System Card",
+              "原生 HTML dialog"
+            ],
+            "verificationMethod": "browser-test",
+            "geometry": [],
+            "interactions": []
+          },
+          "deliveryScope": "full"
+        }
+      },
+      {
+        "input": {
+          "delivery_contract": "capability=\"Repair the existing business-notes panel's Plugin-scoped font parity, panel-width-responsive layout, and native help-dialog positioning without changing behavior or composition.\" renderingCategory='panel' placement='The already selected and mounted business-notes panel instance in its current Layout; no relocation, recreation, or remount.' lifecycle='CSS-only extension of the existing business-notes Plugin; preserve its registration, mounted instance, locale, dialog interaction semantics, Escape handling, and focus restoration.' dependencies=[] reusedComponents=['Project Button', 'Input', 'Card from the existing design-system exports'] verificationMethod='browser-test' geometry=[] interactions=[]",
+          "work_kind": "extend-capability",
+          "target_plugin_id": "business-notes",
+          "desired_outcome": "Fix only the approved Plugin's remaining real-browser styling defects: match the Host's Inter,system-ui,sans-serif typography locally; prevent English header/help-trigger and input layout from overflowing or clipping at the actual panel width, including narrow panels on a wide viewport; and locally center and constrain the native modal dialog within the viewport. Do not modify behavior, locale, Runtime, framework, vendor, Composer, Sidebar, Host page, or base CSS; do not create or remount a Plugin.",
+          "missing_capabilities": [
+            "The existing Plugin does not enforce Host typography for its controls and dialog.",
+            "Responsive styling is keyed to viewport width and does not wrap/shrink correctly at the actual panel width.",
+            "The native dialog lacks explicit local centering and viewport bounds when Host base styles reset its UA margin."
+          ],
+          "reuse_evidence_refs": [
+            "business-notes existing Plugin source at /src/agent-ui/plugins/business-notes/index.tsx and /src/agent-ui/plugins/business-notes/styles.css was inspected; it already uses project Button, Input, and Card and owns the dialog behavior."
+          ],
+          "ui_scope": "Existing Host UI selection is the project-owned design-system Button/Input/Card imported by /src/App.tsx and by the Plugin. /src/design-system/system.css defines the Host's Inter,system-ui,sans-serif font and acme control styles. App.tsx loads that stylesheet around AgentMount. Keep those public controls and copy their font convention only in Plugin-scoped CSS. Do not add Ant Design or AgentUI controls: Ant Design is not used for this mounted form, and no new dependency or Provider change is in/",
+          "data_scope": "No data, state, service, or Runtime changes; styles only.",
+          "excluded_operations": [
+            "No new Plugin identity or files",
+            "No AppUIModel or composition changes; preserve current registered mounted instance",
+            "No Runtime, framework, vendor, Composer, Sidebar, Host page, or base design-system CSS edits",
+            "No behavior, locale, or dependency changes"
+          ],
+          "component_basis_refs": [
+            "/src/App.tsx",
+            "/src/design-system/system.css"
+          ]
+        },
+        "result": {
+          "status": "authorized",
+          "proposalId": "f9f1895d-db62-4fc2-8239-88acfad156f3",
+          "scopeHash": "6a60e3f98f256710a110394f0721f4ff627dd1206696f7b36fe7b5c1b257627f",
+          "workKind": "extend-capability",
+          "targetPluginId": "business-notes",
+          "desiredOutcome": "Fix only the approved Plugin's remaining real-browser styling defects: match the Host's Inter,system-ui,sans-serif typography locally; prevent English header/help-trigger and input layout from overflowing or clipping at the actual panel width, including narrow panels on a wide viewport; and locally center and constrain the native modal dialog within the viewport. Do not modify behavior, locale, Runtime, framework, vendor, Composer, Sidebar, Host page, or base CSS; do not create or remount a Plugin.",
+          "missingCapabilities": [
+            "The existing Plugin does not enforce Host typography for its controls and dialog.",
+            "Responsive styling is keyed to viewport width and does not wrap/shrink correctly at the actual panel width.",
+            "The native dialog lacks explicit local centering and viewport bounds when Host base styles reset its UA margin."
+          ],
+          "reuseEvidenceRefs": [
+            "business-notes existing Plugin source at /src/agent-ui/plugins/business-notes/index.tsx and /src/agent-ui/plugins/business-notes/styles.css was inspected; it already uses project Button, Input, and Card and owns the dialog behavior."
+          ],
+          "uiScope": "Existing Host UI selection is the project-owned design-system Button/Input/Card imported by /src/App.tsx and by the Plugin. /src/design-system/system.css defines the Host's Inter,system-ui,sans-serif font and acme control styles. App.tsx loads that stylesheet around AgentMount. Keep those public controls and copy their font convention only in Plugin-scoped CSS. Do not add Ant Design or AgentUI controls: Ant Design is not used for this mounted form, and no new dependency or Provider change is in/",
+          "dataScope": "No data, state, service, or Runtime changes; styles only.",
+          "excludedOperations": [
+            "No new Plugin identity or files",
+            "No AppUIModel or composition changes; preserve current registered mounted instance",
+            "No Runtime, framework, vendor, Composer, Sidebar, Host page, or base design-system CSS edits",
+            "No behavior, locale, or dependency changes"
+          ],
+          "componentBasisRefs": [
+            "/src/App.tsx",
+            "/src/design-system/system.css"
+          ],
+          "grantSource": "explicit-request",
+          "deliveryContract": {
+            "capability": "Repair the existing business-notes panel's Plugin-scoped font parity, panel-width-responsive layout, and native help-dialog positioning without changing behavior or composition.",
+            "renderingCategory": "panel",
+            "placement": "The already selected and mounted business-notes panel instance in its current Layout; no relocation, recreation, or remount.",
+            "lifecycle": "CSS-only extension of the existing business-notes Plugin; preserve its registration, mounted instance, locale, dialog interaction semantics, Escape handling, and focus restoration.",
+            "dependencies": [],
+            "reusedComponents": [
+              "Project Button",
+              "Input",
+              "Card from the existing design-system exports"
+            ],
+            "verificationMethod": "browser-test",
+            "geometry": [],
+            "interactions": []
+          },
+          "deliveryScope": "full"
+        }
+      }
+    ]
+  }
+}

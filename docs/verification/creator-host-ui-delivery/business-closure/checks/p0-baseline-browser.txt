@@ -1,0 +1,49 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+______________ test_behavior_tool_runs_real_project_browser_tests ______________
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-632/test_behavior_tool_runs_real_p0')
+
+    def test_behavior_tool_runs_real_project_browser_tests(tmp_path):
+        """Exercise the Host runner/report boundary; this is not a live Creator evaluation."""
+        import shutil
+        from pathlib import Path
+        repository = Path(__file__).resolve().parents[3]
+        modules = repository / "apps/creator-workbench/node_modules"
+        if not Path("/Applications/Google Chrome.app").exists() or not (modules / "@playwright/test").exists():
+            pytest.skip("Requires local Chrome and installed workspace Playwright")
+        shutil.copytree(Path(__file__).parent / "fixtures/delivery-browser", tmp_path, dirs_exist_ok=True)
+        (tmp_path / "node_modules").symlink_to(modules, target_is_directory=True)
+        # The fixture uses CJS; the public tool supports this standard Playwright config too.
+        write(tmp_path, "package.json", {"devDependencies": {"@playwright/test": "installed"}})
+        activity = CreatorActivityRecorder(tmp_path)
+        activity.begin("browser")
+        active = SimpleNamespace(status="authorized", target_plugin_id="checklist", scope_hash="scope",
+                                 delivery_contract={**CONTRACT, "interactions": ["check", "filter", "reset"]})
+        tool = create_plugin_behavior_tool(authority=SimpleNamespace(active=active), activity=activity)
+        result = json.loads(asyncio.run(tool.ainvoke({})))
+        assert result["ok"] is True, result
+>       assert result["result"]["status"] == "passed", activity.snapshot()["validations"]
+E       AssertionError: [{'command': 'playwright delivery', 'exitCode': 1, 'output': "node:internal/modules/cjs/loader:1568
+E           throw err;
+E           ^.../run_main_module:33:47 {
+E           code: 'MODULE_NOT_FOUND',
+E           requireStack: []
+E         }
+E         
+E         Node.js v24.20.0", 'revision': 0, ...}]
+E       assert 'failed' == 'passed'
+E         
+E         - passed
+E         + failed
+
+packages/creator-python/tests/test_plugin_delivery.py:304: AssertionError
+=============================== warnings summary ===============================
+../../../../../../../../Coding/AgentUICreator/packages/creator-python/.venv/lib/python3.14/site-packages/google/genai/types.py:42
+  /Users/yifei/Coding/AgentUICreator/packages/creator-python/.venv/lib/python3.14/site-packages/google/genai/types.py:42: DeprecationWarning: '_UnionGenericAlias' is deprecated and slated for removal in Python 3.17
+    VersionedUnionType = Union[builtin_types.UnionType, _UnionGenericAlias]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED packages/creator-python/tests/test_plugin_delivery.py::test_behavior_tool_runs_real_project_browser_tests
+1 failed, 1 warning in 1.22s

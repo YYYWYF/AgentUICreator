@@ -1,0 +1,169 @@
+{
+  "A": {
+    "rawEvidenceDirectory": "/Users/yifei/.codex/visualizations/2026/10/09/01a11ec8-65e6-7c82-a29d-c24c3262dc4b/business-closure/raw/attempt-responses-A-focus-fixed",
+    "completion": "success",
+    "deliveries": [
+      {
+        "pluginId": "business-notes",
+        "projectRevision": 1,
+        "decision": {
+          "type": "extend-capability"
+        },
+        "deliveryScope": "full",
+        "authorization": {
+          "status": "authorized",
+          "grantSource": "explicit-request"
+        },
+        "contract": {
+          "capability": "修复现有 business-notes 说明原生 dialog 关闭后的焦点恢复：dialog 与 React 节点移除后，将焦点返回打开说明按钮；Escape 和关闭按钮两条路径均适用，同时保持宿主 Sidebar 打开、备注保留、原生 modal/Tab/inert 语义。",
+          "renderingCategory": "semantic-slot",
+          "placement": "保持当前 Sidebar item business-notes 下已挂载的 business-notes-main 实例不变；不进行 Composition 变更。",
+          "lifecycle": "仅在现有 business-notes 插件的 index.tsx 内调整 dialog 关闭与焦点恢复时机；保留 Escape stopPropagation、原生 showModal、父级 Sidebar 与宿主框架不变。",
+          "dependencies": [],
+          "reusedComponents": [
+            "现有 React 状态与 refs",
+            "宿主 Design System Button",
+            "原生 HTML dialog 的 modal 与焦点语义",
+            "当前业务备注列表和 locale，不改变数据或文案"
+          ],
+          "verificationMethod": "browser-test",
+          "geometry": [],
+          "interactions": [
+            "420px 下从说明按钮打开原生 dialog，按 Escape 后仅关闭说明 dialog，Sidebar 保持打开、备注保留，焦点在 dialog 卸载后返回打开说明按钮。",
+            "使用 dialog 内关闭按钮关闭时，同样在 dialog 卸载后恢复打开说明按钮焦点。",
+            "dialog 打开期间 Tab/Shift+Tab 继续由原生 modal dialog 限制，底层保持 inert。"
+          ]
+        },
+        "delivery": {
+          "status": "statically-verified",
+          "lastSuccessfulStage": "composed",
+          "stages": {
+            "created": true,
+            "registered": true,
+            "composed": true,
+            "verified": false
+          },
+          "blockers": [],
+          "instanceIds": [
+            "business-notes-main"
+          ]
+        },
+        "verification": {
+          "static": "pass",
+          "runtime": "not-run",
+          "geometry": "not-run",
+          "interaction": "not-run"
+        }
+      }
+    ],
+    "note": "A 的后续字体定制为普通源码定制，无新开发提案；最终构建回执另见 validation-receipts.json。"
+  },
+  "B": {
+    "rawEvidenceDirectory": "/Users/yifei/.codex/visualizations/2026/10/09/01a11ec8-65e6-7c82-a29d-c24c3262dc4b/business-closure/raw/responses/B",
+    "completion": "success",
+    "deliveries": [
+      {
+        "pluginId": "business-notes",
+        "projectRevision": 2,
+        "decision": {
+          "type": "extend-capability"
+        },
+        "deliveryScope": "full",
+        "authorization": {
+          "status": "authorized",
+          "grantSource": "explicit-request"
+        },
+        "contract": {
+          "capability": "Complete the existing business-notes Plugin's scoped theme styling so Ant Design Input matches the Host's configured font, text color, container background, border and state tokens; Button and Typography use the Host font; and the help Modal consumes the same Host theme tokens across its Portal boundary.",
+          "renderingCategory": "panel",
+          "placement": "Preserve the existing mounted business-notes-main instance in its current Layout Slot; no Composition changes.",
+          "lifecycle": "Preserve the current React state, Modal open/close, overlay, Escape, Tab, and focus-return behavior; only complete Plugin-local theme styling.",
+          "dependencies": [
+            "Existing Ant Design controls and ConfigProvider theme tokens; no new dependencies or Service changes."
+          ],
+          "reusedComponents": [
+            "Existing Ant Design Input, Button, Typography, Modal, and theme.useToken usage in business-notes."
+          ],
+          "verificationMethod": "runtime",
+          "geometry": [],
+          "interactions": []
+        },
+        "delivery": {
+          "status": "statically-verified",
+          "lastSuccessfulStage": "composed",
+          "stages": {
+            "created": true,
+            "registered": true,
+            "composed": true,
+            "verified": false
+          },
+          "blockers": [],
+          "instanceIds": [
+            "business-notes-main"
+          ]
+        },
+        "verification": {
+          "static": "pass",
+          "runtime": "not-run",
+          "geometry": "not-run",
+          "interaction": "not-required"
+        }
+      }
+    ],
+    "note": null
+  },
+  "C": {
+    "rawEvidenceDirectory": "/Users/yifei/.codex/visualizations/2026/10/09/01a11ec8-65e6-7c82-a29d-c24c3262dc4b/business-closure/raw/responses/C",
+    "completion": "success",
+    "deliveries": [
+      {
+        "pluginId": "business-notes",
+        "projectRevision": 1,
+        "decision": {
+          "type": "extend-capability"
+        },
+        "deliveryScope": "full",
+        "authorization": {
+          "status": "authorized",
+          "grantSource": "explicit-request"
+        },
+        "contract": {
+          "capability": "Repair the existing business-notes panel's Plugin-scoped font parity, panel-width-responsive layout, and native help-dialog positioning without changing behavior or composition.",
+          "renderingCategory": "panel",
+          "placement": "The already selected and mounted business-notes panel instance in its current Layout; no relocation, recreation, or remount.",
+          "lifecycle": "CSS-only extension of the existing business-notes Plugin; preserve its registration, mounted instance, locale, dialog interaction semantics, Escape handling, and focus restoration.",
+          "dependencies": [],
+          "reusedComponents": [
+            "Project Button",
+            "Input",
+            "Card from the existing design-system exports"
+          ],
+          "verificationMethod": "browser-test",
+          "geometry": [],
+          "interactions": []
+        },
+        "delivery": {
+          "status": "statically-verified",
+          "lastSuccessfulStage": "composed",
+          "stages": {
+            "created": true,
+            "registered": true,
+            "composed": true,
+            "verified": false
+          },
+          "blockers": [],
+          "instanceIds": [
+            "business-notes-main"
+          ]
+        },
+        "verification": {
+          "static": "pass",
+          "runtime": "not-run",
+          "geometry": "not-run",
+          "interaction": "not-run"
+        }
+      }
+    ],
+    "note": null
+  }
+}

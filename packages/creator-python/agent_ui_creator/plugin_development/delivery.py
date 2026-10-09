@@ -62,6 +62,12 @@ def _instances(model: dict) -> list[dict]:
             return
         if node.get("type") == "slot":
             plugins(node.get("plugins", []))
+        if node.get("type") == "sidebar":
+            for edge in ("header", "content", "footer"):
+                layout(node.get(edge))
+            for item in node.get("items", []):
+                if isinstance(item, dict):
+                    layout(item.get("child"))
         for child in node.get("children", []):
             layout(child)
         layout(node.get("child"))

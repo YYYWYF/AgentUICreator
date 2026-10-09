@@ -1,0 +1,174 @@
+--- a/src/agent-ui/plugins/business-notes/index.tsx
++++ b/src/agent-ui/plugins/business-notes/index.tsx
+@@ -0,0 +1,171 @@
++import { useMemo, useState } from "react";
++import type { CSSProperties } from "react";
++import {
++  Button,
++  Empty,
++  Input,
++  List,
++  Modal,
++  Space,
++  Typography,
++  theme,
++} from "antd";
++import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
++import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
++
++import "./styles.css";
++
++export function BusinessNotesPlugin(_props: UIPluginComponentProps) {
++  const labels = useAgentUILocale("businessNotes");
++  const { token } = theme.useToken();
++
++  const [draft, setDraft] = useState("");
++  const [notes, setNotes] = useState<string[]>([]);
++  const [helpOpen, setHelpOpen] = useState(false);
++
++  const themeStyle = {
++    backgroundColor: token.colorBgContainer,
++    color: token.colorText,
++    fontFamily: token.fontFamily,
++    "--business-notes-font-family": token.fontFamily,
++    "--business-notes-text": token.colorText,
++    "--business-notes-input-background": token.colorBgContainer,
++    "--business-notes-input-border": token.colorBorder,
++    "--business-notes-input-hover-border": token.colorPrimaryHover,
++    "--business-notes-input-focus-border": token.colorPrimary,
++    "--business-notes-input-disabled-background": token.colorBgContainerDisabled,
++    "--business-notes-input-disabled-text": token.colorTextDisabled,
++    "--business-notes-modal-background": token.colorBgElevated,
++  } as CSSProperties;
++
++  const themeVariables = {
++    "--business-notes-font-family": token.fontFamily,
++    "--business-notes-text": token.colorText,
++    "--business-notes-input-background": token.colorBgContainer,
++    "--business-notes-input-border": token.colorBorder,
++    "--business-notes-input-hover-border": token.colorPrimaryHover,
++    "--business-notes-input-focus-border": token.colorPrimary,
++    "--business-notes-input-disabled-background": token.colorBgContainerDisabled,
++    "--business-notes-input-disabled-text": token.colorTextDisabled,
++    "--business-notes-modal-background": token.colorBgElevated,
++  } as CSSProperties;
++
++  const canAdd = useMemo(() => draft.trim().length > 0, [draft]);
++
++  const addNote = () => {
++    const text = draft.trim();
++    if (text.length === 0) return;
++    setNotes((prev) => [text, ...prev]);
++    setDraft("");
++  };
++
++  const removeNote = (index: number) => {
++    setNotes((prev) => prev.filter((_, i) => i !== index));
++  };
++
++  return (
++    <div
++      className="business-notes-plugin"
++      data-ui-plugin="business-notes"
++        style={themeStyle}
++    >
++      <div className="business-notes-header">
++        <Typography.Title level={5} className="business-notes-title">
++          {labels.title}
++        </Typography.Title>
++        <Button
++          type="link"
++          size="small"
++          onClick={() => setHelpOpen(true)}
++          aria-label={labels.openHelp}
++        >
++          {labels.help}
++        </Button>
++      </div>
++
++      <Space.Compact className="business-notes-input-row">
++        <Input
++          value={draft}
++          onChange={(e) => setDraft(e.target.value)}
++          onPressEnter={addNote}
++          placeholder={labels.placeholder}
++          aria-label={labels.inputLabel}
++        />
++        <Button
++          type="primary"
++          onClick={addNote}
++          disabled={!canAdd}
++          aria-label={labels.add}
++        >
++          {labels.add}
++        </Button>
++      </Space.Compact>
++
++      <div
++        className="business-notes-list"
++        role="list"
++        aria-label={labels.listLabel}
++      >
++        {notes.length === 0 ? (
++          <Empty
++            description={labels.empty}
++            image={Empty.PRESENTED_IMAGE_SIMPLE}
++          />
++        ) : (
++          <List
++            size="small"
++            dataSource={notes}
++            renderItem={(note, index) => (
++              <List.Item
++                actions={[
++                  <Button
++                    key="remove"
++                    type="text"
++                    danger
++                    size="small"
++                    onClick={() => removeNote(index)}
++                    aria-label={labels.remove}
++                  >
++                    {labels.remove}
++                  </Button>,
++                ]}
++              >
++                <Typography.Text className="business-notes-item-text">
++                  {note}
++                </Typography.Text>
++              </List.Item>
++            )}
++          />
++        )}
++      </div>
++
++      <Modal
++        modalRender={(node) => (
++          <div className="business-notes-modal-theme" style={themeVariables}>
++            {node}
++          </div>
++        )}
++        title={
++            <div className="business-notes-modal-title">
++              <Typography.Text strong>{labels.helpTitle}</Typography.Text>
++              <Button
++                type="text"
++                size="small"
++                onClick={() => setHelpOpen(false)}
++                aria-label={labels.close}
++              >
++                ×
++              </Button>
++            </div>
++          }
++        open={helpOpen}
++          onCancel={() => setHelpOpen(false)}
++          closable={false}
++          footer={null}
++        centered
++      >
++        <Typography.Paragraph>{labels.helpContent}</Typography.Paragraph>
++      </Modal>
++    </div>
++  );
++}

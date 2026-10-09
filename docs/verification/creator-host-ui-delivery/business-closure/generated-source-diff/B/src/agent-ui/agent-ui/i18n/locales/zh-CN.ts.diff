@@ -1,0 +1,23 @@
+--- a/src/agent-ui/agent-ui/i18n/locales/zh-CN.ts
++++ b/src/agent-ui/agent-ui/i18n/locales/zh-CN.ts
+@@ -116,6 +116,20 @@
+     nextLabel: "给出一个可执行的后续动作",
+     nextPrompt: "根据当前上下文建议下一步",
+   },
++    businessNotes: {
++      title: "业务备注",
++      help: "说明",
++      openHelp: "打开说明",
++      placeholder: "输入备注…",
++      inputLabel: "备注输入",
++      add: "添加",
++      remove: "删除",
++      listLabel: "备注列表",
++      empty: "暂无备注",
++      helpTitle: "业务备注说明",
++      helpContent: "在输入框中填写备注并点击“添加”，列表会显示所有已添加的备注。空内容不会被添加。",
++      close: "关闭",
++    },
+   theme: {
+     settings: "主题设置",
+     light: "浅色",

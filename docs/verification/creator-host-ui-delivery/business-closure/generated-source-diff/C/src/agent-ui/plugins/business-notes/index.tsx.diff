@@ -1,0 +1,152 @@
+--- a/src/agent-ui/plugins/business-notes/index.tsx
++++ b/src/agent-ui/plugins/business-notes/index.tsx
+@@ -0,0 +1,149 @@
++import { useEffect, useRef, useState, type FormEvent } from "react";
++import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
++import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
++import { Button, Card, Input } from "../../../design-system";
++
++import "./styles.css";
++
++export function BusinessNotesPlugin(_props: UIPluginComponentProps) {
++  const labels = useAgentUILocale("businessNotes");
++  const [draft, setDraft] = useState("");
++  const [notes, setNotes] = useState<string[]>([]);
++  const [showBlankError, setShowBlankError] = useState(false);
++  const [helpOpen, setHelpOpen] = useState(false);
++  const dialogRef = useRef<HTMLDialogElement>(null);
++  const helpTriggerContainerRef = useRef<HTMLDivElement>(null);
++
++  useEffect(() => {
++    const dialog = dialogRef.current;
++    if (!helpOpen || dialog === null) return;
++    if (!dialog.open) dialog.showModal();
++    dialog.querySelector<HTMLButtonElement>("[data-business-notes-dialog-close]")?.focus();
++    return () => {
++      if (dialog.open) dialog.close();
++    };
++  }, [helpOpen]);
++
++  const focusHelpTrigger = () => {
++    window.requestAnimationFrame(() => {
++      helpTriggerContainerRef.current
++        ?.querySelector<HTMLButtonElement>("[data-business-notes-help-trigger]")
++        ?.focus();
++    });
++  };
++
++  const closeHelp = () => {
++    const dialog = dialogRef.current;
++    if (dialog?.open) dialog.close();
++    setHelpOpen(false);
++    focusHelpTrigger();
++  };
++
++  const addNote = (event: FormEvent<HTMLFormElement>) => {
++    event.preventDefault();
++    const note = draft.trim();
++    if (note.length === 0) {
++      setShowBlankError(true);
++      return;
++    }
++    setNotes((current) => [...current, note]);
++    setDraft("");
++    setShowBlankError(false);
++  };
++
++  return (
++    <section className="business-notes" data-ui-plugin="business-notes">
++      <header className="business-notes__header">
++        <div>
++          <h1 className="business-notes__title">{labels.title}</h1>
++          <p className="business-notes__subtitle">{labels.subtitle}</p>
++        </div>
++        <div ref={helpTriggerContainerRef}>
++          <Button
++            type="button"
++            className="business-notes__help-trigger"
++            data-business-notes-help-trigger=""
++            aria-haspopup="dialog"
++            aria-label={labels.help}
++            onClick={() => setHelpOpen(true)}
++          >
++            {labels.help}
++          </Button>
++        </div>
++      </header>
++
++      <Card className="business-notes__card">
++        <form className="business-notes__form" onSubmit={addNote}>
++          <label className="business-notes__label" htmlFor="business-notes-input">
++            {labels.inputLabel}
++          </label>
++          <div className="business-notes__entry">
++            <Input
++              id="business-notes-input"
++              className="business-notes__input"
++              value={draft}
++              onChange={(event) => {
++                setDraft(event.currentTarget.value);
++                if (showBlankError) setShowBlankError(false);
++              }}
++              placeholder={labels.inputPlaceholder}
++              aria-invalid={showBlankError}
++              aria-describedby={showBlankError ? "business-notes-error" : undefined}
++            />
++            <Button type="submit" className="business-notes__add">
++              {labels.addNote}
++            </Button>
++          </div>
++          {showBlankError ? (
++            <p className="business-notes__error" id="business-notes-error" role="alert">
++              {labels.blankNote}
++            </p>
++          ) : null}
++        </form>
++      </Card>
++
++      <section className="business-notes__list" aria-label={labels.listLabel}>
++        {notes.length === 0 ? (
++          <Card className="business-notes__empty">
++            <h2>{labels.emptyTitle}</h2>
++            <p>{labels.emptyDescription}</p>
++          </Card>
++        ) : (
++          <ul className="business-notes__items">
++            {notes.map((note, index) => (
++              <li className="business-notes__item" key={`${index}-${note}`}>
++                {note}
++              </li>
++            ))}
++          </ul>
++        )}
++      </section>
++
++      <dialog
++        ref={dialogRef}
++        className="business-notes__dialog"
++        aria-labelledby="business-notes-help-title"
++        onKeyDown={(event) => {
++          if (event.key === "Escape") event.stopPropagation();
++        }}
++        onCancel={(event) => {
++          event.preventDefault();
++          event.stopPropagation();
++          closeHelp();
++        }}
++      >
++        <div className="business-notes__dialog-content">
++          <h2 id="business-notes-help-title">{labels.helpTitle}</h2>
++          <p>{labels.helpDescription}</p>
++          <Button
++            type="button"
++            data-business-notes-dialog-close=""
++            onClick={closeHelp}
++          >
++            {labels.closeHelp}
++          </Button>
++        </div>
++      </dialog>
++    </section>
++  );
++}

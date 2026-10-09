@@ -175,19 +175,33 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
             return {}
         selected: dict[str, str] = {}
 
-        def visit(value: Any) -> None:
-            if isinstance(value, dict):
-                plugin_id = value.get("pluginId")
-                instance_id = value.get("id")
+        def plugins(items: Any) -> None:
+            for instance in items if isinstance(items, list) else []:
+                if not isinstance(instance, dict):
+                    continue
+                plugin_id, instance_id = instance.get("pluginId"), instance.get("id")
                 if isinstance(plugin_id, str) and isinstance(instance_id, str):
                     selected[instance_id] = plugin_id
-                for child in value.values():
-                    visit(child)
-            elif isinstance(value, list):
-                for child in value:
-                    visit(child)
+                for children in instance.get("slots", {}).values():
+                    plugins(children)
 
-        visit(model)
+        def layout(node: Any) -> None:
+            if not isinstance(node, dict):
+                return
+            if node.get("type") == "slot":
+                plugins(node.get("plugins"))
+            if node.get("type") == "sidebar":
+                for edge in ("header", "content", "footer"):
+                    layout(node.get(edge))
+                for item in node.get("items", []):
+                    if isinstance(item, dict):
+                        layout(item.get("child"))
+            for child in node.get("children", []):
+                layout(child)
+            layout(node.get("child"))
+
+        plugins(model.get("applicationPlugins"))
+        layout(model.get("root"))
         return selected
 
     def _relative_default_placement(self, plugin_id: str) -> dict[str, Any] | None:
@@ -316,6 +330,20 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
                 if kind == "insert_plugin" and panel_track_pending:
                     require_panel_track()
                 if kind != "insert_plugin_default" and relative_default:
+                    require_default_placement()
+            elif kind == "insert_sidebar_item":
+                plugin = operation.get("plugin")
+                if plugin is not None:
+                    nodes = plugin_nodes(plugin)
+                    if not nodes or any(node.get("pluginId") != target_plugin_id for node in nodes):
+                        raise PluginDevelopmentError("Sidebar 组合超出了已批准的 Plugin 目标。")
+                else:
+                    instance_id = operation.get("instanceId")
+                    if not isinstance(instance_id, str) or selected.get(instance_id) != target_plugin_id:
+                        raise PluginDevelopmentError("Sidebar 组合缺少已批准的 Plugin 目标。")
+                if panel_track_pending:
+                    require_panel_track()
+                if relative_default:
                     require_default_placement()
             elif kind in {"insert_layout_node", "insert_layout_relative", "replace_layout_node"}:
                 inserted_nodes = plugin_nodes(operation.get("node"))

@@ -1,0 +1,236 @@
+{
+  "baseline": "ce2525147b188c867b1de3d6bc325ba3ca162b19",
+  "SCENARIO_B": "PASS",
+  "HOST_UI_INTELLIGENT_REUSE": "PASS",
+  "acceptanceScope": "Isolated real Creator runs with bounded continuation and actual browser feedback; no one-shot/default-model reliability claim.",
+  "scenarios": {
+    "A": {
+      "status": "PASS",
+      "selectedUISystem": "project-owned Design System",
+      "realCreatorInvoked": true,
+      "finalCreatorCompletion": "success",
+      "fixtureRoot": "/Users/yifei/.codex/visualizations/2026/10/09/01a11ec8-65e6-7c82-a29d-c24c3262dc4b/business-closure/raw/responses/A",
+      "packageManifestUnchanged": true,
+      "finalStaticValidation": {
+        "revision": 1,
+        "status": "passed",
+        "validationMode": "delta",
+        "differentialStatus": "available",
+        "newDiagnosticCount": 0,
+        "unchangedDiagnosticCount": 0,
+        "checks": [
+          {
+            "checkId": "pnpm verify:ui",
+            "command": "npm run verify:ui",
+            "status": "passed",
+            "exitCode": 0,
+            "revision": 1,
+            "source": "executed"
+          },
+          {
+            "checkId": "pnpm typecheck",
+            "command": "npm run typecheck",
+            "status": "passed",
+            "exitCode": 0,
+            "revision": 1,
+            "source": "executed"
+          },
+          {
+            "checkId": "pnpm build",
+            "command": "npm run build",
+            "status": "passed",
+            "exitCode": 0,
+            "revision": 1,
+            "source": "executed"
+          }
+        ]
+      },
+      "lifecycleReceipt": "lifecycle-receipts.json",
+      "creatorVerificationPolicy": "static_only",
+      "creatorRuntimeVerification": "not-run",
+      "independentBrowserAcceptance": {
+        "status": "PASS",
+        "passed": 8,
+        "failed": 0,
+        "widths": [
+          1440,
+          420
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "locales": [
+          "zh-CN",
+          "en-US"
+        ],
+        "results": "visual/A-results.json"
+      },
+      "sourceEvidence": "generated-source-diff/A",
+      "browserSourceHashes": {
+        "index.tsx": "162a4fa387adafcc2982bab6fabf28ea5cdbdb962daeec0a3f05ce5f06426a77",
+        "styles.css": "b223d25455139c8802ae4ce583cf6c9b216f6a38601633c4d108a123a70be342",
+        "manifest.json": "1ba6f84b024ceafbacbe94d9650d9c11b3d8046abfc45dafb5d40ee6e25df05d",
+        "definition.ts": "93d13263a9227fbef7cb277a97e5a77357f20b9e74c04e955d7a5eed62df16c1"
+      }
+    },
+    "B": {
+      "status": "PASS",
+      "selectedUISystem": "Ant Design 5",
+      "realCreatorInvoked": true,
+      "finalCreatorCompletion": "success",
+      "fixtureRoot": "/Users/yifei/.codex/visualizations/2026/10/09/01a11ec8-65e6-7c82-a29d-c24c3262dc4b/business-closure/raw/responses/B",
+      "packageManifestUnchanged": true,
+      "finalStaticValidation": {
+        "revision": 2,
+        "status": "passed",
+        "validationMode": "delta",
+        "differentialStatus": "available",
+        "newDiagnosticCount": 0,
+        "unchangedDiagnosticCount": 0,
+        "checks": [
+          {
+            "checkId": "pnpm verify:ui",
+            "command": "npm run verify:ui",
+            "status": "passed",
+            "exitCode": 0,
+            "revision": 2,
+            "source": "executed"
+          },
+          {
+            "checkId": "pnpm typecheck",
+            "command": "npm run typecheck",
+            "status": "passed",
+            "exitCode": 0,
+            "revision": 2,
+            "source": "executed"
+          },
+          {
+            "checkId": "pnpm build",
+            "command": "npm run build",
+            "status": "passed",
+            "exitCode": 0,
+            "revision": 2,
+            "source": "executed"
+          }
+        ]
+      },
+      "lifecycleReceipt": "lifecycle-receipts.json",
+      "creatorVerificationPolicy": "static_only",
+      "creatorRuntimeVerification": "not-run",
+      "independentBrowserAcceptance": {
+        "status": "PASS",
+        "passed": 8,
+        "failed": 0,
+        "widths": [
+          1440,
+          420
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "locales": [
+          "zh-CN",
+          "en-US"
+        ],
+        "results": "visual/B-results.json"
+      },
+      "sourceEvidence": "generated-source-diff/B",
+      "browserSourceHashes": {
+        "index.tsx": "790a853a28ffd6734f36eb6278e5132a307a4096ff460e4dee0aeb7d4917b3b4",
+        "styles.css": "0145bc50da0cac54061a08955644dd9f7f487bb81321221e44ea8f3285c58708",
+        "manifest.json": "a087ddc7412d7df87a2355f417506ed6b74ed7aadcc8f9e8c864f7da6a2300a9",
+        "definition.ts": "c0afb1dd7f7ff6b1cdfcdf8428e962721676408a4f1add48cb32ce5673fe89cc"
+      }
+    },
+    "C": {
+      "status": "PASS",
+      "selectedUISystem": "project-owned Design System; installed Ant Design is unused by this page",
+      "realCreatorInvoked": true,
+      "finalCreatorCompletion": "success",
+      "fixtureRoot": "/Users/yifei/.codex/visualizations/2026/10/09/01a11ec8-65e6-7c82-a29d-c24c3262dc4b/business-closure/raw/responses/C",
+      "packageManifestUnchanged": true,
+      "finalStaticValidation": {
+        "revision": 1,
+        "status": "passed",
+        "validationMode": "delta",
+        "differentialStatus": "available",
+        "newDiagnosticCount": 0,
+        "unchangedDiagnosticCount": 0,
+        "checks": [
+          {
+            "checkId": "pnpm verify:ui",
+            "command": "npm run verify:ui",
+            "status": "passed",
+            "exitCode": 0,
+            "revision": 1,
+            "source": "executed"
+          },
+          {
+            "checkId": "pnpm typecheck",
+            "command": "npm run typecheck",
+            "status": "passed",
+            "exitCode": 0,
+            "revision": 1,
+            "source": "executed"
+          },
+          {
+            "checkId": "pnpm build",
+            "command": "npm run build",
+            "status": "passed",
+            "exitCode": 0,
+            "revision": 1,
+            "source": "executed"
+          }
+        ]
+      },
+      "lifecycleReceipt": "lifecycle-receipts.json",
+      "creatorVerificationPolicy": "static_only",
+      "creatorRuntimeVerification": "not-run",
+      "independentBrowserAcceptance": {
+        "status": "PASS",
+        "passed": 8,
+        "failed": 0,
+        "widths": [
+          1440,
+          420
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "locales": [
+          "zh-CN",
+          "en-US"
+        ],
+        "results": "visual/C-results.json"
+      },
+      "sourceEvidence": "generated-source-diff/C",
+      "browserSourceHashes": {
+        "index.tsx": "6d56a3f9d3a904cd1e079c40ff200ee0948dd33fa8166b077a65444aa40d23b4",
+        "styles.css": "c31c7eeba06ff974c56413b35e1d4aac16767a46e10acbf2cee3d39241243863",
+        "manifest.json": "ee0feb633045da665442c75c3f034af5ca6d416a0aa986487668db432feef2d6",
+        "definition.ts": "93d13263a9227fbef7cb277a97e5a77357f20b9e74c04e955d7a5eed62df16c1"
+      }
+    }
+  },
+  "defaultProductionModelAcceptance": {
+    "model": "mimo-v2.6-flash",
+    "configuredMaxTokens": 2048,
+    "status": "NOT_PASSED",
+    "productionSettingsChanged": false,
+    "evidence": "model-attempts.json"
+  },
+  "comparisonModels": {
+    "creationOfB": "kimi-k2.6, temperature 1, maxTokens 8192",
+    "remainingDeliveryAndAC": "gpt-6-luna, Responses API, temperature omitted, maxTokens 8192",
+    "configurationScope": "acceptance harness only",
+    "maxModelCallsPerRun": 24
+  },
+  "regressionEvidence": "regression-results.json",
+  "browserCaseCount": 24,
+  "screenshotCount": 48,
+  "committed": false,
+  "pushed": false
+}

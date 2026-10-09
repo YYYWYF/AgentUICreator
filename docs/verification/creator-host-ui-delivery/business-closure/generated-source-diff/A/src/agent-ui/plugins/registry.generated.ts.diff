@@ -1,0 +1,43 @@
+--- a/src/agent-ui/plugins/registry.generated.ts
++++ b/src/agent-ui/plugins/registry.generated.ts
+@@ -4,7 +4,7 @@
+  */
+ import { createPluginCapabilityCatalog } from "../runtime/composition";
+ 
+-export const capabilityCatalogRevision = "0416e8a0d4e1005629d80975e1e631a8cc4c0c97a4c42489d66e9b354fee4306";
++export const capabilityCatalogRevision = "329ef89ce751f1d73baf44c0bc2077e5f7a5d1cb393408dc52fb5314435b0440";
+ 
+ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
+   {
+@@ -661,6 +661,31 @@
+     optionalInject: [],
+     loadDefinition: () =>
+       import("./assistant-ui-tool-timeline/definition").then(
++        ({ default: definition }) => definition,
++      ),
++  },
++  {
++    manifest: {
++      "id": "business-notes",
++      "name": "Business Notes",
++      "sidebar": {
++        "icon": "book-open",
++        "labels": {
++          "en-US": "Business notes",
++          "zh-CN": "业务备注"
++        }
++      },
++      "description": "Captures private in-memory business notes in the existing Agent sidebar drawer.",
++      "version": "0.0.1",
++      "capabilities": [
++        "business-notes"
++      ]
++    },
++    provides: [],
++    inject: [],
++    optionalInject: ["agent-ui.locale"],
++    loadDefinition: () =>
++      import("./business-notes/definition").then(
+         ({ default: definition }) => definition,
+       ),
+   },

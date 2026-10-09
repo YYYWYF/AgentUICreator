@@ -26,6 +26,30 @@ const modelPath = (root: string) => path.join(root, "agent-ui/app-ui/app-ui.json
 afterEach(async () => { await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
 
 describe("invalid AppUIModel Recovery", () => {
+  it("lists sidebar plugins through the strict asset wire contract", async () => {
+    const projectRoot = await project();
+    const manifestPath = path.join(projectRoot, "agent-ui/plugins/sample/manifest.json");
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    await writeFile(manifestPath, JSON.stringify({ ...manifest,
+      sidebar: { icon: "list", labels: { "en-US": "Notes", "zh-CN": "备注" } },
+    }));
+    for (const operation of ["list_ui_plugins", "inspect_ui_project"] as const) {
+      const response = await handleUIProjectControlRequest({ operation, input: {} }, projectRoot);
+      expect(response, JSON.stringify(response)).toMatchObject({ ok: true });
+      if (response.ok) {
+        const assets = (response.result as { pluginAssets: Array<Record<string, unknown>> }).pluginAssets;
+        expect(assets).toEqual(expect.arrayContaining([expect.objectContaining({ pluginId: "sample" })]));
+        expect(assets.every(asset => !("sidebar" in asset))).toBe(true);
+      }
+    }
+    const composition = await handleUIProjectControlRequest(
+      { operation: "inspect_ui_project", input: { view: "composition" } }, projectRoot,
+    );
+    expect(composition).toMatchObject({ ok: true, result: {
+      capabilitySummaries: expect.arrayContaining([expect.objectContaining({ sidebar: expect.objectContaining({ icon: "list" }) })]),
+    } });
+  });
+
   it.each([
     ["syntax", "{", "syntax_invalid"],
     ["children object", { root: { ...valid.root, children: valid.root.children[0] } }, "schema_invalid"],

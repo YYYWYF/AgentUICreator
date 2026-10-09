@@ -442,10 +442,12 @@
           "$ref": "#/$defs/nonBlankString"
         },
         "plugin": {
-          "$ref": "#/$defs/plugin"
+          "$ref": "#/$defs/plugin",
+          "description": "New Plugin instance; use plugin OR instanceId, never both. Its new instance id belongs in plugin.id."
         },
         "instanceId": {
-          "$ref": "#/$defs/nonBlankString"
+          "$ref": "#/$defs/nonBlankString",
+          "description": "Existing instance to move; omit when supplying a new plugin object."
         },
         "index": {
           "type": "integer",

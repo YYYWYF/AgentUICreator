@@ -1,0 +1,16 @@
+{
+  "changedFiles": [
+    "src/agent-ui/plugins/registry.generated.ts",
+    "src/agent-ui/app-ui/composition-revision.generated.json",
+    "src/agent-ui/app-ui/app-ui.json",
+    "src/agent-ui/agent-ui/i18n/locale-types.ts",
+    "src/agent-ui/agent-ui/i18n/locales/zh-CN.ts",
+    "src/agent-ui/agent-ui/i18n/locales/en-US.ts",
+    "src/agent-ui/plugins/business-notes/index.tsx",
+    "src/agent-ui/plugins/business-notes/styles.css",
+    "src/agent-ui/plugins/business-notes/definition.ts",
+    "src/agent-ui/plugins/business-notes/manifest.json"
+  ],
+  "sourceWasWrittenBy": "real Creator tools",
+  "outcome": "success"
+}

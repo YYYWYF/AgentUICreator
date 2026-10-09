@@ -1,0 +1,340 @@
+{
+  "A": [
+    {
+      "revision": 8,
+      "status": "passed",
+      "validationMode": "delta",
+      "differentialStatus": "available",
+      "newDiagnosticCount": 0,
+      "unchangedDiagnosticCount": 0,
+      "checks": [
+        {
+          "checkId": "pnpm verify:ui",
+          "command": "npm run verify:ui",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 8,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm typecheck",
+          "command": "npm run typecheck",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 8,
+          "source": "executed"
+        }
+      ]
+    },
+    {
+      "revision": 11,
+      "status": "passed",
+      "validationMode": "delta",
+      "differentialStatus": "available",
+      "newDiagnosticCount": 0,
+      "unchangedDiagnosticCount": 0,
+      "checks": [
+        {
+          "checkId": "pnpm verify:ui",
+          "command": "npm run verify:ui",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 11,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm typecheck",
+          "command": "npm run typecheck",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 11,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm build",
+          "command": "npm run build",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 11,
+          "source": "executed"
+        }
+      ]
+    },
+    {
+      "revision": 1,
+      "status": "passed",
+      "validationMode": "delta",
+      "differentialStatus": "available",
+      "newDiagnosticCount": 0,
+      "unchangedDiagnosticCount": 0,
+      "checks": [
+        {
+          "checkId": "pnpm verify:ui",
+          "command": "npm run verify:ui",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 1,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm typecheck",
+          "command": "npm run typecheck",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 1,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm build",
+          "command": "npm run build",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 1,
+          "source": "executed"
+        }
+      ]
+    },
+    {
+      "revision": 1,
+      "status": "passed",
+      "validationMode": "delta",
+      "differentialStatus": "available",
+      "newDiagnosticCount": 0,
+      "unchangedDiagnosticCount": 0,
+      "checks": [
+        {
+          "checkId": "pnpm verify:ui",
+          "command": "npm run verify:ui",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 1,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm typecheck",
+          "command": "npm run typecheck",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 1,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm build",
+          "command": "npm run build",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 1,
+          "source": "executed"
+        }
+      ]
+    },
+    {
+      "revision": 1,
+      "status": "passed",
+      "validationMode": "delta",
+      "differentialStatus": "available",
+      "newDiagnosticCount": 0,
+      "unchangedDiagnosticCount": 0,
+      "checks": [
+        {
+          "checkId": "pnpm verify:ui",
+          "command": "npm run verify:ui",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 1,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm typecheck",
+          "command": "npm run typecheck",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 1,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm build",
+          "command": "npm run build",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 1,
+          "source": "executed"
+        }
+      ]
+    }
+  ],
+  "B": [
+    {
+      "revision": 3,
+      "status": "passed",
+      "validationMode": "delta",
+      "differentialStatus": "available",
+      "newDiagnosticCount": 0,
+      "unchangedDiagnosticCount": 0,
+      "checks": [
+        {
+          "checkId": "pnpm verify:ui",
+          "command": "npm run verify:ui",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 3,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm typecheck",
+          "command": "npm run typecheck",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 3,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm build",
+          "command": "npm run build",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 3,
+          "source": "executed"
+        }
+      ]
+    },
+    {
+      "revision": 2,
+      "status": "passed",
+      "validationMode": "delta",
+      "differentialStatus": "available",
+      "newDiagnosticCount": 0,
+      "unchangedDiagnosticCount": 0,
+      "checks": [
+        {
+          "checkId": "pnpm verify:ui",
+          "command": "npm run verify:ui",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 2,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm typecheck",
+          "command": "npm run typecheck",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 2,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm build",
+          "command": "npm run build",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 2,
+          "source": "executed"
+        }
+      ]
+    }
+  ],
+  "C": [
+    {
+      "revision": 8,
+      "status": "passed",
+      "validationMode": "delta",
+      "differentialStatus": "available",
+      "newDiagnosticCount": 0,
+      "unchangedDiagnosticCount": 0,
+      "checks": [
+        {
+          "checkId": "pnpm verify:ui",
+          "command": "npm run verify:ui",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 8,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm typecheck",
+          "command": "npm run typecheck",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 8,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm build",
+          "command": "npm run build",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 8,
+          "source": "executed"
+        }
+      ]
+    },
+    {
+      "revision": 3,
+      "status": "passed",
+      "validationMode": "delta",
+      "differentialStatus": "available",
+      "newDiagnosticCount": 0,
+      "unchangedDiagnosticCount": 0,
+      "checks": [
+        {
+          "checkId": "pnpm verify:ui",
+          "command": "npm run verify:ui",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 3,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm typecheck",
+          "command": "npm run typecheck",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 3,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm build",
+          "command": "npm run build",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 3,
+          "source": "executed"
+        }
+      ]
+    },
+    {
+      "revision": 1,
+      "status": "passed",
+      "validationMode": "delta",
+      "differentialStatus": "available",
+      "newDiagnosticCount": 0,
+      "unchangedDiagnosticCount": 0,
+      "checks": [
+        {
+          "checkId": "pnpm verify:ui",
+          "command": "npm run verify:ui",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 1,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm typecheck",
+          "command": "npm run typecheck",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 1,
+          "source": "executed"
+        },
+        {
+          "checkId": "pnpm build",
+          "command": "npm run build",
+          "status": "passed",
+          "exitCode": 0,
+          "revision": 1,
+          "source": "executed"
+        }
+      ]
+    }
+  ]
+}

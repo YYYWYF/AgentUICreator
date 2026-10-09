@@ -416,3 +416,25 @@ def test_final_gate_rejects_missing_required_identity(tmp_path):
         runtime=SimpleNamespace(current_result=lambda: None), repair_state=CreatorRepairState(),
         verification_mode="static_only")
     assert not gate.review("完成").accepted
+
+
+@pytest.mark.parametrize("edge", ["header", "content", "footer", "item"])
+@pytest.mark.parametrize("enabled", [True, False])
+def test_sidebar_delivery_walks_only_real_composition_edges(tmp_path, edge, enabled):
+    artifacts(tmp_path)
+    write(tmp_path, "plugins/registry.generated.ts", 'import("./checklist/definition")')
+    slot = {"type": "slot", "plugins": [{"id": "checklist-main", "pluginId": "checklist", "enabled": enabled}]}
+    sidebar = {"type": "sidebar", "items": [], "content": {"type": "slot", "plugins": []}}
+    if edge == "item":
+        sidebar["items"] = [{"id": "notes", "child": slot}]
+    else:
+        sidebar[edge] = slot
+    # Configuration values with plugin-shaped data must never count as mounts.
+    slot["plugins"][0]["config"] = {"spoofMount": {
+        "id": "fake", "pluginId": "checklist", "enabled": True,
+    }}
+    write(tmp_path, "app-ui/app-ui.json", {"root": sidebar})
+    result = report(tmp_path, verification_mode="static_only", runtime=None, layout=None)
+    assert result["delivery"]["stages"]["composed"] is enabled
+    assert result["delivery"]["instanceIds"] == (["checklist-main"] if enabled else [])
+    assert result["delivery"]["status"] == ("statically-verified" if enabled else "blocked")

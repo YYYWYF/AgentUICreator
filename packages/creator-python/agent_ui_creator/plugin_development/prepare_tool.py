@@ -19,15 +19,39 @@ DEVELOPMENT_DECISION_OPTIONS = frozenset({"start", "adjust", "defer"})
 class PrepareUIPluginDevelopmentInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     deliveryContract: PluginAuthoringContract
-    workKind: Literal["create-plugin", "adapt-component", "extend-capability"] = "create-plugin"
+    workKind: Literal["create-plugin", "adapt-component", "extend-capability"] = Field(
+        default="create-plugin", description=(
+            "create-plugin and adapt-component create a NEW Plugin identity. "
+            "For new behavior or unfinished development in an EXISTING Plugin, use "
+            "extend-capability with its current id; never recreate that directory. "
+            "Ordinary existing Plugin customization or composition alone does not "
+            "require a new development proposal."
+        ),
+    )
     targetPluginId: str = Field(min_length=1, max_length=100)
     desiredOutcome: str = Field(min_length=1, max_length=1200)
     missingCapabilities: list[str] = Field(min_length=1, max_length=12)
-    reuseEvidenceRefs: list[str] = Field(default_factory=list, max_length=24)
-    uiScope: str = Field(default="", max_length=500)
+    reuseEvidenceRefs: list[str] = Field(default_factory=list, max_length=24, description=(
+        "Existing Plugin / Source Item reuse investigation conclusions. These are not "
+        "Host UI component source evidence and cannot replace componentBasisRefs."
+    ))
+    uiScope: str = Field(default="", max_length=500, description=(
+        "UI business scope and selected UI system: cite actual source usage, controls "
+        "and import origins, Provider/theme conventions, and why other discovered "
+        "systems were not selected. Generated imports must match this plan."
+    ))
     dataScope: str = Field(default="", max_length=500)
     excludedOperations: list[str] = Field(default_factory=list, max_length=12)
-    componentBasisRefs: list[str] = Field(default_factory=list, max_length=12)
+    componentBasisRefs: list[str] = Field(default_factory=list, max_length=12, description=(
+        "Required by Host for new panel / semantic-slot Plugins. Array of real file "
+        "paths already inspected, including the Host page/component usage entry and "
+        "relevant component exports, Provider or theme files. Paths only, no descriptive "
+        "strings or invented files. Bind selection evidence that remains unchanged; do not "
+        "include locale authoring files or new Plugin files you intend to edit. "
+        "Separate from reuseEvidenceRefs. On rejection, "
+        "read the error, inspect missing evidence and resubmit this tool with valid paths. "
+        "Other development types may omit this field."
+    ))
 
     @model_validator(mode="before")
     @classmethod

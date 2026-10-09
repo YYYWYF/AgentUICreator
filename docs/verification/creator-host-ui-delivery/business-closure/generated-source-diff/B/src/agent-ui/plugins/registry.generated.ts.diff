@@ -1,0 +1,55 @@
+--- a/src/agent-ui/plugins/registry.generated.ts
++++ b/src/agent-ui/plugins/registry.generated.ts
+@@ -4,7 +4,7 @@
+  */
+ import { createPluginCapabilityCatalog } from "../runtime/composition";
+ 
+-export const capabilityCatalogRevision = "0416e8a0d4e1005629d80975e1e631a8cc4c0c97a4c42489d66e9b354fee4306";
++export const capabilityCatalogRevision = "a7b3e4f095bb33b59d2d15db24945894ae00427c760f9a09b414be30c1c428cb";
+ 
+ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
+   {
+@@ -661,6 +661,43 @@
+     optionalInject: [],
+     loadDefinition: () =>
+       import("./assistant-ui-tool-timeline/definition").then(
++        ({ default: definition }) => definition,
++      ),
++  },
++  {
++    manifest: {
++      "id": "business-notes",
++      "name": "Business Notes",
++      "sidebar": {
++        "icon": "book-open",
++        "labels": {
++          "en-US": "Notes",
++          "zh-CN": "业务备注"
++        }
++      },
++      "description": "输入备注、点击添加后显示备注列表，并提供说明弹层。",
++      "version": "0.0.1",
++      "capabilities": [
++        "business-notes"
++      ],
++      "layout": {
++        "width": "narrow"
++      },
++      "authoring": {
++        "intents": [
++          "add business notes",
++          "show note panel",
++          "添加业务备注",
++          "显示备注面板"
++        ],
++        "visualRole": "business notes sidebar panel"
++      }
++    },
++    provides: [],
++    inject: [],
++    optionalInject: ["agent-ui.locale","agent-ui.theme"],
++    loadDefinition: () =>
++      import("./business-notes/definition").then(
+         ({ default: definition }) => definition,
+       ),
+   },

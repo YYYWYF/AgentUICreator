@@ -1,0 +1,23 @@
+--- a/src/agent-ui/agent-ui/i18n/locales/en-US.ts
++++ b/src/agent-ui/agent-ui/i18n/locales/en-US.ts
+@@ -116,6 +116,20 @@
+     nextLabel: "Provide an actionable follow-up",
+     nextPrompt: "Suggest a next step based on the current context",
+   },
++    businessNotes: {
++      title: "Business Notes",
++      help: "Help",
++      openHelp: "Open help",
++      placeholder: "Enter a note…",
++      inputLabel: "Note input",
++      add: "Add",
++      remove: "Remove",
++      listLabel: "Notes list",
++      empty: "No notes yet",
++      helpTitle: "About Business Notes",
++      helpContent: "Type a note in the input and click Add to display it in the list. Blank notes are ignored.",
++      close: "Close",
++    },
+   theme: {
+     settings: "Theme settings",
+     light: "Light",

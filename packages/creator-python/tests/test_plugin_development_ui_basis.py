@@ -200,3 +200,126 @@ def test_unrelated_source_change_does_not_invalidate_ui_basis(host):
     host.mark_skill_loaded()
     (host.project_root / 'src/unrelated.ts').write_text('export const unrelated = true;')
     host.require_create('business-notes')
+
+
+def test_reuse_conclusions_cannot_substitute_component_paths(host):
+    tool = create_prepare_ui_plugin_development_tool(host)
+    arguments = dict(workKind='create-plugin', targetPluginId='business-notes',
+                     desiredOutcome='业务备注', missingCapabilities=['备注'],
+                     reuseEvidenceRefs=['src/App.tsx: inspected Host Button/Input'],
+                     deliveryContract={'capability': '备注', 'renderingCategory': 'panel',
+                                       'placement': 'panel', 'lifecycle': 'memory',
+                                       'dependencies': [], 'verificationMethod': 'runtime'})
+    rejected = json.loads(tool.invoke(arguments))
+    assert rejected['ok'] is False
+    assert 'componentBasisRefs' in rejected['error']['message']
+    assert host.active is None
+    accepted = json.loads(tool.invoke({**arguments, 'componentBasisRefs': ['src/App.tsx']}))
+    assert accepted['ok'] is True
+    assert host.active.component_basis_hashes[0][0] == 'src/App.tsx'
+    assert accepted['result']['reuseEvidenceRefs'] == arguments['reuseEvidenceRefs']
+
+
+def test_prepare_schema_explains_evidence_without_requiring_it_for_all_work():
+    from agent_ui_creator.plugin_development.prepare_tool import PrepareUIPluginDevelopmentInput
+    schema = PrepareUIPluginDevelopmentInput.model_json_schema()
+    assert 'componentBasisRefs' not in schema['required']
+    properties = schema['properties']
+    assert 'panel / semantic-slot' in properties['componentBasisRefs']['description']
+    assert 'Paths only' in properties['componentBasisRefs']['description']
+    assert 'cannot replace componentBasisRefs' in properties['reuseEvidenceRefs']['description']
+    assert 'import origins' in properties['uiScope']['description']
+
+
+@pytest.mark.parametrize("kind", ["create-plugin", "adapt-component"])
+def test_existing_identity_rejection_explains_extension_without_grant(host, kind):
+    target = host.project_root / "src/agent-ui/plugins/business-notes"
+    target.mkdir(parents=True)
+    tool = create_prepare_ui_plugin_development_tool(host)
+    arguments = dict(workKind=kind, targetPluginId="business-notes", desiredOutcome="补齐备注交付",
+                     missingCapabilities=["缺少交互"], componentBasisRefs=["src/App.tsx"],
+                     deliveryContract={"capability": "备注", "renderingCategory": "panel",
+                                       "placement": "sidebar", "lifecycle": "memory",
+                                       "dependencies": [], "verificationMethod": "runtime"})
+    result = json.loads(tool.invoke(arguments))
+    assert result["ok"] is False
+    assert "workKind=extend-capability" in result["error"]["message"]
+    assert host.active is None
+    accepted = json.loads(tool.invoke({**arguments, "workKind": "extend-capability"}))
+    assert accepted["ok"] is True
+    assert accepted["result"]["workKind"] == "extend-capability"
+
+
+def test_sidebar_composition_grant_admits_only_bound_plugin(host):
+    from agent_ui_creator.plugin_development.admission_middleware import PluginDevelopmentAdmissionMiddleware
+    root = host.project_root / "src/agent-ui"
+    (root / "app-ui").mkdir(parents=True)
+    (root / "app-ui/app-ui.json").write_text(json.dumps({"root": {
+        "type": "sidebar", "items": [{"id": "notes", "child": {"type": "slot", "plugins": [
+            {"id": "notes-existing", "pluginId": "business-notes", "enabled": True}]} }],
+        "content": {"type": "slot", "plugins": []}}}))
+    plan(host, refs=["src/App.tsx"])
+    host.mark_skill_loaded()
+    middleware = PluginDevelopmentAdmissionMiddleware(host)
+    valid = {"type": "insert_sidebar_item", "sidebarRef": "l0", "itemId": "notes-new",
+             "plugin": {"id": "notes-main", "pluginId": "business-notes", "enabled": True}}
+    middleware._require_bound_composition([valid], "business-notes")
+    middleware._require_bound_composition([{**valid, "plugin": None, "instanceId": "notes-existing"}], "business-notes")
+    for operation in [
+        {**valid, "plugin": {"id": "other", "pluginId": "other", "enabled": True}},
+        {**valid, "plugin": None, "instanceId": "other"},
+        {**valid, "plugin": None},
+    ]:
+        with pytest.raises(PluginDevelopmentError, match="Sidebar"):
+            middleware._require_bound_composition([operation], "business-notes")
+
+
+def test_sidebar_insertion_does_not_bypass_relative_authoring_default(host):
+    from agent_ui_creator.plugin_development.admission_middleware import PluginDevelopmentAdmissionMiddleware
+    target = host.project_root / "src/agent-ui/plugins/business-notes"
+    target.mkdir(parents=True)
+    (target / "manifest.json").write_text(json.dumps({"authoring": {"defaultPlacement": {
+        "type": "relative", "relation": "after", "anchorPluginId": "conversation-surface"}}}))
+    middleware = PluginDevelopmentAdmissionMiddleware(host)
+    with pytest.raises(PluginDevelopmentError, match="insert_plugin_default"):
+        middleware._require_bound_composition([{"type": "insert_sidebar_item", "sidebarRef": "l0", "itemId": "notes",
+            "plugin": {"id": "notes-main", "pluginId": "business-notes", "enabled": True}}], "business-notes")
+
+
+def test_sidebar_insertion_does_not_bypass_reserved_panel_track(host):
+    from agent_ui_creator.plugin_development.admission_middleware import PluginDevelopmentAdmissionMiddleware
+    root = host.project_root / 'src/agent-ui/app-ui'
+    root.mkdir(parents=True)
+    (root / 'app-ui.json').write_text(json.dumps({'root': {
+        'type': 'row', 'children': [{'type': 'slot', 'plugins': []}],
+        'sizes': ['1fr'], 'responsive': {'type': 'trailing-drawer', 'primaryIndex': 0, 'drawerIndex': 1}}}))
+    plan(host, refs=['src/App.tsx'])
+    middleware = PluginDevelopmentAdmissionMiddleware(host)
+    with pytest.raises(PluginDevelopmentError, match='drawer track'):
+        middleware._require_bound_composition([{'type': 'insert_sidebar_item', 'sidebarRef': 'l0', 'itemId': 'notes',
+            'plugin': {'id': 'notes-main', 'pluginId': 'business-notes', 'enabled': True}}], 'business-notes')
+
+
+def test_sidebar_ownership_ignores_plugin_shaped_configuration(host):
+    from agent_ui_creator.plugin_development.admission_middleware import PluginDevelopmentAdmissionMiddleware
+    root = host.project_root / 'src/agent-ui/app-ui'
+    root.mkdir(parents=True)
+    (root / 'app-ui.json').write_text(json.dumps({'root': {'type': 'slot', 'plugins': [
+        {'id': 'other', 'pluginId': 'other', 'enabled': True},
+        {'id': 'notes-main', 'pluginId': 'business-notes', 'enabled': False,
+         'config': {'spoof': {'id': 'other', 'pluginId': 'business-notes'}}}]}}))
+    middleware = PluginDevelopmentAdmissionMiddleware(host)
+    assert middleware._selected_plugin_instances() == {'other': 'other', 'notes-main': 'business-notes'}
+    with pytest.raises(PluginDevelopmentError, match='Sidebar'):
+        middleware._require_bound_composition([{'type': 'insert_sidebar_item', 'sidebarRef': 'l0',
+            'itemId': 'notes', 'instanceId': 'other'}], 'business-notes')
+
+
+def test_sidebar_argument_error_keeps_observation_and_existing_repair_budget():
+    from agent_ui_creator.app_ui_model.mutation_models import AppUIModelMutationError
+    error = AppUIModelMutationError('SIDEBAR_PLUGIN_REQUIRED', 'Supply exactly one plugin or existing instanceId.')
+    assert error.category == 'operation_precondition'
+    assert error.observation_still_valid is True
+    assert error.state_changed is False
+    assert error.recovery['atomicRetryAllowed'] is True
+    assert error.recovery['action'] == 'reform_semantic_delta'

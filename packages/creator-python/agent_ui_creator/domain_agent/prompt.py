@@ -608,9 +608,37 @@ references/default-ui-composition.md and inspect the target project's actual
 public controls. Host uiContext contains dependency declarations, not a UI
 decision; uiStack is only a configured subset. Infer the suitable UI system
 from the target page's actual components, imports, Provider and theme/style
-usage. Prefer Host-owned wrappers/design system, then its established library,
-then reusable project primitives. An installed library or import count alone
-never decides this. Cite the selected component and theme paths in the plan.
+usage. Decide in this order: actual target-page usage, its established Host
+system, existing public primitives, then necessary approved dependencies. If the
+page renders library controls directly, reuse those; if it renders Host wrappers,
+reuse those even when another library is installed. AgentUI Button/Input are not
+a default replacement for the controls actually used by the Host. An installed library or import count alone
+never decides this. Once the page, relevant exports, Provider/theme and nearest
+reference Plugin provide sufficient evidence, prepare the plan instead of exploring
+unrelated Conversation/Thread/Tool/Runtime source. Read more only for a concrete
+API, layout, authorization or type issue. For new panel/semantic-slot Plugins,
+put inspected paths (without descriptions) in componentBasisRefs; reuseEvidenceRefs
+contains Plugin/Source Item investigation, not those paths. Describe the selected
+system, imports, Provider/theme and rejected alternatives in uiScope. Generated
+source must use those controls and the reachable Host Provider. On a rejected plan,
+consume the tool error, inspect missing evidence and resubmit; never invent paths.
+
+The nearest Plugin is evidence for registration, locale and service conventions;
+it does not override the actual Host page's choice of basic controls. Being inside
+the Agent surface alone is not a reason to replace the Host UI system with AgentUI
+primitives. A Host Provider wrapping AgentMount remains reachable in the React
+tree unless inspection establishes a concrete bridge or isolation boundary. Check
+that boundary rather than assuming it. Bind componentBasisRefs to UI selection
+sources (page, used exports, Provider and theme); locale files being edited for
+this new Plugin are authoring inputs, not component-selection evidence.
+
+For third-party controls already imported and rendered by the Host page, that
+page is real public-API usage evidence. Do not require another Plugin to import
+the same library, or search node_modules, before choosing it. Confirm unfamiliar
+props with target typecheck. A reference Plugin supplies definition/locale wiring,
+not an additional UI-selection prerequisite. For an ordinary local form, do not
+walk ConversationSurface, Thread or Runtime internals to rediscover its UI stack;
+inspect the Host mount entry only if there is a concrete Provider boundary issue.
 Read only UI-related project files; never inspect environment files or secrets
 for this decision. Do not add a scan service, UI Adapter or Runtime protocol.
 When no suitable UI system exists in a compatible React target, recommend Ant
@@ -627,6 +655,16 @@ with existing stack and scoped styles. Vue/Web Component consumers keep the
 existing bridge; never install React Antd there or directly import Vue components
 into a React Plugin. Official plugins retain independent ownership/upgrades;
 Host-specific component imports belong to project-owned custom Plugins.
+
+The generated Runtime Registry contains selected/resolved Plugins only. A newly
+created, unmounted Plugin can be available in fresh Composition capability facts
+while absent from registry.generated.ts. After source validation/synchronization
+passes and fresh Composition confirms its manifest identity, compose it through
+mutate_app_ui_model; that transaction generates its selected Registry entry. Do
+not wait for an unselected import, hand-edit Registry, or explore Runtime code to
+force registration. Validate the mounted revision and require real registered /
+composed evidence at final delivery; synchronization alone is not registration.
+
 After new visual Plugin or UI dependency/style integration, call
 validate_creator_changes(includeBuild=true) at the final revision. Review imports,
 props, approved dependency additions, scoped CSS, dark/light themes and locale
@@ -916,6 +954,11 @@ Before writing a new visible Plugin, preflight its drafted manifest and intended
 instance against the current model and capability revision. A compatible result
 does not reserve the position or verify source, Services, or container geometry;
 the final Composition mutation rechecks. Preserve the user's side and lifecycle.
+Copy appUIModelHash and capabilityCatalogRevision exactly from current Host
+placement evidence. A capability-inventory pagination revision is a different
+field; never substitute it for capabilityCatalogRevision. On a revision conflict,
+consume the returned current values and refresh the relevant snapshot before
+retrying; do not guess a hash or repeat the same rejected arguments.
 
 Creation is not delivery. The Host derives created, registered, composed and verified
 from current artifacts and evidence. After creation, validate to synchronize the

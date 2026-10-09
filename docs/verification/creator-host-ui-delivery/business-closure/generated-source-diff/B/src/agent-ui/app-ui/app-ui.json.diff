@@ -1,0 +1,22 @@
+--- a/src/agent-ui/app-ui/app-ui.json
++++ b/src/agent-ui/app-ui/app-ui.json
+@@ -48,6 +48,19 @@
+             {
+               "id": "conversation-thread-list-main",
+               "pluginId": "conversation-thread-list",
++              "enabled": true
++            }
++          ]
++        }
++      },
++      {
++        "id": "business-notes",
++        "child": {
++          "type": "slot",
++          "plugins": [
++            {
++              "id": "business-notes-main",
++              "pluginId": "business-notes",
+               "enabled": true
+             }
+           ]

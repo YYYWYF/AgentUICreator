@@ -1,0 +1,147 @@
+--- a/src/agent-ui/plugins/business-notes/styles.css
++++ b/src/agent-ui/plugins/business-notes/styles.css
+@@ -0,0 +1,144 @@
++.business-notes-plugin {
++  box-sizing: border-box;
++  display: flex;
++  flex-direction: column;
++  gap: 14px;
++  width: 100%;
++  min-width: 0;
++  height: 100%;
++  color: var(--acme-text, inherit);
++}
++
++.business-notes-header {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  gap: 10px;
++  min-width: 0;
++}
++
++.business-notes-title {
++  margin: 0;
++  min-width: 0;
++  font-size: 1.125rem;
++  line-height: 1.35;
++  overflow-wrap: anywhere;
++}
++
++.business-notes-help-button {
++  flex: 0 0 auto;
++}
++
++.business-notes-card {
++  box-sizing: border-box;
++  width: 100%;
++  min-width: 0;
++  margin: 0;
++}
++
++.business-notes-form {
++  display: flex;
++  flex-direction: column;
++  align-items: stretch;
++  gap: 10px;
++  min-width: 0;
++}
++
++.business-notes-label {
++  font-weight: 600;
++}
++
++.business-notes-form .acme-input {
++  box-sizing: border-box;
++  width: 100%;
++}
++
++.business-notes-error {
++  margin: 0;
++  padding-inline-start: 9px;
++  border-inline-start: 3px solid var(--acme-primary);
++}
++
++.business-notes-add-button {
++  align-self: flex-start;
++}
++
++.business-notes-empty {
++  margin: 0;
++  padding: 14px;
++  border: 1px dashed var(--acme-border);
++  border-radius: var(--acme-radius);
++  color: var(--acme-text);
++  overflow-wrap: anywhere;
++}
++
++.business-notes-list {
++  display: grid;
++  gap: 8px;
++  min-width: 0;
++  margin: 0;
++  padding: 0;
++  list-style: none;
++}
++
++.business-notes-item {
++  min-width: 0;
++  padding: 12px;
++  border: 1px solid var(--acme-border);
++  border-radius: var(--acme-radius);
++  background: var(--acme-surface);
++  color: var(--acme-text);
++  white-space: pre-wrap;
++  overflow-wrap: anywhere;
++}
++
++.business-notes-dialog {
++  box-sizing: border-box;
++  width: min(32rem, calc(100vw - 32px));
++  max-width: calc(100vw - 32px);
++  max-height: min(80vh, 40rem);
++  margin: auto;
++  padding: 20px;
++  overflow: auto;
++  border: 1px solid var(--acme-border);
++  border-radius: var(--acme-radius);
++  background: var(--acme-surface);
++  color: var(--acme-text);
++}
++
++.business-notes-dialog::backdrop {
++  background: color-mix(in srgb, var(--acme-text) 42%, transparent);
++}
++
++.business-notes-dialog-content {
++  display: grid;
++  gap: 12px;
++  min-width: 0;
++}
++
++.business-notes-dialog-content h2,
++.business-notes-dialog-content p {
++  margin: 0;
++  overflow-wrap: anywhere;
++}
++
++.business-notes-plugin {
++  font-family: Inter, system-ui, sans-serif;
++}
++
++.business-notes-plugin .business-notes-dialog {
++  font: inherit;
++}
++
++@media (max-width: 420px) {
++  .business-notes-header {
++    align-items: stretch;
++    flex-direction: column;
++  }
++
++  .business-notes-help-button,
++  .business-notes-add-button {
++    align-self: stretch;
++    width: 100%;
++  }
++}

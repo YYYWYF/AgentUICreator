@@ -1,0 +1,31 @@
+--- a/src/agent-ui/plugins/business-notes/manifest.json
++++ b/src/agent-ui/plugins/business-notes/manifest.json
+@@ -0,0 +1,28 @@
++{
++  "id": "business-notes",
++  "name": "Business Notes",
++  "description": "输入备注、点击添加后显示备注列表，并提供说明弹层。",
++  "version": "0.0.1",
++  "capabilities": [
++    "business-notes"
++  ],
++  "layout": {
++    "width": "narrow"
++  },
++  "authoring": {
++    "intents": [
++      "add business notes",
++      "show note panel",
++      "添加业务备注",
++      "显示备注面板"
++    ],
++    "visualRole": "business notes sidebar panel"
++  },
++  "sidebar": {
++    "icon": "book-open",
++    "labels": {
++      "en-US": "Notes",
++      "zh-CN": "业务备注"
++    }
++  }
++}

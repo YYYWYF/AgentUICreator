@@ -1,0 +1,1803 @@
+.FFFFF.FFFFFF......FF..FF..........FFF..............F........F.F.....FFF [ 59%]
+.FF.FFFFF....................F...................                        [100%]
+=================================== FAILURES ===================================
+_____________________ test_validation_runs_known_commands ______________________
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_validation_runs_known_com0')
+
+    def test_validation_runs_known_commands(tmp_path):
+        runner = FakeValidationRunner()
+        service, activity = validation_service(tmp_path, runner)
+    
+        result = asyncio.run(service.validate())
+    
+>       assert runner.calls == list(CREATOR_COMPLETION_VALIDATIONS)
+E       AssertionError: assert ['pnpm typech...pm typecheck'] == ['pnpm verify...pm typecheck']
+E         
+E         At index 0 diff: 'pnpm typecheck' != 'pnpm verify:ui'
+E         Left contains one more item: 'pnpm typecheck'
+E         Use -v to get more diff
+
+packages/creator-python/tests/test_creator_validation.py:81: AssertionError
+_______________ test_validation_result_cached_for_same_revision ________________
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_validation_result_cached_0')
+
+    def test_validation_result_cached_for_same_revision(tmp_path):
+        runner = FakeValidationRunner()
+        service, _activity = validation_service(tmp_path, runner)
+    
+        first = asyncio.run(service.validate())
+        second = asyncio.run(service.validate())
+    
+        assert first.status == second.status == "passed"
+>       assert runner.calls == list(CREATOR_COMPLETION_VALIDATIONS)
+E       AssertionError: assert ['pnpm typech...pm typecheck'] == ['pnpm verify...pm typecheck']
+E         
+E         At index 0 diff: 'pnpm typecheck' != 'pnpm verify:ui'
+E         Left contains one more item: 'pnpm typecheck'
+E         Use -v to get more diff
+
+packages/creator-python/tests/test_creator_validation.py:96: AssertionError
+___________________ test_source_edit_invalidates_validation ____________________
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_source_edit_invalidates_v0')
+
+    def test_source_edit_invalidates_validation(tmp_path):
+        runner = FakeValidationRunner()
+        service, activity = validation_service(tmp_path, runner)
+        asyncio.run(service.validate())
+    
+        activity.capture_before_content("plugins/example.ts", None)
+        activity.touch("plugins/example.ts")
+        result = asyncio.run(service.validate())
+    
+        assert result.revision == 1
+        assert result.status == "passed"
+>       assert runner.calls == [
+            *CREATOR_COMPLETION_VALIDATIONS,
+            *CREATOR_COMPLETION_VALIDATIONS,
+        ]
+E       AssertionError: assert ['pnpm typech...pm typecheck'] == ['pnpm verify...pm typecheck']
+E         
+E         At index 0 diff: 'pnpm typecheck' != 'pnpm verify:ui'
+E         Left contains one more item: 'pnpm typecheck'
+E         Use -v to get more diff
+
+packages/creator-python/tests/test_creator_validation.py:111: AssertionError
+_ test_plugin_declaration_edit_synchronizes_generated_registry_before_validation _
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_plugin_declaration_edit_s0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_plugin_declaration_edit_s0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_plugin_declaration_edit_s0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_plugin_declaration_edit_s0')
+
+    def test_plugin_declaration_edit_synchronizes_generated_registry_before_validation(tmp_path):
+        plugin = tmp_path / "plugins/example"
+        plugin.mkdir(parents=True)
+        (plugin / "definition.ts").write_text("updated", encoding="utf-8")
+        registry = tmp_path / "plugins/registry.generated.ts"
+        registry.write_text("old registry", encoding="utf-8")
+    
+        class RegistryControl:
+            calls = []
+    
+            async def synchronize_plugin_registry(self, *, expected_source_hash):
+                self.calls.append(expected_source_hash)
+                registry.write_text("new registry", encoding="utf-8")
+                return {"changed": True, "path": "plugins/registry.generated.ts", "pluginIds": ["example"]}
+    
+        activity = CreatorActivityRecorder(tmp_path)
+        activity.begin("registry-sync")
+        control = RegistryControl()
+        runner = FakeValidationRunner()
+        service = CreatorValidationService(
+            project_root=tmp_path,
+            activity=activity,
+            runner=runner,
+            project_control=control,
+            mutation_coordinator=ProjectMutationCoordinator(),
+        )
+        asyncio.run(service.ensure_baseline())
+        activity.capture_before_content("plugins/example/definition.ts", "original")
+        activity.touch("plugins/example/definition.ts")
+    
+>       result = asyncio.run(service.validate())
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/tests/test_creator_validation.py:147: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py:205: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/runners.py:128: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/asyncio/base_events.py:720: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/validation/service.py:426: in validate
+    await self._synchronize_plugin_registry()
+packages/creator-python/agent_ui_creator/validation/service.py:102: in _synchronize_plugin_registry
+    if not any(
+           ^^^
+packages/creator-python/agent_ui_creator/validation/service.py:103: in <genexpr>
+    (logical := project_logical_path(path, self.project_root)).startswith("/plugins/")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/resource_scope.py:44: in project_logical_path
+    source_root = agent_ui_source_root(project_root)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_plugin_declaration_edit_s0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+packages/creator-python/agent_ui_creator/project_paths.py:27: ValueError
+___________ test_failed_validation_returns_diagnostics_not_run_error ___________
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_failed_validation_returns0')
+
+    def test_failed_validation_returns_diagnostics_not_run_error(tmp_path):
+        runner = FakeValidationRunner(
+            [
+                CommandExecutionResult("Type error in index.tsx", 2, False),
+                CommandExecutionResult("", 0, False),
+            ]
+        )
+        service, _activity = validation_service(tmp_path, runner)
+        tool = create_validation_tool(service)
+    
+        payload = json.loads(asyncio.run(tool.ainvoke({})))
+    
+        assert payload["ok"] is True
+        assert payload["result"]["status"] == "failed"
+>       assert payload["result"]["checks"][0]["output"] == "Type error in index.tsx"
+E       AssertionError: assert '' == 'Type error in index.tsx'
+E         
+E         - Type error in index.tsx
+
+packages/creator-python/tests/test_creator_validation.py:171: AssertionError
+___ test_composition_validation_blocker_is_unrelated_and_not_auto_repairable ___
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_composition_validation_bl0')
+
+    def test_composition_validation_blocker_is_unrelated_and_not_auto_repairable(
+        tmp_path,
+    ):
+        runner = FakeValidationRunner(
+            [
+                CommandExecutionResult(
+                    "PLUGIN_CHILD_SLOT_CONTRACT_INVALID: plugins/conversation-surface/manifest.json",
+                    1,
+                    False,
+                )
+            ]
+        )
+        service, activity = validation_service(tmp_path, runner)
+        activity.capture_before_content("app-ui/app-ui.json", "before")
+        (tmp_path / "app-ui").mkdir()
+        (tmp_path / "app-ui/app-ui.json").write_text("after", encoding="utf-8")
+        activity.touch("app-ui/app-ui.json")
+    
+        result = asyncio.run(service.validate())
+    
+>       assert result.failure_semantics == {
+            "category": "workspace_integrity",
+            "attribution": "unrelated",
+            "taskScope": ["composition"],
+            "taskScopeResources": ["app-ui-model"],
+            "scopeResources": ["app-ui-model"],
+            "changedResources": ["app-ui-model"],
+            "failureLayers": ["plugin_behavior"],
+            "changedPaths": ["app-ui/app-ui.json"],
+            "automaticRepairAllowed": False,
+            "automaticCrossLayerRepairAllowed": False,
+            "recovery": "stop_and_report_blocker",
+        }
+E       AssertionError: assert {'attribution...tegrity', ...} == {'attribution...tegrity', ...}
+E         
+E         Omitting 4 identical items, use -vv to show
+E         Differing items:
+E         {'attribution': 'unknown'} != {'attribution': 'unrelated'}
+E         {'taskScope': []} != {'taskScope': ['composition']}
+E         {'changedResources': []} != {'changedResources': ['app-ui-model']}
+E         {'scopeResources': []} != {'scopeResources': ['app-ui-model']}...
+E         
+E         ...Full output truncated (4 lines hidden), use '-vv' to show
+
+packages/creator-python/tests/test_creator_validation.py:246: AssertionError
+____ test_validation_failure_in_changed_source_is_attributed_to_current_run ____
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_validation_failure_in_cha0')
+
+    def test_validation_failure_in_changed_source_is_attributed_to_current_run(tmp_path):
+        runner = FakeValidationRunner(
+            [CommandExecutionResult("plugins/sample/index.tsx(1,1): error", 1, False)]
+        )
+        service, activity = validation_service(tmp_path, runner)
+        (tmp_path / "plugins/sample").mkdir(parents=True)
+        activity.capture_before_content("plugins/sample/index.tsx", None)
+        (tmp_path / "plugins/sample/index.tsx").write_text("broken", encoding="utf-8")
+        activity.touch("plugins/sample/index.tsx")
+    
+        result = asyncio.run(service.validate())
+    
+>       assert result.failure_semantics["attribution"] == "introduced"
+E       AssertionError: assert 'unknown' == 'introduced'
+E         
+E         - introduced
+E         + unknown
+
+packages/creator-python/tests/test_creator_validation.py:273: AssertionError
+______ test_validation_failure_in_committed_scope_is_attributed_in_scope _______
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_validation_failure_in_com0')
+
+    def test_validation_failure_in_committed_scope_is_attributed_in_scope(tmp_path):
+        runner = FakeValidationRunner(
+            [CommandExecutionResult("(conversation-surface): invalid", 1, False)]
+        )
+        scope = ChangeScopeMetrics(
+            taskChangeLayers=["plugin_behavior"],
+            scopeResources=["plugin:conversation-surface"],
+        )
+        service, _activity = validation_service(tmp_path, runner, scope=scope)
+    
+        result = asyncio.run(service.validate())
+    
+>       assert result.failure_semantics["attribution"] == "in_scope"
+E       AssertionError: assert 'unknown' == 'in_scope'
+E         
+E         - in_scope
+E         + unknown
+
+packages/creator-python/tests/test_creator_validation.py:290: AssertionError
+_ test_validation_failure_in_same_change_layer_but_different_resource_is_unrelated _
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_validation_failure_in_sam0')
+
+    def test_validation_failure_in_same_change_layer_but_different_resource_is_unrelated(
+        tmp_path,
+    ):
+        runner = FakeValidationRunner(
+            [CommandExecutionResult("plugins/bar/manifest.json: invalid", 1, False)]
+        )
+        service, activity = validation_service(tmp_path, runner)
+        (tmp_path / "plugins/foo").mkdir(parents=True)
+        activity.capture_before_content("plugins/foo/index.tsx", None)
+        (tmp_path / "plugins/foo/index.tsx").write_text("changed", encoding="utf-8")
+        activity.touch("plugins/foo/index.tsx")
+    
+        result = asyncio.run(service.validate())
+    
+>       assert result.failure_semantics["attribution"] == "unrelated"
+E       AssertionError: assert 'unknown' == 'unrelated'
+E         
+E         - unrelated
+E         + unknown
+
+packages/creator-python/tests/test_creator_validation.py:308: AssertionError
+______________ test_validation_becomes_stale_if_revision_changes _______________
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_validation_becomes_stale_0')
+
+    def test_validation_becomes_stale_if_revision_changes(tmp_path):
+        activity = CreatorActivityRecorder(tmp_path)
+        activity.begin("stale-validation")
+    
+        def mutate_after_first_command(_command):
+            if activity.revision == 0:
+                activity.capture_before_content("plugins/external.ts", None)
+                activity.touch("plugins/external.ts")
+    
+        runner = FakeValidationRunner(before=mutate_after_first_command)
+        service = CreatorValidationService(
+            project_root=tmp_path,
+            activity=activity,
+            runner=runner,
+        )
+    
+        result = asyncio.run(service.validate())
+    
+>       assert result.status == "stale"
+E       AssertionError: assert 'passed' == 'stale'
+E         
+E         - stale
+E         + passed
+
+packages/creator-python/tests/test_creator_validation.py:334: AssertionError
+_____ test_attribution_failure_preserves_evidence_and_finishes_validation ______
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_attribution_failure_prese0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10ebd7bb0>
+
+    def test_attribution_failure_preserves_evidence_and_finishes_validation(
+        tmp_path, monkeypatch
+    ):
+        logger = CreatorRunLogger(tmp_path)
+        logger.begin(run_id="validation-evidence")
+        runner = FakeValidationRunner(
+            [
+                CommandExecutionResult("verify output", 1, False),
+                CommandExecutionResult("typecheck output", 0, False),
+            ]
+        )
+        service, _activity = validation_service(tmp_path, runner, logger=logger)
+    
+        def fail_attribution(**_kwargs):
+            raise RuntimeError("synthetic attribution failure")
+    
+        monkeypatch.setattr(
+            validation_attribution,
+            "attribute_validation_failure",
+            fail_attribution,
+        )
+    
+        result = asyncio.run(service.validate())
+    
+        assert result.status == "failed"
+        assert result.failure_semantics == {
+            "category": "workspace_integrity",
+            "attribution": "unknown",
+            "taskScope": [],
+            "taskScopeResources": [],
+            "scopeResources": [],
+            "changedResources": [],
+            "failureLayers": [],
+            "changedPaths": [],
+            "automaticRepairAllowed": False,
+            "automaticCrossLayerRepairAllowed": False,
+            "recovery": "stop_and_report_blocker",
+        }
+        assert service.latest_evidence is result.evidence
+>       assert [check.to_dict() for check in result.checks] == [
+            {
+                "checkId": "pnpm verify:ui",
+                "command": "pnpm verify:ui",
+                "status": "failed",
+                "exitCode": 1,
+                "output": "verify output",
+                "truncated": False,
+                "revision": 0,
+                "source": "executed",
+            },
+            {
+                "checkId": "pnpm typecheck",
+                "command": "pnpm typecheck",
+                "status": "passed",
+                "exitCode": 0,
+                "output": "typecheck output",
+                "truncated": False,
+                "revision": 0,
+                "source": "executed",
+            },
+        ]
+E       AssertionError: assert [{'checkId': ...stics.', ...}] == [{'checkId': ...output', ...}]
+E         
+E         At index 0 diff: {'checkId': 'pnpm verify:ui', 'command': 'pnpm verify:ui', 'status': 'passed', 'exitCode': 0, 'output': 'typecheck output', 'truncated': False, 'revision': 0, 'source': 'executed'} != {'checkId': 'pnpm verify:ui', 'command': 'pnpm verify:ui', 'status': 'failed', 'exitCode': 1, 'output': 'verify output', 'truncated': False, 'revision': 0, 'source': 'executed'}
+E         Use -v to get more diff
+
+packages/creator-python/tests/test_creator_validation.py:379: AssertionError
+___________ test_new_error_is_introduced_evidence_and_is_repairable ____________
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_new_error_is_introduced_e0')
+
+    def test_new_error_is_introduced_evidence_and_is_repairable(tmp_path):
+        existing = _diagnostic("framework/contracts/ui-plugin.ts", "TS2322", "Existing")
+        introduced = _diagnostic("services/conversation/contract.ts", "TS2339", "New service error")
+        service, _activity, _runner = _service(
+            tmp_path,
+            [
+                CommandExecutionResult(existing, 1, False),
+                CommandExecutionResult("", 0, False),
+                CommandExecutionResult("\n".join([existing, introduced]), 1, False),
+            ],
+        )
+    
+        result = asyncio.run(service.validate())
+    
+        assert result.status == "failed"
+>       assert result.failure_semantics["attribution"] == "introduced"
+E       AssertionError: assert 'unknown' == 'introduced'
+E         
+E         - introduced
+E         + unknown
+
+packages/creator-python/tests/test_creator_validation_differential.py:153: AssertionError
+____ test_repairing_introduced_error_returns_success_and_preserves_warning _____
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_repairing_introduced_erro0')
+
+    def test_repairing_introduced_error_returns_success_and_preserves_warning(tmp_path):
+        existing = "\n".join(
+            [
+                _diagnostic("framework/contracts/ui-plugin.ts", "TS2322", "Existing A"),
+                _diagnostic("tests/legacy.ts", "TS2345", "Existing B"),
+            ]
+        )
+        introduced = _diagnostic("services/conversation/contract.ts", "TS2339", "New service error")
+        service, activity, _runner = _service(
+            tmp_path,
+            [
+                CommandExecutionResult(existing, 1, False),
+                CommandExecutionResult("", 0, False),
+                CommandExecutionResult("\n".join([existing, introduced]), 1, False),
+                CommandExecutionResult("", 0, False),
+                CommandExecutionResult(existing, 1, False),
+            ],
+        )
+        asyncio.run(service.ensure_baseline())
+        activity.capture_before_content("plugins/example/index.tsx", "before")
+        (tmp_path / "plugins").mkdir(exist_ok=True)
+        (tmp_path / "plugins/example").mkdir(exist_ok=True)
+        (tmp_path / "plugins/example/index.tsx").write_text("after", encoding="utf-8")
+        activity.touch("plugins/example/index.tsx")
+    
+        first = asyncio.run(service.validate())
+        assert first.status == "failed"
+    
+        activity.capture_before_content("services/conversation/contract.ts", "broken")
+        (tmp_path / "services/conversation").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "services/conversation/contract.ts").write_text("fixed", encoding="utf-8")
+        activity.touch("services/conversation/contract.ts")
+        repaired = asyncio.run(service.validate())
+    
+        assert repaired.status == "passed"
+>       assert repaired.differential.to_dict()["resolvedDiagnosticCount"] == 1
+E       assert 0 == 1
+
+packages/creator-python/tests/test_creator_validation_differential.py:197: AssertionError
+_____ test_composition_completion_reports_seven_existing_errors_as_warning _____
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_composition_completion_re0')
+
+    def test_composition_completion_reports_seven_existing_errors_as_warning(tmp_path):
+        existing = "\n".join(
+            [
+                _diagnostic("framework/contracts/ui-plugin.ts", "TS2322", "A"),
+                _diagnostic("scripts/ui-project/app-ui-operations.ts", "TS2345", "B"),
+                _diagnostic("tests/legacy-one.ts", "TS7006", "C"),
+                _diagnostic("tests/legacy-two.ts", "TS2307", "D"),
+                _diagnostic("framework/layout.ts", "TS2339", "E"),
+                _diagnostic("scripts/registry.ts", "TS2551", "F"),
+                _diagnostic("tests/legacy-three.ts", "TS2322", "G"),
+            ]
+        )
+        service, activity, _runner = _service(
+            tmp_path,
+            [
+                CommandExecutionResult(existing, 1, False),
+                CommandExecutionResult("verify ok", 0, False),
+                CommandExecutionResult(existing, 1, False),
+            ],
+        )
+        (tmp_path / "app-ui").mkdir()
+        (tmp_path / "app-ui/app-ui.json").write_text('{"conversation":true}', encoding="utf-8")
+        activity.capture_before_content("app-ui/app-ui.json", '{"conversation":true}')
+        (tmp_path / "app-ui/app-ui.json").write_text('{"conversation":false}', encoding="utf-8")
+        activity.touch("app-ui/app-ui.json")
+    
+        result = asyncio.run(service.validate())
+        gate = CreatorDevelopmentCompletionGate(
+            activity=activity,
+            validation=service,
+            runtime=_PassingRuntime(),
+            repair_state=CreatorRepairState(),
+            verification_mode="static_and_runtime",
+        )
+        decision = gate.review("已完成会话管理删除")
+    
+>       assert result.status == "passed"
+E       AssertionError: assert 'failed' == 'passed'
+E         
+E         - passed
+E         + failed
+
+packages/creator-python/tests/test_creator_validation_differential.py:325: AssertionError
+_____________ test_clean_mode_requires_zero_remaining_diagnostics ______________
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_clean_mode_requires_zero_0')
+
+    def test_clean_mode_requires_zero_remaining_diagnostics(tmp_path):
+        existing = _diagnostic("framework/foo.ts", "TS1234", "Pre-existing")
+        service, activity, _runner = _service(
+            tmp_path,
+            [
+                CommandExecutionResult(existing, 1, False),
+                CommandExecutionResult("", 0, False),
+                CommandExecutionResult(existing, 1, False),
+                CommandExecutionResult("", 0, False),
+                CommandExecutionResult("", 0, False),
+            ],
+        )
+    
+        failed = asyncio.run(service.validate(mode="clean"))
+        activity.capture_before_content("plugins/fix.ts", "before")
+        (tmp_path / "plugins").mkdir(exist_ok=True)
+        (tmp_path / "plugins/fix.ts").write_text("fixed", encoding="utf-8")
+        activity.touch("plugins/fix.ts")
+        passed = asyncio.run(service.validate(mode="clean"))
+    
+        assert failed.status == "failed"
+>       assert failed.failure_semantics["attribution"] == "in_scope"
+E       AssertionError: assert 'unknown' == 'in_scope'
+E         
+E         - in_scope
+E         + unknown
+
+packages/creator-python/tests/test_creator_validation_differential.py:353: AssertionError
+_____ test_targeted_existing_error_requires_resolution_not_just_delta_pass _____
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_targeted_existing_error_r0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_targeted_existing_error_r0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_targeted_existing_error_r0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_targeted_existing_error_r0')
+
+    def test_targeted_existing_error_requires_resolution_not_just_delta_pass(tmp_path):
+        baseline = ts() + '\n' + ts(BAR)
+        validation, activity, gate, tool = session(tmp_path, baseline, '', baseline, '', ts(BAR))
+        first = bind_static(validation, tool, [TARGET])
+        assert first['result']['status'] == 'passed'
+        assert first['result']['diagnosticIdentities'][0]['line'] == 42
+>       pending = gate.review('fixed')
+                  ^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/tests/test_debugging_completion.py:89: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+packages/creator-python/agent_ui_creator/domain_agent/completion_gate.py:187: in review
+    decision = self._review_debugging(candidate)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/domain_agent/completion_gate.py:296: in _review_debugging
+    layers = {change_layer_for_path(item.path, project_root=self.activity.project_root) for item in remaining}
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/resource_scope.py:52: in change_layer_for_path
+    normalized = project_logical_path(path, project_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/resource_scope.py:44: in project_logical_path
+    source_root = agent_ui_source_root(project_root)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_targeted_existing_error_r0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+packages/creator-python/agent_ui_creator/project_paths.py:27: ValueError
+_ test_moved_diagnostic_is_still_unresolved_and_existing_repair_limit_applies __
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_moved_diagnostic_is_still0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_moved_diagnostic_is_still0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_moved_diagnostic_is_still0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_moved_diagnostic_is_still0')
+
+    def test_moved_diagnostic_is_still_unresolved_and_existing_repair_limit_applies(tmp_path):
+        validation, activity, gate, tool = session(tmp_path,
+            ts(), '', ts(), '', ts(line=80), '', ts(line=120))
+        bind_static(validation, tool, [TARGET])
+>       assert not gate.review('done').accepted
+                   ^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/tests/test_debugging_completion.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+packages/creator-python/agent_ui_creator/domain_agent/completion_gate.py:187: in review
+    decision = self._review_debugging(candidate)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/domain_agent/completion_gate.py:296: in _review_debugging
+    layers = {change_layer_for_path(item.path, project_root=self.activity.project_root) for item in remaining}
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/resource_scope.py:52: in change_layer_for_path
+    normalized = project_logical_path(path, project_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/resource_scope.py:44: in project_logical_path
+    source_root = agent_ui_source_root(project_root)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_moved_diagnostic_is_still0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+packages/creator-python/agent_ui_creator/project_paths.py:27: ValueError
+________________ test_clean_goal_cannot_be_downgraded_to_delta _________________
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_clean_goal_cannot_be_down0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_clean_goal_cannot_be_down0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_clean_goal_cannot_be_down0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_clean_goal_cannot_be_down0')
+
+    def test_clean_goal_cannot_be_downgraded_to_delta(tmp_path):
+        validation, _, gate, tool = session(tmp_path, ts(), '', ts(), '', ts())
+        assert call(tool, mode='clean')['result']['status'] == 'failed'
+        assert call(tool, mode='delta')['result']['status'] == 'passed'
+>       assert not gate.review('done').accepted
+                   ^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/tests/test_debugging_completion.py:122: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+packages/creator-python/agent_ui_creator/domain_agent/completion_gate.py:187: in review
+    decision = self._review_debugging(candidate)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/domain_agent/completion_gate.py:296: in _review_debugging
+    layers = {change_layer_for_path(item.path, project_root=self.activity.project_root) for item in remaining}
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/resource_scope.py:52: in change_layer_for_path
+    normalized = project_logical_path(path, project_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/resource_scope.py:44: in project_logical_path
+    source_root = agent_ui_source_root(project_root)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_clean_goal_cannot_be_down0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+packages/creator-python/agent_ui_creator/project_paths.py:27: ValueError
+______ test_ordinary_runtime_verification_keeps_global_failure_semantics _______
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_ordinary_runtime_verifica0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_ordinary_runtime_verifica0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_ordinary_runtime_verifica0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_ordinary_runtime_verifica0')
+
+    def test_ordinary_runtime_verification_keeps_global_failure_semantics(tmp_path):
+        validation, activity, gate, static, tool, store, guard, a, b = targeted_runtime_session(tmp_path, bind=False)
+        mutate(tmp_path, activity, 'ordinary modification')
+        call(static)
+        store.result = runtime_errors(b)
+        payload = call(tool)
+        assert payload['result']['runtimeDebuggingDifferential'] is None
+        guard._observe_result('inspect_runtime_errors', {}, json.dumps(payload))
+        assert not validation.debugging.runtime_targets
+        assert gate._runtime_completion_evidence()['runtimeStatus'] == 'failed'
+>       assert gate.review('done').feedback is not None
+               ^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/tests/test_debugging_completion.py:391: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+packages/creator-python/agent_ui_creator/domain_agent/completion_gate.py:189: in review
+    decision = self._review(candidate)
+               ^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/domain_agent/completion_gate.py:872: in _review
+    if change_layers_for_paths(changed_paths, project_root=self.activity.project_root) == ("composition",):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/resource_scope.py:71: in change_layers_for_paths
+    layer = change_layer_for_path(path, project_root=project_root)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/resource_scope.py:52: in change_layer_for_path
+    normalized = project_logical_path(path, project_root)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/resource_scope.py:44: in project_logical_path
+    source_root = agent_ui_source_root(project_root)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_ordinary_runtime_verifica0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+packages/creator-python/agent_ui_creator/project_paths.py:27: ValueError
+_____________ test_runtime_pending_ambiguity_and_owner_constraint ______________
+
+project_root = '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_runtime_pending_ambiguity0'
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_runtime_pending_ambiguity0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_runtime_pending_ambiguity0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_runtime_pending_ambiguity0')
+
+    def test_runtime_pending_ambiguity_and_owner_constraint(tmp_path):
+        validation, activity, gate, _, runtime, _, guard, _, _ = targeted_runtime_session(tmp_path, bind=False)
+        handler = Mock()
+        request = SimpleNamespace(tool_call={'id': 'edit', 'name': 'edit_file',
+                                            'args': {'file_path': FOO}})
+        assert json.loads(guard.wrap_tool_call(request, handler).content)['error']['code'] == 'DEBUGGING_TARGET_REQUIRED'
+        handler.assert_not_called()
+        assert activity.revision == 0
+        guard._debugging_selection_guard({'id': 'ask', 'args': {}}, 'ask_user_question')
+        assert validation.debugging.ambiguous_target_stops == 1
+        select, _ = selection_tools(validation, gate.runtime)
+        target_id = call(runtime)['result']['currentErrors'][0]['debuggingTargetId']
+        call(select, target_id=target_id)
+        request.tool_call['args']['file_path'] = BAR
+>       assert json.loads(guard.wrap_tool_call(request, handler).content)['error']['code'] == 'DEBUGGING_TARGET_OWNER_REQUIRED'
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/tests/test_debugging_completion.py:527: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+packages/creator-python/agent_ui_creator/domain_agent/change_scope.py:926: in wrap_tool_call
+    selection_required = self._debugging_selection_guard(call, name)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/domain_agent/change_scope.py:869: in _debugging_selection_guard
+    layer = change_layer_for_tool_call(name, self._logical_arguments(arguments))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/domain_agent/change_scope.py:501: in _logical_arguments
+    return {**arguments, "file_path": project_logical_path(path, self.project_root)}
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/resource_scope.py:44: in project_logical_path
+    source_root = agent_ui_source_root(project_root)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_runtime_pending_ambiguity0'
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+packages/creator-python/agent_ui_creator/project_paths.py:27: ValueError
+_______ test_all_current_runtime_uses_no_array_and_preserves_scope_guard _______
+
+project_root = '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_all_current_runtime_uses_0'
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_all_current_runtime_uses_0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_all_current_runtime_uses_0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_all_current_runtime_uses_0')
+
+    def test_all_current_runtime_uses_no_array_and_preserves_scope_guard(tmp_path):
+        validation, _, gate, _, _, _, guard, _, _ = targeted_runtime_session(tmp_path, bind=False)
+        _, select_all = selection_tools(validation, gate.runtime)
+        assert not select_all.args_schema.model_json_schema()['properties']
+        assert call(select_all)['result']['targetCount'] == 2
+        assert len(validation.debugging.runtime_targets) == 2
+        guard._preserve_scope({'source': 'test'}, workspace_integrity=False)
+        request = SimpleNamespace(tool_call={'id': 'bar', 'name': 'edit_file',
+                                            'args': {'file_path': BAR}})
+        handler = Mock()
+>       assert json.loads(guard.wrap_tool_call(request, handler).content)['error']['code'] == 'CROSS_RESOURCE_REPAIR_PROHIBITED'
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/tests/test_debugging_completion.py:550: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+packages/creator-python/agent_ui_creator/domain_agent/change_scope.py:926: in wrap_tool_call
+    selection_required = self._debugging_selection_guard(call, name)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/domain_agent/change_scope.py:869: in _debugging_selection_guard
+    layer = change_layer_for_tool_call(name, self._logical_arguments(arguments))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/domain_agent/change_scope.py:501: in _logical_arguments
+    return {**arguments, "file_path": project_logical_path(path, self.project_root)}
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/resource_scope.py:44: in project_logical_path
+    source_root = agent_ui_source_root(project_root)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_all_current_runtime_uses_0'
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+packages/creator-python/agent_ui_creator/project_paths.py:27: ValueError
+______ test_model_facing_debugging_schemas_hide_legacy_complex_arguments _______
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_model_facing_debugging_sc0')
+
+    def test_model_facing_debugging_schemas_hide_legacy_complex_arguments(tmp_path):
+        validation, activity, _, static = session(tmp_path)
+        service, _, _ = runtime_service(activity, validation.debugging, runtime_result())
+        select, select_all = selection_tools(validation, service)
+        expected = [(static, {'mode'}), (create_runtime_diagnostic_tool(service), {'includeStale'}),
+                    (select, {'target_id'}), (select_all, set()),
+                    (create_static_diagnostic_tool(validation), set())]
+        for tool, properties in expected:
+>           assert set(tool.args_schema.model_json_schema()['properties']) == properties
+E           AssertionError: assert {'includeBuild', 'mode'} == {'mode'}
+E             
+E             Extra items in the left set:
+E             'includeBuild'
+E             Use -v to get more diff
+
+packages/creator-python/tests/test_debugging_completion.py:626: AssertionError
+___ test_old_static_warning_does_not_block_current_task_runtime_tail_repair ____
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_old_static_warning_does_n0')
+
+    def test_old_static_warning_does_not_block_current_task_runtime_tail_repair(tmp_path):
+        validation, activity, _, tool = session(tmp_path, ts(BAR), '', ts(BAR))
+        mutate(tmp_path, activity, 'ordinary button change')
+>       assert call(tool)['result']['status'] == 'passed'
+E       AssertionError: assert 'failed' == 'passed'
+E         
+E         - passed
+E         + failed
+
+packages/creator-python/tests/test_debugging_completion.py:632: AssertionError
+______ test_runtime_non_plugin_targets_use_semantic_layers_and_resources _______
+
+project_root = '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_runtime_non_plugin_target0'
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_runtime_non_plugin_target0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_runtime_non_plugin_target0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_runtime_non_plugin_target0')
+
+    def test_runtime_non_plugin_targets_use_semantic_layers_and_resources(tmp_path):
+        validation, activity, _, _ = session(tmp_path)
+        width = {**runtime_error(kind='plugin-width-incompatible'),
+                 'target': {'type': 'layout_slot', 'slotRef': 'slot:main'}}
+        event = {'id': 'unknown-event', 'kind': 'application-event-unknown',
+                 'eventName': 'app.progress', 'errorMessage': 'Unknown event'}
+        gate = {**runtime_error(kind='application-gate'),
+                'errorMessage': 'Missing service:app-session'}
+        for record, layer, resource, tool_name, args in (
+            (width, 'composition', 'plugin-instance:foo-main', 'mutate_app_ui_model',
+             {'operations': [{'type': 'set_plugin_enabled', 'instanceId': 'foo-main', 'enabled': True}]}),
+            (event, 'agent_integration', 'agent-contract:agent-events', 'edit_file',
+             {'file_path': 'agent-contract/agent-events.ts'}),
+            (gate, 'runtime_capability', 'service:app-session', 'mutate_ui_service_contract',
+             {'serviceName': 'app-session'}),
+        ):
+            validation.debugging.reset(activity.run_id)
+            service, _, _ = runtime_service(activity, validation.debugging, runtime_errors(record))
+            runtime = create_runtime_diagnostic_tool(service)
+            target_id = call(runtime)['result']['currentErrors'][0]['debuggingTargetId']
+            selected = call(selection_tools(validation, service)[0], target_id=target_id)['result']
+            assert selected['repairLayer'] == layer
+            assert resource in selected['repairResources']
+            guard = ScopeAwareRecoveryGuard(project_root=str(tmp_path))
+            guard.debugging = validation.debugging
+            assert guard._debugging_selection_guard({'args': args}, tool_name) is None
+>           assert guard._debugging_selection_guard({'args': {'file_path': BAR}}, 'edit_file') is not None
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/tests/test_debugging_completion.py:671: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+packages/creator-python/agent_ui_creator/domain_agent/change_scope.py:869: in _debugging_selection_guard
+    layer = change_layer_for_tool_call(name, self._logical_arguments(arguments))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/domain_agent/change_scope.py:501: in _logical_arguments
+    return {**arguments, "file_path": project_logical_path(path, self.project_root)}
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/resource_scope.py:44: in project_logical_path
+    source_root = agent_ui_source_root(project_root)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_runtime_non_plugin_target0'
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+packages/creator-python/agent_ui_creator/project_paths.py:27: ValueError
+_________ test_undeclared_subscription_repairs_only_consuming_manifest _________
+
+project_root = '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_undeclared_subscription_r0'
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_undeclared_subscription_r0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_undeclared_subscription_r0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_undeclared_subscription_r0')
+
+    def test_undeclared_subscription_repairs_only_consuming_manifest(tmp_path):
+        validation, activity, _, _ = session(tmp_path)
+        record = {**runtime_error(kind='plugin-event-undeclared-subscription'), 'eventName': 'app.progress'}
+        service, _, _ = runtime_service(activity, validation.debugging, runtime_errors(record))
+        target_id = call(create_runtime_diagnostic_tool(service))['result']['currentErrors'][0]['debuggingTargetId']
+        call(selection_tools(validation, service)[0], target_id=target_id)
+        guard = ScopeAwareRecoveryGuard(project_root=str(tmp_path))
+        guard.debugging = validation.debugging
+>       assert guard._debugging_selection_guard({'args': {'file_path': 'plugins/foo/manifest.json'}}, 'edit_file') is None
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/tests/test_debugging_completion.py:703: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+packages/creator-python/agent_ui_creator/domain_agent/change_scope.py:869: in _debugging_selection_guard
+    layer = change_layer_for_tool_call(name, self._logical_arguments(arguments))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/domain_agent/change_scope.py:501: in _logical_arguments
+    return {**arguments, "file_path": project_logical_path(path, self.project_root)}
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/resource_scope.py:44: in project_logical_path
+    source_root = agent_ui_source_root(project_root)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_undeclared_subscription_r0'
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+packages/creator-python/agent_ui_creator/project_paths.py:27: ValueError
+________ test_ordinary_post_mutation_runtime_error_allows_scoped_repair ________
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_ordinary_post_mutation_ru0')
+
+    def test_ordinary_post_mutation_runtime_error_allows_scoped_repair(tmp_path):
+        scope = ChangeScopeMetrics(taskChangeLayers=['plugin_behavior'], scopeResources=['plugin:foo'])
+        validation, activity, gate, static = session(tmp_path, '', '', '', '', '',
+            mode='static_and_runtime', scope=scope)
+        mutate(tmp_path, activity, 'ordinary Plugin A modification')
+>       assert call(static)['result']['status'] == 'passed'
+E       AssertionError: assert 'failed' == 'passed'
+E         
+E         - passed
+E         + failed
+
+packages/creator-python/tests/test_debugging_completion.py:713: AssertionError
+___ test_domain_write_golden_scenario_uses_inspect_then_one_atomic_mutation ____
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_domain_write_golden_scena0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_domain_write_golden_scena0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_domain_write_golden_scena0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_domain_write_golden_scena0')
+
+    def test_domain_write_golden_scenario_uses_inspect_then_one_atomic_mutation(tmp_path):
+        root = _project(tmp_path)
+        client = MutationClient(root)
+        model = ToolCallingFakeModel(
+            responses=[
+                call("inspect_app_ui_model", {}, "inspect-1"),
+                call(
+                    "mutate_app_ui_model",
+                    {
+                        "operations": [
+                            {
+                                "type": "insert_plugin",
+                                "plugin": {
+                                    "id": "agent-activity-feed-main",
+                                    "pluginId": "antd-x-activity-feed",
+                                    "enabled": True,
+                                },
+                                "target": {
+                                    "type": "layout_slot",
+                                    "slotNodeId": "inspector-activity",
+                                },
+                            }
+                        ],
+                    },
+                    "mutate-1",
+                ),
+                AIMessage(content="AppUIModel static composition committed; runtime verification was not run."),
+            ]
+        )
+>       agent = create_domain_write_creator_agent(
+            model=model,
+            workspace=root,
+            project_control=client,
+        )
+
+packages/creator-python/tests/test_domain_write_agent.py:178: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+packages/creator-python/agent_ui_creator/domain_agent/agent.py:686: in create_domain_write_creator_agent
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/minimal_agent/path_policy.py:167: in __init__
+    source_root = agent_ui_source_root(root_dir) if policy.mode == "development" else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_domain_write_golden_scena0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+packages/creator-python/agent_ui_creator/project_paths.py:27: ValueError
+_______ test_application_config_handoff_reads_only_the_host_owner_first ________
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_application_config_handof0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_application_config_handof0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_application_config_handof0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_application_config_handof0')
+
+    def test_application_config_handoff_reads_only_the_host_owner_first(tmp_path):
+        root = _project(tmp_path)
+        owner = root / "agent-ui" / "conversation" / "config"
+        owner.mkdir(parents=True)
+        owner_file = owner / "conversation-runtime-config.ts"
+        owner_file.write_text("export const suggestions = [];\n", encoding="utf-8")
+        handoff = CreatorAuthoringHandoff(
+            targetId="conversation.starter-suggestions",
+            kind="application_config",
+            name="Conversation starter suggestions",
+            description="Application-owned starter questions.",
+            ownerPath="agent-ui/conversation/config/conversation-runtime-config.ts",
+            relatedPluginIds=["conversation-suggestions"],
+        )
+        model = ToolCallingFakeModel(
+            responses=[
+                call(
+                    "read_file",
+                    {"file_path": "/agent-ui/conversation/config/conversation-runtime-config.ts"},
+                    "read-owner",
+                ),
+                AIMessage(content="The application-owned suggestions source is ready to edit."),
+            ]
+        )
+>       agent = create_domain_write_creator_agent(model=model, workspace=root)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/tests/test_domain_write_agent.py:254: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+packages/creator-python/agent_ui_creator/domain_agent/agent.py:686: in create_domain_write_creator_agent
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/minimal_agent/path_policy.py:167: in __init__
+    source_root = agent_ui_source_root(root_dir) if policy.mode == "development" else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_application_config_handof0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+packages/creator-python/agent_ui_creator/project_paths.py:27: ValueError
+______ test_plugin_source_handoff_reads_within_the_host_owner_root_first _______
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_plugin_source_handoff_rea0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_plugin_source_handoff_rea0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_plugin_source_handoff_rea0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_plugin_source_handoff_rea0')
+
+    def test_plugin_source_handoff_reads_within_the_host_owner_root_first(tmp_path):
+        root = _project(tmp_path)
+        plugin_root = root / "plugins" / "conversation-suggestions"
+        plugin_root.mkdir(parents=True)
+        definition = plugin_root / "definition.ts"
+        definition.write_text("export const definition = {};\n", encoding="utf-8")
+        (plugin_root / "manifest.json").write_text("{}\n", encoding="utf-8")
+        handoff = CreatorAuthoringHandoff(
+            targetId="plugin-source:conversation-suggestions",
+            kind="plugin_source",
+            name="Conversation Suggestions Plugin implementation",
+            description="Modify Plugin rendering and styling.",
+            ownerRoot="plugins/conversation-suggestions",
+            definitionPath="plugins/conversation-suggestions/definition.ts",
+            pluginId="conversation-suggestions",
+            relatedPluginIds=["conversation-suggestions"],
+        )
+        model = ToolCallingFakeModel(
+            responses=[
+                call(
+                    "read_file",
+                    {"file_path": "/plugins/conversation-suggestions/definition.ts"},
+                    "read-definition",
+                ),
+                AIMessage(content="The supplied Plugin implementation source is ready to edit."),
+            ]
+        )
+>       agent = create_domain_write_creator_agent(model=model, workspace=root)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/tests/test_domain_write_agent.py:297: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+packages/creator-python/agent_ui_creator/domain_agent/agent.py:686: in create_domain_write_creator_agent
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/minimal_agent/path_policy.py:167: in __init__
+    source_root = agent_ui_source_root(root_dir) if policy.mode == "development" else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_plugin_source_handoff_rea0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+packages/creator-python/agent_ui_creator/project_paths.py:27: ValueError
+____ test_workspace_integrity_terminal_blocker_stops_before_next_model_call ____
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_workspace_integrity_termi0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_workspace_integrity_termi0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_workspace_integrity_termi0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_workspace_integrity_termi0')
+
+    def test_workspace_integrity_terminal_blocker_stops_before_next_model_call(tmp_path):
+        root = _project(tmp_path)
+        client = TerminalBlockerMutationClient(root)
+        model = NoNextModel(
+            responses=[
+                call("inspect_app_ui_model", {}, "inspect-1"),
+                call(
+                    "mutate_app_ui_model",
+                    {
+                        "operations": [
+                            {"type": "remove_plugin", "instanceId": "history-main"}
+                        ]
+                    },
+                    "mutate-1",
+                ),
+            ]
+        )
+>       agent = create_domain_write_creator_agent(
+            model=model,
+            workspace=root,
+            project_control=client,
+        )
+
+packages/creator-python/tests/test_domain_write_agent.py:330: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+packages/creator-python/agent_ui_creator/domain_agent/agent.py:686: in create_domain_write_creator_agent
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/minimal_agent/path_policy.py:167: in __init__
+    source_root = agent_ui_source_root(root_dir) if policy.mode == "development" else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_workspace_integrity_termi0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+packages/creator-python/agent_ui_creator/project_paths.py:27: ValueError
+_____ test_validation_attribution_degradation_finishes_as_terminal_blocker _____
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_validation_attribution_de0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/creator-python/agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_validation_attribution_de0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_validation_attribution_de0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_validation_attribution_de0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10ebd7360>
+
+    def test_validation_attribution_degradation_finishes_as_terminal_blocker(
+        tmp_path, monkeypatch
+    ):
+        root = _project(tmp_path)
+        client = MutationClient(root)
+        model = NoNextModel(
+            responses=[
+                call("inspect_app_ui_model", {}, "inspect-1"),
+                call(
+                    "mutate_app_ui_model",
+                    {
+                        "operations": [
+                            {
+                                "type": "insert_plugin",
+                                "plugin": {
+                                    "id": "agent-activity-feed-main",
+                                    "pluginId": "antd-x-activity-feed",
+                                    "enabled": True,
+                                },
+                                "target": {
+                                    "type": "layout_slot",
+                                    "slotNodeId": "inspector-activity",
+                                },
+                            }
+                        ]
+                    },
+                    "mutate-1",
+                ),
+                call("validate_creator_changes", {}, "validate-1"),
+            ]
+        )
+    
+        def fail_attribution(**_kwargs):
+            raise RuntimeError("synthetic attribution failure")
+    
+        monkeypatch.setattr(
+            validation_attribution,
+            "attribute_validation_failure",
+            fail_attribution,
+        )
+>       agent = create_domain_write_creator_agent(
+            model=model,
+            workspace=root,
+            project_control=client,
+            validation_runner=FailedValidationRunner(),
+        )
+
+packages/creator-python/tests/test_domain_write_agent.py:391: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+packages/creator-python/agent_ui_creator/domain_agent/agent.py:686: in create_domain_write_creator_agent
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/creator-python/agent_ui_creator/minimal_agent/path_policy.py:167: in __init__
+    source_root = agent_ui_source_root(root_dir) if policy.mode == "development" else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_validation_attribution_de0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+packages/creator-python/agent_ui_creator/project_paths.py:27: ValueError
+______________ test_behavior_tool_runs_real_project_browser_tests ______________
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-653/test_behavior_tool_runs_real_p0')
+
+    def test_behavior_tool_runs_real_project_browser_tests(tmp_path):
+        """Exercise the Host runner/report boundary; this is not a live Creator evaluation."""
+        import shutil
+        from pathlib import Path
+        repository = Path(__file__).resolve().parents[3]
+        modules = repository / "apps/creator-workbench/node_modules"
+        if not Path("/Applications/Google Chrome.app").exists() or not (modules / "@playwright/test").exists():
+            pytest.skip("Requires local Chrome and installed workspace Playwright")
+        shutil.copytree(Path(__file__).parent / "fixtures/delivery-browser", tmp_path, dirs_exist_ok=True)
+        (tmp_path / "node_modules").symlink_to(modules, target_is_directory=True)
+        # The fixture uses CJS; the public tool supports this standard Playwright config too.
+        write(tmp_path, "package.json", {"devDependencies": {"@playwright/test": "installed"}})
+        activity = CreatorActivityRecorder(tmp_path)
+        activity.begin("browser")
+        active = SimpleNamespace(status="authorized", target_plugin_id="checklist", scope_hash="scope",
+                                 delivery_contract={**CONTRACT, "interactions": ["check", "filter", "reset"]})
+        tool = create_plugin_behavior_tool(authority=SimpleNamespace(active=active), activity=activity)
+        result = json.loads(asyncio.run(tool.ainvoke({})))
+        assert result["ok"] is True, result
+>       assert result["result"]["status"] == "passed", activity.snapshot()["validations"]
+E       AssertionError: [{'command': 'playwright delivery', 'exitCode': 1, 'output': "node:internal/modules/cjs/loader:1568
+E           throw err;
+E           ^.../run_main_module:33:47 {
+E           code: 'MODULE_NOT_FOUND',
+E           requireStack: []
+E         }
+E         
+E         Node.js v24.20.0", 'revision': 0, ...}]
+E       assert 'failed' == 'passed'
+E         
+E         - passed
+E         + failed
+
+packages/creator-python/tests/test_plugin_delivery.py:304: AssertionError
+=============================== warnings summary ===============================
+packages/creator-python/.venv/lib/python3.14/site-packages/google/genai/types.py:42
+  /Users/yifei/Coding/AgentUICreator/packages/creator-python/.venv/lib/python3.14/site-packages/google/genai/types.py:42: DeprecationWarning: '_UnionGenericAlias' is deprecated and slated for removal in Python 3.17
+    VersionedUnionType = Union[builtin_types.UnionType, _UnionGenericAlias]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED packages/creator-python/tests/test_creator_validation.py::test_validation_runs_known_commands
+FAILED packages/creator-python/tests/test_creator_validation.py::test_validation_result_cached_for_same_revision
+FAILED packages/creator-python/tests/test_creator_validation.py::test_source_edit_invalidates_validation
+FAILED packages/creator-python/tests/test_creator_validation.py::test_plugin_declaration_edit_synchronizes_generated_registry_before_validation
+FAILED packages/creator-python/tests/test_creator_validation.py::test_failed_validation_returns_diagnostics_not_run_error
+FAILED packages/creator-python/tests/test_creator_validation.py::test_composition_validation_blocker_is_unrelated_and_not_auto_repairable
+FAILED packages/creator-python/tests/test_creator_validation.py::test_validation_failure_in_changed_source_is_attributed_to_current_run
+FAILED packages/creator-python/tests/test_creator_validation.py::test_validation_failure_in_committed_scope_is_attributed_in_scope
+FAILED packages/creator-python/tests/test_creator_validation.py::test_validation_failure_in_same_change_layer_but_different_resource_is_unrelated
+FAILED packages/creator-python/tests/test_creator_validation.py::test_validation_becomes_stale_if_revision_changes
+FAILED packages/creator-python/tests/test_creator_validation.py::test_attribution_failure_preserves_evidence_and_finishes_validation
+FAILED packages/creator-python/tests/test_creator_validation_differential.py::test_new_error_is_introduced_evidence_and_is_repairable
+FAILED packages/creator-python/tests/test_creator_validation_differential.py::test_repairing_introduced_error_returns_success_and_preserves_warning
+FAILED packages/creator-python/tests/test_creator_validation_differential.py::test_composition_completion_reports_seven_existing_errors_as_warning
+FAILED packages/creator-python/tests/test_creator_validation_differential.py::test_clean_mode_requires_zero_remaining_diagnostics
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_targeted_existing_error_requires_resolution_not_just_delta_pass
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_moved_diagnostic_is_still_unresolved_and_existing_repair_limit_applies
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_clean_goal_cannot_be_downgraded_to_delta
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_ordinary_runtime_verification_keeps_global_failure_semantics
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_runtime_pending_ambiguity_and_owner_constraint
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_all_current_runtime_uses_no_array_and_preserves_scope_guard
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_model_facing_debugging_schemas_hide_legacy_complex_arguments
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_old_static_warning_does_not_block_current_task_runtime_tail_repair
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_runtime_non_plugin_targets_use_semantic_layers_and_resources
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_undeclared_subscription_repairs_only_consuming_manifest
+FAILED packages/creator-python/tests/test_debugging_completion.py::test_ordinary_post_mutation_runtime_error_allows_scoped_repair
+FAILED packages/creator-python/tests/test_domain_write_agent.py::test_domain_write_golden_scenario_uses_inspect_then_one_atomic_mutation
+FAILED packages/creator-python/tests/test_domain_write_agent.py::test_application_config_handoff_reads_only_the_host_owner_first
+FAILED packages/creator-python/tests/test_domain_write_agent.py::test_plugin_source_handoff_reads_within_the_host_owner_root_first
+FAILED packages/creator-python/tests/test_domain_write_agent.py::test_workspace_integrity_terminal_blocker_stops_before_next_model_call
+FAILED packages/creator-python/tests/test_domain_write_agent.py::test_validation_attribution_degradation_finishes_as_terminal_blocker
+FAILED packages/creator-python/tests/test_plugin_delivery.py::test_behavior_tool_runs_real_project_browser_tests
+32 failed, 89 passed, 1 warning in 8.62s

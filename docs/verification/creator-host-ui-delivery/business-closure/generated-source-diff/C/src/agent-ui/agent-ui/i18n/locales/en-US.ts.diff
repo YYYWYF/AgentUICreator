@@ -1,0 +1,24 @@
+--- a/src/agent-ui/agent-ui/i18n/locales/en-US.ts
++++ b/src/agent-ui/agent-ui/i18n/locales/en-US.ts
+@@ -116,6 +116,21 @@
+     nextLabel: "Provide an actionable follow-up",
+     nextPrompt: "Suggest a next step based on the current context",
+   },
++  businessNotes: {
++    title: "Business notes",
++    subtitle: "Capture temporary ideas and key points from your current work.",
++    inputLabel: "New note",
++    inputPlaceholder: "Write a note…",
++    addNote: "Add note",
++    blankNote: "Enter a non-empty note.",
++    listLabel: "Notes list",
++    emptyTitle: "No notes yet",
++    emptyDescription: "Your added notes will appear here.",
++    help: "About",
++    helpTitle: "About business notes",
++    helpDescription: "Use this space to capture temporary ideas and key points. Notes are held only in the current view and are not retained after refresh.",
++    closeHelp: "Close explanation",
++  },
+   theme: {
+     settings: "Theme settings",
+     light: "Light",

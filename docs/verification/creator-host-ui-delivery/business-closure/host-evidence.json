@@ -1,0 +1,180 @@
+{
+  "B": {
+    "host": "/Users/yifei/.codex/visualizations/2026/10/09/01a11ec8-65e6-7c82-a29d-c24c3262dc4b/business-closure/raw/responses/B",
+    "sourceReferences": [
+      {
+        "path": "/src/App.tsx",
+        "sha256": "6cb02d4224a06fc57b6cb0f003ababcb39931c42f658335bc47b951f13aaaba7",
+        "imports": [
+          "import { useState } from 'react';",
+          "import { useAgentUILocale } from '@agent-ui/react';",
+          "import { AgentMount } from './AgentMount';",
+          "import { Button, Input, Card, ConfigProvider, theme } from 'antd';",
+          "import './design-system/system.css';"
+        ]
+      },
+      {
+        "path": "/src/design-system/system.css",
+        "sha256": "25032f14cb7b19f75ccd2b0981529d83e36777fcd37d4efdf07a7efa4a780377",
+        "imports": []
+      }
+    ],
+    "dependencies": {
+      "@agent-ui/react": "workspace:^",
+      "@agent-ui/runtime-conversation": "workspace:^",
+      "@agent-ui/runtime-core": "workspace:^",
+      "@agent-ui/runtime-react": "workspace:^",
+      "@assistant-ui/react-lexical": "0.2.15",
+      "@lexical/history": "0.51.0",
+      "@lexical/plain-text": "0.51.0",
+      "@lexical/react": "0.51.0",
+      "@lexical/utils": "0.51.0",
+      "lexical": "0.51.0",
+      "lucide-react": "1.41.0",
+      "react": "^19.2.8",
+      "react-dom": "^19.2.8",
+      "zod": "^4.5.4",
+      "@agent-ui/plugins": "workspace:^",
+      "antd": "^5.29.3"
+    }
+  },
+  "A": {
+    "host": "/Users/yifei/.codex/visualizations/2026/10/09/01a11ec8-65e6-7c82-a29d-c24c3262dc4b/business-closure/raw/responses/A",
+    "sourceReferences": [
+      {
+        "path": "src/App.tsx",
+        "sha256": "e678ce96b692c65b785f79559239e006d94d9356e534cf6e02c479672b160647",
+        "imports": [
+          "import { useState } from 'react';",
+          "import { useAgentUILocale } from '@agent-ui/react';",
+          "import { AgentMount } from './AgentMount';",
+          "import { Button, Input, Card } from './design-system';",
+          "import './design-system/system.css';"
+        ]
+      },
+      {
+        "path": "src/design-system/index.tsx",
+        "sha256": "ff280fa5e3466e116d32e8debdfab3b9a8fb9595ff774ab0455c676be8e68d28",
+        "imports": [
+          "import type {ButtonHTMLAttributes, InputHTMLAttributes, HTMLAttributes} from 'react';",
+          "import './system.css';"
+        ]
+      },
+      {
+        "path": "src/design-system/system.css",
+        "sha256": "25032f14cb7b19f75ccd2b0981529d83e36777fcd37d4efdf07a7efa4a780377",
+        "imports": []
+      },
+      {
+        "path": "src/AgentMount.tsx",
+        "sha256": "66a0cfa15f8e6d2393046966e9e581be64697f20496828211f4f8e5de61a418b",
+        "imports": [
+          "import { useAgentUILocaleCode } from \"@agent-ui/react\";",
+          "import { DemoAttachmentAdapter } from \"@agent-ui/mock-agent/attachments\";",
+          "import { Agent } from \"./agent-ui\";"
+        ]
+      },
+      {
+        "path": "src/agent-ui/application/Agent.tsx",
+        "sha256": "48c3d7299a24e153dee8cbc27bcdde6f977319383113610eba4298659463e9f8",
+        "imports": [
+          "import { agentUILocaleConfig } from \"../agent-ui/i18n/locale-config\";",
+          "import type { AgentUILocaleCode } from \"../agent-ui/i18n/locale-types\";",
+          "import { usePreviewAgentEnvironment } from \"./preview-environment\";",
+          "import type { ConversationRuntimeProviderProps } from \"@agent-ui/runtime-conversation\";",
+          "import { useEffect, useMemo, useState, useSyncExternalStore } from \"react\";",
+          "import {",
+          "import appUIModelSource from \"../app-ui/app-ui.json?raw\";",
+          "import type { AppAgentState } from \"../agent-contract/agent-state\";",
+          "import { appFrontendTools } from \"../agent-contract/agent-tools\";",
+          "import { generatedFrontendToolUIs } from \"../agent-ui/conversation/frontend-tool-uis.generated\";",
+          "import {",
+          "import { AppFrontendToolRegistry, AppFrontendToolRuntime } from \"../runtime/tools\";",
+          "import type { RuntimeDiagnostic } from \"../runtime/diagnostics\";",
+          "import { publishAgentUIObservation, type AgentObservability } from \"./observability\";",
+          "import {",
+          "import { useConversationServiceThreadBinding, type ConversationRunResumeProvider } from \"../agent-ui/conversation/threads/conversation-service-thread-binding\";",
+          "import { GeneratedConversationIntegrations } from \"../agent-ui/conversation/integrations.generated\";",
+          "import { conversationToolkit as baseConversationToolkit } from \"../agent-ui/conversation/toolkit\";",
+          "import { agentCompositionStore } from \"./composition-store\";",
+          "import { ApplicationSessionBoundary, useApplicationSessionEpoch } from \"./ApplicationSessionBoundary\";",
+          "import { AgentSurface } from \"./AgentSurface\";",
+          "import \"../agent-ui/conversation/styles.css\";"
+        ]
+      },
+      {
+        "path": "src/agent-ui/plugins/conversation-thread-list/index.tsx",
+        "sha256": "ff494ee44b45f63266209f6f58b1f40a204a123e744e150c6ffacffecfe8fd16",
+        "imports": [
+          "import { getAgentUIThemeColorScheme, Button, useConversationNavigation, ConversationThreadListNew, useAgentUISidebarNavigation, AgentUITooltip, AgentUITooltipTrigger, AgentUITooltipContent } from \"@agent-ui/react\";",
+          "import { Plus } from \"lucide-react\";",
+          "import type { UIPluginComponentProps } from \"../../framework/contracts/ui-plugin\";",
+          "import { useAgentUITheme } from \"../../agent-ui/theme/useAgentUITheme\";",
+          "import { useAgentRun } from \"../../runtime/context\";",
+          "import {",
+          "import {",
+          "import { useAgentUILocale } from \"../../agent-ui/i18n/useAgentUILocale\";",
+          "import { PolicyThreadList } from \"./PolicyThreadList\";",
+          "import \"./styles.css\";"
+        ]
+      }
+    ],
+    "dependencies": {
+      "@agent-ui/react": "workspace:^",
+      "@agent-ui/runtime-conversation": "workspace:^",
+      "@agent-ui/runtime-core": "workspace:^",
+      "@agent-ui/runtime-react": "workspace:^",
+      "@assistant-ui/react-lexical": "0.2.15",
+      "@lexical/history": "0.51.0",
+      "@lexical/plain-text": "0.51.0",
+      "@lexical/react": "0.51.0",
+      "@lexical/utils": "0.51.0",
+      "lexical": "0.51.0",
+      "lucide-react": "1.41.0",
+      "react": "^19.2.8",
+      "react-dom": "^19.2.8",
+      "zod": "^4.5.4",
+      "@agent-ui/plugins": "workspace:^"
+    }
+  },
+  "C": {
+    "host": "/Users/yifei/.codex/visualizations/2026/10/09/01a11ec8-65e6-7c82-a29d-c24c3262dc4b/business-closure/raw/responses/C",
+    "sourceReferences": [
+      {
+        "path": "/src/App.tsx",
+        "sha256": "c1dbe438479820f3950999ab4326a208b76cb638c6ccaede3534ab90dbbcb808",
+        "imports": [
+          "import { useState } from 'react';",
+          "import { useAgentUILocale } from '@agent-ui/react';",
+          "import { AgentMount } from './AgentMount';",
+          "import { Button, Input, Card } from './design-system';",
+          "import { ConfigProvider } from 'antd';",
+          "import './design-system/system.css';"
+        ]
+      },
+      {
+        "path": "/src/design-system/system.css",
+        "sha256": "25032f14cb7b19f75ccd2b0981529d83e36777fcd37d4efdf07a7efa4a780377",
+        "imports": []
+      }
+    ],
+    "dependencies": {
+      "@agent-ui/react": "workspace:^",
+      "@agent-ui/runtime-conversation": "workspace:^",
+      "@agent-ui/runtime-core": "workspace:^",
+      "@agent-ui/runtime-react": "workspace:^",
+      "@assistant-ui/react-lexical": "0.2.15",
+      "@lexical/history": "0.51.0",
+      "@lexical/plain-text": "0.51.0",
+      "@lexical/react": "0.51.0",
+      "@lexical/utils": "0.51.0",
+      "lexical": "0.51.0",
+      "lucide-react": "1.41.0",
+      "react": "^19.2.8",
+      "react-dom": "^19.2.8",
+      "zod": "^4.5.4",
+      "@agent-ui/plugins": "workspace:^",
+      "antd": "^5.29.3"
+    }
+  }
+}

@@ -1,0 +1,173 @@
+.business-notes {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  container-name: business-notes;
+  container-type: inline-size;
+  color: var(--acme-text);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.business-notes__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.business-notes__header > div:first-child {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.business-notes__header > div:last-child {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.business-notes__title,
+.business-notes__header p,
+.business-notes__empty h2,
+.business-notes__empty p,
+.business-notes__dialog h2,
+.business-notes__dialog p {
+  margin: 0;
+}
+
+.business-notes__title {
+  font-size: 1.25rem;
+  overflow-wrap: anywhere;
+}
+
+.business-notes__subtitle,
+.business-notes__empty p,
+.business-notes__dialog p {
+  color: var(--acme-text);
+  opacity: 0.78;
+  overflow-wrap: anywhere;
+}
+
+.business-notes__card {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.business-notes__form {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.business-notes__label {
+  font-weight: 600;
+}
+
+.business-notes__entry {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.business-notes__input {
+  flex: 1;
+  min-width: 0;
+}
+
+.business-notes__add {
+  background: var(--acme-primary);
+  color: var(--acme-surface);
+}
+
+.business-notes__error {
+  margin: 0;
+  color: #b42318;
+}
+
+.business-notes__items {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.business-notes__item {
+  overflow-wrap: anywhere;
+  border: 1px solid var(--acme-border);
+  border-radius: var(--acme-radius);
+  background: var(--acme-surface);
+  padding: 0.75rem 1rem;
+  white-space: pre-wrap;
+}
+
+.business-notes__empty {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.business-notes__dialog {
+  position: fixed;
+  inset: 0;
+  width: min(32rem, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100vh - 2rem);
+  max-height: calc(100dvh - 2rem);
+  box-sizing: border-box;
+  overflow: auto;
+  margin: auto;
+  border: 1px solid var(--acme-border);
+  border-radius: var(--acme-radius);
+  background: var(--acme-surface);
+  color: var(--acme-text);
+  font-family: Inter, system-ui, sans-serif;
+  padding: 1.25rem;
+}
+
+.business-notes__dialog::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+
+.business-notes__dialog-content {
+  display: grid;
+  gap: 1rem;
+}
+
+.business-notes__dialog button {
+  justify-self: end;
+}
+
+.business-notes button,
+.business-notes input {
+  font-family: inherit;
+}
+
+.business-notes__help-trigger {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.business-notes button:focus-visible,
+.business-notes input:focus-visible {
+  outline: 2px solid var(--acme-primary);
+  outline-offset: 2px;
+}
+
+@container business-notes (max-width: 32rem) {
+  .business-notes__entry {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

@@ -275,7 +275,11 @@ class PluginDevelopmentAuthority:
         if work_kind in {"create-plugin", "adapt-component"} and target_root.exists():
             if self.intent == "conditional":
                 return {"status": "reuse-existing", "targetPluginId": target_plugin_id}
-            raise PluginDevelopmentError("目标 Plugin 身份已经存在；请复用、修改或选择新身份。")
+            raise PluginDevelopmentError(
+                "目标 Plugin 身份已经存在；create-plugin / adapt-component 仅创建新身份。"
+                "要补齐或扩展此现有 Plugin 的业务行为，请使用 workKind=extend-capability "
+                "和当前 targetPluginId 重新提交；仅挂载或普通自定义无需重复创建。"
+            )
         if work_kind == "extend-capability" and not target_root.is_dir():
             raise PluginDevelopmentError("要扩展的现有 Plugin 目标不存在。")
         if not desired_outcome.strip() or not missing_capabilities or any(

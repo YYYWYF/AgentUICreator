@@ -24,7 +24,7 @@ Inspect project conventions before deciding that Plugin source must change:
 - `/plugins/*/styles.css` owns Plugin-specific presentation when that stack uses CSS.
 - If creating `styles.css`, import it from Plugin source (usually `index.tsx`); an unimported stylesheet is absent from the Host even when TypeScript and CSS syntax checks pass.
 - Scope every Plugin CSS selector under a stable Plugin-owned class or `data-ui-plugin` root. Never use bare element selectors, `html`, `body`, `:root`, `*`, global resets, CSS imports, or Host DOM ancestors. Inherit theme tokens from AgentUIRoot.
-- Use the `@agent-ui/react` Agent UI Tooltip, Popover, and Dialog facades for overlays; do not import Base UI Portal primitives or create body-level Portals.
+- Reuse the selected Host UI system's public overlay API and reachable Provider/theme. When using AgentUI primitives, use its public Tooltip/Popover/Dialog facades. Do not import internal Portal primitives or build a separate body-level Portal; check the selected public overlay API's container, focus and theme behavior.
 - `/plugins/registry.generated.ts` is the generated capability catalog: manifest metadata plus lazy definition loaders for available Plugins. AppUIModel selection resolves the published Active Registry at runtime; never edit this file or `/plugins/index.ts` by hand.
 - `/framework/contracts/ui-plugin.ts` is the Plugin Contract.
 - `/agent-contract/agent-events.ts` is the application-owned registry for backend Application Event names and payload schemas.
@@ -32,6 +32,35 @@ Inspect project conventions before deciding that Plugin source must change:
 - `/services/*` contains stable project-owned Service seams when multiple Plugins share one capability. Treat these seams as read-only unless the host explicitly authorizes capability-contract work.
 
 ## Reuse decision
+
+For third-party controls already imported and rendered by the Host page, that
+page is real public-API usage evidence. Do not require another Plugin to import
+the same library, or search node_modules, before choosing it. Confirm unfamiliar
+props with target typecheck. A reference Plugin supplies definition/locale wiring,
+not an additional UI-selection prerequisite. For an ordinary local form, do not
+walk ConversationSurface, Thread or Runtime internals to rediscover its UI stack;
+inspect the Host mount entry only if there is a concrete Provider boundary issue.
+
+The nearest Plugin is evidence for registration, locale and service conventions;
+it does not override the actual Host page's choice of basic controls. Being inside
+the Agent surface alone is not a reason to replace the Host UI system with AgentUI
+primitives. A Host Provider wrapping AgentMount remains reachable in the React
+tree unless inspection establishes a concrete bridge or isolation boundary. Check
+that boundary rather than assuming it. Bind componentBasisRefs to UI selection
+sources (page, used exports, Provider and theme); locale files being edited for
+this new Plugin are authoring inputs, not component-selection evidence.
+
+For a new visual Plugin, read the actual target page, relevant component exports,
+Provider/theme and nearest reference Plugin first. Choose controls from actual page
+usage, then the established Host system, then public primitives. Installed packages
+alone do not decide. Once these facts are sufficient, prepare the plan; do not
+traverse unrelated Conversation Tool/Thread/Runtime implementations for a local form.
+Continue reading only to resolve a concrete API, layout, authority or type problem.
+For new panel/semantic-slot plans, componentBasisRefs must contain inspected real
+paths only; reuseEvidenceRefs records existing Plugin/Source Item reuse conclusions.
+State selected controls/imports, Provider/theme and rejected alternatives in uiScope.
+Keep actual imports consistent with the plan. If prepare rejects missing evidence,
+read its error and resubmit with inspected paths; no automatic path substitution.
 
 1. List and inspect existing Plugins.
 2. If a Plugin already supplies the requested behavior, reuse its `manifest.id` in an AppUIPluginNode and change only AppUIModel as needed. Stop source discovery when no source change is required.
@@ -41,6 +70,16 @@ Inspect project conventions before deciding that Plugin source must change:
 6. If no reusable implementation exists, create a Plugin only after direct, satisfied conditional, or approved proposal authorization.
 7. For an ordinary Plugin without an eligible authoring default, insert its node into a Layout Slot or parent plugin's local Slot through AppUIModel. For a new relative default placement, use `insert_plugin_default` after preflight. For an existing nested extension point, inspect its exact contract and occupy it without adding a Layout node.
 8. When the user requires login, License, organization selection, onboarding, or initialization before the Workspace can be used, prefer a first-class `manifest.application.gate` Plugin in `applicationPlugins`; it is an Application lifecycle surface, not visual Slot composition.
+
+
+The generated Runtime Registry contains selected/resolved Plugins only. A newly
+created, unmounted Plugin can be available in fresh Composition capability facts
+while absent from registry.generated.ts. After source validation/synchronization
+passes and fresh Composition confirms its manifest identity, compose it through
+mutate_app_ui_model; that transaction generates its selected Registry entry. Do
+not wait for an unselected import, hand-edit Registry, or explore Runtime code to
+force registration. Validate the mounted revision and require real registered /
+composed evidence at final delivery; synchronization alone is not registration.
 
 After `create_ui_plugin`, run static validation to synchronize the generated
 Plugin registry. Then call `inspect_ui_project(view="composition")` again before

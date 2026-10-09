@@ -1,0 +1,258 @@
+{
+  "B": {
+    "creation": {
+      "status": "authorized",
+      "proposalId": "d9c1732c-6369-4e6b-83db-05f0d48386ed",
+      "scopeHash": "f9ae6bdd575503413c143e92deb91ced8af7789ce4d7d3ff35a022df31e38fd9",
+      "workKind": "create-plugin",
+      "targetPluginId": "business-notes",
+      "desiredOutcome": "在当前 Agent 界面新增一个名为“业务备注”的 Sidebar 导航项。面板内提供输入框和“添加”按钮，点击后将非空备注加入列表；列表为空时显示空状态。提供“说明”按钮打开 Modal 弹层，支持键盘 Esc 关闭与焦点返回。所有文案走现有 agent-ui/i18n locale 层且中英文齐全，明暗主题和窄视图均可用。使用 React 本地状态，不新增后端/Service/Frontend Tool/Custom Event。复用宿主 Ant Design 5 控件与主题，不修改 assistant-ui vendor、Runtime 或 framework，不安装或升级依赖。",
+      "missingCapabilities": [
+        "当前 installed Plugin 与 Source Item 中没有业务备注或通用笔记面板能力"
+      ],
+      "reuseEvidenceRefs": [
+        "inspect_ui_project(view='composition') 显示当前 sidebar 仅有一个 history item，content 为 conversation-surface，没有可用笔记 Plugin",
+        "conversation-thread-list 使用 sidebar.icon/labels 与 RailAction 作为 Sidebar 导航项参考"
+      ],
+      "uiScope": "宿主页面 /src/App.tsx 直接 import 并使用 Ant Design 5 的 ConfigProvider、Button、Input、Card、theme，因此选择复用 Ant Design 5 作为本插件的 UI 体系。ConfigProvider 包裹 AgentMount，插件位于其 React 子树中，可直接继承主题算法与 token。/src/design-system/system.css 定义了宿主 .acme-* 自定义 token，可作为补充样式参考。conversation-thread-list 虽然内部使用 @agent-ui/react 的 Button/Tooltip，但属于该插件自身选择，不能覆盖宿主 App 的控件决策；因此本插件使用 antd Button/Input/List/Modal/Space/Typography/Empty，不引入新的 AgentUI primitives 或第三方库。",
+      "dataScope": "无外部数据；状态仅存在于组件本地 useState。",
+      "excludedOperations": [
+        "不创建 Service 或 Service Contract",
+        "不添加 Frontend Tool",
+        "不添加 Application Event",
+        "不修改 assistant-ui vendor、Runtime 或 framework",
+        "不安装/升级/新增依赖",
+        "不创建 Plugin-local locale 文件"
+      ],
+      "componentBasisRefs": [
+        "/src/App.tsx",
+        "/src/design-system/system.css",
+        "/src/agent-ui/plugins/conversation-thread-list/manifest.json",
+        "/src/agent-ui/plugins/conversation-thread-list/index.tsx"
+      ],
+      "grantSource": "explicit-request",
+      "deliveryContract": {
+        "capability": "业务备注面板：输入备注、点击添加后显示备注列表，提供按钮打开说明弹层；使用 React 本地状态，无后端或 Service。",
+        "renderingCategory": "panel",
+        "placement": "挂载为宿主现有 Sidebar 的新导航项（sidebar item），复用其窄屏抽屉，不增加主会话横向轨道。",
+        "lifecycle": "本地 React useState 管理输入草稿、备注列表和弹层开关；激活时无状态，卸载时状态自然释放。",
+        "dependencies": [
+          "agent-ui.locale（optionalInject，用于文案）",
+          "agent-ui.theme（optionalInject，用于暗色/浅色主题适配）"
+        ],
+        "reusedComponents": [
+          "Ant Design 5 Button（来自 App.tsx 直接使用）",
+          "Ant Design 5 Input（来自 App.tsx 直接使用）",
+          "Ant Design 5 List/Modal/Space/Typography/Empty（同库组件，ConfigProvider 已包裹 AgentMount）"
+        ],
+        "verificationMethod": "runtime",
+        "geometry": [],
+        "interactions": [
+          "输入备注文本并点击添加后列表显示该备注",
+          "仅空白/空输入时添加按钮禁用或点击无效果",
+          "点击说明按钮打开 Ant Design Modal 弹层",
+          "按 Esc 或点击关闭按钮可关闭弹层并返回焦点",
+          "空列表时展示空状态"
+        ]
+      },
+      "deliveryScope": "full"
+    },
+    "final": {
+      "status": "authorized",
+      "proposalId": "69d8942f-a6e5-4487-8300-aec97a933106",
+      "scopeHash": "58fcd606aeda15a2a1b7bb09bf8afcea45d8d706c4f33efdd465633995f52d73",
+      "workKind": "extend-capability",
+      "targetPluginId": "business-notes",
+      "desiredOutcome": "Finish the already commissioned and mounted business-notes Plugin's remaining theme-style work by consuming its existing Host-token CSS variables in styles.css and making those variables available to the Ant Design help Modal inside its Portal. Preserve public Modal behavior and all existing interactions. Then run current-revision static verify:ui/typecheck/build with includeBuild=true; do not claim browser acceptance under static_only policy.",
+      "missingCapabilities": [
+        "Scoped CSS does not yet consume the existing themeStyle variables for Ant Design Input, Button and Typography.",
+        "The portaled help Modal does not yet receive the Plugin's Host theme variables and scoped modal styling."
+      ],
+      "reuseEvidenceRefs": [
+        "Existing project-owned business-notes Plugin, selected and enabled as business-notes-main; current Ant Design controls and theme.useToken implementation are reused."
+      ],
+      "uiScope": "Use the Host's actual Ant Design system: /src/App.tsx imports Button, Input, Card, ConfigProvider and theme from antd, and provides the light/dark algorithm and fontFamily tokens around AgentMount. /src/design-system/system.css supplies the Host surface/text/border theme conventions. The existing business-notes source already uses Ant Design Input, Button, Modal, Typography and theme.useToken; continue those public controls and token APIs. Do not switch to Agent UI primitives or add dependencies",
+      "dataScope": "Presentation only. Keep notes and draft local state, locale, Modal content and business behavior unchanged.",
+      "excludedOperations": [
+        "Do not change Composition, placement, instance identity or enabled state.",
+        "Do not alter Modal overlay, Escape, Tab, focus return, or other public behavior.",
+        "Do not change locale, Composer, Host page, Runtime, framework, vendor, Sidebar or base styles.",
+        "Do not install or upgrade dependencies."
+      ],
+      "componentBasisRefs": [
+        "/src/App.tsx",
+        "/src/design-system/system.css"
+      ],
+      "grantSource": "explicit-request",
+      "deliveryContract": {
+        "capability": "Complete the existing business-notes Plugin's scoped theme styling so Ant Design Input matches the Host's configured font, text color, container background, border and state tokens; Button and Typography use the Host font; and the help Modal consumes the same Host theme tokens across its Portal boundary.",
+        "renderingCategory": "panel",
+        "placement": "Preserve the existing mounted business-notes-main instance in its current Layout Slot; no Composition changes.",
+        "lifecycle": "Preserve the current React state, Modal open/close, overlay, Escape, Tab, and focus-return behavior; only complete Plugin-local theme styling.",
+        "dependencies": [
+          "Existing Ant Design controls and ConfigProvider theme tokens; no new dependencies or Service changes."
+        ],
+        "reusedComponents": [
+          "Existing Ant Design Input, Button, Typography, Modal, and theme.useToken usage in business-notes."
+        ],
+        "verificationMethod": "runtime",
+        "geometry": [],
+        "interactions": []
+      },
+      "deliveryScope": "full"
+    }
+  },
+  "A": {
+    "creation": {
+      "status": "authorized",
+      "proposalId": "0938ea8e-a5c7-4a21-bbb2-1f3e78c93b59",
+      "scopeHash": "88abef29d3b185645b8662889e20a280354736fce5bbcf2ef14175964357ed30",
+      "workKind": "create-plugin",
+      "targetPluginId": "business-notes",
+      "desiredOutcome": "创建并挂载独立 business-notes UI Plugin，提供本地备注列表与无障碍说明弹层，全部面板文案走统一 Agent UI locale（en-US、zh-CN），支持深浅主题与窄屏；新导航项置于现有 Sidebar 抽屉，不占用主会话横向轨道。",
+      "missingCapabilities": [
+        "当前已选 Plugin 与完整 Source Item inventory 没有提供业务备注录入/列表和说明弹层能力，需要新建 project-owned Plugin。"
+      ],
+      "reuseEvidenceRefs": [
+        "完整 inspect_agent_ui_sources inventory：无业务备注 UI Source Item。",
+        "完整 Plugin capability inventory 与当前 Composition：无业务备注 Plugin；当前 Sidebar 仅有 history 项。",
+        "src/agent-ui/plugins/conversation-thread-list/manifest.json：现有 Sidebar 插件通过 sidebar.icon 和 en-US/zh-CN labels 声明导航项。"
+      ],
+      "uiScope": "选择宿主自有 Design System：src/App.tsx 实际导入并渲染 ./design-system 的 Button、Input、Card；src/design-system/index.tsx 是这些公开控件导出，system.css 定义 .acme-host 的 --acme-surface/--acme-text/--acme-border/--acme-primary/--acme-radius，并通过 data-theme 支持 light/dark。AgentMount 位于 .acme-host 子树，Agent 入口使用现有 ConversationRuntimeProvider；新 Plugin 延续同一 React/宿主主题边界，使用宿主 Button/Input/Card 与这些继承 token。宿主 Design System 未导出 Dialog，因此弹层用 scoped semantic dialog markup + React 键盘/焦点管理，不引入第二套组件系统。拒绝用 Agent UI Button/Input 替代当前 App 明确",
+      "dataScope": "仅 React 本地备注列表和本地弹层状态；不持久化、不调用后端、不新增 Service/Runtime/AG-UI 操作。面板 UI copy 使用现有 useAgentUILocale namespace 并在统一 locale 类型与 en-US、zh-CN 字典补齐。",
+      "excludedOperations": [
+        "不修改 src/App.tsx、assistant-ui vendor、Runtime、framework 或后端。",
+        "不增加、重新安装、升级依赖。",
+        "不添加主会话横向轨道或独立 Sidebar/窄屏抽屉实现。"
+      ],
+      "componentBasisRefs": [
+        "src/App.tsx",
+        "src/design-system/index.tsx",
+        "src/design-system/system.css",
+        "src/AgentMount.tsx",
+        "src/agent-ui/application/Agent.tsx",
+        "src/agent-ui/plugins/conversation-thread-list/index.tsx"
+      ],
+      "grantSource": "explicit-request",
+      "deliveryContract": {
+        "capability": "在现有 Agent Sidebar 抽屉中提供业务备注输入与列表，并提供可访问的说明弹层；空白内容不添加。",
+        "renderingCategory": "semantic-slot",
+        "placement": "在当前 AppUIModel Sidebar（l0）新增一个导航项，排在 history 项之后，内容仅渲染在 Sidebar 已有窄屏抽屉中，不添加主会话 Row/Column/横向轨道。",
+        "lifecycle": "备注与说明弹层仅使用 React 本地状态，随 Sidebar 面板卸载而重置；弹层支持 Escape、Tab 焦点约束、关闭后焦点返回打开按钮。",
+        "dependencies": [],
+        "reusedComponents": [
+          "src/design-system 的 Button、Input、Card；复用 .acme-host 现有 light/dark CSS token。"
+        ],
+        "verificationMethod": "browser-test",
+        "geometry": [],
+        "interactions": [
+          "添加非空备注后，备注显示在列表中；空白输入不添加，并正确显示空列表状态。",
+          "说明按钮打开弹层；可通过键盘关闭/切换焦点，关闭后焦点返回打开按钮。"
+        ]
+      },
+      "deliveryScope": "full"
+    },
+    "final": null
+  },
+  "C": {
+    "creation": {
+      "status": "authorized",
+      "proposalId": "e8f50405-6243-4cf4-93e3-f0b24cf2106c",
+      "scopeHash": "83b9589b38f592bc121328d17e8f98ba2488d1fd9e6d39f425555fb70ad296af",
+      "workKind": "create-plugin",
+      "targetPluginId": "business-notes",
+      "desiredOutcome": "创建并挂载独立 business-notes UI Plugin，加入现有 Sidebar 的 history 之后作为新导航项，不新增或改变主会话横向轨道。实现备注输入、添加、当前列表、空白校验、空状态、说明弹层；说明支持 Esc 只关闭顶层且焦点返回触发按钮，父 Sidebar 抽屉保持打开。备注仅本地 React 状态；所有呈现文案通过 Agent UI locale 类型和 en-US / zh-CN 字典；沿用宿主深浅主题，不新增依赖，不改 Runtime/framework/vendor，不复制其他宿主插件。",
+      "missingCapabilities": [
+        "完整能力盘点确认当前插件和可用 Source Items 均无业务备注输入/本地列表/说明弹层能力；Sidebar 目前仅有 history 导航项。"
+      ],
+      "reuseEvidenceRefs": [
+        "src/agent-ui/plugins/conversation-thread-list/manifest.json",
+        "src/agent-ui/plugins/conversation-thread-list/index.tsx",
+        "src/agent-ui/plugins/conversation-thread-list/definition.ts",
+        "inspect_agent_ui_sources:inventoryComplete=true; no matching business-notes capability"
+      ],
+      "uiScope": "选择宿主自己的 Design System：真实页面 /src/App.tsx 使用并渲染来自 /src/design-system 的 Button、Input、Card；/src/design-system/index.tsx 的公开导出是包装原生 button/input/section 的 acme-button/acme-input/acme-card；/src/design-system/system.css 定义 .acme-host 明暗色变量及边框、背景、文字、主色、圆角；App 将 AgentMount 放在主题容器中，AgentMount 直接返回 Agent 且使用 Agent locale hook，确认 Plugin 位于主题继承的 React/DOM 子树内。原生 dialog 用于语义化说明弹层，并在本地处理 Esc/关闭/焦点恢复，不重写父 Sidebar。App.tsx 虽导入 antd ConfigProvider，但仅作为 LegacyProvider 导出，没有用于页面 UI；故不选 Ant Design。也不以 @agent-ui/react",
+      "dataScope": "Plugin 内 useState 持有备注数组、输入和弹层状态；本地、非持久化；无共享 Service、后端、Runtime 状态、Frontend Tool。",
+      "excludedOperations": [
+        "不新增、安装或升级任何依赖",
+        "不修改 Agent Runtime、framework、vendor、父 Sidebar 或宿主页面",
+        "不新增 Service、后端 API、Frontend Tool 或横向 Layout 轨道",
+        "不复用/复制其他宿主的 business-notes 插件"
+      ],
+      "componentBasisRefs": [
+        "src/App.tsx",
+        "src/AgentMount.tsx",
+        "src/design-system/index.tsx",
+        "src/design-system/system.css"
+      ],
+      "grantSource": "explicit-request",
+      "deliveryContract": {
+        "capability": "独立业务备注 Sidebar 页面：备注输入、添加、列表展示、空白输入不添加、空状态和用途说明弹层。",
+        "renderingCategory": "panel",
+        "placement": "在当前 root Sidebar Layout 节点 l0 新增 business-notes 导航项，紧接现有 history 项之后；复用 Host Sidebar 在桌面和窄屏 Sheet 中的呈现，不触碰主会话 Row/横向轨道。",
+        "lifecycle": "作为独立 project-owned Plugin 挂载到 Sidebar item；备注和说明弹层状态使用 Plugin 本地 React useState，按 Sidebar 项启用时显示，不持久化、不使用后端或 Service。说明弹层关闭/Escape 后只关闭顶层弹层，父 Sidebar 抽屉保持打开，焦点返回打开说明按钮。",
+        "dependencies": [],
+        "reusedComponents": [
+          "src/design-system/Button",
+          "src/design-system/Input",
+          "src/design-system/Card",
+          "Agent UI unified useAgentUILocale"
+        ],
+        "verificationMethod": "runtime",
+        "geometry": [],
+        "interactions": [
+          "添加非空备注并显示在列表中；空白输入不添加",
+          "初始无备注时显示空列表状态",
+          "打开和关闭说明弹层；Escape 仅关闭顶层说明弹层，父 Sidebar 抽屉保留，焦点返回打开按钮",
+          "桌面 Sidebar 与窄屏 Sidebar Sheet 中可用，适配宿主明暗主题"
+        ]
+      },
+      "deliveryScope": "full"
+    },
+    "final": {
+      "status": "authorized",
+      "proposalId": "f9f1895d-db62-4fc2-8239-88acfad156f3",
+      "scopeHash": "6a60e3f98f256710a110394f0721f4ff627dd1206696f7b36fe7b5c1b257627f",
+      "workKind": "extend-capability",
+      "targetPluginId": "business-notes",
+      "desiredOutcome": "Fix only the approved Plugin's remaining real-browser styling defects: match the Host's Inter,system-ui,sans-serif typography locally; prevent English header/help-trigger and input layout from overflowing or clipping at the actual panel width, including narrow panels on a wide viewport; and locally center and constrain the native modal dialog within the viewport. Do not modify behavior, locale, Runtime, framework, vendor, Composer, Sidebar, Host page, or base CSS; do not create or remount a Plugin.",
+      "missingCapabilities": [
+        "The existing Plugin does not enforce Host typography for its controls and dialog.",
+        "Responsive styling is keyed to viewport width and does not wrap/shrink correctly at the actual panel width.",
+        "The native dialog lacks explicit local centering and viewport bounds when Host base styles reset its UA margin."
+      ],
+      "reuseEvidenceRefs": [
+        "business-notes existing Plugin source at /src/agent-ui/plugins/business-notes/index.tsx and /src/agent-ui/plugins/business-notes/styles.css was inspected; it already uses project Button, Input, and Card and owns the dialog behavior."
+      ],
+      "uiScope": "Existing Host UI selection is the project-owned design-system Button/Input/Card imported by /src/App.tsx and by the Plugin. /src/design-system/system.css defines the Host's Inter,system-ui,sans-serif font and acme control styles. App.tsx loads that stylesheet around AgentMount. Keep those public controls and copy their font convention only in Plugin-scoped CSS. Do not add Ant Design or AgentUI controls: Ant Design is not used for this mounted form, and no new dependency or Provider change is in/",
+      "dataScope": "No data, state, service, or Runtime changes; styles only.",
+      "excludedOperations": [
+        "No new Plugin identity or files",
+        "No AppUIModel or composition changes; preserve current registered mounted instance",
+        "No Runtime, framework, vendor, Composer, Sidebar, Host page, or base design-system CSS edits",
+        "No behavior, locale, or dependency changes"
+      ],
+      "componentBasisRefs": [
+        "/src/App.tsx",
+        "/src/design-system/system.css"
+      ],
+      "grantSource": "explicit-request",
+      "deliveryContract": {
+        "capability": "Repair the existing business-notes panel's Plugin-scoped font parity, panel-width-responsive layout, and native help-dialog positioning without changing behavior or composition.",
+        "renderingCategory": "panel",
+        "placement": "The already selected and mounted business-notes panel instance in its current Layout; no relocation, recreation, or remount.",
+        "lifecycle": "CSS-only extension of the existing business-notes Plugin; preserve its registration, mounted instance, locale, dialog interaction semantics, Escape handling, and focus restoration.",
+        "dependencies": [],
+        "reusedComponents": [
+          "Project Button",
+          "Input",
+          "Card from the existing design-system exports"
+        ],
+        "verificationMethod": "browser-test",
+        "geometry": [],
+        "interactions": []
+      },
+      "deliveryScope": "full"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+--- a/src/agent-ui/plugins/business-notes/definition.ts
++++ b/src/agent-ui/plugins/business-notes/definition.ts
+@@ -0,0 +1,14 @@
++import type { UIPluginDefinition } from "../../framework/contracts/ui-plugin";
++import { parseUIPluginManifest } from "../../framework/contracts/ui-plugin";
++import { AGENT_UI_LOCALE_SERVICE } from "../../services/agent-ui-locale";
++import { AGENT_UI_THEME_SERVICE } from "../../services/agent-ui-theme";
++import { BusinessNotesPlugin } from "./index";
++import manifestJson from "./manifest.json";
++
++export const businessNotesPlugin: UIPluginDefinition = {
++  manifest: parseUIPluginManifest(manifestJson),
++  optionalInject: [AGENT_UI_LOCALE_SERVICE, AGENT_UI_THEME_SERVICE],
++  Component: BusinessNotesPlugin,
++};
++
++export default businessNotesPlugin;

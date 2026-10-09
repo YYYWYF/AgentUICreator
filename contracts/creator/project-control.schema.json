@@ -2328,6 +2328,9 @@
               }
             }
           }
+        },
+        "uiContext": {
+          "$ref": "#/$defs/uiPackageContext"
         }
       }
     },
@@ -3504,6 +3507,61 @@
       "required": [
         "changed"
       ]
+    },
+    "uiPackageContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authority",
+        "manifestPath",
+        "dependencyDeclarations",
+        "scriptNames"
+      ],
+      "properties": {
+        "authority": {
+          "const": "package declarations only; inspect actual components, imports, providers and styles before selecting a UI system"
+        },
+        "manifestPath": {
+          "const": "package.json"
+        },
+        "dependencyDeclarations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "packageName",
+              "version",
+              "section"
+            ],
+            "properties": {
+              "packageName": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "section": {
+                "enum": [
+                  "dependencies",
+                  "devDependencies",
+                  "peerDependencies",
+                  "optionalDependencies"
+                ]
+              }
+            }
+          }
+        },
+        "packageManager": {
+          "type": "string"
+        },
+        "scriptNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "oneOf": [

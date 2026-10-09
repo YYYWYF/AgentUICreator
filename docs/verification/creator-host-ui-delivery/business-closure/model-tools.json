@@ -1,0 +1,398 @@
+{
+  "B": {
+    "model": "gpt-6-luna",
+    "maxTokens": 8192,
+    "calls": [
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/src/agent-ui/plugins/business-notes/index.tsx"
+      },
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/src/agent-ui/plugins/business-notes/styles.css"
+      },
+      {
+        "name": "inspect_agent_ui_sources",
+        "argumentKeys": []
+      },
+      {
+        "name": "inspect_ui_plugin",
+        "argumentKeys": [
+          "pluginId"
+        ],
+        "pluginId": "business-notes"
+      },
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/skills/ui-plugin-development/SKILL.md"
+      },
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/src/App.tsx"
+      },
+      {
+        "name": "grep",
+        "argumentKeys": [
+          "glob",
+          "max_count",
+          "output_mode",
+          "path",
+          "pattern"
+        ],
+        "path": "/src",
+        "pattern": "Toolbar"
+      },
+      {
+        "name": "glob",
+        "argumentKeys": [
+          "path",
+          "pattern"
+        ],
+        "path": "/src",
+        "pattern": "**/*theme*"
+      },
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/src/agent-ui/plugins/business-notes/definition.ts"
+      },
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/src/agent-ui/plugins/business-notes/manifest.json"
+      },
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/src/design-system/system.css"
+      },
+      {
+        "name": "inspect_ui_plugin",
+        "argumentKeys": [
+          "pluginId"
+        ],
+        "pluginId": "business-notes"
+      },
+      {
+        "name": "prepare_ui_plugin_development",
+        "argumentKeys": [
+          "componentBasisRefs",
+          "dataScope",
+          "deliveryContract",
+          "desiredOutcome",
+          "excludedOperations",
+          "missingCapabilities",
+          "reuseEvidenceRefs",
+          "targetPluginId",
+          "uiScope",
+          "workKind"
+        ],
+        "targetPluginId": "business-notes",
+        "componentBasisRefs": [
+          "/src/App.tsx",
+          "/src/design-system/system.css"
+        ]
+      },
+      {
+        "name": "inspect_ui_plugin_delivery",
+        "argumentKeys": []
+      },
+      {
+        "name": "mutate_ui_plugin_source",
+        "argumentKeys": [
+          "changes",
+          "pluginId"
+        ],
+        "pluginId": "business-notes"
+      },
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/src/agent-ui/plugins/business-notes/index.tsx"
+      },
+      {
+        "name": "mutate_ui_plugin_source",
+        "argumentKeys": [
+          "changes",
+          "pluginId"
+        ],
+        "pluginId": "business-notes"
+      },
+      {
+        "name": "edit_file_from_read",
+        "argumentKeys": [
+          "end_line",
+          "file_path",
+          "mode",
+          "replacement",
+          "start_line"
+        ],
+        "file_path": "/src/agent-ui/plugins/business-notes/index.tsx"
+      },
+      {
+        "name": "edit_file_from_read",
+        "argumentKeys": [
+          "end_line",
+          "file_path",
+          "mode",
+          "replacement",
+          "start_line"
+        ],
+        "file_path": "/src/agent-ui/plugins/business-notes/styles.css"
+      },
+      {
+        "name": "validate_creator_changes",
+        "argumentKeys": [
+          "includeBuild",
+          "mode"
+        ],
+        "includeBuild": true
+      }
+    ]
+  },
+  "A": {
+    "model": "gpt-6-luna",
+    "maxTokens": 8192,
+    "calls": [
+      {
+        "name": "inspect_agent_ui_sources",
+        "argumentKeys": []
+      },
+      {
+        "name": "inspect_ui_plugin_source_references",
+        "argumentKeys": [
+          "pluginId"
+        ],
+        "pluginId": "business-notes"
+      },
+      {
+        "name": "inspect_agent_ui_sources",
+        "argumentKeys": []
+      },
+      {
+        "name": "ls",
+        "argumentKeys": [
+          "path"
+        ],
+        "path": "/src"
+      },
+      {
+        "name": "ls",
+        "argumentKeys": [
+          "path"
+        ],
+        "path": "/src/agent-ui/plugins/business-notes"
+      },
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/src/App.tsx"
+      },
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/src/design-system/system.css"
+      },
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/src/agent-ui/plugins/business-notes/index.tsx"
+      },
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/src/agent-ui/plugins/business-notes/styles.css"
+      },
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/skills/ui-plugin-development/SKILL.md"
+      },
+      {
+        "name": "inspect_ui_plugin_delivery",
+        "argumentKeys": []
+      },
+      {
+        "name": "edit_file_from_read",
+        "argumentKeys": [
+          "end_line",
+          "file_path",
+          "mode",
+          "replacement",
+          "start_line"
+        ],
+        "file_path": "/src/agent-ui/plugins/business-notes/styles.css"
+      },
+      {
+        "name": "validate_creator_changes",
+        "argumentKeys": [
+          "includeBuild",
+          "mode"
+        ],
+        "includeBuild": true
+      },
+      {
+        "name": "inspect_ui_plugin_delivery",
+        "argumentKeys": []
+      }
+    ]
+  },
+  "C": {
+    "model": "gpt-6-luna",
+    "maxTokens": 8192,
+    "calls": [
+      {
+        "name": "inspect_ui_plugin_source_references",
+        "argumentKeys": [
+          "pluginId"
+        ],
+        "pluginId": "business-notes"
+      },
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/src/agent-ui/plugins/business-notes/index.tsx"
+      },
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/src/agent-ui/plugins/business-notes/styles.css"
+      },
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/src/design-system/system.css"
+      },
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/src/App.tsx"
+      },
+      {
+        "name": "read_file",
+        "argumentKeys": [
+          "file_path",
+          "limit",
+          "offset"
+        ],
+        "file_path": "/skills/ui-plugin-development/SKILL.md"
+      },
+      {
+        "name": "mutate_ui_plugin_source",
+        "argumentKeys": [
+          "changes",
+          "pluginId"
+        ],
+        "pluginId": "business-notes"
+      },
+      {
+        "name": "prepare_ui_plugin_development",
+        "argumentKeys": [
+          "componentBasisRefs",
+          "dataScope",
+          "deliveryContract",
+          "desiredOutcome",
+          "excludedOperations",
+          "missingCapabilities",
+          "reuseEvidenceRefs",
+          "targetPluginId",
+          "uiScope",
+          "workKind"
+        ],
+        "targetPluginId": "business-notes",
+        "componentBasisRefs": [
+          "/src/App.tsx",
+          "/src/design-system/system.css"
+        ]
+      },
+      {
+        "name": "mutate_ui_plugin_source",
+        "argumentKeys": [
+          "changes",
+          "pluginId"
+        ],
+        "pluginId": "business-notes"
+      },
+      {
+        "name": "validate_creator_changes",
+        "argumentKeys": [
+          "includeBuild",
+          "mode"
+        ],
+        "includeBuild": true
+      }
+    ]
+  }
+}

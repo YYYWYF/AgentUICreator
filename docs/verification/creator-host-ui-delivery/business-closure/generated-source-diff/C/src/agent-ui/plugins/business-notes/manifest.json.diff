@@ -1,0 +1,21 @@
+--- a/src/agent-ui/plugins/business-notes/manifest.json
++++ b/src/agent-ui/plugins/business-notes/manifest.json
+@@ -0,0 +1,18 @@
++{
++  "id": "business-notes",
++  "name": "Business Notes",
++  "description": "A private workspace for drafting and keeping lightweight business notes.",
++  "version": "1.0.0",
++  "capabilities": ["business-notes"],
++  "sidebar": {
++    "icon": "list",
++    "labels": {
++      "en-US": "Business notes",
++      "zh-CN": "业务备注"
++    }
++  },
++  "authoring": {
++    "intents": ["add business notes", "open the business notes panel"],
++    "visualRole": "business notes panel in Sidebar"
++  }
++}

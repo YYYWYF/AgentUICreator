@@ -1,0 +1,8 @@
+--- a/src/agent-ui/app-ui/composition-revision.generated.json
++++ b/src/agent-ui/app-ui/composition-revision.generated.json
+@@ -0,0 +1,5 @@
++{
++  "transactionId": "971840c3-37ca-4db7-a2a1-17aa9e35e669",
++  "appUIModelHash": "ddc49ece481e125f5db1c54853d7995d2727389ae8248be0ec22a94c55265a2f",
++  "capabilityCatalogRevision": "329ef89ce751f1d73baf44c0bc2077e5f7a5d1cb393408dc52fb5314435b0440"
++}

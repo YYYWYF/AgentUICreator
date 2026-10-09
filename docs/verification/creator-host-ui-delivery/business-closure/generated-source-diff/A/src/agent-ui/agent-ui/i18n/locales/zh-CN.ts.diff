@@ -1,0 +1,22 @@
+--- a/src/agent-ui/agent-ui/i18n/locales/zh-CN.ts
++++ b/src/agent-ui/agent-ui/i18n/locales/zh-CN.ts
+@@ -105,6 +105,19 @@
+     archive: "归档",
+     delete: "删除",
+   },
++    businessNotes: {
++      title: "业务备注",
++      inputLabel: "新备注",
++      inputPlaceholder: "输入备注…",
++      addNote: "添加备注",
++      listLabel: "业务备注列表",
++      emptyState: "还没有备注，添加一条开始记录。",
++      blankNoteError: "请输入内容后再添加。",
++      openHelp: "查看业务备注说明",
++      helpTitle: "业务备注说明",
++      helpDescription: "备注仅保存在当前打开的面板中，面板关闭后会清除。",
++      closeHelp: "关闭",
++    },
+   starterSuggestions: {
+     architectureTitle: "分析 Agent UI 架构",
+     architectureLabel: "检查布局、Plugin 与 Service 边界",

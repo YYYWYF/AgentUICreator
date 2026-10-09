@@ -1,0 +1,34 @@
+[WARN] Your node_modules are out of sync with your lockfile. The workspace structure has changed since last install
+$ node scripts/audit-ui-copy.mjs
+{
+  "parity": [
+    {
+      "owner": "creator",
+      "locales": [
+        "en-US",
+        "zh-CN"
+      ],
+      "keys": 676
+    },
+    {
+      "owner": "presentation",
+      "locales": [
+        "en-US",
+        "zh-CN"
+      ],
+      "keys": 310
+    },
+    {
+      "owner": "generated",
+      "locales": [
+        "en-US",
+        "zh-CN"
+      ],
+      "keys": 387
+    }
+  ],
+  "copyCandidates": 35,
+  "duplicateValues": 15,
+  "unusedCandidates": 55,
+  "failures": []
+}

@@ -1,0 +1,23 @@
+--- a/src/agent-ui/agent-ui/i18n/locale-types.ts
++++ b/src/agent-ui/agent-ui/i18n/locale-types.ts
+@@ -90,6 +90,20 @@
+     debugTitle: string; debugLabel: string; debugPrompt: string;
+     nextTitle: string; nextLabel: string; nextPrompt: string;
+   };
++  businessNotes: {
++    title: string;
++    help: string;
++    openHelp: string;
++    placeholder: string;
++    inputLabel: string;
++    add: string;
++    remove: string;
++    listLabel: string;
++    empty: string;
++    helpTitle: string;
++    helpContent: string;
++    close: string;
++  };
+   theme: {
+     settings: string;
+     light: string;

@@ -1,0 +1,14 @@
+{
+  "id": "business-notes",
+  "name": "Business Notes",
+  "description": "Captures private in-memory business notes in the existing Agent sidebar drawer.",
+  "version": "0.0.1",
+  "capabilities": ["business-notes"],
+  "sidebar": {
+    "icon": "book-open",
+    "labels": {
+      "en-US": "Business notes",
+      "zh-CN": "业务备注"
+    }
+  }
+}

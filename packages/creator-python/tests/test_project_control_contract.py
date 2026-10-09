@@ -77,3 +77,25 @@ def test_purge_contract_accepts_only_plugin_identity_and_fresh_hashes():
     client._validate_protocol(request, request=True)
     with pytest.raises(ProjectControlError):
         client._validate_protocol({**request, "input": {**request["input"], "files": ["plugins/any/file.ts"]}}, request=True)
+
+
+def test_full_inspection_accepts_typed_ui_context_and_rejects_invalid_facts():
+    import copy
+    client = ProjectControlClient(project_root=ROOT)
+    result = json.loads((FIXTURES / 'inspect_ui_project.result.json').read_text())
+    result['uiContext'] = {
+        'authority': 'package declarations only; inspect actual components, imports, providers and styles before selecting a UI system',
+        'manifestPath': 'package.json',
+        'dependencyDeclarations': [{'packageName': '@host/ui', 'version': 'workspace:*', 'section': 'dependencies'}],
+        'packageManager': 'npm@11.0.0', 'scriptNames': ['verify:ui', 'typecheck', 'build'],
+    }
+    client._validate_result('inspect_ui_project', result)
+    for bad in [
+        {**result['uiContext'], 'selectedLibrary': 'antd'},
+        {**result['uiContext'], 'dependencyDeclarations': [{'packageName': 'antd', 'version': '^5', 'section': 'invented'}]},
+        {**result['uiContext'], 'scriptNames': [42]},
+    ]:
+        candidate = copy.deepcopy(result)
+        candidate['uiContext'] = bad
+        with pytest.raises(ProjectControlError):
+            client._validate_result('inspect_ui_project', candidate)

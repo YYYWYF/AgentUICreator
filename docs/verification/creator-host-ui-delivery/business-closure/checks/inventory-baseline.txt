@@ -1,0 +1,222 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../scripts/generated-source-test-config" without a file extension (vitest.config.ts:3:43). Add the file extension
+  - ESM syntax in a file loaded as CommonJS (../../scripts/generated-source-test-config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+  - import "../../src/generate-plugin-registry" without a file extension (tests/support/generated-project.ts:5:46). Add the file extension
+  - import "./framework/contracts/app-ui-model" without a file extension (src/generate-plugin-registry.ts:6:37). Add the file extension
+  - import "./project/project-mode" without a file extension (src/generate-plugin-registry.ts:7:42). Add the file extension
+  - import "./framework/contracts/agent-ui-project" without a file extension (src/generate-plugin-registry.ts:8:43). Add the file extension
+  - import "./project/agent-ui-project-paths" without a file extension (src/generate-plugin-registry.ts:9:95). Add the file extension
+  - import "./project/creator-cancel-marker" without a file extension (src/generate-plugin-registry.ts:10:44). Add the file extension
+  - import "./project/registry-generator" without a file extension (src/generate-plugin-registry.ts:13:8). Add the file extension
+  - import "./panel-dimension" without a file extension (src/framework/contracts/app-ui-model.ts:3:42). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (src/project/registry-generator.ts:18:8). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (src/project/agent-ui-project-paths.ts:3:43). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (src/project/project-mode.ts:7:8). Add the file extension
+  - import "../framework/contracts/app-ui-compiler" without a file extension (src/project/registry-generator.ts:19:55). Add the file extension
+  - import "./types" without a file extension (src/project/agent-ui-project-paths.ts:4:45). Add the file extension
+  - import "../framework/contracts/app-ui-composition" without a file extension (src/project/registry-generator.ts:24:8). Add the file extension
+  - import "./project-config" without a file extension (src/project/agent-ui-project-paths.ts:5:40). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/registry-generator.ts:25:42). Add the file extension
+  - import "./plugin-assets" without a file extension (src/project/registry-generator.ts:26:37). Add the file extension
+  - import "./agent-ui-mode" without a file extension (src/framework/contracts/agent-ui-project.ts:6:8). Add the file extension
+  - import "./data-message-ui-analyzer" without a file extension (src/project/registry-generator.ts:27:39). Add the file extension
+  - import "./types" without a file extension (src/project/project-config.ts:1:45). Add the file extension
+  - import "./service-dependency-inspector" without a file extension (src/project/registry-generator.ts:32:8). Add the file extension
+  - import "./types" without a file extension (src/project/registry-generator.ts:39:8). Add the file extension
+  - import "./agent-ui-workspace" without a file extension (src/framework/contracts/agent-ui-mode.ts:3:45). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/app-ui-composition.ts:4:8). Add the file extension
+  - import "../framework/contracts/data-message-ui" without a file extension (src/project/data-message-ui-analyzer.ts:22:42). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (src/project/service-dependency-inspector.ts:9:8). Add the file extension
+  - import "./app-ui-model" without a file extension (src/framework/contracts/app-ui-compiler.ts:8:8). Add the file extension
+  - import "../framework/contracts/ui-plugin" without a file extension (src/project/plugin-assets.ts:5:39). Add the file extension
+  - import "./types" without a file extension (src/project/data-message-ui-analyzer.ts:23:48). Add the file extension
+  - import "./types" without a file extension (src/project/service-dependency-inspector.ts:26:8). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/app-ui-compiler.ts:14:8). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/plugin-assets.ts:6:42). Add the file extension
+  - import "./app-ui-composition" without a file extension (src/framework/contracts/app-ui-compiler.ts:23:8). Add the file extension
+  - import "./types" without a file extension (src/project/plugin-assets.ts:12:8). Add the file extension
+  - import "./panel-dimension" without a file extension (src/framework/contracts/app-ui-runtime-model.ts:3:42). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/ui-plugin.ts:9:49). Add the file extension
+  - import "./app-ui-model" without a file extension (src/framework/contracts/ui-plugin.ts:10:43). Add the file extension
+  - import "./app-ui-composition" without a file extension (src/framework/contracts/ui-plugin.ts:11:48). Add the file extension
+  - import "./custom-event-protocol" without a file extension (src/framework/contracts/ui-plugin.ts:12:39). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 /Users/yifei/.codex/visualizations/2026/10/09/01a11ec8-65e6-7c82-a29d-c24c3262dc4b/business-closure/baseline/packages/project-control
+
+ ❯ tests/app-ui-recovery.test.ts (34 tests | 5 failed) 2387ms
+     × Plugin context remains inspectable while the model is broken 6ms
+     × keeps a healthy model with broken Plugin child Slot source in normal debugging 300ms
+     × does not classify Plugin definition syntax errors as model corruption 67ms
+     × does not classify Plugin definition missing export errors as model corruption 68ms
+     × does not classify Plugin definition missing file errors as model corruption 46ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/app-ui-recovery.test.ts > invalid AppUIModel Recovery > Plugin context remains inspectable while the model is broken
+AssertionError: expected { ok: true, result: { …(4) } } to match object { ok: true, result: { …(2) } }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "result": {
+      "pluginAssets": [
+        {
++         "authoring": {
++           "defaultPlacement": {
++             "parentPluginId": "conversation-surface",
++             "slot": "composer",
++             "type": "plugin_slot",
++           },
++           "intents": [
++             "show the primary conversation composer",
++             "compose conversation input actions",
++           ],
++           "visualRole": "conversation composer",
++         },
++         "capabilities": [
++           "conversation-composer",
++         ],
++         "childSlots": {
++           "beforeInput": {
++             "accepts": {
++               "anyOfCapabilities": [
++                 "conversation-composer-before-input",
++               ],
++             },
++             "cardinality": "many",
++             "description": "Content displayed between attachments and the composer input.",
++             "optional": true,
++           },
++           "input": {
++             "accepts": {
++               "anyOfCapabilities": [
++                 "conversation-composer-input",
++               ],
++             },
++             "cardinality": "one",
++             "description": "Optional text input presentation; falls back to the canonical textarea.",
++             "optional": true,
++           },
++           "leadingActions": {
++             "accepts": {
++               "anyOfCapabilities": [
++                 "conversation-composer-leading-action",
++               ],
++             },
++             "cardinality": "many",
++             "description": "Inline actions displayed on the leading side of the composer.",
++             "optional": true,
++           },
++           "submitAction": {
++             "accepts": {
++               "anyOfCapabilities": [
++                 "conversation-composer-submit-action",
++               ],
++             },
++             "cardinality": "one",
++             "description": "The primary send or stop action for the composer.",
++             "optional": true,
++           },
++           "trailingActions": {
++             "accepts": {
++               "anyOfCapabilities": [
++                 "conversation-composer-trailing-action",
++               ],
++             },
++             "cardinality": "many",
++             "description": "Inline actions displayed before the composer submit action.",
++             "optional": true,
++           },
++           "triggers": {
++             "accepts": {
++               "anyOfCapabilities": [
++                 "conversation-composer-trigger",
++               ],
++             },
++             "cardinality": "many",
++             "description": "Optional conversation input triggers.",
++             "optional": true,
++           },
++         },
++         "definitionPath": "@agent-ui/plugins/assistant-ui-composer",
++         "description": "Renders the canonical assistant-ui conversation composer with composable action Slots.",
++         "directory": "assistant-ui-composer",
++         "manifestPath": "plugin/assistant-ui-composer",
++         "name": "Assistant UI Composer",
++         "ownership": "official_package",
++         "pluginId": "assistant-ui-composer",
++         "referenceSourceItemId": "plugin/assistant-ui-composer",
++         "runtimeImport": "@agent-ui/plugins/assistant-ui-composer",
++         "selected": false,
++       },
++       {
++         "capabilities": [],
++         "childSlots": {},
++         "definitionPath": "agent-ui/plugins/sample/definition.ts",
++         "description": "fixture",
++         "directory": "sample",
++         "manifestPath": "agent-ui/plugins/sample/manifest.json",
++         "name": "sample",
++         "ownership": "project_source",
+          "pluginId": "sample",
++         "selected": false,
+        },
+      ],
+      "recoveryOnly": true,
+    },
+  }
+
+ ❯ tests/app-ui-recovery.test.ts:94:100
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  tests/app-ui-recovery.test.ts > invalid AppUIModel Recovery > keeps a healthy model with broken Plugin child Slot source in normal debugging
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: true, result: { …(1) } }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "result": {
+-     "issues": ArrayContaining [
+-       ObjectContaining {
+-         "code": "plugin-child-slot-rendered-not-declared",
+-       },
+-     ],
+-   },
++   "ok": false,
+  }
+
+ ❯ tests/app-ui-recovery.test.ts:126:103
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  tests/app-ui-recovery.test.ts > invalid AppUIModel Recovery > does not classify Plugin definition syntax errors as model corruption
+ FAIL  tests/app-ui-recovery.test.ts > invalid AppUIModel Recovery > does not classify Plugin definition missing export errors as model corruption
+ FAIL  tests/app-ui-recovery.test.ts > invalid AppUIModel Recovery > does not classify Plugin definition missing file errors as model corruption
+AppUITransactionError: Workspace declarations prevent model health classification; repair their owning source first.
+ ❯ inspectAppUIModelSource src/project/app-ui-recovery.ts:47:13
+     45|   catch (error) {
+     46|     if ((error as { details?: { workspaceIntegrity?: boolean } }).deta…
+     47|       throw new AppUITransactionError("APP_UI_MODEL_WORKSPACE_INTEGRIT…
+       |             ^
+     48|         ...raw, diagnostics: appUIModelDiagnostics(error, "workspace"),
+     49|       });
+ ❯ tests/app-ui-recovery.test.ts:155:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed | 29 passed (34)
+   Start at  15:41:31
+   Duration  3.00s (transform 210ms, setup 9ms, import 296ms, tests 2.39s, environment 238ms)
+
