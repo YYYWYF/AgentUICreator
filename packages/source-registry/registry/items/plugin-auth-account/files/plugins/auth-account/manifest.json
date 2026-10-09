@@ -1,0 +1,15 @@
+{
+  "id": "auth-account",
+  "name": "Account",
+  "description": "Account",
+  "version": "0.0.1",
+  "capabilities": [
+    "account"
+  ],
+  "authoring": {
+    "intents": [
+      "add login authentication",
+      "\u7ed9 Agent \u52a0\u4e0a\u767b\u5f55\u529f\u80fd"
+    ]
+  }
+}

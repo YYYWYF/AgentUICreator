@@ -395,6 +395,7 @@ class RuntimeDiagnosticInspectionService:
                         visit(child, f"{path}.children[{index}]")
             elif node_type == "sidebar":
                 visit(node.get("header"), f"{path}.header")
+                visit(node.get("footer"), f"{path}.footer")
                 items = node.get("items")
                 if isinstance(items, list):
                     for index, item in enumerate(items):

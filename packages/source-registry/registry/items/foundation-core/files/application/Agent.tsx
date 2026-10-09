@@ -26,6 +26,7 @@ import { useConversationServiceThreadBinding, type ConversationRunResumeProvider
 import { GeneratedConversationIntegrations } from "../agent-ui/conversation/integrations.generated";
 import { conversationToolkit as baseConversationToolkit } from "../agent-ui/conversation/toolkit";
 import { agentCompositionStore } from "./composition-store";
+import { ApplicationSessionBoundary, useApplicationSessionEpoch } from "./ApplicationSessionBoundary";
 import { AgentSurface } from "./AgentSurface";
 
 import "../agent-ui/conversation/styles.css";
@@ -81,7 +82,6 @@ function AgentSession({ locale, endpoint = import.meta.env.VITE_AGENT_ENDPOINT |
     report();
     return unsubscribe;
   }, [observability]);
-  const threadBinding = useConversationServiceThreadBinding<AppAgentState>(runResumeProvider, initialThreadId);
   const toolkit = composition?.conversationToolkit ?? baseConversationToolkit;
 
   useEffect(() => {
@@ -94,6 +94,25 @@ function AgentSession({ locale, endpoint = import.meta.env.VITE_AGENT_ENDPOINT |
     });
   }, [appUIModelSource, revisionDescriptorSource, capabilityCatalogRevision, pluginCapabilityCatalog, baseConversationToolkit]);
 
+  if (composition === undefined) return null;
+  return (
+    <ApplicationSessionBoundary composition={composition} frontendTools={frontendToolRuntime} observability={observability} locale={locale ?? presentationLocale}>
+    <AuthenticatedConversation {...{ locale, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }} />
+    </ApplicationSessionBoundary>
+  );
+}
+
+function AuthenticatedConversation({ locale, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }: { [K in keyof AgentProps]: AgentProps[K] | undefined } & {
+  endpoint: string;
+  presentationLocale: AgentUILocaleCode;
+  setPresentationLocale: (locale: AgentUILocaleCode) => void;
+  suggestions: ReturnType<typeof getConversationStarterSuggestions>;
+  frontendToolRuntime: AppFrontendToolRuntime;
+  composition: NonNullable<ReturnType<typeof agentCompositionStore.getSnapshot>>;
+  toolkit: typeof baseConversationToolkit;
+}) {
+  const epoch = useApplicationSessionEpoch();
+  const threadBinding = useConversationServiceThreadBinding<AppAgentState>(runResumeProvider, epoch === 0 ? initialThreadId : undefined);
   return (
     <ConversationRuntimeProvider<AppAgentState>
       endpoint={endpoint}

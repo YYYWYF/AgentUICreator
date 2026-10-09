@@ -57,6 +57,7 @@ export const runtimeLayoutNodeSchema: z.ZodType<LayoutNode> = z.lazy(() =>
       type: z.literal("sidebar"), id: nonBlankStringSchema,
       defaultActive: nonBlankStringSchema.nullable(),
       header: z.strictObject({ type: z.literal("slot"), id: nonBlankStringSchema, slotId: nonBlankStringSchema }).optional(),
+      footer: z.strictObject({ type: z.literal("slot"), id: nonBlankStringSchema, slotId: nonBlankStringSchema }).optional(),
       items: z.array(z.strictObject({ id: nonBlankStringSchema, child: z.strictObject({ type: z.literal("slot"), id: nonBlankStringSchema, slotId: nonBlankStringSchema }) })),
       content: runtimeLayoutNodeSchema,
     }),
@@ -150,6 +151,11 @@ export const appUIRuntimeModelSchema = appUIRuntimeModelShapeSchema.superRefine(
           const instances = Object.values(model.pluginInstances).filter(instance => instance.mount?.slotId === node.header!.slotId);
           if (instances.length > 1) context.addIssue({ code: "custom", path: [...path, "header"], message: "Sidebar Header accepts at most one plugin instance" });
           visit(node.header, [...path, "header"]);
+        }
+        if (node.footer) {
+          const instances = Object.values(model.pluginInstances).filter(instance => instance.mount?.slotId === node.footer!.slotId);
+          if (instances.length > 1) context.addIssue({ code: "custom", path: [...path, "footer"], message: "Sidebar Footer accepts at most one plugin instance" });
+          visit(node.footer, [...path, "footer"]);
         }
         const ids = node.items.map(item => item.id);
         if (new Set(ids).size !== ids.length || (node.defaultActive !== null && !ids.includes(node.defaultActive))) context.addIssue({ code: "custom", path, message: "Invalid Sidebar items/defaultActive" });

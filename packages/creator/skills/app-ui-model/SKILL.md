@@ -378,3 +378,21 @@ edit SidebarFrame, vendor components or create a Service to change identity.
 New platform presets select history by default; Assistant presets stay collapsed.
 Models without Header retain the legacy navigation rail. A Header with one
 enabled navigation item uses a single column without a duplicate history icon.
+
+### Optional Sidebar Footer and authentication
+
+`sidebar.footer` is an optional ordinary Layout Slot with at most one visual
+content plugin. It needs no Sidebar navigation metadata and supports ordinary
+insert/remove/move/enable/disable/replace operations. Preserve existing Header,
+items, content and application plugins when adding it. Never replace an occupied
+Footer silently. Footer is not a child slot of the Header or a special auth node.
+
+For an explicitly requested login feature, follow
+`docs/implementation/authentication/README.md`: prepare `plugin/auth-gate` source
+and put its unique owner in `applicationPlugins`; optionally prepare
+`plugin/auth-account` and mount it in Footer. Account source requires gate source,
+but source installation never installs model instances automatically. Hiding the
+account leaves authentication enabled. Configure the Host adapter explicitly;
+never enable the demo by default or overwrite existing authentication. Confirm
+owner, adapter and layout scope once, honoring authorization already supplied.
+Use existing service-contract authorization and model/source recovery facilities.

@@ -85,9 +85,9 @@ describe("Sidebar contract and deterministic operations", () => {
   });
   it("requires Sidebar-capable package versions in Source Registry", () => {
     for (const [item, name, oldVersion, version] of [
-      ["foundation-core", "@agent-ui/react", "0.1.3", "0.1.4"],
-      ["foundation-core-runtime", "@agent-ui/react", "0.1.3", "0.1.4"],
-      ["foundation-core-contracts", "@agent-ui/runtime-react", "0.1.1", "0.1.2"],
+      ["foundation-core", "@agent-ui/react", "0.1.5", "0.1.6"],
+      ["foundation-core-runtime", "@agent-ui/react", "0.1.5", "0.1.6"],
+      ["foundation-core-contracts", "@agent-ui/runtime-react", "0.1.2", "0.1.3"],
     ]) {
       const descriptor = JSON.parse(readFileSync(new URL(`../../source-registry/registry/items/${item}/item.json`, import.meta.url), "utf8"));
       expect(satisfiesAgentUIPackageRange(oldVersion, descriptor.packages[name!])).toBe(false);
@@ -153,4 +153,43 @@ it("accepts Header local refs and rejects nonvisual Header plugins", () => {
   expect(() => compileAppUIModel(result, { identity: { capabilities: ["headless"] } })).toThrow(/visual content/);
   expect(() => compileAppUIModel(result, { identity: {} })).not.toThrow();
   expect(JSON.stringify(result)).not.toContain("localRef");
+});
+
+it("compiles Footer independently of Header/navigation and keeps ordinary plugin operations", () => {
+  const source = model(); if (source.root.type !== "sidebar") throw new Error();
+  source.applicationPlugins = [plugin("gate")];
+  source.root.header = { type: "slot", plugins: [plugin("identity")] };
+  source.root.footer = { type: "slot", plugins: [plugin("account")] };
+  const plugins = { ...catalog, identity: {}, account: {}, gate: { provides: ["auth.gate"], applicationGate: { service: "auth.gate" } } };
+  const runtime = compileAppUIModel(source, plugins);
+  if (runtime.root.type !== "sidebar") throw new Error();
+  expect(runtime.root.footer).toEqual({ type: "slot", id: "layout-node:root.footer", slotId: "layout-slot:root.footer" });
+  expect(runtime.pluginInstances.account?.mount?.slotId).toBe("layout-slot:root.footer");
+  expect(resolveAppUIComposition(runtime, plugins).issues).toEqual([]);
+  const refs = buildLayoutRefIndex(source.root); const footerRef = refs.byPath.get("root.footer")!;
+  const removed = applyAppUIOperations(source, [op({ type: "remove_plugin", instanceId: "account" })]);
+  expect(removed.applicationPlugins).toEqual(source.applicationPlugins);
+  const restored = applyAppUIOperations(removed, [op({ type: "insert_plugin", target: { type: "layout_slot", slotRef: footerRef }, plugin: plugin("account") })]);
+  expect(restored).toEqual(source);
+  const disabled = applyAppUIOperations(restored, [op({ type: "set_plugin_enabled", instanceId: "account", enabled: false })]);
+  expect(disabled.applicationPlugins).toEqual(source.applicationPlugins);
+  if (disabled.root.type !== "sidebar") throw new Error();
+  expect(disabled.root.footer?.plugins[0]?.enabled).toBe(false);
+  const moved = applyAppUIOperations(source, [op({ type: "move_plugin", instanceId: "account", target: { type: "layout_slot", slotRef: refs.byPath.get("root.content.children[0]")! } })]);
+  expect(moved.applicationPlugins).toEqual(source.applicationPlugins);
+  expect(() => compileAppUIModel(moved, plugins)).not.toThrow();
+  expect(() => compileAppUIModel(source, { ...plugins, account: { capabilities: ["headless"] } })).toThrow(/visual content/);
+  source.root.footer.plugins.push(plugin("second")); expect(() => parseAppUIModel(source)).toThrow();
+});
+
+it("materializes Footer local refs and supports replacing and disabling without changing gates", () => {
+  const source: AppUIModel = { applicationPlugins: [plugin("gate")], root: { type: "slot", plugins: [] } };
+  const result = applyAppUIOperations(source, [
+    op({ type: "replace_layout_node", nodeRef: "l0", node: { type: "sidebar", defaultActive: null, items: [], footer: { type: "slot", localRef: "$footer", plugins: [] }, content: { type: "slot", plugins: [] } } }),
+    op({ type: "insert_plugin", target: { type: "layout_slot", slotRef: "$footer" }, plugin: plugin("account") }),
+  ]);
+  const footer = buildLayoutRefIndex(result.root).byPath.get("root.footer")!;
+  const replaced = applyAppUIOperations(result, [op({ type: "replace_layout_node", nodeRef: footer, node: { type: "slot", plugins: [plugin("account")] } })]);
+  expect(replaced.applicationPlugins).toEqual(source.applicationPlugins);
+  expect(JSON.stringify(replaced)).not.toContain("localRef");
 });

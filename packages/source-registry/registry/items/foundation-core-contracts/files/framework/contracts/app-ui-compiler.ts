@@ -84,6 +84,7 @@ function compileLayout(
   if (node.type === "sidebar") {
     return { type: "sidebar", id: resolveRuntimeLayoutNodeId(path), defaultActive: node.defaultActive,
       ...(node.header === undefined ? {} : { header: compileLayout(node.header, paths) as import("./app-ui-runtime-model").RuntimeSlotNode }),
+      ...(node.footer === undefined ? {} : { footer: compileLayout(node.footer, paths) as import("./app-ui-runtime-model").RuntimeSlotNode }),
       items: node.items.map(item => ({ id: item.id, child: compileLayout(item.child, paths) as import("./app-ui-runtime-model").RuntimeSlotNode })),
       content: compileLayout(node.content, paths) };
   }
@@ -282,6 +283,12 @@ export function compileAppUIModel(
       const entry = pluginCatalog[plugin.pluginId];
       if (entry?.requiresRenderScope || entry?.dataMessageUI || entry?.capabilities?.includes("headless") || entry?.applicationGate) {
         issues.push({ code: "sidebar-navigation-required", instanceId: plugin.id, pluginId: plugin.pluginId, path: `${path}.header`, message: `Sidebar Header plugin "${plugin.pluginId}" must be a visual content plugin.` });
+      }
+    }
+    for (const plugin of node.footer?.plugins ?? []) {
+      const entry = pluginCatalog[plugin.pluginId];
+      if (entry?.requiresRenderScope || entry?.dataMessageUI || entry?.capabilities?.includes("headless") || entry?.applicationGate) {
+        issues.push({ code: "sidebar-navigation-required", instanceId: plugin.id, pluginId: plugin.pluginId, path: `${path}.footer`, message: `Sidebar Footer plugin "${plugin.pluginId}" must be a visual content plugin.` });
       }
     }
     for (const item of node.items) {

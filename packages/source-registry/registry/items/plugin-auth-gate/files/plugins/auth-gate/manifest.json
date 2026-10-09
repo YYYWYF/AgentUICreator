@@ -1,0 +1,21 @@
+{
+  "id": "auth-gate",
+  "name": "Authentication Gate",
+  "description": "Authentication Gate",
+  "version": "0.0.1",
+  "capabilities": [
+    "authentication",
+    "plugin-service-provider"
+  ],
+  "authoring": {
+    "intents": [
+      "add login authentication",
+      "\u7ed9 Agent \u52a0\u4e0a\u767b\u5f55\u529f\u80fd"
+    ]
+  },
+  "application": {
+    "gate": {
+      "service": "auth.gate"
+    }
+  }
+}

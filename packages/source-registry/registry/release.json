@@ -118,6 +118,12 @@
     },
     "assistant-ui-thinking-indicator": {
       "version": "0.0.1"
+    },
+    "auth-gate": {
+      "version": "0.0.1"
+    },
+    "auth-account": {
+      "version": "0.0.1"
     }
   }
 }

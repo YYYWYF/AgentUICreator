@@ -223,5 +223,18 @@
   "plugins/assistant-ui-tool-timeline/manifest.json": "packages/source-registry/registry/items/plugin-assistant-ui-tool-timeline/files/plugins/assistant-ui-tool-timeline/manifest.json",
   "plugins/assistant-ui-thinking-indicator/definition.ts": "packages/source-registry/registry/items/plugin-assistant-ui-thinking-indicator/files/plugins/assistant-ui-thinking-indicator/definition.ts",
   "plugins/assistant-ui-thinking-indicator/index.tsx": "packages/source-registry/registry/items/plugin-assistant-ui-thinking-indicator/files/plugins/assistant-ui-thinking-indicator/index.tsx",
-  "plugins/assistant-ui-thinking-indicator/manifest.json": "packages/source-registry/registry/items/plugin-assistant-ui-thinking-indicator/files/plugins/assistant-ui-thinking-indicator/manifest.json"
+  "plugins/assistant-ui-thinking-indicator/manifest.json": "packages/source-registry/registry/items/plugin-assistant-ui-thinking-indicator/files/plugins/assistant-ui-thinking-indicator/manifest.json",
+  "application/ApplicationSessionBoundary.tsx": "packages/source-registry/registry/items/foundation-core/files/application/ApplicationSessionBoundary.tsx",
+  "plugins/auth-gate/definition.ts": "packages/source-registry/registry/items/plugin-auth-gate/files/plugins/auth-gate/definition.ts",
+  "plugins/auth-gate/index.tsx": "packages/source-registry/registry/items/plugin-auth-gate/files/plugins/auth-gate/index.tsx",
+  "plugins/auth-gate/manifest.json": "packages/source-registry/registry/items/plugin-auth-gate/files/plugins/auth-gate/manifest.json",
+  "plugins/auth-gate/session.ts": "packages/source-registry/registry/items/plugin-auth-gate/files/plugins/auth-gate/session.ts",
+  "plugins/auth-gate/styles.css": "packages/source-registry/registry/items/plugin-auth-gate/files/plugins/auth-gate/styles.css",
+  "services/auth/adapter.ts": "packages/source-registry/registry/items/plugin-auth-gate/files/services/auth/adapter.ts",
+  "services/auth/mock-adapter.ts": "packages/source-registry/registry/items/plugin-auth-gate/files/services/auth/mock-adapter.ts",
+  "services/auth/session.ts": "packages/source-registry/registry/items/plugin-auth-gate/files/services/auth/session.ts",
+  "plugins/auth-account/definition.ts": "packages/source-registry/registry/items/plugin-auth-account/files/plugins/auth-account/definition.ts",
+  "plugins/auth-account/index.tsx": "packages/source-registry/registry/items/plugin-auth-account/files/plugins/auth-account/index.tsx",
+  "plugins/auth-account/manifest.json": "packages/source-registry/registry/items/plugin-auth-account/files/plugins/auth-account/manifest.json",
+  "plugins/auth-account/styles.css": "packages/source-registry/registry/items/plugin-auth-account/files/plugins/auth-account/styles.css"
 }

@@ -215,6 +215,14 @@
     {
       "id": "plugin/assistant-ui-thinking-indicator",
       "path": "items/plugin-assistant-ui-thinking-indicator/item.json"
+    },
+    {
+      "id": "plugin/auth-gate",
+      "path": "items/plugin-auth-gate/item.json"
+    },
+    {
+      "id": "plugin/auth-account",
+      "path": "items/plugin-auth-account/item.json"
     }
   ]
 }

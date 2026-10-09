@@ -1,0 +1,9 @@
+.auth-account-plugin { position: relative; min-width: 0; width: 100%; display: grid; gap: 4px; }
+.auth-account-plugin .auth-account-trigger { display: flex; justify-content: flex-start; height: auto; min-height: 40px; gap: 8px; padding: 4px; width: 100%; min-width: 0; }
+.auth-account-plugin .auth-account-avatar { flex: 0 0 32px; height: 32px; border-radius: 50%; background: var(--muted); display: grid; place-items: center; overflow: hidden; }
+.auth-account-plugin .auth-account-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.auth-account-plugin .auth-account-details { display: grid; min-width: 0; text-align: start; }
+.auth-account-plugin .auth-account-details > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.auth-account-plugin .auth-account-details > span { font-size: 12px; color: var(--muted-foreground); }
+.auth-account-plugin .auth-account-sign-out { white-space: normal; height: auto; }
+.agent-ui-sidebar-footer[data-collapsed="true"] .auth-account-plugin .auth-account-details { display: none; }

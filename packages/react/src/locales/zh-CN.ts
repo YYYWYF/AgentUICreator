@@ -1,4 +1,6 @@
 export const zhCN = {
+  auth: {"title": "登录你的 Agent", "checking": "正在检查登录状态…", "account": "账号", "password": "密码", "signIn": "登录", "signOut": "退出登录", "working": "请稍候…", "signInFailed": "登录失败，请检查账号和密码后重试。", "signOutFailed": "已退出本地会话，远程退出失败。", "accountMenu": "账户菜单"},
+
   "thinkingIndicator": {
     "thinking": "正在思考...",
     "working": "正在处理...",

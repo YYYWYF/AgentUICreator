@@ -68,6 +68,7 @@ function indexPluginLocations(
 
   if (node.type === "sidebar") {
     if (node.header) indexPluginLocations(node.header, `${nodePath}.header`, slotPaths);
+    if (node.footer) indexPluginLocations(node.footer, `${nodePath}.footer`, slotPaths);
     node.items.forEach((item, index) => indexPluginLocations(item.child, `${nodePath}.items[${index}].child`, slotPaths));
     indexPluginLocations(node.content, `${nodePath}.content`, slotPaths);
     return;

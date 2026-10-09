@@ -105,6 +105,7 @@
           }
         },
         "header": { "$ref": "#/$defs/sidebarHeaderSlot" },
+        "footer": { "$ref": "#/$defs/sidebarHeaderSlot" },
         "content": {
           "$ref": "#/$defs/layoutNode"
         }

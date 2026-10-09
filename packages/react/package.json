@@ -1,6 +1,6 @@
 {
   "name": "@agent-ui/react",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Public React conversation components for Agent UI frontends",
   "type": "module",
   "engines": {

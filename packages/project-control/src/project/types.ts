@@ -203,6 +203,7 @@ export interface CompactLayoutNode {
   defaultActive?: string | null | undefined;
   items?: { id: string; child: CompactLayoutNode }[] | undefined;
   header?: CompactLayoutNode | undefined;
+  footer?: CompactLayoutNode | undefined;
   content?: CompactLayoutNode | undefined;
   gap?: number | undefined;
   sizes?: AppUILayoutTrackSize[] | undefined;

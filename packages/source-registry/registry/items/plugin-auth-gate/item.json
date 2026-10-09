@@ -1,0 +1,45 @@
+{
+  "id": "plugin/auth-gate",
+  "kind": "agent-component",
+  "description": "Authentication Gate",
+  "files": [
+    {
+      "source": "files/plugins/auth-gate/definition.ts",
+      "target": "plugins/auth-gate/definition.ts"
+    },
+    {
+      "source": "files/plugins/auth-gate/index.tsx",
+      "target": "plugins/auth-gate/index.tsx"
+    },
+    {
+      "source": "files/plugins/auth-gate/manifest.json",
+      "target": "plugins/auth-gate/manifest.json"
+    },
+    {
+      "source": "files/plugins/auth-gate/session.ts",
+      "target": "plugins/auth-gate/session.ts"
+    },
+    {
+      "source": "files/plugins/auth-gate/styles.css",
+      "target": "plugins/auth-gate/styles.css"
+    },
+    {
+      "source": "files/services/auth/adapter.ts",
+      "target": "services/auth/adapter.ts"
+    },
+    {
+      "source": "files/services/auth/mock-adapter.ts",
+      "target": "services/auth/mock-adapter.ts"
+    },
+    {
+      "source": "files/services/auth/session.ts",
+      "target": "services/auth/session.ts"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "^19.2.0"
+  }
+}

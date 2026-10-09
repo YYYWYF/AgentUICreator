@@ -108,6 +108,7 @@ function collectLayoutSlots(
   }
   if (node.type === "sidebar") {
     if (node.header) collectLayoutSlots(node.header, result);
+    if (node.footer) collectLayoutSlots(node.footer, result);
     node.items.forEach(item => collectLayoutSlots(item.child, result));
     collectLayoutSlots(node.content, result);
     return;

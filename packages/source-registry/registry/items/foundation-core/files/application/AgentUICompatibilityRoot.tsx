@@ -1,3 +1,4 @@
+import { ApplicationSessionBoundary, useApplicationSessionEpoch } from "./ApplicationSessionBoundary";
 import { AgentSurface } from "./AgentSurface";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { ConversationRuntimeProvider, useConversationRuntimeBridge } from "@agent-ui/runtime-conversation";
@@ -29,7 +30,6 @@ function BridgeSession({ config, emit }: Props) {
   const [store] = useState(() => createRuntimeCompositionStore<AppAgentState>());
   const composition = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
   const [frontendTools] = useState(() => new AppFrontendToolRuntime(new AppFrontendToolRegistry(appFrontendTools)));
-  const threadBinding = useConversationServiceThreadBinding<AppAgentState>(undefined, config.threadId);
   const onError = useCallback((error: Error) => emit("agent-error", { code: "AGENT_UI_RUNTIME_ERROR", error }), [emit]);
   const suggestions = useMemo(() => getConversationStarterSuggestions(config.locale), [config.locale]);
   const catalog = useMemo(() => createPluginCapabilityCatalog<AppAgentState>(pluginCapabilityCatalog.list().map(entry => {
@@ -59,6 +59,15 @@ function BridgeSession({ config, emit }: Props) {
   }, [store, config.appUIModel, catalog]);
   // Wait for a valid composition before starting the canonical provider.
   if (composition === undefined) return null;
+  return <ApplicationSessionBoundary composition={composition} frontendTools={frontendTools} locale={config.locale}><AuthenticatedBridge {...{ config, emit, composition, frontendTools, suggestions, onError }} /></ApplicationSessionBoundary>;
+}
+
+function AuthenticatedBridge({ config, emit, composition, frontendTools, suggestions, onError }: Props & {
+  composition: RuntimeCompositionSnapshot<AppAgentState>; frontendTools: AppFrontendToolRuntime;
+  suggestions: ReturnType<typeof getConversationStarterSuggestions>; onError: (error: Error) => void;
+}) {
+  const epoch = useApplicationSessionEpoch();
+  const threadBinding = useConversationServiceThreadBinding<AppAgentState>(undefined, epoch === 0 ? config.threadId : undefined);
   return <ConversationRuntimeProvider<AppAgentState>
     endpoint={config.endpoint} threadBinding={threadBinding} frontendTools={frontendTools}
     frontendToolUIs={generatedFrontendToolUIs} toolkit={composition.conversationToolkit}

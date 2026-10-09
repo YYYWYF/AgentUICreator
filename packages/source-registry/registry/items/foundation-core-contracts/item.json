@@ -54,6 +54,6 @@
   ],
   "packages": {
     "zod": "^4.5.0",
-    "@agent-ui/runtime-react": "^0.1.2"
+    "@agent-ui/runtime-react": "^0.1.3"
   }
 }

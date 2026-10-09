@@ -1,4 +1,6 @@
 export const enUS = {
+  auth: {"title": "Sign in to your Agent", "checking": "Checking your session…", "account": "Account", "password": "Password", "signIn": "Sign in", "signOut": "Sign out", "working": "Please wait…", "signInFailed": "Sign-in failed. Check your credentials and try again.", "signOutFailed": "You are signed out locally. Remote sign-out failed.", "accountMenu": "Account menu"},
+
   "thinkingIndicator": {
     "thinking": "Thinking...",
     "working": "Working...",

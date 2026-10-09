@@ -1392,7 +1392,7 @@ export type { AgentUILocaleCode, AgentUILocaleMessages, AgentUILocaleOverrides }
 import { AgentUISidebarFrame as InternalSidebarFrame, useAgentUISidebarNavigation as internalSidebarNavigation } from "./internal/sidebar-frame.js";
 export type AgentUISidebarIcon = "messages-square" | "folder" | "folder-open" | "files" | "search" | "settings" | "database" | "chart-no-axes-combined" | "list" | "bot" | "book-open" | "star" | "circle-help";
 export interface AgentUISidebarItem { id: string; icon: AgentUISidebarIcon; label: string; content: ReactNode; railAction?: ReactNode; }
-export function AgentUISidebarFrame(props: { items: readonly AgentUISidebarItem[]; defaultActive: string | null; header?: ReactNode; children: ReactNode }) { return <InternalSidebarFrame {...props} />; }
+export function AgentUISidebarFrame(props: { items: readonly AgentUISidebarItem[]; defaultActive: string | null; header?: ReactNode; footer?: ReactNode; children: ReactNode }) { return <InternalSidebarFrame {...props} />; }
 export function useAgentUISidebarNavigation(): () => void { return internalSidebarNavigation(); }
 
 // Product facade reuses the same Sidebar context and upstream-derived primitives.

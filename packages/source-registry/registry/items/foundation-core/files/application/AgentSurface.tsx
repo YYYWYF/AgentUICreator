@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useLayoutEffect, type ReactNode } from "react";
 import { AgentUIRoot, AgentUILocaleProvider, type AgentUITheme } from "@agent-ui/react";
 import { useConversationRuntimeBridge } from "@agent-ui/runtime-conversation";
 import { AGENT_UI_LOCALES } from "../agent-ui/i18n/locale-registry";
@@ -17,6 +17,8 @@ import { publishAgentUIObservation, type AgentObservability } from "./observabil
 import type { RuntimeCompositionSnapshot } from "../runtime/composition";
 import { ConversationPresentationConfigProvider, conversationPresentationConfig } from "../agent-ui/conversation/config";
 import { ConversationThreadBindingConnector } from "../agent-ui/conversation/threads/ConversationThreadBindingConnector";
+import { useApplicationSessionConnection } from "./ApplicationSessionBoundary";
+import { useOptionalPluginServiceRuntime } from "../runtime/plugins/PluginServiceContext";
 import { usePluginService } from "../runtime/plugins";
 import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService } from "../services/agent-ui-theme";
 import { useAgentUITheme } from "../agent-ui/theme/useAgentUITheme";
@@ -44,6 +46,9 @@ export function AgentSurface({ composition, observability, frontendToolRuntime, 
   observability?: AgentObservability | undefined;
 }) {
   const { agentRuntime } = useConversationRuntimeBridge<AppAgentState>();
+  useApplicationSessionConnection(agentRuntime);
+  const inheritedServices = useOptionalPluginServiceRuntime();
+  useLayoutEffect(() => inheritedServices?.applicationEvents.connect(agentRuntime), [inheritedServices, agentRuntime]);
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     const publish = () => window.dispatchEvent(new CustomEvent("agent-ui:preview-run-state", {
@@ -96,7 +101,7 @@ export function AgentSurface({ composition, observability, frontendToolRuntime, 
   const content = (
     <AgentUILocaleProvider locale={locale ?? presentationLocale} messages={AGENT_UI_LOCALES[locale ?? presentationLocale]}>
     <AgentRuntimeProvider runtime={agentRuntime}>
-      <PluginServiceProvider
+      <SurfaceServiceProvider
         actions={actions}
         applicationEventRegistry={appEventRegistry}
         applicationEventSource={agentRuntime}
@@ -123,7 +128,7 @@ export function AgentSurface({ composition, observability, frontendToolRuntime, 
           </ConversationPresentationConfigProvider>
         </AgentUIStyleSurface>
         </AgentUILocaleBridge>
-      </PluginServiceProvider>
+      </SurfaceServiceProvider>
     </AgentRuntimeProvider>
     </AgentUILocaleProvider>
   );
@@ -144,4 +149,10 @@ export function AgentSurface({ composition, observability, frontendToolRuntime, 
       >{content}</PluginDiagnosticProvider>
     </div>
   );
+}
+
+/** Reuse the Application Foundation owner outside the conversation lifetime. */
+function SurfaceServiceProvider(props: import("../runtime/plugins/PluginServiceProvider").PluginServiceProviderProps<AppAgentState>) {
+  const inherited = useOptionalPluginServiceRuntime();
+  return inherited ? <>{props.children}</> : <PluginServiceProvider {...props} />;
 }

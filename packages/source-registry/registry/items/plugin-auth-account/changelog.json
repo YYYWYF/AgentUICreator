@@ -1,0 +1,8 @@
+{
+  "0.0.1": {
+    "summary": "Account",
+    "changes": [
+      "Optional Host-owned authentication with existing Application Gate and Plugin Services."
+    ]
+  }
+}

@@ -49,9 +49,13 @@
     {
       "source": "files/application/compatibility-config.ts",
       "target": "application/compatibility-config.ts"
+    },
+    {
+      "source": "files/application/ApplicationSessionBoundary.tsx",
+      "target": "application/ApplicationSessionBoundary.tsx"
     }
   ],
   "packages": {
-    "@agent-ui/react": "^0.1.5"
+    "@agent-ui/react": "^0.1.6"
   }
 }

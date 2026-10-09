@@ -99,3 +99,18 @@ it("uses a single column with Header and retains multiple-item navigation", asyn
     expect(host.querySelector("[data-sidebar-active]")?.getAttribute("data-sidebar-active")).toBe("files");
   } finally { await act(async () => root.unmount()); }
 });
+
+it.each([900, 416])("renders one Footer at %s px and removes it without empty chrome", async width => {
+  const { root, host } = await mount(width);
+  const view = (footer?: React.ReactNode) => <AgentUIRoot theme="light"><AgentUISidebarFrame items={items} defaultActive={null} footer={footer}>Main</AgentUISidebarFrame></AgentUIRoot>;
+  try {
+    await act(async () => root.render(view(<button>Account</button>)));
+    expect(host.querySelectorAll(".agent-ui-sidebar-footer")).toHaveLength(1);
+    expect(host.querySelector(".agent-ui-sidebar-footer")?.getAttribute("data-collapsed")).toBe("true");
+    await click(host, "History");
+    expect(host.querySelectorAll(".agent-ui-sidebar-footer")).toHaveLength(1);
+    expect(host.querySelector(".agent-ui-sidebar-footer")?.getAttribute("data-collapsed")).toBe("false");
+    if (width === 416) expect(host.querySelector(".agent-ui-sidebar-footer")?.closest(".agent-ui-sidebar-portal")).not.toBeNull();
+    await act(async () => root.render(view())); expect(host.querySelector(".agent-ui-sidebar-footer")).toBeNull();
+  } finally { await act(async () => root.unmount()); }
+});

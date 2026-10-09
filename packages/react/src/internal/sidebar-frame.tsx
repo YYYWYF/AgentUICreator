@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { MessagesSquare, Folder, FolderOpen, Files, Search, Settings, Database, ChartNoAxesCombined, List, Bot, BookOpen, Star, CircleHelp } from "lucide-react";
 import { useAgentUILocale } from "../locale.js";
-import { SidebarProvider, Sidebar, SidebarHeader, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset } from "./adapters/assistant-ui/components/ui/sidebar.js";
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarFooter } from "./adapters/assistant-ui/components/ui/sidebar.js";
 import { Sheet, SheetContent, SheetTitle } from "./adapters/assistant-ui/components/ui/sheet.js";
 
 const icons = { "messages-square": MessagesSquare, folder: Folder, "folder-open": FolderOpen, files: Files, search: Search, settings: Settings, database: Database, "chart-no-axes-combined": ChartNoAxesCombined, list: List, bot: Bot, "book-open": BookOpen, star: Star, "circle-help": CircleHelp };
@@ -20,10 +20,11 @@ const NavigationContext = createContext<() => void>(() => {});
 /** Plugins explicitly report navigation; no DOM selectors or conversation policy here. */
 export function useAgentUISidebarNavigation() { return useContext(NavigationContext); }
 
-export function AgentUISidebarFrame({ items, defaultActive, header, children }: {
+export function AgentUISidebarFrame({ items, defaultActive, header, footer, children }: {
   items: readonly AgentUISidebarItem[];
   defaultActive: string | null;
   header?: ReactNode;
+  footer?: ReactNode;
   children: ReactNode;
 }) {
   const messages = useAgentUILocale("accessibility");
@@ -51,6 +52,7 @@ export function AgentUISidebarFrame({ items, defaultActive, header, children }: 
   const singleColumn = header !== undefined && items.length <= 1;
   const close = () => setActiveItemId(null);
   const content = active && <NavigationContext.Provider value={() => { if (narrow) close(); }}>{active.content}</NavigationContext.Provider>;
+  const accountFooter = (collapsed: boolean) => footer === undefined ? null : <SidebarFooter className="agent-ui-sidebar-footer" data-collapsed={collapsed}>{footer}</SidebarFooter>;
   const trigger = <SidebarTrigger title={messages.toggleSidebar} className="agent-ui-sidebar-entry" disabled={items.length === 0} aria-expanded={!!active} aria-controls={active ? panelId : undefined}
     onClick={event => { lastTrigger.current = event.currentTarget; }} />;
   return (
@@ -76,10 +78,12 @@ export function AgentUISidebarFrame({ items, defaultActive, header, children }: 
                 })}
               </SidebarMenu>}
             </SidebarContent>
+            {!active && accountFooter(true)}
           </div>
           {!narrow && active && <aside className="agent-ui-sidebar-panel" id={panelId} aria-label={active.label}>
             {header === undefined && <SidebarHeader className="agent-ui-sidebar-panel-header">{active.label}</SidebarHeader>}
             <div className="agent-ui-sidebar-panel-content">{content}</div>
+            {accountFooter(false)}
           </aside>}
         </Sidebar>
         <SidebarInset className="agent-ui-sidebar-inset">{children}</SidebarInset>
@@ -90,6 +94,7 @@ export function AgentUISidebarFrame({ items, defaultActive, header, children }: 
           finalFocus={lastTrigger}>
           <SheetTitle className={header === undefined ? "agent-ui-sidebar-panel-header" : "sr-only"}>{active?.label ?? messages.sidebar}</SheetTitle>
           <div className="agent-ui-sidebar-panel-content">{content}</div>
+            {accountFooter(false)}
         </SheetContent>
       </Sheet>}
     </div>

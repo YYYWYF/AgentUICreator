@@ -224,3 +224,9 @@
   .agent-ui-root .agent-ui-sidebar-frame[data-sidebar-presentation="single"][data-sidebar-mode="inline"] .agent-ui-sidebar-provider:has([data-state="expanded"]) .agent-ui-sidebar-brand { padding-inline-end: 40px; }
   .agent-ui-root .agent-ui-sidebar-frame[data-sidebar-presentation="single"] .agent-ui-sidebar-rail > [data-slot="sidebar-content"]:empty { display: none; }
 }
+
+@layer utilities {
+  .agent-ui-root .agent-ui-sidebar-footer { flex: 0 0 auto; min-width: 0; padding: 8px; border-top: 1px solid var(--border); }
+  .agent-ui-root .agent-ui-sidebar-footer[data-collapsed="true"] { padding: 4px; }
+  .agent-ui-root .agent-ui-sidebar-footer > [data-layout-type="slot"] { width: 100%; min-width: 0; }
+}
