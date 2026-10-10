@@ -64,12 +64,12 @@ const NestedMessage: FC = () => {
   const role = useAuiState((s) => s.message.role);
 
   return (
-    <MessagePrimitive.Root
+    <MessagePrimitive.Root data-agent-ui-owned=""
       data-slot="aui_task-transcript-message"
       data-role={role}
       className="flex flex-col gap-1 text-xs leading-relaxed"
     >
-      <span className={cn(mono, "text-foreground/35")}>
+      <span data-agent-ui-owned="" className={cn(mono, "text-foreground/35")}>
         {ROLE_LABELS[role]}
       </span>
       <MessagePrimitive.Parts
@@ -91,9 +91,9 @@ const TaskTranscript: FC<{ messages: readonly ThreadMessage[] }> = ({
 
 const TaskResult: FC<{ result: unknown }> = ({ result }) =>
   typeof result === "string" ? (
-    <p className="m-0 whitespace-pre-wrap">{result}</p>
+    <p data-agent-ui-owned="" className="m-0 whitespace-pre-wrap">{result}</p>
   ) : (
-    <pre className="m-0 overflow-x-auto whitespace-pre-wrap">
+    <pre data-agent-ui-owned="" className="m-0 overflow-x-auto whitespace-pre-wrap">
       {formatUnknownValue(result, 2)}
     </pre>
   );
@@ -209,11 +209,11 @@ export const TaskGroup: FC<{
   ].filter((entry): entry is string => typeof entry === "string");
 
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="aui_task-group"
       className={cn("flex w-full max-w-sm flex-col gap-2", className)}
     >
-      <div
+      <div data-agent-ui-owned=""
         data-slot="aui_task-group-summary"
         className="text-muted-foreground px-1 text-xs"
       >
@@ -223,7 +223,7 @@ export const TaskGroup: FC<{
         <TaskLane key={laneKeys[position] ?? index} index={index} />
       ))}
       {hidden > 0 && (
-        <button
+        <button data-agent-ui-owned=""
           type="button"
           data-slot="aui_task-group-more"
           onClick={() => setVisible((count) => count + TASK_PAGE_SIZE)}

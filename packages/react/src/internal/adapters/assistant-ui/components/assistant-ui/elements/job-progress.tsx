@@ -115,7 +115,7 @@ export function JobProgress({
   const progressPercent = outcome?.status === "success" ? 100 : overall;
 
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="job-progress"
       data-state={state}
       className={cn(
@@ -125,7 +125,7 @@ export function JobProgress({
       )}
       {...props}
     >
-      <div className="flex items-center gap-2.5">
+      <div data-agent-ui-owned="" className="flex items-center gap-2.5">
         {outcome?.status === "partial" ? (
           <CircleAlertIcon className="size-3.5 shrink-0 text-amber-500 dark:text-amber-400" />
         ) : outcome?.status === "failed" ? (
@@ -137,10 +137,10 @@ export function JobProgress({
         ) : (
           <Loader2Icon className="text-foreground/35 size-3.5 shrink-0 animate-spin motion-reduce:animate-none" />
         )}
-        <span className="min-w-0 flex-1 truncate text-[13.5px] font-medium">
+        <span data-agent-ui-owned="" className="min-w-0 flex-1 truncate text-[13.5px] font-medium">
           {title}
         </span>
-        <span className={cn(mono, "text-foreground/35 shrink-0 tabular-nums")}>
+        <span data-agent-ui-owned="" className={cn(mono, "text-foreground/35 shrink-0 tabular-nums")}>
           {elapsed ? (
             <time dateTime={elapsed.dateTime}>{elapsed.label}</time>
           ) : !running ? (
@@ -150,7 +150,7 @@ export function JobProgress({
           )}
         </span>
         {running && onCancel ? (
-          <button
+          <button data-agent-ui-owned=""
             type="button"
             aria-label="Cancel the job"
             onClick={onCancel}
@@ -161,7 +161,7 @@ export function JobProgress({
         ) : null}
       </div>
 
-      <span
+      <span data-agent-ui-owned=""
         role="progressbar"
         aria-label={`${title} progress`}
         aria-valuemin={0}
@@ -180,10 +180,10 @@ export function JobProgress({
         />
       </span>
 
-      <div className="flex flex-col gap-0.5">
-        <div className="flex flex-wrap gap-x-3 gap-y-1">
+      <div data-agent-ui-owned="" className="flex flex-col gap-0.5">
+        <div data-agent-ui-owned="" className="flex flex-wrap gap-x-3 gap-y-1">
           {stages.map((item, i) => (
-            <span
+            <span data-agent-ui-owned=""
               key={item.name}
               className={cn(
                 mono,
@@ -199,17 +199,17 @@ export function JobProgress({
           ))}
         </div>
         {current?.description ? (
-          <p className="text-foreground/45 text-xs leading-4 break-words">
+          <p data-agent-ui-owned="" className="text-foreground/45 text-xs leading-4 break-words">
             {current.description}
           </p>
         ) : null}
       </div>
       {outcome?.summary ? (
-        <p className="text-foreground/60 text-[13px] leading-snug break-words">
+        <p data-agent-ui-owned="" className="text-foreground/60 text-[13px] leading-snug break-words">
           {outcome.summary}
         </p>
       ) : null}
-      <span className="sr-only" role="status">
+      <span data-agent-ui-owned="" className="sr-only" role="status">
         {announcement}
       </span>
     </div>

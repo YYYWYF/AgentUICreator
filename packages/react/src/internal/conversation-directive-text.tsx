@@ -15,5 +15,5 @@ const DirectiveText = createDirectiveText({
 
 // The upstream plain-text fallback is a fragment; preserve canonical user whitespace.
 export const ConversationUserDirectiveText: TextMessagePartComponent = props => (
-  <span className="whitespace-pre-wrap"><DirectiveText {...props} /></span>
+  <span data-agent-ui-owned="" className="whitespace-pre-wrap"><DirectiveText {...props} /></span>
 );

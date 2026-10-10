@@ -64,6 +64,8 @@ describe("formal assistant-ui adapter style isolation", () => {
       expect(result?.code).toContain(".sr-only");
       expect(result?.code).toContain(".inline-flex");
       expect(result?.code).not.toContain("@tailwind utilities");
+      expect(result?.code).toContain("[data-agent-ui-owned]");
+      expect(result?.code).not.toMatch(/all:\s*revert-layer/u);
     } finally {
       await server.close();
     }
@@ -73,24 +75,20 @@ describe("formal assistant-ui adapter style isolation", () => {
     const preflight = await readFile(scopedPreflightUrl, "utf8");
     const css = preflight.replace(/\/\*[\s\S]*?\*\//gu, "");
     const bareElementSelector =
-      /(?:^|,)\s*(?:html|body|button|input|textarea|select|ol|ul)(?=\s|,|:|\[|\{)/gmu;
-    const bareUniversalSelector = /(?:^|,)\s*\*(?=\s|,|:|\{)/gmu;
+      /^\s*(?:html|body|button|input|textarea|select|ol|ul)(?=\s|,|:|\[|\{)/gmu;
+    const bareUniversalSelector = /^\s*\*(?=\s|,|:|\{)/gmu;
 
     expect(css).not.toMatch(bareElementSelector);
     expect(css).not.toMatch(bareUniversalSelector);
-    expect(css).not.toMatch(/(?:^|,)\s*::(?:before|after|backdrop|file-selector-button)/gmu);
+    expect(css).not.toMatch(/^\s*::(?:before|after|backdrop|file-selector-button)/gmu);
   });
 
-  it("keeps the form-control reset gate scoped", async () => {
+  it("requires element ownership for form-control resets", async () => {
     const preflight = await readFile(scopedPreflightUrl, "utf8");
-
-    for (const control of ["button", "input", "textarea", "select"]) {
-      expect(preflight).toContain(`:is(.agent-ui-root, .agent-ui-conversation) ${control}`);
-    }
-    expect(preflight).toContain(":is(.agent-ui-root, .agent-ui-conversation) ::file-selector-button");
-    expect(preflight).toContain("font: inherit;");
-    expect(preflight).toContain("background-color: transparent;");
-    expect(preflight).toContain("appearance: button;");
-    expect(preflight).toContain("resize: vertical;");
+    expect(preflight).not.toMatch(/\) (button|input|textarea|select|\*)[\s:{]/u);
+    expect(preflight).toContain("[data-agent-ui-owned]");
+    expect(preflight).not.toContain("::backdrop");
+    const globals = await readFile(globalsUrl, "utf8");
+    expect(globals).not.toMatch(/all\s*:/u);
   });
 });

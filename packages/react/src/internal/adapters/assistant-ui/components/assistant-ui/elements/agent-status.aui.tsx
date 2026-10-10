@@ -130,26 +130,26 @@ const TaskTrayItem: FC<{ task: TaskState }> = ({ task }) => {
   );
 
   return (
-    <li
+    <li data-agent-ui-owned=""
       data-slot="aui_task-tray-item"
       data-state={state}
       className="flex items-center gap-2.5 rounded-lg py-2 pe-2.5 text-[13px]"
       style={{ paddingInlineStart: `${0.625 + task.depth * 0.75}rem` }}
     >
       <TaskStateIcon state={state} />
-      <span className="sr-only">{{ working: messages.working, waiting: messages.waitingState, failed: messages.failedState, done: messages.doneState, cancelled: messages.cancelledState }[state]}</span>
-      <span className="min-w-0 flex-1 truncate">
+      <span data-agent-ui-owned="" className="sr-only">{{ working: messages.working, waiting: messages.waitingState, failed: messages.failedState, done: messages.doneState, cancelled: messages.cancelledState }[state]}</span>
+      <span data-agent-ui-owned="" className="min-w-0 flex-1 truncate">
         {taskLabel(task.toolName, task.args)}
       </span>
       {meta !== undefined && (
-        <span
+        <span data-agent-ui-owned=""
           className={cn(mono, "text-foreground/35 max-w-24 shrink-0 truncate")}
         >
           {meta}
         </span>
       )}
       {elapsedMs !== undefined && (
-        <span className={cn(mono, "text-foreground/30 shrink-0 tabular-nums")}>
+        <span data-agent-ui-owned="" className={cn(mono, "text-foreground/30 shrink-0 tabular-nums")}>
           {formatElapsed(elapsedMs)}
         </span>
       )}
@@ -212,7 +212,7 @@ export const TaskTray: FC<{ className?: string }> = ({ className }) => {
         />
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-1">
-        <ul
+        <ul data-agent-ui-owned=""
           data-slot="aui_task-tray"
           aria-label={localeMessages.tasks.title}
           className="flex max-h-80 flex-col overflow-y-auto"
@@ -221,8 +221,8 @@ export const TaskTray: FC<{ className?: string }> = ({ className }) => {
             <TaskTrayItem key={`${index}:${task.id}`} task={task} />
           ))}
           {hidden > 0 && (
-            <li className="flex">
-              <button
+            <li data-agent-ui-owned="" className="flex">
+              <button data-agent-ui-owned=""
                 type="button"
                 data-slot="aui_task-tray-more"
                 onClick={() => setVisible((count) => count + TASK_PAGE_SIZE)}

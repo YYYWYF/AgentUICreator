@@ -160,7 +160,7 @@ function FileRoot({
   ...props
 }: FileRootProps) {
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="file-root"
       data-variant={variant}
       data-size={size}
@@ -185,7 +185,7 @@ function FileIconDisplay({
   const IconComponent = mimeType ? getMimeTypeIcon(mimeType) : FileIcon;
 
   return (
-    <span
+    <span data-agent-ui-owned=""
       data-slot="file-icon"
       className={cn("text-muted-foreground shrink-0", className)}
       {...props}
@@ -203,7 +203,7 @@ function FileName({
 }: React.ComponentProps<"span">) {
   const messages = useAgentUILocale("files");
   return (
-    <span
+    <span data-agent-ui-owned=""
       data-slot="file-name"
       className={cn("min-w-0 flex-1 truncate font-medium", className)}
       {...props}
@@ -219,7 +219,7 @@ type FileSizeProps = React.ComponentProps<"span"> & {
 
 function FileSize({ bytes, className, ...props }: FileSizeProps) {
   return (
-    <span
+    <span data-agent-ui-owned=""
       data-slot="file-size"
       className={cn("text-muted-foreground shrink-0", className)}
       {...props}
@@ -252,7 +252,7 @@ function FileDownload({
   if (!href) return null;
 
   return (
-    <a
+    <a data-agent-ui-owned=""
       data-slot="file-download"
       href={href}
       download={filename || "download"}
@@ -299,7 +299,7 @@ function FilePlayer({
   }
 
   return (
-    <div data-slot="file-player" className={cn("w-full", className)} {...props}>
+    <div data-agent-ui-owned="" data-slot="file-player" className={cn("w-full", className)} {...props}>
       {normalizedMimeType.startsWith("audio/") ? (
         <AudioPlayer src={src} title={filename} />
       ) : (
@@ -325,14 +325,14 @@ const FileImpl: FileMessagePartComponent = ({
 
   if (mediaSource && isMedia) {
     return (
-      <div className="flex w-full max-w-xl flex-col gap-2">
+      <div data-agent-ui-owned="" className="flex w-full max-w-xl flex-col gap-2">
         <FilePlayer
           data={data}
           mimeType={mimeType}
           {...(filename !== undefined && { filename })}
           {...(sourceType !== undefined && { sourceType })}
         />
-        <div className="flex min-w-0 items-center justify-end gap-2 px-1">
+        <div data-agent-ui-owned="" className="flex min-w-0 items-center justify-end gap-2 px-1">
           {showSize && (
             <FileSize
               bytes={
@@ -355,7 +355,7 @@ const FileImpl: FileMessagePartComponent = ({
   return (
     <FileRoot>
       <FileIconDisplay mimeType={mimeType} />
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <div data-agent-ui-owned="" className="flex min-w-0 flex-1 flex-col gap-0.5">
         <FileName>{filename}</FileName>
         {showSize && (
           <FileSize

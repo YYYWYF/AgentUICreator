@@ -1,5 +1,6 @@
 import { readFile, writeFile, mkdir, readdir, rm } from "node:fs/promises";
 import path from "node:path";
+import ts from "typescript-ui-audit";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 const localizationRecipes = JSON.parse(await readFile(new URL("./product-localization-recipes.json", import.meta.url), "utf8"));
@@ -186,12 +187,37 @@ export function applyProductAdaptations(source, localPath) {
   return applySearchPresentationLabels(installed, localPath);
 }
 
+export function applyProductStyleOwnership(installed) {
+  // Generic slots can occur in third-party UI too. Mark individual product
+  // elements after localization; never inherit ownership into custom children.
+  const source = ts.createSourceFile("adapter.tsx", installed, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const positions = [];
+  const intrinsic = new Set(["div", "span", "button", "input", "textarea", "select", "option", "ul", "ol", "li", "p", "h1", "h2", "h3", "h4", "h5", "h6", "a", "img", "pre", "code", "section", "aside", "nav", "header", "footer", "article", "Input", "CollapsibleTrigger", "CollapsibleContent", "ShimmerLabel"]);
+  function visit(node) {
+    if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
+      const attributes = node.attributes.properties.filter(ts.isJsxAttribute).map(attribute => attribute.name.getText(source));
+      const slot = node.attributes.properties.find(attribute => ts.isJsxAttribute(attribute) && attribute.name.getText(source) === "data-slot");
+      const className = node.attributes.properties.find(attribute => ts.isJsxAttribute(attribute) && attribute.name.getText(source) === "className");
+      const identified = slot?.initializer?.getText(source).includes("agent-ui-") ||
+        /[" ]aui-/.test(className?.initializer?.getText(source) ?? "");
+      if (!identified && !attributes.includes("data-agent-ui-owned") &&
+          (intrinsic.has(node.tagName.getText(source)) || attributes.includes("data-slot"))) positions.push(node.tagName.end);
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(source);
+  for (const position of positions.sort((a, b) => b - a)) {
+    installed = installed.slice(0, position) + ' data-agent-ui-owned=""' + installed.slice(position);
+  }
+  return installed;
+}
+
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const defaultVendorRoot = path.join(packageRoot, "src/internal/vendor/assistant-ui");
 const adapterRoot = path.join(packageRoot, "src/internal/adapters/assistant-ui");
 const hash = value => createHash("sha256").update(value).digest("hex");
-const seeded = new Set([...PORTAL_BRIDGE_FILES, ...SEARCH_LABELS_SEAM_FILES, ...Object.keys(localizationRecipes),
+const seeded = new Set(["components/assistant-ui/elements/tool-timeline.tsx", ...PORTAL_BRIDGE_FILES, ...SEARCH_LABELS_SEAM_FILES, ...Object.keys(localizationRecipes),
   "components/assistant-ui/elements/thinking-indicator.tsx", "components/assistant-ui/elements/agent-status.tsx", "components/assistant-ui/elements/job-progress.tsx",
   "components/assistant-ui/elements/quote.aui.tsx", "components/assistant-ui/elements/composer-trigger-popover.aui.tsx"]);
 function dependency(importPath, filename, files) {
@@ -225,7 +251,7 @@ export async function prepareProductAdapters(vendorDirectory = defaultVendorRoot
       const relative = path.posix.relative(path.posix.dirname(filename), `../../vendor/assistant-ui/${target}`).replace(/\.tsx?$/u, ".js");
       return `${prefix}"${relative.startsWith(".") ? relative : `./${relative}`}"`;
     });
-    installed = applyProductLocalization(installed, filename);
+    installed = applyProductStyleOwnership(applyProductLocalization(installed, filename));
     files.push({ localPath: filename, upstreamInstalledSha256: hash(clean), installedSha256: hash(installed), source: installed });
   }
   return { revision: provenance.revision, files };

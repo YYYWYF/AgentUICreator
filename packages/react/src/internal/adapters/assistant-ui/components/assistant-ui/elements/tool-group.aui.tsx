@@ -71,7 +71,7 @@ function ToolGroupRoot({
   );
 
   return (
-    <Collapsible
+    <Collapsible data-agent-ui-owned=""
       ref={collapsibleRef}
       data-slot="tool-group-root"
       data-variant={variant ?? "outline"}
@@ -170,7 +170,7 @@ function ToolGroupContent({
       )}
       {...props}
     >
-      <div
+      <div data-agent-ui-owned=""
         className={cn(
           "mt-2 flex flex-col gap-2",
           "group-data-[variant=ghost]/tool-group-root:mt-1 group-data-[variant=ghost]/tool-group-root:gap-1",

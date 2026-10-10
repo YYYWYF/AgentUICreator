@@ -89,21 +89,21 @@ const Categories: FC<CategoriesProps> = ({
 }) => (
   <ComposerPrimitive.Unstable_TriggerPopoverCategories>
     {(categories) => (
-      <div
+      <div data-agent-ui-owned=""
         data-slot="composer-trigger-popover-categories"
         className="flex flex-col py-1"
       >
         {categories.map((cat) => {
           const Icon = resolveIcon(cat.id, iconMap, fallbackIcon);
           return (
-            <ComposerPrimitive.Unstable_TriggerPopoverCategoryItem
+            <ComposerPrimitive.Unstable_TriggerPopoverCategoryItem data-agent-ui-owned=""
               key={cat.id}
               categoryId={cat.id}
               data-slot="composer-trigger-popover-category-item"
               className="hover:bg-accent focus:bg-accent data-[highlighted]:bg-accent flex cursor-pointer items-center justify-between gap-2 px-3 py-2 text-sm transition-colors outline-none"
             >
-              <span className="flex items-center gap-2">
-                <Icon data-slot="composer-trigger-popover-icon" className="text-muted-foreground size-4" />
+              <span data-agent-ui-owned="" className="flex items-center gap-2">
+                <Icon data-agent-ui-owned="" data-slot="composer-trigger-popover-icon" className="text-muted-foreground size-4" />
                 {cat.label}
               </span>
               <ChevronRightIcon className="text-muted-foreground size-4" />
@@ -111,7 +111,7 @@ const Categories: FC<CategoriesProps> = ({
           );
         })}
         {categories.length === 0 && (
-          <div data-slot="composer-trigger-popover-empty" className="text-muted-foreground px-3 py-2 text-sm">
+          <div data-agent-ui-owned="" data-slot="composer-trigger-popover-empty" className="text-muted-foreground px-3 py-2 text-sm">
             {emptyLabel}
           </div>
         )}
@@ -140,16 +140,16 @@ const Items: FC<ItemsProps> = ({
   return (
     <ComposerPrimitive.Unstable_TriggerPopoverItems aria-label={messages.items}>
       {(items) => (
-        <div
+        <div data-agent-ui-owned=""
           data-slot="composer-trigger-popover-items"
           className="flex flex-col"
         >
-          <ComposerPrimitive.Unstable_TriggerPopoverBack data-slot="composer-trigger-popover-back" className="text-muted-foreground hover:bg-accent flex cursor-pointer items-center gap-1.5 border-b px-3 py-2 text-xs tracking-wide uppercase transition-colors">
+          <ComposerPrimitive.Unstable_TriggerPopoverBack data-agent-ui-owned="" data-slot="composer-trigger-popover-back" className="text-muted-foreground hover:bg-accent flex cursor-pointer items-center gap-1.5 border-b px-3 py-2 text-xs tracking-wide uppercase transition-colors">
             <ChevronLeftIcon className="size-3.5" />
             {backLabel}
           </ComposerPrimitive.Unstable_TriggerPopoverBack>
 
-          <div data-slot="composer-trigger-popover-item-list" className="py-1">
+          <div data-agent-ui-owned="" data-slot="composer-trigger-popover-item-list" className="py-1">
             {items.map((item, index) => {
               const iconKey =
                 typeof item.metadata?.icon === "string"
@@ -157,19 +157,19 @@ const Items: FC<ItemsProps> = ({
                   : undefined;
               const Icon = resolveIcon(iconKey, iconMap, fallbackIcon);
               return (
-                <ComposerPrimitive.Unstable_TriggerPopoverItem
+                <ComposerPrimitive.Unstable_TriggerPopoverItem data-agent-ui-owned=""
                   key={item.id}
                   data-slot="composer-trigger-popover-item"
                   item={item}
                   index={index}
                   className="hover:bg-accent focus:bg-accent data-[highlighted]:bg-accent flex w-full cursor-pointer flex-col items-start gap-0.5 px-3 py-2 text-start transition-colors outline-none"
                 >
-                  <span className="flex items-center gap-2 text-sm font-medium">
-                    <Icon data-slot="composer-trigger-popover-icon" className="text-primary size-3.5" />
+                  <span data-agent-ui-owned="" className="flex items-center gap-2 text-sm font-medium">
+                    <Icon data-agent-ui-owned="" data-slot="composer-trigger-popover-icon" className="text-primary size-3.5" />
                     {item.label}
                   </span>
                   {item.description && (
-                    <span className="text-muted-foreground ms-5.5 text-xs leading-tight">
+                    <span data-agent-ui-owned="" className="text-muted-foreground ms-5.5 text-xs leading-tight">
                       {item.description}
                     </span>
                   )}
@@ -177,7 +177,7 @@ const Items: FC<ItemsProps> = ({
               );
             })}
             {items.length === 0 && (
-              <div data-slot="composer-trigger-popover-empty" className="text-muted-foreground px-3 py-2 text-sm">
+              <div data-agent-ui-owned="" data-slot="composer-trigger-popover-empty" className="text-muted-foreground px-3 py-2 text-sm">
                 {isLoading ? loadingLabel : emptyLabel}
               </div>
             )}

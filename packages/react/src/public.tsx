@@ -690,7 +690,7 @@ export function ConversationFile(props: Readonly<ConversationFileProps>) {
     const filename = props.filename || messages.unnamed;
     return <InternalFile.Root>
       <InternalFile.Icon mimeType={props.mimeType} />
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5"><InternalFile.Name>{filename}</InternalFile.Name></div>
+      <div data-agent-ui-owned="" className="flex min-w-0 flex-1 flex-col gap-0.5"><InternalFile.Name>{filename}</InternalFile.Name></div>
       <InternalFile.Download data={props.data} mimeType={props.mimeType}
         {...(props.filename === undefined ? {} : { filename: props.filename })}
         {...(props.sourceType === undefined ? {} : { sourceType: props.sourceType })}
@@ -912,7 +912,7 @@ export function ConversationThreadListNew(
   const label = props.children ?? messages.newThread;
   return <InternalConversationThreadListNew {...props}>{typeof label === "string" || typeof label === "number" ? <>
     <PlusIcon data-slot="aui_thread-list-new-icon" className="size-4 shrink-0" />
-    <span data-slot="aui_thread-list-new-label" className={cn("whitespace-nowrap", props.labelClassName)}>{label}</span>
+    <span data-agent-ui-owned="" data-slot="aui_thread-list-new-label" className={cn("whitespace-nowrap", props.labelClassName)}>{label}</span>
   </> : label}</InternalConversationThreadListNew>;
 }
 
@@ -1189,7 +1189,7 @@ export function Badge({
 }
 
 export function Input(props: Readonly<React.ComponentProps<"input">>) {
-  return <InternalInput {...props} />;
+  return <InternalInput {...props} data-agent-ui-owned="" />;
 }
 
 export function Skeleton(props: Readonly<React.ComponentProps<"div">>) {

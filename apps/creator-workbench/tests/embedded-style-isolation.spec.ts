@@ -119,3 +119,14 @@ for (const viewportWidth of [390, 1440]) {
     expect(composer!.y + composer!.height).toBeLessThanOrEqual(surface!.y + surface!.height);
   });
 }
+
+// Generic third-party slots inside an owned component do not opt into Preflight.
+test("preserves business content nested inside Agent UI presentation", async ({ page }) => {
+  await page.goto("/style-isolation.html");
+  const content = page.locator("[data-test-business-content]");
+  await expect(content.locator("[data-test-business-input]")).toHaveCSS("background-color", "rgb(255, 255, 0)");
+  await expect(content.locator("[data-test-business-button]")).toHaveCSS("font-size", "31px");
+  await expect(content.locator("[data-test-business-button]")).toHaveCSS("border-top-width", "9px");
+  await expect(content.locator("[data-test-business-heading]")).toHaveCSS("font-size", "72px");
+  await expect(content.locator("[data-test-business-list]")).toHaveCSS("list-style-type", "square");
+});

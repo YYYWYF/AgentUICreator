@@ -102,7 +102,7 @@ function ReasoningRoot({
   );
 
   return (
-    <Collapsible
+    <Collapsible data-agent-ui-owned=""
       data-slot="reasoning-root"
       data-variant={variant}
       open={isOpen}

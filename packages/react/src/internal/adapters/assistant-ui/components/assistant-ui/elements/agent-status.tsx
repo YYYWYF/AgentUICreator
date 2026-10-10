@@ -26,7 +26,7 @@ export function AgentStatus({
   trailing?: ReactNode | undefined;
 }) {
   return (
-    <span
+    <span data-agent-ui-owned=""
       data-slot="agent-status"
       data-agent-state={state}
       className={cn(
@@ -52,19 +52,19 @@ export function AgentStatus({
           )}
         />
       )}
-      <span className="sr-only">{state}</span>
-      <span
+      <span data-agent-ui-owned="" className="sr-only">{state}</span>
+      <span data-agent-ui-owned=""
         key={label}
         className="fade-in blur-in-[2px] animate-in max-w-44 truncate text-xs duration-300 motion-reduce:animate-none"
       >
         {label}
       </span>
       {elapsed !== undefined && state !== "done" && state !== "failed" && (
-        <span className={cn(mono, "text-foreground/30 tabular-nums")}>
+        <span data-agent-ui-owned="" className={cn(mono, "text-foreground/30 tabular-nums")}>
           {elapsed}
         </span>
       )}
-      <span
+      <span data-agent-ui-owned=""
         aria-hidden
         data-slot="agent-status-trailing"
         className="text-foreground/45 flex size-6 items-center justify-center rounded-full"

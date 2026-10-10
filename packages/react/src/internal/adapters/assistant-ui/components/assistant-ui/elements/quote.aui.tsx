@@ -13,7 +13,7 @@ import { cn } from "../../../../../vendor/assistant-ui/lib/utils.js";
 
 function QuoteBlockRoot({ className, ...props }: ComponentProps<"div">) {
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="quote-block"
       className={cn("mb-2 flex items-start gap-1.5", className)}
       {...props}
@@ -26,7 +26,7 @@ function QuoteBlockIcon({
   ...props
 }: ComponentProps<typeof QuoteIcon>) {
   return (
-    <QuoteIcon
+    <QuoteIcon data-agent-ui-owned=""
       data-slot="quote-block-icon"
       className={cn(
         "text-muted-foreground/60 mt-0.5 size-3 shrink-0",
@@ -39,7 +39,7 @@ function QuoteBlockIcon({
 
 function QuoteBlockText({ className, ...props }: ComponentProps<"p">) {
   return (
-    <p
+    <p data-agent-ui-owned=""
       data-slot="quote-block-text"
       className={cn(
         "text-muted-foreground/80 line-clamp-2 min-w-0 text-sm italic",
@@ -89,7 +89,7 @@ function SelectionToolbarRoot({
   ...props
 }: ComponentProps<typeof SelectionToolbarPrimitive.Root>) {
   return (
-    <SelectionToolbarPrimitive.Root
+    <SelectionToolbarPrimitive.Root data-agent-ui-owned=""
       data-slot="selection-toolbar"
       className={cn(
         "bg-popover flex items-center gap-1 rounded-lg border px-1 py-1",
@@ -107,7 +107,7 @@ function SelectionToolbarQuote({
 }: ComponentProps<typeof SelectionToolbarPrimitive.Quote>) {
   const localeMessages = useAgentUILocale();
   return (
-    <SelectionToolbarPrimitive.Quote
+    <SelectionToolbarPrimitive.Quote data-agent-ui-owned=""
       data-slot="selection-toolbar-quote"
       className={cn(
         "text-popover-foreground hover:bg-accent flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors",
@@ -166,7 +166,7 @@ function ComposerQuotePreviewRoot({
   ...props
 }: ComponentProps<typeof ComposerPrimitive.Quote>) {
   return (
-    <ComposerPrimitive.Quote
+    <ComposerPrimitive.Quote data-agent-ui-owned=""
       data-slot="composer-quote"
       className={cn(
         "bg-muted/60 mx-3 mt-2 flex items-start gap-2 rounded-lg px-3 py-2",
@@ -182,7 +182,7 @@ function ComposerQuotePreviewIcon({
   ...props
 }: ComponentProps<typeof QuoteIcon>) {
   return (
-    <QuoteIcon
+    <QuoteIcon data-agent-ui-owned=""
       data-slot="composer-quote-icon"
       className={cn(
         "text-muted-foreground/70 mt-0.5 size-3.5 shrink-0",
@@ -198,7 +198,7 @@ function ComposerQuotePreviewText({
   ...props
 }: ComponentProps<typeof ComposerPrimitive.QuoteText>) {
   return (
-    <ComposerPrimitive.QuoteText
+    <ComposerPrimitive.QuoteText data-agent-ui-owned=""
       data-slot="composer-quote-text"
       className={cn(
         "text-muted-foreground line-clamp-2 min-w-0 flex-1 text-sm",
@@ -219,14 +219,14 @@ function ComposerQuotePreviewDismiss({
     "shrink-0 rounded-sm p-0.5 text-muted-foreground/70 transition-colors hover:bg-accent hover:text-foreground";
 
   return (
-    <ComposerPrimitive.QuoteDismiss
+    <ComposerPrimitive.QuoteDismiss data-agent-ui-owned=""
       data-slot="composer-quote-dismiss"
       asChild
       className={children ? className : undefined}
       {...props}
     >
       {children ?? (
-        <button
+        <button data-agent-ui-owned=""
           type="button"
           aria-label={localeMessages.quote.dismiss}
           className={cn(defaultClassName, className)}

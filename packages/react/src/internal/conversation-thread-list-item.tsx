@@ -73,10 +73,10 @@ function ConfiguredThreadListItem({ actions, labels, onNavigate }: {
           className="focus-visible:ring-ring/50 flex h-full min-w-0 flex-1 items-center rounded-md px-2.5 text-start text-sm outline-none group-hover:pe-9 group-has-focus-visible:pe-9 group-has-data-[state=open]:pe-9 group-data-active:pe-9 focus-visible:ring-1"
         >
           {isRunning && <Loader2Icon aria-hidden className="text-muted-foreground me-1.5 size-3.5 shrink-0 animate-spin" />}
-          <span data-slot="aui_thread-list-item-title" className="min-w-0 flex-1 truncate">
+          <span data-agent-ui-owned="" data-slot="aui_thread-list-item-title" className="min-w-0 flex-1 truncate">
             <ThreadListItemPrimitive.Title fallback={labels.newChat} />
           </span>
-          {isRunning && <span className="sr-only">{labels.running}</span>}
+          {isRunning && <span data-agent-ui-owned="" className="sr-only">{labels.running}</span>}
         </ThreadListItemPrimitive.Trigger>
       )}
       {(actions.rename || actions.archive || actions.delete) && (
@@ -85,7 +85,7 @@ function ConfiguredThreadListItem({ actions, labels, onNavigate }: {
             <Button variant="ghost" size="icon" data-slot="agent-ui-thread-action-more"
               className="data-[state=open]:bg-accent absolute end-1.5 top-1/2 size-6 -translate-y-1/2 p-0 opacity-0 group-hover:opacity-100 group-has-focus-visible:opacity-100 group-data-active:opacity-100 data-[state=open]:opacity-100">
               <MoreHorizontalIcon aria-hidden className="size-3.5" />
-              <span className="sr-only">{labels.moreOptions}</span>
+              <span data-agent-ui-owned="" className="sr-only">{labels.moreOptions}</span>
             </Button>
           </ThreadListItemMorePrimitive.Trigger>
           {portalContainer !== null && <ThreadListItemMorePrimitive.Content side="right" align="start" sideOffset={6}

@@ -217,7 +217,7 @@ function ToolFallbackContent({
       )}
       {...props}
     >
-      <div
+      <div data-agent-ui-owned=""
         className={cn(
           "flex flex-col gap-2 ps-6 pt-1 pb-2 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:animate-none",
           "group-data-open/collapsible-content:animate-in group-data-open/collapsible-content:fade-in-0 group-data-open/collapsible-content:blur-in-[2px] group-data-open/collapsible-content:slide-in-from-top-1",
@@ -457,9 +457,9 @@ function ToolFallbackApprovalReceipt({
       ) : null}
       <p className="aui-tool-fallback-approval-receipt-label flex items-center gap-1.5">
         <Icon aria-hidden className="text-muted-foreground size-3.5 shrink-0" />
-        <span className="font-medium">{receipt.label}</span>
+        <span data-agent-ui-owned="" className="font-medium">{receipt.label}</span>
         {receipt.option !== undefined ? (
-          <span className="text-muted-foreground">· {receipt.option}</span>
+          <span data-agent-ui-owned="" className="text-muted-foreground">· {receipt.option}</span>
         ) : null}
       </p>
       {notes.map((text) => (
@@ -671,7 +671,7 @@ function ToolFallbackApproval({
         }
       />
       {question && (
-        <div className="flex items-center gap-2">
+        <div data-agent-ui-owned="" className="flex items-center gap-2">
           <Button
             size="sm"
             className={pressable}
@@ -711,7 +711,7 @@ function ToolFallbackApproval({
         {confirming.grants && confirming.grants.length > 0 && (
           <ul className="aui-tool-fallback-approval-confirm-grants flex flex-col gap-1">
             {confirming.grants.map((grant) => (
-              <li key={grant}>
+              <li data-agent-ui-owned="" key={grant}>
                 <code className="aui-tool-fallback-approval-confirm-grant bg-muted rounded px-1.5 py-0.5 text-xs">
                   {grant}
                 </code>
@@ -719,7 +719,7 @@ function ToolFallbackApproval({
             ))}
           </ul>
         )}
-        <div className="flex items-center gap-2">
+        <div data-agent-ui-owned="" className="flex items-center gap-2">
           <Button
             size="sm"
             className={pressable}
@@ -758,7 +758,7 @@ function ToolFallbackApproval({
         {...props}
       >
         {promptText}
-        <div className="flex flex-wrap items-center gap-2">
+        <div data-agent-ui-owned="" className="flex flex-wrap items-center gap-2">
           {[...allowOptions, ...customOptions, ...rejectOptions].map(
             (option) => (
               <Button
@@ -807,7 +807,7 @@ function ToolFallbackApproval({
         {promptText}
         {answerField}
         {!acceptsText && dismissButton && (
-          <div className="flex items-center gap-2">{dismissButton}</div>
+          <div data-agent-ui-owned="" className="flex items-center gap-2">{dismissButton}</div>
         )}
         {errorText}
       </div>
@@ -824,7 +824,7 @@ function ToolFallbackApproval({
       {...props}
     >
       {promptText}
-      <div className="flex items-center gap-2">
+      <div data-agent-ui-owned="" className="flex items-center gap-2">
         <Button
           size="sm"
           className={pressable}

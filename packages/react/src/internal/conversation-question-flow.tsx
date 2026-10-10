@@ -68,21 +68,21 @@ export function ConversationQuestionFlow({ steps, choice, onComplete, labels }: 
   if (steps.length === 0) return null;
 
   if (choice !== undefined) {
-    return <div className="flex min-w-0 w-full max-w-sm flex-col gap-3" data-state="receipt">
-      {steps.map(step => <section key={step.id} className="min-w-0">
-        <h4 className="text-sm font-medium break-words">{step.question}</h4>
+    return <div data-agent-ui-owned="" className="flex min-w-0 w-full max-w-sm flex-col gap-3" data-state="receipt">
+      {steps.map(step => <section data-agent-ui-owned="" key={step.id} className="min-w-0">
+        <h4 data-agent-ui-owned="" className="text-sm font-medium break-words">{step.question}</h4>
         {step.options.filter(option => choice[step.id]?.includes(option.id)).map(option =>
-          <div key={option.id} className="text-sm break-words">✓ {option.label}</div>)}
-        {choice[step.id]?.length === 0 ? <span className="text-xs text-foreground/60">{labels.noneSelected}</span> : null}
+          <div data-agent-ui-owned="" key={option.id} className="text-sm break-words">✓ {option.label}</div>)}
+        {choice[step.id]?.length === 0 ? <span data-agent-ui-owned="" className="text-xs text-foreground/60">{labels.noneSelected}</span> : null}
       </section>)}
     </div>;
   }
 
   if (!onComplete) {
-    return <div className="flex min-w-0 w-full max-w-sm flex-col gap-4" data-state="readonly">
-      {steps.map(step => <section key={step.id} className="flex min-w-0 flex-col gap-2">
-        <h4 className="text-sm font-medium break-words">{step.question}</h4>
-        {step.description ? <p className="text-xs text-foreground/60 break-words">{step.description}</p> : null}
+    return <div data-agent-ui-owned="" className="flex min-w-0 w-full max-w-sm flex-col gap-4" data-state="readonly">
+      {steps.map(step => <section data-agent-ui-owned="" key={step.id} className="flex min-w-0 flex-col gap-2">
+        <h4 data-agent-ui-owned="" className="text-sm font-medium break-words">{step.question}</h4>
+        {step.description ? <p data-agent-ui-owned="" className="text-xs text-foreground/60 break-words">{step.description}</p> : null}
         <ConversationOptionList options={step.options} selectionMode={step.selectionMode} />
       </section>)}
     </div>;
@@ -109,24 +109,24 @@ export function ConversationQuestionFlow({ steps, choice, onComplete, labels }: 
     }
   };
 
-  return <section className="flex min-w-0 w-full max-w-sm flex-col gap-2" aria-label={step.question}>
-    <span className="text-xs text-foreground/60 tabular-nums">{stepIndex + 1} / {steps.length}</span>
-    <div role="progressbar" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={stepIndex + 1}
+  return <section data-agent-ui-owned="" className="flex min-w-0 w-full max-w-sm flex-col gap-2" aria-label={step.question}>
+    <span data-agent-ui-owned="" className="text-xs text-foreground/60 tabular-nums">{stepIndex + 1} / {steps.length}</span>
+    <div data-agent-ui-owned="" role="progressbar" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={stepIndex + 1}
       className="h-1 w-full rounded-full bg-foreground/10">
-      <div className="h-full rounded-full bg-foreground/60" style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }} />
+      <div data-agent-ui-owned="" className="h-full rounded-full bg-foreground/60" style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }} />
     </div>
-    <h4 className="text-sm font-medium break-words">{step.question}</h4>
-    {step.description ? <p className="text-xs text-foreground/60 break-words">{step.description}</p> : null}
+    <h4 data-agent-ui-owned="" className="text-sm font-medium break-words">{step.question}</h4>
+    {step.description ? <p data-agent-ui-owned="" className="text-xs text-foreground/60 break-words">{step.description}</p> : null}
     <ConversationOptionList key={`${step.id}:${stepIndex}`} options={step.options} selectionMode={step.selectionMode}
       {...(answers[step.id] === undefined ? {} : { defaultValue: answers[step.id] })}
       minSelections={step.minSelections} maxSelections={step.maxSelections}
       confirmLabel={isCompleting ? labels.submitting : stepIndex === steps.length - 1 ? labels.submit : labels.next}
       onConfirm={confirm} />
-    {isCompleting ? <span role="status" className="text-xs text-foreground/60">{labels.submitting}</span> : null}
+    {isCompleting ? <span data-agent-ui-owned="" role="status" className="text-xs text-foreground/60">{labels.submitting}</span> : null}
     {step.selectionMode === "single" && step.minSelections === 0 ?
-      <button type="button" className="self-start text-xs text-foreground/60 hover:text-foreground"
+      <button data-agent-ui-owned="" type="button" className="self-start text-xs text-foreground/60 hover:text-foreground"
         disabled={isCompleting} onClick={() => { void confirm([]); }}>{isCompleting ? labels.submitting : stepIndex === steps.length - 1 ? labels.submit : labels.next}</button> : null}
-    {stepIndex > 0 ? <button type="button" className="self-start text-xs text-foreground/60 hover:text-foreground"
+    {stepIndex > 0 ? <button data-agent-ui-owned="" type="button" className="self-start text-xs text-foreground/60 hover:text-foreground"
       disabled={isCompleting} onClick={() => setStepIndex(stepIndex - 1)}>{labels.back}</button> : null}
   </section>;
 }

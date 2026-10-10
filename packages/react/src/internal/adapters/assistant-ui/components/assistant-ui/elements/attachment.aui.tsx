@@ -76,7 +76,7 @@ const AttachmentPreviewDialog: FC<PropsWithChildren> = ({ children }) => {
           isValidElement(children) ? (
             children
           ) : (
-            <button type="button">{children}</button>
+            <button data-agent-ui-owned="" type="button">{children}</button>
           )
         }
       />

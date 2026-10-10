@@ -33,13 +33,13 @@ export function RetrievalChunks({
   labels?: { retrieving: string; complete: string; relevance: string; score: string };
 }) {
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="retrieval-chunks"
       className={cn("flex w-full max-w-sm flex-col gap-2.5", className)}
 
       {...props}
     >
-      <span
+      <span data-agent-ui-owned=""
         className={cn(
           field,
           "text-foreground/70 inline-flex w-fit items-center gap-1.5 rounded-full px-3.5 py-2 text-xs",
@@ -49,35 +49,35 @@ export function RetrievalChunks({
         {query}
       </span>
 
-      <div className="text-foreground/45 text-xs">
+      <div data-agent-ui-owned="" className="text-foreground/45 text-xs">
         {searching ? (
-          <ShimmerLabel className="relative inline-block leading-none">
+          <ShimmerLabel data-agent-ui-owned="" className="relative inline-block leading-none">
             {labels?.retrieving ?? "Retrieving"}
           </ShimmerLabel>
         ) : (
-          <span className="fade-in animate-in duration-300">
+          <span data-agent-ui-owned="" className="fade-in animate-in duration-300">
             {labels?.complete.replace("{count}", String(chunks.length)) ?? `${chunks.length} passages above threshold`}
           </span>
         )}
       </div>
 
-      <div className="flex min-h-[7rem] flex-col gap-1.5">
+      <div data-agent-ui-owned="" className="flex min-h-[7rem] flex-col gap-1.5">
         {take(chunks, visibleCount).map((chunk) => (
-          <div
+          <div data-agent-ui-owned=""
             key={chunk.id}
             className={cn(
               paper,
               "fade-in slide-in-from-bottom-1 animate-in fill-mode-both flex flex-col gap-1.5 rounded-2xl px-3.5 py-2.5 duration-300",
             )}
           >
-            <div className="flex items-baseline gap-2">
-              <span className="text-foreground/90 min-w-0 flex-1 truncate text-[13px] font-medium">
+            <div data-agent-ui-owned="" className="flex items-baseline gap-2">
+              <span data-agent-ui-owned="" className="text-foreground/90 min-w-0 flex-1 truncate text-[13px] font-medium">
                 {chunk.source}
               </span>
-              <span className={cn(mono, "text-foreground/30 shrink-0")}>
+              <span data-agent-ui-owned="" className={cn(mono, "text-foreground/30 shrink-0")}>
                 {chunk.locator}
               </span>
-              <span
+              <span data-agent-ui-owned=""
                 className={cn(
                   mono,
                   "shrink-0 tabular-nums",
@@ -89,10 +89,10 @@ export function RetrievalChunks({
                 {chunk.score.toFixed(2)}
               </span>
             </div>
-            <p className="text-foreground/55 line-clamp-2 text-xs leading-relaxed">
+            <p data-agent-ui-owned="" className="text-foreground/55 line-clamp-2 text-xs leading-relaxed">
               {chunk.text}
             </p>
-            <span
+            <span data-agent-ui-owned=""
               role="meter"
               aria-label={labels?.relevance.replace("{source}", chunk.source) ?? `${chunk.source} relevance score`}
               aria-valuemin={0}

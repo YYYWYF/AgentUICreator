@@ -35,9 +35,15 @@ function PortalProbes() {
         { type: "panel", id: "style-isolation-chat", child: { type: "slot", id: "style-isolation-chat-slot", slotId: "chat" } },
       ] }} renderSlot={(slot) => <div data-test-layout-region={slot.slotId} />} />
     </div>
-    <h1 data-test-agent-heading>Agent heading</h1>
-    <input data-test-agent-input aria-label="Agent input probe" />
-    <ul data-test-agent-list><li>Agent list</li></ul>
+    <div data-agent-ui-owned="" data-test-business-content>
+      <input data-slot="input" data-test-business-input aria-label="Business input probe" />
+      <button data-slot="button" data-test-business-button type="button">Business control</button>
+      <h1 data-test-business-heading>Business heading</h1>
+      <ul data-test-business-list><li>Business list</li></ul>
+    </div>
+    <h1 data-agent-ui-owned="" data-test-agent-heading>Agent heading</h1>
+    <input data-agent-ui-owned="" data-test-agent-input aria-label="Agent input probe" />
+    <ul data-agent-ui-owned="" data-test-agent-list><li>Agent list</li></ul>
     <button type="button" data-test-theme onClick={() => setTheme(current => current === "light" ? "dark" : "light")}>Theme</button>
     <button type="button" data-test-open="tooltip" onClick={() => setKind("tooltip")}>Tooltip</button>
     <button type="button" data-test-open="popover" onClick={() => setKind("popover")}>Popover</button>

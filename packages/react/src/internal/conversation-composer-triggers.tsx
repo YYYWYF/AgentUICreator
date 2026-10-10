@@ -63,7 +63,7 @@ export function InternalConversationMentionTrigger({ source, labels, debounceMs 
     <ComposerTriggerPopover char="@" adapter={adapter} isLoading={completion.isLoading}
       aria-label={labels.suggestions} backLabel={labels.back} emptyCategoriesLabel={labels.empty}
       emptyItemsLabel={labels.empty} loadingLabel={labels.loading} directive={{ formatter: agentUIDirectiveFormatter }} />
-    {error && <div role="status" data-slot="composer-trigger-error">{error === "invalid" ? labels.invalidItem : labels.searchFailed} <button type="button" onClick={() => { setError(null); setRetry(value => value + 1); }}>{labels.retry}</button></div>}
+    {error && <div data-agent-ui-owned="" role="status" data-slot="composer-trigger-error">{error === "invalid" ? labels.invalidItem : labels.searchFailed} <button data-agent-ui-owned="" type="button" onClick={() => { setError(null); setRetry(value => value + 1); }}>{labels.retry}</button></div>}
   </>;
 }
 export function InternalConversationCommandTrigger({ source, labels }: ConversationCommandTriggerProps) {
@@ -115,13 +115,13 @@ export function InternalConversationCommandTrigger({ source, labels }: Conversat
       if (generation.current === owner) setError(labels.commandFailed);
     }).finally(() => { if (generation.current === owner) { busyRef.current = false; setBusy(false); } });
   }, [source, labels.commandFailed]);
-  if (!enabled || !source || busy) return error === null ? null : <div role="status">{error}</div>;
+  if (!enabled || !source || busy) return error === null ? null : <div data-agent-ui-owned="" role="status">{error}</div>;
   return <>
     <ComposerTriggerPopover char="/" adapter={adapter} matcher={matcher}
       aria-label={labels.suggestions} backLabel={labels.back} emptyCategoriesLabel={labels.empty}
       emptyItemsLabel={labels.empty} loadingLabel={labels.loading} action={{ formatter: agentUIDirectiveFormatter, onExecute: execute, removeOnExecute: true }}>
       <SelectionOverride select={select} />
     </ComposerTriggerPopover>
-    {error !== null && <div role="status" data-slot="composer-trigger-error">{error}</div>}
+    {error !== null && <div data-agent-ui-owned="" role="status" data-slot="composer-trigger-error">{error}</div>}
   </>;
 }

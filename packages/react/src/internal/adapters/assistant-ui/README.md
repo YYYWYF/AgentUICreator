@@ -32,3 +32,11 @@ Upgrade gates distinguish vendor purity, generated integration drift, compiled
 Tailwind coverage, local runtime aliases, overlay DOM containment and browser
 visual acceptance. Passing one does not imply the others passed. Generative UI
 vocabulary serialization is maintained by its existing separate source owner.
+
+Product style ownership is per DOM element. Existing `aui-*` classes and
+`agent-ui-*` slots identify presentation; generic upstream slots also occur in
+business libraries, so the generator adds `data-agent-ui-owned` to product
+presentation elements after localization. It preserves custom component calls
+and children. The marker is not inherited by descendants and does not alter the
+Plugin contract. ToolTimeline is in this generated closure so its own controls
+retain the baseline while custom Tool content keeps its library styling.

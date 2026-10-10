@@ -29,7 +29,7 @@ export function ConversationActionMoreMenuItem({ children, disabled = false, onS
   disabled?: boolean;
   onSelect?: (event: Event) => void;
 }): ReactElement {
-  return <ActionBarMorePrimitive.Item disabled={disabled} {...(onSelect === undefined ? {} : { onSelect })}
+  return <ActionBarMorePrimitive.Item data-agent-ui-owned="" disabled={disabled} {...(onSelect === undefined ? {} : { onSelect })}
     className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm outline-none select-none">
     {children}
   </ActionBarMorePrimitive.Item>;

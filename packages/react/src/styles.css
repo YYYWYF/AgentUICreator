@@ -86,15 +86,34 @@
   }
 }
 
-/* An unlayered Host reset otherwise wins over Tailwind's layered utilities and
- * Preflight regardless of selector specificity. Revert only inside AgentUIRoot
- * to the values supplied by Agent UI's own layers. Plugin and shell rules can
- * still override this with their later, more specific selectors. */
-.agent-ui-root,
-.agent-ui-root * {
-  all: revert-layer;
+/* Only Agent UI presentation elements opt into the layered baseline. These
+ * explicit properties protect our controls from unlayered Host resets without
+ * resetting business content, including content inside our semantic Slots. */
+:is(.agent-ui-root, .agent-ui-conversation),
+:is(.agent-ui-root, .agent-ui-conversation) :where(
+  [class^="aui-"], [class*=" aui-"],
+  [data-slot^="agent-ui-"], [data-agent-ui-owned],
+  [data-slot="button"][class~="group/button"]
+) {
+  box-sizing: revert-layer;
+  margin: revert-layer;
+  padding: revert-layer;
+  border: revert-layer;
+  border-radius: revert-layer;
+  font: revert-layer;
+  color: revert-layer;
+  background: revert-layer;
+  list-style: revert-layer;
 }
 
+/* Lucide icons rendered directly by our controls are presentation too. */
+:is(.agent-ui-root, .agent-ui-conversation) :where(
+  [class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"],
+  [data-agent-ui-owned], [data-slot="button"][class~="group/button"]
+) > svg:where(.lucide) {
+  display: revert-layer;
+  box-sizing: revert-layer;
+}
 
 .agent-ui-root {
   color: var(--foreground);

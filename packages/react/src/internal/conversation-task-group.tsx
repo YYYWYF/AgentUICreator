@@ -57,7 +57,7 @@ function NestedMessage() {
       data-role={role}
       className="flex flex-col gap-1 text-xs leading-relaxed"
     >
-      <span className={cn(mono, "text-foreground/35")}>{roleLabels[role]}</span>
+      <span data-agent-ui-owned="" className={cn(mono, "text-foreground/35")}>{roleLabels[role]}</span>
       <MessagePrimitive.Parts components={{
         Text: components.Text,
         Reasoning: components.Reasoning,
@@ -88,8 +88,8 @@ function TaskCardComposition({ part }: { part: TaskPart }) {
   const result = showError || part.result !== undefined ? <>
     {showError && <ToolFallbackError status={part.status} />}
     {part.result !== undefined && (typeof part.result === "string"
-      ? <p className="m-0 whitespace-pre-wrap">{part.result}</p>
-      : <pre className="m-0 overflow-x-auto whitespace-pre-wrap">{formatUnknownValue(part.result, 2)}</pre>)}
+      ? <p data-agent-ui-owned="" className="m-0 whitespace-pre-wrap">{part.result}</p>
+      : <pre data-agent-ui-owned="" className="m-0 overflow-x-auto whitespace-pre-wrap">{formatUnknownValue(part.result, 2)}</pre>)}
   </> : undefined;
   return (
     <TaskCardShell
@@ -148,10 +148,10 @@ function TaskLanes({ group, className }: {
     failed > 0 && formatPresentationMessage(localeMessages.tasks.groupFailed, { count: failed }),
   ].filter(Boolean).join(" · ");
   return (
-    <div data-slot="aui_task-group" className={cn("flex w-full max-w-sm flex-col gap-2", className)}>
-      <div data-slot="aui_task-group-summary" className="text-muted-foreground px-1 text-xs">{summary}</div>
+    <div data-agent-ui-owned="" data-slot="aui_task-group" className={cn("flex w-full max-w-sm flex-col gap-2", className)}>
+      <div data-agent-ui-owned="" data-slot="aui_task-group-summary" className="text-muted-foreground px-1 text-xs">{summary}</div>
       {indices.slice(0, visible).map((index, position) => <TaskLane key={laneKeys[position] ?? index} index={index} />)}
-      {hidden > 0 && <button
+      {hidden > 0 && <button data-agent-ui-owned=""
         type="button" data-slot="aui_task-group-more"
         onClick={() => setVisible((count) => count + TASK_PAGE_SIZE)}
         className="text-muted-foreground hover:text-foreground w-fit px-1 text-xs transition-colors"

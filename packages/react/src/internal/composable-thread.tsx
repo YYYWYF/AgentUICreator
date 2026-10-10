@@ -187,20 +187,20 @@ const isHistoryLoadingView = (s: AssistantState) =>
 const ThreadHistorySkeleton: FC = () => {
   const localeMessages = useAgentUILocale();
   return (
-  <div
+  <div data-agent-ui-owned=""
     data-slot="aui_thread-history-skeleton"
     role="status"
     className="animate-in fade-in fill-mode-both flex flex-col gap-y-6 [animation-delay:150ms] [animation-duration:200ms]"
   >
-    <span className="sr-only">{localeMessages.conversation.loading}</span>
+    <span data-agent-ui-owned="" className="sr-only">{localeMessages.conversation.loading}</span>
     <Skeleton className="ml-auto h-9 w-2/5 rounded-xl motion-reduce:animate-none" />
-    <div className="flex flex-col gap-y-2">
+    <div data-agent-ui-owned="" className="flex flex-col gap-y-2">
       <Skeleton className="h-4 w-11/12 motion-reduce:animate-none" />
       <Skeleton className="h-4 w-4/5 motion-reduce:animate-none" />
       <Skeleton className="h-4 w-3/5 motion-reduce:animate-none" />
     </div>
     <Skeleton className="ml-auto h-9 w-1/3 rounded-xl motion-reduce:animate-none" />
-    <div className="flex flex-col gap-y-2">
+    <div data-agent-ui-owned="" className="flex flex-col gap-y-2">
       <Skeleton className="h-4 w-10/12 motion-reduce:animate-none" />
       <Skeleton className="h-4 w-2/3 motion-reduce:animate-none" />
     </div>
@@ -270,7 +270,7 @@ const ThreadRoot: FC<{
             <ThreadHistorySkeleton />
           </AuiIf>
 
-          <div
+          <div data-agent-ui-owned=""
             data-slot="aui_message-group"
             className="mb-14 flex flex-col gap-y-6 empty:hidden"
           >
@@ -372,12 +372,12 @@ export interface ComposerQueueLabels {
 
 export const ComposerQueue: FC<ComposerQueueLabels> = ({ queued, removeQueued }) => (
   <AuiIf condition={(s) => s.thread.capabilities.queue && s.composer.queue.length > 0}>
-    <div data-slot="aui_composer-queue" className="border-primary/20 bg-primary/5 flex flex-col gap-1 rounded-lg border p-2">
-      <span className="text-muted-foreground text-xs">{queued}</span>
+    <div data-agent-ui-owned="" data-slot="aui_composer-queue" className="border-primary/20 bg-primary/5 flex flex-col gap-1 rounded-lg border p-2">
+      <span data-agent-ui-owned="" className="text-muted-foreground text-xs">{queued}</span>
       <ComposerPrimitive.Queue>
         {() => (
-          <div data-slot="aui_composer-queue-item" className="flex items-center gap-2 rounded-md bg-background/60 px-2 py-1 text-sm">
-            <div className="min-w-0 flex-1 break-words"><QueueItemPrimitive.Text /></div>
+          <div data-agent-ui-owned="" data-slot="aui_composer-queue-item" className="flex items-center gap-2 rounded-md bg-background/60 px-2 py-1 text-sm">
+            <div data-agent-ui-owned="" className="min-w-0 flex-1 break-words"><QueueItemPrimitive.Text /></div>
             <QueueItemPrimitive.Remove asChild>
               <TooltipIconButton tooltip={removeQueued} aria-label={removeQueued} type="button" className="size-6 shrink-0">
                 <XIcon className="size-3.5" />
@@ -423,26 +423,26 @@ export const CanonicalComposer: FC<CanonicalComposerProps> = ({
     <ComposerPrimitive.Root className="aui-composer-root relative flex w-full flex-col">
       {triggers}
       <ComposerPrimitive.AttachmentDropzone asChild>
-        <div
+        <div data-agent-ui-owned=""
           data-slot="aui_composer-shell"
           className="border-border/60 data-[dragging=true]:border-ring focus-within:border-border dark:border-muted-foreground/15 dark:focus-within:border-muted-foreground/30 flex w-full cursor-text flex-col gap-2 rounded-(--composer-radius) border bg-(--composer-bg) p-(--composer-padding) transition-[border-color] data-[dragging=true]:border-dashed data-[dragging=true]:bg-[color-mix(in_oklab,var(--color-accent)_50%,var(--color-background))]"
         >
           <ComposerAttachments />
           {beforeInput === undefined || beforeInput === null ? null : (
-            <div data-slot="aui_composer-before-input">{beforeInput}</div>
+            <div data-agent-ui-owned="" data-slot="aui_composer-before-input">{beforeInput}</div>
           )}
           <ComposerQueue {...queueLabels} />
           <ComposerInputHostContext.Provider value={{ variant: "primary", placeholder, inputAriaLabel, autoFocus: resolvedAutoFocus }}>
             {input ?? <ComposerTextareaInput />}
           </ComposerInputHostContext.Provider>
           <div data-slot="aui_composer-actions" className="aui-composer-action-wrapper relative flex items-center justify-between">
-            <div
+            <div data-agent-ui-owned=""
               data-slot="aui_composer-leading-actions"
               className="flex items-center gap-1.5"
             >
               {leadingActions}
             </div>
-            <div
+            <div data-agent-ui-owned=""
               data-slot="aui_composer-trailing-actions"
               className="flex items-center gap-1.5"
             >
@@ -600,7 +600,7 @@ const AssistantResponseFooterHost: FC<{
   // would let the next message overlap them. Keep this policy on the host.
   return (
     <AssistantResponseRuntimeProvider key={turn.turnId} group={turn}>
-      <div
+      <div data-agent-ui-owned=""
         data-slot="aui_assistant-response-footer"
         className={cn("ms-2 flex items-center", "min-h-7.5 pt-1.5")}
       >
@@ -654,26 +654,26 @@ const AssistantMessage: FC = () => {
       data-aui-quote-selectable="false"
       className="fade-in slide-in-from-bottom-1 animate-in relative duration-150"
     >
-      <div
+      <div data-agent-ui-owned=""
         data-slot="aui_assistant-message-content"
         className="text-foreground px-2 leading-relaxed wrap-break-word"
       >
         {showCancelledEmptyFallback ? (
-          <div
+          <div data-agent-ui-owned=""
             data-slot="aui_assistant-message-cancelled"
             className="text-muted-foreground"
           >
             {labels.generationStopped}
           </div>
         ) : (
-          <div data-slot="aui_assistant-message-parts">
+          <div data-agent-ui-owned="" data-slot="aui_assistant-message-parts">
             {ThinkingIndicator ? <ThinkingIndicator reasoningVisible={reasoningVisible} timelineVisible={!!ToolTimeline} /> : null}
             <MessagePrimitive.GroupedParts groupBy={groupBy}>
               {({ part, children }) => {
                 switch (part.type) {
                   case "group-chainOfThought":
                     return (
-                      <div
+                      <div data-agent-ui-owned=""
                         data-slot="aui_chain-of-thought"
                       >
                         {children}
@@ -739,20 +739,20 @@ const AssistantMessage: FC = () => {
                     return part.dataRendererUI;
                   case "file":
                     return (
-                      <div data-slot="aui_assistant-message-file" className="py-1">
+                      <div data-agent-ui-owned="" data-slot="aui_assistant-message-file" className="py-1">
                         <File {...part} />
                       </div>
                     );
                   case "image":
                     return (
-                      <div data-slot="aui_assistant-message-image" className="py-1">
+                      <div data-agent-ui-owned="" data-slot="aui_assistant-message-image" className="py-1">
                         <Image {...part} />
                       </div>
                     );
                   case "indicator":
                     if (ThinkingIndicator) return null;
                     return (
-                      <span
+                      <span data-agent-ui-owned=""
                         data-slot="aui_assistant-message-indicator"
                         className="animate-pulse font-sans"
                         aria-label={localeMessages.conversation.working}
@@ -913,13 +913,13 @@ const AssistantActionBar: FC = () => (
 );
 
 const UserFilePart: FileMessagePartComponent = (part) => (
-  <div data-slot="aui_user-message-file" className="py-1">
+  <div data-agent-ui-owned="" data-slot="aui_user-message-file" className="py-1">
     <File {...part} />
   </div>
 );
 
 const UserImagePart: ImageMessagePartComponent = (part) => (
-  <div data-slot="aui_user-message-image" className="py-1">
+  <div data-agent-ui-owned="" data-slot="aui_user-message-image" className="py-1">
     <Image {...part} />
   </div>
 );

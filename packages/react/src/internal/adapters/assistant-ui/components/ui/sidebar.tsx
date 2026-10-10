@@ -110,7 +110,7 @@ function SidebarProvider({
 
   return (
     <SidebarContext.Provider value={contextValue}>
-      <div
+      <div data-agent-ui-owned=""
         data-slot="sidebar-wrapper"
         style={
           {
@@ -149,7 +149,7 @@ function Sidebar({
 
   if (collapsible === "none") {
     return (
-      <div
+      <div data-agent-ui-owned=""
         data-slot="sidebar"
         className={cn(
           "bg-sidebar text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col",
@@ -165,7 +165,7 @@ function Sidebar({
   if (isMobile) {
     return (
       <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-        <SheetContent
+        <SheetContent data-agent-ui-owned=""
           dir={dir}
           data-sidebar="sidebar"
           data-slot="sidebar"
@@ -182,14 +182,14 @@ function Sidebar({
             <SheetTitle>{localeMessages.accessibility.sidebar}</SheetTitle>
             <SheetDescription>{localeMessages.accessibility.sidebarDescription}</SheetDescription>
           </SheetHeader>
-          <div className="flex h-full w-full flex-col">{children}</div>
+          <div data-agent-ui-owned="" className="flex h-full w-full flex-col">{children}</div>
         </SheetContent>
       </Sheet>
     );
   }
 
   return (
-    <div
+    <div data-agent-ui-owned=""
       className="group peer text-sidebar-foreground hidden md:block"
       data-state={state}
       data-collapsible={state === "collapsed" ? collapsible : ""}
@@ -197,7 +197,7 @@ function Sidebar({
       data-side={side}
       data-slot="sidebar"
     >
-      <div
+      <div data-agent-ui-owned=""
         data-slot="sidebar-gap"
         className={cn(
           "relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
@@ -208,7 +208,7 @@ function Sidebar({
             : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
         )}
       />
-      <div
+      <div data-agent-ui-owned=""
         data-slot="sidebar-container"
         data-side={side}
         className={cn(
@@ -220,7 +220,7 @@ function Sidebar({
         )}
         {...props}
       >
-        <div
+        <div data-agent-ui-owned=""
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
           className="bg-sidebar group-data-[variant=floating]:ring-sidebar-border flex size-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:ring-1"
@@ -241,7 +241,7 @@ function SidebarTrigger({
   const { toggleSidebar } = useSidebar();
 
   return (
-    <Button
+    <Button data-agent-ui-owned=""
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
       variant="ghost"
@@ -254,7 +254,7 @@ function SidebarTrigger({
       {...props}
     >
       <PanelLeftIcon className="cn-rtl-flip" />
-      <span className="sr-only">{localeMessages.accessibility.toggleSidebar}</span>
+      <span data-agent-ui-owned="" className="sr-only">{localeMessages.accessibility.toggleSidebar}</span>
     </Button>
   );
 }
@@ -264,7 +264,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
   const { toggleSidebar } = useSidebar();
 
   return (
-    <button
+    <button data-agent-ui-owned=""
       data-sidebar="rail"
       data-slot="sidebar-rail"
       aria-label={localeMessages.accessibility.toggleSidebar}
@@ -287,7 +287,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
 
 function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   return (
-    <main
+    <main data-agent-ui-owned=""
       data-slot="sidebar-inset"
       className={cn(
         "bg-background relative flex w-full flex-1 flex-col md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ms-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ms-2",
@@ -303,7 +303,7 @@ function SidebarInput({
   ...props
 }: React.ComponentProps<typeof Input>) {
   return (
-    <Input
+    <Input data-agent-ui-owned=""
       data-slot="sidebar-input"
       data-sidebar="input"
       className={cn("bg-background h-8 w-full shadow-none", className)}
@@ -314,7 +314,7 @@ function SidebarInput({
 
 function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="sidebar-header"
       data-sidebar="header"
       className={cn("flex flex-col gap-2 p-2", className)}
@@ -325,7 +325,7 @@ function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
 
 function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="sidebar-footer"
       data-sidebar="footer"
       className={cn("flex flex-col gap-2 p-2", className)}
@@ -339,7 +339,7 @@ function SidebarSeparator({
   ...props
 }: React.ComponentProps<typeof Separator>) {
   return (
-    <Separator
+    <Separator data-agent-ui-owned=""
       data-slot="sidebar-separator"
       data-sidebar="separator"
       className={cn("bg-sidebar-border mx-2 w-auto", className)}
@@ -350,7 +350,7 @@ function SidebarSeparator({
 
 function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="sidebar-content"
       data-sidebar="content"
       className={cn(
@@ -364,7 +364,7 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
 
 function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="sidebar-group"
       data-sidebar="group"
       className={cn("relative flex w-full min-w-0 flex-col p-2", className)}
@@ -426,7 +426,7 @@ function SidebarGroupContent({
   ...props
 }: React.ComponentProps<"div">) {
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="sidebar-group-content"
       data-sidebar="group-content"
       className={cn("w-full text-sm", className)}
@@ -437,7 +437,7 @@ function SidebarGroupContent({
 
 function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
   return (
-    <ul
+    <ul data-agent-ui-owned=""
       data-slot="sidebar-menu"
       data-sidebar="menu"
       className={cn("flex w-full min-w-0 flex-col gap-0", className)}
@@ -448,7 +448,7 @@ function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
 
 function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
   return (
-    <li
+    <li data-agent-ui-owned=""
       data-slot="sidebar-menu-item"
       data-sidebar="menu-item"
       className={cn("group/menu-item relative", className)}
@@ -568,7 +568,7 @@ function SidebarMenuBadge({
   ...props
 }: React.ComponentProps<"div">) {
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="sidebar-menu-badge"
       data-sidebar="menu-badge"
       className={cn(
@@ -592,7 +592,7 @@ function SidebarMenuSkeleton({
   });
 
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="sidebar-menu-skeleton"
       data-sidebar="menu-skeleton"
       className={cn("flex h-8 items-center gap-2 rounded-md px-2", className)}
@@ -619,7 +619,7 @@ function SidebarMenuSkeleton({
 
 function SidebarMenuSub({ className, ...props }: React.ComponentProps<"ul">) {
   return (
-    <ul
+    <ul data-agent-ui-owned=""
       data-slot="sidebar-menu-sub"
       data-sidebar="menu-sub"
       className={cn(
@@ -636,7 +636,7 @@ function SidebarMenuSubItem({
   ...props
 }: React.ComponentProps<"li">) {
   return (
-    <li
+    <li data-agent-ui-owned=""
       data-slot="sidebar-menu-sub-item"
       data-sidebar="menu-sub-item"
       className={cn("group/menu-sub-item relative", className)}

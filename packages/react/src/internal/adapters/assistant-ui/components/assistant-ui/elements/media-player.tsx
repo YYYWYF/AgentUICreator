@@ -140,7 +140,7 @@ export function AudioPlayer({
   };
 
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="audio-player"
       className={cn(
         paper,
@@ -150,13 +150,13 @@ export function AudioPlayer({
       {...props}
     >
       {artwork ? (
-        <img
+        <img data-agent-ui-owned=""
           src={artwork}
           alt=""
           className="size-10 shrink-0 rounded-lg object-cover"
         />
       ) : null}
-      <button
+      <button data-agent-ui-owned=""
         type="button"
         aria-label={formatPresentationMessage(playing ? messages.pause : messages.play, { title: playbackLabel })}
         disabled={hasError}
@@ -172,11 +172,11 @@ export function AudioPlayer({
           <PlayIcon aria-hidden className="ml-0.5 size-4" />
         )}
       </button>
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="truncate text-[13.5px] font-medium">
+      <div data-agent-ui-owned="" className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <span data-agent-ui-owned="" className="truncate text-[13.5px] font-medium">
           {displayTitle}
         </span>
-        <input
+        <input data-agent-ui-owned=""
           type="range"
           min={0}
           max={duration ?? 0}
@@ -195,7 +195,7 @@ export function AudioPlayer({
           className="accent-foreground w-full cursor-pointer disabled:cursor-default"
         />
       </div>
-      <span className={cn(mono, "text-foreground/45 shrink-0 tabular-nums")}>
+      <span data-agent-ui-owned="" className={cn(mono, "text-foreground/45 shrink-0 tabular-nums")}>
         {formatDuration(currentTime)} / {durationLabel}
       </span>
       <audio
@@ -214,7 +214,7 @@ export function AudioPlayer({
         onError={() => update({ hasError: true, playing: false })}
       />
       {hasError ? (
-        <span role="alert" className="text-foreground/45 shrink-0 text-xs">
+        <span data-agent-ui-owned="" role="alert" className="text-foreground/45 shrink-0 text-xs">
           {messages.audioError}
         </span>
       ) : null}
@@ -250,12 +250,12 @@ export function VideoPlayer({
             : undefined;
 
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="video-player"
       className={cn("flex w-full max-w-xl flex-col gap-2", className)}
       {...props}
     >
-      <div className={cn(field, "overflow-hidden rounded-xl", ratioClassName)}>
+      <div data-agent-ui-owned="" className={cn(field, "overflow-hidden rounded-xl", ratioClassName)}>
         <video
           ref={videoRef}
           src={src}
@@ -274,14 +274,14 @@ export function VideoPlayer({
         />
       </div>
       {(title || duration !== undefined) && (
-        <div className="flex min-w-0 items-center gap-2 px-1">
+        <div data-agent-ui-owned="" className="flex min-w-0 items-center gap-2 px-1">
           {title ? (
-            <span className="min-w-0 flex-1 truncate text-[13.5px] font-medium">
+            <span data-agent-ui-owned="" className="min-w-0 flex-1 truncate text-[13.5px] font-medium">
               {title}
             </span>
           ) : null}
           {duration !== undefined ? (
-            <span
+            <span data-agent-ui-owned=""
               className={cn(mono, "text-foreground/45 shrink-0 tabular-nums")}
             >
               {formatDuration(duration)}

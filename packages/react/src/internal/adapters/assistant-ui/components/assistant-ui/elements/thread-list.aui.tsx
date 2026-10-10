@@ -60,12 +60,12 @@ export const ThreadListSearch = forwardRef<
 >(({ className, value, onValueChange, clearLabel, ...props }, ref) => {
   const searchRef = useRef<HTMLInputElement>(null);
   return (
-    <div data-slot="aui_thread-list-search" className="relative px-0.5 py-1">
-      <SearchIcon
+    <div data-agent-ui-owned="" data-slot="aui_thread-list-search" className="relative px-0.5 py-1">
+      <SearchIcon data-agent-ui-owned=""
         data-slot="aui_thread-list-search-icon"
         className="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2"
       />
-      <Input
+      <Input data-agent-ui-owned=""
         ref={(node) => {
           searchRef.current = node;
           if (typeof ref === "function") ref(node);
@@ -105,7 +105,7 @@ export const ThreadListRoot: FC<
   ComponentPropsWithoutRef<typeof ThreadListPrimitive.Root>
 > = ({ className, ...props }) => {
   return (
-    <ThreadListPrimitive.Root
+    <ThreadListPrimitive.Root data-agent-ui-owned=""
       data-slot="aui_thread-list-root"
       className={cn("flex flex-col gap-0.5", className)}
       {...props}
@@ -117,7 +117,7 @@ export const ThreadListItems: FC<
   ComponentPropsWithoutRef<"div"> & { searchQuery?: string }
 > = ({ className, searchQuery = "", ...props }) => {
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="aui_thread-list-items"
       className={cn("flex flex-col gap-0.5", className)}
       {...props}
@@ -239,7 +239,7 @@ const ThreadListItemGroups: FC<{ searchQuery?: string }> = ({
 
   if (query && filteredIndices.length === 0) {
     return (
-      <div
+      <div data-agent-ui-owned=""
         data-slot="aui_thread-list-empty"
         className="text-muted-foreground px-2.5 py-4 text-sm"
       >
@@ -260,7 +260,7 @@ const ThreadListItemGroups: FC<{ searchQuery?: string }> = ({
 
   return groups.map((group) => (
     <Fragment key={group.id}>
-      <div
+      <div data-agent-ui-owned=""
         data-slot="aui_thread-list-group-label"
         className="text-muted-foreground px-2.5 pt-3 pb-1 text-xs font-medium"
       >
@@ -283,7 +283,7 @@ export const ThreadListNew = forwardRef<
 >(({ className, labelClassName, children, ...props }, ref) => {
   return (
     <ThreadListPrimitive.New asChild>
-      <Button
+      <Button data-agent-ui-owned=""
         ref={ref}
         variant="ghost"
         data-slot="aui_thread-list-new"
@@ -295,11 +295,11 @@ export const ThreadListNew = forwardRef<
       >
         {children ?? (
           <>
-            <PlusIcon
+            <PlusIcon data-agent-ui-owned=""
               data-slot="aui_thread-list-new-icon"
               className="size-4 shrink-0"
             />
-            <span
+            <span data-agent-ui-owned=""
               data-slot="aui_thread-list-new-label"
               className={cn("whitespace-nowrap", labelClassName)}
             >
@@ -316,16 +316,16 @@ ThreadListNew.displayName = "ThreadListNew";
 
 const ThreadListSkeleton: FC = () => {
   return (
-    <div className="flex flex-col gap-0.5">
+    <div data-agent-ui-owned="" className="flex flex-col gap-0.5">
       {Array.from({ length: 5 }, (_, i) => (
-        <div
+        <div data-agent-ui-owned=""
           key={i}
           role="status"
           aria-label="Loading threads"
           data-slot="aui_thread-list-skeleton-wrapper"
           className="flex h-8 items-center px-2.5"
         >
-          <Skeleton
+          <Skeleton data-agent-ui-owned=""
             data-slot="aui_thread-list-skeleton"
             className="h-3.5 w-full"
           />
@@ -348,7 +348,7 @@ export const ThreadListItem: FC = () => {
   }, [isRenaming]);
 
   return (
-    <ThreadListItemPrimitive.Root
+    <ThreadListItemPrimitive.Root data-agent-ui-owned=""
       data-slot="aui_thread-list-item"
       className="group hover:bg-muted focus-visible:bg-muted data-active:bg-muted has-focus-visible:bg-muted has-data-[state=open]:bg-muted relative flex h-8 items-center rounded-md transition-colors focus-visible:outline-none"
     >
@@ -360,25 +360,25 @@ export const ThreadListItem: FC = () => {
           }}
         />
       ) : (
-        <ThreadListItemPrimitive.Trigger
+        <ThreadListItemPrimitive.Trigger data-agent-ui-owned=""
           ref={triggerRef}
           data-slot="aui_thread-list-item-trigger"
           className="focus-visible:ring-ring/50 flex h-full min-w-0 flex-1 items-center rounded-md px-2.5 text-start text-sm outline-none group-hover:pe-9 group-has-focus-visible:pe-9 group-has-data-[state=open]:pe-9 group-data-active:pe-9 focus-visible:ring-1"
         >
           {isRunning && (
-            <Loader2Icon
+            <Loader2Icon data-agent-ui-owned=""
               aria-hidden
               data-slot="aui_thread-list-item-running"
               className="text-muted-foreground me-1.5 size-3.5 shrink-0 animate-spin"
             />
           )}
-          <span
+          <span data-agent-ui-owned=""
             data-slot="aui_thread-list-item-title"
             className="min-w-0 flex-1 truncate"
           >
             <ThreadListItemPrimitive.Title fallback="New Chat" />
           </span>
-          {isRunning && <span className="sr-only">Running</span>}
+          {isRunning && <span data-agent-ui-owned="" className="sr-only">Running</span>}
         </ThreadListItemPrimitive.Trigger>
       )}
       <ThreadListItemMore onRename={() => setIsRenaming(true)} />
@@ -428,7 +428,7 @@ const ThreadListItemRename: FC<{
   };
 
   return (
-    <Input
+    <Input data-agent-ui-owned=""
       ref={inputRef}
       autoFocus
       data-slot="aui_thread-list-item-rename"
@@ -454,24 +454,24 @@ const ThreadListItemMore: FC<{ onRename: () => void }> = ({ onRename }) => {
   return (
     <ThreadListItemMorePrimitive.Root sharedFocusGroup>
       <ThreadListItemMorePrimitive.Trigger asChild>
-        <Button
+        <Button data-agent-ui-owned=""
           variant="ghost"
           size="icon"
           data-slot="aui_thread-list-item-more"
           className="data-[state=open]:bg-accent absolute end-1.5 top-1/2 size-6 -translate-y-1/2 p-0 opacity-0 group-hover:opacity-100 group-has-focus-visible:opacity-100 group-data-active:opacity-100 data-[state=open]:opacity-100"
         >
           <MoreHorizontalIcon className="size-3.5" />
-          <span className="sr-only">More options</span>
+          <span data-agent-ui-owned="" className="sr-only">More options</span>
         </Button>
       </ThreadListItemMorePrimitive.Trigger>
-      <ThreadListItemMorePrimitive.Content
+      <ThreadListItemMorePrimitive.Content data-agent-ui-owned=""
         side="right"
         align="start"
         sideOffset={6}
         data-slot="aui_thread-list-item-more-content"
         className="bg-popover text-popover-foreground data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=open]:animate-in data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:animate-out data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-32 overflow-hidden rounded-xl border p-1.5"
       >
-        <ThreadListItemMorePrimitive.Item
+        <ThreadListItemMorePrimitive.Item data-agent-ui-owned=""
           data-slot="aui_thread-list-item-more-item"
           className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm outline-none select-none"
           onSelect={onRename}
@@ -480,7 +480,7 @@ const ThreadListItemMore: FC<{ onRename: () => void }> = ({ onRename }) => {
           Rename
         </ThreadListItemMorePrimitive.Item>
         <ThreadListItemPrimitive.Archive asChild>
-          <ThreadListItemMorePrimitive.Item
+          <ThreadListItemMorePrimitive.Item data-agent-ui-owned=""
             data-slot="aui_thread-list-item-more-item"
             className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm outline-none select-none"
           >
@@ -489,7 +489,7 @@ const ThreadListItemMore: FC<{ onRename: () => void }> = ({ onRename }) => {
           </ThreadListItemMorePrimitive.Item>
         </ThreadListItemPrimitive.Archive>
         <ThreadListItemPrimitive.Delete asChild>
-          <ThreadListItemMorePrimitive.Item
+          <ThreadListItemMorePrimitive.Item data-agent-ui-owned=""
             data-slot="aui_thread-list-item-more-item"
             className="text-destructive hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm outline-none select-none"
           >

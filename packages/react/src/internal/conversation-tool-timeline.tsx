@@ -3,7 +3,7 @@ import { useState, type ReactNode } from "react";
 import { useAuiState } from "@assistant-ui/react";
 import { FileTextIcon, TerminalIcon, SearchIcon, WrenchIcon } from "lucide-react";
 import { useAgentUILocale, formatPresentationMessage } from "../locale.js";
-import { ToolTimeline } from "./vendor/assistant-ui/components/assistant-ui/elements/tool-timeline.js";
+import { ToolTimeline } from "./adapters/assistant-ui/components/assistant-ui/elements/tool-timeline.js";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "./vendor/assistant-ui/components/ui/collapsible.js";
 import { projectToolTimeline, timelineToolKind, type TimelineCall } from "./tool-timeline-projection.js";
 
@@ -43,7 +43,7 @@ export function InternalConversationToolTimeline({ children }: { children?: Reac
       activeLabel={formatPresentationMessage(messages.active, { count: steps.length })}
       stats={[]} open={open} onOpenChange={setOpen} className="min-w-0 max-w-full" />
     {open && children ? <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
-      <CollapsibleTrigger className="rounded-md py-1 text-sm text-muted-foreground">{messages.details}</CollapsibleTrigger>
+      <CollapsibleTrigger data-agent-ui-owned="" className="rounded-md py-1 text-sm text-muted-foreground">{messages.details}</CollapsibleTrigger>
       <CollapsibleContent>{children}</CollapsibleContent>
     </Collapsible> : null}
   </div>;

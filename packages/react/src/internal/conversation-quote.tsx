@@ -12,7 +12,7 @@ export function InternalConversationComposerQuotePreview({ dismissLabel }: { dis
     <ComposerQuotePreview.Icon />
     <ComposerQuotePreview.Text />
     <ComposerQuotePreview.Dismiss>
-      <button type="button" aria-label={dismissLabel} className="shrink-0 rounded-sm p-0.5 text-muted-foreground/70 transition-colors hover:bg-accent hover:text-foreground"><XIcon className="size-3.5" /></button>
+      <button data-agent-ui-owned="" type="button" aria-label={dismissLabel} className="shrink-0 rounded-sm p-0.5 text-muted-foreground/70 transition-colors hover:bg-accent hover:text-foreground"><XIcon className="size-3.5" /></button>
     </ComposerQuotePreview.Dismiss>
   </ComposerQuotePreview.Root>;
 }

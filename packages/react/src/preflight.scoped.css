@@ -1,169 +1,74 @@
-/*
- * Tailwind CSS v4.3.3 Preflight, scoped to the Agent UI root (with a temporary Conversation fallback).
- * Keep declarations aligned with tailwindcss/preflight.css; only selectors and
- * the local border-token mapping differ to prevent reset leakage into the host.
- */
+/* Agent UI presentation baseline. Ownership is per element, never inherited
+ * by descendants: a custom Tool, Data UI or business Plugin nested inside an
+ * owned component keeps its own library styles. aui-* and agent-ui-* slots
+ * already identify our presentation. Generic shadcn slots cannot distinguish
+ * third-party content, so product adapters mark only their own DOM elements.
+ * No Plugin manifest, vendor file or third-party class is involved. */
 
 :is(.agent-ui-root, .agent-ui-conversation),
-:is(.agent-ui-root, .agent-ui-conversation) *,
-:is(.agent-ui-root, .agent-ui-conversation)::after,
-:is(.agent-ui-root, .agent-ui-conversation) *::after,
-:is(.agent-ui-root, .agent-ui-conversation)::before,
-:is(.agent-ui-root, .agent-ui-conversation) *::before,
-:is(.agent-ui-root, .agent-ui-conversation)::backdrop,
-:is(.agent-ui-root, .agent-ui-conversation) *::backdrop,
-:is(.agent-ui-root, .agent-ui-conversation) ::file-selector-button {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]),
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"])::before,
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"])::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  border: 0 solid;
-  border-color: var(--border);
+  border: 0 solid var(--border);
 }
 
 :is(.agent-ui-root, .agent-ui-conversation) {
   line-height: 1.5;
   -webkit-text-size-adjust: 100%;
   tab-size: 4;
-  font-family: --theme(
-    --default-font-family,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    'Helvetica Neue',
-    'Noto Sans',
-    Arial,
-    sans-serif,
-    'Apple Color Emoji',
-    'Segoe UI Emoji',
-    'Segoe UI Symbol',
-    'Noto Color Emoji'
-  );
+  font-family: --theme(--default-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji');
   font-feature-settings: --theme(--default-font-feature-settings, normal);
   font-variation-settings: --theme(--default-font-variation-settings, normal);
   -webkit-tap-highlight-color: transparent;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) hr {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(h1, h2, h3, h4, h5, h6) {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(a) {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(code, kbd, samp, pre) {
+  font-family: --theme(--default-mono-font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace);
+  font-size: 1em;
+}
+
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(hr) {
   height: 0;
   color: inherit;
   border-top-width: 1px;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) abbr:where([title]) {
-  -webkit-text-decoration: underline dotted;
-  text-decoration: underline dotted;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) h1,
-:is(.agent-ui-root, .agent-ui-conversation) h2,
-:is(.agent-ui-root, .agent-ui-conversation) h3,
-:is(.agent-ui-root, .agent-ui-conversation) h4,
-:is(.agent-ui-root, .agent-ui-conversation) h5,
-:is(.agent-ui-root, .agent-ui-conversation) h6 {
-  font-size: inherit;
-  font-weight: inherit;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) a {
-  color: inherit;
-  -webkit-text-decoration: inherit;
-  text-decoration: inherit;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) b,
-:is(.agent-ui-root, .agent-ui-conversation) strong {
-  font-weight: bolder;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) code,
-:is(.agent-ui-root, .agent-ui-conversation) kbd,
-:is(.agent-ui-root, .agent-ui-conversation) samp,
-:is(.agent-ui-root, .agent-ui-conversation) pre {
-  font-family: --theme(
-    --default-mono-font-family,
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Monaco,
-    Consolas,
-    'Liberation Mono',
-    'Courier New',
-    monospace
-  );
-  font-feature-settings: --theme(--default-mono-font-feature-settings, normal);
-  font-variation-settings: --theme(--default-mono-font-variation-settings, normal);
-  font-size: 1em;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) small {
-  font-size: 80%;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) sub,
-:is(.agent-ui-root, .agent-ui-conversation) sup {
-  font-size: 75%;
-  line-height: 0;
-  position: relative;
-  vertical-align: baseline;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) sub {
-  bottom: -0.25em;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) sup {
-  top: -0.5em;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) table {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(table) {
   text-indent: 0;
   border-color: inherit;
   border-collapse: collapse;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) :-moz-focusring:where(:not(iframe)) {
-  outline: auto;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) progress {
-  vertical-align: baseline;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) summary {
-  display: list-item;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) ol,
-:is(.agent-ui-root, .agent-ui-conversation) ul,
-:is(.agent-ui-root, .agent-ui-conversation) menu {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(ol, ul, menu) {
   list-style: none;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) img,
-:is(.agent-ui-root, .agent-ui-conversation) svg,
-:is(.agent-ui-root, .agent-ui-conversation) video,
-:is(.agent-ui-root, .agent-ui-conversation) canvas,
-:is(.agent-ui-root, .agent-ui-conversation) audio,
-:is(.agent-ui-root, .agent-ui-conversation) iframe,
-:is(.agent-ui-root, .agent-ui-conversation) embed,
-:is(.agent-ui-root, .agent-ui-conversation) object {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(img, svg, video, canvas, audio, iframe),
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]) > svg:where(.lucide) {
   display: block;
   vertical-align: middle;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) img,
-:is(.agent-ui-root, .agent-ui-conversation) video {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(img, video) {
   max-width: 100%;
   height: auto;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) button,
-:is(.agent-ui-root, .agent-ui-conversation) input,
-:is(.agent-ui-root, .agent-ui-conversation) select,
-:is(.agent-ui-root, .agent-ui-conversation) optgroup,
-:is(.agent-ui-root, .agent-ui-conversation) textarea,
-:is(.agent-ui-root, .agent-ui-conversation) ::file-selector-button {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(button, input, select, optgroup, textarea),
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"])::file-selector-button {
   font: inherit;
   font-feature-settings: inherit;
   font-variation-settings: inherit;
@@ -174,81 +79,20 @@
   opacity: 1;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) :where(select:is([multiple], [size])) optgroup {
-  font-weight: bolder;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) :where(select:is([multiple], [size])) optgroup option {
-  padding-inline-start: 20px;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) ::file-selector-button {
-  margin-inline-end: 4px;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) ::placeholder {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"])::placeholder {
   opacity: 1;
+  color: color-mix(in oklab, currentcolor 50%, transparent);
 }
 
-@supports (not (-webkit-appearance: -apple-pay-button)) or
-  (contain-intrinsic-size: 1px) {
-  :is(.agent-ui-root, .agent-ui-conversation) ::placeholder {
-    color: color-mix(in oklab, currentcolor 50%, transparent);
-  }
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) textarea {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(textarea) {
   resize: vertical;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) ::-webkit-search-decoration {
-  -webkit-appearance: none;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) ::-webkit-date-and-time-value {
-  min-height: 1lh;
-  text-align: inherit;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) ::-webkit-datetime-edit {
-  display: inline-flex;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) ::-webkit-datetime-edit-fields-wrapper {
-  padding: 0;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) ::-webkit-datetime-edit,
-:is(.agent-ui-root, .agent-ui-conversation) ::-webkit-datetime-edit-year-field,
-:is(.agent-ui-root, .agent-ui-conversation) ::-webkit-datetime-edit-month-field,
-:is(.agent-ui-root, .agent-ui-conversation) ::-webkit-datetime-edit-day-field,
-:is(.agent-ui-root, .agent-ui-conversation) ::-webkit-datetime-edit-hour-field,
-:is(.agent-ui-root, .agent-ui-conversation) ::-webkit-datetime-edit-minute-field,
-:is(.agent-ui-root, .agent-ui-conversation) ::-webkit-datetime-edit-second-field,
-:is(.agent-ui-root, .agent-ui-conversation) ::-webkit-datetime-edit-millisecond-field,
-:is(.agent-ui-root, .agent-ui-conversation) ::-webkit-datetime-edit-meridiem-field {
-  padding-block: 0;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) ::-webkit-calendar-picker-indicator {
-  line-height: 1;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) :-moz-ui-invalid {
-  box-shadow: none;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) button,
-:is(.agent-ui-root, .agent-ui-conversation) input:where([type='button'], [type='reset'], [type='submit']),
-:is(.agent-ui-root, .agent-ui-conversation) ::file-selector-button {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(button, input[type="button"], input[type="reset"], input[type="submit"]),
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"])::file-selector-button {
   appearance: button;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) ::-webkit-inner-spin-button,
-:is(.agent-ui-root, .agent-ui-conversation) ::-webkit-outer-spin-button {
-  height: auto;
-}
-
-:is(.agent-ui-root, .agent-ui-conversation) [hidden]:where(:not([hidden='until-found'])) {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where([hidden]:not([hidden="until-found"])) {
   display: none !important;
 }

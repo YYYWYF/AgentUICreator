@@ -178,7 +178,7 @@ function ImageRoot({
   ...props
 }: ImageRootProps) {
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="image-root"
       data-variant={variant}
       data-size={size}
@@ -235,7 +235,7 @@ function ImagePreview({
   }, [src]);
 
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="image-preview"
       className={cn(
         "relative",
@@ -244,7 +244,7 @@ function ImagePreview({
       )}
     >
       {!loaded && !error && (
-        <div
+        <div data-agent-ui-owned=""
           data-slot="image-preview-loading"
           className="bg-muted/50 absolute inset-0 flex items-center justify-center"
         >
@@ -252,7 +252,7 @@ function ImagePreview({
         </div>
       )}
       {error ? (
-        <div
+        <div data-agent-ui-owned=""
           data-slot="image-preview-error"
           className={cn(
             "bg-muted/50 flex min-h-32 items-center justify-center p-4",
@@ -262,7 +262,7 @@ function ImagePreview({
           <ImageOffIcon className="text-muted-foreground size-8" />
         </div>
       ) : (
-        <img
+        <img data-agent-ui-owned=""
           ref={imgRef}
           src={src}
           alt={alt}
@@ -315,7 +315,7 @@ function ImageSource({
   const showIcon = iconUrl !== undefined && failedIconUrl !== iconUrl;
 
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="image-source"
       className={cn(
         "text-muted-foreground flex items-center gap-2 border-t px-2 py-1.5 text-xs",
@@ -324,7 +324,7 @@ function ImageSource({
       {...props}
     >
       {showIcon ? (
-        <img
+        <img data-agent-ui-owned=""
           data-slot="image-source-icon"
           src={iconUrl}
           alt=""
@@ -332,7 +332,7 @@ function ImageSource({
           onError={() => setFailedIconUrl(iconUrl)}
         />
       ) : (
-        <span
+        <span data-agent-ui-owned=""
           data-slot="image-source-icon-fallback"
           aria-hidden="true"
           className="bg-muted flex size-4 shrink-0 items-center justify-center rounded-sm text-[10px] font-medium"
@@ -341,7 +341,7 @@ function ImageSource({
         </span>
       )}
       {href ? (
-        <a
+        <a data-agent-ui-owned=""
           data-slot="image-source-label"
           href={href}
           target="_blank"
@@ -349,10 +349,10 @@ function ImageSource({
           className="hover:text-foreground truncate"
         >
           {displayLabel}
-          <span className="sr-only">  {localeMessages.images.newTab}</span>
+          <span data-agent-ui-owned="" className="sr-only">  {localeMessages.images.newTab}</span>
         </a>
       ) : (
-        <span data-slot="image-source-label" className="truncate">
+        <span data-agent-ui-owned="" data-slot="image-source-label" className="truncate">
           {displayLabel}
         </span>
       )}
@@ -368,7 +368,7 @@ function ImageFilename({
   if (!children) return null;
 
   return (
-    <span
+    <span data-agent-ui-owned=""
       data-slot="image-filename"
       className={cn(
         "text-muted-foreground block truncate px-2 py-1.5 text-xs",
@@ -484,7 +484,7 @@ function ImageZoom({ src, alt, children }: ImageZoomProps) {
                 handleClose();
               }}
             />
-            <button
+            <button data-agent-ui-owned=""
               ref={closeRef}
               type="button"
               aria-label={localeMessages.images.closeZoom}
@@ -506,7 +506,7 @@ function ImageZoom({ src, alt, children }: ImageZoomProps) {
 function ImageGenerating({ className }: { className?: string }) {
   const localeMessages = useAgentUILocale();
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="image-generating"
       className={cn(
         "bg-muted/50 flex min-h-32 items-center justify-center p-4",
@@ -514,7 +514,7 @@ function ImageGenerating({ className }: { className?: string }) {
       )}
     >
       <Loader2Icon className="text-muted-foreground size-8 animate-spin" />
-      <span className="sr-only">{localeMessages.images.generating}</span>
+      <span data-agent-ui-owned="" className="sr-only">{localeMessages.images.generating}</span>
     </div>
   );
 }
@@ -528,7 +528,7 @@ function ImageContentFilterError({
 }) {
   const localeMessages = useAgentUILocale();
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="image-content-filter-error"
       className={cn(
         "bg-muted/50 flex min-h-32 flex-col items-center justify-center gap-2 p-4 text-center",
@@ -536,8 +536,8 @@ function ImageContentFilterError({
       )}
     >
       <ShieldAlertIcon className="text-muted-foreground size-8" />
-      <p className="text-sm font-medium">{localeMessages.images.generationFailed}</p>
-      {reason && <p className="text-muted-foreground text-xs">{reason}</p>}
+      <p data-agent-ui-owned="" className="text-sm font-medium">{localeMessages.images.generationFailed}</p>
+      {reason && <p data-agent-ui-owned="" className="text-muted-foreground text-xs">{reason}</p>}
     </div>
   );
 }
@@ -560,7 +560,7 @@ function RegenerateButton({
   const localeMessages = useAgentUILocale();
   const [isRegenerating, setIsRegenerating] = useState(false);
   return (
-    <button
+    <button data-agent-ui-owned=""
       type="button"
       onClick={async () => {
         setIsRegenerating(true);
@@ -586,11 +586,11 @@ function RegenerateButton({
 function ImageActions({ part, onRegenerate, className }: ImageActionsProps) {
   const localeMessages = useAgentUILocale();
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="image-actions"
       className={cn("flex items-center gap-1 p-1", className)}
     >
-      <button
+      <button data-agent-ui-owned=""
         type="button"
         onClick={() => downloadImagePart(part)}
         data-slot="image-download"
@@ -599,7 +599,7 @@ function ImageActions({ part, onRegenerate, className }: ImageActionsProps) {
       >
         <DownloadIcon className="size-4" />
       </button>
-      <button
+      <button data-agent-ui-owned=""
         type="button"
         onClick={() => {
           copyImagePart(part).catch(() => {});

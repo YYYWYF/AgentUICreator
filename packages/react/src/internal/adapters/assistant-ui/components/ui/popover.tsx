@@ -7,11 +7,11 @@ import { cn } from "../../../../vendor/assistant-ui/lib/utils.js";
 import { useAgentUIPortalContainer } from "../../../../style-boundary/AgentUIRoot";
 
 function Popover({ ...props }: PopoverPrimitive.Root.Props) {
-  return <PopoverPrimitive.Root data-slot="popover" {...props} />;
+  return <PopoverPrimitive.Root data-agent-ui-owned="" data-slot="popover" {...props} />;
 }
 
 function PopoverTrigger({ ...props }: PopoverPrimitive.Trigger.Props) {
-  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
+  return <PopoverPrimitive.Trigger data-agent-ui-owned="" data-slot="popover-trigger" {...props} />;
 }
 
 const PopoverContent = React.forwardRef<
@@ -43,7 +43,7 @@ const PopoverContent = React.forwardRef<
         sideOffset={sideOffset}
         className="isolate z-50"
       >
-        <PopoverPrimitive.Popup
+        <PopoverPrimitive.Popup data-agent-ui-owned=""
           ref={ref}
           data-slot="popover-content"
           className={cn(
@@ -59,7 +59,7 @@ const PopoverContent = React.forwardRef<
 
 function PopoverHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="popover-header"
       className={cn("flex flex-col gap-0.5 text-sm", className)}
       {...props}
@@ -69,7 +69,7 @@ function PopoverHeader({ className, ...props }: React.ComponentProps<"div">) {
 
 function PopoverTitle({ className, ...props }: PopoverPrimitive.Title.Props) {
   return (
-    <PopoverPrimitive.Title
+    <PopoverPrimitive.Title data-agent-ui-owned=""
       data-slot="popover-title"
       className={cn("font-medium", className)}
       {...props}
@@ -82,7 +82,7 @@ function PopoverDescription({
   ...props
 }: PopoverPrimitive.Description.Props) {
   return (
-    <PopoverPrimitive.Description
+    <PopoverPrimitive.Description data-agent-ui-owned=""
       data-slot="popover-description"
       className={cn("text-muted-foreground", className)}
       {...props}

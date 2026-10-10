@@ -29,8 +29,8 @@ it("keeps the canonical theme and Preflight scoped to AgentUIRoot", async () => 
   ]);
   expect(styles).toContain(':is(.agent-ui-root, .agent-ui-conversation)[data-theme="light"]');
   expect(styles).toContain(':is(.agent-ui-root, .agent-ui-conversation)[data-theme="dark"]');
-  expect(preflight).toContain(":is(.agent-ui-root, .agent-ui-conversation) button");
-  expect(preflight).not.toMatch(/(?:^|,)\s*(?:button|input|body|html|:root|\*)\s*[{,]/mu);
+  expect(preflight).toContain("[data-agent-ui-owned]");
+  expect(preflight).not.toMatch(/^\s*(?:button|input|body|html|:root|\*)\s*[{,]/mu);
   expect(agent).toContain("<AgentUIRoot theme={theme}>");
 });
 

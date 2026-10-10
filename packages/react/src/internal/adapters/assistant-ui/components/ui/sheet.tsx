@@ -11,27 +11,27 @@ import { cn } from "../../../../vendor/assistant-ui/lib/utils.js";
 import { useAgentUIPortalContainer } from "../../../../style-boundary/AgentUIRoot";
 
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
-  return <SheetPrimitive.Root data-slot="sheet" {...props} />;
+  return <SheetPrimitive.Root data-agent-ui-owned="" data-slot="sheet" {...props} />;
 }
 
 function SheetTrigger({ ...props }: SheetPrimitive.Trigger.Props) {
-  return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />;
+  return <SheetPrimitive.Trigger data-agent-ui-owned="" data-slot="sheet-trigger" {...props} />;
 }
 
 function SheetClose({ ...props }: SheetPrimitive.Close.Props) {
-  return <SheetPrimitive.Close data-slot="sheet-close" {...props} />;
+  return <SheetPrimitive.Close data-agent-ui-owned="" data-slot="sheet-close" {...props} />;
 }
 
 function SheetPortal({ container, ...props }: SheetPrimitive.Portal.Props) {
   const portalContainer = useAgentUIPortalContainer();
   if (portalContainer === null) return null;
   const nestedContainer = container instanceof HTMLElement && portalContainer?.closest("[data-agent-ui-root]")?.contains(container) ? container : undefined;
-  return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} {...((nestedContainer ?? portalContainer) === undefined ? {} : { container: nestedContainer ?? portalContainer })} />;
+  return <SheetPrimitive.Portal data-agent-ui-owned="" data-slot="sheet-portal" {...props} {...((nestedContainer ?? portalContainer) === undefined ? {} : { container: nestedContainer ?? portalContainer })} />;
 }
 
 function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
   return (
-    <SheetPrimitive.Backdrop
+    <SheetPrimitive.Backdrop data-agent-ui-owned=""
       data-slot="sheet-overlay"
       className={cn(
         "fixed inset-0 z-50 bg-black/10 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-backdrop-filter:backdrop-blur-xs",
@@ -60,7 +60,7 @@ function SheetContent({
   return (
     <SheetPortal {...(container ? { container } : {})}>
       <SheetOverlay {...(contained ? { style: { position: "absolute" } } : {})} />
-      <SheetPrimitive.Popup
+      <SheetPrimitive.Popup data-agent-ui-owned=""
         data-slot="sheet-content"
         data-side={side}
         {...(contained ? { style: { position: "absolute", width: "min(280px, calc(100% - 48px))", maxWidth: "none" } } : {})}
@@ -72,7 +72,7 @@ function SheetContent({
       >
         {children}
         {showCloseButton && (
-          <SheetPrimitive.Close
+          <SheetPrimitive.Close data-agent-ui-owned=""
             data-slot="sheet-close"
             render={
               <Button
@@ -83,7 +83,7 @@ function SheetContent({
             }
           >
             <XIcon />
-            <span className="sr-only">{localeMessages.common.close}</span>
+            <span data-agent-ui-owned="" className="sr-only">{localeMessages.common.close}</span>
           </SheetPrimitive.Close>
         )}
       </SheetPrimitive.Popup>
@@ -93,7 +93,7 @@ function SheetContent({
 
 function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="sheet-header"
       className={cn("flex flex-col gap-0.5 p-4", className)}
       {...props}
@@ -103,7 +103,7 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
 
 function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="sheet-footer"
       className={cn("mt-auto flex flex-col gap-2 p-4", className)}
       {...props}
@@ -113,7 +113,7 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
 
 function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
   return (
-    <SheetPrimitive.Title
+    <SheetPrimitive.Title data-agent-ui-owned=""
       data-slot="sheet-title"
       className={cn(
         "cn-font-heading text-foreground text-base font-medium",
@@ -129,7 +129,7 @@ function SheetDescription({
   ...props
 }: SheetPrimitive.Description.Props) {
   return (
-    <SheetPrimitive.Description
+    <SheetPrimitive.Description data-agent-ui-owned=""
       data-slot="sheet-description"
       className={cn("text-muted-foreground text-sm", className)}
       {...props}

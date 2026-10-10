@@ -12,11 +12,11 @@ export function AgentUIRoot({ theme, children }: {
   const [portalContainer, setPortalContainer] = useState<HTMLDivElement | null>(null);
   const colorScheme = getAgentUIThemeColorScheme(theme);
   return (
-    <div className={colorScheme === "dark" ? "agent-ui-root dark" : "agent-ui-root"} data-agent-ui-root="" data-theme={theme} data-color-scheme={colorScheme}>
+    <div data-agent-ui-owned="" className={colorScheme === "dark" ? "agent-ui-root dark" : "agent-ui-root"} data-agent-ui-root="" data-theme={theme} data-color-scheme={colorScheme}>
       <AgentUIPortalContext.Provider value={portalContainer}>
         {children}
       </AgentUIPortalContext.Provider>
-      <div ref={setPortalContainer} className="agent-ui-portal-root" data-agent-ui-portal-root="" />
+      <div data-agent-ui-owned="" ref={setPortalContainer} className="agent-ui-portal-root" data-agent-ui-portal-root="" />
     </div>
   );
 }

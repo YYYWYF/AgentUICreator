@@ -66,7 +66,7 @@ export function TaskStateIcon({
     );
   }
   return (
-    <span
+    <span data-agent-ui-owned=""
       aria-hidden
       className={cn(
         "border-foreground/35 m-1 size-1.5 shrink-0 rounded-full border",
@@ -114,7 +114,7 @@ export function TaskCard({
   };
 
   return (
-    <div
+    <div data-agent-ui-owned=""
       data-slot="task-card"
       data-state={state}
       className={cn(
@@ -124,7 +124,7 @@ export function TaskCard({
       )}
       {...props}
     >
-      <button
+      <button data-agent-ui-owned=""
         type="button"
         aria-expanded={hasTranscript ? isOpen : undefined}
         disabled={!hasTranscript || inert}
@@ -132,10 +132,10 @@ export function TaskCard({
         className="hover:enabled:bg-foreground/[0.03] flex items-center gap-2.5 px-3.5 py-2.5 text-start transition-colors disabled:cursor-default"
       >
         <TaskStateIcon state={state} />
-        <span className="sr-only">{{ working: messages.working, waiting: messages.waitingState, failed: messages.failedState, done: messages.doneState, cancelled: messages.cancelledState }[state]}</span>
-        <span className="min-w-0 flex-1 truncate text-[13.5px]">{label}</span>
+        <span data-agent-ui-owned="" className="sr-only">{{ working: messages.working, waiting: messages.waitingState, failed: messages.failedState, done: messages.doneState, cancelled: messages.cancelledState }[state]}</span>
+        <span data-agent-ui-owned="" className="min-w-0 flex-1 truncate text-[13.5px]">{label}</span>
         {meta !== undefined && (
-          <span
+          <span data-agent-ui-owned=""
             className={cn(
               mono,
               "text-foreground/35 max-w-24 shrink-0 truncate",
@@ -145,7 +145,7 @@ export function TaskCard({
           </span>
         )}
         {elapsed !== undefined && (
-          <span
+          <span data-agent-ui-owned=""
             className={cn(mono, "text-foreground/30 shrink-0 tabular-nums")}
           >
             {elapsed}
@@ -162,7 +162,7 @@ export function TaskCard({
         )}
       </button>
       {isRenderable(actions) && (
-        <div
+        <div data-agent-ui-owned=""
           data-slot="task-card-actions"
           className="border-border/60 border-t px-3.5 py-2.5"
         >
@@ -170,7 +170,7 @@ export function TaskCard({
         </div>
       )}
       {hasTranscript && isOpen && (
-        <div
+        <div data-agent-ui-owned=""
           data-slot="task-card-transcript"
           className="border-border/60 flex flex-col gap-2 border-t px-3.5 py-2.5"
         >
@@ -178,7 +178,7 @@ export function TaskCard({
         </div>
       )}
       {isRenderable(result) && (
-        <div
+        <div data-agent-ui-owned=""
           data-slot="task-card-result"
           className="border-border/60 text-foreground/70 border-t px-3.5 py-2 text-xs leading-relaxed"
         >
