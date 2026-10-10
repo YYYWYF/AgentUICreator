@@ -6,7 +6,7 @@ import * as React from "react";
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
 import { XIcon } from "lucide-react";
 
-import { Button } from "../../../../vendor/assistant-ui/components/ui/button.js";
+import { Button } from "./button";
 import { cn } from "../../../../vendor/assistant-ui/lib/utils.js";
 import { useAgentUIPortalContainer } from "../../../../style-boundary/AgentUIRoot";
 

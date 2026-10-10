@@ -4,7 +4,7 @@ import { getAgentUIThemeColorScheme, type AgentUITheme } from "../../theme/theme
 
 const AgentUIPortalContext = createContext<HTMLElement | null | undefined>(undefined);
 
-const typographyProperties = ["font-family", "font-size", "font-weight", "font-style", "line-height"] as const;
+const hostPresentationProperties = ["font-family", "font-size", "font-weight", "font-style", "line-height", "color-scheme"] as const;
 
 /** The single style and overlay boundary for one mounted Agent UI. */
 export function AgentUIRoot({ theme, children }: {
@@ -24,7 +24,7 @@ export function AgentUIRoot({ theme, children }: {
     const syncTypography = () => {
       const hostStyle = view.getComputedStyle(host);
       const presentationStyle = view.getComputedStyle(element);
-      for (const property of typographyProperties) {
+      for (const property of hostPresentationProperties) {
         element.style.setProperty(`--agent-ui-host-${property}`, hostStyle.getPropertyValue(property));
         element.style.setProperty(`--agent-ui-presentation-${property}`, presentationStyle.getPropertyValue(property));
       }

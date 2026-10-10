@@ -6,9 +6,9 @@
  * No Plugin manifest, vendor file or third-party class is involved. */
 
 :is(.agent-ui-root, .agent-ui-conversation),
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]),
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"])::before,
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"])::after {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned]),
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned])::before,
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned])::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -25,50 +25,50 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(h1, h2, h3, h4, h5, h6) {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned]):where(h1, h2, h3, h4, h5, h6) {
   font-size: inherit;
   font-weight: inherit;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(a) {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned]):where(a) {
   color: inherit;
   text-decoration: inherit;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(code, kbd, samp, pre) {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned]):where(code, kbd, samp, pre) {
   font-family: --theme(--default-mono-font-family, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace);
   font-size: 1em;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(hr) {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned]):where(hr) {
   height: 0;
   color: inherit;
   border-top-width: 1px;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(table) {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned]):where(table) {
   text-indent: 0;
   border-color: inherit;
   border-collapse: collapse;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(ol, ul, menu) {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned]):where(ol, ul, menu) {
   list-style: none;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(img, svg, video, canvas, audio, iframe),
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]) > svg:where(.lucide) {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned]):where(img, svg, video, canvas, audio, iframe),
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned]) > svg:where(.lucide) {
   display: block;
   vertical-align: middle;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(img, video) {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned]):where(img, video) {
   max-width: 100%;
   height: auto;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(button, input, select, optgroup, textarea),
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"])::file-selector-button {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned]):where(button, input, select, optgroup, textarea),
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned])::file-selector-button {
   font: inherit;
   font-feature-settings: inherit;
   font-variation-settings: inherit;
@@ -79,20 +79,20 @@
   opacity: 1;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"])::placeholder {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned])::placeholder {
   opacity: 1;
   color: color-mix(in oklab, currentcolor 50%, transparent);
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(textarea) {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned]):where(textarea) {
   resize: vertical;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(button, input[type="button"], input[type="reset"], input[type="submit"]),
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"])::file-selector-button {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned]):where(button, input[type="button"], input[type="reset"], input[type="submit"]),
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned])::file-selector-button {
   appearance: button;
 }
 
-:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where([hidden]:not([hidden="until-found"])) {
+:is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned]):where([hidden]:not([hidden="until-found"])) {
   display: none !important;
 }

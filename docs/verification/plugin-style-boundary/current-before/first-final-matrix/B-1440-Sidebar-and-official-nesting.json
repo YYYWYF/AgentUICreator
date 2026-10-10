@@ -1,0 +1,102 @@
+{
+  "scene": "B",
+  "width": 1440,
+  "boundary": true,
+  "comparisons": [
+    {
+      "region": "sidebar",
+      "host": {
+        "height": "32px",
+        "width": "218px",
+        "padding": "4px 11px",
+        "padding-top": "4px",
+        "padding-right": "11px",
+        "padding-bottom": "4px",
+        "padding-left": "11px",
+        "border-width": "1px",
+        "border-radius": "12px",
+        "border-color": "rgb(217, 217, 217)",
+        "border-style": "solid",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+        "background-color": "rgb(255, 255, 255)",
+        "box-shadow": "none",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "height": "32px",
+        "width": "218px",
+        "padding": "4px 11px",
+        "padding-top": "4px",
+        "padding-right": "11px",
+        "padding-bottom": "4px",
+        "padding-left": "11px",
+        "border-width": "1px",
+        "border-radius": "12px",
+        "border-color": "rgb(217, 217, 217)",
+        "border-style": "solid",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+        "background-color": "rgb(255, 255, 255)",
+        "box-shadow": "none",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "official-dialog",
+      "host": {
+        "height": "32px",
+        "width": "218px",
+        "padding": "4px 11px",
+        "padding-top": "4px",
+        "padding-right": "11px",
+        "padding-bottom": "4px",
+        "padding-left": "11px",
+        "border-width": "1px",
+        "border-radius": "12px",
+        "border-color": "rgb(217, 217, 217)",
+        "border-style": "solid",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+        "background-color": "rgb(255, 255, 255)",
+        "box-shadow": "none",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "height": "32px",
+        "width": "218px",
+        "padding": "4px 11px",
+        "padding-top": "4px",
+        "padding-right": "11px",
+        "padding-bottom": "4px",
+        "padding-left": "11px",
+        "border-width": "1px",
+        "border-radius": "12px",
+        "border-color": "rgb(206, 208, 216)",
+        "border-style": "solid",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+        "background-color": "rgb(255, 255, 255)",
+        "box-shadow": "rgba(5, 88, 255, 0.004) 0px 0px 0px 0.141603px",
+        "box-sizing": "border-box"
+      }
+    }
+  ],
+  "errors": [],
+  "status": "FAIL",
+  "failures": [
+    "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -1,13 +1,13 @@\u001b[39m\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"background\": \"rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box\",\u001b[22m\n\u001b[2m    \"background-color\": \"rgb(255, 255, 255)\",\u001b[22m\n\u001b[32m-   \"border-color\": \"rgb(217, 217, 217)\",\u001b[39m\n\u001b[31m+   \"border-color\": \"rgb(206, 208, 216)\",\u001b[39m\n\u001b[2m    \"border-radius\": \"12px\",\u001b[22m\n\u001b[2m    \"border-style\": \"solid\",\u001b[22m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[32m-   \"box-shadow\": \"none\",\u001b[39m\n\u001b[31m+   \"box-shadow\": \"rgba(5, 88, 255, 0.004) 0px 0px 0px 0.141603px\",\u001b[39m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgba(0, 0, 0, 0.88)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"14px\",\u001b[22m\n\u001b[2m    \"height\": \"32px\",\u001b[22m"
+  ]
+}

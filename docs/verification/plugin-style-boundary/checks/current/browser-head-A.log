@@ -1,0 +1,833 @@
+
+Running 1 test using 1 worker
+
+(node:65593) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/style-boundary-final.spec.ts:34:138 › A 1440 light zh-CN (15.3s)
+
+
+  1) tests/style-boundary-final.spec.ts:34:138 › A 1440 light zh-CN ────────────────────────────────
+
+    Error: root/input/default
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 12px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: root/input/hover
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 12px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: root/input/focus
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 12px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: root/button/default
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 16px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: root/button/hover
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 16px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: root/button/focus
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 16px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: root/disabled-input/default
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 12px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: root/disabled-button/default
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 16px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: root/card/default
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "content-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "108px",
+    -   "line-height": "normal",
+    +   "height": "126px",
+    +   "line-height": "24px",
+        "padding": "16px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: owned-child/input/default
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 12px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: owned-child/input/hover
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 12px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: owned-child/input/focus
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 12px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: owned-child/button/default
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 16px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: owned-child/button/hover
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 16px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: owned-child/button/focus
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 16px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: owned-child/disabled-input/default
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 12px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: owned-child/disabled-button/default
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 16px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: owned-child/card/default
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "content-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "108px",
+    -   "line-height": "normal",
+    +   "height": "126px",
+    +   "line-height": "24px",
+        "padding": "16px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: standalone/input/default
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 12px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: standalone/input/hover
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 12px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: standalone/input/focus
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 12px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: standalone/button/default
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 16px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: standalone/button/hover
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 16px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: standalone/button/focus
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 16px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: standalone/disabled-input/default
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 12px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: standalone/disabled-button/default
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 16px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: standalone/card/default
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "content-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "108px",
+    -   "line-height": "normal",
+    +   "height": "126px",
+    +   "line-height": "24px",
+        "padding": "16px",
+      }
+
+      43 |    if(state==='hover')await host.hover();if(state==='focus')await host.focus();await page.waitForTimeout(200);const outside=await style(host);
+      44 |    await page.mouse.move(0,0);if(state==='hover')await plugin.hover();if(state==='focus')await plugin.focus();await page.waitForTimeout(200);const inside=await style(plugin);
+    > 45 |    row.comparisons.push({region,probe,state,outside,inside});expect.soft(inside,`${region}/${probe}/${state}`).toEqual(outside);
+         |                                                                                                                ^
+      46 |   }
+      47 |  }
+      48 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:45:112
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -4,9 +4,9 @@
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "padding": "8px 12px",
+      }
+
+      53 |   await page.keyboard.press('Escape');await expect(modal).toBeHidden();if(scene==='B')await expect(opener).toBeFocused();
+      54 |  }
+    > 55 |  row.modals=modalStyles;expect.soft(modalStyles.root).toEqual(modalStyles.host);
+         |                                                       ^
+      56 |  expect.soft(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);expect.soft(row.errors).toEqual([]);
+      57 |  row.status=test.info().errors.length?'FAIL':'PASS';
+      58 | });
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:55:55
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-final/style-boundary-final-A-1440-light-zh-CN/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-final/style-boundary-final-A-1440-light-zh-CN/error-context.md
+
+    Error Context: test-results/style-final/style-boundary-final-A-1440-light-zh-CN/error-context.md
+
+  1 failed
+    tests/style-boundary-final.spec.ts:34:138 › A 1440 light zh-CN ─────────────────────────────────
+undefined
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: playwright test -c playwright.style-final.config.ts --grep 'A 1440 light zh-CN'

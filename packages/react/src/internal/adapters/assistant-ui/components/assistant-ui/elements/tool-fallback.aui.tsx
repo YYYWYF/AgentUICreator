@@ -28,7 +28,7 @@ import {
   CollapsibleTrigger,
 } from "../../../../../vendor/assistant-ui/components/ui/collapsible.js";
 import { cn } from "../../../../../vendor/assistant-ui/lib/utils.js";
-import { Button } from "../../../../../vendor/assistant-ui/components/ui/button.js";
+import { Button } from "../../ui/button";
 import { Textarea } from "../../../../../vendor/assistant-ui/components/ui/textarea.js";
 
 const ANIMATION_DURATION = 200;

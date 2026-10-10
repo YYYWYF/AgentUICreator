@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../../ui/tooltip";
-import { Button } from "../../../../../vendor/assistant-ui/components/ui/button.js";
+import { Button } from "../../ui/button";
 import { cn } from "../../../../../vendor/assistant-ui/lib/utils.js";
 
 export type TooltipIconButtonProps = ComponentPropsWithRef<typeof Button> & {

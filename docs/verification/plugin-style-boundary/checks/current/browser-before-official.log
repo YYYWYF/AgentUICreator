@@ -1,0 +1,34 @@
+
+Running 20 tests using 1 worker
+
+(node:66371) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: empty (3.4s)
+  ✓   2 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-timeline-thinking (3.4s)
+  ✓   3 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: thinking-placeholder (3.4s)
+  ✓   4 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: nested-subagent-task-group (3.2s)
+  ✓   5 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: markdown-showcase (4.3s)
+(node:66435) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   6 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: empty (3.1s)
+  ✓   7 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-timeline-thinking (3.3s)
+  ✓   8 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: thinking-placeholder (3.3s)
+  ✓   9 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: nested-subagent-task-group (3.3s)
+  ✓  10 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: markdown-showcase (3.8s)
+(node:66507) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+5:41:26 PM [vite] (client) [optimizer] bundling dependencies...
+  ✓  11 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: empty (3.6s)
+  ✓  12 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-timeline-thinking (4.4s)
+  ✓  13 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: thinking-placeholder (3.5s)
+  ✓  14 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: nested-subagent-task-group (3.4s)
+  ✓  15 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: markdown-showcase (3.8s)
+(node:68221) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  16 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: empty (3.2s)
+  ✓  17 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-timeline-thinking (3.3s)
+  ✓  18 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: thinking-placeholder (3.4s)
+  ✓  19 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: nested-subagent-task-group (3.2s)
+  ✓  20 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: markdown-showcase (4.1s)
+
+  20 passed (1.3m)

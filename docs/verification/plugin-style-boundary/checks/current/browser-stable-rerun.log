@@ -1,0 +1,31 @@
+
+Running 14 tests using 2 workers
+
+(node:72931) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:72932) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+5:56:27 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+5:56:27 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓   2 tests/style-boundary-acceptance.spec.ts:35:138 › B 1440 light zh-CN (35.8s)
+  ✓   1 tests/style-boundary-acceptance.spec.ts:35:138 › B 420 dark en-US (35.8s)
+  ✓   4 tests/style-boundary-acceptance.spec.ts:60:64 › B 1440 Sidebar and official nesting (2.4s)
+  ✓   5 tests/style-boundary-acceptance.spec.ts:60:64 › B 420 Sidebar and official nesting (2.2s)
+  ✓   6 tests/style-boundary-acceptance.spec.ts:60:64 › A 1440 Sidebar and official nesting (2.2s)
+  ✓   7 tests/style-boundary-acceptance.spec.ts:60:64 › A 420 Sidebar and official nesting (2.3s)
+  ✓   8 tests/style-boundary-acceptance.spec.ts:60:64 › C 1440 Sidebar and official nesting (2.2s)
+  ✓   9 tests/style-boundary-acceptance.spec.ts:60:64 › C 420 Sidebar and official nesting (2.2s)
+5:57:01 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓   3 tests/style-boundary-acceptance.spec.ts:35:138 › B 1440 light en-US (33.4s)
+5:57:34 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  10 tests/style-boundary-acceptance.spec.ts:35:138 › B 1440 dark zh-CN (33.4s)
+5:58:08 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  11 tests/style-boundary-acceptance.spec.ts:35:138 › B 1440 dark en-US (33.5s)
+5:58:41 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  12 tests/style-boundary-acceptance.spec.ts:35:138 › B 420 light zh-CN (33.5s)
+5:59:15 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  13 tests/style-boundary-acceptance.spec.ts:35:138 › B 420 light en-US (33.5s)
+5:59:48 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  14 tests/style-boundary-acceptance.spec.ts:35:138 › B 420 dark zh-CN (33.7s)
+
+  14 passed (4.0m)

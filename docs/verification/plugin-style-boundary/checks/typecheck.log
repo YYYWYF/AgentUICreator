@@ -1,0 +1,3 @@
+$ tsc --noEmit && tsc -p tsconfig.tests.json
+
+Browser test typecheck: exit 0

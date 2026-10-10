@@ -8,7 +8,7 @@ import {createRequire} from 'node:module';
 const repo=process.cwd(),require=createRequire(repo+'/apps/creator-workbench/package.json');
 const {createServer}=await import(require.resolve('vite'));
 const source=process.env.STYLE_DELIVERED_HOSTS||'/Users/yifei/.codex/visualizations/2026/10/09/01a11ec8-65e6-7c82-a29d-c24c3262dc4b/business-closure/raw';
-const root='/tmp/plugin-style-final-hosts',evidence=repo+'/docs/verification/plugin-style-boundary';
+const root='/tmp/plugin-style-final-hosts',evidence=process.env.STYLE_ACCEPTANCE_OUTPUT||repo+'/docs/verification/plugin-style-boundary';
 await mkdir(root,{recursive:true});const records=[];
 const run=(cmd,args,env)=>new Promise(resolve=>{const proc=spawn(cmd,args,{env:{...process.env,...env},stdio:['ignore','pipe','pipe']});let log='';proc.stdout.on('data',b=>log+=b);proc.stderr.on('data',b=>log+=b);proc.on('close',code=>resolve({code,log}));});
 for(const scene of ['A','B','C']){

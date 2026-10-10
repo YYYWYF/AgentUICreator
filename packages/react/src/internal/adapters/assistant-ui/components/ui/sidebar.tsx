@@ -9,7 +9,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
 
 import { cn } from "../../../../vendor/assistant-ui/lib/utils.js";
-import { Button } from "../../../../vendor/assistant-ui/components/ui/button.js";
+import { Button } from "./button";
 import { Input } from "../../../../vendor/assistant-ui/components/ui/input.js";
 import { Separator } from "../../../../vendor/assistant-ui/components/ui/separator.js";
 import {

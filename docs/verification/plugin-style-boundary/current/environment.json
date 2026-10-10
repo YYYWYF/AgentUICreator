@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-10",
+  "timezone": "Asia/Shanghai",
+  "initialHead": "0f11a3fa27720078f6127baffab0e33c7f91a9c2",
+  "acceptanceHead": "de80131ba70f8345ae8b11959ee3fbadd98b81b9",
+  "source": "acceptance HEAD plus task changes; uncommitted",
+  "versions": {
+    "antd": "5.29.3",
+    "react-runtime-host": "19.3.0",
+    "react-matrix": "19.3.0",
+    "playwright": "1.63.0"
+  },
+  "sourceHashes": {
+    "packages/react/src/styles.css": "3d13854e71d0e54a492ea7cddf33638259432694342f94ff7d289073206940f1",
+    "packages/react/src/preflight.scoped.css": "c3c589764597a84b5ec9d08e668a2742f1fd00f92ba18e0b4af510a337ed48c4",
+    "packages/react/src/internal/style-boundary/AgentUIRoot.tsx": "c9cc8430489f54750758ad7cc607b486a2fadea0899bc3f1f058890293308ff9",
+    "packages/react/scripts/sync-product-adapters.mjs": "8136fad61ef370ce88f1dadab7432bcd66f73a8252da9cfc40dc8fa632eedf85",
+    "packages/react/src/internal/adapters/assistant-ui/UPSTREAM.json": "fa3ce6ec2b0ee6546d9285d647fdbf9944335a5dc5c4a6a29830bd8aa178c2cd",
+    "packages/react/src/internal/adapters/assistant-ui/components/ui/button.tsx": "45eb11029a82df1235adbb0bcafd8f9be8cee7f642c9a1ffa8ea3f446944ba4a"
+  },
+  "builtStylesSHA256": "b6264e9823ef8916e10c3cbedaf503b94c96146529d59bf46db878cb0d156a30",
+  "vendorDiff": [],
+  "requestedStyleFixAncestor": true
+}

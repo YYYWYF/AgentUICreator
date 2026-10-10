@@ -14,12 +14,12 @@ describe("element-owned Agent UI style baseline", () => {
     const shieldSelectors = [...shield.matchAll(/([^{}]+)\{\s*(?:box-sizing|display): revert-layer;/gu)].map(match => match[1]!.trim().replace(/\/\*[\s\S]*?\*\//gu, ""));
     const dom = new JSDOM(`<div class="${rootClass}">
       <div class="aui-message"><div class="app-ui-plugin-instance">
-        <input data-slot="input"><button data-slot="button">Business</button>
+        <input data-slot="input"><button data-slot="button" class="group/button">Business</button>
         <h1>Title</h1><ul><li>Item</li></ul><img><svg></svg>
         <div data-slot="dialog-content"><textarea></textarea></div>
       </div></div>
       <input data-agent-ui-owned><button class="aui-composer-send">Send</button>
-      <button data-slot="button" class="group/button">Primitive</button>
+      <button data-agent-ui-owned data-slot="button" class="group/button">Primitive</button>
       <div data-agent-ui-owned data-slot="aui_thread-list-item">
         <button data-agent-ui-owned data-slot="aui_thread-list-item-trigger">Thread</button>
         <div class="app-ui-plugin-instance"><input data-slot="input"><button data-slot="button">Nested business</button></div>
@@ -32,7 +32,7 @@ describe("element-owned Agent UI style baseline", () => {
           expect(element.matches(selector), `${element.outerHTML}: ${selector}`).toBe(false);
         }
       }
-      for (const element of dom.window.document.querySelectorAll("[data-agent-ui-owned], .aui-composer-send, .group\\/button")) {
+      for (const element of dom.window.document.querySelectorAll("[data-agent-ui-owned], .aui-composer-send")) {
         expect(selectors.some(selector => element.matches(selector)), element.outerHTML).toBe(true);
       }
     } finally {

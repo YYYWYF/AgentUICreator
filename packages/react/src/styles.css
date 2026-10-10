@@ -92,8 +92,7 @@
 :is(.agent-ui-root, .agent-ui-conversation),
 :is(.agent-ui-root, .agent-ui-conversation) :where(
   [class^="aui-"], [class*=" aui-"],
-  [data-slot^="agent-ui-"], [data-agent-ui-owned],
-  [data-slot="button"][class~="group/button"]
+  [data-slot^="agent-ui-"], [data-agent-ui-owned]
 ) {
   box-sizing: revert-layer;
   margin: revert-layer;
@@ -109,7 +108,7 @@
 /* Lucide icons rendered directly by our controls are presentation too. */
 :is(.agent-ui-root, .agent-ui-conversation) :where(
   [class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"],
-  [data-agent-ui-owned], [data-slot="button"][class~="group/button"]
+  [data-agent-ui-owned]
 ) > svg:where(.lucide) {
   display: revert-layer;
   box-sizing: revert-layer;
@@ -148,19 +147,21 @@
     font-weight: var(--agent-ui-host-font-weight, inherit);
     font-style: var(--agent-ui-host-font-style, inherit);
     line-height: var(--agent-ui-host-line-height, normal);
+    color-scheme: var(--agent-ui-host-color-scheme, normal);
   }
 
   /* Official presentation roots keep Agent UI typography when mounted as
    * Plugins. Utilities and each Plugin's own styles remain free to override. */
   :is(.agent-ui-root, .agent-ui-conversation) :where(.app-ui-plugin-instance) > :where(
     [class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"],
-    [data-agent-ui-owned], [data-slot="button"][class~="group/button"]
+    [data-agent-ui-owned]
   ) {
     font-family: var(--agent-ui-presentation-font-family, inherit);
     font-size: var(--agent-ui-presentation-font-size, inherit);
     font-weight: var(--agent-ui-presentation-font-weight, inherit);
     font-style: var(--agent-ui-presentation-font-style, inherit);
     line-height: var(--agent-ui-presentation-line-height, 1.5);
+    color-scheme: var(--agent-ui-presentation-color-scheme, inherit);
   }
 }
 

@@ -6,7 +6,7 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 const repo=process.cwd(),require=createRequire(repo+'/apps/creator-workbench/package.json');
 const {createServer}=await import(require.resolve('vite'));const {chromium,expect}=require('@playwright/test');
-const source='/tmp/plugin-style-final-hosts/B',root='/tmp/plugin-style-native-runtime-B',out=repo+'/docs/verification/plugin-style-boundary';
+const source='/tmp/plugin-style-final-hosts/B',root='/tmp/plugin-style-native-runtime-B',out=process.env.STYLE_ACCEPTANCE_OUTPUT||repo+'/docs/verification/plugin-style-boundary';
 await rm(root,{recursive:true,force:true});await cp(source,root,{recursive:true,filter:p=>!p.includes('/node_modules')&&!p.includes('/dist')});await symlink(source+'/node_modules',root+'/node_modules','dir');
 await writeFile(root+'/src/NativeAntProbes.tsx',`
 import {useState} from 'react';import {Input,Button,Card,List,Modal} from 'antd';import {useAgentUILocale} from '@agent-ui/react';

@@ -1,0 +1,41 @@
+{
+  "PLUGIN_STYLE_BOUNDARY": "NOT_ACCEPTED",
+  "basic": {
+    "PASS": 24,
+    "FAIL": 0
+  },
+  "nested": {
+    "PASS": 6,
+    "FAIL": 0
+  },
+  "actualNativeB": {
+    "PASS": 8,
+    "FAIL": 0
+  },
+  "official": {
+    "PASS": 128,
+    "FAIL": 0
+  },
+  "ownedControls": {
+    "PASS": 8,
+    "FAIL": 0
+  },
+  "creatorLatest": {
+    "A": {
+      "PASS": 8,
+      "FAIL": 0
+    },
+    "B": {
+      "PASS": 5,
+      "FAIL": 3
+    },
+    "C": {
+      "PASS": 8,
+      "FAIL": 0
+    }
+  },
+  "rerunNotes": [
+    "First matrix 23/30 passed. Modal sampling and mixed private/public fixture context corrected; rerun 14/14 passed. A/C basic records unchanged.",
+    "Original Creator full regression: B narrow 4/4 failed. Focused layout diagnostic reproduced 3/4; all failures remain retained."
+  ]
+}

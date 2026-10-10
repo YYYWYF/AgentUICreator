@@ -1,0 +1,732 @@
+[browser.log]
+
+Running 30 tests using 2 workers
+
+(node:70052) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:70053) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/style-boundary-acceptance.spec.ts:34:138 › A 420 dark en-US (30.5s)
+5:48:09 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓   2 tests/style-boundary-acceptance.spec.ts:34:138 › B 1440 light zh-CN (33.4s)
+  ✓   3 tests/style-boundary-acceptance.spec.ts:34:138 › C 1440 light zh-CN (27.7s)
+5:48:40 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓   4 tests/style-boundary-acceptance.spec.ts:34:138 › B 1440 light en-US (30.9s)
+  ✓   5 tests/style-boundary-acceptance.spec.ts:34:138 › C 1440 light en-US (28.5s)
+5:49:12 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓   6 tests/style-boundary-acceptance.spec.ts:34:138 › B 1440 dark zh-CN (31.5s)
+  ✓   7 tests/style-boundary-acceptance.spec.ts:34:138 › C 1440 dark zh-CN (30.7s)
+5:49:46 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓   8 tests/style-boundary-acceptance.spec.ts:34:138 › B 1440 dark en-US (34.1s)
+  ✓   9 tests/style-boundary-acceptance.spec.ts:34:138 › C 1440 dark en-US (32.8s)
+5:50:19 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✘  10 tests/style-boundary-acceptance.spec.ts:34:138 › B 420 light zh-CN (33.8s)
+(node:72099) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  11 tests/style-boundary-acceptance.spec.ts:34:138 › C 420 light zh-CN (29.2s)
+5:50:57 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  12 tests/style-boundary-acceptance.spec.ts:34:138 › B 420 light en-US (35.6s)
+  ✓  13 tests/style-boundary-acceptance.spec.ts:34:138 › C 420 light en-US (28.6s)
+5:51:28 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  14 tests/style-boundary-acceptance.spec.ts:34:138 › B 420 dark zh-CN (30.3s)
+  ✓  15 tests/style-boundary-acceptance.spec.ts:34:138 › C 420 dark zh-CN (27.4s)
+5:51:59 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  16 tests/style-boundary-acceptance.spec.ts:34:138 › B 420 dark en-US (31.1s)
+  ✓  17 tests/style-boundary-acceptance.spec.ts:34:138 › C 420 dark en-US (28.1s)
+  ✘  19 tests/style-boundary-acceptance.spec.ts:59:64 › B 1440 Sidebar and official nesting (2.8s)
+(node:72370) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  20 tests/style-boundary-acceptance.spec.ts:59:64 › B 420 Sidebar and official nesting (3.7s)
+(node:72389) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  21 tests/style-boundary-acceptance.spec.ts:59:64 › A 1440 Sidebar and official nesting (4.9s)
+(node:72417) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  22 tests/style-boundary-acceptance.spec.ts:59:64 › A 420 Sidebar and official nesting (3.5s)
+(node:72432) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  23 tests/style-boundary-acceptance.spec.ts:59:64 › C 1440 Sidebar and official nesting (4.8s)
+(node:72456) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  18 tests/style-boundary-acceptance.spec.ts:34:138 › A 1440 light zh-CN (29.2s)
+  ✘  24 tests/style-boundary-acceptance.spec.ts:59:64 › C 420 Sidebar and official nesting (6.2s)
+  ✓  25 tests/style-boundary-acceptance.spec.ts:34:138 › A 1440 light en-US (28.9s)
+  ✓  26 tests/style-boundary-acceptance.spec.ts:34:138 › A 1440 dark zh-CN (27.5s)
+  ✓  27 tests/style-boundary-acceptance.spec.ts:34:138 › A 1440 dark en-US (27.9s)
+  ✓  28 tests/style-boundary-acceptance.spec.ts:34:138 › A 420 light zh-CN (28.2s)
+  ✓  29 tests/style-boundary-acceptance.spec.ts:34:138 › A 420 light en-US (28.0s)
+  ✓  30 tests/style-boundary-acceptance.spec.ts:34:138 › A 420 dark zh-CN (28.8s)
+
+
+  1) tests/style-boundary-acceptance.spec.ts:34:138 › B 420 light zh-CN ────────────────────────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+    @@ -1,9 +1,9 @@
+      Object {
+        "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+        "background-color": "rgb(255, 255, 255)",
+    -   "border-color": "rgb(209, 211, 217)",
+    +   "border-color": "rgb(217, 217, 217)",
+        "border-radius": "12px",
+        "border-style": "solid",
+        "border-width": "1px",
+        "box-shadow": "none",
+        "box-sizing": "border-box",
+
+      53 |   await page.keyboard.press('Escape');await expect(modal).toBeHidden();if(scene==='B')await expect(opener).toBeFocused();
+      54 |  }
+    > 55 |  row.modals=modalStyles;expect.soft(modalStyles.root).toEqual(modalStyles.host);
+         |                                                       ^
+      56 |  expect.soft(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)).toBe(false);expect.soft(row.errors).toEqual([]);
+      57 |  row.status=test.info().errors.length?'FAIL':'PASS';
+      58 | });
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-acceptance.spec.ts:55:55
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-acceptance-current/style-boundary-acceptance-B-420-light-zh-CN/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-acceptance-current/style-boundary-acceptance-B-420-light-zh-CN/error-context.md
+
+    Error Context: test-results/style-acceptance-current/style-boundary-acceptance-B-420-light-zh-CN/error-context.md
+
+  2) tests/style-boundary-acceptance.spec.ts:59:64 › B 1440 Sidebar and official nesting ───────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -1,13 +1,13 @@
+      Object {
+        "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+        "background-color": "rgb(255, 255, 255)",
+    -   "border-color": "rgb(217, 217, 217)",
+    +   "border-color": "rgb(206, 208, 216)",
+        "border-radius": "12px",
+        "border-style": "solid",
+        "border-width": "1px",
+    -   "box-shadow": "none",
+    +   "box-shadow": "rgba(5, 88, 255, 0.004) 0px 0px 0px 0.141603px",
+        "box-sizing": "border-box",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "14px",
+        "height": "32px",
+
+      61 |  const outside=page.locator('[data-probes=host] [data-probe=input]');await expect(outside).toBeVisible();const host=await style(outside);
+      62 |  await page.getByRole('button',{name:'备注',exact:true}).click();const sidebar=page.locator('[data-probes=sidebar] [data-probe=input]');await expect(sidebar).toBeVisible();row.comparisons.push({region:'sidebar',host,inside:await style(sidebar)});expect.soft(await style(sidebar)).toEqual(host);
+    > 63 |  if(width===420){await page.keyboard.press('Escape');await expect(sidebar).toBeHidden();}await page.getByTestId('official-dialog').click();const child=page.locator('[data-probes=official-child] [data-probe=input]');await expect(child).toBeVisible();row.comparisons.push({region:'official-dialog',host,inside:await style(child)});expect.soft(await style(child)).toEqual(host);
+         |                                                                                                                                                                                                                                                                                                                                                                          ^
+      64 |  expect.soft(await child.evaluate(e=>e.hasAttribute('data-agent-ui-owned'))).toBe(false);await page.screenshot({path:path.join(out,'visual',scene,scene+'-'+width+'-official-nesting.png'),fullPage:true});await page.keyboard.press('Escape');await expect(child).toBeHidden();await expect(page.getByTestId('official-dialog')).toBeFocused();row.status=test.info().errors.length?'FAIL':'PASS';
+      65 | });
+      66 |
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-acceptance.spec.ts:63:362
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-acceptance-current/style-boundary-acceptance--e1649-idebar-and-official-nesting/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-acceptance-current/style-boundary-acceptance--e1649-idebar-and-official-nesting/error-context.md
+
+    Error Context: test-results/style-acceptance-current/style-boundary-acceptance--e1649-idebar-and-official-nesting/error-context.md
+
+  3) tests/style-boundary-acceptance.spec.ts:59:64 › B 420 Sidebar and official nesting ────────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -1,13 +1,13 @@
+      Object {
+        "background": "rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box",
+        "background-color": "rgb(255, 255, 255)",
+    -   "border-color": "rgb(217, 217, 217)",
+    +   "border-color": "rgb(206, 208, 216)",
+        "border-radius": "12px",
+        "border-style": "solid",
+        "border-width": "1px",
+    -   "box-shadow": "none",
+    +   "box-shadow": "rgba(5, 88, 255, 0.004) 0px 0px 0px 0.142085px",
+        "box-sizing": "border-box",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "14px",
+        "height": "32px",
+
+      60 |  const row:any={scene,width,boundary:true,comparisons:[],errors:[]};rows.push(row);await page.setViewportSize({width,height:1000});await page.goto(url+`?scene=${scene}`);
+      61 |  const outside=page.locator('[data-probes=host] [data-probe=input]');await expect(outside).toBeVisible();const host=await style(outside);
+    > 62 |  await page.getByRole('button',{name:'备注',exact:true}).click();const sidebar=page.locator('[data-probes=sidebar] [data-probe=input]');await expect(sidebar).toBeVisible();row.comparisons.push({region:'sidebar',host,inside:await style(sidebar)});expect.soft(await style(sidebar)).toEqual(host);
+         |                                                                                                                                                                                                                                                                                       ^
+      63 |  if(width===420){await page.keyboard.press('Escape');await expect(sidebar).toBeHidden();}await page.getByTestId('official-dialog').click();const child=page.locator('[data-probes=official-child] [data-probe=input]');await expect(child).toBeVisible();row.comparisons.push({region:'official-dialog',host,inside:await style(child)});expect.soft(await style(child)).toEqual(host);
+      64 |  expect.soft(await child.evaluate(e=>e.hasAttribute('data-agent-ui-owned'))).toBe(false);await page.screenshot({path:path.join(out,'visual',scene,scene+'-'+width+'-official-nesting.png'),fullPage:true});await page.keyboard.press('Escape');await expect(child).toBeHidden();await expect(page.getByTestId('official-dialog')).toBeFocused();row.status=test.info().errors.length?'FAIL':'PASS';
+      65 | });
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-acceptance.spec.ts:62:279
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+    @@ -3,11 +3,11 @@
+        "background-color": "rgb(255, 255, 255)",
+        "border-color": "rgb(217, 217, 217)",
+        "border-radius": "12px",
+        "border-style": "solid",
+        "border-width": "1px",
+    -   "box-shadow": "none",
+    +   "box-shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+        "box-sizing": "border-box",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-family": "Inter, system-ui, sans-serif",
+        "font-size": "14px",
+        "height": "32px",
+
+      61 |  const outside=page.locator('[data-probes=host] [data-probe=input]');await expect(outside).toBeVisible();const host=await style(outside);
+      62 |  await page.getByRole('button',{name:'备注',exact:true}).click();const sidebar=page.locator('[data-probes=sidebar] [data-probe=input]');await expect(sidebar).toBeVisible();row.comparisons.push({region:'sidebar',host,inside:await style(sidebar)});expect.soft(await style(sidebar)).toEqual(host);
+    > 63 |  if(width===420){await page.keyboard.press('Escape');await expect(sidebar).toBeHidden();}await page.getByTestId('official-dialog').click();const child=page.locator('[data-probes=official-child] [data-probe=input]');await expect(child).toBeVisible();row.comparisons.push({region:'official-dialog',host,inside:await style(child)});expect.soft(await style(child)).toEqual(host);
+         |                                                                                                                                                                                                                                                                                                                                                                          ^
+      64 |  expect.soft(await child.evaluate(e=>e.hasAttribute('data-agent-ui-owned'))).toBe(false);await page.screenshot({path:path.join(out,'visual',scene,scene+'-'+width+'-official-nesting.png'),fullPage:true});await page.keyboard.press('Escape');await expect(child).toBeHidden();await expect(page.getByTestId('official-dialog')).toBeFocused();row.status=test.info().errors.length?'FAIL':'PASS';
+      65 | });
+      66 |
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-acceptance.spec.ts:63:362
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-acceptance-current/style-boundary-acceptance-B-420-Sidebar-and-official-nesting/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-acceptance-current/style-boundary-acceptance-B-420-Sidebar-and-official-nesting/error-context.md
+
+    Error Context: test-results/style-acceptance-current/style-boundary-acceptance-B-420-Sidebar-and-official-nesting/error-context.md
+
+  4) tests/style-boundary-acceptance.spec.ts:59:64 › A 1440 Sidebar and official nesting ───────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+    @@ -15,7 +15,7 @@
+        "padding": "8px 12px",
+        "padding-bottom": "8px",
+        "padding-left": "12px",
+        "padding-right": "12px",
+        "padding-top": "8px",
+    -   "width": "201px",
+    +   "width": "26px",
+      }
+
+      60 |  const row:any={scene,width,boundary:true,comparisons:[],errors:[]};rows.push(row);await page.setViewportSize({width,height:1000});await page.goto(url+`?scene=${scene}`);
+      61 |  const outside=page.locator('[data-probes=host] [data-probe=input]');await expect(outside).toBeVisible();const host=await style(outside);
+    > 62 |  await page.getByRole('button',{name:'备注',exact:true}).click();const sidebar=page.locator('[data-probes=sidebar] [data-probe=input]');await expect(sidebar).toBeVisible();row.comparisons.push({region:'sidebar',host,inside:await style(sidebar)});expect.soft(await style(sidebar)).toEqual(host);
+         |                                                                                                                                                                                                                                                                                       ^
+      63 |  if(width===420){await page.keyboard.press('Escape');await expect(sidebar).toBeHidden();}await page.getByTestId('official-dialog').click();const child=page.locator('[data-probes=official-child] [data-probe=input]');await expect(child).toBeVisible();row.comparisons.push({region:'official-dialog',host,inside:await style(child)});expect.soft(await style(child)).toEqual(host);
+      64 |  expect.soft(await child.evaluate(e=>e.hasAttribute('data-agent-ui-owned'))).toBe(false);await page.screenshot({path:path.join(out,'visual',scene,scene+'-'+width+'-official-nesting.png'),fullPage:true});await page.keyboard.press('Escape');await expect(child).toBeHidden();await expect(page.getByTestId('official-dialog')).toBeFocused();row.status=test.info().errors.length?'FAIL':'PASS';
+      65 | });
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-acceptance.spec.ts:62:279
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 4
+    + Received  + 4
+
+    @@ -7,15 +7,15 @@
+        "border-width": "1px",
+        "box-shadow": "none",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+    -   "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "font-size": "14px",
+    +   "height": "38px",
+    +   "line-height": "20px",
+        "padding": "8px 12px",
+        "padding-bottom": "8px",
+        "padding-left": "12px",
+        "padding-right": "12px",
+        "padding-top": "8px",
+    -   "width": "201px",
+    +   "width": "180px",
+      }
+
+      61 |  const outside=page.locator('[data-probes=host] [data-probe=input]');await expect(outside).toBeVisible();const host=await style(outside);
+      62 |  await page.getByRole('button',{name:'备注',exact:true}).click();const sidebar=page.locator('[data-probes=sidebar] [data-probe=input]');await expect(sidebar).toBeVisible();row.comparisons.push({region:'sidebar',host,inside:await style(sidebar)});expect.soft(await style(sidebar)).toEqual(host);
+    > 63 |  if(width===420){await page.keyboard.press('Escape');await expect(sidebar).toBeHidden();}await page.getByTestId('official-dialog').click();const child=page.locator('[data-probes=official-child] [data-probe=input]');await expect(child).toBeVisible();row.comparisons.push({region:'official-dialog',host,inside:await style(child)});expect.soft(await style(child)).toEqual(host);
+         |                                                                                                                                                                                                                                                                                                                                                                          ^
+      64 |  expect.soft(await child.evaluate(e=>e.hasAttribute('data-agent-ui-owned'))).toBe(false);await page.screenshot({path:path.join(out,'visual',scene,scene+'-'+width+'-official-nesting.png'),fullPage:true});await page.keyboard.press('Escape');await expect(child).toBeHidden();await expect(page.getByTestId('official-dialog')).toBeFocused();row.status=test.info().errors.length?'FAIL':'PASS';
+      65 | });
+      66 |
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-acceptance.spec.ts:63:362
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-acceptance-current/style-boundary-acceptance--47d1e-idebar-and-official-nesting/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-acceptance-current/style-boundary-acceptance--47d1e-idebar-and-official-nesting/error-context.md
+
+    Error Context: test-results/style-acceptance-current/style-boundary-acceptance--47d1e-idebar-and-official-nesting/error-context.md
+
+  5) tests/style-boundary-acceptance.spec.ts:59:64 › A 420 Sidebar and official nesting ────────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 4
+    + Received  + 4
+
+    @@ -7,15 +7,15 @@
+        "border-width": "1px",
+        "box-shadow": "none",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+    -   "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "font-size": "14px",
+    +   "height": "38px",
+    +   "line-height": "20px",
+        "padding": "8px 12px",
+        "padding-bottom": "8px",
+        "padding-left": "12px",
+        "padding-right": "12px",
+        "padding-top": "8px",
+    -   "width": "201px",
+    +   "width": "180px",
+      }
+
+      61 |  const outside=page.locator('[data-probes=host] [data-probe=input]');await expect(outside).toBeVisible();const host=await style(outside);
+      62 |  await page.getByRole('button',{name:'备注',exact:true}).click();const sidebar=page.locator('[data-probes=sidebar] [data-probe=input]');await expect(sidebar).toBeVisible();row.comparisons.push({region:'sidebar',host,inside:await style(sidebar)});expect.soft(await style(sidebar)).toEqual(host);
+    > 63 |  if(width===420){await page.keyboard.press('Escape');await expect(sidebar).toBeHidden();}await page.getByTestId('official-dialog').click();const child=page.locator('[data-probes=official-child] [data-probe=input]');await expect(child).toBeVisible();row.comparisons.push({region:'official-dialog',host,inside:await style(child)});expect.soft(await style(child)).toEqual(host);
+         |                                                                                                                                                                                                                                                                                                                                                                          ^
+      64 |  expect.soft(await child.evaluate(e=>e.hasAttribute('data-agent-ui-owned'))).toBe(false);await page.screenshot({path:path.join(out,'visual',scene,scene+'-'+width+'-official-nesting.png'),fullPage:true});await page.keyboard.press('Escape');await expect(child).toBeHidden();await expect(page.getByTestId('official-dialog')).toBeFocused();row.status=test.info().errors.length?'FAIL':'PASS';
+      65 | });
+      66 |
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-acceptance.spec.ts:63:362
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-acceptance-current/style-boundary-acceptance-A-420-Sidebar-and-official-nesting/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-acceptance-current/style-boundary-acceptance-A-420-Sidebar-and-official-nesting/error-context.md
+
+    Error Context: test-results/style-acceptance-current/style-boundary-acceptance-A-420-Sidebar-and-official-nesting/error-context.md
+
+  6) tests/style-boundary-acceptance.spec.ts:59:64 › C 1440 Sidebar and official nesting ───────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 1
+
+    @@ -15,7 +15,7 @@
+        "padding": "8px 12px",
+        "padding-bottom": "8px",
+        "padding-left": "12px",
+        "padding-right": "12px",
+        "padding-top": "8px",
+    -   "width": "201px",
+    +   "width": "26px",
+      }
+
+      60 |  const row:any={scene,width,boundary:true,comparisons:[],errors:[]};rows.push(row);await page.setViewportSize({width,height:1000});await page.goto(url+`?scene=${scene}`);
+      61 |  const outside=page.locator('[data-probes=host] [data-probe=input]');await expect(outside).toBeVisible();const host=await style(outside);
+    > 62 |  await page.getByRole('button',{name:'备注',exact:true}).click();const sidebar=page.locator('[data-probes=sidebar] [data-probe=input]');await expect(sidebar).toBeVisible();row.comparisons.push({region:'sidebar',host,inside:await style(sidebar)});expect.soft(await style(sidebar)).toEqual(host);
+         |                                                                                                                                                                                                                                                                                       ^
+      63 |  if(width===420){await page.keyboard.press('Escape');await expect(sidebar).toBeHidden();}await page.getByTestId('official-dialog').click();const child=page.locator('[data-probes=official-child] [data-probe=input]');await expect(child).toBeVisible();row.comparisons.push({region:'official-dialog',host,inside:await style(child)});expect.soft(await style(child)).toEqual(host);
+      64 |  expect.soft(await child.evaluate(e=>e.hasAttribute('data-agent-ui-owned'))).toBe(false);await page.screenshot({path:path.join(out,'visual',scene,scene+'-'+width+'-official-nesting.png'),fullPage:true});await page.keyboard.press('Escape');await expect(child).toBeHidden();await expect(page.getByTestId('official-dialog')).toBeFocused();row.status=test.info().errors.length?'FAIL':'PASS';
+      65 | });
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-acceptance.spec.ts:62:279
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 4
+    + Received  + 4
+
+    @@ -7,15 +7,15 @@
+        "border-width": "1px",
+        "box-shadow": "none",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+    -   "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "font-size": "14px",
+    +   "height": "38px",
+    +   "line-height": "20px",
+        "padding": "8px 12px",
+        "padding-bottom": "8px",
+        "padding-left": "12px",
+        "padding-right": "12px",
+        "padding-top": "8px",
+    -   "width": "201px",
+    +   "width": "180px",
+      }
+
+      61 |  const outside=page.locator('[data-probes=host] [data-probe=input]');await expect(outside).toBeVisible();const host=await style(outside);
+      62 |  await page.getByRole('button',{name:'备注',exact:true}).click();const sidebar=page.locator('[data-probes=sidebar] [data-probe=input]');await expect(sidebar).toBeVisible();row.comparisons.push({region:'sidebar',host,inside:await style(sidebar)});expect.soft(await style(sidebar)).toEqual(host);
+    > 63 |  if(width===420){await page.keyboard.press('Escape');await expect(sidebar).toBeHidden();}await page.getByTestId('official-dialog').click();const child=page.locator('[data-probes=official-child] [data-probe=input]');await expect(child).toBeVisible();row.comparisons.push({region:'official-dialog',host,inside:await style(child)});expect.soft(await style(child)).toEqual(host);
+         |                                                                                                                                                                                                                                                                                                                                                                          ^
+      64 |  expect.soft(await child.evaluate(e=>e.hasAttribute('data-agent-ui-owned'))).toBe(false);await page.screenshot({path:path.join(out,'visual',scene,scene+'-'+width+'-official-nesting.png'),fullPage:true});await page.keyboard.press('Escape');await expect(child).toBeHidden();await expect(page.getByTestId('official-dialog')).toBeFocused();row.status=test.info().errors.length?'FAIL':'PASS';
+      65 | });
+      66 |
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-acceptance.spec.ts:63:362
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-acceptance-current/style-boundary-acceptance--fe7b5-idebar-and-official-nesting/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-acceptance-current/style-boundary-acceptance--fe7b5-idebar-and-official-nesting/error-context.md
+
+    Error Context: test-results/style-acceptance-current/style-boundary-acceptance--fe7b5-idebar-and-official-nesting/error-context.md
+
+  7) tests/style-boundary-acceptance.spec.ts:59:64 › C 420 Sidebar and official nesting ────────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 4
+    + Received  + 4
+
+    @@ -7,15 +7,15 @@
+        "border-width": "1px",
+        "box-shadow": "none",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+    -   "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "font-size": "14px",
+    +   "height": "38px",
+    +   "line-height": "20px",
+        "padding": "8px 12px",
+        "padding-bottom": "8px",
+        "padding-left": "12px",
+        "padding-right": "12px",
+        "padding-top": "8px",
+    -   "width": "201px",
+    +   "width": "180px",
+      }
+
+      61 |  const outside=page.locator('[data-probes=host] [data-probe=input]');await expect(outside).toBeVisible();const host=await style(outside);
+      62 |  await page.getByRole('button',{name:'备注',exact:true}).click();const sidebar=page.locator('[data-probes=sidebar] [data-probe=input]');await expect(sidebar).toBeVisible();row.comparisons.push({region:'sidebar',host,inside:await style(sidebar)});expect.soft(await style(sidebar)).toEqual(host);
+    > 63 |  if(width===420){await page.keyboard.press('Escape');await expect(sidebar).toBeHidden();}await page.getByTestId('official-dialog').click();const child=page.locator('[data-probes=official-child] [data-probe=input]');await expect(child).toBeVisible();row.comparisons.push({region:'official-dialog',host,inside:await style(child)});expect.soft(await style(child)).toEqual(host);
+         |                                                                                                                                                                                                                                                                                                                                                                          ^
+      64 |  expect.soft(await child.evaluate(e=>e.hasAttribute('data-agent-ui-owned'))).toBe(false);await page.screenshot({path:path.join(out,'visual',scene,scene+'-'+width+'-official-nesting.png'),fullPage:true});await page.keyboard.press('Escape');await expect(child).toBeHidden();await expect(page.getByTestId('official-dialog')).toBeFocused();row.status=test.info().errors.length?'FAIL':'PASS';
+      65 | });
+      66 |
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-acceptance.spec.ts:63:362
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-acceptance-current/style-boundary-acceptance-C-420-Sidebar-and-official-nesting/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-acceptance-current/style-boundary-acceptance-C-420-Sidebar-and-official-nesting/error-context.md
+
+    Error Context: test-results/style-acceptance-current/style-boundary-acceptance-C-420-Sidebar-and-official-nesting/error-context.md
+
+  7 failed
+    tests/style-boundary-acceptance.spec.ts:34:138 › B 420 light zh-CN ─────────────────────────────
+    tests/style-boundary-acceptance.spec.ts:59:64 › B 1440 Sidebar and official nesting ────────────
+    tests/style-boundary-acceptance.spec.ts:59:64 › B 420 Sidebar and official nesting ─────────────
+    tests/style-boundary-acceptance.spec.ts:59:64 › A 1440 Sidebar and official nesting ────────────
+    tests/style-boundary-acceptance.spec.ts:59:64 › A 420 Sidebar and official nesting ─────────────
+    tests/style-boundary-acceptance.spec.ts:59:64 › C 1440 Sidebar and official nesting ────────────
+    tests/style-boundary-acceptance.spec.ts:59:64 › C 420 Sidebar and official nesting ─────────────
+  23 passed (7.7m)
+undefined
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: playwright test -c playwright.style-acceptance.config.ts
+
+
+[browser-stable-rerun.log]
+
+Running 14 tests using 2 workers
+
+(node:72931) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:72932) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+5:56:27 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+5:56:27 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓   2 tests/style-boundary-acceptance.spec.ts:35:138 › B 1440 light zh-CN (35.8s)
+  ✓   1 tests/style-boundary-acceptance.spec.ts:35:138 › B 420 dark en-US (35.8s)
+  ✓   4 tests/style-boundary-acceptance.spec.ts:60:64 › B 1440 Sidebar and official nesting (2.4s)
+  ✓   5 tests/style-boundary-acceptance.spec.ts:60:64 › B 420 Sidebar and official nesting (2.2s)
+  ✓   6 tests/style-boundary-acceptance.spec.ts:60:64 › A 1440 Sidebar and official nesting (2.2s)
+  ✓   7 tests/style-boundary-acceptance.spec.ts:60:64 › A 420 Sidebar and official nesting (2.3s)
+  ✓   8 tests/style-boundary-acceptance.spec.ts:60:64 › C 1440 Sidebar and official nesting (2.2s)
+  ✓   9 tests/style-boundary-acceptance.spec.ts:60:64 › C 420 Sidebar and official nesting (2.2s)
+5:57:01 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓   3 tests/style-boundary-acceptance.spec.ts:35:138 › B 1440 light en-US (33.4s)
+5:57:34 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  10 tests/style-boundary-acceptance.spec.ts:35:138 › B 1440 dark zh-CN (33.4s)
+5:58:08 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  11 tests/style-boundary-acceptance.spec.ts:35:138 › B 1440 dark en-US (33.5s)
+5:58:41 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  12 tests/style-boundary-acceptance.spec.ts:35:138 › B 420 light zh-CN (33.5s)
+5:59:15 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  13 tests/style-boundary-acceptance.spec.ts:35:138 › B 420 light en-US (33.5s)
+5:59:48 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  14 tests/style-boundary-acceptance.spec.ts:35:138 › B 420 dark zh-CN (33.7s)
+
+  14 passed (4.0m)
+
+
+[browser-runtime-B.log]
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite-runtime-aliases" without a file extension (../../private/tmp/plugin-style-native-runtime-B/vite.config.ts:5:32). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+5:47:50 PM [vite] (client) Re-optimizing dependencies because vite config has changed
+5:47:58 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+5:48:04 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+5:48:05 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+5:48:12 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+5:48:22 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+5:48:29 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+5:48:30 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+5:48:37 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+[
+  {
+    "width": 1440,
+    "theme": "light",
+    "locale": "zh-CN",
+    "status": "PASS"
+  },
+  {
+    "width": 1440,
+    "theme": "light",
+    "locale": "en-US",
+    "status": "PASS"
+  },
+  {
+    "width": 1440,
+    "theme": "dark",
+    "locale": "zh-CN",
+    "status": "PASS"
+  },
+  {
+    "width": 1440,
+    "theme": "dark",
+    "locale": "en-US",
+    "status": "PASS"
+  },
+  {
+    "width": 420,
+    "theme": "light",
+    "locale": "zh-CN",
+    "status": "PASS"
+  },
+  {
+    "width": 420,
+    "theme": "light",
+    "locale": "en-US",
+    "status": "PASS"
+  },
+  {
+    "width": 420,
+    "theme": "dark",
+    "locale": "zh-CN",
+    "status": "PASS"
+  },
+  {
+    "width": 420,
+    "theme": "dark",
+    "locale": "en-US",
+    "status": "PASS"
+  }
+]
+
+
+[browser-owned-controls.log]
+
+Running 8 tests using 1 worker
+
+(node:71197) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+5:49:04 PM [vite] (client) [optimizer] bundling dependencies...
+5:49:11 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  1 tests/style-boundary-visual.spec.ts:50:76 › after 1440 light (6.7s)
+5:49:17 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  2 tests/style-boundary-visual.spec.ts:50:76 › after 1440 dark (5.2s)
+5:49:21 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  3 tests/style-boundary-visual.spec.ts:50:76 › after 1440 violet (4.6s)
+5:49:26 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  4 tests/style-boundary-visual.spec.ts:50:76 › after 420 light (5.1s)
+5:49:32 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  5 tests/style-boundary-visual.spec.ts:50:76 › after 420 dark (5.7s)
+5:49:39 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  6 tests/style-boundary-visual.spec.ts:50:76 › after 420 violet (6.8s)
+  ✓  7 tests/style-boundary-visual.spec.ts:86:1 › records inherited typography separately from direct Reset isolation (1.7s)
+  ✓  8 tests/style-boundary-visual.spec.ts:103:1 › narrow Sidebar menu stays in its local overlay layer (1.4s)
+
+  8 passed (40.8s)
+
+
+[browser-official.log]
+
+Running 128 tests using 1 worker
+
+(node:70080) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓    1 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: empty (3.1s)
+  ✓    2 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-timeline-thinking (3.4s)
+  ✓    3 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: thinking-placeholder (3.5s)
+  ✓    4 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: simple-chat (2.7s)
+  ✓    5 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: reasoning-tool-success (3.0s)
+  ✓    6 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-error (2.7s)
+  ✓    7 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-long-running (9.0s)
+  ✓    8 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: web-search (2.8s)
+  ✓    9 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: retrieval-chunks (2.8s)
+  ✓   10 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: source-citations (2.6s)
+  ✓   11 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: file-output (2.7s)
+  ✓   12 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: data-message-chart (2.5s)
+  ✓   13 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-status (2.8s)
+  ✓   14 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-plan (3.0s)
+  ✓   15 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-state-sync (3.0s)
+  ✓   16 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: nested-subagent-task-group (3.4s)
+  ✓   17 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: markdown-showcase (3.9s)
+  ✓   18 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:87:1 › locale switch preserves composer draft and trigger query (1.8s)
+  ✓   19 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:103:1 › thread history selection survives locale switch and More stays in theme boundary (2.8s)
+  ✓   20 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:126:1 › theme, command popover and footer overlays (2.0s)
+  ✓   21 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:146:1 › thread loading and error evidence (1.7s)
+  ✓   22 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:159:1 › mention empty popover, attachments, dictation, edit and export menu (2.6s)
+  ✓   23 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:192:1 › compatibility message footer renders canonical actions (3.5s)
+  ✓   24 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:205:1 › quote selection and preview (2.8s)
+  ✓   25 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:242:1 › thread list localization (1.6s)
+  ✓   26 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:254:1 › header stays above first message without horizontal overflow (1.7s)
+  ✓   27 [zh-CN-desktop] › tests/style-boundary-official-acceptance.spec.ts:19:40 › official computed geometry, animation and Markdown: light (12.0s)
+  ✓   28 [zh-CN-desktop] › tests/style-boundary-official-acceptance.spec.ts:19:40 › official computed geometry, animation and Markdown: dark (12.4s)
+  ✓   29 [zh-CN-desktop] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: light (9.2s)
+  ✓   30 [zh-CN-desktop] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: dark (11.0s)
+  ✓   31 [zh-CN-desktop] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: violet (12.0s)
+  ✓   32 [zh-CN-desktop] › tests/tool-timeline-thinking.spec.ts:32:1 › T08/T09/T10 placeholder-only, reasoning-only and both (26.9s)
+(node:72125) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+5:50:31 PM [vite] (client) [optimizer] bundling dependencies...
+  ✓   33 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: empty (5.5s)
+  ✓   34 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-timeline-thinking (5.1s)
+  ✓   35 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: thinking-placeholder (3.1s)
+  ✓   36 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: simple-chat (2.8s)
+  ✓   37 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: reasoning-tool-success (3.3s)
+  ✓   38 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-error (2.8s)
+  ✓   39 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-long-running (9.2s)
+  ✓   40 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: web-search (2.7s)
+  ✓   41 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: retrieval-chunks (3.1s)
+  ✓   42 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: source-citations (2.7s)
+  ✓   43 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: file-output (2.8s)
+  ✓   44 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: data-message-chart (2.7s)
+  ✓   45 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-status (2.7s)
+  ✓   46 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-plan (2.8s)
+  ✓   47 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-state-sync (3.0s)
+  ✓   48 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: nested-subagent-task-group (3.0s)
+  ✓   49 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: markdown-showcase (4.7s)
+  ✓   50 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:87:1 › locale switch preserves composer draft and trigger query (2.1s)
+  ✓   51 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:103:1 › thread history selection survives locale switch and More stays in theme boundary (3.0s)
+  ✓   52 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:126:1 › theme, command popover and footer overlays (2.2s)
+  ✓   53 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:146:1 › thread loading and error evidence (2.3s)
+  ✓   54 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:159:1 › mention empty popover, attachments, dictation, edit and export menu (2.7s)
+  ✓   55 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:192:1 › compatibility message footer renders canonical actions (5.0s)
+  ✓   56 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:205:1 › quote selection and preview (3.4s)
+  ✓   57 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:242:1 › thread list localization (1.8s)
+  ✓   58 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:254:1 › header stays above first message without horizontal overflow (2.1s)
+  ✓   59 [zh-CN-narrow] › tests/style-boundary-official-acceptance.spec.ts:19:40 › official computed geometry, animation and Markdown: light (12.1s)
+  ✓   60 [zh-CN-narrow] › tests/style-boundary-official-acceptance.spec.ts:19:40 › official computed geometry, animation and Markdown: dark (11.0s)
+  ✓   61 [zh-CN-narrow] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: light (7.4s)
+  ✓   62 [zh-CN-narrow] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: dark (5.7s)
+  ✓   63 [zh-CN-narrow] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: violet (5.0s)
+  ✓   64 [zh-CN-narrow] › tests/tool-timeline-thinking.spec.ts:32:1 › T08/T09/T10 placeholder-only, reasoning-only and both (17.5s)
+(node:72558) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   65 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: empty (3.8s)
+  ✓   66 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-timeline-thinking (3.7s)
+  ✓   67 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: thinking-placeholder (3.2s)
+  ✓   68 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: simple-chat (2.7s)
+  ✓   69 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: reasoning-tool-success (3.2s)
+  ✓   70 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-error (2.9s)
+  ✓   71 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-long-running (9.2s)
+  ✓   72 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: web-search (2.7s)
+  ✓   73 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: retrieval-chunks (3.6s)
+  ✓   74 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: source-citations (3.1s)
+  ✓   75 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: file-output (2.8s)
+  ✓   76 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: data-message-chart (2.9s)
+  ✓   77 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-status (3.1s)
+  ✓   78 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-plan (3.0s)
+  ✓   79 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-state-sync (3.8s)
+  ✓   80 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: nested-subagent-task-group (3.0s)
+  ✓   81 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: markdown-showcase (4.0s)
+  ✓   82 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:87:1 › locale switch preserves composer draft and trigger query (2.3s)
+  ✓   83 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:103:1 › thread history selection survives locale switch and More stays in theme boundary (3.1s)
+  ✓   84 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:126:1 › theme, command popover and footer overlays (2.2s)
+  ✓   85 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:146:1 › thread loading and error evidence (2.3s)
+  ✓   86 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:159:1 › mention empty popover, attachments, dictation, edit and export menu (2.8s)
+  ✓   87 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:192:1 › compatibility message footer renders canonical actions (3.8s)
+  ✓   88 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:205:1 › quote selection and preview (4.1s)
+  ✓   89 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:242:1 › thread list localization (1.8s)
+  ✓   90 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:254:1 › header stays above first message without horizontal overflow (2.1s)
+  ✓   91 [en-US-desktop] › tests/style-boundary-official-acceptance.spec.ts:19:40 › official computed geometry, animation and Markdown: light (9.1s)
+  ✓   92 [en-US-desktop] › tests/style-boundary-official-acceptance.spec.ts:19:40 › official computed geometry, animation and Markdown: dark (9.4s)
+5:54:50 PM [vite] (client) [optimizer] bundling dependencies...
+  ✓   93 [en-US-desktop] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: light (5.2s)
+  ✓   94 [en-US-desktop] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: dark (4.9s)
+  ✓   95 [en-US-desktop] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: violet (4.9s)
+  ✓   96 [en-US-desktop] › tests/tool-timeline-thinking.spec.ts:32:1 › T08/T09/T10 placeholder-only, reasoning-only and both (18.9s)
+(node:72855) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   97 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: empty (4.0s)
+  ✓   98 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-timeline-thinking (3.4s)
+  ✓   99 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: thinking-placeholder (3.4s)
+  ✓  100 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: simple-chat (2.5s)
+  ✓  101 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: reasoning-tool-success (3.2s)
+  ✓  102 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-error (2.6s)
+  ✓  103 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-long-running (9.7s)
+  ✓  104 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: web-search (3.3s)
+  ✓  105 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: retrieval-chunks (2.8s)
+  ✓  106 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: source-citations (2.8s)
+  ✓  107 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: file-output (2.8s)
+  ✓  108 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: data-message-chart (2.7s)
+  ✓  109 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-status (2.9s)
+  ✓  110 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-plan (2.9s)
+  ✓  111 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-state-sync (2.9s)
+  ✓  112 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: nested-subagent-task-group (3.5s)
+  ✓  113 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: markdown-showcase (3.9s)
+  ✓  114 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:87:1 › locale switch preserves composer draft and trigger query (2.3s)
+  ✓  115 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:103:1 › thread history selection survives locale switch and More stays in theme boundary (3.6s)
+  ✓  116 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:126:1 › theme, command popover and footer overlays (2.7s)
+  ✓  117 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:146:1 › thread loading and error evidence (2.6s)
+  ✓  118 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:159:1 › mention empty popover, attachments, dictation, edit and export menu (3.7s)
+  ✓  119 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:192:1 › compatibility message footer renders canonical actions (4.0s)
+  ✓  120 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:205:1 › quote selection and preview (3.2s)
+  ✓  121 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:242:1 › thread list localization (1.7s)
+  ✓  122 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:254:1 › header stays above first message without horizontal overflow (2.0s)
+  ✓  123 [en-US-narrow] › tests/style-boundary-official-acceptance.spec.ts:19:40 › official computed geometry, animation and Markdown: light (8.9s)
+  ✓  124 [en-US-narrow] › tests/style-boundary-official-acceptance.spec.ts:19:40 › official computed geometry, animation and Markdown: dark (9.4s)
+5:57:14 PM [vite] (client) [optimizer] bundling dependencies...
+  ✓  125 [en-US-narrow] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: light (6.2s)
+  ✓  126 [en-US-narrow] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: dark (5.5s)
+  ✓  127 [en-US-narrow] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: violet (5.8s)
+  ✓  128 [en-US-narrow] › tests/tool-timeline-thinking.spec.ts:32:1 › T08/T09/T10 placeholder-only, reasoning-only and both (18.9s)
+
+  128 passed (10.2m)
+
+
+[B-layout-diagnostic.log]
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite-runtime-aliases" without a file extension (../../../private/tmp/plugin-style-final-hosts/B/vite.config.ts:5:32). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+5:57:17 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+5:57:20 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+5:57:23 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+5:57:25 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+5:57:29 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+5:57:32 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+5:57:34 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+5:57:37 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+[{"width":1440,"theme":"light","locale":"zh-CN","status":"PASS"},{"width":1440,"theme":"light","locale":"en-US","status":"PASS"},{"width":1440,"theme":"dark","locale":"zh-CN","status":"PASS"},{"width":1440,"theme":"dark","locale":"en-US","status":"PASS"},{"width":420,"theme":"light","locale":"zh-CN","status":"FAIL","error":"Plugin outside viewport"},{"width":420,"theme":"light","locale":"en-US","status":"FAIL","error":"Plugin outside viewport"},{"width":420,"theme":"dark","locale":"zh-CN","status":"FAIL","error":"Plugin outside viewport"},{"width":420,"theme":"dark","locale":"en-US","status":"PASS"}]

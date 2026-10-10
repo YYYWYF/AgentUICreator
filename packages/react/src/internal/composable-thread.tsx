@@ -32,7 +32,7 @@ import {
   ToolGroupTrigger,
 } from "./adapters/assistant-ui/components/assistant-ui/elements/tool-group.aui.js";
 import { TooltipIconButton } from "./adapters/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
-import { Button } from "./vendor/assistant-ui/components/ui/button.js";
+import { Button } from "./adapters/assistant-ui/components/ui/button.js";
 import { Skeleton } from "./vendor/assistant-ui/components/ui/skeleton.js";
 import { cn } from "./vendor/assistant-ui/lib/utils.js";
 import {

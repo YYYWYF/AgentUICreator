@@ -49,7 +49,7 @@ const labelsFor=locale=>{
    if(scenario!=='B'&&!row.controls.className.includes('acme-input'))throw Error('Generated input does not use active Design System');
    if(JSON.stringify(row.sourceHashes)!==JSON.stringify(hashSources()))throw Error('Source changed during browser acceptance');
    if(errors.length)throw Error(errors.join('; '));row.status='PASS';
-  }catch(error){row.error=error.message;await page.screenshot({path:path.join(out,`${scenario}-${width}-${theme}-${locale}-failure.png`),fullPage:true}).catch(()=>{});}
+  }catch(error){row.error=error.message;row.failureLayout=await page.locator('[data-ui-plugin=business-notes]').evaluate(el=>{const rows=[];for(let n=el;n;n=n.parentElement){const css=getComputedStyle(n);rows.push({className:n.className,owned:n.hasAttribute('data-agent-ui-owned'),rect:n.getBoundingClientRect().toJSON(),css:Object.fromEntries(['width','height','padding','box-sizing','overflow','font-size','line-height'].map(k=>[k,css.getPropertyValue(k)]))});}return rows;}).catch(()=>null);await page.screenshot({path:path.join(out,`${scenario}-${width}-${theme}-${locale}-failure.png`),fullPage:true}).catch(()=>{});}
   results.push(row);await page.close();
  }
  await browser.close();fs.writeFileSync(path.join(out,scenario+'-results.json'),JSON.stringify(results,null,2));console.log(JSON.stringify(results.map(({width,theme,locale,status,error})=>({width,theme,locale,status,error}))));

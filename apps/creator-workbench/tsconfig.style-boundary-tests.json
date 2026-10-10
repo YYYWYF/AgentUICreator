@@ -13,6 +13,9 @@
     "tests/i18n-plugin-visual.spec.ts",
     "tests/tool-timeline-thinking.spec.ts",
     "tests/style-boundary-final.spec.ts",
+    "tests/style-boundary-acceptance.spec.ts",
+    "tests/style-boundary-official-acceptance.spec.ts",
+    "playwright.style-acceptance.config.ts",
     "playwright.style-final.config.ts"
   ],
   "exclude": []

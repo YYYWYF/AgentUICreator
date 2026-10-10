@@ -123,7 +123,7 @@ import {
   CollapsibleContent as InternalCollapsibleContent,
   CollapsibleTrigger as InternalCollapsibleTrigger,
 } from "./internal/vendor/assistant-ui/components/ui/collapsible.js";
-import { Button as InternalButton } from "./internal/vendor/assistant-ui/components/ui/button.js";
+import { Button as InternalButton } from "./internal/adapters/assistant-ui/components/ui/button.js";
 import {
   TooltipIconButton as InternalTooltipIconButton,
 } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";

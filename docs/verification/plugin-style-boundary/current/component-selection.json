@@ -1,0 +1,26 @@
+[
+  {
+    "scene": "A",
+    "usesAntD": false,
+    "usesDesignSystem": true,
+    "antdInstalled": false,
+    "sourceSHA256": "162a4fa387adafcc2982bab6fabf28ea5cdbdb962daeec0a3f05ce5f06426a77",
+    "mode": "unchanged previous Creator output; no new Creator model invocation"
+  },
+  {
+    "scene": "B",
+    "usesAntD": true,
+    "usesDesignSystem": false,
+    "antdInstalled": true,
+    "sourceSHA256": "790a853a28ffd6734f36eb6278e5132a307a4096ff460e4dee0aeb7d4917b3b4",
+    "mode": "unchanged previous Creator output; no new Creator model invocation"
+  },
+  {
+    "scene": "C",
+    "usesAntD": false,
+    "usesDesignSystem": true,
+    "antdInstalled": true,
+    "sourceSHA256": "6d56a3f9d3a904cd1e079c40ff200ee0948dd33fa8166b077a65444aa40d23b4",
+    "mode": "unchanged previous Creator output; no new Creator model invocation"
+  }
+]

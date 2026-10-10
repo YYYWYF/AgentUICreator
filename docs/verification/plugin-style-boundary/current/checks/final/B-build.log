@@ -1,0 +1,73 @@
+[WARN] Your node_modules are out of sync with your lockfile. Cannot check whether dependencies are outdated
+$ tsc --noEmit && vite build
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite-runtime-aliases" without a file extension (vite.config.ts:5:32). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+vite v8.3.0 building client environment for production...
+transforming...
+✓ 7169 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                    1.55 kB │ gzip:   0.50 kB
+dist/assets/definition-4QIysg6V.css                0.89 kB │ gzip:   0.42 kB
+dist/assets/composable-thread-CcdakA0V.css         0.96 kB │ gzip:   0.33 kB
+dist/assets/definition-CKHneGlK.css                1.01 kB │ gzip:   0.39 kB
+dist/assets/definition-BZQDiHcN.css                1.07 kB │ gzip:   0.46 kB
+dist/assets/definition-Z4lhdSEi.css                1.92 kB │ gzip:   0.53 kB
+dist/assets/definition-C3hUqfMu.css                2.24 kB │ gzip:   0.52 kB
+dist/assets/plugins-rPzCi-Bb.css                   5.80 kB │ gzip:   1.50 kB
+dist/assets/index-CNydgizE.css                   167.26 kB │ gzip:  24.47 kB
+dist/assets/agent-ui-theme-C8kIjt_b.js             0.03 kB │ gzip:   0.05 kB
+dist/assets/theme-config-BAxWw0ID.js               0.03 kB │ gzip:   0.05 kB
+dist/assets/agent-ui-locale-DiJqumUk.js            0.03 kB │ gzip:   0.05 kB
+dist/assets/theme-contract-B_bDciBf.js             0.20 kB │ gzip:   0.15 kB
+dist/assets/data-source-BjGsISWZ.js                0.28 kB │ gzip:   0.17 kB
+dist/assets/composer-triggers-D0gt51Pq.js          0.45 kB │ gzip:   0.30 kB
+dist/assets/definition-FNzOQbAq.js                 0.75 kB │ gzip:   0.45 kB
+dist/assets/definition-CLHnT3MT.js                 0.79 kB │ gzip:   0.45 kB
+dist/assets/definition-BVSuB5jv.js                 0.81 kB │ gzip:   0.48 kB
+dist/assets/definition-CwuNwlLr.js                 0.84 kB │ gzip:   0.49 kB
+dist/assets/definition-D7ABJ0Fi.js                 0.86 kB │ gzip:   0.51 kB
+dist/assets/definition-DGyrvTIN.js                 0.86 kB │ gzip:   0.51 kB
+dist/assets/definition-cwNsIBeV.js                 0.87 kB │ gzip:   0.50 kB
+dist/assets/definition-DxZ_QcZ9.js                 0.89 kB │ gzip:   0.50 kB
+dist/assets/definition-mkgA6-3q.js                 0.93 kB │ gzip:   0.54 kB
+dist/assets/definition-DLotuB-f.js                 0.94 kB │ gzip:   0.56 kB
+dist/assets/definition-kbmhLJjv.js                 1.01 kB │ gzip:   0.57 kB
+dist/assets/definition-DkFbNDHD.js                 1.02 kB │ gzip:   0.60 kB
+dist/assets/definition-ibQtaYkS.js                 1.03 kB │ gzip:   0.59 kB
+dist/assets/definition-BGkEUsKF.js                 1.03 kB │ gzip:   0.59 kB
+dist/assets/definition-zvs55Ndb.js                 1.06 kB │ gzip:   0.60 kB
+dist/assets/definition-CfjTML8o.js                 1.06 kB │ gzip:   0.54 kB
+dist/assets/definition-BAN84c5K.js                 1.08 kB │ gzip:   0.67 kB
+dist/assets/definition-C_768tyN.js                 1.13 kB │ gzip:   0.69 kB
+dist/assets/definition-BljZCSzG.js                 1.15 kB │ gzip:   0.68 kB
+dist/assets/definition-sKhTKgVt.js                 1.19 kB │ gzip:   0.74 kB
+dist/assets/definition-P3sKV8UK.js                 1.21 kB │ gzip:   0.63 kB
+dist/assets/definition-B7Fv8eV7.js                 1.23 kB │ gzip:   0.62 kB
+dist/assets/definition-CnXjN0fp.js                 1.34 kB │ gzip:   0.76 kB
+dist/assets/createLucideIcon-VLFl3TvT.js           1.40 kB │ gzip:   0.79 kB
+dist/assets/definition-BrOoQGW4.js                 1.43 kB │ gzip:   0.61 kB
+dist/assets/definition-C-bXnSlg.js                 1.53 kB │ gzip:   0.73 kB
+dist/assets/definition-X2yf-3Mh.js                 2.84 kB │ gzip:   1.19 kB
+dist/assets/jsx-dev-runtime-p48jWy_c.js            5.42 kB │ gzip:   2.32 kB
+dist/assets/locale-registry-C0dhJNgZ.js            7.29 kB │ gzip:   3.25 kB
+dist/assets/definition-DP7iCfK9.js                 7.49 kB │ gzip:   2.40 kB
+dist/assets/definition-DFnsuiLK.js                10.13 kB │ gzip:   2.92 kB
+dist/assets/react-ChF0qiIp.js                     20.86 kB │ gzip:   7.49 kB
+dist/assets/locale-BDd1A9Rz.js                    48.28 kB │ gzip:  17.38 kB
+dist/assets/plugins-lYQ1PnWU.js                   58.83 kB │ gzip:  15.61 kB
+dist/assets/assistant-ui-composer-E40sTB0c.js     97.63 kB │ gzip:  27.74 kB
+dist/assets/public-CBITGowt.js                    98.76 kB │ gzip:  30.83 kB
+dist/assets/ui-plugin-CRe-XHC1.js                 99.62 kB │ gzip:  28.24 kB
+dist/assets/definition-DJ4s3H75.js               220.96 kB │ gzip:  68.38 kB
+dist/assets/lexical-CQjTcrV1.js                  253.06 kB │ gzip:  81.58 kB
+dist/assets/composable-thread-B0UgbE4n.js        775.48 kB │ gzip: 237.31 kB
+dist/assets/index-GMawm3am.js                  1,349.74 kB │ gzip: 388.86 kB
+
+✓ built in 1.37s
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.

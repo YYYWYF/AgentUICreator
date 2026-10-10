@@ -1,0 +1,87 @@
+{
+  "controlled": {
+    "outside": {
+      "tag": "INPUT",
+      "slot": null,
+      "owned": false,
+      "active": false,
+      "focusVisible": false,
+      "hover": false,
+      "state": null,
+      "css": {
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgb(200, 210, 228)",
+        "outline-width": "3px",
+        "outline-style": "none",
+        "outline-color": "rgb(25, 33, 58)",
+        "box-shadow": "none",
+        "background-color": "rgb(255, 255, 255)",
+        "border-radius": "12px",
+        "padding": "8px 12px",
+        "height": "36px",
+        "color": "rgb(25, 33, 58)",
+        "font-size": "16px",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      }
+    },
+    "inside": {
+      "tag": "INPUT",
+      "slot": null,
+      "owned": false,
+      "active": false,
+      "focusVisible": false,
+      "hover": false,
+      "state": null,
+      "css": {
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgb(200, 210, 228)",
+        "outline-width": "3px",
+        "outline-style": "none",
+        "outline-color": "rgb(25, 33, 58)",
+        "box-shadow": "none",
+        "background-color": "rgb(255, 255, 255)",
+        "border-radius": "12px",
+        "padding": "8px 12px",
+        "height": "36px",
+        "color": "rgb(25, 33, 58)",
+        "font-size": "16px",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      }
+    }
+  },
+  "inherited": {
+    "tag": "INPUT",
+    "slot": null,
+    "owned": false,
+    "active": false,
+    "focusVisible": false,
+    "hover": false,
+    "state": null,
+    "css": {
+      "border-top-width": "1px",
+      "border-top-style": "solid",
+      "border-top-color": "rgb(200, 210, 228)",
+      "outline-width": "3px",
+      "outline-style": "none",
+      "outline-color": "rgb(25, 33, 58)",
+      "box-shadow": "none",
+      "background-color": "rgb(255, 255, 255)",
+      "border-radius": "12px",
+      "padding": "8px 12px",
+      "height": "42px",
+      "color": "rgb(25, 33, 58)",
+      "font-size": "16px",
+      "line-height": "24px",
+      "box-sizing": "border-box"
+    }
+  },
+  "ancestry": {
+    "inputLineHeight": "24px",
+    "rootLineHeight": "24px",
+    "explicitOwnership": false
+  }
+}

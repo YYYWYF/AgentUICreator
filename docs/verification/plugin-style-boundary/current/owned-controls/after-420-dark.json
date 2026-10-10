@@ -1,0 +1,2981 @@
+{
+  "toolDefault": {
+    "tag": "BUTTON",
+    "slot": "collapsible-trigger",
+    "owned": true,
+    "active": false,
+    "focusVisible": false,
+    "hover": false,
+    "state": null,
+    "css": {
+      "border-top-width": "0px",
+      "border-top-style": "solid",
+      "border-top-color": "oklch(1 0 0 / 0.1)",
+      "outline-width": "3px",
+      "outline-style": "none",
+      "outline-color": "oklab(0.985 0 0 / 0.55)",
+      "box-shadow": "none",
+      "background-color": "rgba(0, 0, 0, 0)",
+      "border-radius": "8px",
+      "padding": "4px 0px",
+      "height": "28.5px",
+      "color": "oklab(0.985 0 0 / 0.55)",
+      "font-size": "13.5px",
+      "line-height": "20.25px",
+      "box-sizing": "border-box"
+    }
+  },
+  "toolRules": [
+    {
+      "origin": "user-agent",
+      "selector": "input[type=\"button\" i], input[type=\"submit\" i], input[type=\"reset\" i], input[type=\"file\" i]::-webkit-file-upload-button, button",
+      "layers": [],
+      "matchingSelectors": [
+        4
+      ],
+      "properties": [
+        {
+          "name": "box-sizing",
+          "value": "border-box"
+        }
+      ]
+    },
+    {
+      "origin": "user-agent",
+      "selector": "input[type=\"button\" i], input[type=\"submit\" i], input[type=\"reset\" i], input[type=\"file\" i]::-webkit-file-upload-button, button",
+      "layers": [],
+      "matchingSelectors": [
+        4
+      ],
+      "properties": [
+        {
+          "name": "padding-block-start",
+          "value": "1px"
+        },
+        {
+          "name": "padding-block-end",
+          "value": "1px"
+        },
+        {
+          "name": "padding-inline-start",
+          "value": "6px"
+        },
+        {
+          "name": "padding-inline-end",
+          "value": "6px"
+        },
+        {
+          "name": "border-top-width",
+          "value": "2px"
+        },
+        {
+          "name": "border-right-width",
+          "value": "2px"
+        },
+        {
+          "name": "border-bottom-width",
+          "value": "2px"
+        },
+        {
+          "name": "border-left-width",
+          "value": "2px"
+        },
+        {
+          "name": "border-top-style",
+          "value": "outset"
+        },
+        {
+          "name": "border-right-style",
+          "value": "outset"
+        },
+        {
+          "name": "border-bottom-style",
+          "value": "outset"
+        },
+        {
+          "name": "border-left-style",
+          "value": "outset"
+        },
+        {
+          "name": "border-top-color",
+          "value": "buttonborder"
+        },
+        {
+          "name": "border-right-color",
+          "value": "buttonborder"
+        },
+        {
+          "name": "border-bottom-color",
+          "value": "buttonborder"
+        },
+        {
+          "name": "border-left-color",
+          "value": "buttonborder"
+        },
+        {
+          "name": "border-image-source",
+          "value": "none",
+          "implicit": true
+        },
+        {
+          "name": "border-image-slice",
+          "value": "100%",
+          "implicit": true
+        },
+        {
+          "name": "border-image-width",
+          "value": "1",
+          "implicit": true
+        },
+        {
+          "name": "border-image-outset",
+          "value": "0",
+          "implicit": true
+        },
+        {
+          "name": "border-image-repeat",
+          "value": "stretch",
+          "implicit": true
+        },
+        {
+          "name": "background-color",
+          "value": "buttonface"
+        }
+      ]
+    },
+    {
+      "origin": "regular",
+      "selector": ":is(.agent-ui-root, .agent-ui-conversation), :is(.agent-ui-root, .agent-ui-conversation) :where([class^=\"aui-\"], [class*=\" aui-\"], [data-slot^=\"agent-ui-\"], [data-agent-ui-owned]), :is(.agent-ui-root, .agent-ui-conversation) :where([class^=\"aui-\"], [class*=\" aui-\"], [data-slot^=\"agent-ui-\"], [data-agent-ui-owned])::before, :is(.agent-ui-root, .agent-ui-conversation) :where([class^=\"aui-\"], [class*=\" aui-\"], [data-slot^=\"agent-ui-\"], [data-agent-ui-owned])::after",
+      "layers": [
+        {
+          "text": "base",
+          "range": {
+            "startLine": 82,
+            "startColumn": 7,
+            "endLine": 82,
+            "endColumn": 11
+          },
+          "styleSheetId": "style-sheet-71420-6"
+        }
+      ],
+      "matchingSelectors": [
+        1
+      ],
+      "properties": [
+        {
+          "name": "box-sizing",
+          "value": "border-box",
+          "implicit": false,
+          "text": "box-sizing: border-box;",
+          "disabled": false,
+          "range": {
+            "startLine": 84,
+            "startColumn": 4,
+            "endLine": 84,
+            "endColumn": 27
+          }
+        },
+        {
+          "name": "padding",
+          "value": "0",
+          "implicit": false,
+          "text": "padding: 0;",
+          "disabled": false,
+          "range": {
+            "startLine": 86,
+            "startColumn": 4,
+            "endLine": 86,
+            "endColumn": 15
+          },
+          "longhandProperties": [
+            {
+              "name": "padding-top",
+              "value": "0px"
+            },
+            {
+              "name": "padding-right",
+              "value": "0px"
+            },
+            {
+              "name": "padding-bottom",
+              "value": "0px"
+            },
+            {
+              "name": "padding-left",
+              "value": "0px"
+            }
+          ]
+        },
+        {
+          "name": "border",
+          "value": "0 solid var(--border)",
+          "implicit": false,
+          "text": "border: 0 solid var(--border);",
+          "disabled": false,
+          "range": {
+            "startLine": 87,
+            "startColumn": 4,
+            "endLine": 87,
+            "endColumn": 34
+          },
+          "longhandProperties": [
+            {
+              "name": "border-top-width",
+              "value": "0px"
+            },
+            {
+              "name": "border-right-width",
+              "value": "0px"
+            },
+            {
+              "name": "border-bottom-width",
+              "value": "0px"
+            },
+            {
+              "name": "border-left-width",
+              "value": "0px"
+            },
+            {
+              "name": "border-top-style",
+              "value": "solid"
+            },
+            {
+              "name": "border-right-style",
+              "value": "solid"
+            },
+            {
+              "name": "border-bottom-style",
+              "value": "solid"
+            },
+            {
+              "name": "border-left-style",
+              "value": "solid"
+            },
+            {
+              "name": "border-top-color",
+              "value": "currentcolor"
+            },
+            {
+              "name": "border-right-color",
+              "value": "currentcolor"
+            },
+            {
+              "name": "border-bottom-color",
+              "value": "currentcolor"
+            },
+            {
+              "name": "border-left-color",
+              "value": "currentcolor"
+            },
+            {
+              "name": "border-image-source",
+              "value": "none"
+            },
+            {
+              "name": "border-image-slice",
+              "value": "100%"
+            },
+            {
+              "name": "border-image-width",
+              "value": "1"
+            },
+            {
+              "name": "border-image-outset",
+              "value": "0"
+            },
+            {
+              "name": "border-image-repeat",
+              "value": "stretch"
+            }
+          ]
+        },
+        {
+          "name": "box-sizing",
+          "value": "border-box"
+        },
+        {
+          "name": "padding-top",
+          "value": "0px"
+        },
+        {
+          "name": "padding-right",
+          "value": "0px"
+        },
+        {
+          "name": "padding-bottom",
+          "value": "0px"
+        },
+        {
+          "name": "padding-left",
+          "value": "0px"
+        },
+        {
+          "name": "border-top-color",
+          "value": ""
+        },
+        {
+          "name": "border-top-style",
+          "value": ""
+        },
+        {
+          "name": "border-top-width",
+          "value": ""
+        },
+        {
+          "name": "border-right-color",
+          "value": ""
+        },
+        {
+          "name": "border-right-style",
+          "value": ""
+        },
+        {
+          "name": "border-right-width",
+          "value": ""
+        },
+        {
+          "name": "border-bottom-color",
+          "value": ""
+        },
+        {
+          "name": "border-bottom-style",
+          "value": ""
+        },
+        {
+          "name": "border-bottom-width",
+          "value": ""
+        },
+        {
+          "name": "border-left-color",
+          "value": ""
+        },
+        {
+          "name": "border-left-style",
+          "value": ""
+        },
+        {
+          "name": "border-left-width",
+          "value": ""
+        },
+        {
+          "name": "border-image-source",
+          "value": ""
+        },
+        {
+          "name": "border-image-slice",
+          "value": ""
+        },
+        {
+          "name": "border-image-width",
+          "value": ""
+        },
+        {
+          "name": "border-image-outset",
+          "value": ""
+        },
+        {
+          "name": "border-image-repeat",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "origin": "regular",
+      "selector": ":is(.agent-ui-root, .agent-ui-conversation) :where([class^=\"aui-\"], [class*=\" aui-\"], [data-slot^=\"agent-ui-\"], [data-agent-ui-owned]):where(button, input, select, optgroup, textarea), :is(.agent-ui-root, .agent-ui-conversation) :where([class^=\"aui-\"], [class*=\" aui-\"], [data-slot^=\"agent-ui-\"], [data-agent-ui-owned])::file-selector-button",
+      "layers": [
+        {
+          "text": "base",
+          "range": {
+            "startLine": 82,
+            "startColumn": 7,
+            "endLine": 82,
+            "endColumn": 11
+          },
+          "styleSheetId": "style-sheet-71420-6"
+        }
+      ],
+      "matchingSelectors": [
+        0
+      ],
+      "properties": [
+        {
+          "name": "border-radius",
+          "value": "0",
+          "implicit": false,
+          "text": "border-radius: 0;",
+          "disabled": false,
+          "range": {
+            "startLine": 137,
+            "startColumn": 4,
+            "endLine": 137,
+            "endColumn": 21
+          },
+          "longhandProperties": [
+            {
+              "name": "border-top-left-radius",
+              "value": "0px"
+            },
+            {
+              "name": "border-top-right-radius",
+              "value": "0px"
+            },
+            {
+              "name": "border-bottom-right-radius",
+              "value": "0px"
+            },
+            {
+              "name": "border-bottom-left-radius",
+              "value": "0px"
+            }
+          ]
+        },
+        {
+          "name": "background-color",
+          "value": "transparent",
+          "implicit": false,
+          "text": "background-color: transparent;",
+          "disabled": false,
+          "range": {
+            "startLine": 138,
+            "startColumn": 4,
+            "endLine": 138,
+            "endColumn": 34
+          }
+        },
+        {
+          "name": "border-top-left-radius",
+          "value": "0px"
+        },
+        {
+          "name": "border-top-right-radius",
+          "value": "0px"
+        },
+        {
+          "name": "border-bottom-right-radius",
+          "value": "0px"
+        },
+        {
+          "name": "border-bottom-left-radius",
+          "value": "0px"
+        },
+        {
+          "name": "background-color",
+          "value": "transparent"
+        }
+      ]
+    },
+    {
+      "origin": "regular",
+      "selector": ".rounded-md",
+      "layers": [
+        {
+          "text": "utilities",
+          "range": {
+            "startLine": 158,
+            "startColumn": 7,
+            "endLine": 158,
+            "endColumn": 16
+          },
+          "styleSheetId": "style-sheet-71420-6"
+        }
+      ],
+      "matchingSelectors": [
+        0
+      ],
+      "properties": [
+        {
+          "name": "border-radius",
+          "value": "calc(var(--radius) - 2px)",
+          "implicit": false,
+          "text": "border-radius: calc(var(--radius) - 2px);",
+          "disabled": false,
+          "range": {
+            "startLine": 1167,
+            "startColumn": 4,
+            "endLine": 1167,
+            "endColumn": 45
+          }
+        },
+        {
+          "name": "border-top-left-radius",
+          "value": ""
+        },
+        {
+          "name": "border-top-right-radius",
+          "value": ""
+        },
+        {
+          "name": "border-bottom-right-radius",
+          "value": ""
+        },
+        {
+          "name": "border-bottom-left-radius",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "origin": "regular",
+      "selector": ".py-1",
+      "layers": [
+        {
+          "text": "utilities",
+          "range": {
+            "startLine": 158,
+            "startColumn": 7,
+            "endLine": 158,
+            "endColumn": 16
+          },
+          "styleSheetId": "style-sheet-71420-6"
+        }
+      ],
+      "matchingSelectors": [
+        0
+      ],
+      "properties": [
+        {
+          "name": "padding-block",
+          "value": "var(--spacing)",
+          "implicit": false,
+          "text": "padding-block: var(--spacing);",
+          "disabled": false,
+          "range": {
+            "startLine": 1572,
+            "startColumn": 4,
+            "endLine": 1572,
+            "endColumn": 34
+          }
+        },
+        {
+          "name": "padding-block-start",
+          "value": ""
+        },
+        {
+          "name": "padding-block-end",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "origin": "regular",
+      "selector": ".outline-none",
+      "layers": [
+        {
+          "text": "utilities",
+          "range": {
+            "startLine": 158,
+            "startColumn": 7,
+            "endLine": 158,
+            "endColumn": 16
+          },
+          "styleSheetId": "style-sheet-71420-6"
+        }
+      ],
+      "matchingSelectors": [
+        0
+      ],
+      "properties": [
+        {
+          "name": "outline-style",
+          "value": "none",
+          "implicit": false,
+          "text": "outline-style: none;",
+          "disabled": false,
+          "range": {
+            "startLine": 2194,
+            "startColumn": 4,
+            "endLine": 2194,
+            "endColumn": 24
+          }
+        },
+        {
+          "name": "outline-style",
+          "value": "none"
+        }
+      ]
+    },
+    {
+      "origin": "regular",
+      "selector": ":is(.agent-ui-root, .agent-ui-conversation), :is(.agent-ui-root, .agent-ui-conversation) :where([class^=\"aui-\"], [class*=\" aui-\"], [data-slot^=\"agent-ui-\"], [data-agent-ui-owned])",
+      "layers": [],
+      "matchingSelectors": [
+        1
+      ],
+      "properties": [
+        {
+          "name": "box-sizing",
+          "value": "revert-layer",
+          "implicit": false,
+          "text": "box-sizing: revert-layer;",
+          "disabled": false,
+          "range": {
+            "startLine": 4871,
+            "startColumn": 2,
+            "endLine": 4871,
+            "endColumn": 27
+          }
+        },
+        {
+          "name": "padding",
+          "value": "revert-layer",
+          "implicit": false,
+          "text": "padding: revert-layer;",
+          "disabled": false,
+          "range": {
+            "startLine": 4873,
+            "startColumn": 2,
+            "endLine": 4873,
+            "endColumn": 24
+          }
+        },
+        {
+          "name": "border",
+          "value": "revert-layer",
+          "implicit": false,
+          "text": "border: revert-layer;",
+          "disabled": false,
+          "range": {
+            "startLine": 4874,
+            "startColumn": 2,
+            "endLine": 4874,
+            "endColumn": 23
+          }
+        },
+        {
+          "name": "border-radius",
+          "value": "revert-layer",
+          "implicit": false,
+          "text": "border-radius: revert-layer;",
+          "disabled": false,
+          "range": {
+            "startLine": 4875,
+            "startColumn": 2,
+            "endLine": 4875,
+            "endColumn": 30
+          }
+        },
+        {
+          "name": "background",
+          "value": "revert-layer",
+          "implicit": false,
+          "text": "background: revert-layer;",
+          "disabled": false,
+          "range": {
+            "startLine": 4878,
+            "startColumn": 2,
+            "endLine": 4878,
+            "endColumn": 27
+          }
+        },
+        {
+          "name": "box-sizing",
+          "value": "revert-layer"
+        },
+        {
+          "name": "padding-top",
+          "value": "revert-layer"
+        },
+        {
+          "name": "padding-right",
+          "value": "revert-layer"
+        },
+        {
+          "name": "padding-bottom",
+          "value": "revert-layer"
+        },
+        {
+          "name": "padding-left",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-top-color",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-top-style",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-top-width",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-right-color",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-right-style",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-right-width",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-bottom-color",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-bottom-style",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-bottom-width",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-left-color",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-left-style",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-left-width",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-image-source",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-image-slice",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-image-width",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-image-outset",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-image-repeat",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-top-left-radius",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-top-right-radius",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-bottom-right-radius",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-bottom-left-radius",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-image",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-position-x",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-position-y",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-size",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-repeat",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-attachment",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-origin",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-clip",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-color",
+          "value": "revert-layer"
+        }
+      ]
+    }
+  ],
+  "toolClick": {
+    "tag": "BUTTON",
+    "slot": "collapsible-trigger",
+    "owned": true,
+    "active": false,
+    "focusVisible": false,
+    "hover": false,
+    "state": null,
+    "css": {
+      "border-top-width": "0px",
+      "border-top-style": "solid",
+      "border-top-color": "oklch(1 0 0 / 0.1)",
+      "outline-width": "3px",
+      "outline-style": "none",
+      "outline-color": "oklab(0.985 0 0 / 0.561379)",
+      "box-shadow": "none",
+      "background-color": "rgba(0, 0, 0, 0)",
+      "border-radius": "8px",
+      "padding": "4px 0px",
+      "height": "28.5px",
+      "color": "oklab(0.985 0 0 / 0.561379)",
+      "font-size": "13.5px",
+      "line-height": "20.25px",
+      "box-sizing": "border-box"
+    }
+  },
+  "toolFocus": {
+    "tag": "BUTTON",
+    "slot": "collapsible-trigger",
+    "owned": true,
+    "active": false,
+    "focusVisible": true,
+    "hover": false,
+    "state": null,
+    "css": {
+      "border-top-width": "0px",
+      "border-top-style": "solid",
+      "border-top-color": "oklch(1 0 0 / 0.1)",
+      "outline-width": "1px",
+      "outline-style": "none",
+      "outline-color": "rgba(250, 250, 250, 0.89)",
+      "box-shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.552 0.00439355 -0.015385 / 0.5) 0px 0px 0px 1px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "background-color": "rgba(0, 0, 0, 0)",
+      "border-radius": "8px",
+      "padding": "4px 0px",
+      "height": "28.5px",
+      "color": "oklab(0.985 0 0 / 0.88903)",
+      "font-size": "13.5px",
+      "line-height": "20.25px",
+      "box-sizing": "border-box"
+    }
+  },
+  "rootDefault": {
+    "tag": "DIV",
+    "slot": "aui_thread-list-item",
+    "owned": true,
+    "active": false,
+    "focusVisible": false,
+    "hover": false,
+    "state": null,
+    "css": {
+      "border-top-width": "0px",
+      "border-top-style": "solid",
+      "border-top-color": "oklch(1 0 0 / 0.1)",
+      "outline-width": "3px",
+      "outline-style": "none",
+      "outline-color": "oklch(0.985 0 0)",
+      "box-shadow": "none",
+      "background-color": "rgba(0, 0, 0, 0)",
+      "border-radius": "8px",
+      "padding": "0px",
+      "height": "32px",
+      "color": "oklch(0.985 0 0)",
+      "font-size": "14px",
+      "line-height": "20px",
+      "box-sizing": "border-box"
+    }
+  },
+  "triggerDefault": {
+    "tag": "BUTTON",
+    "slot": "aui_thread-list-item-trigger",
+    "owned": true,
+    "active": false,
+    "focusVisible": false,
+    "hover": false,
+    "state": null,
+    "css": {
+      "border-top-width": "0px",
+      "border-top-style": "solid",
+      "border-top-color": "oklch(1 0 0 / 0.1)",
+      "outline-width": "3px",
+      "outline-style": "none",
+      "outline-color": "oklch(0.985 0 0)",
+      "box-shadow": "none",
+      "background-color": "rgba(0, 0, 0, 0)",
+      "border-radius": "8px",
+      "padding": "0px 10px",
+      "height": "32px",
+      "color": "oklch(0.985 0 0)",
+      "font-size": "14px",
+      "line-height": "20px",
+      "box-sizing": "border-box"
+    }
+  },
+  "rootRules": [
+    {
+      "origin": "regular",
+      "selector": ":is(.agent-ui-root, .agent-ui-conversation), :is(.agent-ui-root, .agent-ui-conversation) :where([class^=\"aui-\"], [class*=\" aui-\"], [data-slot^=\"agent-ui-\"], [data-agent-ui-owned]), :is(.agent-ui-root, .agent-ui-conversation) :where([class^=\"aui-\"], [class*=\" aui-\"], [data-slot^=\"agent-ui-\"], [data-agent-ui-owned])::before, :is(.agent-ui-root, .agent-ui-conversation) :where([class^=\"aui-\"], [class*=\" aui-\"], [data-slot^=\"agent-ui-\"], [data-agent-ui-owned])::after",
+      "layers": [
+        {
+          "text": "base",
+          "range": {
+            "startLine": 82,
+            "startColumn": 7,
+            "endLine": 82,
+            "endColumn": 11
+          },
+          "styleSheetId": "style-sheet-71420-6"
+        }
+      ],
+      "matchingSelectors": [
+        1
+      ],
+      "properties": [
+        {
+          "name": "box-sizing",
+          "value": "border-box",
+          "implicit": false,
+          "text": "box-sizing: border-box;",
+          "disabled": false,
+          "range": {
+            "startLine": 84,
+            "startColumn": 4,
+            "endLine": 84,
+            "endColumn": 27
+          }
+        },
+        {
+          "name": "padding",
+          "value": "0",
+          "implicit": false,
+          "text": "padding: 0;",
+          "disabled": false,
+          "range": {
+            "startLine": 86,
+            "startColumn": 4,
+            "endLine": 86,
+            "endColumn": 15
+          },
+          "longhandProperties": [
+            {
+              "name": "padding-top",
+              "value": "0px"
+            },
+            {
+              "name": "padding-right",
+              "value": "0px"
+            },
+            {
+              "name": "padding-bottom",
+              "value": "0px"
+            },
+            {
+              "name": "padding-left",
+              "value": "0px"
+            }
+          ]
+        },
+        {
+          "name": "border",
+          "value": "0 solid var(--border)",
+          "implicit": false,
+          "text": "border: 0 solid var(--border);",
+          "disabled": false,
+          "range": {
+            "startLine": 87,
+            "startColumn": 4,
+            "endLine": 87,
+            "endColumn": 34
+          },
+          "longhandProperties": [
+            {
+              "name": "border-top-width",
+              "value": "0px"
+            },
+            {
+              "name": "border-right-width",
+              "value": "0px"
+            },
+            {
+              "name": "border-bottom-width",
+              "value": "0px"
+            },
+            {
+              "name": "border-left-width",
+              "value": "0px"
+            },
+            {
+              "name": "border-top-style",
+              "value": "solid"
+            },
+            {
+              "name": "border-right-style",
+              "value": "solid"
+            },
+            {
+              "name": "border-bottom-style",
+              "value": "solid"
+            },
+            {
+              "name": "border-left-style",
+              "value": "solid"
+            },
+            {
+              "name": "border-top-color",
+              "value": "currentcolor"
+            },
+            {
+              "name": "border-right-color",
+              "value": "currentcolor"
+            },
+            {
+              "name": "border-bottom-color",
+              "value": "currentcolor"
+            },
+            {
+              "name": "border-left-color",
+              "value": "currentcolor"
+            },
+            {
+              "name": "border-image-source",
+              "value": "none"
+            },
+            {
+              "name": "border-image-slice",
+              "value": "100%"
+            },
+            {
+              "name": "border-image-width",
+              "value": "1"
+            },
+            {
+              "name": "border-image-outset",
+              "value": "0"
+            },
+            {
+              "name": "border-image-repeat",
+              "value": "stretch"
+            }
+          ]
+        },
+        {
+          "name": "box-sizing",
+          "value": "border-box"
+        },
+        {
+          "name": "padding-top",
+          "value": "0px"
+        },
+        {
+          "name": "padding-right",
+          "value": "0px"
+        },
+        {
+          "name": "padding-bottom",
+          "value": "0px"
+        },
+        {
+          "name": "padding-left",
+          "value": "0px"
+        },
+        {
+          "name": "border-top-color",
+          "value": ""
+        },
+        {
+          "name": "border-top-style",
+          "value": ""
+        },
+        {
+          "name": "border-top-width",
+          "value": ""
+        },
+        {
+          "name": "border-right-color",
+          "value": ""
+        },
+        {
+          "name": "border-right-style",
+          "value": ""
+        },
+        {
+          "name": "border-right-width",
+          "value": ""
+        },
+        {
+          "name": "border-bottom-color",
+          "value": ""
+        },
+        {
+          "name": "border-bottom-style",
+          "value": ""
+        },
+        {
+          "name": "border-bottom-width",
+          "value": ""
+        },
+        {
+          "name": "border-left-color",
+          "value": ""
+        },
+        {
+          "name": "border-left-style",
+          "value": ""
+        },
+        {
+          "name": "border-left-width",
+          "value": ""
+        },
+        {
+          "name": "border-image-source",
+          "value": ""
+        },
+        {
+          "name": "border-image-slice",
+          "value": ""
+        },
+        {
+          "name": "border-image-width",
+          "value": ""
+        },
+        {
+          "name": "border-image-outset",
+          "value": ""
+        },
+        {
+          "name": "border-image-repeat",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "origin": "regular",
+      "selector": ".h-8",
+      "layers": [
+        {
+          "text": "utilities",
+          "range": {
+            "startLine": 158,
+            "startColumn": 7,
+            "endLine": 158,
+            "endColumn": 16
+          },
+          "styleSheetId": "style-sheet-71420-6"
+        }
+      ],
+      "matchingSelectors": [
+        0
+      ],
+      "properties": [
+        {
+          "name": "height",
+          "value": "calc(var(--spacing) * 8)",
+          "implicit": false,
+          "text": "height: calc(var(--spacing) * 8);",
+          "disabled": false,
+          "range": {
+            "startLine": 694,
+            "startColumn": 4,
+            "endLine": 694,
+            "endColumn": 37
+          }
+        },
+        {
+          "name": "height",
+          "value": "calc(var(--spacing) * 8)"
+        }
+      ]
+    },
+    {
+      "origin": "regular",
+      "selector": ".rounded-md",
+      "layers": [
+        {
+          "text": "utilities",
+          "range": {
+            "startLine": 158,
+            "startColumn": 7,
+            "endLine": 158,
+            "endColumn": 16
+          },
+          "styleSheetId": "style-sheet-71420-6"
+        }
+      ],
+      "matchingSelectors": [
+        0
+      ],
+      "properties": [
+        {
+          "name": "border-radius",
+          "value": "calc(var(--radius) - 2px)",
+          "implicit": false,
+          "text": "border-radius: calc(var(--radius) - 2px);",
+          "disabled": false,
+          "range": {
+            "startLine": 1167,
+            "startColumn": 4,
+            "endLine": 1167,
+            "endColumn": 45
+          }
+        },
+        {
+          "name": "border-top-left-radius",
+          "value": ""
+        },
+        {
+          "name": "border-top-right-radius",
+          "value": ""
+        },
+        {
+          "name": "border-bottom-right-radius",
+          "value": ""
+        },
+        {
+          "name": "border-bottom-left-radius",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "origin": "regular",
+      "selector": ":is(.agent-ui-root, .agent-ui-conversation), :is(.agent-ui-root, .agent-ui-conversation) :where([class^=\"aui-\"], [class*=\" aui-\"], [data-slot^=\"agent-ui-\"], [data-agent-ui-owned])",
+      "layers": [],
+      "matchingSelectors": [
+        1
+      ],
+      "properties": [
+        {
+          "name": "box-sizing",
+          "value": "revert-layer",
+          "implicit": false,
+          "text": "box-sizing: revert-layer;",
+          "disabled": false,
+          "range": {
+            "startLine": 4871,
+            "startColumn": 2,
+            "endLine": 4871,
+            "endColumn": 27
+          }
+        },
+        {
+          "name": "padding",
+          "value": "revert-layer",
+          "implicit": false,
+          "text": "padding: revert-layer;",
+          "disabled": false,
+          "range": {
+            "startLine": 4873,
+            "startColumn": 2,
+            "endLine": 4873,
+            "endColumn": 24
+          }
+        },
+        {
+          "name": "border",
+          "value": "revert-layer",
+          "implicit": false,
+          "text": "border: revert-layer;",
+          "disabled": false,
+          "range": {
+            "startLine": 4874,
+            "startColumn": 2,
+            "endLine": 4874,
+            "endColumn": 23
+          }
+        },
+        {
+          "name": "border-radius",
+          "value": "revert-layer",
+          "implicit": false,
+          "text": "border-radius: revert-layer;",
+          "disabled": false,
+          "range": {
+            "startLine": 4875,
+            "startColumn": 2,
+            "endLine": 4875,
+            "endColumn": 30
+          }
+        },
+        {
+          "name": "background",
+          "value": "revert-layer",
+          "implicit": false,
+          "text": "background: revert-layer;",
+          "disabled": false,
+          "range": {
+            "startLine": 4878,
+            "startColumn": 2,
+            "endLine": 4878,
+            "endColumn": 27
+          }
+        },
+        {
+          "name": "box-sizing",
+          "value": "revert-layer"
+        },
+        {
+          "name": "padding-top",
+          "value": "revert-layer"
+        },
+        {
+          "name": "padding-right",
+          "value": "revert-layer"
+        },
+        {
+          "name": "padding-bottom",
+          "value": "revert-layer"
+        },
+        {
+          "name": "padding-left",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-top-color",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-top-style",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-top-width",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-right-color",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-right-style",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-right-width",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-bottom-color",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-bottom-style",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-bottom-width",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-left-color",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-left-style",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-left-width",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-image-source",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-image-slice",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-image-width",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-image-outset",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-image-repeat",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-top-left-radius",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-top-right-radius",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-bottom-right-radius",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-bottom-left-radius",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-image",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-position-x",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-position-y",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-size",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-repeat",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-attachment",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-origin",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-clip",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-color",
+          "value": "revert-layer"
+        }
+      ]
+    }
+  ],
+  "triggerRules": [
+    {
+      "origin": "user-agent",
+      "selector": "input[type=\"button\" i], input[type=\"submit\" i], input[type=\"reset\" i], input[type=\"file\" i]::-webkit-file-upload-button, button",
+      "layers": [],
+      "matchingSelectors": [
+        4
+      ],
+      "properties": [
+        {
+          "name": "box-sizing",
+          "value": "border-box"
+        }
+      ]
+    },
+    {
+      "origin": "user-agent",
+      "selector": "input[type=\"button\" i], input[type=\"submit\" i], input[type=\"reset\" i], input[type=\"file\" i]::-webkit-file-upload-button, button",
+      "layers": [],
+      "matchingSelectors": [
+        4
+      ],
+      "properties": [
+        {
+          "name": "padding-block-start",
+          "value": "1px"
+        },
+        {
+          "name": "padding-block-end",
+          "value": "1px"
+        },
+        {
+          "name": "padding-inline-start",
+          "value": "6px"
+        },
+        {
+          "name": "padding-inline-end",
+          "value": "6px"
+        },
+        {
+          "name": "border-top-width",
+          "value": "2px"
+        },
+        {
+          "name": "border-right-width",
+          "value": "2px"
+        },
+        {
+          "name": "border-bottom-width",
+          "value": "2px"
+        },
+        {
+          "name": "border-left-width",
+          "value": "2px"
+        },
+        {
+          "name": "border-top-style",
+          "value": "outset"
+        },
+        {
+          "name": "border-right-style",
+          "value": "outset"
+        },
+        {
+          "name": "border-bottom-style",
+          "value": "outset"
+        },
+        {
+          "name": "border-left-style",
+          "value": "outset"
+        },
+        {
+          "name": "border-top-color",
+          "value": "buttonborder"
+        },
+        {
+          "name": "border-right-color",
+          "value": "buttonborder"
+        },
+        {
+          "name": "border-bottom-color",
+          "value": "buttonborder"
+        },
+        {
+          "name": "border-left-color",
+          "value": "buttonborder"
+        },
+        {
+          "name": "border-image-source",
+          "value": "none",
+          "implicit": true
+        },
+        {
+          "name": "border-image-slice",
+          "value": "100%",
+          "implicit": true
+        },
+        {
+          "name": "border-image-width",
+          "value": "1",
+          "implicit": true
+        },
+        {
+          "name": "border-image-outset",
+          "value": "0",
+          "implicit": true
+        },
+        {
+          "name": "border-image-repeat",
+          "value": "stretch",
+          "implicit": true
+        },
+        {
+          "name": "background-color",
+          "value": "buttonface"
+        }
+      ]
+    },
+    {
+      "origin": "regular",
+      "selector": ":is(.agent-ui-root, .agent-ui-conversation), :is(.agent-ui-root, .agent-ui-conversation) :where([class^=\"aui-\"], [class*=\" aui-\"], [data-slot^=\"agent-ui-\"], [data-agent-ui-owned]), :is(.agent-ui-root, .agent-ui-conversation) :where([class^=\"aui-\"], [class*=\" aui-\"], [data-slot^=\"agent-ui-\"], [data-agent-ui-owned])::before, :is(.agent-ui-root, .agent-ui-conversation) :where([class^=\"aui-\"], [class*=\" aui-\"], [data-slot^=\"agent-ui-\"], [data-agent-ui-owned])::after",
+      "layers": [
+        {
+          "text": "base",
+          "range": {
+            "startLine": 82,
+            "startColumn": 7,
+            "endLine": 82,
+            "endColumn": 11
+          },
+          "styleSheetId": "style-sheet-71420-6"
+        }
+      ],
+      "matchingSelectors": [
+        1
+      ],
+      "properties": [
+        {
+          "name": "box-sizing",
+          "value": "border-box",
+          "implicit": false,
+          "text": "box-sizing: border-box;",
+          "disabled": false,
+          "range": {
+            "startLine": 84,
+            "startColumn": 4,
+            "endLine": 84,
+            "endColumn": 27
+          }
+        },
+        {
+          "name": "padding",
+          "value": "0",
+          "implicit": false,
+          "text": "padding: 0;",
+          "disabled": false,
+          "range": {
+            "startLine": 86,
+            "startColumn": 4,
+            "endLine": 86,
+            "endColumn": 15
+          },
+          "longhandProperties": [
+            {
+              "name": "padding-top",
+              "value": "0px"
+            },
+            {
+              "name": "padding-right",
+              "value": "0px"
+            },
+            {
+              "name": "padding-bottom",
+              "value": "0px"
+            },
+            {
+              "name": "padding-left",
+              "value": "0px"
+            }
+          ]
+        },
+        {
+          "name": "border",
+          "value": "0 solid var(--border)",
+          "implicit": false,
+          "text": "border: 0 solid var(--border);",
+          "disabled": false,
+          "range": {
+            "startLine": 87,
+            "startColumn": 4,
+            "endLine": 87,
+            "endColumn": 34
+          },
+          "longhandProperties": [
+            {
+              "name": "border-top-width",
+              "value": "0px"
+            },
+            {
+              "name": "border-right-width",
+              "value": "0px"
+            },
+            {
+              "name": "border-bottom-width",
+              "value": "0px"
+            },
+            {
+              "name": "border-left-width",
+              "value": "0px"
+            },
+            {
+              "name": "border-top-style",
+              "value": "solid"
+            },
+            {
+              "name": "border-right-style",
+              "value": "solid"
+            },
+            {
+              "name": "border-bottom-style",
+              "value": "solid"
+            },
+            {
+              "name": "border-left-style",
+              "value": "solid"
+            },
+            {
+              "name": "border-top-color",
+              "value": "currentcolor"
+            },
+            {
+              "name": "border-right-color",
+              "value": "currentcolor"
+            },
+            {
+              "name": "border-bottom-color",
+              "value": "currentcolor"
+            },
+            {
+              "name": "border-left-color",
+              "value": "currentcolor"
+            },
+            {
+              "name": "border-image-source",
+              "value": "none"
+            },
+            {
+              "name": "border-image-slice",
+              "value": "100%"
+            },
+            {
+              "name": "border-image-width",
+              "value": "1"
+            },
+            {
+              "name": "border-image-outset",
+              "value": "0"
+            },
+            {
+              "name": "border-image-repeat",
+              "value": "stretch"
+            }
+          ]
+        },
+        {
+          "name": "box-sizing",
+          "value": "border-box"
+        },
+        {
+          "name": "padding-top",
+          "value": "0px"
+        },
+        {
+          "name": "padding-right",
+          "value": "0px"
+        },
+        {
+          "name": "padding-bottom",
+          "value": "0px"
+        },
+        {
+          "name": "padding-left",
+          "value": "0px"
+        },
+        {
+          "name": "border-top-color",
+          "value": ""
+        },
+        {
+          "name": "border-top-style",
+          "value": ""
+        },
+        {
+          "name": "border-top-width",
+          "value": ""
+        },
+        {
+          "name": "border-right-color",
+          "value": ""
+        },
+        {
+          "name": "border-right-style",
+          "value": ""
+        },
+        {
+          "name": "border-right-width",
+          "value": ""
+        },
+        {
+          "name": "border-bottom-color",
+          "value": ""
+        },
+        {
+          "name": "border-bottom-style",
+          "value": ""
+        },
+        {
+          "name": "border-bottom-width",
+          "value": ""
+        },
+        {
+          "name": "border-left-color",
+          "value": ""
+        },
+        {
+          "name": "border-left-style",
+          "value": ""
+        },
+        {
+          "name": "border-left-width",
+          "value": ""
+        },
+        {
+          "name": "border-image-source",
+          "value": ""
+        },
+        {
+          "name": "border-image-slice",
+          "value": ""
+        },
+        {
+          "name": "border-image-width",
+          "value": ""
+        },
+        {
+          "name": "border-image-outset",
+          "value": ""
+        },
+        {
+          "name": "border-image-repeat",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "origin": "regular",
+      "selector": ":is(.agent-ui-root, .agent-ui-conversation) :where([class^=\"aui-\"], [class*=\" aui-\"], [data-slot^=\"agent-ui-\"], [data-agent-ui-owned]):where(button, input, select, optgroup, textarea), :is(.agent-ui-root, .agent-ui-conversation) :where([class^=\"aui-\"], [class*=\" aui-\"], [data-slot^=\"agent-ui-\"], [data-agent-ui-owned])::file-selector-button",
+      "layers": [
+        {
+          "text": "base",
+          "range": {
+            "startLine": 82,
+            "startColumn": 7,
+            "endLine": 82,
+            "endColumn": 11
+          },
+          "styleSheetId": "style-sheet-71420-6"
+        }
+      ],
+      "matchingSelectors": [
+        0
+      ],
+      "properties": [
+        {
+          "name": "border-radius",
+          "value": "0",
+          "implicit": false,
+          "text": "border-radius: 0;",
+          "disabled": false,
+          "range": {
+            "startLine": 137,
+            "startColumn": 4,
+            "endLine": 137,
+            "endColumn": 21
+          },
+          "longhandProperties": [
+            {
+              "name": "border-top-left-radius",
+              "value": "0px"
+            },
+            {
+              "name": "border-top-right-radius",
+              "value": "0px"
+            },
+            {
+              "name": "border-bottom-right-radius",
+              "value": "0px"
+            },
+            {
+              "name": "border-bottom-left-radius",
+              "value": "0px"
+            }
+          ]
+        },
+        {
+          "name": "background-color",
+          "value": "transparent",
+          "implicit": false,
+          "text": "background-color: transparent;",
+          "disabled": false,
+          "range": {
+            "startLine": 138,
+            "startColumn": 4,
+            "endLine": 138,
+            "endColumn": 34
+          }
+        },
+        {
+          "name": "border-top-left-radius",
+          "value": "0px"
+        },
+        {
+          "name": "border-top-right-radius",
+          "value": "0px"
+        },
+        {
+          "name": "border-bottom-right-radius",
+          "value": "0px"
+        },
+        {
+          "name": "border-bottom-left-radius",
+          "value": "0px"
+        },
+        {
+          "name": "background-color",
+          "value": "transparent"
+        }
+      ]
+    },
+    {
+      "origin": "regular",
+      "selector": ".h-full",
+      "layers": [
+        {
+          "text": "utilities",
+          "range": {
+            "startLine": 158,
+            "startColumn": 7,
+            "endLine": 158,
+            "endColumn": 16
+          },
+          "styleSheetId": "style-sheet-71420-6"
+        }
+      ],
+      "matchingSelectors": [
+        0
+      ],
+      "properties": [
+        {
+          "name": "height",
+          "value": "100%",
+          "implicit": false,
+          "text": "height: 100%;",
+          "disabled": false,
+          "range": {
+            "startLine": 712,
+            "startColumn": 4,
+            "endLine": 712,
+            "endColumn": 17
+          }
+        },
+        {
+          "name": "height",
+          "value": "100%"
+        }
+      ]
+    },
+    {
+      "origin": "regular",
+      "selector": ".rounded-md",
+      "layers": [
+        {
+          "text": "utilities",
+          "range": {
+            "startLine": 158,
+            "startColumn": 7,
+            "endLine": 158,
+            "endColumn": 16
+          },
+          "styleSheetId": "style-sheet-71420-6"
+        }
+      ],
+      "matchingSelectors": [
+        0
+      ],
+      "properties": [
+        {
+          "name": "border-radius",
+          "value": "calc(var(--radius) - 2px)",
+          "implicit": false,
+          "text": "border-radius: calc(var(--radius) - 2px);",
+          "disabled": false,
+          "range": {
+            "startLine": 1167,
+            "startColumn": 4,
+            "endLine": 1167,
+            "endColumn": 45
+          }
+        },
+        {
+          "name": "border-top-left-radius",
+          "value": ""
+        },
+        {
+          "name": "border-top-right-radius",
+          "value": ""
+        },
+        {
+          "name": "border-bottom-right-radius",
+          "value": ""
+        },
+        {
+          "name": "border-bottom-left-radius",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "origin": "regular",
+      "selector": ".px-2\\.5",
+      "layers": [
+        {
+          "text": "utilities",
+          "range": {
+            "startLine": 158,
+            "startColumn": 7,
+            "endLine": 158,
+            "endColumn": 16
+          },
+          "styleSheetId": "style-sheet-71420-6"
+        }
+      ],
+      "matchingSelectors": [
+        0
+      ],
+      "properties": [
+        {
+          "name": "padding-inline",
+          "value": "calc(var(--spacing) * 2.5)",
+          "implicit": false,
+          "text": "padding-inline: calc(var(--spacing) * 2.5);",
+          "disabled": false,
+          "range": {
+            "startLine": 1557,
+            "startColumn": 4,
+            "endLine": 1557,
+            "endColumn": 47
+          }
+        },
+        {
+          "name": "padding-inline-start",
+          "value": ""
+        },
+        {
+          "name": "padding-inline-end",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "origin": "regular",
+      "selector": ".outline-none",
+      "layers": [
+        {
+          "text": "utilities",
+          "range": {
+            "startLine": 158,
+            "startColumn": 7,
+            "endLine": 158,
+            "endColumn": 16
+          },
+          "styleSheetId": "style-sheet-71420-6"
+        }
+      ],
+      "matchingSelectors": [
+        0
+      ],
+      "properties": [
+        {
+          "name": "outline-style",
+          "value": "none",
+          "implicit": false,
+          "text": "outline-style: none;",
+          "disabled": false,
+          "range": {
+            "startLine": 2194,
+            "startColumn": 4,
+            "endLine": 2194,
+            "endColumn": 24
+          }
+        },
+        {
+          "name": "outline-style",
+          "value": "none"
+        }
+      ]
+    },
+    {
+      "origin": "regular",
+      "selector": ":is(.agent-ui-root, .agent-ui-conversation), :is(.agent-ui-root, .agent-ui-conversation) :where([class^=\"aui-\"], [class*=\" aui-\"], [data-slot^=\"agent-ui-\"], [data-agent-ui-owned])",
+      "layers": [],
+      "matchingSelectors": [
+        1
+      ],
+      "properties": [
+        {
+          "name": "box-sizing",
+          "value": "revert-layer",
+          "implicit": false,
+          "text": "box-sizing: revert-layer;",
+          "disabled": false,
+          "range": {
+            "startLine": 4871,
+            "startColumn": 2,
+            "endLine": 4871,
+            "endColumn": 27
+          }
+        },
+        {
+          "name": "padding",
+          "value": "revert-layer",
+          "implicit": false,
+          "text": "padding: revert-layer;",
+          "disabled": false,
+          "range": {
+            "startLine": 4873,
+            "startColumn": 2,
+            "endLine": 4873,
+            "endColumn": 24
+          }
+        },
+        {
+          "name": "border",
+          "value": "revert-layer",
+          "implicit": false,
+          "text": "border: revert-layer;",
+          "disabled": false,
+          "range": {
+            "startLine": 4874,
+            "startColumn": 2,
+            "endLine": 4874,
+            "endColumn": 23
+          }
+        },
+        {
+          "name": "border-radius",
+          "value": "revert-layer",
+          "implicit": false,
+          "text": "border-radius: revert-layer;",
+          "disabled": false,
+          "range": {
+            "startLine": 4875,
+            "startColumn": 2,
+            "endLine": 4875,
+            "endColumn": 30
+          }
+        },
+        {
+          "name": "background",
+          "value": "revert-layer",
+          "implicit": false,
+          "text": "background: revert-layer;",
+          "disabled": false,
+          "range": {
+            "startLine": 4878,
+            "startColumn": 2,
+            "endLine": 4878,
+            "endColumn": 27
+          }
+        },
+        {
+          "name": "box-sizing",
+          "value": "revert-layer"
+        },
+        {
+          "name": "padding-top",
+          "value": "revert-layer"
+        },
+        {
+          "name": "padding-right",
+          "value": "revert-layer"
+        },
+        {
+          "name": "padding-bottom",
+          "value": "revert-layer"
+        },
+        {
+          "name": "padding-left",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-top-color",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-top-style",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-top-width",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-right-color",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-right-style",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-right-width",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-bottom-color",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-bottom-style",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-bottom-width",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-left-color",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-left-style",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-left-width",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-image-source",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-image-slice",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-image-width",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-image-outset",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-image-repeat",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-top-left-radius",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-top-right-radius",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-bottom-right-radius",
+          "value": "revert-layer"
+        },
+        {
+          "name": "border-bottom-left-radius",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-image",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-position-x",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-position-y",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-size",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-repeat",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-attachment",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-origin",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-clip",
+          "value": "revert-layer"
+        },
+        {
+          "name": "background-color",
+          "value": "revert-layer"
+        }
+      ]
+    }
+  ],
+  "hover": {
+    "tag": "DIV",
+    "slot": "aui_thread-list-item",
+    "owned": true,
+    "active": false,
+    "focusVisible": false,
+    "hover": false,
+    "state": null,
+    "css": {
+      "border-top-width": "0px",
+      "border-top-style": "solid",
+      "border-top-color": "oklch(1 0 0 / 0.1)",
+      "outline-width": "3px",
+      "outline-style": "none",
+      "outline-color": "oklch(0.985 0 0)",
+      "box-shadow": "none",
+      "background-color": "oklab(0 0 0 / 0)",
+      "border-radius": "8px",
+      "padding": "0px",
+      "height": "32px",
+      "color": "oklch(0.985 0 0)",
+      "font-size": "14px",
+      "line-height": "20px",
+      "box-sizing": "border-box"
+    }
+  },
+  "selected": {
+    "tag": "DIV",
+    "slot": "aui_thread-list-item",
+    "owned": true,
+    "active": true,
+    "focusVisible": false,
+    "hover": false,
+    "state": null,
+    "css": {
+      "border-top-width": "0px",
+      "border-top-style": "solid",
+      "border-top-color": "oklch(1 0 0 / 0.1)",
+      "outline-width": "3px",
+      "outline-style": "none",
+      "outline-color": "oklch(0.985 0 0)",
+      "box-shadow": "none",
+      "background-color": "oklab(0.274 0.00165715 -0.00576662 / 0.920965)",
+      "border-radius": "8px",
+      "padding": "0px",
+      "height": "32px",
+      "color": "oklch(0.985 0 0)",
+      "font-size": "14px",
+      "line-height": "20px",
+      "box-sizing": "border-box"
+    }
+  },
+  "clicked": {
+    "tag": "BUTTON",
+    "slot": "aui_thread-list-item-trigger",
+    "owned": true,
+    "active": false,
+    "focusVisible": false,
+    "hover": false,
+    "state": null,
+    "css": {
+      "border-top-width": "0px",
+      "border-top-style": "solid",
+      "border-top-color": "oklch(1 0 0 / 0.1)",
+      "outline-width": "3px",
+      "outline-style": "none",
+      "outline-color": "oklch(0.985 0 0)",
+      "box-shadow": "none",
+      "background-color": "rgba(0, 0, 0, 0)",
+      "border-radius": "8px",
+      "padding": "0px 36px 0px 10px",
+      "height": "32px",
+      "color": "oklch(0.985 0 0)",
+      "font-size": "14px",
+      "line-height": "20px",
+      "box-sizing": "border-box"
+    }
+  },
+  "focus": {
+    "tag": "BUTTON",
+    "slot": "aui_thread-list-item-trigger",
+    "owned": true,
+    "active": false,
+    "focusVisible": true,
+    "hover": false,
+    "state": null,
+    "css": {
+      "border-top-width": "0px",
+      "border-top-style": "solid",
+      "border-top-color": "oklch(1 0 0 / 0.1)",
+      "outline-width": "1px",
+      "outline-style": "none",
+      "outline-color": "rgb(153, 200, 255)",
+      "box-shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.552 0.00439355 -0.015385 / 0.5) 0px 0px 0px 1px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "background-color": "rgba(0, 0, 0, 0)",
+      "border-radius": "8px",
+      "padding": "0px 36px 0px 10px",
+      "height": "32px",
+      "color": "oklch(0.985 0 0)",
+      "font-size": "14px",
+      "line-height": "20px",
+      "box-sizing": "border-box"
+    }
+  },
+  "menu": {
+    "tag": "DIV",
+    "slot": "agent-ui-thread-action-menu",
+    "owned": false,
+    "active": false,
+    "focusVisible": false,
+    "hover": false,
+    "state": "open",
+    "css": {
+      "border-top-width": "1px",
+      "border-top-style": "solid",
+      "border-top-color": "oklch(1 0 0 / 0.1)",
+      "outline-width": "3px",
+      "outline-style": "none",
+      "outline-color": "oklch(0.985 0 0)",
+      "box-shadow": "none",
+      "background-color": "oklch(0.21 0.006 285.885)",
+      "border-radius": "14px",
+      "padding": "6px",
+      "height": "110px",
+      "color": "oklch(0.985 0 0)",
+      "font-size": "16px",
+      "line-height": "24px",
+      "box-sizing": "border-box"
+    }
+  },
+  "menuBox": {
+    "x": 275.8653869628906,
+    "y": 438.7958679199219,
+    "width": 123.82052612304688,
+    "height": 106.40823364257812
+  },
+  "rename": {
+    "tag": "INPUT",
+    "slot": "agent-ui-thread-rename-input",
+    "owned": false,
+    "active": false,
+    "focusVisible": true,
+    "hover": false,
+    "state": null,
+    "css": {
+      "border-top-width": "1px",
+      "border-top-style": "solid",
+      "border-top-color": "oklch(0.552 0.016 285.938)",
+      "outline-width": "1px",
+      "outline-style": "none",
+      "outline-color": "rgb(153, 200, 255)",
+      "box-shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.552 0.00439355 -0.015385 / 0.5) 0px 0px 0px 1px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "background-color": "oklch(0.141 0.005 285.823)",
+      "border-radius": "10px",
+      "padding": "4px 36px 4px 10px",
+      "height": "28px",
+      "color": "oklch(0.985 0 0)",
+      "font-size": "14px",
+      "line-height": "20px",
+      "box-sizing": "border-box"
+    }
+  },
+  "isolation": {
+    "antd-input": {
+      "outside": {
+        "tag": "INPUT",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": false,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(66, 66, 66)",
+          "outline-width": "3px",
+          "outline-style": "none",
+          "outline-color": "rgba(255, 255, 255, 0.85)",
+          "box-shadow": "none",
+          "background-color": "rgb(20, 20, 20)",
+          "border-radius": "12px",
+          "padding": "4px 11px",
+          "height": "32px",
+          "color": "rgba(255, 255, 255, 0.85)",
+          "font-size": "14px",
+          "line-height": "22px",
+          "box-sizing": "border-box"
+        }
+      },
+      "inside": {
+        "tag": "INPUT",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": false,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(66, 66, 66)",
+          "outline-width": "3px",
+          "outline-style": "none",
+          "outline-color": "rgba(255, 255, 255, 0.85)",
+          "box-shadow": "none",
+          "background-color": "rgb(20, 20, 20)",
+          "border-radius": "12px",
+          "padding": "4px 11px",
+          "height": "32px",
+          "color": "rgba(255, 255, 255, 0.85)",
+          "font-size": "14px",
+          "line-height": "22px",
+          "box-sizing": "border-box"
+        }
+      }
+    },
+    "inputStates": {
+      "outHover": {
+        "tag": "INPUT",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": false,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(95, 117, 199)",
+          "outline-width": "3px",
+          "outline-style": "none",
+          "outline-color": "rgba(255, 255, 255, 0.85)",
+          "box-shadow": "none",
+          "background-color": "rgb(20, 20, 20)",
+          "border-radius": "12px",
+          "padding": "4px 11px",
+          "height": "32px",
+          "color": "rgba(255, 255, 255, 0.85)",
+          "font-size": "14px",
+          "line-height": "22px",
+          "box-sizing": "border-box"
+        }
+      },
+      "inHover": {
+        "tag": "INPUT",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": false,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(95, 117, 199)",
+          "outline-width": "3px",
+          "outline-style": "none",
+          "outline-color": "rgba(255, 255, 255, 0.85)",
+          "box-shadow": "none",
+          "background-color": "rgb(20, 20, 20)",
+          "border-radius": "12px",
+          "padding": "4px 11px",
+          "height": "32px",
+          "color": "rgba(255, 255, 255, 0.85)",
+          "font-size": "14px",
+          "line-height": "22px",
+          "box-sizing": "border-box"
+        }
+      },
+      "outFocus": {
+        "tag": "INPUT",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": true,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(57, 80, 178)",
+          "outline-width": "0px",
+          "outline-style": "none",
+          "outline-color": "rgba(255, 255, 255, 0.85)",
+          "box-shadow": "rgba(74, 107, 253, 0.24) 0px 0px 0px 2px",
+          "background-color": "rgb(20, 20, 20)",
+          "border-radius": "12px",
+          "padding": "4px 11px",
+          "height": "32px",
+          "color": "rgba(255, 255, 255, 0.85)",
+          "font-size": "14px",
+          "line-height": "22px",
+          "box-sizing": "border-box"
+        }
+      },
+      "inFocus": {
+        "tag": "INPUT",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": true,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(57, 80, 178)",
+          "outline-width": "0px",
+          "outline-style": "none",
+          "outline-color": "rgba(255, 255, 255, 0.85)",
+          "box-shadow": "rgba(74, 107, 253, 0.24) 0px 0px 0px 2px",
+          "background-color": "rgb(20, 20, 20)",
+          "border-radius": "12px",
+          "padding": "4px 11px",
+          "height": "32px",
+          "color": "rgba(255, 255, 255, 0.85)",
+          "font-size": "14px",
+          "line-height": "22px",
+          "box-sizing": "border-box"
+        }
+      }
+    },
+    "antd-disabled": {
+      "outside": {
+        "tag": "INPUT",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": false,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(66, 66, 66)",
+          "outline-width": "3px",
+          "outline-style": "none",
+          "outline-color": "rgba(255, 255, 255, 0.25)",
+          "box-shadow": "none",
+          "background-color": "rgba(255, 255, 255, 0.08)",
+          "border-radius": "12px",
+          "padding": "4px 11px",
+          "height": "32px",
+          "color": "rgba(255, 255, 255, 0.25)",
+          "font-size": "14px",
+          "line-height": "22px",
+          "box-sizing": "border-box"
+        }
+      },
+      "inside": {
+        "tag": "INPUT",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": false,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(66, 66, 66)",
+          "outline-width": "3px",
+          "outline-style": "none",
+          "outline-color": "rgba(255, 255, 255, 0.25)",
+          "box-shadow": "none",
+          "background-color": "rgba(255, 255, 255, 0.08)",
+          "border-radius": "12px",
+          "padding": "4px 11px",
+          "height": "32px",
+          "color": "rgba(255, 255, 255, 0.25)",
+          "font-size": "14px",
+          "line-height": "22px",
+          "box-sizing": "border-box"
+        }
+      }
+    },
+    "antd-button": {
+      "outside": {
+        "tag": "BUTTON",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": false,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(66, 66, 66)",
+          "outline-width": "3px",
+          "outline-style": "none",
+          "outline-color": "rgba(255, 255, 255, 0.85)",
+          "box-shadow": "rgba(255, 255, 255, 0.04) 0px 2px 0px 0px",
+          "background-color": "rgb(20, 20, 20)",
+          "border-radius": "12px",
+          "padding": "0px 15px",
+          "height": "32px",
+          "color": "rgba(255, 255, 255, 0.85)",
+          "font-size": "14px",
+          "line-height": "normal",
+          "box-sizing": "border-box"
+        }
+      },
+      "inside": {
+        "tag": "BUTTON",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": false,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(66, 66, 66)",
+          "outline-width": "3px",
+          "outline-style": "none",
+          "outline-color": "rgba(255, 255, 255, 0.85)",
+          "box-shadow": "rgba(255, 255, 255, 0.04) 0px 2px 0px 0px",
+          "background-color": "rgb(20, 20, 20)",
+          "border-radius": "12px",
+          "padding": "0px 15px",
+          "height": "32px",
+          "color": "rgba(255, 255, 255, 0.85)",
+          "font-size": "14px",
+          "line-height": "normal",
+          "box-sizing": "border-box"
+        }
+      }
+    },
+    "antd-card": {
+      "outside": {
+        "tag": "DIV",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": false,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(48, 48, 48)",
+          "outline-width": "3px",
+          "outline-style": "none",
+          "outline-color": "rgba(255, 255, 255, 0.85)",
+          "box-shadow": "none",
+          "background-color": "rgb(20, 20, 20)",
+          "border-radius": "14px",
+          "padding": "0px",
+          "height": "146px",
+          "color": "rgba(255, 255, 255, 0.85)",
+          "font-size": "14px",
+          "line-height": "22px",
+          "box-sizing": "border-box"
+        }
+      },
+      "inside": {
+        "tag": "DIV",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": false,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(48, 48, 48)",
+          "outline-width": "3px",
+          "outline-style": "none",
+          "outline-color": "rgba(255, 255, 255, 0.85)",
+          "box-shadow": "none",
+          "background-color": "rgb(20, 20, 20)",
+          "border-radius": "14px",
+          "padding": "0px",
+          "height": "146px",
+          "color": "rgba(255, 255, 255, 0.85)",
+          "font-size": "14px",
+          "line-height": "22px",
+          "box-sizing": "border-box"
+        }
+      }
+    },
+    "ds-input": {
+      "outside": {
+        "tag": "INPUT",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": false,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(71, 86, 117)",
+          "outline-width": "3px",
+          "outline-style": "none",
+          "outline-color": "rgb(238, 242, 255)",
+          "box-shadow": "none",
+          "background-color": "rgb(32, 42, 64)",
+          "border-radius": "12px",
+          "padding": "8px 12px",
+          "height": "36px",
+          "color": "rgb(238, 242, 255)",
+          "font-size": "16px",
+          "line-height": "normal",
+          "box-sizing": "border-box"
+        }
+      },
+      "inside": {
+        "tag": "INPUT",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": false,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(71, 86, 117)",
+          "outline-width": "3px",
+          "outline-style": "none",
+          "outline-color": "rgb(238, 242, 255)",
+          "box-shadow": "none",
+          "background-color": "rgb(32, 42, 64)",
+          "border-radius": "12px",
+          "padding": "8px 12px",
+          "height": "36px",
+          "color": "rgb(238, 242, 255)",
+          "font-size": "16px",
+          "line-height": "normal",
+          "box-sizing": "border-box"
+        }
+      }
+    },
+    "ds-button": {
+      "outside": {
+        "tag": "BUTTON",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": false,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(71, 86, 117)",
+          "outline-width": "3px",
+          "outline-style": "none",
+          "outline-color": "rgb(238, 242, 255)",
+          "box-shadow": "none",
+          "background-color": "rgb(32, 42, 64)",
+          "border-radius": "12px",
+          "padding": "8px 16px",
+          "height": "36px",
+          "color": "rgb(238, 242, 255)",
+          "font-size": "16px",
+          "line-height": "normal",
+          "box-sizing": "border-box"
+        }
+      },
+      "inside": {
+        "tag": "BUTTON",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": false,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(71, 86, 117)",
+          "outline-width": "3px",
+          "outline-style": "none",
+          "outline-color": "rgb(238, 242, 255)",
+          "box-shadow": "none",
+          "background-color": "rgb(32, 42, 64)",
+          "border-radius": "12px",
+          "padding": "8px 16px",
+          "height": "36px",
+          "color": "rgb(238, 242, 255)",
+          "font-size": "16px",
+          "line-height": "normal",
+          "box-sizing": "border-box"
+        }
+      }
+    },
+    "ds-card": {
+      "outside": {
+        "tag": "DIV",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": false,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(71, 86, 117)",
+          "outline-width": "3px",
+          "outline-style": "none",
+          "outline-color": "rgb(238, 242, 255)",
+          "box-shadow": "none",
+          "background-color": "rgb(32, 42, 64)",
+          "border-radius": "12px",
+          "padding": "16px",
+          "height": "36px",
+          "color": "rgb(238, 242, 255)",
+          "font-size": "16px",
+          "line-height": "normal",
+          "box-sizing": "content-box"
+        }
+      },
+      "inside": {
+        "tag": "DIV",
+        "slot": null,
+        "owned": false,
+        "active": false,
+        "focusVisible": false,
+        "hover": false,
+        "state": null,
+        "css": {
+          "border-top-width": "1px",
+          "border-top-style": "solid",
+          "border-top-color": "rgb(71, 86, 117)",
+          "outline-width": "3px",
+          "outline-style": "none",
+          "outline-color": "rgb(238, 242, 255)",
+          "box-shadow": "none",
+          "background-color": "rgb(32, 42, 64)",
+          "border-radius": "12px",
+          "padding": "16px",
+          "height": "72px",
+          "color": "rgb(238, 242, 255)",
+          "font-size": "16px",
+          "line-height": "normal",
+          "box-sizing": "content-box"
+        }
+      }
+    },
+    "modal-outside": {
+      "tag": "INPUT",
+      "slot": null,
+      "owned": false,
+      "active": false,
+      "focusVisible": false,
+      "hover": false,
+      "state": null,
+      "css": {
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgb(66, 66, 66)",
+        "outline-width": "3px",
+        "outline-style": "none",
+        "outline-color": "rgba(255, 255, 255, 0.85)",
+        "box-shadow": "none",
+        "background-color": "rgb(20, 20, 20)",
+        "border-radius": "12px",
+        "padding": "4px 11px",
+        "height": "32px",
+        "color": "rgba(255, 255, 255, 0.85)",
+        "font-size": "14px",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    "modal-inside": {
+      "tag": "INPUT",
+      "slot": null,
+      "owned": false,
+      "active": false,
+      "focusVisible": false,
+      "hover": false,
+      "state": null,
+      "css": {
+        "border-top-width": "1px",
+        "border-top-style": "solid",
+        "border-top-color": "rgb(66, 66, 66)",
+        "outline-width": "3px",
+        "outline-style": "none",
+        "outline-color": "rgba(255, 255, 255, 0.85)",
+        "box-shadow": "none",
+        "background-color": "rgb(20, 20, 20)",
+        "border-radius": "12px",
+        "padding": "4px 11px",
+        "height": "32px",
+        "color": "rgba(255, 255, 255, 0.85)",
+        "font-size": "14px",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    }
+  }
+}
