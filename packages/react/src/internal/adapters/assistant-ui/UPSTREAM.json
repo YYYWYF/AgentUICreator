@@ -91,6 +91,11 @@
       "installedSha256": "96243e5e67ae0fca953af88ca5815fc59daac10551f5b2522b7ab0f91c7919bf"
     },
     {
+      "localPath": "components/assistant-ui/elements/tool-call.tsx",
+      "upstreamInstalledSha256": "1fd4f2aa297d146059a9e4e436063f3bc83eee5e9a69f7e44c1aa5f8935d8bef",
+      "installedSha256": "43723829e76411aea27727412474ec02eb777e0ab9d062175e08c59bb6afb6b6"
+    },
+    {
       "localPath": "components/assistant-ui/elements/tool-fallback.aui.tsx",
       "upstreamInstalledSha256": "e22c55485613936018a831773d6b4495d636d48148a02ac5345fa63e1d32ccf8",
       "installedSha256": "a20b130df7554790ba48f5a3a5b354cfb89ecc4770ebd8495807bdde42cc56d5"

@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "node",
+      "vite/client"
+    ]
+  },
+  "include": [
+    "tests/style-boundary-visual.spec.ts",
+    "tests/embedded-style-isolation.spec.ts",
+    "playwright.style-boundary.config.ts",
+    "tests/i18n-plugin-visual.spec.ts",
+    "tests/tool-timeline-thinking.spec.ts"
+  ],
+  "exclude": []
+}

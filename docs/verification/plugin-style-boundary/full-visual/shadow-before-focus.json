@@ -1,0 +1,48 @@
+{
+  "normal": {
+    "owned": true,
+    "borderWidth": "0px",
+    "borderStyle": "solid",
+    "outline": "oklab(0.141 0.00136333 -0.00481054 / 0.55) none 3px",
+    "shadow": "none",
+    "focusVisible": false,
+    "ringVariables": {
+      "--tw-inset-shadow": "",
+      "--tw-inset-ring-shadow": "",
+      "--tw-ring-offset-shadow": "",
+      "--tw-ring-offset-width": "",
+      "--tw-shadow": ""
+    }
+  },
+  "clicked": {
+    "owned": true,
+    "borderWidth": "0px",
+    "borderStyle": "solid",
+    "outline": "oklab(0.141 0.00136333 -0.00481054 / 0.55) none 3px",
+    "shadow": "none",
+    "focusVisible": false,
+    "ringVariables": {
+      "--tw-inset-shadow": "",
+      "--tw-inset-ring-shadow": "",
+      "--tw-ring-offset-shadow": "",
+      "--tw-ring-offset-width": "",
+      "--tw-shadow": ""
+    }
+  },
+  "focused": {
+    "owned": true,
+    "borderWidth": "0px",
+    "borderStyle": "solid",
+    "outline": "rgba(9, 9, 11, 0.792) none 1px",
+    "shadow": "none",
+    "focusVisible": true,
+    "ringVariables": {
+      "--tw-inset-shadow": "",
+      "--tw-inset-ring-shadow": "",
+      "--tw-ring-offset-shadow": "",
+      "--tw-ring-offset-width": "",
+      "--tw-shadow": ""
+    }
+  },
+  "errors": []
+}

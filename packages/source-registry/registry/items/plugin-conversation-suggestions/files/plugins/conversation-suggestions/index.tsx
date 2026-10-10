@@ -20,6 +20,7 @@ export function ConversationSuggestionsPlugin(
       <ConversationSuggestions>
         {() => (
           <ConversationSuggestionTrigger
+            data-agent-ui-owned=""
             className="conversation-suggestion"
             send
           >

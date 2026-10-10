@@ -965,6 +965,9 @@ importers:
 
   packages/web-component:
     dependencies:
+      '@agent-ui/plugins':
+        specifier: workspace:^
+        version: link:../plugins
       '@agent-ui/react':
         specifier: workspace:^
         version: link:../react

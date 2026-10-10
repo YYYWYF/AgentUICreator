@@ -758,5 +758,25 @@
         "expectedCount": 1
       }
     ]
+  },
+  "components/assistant-ui/elements/tool-call.tsx": {
+    "importText": "import { useAgentUILocale } from \"../../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "}: ToolCallProps) {\n",
+        "after": "}: ToolCallProps) {\n  const messages = useAgentUILocale(\"toolPresentation\");\n",
+        "expectedCount": 1
+      },
+      {
+        "before": ">Request</p>",
+        "after": ">{messages.request}</p>",
+        "expectedCount": 1
+      },
+      {
+        "before": ">Result</p>",
+        "after": ">{messages.result}</p>",
+        "expectedCount": 1
+      }
+    ]
   }
 }

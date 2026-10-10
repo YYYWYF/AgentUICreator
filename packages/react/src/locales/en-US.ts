@@ -309,6 +309,7 @@ export const enUS = {
     "download": "Download {filename}"
   },
   "toolPresentation": {
+    "request": "Request:",
     "running": "Running tool",
     "waiting": "Waiting on tool",
     "cancelled": "Cancelled tool",

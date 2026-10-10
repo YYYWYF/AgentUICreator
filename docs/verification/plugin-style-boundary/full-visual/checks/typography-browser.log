@@ -1,0 +1,9 @@
+
+Running 1 test using 1 worker
+
+(node:34167) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+2:53:59 PM [vite] (client) Re-optimizing dependencies because vite config has changed
+  ✓  1 tests/style-boundary-visual.spec.ts:81:1 › records inherited typography separately from direct Reset isolation (1.2s)
+
+  1 passed (1.9s)

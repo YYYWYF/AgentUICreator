@@ -309,6 +309,7 @@ export const zhCN = {
     "download": "下载 {filename}"
   },
   "toolPresentation": {
+    "request": "请求：",
     "running": "正在调用工具",
     "waiting": "等待工具操作",
     "cancelled": "工具调用已取消",

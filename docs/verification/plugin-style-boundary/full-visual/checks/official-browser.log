@@ -1,0 +1,560 @@
+
+Running 120 tests using 1 worker
+
+(node:30303) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓    1 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: empty (2.3s)
+  ✓    2 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-timeline-thinking (2.6s)
+  ✓    3 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: thinking-placeholder (2.8s)
+  ✓    4 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: simple-chat (1.8s)
+  ✓    5 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: reasoning-tool-success (2.1s)
+  ✓    6 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-error (2.1s)
+  ✓    7 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-long-running (8.2s)
+  ✓    8 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: web-search (2.0s)
+  ✓    9 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: retrieval-chunks (1.9s)
+  ✓   10 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: source-citations (1.9s)
+  ✓   11 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: file-output (2.5s)
+  ✓   12 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: data-message-chart (2.0s)
+  ✓   13 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-status (2.0s)
+  ✓   14 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-plan (2.0s)
+  ✓   15 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-state-sync (2.1s)
+  ✓   16 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: nested-subagent-task-group (2.6s)
+  ✓   17 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: markdown-showcase (3.2s)
+  ✓   18 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:86:1 › locale switch preserves composer draft and trigger query (1.8s)
+  ✓   19 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:102:1 › thread history selection survives locale switch and More stays in theme boundary (2.7s)
+  ✓   20 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:125:1 › theme, command popover and footer overlays (2.0s)
+  ✓   21 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:145:1 › thread loading and error evidence (1.7s)
+  ✓   22 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:158:1 › mention empty popover, attachments, dictation, edit and export menu (2.4s)
+2:39:05 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:39:05 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx, /agent-ui/agent-ui/conversation/styles.css
+2:39:07 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+  ✓   23 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:191:1 › compatibility message footer renders canonical actions (2.3s)
+2:39:07 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx, /agent-ui/agent-ui/conversation/styles.css
+  ✘   24 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:203:1 › quote selection and preview (6.9s)
+(node:31466) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   25 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:232:1 › thread list localization (2.3s)
+  ✓   26 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:244:1 › header stays above first message without horizontal overflow (1.6s)
+2:39:20 PM [vite] (client) page reload index.html
+  ✓   27 [zh-CN-desktop] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: light (4.5s)
+2:39:25 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+  ✓   28 [zh-CN-desktop] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: dark (3.6s)
+2:39:29 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+  ✓   29 [zh-CN-desktop] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: violet (3.7s)
+2:39:33 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:39:38 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:39:39 PM [vite] (client) [console.error] [assistant-ui] thread list switch failed: TypeError: Failed to fetch
+    at fetch (http://127.0.0.1:59491/agent-ui/application/agent-backend-transport.ts:7:23)
+    at Object.get (http://127.0.0.1:59491/agent-ui/services/conversations/http-data-source.ts:54:27)
+    at Object.loadConversation (http://127.0.0.1:59491/agent-ui/services/conversations/service.ts:161:37)
+    at Object.getThreadMetadata (http://127.0.0.1:59491/agent-ui/agent-ui/conversation/threads/conversation-service-thread-binding.ts:147:45)
+    at Object.fetch (http://127.0.0.1:59491/node_modules/.vite/deps/@agent-ui_runtime-conversation.js?v=28eccf36:5080:43)
+    at RemoteThreadListThreadListRuntimeCore._switchToThread (http://127.0.0.1:59491/node_modules/.vite/deps/dist-DidE5Shk.js?v=28eccf36:16758:55)
+    at RemoteThreadListThreadListRuntimeCore._startSwitchToThread (http://127.0.0.1:59491/node_modules/.vite/deps/dist-DidE5Shk.js?v=28eccf36:16750:21)
+    at http://127.0.0.1:59491/node_modules/.vite/deps/dist-DidE5Shk.js?v=28eccf36:16825:76
+    at handleRuntimeAction (http://127.0.0.1:59491/node_modules/.vite/deps/dist-DidE5Shk.js?v=28eccf36:975:15)
+    at handleThreadListAction (http://127.0.0.1:59491/node_modules/.vite/deps/dist-DidE5Shk.js?v=28eccf36:3844:51)
+2:39:43 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:39:44 PM [vite] (client) [console.error] [assistant-ui] thread list switch failed: TypeError: Failed to fetch
+    at fetch (http://127.0.0.1:59491/agent-ui/application/agent-backend-transport.ts:7:23)
+    at Object.get (http://127.0.0.1:59491/agent-ui/services/conversations/http-data-source.ts:54:27)
+    at Object.loadConversation (http://127.0.0.1:59491/agent-ui/services/conversations/service.ts:161:37)
+    at Object.getThreadMetadata (http://127.0.0.1:59491/agent-ui/agent-ui/conversation/threads/conversation-service-thread-binding.ts:147:45)
+    at Object.fetch (http://127.0.0.1:59491/node_modules/.vite/deps/@agent-ui_runtime-conversation.js?v=28eccf36:5080:43)
+    at RemoteThreadListThreadListRuntimeCore._switchToThread (http://127.0.0.1:59491/node_modules/.vite/deps/dist-DidE5Shk.js?v=28eccf36:16758:55)
+    at RemoteThreadListThreadListRuntimeCore._startSwitchToThread (http://127.0.0.1:59491/node_modules/.vite/deps/dist-DidE5Shk.js?v=28eccf36:16750:21)
+    at http://127.0.0.1:59491/node_modules/.vite/deps/dist-DidE5Shk.js?v=28eccf36:16825:76
+    at handleRuntimeAction (http://127.0.0.1:59491/node_modules/.vite/deps/dist-DidE5Shk.js?v=28eccf36:975:15)
+    at handleThreadListAction (http://127.0.0.1:59491/node_modules/.vite/deps/dist-DidE5Shk.js?v=28eccf36:3844:51)
+  ✓   30 [zh-CN-desktop] › tests/tool-timeline-thinking.spec.ts:32:1 › T08/T09/T10 placeholder-only, reasoning-only and both (15.4s)
+(node:31574) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   31 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: empty (2.4s)
+  ✓   32 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-timeline-thinking (2.7s)
+  ✓   33 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: thinking-placeholder (2.6s)
+  ✓   34 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: simple-chat (1.8s)
+  ✓   35 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: reasoning-tool-success (2.1s)
+  ✓   36 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-error (1.7s)
+  ✓   37 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-long-running (8.2s)
+  ✓   38 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: web-search (1.9s)
+  ✓   39 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: retrieval-chunks (2.0s)
+  ✓   40 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: source-citations (1.9s)
+  ✓   41 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: file-output (1.9s)
+  ✓   42 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: data-message-chart (1.8s)
+  ✓   43 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-status (1.8s)
+  ✓   44 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-plan (1.8s)
+  ✓   45 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-state-sync (1.9s)
+  ✓   46 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: nested-subagent-task-group (2.5s)
+  ✓   47 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: markdown-showcase (3.0s)
+  ✓   48 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:86:1 › locale switch preserves composer draft and trigger query (1.8s)
+  ✓   49 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:102:1 › thread history selection survives locale switch and More stays in theme boundary (2.7s)
+  ✓   50 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:125:1 › theme, command popover and footer overlays (2.1s)
+  ✓   51 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:145:1 › thread loading and error evidence (1.7s)
+  ✓   52 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:158:1 › mention empty popover, attachments, dictation, edit and export menu (2.5s)
+2:40:43 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:40:43 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx, /agent-ui/agent-ui/conversation/styles.css
+2:40:49 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:40:49 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx, /agent-ui/agent-ui/conversation/styles.css
+  ✘   53 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:191:1 › compatibility message footer renders canonical actions (6.8s)
+(node:31839) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   54 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:203:1 › quote selection and preview (7.6s)
+(node:31864) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   55 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:232:1 › thread list localization (2.3s)
+  ✓   56 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:244:1 › header stays above first message without horizontal overflow (1.7s)
+2:41:05 PM [vite] (client) page reload index.html
+  ✓   57 [zh-CN-narrow] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: light (4.8s)
+2:41:10 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+  ✓   58 [zh-CN-narrow] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: dark (3.8s)
+2:41:14 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+  ✓   59 [zh-CN-narrow] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: violet (3.5s)
+2:41:18 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:41:23 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:41:23 PM [vite] (client) [console.error] [assistant-ui] thread list switch failed: TypeError: Failed to fetch
+    at fetch (http://127.0.0.1:60527/agent-ui/application/agent-backend-transport.ts:7:23)
+    at Object.get (http://127.0.0.1:60527/agent-ui/services/conversations/http-data-source.ts:54:27)
+    at Object.loadConversation (http://127.0.0.1:60527/agent-ui/services/conversations/service.ts:161:37)
+    at Object.getThreadMetadata (http://127.0.0.1:60527/agent-ui/agent-ui/conversation/threads/conversation-service-thread-binding.ts:147:45)
+    at Object.fetch (http://127.0.0.1:60527/node_modules/.vite/deps/@agent-ui_runtime-conversation.js?v=9f4165e7:5080:43)
+    at RemoteThreadListThreadListRuntimeCore._switchToThread (http://127.0.0.1:60527/node_modules/.vite/deps/dist-DidE5Shk.js?v=9f4165e7:16758:55)
+    at RemoteThreadListThreadListRuntimeCore._startSwitchToThread (http://127.0.0.1:60527/node_modules/.vite/deps/dist-DidE5Shk.js?v=9f4165e7:16750:21)
+    at http://127.0.0.1:60527/node_modules/.vite/deps/dist-DidE5Shk.js?v=9f4165e7:16825:76
+    at handleRuntimeAction (http://127.0.0.1:60527/node_modules/.vite/deps/dist-DidE5Shk.js?v=9f4165e7:975:15)
+    at handleThreadListAction (http://127.0.0.1:60527/node_modules/.vite/deps/dist-DidE5Shk.js?v=9f4165e7:3844:51)
+2:41:28 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:41:28 PM [vite] (client) [console.error] [assistant-ui] thread list switch failed: TypeError: Failed to fetch
+    at fetch (http://127.0.0.1:60527/agent-ui/application/agent-backend-transport.ts:7:23)
+    at Object.get (http://127.0.0.1:60527/agent-ui/services/conversations/http-data-source.ts:54:27)
+    at Object.loadConversation (http://127.0.0.1:60527/agent-ui/services/conversations/service.ts:161:37)
+    at Object.getThreadMetadata (http://127.0.0.1:60527/agent-ui/agent-ui/conversation/threads/conversation-service-thread-binding.ts:147:45)
+    at Object.fetch (http://127.0.0.1:60527/node_modules/.vite/deps/@agent-ui_runtime-conversation.js?v=9f4165e7:5080:43)
+    at RemoteThreadListThreadListRuntimeCore._switchToThread (http://127.0.0.1:60527/node_modules/.vite/deps/dist-DidE5Shk.js?v=9f4165e7:16758:55)
+    at RemoteThreadListThreadListRuntimeCore._startSwitchToThread (http://127.0.0.1:60527/node_modules/.vite/deps/dist-DidE5Shk.js?v=9f4165e7:16750:21)
+    at http://127.0.0.1:60527/node_modules/.vite/deps/dist-DidE5Shk.js?v=9f4165e7:16825:76
+    at handleRuntimeAction (http://127.0.0.1:60527/node_modules/.vite/deps/dist-DidE5Shk.js?v=9f4165e7:975:15)
+    at handleThreadListAction (http://127.0.0.1:60527/node_modules/.vite/deps/dist-DidE5Shk.js?v=9f4165e7:3844:51)
+  ✓   60 [zh-CN-narrow] › tests/tool-timeline-thinking.spec.ts:32:1 › T08/T09/T10 placeholder-only, reasoning-only and both (15.1s)
+(node:31951) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   61 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: empty (2.5s)
+  ✓   62 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-timeline-thinking (2.7s)
+  ✓   63 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: thinking-placeholder (2.6s)
+  ✓   64 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: simple-chat (1.9s)
+  ✓   65 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: reasoning-tool-success (2.1s)
+  ✓   66 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-error (1.9s)
+  ✓   67 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-long-running (8.5s)
+  ✓   68 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: web-search (1.9s)
+  ✓   69 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: retrieval-chunks (1.9s)
+  ✓   70 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: source-citations (1.9s)
+  ✓   71 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: file-output (1.9s)
+  ✓   72 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: data-message-chart (1.9s)
+  ✓   73 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-status (2.0s)
+  ✓   74 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-plan (2.5s)
+  ✓   75 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-state-sync (2.2s)
+  ✓   76 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: nested-subagent-task-group (2.7s)
+  ✓   77 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: markdown-showcase (3.2s)
+  ✓   78 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:86:1 › locale switch preserves composer draft and trigger query (2.3s)
+  ✓   79 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:102:1 › thread history selection survives locale switch and More stays in theme boundary (3.0s)
+  ✓   80 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:125:1 › theme, command popover and footer overlays (2.1s)
+  ✓   81 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:145:1 › thread loading and error evidence (2.6s)
+  ✓   82 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:158:1 › mention empty popover, attachments, dictation, edit and export menu (2.8s)
+2:42:32 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:42:32 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx, /agent-ui/agent-ui/conversation/styles.css
+2:42:38 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:42:38 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx, /agent-ui/agent-ui/conversation/styles.css
+  ✘   83 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:191:1 › compatibility message footer renders canonical actions (6.9s)
+(node:32222) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   84 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:203:1 › quote selection and preview (7.8s)
+(node:32253) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   85 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:232:1 › thread list localization (2.1s)
+  ✓   86 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:244:1 › header stays above first message without horizontal overflow (1.6s)
+2:42:55 PM [vite] (client) page reload index.html
+  ✓   87 [en-US-desktop] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: light (5.7s)
+2:43:01 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+  ✓   88 [en-US-desktop] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: dark (4.1s)
+2:43:05 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+  ✓   89 [en-US-desktop] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: violet (3.8s)
+2:43:09 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:43:15 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:43:15 PM [vite] (client) [console.error] [assistant-ui] thread list switch failed: TypeError: Failed to fetch
+    at fetch (http://127.0.0.1:61510/agent-ui/application/agent-backend-transport.ts:7:23)
+    at Object.get (http://127.0.0.1:61510/agent-ui/services/conversations/http-data-source.ts:54:27)
+    at Object.loadConversation (http://127.0.0.1:61510/agent-ui/services/conversations/service.ts:161:37)
+    at Object.getThreadMetadata (http://127.0.0.1:61510/agent-ui/agent-ui/conversation/threads/conversation-service-thread-binding.ts:147:45)
+    at Object.fetch (http://127.0.0.1:61510/node_modules/.vite/deps/@agent-ui_runtime-conversation.js?v=318be532:5080:43)
+    at RemoteThreadListThreadListRuntimeCore._switchToThread (http://127.0.0.1:61510/node_modules/.vite/deps/dist-DidE5Shk.js?v=318be532:16758:55)
+    at RemoteThreadListThreadListRuntimeCore._startSwitchToThread (http://127.0.0.1:61510/node_modules/.vite/deps/dist-DidE5Shk.js?v=318be532:16750:21)
+    at http://127.0.0.1:61510/node_modules/.vite/deps/dist-DidE5Shk.js?v=318be532:16825:76
+    at handleRuntimeAction (http://127.0.0.1:61510/node_modules/.vite/deps/dist-DidE5Shk.js?v=318be532:975:15)
+    at handleThreadListAction (http://127.0.0.1:61510/node_modules/.vite/deps/dist-DidE5Shk.js?v=318be532:3844:51)
+2:43:20 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:43:20 PM [vite] (client) [console.error] [assistant-ui] thread list switch failed: TypeError: Failed to fetch
+    at fetch (http://127.0.0.1:61510/agent-ui/application/agent-backend-transport.ts:7:23)
+    at Object.get (http://127.0.0.1:61510/agent-ui/services/conversations/http-data-source.ts:54:27)
+    at Object.loadConversation (http://127.0.0.1:61510/agent-ui/services/conversations/service.ts:161:37)
+    at Object.getThreadMetadata (http://127.0.0.1:61510/agent-ui/agent-ui/conversation/threads/conversation-service-thread-binding.ts:147:45)
+    at Object.fetch (http://127.0.0.1:61510/node_modules/.vite/deps/@agent-ui_runtime-conversation.js?v=318be532:5080:43)
+    at RemoteThreadListThreadListRuntimeCore._switchToThread (http://127.0.0.1:61510/node_modules/.vite/deps/dist-DidE5Shk.js?v=318be532:16758:55)
+    at RemoteThreadListThreadListRuntimeCore._startSwitchToThread (http://127.0.0.1:61510/node_modules/.vite/deps/dist-DidE5Shk.js?v=318be532:16750:21)
+    at http://127.0.0.1:61510/node_modules/.vite/deps/dist-DidE5Shk.js?v=318be532:16825:76
+    at handleRuntimeAction (http://127.0.0.1:61510/node_modules/.vite/deps/dist-DidE5Shk.js?v=318be532:975:15)
+    at handleThreadListAction (http://127.0.0.1:61510/node_modules/.vite/deps/dist-DidE5Shk.js?v=318be532:3844:51)
+  ✓   90 [en-US-desktop] › tests/tool-timeline-thinking.spec.ts:32:1 › T08/T09/T10 placeholder-only, reasoning-only and both (15.4s)
+(node:32341) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   91 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: empty (2.3s)
+  ✓   92 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-timeline-thinking (2.5s)
+  ✓   93 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: thinking-placeholder (2.6s)
+  ✓   94 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: simple-chat (1.8s)
+  ✓   95 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: reasoning-tool-success (2.1s)
+  ✓   96 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-error (2.0s)
+  ✓   97 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: tool-long-running (8.2s)
+  ✓   98 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: web-search (1.8s)
+  ✓   99 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: retrieval-chunks (2.0s)
+  ✓  100 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: source-citations (1.9s)
+  ✓  101 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: file-output (1.8s)
+  ✓  102 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: data-message-chart (1.8s)
+  ✓  103 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-status (1.9s)
+  ✓  104 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-plan (2.0s)
+  ✓  105 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: agent-state-sync (2.0s)
+  ✓  106 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: nested-subagent-task-group (2.5s)
+  ✓  107 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:33:3 › surface evidence: markdown-showcase (3.0s)
+  ✓  108 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:86:1 › locale switch preserves composer draft and trigger query (1.8s)
+  ✓  109 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:102:1 › thread history selection survives locale switch and More stays in theme boundary (2.8s)
+  ✓  110 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:125:1 › theme, command popover and footer overlays (2.1s)
+  ✓  111 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:145:1 › thread loading and error evidence (2.1s)
+  ✓  112 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:158:1 › mention empty popover, attachments, dictation, edit and export menu (2.4s)
+2:44:20 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:44:20 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx, /agent-ui/agent-ui/conversation/styles.css
+2:44:25 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:44:26 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx, /agent-ui/agent-ui/conversation/styles.css
+  ✘  113 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:191:1 › compatibility message footer renders canonical actions (6.4s)
+(node:32450) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  114 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:203:1 › quote selection and preview (7.5s)
+(node:32463) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  115 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:232:1 › thread list localization (2.5s)
+  ✓  116 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:244:1 › header stays above first message without horizontal overflow (1.7s)
+2:44:42 PM [vite] (client) page reload index.html
+  ✓  117 [en-US-narrow] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: light (4.7s)
+2:44:47 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+  ✓  118 [en-US-narrow] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: dark (3.4s)
+2:44:50 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+  ✓  119 [en-US-narrow] › tests/tool-timeline-thinking.spec.ts:8:3 › T02/T03/T14 official timeline keyboard/details/overflow: violet (3.4s)
+2:44:54 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:44:59 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:44:59 PM [vite] (client) [console.error] [assistant-ui] thread list switch failed: TypeError: Failed to fetch
+    at fetch (http://127.0.0.1:61823/agent-ui/application/agent-backend-transport.ts:7:23)
+    at Object.get (http://127.0.0.1:61823/agent-ui/services/conversations/http-data-source.ts:54:27)
+    at Object.loadConversation (http://127.0.0.1:61823/agent-ui/services/conversations/service.ts:161:37)
+    at Object.getThreadMetadata (http://127.0.0.1:61823/agent-ui/agent-ui/conversation/threads/conversation-service-thread-binding.ts:147:45)
+    at Object.fetch (http://127.0.0.1:61823/node_modules/.vite/deps/@agent-ui_runtime-conversation.js?v=412fdd29:5080:43)
+    at RemoteThreadListThreadListRuntimeCore._switchToThread (http://127.0.0.1:61823/node_modules/.vite/deps/dist-DidE5Shk.js?v=412fdd29:16758:55)
+    at RemoteThreadListThreadListRuntimeCore._startSwitchToThread (http://127.0.0.1:61823/node_modules/.vite/deps/dist-DidE5Shk.js?v=412fdd29:16750:21)
+    at http://127.0.0.1:61823/node_modules/.vite/deps/dist-DidE5Shk.js?v=412fdd29:16825:76
+    at handleRuntimeAction (http://127.0.0.1:61823/node_modules/.vite/deps/dist-DidE5Shk.js?v=412fdd29:975:15)
+    at handleThreadListAction (http://127.0.0.1:61823/node_modules/.vite/deps/dist-DidE5Shk.js?v=412fdd29:3844:51)
+2:45:04 PM [vite] (client) hmr update /agent-ui/application/Agent.tsx
+2:45:04 PM [vite] (client) [console.error] [assistant-ui] thread list switch failed: TypeError: Failed to fetch
+    at fetch (http://127.0.0.1:61823/agent-ui/application/agent-backend-transport.ts:7:23)
+    at Object.get (http://127.0.0.1:61823/agent-ui/services/conversations/http-data-source.ts:54:27)
+    at Object.loadConversation (http://127.0.0.1:61823/agent-ui/services/conversations/service.ts:161:37)
+    at Object.getThreadMetadata (http://127.0.0.1:61823/agent-ui/agent-ui/conversation/threads/conversation-service-thread-binding.ts:147:45)
+    at Object.fetch (http://127.0.0.1:61823/node_modules/.vite/deps/@agent-ui_runtime-conversation.js?v=412fdd29:5080:43)
+    at RemoteThreadListThreadListRuntimeCore._switchToThread (http://127.0.0.1:61823/node_modules/.vite/deps/dist-DidE5Shk.js?v=412fdd29:16758:55)
+    at RemoteThreadListThreadListRuntimeCore._startSwitchToThread (http://127.0.0.1:61823/node_modules/.vite/deps/dist-DidE5Shk.js?v=412fdd29:16750:21)
+    at http://127.0.0.1:61823/node_modules/.vite/deps/dist-DidE5Shk.js?v=412fdd29:16825:76
+    at handleRuntimeAction (http://127.0.0.1:61823/node_modules/.vite/deps/dist-DidE5Shk.js?v=412fdd29:975:15)
+    at handleThreadListAction (http://127.0.0.1:61823/node_modules/.vite/deps/dist-DidE5Shk.js?v=412fdd29:3844:51)
+  ✓  120 [en-US-narrow] › tests/tool-timeline-thinking.spec.ts:32:1 › T08/T09/T10 placeholder-only, reasoning-only and both (15.1s)
+
+
+  1) [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:203:1 › quote selection and preview ────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-slot="selection-toolbar-quote"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-slot="selection-toolbar-quote"]') with timeout 5000ms
+      - waiting for locator('[data-slot="selection-toolbar-quote"]')
+
+
+      211 |   await content.locator('p').first().click({ clickCount: 3, position: { x: 12, y: 8 } });
+      212 |   const quote = page.locator('[data-slot="selection-toolbar-quote"]');
+    > 213 |   await expect(quote).toBeVisible();
+          |                       ^
+      214 |   await expect(quote).toHaveText(info.project.metadata.locale === "zh-CN" ? "引用" : "Quote");
+      215 |   expect(await quote.evaluate(node => !!node.closest('[data-agent-ui-portal-root]'))).toBe(true);
+      216 |   const selectedText = await page.evaluate(() => window.getSelection()?.toString().trim() ?? "");
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:213:23
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/error-context.md
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:191:1 › compatibility message footer renders canonical actions 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[contenteditable="true"]').first()
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[contenteditable="true"]').first() with timeout 5000ms
+      - waiting for locator('[contenteditable="true"]').first()
+
+
+      193 |   try {
+      194 |     await page.goto(`${host.url}?locale=${info.project.metadata.locale}`);
+    > 195 |     const input = page.locator('[contenteditable="true"]').first(); await expect(input).toBeVisible();
+          |                                                                                         ^
+      196 |     await input.fill('Compatibility footer'); await input.press('Enter');
+      197 |     await expect(page.locator('.aui-composer-send')).toBeVisible({timeout:30_000});
+      198 |     await expect(page.locator('[data-slot="aui_assistant-response-footer-plugin"]')).toBeVisible();
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:195:89
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-compati-6441c-r-renders-canonical-actions-zh-CN-narrow/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-compati-6441c-r-renders-canonical-actions-zh-CN-narrow/error-context.md
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-compati-6441c-r-renders-canonical-actions-zh-CN-narrow/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-compati-6441c-r-renders-canonical-actions-zh-CN-narrow/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/i18n-plugin-visual/i18n-plugin-visual-compati-6441c-r-renders-canonical-actions-zh-CN-narrow/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:203:1 › quote selection and preview ─────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-slot="selection-toolbar-quote"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-slot="selection-toolbar-quote"]') with timeout 5000ms
+      - waiting for locator('[data-slot="selection-toolbar-quote"]')
+
+
+      211 |   await content.locator('p').first().click({ clickCount: 3, position: { x: 12, y: 8 } });
+      212 |   const quote = page.locator('[data-slot="selection-toolbar-quote"]');
+    > 213 |   await expect(quote).toBeVisible();
+          |                       ^
+      214 |   await expect(quote).toHaveText(info.project.metadata.locale === "zh-CN" ? "引用" : "Quote");
+      215 |   expect(await quote.evaluate(node => !!node.closest('[data-agent-ui-portal-root]'))).toBe(true);
+      216 |   const selectedText = await page.evaluate(() => window.getSelection()?.toString().trim() ?? "");
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:213:23
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/error-context.md
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-zh-CN-narrow/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:191:1 › compatibility message footer renders canonical actions 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[contenteditable="true"]').first()
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[contenteditable="true"]').first() with timeout 5000ms
+      - waiting for locator('[contenteditable="true"]').first()
+
+
+      193 |   try {
+      194 |     await page.goto(`${host.url}?locale=${info.project.metadata.locale}`);
+    > 195 |     const input = page.locator('[contenteditable="true"]').first(); await expect(input).toBeVisible();
+          |                                                                                         ^
+      196 |     await input.fill('Compatibility footer'); await input.press('Enter');
+      197 |     await expect(page.locator('.aui-composer-send')).toBeVisible({timeout:30_000});
+      198 |     await expect(page.locator('[data-slot="aui_assistant-response-footer-plugin"]')).toBeVisible();
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:195:89
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-compati-6441c-r-renders-canonical-actions-en-US-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-compati-6441c-r-renders-canonical-actions-en-US-desktop/error-context.md
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-compati-6441c-r-renders-canonical-actions-en-US-desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-compati-6441c-r-renders-canonical-actions-en-US-desktop/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/i18n-plugin-visual/i18n-plugin-visual-compati-6441c-r-renders-canonical-actions-en-US-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:203:1 › quote selection and preview ────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-slot="selection-toolbar-quote"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-slot="selection-toolbar-quote"]') with timeout 5000ms
+      - waiting for locator('[data-slot="selection-toolbar-quote"]')
+
+
+      211 |   await content.scrollIntoViewIfNeeded();
+      212 |   // Chromium performs the selection through native pointer input.
+    > 213 |   await content.locator('p').first().click({ clickCount: 3, position: { x: 12, y: 8 } });
+          |                       ^
+      214 |   const quote = page.locator('[data-slot="selection-toolbar-quote"]');
+      215 |   await expect(quote).toBeVisible();
+      216 |   await expect(quote).toHaveText(info.project.metadata.locale === "zh-CN" ? "引用" : "Quote");
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:213:23
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/error-context.md
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:191:1 › compatibility message footer renders canonical actions 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[contenteditable="true"]').first()
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[contenteditable="true"]').first() with timeout 5000ms
+      - waiting for locator('[contenteditable="true"]').first()
+
+
+      193 |   try {
+      194 |     await page.goto(`${host.url}?locale=${info.project.metadata.locale}`);
+    > 195 |     const input = page.locator('[contenteditable="true"]').first(); await expect(input).toBeVisible();
+          |                                                                                         ^
+      196 |     await input.fill('Compatibility footer'); await input.press('Enter');
+      197 |     await expect(page.locator('.aui-composer-send')).toBeVisible({timeout:30_000});
+      198 |     await expect(page.locator('[data-slot="aui_assistant-response-footer-plugin"]')).toBeVisible();
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:195:89
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-compati-6441c-r-renders-canonical-actions-en-US-narrow/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-compati-6441c-r-renders-canonical-actions-en-US-narrow/error-context.md
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-compati-6441c-r-renders-canonical-actions-en-US-narrow/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-compati-6441c-r-renders-canonical-actions-en-US-narrow/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/i18n-plugin-visual/i18n-plugin-visual-compati-6441c-r-renders-canonical-actions-en-US-narrow/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:203:1 › quote selection and preview ─────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-slot="selection-toolbar-quote"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-slot="selection-toolbar-quote"]') with timeout 5000ms
+      - waiting for locator('[data-slot="selection-toolbar-quote"]')
+
+
+      211 |   await content.scrollIntoViewIfNeeded();
+      212 |   // Chromium performs the selection through native pointer input.
+    > 213 |   await content.locator('p').first().click({ clickCount: 3, position: { x: 12, y: 8 } });
+          |                       ^
+      214 |   const quote = page.locator('[data-slot="selection-toolbar-quote"]');
+      215 |   await expect(quote).toBeVisible();
+      216 |   await expect(quote).toHaveText(info.project.metadata.locale === "zh-CN" ? "引用" : "Quote");
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/i18n-plugin-visual.spec.ts:213:23
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/error-context.md
+
+    Error Context: test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/i18n-plugin-visual/i18n-plugin-visual-quote-selection-and-preview-en-US-narrow/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7 failed
+    [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:203:1 › quote selection and preview ─────────
+    [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:191:1 › compatibility message footer renders canonical actions 
+    [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:203:1 › quote selection and preview ──────────
+    [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:191:1 › compatibility message footer renders canonical actions 
+    [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:203:1 › quote selection and preview ─────────
+    [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:191:1 › compatibility message footer renders canonical actions 
+    [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:203:1 › quote selection and preview ──────────
+  113 passed (7.0m)
+undefined
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: playwright test -c playwright.i18n-plugin-visual.config.ts

@@ -108,6 +108,9 @@ function applyThreadListGroupIdentity(source, localPath) {
 
 export function applyProductAdaptations(source, localPath) {
   let installed = applyThreadListGroupIdentity(applyAgentUIPortalContainerBridge(source, localPath), localPath);
+  if (localPath === "components/assistant-ui/elements/tool-call.tsx") {
+    installed = replaceExactlyOnce(installed, '<CollapsibleTrigger className="group/trigger', '<CollapsibleTrigger className="focus-visible:ring-1 focus-visible:ring-ring/50 group/trigger', localPath);
+  }
   if (localPath === "components/assistant-ui/elements/thinking-indicator.tsx") {
     installed = replaceExactlyOnce(installed, '      <span\n        aria-hidden', '      <span\n        data-slot="agent-ui-thinking-dot"\n        aria-hidden', localPath);
   }

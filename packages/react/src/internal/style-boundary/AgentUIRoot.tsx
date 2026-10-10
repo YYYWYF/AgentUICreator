@@ -25,3 +25,11 @@ export function AgentUIRoot({ theme, children }: {
 export function useAgentUIPortalContainer(): HTMLElement | null | undefined {
   return useContext(AgentUIPortalContext);
 }
+
+/** Nested overlays share the local presentation layer of their containing UI. */
+export function AgentUIPortalContainerProvider({ container, children }: {
+  container: HTMLElement;
+  children: ReactNode;
+}) {
+  return <AgentUIPortalContext.Provider value={container}>{children}</AgentUIPortalContext.Provider>;
+}

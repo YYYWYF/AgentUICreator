@@ -1,0 +1,6 @@
+{
+  "antdVersion": "5.29.3",
+  "fixturesRoot": "/tmp/host-ui-p1-20261009/fixtures",
+  "designSystemAAndCSameStyles": true,
+  "designSystemCssSha256": "25032f14cb7b19f75ccd2b0981529d83e36777fcd37d4efdf07a7efa4a780377"
+}

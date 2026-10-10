@@ -1,3 +1,5 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 
@@ -21,8 +23,15 @@ test("keeps ordinary Host globals outside Agent UI and preserves Host probes", a
 
   const style = await agent.locator("button").first().evaluate((button) => {
     const computed = getComputedStyle(button);
-    return { fontSize: computed.fontSize, borderWidth: computed.borderTopWidth, boxSizing: computed.boxSizing };
+    return { html: button.outerHTML, fontSize: computed.fontSize, borderWidth: computed.borderTopWidth, boxSizing: computed.boxSizing };
   });
+  const cdp = await page.context().newCDPSession(page); await cdp.send('DOM.enable'); await cdp.send('CSS.enable');
+  const { root: documentRoot } = await cdp.send('DOM.getDocument');
+  const { nodeId } = await cdp.send('DOM.querySelector', { nodeId: documentRoot.nodeId, selector: '#agent-isolation-mount [data-agent-ui-root] button' });
+  const rules = await cdp.send('CSS.getMatchedStylesForNode', { nodeId }); await cdp.detach();
+  const directory = path.resolve('../../docs/verification/plugin-style-boundary/full-visual'); await mkdir(directory, { recursive: true });
+  await writeFile(path.join(directory, `embedded-${process.env.STYLE_PHASE || 'after'}.json`), JSON.stringify({ style, rules: (rules.matchedCSSRules ?? []).map(entry => ({ origin: entry.rule.origin, selector: entry.rule.selectorList.text, properties: entry.rule.style.cssProperties.filter(property => /^(box-sizing|border)/.test(property.name)) })).filter(entry => entry.properties.length) }, null, 2));
+  await page.screenshot({ path: path.join(directory, `screenshots/embedded-${process.env.STYLE_PHASE || 'after'}.png`), fullPage: true });
   expect(style.fontSize).not.toBe("31px");
   expect(style.borderWidth).not.toBe("9px");
   expect(style.boxSizing).toBe("border-box");

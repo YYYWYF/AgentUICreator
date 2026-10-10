@@ -1,0 +1,38 @@
+[WebServer] (node:28108) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:28109) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+[WebServer]   - import "./vite-runtime-aliases" without a file extension (vite.config.ts:5:32). Add the file extension
+[WebServer] Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+Running 1 test using 1 worker
+
+(node:28130) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/embedded-style-isolation.spec.ts:6:1 › keeps ordinary Host globals outside Agent UI and preserves Host probes (826ms)
+
+
+  1) tests/embedded-style-isolation.spec.ts:6:1 › keeps ordinary Host globals outside Agent UI and preserves Host probes 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "border-box"
+    Received: "content-box"
+
+      35 |   expect(style.fontSize).not.toBe("31px");
+      36 |   expect(style.borderWidth).not.toBe("9px");
+    > 37 |   expect(style.boxSizing).toBe("border-box");
+         |                           ^
+      38 |   const controls = page.locator("#portal-isolation-mount [data-agent-ui-root]");
+      39 |   expect(await controls.locator("[data-test-agent-heading]").evaluate((element) => getComputedStyle(element).fontSize)).not.toBe("72px");
+      40 |   expect(await controls.locator("[data-test-agent-input]").evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe("rgb(255, 255, 0)");
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/embedded-style-isolation.spec.ts:37:27
+
+    Error Context: test-results/embedded-style-isolation/embedded-style-isolation-k-be8c5-I-and-preserves-Host-probes/error-context.md
+
+  1 failed
+    tests/embedded-style-isolation.spec.ts:6:1 › keeps ordinary Host globals outside Agent UI and preserves Host probes 
+undefined
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: playwright test -c playwright.embedded.config.ts --grep 'ordinary Host'

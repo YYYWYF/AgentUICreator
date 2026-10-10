@@ -25,7 +25,7 @@ test.beforeAll(async () => {
       ]}><button>Main content</button></AgentUISidebarFrame>
     </AgentUIRoot></div></AgentUILocaleProvider>);
   `);
-  server = await createServer({ configFile: false, root: fixture, plugins: [react(), tailwindcss()], server: { host: "127.0.0.1", port: 0 } });
+  server = await createServer({ configFile: false, root: fixture, plugins: [react(), tailwindcss()], resolve: { dedupe: ["react", "react-dom"], alias: { "@agent-ui/react/styles.css": path.resolve("../../packages/react/dist/styles.css"), "@agent-ui/react": path.resolve("../../packages/react/dist/index.js") } }, server: { host: "127.0.0.1", port: 0 } });
   await server.listen(); url = server.resolvedUrls!.local[0]!;
 });
 test.afterAll(async () => { await server?.close(); if (fixture) await rm(fixture, { recursive: true, force: true }); });

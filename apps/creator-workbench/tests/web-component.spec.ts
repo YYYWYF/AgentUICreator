@@ -1,3 +1,5 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 
 async function connect(page: Page, endpoint = "/agent?speed=0.15") {
@@ -131,3 +133,27 @@ test("config and Runtime errors reach the Host; disconnect cancels a run and rem
   // The simulated network failure is captured as agent-error; no JavaScript crashes.
   expect(errors.filter(message => !message.includes("500"))).toEqual([]);
 });
+
+for (const width of [1440, 420]) for (const theme of ["light", "dark", "violet"]) {
+  test(`style ownership in Shadow DOM: ${width} ${theme}`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    const { ui, errors } = await connect(page, "/agent?speed=0.05");
+    await ui.evaluate((element: any, theme) => { element.config = { ...element.config, theme }; }, theme);
+    await expect(ui.locator('[data-agent-ui-root]')).toHaveAttribute('data-theme', theme);
+    await ui.getByRole('textbox').fill('检查项目'); await ui.getByRole('button', { name: '发送', exact: true }).click();
+    const tool = ui.getByRole('button', { name: /已搜索文件/ }); await expect(tool).toBeVisible();
+    await expect(ui.getByRole('button', { name: '发送', exact: true })).toBeVisible();
+    await expect(tool).toHaveAttribute('data-agent-ui-owned', '');
+    await expect(tool).toHaveCSS('border-top-width', '0px');
+    const directory = path.resolve('../../docs/verification/plugin-style-boundary/full-visual'); await mkdir(path.join(directory, 'screenshots'), { recursive: true });
+    const record = async () => tool.evaluate(node => { const css = getComputedStyle(node); return { owned: node.hasAttribute('data-agent-ui-owned'), borderWidth: css.borderTopWidth, borderStyle: css.borderTopStyle, outline: css.outline, shadow: css.boxShadow, focusVisible: node.matches(':focus-visible'), ringVariables: Object.fromEntries(['--tw-inset-shadow','--tw-inset-ring-shadow','--tw-ring-offset-shadow','--tw-ring-offset-width','--tw-shadow'].map(key=>[key,css.getPropertyValue(key)])) }; });
+    const normal = await record(); await page.screenshot({ path: path.join(directory, 'screenshots', `shadow-${width}-${theme}-default.png`), fullPage: true });
+    await tool.click(); await expect(tool).toHaveAttribute('aria-expanded', 'true');
+    const clicked = await record(); expect(clicked.focusVisible).toBe(false);
+    await page.screenshot({ path: path.join(directory, 'screenshots', `shadow-${width}-${theme}-open.png`), fullPage: true });
+    await tool.focus(); await page.keyboard.press('Tab'); await page.keyboard.press('Shift+Tab');
+    const focused = await record(); await writeFile(path.join(directory, `shadow-${width}-${theme}.json`), JSON.stringify({ normal, clicked, focused, errors }, null, 2)); expect(focused.focusVisible).toBe(true); expect(focused.shadow).not.toBe('none');
+    await page.screenshot({ path: path.join(directory, 'screenshots', `shadow-${width}-${theme}-focus.png`), fullPage: true });
+    await writeFile(path.join(directory, `shadow-${width}-${theme}.json`), JSON.stringify({ normal, clicked, focused, errors }, null, 2)); expect(errors).toEqual([]);
+  });
+}

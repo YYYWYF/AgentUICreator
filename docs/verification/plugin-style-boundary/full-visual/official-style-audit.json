@@ -1,0 +1,18 @@
+{
+  "snapshots": 204,
+  "ownedControlObservations": 5496,
+  "outsetViolations": [],
+  "widths": [
+    1440,
+    420
+  ],
+  "themes": [
+    "light",
+    "dark",
+    "violet"
+  ],
+  "locales": [
+    "zh-CN",
+    "en-US"
+  ]
+}

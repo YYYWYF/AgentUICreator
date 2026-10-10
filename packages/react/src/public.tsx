@@ -101,7 +101,7 @@ import {
 import { Sources as InternalSources } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.js";
 import { File as InternalFile } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/file.js";
 import { Image as InternalImage } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/image.js";
-import { ToolCall as InternalToolCall } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.js";
+import { ToolCall as InternalToolCall } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/tool-call.js";
 import { ToolFallback as InternalToolFallback } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
 import { MarkdownText as InternalMarkdownText } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/markdown-text.js";
 import { InternalConversationToolTimeline } from "./internal/conversation-tool-timeline.js";

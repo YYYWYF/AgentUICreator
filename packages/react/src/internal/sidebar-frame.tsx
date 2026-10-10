@@ -5,6 +5,7 @@ import { MessagesSquare, Folder, FolderOpen, Files, Search, Settings, Database, 
 import { useAgentUILocale } from "../locale.js";
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarFooter } from "./adapters/assistant-ui/components/ui/sidebar.js";
 import { Sheet, SheetContent, SheetTitle } from "./adapters/assistant-ui/components/ui/sheet.js";
+import { AgentUIPortalContainerProvider } from "./style-boundary/AgentUIRoot.js";
 
 const icons = { "messages-square": MessagesSquare, folder: Folder, "folder-open": FolderOpen, files: Files, search: Search, settings: Settings, database: Database, "chart-no-axes-combined": ChartNoAxesCombined, list: List, bot: Bot, "book-open": BookOpen, star: Star, "circle-help": CircleHelp };
 export type AgentUISidebarIcon = keyof typeof icons;
@@ -82,19 +83,21 @@ export function AgentUISidebarFrame({ items, defaultActive, header, footer, chil
           </div>
           {!narrow && active && <aside data-agent-ui-owned="" className="agent-ui-sidebar-panel" id={panelId} aria-label={active.label}>
             {header === undefined && <SidebarHeader className="agent-ui-sidebar-panel-header">{active.label}</SidebarHeader>}
-            <div data-agent-ui-owned="" className="agent-ui-sidebar-panel-content">{content}</div>
+              <div data-agent-ui-owned="" className="agent-ui-sidebar-panel-content">{content}</div>
             {accountFooter(false)}
           </aside>}
         </Sidebar>
         <SidebarInset className="agent-ui-sidebar-inset">{children}</SidebarInset>
       </SidebarProvider>
-      <div data-agent-ui-owned="" ref={setPortal} className="agent-ui-sidebar-portal" />
+      <div data-agent-ui-owned="" data-agent-ui-portal-root={narrow ? "" : undefined} ref={setPortal} className="agent-ui-sidebar-portal" />
       {narrow && portal && <Sheet modal="trap-focus" open={!!active} onOpenChange={open => { if (!open) close(); }}>
         <SheetContent container={portal} contained side="left" className="agent-ui-sidebar-sheet" id={panelId}
           finalFocus={lastTrigger}>
-          <SheetTitle className={header === undefined ? "agent-ui-sidebar-panel-header" : "sr-only"}>{active?.label ?? messages.sidebar}</SheetTitle>
-          <div data-agent-ui-owned="" className="agent-ui-sidebar-panel-content">{content}</div>
+          <AgentUIPortalContainerProvider container={portal}>
+            <SheetTitle className={header === undefined ? "agent-ui-sidebar-panel-header" : "sr-only"}>{active?.label ?? messages.sidebar}</SheetTitle>
+            <div data-agent-ui-owned="" className="agent-ui-sidebar-panel-content">{content}</div>
             {accountFooter(false)}
+          </AgentUIPortalContainerProvider>
         </SheetContent>
       </Sheet>}
     </div>

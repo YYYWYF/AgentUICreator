@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { repositoryRoot } from "../../../../packages/project-control/tests/support/generated-project";
 import path from "node:path";
 
-export type PluginCoverage = Record<string, { kind: "visual" | "headless"; scenarios: string[] }>;
+export type PluginCoverage = Record<string, { kind: "visual" | "headless"; scenarios: string[]; excludedReason?: string }>;
 
 export async function readReleasePluginCoverage() {
   const release = JSON.parse(await readFile(path.join(repositoryRoot, "packages/source-registry/registry/release.json"), "utf8"));

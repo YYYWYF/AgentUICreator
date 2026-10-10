@@ -1,0 +1,48 @@
+{
+  "normal": {
+    "owned": true,
+    "borderWidth": "0px",
+    "borderStyle": "solid",
+    "outline": "oklab(0.985 0 0 / 0.55) none 3px",
+    "shadow": "none",
+    "focusVisible": false,
+    "ringVariables": {
+      "--tw-inset-shadow": "0 0 #0000",
+      "--tw-inset-ring-shadow": "0 0 #0000",
+      "--tw-ring-offset-shadow": "0 0 #0000",
+      "--tw-ring-offset-width": "0px",
+      "--tw-shadow": "0 0 #0000"
+    }
+  },
+  "clicked": {
+    "owned": true,
+    "borderWidth": "0px",
+    "borderStyle": "solid",
+    "outline": "oklab(0.985 0 0 / 0.55) none 3px",
+    "shadow": "none",
+    "focusVisible": false,
+    "ringVariables": {
+      "--tw-inset-shadow": "0 0 #0000",
+      "--tw-inset-ring-shadow": "0 0 #0000",
+      "--tw-ring-offset-shadow": "0 0 #0000",
+      "--tw-ring-offset-width": "0px",
+      "--tw-shadow": "0 0 #0000"
+    }
+  },
+  "focused": {
+    "owned": true,
+    "borderWidth": "0px",
+    "borderStyle": "solid",
+    "outline": "rgba(250, 250, 250, 0.61) none 1px",
+    "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.552 0.00439355 -0.015385 / 0.5) 0px 0px 0px 1px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+    "focusVisible": true,
+    "ringVariables": {
+      "--tw-inset-shadow": "0 0 #0000",
+      "--tw-inset-ring-shadow": "0 0 #0000",
+      "--tw-ring-offset-shadow": "0 0 #0000",
+      "--tw-ring-offset-width": "0px",
+      "--tw-shadow": "0 0 #0000"
+    }
+  },
+  "errors": []
+}

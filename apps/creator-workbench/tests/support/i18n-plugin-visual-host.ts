@@ -1,5 +1,6 @@
-import { mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { cp, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { tmpdir } from "node:os";
 import { realpathSync } from "node:fs";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
@@ -10,7 +11,8 @@ import { loadAgentUISourceRegistry } from "../../../../packages/source-registry/
 import { builtinMockScenarios, createMockAgentVitePlugin, createMockConversationApiVitePlugin } from "@agent-ui/mock-agent";
 
 export async function createI18nPluginHost(releaseIds: readonly string[]) {
-  const root = realpathSync(await generatedProjectFixture());
+  const root = realpathSync(await mkdtemp(path.join(tmpdir(), "agent-ui-visual-host-")));
+  await cp(await generatedProjectFixture(), root, { recursive: true });
   const registry = await loadAgentUISourceRegistry();
   const plugins = registry.items.filter(item => item.id.startsWith("plugin/") && releaseIds.includes(item.id.slice(7)));
   for (const item of registry.items.filter(item => item.id.startsWith("foundation/") || plugins.includes(item))) {
@@ -20,6 +22,8 @@ export async function createI18nPluginHost(releaseIds: readonly string[]) {
       await writeFile(target, file.content);
     }
   }
+  // Composer is dependency-owned; the source-registry legacy copy is not installed.
+  await rm(path.join(root, "agent-ui/plugins/assistant-ui-composer"), { recursive: true, force: true });
   // Prefer current workspace releases to stale installed fixture tarballs.
   for (const name of ["react", "runtime-core", "runtime-react", "runtime-conversation"]) {
     const target = path.join(root, "node_modules/@agent-ui", name);
@@ -84,7 +88,7 @@ export async function createI18nPluginHost(releaseIds: readonly string[]) {
       <Agent locale={locale} feedbackAdapter={feedbackAdapter} dictationAdapter={dictationAdapter} attachmentAdapter={attachmentAdapter} endpoint={"/agent?scenario=" + (params.get("scenario") || "simple-chat") + "&speed=" + (params.get("speed") || "0.05")} /></>; }
     createRoot(document.getElementById("root")).render(<Host />);
   `);
-  const server = await createServer({ configFile: false, root, plugins: [react(), tailwindcss(), createMockAgentVitePlugin({ endpoint: "/agent", scenarios: builtinMockScenarios, defaultScenarioId: "simple-chat" }), createMockConversationApiVitePlugin({ endpoint: "/__agent-ui/mock-data" })], resolve: { dedupe: ["react", "react-dom"] }, optimizeDeps: { noDiscovery: true, include: ["react", "react-dom/client", "@agent-ui/react", "@agent-ui/react/lexical", "@agent-ui/runtime-conversation", "@agent-ui/runtime-core", "@agent-ui/runtime-react", "@base-ui/react/**", "@assistant-ui/react", "@assistant-ui/react-markdown", "@assistant-ui/react-lexical", "@assistant-ui/react-generative-ui", "@assistant-ui/react-hook-form", "lexical", "@ag-ui/client", "@ag-ui/core", "zod", "zustand"] }, server: { host: "127.0.0.1", port: 0, fs: { allow: [root, repositoryRoot] } } });
+  const server = await createServer({ configFile: false, root, plugins: [react(), tailwindcss(), createMockAgentVitePlugin({ endpoint: "/agent", scenarios: builtinMockScenarios, defaultScenarioId: "simple-chat" }), createMockConversationApiVitePlugin({ endpoint: "/__agent-ui/mock-data" })], resolve: { dedupe: ["react", "react-dom"] }, optimizeDeps: { noDiscovery: true, include: ["react", "react-dom/client", "@agent-ui/react", "@agent-ui/react/lexical", "@agent-ui/runtime-conversation", "@agent-ui/runtime-core", "@agent-ui/runtime-react", "@base-ui/react/**", "@assistant-ui/react", "@assistant-ui/react-markdown", "@assistant-ui/react-lexical", "@assistant-ui/react-generative-ui", "@assistant-ui/react-hook-form", "lexical", "@ag-ui/client", "@ag-ui/core", "zod", "zustand"] }, server: { hmr: false, host: "127.0.0.1", port: 0, fs: { allow: [root, repositoryRoot] } } });
   await server.listen();
   return { setMessagePresentation: async (options: { timeline: boolean; thinking: boolean; reasoning: boolean }) => {
     surface.slots.toolTimeline[0].enabled = options.timeline;
@@ -92,6 +96,7 @@ export async function createI18nPluginHost(releaseIds: readonly string[]) {
     surface.slots.reasoningGroup[0].enabled = options.reasoning;
     await writeFile(path.join(root, "agent-ui/app-ui/app-ui.json"), JSON.stringify(model));
     await writeGeneratedPluginRegistry(root);
+    server.moduleGraph.invalidateAll();
   }, setLegacyFooter: async (legacy: boolean) => {
     const footer = surface.slots.assistantResponseFooter ?? surface.slots.assistantMessageFooter;
     delete surface.slots.assistantResponseFooter; delete surface.slots.assistantMessageFooter;
@@ -99,5 +104,6 @@ export async function createI18nPluginHost(releaseIds: readonly string[]) {
     surface.slots[legacy ? "assistantMessageFooter" : "assistantResponseFooter"] = footer;
     await writeFile(path.join(root, "agent-ui/app-ui/app-ui.json"), JSON.stringify(model));
     await writeGeneratedPluginRegistry(root);
+    server.moduleGraph.invalidateAll();
   }, url: server.resolvedUrls!.local[0]!, plugins: plugins.map(item => item.id.slice(7)).sort(), close: async () => { await server.close(); await rm(root, { recursive: true, force: true }); } };
 }

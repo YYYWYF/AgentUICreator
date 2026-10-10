@@ -1,0 +1,38 @@
+[WebServer] (node:31749) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:31750) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:31765) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/web-component.spec.ts:138:3 › style ownership in Shadow DOM: 1440 light (2.3s)
+
+
+  1) tests/web-component.spec.ts:138:3 › style ownership in Shadow DOM: 1440 light ─────────────────
+
+    Error: expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not "none"
+
+      153 |     await page.screenshot({ path: path.join(directory, 'screenshots', `shadow-${width}-${theme}-open.png`), fullPage: true });
+      154 |     await tool.focus(); await page.keyboard.press('Tab'); await page.keyboard.press('Shift+Tab');
+    > 155 |     const focused = await record(); await writeFile(path.join(directory, `shadow-${width}-${theme}.json`), JSON.stringify({ normal, clicked, focused, errors }, null, 2)); expect(focused.focusVisible).toBe(true); expect(focused.shadow).not.toBe('none');
+          |                                                                                                                                                                                                                                                ^
+      156 |     await page.screenshot({ path: path.join(directory, 'screenshots', `shadow-${width}-${theme}-focus.png`), fullPage: true });
+      157 |     await writeFile(path.join(directory, `shadow-${width}-${theme}.json`), JSON.stringify({ normal, clicked, focused, errors }, null, 2)); expect(errors).toEqual([]);
+      158 |   });
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/web-component.spec.ts:155:240
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/web-component/web-component-style-ownership-in-Shadow-DOM-1440-light/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/web-component/web-component-style-ownership-in-Shadow-DOM-1440-light/error-context.md
+
+  1 failed
+    tests/web-component.spec.ts:138:3 › style ownership in Shadow DOM: 1440 light ──────────────────
+undefined
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: playwright test -c playwright.web-component.config.ts --grep 'Shadow DOM: 1440 light'

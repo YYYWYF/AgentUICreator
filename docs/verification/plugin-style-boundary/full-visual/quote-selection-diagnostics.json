@@ -1,0 +1,478 @@
+[
+  {
+    "project": "zh-CN-desktop",
+    "diagnostics": {
+      "selection": "你好，这是一个纯文本流式回复。",
+      "html": "<div data-agent-ui-owned=\"\" data-slot=\"aui_assistant-message-content\" class=\"text-foreground px-2 leading-relaxed wrap-break-word\"><div data-agent-ui-owned=\"\" data-slot=\"aui_assistant-message-parts\"><div class=\"app-ui-plugin-instance\" data-plugin-renderer=\"true\" data-plugin-id=\"assistant-ui-thinking-indicator\" data-plugin-instance-id=\"thinking-main\"></div><div data-slot=\"agent-ui-markdown\" data-aui-quote-selectable=\"true\"><div data-status=\"complete\" class=\"aui-md\"><p class=\"aui-md-p my-3 leading-relaxed first:mt-0 last:mb-0\">你好，这是一个纯文本流式回复。</p></div></div></div></div>",
+      "parents": [
+        {
+          "tag": "DIV",
+          "className": "text-foreground px-2 leading-relaxed wrap-break-word",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "fade-in slide-in-from-bottom-1 animate-in relative duration-150",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "mb-14 flex flex-col gap-y-6 empty:hidden",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "mx-auto flex w-full max-w-(--thread-max-width) flex-1 flex-col px-4 pt-4",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "aui-root aui-thread-root bg-background @container flex h-full flex-col",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "agent-ui-conversation bg-background",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "conversation-surface-plugin",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-plugin-instance",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-plugin-slot-content",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-plugin-slot-width-probe",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-node app-ui-layout-slot",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-node app-ui-layout-panel",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-node app-ui-layout-row",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-responsive-row",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-root development-preview",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "MAIN",
+          "className": "agent-ui-platform-shell",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "agent-ui-root",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "BODY",
+          "className": "",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "HTML",
+          "className": "",
+          "userSelect": "auto"
+        }
+      ]
+    }
+  },
+  {
+    "project": "zh-CN-narrow",
+    "diagnostics": {
+      "selection": "你好，这是一个纯文本流式回复。",
+      "html": "<div data-agent-ui-owned=\"\" data-slot=\"aui_assistant-message-content\" class=\"text-foreground px-2 leading-relaxed wrap-break-word\"><div data-agent-ui-owned=\"\" data-slot=\"aui_assistant-message-parts\"><div class=\"app-ui-plugin-instance\" data-plugin-renderer=\"true\" data-plugin-id=\"assistant-ui-thinking-indicator\" data-plugin-instance-id=\"thinking-main\"></div><div data-slot=\"agent-ui-markdown\" data-aui-quote-selectable=\"true\"><div data-status=\"complete\" class=\"aui-md\"><p class=\"aui-md-p my-3 leading-relaxed first:mt-0 last:mb-0\">你好，这是一个纯文本流式回复。</p></div></div></div></div>",
+      "parents": [
+        {
+          "tag": "DIV",
+          "className": "text-foreground px-2 leading-relaxed wrap-break-word",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "fade-in slide-in-from-bottom-1 animate-in relative duration-150",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "mb-14 flex flex-col gap-y-6 empty:hidden",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "mx-auto flex w-full max-w-(--thread-max-width) flex-1 flex-col px-4 pt-4",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "aui-root aui-thread-root bg-background @container flex h-full flex-col",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "agent-ui-conversation bg-background",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "conversation-surface-plugin",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-plugin-instance",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-plugin-slot-content",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-plugin-slot-width-probe",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-node app-ui-layout-slot",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-node app-ui-layout-panel",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-node app-ui-layout-row",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-responsive-row",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-root development-preview",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "MAIN",
+          "className": "agent-ui-platform-shell",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "agent-ui-root",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "BODY",
+          "className": "",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "HTML",
+          "className": "",
+          "userSelect": "auto"
+        }
+      ]
+    }
+  },
+  {
+    "project": "en-US-desktop",
+    "diagnostics": {
+      "selection": "你好，这是一个纯文本流式回复。",
+      "html": "<div data-agent-ui-owned=\"\" data-slot=\"aui_assistant-message-content\" class=\"text-foreground px-2 leading-relaxed wrap-break-word\"><div data-agent-ui-owned=\"\" data-slot=\"aui_assistant-message-parts\"><div class=\"app-ui-plugin-instance\" data-plugin-renderer=\"true\" data-plugin-id=\"assistant-ui-thinking-indicator\" data-plugin-instance-id=\"thinking-main\"></div><div data-slot=\"agent-ui-markdown\" data-aui-quote-selectable=\"true\"><div data-status=\"complete\" class=\"aui-md\"><p class=\"aui-md-p my-3 leading-relaxed first:mt-0 last:mb-0\">你好，这是一个纯文本流式回复。</p></div></div></div></div>",
+      "parents": [
+        {
+          "tag": "DIV",
+          "className": "text-foreground px-2 leading-relaxed wrap-break-word",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "fade-in slide-in-from-bottom-1 animate-in relative duration-150",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "mb-14 flex flex-col gap-y-6 empty:hidden",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "mx-auto flex w-full max-w-(--thread-max-width) flex-1 flex-col px-4 pt-4",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "aui-root aui-thread-root bg-background @container flex h-full flex-col",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "agent-ui-conversation bg-background",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "conversation-surface-plugin",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-plugin-instance",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-plugin-slot-content",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-plugin-slot-width-probe",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-node app-ui-layout-slot",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-node app-ui-layout-panel",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-node app-ui-layout-row",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-responsive-row",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-root development-preview",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "MAIN",
+          "className": "agent-ui-platform-shell",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "agent-ui-root",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "BODY",
+          "className": "",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "HTML",
+          "className": "",
+          "userSelect": "auto"
+        }
+      ]
+    }
+  },
+  {
+    "project": "en-US-narrow",
+    "diagnostics": {
+      "selection": "你好，这是一个纯文本流式回复。",
+      "html": "<div data-agent-ui-owned=\"\" data-slot=\"aui_assistant-message-content\" class=\"text-foreground px-2 leading-relaxed wrap-break-word\"><div data-agent-ui-owned=\"\" data-slot=\"aui_assistant-message-parts\"><div class=\"app-ui-plugin-instance\" data-plugin-renderer=\"true\" data-plugin-id=\"assistant-ui-thinking-indicator\" data-plugin-instance-id=\"thinking-main\"></div><div data-slot=\"agent-ui-markdown\" data-aui-quote-selectable=\"true\"><div data-status=\"complete\" class=\"aui-md\"><p class=\"aui-md-p my-3 leading-relaxed first:mt-0 last:mb-0\">你好，这是一个纯文本流式回复。</p></div></div></div></div>",
+      "parents": [
+        {
+          "tag": "DIV",
+          "className": "text-foreground px-2 leading-relaxed wrap-break-word",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "fade-in slide-in-from-bottom-1 animate-in relative duration-150",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "mb-14 flex flex-col gap-y-6 empty:hidden",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "mx-auto flex w-full max-w-(--thread-max-width) flex-1 flex-col px-4 pt-4",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "relative flex flex-1 flex-col overflow-x-auto overflow-y-scroll scroll-smooth",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "aui-root aui-thread-root bg-background @container flex h-full flex-col",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "agent-ui-conversation bg-background",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "conversation-surface-plugin",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-plugin-instance",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-plugin-slot-content",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-plugin-slot-width-probe",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-node app-ui-layout-slot",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-node app-ui-layout-panel",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-node app-ui-layout-row",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-responsive-row",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "app-ui-layout-root development-preview",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "MAIN",
+          "className": "agent-ui-platform-shell",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "agent-ui-root",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "DIV",
+          "className": "",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "BODY",
+          "className": "",
+          "userSelect": "auto"
+        },
+        {
+          "tag": "HTML",
+          "className": "",
+          "userSelect": "auto"
+        }
+      ]
+    }
+  }
+]

@@ -7,6 +7,6 @@ export default defineConfig({
   use: { browserName: "chromium", trace: "retain-on-failure", screenshot: "only-on-failure" },
   projects: ["zh-CN", "en-US"].flatMap(locale => [
     { name: `${locale}-desktop`, metadata: { locale }, use: { viewport: { width: 1440, height: 900 } } },
-    { name: `${locale}-narrow`, metadata: { locale }, use: { viewport: { width: 390, height: 844 } } },
+    { name: `${locale}-narrow`, metadata: { locale }, use: { viewport: { width: 420, height: 844 } } },
   ]),
 });

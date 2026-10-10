@@ -249,5 +249,26 @@
       "thinking-placeholder",
       "tool-timeline-thinking"
     ]
+  },
+  "agent-identity": {
+    "kind": "visual",
+    "scenarios": [
+      "empty"
+    ],
+    "excludedReason": "Not enabled in this style fixture; catalog presence does not establish visual acceptance."
+  },
+  "auth-account": {
+    "kind": "visual",
+    "scenarios": [
+      "optional-auth"
+    ],
+    "excludedReason": "Not enabled in this style fixture; catalog presence does not establish visual acceptance."
+  },
+  "auth-gate": {
+    "kind": "visual",
+    "scenarios": [
+      "optional-auth"
+    ],
+    "excludedReason": "Not enabled in this style fixture; catalog presence does not establish visual acceptance."
   }
 }

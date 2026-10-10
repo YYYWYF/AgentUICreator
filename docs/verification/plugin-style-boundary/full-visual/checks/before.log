@@ -1,0 +1,49 @@
+
+Running 6 tests using 1 worker
+
+(node:35673) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+3:07:03 PM [vite] (client) Re-optimizing dependencies because vite config has changed
+3:07:05 PM [vite] (client) dependencies optimized: @base-ui/react/button, @base-ui/react/input, @base-ui/react/separator
+3:07:05 PM [vite] (client) optimized dependencies changed. reloading
+3:07:05 PM [vite] (client) [console.error] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+3:07:05 PM [vite] (client) [console.error] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+3:07:05 PM [vite] (client) [Unhandled error] TypeError: Cannot read properties of null (reading 'useRef')
+ > exports.useRef ../../../node_modules/.pnpm/react@19.3.0/node_modules/react/cjs/react.development.js:1306:33
+ > useButton ../../../node_modules/.pnpm/@base-ui+react@1.8.0_@types+react@19.3.0_react-dom@19.3.0_react@19.3.0__react@19.3.0/node_modules/@base-ui/react/internals/use-button/useButton.mjs:21:27
+ > Button ../node_modules/.vite/deps/@base-ui_react_button.js?v=76006953:13:40
+ > Object.react_stack_bottom_frame ../node_modules/.vite/deps/react-dom_client.js?v=b75600e8:14142:12
+ > renderWithHooks ../node_modules/.vite/deps/react-dom_client.js?v=b75600e8:4400:19
+ > updateForwardRef ../node_modules/.vite/deps/react-dom_client.js?v=b75600e8:5597:16
+ > beginWork ../node_modules/.vite/deps/react-dom_client.js?v=b75600e8:6455:21
+ > runWithFiberInDEV ../node_modules/.vite/deps/react-dom_client.js?v=b75600e8:944:66
+ > performUnitOfWork ../node_modules/.vite/deps/react-dom_client.js?v=b75600e8:9148:92
+ > workLoopSync ../node_modules/.vite/deps/react-dom_client.js?v=b75600e8:9044:37
+
+3:07:05 PM [vite] (client) [console.warn] An error occurred in the <Button> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+3:07:09 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  1 tests/style-boundary-visual.spec.ts:48:76 › before 1440 light (6.0s)
+3:07:12 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  2 tests/style-boundary-visual.spec.ts:48:76 › before 1440 dark (3.6s)
+3:07:16 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  3 tests/style-boundary-visual.spec.ts:48:76 › before 1440 violet (3.5s)
+3:07:19 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  4 tests/style-boundary-visual.spec.ts:48:76 › before 420 light (3.6s)
+3:07:23 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  5 tests/style-boundary-visual.spec.ts:48:76 › before 420 dark (3.6s)
+3:07:27 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  6 tests/style-boundary-visual.spec.ts:48:76 › before 420 violet (3.6s)
+
+  6 passed (24.5s)

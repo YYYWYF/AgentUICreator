@@ -1,0 +1,21 @@
+
+Running 8 tests using 1 worker
+
+(node:33588) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:192:1 › compatibility message footer renders canonical actions (3.8s)
+  ✓  2 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:205:1 › quote selection and preview (4.4s)
+(node:33622) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  3 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:192:1 › compatibility message footer renders canonical actions (6.0s)
+  ✓  4 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:205:1 › quote selection and preview (4.3s)
+(node:33671) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  5 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:192:1 › compatibility message footer renders canonical actions (5.9s)
+  ✓  6 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:205:1 › quote selection and preview (5.8s)
+(node:33791) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  7 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:192:1 › compatibility message footer renders canonical actions (6.1s)
+  ✓  8 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:205:1 › quote selection and preview (3.0s)
+
+  8 passed (55.6s)

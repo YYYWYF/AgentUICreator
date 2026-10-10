@@ -14,6 +14,10 @@ it("marks product elements without rewriting custom business components or child
 it("keeps generated ownership reproducible, including official ToolTimeline controls", async () => {
   await checkProductAdapters();
   const { files } = await prepareProductAdapters();
+  const toolCall = files.find(file => file.localPath.endsWith('/tool-call.tsx'));
+  expect(toolCall?.source).toContain('<CollapsibleTrigger data-agent-ui-owned=""');
+  expect(toolCall?.source).toContain('focus-visible:ring-1');
+  expect(toolCall?.source).toContain('{messages.request}');
   const timeline = files.find(file => file.localPath.endsWith('/tool-timeline.tsx'));
   expect(timeline?.source).toContain('<CollapsibleTrigger data-agent-ui-owned=""');
   expect(timeline?.source).toContain('<div data-agent-ui-owned=""');

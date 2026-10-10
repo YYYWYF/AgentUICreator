@@ -1,0 +1,10 @@
+
+Running 2 tests using 1 worker
+
+(node:35510) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+3:05:28 PM [vite] (client) Re-optimizing dependencies because vite config has changed
+  ✓  1 tests/sidebar.spec.ts:33:1 › desktop rail, expansion, switch and collapse (1.0s)
+  ✓  2 tests/sidebar.spec.ts:54:1 › narrow container traps focus, restores it after Escape and closes on navigation (958ms)
+
+  2 passed (2.8s)
