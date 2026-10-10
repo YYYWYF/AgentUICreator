@@ -1,0 +1,17 @@
+{
+  "status": "NOT_RUN",
+  "reason": "User's final instruction requested implementation and push without acceptance.",
+  "stylesChanged": false,
+  "resetScopeExpanded": false,
+  "vendorChanged": false,
+  "antd5B": {
+    "browserParity": "NOT_RUN",
+    "pending": ["12px radius", "32px height", "4px 11px padding", "1px border", "hover", "focus", "disabled", "Modal"]
+  },
+  "designSystemAAndC": {
+    "browserParity": "NOT_RUN",
+    "pending": ["Button", "Input", "Card"]
+  },
+  "deterministicIsolation": "Owned-element selector tests include generic business controls nested inside owned elements; ownership is not inherited.",
+  "PLUGIN_STYLE_BOUNDARY": "NOT_ACCEPTED"
+}

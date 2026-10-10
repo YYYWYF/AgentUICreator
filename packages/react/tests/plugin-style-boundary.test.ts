@@ -20,6 +20,10 @@ describe("element-owned Agent UI style baseline", () => {
       </div></div>
       <input data-agent-ui-owned><button class="aui-composer-send">Send</button>
       <button data-slot="button" class="group/button">Primitive</button>
+      <div data-agent-ui-owned data-slot="aui_thread-list-item">
+        <button data-agent-ui-owned data-slot="aui_thread-list-item-trigger">Thread</button>
+        <div class="app-ui-plugin-instance"><input data-slot="input"><button data-slot="button">Nested business</button></div>
+      </div>
     </div>`);
     try {
       const business = dom.window.document.querySelectorAll(".app-ui-plugin-instance, .app-ui-plugin-instance *");
