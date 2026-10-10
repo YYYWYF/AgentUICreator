@@ -139,6 +139,31 @@
   position: relative;
 }
 
+/* Existing runtime mounts are the typography boundary; no Runtime protocol or
+ * component-library reset is needed. Host theme variables still inherit. */
+@layer base {
+  :is(.agent-ui-root, .agent-ui-conversation) :where(.app-ui-plugin-instance) {
+    font-family: var(--agent-ui-host-font-family, inherit);
+    font-size: var(--agent-ui-host-font-size, inherit);
+    font-weight: var(--agent-ui-host-font-weight, inherit);
+    font-style: var(--agent-ui-host-font-style, inherit);
+    line-height: var(--agent-ui-host-line-height, normal);
+  }
+
+  /* Official presentation roots keep Agent UI typography when mounted as
+   * Plugins. Utilities and each Plugin's own styles remain free to override. */
+  :is(.agent-ui-root, .agent-ui-conversation) :where(.app-ui-plugin-instance) > :where(
+    [class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"],
+    [data-agent-ui-owned], [data-slot="button"][class~="group/button"]
+  ) {
+    font-family: var(--agent-ui-presentation-font-family, inherit);
+    font-size: var(--agent-ui-presentation-font-size, inherit);
+    font-weight: var(--agent-ui-presentation-font-weight, inherit);
+    font-style: var(--agent-ui-presentation-font-style, inherit);
+    line-height: var(--agent-ui-presentation-line-height, 1.5);
+  }
+}
+
 .agent-ui-conversation [data-slot="aui_assistant-message-parts"],
 .agent-ui-conversation [data-slot="aui_chain-of-thought"] {
   display: flex;
