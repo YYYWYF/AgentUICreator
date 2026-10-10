@@ -71,6 +71,8 @@
 :is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"]):where(button, input, select, optgroup, textarea),
 :is(.agent-ui-root, .agent-ui-conversation) :where([class^="aui-"], [class*=" aui-"], [data-slot^="agent-ui-"], [data-agent-ui-owned], [data-slot="button"][class~="group/button"])::file-selector-button {
   font: inherit;
+  /* Control leading stays on owned controls, rather than the layout root. */
+  line-height: 1.5;
   font-feature-settings: inherit;
   font-variation-settings: inherit;
   letter-spacing: inherit;
