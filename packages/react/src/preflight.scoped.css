@@ -15,9 +15,8 @@
   border: 0 solid var(--border);
 }
 
-/* Layout roots retain Host line-height. Official text/control utilities own
- * their leading; a Root default would also resize unowned font:inherit inputs. */
 :is(.agent-ui-root, .agent-ui-conversation) {
+  line-height: 1.5;
   -webkit-text-size-adjust: 100%;
   tab-size: 4;
   font-family: --theme(--default-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji');
