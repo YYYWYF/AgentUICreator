@@ -1,0 +1,14 @@
+
+Running 1 test using 1 worker
+
+(node:49517) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+4:26:37 PM [vite] (client) [optimizer] bundling dependencies...
+4:26:39 PM [vite] (client) [optimizer] bundling dependencies...
+4:26:41 PM [vite] (client) [optimizer] bundling dependencies...
+4:26:45 PM [vite] (client) dependency optimized: @base-ui/react/separator
+4:26:45 PM [vite] (client) optimized dependencies changed. reloading
+4:26:49 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  1 tests/style-boundary-visual.spec.ts:48:76 › after 1440 violet (12.9s)
+
+  1 passed (16.2s)

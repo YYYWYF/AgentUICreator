@@ -1,0 +1,41 @@
+$ pnpm prepare:shell && tsc --noEmit && vite build && vite build --config vite.host.config.ts && tsc -p tsconfig.types.json && node scripts/finish-build.mjs
+$ node scripts/prepare-shell.mjs
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-lexical-boundary.mjs
+@agent-ui/react public declaration boundary: OK (7 declarations)
+Lexical optional facade and Source Plugin boundaries: OK
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-consumer-types.mjs
+@agent-ui/runtime-conversation public declaration boundary: OK (9 reachable declarations)
+@agent-ui/runtime-conversation published-package consumer typecheck: OK (isolated tarball install, skipLibCheck: false)
+$ tsc -p tsconfig.build.json && node scripts/copy-assets.mjs
+$ node scripts/build.mjs
+Official package service metadata verified against reference definitions.
+$ tsc -p tsconfig.build.json && node --import tsx scripts/verify-package-services.mjs
+Official package service metadata verified against reference definitions.
+$ tsc -p tsconfig.build.json
+$ tsc -p tsconfig.build.json
+$ node scripts/build.mjs
+vite v8.3.0 building client environment for production...
+transforming...
+✓ 3830 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/web-component.css     10.02 kB │ gzip:   2.44 kB
+dist/agent-ui.es.js     2,957.04 kB │ gzip: 719.87 kB
+
+transforming...
+✓ 3830 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/web-component.css     10.02 kB │ gzip:   2.44 kB
+dist/agent-ui.js        2,226.69 kB │ gzip: 632.80 kB
+
+✓ built in 866ms
+vite v8.3.0 building client environment for production...
+transforming...
+✓ 4 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/host.js  3.14 kB │ gzip: 1.27 kB
+
+✓ built in 9ms

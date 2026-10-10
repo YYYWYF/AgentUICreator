@@ -1,0 +1,65 @@
+{
+  "scene": "A",
+  "boundary": true,
+  "comparisons": [
+    {
+      "region": "sidebar",
+      "host": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgb(25, 33, 58)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgb(25, 33, 58)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "official-dialog",
+      "host": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgb(25, 33, 58)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "38px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgb(25, 33, 58)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "20px",
+        "box-sizing": "border-box"
+      }
+    }
+  ],
+  "errors": [],
+  "status": "FAIL",
+  "failures": [
+    "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 3\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[33m@@ -3,10 +3,10 @@\u001b[39m\n\u001b[2m    \"border-radius\": \"12px\",\u001b[22m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(25, 33, 58)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[32m-   \"font-size\": \"16px\",\u001b[39m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"font-size\": \"14px\",\u001b[39m\n\u001b[31m+   \"height\": \"38px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"20px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 12px\",\u001b[22m\n\u001b[2m  }\u001b[22m"
+  ]
+}

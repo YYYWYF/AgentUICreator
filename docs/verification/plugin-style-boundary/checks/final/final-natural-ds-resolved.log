@@ -1,0 +1,256 @@
+
+Running 20 tests using 1 worker
+
+(node:56395) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/style-boundary-final.spec.ts:34:138 › A 1440 light zh-CN (16.7s)
+  ✓   2 tests/style-boundary-final.spec.ts:34:138 › A 1440 light en-US (13.8s)
+  ✓   3 tests/style-boundary-final.spec.ts:34:138 › A 1440 dark zh-CN (13.8s)
+  ✓   4 tests/style-boundary-final.spec.ts:34:138 › A 1440 dark en-US (13.7s)
+  ✓   5 tests/style-boundary-final.spec.ts:34:138 › A 420 light zh-CN (13.7s)
+  ✓   6 tests/style-boundary-final.spec.ts:34:138 › A 420 light en-US (13.7s)
+  ✓   7 tests/style-boundary-final.spec.ts:34:138 › A 420 dark zh-CN (13.6s)
+  ✓   8 tests/style-boundary-final.spec.ts:34:138 › A 420 dark en-US (14.0s)
+  ✓   9 tests/style-boundary-final.spec.ts:34:138 › C 1440 light zh-CN (13.8s)
+  ✓  10 tests/style-boundary-final.spec.ts:34:138 › C 1440 light en-US (14.0s)
+  ✓  11 tests/style-boundary-final.spec.ts:34:138 › C 1440 dark zh-CN (13.7s)
+  ✓  12 tests/style-boundary-final.spec.ts:34:138 › C 1440 dark en-US (13.7s)
+  ✓  13 tests/style-boundary-final.spec.ts:34:138 › C 420 light zh-CN (13.7s)
+  ✓  14 tests/style-boundary-final.spec.ts:34:138 › C 420 light en-US (13.7s)
+  ✓  15 tests/style-boundary-final.spec.ts:34:138 › C 420 dark zh-CN (13.6s)
+  ✓  16 tests/style-boundary-final.spec.ts:34:138 › C 420 dark en-US (13.7s)
+  ✘  17 tests/style-boundary-final.spec.ts:59:64 › A 1440 Sidebar and official nesting (1.2s)
+(node:57012) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  18 tests/style-boundary-final.spec.ts:59:64 › A 420 Sidebar and official nesting (2.6s)
+(node:57024) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  19 tests/style-boundary-final.spec.ts:59:64 › C 1440 Sidebar and official nesting (2.4s)
+(node:57044) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  20 tests/style-boundary-final.spec.ts:59:64 › C 420 Sidebar and official nesting (2.5s)
+
+
+  1) tests/style-boundary-final.spec.ts:59:64 › A 1440 Sidebar and official nesting ────────────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 3
+    + Received  + 3
+
+    @@ -3,10 +3,10 @@
+        "border-radius": "12px",
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+    -   "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "font-size": "14px",
+    +   "height": "38px",
+    +   "line-height": "20px",
+        "padding": "8px 12px",
+      }
+
+      61 |  const outside=page.locator('[data-probes=host] [data-probe=input]');await expect(outside).toBeVisible();const host=await style(outside);
+      62 |  await page.getByRole('button',{name:'备注',exact:true}).click();const sidebar=page.locator('[data-probes=sidebar] [data-probe=input]');await expect(sidebar).toBeVisible();row.comparisons.push({region:'sidebar',host,inside:await style(sidebar)});expect.soft(await style(sidebar)).toEqual(host);
+    > 63 |  if(width===420){await page.keyboard.press('Escape');await expect(sidebar).toBeHidden();}await page.getByTestId('official-dialog').click();const child=page.locator('[data-probes=official-child] [data-probe=input]');await expect(child).toBeVisible();row.comparisons.push({region:'official-dialog',host,inside:await style(child)});expect.soft(await style(child)).toEqual(host);
+         |                                                                                                                                                                                                                                                                                                                                                                          ^
+      64 |  expect.soft(await child.evaluate(e=>e.hasAttribute('data-agent-ui-owned'))).toBe(false);await page.screenshot({path:path.join(out,'visual',scene+'-'+width+'-official-nesting.png'),fullPage:true});await page.keyboard.press('Escape');await expect(child).toBeHidden();await expect(page.getByTestId('official-dialog')).toBeFocused();row.status=test.info().errors.length?'FAIL':'PASS';
+      65 | });
+      66 |
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:63:362
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-final/style-boundary-final-A-1440-Sidebar-and-official-nesting/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-final/style-boundary-final-A-1440-Sidebar-and-official-nesting/error-context.md
+
+    Error Context: test-results/style-final/style-boundary-final-A-1440-Sidebar-and-official-nesting/error-context.md
+
+  2) tests/style-boundary-final.spec.ts:59:64 › A 420 Sidebar and official nesting ─────────────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 3
+    + Received  + 3
+
+    @@ -3,10 +3,10 @@
+        "border-radius": "12px",
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+    -   "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "font-size": "14px",
+    +   "height": "38px",
+    +   "line-height": "20px",
+        "padding": "8px 12px",
+      }
+
+      60 |  const row:any={scene,width,boundary:true,comparisons:[],errors:[]};rows.push(row);await page.setViewportSize({width,height:1000});await page.goto(url+`?scene=${scene}`);
+      61 |  const outside=page.locator('[data-probes=host] [data-probe=input]');await expect(outside).toBeVisible();const host=await style(outside);
+    > 62 |  await page.getByRole('button',{name:'备注',exact:true}).click();const sidebar=page.locator('[data-probes=sidebar] [data-probe=input]');await expect(sidebar).toBeVisible();row.comparisons.push({region:'sidebar',host,inside:await style(sidebar)});expect.soft(await style(sidebar)).toEqual(host);
+         |                                                                                                                                                                                                                                                                                       ^
+      63 |  if(width===420){await page.keyboard.press('Escape');await expect(sidebar).toBeHidden();}await page.getByTestId('official-dialog').click();const child=page.locator('[data-probes=official-child] [data-probe=input]');await expect(child).toBeVisible();row.comparisons.push({region:'official-dialog',host,inside:await style(child)});expect.soft(await style(child)).toEqual(host);
+      64 |  expect.soft(await child.evaluate(e=>e.hasAttribute('data-agent-ui-owned'))).toBe(false);await page.screenshot({path:path.join(out,'visual',scene+'-'+width+'-official-nesting.png'),fullPage:true});await page.keyboard.press('Escape');await expect(child).toBeHidden();await expect(page.getByTestId('official-dialog')).toBeFocused();row.status=test.info().errors.length?'FAIL':'PASS';
+      65 | });
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:62:279
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 3
+    + Received  + 3
+
+    @@ -3,10 +3,10 @@
+        "border-radius": "12px",
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+    -   "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "font-size": "14px",
+    +   "height": "38px",
+    +   "line-height": "20px",
+        "padding": "8px 12px",
+      }
+
+      61 |  const outside=page.locator('[data-probes=host] [data-probe=input]');await expect(outside).toBeVisible();const host=await style(outside);
+      62 |  await page.getByRole('button',{name:'备注',exact:true}).click();const sidebar=page.locator('[data-probes=sidebar] [data-probe=input]');await expect(sidebar).toBeVisible();row.comparisons.push({region:'sidebar',host,inside:await style(sidebar)});expect.soft(await style(sidebar)).toEqual(host);
+    > 63 |  if(width===420){await page.keyboard.press('Escape');await expect(sidebar).toBeHidden();}await page.getByTestId('official-dialog').click();const child=page.locator('[data-probes=official-child] [data-probe=input]');await expect(child).toBeVisible();row.comparisons.push({region:'official-dialog',host,inside:await style(child)});expect.soft(await style(child)).toEqual(host);
+         |                                                                                                                                                                                                                                                                                                                                                                          ^
+      64 |  expect.soft(await child.evaluate(e=>e.hasAttribute('data-agent-ui-owned'))).toBe(false);await page.screenshot({path:path.join(out,'visual',scene+'-'+width+'-official-nesting.png'),fullPage:true});await page.keyboard.press('Escape');await expect(child).toBeHidden();await expect(page.getByTestId('official-dialog')).toBeFocused();row.status=test.info().errors.length?'FAIL':'PASS';
+      65 | });
+      66 |
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:63:362
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-final/style-boundary-final-A-420-Sidebar-and-official-nesting/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-final/style-boundary-final-A-420-Sidebar-and-official-nesting/error-context.md
+
+    Error Context: test-results/style-final/style-boundary-final-A-420-Sidebar-and-official-nesting/error-context.md
+
+  3) tests/style-boundary-final.spec.ts:59:64 › C 1440 Sidebar and official nesting ────────────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 3
+    + Received  + 3
+
+    @@ -3,10 +3,10 @@
+        "border-radius": "12px",
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+    -   "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "font-size": "14px",
+    +   "height": "38px",
+    +   "line-height": "20px",
+        "padding": "8px 12px",
+      }
+
+      61 |  const outside=page.locator('[data-probes=host] [data-probe=input]');await expect(outside).toBeVisible();const host=await style(outside);
+      62 |  await page.getByRole('button',{name:'备注',exact:true}).click();const sidebar=page.locator('[data-probes=sidebar] [data-probe=input]');await expect(sidebar).toBeVisible();row.comparisons.push({region:'sidebar',host,inside:await style(sidebar)});expect.soft(await style(sidebar)).toEqual(host);
+    > 63 |  if(width===420){await page.keyboard.press('Escape');await expect(sidebar).toBeHidden();}await page.getByTestId('official-dialog').click();const child=page.locator('[data-probes=official-child] [data-probe=input]');await expect(child).toBeVisible();row.comparisons.push({region:'official-dialog',host,inside:await style(child)});expect.soft(await style(child)).toEqual(host);
+         |                                                                                                                                                                                                                                                                                                                                                                          ^
+      64 |  expect.soft(await child.evaluate(e=>e.hasAttribute('data-agent-ui-owned'))).toBe(false);await page.screenshot({path:path.join(out,'visual',scene+'-'+width+'-official-nesting.png'),fullPage:true});await page.keyboard.press('Escape');await expect(child).toBeHidden();await expect(page.getByTestId('official-dialog')).toBeFocused();row.status=test.info().errors.length?'FAIL':'PASS';
+      65 | });
+      66 |
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:63:362
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-final/style-boundary-final-C-1440-Sidebar-and-official-nesting/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-final/style-boundary-final-C-1440-Sidebar-and-official-nesting/error-context.md
+
+    Error Context: test-results/style-final/style-boundary-final-C-1440-Sidebar-and-official-nesting/error-context.md
+
+  4) tests/style-boundary-final.spec.ts:59:64 › C 420 Sidebar and official nesting ─────────────────
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 3
+    + Received  + 3
+
+    @@ -3,10 +3,10 @@
+        "border-radius": "12px",
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+    -   "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "font-size": "14px",
+    +   "height": "38px",
+    +   "line-height": "20px",
+        "padding": "8px 12px",
+      }
+
+      60 |  const row:any={scene,width,boundary:true,comparisons:[],errors:[]};rows.push(row);await page.setViewportSize({width,height:1000});await page.goto(url+`?scene=${scene}`);
+      61 |  const outside=page.locator('[data-probes=host] [data-probe=input]');await expect(outside).toBeVisible();const host=await style(outside);
+    > 62 |  await page.getByRole('button',{name:'备注',exact:true}).click();const sidebar=page.locator('[data-probes=sidebar] [data-probe=input]');await expect(sidebar).toBeVisible();row.comparisons.push({region:'sidebar',host,inside:await style(sidebar)});expect.soft(await style(sidebar)).toEqual(host);
+         |                                                                                                                                                                                                                                                                                       ^
+      63 |  if(width===420){await page.keyboard.press('Escape');await expect(sidebar).toBeHidden();}await page.getByTestId('official-dialog').click();const child=page.locator('[data-probes=official-child] [data-probe=input]');await expect(child).toBeVisible();row.comparisons.push({region:'official-dialog',host,inside:await style(child)});expect.soft(await style(child)).toEqual(host);
+      64 |  expect.soft(await child.evaluate(e=>e.hasAttribute('data-agent-ui-owned'))).toBe(false);await page.screenshot({path:path.join(out,'visual',scene+'-'+width+'-official-nesting.png'),fullPage:true});await page.keyboard.press('Escape');await expect(child).toBeHidden();await expect(page.getByTestId('official-dialog')).toBeFocused();row.status=test.info().errors.length?'FAIL':'PASS';
+      65 | });
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:62:279
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 3
+    + Received  + 3
+
+    @@ -3,10 +3,10 @@
+        "border-radius": "12px",
+        "border-width": "1px",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-family": "Inter, system-ui, sans-serif",
+    -   "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "font-size": "14px",
+    +   "height": "38px",
+    +   "line-height": "20px",
+        "padding": "8px 12px",
+      }
+
+      61 |  const outside=page.locator('[data-probes=host] [data-probe=input]');await expect(outside).toBeVisible();const host=await style(outside);
+      62 |  await page.getByRole('button',{name:'备注',exact:true}).click();const sidebar=page.locator('[data-probes=sidebar] [data-probe=input]');await expect(sidebar).toBeVisible();row.comparisons.push({region:'sidebar',host,inside:await style(sidebar)});expect.soft(await style(sidebar)).toEqual(host);
+    > 63 |  if(width===420){await page.keyboard.press('Escape');await expect(sidebar).toBeHidden();}await page.getByTestId('official-dialog').click();const child=page.locator('[data-probes=official-child] [data-probe=input]');await expect(child).toBeVisible();row.comparisons.push({region:'official-dialog',host,inside:await style(child)});expect.soft(await style(child)).toEqual(host);
+         |                                                                                                                                                                                                                                                                                                                                                                          ^
+      64 |  expect.soft(await child.evaluate(e=>e.hasAttribute('data-agent-ui-owned'))).toBe(false);await page.screenshot({path:path.join(out,'visual',scene+'-'+width+'-official-nesting.png'),fullPage:true});await page.keyboard.press('Escape');await expect(child).toBeHidden();await expect(page.getByTestId('official-dialog')).toBeFocused();row.status=test.info().errors.length?'FAIL':'PASS';
+      65 | });
+      66 |
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:63:362
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-final/style-boundary-final-C-420-Sidebar-and-official-nesting/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-final/style-boundary-final-C-420-Sidebar-and-official-nesting/error-context.md
+
+    Error Context: test-results/style-final/style-boundary-final-C-420-Sidebar-and-official-nesting/error-context.md
+
+  4 failed
+    tests/style-boundary-final.spec.ts:59:64 › A 1440 Sidebar and official nesting ─────────────────
+    tests/style-boundary-final.spec.ts:59:64 › A 420 Sidebar and official nesting ──────────────────
+    tests/style-boundary-final.spec.ts:59:64 › C 1440 Sidebar and official nesting ─────────────────
+    tests/style-boundary-final.spec.ts:59:64 › C 420 Sidebar and official nesting ──────────────────
+  16 passed (3.9m)
+undefined
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: playwright test -c playwright.style-final.config.ts -g '(A|C) (1440|420)'

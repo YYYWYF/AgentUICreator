@@ -1,0 +1,247 @@
+
+Running 27 tests using 1 worker
+
+(node:46174) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+4:18:48 PM [vite] (client) Re-optimizing dependencies because vite config has changed
+  ✓   1 tests/style-boundary-final.spec.ts:31:138 › A 1440 light zh-CN (14.4s)
+  ✓   2 tests/style-boundary-final.spec.ts:31:138 › A 1440 light en-US (13.7s)
+  ✓   3 tests/style-boundary-final.spec.ts:31:138 › A 1440 dark zh-CN (13.9s)
+  ✓   4 tests/style-boundary-final.spec.ts:31:138 › A 1440 dark en-US (13.3s)
+  ✓   5 tests/style-boundary-final.spec.ts:31:138 › A 420 light zh-CN (13.3s)
+4:20:09 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-composer-triggers.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-directive-text.js
+4:20:09 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-composer-triggers.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-directive-text.js
+4:20:09 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-composer-triggers.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-directive-text.js
+4:20:09 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-composer-triggers.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-directive-text.js
+4:20:09 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-composer-triggers.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-directive-text.js
+  ✓   6 tests/style-boundary-final.spec.ts:31:138 › A 420 light en-US (14.5s)
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/composer-input-host-context.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-question-flow.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/locale.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/ui/button.js, /style.css
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/style-boundary/AgentUIRoot.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/public.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/ui/tooltip.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/style-boundary/AgentUIRoot.js, /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/style-boundary/ConversationActionMoreMenu.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/style-boundary/AgentUIDialog.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-plan.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/job-progress.js and 4 more
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/assistant-ui/elements/surfaces.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-composer-triggers.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/sidebar-frame.js
+4:20:13 PM [vite] (client) hmr update /fixture.tsx
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-composer-triggers.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-composer-triggers.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-directive-text.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/public.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-directive-text.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/locale.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/ui/dialog.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/ui/button.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/public.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/ui/popover.js and 40 more
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-toolkit-provider.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-directive-text.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/composable-thread.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-quote.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/quote-selection-root.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.aui.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-task-group.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/task-card.aui.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/image.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-thinking-indicator.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/composable-thread.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/composable-thread.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-tool-timeline.js, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-thinking-indicator.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/markdown-text.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/assistant-response-runtime.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/quote-selection-root.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/quote.aui.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/ui/input.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/ui/textarea.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/markdown-text.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/ui/skeleton.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/assistant-response-runtime.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/quote-selection-root.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/search-elements.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/ui/dialog.js, /style.css
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/data-message-ui.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.aui.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/reasoning.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-composer-triggers.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-quote.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/file.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/ui/avatar.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/retrieval-chunks.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/primitives/native-select.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-tool-timeline.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/task-card.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/ui/separator.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/quote-selection-action.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/locale.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/ui/popover.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/quote-selectable-text.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/ui/sheet.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/thinking-indicator.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/web-search.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-task-group.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/job-progress.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/reasoning.aui.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-plan.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/assistant-ui/elements/option-list.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/image.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/public.js, /style.css
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/thread-list.aui.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/task-card.aui.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/composable-thread.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/tool-call.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-directive-text.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/vendor/assistant-ui/components/ui/collapsible.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/tool-group.aui.js
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-directive-text.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-thinking-indicator.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/conversation-thread-list-item.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/ui/sidebar.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/quote.aui.js
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/media-player.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js
+4:20:13 PM [vite] (client) hmr update /style.css
+4:20:13 PM [vite] (client) hmr update /style.css, /@fs/Users/yifei/Coding/AgentUICreator/packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/tool-timeline.js
+4:20:14 PM [vite] (client) hmr update /style.css
+4:20:14 PM [vite] (client) hmr update /style.css
+4:20:14 PM [vite] (client) hmr update /style.css
+4:20:14 PM [vite] (client) hmr update /style.css
+4:20:14 PM [vite] (client) hmr update /style.css
+4:20:14 PM [vite] (client) hmr update /style.css
+4:20:14 PM [vite] (client) hmr update /style.css
+4:20:14 PM [vite] (client) hmr update /style.css
+4:20:14 PM [vite] (client) hmr update /style.css
+4:20:14 PM [vite] (client) hmr update /style.css
+4:20:14 PM [vite] (client) hmr update /style.css
+  ✘   7 tests/style-boundary-final.spec.ts:31:138 › A 420 dark zh-CN (3.6s)
+(node:47329) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+4:20:16 PM [vite] (client) Re-optimizing dependencies because vite config has changed
+4:20:18 PM [vite] (client) [optimizer] bundling dependencies...
+  ✓   8 tests/style-boundary-final.spec.ts:31:138 › A 420 dark en-US (18.9s)
+4:20:55 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✘   9 tests/style-boundary-final.spec.ts:31:138 › B 1440 light zh-CN (19.0s)
+(node:47791) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+4:20:58 PM [vite] (client) Re-optimizing dependencies because vite config has changed
+4:21:00 PM [vite] (client) [optimizer] bundling dependencies...
+  ✘  10 tests/style-boundary-final.spec.ts:31:138 › B 1440 light en-US (24.1s)
+
+
+  1) tests/style-boundary-final.spec.ts:31:138 › A 420 dark zh-CN ──────────────────────────────────
+
+    Error: locator.evaluate: Execution context was destroyed, most likely because of a navigation
+
+       9 | let server:ViteDevServer,fixture:string,url:string;
+      10 | const keys=['border-radius','height','padding','border-width','background-color','color','font-size','font-family','line-height','box-sizing'];
+    > 11 | const style=(l:Locator)=>l.evaluate((e,keys)=>Object.fromEntries(keys.map(k=>[k,getComputedStyle(e).getPropertyValue(k)])),keys);
+         |                            ^
+      12 | const rows:any[]=[];
+      13 | test.beforeAll(async()=>{
+      14 |  await mkdir(path.join(out,'visual'),{recursive:true});
+        at style (/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:11:28)
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:40:131
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-final/style-boundary-final-A-420-dark-zh-CN/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-final/style-boundary-final-A-420-dark-zh-CN/error-context.md
+
+    Error Context: test-results/style-final/style-boundary-final-A-420-dark-zh-CN/error-context.md
+
+  2) tests/style-boundary-final.spec.ts:31:138 › B 1440 light zh-CN ────────────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('.ant-modal[role=dialog]')
+    Expected: visible
+    Error: strict mode violation: locator('.ant-modal[role=dialog]') resolved to 2 elements:
+        1) <div role="dialog" aria-modal="true" aria-labelledby="_r_6_" class="ant-modal css-dev-only-do-not-override-1mwmxnu">…</div> aka getByLabel('业务说明').first()
+        2) <div role="dialog" aria-modal="true" aria-labelledby="_r_7_" class="ant-modal css-dev-only-do-not-override-1mwmxnu ant-zoom-appear ant-zoom-appear-start ant-zoom">…</div> aka getByRole('dialog', { name: '业务说明' })
+
+    Call log:
+      - Expect "toBeVisible" locator('.ant-modal[role=dialog]') with timeout 5000ms
+      - waiting for locator('.ant-modal[role=dialog]')
+
+
+      45 |  await page.screenshot({path:path.join(out,'visual',prefix+'-page.png'),fullPage:true});
+      46 |  const modalStyles:any={};for(const region of ['host','root']){
+    > 47 |   const opener=control(region,'button');await opener.click();const modal=page.locator(scene==='B'?'.ant-modal[role=dialog]':'dialog[open]');await expect(modal).toBeVisible();
+         |                                                                                                                                                                 ^
+      48 |   modalStyles[region]=await style(modal.locator('[data-probe=modal-input]'));await page.screenshot({path:path.join(out,'visual',prefix+'-modal-'+region+'.png'),fullPage:true});
+      49 |   await modal.locator('input').focus();await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');expect.soft(await modal.evaluate(e=>e.contains(document.activeElement))).toBe(true);
+      50 |   await page.keyboard.press('Escape');await expect(modal).toBeHidden();if(scene==='B')await expect(opener).toBeFocused();
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:47:161
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-final/style-boundary-final-B-1440-light-zh-CN/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-final/style-boundary-final-B-1440-light-zh-CN/error-context.md
+
+    Error Context: test-results/style-final/style-boundary-final-B-1440-light-zh-CN/error-context.md
+
+  3) tests/style-boundary-final.spec.ts:31:138 › B 1440 light en-US ────────────────────────────────
+
+    Test was interrupted.
+
+    Error: locator.evaluate: Test ended.
+
+       9 | let server:ViteDevServer,fixture:string,url:string;
+      10 | const keys=['border-radius','height','padding','border-width','background-color','color','font-size','font-family','line-height','box-sizing'];
+    > 11 | const style=(l:Locator)=>l.evaluate((e,keys)=>Object.fromEntries(keys.map(k=>[k,getComputedStyle(e).getPropertyValue(k)])),keys);
+         |                            ^
+      12 | const rows:any[]=[];
+      13 | test.beforeAll(async()=>{
+      14 |  await mkdir(path.join(out,'visual'),{recursive:true});
+        at style (/Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:11:28)
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:40:131
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-final/style-boundary-final-B-1440-light-en-US/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-final/style-boundary-final-B-1440-light-en-US/error-context.md
+
+  2 failed
+    tests/style-boundary-final.spec.ts:31:138 › A 420 dark zh-CN ───────────────────────────────────
+    tests/style-boundary-final.spec.ts:31:138 › B 1440 light zh-CN ─────────────────────────────────
+  1 interrupted
+    tests/style-boundary-final.spec.ts:31:138 › B 1440 light en-US ─────────────────────────────────
+  17 did not run
+  7 passed (2.6m)
+undefined
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 130: playwright test -c playwright.style-final.config.ts

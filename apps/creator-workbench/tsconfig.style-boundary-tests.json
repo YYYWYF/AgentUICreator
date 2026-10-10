@@ -11,7 +11,9 @@
     "tests/embedded-style-isolation.spec.ts",
     "playwright.style-boundary.config.ts",
     "tests/i18n-plugin-visual.spec.ts",
-    "tests/tool-timeline-thinking.spec.ts"
+    "tests/tool-timeline-thinking.spec.ts",
+    "tests/style-boundary-final.spec.ts",
+    "playwright.style-final.config.ts"
   ],
   "exclude": []
 }

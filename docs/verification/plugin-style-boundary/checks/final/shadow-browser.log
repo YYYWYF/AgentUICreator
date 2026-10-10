@@ -1,0 +1,28 @@
+[WebServer] (node:47954) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:47970) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 10 tests using 1 worker
+
+(node:47989) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/web-component.spec.ts:24:1 › Vue consumes standalone composition: streaming, tool result, quote, slash and portals (7.9s)
+  ✓   2 tests/web-component.spec.ts:68:1 › hostile Host CSS is isolated; locale and theme updates retain the draft (2.5s)
+  ✓   3 tests/web-component.spec.ts:90:1 › markdown and attachments use existing Plugins; persisted thread config switches (4.7s)
+[WebServer] 4:21:44 PM [vite] (client) [console.error] Agent execution failed: Error: HTTP 500: test runtime failure
+[WebServer]     at http://127.0.0.1:5182/@fs/Users/yifei/Coding/AgentUICreator/packages/web-component/dist/agent-ui.es.js:65655:12
+[WebServer]     at m (http://127.0.0.1:5182/@fs/Users/yifei/Coding/AgentUICreator/packages/web-component/dist/agent-ui.es.js:61849:6)
+[WebServer]     at p (http://127.0.0.1:5182/@fs/Users/yifei/Coding/AgentUICreator/packages/web-component/dist/agent-ui.es.js:61845:18)
+[WebServer]     at s._next (http://127.0.0.1:5182/@fs/Users/yifei/Coding/AgentUICreator/packages/web-component/dist/agent-ui.es.js:61327:5)
+[WebServer]     at t.next (http://127.0.0.1:5182/@fs/Users/yifei/Coding/AgentUICreator/packages/web-component/dist/agent-ui.es.js:61117:44)
+[WebServer]     at http://127.0.0.1:5182/@fs/Users/yifei/Coding/AgentUICreator/packages/web-component/dist/agent-ui.es.js:61598:19
+  ✓   4 tests/web-component.spec.ts:110:1 › config and Runtime errors reach the Host; disconnect cancels a run and remount sends once (4.1s)
+  ✓   5 tests/web-component.spec.ts:138:3 › style ownership in Shadow DOM: 1440 light (2.9s)
+  ✓   6 tests/web-component.spec.ts:138:3 › style ownership in Shadow DOM: 1440 dark (3.1s)
+  ✓   7 tests/web-component.spec.ts:138:3 › style ownership in Shadow DOM: 1440 violet (3.5s)
+  ✓   8 tests/web-component.spec.ts:138:3 › style ownership in Shadow DOM: 420 light (3.1s)
+  ✓   9 tests/web-component.spec.ts:138:3 › style ownership in Shadow DOM: 420 dark (2.9s)
+  ✓  10 tests/web-component.spec.ts:138:3 › style ownership in Shadow DOM: 420 violet (3.4s)
+
+  10 passed (41.5s)

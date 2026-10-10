@@ -1,0 +1,4 @@
+[WARN] Your node_modules are out of sync with your lockfile. Cannot check whether dependencies are outdated
+$ tsc --noEmit
+src/NativeAntProbes.tsx(3,34): error TS7031: Binding element 'id' implicitly has an 'any' type.
+[ELIFECYCLE] Command failed with exit code 1.

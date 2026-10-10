@@ -1,0 +1,85 @@
+
+Running 1 test using 1 worker
+
+(node:45647) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+4:16:21 PM [vite] (client) Re-optimizing dependencies because vite config has changed
+4:16:23 PM [vite] (client) dependencies optimized: @base-ui/react/button, @base-ui/react/input, @base-ui/react/separator
+4:16:23 PM [vite] (client) optimized dependencies changed. reloading
+4:16:23 PM [vite] (client) [console.error] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+4:16:23 PM [vite] (client) [console.error] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+4:16:23 PM [vite] (client) [Unhandled error] TypeError: Cannot read properties of null (reading 'useRef')
+ > exports.useRef ../../../node_modules/.pnpm/react@19.3.0/node_modules/react/cjs/react.development.js:1306:33
+ > useButton ../../../node_modules/.pnpm/@base-ui+react@1.8.0_@types+react@19.3.0_react-dom@19.3.0_react@19.3.0__react@19.3.0/node_modules/@base-ui/react/internals/use-button/useButton.mjs:21:27
+ > Button ../node_modules/.vite/deps/@base-ui_react_button.js?v=a8b9a285:13:40
+ > Object.react_stack_bottom_frame ../node_modules/.vite/deps/react-dom_client.js?v=266bd6ce:14142:12
+ > renderWithHooks ../node_modules/.vite/deps/react-dom_client.js?v=266bd6ce:4400:19
+ > updateForwardRef ../node_modules/.vite/deps/react-dom_client.js?v=266bd6ce:5597:16
+ > beginWork ../node_modules/.vite/deps/react-dom_client.js?v=266bd6ce:6455:21
+ > runWithFiberInDEV ../node_modules/.vite/deps/react-dom_client.js?v=266bd6ce:944:66
+ > performUnitOfWork ../node_modules/.vite/deps/react-dom_client.js?v=266bd6ce:9148:92
+ > workLoopSync ../node_modules/.vite/deps/react-dom_client.js?v=266bd6ce:9044:37
+
+4:16:23 PM [vite] (client) [console.warn] An error occurred in the <Button> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+  ✘  1 tests/style-boundary-visual.spec.ts:48:76 › after 1440 light (5.5s)
+
+
+  1) tests/style-boundary-visual.spec.ts:48:76 › after 1440 light ──────────────────────────────────
+
+    Error: ds-input
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 2
+    + Received  + 2
+
+    @@ -6,12 +6,12 @@
+        "border-top-width": "1px",
+        "box-shadow": "none",
+        "box-sizing": "border-box",
+        "color": "rgb(25, 33, 58)",
+        "font-size": "16px",
+    -   "height": "36px",
+    -   "line-height": "normal",
+    +   "height": "42px",
+    +   "line-height": "24px",
+        "outline-color": "rgb(25, 33, 58)",
+        "outline-style": "none",
+        "outline-width": "3px",
+        "padding": "8px 12px",
+      }
+
+      67 |   for(const probe of ['antd-input','antd-disabled','antd-button','antd-card','ds-input','ds-button','ds-card']){
+      68 |     const outside=page.locator('[data-probes=outside] [data-probe='+probe+']');const inside=page.locator('[data-probes=inside] [data-probe='+probe+']');
+    > 69 |     const baseOut=await styles(outside),baseIn=await styles(inside);const comparable=(css:Record<string,string>)=>Object.fromEntries(Object.entries(css).filter(([key])=>!probe.endsWith('card')||key!=='height'));expect(comparable(baseIn.css),probe).toEqual(comparable(baseOut.css));isolation[probe]={outside:baseOut,inside:baseIn};
+         |                                                                                                                                                                                                                                                         ^
+      70 |     if(probe==='antd-input'){
+      71 |       expect(baseIn.css['border-radius']).toBe('12px');expect(baseIn.css.height).toBe('32px');expect(baseIn.css.padding).toBe('4px 11px');expect(baseIn.css['border-top-width']).toBe('1px');
+      72 |       await outside.hover();await page.waitForTimeout(250);const outHover=await styles(outside);await inside.hover();await page.waitForTimeout(250);const inHover=await styles(inside);await expect.poll(async()=>(await styles(inside)).css).toEqual(outHover.css);
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-visual.spec.ts:69:249
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-boundary/style-boundary-visual-after-1440-light/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-boundary/style-boundary-visual-after-1440-light/error-context.md
+
+    Error Context: test-results/style-boundary/style-boundary-visual-after-1440-light/error-context.md
+
+  1 failed
+    tests/style-boundary-visual.spec.ts:48:76 › after 1440 light ───────────────────────────────────
+undefined
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: playwright test -c playwright.style-boundary.config.ts -g 'after 1440 light'

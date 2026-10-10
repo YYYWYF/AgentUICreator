@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module';
 import { test, expect, type Page, type Locator } from "@playwright/test";
 import { mkdtemp, writeFile, readFile, mkdir, rm } from "node:fs/promises";
 import path from "node:path";
@@ -5,7 +6,8 @@ import { execFileSync } from "node:child_process";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { createServer, type ViteDevServer } from "vite";
-const evidence = path.resolve('../../docs/verification/plugin-style-boundary/full-visual');
+const syncStoreRoot = path.dirname(path.dirname(createRequire(import.meta.url).resolve('use-sync-external-store/shim', { paths: [path.resolve('../../packages/react/node_modules/@base-ui/react')] })));
+const evidence = path.resolve(process.env.STYLE_EVIDENCE || '../../docs/verification/plugin-style-boundary/full-visual');
 const phase = process.env.STYLE_PHASE || 'after';
 const bFixture = process.env.STYLE_B_FIXTURE || '/tmp/host-ui-p1-20261009/fixtures/B';
 let server: ViteDevServer, fixture: string, url: string;
@@ -14,7 +16,7 @@ test.beforeAll(async () => {
   fixture = await mkdtemp(path.resolve('.style-boundary-'));
   await writeFile(path.join(fixture,'index.html'), '<div id="root"></div><script type="module" src="/fixture.tsx"></script>');
   const ds = await readFile(path.join(bFixture.replace(/\/B$/, '/A'), 'src/design-system/system.css'), 'utf8');
-  await writeFile(path.join(fixture,'style.css'), `@import "@agent-ui/react/styles.css"; html,body,#root {margin:0;min-height:100%;} .shell{height:520px;} .probes{display:flex;flex-wrap:wrap;gap:12px;padding:12px;line-height:normal;} ${ds}`);
+  await writeFile(path.join(fixture,'style.css'), `@import "@agent-ui/react/styles.css"; html,body,#root {margin:0;min-height:100%;} .shell{height:520px;} .probes{display:flex;flex-wrap:wrap;gap:12px;padding:12px;${process.env.STYLE_UNCONTROLLED ? '' : 'line-height:normal;'}} ${ds}`);
   const baseline = execFileSync('git', ['show', '7b1d2a6518a024bf5a89840d3f6cb8b1c320d805:packages/react/src/internal/conversation-thread-list-item.tsx'], { encoding: 'utf8' }).replace(/from "(\.[^"]+)"/g, (_, specifier) => `from "${path.resolve('../../packages/react/dist/internal', specifier)}"`);
   await writeFile(path.join(fixture, 'thread-list-before.tsx'), baseline);
   const baselineSidebar = execFileSync('git', ['show', 'ebc827789408dec0a52d3d72c486c3db0250ad31:packages/react/src/internal/sidebar-frame.tsx'], { encoding: 'utf8' }).replace(/from "(\.[^"]+)"/g, (_, specifier) => `from "${path.resolve('../../packages/react/dist/internal', specifier)}"`);
@@ -38,11 +40,11 @@ test.beforeAll(async () => {
     function Host(){const Frame='${phase}'==='before'?BaselineSidebar:AgentUISidebarFrame;const runtime=useRemoteThreadListRuntime({runtimeHook,adapter});return <ConfigProvider theme={{algorithm:theme==='dark'?antTheme.darkAlgorithm:antTheme.defaultAlgorithm,token:{borderRadius:12,colorPrimary:'#405bce',fontFamily:'Inter,system-ui,sans-serif'}}}><Probes id="outside"/><AssistantRuntimeProvider runtime={runtime}><AgentUILocaleProvider locale="zh-CN"><AgentUIRoot theme={theme}><div className="shell"><Frame defaultActive={innerWidth>648?"history":""} items={[{id:'history',icon:'messages-square',label:'历史',content:<Threads/>}]}><main style={{padding:16}}><Tool/><Probes id="inside"/></main></Frame></div></AgentUIRoot></AgentUILocaleProvider></AssistantRuntimeProvider></ConfigProvider>}
     createRoot(document.getElementById('root')).render(<Host/>);
   `);
-  server = await createServer({configFile:false,root:fixture,plugins:[react(),tailwindcss()],resolve:{dedupe:['react','react-dom'],alias:{'antd':path.join(bFixture,'node_modules/antd'),'lucide-react':path.resolve('../../packages/react/node_modules/lucide-react'),'@agent-ui/react/styles.css':path.resolve('../../packages/react/dist/styles.css'),'@agent-ui/react':path.resolve('../../packages/react/dist/index.js'),'@assistant-ui/react':path.resolve('../../packages/react/node_modules/@assistant-ui/react')}},optimizeDeps:{include:['antd','@assistant-ui/react','lucide-react']},server:{host:'127.0.0.1',port:0,fs:{allow:[path.resolve('../..'),'/tmp']}}});
+  server = await createServer({configFile:false,root:fixture,cacheDir:path.join(fixture,'.vite'),plugins:[react(),tailwindcss()],resolve:{dedupe:['react','react-dom'],alias:{'use-sync-external-store':syncStoreRoot,'zustand':path.resolve('../../packages/react/node_modules/zustand'),'antd':path.join(bFixture,'node_modules/antd'),'lucide-react':path.resolve('../../packages/react/node_modules/lucide-react'),'@agent-ui/react/styles.css':path.resolve('../../packages/react/dist/styles.css'),'@agent-ui/react':path.resolve('../../packages/react/dist/index.js'),'@assistant-ui/react':path.resolve('../../packages/react/node_modules/@assistant-ui/react')}},optimizeDeps:{noDiscovery:true,include:['react','react-dom/client','antd','@assistant-ui/react','lucide-react','@base-ui/react/**','@agent-ui/react','zustand','use-sync-external-store/shim','use-sync-external-store/shim/with-selector']},server:{host:'127.0.0.1',port:0,hmr:false,fs:{allow:[path.resolve('../..'),'/tmp']}}});
   await server.listen(); url=server.resolvedUrls!.local[0]!;
 });
 test.afterAll(async()=>{await server?.close();if(fixture)await rm(fixture,{recursive:true,force:true})});
-const properties=['border-top-width','border-top-style','border-top-color','outline-width','outline-style','outline-color','box-shadow','background-color','border-radius','padding','height','color','font-size','box-sizing'];
+const properties=['border-top-width','border-top-style','border-top-color','outline-width','outline-style','outline-color','box-shadow','background-color','border-radius','padding','height','color','font-size','line-height','box-sizing'];
 async function styles(locator:Locator){return locator.evaluate((element,keys)=>({tag:element.tagName,slot:element.getAttribute('data-slot'),owned:element.hasAttribute('data-agent-ui-owned'),active:element.hasAttribute('data-active'),focusVisible:element.matches(':focus-visible'),hover:element.matches(':hover'),state:element.getAttribute('data-state'),css:Object.fromEntries(keys.map(k=>[k,getComputedStyle(element).getPropertyValue(k)]))}),properties)}
 async function matched(page:Page,selector:string){const cdp=await page.context().newCDPSession(page);await cdp.send('DOM.enable');await cdp.send('CSS.enable');const {root}=await cdp.send('DOM.getDocument');const {nodeId}=await cdp.send('DOM.querySelector',{nodeId:root.nodeId,selector});const rules=await cdp.send('CSS.getMatchedStylesForNode',{nodeId});await cdp.detach();return (rules.matchedCSSRules ?? []).map(entry=>({origin:entry.rule.origin,selector:entry.rule.selectorList.text,layers:entry.rule.layers,matchingSelectors:entry.matchingSelectors,properties:entry.rule.style.cssProperties.filter(p=>/^(border|outline|box-shadow|background|padding|height|box-sizing)/.test(p.name))})).filter(entry=>entry.properties.length)}
 for(const width of [1440,420])for(const theme of ['light','dark','violet'])test(`${phase} ${width} ${theme}`,async({page})=>{
@@ -61,7 +63,7 @@ for(const width of [1440,420])for(const theme of ['light','dark','violet'])test(
   await trigger.hover();states.hover=await styles(row);await shot('hover');await trigger.click();states.selected=await styles(row);states.clicked=await styles(trigger);expect((states.clicked as any).focusVisible).toBe(false);await shot('selected');
   await trigger.focus();await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');states.focus=await styles(trigger);expect((states.focus as any).focusVisible).toBe(true);await shot('focus');
   await row.locator('[data-slot=agent-ui-thread-action-more]').focus();await page.keyboard.press('ArrowDown');await expect(page.locator('[data-slot=agent-ui-thread-action-menu]')).toBeVisible();states.menu=await styles(page.locator('[data-slot=agent-ui-thread-action-menu]'));states.menuBox=await page.locator('[data-slot=agent-ui-thread-action-menu]').boundingBox();await shot('menu');
-  await page.locator('[data-slot=agent-ui-thread-action-rename]').click();const rename=page.locator('[data-slot=agent-ui-thread-rename-input]');await expect(rename).toBeFocused();states.rename=await styles(rename);await shot('rename');await rename.fill('重命名会话');await rename.press('Enter');await expect(trigger).toHaveText('重命名会话');
+  await page.locator('[data-slot=agent-ui-thread-action-rename]').click();const rename=page.locator('[data-slot=agent-ui-thread-rename-input]');await expect(rename).toBeFocused();await page.waitForTimeout(300);await expect(rename).toBeFocused();states.rename=await styles(rename);await shot('rename');await rename.fill('重命名会话');await rename.press('Enter');await expect(trigger).toHaveText('重命名会话');
   if(width===420)await page.keyboard.press('Escape');
   const isolation:Record<string,unknown>={};
   for(const probe of ['antd-input','antd-disabled','antd-button','antd-card','ds-input','ds-button','ds-card']){

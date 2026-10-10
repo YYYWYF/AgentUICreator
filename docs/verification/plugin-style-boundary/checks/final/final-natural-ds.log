@@ -1,0 +1,5 @@
+Error: No tests found
+
+undefined
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: playwright test -c playwright.style-final.config.ts -g '^A |^C '

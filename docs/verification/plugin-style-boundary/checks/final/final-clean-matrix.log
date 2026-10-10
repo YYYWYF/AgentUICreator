@@ -1,0 +1,286 @@
+
+Running 30 tests using 1 worker
+
+(node:52741) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Failed to resolve dependency: zustand, present in client 'optimizeDeps.include'
+Failed to resolve dependency: use-sync-external-store/shim, present in client 'optimizeDeps.include'
+Failed to resolve dependency: use-sync-external-store/shim/with-selector, present in client 'optimizeDeps.include'
+4:35:59 PM [vite] (client) [Unhandled error] SyntaxError: The requested module '/@fs/Users/yifei/Coding/AgentUICreator/node_modules/.pnpm/use-sync-external-store@1.7.0_react@19.3.0/node_modules/use-sync-external-store/shim/index.js?v=e2097f24' does not provide an export named 'useSyncExternalStore'
+
+  ✘   1 tests/style-boundary-final.spec.ts:32:138 › A 1440 light zh-CN (9.4s)
+(node:52806) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Failed to resolve dependency: zustand, present in client 'optimizeDeps.include'
+Failed to resolve dependency: use-sync-external-store/shim, present in client 'optimizeDeps.include'
+Failed to resolve dependency: use-sync-external-store/shim/with-selector, present in client 'optimizeDeps.include'
+4:36:09 PM [vite] (client) [Unhandled error] SyntaxError: The requested module '/@fs/Users/yifei/Coding/AgentUICreator/node_modules/.pnpm/use-sync-external-store@1.7.0_react@19.3.0/node_modules/use-sync-external-store/shim/index.js?v=9ae8ae40' does not provide an export named 'useSyncExternalStore'
+
+  ✘   2 tests/style-boundary-final.spec.ts:32:138 › A 1440 light en-US (9.3s)
+(node:52881) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Failed to resolve dependency: zustand, present in client 'optimizeDeps.include'
+Failed to resolve dependency: use-sync-external-store/shim, present in client 'optimizeDeps.include'
+Failed to resolve dependency: use-sync-external-store/shim/with-selector, present in client 'optimizeDeps.include'
+4:36:20 PM [vite] (client) [Unhandled error] SyntaxError: The requested module '/@fs/Users/yifei/Coding/AgentUICreator/node_modules/.pnpm/use-sync-external-store@1.7.0_react@19.3.0/node_modules/use-sync-external-store/shim/index.js?v=69d4f83d' does not provide an export named 'useSyncExternalStore'
+
+  ✘   3 tests/style-boundary-final.spec.ts:32:138 › A 1440 dark zh-CN (8.7s)
+(node:52941) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Failed to resolve dependency: zustand, present in client 'optimizeDeps.include'
+Failed to resolve dependency: use-sync-external-store/shim, present in client 'optimizeDeps.include'
+Failed to resolve dependency: use-sync-external-store/shim/with-selector, present in client 'optimizeDeps.include'
+4:36:28 PM [vite] (client) [Unhandled error] SyntaxError: The requested module '/@fs/Users/yifei/Coding/AgentUICreator/node_modules/.pnpm/use-sync-external-store@1.7.0_react@19.3.0/node_modules/use-sync-external-store/shim/index.js?v=9f6d1f20' does not provide an export named 'useSyncExternalStore'
+
+  ✘   4 tests/style-boundary-final.spec.ts:32:138 › A 1440 dark en-US (7.4s)
+(node:53034) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Failed to resolve dependency: zustand, present in client 'optimizeDeps.include'
+Failed to resolve dependency: use-sync-external-store/shim, present in client 'optimizeDeps.include'
+Failed to resolve dependency: use-sync-external-store/shim/with-selector, present in client 'optimizeDeps.include'
+4:36:40 PM [vite] (client) [Unhandled error] SyntaxError: The requested module '/@fs/Users/yifei/Coding/AgentUICreator/node_modules/.pnpm/use-sync-external-store@1.7.0_react@19.3.0/node_modules/use-sync-external-store/shim/index.js?v=33eabc51' does not provide an export named 'useSyncExternalStore'
+
+  ✘   5 tests/style-boundary-final.spec.ts:32:138 › A 420 light zh-CN (9.7s)
+(node:53115) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Failed to resolve dependency: zustand, present in client 'optimizeDeps.include'
+Failed to resolve dependency: use-sync-external-store/shim, present in client 'optimizeDeps.include'
+Failed to resolve dependency: use-sync-external-store/shim/with-selector, present in client 'optimizeDeps.include'
+4:36:47 PM [vite] (client) [optimizer] bundling dependencies...
+4:36:58 PM [vite] (client) [Unhandled error] SyntaxError: The requested module '/@fs/Users/yifei/Coding/AgentUICreator/node_modules/.pnpm/use-sync-external-store@1.7.0_react@19.3.0/node_modules/use-sync-external-store/shim/index.js?v=0ddc0bce' does not provide an export named 'useSyncExternalStore'
+
+  ✘   6 tests/style-boundary-final.spec.ts:32:138 › A 420 light en-US (14.7s)
+(node:53217) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Failed to resolve dependency: zustand, present in client 'optimizeDeps.include'
+Failed to resolve dependency: use-sync-external-store/shim, present in client 'optimizeDeps.include'
+Failed to resolve dependency: use-sync-external-store/shim/with-selector, present in client 'optimizeDeps.include'
+4:37:07 PM [vite] (client) [optimizer] bundling dependencies...
+  ✘   7 tests/style-boundary-final.spec.ts:32:138 › A 420 dark zh-CN (10.3s)
+
+
+  1) tests/style-boundary-final.spec.ts:32:138 › A 1440 light zh-CN ────────────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-probes=root] [data-probe=input]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-probes=root] [data-probe=input]') with timeout 5000ms
+      - waiting for locator('[data-probes=root] [data-probe=input]')
+
+
+      34 |  await page.setViewportSize({width,height:1000});await page.goto(url+`?scene=${scene}&theme=${theme}&locale=${locale}`);const prefix=`${scene}-${width}-${theme}-${locale}`;
+      35 |  const control=(region:string,probe:string)=>page.locator(`[data-probes=${region}] [data-probe=${probe}]`);
+    > 36 |  await expect(control('root','input')).toBeVisible();
+         |                                        ^
+      37 |  for(const region of ['root','owned-child','standalone'])for(const probe of ['input','button','disabled-input','disabled-button','card',...(scene==='B'?['list']:[])]){
+      38 |   const host=control('host',probe),plugin=control(region,probe);
+      39 |   for(const state of ['default',...(!probe.includes('disabled')&&['input','button'].includes(probe)?['hover','focus']:[])]){
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:36:40
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-final/style-boundary-final-A-1440-light-zh-CN/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-final/style-boundary-final-A-1440-light-zh-CN/error-context.md
+
+    Error Context: test-results/style-final/style-boundary-final-A-1440-light-zh-CN/error-context.md
+
+  2) tests/style-boundary-final.spec.ts:32:138 › A 1440 light en-US ────────────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-probes=root] [data-probe=input]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-probes=root] [data-probe=input]') with timeout 5000ms
+      - waiting for locator('[data-probes=root] [data-probe=input]')
+
+
+      34 |  await page.setViewportSize({width,height:1000});await page.goto(url+`?scene=${scene}&theme=${theme}&locale=${locale}`);const prefix=`${scene}-${width}-${theme}-${locale}`;
+      35 |  const control=(region:string,probe:string)=>page.locator(`[data-probes=${region}] [data-probe=${probe}]`);
+    > 36 |  await expect(control('root','input')).toBeVisible();
+         |                                        ^
+      37 |  for(const region of ['root','owned-child','standalone'])for(const probe of ['input','button','disabled-input','disabled-button','card',...(scene==='B'?['list']:[])]){
+      38 |   const host=control('host',probe),plugin=control(region,probe);
+      39 |   for(const state of ['default',...(!probe.includes('disabled')&&['input','button'].includes(probe)?['hover','focus']:[])]){
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:36:40
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-final/style-boundary-final-A-1440-light-en-US/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-final/style-boundary-final-A-1440-light-en-US/error-context.md
+
+    Error Context: test-results/style-final/style-boundary-final-A-1440-light-en-US/error-context.md
+
+  3) tests/style-boundary-final.spec.ts:32:138 › A 1440 dark zh-CN ─────────────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-probes=root] [data-probe=input]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-probes=root] [data-probe=input]') with timeout 5000ms
+      - waiting for locator('[data-probes=root] [data-probe=input]')
+
+
+      34 |  await page.setViewportSize({width,height:1000});await page.goto(url+`?scene=${scene}&theme=${theme}&locale=${locale}`);const prefix=`${scene}-${width}-${theme}-${locale}`;
+      35 |  const control=(region:string,probe:string)=>page.locator(`[data-probes=${region}] [data-probe=${probe}]`);
+    > 36 |  await expect(control('root','input')).toBeVisible();
+         |                                        ^
+      37 |  for(const region of ['root','owned-child','standalone'])for(const probe of ['input','button','disabled-input','disabled-button','card',...(scene==='B'?['list']:[])]){
+      38 |   const host=control('host',probe),plugin=control(region,probe);
+      39 |   for(const state of ['default',...(!probe.includes('disabled')&&['input','button'].includes(probe)?['hover','focus']:[])]){
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:36:40
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-final/style-boundary-final-A-1440-dark-zh-CN/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-final/style-boundary-final-A-1440-dark-zh-CN/error-context.md
+
+    Error Context: test-results/style-final/style-boundary-final-A-1440-dark-zh-CN/error-context.md
+
+  4) tests/style-boundary-final.spec.ts:32:138 › A 1440 dark en-US ─────────────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-probes=root] [data-probe=input]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-probes=root] [data-probe=input]') with timeout 5000ms
+      - waiting for locator('[data-probes=root] [data-probe=input]')
+
+
+      34 |  await page.setViewportSize({width,height:1000});await page.goto(url+`?scene=${scene}&theme=${theme}&locale=${locale}`);const prefix=`${scene}-${width}-${theme}-${locale}`;
+      35 |  const control=(region:string,probe:string)=>page.locator(`[data-probes=${region}] [data-probe=${probe}]`);
+    > 36 |  await expect(control('root','input')).toBeVisible();
+         |                                        ^
+      37 |  for(const region of ['root','owned-child','standalone'])for(const probe of ['input','button','disabled-input','disabled-button','card',...(scene==='B'?['list']:[])]){
+      38 |   const host=control('host',probe),plugin=control(region,probe);
+      39 |   for(const state of ['default',...(!probe.includes('disabled')&&['input','button'].includes(probe)?['hover','focus']:[])]){
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:36:40
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-final/style-boundary-final-A-1440-dark-en-US/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-final/style-boundary-final-A-1440-dark-en-US/error-context.md
+
+    Error Context: test-results/style-final/style-boundary-final-A-1440-dark-en-US/error-context.md
+
+  5) tests/style-boundary-final.spec.ts:32:138 › A 420 light zh-CN ─────────────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-probes=root] [data-probe=input]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-probes=root] [data-probe=input]') with timeout 5000ms
+      - waiting for locator('[data-probes=root] [data-probe=input]')
+
+
+      34 |  await page.setViewportSize({width,height:1000});await page.goto(url+`?scene=${scene}&theme=${theme}&locale=${locale}`);const prefix=`${scene}-${width}-${theme}-${locale}`;
+      35 |  const control=(region:string,probe:string)=>page.locator(`[data-probes=${region}] [data-probe=${probe}]`);
+    > 36 |  await expect(control('root','input')).toBeVisible();
+         |                                        ^
+      37 |  for(const region of ['root','owned-child','standalone'])for(const probe of ['input','button','disabled-input','disabled-button','card',...(scene==='B'?['list']:[])]){
+      38 |   const host=control('host',probe),plugin=control(region,probe);
+      39 |   for(const state of ['default',...(!probe.includes('disabled')&&['input','button'].includes(probe)?['hover','focus']:[])]){
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:36:40
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-final/style-boundary-final-A-420-light-zh-CN/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-final/style-boundary-final-A-420-light-zh-CN/error-context.md
+
+    Error Context: test-results/style-final/style-boundary-final-A-420-light-zh-CN/error-context.md
+
+  6) tests/style-boundary-final.spec.ts:32:138 › A 420 light en-US ─────────────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-probes=root] [data-probe=input]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-probes=root] [data-probe=input]') with timeout 5000ms
+      - waiting for locator('[data-probes=root] [data-probe=input]')
+
+
+      34 |  await page.setViewportSize({width,height:1000});await page.goto(url+`?scene=${scene}&theme=${theme}&locale=${locale}`);const prefix=`${scene}-${width}-${theme}-${locale}`;
+      35 |  const control=(region:string,probe:string)=>page.locator(`[data-probes=${region}] [data-probe=${probe}]`);
+    > 36 |  await expect(control('root','input')).toBeVisible();
+         |                                        ^
+      37 |  for(const region of ['root','owned-child','standalone'])for(const probe of ['input','button','disabled-input','disabled-button','card',...(scene==='B'?['list']:[])]){
+      38 |   const host=control('host',probe),plugin=control(region,probe);
+      39 |   for(const state of ['default',...(!probe.includes('disabled')&&['input','button'].includes(probe)?['hover','focus']:[])]){
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:36:40
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-final/style-boundary-final-A-420-light-en-US/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-final/style-boundary-final-A-420-light-en-US/error-context.md
+
+    Error Context: test-results/style-final/style-boundary-final-A-420-light-en-US/error-context.md
+
+  7) tests/style-boundary-final.spec.ts:32:138 › A 420 dark zh-CN ──────────────────────────────────
+
+    Test was interrupted.
+
+    Error: page.goto: Test ended.
+    Call log:
+      - navigating to "http://127.0.0.1:54154/?scene=A&theme=dark&locale=zh-CN", waiting until "load"
+
+
+      32 | test.afterEach(async({},info)=>{const row=rows.at(-1);if(row){row.status=info.status==='passed'?'PASS':'FAIL';row.failures=info.errors.map(e=>e.message);await mkdir(path.join(out,'computed-raw'),{recursive:true});await writeFile(path.join(out,'computed-raw',info.title.replaceAll(' ','-')+'.json'),JSON.stringify(row,null,2));}});
+      33 | test.afterAll(async()=>{await server?.close();await rm(fixture,{recursive:true,force:true})});
+    > 34 | for(const scene of ['A','B','C'])for(const width of [1440,420])for(const theme of ['light','dark'])for(const locale of ['zh-CN','en-US'])test(`${scene} ${width} ${theme} ${locale}`,async({page})=>{
+         |                                                             ^
+      35 |  const row:any={scene,width,theme,locale,comparisons:[],errors:[]};rows.push(row);page.on('pageerror',e=>row.errors.push(e.message));
+      36 |  await page.setViewportSize({width,height:1000});await page.goto(url+`?scene=${scene}&theme=${theme}&locale=${locale}`);const prefix=`${scene}-${width}-${theme}-${locale}`;
+      37 |  const control=(region:string,probe:string)=>page.locator(`[data-probes=${region}] [data-probe=${probe}]`);
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-final.spec.ts:34:61
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-final/style-boundary-final-A-420-dark-zh-CN/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-final/style-boundary-final-A-420-dark-zh-CN/error-context.md
+
+    Error Context: test-results/style-final/style-boundary-final-A-420-dark-zh-CN/error-context.md
+
+  6 failed
+    tests/style-boundary-final.spec.ts:32:138 › A 1440 light zh-CN ─────────────────────────────────
+    tests/style-boundary-final.spec.ts:32:138 › A 1440 light en-US ─────────────────────────────────
+    tests/style-boundary-final.spec.ts:32:138 › A 1440 dark zh-CN ──────────────────────────────────
+    tests/style-boundary-final.spec.ts:32:138 › A 1440 dark en-US ──────────────────────────────────
+    tests/style-boundary-final.spec.ts:32:138 › A 420 light zh-CN ──────────────────────────────────
+    tests/style-boundary-final.spec.ts:32:138 › A 420 light en-US ──────────────────────────────────
+  1 interrupted
+    tests/style-boundary-final.spec.ts:32:138 › A 420 dark zh-CN ───────────────────────────────────
+  23 did not run
+undefined
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 130: playwright test -c playwright.style-final.config.ts

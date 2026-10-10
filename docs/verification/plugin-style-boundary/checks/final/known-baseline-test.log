@@ -1,0 +1,221 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../scripts/generated-source-test-config" without a file extension (vitest.config.ts:3:43). Add the file extension
+  - ESM syntax in a file loaded as CommonJS (../../scripts/generated-source-test-config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+  - import "../../src/generate-plugin-registry" without a file extension (../project-control/tests/support/generated-project.ts:5:46). Add the file extension
+  - import "./framework/contracts/app-ui-model" without a file extension (../project-control/src/generate-plugin-registry.ts:6:37). Add the file extension
+  - import "./project/project-mode" without a file extension (../project-control/src/generate-plugin-registry.ts:7:42). Add the file extension
+  - import "./framework/contracts/agent-ui-project" without a file extension (../project-control/src/generate-plugin-registry.ts:8:43). Add the file extension
+  - import "./project/agent-ui-project-paths" without a file extension (../project-control/src/generate-plugin-registry.ts:9:95). Add the file extension
+  - import "./project/creator-cancel-marker" without a file extension (../project-control/src/generate-plugin-registry.ts:10:44). Add the file extension
+  - import "./project/registry-generator" without a file extension (../project-control/src/generate-plugin-registry.ts:13:8). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (../project-control/src/project/registry-generator.ts:18:8). Add the file extension
+  - import "./panel-dimension" without a file extension (../project-control/src/framework/contracts/app-ui-model.ts:3:42). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (../project-control/src/project/project-mode.ts:7:8). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (../project-control/src/project/agent-ui-project-paths.ts:3:43). Add the file extension
+  - import "../framework/contracts/app-ui-compiler" without a file extension (../project-control/src/project/registry-generator.ts:19:55). Add the file extension
+  - import "./types" without a file extension (../project-control/src/project/agent-ui-project-paths.ts:4:45). Add the file extension
+  - import "../framework/contracts/app-ui-composition" without a file extension (../project-control/src/project/registry-generator.ts:24:8). Add the file extension
+  - import "./project-config" without a file extension (../project-control/src/project/agent-ui-project-paths.ts:5:40). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (../project-control/src/project/registry-generator.ts:25:42). Add the file extension
+  - import "./plugin-assets" without a file extension (../project-control/src/project/registry-generator.ts:26:37). Add the file extension
+  - import "./data-message-ui-analyzer" without a file extension (../project-control/src/project/registry-generator.ts:27:39). Add the file extension
+  - import "./service-dependency-inspector" without a file extension (../project-control/src/project/registry-generator.ts:32:8). Add the file extension
+  - import "./types" without a file extension (../project-control/src/project/registry-generator.ts:39:8). Add the file extension
+  - import "./agent-ui-mode" without a file extension (../project-control/src/framework/contracts/agent-ui-project.ts:6:8). Add the file extension
+  - import "./types" without a file extension (../project-control/src/project/project-config.ts:1:45). Add the file extension
+  - import "./app-ui-model" without a file extension (../project-control/src/framework/contracts/app-ui-compiler.ts:8:8). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (../project-control/src/project/service-dependency-inspector.ts:9:8). Add the file extension
+  - import "../framework/contracts/data-message-ui" without a file extension (../project-control/src/project/data-message-ui-analyzer.ts:22:42). Add the file extension
+  - import "../framework/contracts/ui-plugin" without a file extension (../project-control/src/project/plugin-assets.ts:5:39). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (../project-control/src/framework/contracts/app-ui-composition.ts:4:8). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (../project-control/src/framework/contracts/app-ui-compiler.ts:14:8). Add the file extension
+  - import "./types" without a file extension (../project-control/src/project/service-dependency-inspector.ts:26:8). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (../project-control/src/project/plugin-assets.ts:6:42). Add the file extension
+  - import "./app-ui-composition" without a file extension (../project-control/src/framework/contracts/app-ui-compiler.ts:23:8). Add the file extension
+  - import "./types" without a file extension (../project-control/src/project/data-message-ui-analyzer.ts:23:48). Add the file extension
+  - import "./types" without a file extension (../project-control/src/project/plugin-assets.ts:12:8). Add the file extension
+  - import "./agent-ui-workspace" without a file extension (../project-control/src/framework/contracts/agent-ui-mode.ts:3:45). Add the file extension
+  - import "./panel-dimension" without a file extension (../project-control/src/framework/contracts/app-ui-runtime-model.ts:3:42). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (../project-control/src/framework/contracts/ui-plugin.ts:9:49). Add the file extension
+  - import "./app-ui-model" without a file extension (../project-control/src/framework/contracts/ui-plugin.ts:10:43). Add the file extension
+  - import "./app-ui-composition" without a file extension (../project-control/src/framework/contracts/ui-plugin.ts:11:48). Add the file extension
+  - import "./custom-event-protocol" without a file extension (../project-control/src/framework/contracts/ui-plugin.ts:12:39). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 /Users/yifei/Coding/AgentUICreator/packages/react
+
+ ❯ tests/assistant-ui-integration-boundary.test.ts (4 tests | 1 failed) 282ms
+   × keeps the canonical theme and Preflight scoped to AgentUIRoot 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/assistant-ui-integration-boundary.test.ts > keeps the canonical theme and Preflight scoped to AgentUIRoot
+AssertionError: expected 'import { agentUILocaleConfig } from "…' to contain '<AgentUIRoot theme={theme}>'
+
+- Expected
++ Received
+
+- <AgentUIRoot theme={theme}>
++ import { agentUILocaleConfig } from "../agent-ui/i18n/locale-config";
++ import type { AgentUILocaleCode } from "../agent-ui/i18n/locale-types";
++ import { usePreviewAgentEnvironment } from "./preview-environment";
++ import type { ConversationRuntimeProviderProps } from "@agent-ui/runtime-conversation";
++ import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
++ import {
++   ConversationRuntimeProvider,
++ } from "@agent-ui/runtime-conversation";
++
++ import appUIModelSource from "../app-ui/app-ui.json?raw";
++ import type { AppAgentState } from "../agent-contract/agent-state";
++ import { appFrontendTools } from "../agent-contract/agent-tools";
++ import { generatedFrontendToolUIs } from "../agent-ui/conversation/frontend-tool-uis.generated";
++ import {
++   capabilityCatalogRevision,
++   pluginCapabilityCatalog,
++ } from "../plugins";
++ import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../runtime/tools";
++ import type { RuntimeDiagnostic } from "../runtime/diagnostics";
++ import { publishAgentUIObservation, type AgentObservability } from "./observability";
++ import {
++   getConversationStarterSuggestions,
++   conversationMessageQueueEnabled,
++ } from "../agent-ui/conversation/config";
++ import { useConversationServiceThreadBinding, type ConversationRunResumeProvider } from "../agent-ui/conversation/threads/conversation-service-thread-binding";
++ import { GeneratedConversationIntegrations } from "../agent-ui/conversation/integrations.generated";
++ import { conversationToolkit as baseConversationToolkit } from "../agent-ui/conversation/toolkit";
++ import { agentCompositionStore } from "./composition-store";
++ import { ApplicationSessionBoundary, useApplicationSessionEpoch } from "./ApplicationSessionBoundary";
++ import { AgentSurface } from "./AgentSurface";
++
++ import "../agent-ui/conversation/styles.css";
++
++ // The revision descriptor is optional until the first project-control mutation.
++ const revisionSources = import.meta.glob<string>("../app-ui/composition-revision.generated.json", { eager: true, query: "?raw", import: "default" });
++ const revisionDescriptorSource = revisionSources["../app-ui/composition-revision.generated.json"];
++
++ export interface AgentProps {
++   /** Optional Host-owned presentation locale; never sent to AG-UI. */
++   locale?: AgentUILocaleCode;
++   /** The Host application's AG-UI endpoint. Defaults to VITE_AGENT_ENDPOINT or /agent. */
++   endpoint?: string;
++   observability?: AgentObservability;
++   /** Application errors and Agent run errors reported by the conversation provider. */
++   onError?: ConversationRuntimeProviderProps["onError"];
++   /** Application-owned feedback persistence. */
++   feedbackAdapter?: ConversationRuntimeProviderProps["feedbackAdapter"];
++   /** Application-owned official assistant-ui attachment adapter. */
++   attachmentAdapter?: ConversationRuntimeProviderProps["attachmentAdapter"];
++   /** Application-owned official assistant-ui speech-to-text adapter. */
++   dictationAdapter?: ConversationRuntimeProviderProps["dictationAdapter"];
++   /** Optional application-owned durable run capability for persisted conversations. */
++   runResumeProvider?: ConversationRunResumeProvider<AppAgentState> | undefined;
++   /** Host-owned persisted thread to reopen after refresh; omitted starts a new conversation. */
++   initialThreadId?: string | undefined;
++ }
++
++ function AgentSession({ locale, endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
++   const [presentationLocale, setPresentationLocale] = useState<AgentUILocaleCode>(locale ?? agentUILocaleConfig.defaultLocale);
++   const suggestions = useMemo(() => getConversationStarterSuggestions(locale ?? presentationLocale), [locale, presentationLocale]);
++   const frontendToolRuntime = useMemo(() => new AppFrontendToolRuntime(new AppFrontendToolRegistry(appFrontendTools)), []);
++   const composition = useSyncExternalStore(
++     agentCompositionStore.subscribe,
++     agentCompositionStore.getSnapshot,
++     agentCompositionStore.getSnapshot,
++   );
++   useEffect(() => {
++     if (!import.meta.env.DEV && observability === undefined) return;
++     const report = () => {
++       const candidate = agentCompositionStore.getCandidateDiagnostic();
++       if (candidate?.appUIModelHash === undefined) return;
++       const diagnostic: RuntimeDiagnostic = {
++         kind: "runtime-composition", status: candidate.status,
++         appUIModelHash: candidate.appUIModelHash, compositionRevision: candidate.revision,
++         capabilityCatalogRevision: candidate.capabilityCatalogRevision, occurredAt: candidate.occurredAt,
++         ...(candidate.errorMessage === undefined ? {} : { errorMessage: candidate.errorMessage }),
++       };
++       observability?.onRuntimeDiagnostic?.(diagnostic);
++       publishAgentUIObservation({ type: "runtime-diagnostic", diagnostic });
++     };
++     const unsubscribe = agentCompositionStore.subscribeDiagnostics(report);
++     report();
++     return unsubscribe;
++   }, [observability]);
++   const toolkit = composition?.conversationToolkit ?? baseConversationToolkit;
++
++   useEffect(() => {
++     agentCompositionStore.stageCandidate({
++       baseConversationToolkit,
++       appUIModelSource,
++       revisionDescriptorSource,
++       capabilityCatalog: pluginCapabilityCatalog,
++       capabilityCatalogRevision,
++     });
++   }, [appUIModelSource, revisionDescriptorSource, capabilityCatalogRevision, pluginCapabilityCatalog, baseConversationToolkit]);
++
++   if (composition === undefined) return null;
++   return (
++     <ApplicationSessionBoundary composition={composition} frontendTools={frontendToolRuntime} observability={observability} locale={locale ?? presentationLocale}>
++     <AuthenticatedConversation {...{ locale, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }} />
++     </ApplicationSessionBoundary>
++   );
++ }
++
++ function AuthenticatedConversation({ locale, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }: { [K in keyof AgentProps]: AgentProps[K] | undefined } & {
++   endpoint: string;
++   presentationLocale: AgentUILocaleCode;
++   setPresentationLocale: (locale: AgentUILocaleCode) => void;
++   suggestions: ReturnType<typeof getConversationStarterSuggestions>;
++   frontendToolRuntime: AppFrontendToolRuntime;
++   composition: NonNullable<ReturnType<typeof agentCompositionStore.getSnapshot>>;
++   toolkit: typeof baseConversationToolkit;
++ }) {
++   const epoch = useApplicationSessionEpoch();
++   const threadBinding = useConversationServiceThreadBinding<AppAgentState>(runResumeProvider, epoch === 0 ? initialThreadId : undefined);
++   return (
++     <ConversationRuntimeProvider<AppAgentState>
++       endpoint={endpoint}
++       enableMessageQueue={conversationMessageQueueEnabled}
++       feedbackAdapter={feedbackAdapter}
++       onError={onError}
++       attachmentAdapter={attachmentAdapter}
++       dictationAdapter={dictationAdapter}
++       frontendTools={frontendToolRuntime}
++       frontendToolUIs={generatedFrontendToolUIs}
++       suggestions={suggestions}
++       threadBinding={threadBinding}
++       toolkit={toolkit}
++     >
++       <GeneratedConversationIntegrations>
++         {composition === undefined ? null : <AgentSurface presentationLocale={presentationLocale} locale={locale} onLocaleChange={setPresentationLocale} frontendToolRuntime={frontendToolRuntime} composition={composition} observability={observability} />}
++       </GeneratedConversationIntegrations>
++     </ConversationRuntimeProvider>
++   );
++ }
++
++ /** Source changes start a new session, including bindings, services and tool state. */
++ export function Agent(props: AgentProps = {}) {
++   const preview = usePreviewAgentEnvironment();
++   if (import.meta.env.DEV && new URLSearchParams(window.location.search).has("creator-preview") && !preview) return null;
++   return <AgentSession key={preview?.identity ?? "product"} {...props} {...(preview ? { endpoint: preview.runtimeEndpoint, initialThreadId: undefined, ...(preview.conversationDataEndpointOverride ? { runResumeProvider: undefined } : {}) } : {})} />;
++ }
++
+
+ ❯ tests/assistant-ui-integration-boundary.test.ts:34:17
+     32|   expect(preflight).toContain("[data-agent-ui-owned]");
+     33|   expect(preflight).not.toMatch(/^\s*(?:button|input|body|html|:root|\…
+     34|   expect(agent).toContain("<AgentUIRoot theme={theme}>");
+       |                 ^
+     35| });
+     36|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  16:19:20
+   Duration  611ms (transform 55ms, setup 11ms, import 9ms, tests 282ms, environment 219ms)
+
+undefined
+/Users/yifei/Coding/AgentUICreator/packages/react:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run tests/assistant-ui-integration-boundary.test.ts

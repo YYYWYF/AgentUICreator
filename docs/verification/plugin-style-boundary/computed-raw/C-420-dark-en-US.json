@@ -1,0 +1,849 @@
+{
+  "scene": "C",
+  "width": 420,
+  "theme": "dark",
+  "locale": "en-US",
+  "comparisons": [
+    {
+      "region": "root",
+      "probe": "input",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "root",
+      "probe": "input",
+      "state": "hover",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "root",
+      "probe": "input",
+      "state": "focus",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "root",
+      "probe": "button",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "root",
+      "probe": "button",
+      "state": "hover",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "root",
+      "probe": "button",
+      "state": "focus",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "root",
+      "probe": "disabled-input",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "root",
+      "probe": "disabled-button",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "root",
+      "probe": "card",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "108px",
+        "padding": "16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "content-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "126px",
+        "padding": "16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "content-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "input",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "input",
+      "state": "hover",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "input",
+      "state": "focus",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "button",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "button",
+      "state": "hover",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "button",
+      "state": "focus",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "disabled-input",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "disabled-button",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "card",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "108px",
+        "padding": "16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "content-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "126px",
+        "padding": "16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "content-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "input",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "input",
+      "state": "hover",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "input",
+      "state": "focus",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "button",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "button",
+      "state": "hover",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "button",
+      "state": "focus",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "disabled-input",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 12px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "disabled-button",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "36px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "42px",
+        "padding": "8px 16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "card",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "108px",
+        "padding": "16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "content-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "126px",
+        "padding": "16px",
+        "border-width": "1px",
+        "background-color": "rgb(32, 42, 64)",
+        "color": "rgb(238, 242, 255)",
+        "font-size": "16px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "24px",
+        "box-sizing": "content-box"
+      }
+    }
+  ],
+  "errors": [],
+  "modals": {
+    "host": {
+      "border-radius": "12px",
+      "height": "36px",
+      "padding": "8px 12px",
+      "border-width": "1px",
+      "background-color": "rgb(32, 42, 64)",
+      "color": "rgb(238, 242, 255)",
+      "font-size": "16px",
+      "font-family": "Inter, system-ui, sans-serif",
+      "line-height": "normal",
+      "box-sizing": "border-box"
+    },
+    "root": {
+      "border-radius": "12px",
+      "height": "42px",
+      "padding": "8px 12px",
+      "border-width": "1px",
+      "background-color": "rgb(32, 42, 64)",
+      "color": "rgb(238, 242, 255)",
+      "font-size": "16px",
+      "font-family": "Inter, system-ui, sans-serif",
+      "line-height": "24px",
+      "box-sizing": "border-box"
+    }
+  },
+  "status": "FAIL",
+  "failures": [
+    "Error: root/input/default\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 12px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: root/input/hover\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 12px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: root/input/focus\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 12px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: root/button/default\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 16px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: root/button/hover\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 16px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: root/button/focus\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 16px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: root/disabled-input/default\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 12px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: root/disabled-button/default\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 16px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: root/card/default\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"content-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"108px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"126px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"16px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: owned-child/input/default\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 12px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: owned-child/input/hover\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 12px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: owned-child/input/focus\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 12px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: owned-child/button/default\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 16px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: owned-child/button/hover\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 16px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: owned-child/button/focus\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 16px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: owned-child/disabled-input/default\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 12px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: owned-child/disabled-button/default\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 16px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: owned-child/card/default\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"content-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"108px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"126px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"16px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: standalone/input/default\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 12px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: standalone/input/hover\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 12px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: standalone/input/focus\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 12px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: standalone/button/default\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 16px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: standalone/button/hover\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 16px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: standalone/button/focus\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 16px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: standalone/disabled-input/default\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 12px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: standalone/disabled-button/default\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 16px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: standalone/card/default\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"content-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"108px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"126px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"16px\",\u001b[22m\n\u001b[2m  }\u001b[22m",
+    "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 2\u001b[39m\n\u001b[31m+ Received  + 2\u001b[39m\n\n\u001b[33m@@ -4,9 +4,9 @@\u001b[39m\n\u001b[2m    \"border-width\": \"1px\",\u001b[22m\n\u001b[2m    \"box-sizing\": \"border-box\",\u001b[22m\n\u001b[2m    \"color\": \"rgb(238, 242, 255)\",\u001b[22m\n\u001b[2m    \"font-family\": \"Inter, system-ui, sans-serif\",\u001b[22m\n\u001b[2m    \"font-size\": \"16px\",\u001b[22m\n\u001b[32m-   \"height\": \"36px\",\u001b[39m\n\u001b[32m-   \"line-height\": \"normal\",\u001b[39m\n\u001b[31m+   \"height\": \"42px\",\u001b[39m\n\u001b[31m+   \"line-height\": \"24px\",\u001b[39m\n\u001b[2m    \"padding\": \"8px 12px\",\u001b[22m\n\u001b[2m  }\u001b[22m"
+  ]
+}

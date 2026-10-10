@@ -1,0 +1,907 @@
+{
+  "scene": "B",
+  "width": 1440,
+  "theme": "light",
+  "locale": "zh-CN",
+  "comparisons": [
+    {
+      "region": "root",
+      "probe": "input",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "root",
+      "probe": "input",
+      "state": "hover",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "root",
+      "probe": "input",
+      "state": "focus",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "root",
+      "probe": "button",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "root",
+      "probe": "button",
+      "state": "hover",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgb(103, 128, 219)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgb(103, 128, 219)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "root",
+      "probe": "button",
+      "state": "focus",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "root",
+      "probe": "disabled-input",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgba(0, 0, 0, 0.04)",
+        "color": "rgba(0, 0, 0, 0.25)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgba(0, 0, 0, 0.04)",
+        "color": "rgba(0, 0, 0, 0.25)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "root",
+      "probe": "disabled-button",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgba(0, 0, 0, 0.04)",
+        "color": "rgba(0, 0, 0, 0.25)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgba(0, 0, 0, 0.04)",
+        "color": "rgba(0, 0, 0, 0.25)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "root",
+      "probe": "card",
+      "state": "default",
+      "outside": {
+        "border-radius": "14px",
+        "height": "247px",
+        "padding": "0px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "14px",
+        "height": "247px",
+        "padding": "0px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "root",
+      "probe": "list",
+      "state": "default",
+      "outside": {
+        "border-radius": "0px",
+        "height": "46px",
+        "padding": "0px",
+        "border-width": "0px",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "0px",
+        "height": "46px",
+        "padding": "0px",
+        "border-width": "0px",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "input",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "input",
+      "state": "hover",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "input",
+      "state": "focus",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "button",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "button",
+      "state": "hover",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgb(103, 128, 219)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgb(103, 128, 219)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "button",
+      "state": "focus",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "disabled-input",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgba(0, 0, 0, 0.04)",
+        "color": "rgba(0, 0, 0, 0.25)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgba(0, 0, 0, 0.04)",
+        "color": "rgba(0, 0, 0, 0.25)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "disabled-button",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgba(0, 0, 0, 0.04)",
+        "color": "rgba(0, 0, 0, 0.25)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgba(0, 0, 0, 0.04)",
+        "color": "rgba(0, 0, 0, 0.25)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "card",
+      "state": "default",
+      "outside": {
+        "border-radius": "14px",
+        "height": "247px",
+        "padding": "0px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "14px",
+        "height": "247px",
+        "padding": "0px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "owned-child",
+      "probe": "list",
+      "state": "default",
+      "outside": {
+        "border-radius": "0px",
+        "height": "46px",
+        "padding": "0px",
+        "border-width": "0px",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "0px",
+        "height": "46px",
+        "padding": "0px",
+        "border-width": "0px",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "input",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "input",
+      "state": "hover",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "input",
+      "state": "focus",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "button",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "button",
+      "state": "hover",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgb(103, 128, 219)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgb(103, 128, 219)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "button",
+      "state": "focus",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "disabled-input",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgba(0, 0, 0, 0.04)",
+        "color": "rgba(0, 0, 0, 0.25)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgba(0, 0, 0, 0.04)",
+        "color": "rgba(0, 0, 0, 0.25)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "disabled-button",
+      "state": "default",
+      "outside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgba(0, 0, 0, 0.04)",
+        "color": "rgba(0, 0, 0, 0.25)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "0px 15px",
+        "border-width": "1px",
+        "background-color": "rgba(0, 0, 0, 0.04)",
+        "color": "rgba(0, 0, 0, 0.25)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "normal",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "card",
+      "state": "default",
+      "outside": {
+        "border-radius": "14px",
+        "height": "247px",
+        "padding": "0px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "14px",
+        "height": "247px",
+        "padding": "0px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "standalone",
+      "probe": "list",
+      "state": "default",
+      "outside": {
+        "border-radius": "0px",
+        "height": "46px",
+        "padding": "0px",
+        "border-width": "0px",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "0px",
+        "height": "46px",
+        "padding": "0px",
+        "border-width": "0px",
+        "background-color": "rgba(0, 0, 0, 0)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    }
+  ],
+  "errors": [],
+  "modals": {
+    "host": {
+      "border-radius": "12px",
+      "height": "32px",
+      "padding": "4px 11px",
+      "border-width": "1px",
+      "background-color": "rgb(255, 255, 255)",
+      "color": "rgba(0, 0, 0, 0.88)",
+      "font-size": "14px",
+      "font-family": "Inter, system-ui, sans-serif",
+      "line-height": "22px",
+      "box-sizing": "border-box"
+    },
+    "root": {
+      "border-radius": "12px",
+      "height": "32px",
+      "padding": "4px 11px",
+      "border-width": "1px",
+      "background-color": "rgb(255, 255, 255)",
+      "color": "rgba(0, 0, 0, 0.88)",
+      "font-size": "14px",
+      "font-family": "Inter, system-ui, sans-serif",
+      "line-height": "22px",
+      "box-sizing": "border-box"
+    }
+  },
+  "status": "PASS",
+  "failures": []
+}

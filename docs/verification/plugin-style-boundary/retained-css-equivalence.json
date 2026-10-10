@@ -1,0 +1,12 @@
+{
+  "packages/react/src/preflight.scoped.css": {
+    "baselineSHA256": "de8f9ead769839e4d1f1d04b38c466b6c6bdd59e810515b6ccecebaf472ec987",
+    "retainedSHA256": "de8f9ead769839e4d1f1d04b38c466b6c6bdd59e810515b6ccecebaf472ec987",
+    "equal": true
+  },
+  "packages/react/src/styles.css": {
+    "baselineSHA256": "f5fdb085b2cff1df4a0bda8c732d448f67c799ddecaa6dcdc70878aa922c58ff",
+    "retainedSHA256": "f5fdb085b2cff1df4a0bda8c732d448f67c799ddecaa6dcdc70878aa922c58ff",
+    "equal": true
+  }
+}

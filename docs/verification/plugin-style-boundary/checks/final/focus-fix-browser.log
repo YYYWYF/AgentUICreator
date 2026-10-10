@@ -1,0 +1,21 @@
+
+Running 8 tests using 1 worker
+
+(node:54501) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+4:41:38 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  1 tests/style-boundary-visual.spec.ts:50:76 › after 1440 light (6.8s)
+4:41:42 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  2 tests/style-boundary-visual.spec.ts:50:76 › after 1440 dark (4.7s)
+4:41:48 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  3 tests/style-boundary-visual.spec.ts:50:76 › after 1440 violet (5.6s)
+4:41:52 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  4 tests/style-boundary-visual.spec.ts:50:76 › after 420 light (4.1s)
+4:41:58 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  5 tests/style-boundary-visual.spec.ts:50:76 › after 420 dark (5.6s)
+4:42:03 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  6 tests/style-boundary-visual.spec.ts:50:76 › after 420 violet (4.8s)
+  ✓  7 tests/style-boundary-visual.spec.ts:86:1 › records inherited typography separately from direct Reset isolation (1.1s)
+  ✓  8 tests/style-boundary-visual.spec.ts:103:1 › narrow Sidebar menu stays in its local overlay layer (1.5s)
+
+  8 passed (35.7s)

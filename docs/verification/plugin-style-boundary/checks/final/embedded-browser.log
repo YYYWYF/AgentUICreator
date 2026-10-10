@@ -1,0 +1,20 @@
+[WebServer] (node:48545) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:48546) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+[WebServer]   - import "./vite-runtime-aliases" without a file extension (vite.config.ts:5:32). Add the file extension
+[WebServer] Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+Running 6 tests using 1 worker
+
+(node:48554) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/embedded-style-isolation.spec.ts:6:1 › keeps ordinary Host globals outside Agent UI and preserves Host probes (2.7s)
+  ✓  2 tests/embedded-style-isolation.spec.ts:47:1 › preserves runtime Row tracks inside the Agent UI style boundary (1.2s)
+  ✓  3 tests/embedded-style-isolation.spec.ts:61:1 › mounts Tooltip, Popover and Dialog within the themed Portal boundary (2.5s)
+  ✓  4 tests/embedded-style-isolation.spec.ts:103:3 › narrow Surface reserves flowing header space in a 390px Host (338ms)
+  ✓  5 tests/embedded-style-isolation.spec.ts:103:3 › narrow Surface reserves flowing header space in a 1440px Host (326ms)
+  ✓  6 tests/embedded-style-isolation.spec.ts:133:1 › preserves business content nested inside Agent UI presentation (1.5s)
+
+  6 passed (12.9s)

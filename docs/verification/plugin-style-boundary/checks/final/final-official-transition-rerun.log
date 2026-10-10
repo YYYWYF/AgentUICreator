@@ -1,0 +1,25 @@
+
+Running 12 tests using 1 worker
+
+(node:56500) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:192:1 › compatibility message footer renders canonical actions (3.6s)
+  ✓   2 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:205:1 › quote selection and preview (3.0s)
+  ✓   3 [zh-CN-desktop] › tests/i18n-plugin-visual.spec.ts:242:1 › thread list localization (1.5s)
+(node:56527) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   4 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:192:1 › compatibility message footer renders canonical actions (3.0s)
+  ✓   5 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:205:1 › quote selection and preview (3.5s)
+  ✓   6 [zh-CN-narrow] › tests/i18n-plugin-visual.spec.ts:242:1 › thread list localization (1.8s)
+(node:56556) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   7 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:192:1 › compatibility message footer renders canonical actions (3.3s)
+  ✓   8 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:205:1 › quote selection and preview (3.1s)
+  ✓   9 [en-US-desktop] › tests/i18n-plugin-visual.spec.ts:242:1 › thread list localization (1.5s)
+(node:56586) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  10 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:192:1 › compatibility message footer renders canonical actions (3.6s)
+  ✓  11 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:205:1 › quote selection and preview (2.8s)
+  ✓  12 [en-US-narrow] › tests/i18n-plugin-visual.spec.ts:242:1 › thread list localization (1.5s)
+
+  12 passed (40.8s)

@@ -1,0 +1,85 @@
+
+Running 8 tests using 1 worker
+
+(node:45792) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+4:16:52 PM [vite] (client) Re-optimizing dependencies because vite config has changed
+4:16:54 PM [vite] (client) dependencies optimized: @base-ui/react/button, @base-ui/react/input, @base-ui/react/separator
+4:16:54 PM [vite] (client) optimized dependencies changed. reloading
+4:16:55 PM [vite] (client) [console.error] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+4:16:55 PM [vite] (client) [console.error] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+4:16:55 PM [vite] (client) [Unhandled error] TypeError: Cannot read properties of null (reading 'useRef')
+ > exports.useRef ../../../node_modules/.pnpm/react@19.3.0/node_modules/react/cjs/react.development.js:1306:33
+ > useButton ../../../node_modules/.pnpm/@base-ui+react@1.8.0_@types+react@19.3.0_react-dom@19.3.0_react@19.3.0__react@19.3.0/node_modules/@base-ui/react/internals/use-button/useButton.mjs:21:27
+ > Button ../node_modules/.vite/deps/@base-ui_react_button.js?v=7904f5fa:13:40
+ > Object.react_stack_bottom_frame ../node_modules/.vite/deps/react-dom_client.js?v=9361068e:14142:12
+ > renderWithHooks ../node_modules/.vite/deps/react-dom_client.js?v=9361068e:4400:19
+ > updateForwardRef ../node_modules/.vite/deps/react-dom_client.js?v=9361068e:5597:16
+ > beginWork ../node_modules/.vite/deps/react-dom_client.js?v=9361068e:6455:21
+ > runWithFiberInDEV ../node_modules/.vite/deps/react-dom_client.js?v=9361068e:944:66
+ > performUnitOfWork ../node_modules/.vite/deps/react-dom_client.js?v=9361068e:9148:92
+ > workLoopSync ../node_modules/.vite/deps/react-dom_client.js?v=9361068e:9044:37
+
+4:16:55 PM [vite] (client) [console.warn] An error occurred in the <Button> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+4:17:00 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  1 tests/style-boundary-visual.spec.ts:48:76 › after 1440 light (8.2s)
+4:17:04 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  2 tests/style-boundary-visual.spec.ts:48:76 › after 1440 dark (3.9s)
+  ✘  3 tests/style-boundary-visual.spec.ts:48:76 › after 1440 violet (1.5m)
+(node:46096) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+4:18:35 PM [vite] (client) Re-optimizing dependencies because vite config has changed
+4:18:39 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  4 tests/style-boundary-visual.spec.ts:48:76 › after 420 light (4.4s)
+4:18:43 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  5 tests/style-boundary-visual.spec.ts:48:76 › after 420 dark (3.6s)
+4:18:46 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  6 tests/style-boundary-visual.spec.ts:48:76 › after 420 violet (3.6s)
+  ✓  7 tests/style-boundary-visual.spec.ts:84:1 › records inherited typography separately from direct Reset isolation (410ms)
+  ✓  8 tests/style-boundary-visual.spec.ts:101:1 › narrow Sidebar menu stays in its local overlay layer (792ms)
+
+
+  1) tests/style-boundary-visual.spec.ts:48:76 › after 1440 violet ─────────────────────────────────
+
+    Test timeout of 90000ms exceeded.
+
+    Error: locator.fill: Test timeout of 90000ms exceeded.
+    Call log:
+      - waiting for locator('[data-slot=agent-ui-thread-rename-input]')
+
+
+      62 |   await trigger.focus();await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');states.focus=await styles(trigger);expect((states.focus as any).focusVisible).toBe(true);await shot('focus');
+      63 |   await row.locator('[data-slot=agent-ui-thread-action-more]').focus();await page.keyboard.press('ArrowDown');await expect(page.locator('[data-slot=agent-ui-thread-action-menu]')).toBeVisible();states.menu=await styles(page.locator('[data-slot=agent-ui-thread-action-menu]'));states.menuBox=await page.locator('[data-slot=agent-ui-thread-action-menu]').boundingBox();await shot('menu');
+    > 64 |   await page.locator('[data-slot=agent-ui-thread-action-rename]').click();const rename=page.locator('[data-slot=agent-ui-thread-rename-input]');await expect(rename).toBeFocused();states.rename=await styles(rename);await shot('rename');await rename.fill('重命名会话');await rename.press('Enter');await expect(trigger).toHaveText('重命名会话');
+         |                                                                                                                                                                                                                                                         ^
+      65 |   if(width===420)await page.keyboard.press('Escape');
+      66 |   const isolation:Record<string,unknown>={};
+      67 |   for(const probe of ['antd-input','antd-disabled','antd-button','antd-card','ds-input','ds-button','ds-card']){
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-visual.spec.ts:64:249
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-boundary/style-boundary-visual-after-1440-violet/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-boundary/style-boundary-visual-after-1440-violet/error-context.md
+
+    Error Context: test-results/style-boundary/style-boundary-visual-after-1440-violet/error-context.md
+
+  1 failed
+    tests/style-boundary-visual.spec.ts:48:76 › after 1440 violet ──────────────────────────────────
+  7 passed (1.9m)
+undefined
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: playwright test -c playwright.style-boundary.config.ts

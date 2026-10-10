@@ -1,0 +1,64 @@
+{
+  "scene": "B",
+  "width": 420,
+  "boundary": true,
+  "comparisons": [
+    {
+      "region": "sidebar",
+      "host": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    },
+    {
+      "region": "official-dialog",
+      "host": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      },
+      "inside": {
+        "border-radius": "12px",
+        "height": "32px",
+        "padding": "4px 11px",
+        "border-width": "1px",
+        "background-color": "rgb(255, 255, 255)",
+        "color": "rgba(0, 0, 0, 0.88)",
+        "font-size": "14px",
+        "font-family": "Inter, system-ui, sans-serif",
+        "line-height": "22px",
+        "box-sizing": "border-box"
+      }
+    }
+  ],
+  "errors": [],
+  "status": "PASS",
+  "failures": []
+}

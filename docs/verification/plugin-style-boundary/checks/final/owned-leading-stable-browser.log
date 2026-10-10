@@ -1,0 +1,87 @@
+
+Running 8 tests using 1 worker
+
+(node:51324) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+4:34:41 PM [vite] (client) [Unhandled error] SyntaxError: The requested module '/@fs/Users/yifei/Coding/AgentUICreator/node_modules/.pnpm/use-sync-external-store@1.7.0_react@19.3.0/node_modules/use-sync-external-store/shim/index.js?v=4b1e36fc' does not provide an export named 'useSyncExternalStore'
+
+  ✘  1 tests/style-boundary-visual.spec.ts:48:76 › after 1440 light (31.2s)
+(node:51623) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+4:35:13 PM [vite] (client) [Unhandled error] SyntaxError: The requested module '/@fs/Users/yifei/Coding/AgentUICreator/node_modules/.pnpm/use-sync-external-store@1.7.0_react@19.3.0/node_modules/use-sync-external-store/shim/index.js?v=98fcedf3' does not provide an export named 'useSyncExternalStore'
+
+  ✘  2 tests/style-boundary-visual.spec.ts:48:76 › after 1440 dark (18.8s)
+
+
+  1) tests/style-boundary-visual.spec.ts:48:76 › after 1440 light ──────────────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-slot=tool-call] button').first()
+    Expected: visible
+    Timeout: 30000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-slot=tool-call] button').first() with timeout 30000ms
+      - waiting for locator('[data-slot=tool-call] button').first()
+
+
+      50 |   const prefix=phase+'-'+width+'-'+theme;const states:Record<string,any>={};
+      51 |   const shot=async(name:string)=>{if(name==='menu')await page.waitForTimeout(250);return page.screenshot({path:path.join(evidence,'screenshots',prefix+'-'+name+'.png'),fullPage:true});};
+    > 52 |   const tool=page.locator('[data-slot=tool-call] button').first();await expect(tool).toBeVisible({ timeout: 30_000 });
+         |                                                                                      ^
+      53 |   states.toolDefault=await styles(tool);states.toolRules=await matched(page,'[data-slot=tool-call] button');await shot('default');
+      54 |   if(phase==='after')await expect(tool).toHaveCSS('border-top-width','0px');
+      55 |   await tool.click();await expect(tool).toHaveAttribute('aria-expanded','true');states.toolClick=await styles(tool);await shot('tool-open');await tool.click();await expect(tool).toHaveAttribute('aria-expanded','false');
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-visual.spec.ts:52:86
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-boundary/style-boundary-visual-after-1440-light/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-boundary/style-boundary-visual-after-1440-light/error-context.md
+
+    Error Context: test-results/style-boundary/style-boundary-visual-after-1440-light/error-context.md
+
+  2) tests/style-boundary-visual.spec.ts:48:76 › after 1440 dark ───────────────────────────────────
+
+    Test was interrupted.
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('[data-slot=tool-call] button').first()
+    Expected: visible
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" locator('[data-slot=tool-call] button').first() with timeout 30000ms
+      - waiting for locator('[data-slot=tool-call] button').first()
+      - Test ended.
+
+
+      50 |   const prefix=phase+'-'+width+'-'+theme;const states:Record<string,any>={};
+      51 |   const shot=async(name:string)=>{if(name==='menu')await page.waitForTimeout(250);return page.screenshot({path:path.join(evidence,'screenshots',prefix+'-'+name+'.png'),fullPage:true});};
+    > 52 |   const tool=page.locator('[data-slot=tool-call] button').first();await expect(tool).toBeVisible({ timeout: 30_000 });
+         |                                                                                      ^
+      53 |   states.toolDefault=await styles(tool);states.toolRules=await matched(page,'[data-slot=tool-call] button');await shot('default');
+      54 |   if(phase==='after')await expect(tool).toHaveCSS('border-top-width','0px');
+      55 |   await tool.click();await expect(tool).toHaveAttribute('aria-expanded','true');states.toolClick=await styles(tool);await shot('tool-open');await tool.click();await expect(tool).toHaveAttribute('aria-expanded','false');
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-visual.spec.ts:52:86
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-boundary/style-boundary-visual-after-1440-dark/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-boundary/style-boundary-visual-after-1440-dark/error-context.md
+
+    Error Context: test-results/style-boundary/style-boundary-visual-after-1440-dark/error-context.md
+
+  1 failed
+    tests/style-boundary-visual.spec.ts:48:76 › after 1440 light ───────────────────────────────────
+  1 interrupted
+    tests/style-boundary-visual.spec.ts:48:76 › after 1440 dark ────────────────────────────────────
+  6 did not run
+undefined
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 130: playwright test -c playwright.style-boundary.config.ts

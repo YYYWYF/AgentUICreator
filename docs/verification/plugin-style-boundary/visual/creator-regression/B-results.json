@@ -1,0 +1,465 @@
+[
+  {
+    "scenario": "B",
+    "width": 1440,
+    "theme": "light",
+    "locale": "zh-CN",
+    "errors": [],
+    "status": "PASS",
+    "sourceHashes": {
+      "index.tsx": "790a853a28ffd6734f36eb6278e5132a307a4096ff460e4dee0aeb7d4917b3b4",
+      "styles.css": "0145bc50da0cac54061a08955644dd9f7f487bb81321221e44ea8f3285c58708",
+      "manifest.json": "a087ddc7412d7df87a2355f417506ed6b74ed7aadcc8f9e8c864f7da6a2300a9",
+      "definition.ts": "c0afb1dd7f7ff6b1cdfcdf8428e962721676408a4f1add48cb32ce5673fe89cc"
+    },
+    "pluginVisible": true,
+    "panelScreenshot": "B-1440-light-zh-CN-panel.png",
+    "dialogRect": {
+      "x": 460,
+      "y": 435,
+      "width": 520,
+      "height": 130
+    },
+    "screenshot": "B-1440-light-zh-CN.png",
+    "nativeChromeFocus": false,
+    "pluginRect": {
+      "x": 52,
+      "y": 194,
+      "width": 255,
+      "height": 298
+    },
+    "controlRects": {
+      "input": {
+        "x": 64,
+        "y": 242,
+        "width": 168.203125,
+        "height": 32
+      },
+      "add": {
+        "x": 231.203125,
+        "y": 242,
+        "width": 63.796875,
+        "height": 32
+      },
+      "help": {
+        "x": 251,
+        "y": 206,
+        "width": 44,
+        "height": 24
+      }
+    },
+    "controls": {
+      "className": "ant-input css-dev-only-do-not-override-1mwmxnu ant-input-outlined ant-input-compact-item ant-input-compact-first-item",
+      "color": "rgba(0, 0, 0, 0.88)",
+      "background": "rgb(255, 255, 255)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(217, 217, 217)"
+    },
+    "hostControls": {
+      "className": "ant-input css-dev-only-do-not-override-1mwmxnu ant-input-outlined",
+      "color": "rgba(0, 0, 0, 0.88)",
+      "background": "rgb(255, 255, 255)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(217, 217, 217)"
+    },
+    "composerBefore": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "composerAfter": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  },
+  {
+    "scenario": "B",
+    "width": 1440,
+    "theme": "light",
+    "locale": "en-US",
+    "errors": [],
+    "status": "PASS",
+    "sourceHashes": {
+      "index.tsx": "790a853a28ffd6734f36eb6278e5132a307a4096ff460e4dee0aeb7d4917b3b4",
+      "styles.css": "0145bc50da0cac54061a08955644dd9f7f487bb81321221e44ea8f3285c58708",
+      "manifest.json": "a087ddc7412d7df87a2355f417506ed6b74ed7aadcc8f9e8c864f7da6a2300a9",
+      "definition.ts": "c0afb1dd7f7ff6b1cdfcdf8428e962721676408a4f1add48cb32ce5673fe89cc"
+    },
+    "pluginVisible": true,
+    "panelScreenshot": "B-1440-light-en-US-panel.png",
+    "dialogRect": {
+      "x": 460,
+      "y": 435,
+      "width": 520,
+      "height": 130
+    },
+    "screenshot": "B-1440-light-en-US.png",
+    "nativeChromeFocus": false,
+    "pluginRect": {
+      "x": 52,
+      "y": 194,
+      "width": 255,
+      "height": 340
+    },
+    "controlRects": {
+      "input": {
+        "x": 64,
+        "y": 242,
+        "width": 174.21875,
+        "height": 32
+      },
+      "add": {
+        "x": 237.21875,
+        "y": 242,
+        "width": 57.78125,
+        "height": 32
+      },
+      "help": {
+        "x": 249.125,
+        "y": 206,
+        "width": 45.875,
+        "height": 24
+      }
+    },
+    "controls": {
+      "className": "ant-input css-dev-only-do-not-override-1mwmxnu ant-input-outlined ant-input-compact-item ant-input-compact-first-item",
+      "color": "rgba(0, 0, 0, 0.88)",
+      "background": "rgb(255, 255, 255)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(217, 217, 217)"
+    },
+    "hostControls": {
+      "className": "ant-input css-dev-only-do-not-override-1mwmxnu ant-input-outlined",
+      "color": "rgba(0, 0, 0, 0.88)",
+      "background": "rgb(255, 255, 255)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(217, 217, 217)"
+    },
+    "composerBefore": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "composerAfter": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  },
+  {
+    "scenario": "B",
+    "width": 1440,
+    "theme": "dark",
+    "locale": "zh-CN",
+    "errors": [],
+    "status": "PASS",
+    "sourceHashes": {
+      "index.tsx": "790a853a28ffd6734f36eb6278e5132a307a4096ff460e4dee0aeb7d4917b3b4",
+      "styles.css": "0145bc50da0cac54061a08955644dd9f7f487bb81321221e44ea8f3285c58708",
+      "manifest.json": "a087ddc7412d7df87a2355f417506ed6b74ed7aadcc8f9e8c864f7da6a2300a9",
+      "definition.ts": "c0afb1dd7f7ff6b1cdfcdf8428e962721676408a4f1add48cb32ce5673fe89cc"
+    },
+    "pluginVisible": true,
+    "panelScreenshot": "B-1440-dark-zh-CN-panel.png",
+    "dialogRect": {
+      "x": 460,
+      "y": 435,
+      "width": 520,
+      "height": 130
+    },
+    "screenshot": "B-1440-dark-zh-CN.png",
+    "nativeChromeFocus": false,
+    "pluginRect": {
+      "x": 52,
+      "y": 194,
+      "width": 255,
+      "height": 298
+    },
+    "controlRects": {
+      "input": {
+        "x": 64,
+        "y": 242,
+        "width": 168.203125,
+        "height": 32
+      },
+      "add": {
+        "x": 231.203125,
+        "y": 242,
+        "width": 63.796875,
+        "height": 32
+      },
+      "help": {
+        "x": 251,
+        "y": 206,
+        "width": 44,
+        "height": 24
+      }
+    },
+    "controls": {
+      "className": "ant-input css-dev-only-do-not-override-1jeg7go ant-input-outlined ant-input-compact-item ant-input-compact-first-item",
+      "color": "rgba(255, 255, 255, 0.85)",
+      "background": "rgb(20, 20, 20)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(66, 66, 66)"
+    },
+    "hostControls": {
+      "className": "ant-input css-dev-only-do-not-override-1jeg7go ant-input-outlined",
+      "color": "rgba(255, 255, 255, 0.85)",
+      "background": "rgb(20, 20, 20)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(66, 66, 66)"
+    },
+    "composerBefore": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "composerAfter": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  },
+  {
+    "scenario": "B",
+    "width": 1440,
+    "theme": "dark",
+    "locale": "en-US",
+    "errors": [],
+    "status": "PASS",
+    "sourceHashes": {
+      "index.tsx": "790a853a28ffd6734f36eb6278e5132a307a4096ff460e4dee0aeb7d4917b3b4",
+      "styles.css": "0145bc50da0cac54061a08955644dd9f7f487bb81321221e44ea8f3285c58708",
+      "manifest.json": "a087ddc7412d7df87a2355f417506ed6b74ed7aadcc8f9e8c864f7da6a2300a9",
+      "definition.ts": "c0afb1dd7f7ff6b1cdfcdf8428e962721676408a4f1add48cb32ce5673fe89cc"
+    },
+    "pluginVisible": true,
+    "panelScreenshot": "B-1440-dark-en-US-panel.png",
+    "dialogRect": {
+      "x": 460,
+      "y": 435,
+      "width": 520,
+      "height": 130
+    },
+    "screenshot": "B-1440-dark-en-US.png",
+    "nativeChromeFocus": false,
+    "pluginRect": {
+      "x": 52,
+      "y": 194,
+      "width": 255,
+      "height": 340
+    },
+    "controlRects": {
+      "input": {
+        "x": 64,
+        "y": 242,
+        "width": 174.21875,
+        "height": 32
+      },
+      "add": {
+        "x": 237.21875,
+        "y": 242,
+        "width": 57.78125,
+        "height": 32
+      },
+      "help": {
+        "x": 249.125,
+        "y": 206,
+        "width": 45.875,
+        "height": 24
+      }
+    },
+    "controls": {
+      "className": "ant-input css-dev-only-do-not-override-1jeg7go ant-input-outlined ant-input-compact-item ant-input-compact-first-item",
+      "color": "rgba(255, 255, 255, 0.85)",
+      "background": "rgb(20, 20, 20)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(66, 66, 66)"
+    },
+    "hostControls": {
+      "className": "ant-input css-dev-only-do-not-override-1jeg7go ant-input-outlined",
+      "color": "rgba(255, 255, 255, 0.85)",
+      "background": "rgb(20, 20, 20)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(66, 66, 66)"
+    },
+    "composerBefore": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "composerAfter": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  },
+  {
+    "scenario": "B",
+    "width": 420,
+    "theme": "light",
+    "locale": "zh-CN",
+    "errors": [],
+    "status": "FAIL",
+    "sourceHashes": {
+      "index.tsx": "790a853a28ffd6734f36eb6278e5132a307a4096ff460e4dee0aeb7d4917b3b4",
+      "styles.css": "0145bc50da0cac54061a08955644dd9f7f487bb81321221e44ea8f3285c58708",
+      "manifest.json": "a087ddc7412d7df87a2355f417506ed6b74ed7aadcc8f9e8c864f7da6a2300a9",
+      "definition.ts": "c0afb1dd7f7ff6b1cdfcdf8428e962721676408a4f1add48cb32ce5673fe89cc"
+    },
+    "pluginVisible": true,
+    "panelScreenshot": "B-420-light-zh-CN-panel.png",
+    "dialogRect": {
+      "x": 8,
+      "y": 435,
+      "width": 404,
+      "height": 130
+    },
+    "screenshot": "B-420-light-zh-CN.png",
+    "nativeChromeFocus": false,
+    "pluginRect": {
+      "x": -8,
+      "y": 154,
+      "width": 303,
+      "height": 432
+    },
+    "error": "Plugin outside viewport"
+  },
+  {
+    "scenario": "B",
+    "width": 420,
+    "theme": "light",
+    "locale": "en-US",
+    "errors": [],
+    "status": "FAIL",
+    "sourceHashes": {
+      "index.tsx": "790a853a28ffd6734f36eb6278e5132a307a4096ff460e4dee0aeb7d4917b3b4",
+      "styles.css": "0145bc50da0cac54061a08955644dd9f7f487bb81321221e44ea8f3285c58708",
+      "manifest.json": "a087ddc7412d7df87a2355f417506ed6b74ed7aadcc8f9e8c864f7da6a2300a9",
+      "definition.ts": "c0afb1dd7f7ff6b1cdfcdf8428e962721676408a4f1add48cb32ce5673fe89cc"
+    },
+    "pluginVisible": true,
+    "panelScreenshot": "B-420-light-en-US-panel.png",
+    "dialogRect": {
+      "x": 8,
+      "y": 435,
+      "width": 404,
+      "height": 130
+    },
+    "screenshot": "B-420-light-en-US.png",
+    "nativeChromeFocus": false,
+    "pluginRect": {
+      "x": -8,
+      "y": 154,
+      "width": 303,
+      "height": 472
+    },
+    "error": "Plugin outside viewport"
+  },
+  {
+    "scenario": "B",
+    "width": 420,
+    "theme": "dark",
+    "locale": "zh-CN",
+    "errors": [],
+    "status": "PASS",
+    "sourceHashes": {
+      "index.tsx": "790a853a28ffd6734f36eb6278e5132a307a4096ff460e4dee0aeb7d4917b3b4",
+      "styles.css": "0145bc50da0cac54061a08955644dd9f7f487bb81321221e44ea8f3285c58708",
+      "manifest.json": "a087ddc7412d7df87a2355f417506ed6b74ed7aadcc8f9e8c864f7da6a2300a9",
+      "definition.ts": "c0afb1dd7f7ff6b1cdfcdf8428e962721676408a4f1add48cb32ce5673fe89cc"
+    },
+    "pluginVisible": true,
+    "panelScreenshot": "B-420-dark-zh-CN-panel.png",
+    "dialogRect": {
+      "x": 220,
+      "y": 239,
+      "width": 80.79998779296875,
+      "height": 26
+    },
+    "screenshot": "B-420-dark-zh-CN.png",
+    "nativeChromeFocus": false,
+    "pluginRect": {
+      "x": 4,
+      "y": 166,
+      "width": 303,
+      "height": 432
+    },
+    "controlRects": {
+      "input": {
+        "x": 16,
+        "y": 214,
+        "width": 216.203125,
+        "height": 32
+      },
+      "add": {
+        "x": 231.203125,
+        "y": 214,
+        "width": 63.796875,
+        "height": 32
+      },
+      "help": {
+        "x": 251,
+        "y": 178,
+        "width": 44,
+        "height": 24
+      }
+    },
+    "controls": {
+      "className": "ant-input css-dev-only-do-not-override-1jeg7go ant-input-outlined ant-input-compact-item ant-input-compact-first-item",
+      "color": "rgba(255, 255, 255, 0.85)",
+      "background": "rgb(20, 20, 20)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(66, 66, 66)"
+    },
+    "hostControls": {
+      "className": "ant-input css-dev-only-do-not-override-1jeg7go ant-input-outlined",
+      "color": "rgba(255, 255, 255, 0.85)",
+      "background": "rgb(20, 20, 20)",
+      "font": "Inter, system-ui, sans-serif",
+      "border": "rgb(66, 66, 66)"
+    },
+    "composerBefore": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "composerAfter": {
+      "font": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "color": "oklch(0.21 0.006 285.885)",
+      "background": "rgba(0, 0, 0, 0)"
+    }
+  },
+  {
+    "scenario": "B",
+    "width": 420,
+    "theme": "dark",
+    "locale": "en-US",
+    "errors": [],
+    "status": "FAIL",
+    "sourceHashes": {
+      "index.tsx": "790a853a28ffd6734f36eb6278e5132a307a4096ff460e4dee0aeb7d4917b3b4",
+      "styles.css": "0145bc50da0cac54061a08955644dd9f7f487bb81321221e44ea8f3285c58708",
+      "manifest.json": "a087ddc7412d7df87a2355f417506ed6b74ed7aadcc8f9e8c864f7da6a2300a9",
+      "definition.ts": "c0afb1dd7f7ff6b1cdfcdf8428e962721676408a4f1add48cb32ce5673fe89cc"
+    },
+    "pluginVisible": true,
+    "panelScreenshot": "B-420-dark-en-US-panel.png",
+    "dialogRect": {
+      "x": 8,
+      "y": 435,
+      "width": 404,
+      "height": 130
+    },
+    "screenshot": "B-420-dark-en-US.png",
+    "nativeChromeFocus": false,
+    "pluginRect": {
+      "x": -8,
+      "y": 154,
+      "width": 303,
+      "height": 472
+    },
+    "error": "Plugin outside viewport"
+  }
+]

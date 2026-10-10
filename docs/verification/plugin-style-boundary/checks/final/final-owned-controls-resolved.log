@@ -1,0 +1,55 @@
+
+Running 8 tests using 1 worker
+
+(node:53320) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+4:37:26 PM [vite] (client) [optimizer] bundling dependencies...
+4:37:44 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  1 tests/style-boundary-visual.spec.ts:50:76 › after 1440 light (15.2s)
+  ✘  2 tests/style-boundary-visual.spec.ts:50:76 › after 1440 dark (1.5m)
+(node:53777) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+4:39:22 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  3 tests/style-boundary-visual.spec.ts:50:76 › after 1440 violet (6.1s)
+4:39:26 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  4 tests/style-boundary-visual.spec.ts:50:76 › after 420 light (4.0s)
+4:39:30 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  5 tests/style-boundary-visual.spec.ts:50:76 › after 420 dark (4.0s)
+4:39:34 PM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  6 tests/style-boundary-visual.spec.ts:50:76 › after 420 violet (4.5s)
+  ✓  7 tests/style-boundary-visual.spec.ts:86:1 › records inherited typography separately from direct Reset isolation (1.9s)
+  ✓  8 tests/style-boundary-visual.spec.ts:103:1 › narrow Sidebar menu stays in its local overlay layer (1.6s)
+
+
+  1) tests/style-boundary-visual.spec.ts:50:76 › after 1440 dark ───────────────────────────────────
+
+    Test timeout of 90000ms exceeded.
+
+    Error: locator.fill: Test timeout of 90000ms exceeded.
+    Call log:
+      - waiting for locator('[data-slot=agent-ui-thread-rename-input]')
+
+
+      64 |   await trigger.focus();await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');states.focus=await styles(trigger);expect((states.focus as any).focusVisible).toBe(true);await shot('focus');
+      65 |   await row.locator('[data-slot=agent-ui-thread-action-more]').focus();await page.keyboard.press('ArrowDown');await expect(page.locator('[data-slot=agent-ui-thread-action-menu]')).toBeVisible();states.menu=await styles(page.locator('[data-slot=agent-ui-thread-action-menu]'));states.menuBox=await page.locator('[data-slot=agent-ui-thread-action-menu]').boundingBox();await shot('menu');
+    > 66 |   await page.locator('[data-slot=agent-ui-thread-action-rename]').click();const rename=page.locator('[data-slot=agent-ui-thread-rename-input]');await expect(rename).toBeFocused();states.rename=await styles(rename);await shot('rename');await rename.fill('重命名会话');await rename.press('Enter');await expect(trigger).toHaveText('重命名会话');
+         |                                                                                                                                                                                                                                                         ^
+      67 |   if(width===420)await page.keyboard.press('Escape');
+      68 |   const isolation:Record<string,unknown>={};
+      69 |   for(const probe of ['antd-input','antd-disabled','antd-button','antd-card','ds-input','ds-button','ds-card']){
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/style-boundary-visual.spec.ts:66:249
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/style-boundary/style-boundary-visual-after-1440-dark/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/style-boundary/style-boundary-visual-after-1440-dark/error-context.md
+
+    Error Context: test-results/style-boundary/style-boundary-visual-after-1440-dark/error-context.md
+
+  1 failed
+    tests/style-boundary-visual.spec.ts:50:76 › after 1440 dark ────────────────────────────────────
+  7 passed (2.3m)
+undefined
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: playwright test -c playwright.style-boundary.config.ts

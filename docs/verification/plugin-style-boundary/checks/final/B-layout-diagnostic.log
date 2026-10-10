@@ -1,0 +1,130 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite-runtime-aliases" without a file extension (../../../private/tmp/plugin-style-final-hosts/B/vite.config.ts:5:32). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+[
+  {
+    "className": "business-notes-plugin",
+    "rect": {
+      "x": 16,
+      "y": 166,
+      "width": 303,
+      "height": 432,
+      "top": 166,
+      "right": 319,
+      "bottom": 598,
+      "left": 16
+    },
+    "css": {
+      "width": "279px",
+      "padding": "12px",
+      "margin": "0px",
+      "box-sizing": "content-box",
+      "display": "flex",
+      "justify-content": "normal",
+      "align-items": "normal",
+      "transform": "none",
+      "position": "static",
+      "left": "auto"
+    }
+  },
+  {
+    "className": "app-ui-plugin-instance",
+    "rect": {
+      "x": 16,
+      "y": 166,
+      "width": 279,
+      "height": 408,
+      "top": 166,
+      "right": 295,
+      "bottom": 574,
+      "left": 16
+    },
+    "css": {
+      "width": "279px",
+      "padding": "0px",
+      "margin": "0px",
+      "box-sizing": "content-box",
+      "display": "block",
+      "justify-content": "normal",
+      "align-items": "normal",
+      "transform": "none",
+      "position": "static",
+      "left": "auto"
+    }
+  },
+  {
+    "className": "app-ui-plugin-slot-content",
+    "rect": {
+      "x": 16,
+      "y": 166,
+      "width": 279,
+      "height": 408,
+      "top": 166,
+      "right": 295,
+      "bottom": 574,
+      "left": 16
+    },
+    "css": {
+      "width": "279px",
+      "padding": "0px",
+      "margin": "0px",
+      "box-sizing": "content-box",
+      "display": "grid",
+      "justify-content": "normal",
+      "align-items": "normal",
+      "transform": "none",
+      "position": "static",
+      "left": "auto"
+    }
+  },
+  {
+    "className": "app-ui-plugin-slot-width-probe",
+    "rect": {
+      "x": 16,
+      "y": 166,
+      "width": 279,
+      "height": 408,
+      "top": 166,
+      "right": 295,
+      "bottom": 574,
+      "left": 16
+    },
+    "css": {
+      "width": "279px",
+      "padding": "0px",
+      "margin": "0px",
+      "box-sizing": "content-box",
+      "display": "block",
+      "justify-content": "normal",
+      "align-items": "normal",
+      "transform": "none",
+      "position": "static",
+      "left": "auto"
+    }
+  },
+  {
+    "className": "app-ui-layout-node app-ui-layout-slot",
+    "rect": {
+      "x": 16,
+      "y": 166,
+      "width": 279,
+      "height": 408,
+      "top": 166,
+      "right": 295,
+      "bottom": 574,
+      "left": 16
+    },
+    "css": {
+      "width": "279px",
+      "padding": "0px",
+      "margin": "0px",
+      "box-sizing": "border-box",
+      "display": "block",
+      "justify-content": "normal",
+      "align-items": "normal",
+      "transform": "none",
+      "position": "relative",
+      "left": "0px"
+    }
+  }
+]

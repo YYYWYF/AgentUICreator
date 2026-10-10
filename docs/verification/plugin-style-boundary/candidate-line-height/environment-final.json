@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-10",
+  "timezone": "Asia/Shanghai",
+  "branch": "dev",
+  "baseline": "f66c4129",
+  "requestedAncestor": "7b1d2a6518a024bf5a89840d3f6cb8b1c320d805",
+  "implementation": "c9a329b89173d298d7cae83ef9d99e245c756ba0",
+  "node": "v24.20.0",
+  "pnpm": "11.24.0",
+  "playwright": "1.63.0",
+  "antd": "5.29.3",
+  "react": "19.3.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "browser": "Playwright Chromium headless; Web Component Vue demo; original Creator regression uses installed Chrome",
+  "builtStylesSHA256": "5a8b8acd8b3c7fa9eaf396494fed7920a520fc3587ae3f09a373aee2d84985ed",
+  "styleImplementation": "88d87c6c0c18740b19b61ae916c13e26def2d4f0",
+  "focusFix": "c9a329b89173d298d7cae83ef9d99e245c756ba0",
+  "designSystemStyles": {
+    "A": "25032f14cb7b19f75ccd2b0981529d83e36777fcd37d4efdf07a7efa4a780377",
+    "C": "25032f14cb7b19f75ccd2b0981529d83e36777fcd37d4efdf07a7efa4a780377"
+  }
+}
