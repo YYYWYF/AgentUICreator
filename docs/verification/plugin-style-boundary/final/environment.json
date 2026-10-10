@@ -1,0 +1,18 @@
+{
+  "testedProductCommit": "f179cf21a93f0c4fb13e8dd75abfb45a35e4ed95",
+  "versions": {
+    "antd": "5.29.3",
+    "playwright": "1.63.0",
+    "react": "19.3.0"
+  },
+  "sha256": {
+    "packages/react/src/styles.css": "3d13854e71d0e54a492ea7cddf33638259432694342f94ff7d289073206940f1",
+    "packages/react/src/preflight.scoped.css": "c3c589764597a84b5ec9d08e668a2742f1fd00f92ba18e0b4af510a337ed48c4",
+    "packages/react/src/internal/style-boundary/AgentUIRoot.tsx": "c9cc8430489f54750758ad7cc607b486a2fadea0899bc3f1f058890293308ff9",
+    "packages/react/dist/styles.css": "b6264e9823ef8916e10c3cbedaf503b94c96146529d59bf46db878cb0d156a30"
+  },
+  "vendorRuntimeProductDiff": "",
+  "fixtureA": "/tmp/host-ui-p1-20261009/fixtures/A",
+  "fixtureB": "/tmp/host-ui-p1-20261009/fixtures/B",
+  "explicitTypographyFixture": "Authored test component; font:inherit with padding 5px 11px and 1px border; no per-Plugin overrides"
+}

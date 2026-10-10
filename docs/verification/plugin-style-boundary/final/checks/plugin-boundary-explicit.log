@@ -1,0 +1,11 @@
+
+Running 2 tests using 2 workers
+
+(node:79587) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:79588) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/style-boundary-acceptance.spec.ts:76:37 › explicit Host typography dark (2.5s)
+  ✓  2 tests/style-boundary-acceptance.spec.ts:76:37 › explicit Host typography light (2.5s)
+
+  2 passed (3.9s)

@@ -67,7 +67,7 @@ for (const scenario of ["empty", ...scenarios]) {
     for (const theme of ["light", "dark", "violet"]) {
       await page.locator('[data-ui-plugin="theme-switch"] select').selectOption(theme);
       await page.waitForTimeout(250);
-      const directory = path.resolve('../../docs/verification/plugin-style-boundary/full-visual/official');
+      const directory = path.resolve(process.env.STYLE_SURFACES_OUTPUT || '../../docs/verification/plugin-style-boundary/full-visual/official');
       await mkdir(directory, { recursive: true });
       const prefix = `${info.project.name}-${scenario}-${theme}`;
       const controls = await page.locator('[data-agent-ui-root] button, [data-agent-ui-root] input, [data-agent-ui-root] textarea, [data-agent-ui-root] [contenteditable=true]').evaluateAll(nodes => nodes.map(node => {

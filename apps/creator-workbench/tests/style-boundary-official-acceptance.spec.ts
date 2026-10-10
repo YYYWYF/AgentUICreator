@@ -5,7 +5,7 @@ import { createI18nPluginHost } from './support/i18n-plugin-visual-host';
 import { readReleasePluginCoverage } from './support/i18n-plugin-visual-coverage';
 
 let host: Awaited<ReturnType<typeof createI18nPluginHost>>;
-const output = path.resolve('../../docs/verification/plugin-style-boundary/current/official-details');
+const output = path.resolve(process.env.STYLE_OFFICIAL_OUTPUT || '../../docs/verification/plugin-style-boundary/final/regression/official-details');
 test.beforeAll(async () => {
   host = await createI18nPluginHost((await readReleasePluginCoverage()).releaseIds);
   await mkdir(output, { recursive: true });
