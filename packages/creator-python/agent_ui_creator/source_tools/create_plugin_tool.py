@@ -55,6 +55,8 @@ def create_ui_plugin_tool(service: UIPluginCreationService) -> BaseTool:
             "manifest.authoring.defaultPlacement is declared, the Host checks it "
             "against current composition before committing any source. If "
             "styles.css is included, import it from Plugin source. "
+            "Visual roots must own border-box sizing, min-width:0 and max-width:100%; "
+            "support narrow slots at a 420px viewport without global resets. "
             "manifest.data only for AG-UI subscriptions: messages/state/messageUI "
             "are booleans, events is string[]; local React useState needs none. Use "
             "edit_file for one small existing-file change and "

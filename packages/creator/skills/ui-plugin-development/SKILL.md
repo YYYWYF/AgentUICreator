@@ -31,6 +31,41 @@ Inspect project conventions before deciding that Plugin source must change:
 - `/agent-contract/agent-tools.ts` is the application-owned allowlist for capability operations exposed to the Agent.
 - `/services/*` contains stable project-owned Service seams when multiple Plugins share one capability. Treat these seams as read-only unless the host explicitly authorizes capability-contract work.
 
+## Responsive Plugin boundaries
+
+Plugin UI must work inside narrow Agent UI slots at a 420px viewport; the
+slot itself may be only 279px wide. Never assume desktop width or rely on Agent
+UI preflight, Host resets, or a UI library to size a business container.
+Every Plugin UI root must own `box-sizing: border-box`, `min-width: 0`, and
+`max-width: 100%` through the target project's styling system. For scoped CSS:
+
+```css
+.plugin-root {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+}
+```
+
+Use the actual Plugin-owned class and import its stylesheet. Avoid `width: 100%`
+plus padding without border-box. Flex/grid content children must be able to
+shrink (`min-width: 0`); avoid `min-width: auto` on shrinkable content. Titles,
+user text, notes, and errors should wrap with `overflow-wrap: anywhere` and
+`word-break: break-word`. Constrain Input, Button, list rows, and Modal width to
+available space using the selected UI system's public APIs and scoped styles.
+Avoid fixed root widths such as 500px; use a bounded responsive width instead.
+Do not mask overflow by clipping useful content or adding a horizontal scrollbar.
+Do not add a global reset, AntD override, Runtime/Portal change, or `!important`
+width workaround to repair Plugin-owned dimensions.
+
+Review `PLUGIN_RESPONSIVE_*` static warnings and resolve risks in newly authored
+source. These heuristics cover obvious CSS declarations only; inline styles,
+utilities, cascade, and actual layout still require separate review. When browser
+acceptance is authorized, reuse the delivered Plugin and check 420px ×
+light/dark × en-US/zh-CN, including long content and Modal interactions. Record
+responsive evidence separately from style isolation; static checks never prove
+`PLUGIN_RESPONSIVE_BOUNDARY = PASS`.
+
 ## Reuse decision
 
 For third-party controls already imported and rendered by the Host page, that

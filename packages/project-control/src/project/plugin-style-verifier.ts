@@ -65,10 +65,37 @@ async function cssFiles(directory: string): Promise<string[]> {
   return files.sort();
 }
 
+/** Conservative, same-rule hints only; these do not evaluate the CSS cascade. */
+export function pluginResponsiveRisks(rule: postcss.Rule, pluginId: string): string[] {
+  const declarations = new Map<string, string>();
+  rule.each((node) => {
+    if (node.type === "decl") declarations.set(node.prop.toLowerCase(), node.value.trim().toLowerCase());
+  });
+  const risks: string[] = [];
+  const hasPadding = [...declarations].some(([property, value]) =>
+    /^padding(?:-(?:inline|left|right)(?:-start|-end)?)?$/u.test(property)
+    && !/^(?:0(?:px|rem|em|%)?\s*)+$/u.test(value));
+  if (declarations.get("width") === "100%" && hasPadding
+    && declarations.get("box-sizing") !== "border-box") {
+    risks.push("FULL_WIDTH_PADDING");
+  }
+  if (declarations.get("min-width") === "auto") risks.push("MIN_WIDTH_AUTO");
+  // Root identity is explicit: Plugin ID class, ID-root class, plugin-root,
+  // or a data-ui-plugin root. Do not guess arbitrary descendant selectors.
+  const isRoot = splitSelectors(rule.selector).some((selector) =>
+    selector === `.${pluginId}` || selector === `.${pluginId}-root`
+    || selector === ".plugin-root" || /^\[data-ui-plugin(?:=[^\]]+)?\]$/u.test(selector));
+  const fixedWidth = /^(\d+(?:\.\d+)?)px$/u.exec(declarations.get("width") ?? "");
+  if (isRoot && fixedWidth && Number(fixedWidth[1]) > 279
+    && declarations.get("max-width") !== "100%") risks.push("FIXED_ROOT_WIDTH");
+  return risks;
+}
+
 export async function verifyPluginStyles(
   projectRoot: string,
   pluginsRoot: string,
   assets: readonly PluginAsset[],
+  responsiveWarnings: ProjectIssue[] = [],
 ): Promise<ProjectIssue[]> {
   const issues: ProjectIssue[] = [];
   for (const asset of assets) {
@@ -88,6 +115,11 @@ export async function verifyPluginStyles(
       });
       stylesheet.walkRules((rule) => {
         if (rule.parent?.type === "atrule" && /keyframes$/u.test(rule.parent.name)) return;
+        for (const risk of pluginResponsiveRisks(rule, asset.pluginId)) {
+          responsiveWarnings.push({ code: `PLUGIN_RESPONSIVE_${risk}`, pluginId: asset.pluginId,
+            path: relativePath, line: rule.source?.start?.line ?? 1,
+            message: `Plugin "${asset.pluginId}" has a possible narrow-slot layout risk (${risk}) in "${rule.selector}" at ${relativePath}:${rule.source?.start?.line ?? 1}. Review border-box sizing, min-width:0 and max-width:100% in the target styling system. This same-rule CSS hint does not evaluate cascade or prove browser overflow.` });
+        }
         for (const selector of splitSelectors(rule.selector)) {
           if (selector.startsWith("&") && hasPluginOwnedParent(rule)) continue;
           if (PLUGIN_SELECTOR.test(selector) && !HOST_ROOT_SELECTOR.test(selector)) continue;

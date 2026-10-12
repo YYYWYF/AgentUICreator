@@ -164,7 +164,7 @@ export async function verifyUIProject(
     const registry = await generatePluginRegistry(projectRoot, model, { config: effectiveConfig, paths });
     errors.push(...registry.errors);
     errors.push(...(await verifyPluginChildSlots(projectRoot, registry.assets.filter(asset => asset.ownership !== "official_package"))));
-    errors.push(...(await verifyPluginStyles(projectRoot, paths.pluginsRoot, registry.assets.filter(asset => asset.ownership !== "official_package"))));
+    errors.push(...(await verifyPluginStyles(projectRoot, paths.pluginsRoot, registry.assets.filter(asset => asset.ownership !== "official_package"), warnings)));
     errors.push(...(await verifyPluginPortalImports(projectRoot, paths.pluginsRoot, registry.assets.filter(asset => asset.ownership !== "official_package"))));
     const authoringReadiness = analyzePluginAuthoringReadiness(registry.assets);
     creatorReadiness = authoringReadiness.plugins;

@@ -665,6 +665,18 @@ not wait for an unselected import, hand-edit Registry, or explore Runtime code t
 force registration. Validate the mounted revision and require real registered /
 composed evidence at final delivery; synchronization alone is not registration.
 
+Generated Plugin UI must work inside narrow Agent UI slots at a 420px viewport
+(the slot may be only 279px). Never assume desktop width. Every visual Plugin
+root must own box-sizing: border-box, min-width: 0, and max-width: 100% using the
+target styling system. Avoid width:100% plus padding without border-box, fixed
+root widths, and min-width:auto on shrinkable flex children. Allow flex/grid
+content to shrink; wrap titles, user text, notes, and errors with overflow-wrap:
+anywhere and word-break:break-word. Bound controls and Modal width through the
+selected UI system's public API. Never repair business layout by expanding Agent
+UI resets, changing Runtime/Portal/vendor, overriding AntD, or clipping content.
+Consult the ui-plugin-development Skill's responsive recipe. Review lightweight
+PLUGIN_RESPONSIVE_* warnings; static checks do not prove browser layout PASS.
+
 After new visual Plugin or UI dependency/style integration, call
 validate_creator_changes(includeBuild=true) at the final revision. Review imports,
 props, approved dependency additions, scoped CSS, dark/light themes and locale
