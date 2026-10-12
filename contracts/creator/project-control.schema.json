@@ -980,6 +980,12 @@
         "column": {
           "type": "integer",
           "minimum": 1
+        },
+        "file": {
+          "type": "string"
+        },
+        "selector": {
+          "type": "string"
         }
       }
     },
@@ -2084,6 +2090,10 @@
           "items": {
             "$ref": "#/$defs/projectIssue"
           }
+        },
+        "responsiveRiskCount": {
+          "type": "integer",
+          "minimum": 0
         }
       }
     },

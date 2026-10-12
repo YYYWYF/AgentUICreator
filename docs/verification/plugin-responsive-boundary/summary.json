@@ -1,0 +1,349 @@
+{
+  "PLUGIN_RESPONSIVE_BOUNDARY": "PASS",
+  "results": [
+    {
+      "stage": "before",
+      "theme": "dark",
+      "locale": "en-US",
+      "status": "EXPECTED_RESPONSIVE_FAIL",
+      "parentClientWidth": 279,
+      "parentScrollWidth": 303,
+      "pluginWidth": 303,
+      "pluginX": 4,
+      "boxSizing": "content-box",
+      "modal": {
+        "x": 8,
+        "y": 435,
+        "width": 404,
+        "height": 130,
+        "top": 435,
+        "right": 412,
+        "bottom": 565,
+        "left": 8
+      },
+      "violations": {
+        "initial": [
+          "parent: scrollWidth 303 > clientWidth 279",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "add: clipped by ancestor",
+          "add: clipped by ancestor",
+          "add: clipped by ancestor",
+          "help: clipped by ancestor",
+          "help: clipped by ancestor",
+          "help: clipped by ancestor",
+          "list: clipped by ancestor",
+          "list: clipped by ancestor",
+          "list: clipped by ancestor"
+        ],
+        "notes": [
+          "parent: scrollWidth 303 > clientWidth 279",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor"
+        ],
+        "afterModal": [
+          "parent: scrollWidth 303 > clientWidth 279",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor"
+        ],
+        "longContent": [
+          "parent: scrollWidth 303 > clientWidth 279",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor"
+        ]
+      }
+    },
+    {
+      "stage": "before",
+      "theme": "dark",
+      "locale": "zh-CN",
+      "status": "EXPECTED_RESPONSIVE_FAIL",
+      "parentClientWidth": 279,
+      "parentScrollWidth": 303,
+      "pluginWidth": 303,
+      "pluginX": 4,
+      "boxSizing": "content-box",
+      "modal": {
+        "x": 8,
+        "y": 435,
+        "width": 404,
+        "height": 130,
+        "top": 435,
+        "right": 412,
+        "bottom": 565,
+        "left": 8
+      },
+      "violations": {
+        "initial": [
+          "parent: scrollWidth 303 > clientWidth 279",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "add: clipped by ancestor",
+          "add: clipped by ancestor",
+          "add: clipped by ancestor",
+          "help: clipped by ancestor",
+          "help: clipped by ancestor",
+          "help: clipped by ancestor",
+          "list: clipped by ancestor",
+          "list: clipped by ancestor",
+          "list: clipped by ancestor"
+        ],
+        "notes": [
+          "parent: scrollWidth 303 > clientWidth 279",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor"
+        ],
+        "afterModal": [
+          "parent: scrollWidth 303 > clientWidth 279",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor"
+        ],
+        "longContent": [
+          "parent: scrollWidth 303 > clientWidth 279",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor"
+        ]
+      }
+    },
+    {
+      "stage": "before",
+      "theme": "light",
+      "locale": "en-US",
+      "status": "EXPECTED_RESPONSIVE_FAIL",
+      "parentClientWidth": 279,
+      "parentScrollWidth": 303,
+      "pluginWidth": 303,
+      "pluginX": 4,
+      "boxSizing": "content-box",
+      "modal": {
+        "x": 8,
+        "y": 435,
+        "width": 404,
+        "height": 130,
+        "top": 435,
+        "right": 412,
+        "bottom": 565,
+        "left": 8
+      },
+      "violations": {
+        "initial": [
+          "parent: scrollWidth 303 > clientWidth 279",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "add: clipped by ancestor",
+          "add: clipped by ancestor",
+          "add: clipped by ancestor",
+          "help: clipped by ancestor",
+          "help: clipped by ancestor",
+          "help: clipped by ancestor",
+          "list: clipped by ancestor",
+          "list: clipped by ancestor",
+          "list: clipped by ancestor"
+        ],
+        "notes": [
+          "parent: scrollWidth 303 > clientWidth 279",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor"
+        ],
+        "afterModal": [
+          "parent: scrollWidth 303 > clientWidth 279",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor"
+        ],
+        "longContent": [
+          "parent: scrollWidth 303 > clientWidth 279",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor"
+        ]
+      }
+    },
+    {
+      "stage": "before",
+      "theme": "light",
+      "locale": "zh-CN",
+      "status": "EXPECTED_RESPONSIVE_FAIL",
+      "parentClientWidth": 279,
+      "parentScrollWidth": 303,
+      "pluginWidth": 303,
+      "pluginX": 4,
+      "boxSizing": "content-box",
+      "modal": {
+        "x": 8,
+        "y": 435,
+        "width": 404,
+        "height": 130,
+        "top": 435,
+        "right": 412,
+        "bottom": 565,
+        "left": 8
+      },
+      "violations": {
+        "initial": [
+          "parent: scrollWidth 303 > clientWidth 279",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "add: clipped by ancestor",
+          "add: clipped by ancestor",
+          "add: clipped by ancestor",
+          "help: clipped by ancestor",
+          "help: clipped by ancestor",
+          "help: clipped by ancestor",
+          "list: clipped by ancestor",
+          "list: clipped by ancestor",
+          "list: clipped by ancestor"
+        ],
+        "notes": [
+          "parent: scrollWidth 303 > clientWidth 279",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor"
+        ],
+        "afterModal": [
+          "parent: scrollWidth 303 > clientWidth 279",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor"
+        ],
+        "longContent": [
+          "parent: scrollWidth 303 > clientWidth 279",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor",
+          "root: clipped by ancestor"
+        ]
+      }
+    },
+    {
+      "stage": "after",
+      "theme": "dark",
+      "locale": "en-US",
+      "status": "PASS",
+      "parentClientWidth": 279,
+      "parentScrollWidth": 279,
+      "pluginWidth": 279,
+      "pluginX": 16,
+      "boxSizing": "border-box",
+      "modal": {
+        "x": 8,
+        "y": 435,
+        "width": 404,
+        "height": 130,
+        "top": 435,
+        "right": 412,
+        "bottom": 565,
+        "left": 8
+      },
+      "violations": {
+        "initial": [],
+        "notes": [],
+        "afterModal": [],
+        "longContent": []
+      }
+    },
+    {
+      "stage": "after",
+      "theme": "dark",
+      "locale": "zh-CN",
+      "status": "PASS",
+      "parentClientWidth": 279,
+      "parentScrollWidth": 279,
+      "pluginWidth": 279,
+      "pluginX": 16,
+      "boxSizing": "border-box",
+      "modal": {
+        "x": 8,
+        "y": 435,
+        "width": 404,
+        "height": 130,
+        "top": 435,
+        "right": 412,
+        "bottom": 565,
+        "left": 8
+      },
+      "violations": {
+        "initial": [],
+        "notes": [],
+        "afterModal": [],
+        "longContent": []
+      }
+    },
+    {
+      "stage": "after",
+      "theme": "light",
+      "locale": "en-US",
+      "status": "PASS",
+      "parentClientWidth": 279,
+      "parentScrollWidth": 279,
+      "pluginWidth": 279,
+      "pluginX": 16,
+      "boxSizing": "border-box",
+      "modal": {
+        "x": 8,
+        "y": 435,
+        "width": 404,
+        "height": 130,
+        "top": 435,
+        "right": 412,
+        "bottom": 565,
+        "left": 8
+      },
+      "violations": {
+        "initial": [],
+        "notes": [],
+        "afterModal": [],
+        "longContent": []
+      }
+    },
+    {
+      "stage": "after",
+      "theme": "light",
+      "locale": "zh-CN",
+      "status": "PASS",
+      "parentClientWidth": 279,
+      "parentScrollWidth": 279,
+      "pluginWidth": 279,
+      "pluginX": 16,
+      "boxSizing": "border-box",
+      "modal": {
+        "x": 8,
+        "y": 435,
+        "width": 404,
+        "height": 130,
+        "top": 435,
+        "right": 412,
+        "bottom": 565,
+        "left": 8
+      },
+      "violations": {
+        "initial": [],
+        "notes": [],
+        "afterModal": [],
+        "longContent": []
+      }
+    }
+  ]
+}

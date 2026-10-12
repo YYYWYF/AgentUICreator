@@ -72,7 +72,7 @@ it("detects narrow-slot hazards without treating them as style isolation failure
   expect(await inspect('.example { width:100%; padding:12px; }', warnings)).toEqual([]);
   expect(warnings).toEqual([expect.objectContaining({
     code: "PLUGIN_RESPONSIVE_FULL_WIDTH_PADDING", pluginId: "example",
-    path: "plugins/example/styles.css", line: 1,
+    path: "plugins/example/styles.css", file: "plugins/example/styles.css", selector: ".example", line: 1,
   })]);
 });
 

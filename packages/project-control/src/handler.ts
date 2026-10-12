@@ -494,7 +494,7 @@ async function executeRequest(
       return verifyRuntimeComposition(projectRoot, request.input);
     case "verify_ui_project": {
       const result = await verifyUIProject(projectRoot);
-      return { status: result.status, errors: result.errors, warnings: result.warnings };
+      return { status: result.status, errors: result.errors, warnings: result.warnings, responsiveRiskCount: result.responsiveRiskCount };
     }
     case "create_custom_plugin": return createCustomPlugin(projectRoot, request.input);
     case "migrate_official_package_plugin": return migrateOfficialPackagePlugin(projectRoot, request.input.pluginId);

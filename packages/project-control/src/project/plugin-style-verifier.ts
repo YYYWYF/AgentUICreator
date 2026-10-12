@@ -117,7 +117,7 @@ export async function verifyPluginStyles(
         if (rule.parent?.type === "atrule" && /keyframes$/u.test(rule.parent.name)) return;
         for (const risk of pluginResponsiveRisks(rule, asset.pluginId)) {
           responsiveWarnings.push({ code: `PLUGIN_RESPONSIVE_${risk}`, pluginId: asset.pluginId,
-            path: relativePath, line: rule.source?.start?.line ?? 1,
+            path: relativePath, file: relativePath, selector: rule.selector, line: rule.source?.start?.line ?? 1,
             message: `Plugin "${asset.pluginId}" has a possible narrow-slot layout risk (${risk}) in "${rule.selector}" at ${relativePath}:${rule.source?.start?.line ?? 1}. Review border-box sizing, min-width:0 and max-width:100% in the target styling system. This same-rule CSS hint does not evaluate cascade or prove browser overflow.` });
         }
         for (const selector of splitSelectors(rule.selector)) {

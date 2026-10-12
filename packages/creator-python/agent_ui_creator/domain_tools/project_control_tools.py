@@ -11,6 +11,8 @@ from langchain_core.tools import BaseTool, tool
 from pydantic import Json
 
 from .capabilities import capability_navigation
+from ..responsive_repair import build_repair_plan, responsive_risks
+from ..files import read_creator_file_state
 from ..activity import CreatorActivityRecorder
 from ..domain_state import (
     CROSS_LAYER_DOMAIN_READ_NAMES,
@@ -36,6 +38,7 @@ DOMAIN_READ_TOOL_NAMES = (
     "list_ui_plugins",
     "inspect_ui_slots",
     "inspect_ui_plugin",
+    "prepare_plugin_responsive_repair",
     "preflight_ui_plugin_placement",
     "inspect_ui_services",
     "inspect_ui_plugin_source_references",
@@ -538,6 +541,44 @@ def create_project_control_tools(
         except ProjectControlError as error:
             return _render_error(error)
 
+    @tool("prepare_plugin_responsive_repair")
+    async def prepare_plugin_responsive_repair(
+        pluginId: str, slotWidth: float, slotRef: str,
+        edits: list[dict[str, str]] | None = None,
+    ) -> str:
+        """Prepare a read-only responsive repair plan for an existing Plugin. Run validate_creator_changes before repair to capture the static risk baseline. Supply observed Host slot width/ref; these are observations, not inferred layout facts. Inspect the returned risks, CSS and components; do not treat warnings as confirmed overflow. Optional edits contain file/before/after/reason exact CSS anchors. Present resulting diffs and request user confirmation before using existing scoped source edits. Never rewrites source or grants authority. Pause for CSS-in-JS, complex utilities, inline layout or animations; browser evidence is required after validation."""
+        prohibited = cross_layer_read_prohibited("prepare_plugin_responsive_repair")
+        if prohibited is not None:
+            return prohibited
+        try:
+            if slotWidth <= 0 or not slotRef.strip():
+                raise ValueError("Supply positive observed slot width and its reference.")
+            inspection = await client.inspect_ui_plugin(pluginId)
+            asset = inspection["asset"]
+            if asset.get("ownership") == "official_package":
+                raise ValueError("Only project-owned Plugin source can be repaired.")
+            manifest = asset["manifestPath"]
+            prefix = manifest.rsplit("/", 1)[0] + "/"
+            sources = {}
+            for entry in inspection["files"]:
+                file = entry["path"]
+                if entry["kind"] == "file" and file.startswith(prefix) and file.endswith((".css", ".tsx", ".ts")):
+                    state = read_creator_file_state(client.project_root, "/" + file)
+                    if not state.exists or state.content is None:
+                        raise ValueError("Inspected Plugin source is missing; refresh discovery.")
+                    sources[file] = state.content
+            if inspection.get("filesTruncated") or any(entry["kind"] == "directory" for entry in inspection["files"]):
+                raise ValueError("Nested or truncated sources require manual discovery and review before a repair plan.")
+            verification = await client.verify_ui_project()
+            plan = build_repair_plan(plugin_id=pluginId,
+                slot={"ref": slotRef, "width": slotWidth, "source": "user-or-browser-observation", "instances": inspection["instances"]},
+                risks=responsive_risks(verification["warnings"], pluginId), sources=sources, edits=edits or [])
+            return _render_result(plan)
+        except ProjectControlError as error:
+            return _render_error(error)
+        except (ValueError, KeyError) as error:
+            return _render_json({"ok": False, "error": {"code": "PLUGIN_RESPONSIVE_PLAN_INVALID", "message": str(error)}})
+
     @tool("preflight_ui_plugin_placement")
     async def preflight_ui_plugin_placement(
         appUIModelHash: str, capabilityCatalogRevision: str,
@@ -758,6 +799,7 @@ def create_project_control_tools(
         list_ui_plugins,
         inspect_ui_slots,
         inspect_ui_plugin,
+        prepare_plugin_responsive_repair,
         preflight_ui_plugin_placement,
         inspect_ui_services,
         inspect_ui_plugin_source_references,

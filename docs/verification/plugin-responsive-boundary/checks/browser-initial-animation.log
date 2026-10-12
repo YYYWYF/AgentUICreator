@@ -1,0 +1,199 @@
+[WARN] Your node_modules are out of sync with your lockfile. The value of the minimumReleaseAgeExclude setting has changed
+
+Running 8 tests using 1 worker
+
+(node:16051) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite-runtime-aliases" without a file extension (../../../private/tmp/plugin-responsive-repair-hosts/before/vite.config.ts:5:32). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+10:50:58 AM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  1 tests/plugin-responsive-repair.spec.ts:36:113 › before B 420 light zh-CN (4.7s)
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite-runtime-aliases" without a file extension (../../../private/tmp/plugin-responsive-repair-hosts/before/vite.config.ts:5:32). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+10:51:01 AM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  2 tests/plugin-responsive-repair.spec.ts:36:113 › before B 420 light en-US (3.8s)
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite-runtime-aliases" without a file extension (../../../private/tmp/plugin-responsive-repair-hosts/before/vite.config.ts:5:32). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+10:51:05 AM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  3 tests/plugin-responsive-repair.spec.ts:36:113 › before B 420 dark zh-CN (3.8s)
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite-runtime-aliases" without a file extension (../../../private/tmp/plugin-responsive-repair-hosts/before/vite.config.ts:5:32). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+10:51:08 AM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✓  4 tests/plugin-responsive-repair.spec.ts:36:113 › before B 420 dark en-US (3.7s)
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite-runtime-aliases" without a file extension (../../../private/tmp/plugin-responsive-repair-hosts/after/vite.config.ts:5:32). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+10:51:13 AM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✘  5 tests/plugin-responsive-repair.spec.ts:36:113 › after B 420 light zh-CN (4.4s)
+(node:16217) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite-runtime-aliases" without a file extension (../../../private/tmp/plugin-responsive-repair-hosts/after/vite.config.ts:5:32). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+10:51:18 AM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✘  6 tests/plugin-responsive-repair.spec.ts:36:113 › after B 420 light en-US (4.2s)
+(node:16249) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite-runtime-aliases" without a file extension (../../../private/tmp/plugin-responsive-repair-hosts/after/vite.config.ts:5:32). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+10:51:22 AM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✘  7 tests/plugin-responsive-repair.spec.ts:36:113 › after B 420 dark zh-CN (4.8s)
+(node:16352) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "./vite-runtime-aliases" without a file extension (../../../private/tmp/plugin-responsive-repair-hosts/after/vite.config.ts:5:32). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+10:51:29 AM [vite] (client) [console.error] Warning: [antd: compatible] antd v5 support React is 16 ~ 18. see https://u.ant.design/v5-for-19 for compatible.
+  ✘  8 tests/plugin-responsive-repair.spec.ts:36:113 › after B 420 dark en-US (5.2s)
+
+
+  1) tests/plugin-responsive-repair.spec.ts:36:113 › after B 420 light zh-CN ───────────────────────
+
+    Error: initial
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  -  1
+    + Received  + 12
+
+    - Array []
+    + Array [
+    +   "root: outside viewport",
+    +   "root: clipped by ancestor",
+    +   "parent: outside viewport",
+    +   "parent: clipped by ancestor",
+    +   "title: outside viewport",
+    +   "title: clipped by ancestor",
+    +   "input: outside viewport",
+    +   "input: clipped by ancestor",
+    +   "list: outside viewport",
+    +   "list: clipped by ancestor",
+    + ]
+
+      74 |    row.status='EXPECTED_RESPONSIVE_FAIL';
+      75 |   }else{
+    > 76 |    for(const [state,issues] of Object.entries(row.violations))expect(issues, state).toEqual([]);
+         |                                                                                     ^
+      77 |    for(const layout of Object.values(row.states) as any[]){expect(layout.root.css['box-sizing']).toBe('border-box');expect(layout.root.css['min-width']).toBe('0px');}
+      78 |    row.status='PASS';
+      79 |   }
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/plugin-responsive-repair.spec.ts:76:85
+
+    Error Context: test-results/plugin-responsive-repair-after-B-420-light-zh-CN/error-context.md
+
+  2) tests/plugin-responsive-repair.spec.ts:36:113 › after B 420 light en-US ───────────────────────
+
+    Error: initial
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  -  1
+    + Received  + 12
+
+    - Array []
+    + Array [
+    +   "root: outside viewport",
+    +   "root: clipped by ancestor",
+    +   "parent: outside viewport",
+    +   "parent: clipped by ancestor",
+    +   "title: outside viewport",
+    +   "title: clipped by ancestor",
+    +   "input: outside viewport",
+    +   "input: clipped by ancestor",
+    +   "list: outside viewport",
+    +   "list: clipped by ancestor",
+    + ]
+
+      74 |    row.status='EXPECTED_RESPONSIVE_FAIL';
+      75 |   }else{
+    > 76 |    for(const [state,issues] of Object.entries(row.violations))expect(issues, state).toEqual([]);
+         |                                                                                     ^
+      77 |    for(const layout of Object.values(row.states) as any[]){expect(layout.root.css['box-sizing']).toBe('border-box');expect(layout.root.css['min-width']).toBe('0px');}
+      78 |    row.status='PASS';
+      79 |   }
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/plugin-responsive-repair.spec.ts:76:85
+
+    Error Context: test-results/plugin-responsive-repair-after-B-420-light-en-US/error-context.md
+
+  3) tests/plugin-responsive-repair.spec.ts:36:113 › after B 420 dark zh-CN ────────────────────────
+
+    Error: initial
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  -  1
+    + Received  + 12
+
+    - Array []
+    + Array [
+    +   "root: outside viewport",
+    +   "root: clipped by ancestor",
+    +   "parent: outside viewport",
+    +   "parent: clipped by ancestor",
+    +   "title: outside viewport",
+    +   "title: clipped by ancestor",
+    +   "input: outside viewport",
+    +   "input: clipped by ancestor",
+    +   "list: outside viewport",
+    +   "list: clipped by ancestor",
+    + ]
+
+      74 |    row.status='EXPECTED_RESPONSIVE_FAIL';
+      75 |   }else{
+    > 76 |    for(const [state,issues] of Object.entries(row.violations))expect(issues, state).toEqual([]);
+         |                                                                                     ^
+      77 |    for(const layout of Object.values(row.states) as any[]){expect(layout.root.css['box-sizing']).toBe('border-box');expect(layout.root.css['min-width']).toBe('0px');}
+      78 |    row.status='PASS';
+      79 |   }
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/plugin-responsive-repair.spec.ts:76:85
+
+    Error Context: test-results/plugin-responsive-repair-after-B-420-dark-zh-CN/error-context.md
+
+  4) tests/plugin-responsive-repair.spec.ts:36:113 › after B 420 dark en-US ────────────────────────
+
+    Error: initial
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  -  1
+    + Received  + 12
+
+    - Array []
+    + Array [
+    +   "root: outside viewport",
+    +   "root: clipped by ancestor",
+    +   "parent: outside viewport",
+    +   "parent: clipped by ancestor",
+    +   "title: outside viewport",
+    +   "title: clipped by ancestor",
+    +   "input: outside viewport",
+    +   "input: clipped by ancestor",
+    +   "list: outside viewport",
+    +   "list: clipped by ancestor",
+    + ]
+
+      74 |    row.status='EXPECTED_RESPONSIVE_FAIL';
+      75 |   }else{
+    > 76 |    for(const [state,issues] of Object.entries(row.violations))expect(issues, state).toEqual([]);
+         |                                                                                     ^
+      77 |    for(const layout of Object.values(row.states) as any[]){expect(layout.root.css['box-sizing']).toBe('border-box');expect(layout.root.css['min-width']).toBe('0px');}
+      78 |    row.status='PASS';
+      79 |   }
+        at /Users/yifei/Coding/AgentUICreator/apps/creator-workbench/tests/plugin-responsive-repair.spec.ts:76:85
+
+    Error Context: test-results/plugin-responsive-repair-after-B-420-dark-en-US/error-context.md
+
+  4 failed
+    tests/plugin-responsive-repair.spec.ts:36:113 › after B 420 light zh-CN ────────────────────────
+    tests/plugin-responsive-repair.spec.ts:36:113 › after B 420 light en-US ────────────────────────
+    tests/plugin-responsive-repair.spec.ts:36:113 › after B 420 dark zh-CN ─────────────────────────
+    tests/plugin-responsive-repair.spec.ts:36:113 › after B 420 dark en-US ─────────────────────────
+  4 passed (37.9s)
+undefined
+/Users/yifei/Coding/AgentUICreator/apps/creator-workbench:
+[ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: playwright test -c playwright.responsive-repair.config.ts

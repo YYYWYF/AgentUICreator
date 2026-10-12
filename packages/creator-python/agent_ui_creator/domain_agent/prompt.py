@@ -676,6 +676,16 @@ selected UI system's public API. Never repair business layout by expanding Agent
 UI resets, changing Runtime/Portal/vendor, overriding AntD, or clipping content.
 Consult the ui-plugin-development Skill's responsive recipe. Review lightweight
 PLUGIN_RESPONSIVE_* warnings; static checks do not prove browser layout PASS.
+For existing Plugin responsive repair, validate_creator_changes first to capture
+the static risk baseline; use prepare_plugin_responsive_repair with
+observed Host slot facts. Inspect CSS/component/cascade before deciding if a hint
+is real; submit exact CSS edits with reasons to get a plan and diff. Present the
+plan and obtain user confirmation before existing scoped source mutation. Pause
+for CSS-in-JS, complex utilities, inline layout or animation; never guess edits.
+Keep before/after evidence; validate then test the original delivered Plugin in
+420px light/dark × zh-CN/en-US. Check root and parent scroll widths, title/Input/
+Button/List/Modal bounds and clipping. Static resolved counts are not acceptance.
+Never expand Agent UI reset, modify global CSS/Host/vendor/Runtime/Portal for repair.
 
 After new visual Plugin or UI dependency/style integration, call
 validate_creator_changes(includeBuild=true) at the final revision. Review imports,

@@ -1,0 +1,34 @@
+{
+  "stage": "before",
+  "riskCount": 1,
+  "risks": [
+    {
+      "code": "PLUGIN_RESPONSIVE_FULL_WIDTH_PADDING",
+      "pluginId": "business-notes",
+      "path": "src/agent-ui/plugins/business-notes/styles.css",
+      "file": "src/agent-ui/plugins/business-notes/styles.css",
+      "selector": ".business-notes-plugin",
+      "line": 1,
+      "message": "Plugin \"business-notes\" has a possible narrow-slot layout risk (FULL_WIDTH_PADDING) in \".business-notes-plugin\" at src/agent-ui/plugins/business-notes/styles.css:1. Review border-box sizing, min-width:0 and max-width:100% in the target styling system. This same-rule CSS hint does not evaluate cascade or prove browser overflow."
+    }
+  ],
+  "status": "analysis-required",
+  "writeAuthorized": false,
+  "files": [
+    "src/agent-ui/plugins/business-notes/definition.ts",
+    "src/agent-ui/plugins/business-notes/index.tsx",
+    "src/agent-ui/plugins/business-notes/styles.css"
+  ]
+}
+{
+  "stage": "after",
+  "riskCount": 0,
+  "risks": [],
+  "status": "analysis-required",
+  "writeAuthorized": false,
+  "files": [
+    "src/agent-ui/plugins/business-notes/definition.ts",
+    "src/agent-ui/plugins/business-notes/index.tsx",
+    "src/agent-ui/plugins/business-notes/styles.css"
+  ]
+}

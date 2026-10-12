@@ -13,6 +13,7 @@ from ..project_control import ProjectControlClient
 from ..project_paths import agent_ui_source_path
 from ..resource_scope import project_logical_path
 from ..repair import CreatorRepairState
+from ..responsive_repair import ResponsiveRiskTracker
 from ..service_contracts.verification import ServiceContractAuthorizationVerifier
 from . import attribution
 from .command_runner import CreatorValidationCommandRunner
@@ -60,6 +61,7 @@ class CreatorValidationService:
         mutation_coordinator: ProjectMutationCoordinator | None = None,
     ) -> None:
         self.debugging = DebuggingEvidence()
+        self.responsive_risks = ResponsiveRiskTracker()
         self.project_root = Path(project_root).resolve()
         self.activity = activity
         self.runner = runner or CreatorValidationCommandRunner(project_root)
@@ -84,6 +86,7 @@ class CreatorValidationService:
         if run_id == self._baseline_run_id:
             return
         self.debugging.ensure_run(run_id)
+        self.responsive_risks = ResponsiveRiskTracker()
         self._baseline_run_id = run_id
         self._baseline_capture_started = False
         self._baseline = None
@@ -474,6 +477,8 @@ class CreatorValidationService:
                 )
                 continue
             result = await self.runner.execute_known_command(command)
+            if command == "pnpm verify:ui":
+                self.responsive_risks.observe(result.output, truncated=result.truncated)
             status = "passed" if result.exit_code == 0 else "failed"
             if command == "pnpm typecheck":
                 current = parse_typescript_diagnostics(
@@ -526,6 +531,7 @@ class CreatorValidationService:
             status=status,
             checks=tuple(checks),
             host_checks=tuple(host_checks),
+            responsive_summary=self.responsive_risks.to_dict(),
             differential=differential,
             workspace_warning=(
                 None

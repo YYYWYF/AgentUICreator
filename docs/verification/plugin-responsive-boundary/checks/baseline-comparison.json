@@ -1,0 +1,36 @@
+{
+  "pythonFailedTestsUnchanged": true,
+  "pythonFailedTests": [
+    "packages/creator-python/tests/test_creator_validation.py::test_attribution_failure_preserves_evidence_and_finishes_validation",
+    "packages/creator-python/tests/test_creator_validation.py::test_composition_validation_blocker_is_unrelated_and_not_auto_repairable",
+    "packages/creator-python/tests/test_creator_validation.py::test_failed_validation_returns_diagnostics_not_run_error",
+    "packages/creator-python/tests/test_creator_validation.py::test_plugin_declaration_edit_synchronizes_generated_registry_before_validation",
+    "packages/creator-python/tests/test_creator_validation.py::test_source_edit_invalidates_validation",
+    "packages/creator-python/tests/test_creator_validation.py::test_validation_becomes_stale_if_revision_changes",
+    "packages/creator-python/tests/test_creator_validation.py::test_validation_failure_in_changed_source_is_attributed_to_current_run",
+    "packages/creator-python/tests/test_creator_validation.py::test_validation_failure_in_committed_scope_is_attributed_in_scope",
+    "packages/creator-python/tests/test_creator_validation.py::test_validation_failure_in_same_change_layer_but_different_resource_is_unrelated",
+    "packages/creator-python/tests/test_creator_validation.py::test_validation_result_cached_for_same_revision",
+    "packages/creator-python/tests/test_creator_validation.py::test_validation_runs_known_commands",
+    "packages/creator-python/tests/test_creator_validation_differential.py::test_clean_mode_requires_zero_remaining_diagnostics",
+    "packages/creator-python/tests/test_creator_validation_differential.py::test_composition_completion_reports_seven_existing_errors_as_warning",
+    "packages/creator-python/tests/test_creator_validation_differential.py::test_new_error_is_introduced_evidence_and_is_repairable",
+    "packages/creator-python/tests/test_creator_validation_differential.py::test_repairing_introduced_error_returns_success_and_preserves_warning"
+  ],
+  "typescriptFailedTestsUnchanged": true,
+  "typescriptFailedTests": [
+    "tests/migrated/verify-ui.test.ts > verifyUIProject > accepts an enabled Data Message UI without a mount or headless classification",
+    "tests/migrated/verify-ui.test.ts > verifyUIProject > accepts matching manifest and rendered child Slots",
+    "tests/migrated/verify-ui.test.ts > verifyUIProject > allows an explicitly headless plugin in application scope",
+    "tests/migrated/verify-ui.test.ts > verifyUIProject > blocks 'DATA_MESSAGE_UI_DEFINITION_NOT_STATIC' only when its Plugin is selected",
+    "tests/migrated/verify-ui.test.ts > verifyUIProject > blocks 'DATA_MESSAGE_UI_MANIFEST_MISSING' only when its Plugin is selected",
+    "tests/migrated/verify-ui.test.ts > verifyUIProject > blocks 'DATA_MESSAGE_UI_RENDERER_MISSING' only when its Plugin is selected",
+    "tests/migrated/verify-ui.test.ts > verifyUIProject > blocks direct Portal primitive imports in a generated user Plugin and accepts the public facade",
+    "tests/migrated/verify-ui.test.ts > verifyUIProject > blocks global Plugin CSS and accepts the same Plugin after scoping",
+    "tests/migrated/verify-ui.test.ts > verifyUIProject > checks duplicate names only for enabled instances: false",
+    "tests/migrated/verify-ui.test.ts > verifyUIProject > checks same-named renderers only after both Plugins are selected",
+    "tests/migrated/verify-ui.test.ts > verifyUIProject > ignores unregistered names when checking enabled Plugin conflicts",
+    "tests/migrated/verify-ui.test.ts > verifyUIProject > reports limited Creator readiness without failing verification",
+    "tests/migrated/verify-ui.test.ts > verifyUIProject > resolves an inline renderer in the default definition"
+  ]
+}

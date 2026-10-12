@@ -103,6 +103,7 @@ class ValidationEvidence:
     host_checks: tuple[ServiceContractHostCheck, ...] = ()
     differential: TypecheckDifferential | None = None
     workspace_warning: dict[str, object] | None = None
+    responsive_summary: dict[str, object] | None = None
 
     def to_dict(self) -> dict[str, object]:
         differential = self.differential
@@ -113,6 +114,7 @@ class ValidationEvidence:
             "hostChecks": [check.to_dict() for check in self.host_checks],
             **(differential.to_dict() if differential is not None else {}),
             "workspaceWarning": self.workspace_warning,
+            **(self.responsive_summary or {}),
         }
 
 

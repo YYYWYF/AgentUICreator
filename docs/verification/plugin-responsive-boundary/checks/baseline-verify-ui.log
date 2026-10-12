@@ -1,0 +1,247 @@
+[WARN] Your node_modules are out of sync with your lockfile. The value of the minimumReleaseAgeExclude setting has changed
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../scripts/generated-source-test-config" without a file extension (vitest.config.ts:3:43). Add the file extension
+  - ESM syntax in a file loaded as CommonJS (../../../../../Users/yifei/Coding/AgentUICreator/scripts/generated-source-test-config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+  - import "../../src/generate-plugin-registry" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/tests/support/generated-project.ts:5:46). Add the file extension
+  - import "./framework/contracts/app-ui-model" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/generate-plugin-registry.ts:6:37). Add the file extension
+  - import "./project/project-mode" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/generate-plugin-registry.ts:7:42). Add the file extension
+  - import "./framework/contracts/agent-ui-project" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/generate-plugin-registry.ts:8:43). Add the file extension
+  - import "./project/agent-ui-project-paths" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/generate-plugin-registry.ts:9:95). Add the file extension
+  - import "./project/creator-cancel-marker" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/generate-plugin-registry.ts:10:44). Add the file extension
+  - import "./project/registry-generator" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/generate-plugin-registry.ts:13:8). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/project-mode.ts:7:8). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/registry-generator.ts:18:8). Add the file extension
+  - import "./panel-dimension" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/framework/contracts/app-ui-model.ts:3:42). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/agent-ui-project-paths.ts:3:43). Add the file extension
+  - import "../framework/contracts/app-ui-compiler" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/registry-generator.ts:19:55). Add the file extension
+  - import "./types" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/agent-ui-project-paths.ts:4:45). Add the file extension
+  - import "../framework/contracts/app-ui-composition" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/registry-generator.ts:24:8). Add the file extension
+  - import "./project-config" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/agent-ui-project-paths.ts:5:40). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/registry-generator.ts:25:42). Add the file extension
+  - import "./plugin-assets" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/registry-generator.ts:26:37). Add the file extension
+  - import "./data-message-ui-analyzer" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/registry-generator.ts:27:39). Add the file extension
+  - import "./service-dependency-inspector" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/registry-generator.ts:32:8). Add the file extension
+  - import "./types" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/registry-generator.ts:39:8). Add the file extension
+  - import "./agent-ui-mode" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/framework/contracts/agent-ui-project.ts:6:8). Add the file extension
+  - import "./types" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/project-config.ts:1:45). Add the file extension
+  - import "./agent-ui-workspace" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/framework/contracts/agent-ui-mode.ts:3:45). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/service-dependency-inspector.ts:9:8). Add the file extension
+  - import "./app-ui-model" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/framework/contracts/app-ui-compiler.ts:8:8). Add the file extension
+  - import "../framework/contracts/data-message-ui" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/data-message-ui-analyzer.ts:22:42). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/framework/contracts/app-ui-composition.ts:4:8). Add the file extension
+  - import "../framework/contracts/ui-plugin" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/plugin-assets.ts:5:39). Add the file extension
+  - import "./types" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/service-dependency-inspector.ts:26:8). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/framework/contracts/app-ui-compiler.ts:14:8). Add the file extension
+  - import "./types" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/data-message-ui-analyzer.ts:23:48). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/plugin-assets.ts:6:42). Add the file extension
+  - import "./app-ui-composition" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/framework/contracts/app-ui-compiler.ts:23:8). Add the file extension
+  - import "./types" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/project/plugin-assets.ts:12:8). Add the file extension
+  - import "./panel-dimension" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/framework/contracts/app-ui-runtime-model.ts:3:42). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/framework/contracts/ui-plugin.ts:9:49). Add the file extension
+  - import "./app-ui-model" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/framework/contracts/ui-plugin.ts:10:43). Add the file extension
+  - import "./app-ui-composition" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/framework/contracts/ui-plugin.ts:11:48). Add the file extension
+  - import "./custom-event-protocol" without a file extension (../../../../../Users/yifei/Coding/AgentUICreator/packages/project-control/src/framework/contracts/ui-plugin.ts:12:39). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 /private/tmp/plugin-responsive-control-baseline/packages/project-control
+
+ ❯ tests/migrated/verify-ui.test.ts (36 tests | 13 failed) 14158ms
+     × blocks direct Portal primitive imports in a generated user Plugin and accepts the public facade 428ms
+     × blocks global Plugin CSS and accepts the same Plugin after scoping 344ms
+     × accepts an enabled Data Message UI without a mount or headless classification 212ms
+     × checks duplicate names only for enabled instances: false 861ms
+     × ignores unregistered names when checking enabled Plugin conflicts 790ms
+     × resolves an inline renderer in the default definition 399ms
+     × blocks 'DATA_MESSAGE_UI_DEFINITION_NOT_STATIC' only when its Plugin is selected 559ms
+     × blocks 'DATA_MESSAGE_UI_RENDERER_MISSING' only when its Plugin is selected 581ms
+     × blocks 'DATA_MESSAGE_UI_MANIFEST_MISSING' only when its Plugin is selected 576ms
+     × checks same-named renderers only after both Plugins are selected 451ms
+     × reports limited Creator readiness without failing verification 336ms
+     × allows an explicitly headless plugin in application scope 358ms
+     × accepts matching manifest and rendered child Slots 340ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 13 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > blocks direct Portal primitive imports in a generated user Plugin and accepts the public facade
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:211:25
+    209|       'import { AgentUIDialog, AgentUIPopover, AgentUITooltip } from "…
+    210|     const safe = await verifyUIProject(projectRoot, fixtureConfig);
+    211|     expect(safe.status).toBe("passed");
+       |                         ^
+    212|   });
+    213|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/13]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > blocks global Plugin CSS and accepts the same Plugin after scoping
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:224:27
+    222|     await writeFile(stylesheet, ".sample button { color: var(--primary…
+    223|     const scoped = await verifyUIProject(projectRoot, fixtureConfig);
+    224|     expect(scoped.status).toBe("passed");
+       |                           ^
+    225|   });
+    226|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/13]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > accepts an enabled Data Message UI without a mount or headless classification
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:235:27
+    233|     });
+    234|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    235|     expect(result.status).toBe("passed");
+       |                           ^
+    236|     expect(result.activeComposition.headlessPluginIds).toEqual([]);
+    237|     expect(result.warnings).not.toContainEqual(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/13]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > checks duplicate names only for enabled instances: false
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:337:27
+    335|     await addSecondDataMessageUI(projectRoot, enabled);
+    336|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    337|     expect(result.status).toBe(status);
+       |                           ^
+    338|     expect(result.errors.some((issue) => issue.code === "DATA_MESSAGE_…
+    339|     if (conflict) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/13]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > ignores unregistered names when checking enabled Plugin conflicts
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:355:27
+    353|     await addSecondDataMessageUI(projectRoot, true, "debug");
+    354|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    355|     expect(result.status).toBe("passed");
+       |                           ^
+    356|     expect(result.errors.some((issue) => issue.code === "DATA_MESSAGE_…
+    357|       .toBe(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/13]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > resolves an inline renderer in the default definition
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:383:27
+    381|     });
+    382|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    383|     expect(result.status).toBe("passed");
+       |                           ^
+    384|   });
+    385|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/13]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > blocks 'DATA_MESSAGE_UI_DEFINITION_NOT_STATIC' only when its Plugin is selected
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > blocks 'DATA_MESSAGE_UI_RENDERER_MISSING' only when its Plugin is selected
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > blocks 'DATA_MESSAGE_UI_MANIFEST_MISSING' only when its Plugin is selected
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:437:31
+    435|     }));
+    436|     const unselected = await verifyUIProject(projectRoot, fixtureConfi…
+    437|     expect(unselected.status).toBe("passed");
+       |                               ^
+    438|     expect(unselected.activeComposition.selectedPluginIds).toEqual(["s…
+    439|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/13]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > checks same-named renderers only after both Plugins are selected
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:474:31
+    472|     await writeModelAndRegistry(projectRoot, unselectedModel);
+    473|     const unselected = await verifyUIProject(projectRoot, fixtureConfi…
+    474|     expect(unselected.status).toBe("passed");
+       |                               ^
+    475|     expect(unselected.errors.some((issue) => issue.code === "DATA_MESS…
+    476|       .toBe(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/13]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > reports limited Creator readiness without failing verification
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:513:27
+    511|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    512|
+    513|     expect(result.status).toBe("passed");
+       |                           ^
+    514|     expect(result.creatorReadiness.plugins).toContainEqual(
+    515|       expect.objectContaining({
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/13]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > allows an explicitly headless plugin in application scope
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:581:27
+    579|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    580|
+    581|     expect(result.status).toBe("passed");
+       |                           ^
+    582|     expect(result.activeComposition.headlessPluginIds).toEqual(["sampl…
+    583|     expect(result.capabilityCatalog.generatedFileFresh).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/13]⎯
+
+ FAIL  tests/migrated/verify-ui.test.ts > verifyUIProject > accepts matching manifest and rendered child Slots
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/verify-ui.test.ts:704:27
+    702|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    703|
+    704|     expect(result.status).toBe("passed");
+       |                           ^
+    705|   });
+    706|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/13]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  13 failed | 23 passed (36)
+   Start at  10:59:01
+   Duration  14.92s (transform 272ms, setup 11ms, import 382ms, tests 14.16s, environment 298ms)

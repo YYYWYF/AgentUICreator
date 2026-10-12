@@ -2,7 +2,7 @@
 name: ui-plugin-development
 description: Inspect or customize UI Plugins; implement a new Plugin or new behavior only after a direct user commission, satisfied conditional commission, or approval of a bound development proposal.
 compatibility: Agent UI Plugin Creator Phase 8 permits writes under project plugins and AppUIModel composition.
-allowed-tools: read_file ls glob grep edit_file prepare_ui_plugin_development create_ui_plugin mutate_ui_plugin_source prepare_ui_service_contract_change create_ui_service_contract mutate_ui_service_contract inspect_ui_capabilities inspect_ui_plugin_delivery inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin preflight_ui_plugin_placement inspect_ui_services inspect_ui_plugin_source_references inspect_agent_ui_sources apply_agent_ui_source_item mutate_app_ui_model validate_creator_changes
+allowed-tools: prepare_plugin_responsive_repair ask_user_question read_file ls glob grep edit_file prepare_ui_plugin_development create_ui_plugin mutate_ui_plugin_source prepare_ui_service_contract_change create_ui_service_contract mutate_ui_service_contract inspect_ui_capabilities inspect_ui_plugin_delivery inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin preflight_ui_plugin_placement inspect_ui_services inspect_ui_plugin_source_references inspect_agent_ui_sources apply_agent_ui_source_item mutate_app_ui_model validate_creator_changes
 ---
 
 # UI Plugin Development
@@ -65,6 +65,42 @@ acceptance is authorized, reuse the delivered Plugin and check 420px ×
 light/dark × en-US/zh-CN, including long content and Modal interactions. Record
 responsive evidence separately from style isolation; static checks never prove
 `PLUGIN_RESPONSIVE_BOUNDARY = PASS`.
+
+## Repair existing Plugin responsiveness
+
+Run `validate_creator_changes` before any repair to capture the static warning
+baseline for this run. Use `prepare_plugin_responsive_repair` with the existing Plugin ID and an observed
+Host slot reference/width. It returns structured `PLUGIN_RESPONSIVE_*` warnings,
+CSS/component source, hashes and candidate declaration strategies. Read the actual
+cascade and component hierarchy; explicitly classify each warning as confirmed,
+false positive or uncertain. Also inspect flex/grid children, long titles/content/
+errors, fixed widths, and the selected library's Modal API. Do not patch solely
+because a static warning exists.
+
+Submit exact CSS anchors as `edits` (`file`, `before`, `after`, `reason`) to the same
+tool to obtain a reviewable plan and before/after diff. It performs no writes.
+Show the exact plan and obtain user confirmation with `ask_user_question` before
+mutation. For CSS-in-JS, complex Tailwind combinations, inline layout or complex
+animation, pause for a specific reviewed proposal; never guess a rewrite. Theme
+variables alone do not require changing component source.
+
+After confirmation, re-read source and compare the plan hashes. If stale, prepare
+and confirm the changed diff. Apply only the approved Plugin-owned CSS anchors
+through existing scoped source editing. Keep the original source and diff. Never
+change AgentUIRoot, reset/preflight/styles.css outside the Plugin, vendor,
+Runtime, Portal or Host styles. Prefer root border-box/min-width:0/max-width:100%,
+then shrinkable children, wrapping content, and bounded fixed widths (for example
+`width:min(100%,500px); max-width:100%`). Do not clip useful content to hide overflow.
+
+Run `validate_creator_changes`; `responsiveRiskCount` counts remaining static
+hints, and `responsiveRiskResolved` counts baseline hints that disappeared in this
+run. Unknown/unparseable evidence is null. A zero count is not browser PASS.
+Run the project's browser tests on the original delivered Plugin, at 420px in
+light/dark × zh-CN/en-US, including initial, notes, long text and Modal states.
+Check root AND slot `scrollWidth <= clientWidth`, all control/text boundaries,
+clipping ancestors, computed width/max-width/padding/box-sizing/min-width/overflow,
+keyboard/focus and Modal viewport bounds. Save independent responsive evidence;
+sign `PLUGIN_RESPONSIVE_BOUNDARY = PASS` only after these assertions pass.
 
 ## Reuse decision
 

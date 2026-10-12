@@ -1,0 +1,26 @@
+--- before/src/agent-ui/plugins/business-notes/styles.css
++++ after/src/agent-ui/plugins/business-notes/styles.css
+@@ -2,0 +3,2 @@
++  box-sizing: border-box;
++  max-width: 100%;
+@@ -32,3 +34,5 @@
+-  overflow: hidden;
+-  text-overflow: ellipsis;
+-  white-space: nowrap;
++  min-width: 0;
++  max-width: 100%;
++  overflow-wrap: anywhere;
++  word-break: break-word;
++  white-space: normal;
+@@ -99,0 +104,2 @@
++  min-width: 0;
++  overflow-wrap: anywhere;
+@@ -100,0 +107,8 @@
++}
++
++.business-notes-header,
++.business-notes-input-row,
++.business-notes-list,
++.business-notes-list .ant-list-item {
++  min-width: 0;
++  max-width: 100%;

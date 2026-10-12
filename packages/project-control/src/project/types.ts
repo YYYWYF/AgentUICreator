@@ -13,6 +13,8 @@ import type { AnalyzedDeclarations } from "./service-dependency-inspector";
 
 export interface ProjectIssue {
   path?: string;
+  file?: string;
+  selector?: string;
   instanceId?: string;
   slot?: string | undefined;
   line?: number;

@@ -52,6 +52,7 @@ export interface UIProjectVerification {
   };
   errors: VerificationIssue[];
   warnings: VerificationIssue[];
+  responsiveRiskCount: number;
 }
 
 const defaultProjectRoot = process.cwd();
@@ -269,6 +270,7 @@ export async function verifyUIProject(
     creatorReadiness: {
       plugins: creatorReadiness,
     },
+    responsiveRiskCount: warnings.filter(issue => issue.code.startsWith("PLUGIN_RESPONSIVE_")).length,
     errors,
     warnings,
   };

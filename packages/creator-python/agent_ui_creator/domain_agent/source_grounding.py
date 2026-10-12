@@ -24,13 +24,13 @@ SOURCE_LANE_TOOLS = frozenset({
     "ask_user_question", "validate_creator_changes",
     "inspect_ui_project", "inspect_ui_services", "inspect_runtime_layout",
     "inspect_agent_ui_sources", "inspect_ui_capabilities",
-    "prepare_ui_plugin_development", "inspect_ui_plugin",
+    "prepare_ui_plugin_development", "prepare_plugin_responsive_repair", "inspect_ui_plugin",
     "inspect_ui_plugin_source_references", "mutate_ui_plugin_source",
 }) | frozenset((*RECOVERY_READ_TOOL_NAMES, *RECOVERY_WRITE_TOOL_NAMES))
 SOURCE_EXPANSION_TOOLS = frozenset({
     "inspect_ui_project", "inspect_ui_services", "inspect_runtime_layout",
     "inspect_agent_ui_sources", "inspect_ui_capabilities",
-    "prepare_ui_plugin_development", "inspect_ui_plugin",
+    "prepare_ui_plugin_development", "prepare_plugin_responsive_repair", "inspect_ui_plugin",
     "inspect_ui_plugin_source_references",
 }) | frozenset((*RECOVERY_READ_TOOL_NAMES, *RECOVERY_WRITE_TOOL_NAMES))
 SOURCE_CONTROL = """The Host has resolved the source owner. Read its supplied source
