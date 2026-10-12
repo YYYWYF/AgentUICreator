@@ -1,0 +1,53 @@
+[
+  {
+    "scene": "A",
+    "source": "/Users/yifei/.codex/visualizations/2026/10/09/01a11ec8-65e6-7c82-a29d-c24c3262dc4b/business-closure/raw",
+    "restoredHost": "/tmp/plugin-style-final-hosts/A",
+    "sourceHashes": {
+      "index.tsx": "162a4fa387adafcc2982bab6fabf28ea5cdbdb962daeec0a3f05ce5f06426a77",
+      "styles.css": "b223d25455139c8802ae4ce583cf6c9b216f6a38601633c4d108a123a70be342",
+      "definition.ts": "93d13263a9227fbef7cb277a97e5a77357f20b9e74c04e955d7a5eed62df16c1",
+      "manifest.json": "1ba6f84b024ceafbacbe94d9650d9c11b3d8046abfc45dafb5d40ee6e25df05d"
+    },
+    "checks": {
+      "verify:ui": 0,
+      "typecheck": 0,
+      "build": 0,
+      "browser": 0
+    }
+  },
+  {
+    "scene": "B",
+    "source": "/Users/yifei/.codex/visualizations/2026/10/09/01a11ec8-65e6-7c82-a29d-c24c3262dc4b/business-closure/raw",
+    "restoredHost": "/tmp/plugin-style-final-hosts/B",
+    "sourceHashes": {
+      "index.tsx": "790a853a28ffd6734f36eb6278e5132a307a4096ff460e4dee0aeb7d4917b3b4",
+      "styles.css": "0145bc50da0cac54061a08955644dd9f7f487bb81321221e44ea8f3285c58708",
+      "definition.ts": "c0afb1dd7f7ff6b1cdfcdf8428e962721676408a4f1add48cb32ce5673fe89cc",
+      "manifest.json": "a087ddc7412d7df87a2355f417506ed6b74ed7aadcc8f9e8c864f7da6a2300a9"
+    },
+    "checks": {
+      "verify:ui": 0,
+      "typecheck": 0,
+      "build": 0,
+      "browser": 1
+    }
+  },
+  {
+    "scene": "C",
+    "source": "/Users/yifei/.codex/visualizations/2026/10/09/01a11ec8-65e6-7c82-a29d-c24c3262dc4b/business-closure/raw",
+    "restoredHost": "/tmp/plugin-style-final-hosts/C",
+    "sourceHashes": {
+      "index.tsx": "6d56a3f9d3a904cd1e079c40ff200ee0948dd33fa8166b077a65444aa40d23b4",
+      "styles.css": "c31c7eeba06ff974c56413b35e1d4aac16767a46e10acbf2cee3d39241243863",
+      "definition.ts": "93d13263a9227fbef7cb277a97e5a77357f20b9e74c04e955d7a5eed62df16c1",
+      "manifest.json": "ee0feb633045da665442c75c3f034af5ca6d416a0aa986487668db432feef2d6"
+    },
+    "checks": {
+      "verify:ui": 0,
+      "typecheck": 0,
+      "build": 0,
+      "browser": 0
+    }
+  }
+]

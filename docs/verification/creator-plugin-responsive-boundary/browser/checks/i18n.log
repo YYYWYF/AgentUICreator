@@ -1,0 +1,34 @@
+[WARN] Your node_modules are out of sync with your lockfile. The value of the minimumReleaseAgeExclude setting has changed
+$ node scripts/audit-ui-copy.mjs
+{
+  "parity": [
+    {
+      "owner": "creator",
+      "locales": [
+        "en-US",
+        "zh-CN"
+      ],
+      "keys": 676
+    },
+    {
+      "owner": "presentation",
+      "locales": [
+        "en-US",
+        "zh-CN"
+      ],
+      "keys": 311
+    },
+    {
+      "owner": "generated",
+      "locales": [
+        "en-US",
+        "zh-CN"
+      ],
+      "keys": 388
+    }
+  ],
+  "copyCandidates": 35,
+  "duplicateValues": 15,
+  "unusedCandidates": 55,
+  "failures": []
+}

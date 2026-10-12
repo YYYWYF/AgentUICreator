@@ -1,0 +1,27 @@
+{
+  "head": "56e955f1da7168c1b44fc3cc8e9eabdf10939378",
+  "branch": "dev",
+  "dirtyBaseline": [
+    " M docs/verification/plugin-style-boundary/final/regression/official-details/zh-CN-desktop-dark-thinking.png",
+    " M docs/verification/plugin-style-boundary/final/regression/official-details/zh-CN-desktop-light-markdown.png",
+    " M docs/verification/plugin-style-boundary/final/regression/official-details/zh-CN-desktop-light-thinking.png",
+    " M docs/verification/plugin-style-boundary/final/regression/official-details/zh-CN-desktop-light.json",
+    " M packages/creator/package.json",
+    " D packages/creator/scripts/build-ui.mjs",
+    " M packages/creator/src/ui/components/README.md",
+    " M packages/project-control/tests/fixtures/project/package.json",
+    " M packages/react/package.json",
+    " M packages/react/src/styles.css",
+    " M pnpm-lock.yaml",
+    " M pnpm-workspace.yaml"
+  ],
+  "sha256": {
+    "packages/react/src/styles.css": "263b310ac14daf5a8a058fcfd6b678adcc7b22701b5b2b288dcc7a78a3d878ff",
+    "packages/react/src/theme/conversation-shimmer.css": "c025f333ad0b0431267ab3c06693c43067518881c021b960afe9279990e32503",
+    "packages/react/dist/styles.css": "131b06221a49017fe45f7d34ac117443b091d0f0fbdb9a7213b57d144a8bbe30",
+    "/tmp/plugin-style-final-hosts/B/src/agent-ui/plugins/business-notes/index.tsx": "790a853a28ffd6734f36eb6278e5132a307a4096ff460e4dee0aeb7d4917b3b4",
+    "/tmp/plugin-style-final-hosts/B/src/agent-ui/plugins/business-notes/styles.css": "0145bc50da0cac54061a08955644dd9f7f487bb81321221e44ea8f3285c58708",
+    "/tmp/plugin-style-final-hosts/B/src/agent-ui/plugins/business-notes/definition.ts": "c0afb1dd7f7ff6b1cdfcdf8428e962721676408a4f1add48cb32ce5673fe89cc",
+    "/tmp/plugin-style-final-hosts/B/src/agent-ui/plugins/business-notes/manifest.json": "a087ddc7412d7df87a2355f417506ed6b74ed7aadcc8f9e8c864f7da6a2300a9"
+  }
+}

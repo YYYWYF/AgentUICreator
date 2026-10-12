@@ -1,0 +1,45 @@
+/* Product-owned presentation for the upstream shimmer class contract. */
+@layer utilities {
+  @keyframes agent-ui-conversation-shimmer {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+  }
+
+  :where(.agent-ui-root, .agent-ui-conversation) .shimmer {
+    background-image: linear-gradient(
+      100deg,
+      currentColor 35%,
+      color-mix(in srgb, currentColor, white 65%) 50%,
+      currentColor 65%
+    );
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    animation: agent-ui-conversation-shimmer var(--shimmer-duration, 2s) linear infinite;
+  }
+
+  @supports (background-clip: text) or (-webkit-background-clip: text) {
+    :where(.agent-ui-root, .agent-ui-conversation) .shimmer:not(.shimmer-bg) {
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+
+  @supports not ((background-clip: text) or (-webkit-background-clip: text)) {
+    :where(.agent-ui-root, .agent-ui-conversation) .shimmer:not(.shimmer-bg) {
+      background-image: none;
+      animation: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :where(.agent-ui-root, .agent-ui-conversation) .shimmer {
+      animation: none;
+      background-image: none;
+    }
+
+    :where(.agent-ui-root, .agent-ui-conversation) .shimmer:not(.shimmer-bg) {
+      -webkit-text-fill-color: currentColor;
+    }
+  }
+}

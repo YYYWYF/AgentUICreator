@@ -1,0 +1,760 @@
+[WARN] Your node_modules are out of sync with your lockfile. Cannot check whether dependencies are outdated
+$ node --import tsx scripts/verify-ui.ts
+{
+  "status": "passed",
+  "model": {
+    "valid": true,
+    "mountedInstanceIds": [
+      "agent-conversation-surface-main",
+      "agent-identity-main",
+      "assistant-ui-add-attachment-action-main",
+      "assistant-ui-composer-main",
+      "assistant-ui-copy-action-main",
+      "assistant-ui-dictation-action-main",
+      "assistant-ui-export-markdown-action-main",
+      "assistant-ui-feedback-actions-main",
+      "assistant-ui-lexical-composer-input-main",
+      "assistant-ui-lexical-edit-composer-main",
+      "assistant-ui-mention-trigger-main",
+      "assistant-ui-reasoning-main",
+      "assistant-ui-reload-action-main",
+      "assistant-ui-response-footer-main",
+      "assistant-ui-slash-command-trigger-main",
+      "assistant-ui-submit-action-main",
+      "assistant-ui-thinking-indicator-main",
+      "assistant-ui-tool-fallback-main",
+      "assistant-ui-tool-group-main",
+      "assistant-ui-tool-timeline-main",
+      "business-notes-main",
+      "conversation-quote-main",
+      "conversation-suggestions-main",
+      "conversation-thread-list-main",
+      "task-group-main"
+    ],
+    "unmountedEnabledInstanceIds": []
+  },
+  "capabilityCatalog": {
+    "pluginIds": [
+      "agent-identity",
+      "assistant-ui-add-attachment-action",
+      "assistant-ui-composer",
+      "assistant-ui-copy-action",
+      "assistant-ui-dictation-action",
+      "assistant-ui-export-markdown-action",
+      "assistant-ui-feedback-actions",
+      "assistant-ui-lexical-composer-input",
+      "assistant-ui-lexical-edit-composer",
+      "assistant-ui-mention-trigger",
+      "assistant-ui-reasoning",
+      "assistant-ui-reload-action",
+      "assistant-ui-response-footer",
+      "assistant-ui-slash-command-trigger",
+      "assistant-ui-submit-action",
+      "assistant-ui-thinking-indicator",
+      "assistant-ui-tool-fallback",
+      "assistant-ui-tool-group",
+      "assistant-ui-tool-timeline",
+      "business-notes",
+      "conversation-command-source",
+      "conversation-data-source",
+      "conversation-quote",
+      "conversation-service",
+      "conversation-suggestions",
+      "conversation-surface",
+      "conversation-thread-list",
+      "locale-provider",
+      "task-group",
+      "theme-provider"
+    ],
+    "generatedFileFresh": true
+  },
+  "activeComposition": {
+    "selectedPluginIds": [
+      "agent-identity",
+      "assistant-ui-add-attachment-action",
+      "assistant-ui-composer",
+      "assistant-ui-copy-action",
+      "assistant-ui-dictation-action",
+      "assistant-ui-export-markdown-action",
+      "assistant-ui-feedback-actions",
+      "assistant-ui-lexical-composer-input",
+      "assistant-ui-lexical-edit-composer",
+      "assistant-ui-mention-trigger",
+      "assistant-ui-reasoning",
+      "assistant-ui-reload-action",
+      "assistant-ui-response-footer",
+      "assistant-ui-slash-command-trigger",
+      "assistant-ui-submit-action",
+      "assistant-ui-thinking-indicator",
+      "assistant-ui-tool-fallback",
+      "assistant-ui-tool-group",
+      "assistant-ui-tool-timeline",
+      "business-notes",
+      "conversation-command-source",
+      "conversation-data-source",
+      "conversation-quote",
+      "conversation-service",
+      "conversation-suggestions",
+      "conversation-surface",
+      "conversation-thread-list",
+      "locale-provider",
+      "task-group",
+      "theme-provider"
+    ],
+    "resolvedPluginIds": [
+      "agent-identity",
+      "assistant-ui-add-attachment-action",
+      "assistant-ui-composer",
+      "assistant-ui-copy-action",
+      "assistant-ui-dictation-action",
+      "assistant-ui-export-markdown-action",
+      "assistant-ui-feedback-actions",
+      "assistant-ui-lexical-composer-input",
+      "assistant-ui-lexical-edit-composer",
+      "assistant-ui-mention-trigger",
+      "assistant-ui-reasoning",
+      "assistant-ui-reload-action",
+      "assistant-ui-response-footer",
+      "assistant-ui-slash-command-trigger",
+      "assistant-ui-submit-action",
+      "assistant-ui-thinking-indicator",
+      "assistant-ui-tool-fallback",
+      "assistant-ui-tool-group",
+      "assistant-ui-tool-timeline",
+      "business-notes",
+      "conversation-command-source",
+      "conversation-data-source",
+      "conversation-quote",
+      "conversation-service",
+      "conversation-suggestions",
+      "conversation-surface",
+      "conversation-thread-list",
+      "locale-provider",
+      "task-group",
+      "theme-provider"
+    ],
+    "headlessPluginIds": [
+      "conversation-command-source",
+      "conversation-data-source",
+      "conversation-service",
+      "locale-provider",
+      "theme-provider"
+    ]
+  },
+  "services": [
+    {
+      "name": "agent-ui.conversation-data-source",
+      "contractPaths": [
+        "src/agent-ui/services/conversations/data-source.ts"
+      ],
+      "status": "available",
+      "providers": [
+        {
+          "pluginId": "conversation-data-source",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "agent-conversation-data-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        }
+      ],
+      "requiredConsumers": [
+        {
+          "pluginId": "conversation-service",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "agent-conversation-service-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        }
+      ],
+      "optionalConsumers": []
+    },
+    {
+      "name": "agent-ui.conversations",
+      "contractPaths": [
+        "src/agent-ui/services/conversations/service.ts"
+      ],
+      "status": "available",
+      "providers": [
+        {
+          "pluginId": "conversation-service",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "agent-conversation-service-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        }
+      ],
+      "requiredConsumers": [
+        {
+          "pluginId": "conversation-surface",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "agent-conversation-surface-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        },
+        {
+          "pluginId": "conversation-thread-list",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "conversation-thread-list-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        }
+      ],
+      "optionalConsumers": []
+    },
+    {
+      "name": "agent-ui.locale",
+      "contractPaths": [
+        "src/agent-ui/services/agent-ui-locale.ts"
+      ],
+      "status": "available",
+      "providers": [
+        {
+          "pluginId": "locale-provider",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "locale-provider-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        }
+      ],
+      "requiredConsumers": [],
+      "optionalConsumers": [
+        {
+          "pluginId": "agent-identity",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "agent-identity-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        },
+        {
+          "pluginId": "assistant-ui-composer",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "assistant-ui-composer-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        },
+        {
+          "pluginId": "assistant-ui-export-markdown-action",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "assistant-ui-export-markdown-action-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        },
+        {
+          "pluginId": "assistant-ui-feedback-actions",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "assistant-ui-feedback-actions-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        },
+        {
+          "pluginId": "assistant-ui-mention-trigger",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "assistant-ui-mention-trigger-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        },
+        {
+          "pluginId": "assistant-ui-slash-command-trigger",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "assistant-ui-slash-command-trigger-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        },
+        {
+          "pluginId": "assistant-ui-submit-action",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "assistant-ui-submit-action-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        },
+        {
+          "pluginId": "business-notes",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "business-notes-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        },
+        {
+          "pluginId": "conversation-command-source",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "conversation-command-source-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        },
+        {
+          "pluginId": "conversation-quote",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "conversation-quote-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        },
+        {
+          "pluginId": "conversation-surface",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "agent-conversation-surface-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        },
+        {
+          "pluginId": "conversation-thread-list",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "conversation-thread-list-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "agent-ui.theme",
+      "contractPaths": [
+        "src/agent-ui/services/agent-ui-theme.ts"
+      ],
+      "status": "available",
+      "providers": [
+        {
+          "pluginId": "theme-provider",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "theme-provider-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        }
+      ],
+      "requiredConsumers": [],
+      "optionalConsumers": [
+        {
+          "pluginId": "conversation-surface",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "agent-conversation-surface-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        },
+        {
+          "pluginId": "conversation-thread-list",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "conversation-thread-list-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "conversation.mention-source",
+      "contractPaths": [
+        "src/agent-ui/services/composer-triggers.ts"
+      ],
+      "status": "optional-unavailable",
+      "providers": [],
+      "requiredConsumers": [],
+      "optionalConsumers": [
+        {
+          "pluginId": "assistant-ui-mention-trigger",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "assistant-ui-mention-trigger-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "conversation.slash-command-source",
+      "contractPaths": [
+        "src/agent-ui/services/composer-triggers.ts"
+      ],
+      "status": "available",
+      "providers": [
+        {
+          "pluginId": "conversation-command-source",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "conversation-command-source-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        }
+      ],
+      "requiredConsumers": [],
+      "optionalConsumers": [
+        {
+          "pluginId": "assistant-ui-slash-command-trigger",
+          "selected": true,
+          "instances": [
+            {
+              "instanceId": "assistant-ui-slash-command-trigger-main",
+              "enabled": true,
+              "activeCandidate": true,
+              "resolved": true,
+              "missingRequiredServices": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "creatorReadiness": {
+    "plugins": [
+      {
+        "pluginId": "agent-identity",
+        "status": "limited",
+        "discoverable": true,
+        "addRestore": "unavailable",
+        "reasons": [
+          "Plugin \"agent-identity\" declares authoring intents, but no deterministic defaultPlacement is provided. Creator may discover the Plugin but cannot productize Add/Restore."
+        ]
+      },
+      {
+        "pluginId": "assistant-ui-add-attachment-action",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "assistant-ui-composer",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "assistant-ui-copy-action",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "assistant-ui-dictation-action",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "assistant-ui-export-markdown-action",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "assistant-ui-feedback-actions",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "assistant-ui-lexical-composer-input",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "assistant-ui-lexical-edit-composer",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "assistant-ui-mention-trigger",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "assistant-ui-reasoning",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "assistant-ui-reload-action",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "assistant-ui-response-footer",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "assistant-ui-slash-command-trigger",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "assistant-ui-submit-action",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "assistant-ui-thinking-indicator",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "assistant-ui-tool-fallback",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "assistant-ui-tool-group",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "assistant-ui-tool-timeline",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "business-notes",
+        "status": "manual-only",
+        "discoverable": false,
+        "addRestore": "unavailable",
+        "reasons": []
+      },
+      {
+        "pluginId": "conversation-command-source",
+        "status": "not-applicable",
+        "discoverable": false,
+        "addRestore": "not-applicable",
+        "reasons": []
+      },
+      {
+        "pluginId": "conversation-data-source",
+        "status": "not-applicable",
+        "discoverable": false,
+        "addRestore": "not-applicable",
+        "reasons": []
+      },
+      {
+        "pluginId": "conversation-quote",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "conversation-service",
+        "status": "not-applicable",
+        "discoverable": false,
+        "addRestore": "not-applicable",
+        "reasons": []
+      },
+      {
+        "pluginId": "conversation-suggestions",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "conversation-surface",
+        "status": "limited",
+        "discoverable": true,
+        "addRestore": "unavailable",
+        "reasons": [
+          "Plugin \"conversation-surface\" declares authoring intents, but no deterministic defaultPlacement is provided. Creator may discover the Plugin but cannot productize Add/Restore."
+        ]
+      },
+      {
+        "pluginId": "conversation-thread-list",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "locale-provider",
+        "status": "not-applicable",
+        "discoverable": false,
+        "addRestore": "not-applicable",
+        "reasons": []
+      },
+      {
+        "pluginId": "task-group",
+        "status": "ready",
+        "discoverable": true,
+        "addRestore": "ready",
+        "reasons": []
+      },
+      {
+        "pluginId": "theme-provider",
+        "status": "not-applicable",
+        "discoverable": false,
+        "addRestore": "not-applicable",
+        "reasons": []
+      }
+    ]
+  },
+  "errors": [],
+  "warnings": [
+    {
+      "code": "CREATOR_ADD_RESTORE_UNAVAILABLE",
+      "message": "Plugin \"agent-identity\" declares authoring intents, but no deterministic defaultPlacement is provided. Creator may discover the Plugin but cannot productize Add/Restore.",
+      "pluginId": "agent-identity"
+    },
+    {
+      "code": "CREATOR_ADD_RESTORE_UNAVAILABLE",
+      "message": "Plugin \"conversation-surface\" declares authoring intents, but no deterministic defaultPlacement is provided. Creator may discover the Plugin but cannot productize Add/Restore.",
+      "pluginId": "conversation-surface"
+    }
+  ]
+}

@@ -2,7 +2,9 @@
 
 日期：2026-10-12（Asia/Shanghai）
 
-`PLUGIN_RESPONSIVE_BOUNDARY = NOT_RUN`
+首次静态交付：`PLUGIN_RESPONSIVE_BOUNDARY = NOT_RUN`。
+
+后续用户要求补做浏览器验收：**`PLUGIN_RESPONSIVE_BOUNDARY = FAIL`，`PLUGIN_STYLE_BOUNDARY = PASS`**。详见 [2026-10-12 浏览器验收报告](browser/REPORT.md)。以下保留首次交付范围。
 
 按用户最后指令「做完推送，不要验收」交付生成约束和静态风险检查，未执行浏览器验收。
 
