@@ -1,11 +1,12 @@
 import { cp, mkdir, rm, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { spawnSync } from "node:child_process";
+import { spawnPnpmSync } from "../../../scripts/pnpm-process.mjs";
 import { build } from "esbuild";
 import { createHash } from "node:crypto";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const registry = fileURLToPath(new URL("../../source-registry/registry/items/", import.meta.url));
-const verification = spawnSync("pnpm", ["--filter", "@agent-ui/source-registry", "exec", "node", "--import", "tsx", "scripts/verify-package-services.mjs"], { cwd: root, stdio: "inherit" });
+const verification = spawnPnpmSync(["--filter", "@agent-ui/source-registry", "exec", "node", "--import", "tsx", "scripts/verify-package-services.mjs"], { cwd: root, stdio: "inherit" });
+if (verification.error) throw verification.error;
 if (verification.status !== 0) throw new Error("OFFICIAL_PACKAGE_SERVICE_METADATA_DRIFT: reference validation failed");
 const generated = `${root}.generated`;
 await rm(generated, { recursive: true, force: true });
@@ -25,7 +26,8 @@ await writeFile(`${generated}/tsconfig.json`, JSON.stringify({ compilerOptions: 
   skipLibCheck: true, resolveJsonModule: true, declaration: true, emitDeclarationOnly: true,
   outDir: "../dist/types", rootDir: ".",
 }, include: ["**/*.ts", "**/*.tsx"] }));
-const result = spawnSync("pnpm", ["exec", "tsc", "-p", `${generated}/tsconfig.json`], { cwd: root, stdio: "inherit" });
+const result = spawnPnpmSync(["exec", "tsc", "-p", `${generated}/tsconfig.json`], { cwd: root, stdio: "inherit" });
+if (result.error) throw result.error;
 if (result.status !== 0) throw new Error("Official plugin type compilation failed");
 const output = await build({ entryPoints: { "assistant-ui-composer/index": `${generated}/plugins/assistant-ui-composer/definition.ts` },
   outdir: `${root}dist`, bundle: true, packages: "external", format: "esm", platform: "browser", jsx: "automatic", metafile: true });
