@@ -7,8 +7,12 @@ import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
 import "./styles.css";
 export function FrontendToolFormDemoPlugin() {
   const thread = useConversationThread();
-  const visible = useSyncExternalStore(thread.subscribe, () => thread.getSnapshot().messages.some(message =>
-    message.content.some(part => part.type === "tool-call" && typeof part.toolName === "string" && ["set_form_field", "submit_form", "reset_form"].includes(part.toolName))), () => false);
+  const visible = useSyncExternalStore(thread.subscribe, () => {
+    const messages = thread.getSnapshot().messages;
+    const lastUser = messages.reduce((last, message, index) => message.role === "user" ? index : last, -1);
+    return messages.slice(lastUser + 1).some(message => message.content.some(part =>
+      part.type === "tool-call" && typeof part.toolName === "string" && ["set_form_field", "submit_form", "reset_form"].includes(part.toolName)));
+  }, () => false);
   const service = usePluginService<DemoFormService>(DEMO_FORM_SERVICE);
   const locale = useAgentUILocale("frontendTools");
   const form = useForm<DemoFormValues>({ defaultValues: service?.getSnapshot().values ?? { firstName: "", lastName: "", email: "", projectIdea: "" } });

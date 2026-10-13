@@ -124,6 +124,11 @@ describe("React Hook Form native frontend tools and replay safety", () => {
     expect(f.container.textContent).toContain("Alice");
     expect(f.open).toHaveBeenCalledTimes(2);
     expect(f.dialog.getSnapshot().submitCount).toBe(0);
+    // A new unrelated turn in the same conversation must also hide the panel.
+    await act(async () => { f.runtime.thread.append({ role: "user", content: [{ type: "text", text: "another demo" }], startRun: false }); });
+    expect(panel.hidden).toBe(true);
+    expect(f.source.listTools().map(tool => tool.name).sort()).toEqual(["reset_form", "set_form_field", "submit_form"]);
+    expect(field.value).toBe("Bob");
   });
   it("historical submit/reset receipts never invoke the form controller", async () => {
     const f = await fixture();

@@ -38,6 +38,10 @@
         - generic: 历史：长会话
       - button "更多选项":
         - generic: 更多选项
+      - button "长任务：刷新后继续":
+        - generic: 长任务：刷新后继续
+      - button "更多选项":
+        - generic: 更多选项
   - main:
     - generic: 演示当前场景
     - paragraph: 下面是季度销售情况：
