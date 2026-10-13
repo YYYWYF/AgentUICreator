@@ -21,5 +21,3 @@ export function WebSearchToolUI(props: ConversationToolCallProps) {
   return <WebSearch query={typeof query === "string" ? query : ""} results={results} searching={searching}
     labels={{ searching: labels.searching, complete: labels.sources }} />;
 }
-
-// Mock release 0.1.1: exercise managed source upgrades.

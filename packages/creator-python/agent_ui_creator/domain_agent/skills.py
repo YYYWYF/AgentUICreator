@@ -1,11 +1,19 @@
 from __future__ import annotations
 
+import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 from deepagents.backends import CompositeBackend, FilesystemBackend
 from deepagents.backends.protocol import EditResult, ReadResult, WriteResult
 
 from ..minimal_agent.path_policy import PolicyFilesystemBackend
+
+
+@dataclass
+class SkillReadResult(ReadResult):
+    total_lines: int | None = None
+    next_offset: int | None = None
 
 
 class ReadOnlySkillsBackend(FilesystemBackend):
@@ -21,7 +29,20 @@ class ReadOnlySkillsBackend(FilesystemBackend):
                 "or request another offset. Continue with the relevant project "
                 "read or implementation step."
             )
-        result = super().read(file_path, offset=offset, limit=limit)
+        # DeepAgents 0.6 returns content without pagination metadata. Skills are
+        # small, read-only documents; derive the window from that same read so
+        # the fully-read guard does not rely on a second, potentially stale read.
+        result = super().read(file_path, offset=0, limit=sys.maxsize)
+        if result.error is None and result.file_data is not None and result.file_data.get("encoding") == "utf-8":
+            lines = result.file_data["content"].splitlines(keepends=True)
+            end = offset + limit
+            result = SkillReadResult(
+                file_data={**result.file_data, "content": "".join(lines[offset:end])},
+                total_lines=len(lines),
+                next_offset=end if end < len(lines) else None,
+            )
+        else:
+            result = SkillReadResult(error=result.error, file_data=result.file_data)
         if (result.error is None and offset == 0 and result.next_offset is None
                 and result.total_lines is not None):
             self._fully_read_paths.add(file_path)

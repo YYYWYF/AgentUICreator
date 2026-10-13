@@ -140,9 +140,9 @@
     "foundation/core-runtime"
   ],
   "packages": {
-    "react": "^19.2.0",
-    "@agent-ui/react": "^0.1.5",
-    "@agent-ui/runtime-conversation": "^0.1.0",
-    "lucide-react": "^1.41.0"
+    "react": "19.1.1",
+    "@agent-ui/react": "0.1.6",
+    "@agent-ui/runtime-conversation": "0.1.0",
+    "lucide-react": "1.41.0"
   }
 }

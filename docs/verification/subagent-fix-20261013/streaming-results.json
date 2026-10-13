@@ -1,0 +1,22 @@
+[
+  {
+    "mode": "streaming",
+    "status": "passed",
+    "pageerrors": []
+  },
+  {
+    "mode": "stop",
+    "status": "passed",
+    "pageerrors": []
+  },
+  {
+    "mode": "interleaved-siblings",
+    "status": "passed",
+    "pageerrors": []
+  },
+  {
+    "mode": "parent-error",
+    "status": "passed",
+    "pageerrors": []
+  }
+]

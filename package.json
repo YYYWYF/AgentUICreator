@@ -2,9 +2,9 @@
   "name": "agent-ui-creator-workspace",
   "version": "0.0.0",
   "private": true,
-  "packageManager": "pnpm@11.24.0",
+  "packageManager": "pnpm@8.12.0",
   "engines": {
-    "node": ">=20"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
     "dev": "node scripts/dev-workbench.mjs",
@@ -16,7 +16,7 @@
     "init:host-sandbox:assistant": "pnpm --filter @agent-ui/creator-host-sandbox init:assistant",
     "init:host-sandbox:embedded": "pnpm --filter @agent-ui/creator-host-sandbox init:embedded",
     "init:host-sandbox:platform": "pnpm --filter @agent-ui/creator-host-sandbox init:platform",
-    "creator:python": "scripts/start-creator-python.sh",
+    "creator:python": "node scripts/start-creator-python.mjs",
     "build": "node scripts/build-workspace.mjs",
     "check:assistant-ui-upstream": "pnpm --filter @agent-ui/react check:assistant-ui-upstream",
     "check:assistant-ui-latest": "pnpm --filter @agent-ui/react check:assistant-ui-latest",
@@ -48,9 +48,41 @@
     "check:project-control-contract": "node scripts/check-project-control-contract.mjs",
     "check:i18n": "node scripts/audit-ui-copy.mjs",
     "audit:ui-copy": "node scripts/audit-ui-copy.mjs --output docs/i18n/ui-copy-audit.json",
-    "test:web-component": "pnpm --filter @agentui/web-component build && pnpm --filter @agentui/web-component test && pnpm --filter @agentui/web-component test:distribution && pnpm --filter @agentui/web-component test:installation && pnpm --filter @agent-ui/creator-workbench exec tsc --noEmit -p tsconfig.web-component-tests.json && pnpm --filter @agent-ui/creator-workbench exec playwright test -c playwright.web-component.config.ts"
+    "test:web-component": "pnpm --filter @agentui/web-component build && pnpm --filter @agentui/web-component test && pnpm --filter @agentui/web-component test:distribution && pnpm --filter @agentui/web-component test:installation && pnpm --filter @agent-ui/creator-workbench exec tsc --noEmit -p tsconfig.web-component-tests.json && pnpm --filter @agent-ui/creator-workbench exec playwright test -c playwright.web-component.config.ts",
+    "check:dependency-pins": "node scripts/check-dependency-pins.mjs",
+    "verify:dev-startup": "node scripts/verify-dev-startup.mjs"
   },
   "devDependencies": {
     "typescript-ui-audit": "npm:typescript@5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ],
+    "overrides": {
+      "@assistant-ui/core": "0.3.27",
+      "react": "19.1.1",
+      "react-dom": "19.1.1",
+      "react-test-renderer": "19.1.1",
+      "@assistant-ui/store": "0.3.19",
+      "@assistant-ui/tap": "0.9.23",
+      "assistant-stream": "0.3.50",
+      "assistant-cloud": "0.2.6",
+      "@vitejs/plugin-react": "6.0.2",
+      "@vitejs/plugin-vue": "6.0.1",
+      "vue-tsc": "3.0.6",
+      "vue": "3.5.42",
+      "@types/semver": "7.7.1",
+      "@types/node": "26.6.2",
+      "tailwind-merge": "3.6.0",
+      "@types/jsdom": "28.0.3"
+    },
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "@assistant-ui/react-markdown@0.14.6>@assistant-ui/react": "0.15.23",
+        "vite@8.3.0>esbuild": "0.25.12",
+        "@vitejs/plugin-vue@6.0.1>vite": "8.3.0"
+      }
+    }
   }
 }

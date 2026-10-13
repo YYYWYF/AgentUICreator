@@ -21,6 +21,12 @@
   caret-color: var(--primary);
 }
 
+/* Lexical paragraphs are editor-owned even though they have no aui-* class.
+ * Keep the first caret line aligned with the separately positioned placeholder. */
+:is(.agent-ui-root, .agent-ui-conversation) :is(.agent-ui-composer-lexical-input, .agent-ui-edit-composer-lexical-input) .aui-lexical-input > p {
+  margin: 0;
+}
+
 :is(.agent-ui-root, .agent-ui-conversation) :is(.agent-ui-composer-lexical-input, .agent-ui-edit-composer-lexical-input) .aui-lexical-placeholder {
   position: absolute;
   top: 0.25rem;

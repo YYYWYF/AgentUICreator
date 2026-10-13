@@ -84,6 +84,7 @@ import {
 import { projectToolTimeline } from "./tool-timeline-projection.js";
 
 import { resolveConversationTurnGroup } from "./conversation-turn.js";
+import { TaskDisclosureProvider } from "./task-disclosure-context.js";
 import { AssistantResponseRuntimeProvider, useAssistantResponseRuntime } from "./assistant-response-runtime.js";
 
 export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
@@ -217,12 +218,15 @@ export const ComposableThread: FC<ThreadProps> = ({
   const localeMessages = useAgentUILocale();
   const defaultLabels = { generationStopped: localeMessages.conversation.generationStopped, editCancel: localeMessages.common.cancel, editUpdate: localeMessages.common.update, editInput: localeMessages.conversation.editInput };
   const isEmpty = useAuiState(isNewChatView);
+  const threadId = useAuiState(s => s.threads.mainThreadId);
 
   return (
     <ThreadComponentsContext.Provider value={components}>
       <ThreadLabelsContext.Provider value={{ ...defaultLabels, ...labels }}>
         <ComposerHostConfigContext.Provider value={{ autoFocus }}>
-          <ThreadRoot isEmpty={isEmpty} composer={composer} />
+          <TaskDisclosureProvider key={threadId}>
+            <ThreadRoot isEmpty={isEmpty} composer={composer} />
+          </TaskDisclosureProvider>
         </ComposerHostConfigContext.Provider>
       </ThreadLabelsContext.Provider>
     </ThreadComponentsContext.Provider>
@@ -641,10 +645,14 @@ const AssistantMessage: FC = () => {
   const timeline = projectToolTimeline(parts, toolUIs);
   const baseGroupBy = TaskGroupComponent ? taskAwareGroupBy : messageGroupBy;
   const groupBy = ToolTimeline ? (part: Parameters<typeof messageGroupBy>[0], context?: Parameters<typeof messageGroupBy>[1]) => {
+    const path = baseGroupBy(part, context);
+    // TaskCard owns nested transcripts and keeps its pending/error actions visible.
+    // Timeline protection must not downgrade it to the ordinary tool fallback.
+    if (path.includes("group-task")) return path;
     // Ordinary summarized tools and protected actions stay in their chronological
     // position. Protected tools must never sit inside a collapsed ToolGroup.
     if (part.type === "tool-call" && timeline.calls.some(call => call.toolCallId === part.toolCallId && (call.summarized || call.protected))) return [];
-    return baseGroupBy(part, context);
+    return path;
   } : baseGroupBy;
 
   return (

@@ -114,7 +114,7 @@ export async function ensureManagedPythonEnvironment(options: ManagedPythonEnvir
   catch { throw new PythonCreatorRuntimeError("CREATOR_PYTHON_ENVIRONMENT_SETUP_FAILED", "Packaged Python requirements.lock is unavailable.", { requirementsPath }); }
   let bootstrap: string | undefined;
   let pythonVersion: string | undefined;
-  for (const candidate of options.bootstrapCandidates ?? (platform === "win32" ? ["python", "python3"] : ["python3", "python"])) {
+  for (const candidate of options.bootstrapCandidates ?? (platform === "win32" ? ["python", "python3", "py"] : ["python3", "python"])) {
     try {
       pythonVersion = await validateCreatorPython(candidate, { pythonPackageRoot, environment, runner });
       bootstrap = candidate;

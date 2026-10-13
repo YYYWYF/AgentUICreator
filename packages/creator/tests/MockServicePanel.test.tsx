@@ -41,7 +41,7 @@ describe("Creator Mock service panel", () => {
     expect(container.querySelector('[aria-label="本地 Mock"]')?.textContent).toContain("新回放");
     expect(container.querySelector<HTMLInputElement>('.creator-mock-scenarios input[type="radio"]')?.checked).toBe(true);
   });
-  it("places all 31 conversation demos into seven groups without a catch-all", async () => {
+  it("places all conversation demos into seven groups without a catch-all", async () => {
     vi.stubGlobal("fetch", vi.fn(async (url: string) => json(url.endsWith("/compatibility")
       ? { projectId: "project", status: "checked", requirements: [] }
       : { ...initial, scenarios: [...showcaseMockScenarios].reverse() })));
@@ -50,10 +50,34 @@ describe("Creator Mock service panel", () => {
       "消息与上下文", "思考与工具", "提问与审批", "状态与执行计划",
       "结构化结果与交互界面", "子智能体协作", "运行控制与恢复",
     ]);
-    expect(container.querySelectorAll(".creator-mock-scenarios .creator-mock-scenario")).toHaveLength(31);
+    expect(container.querySelectorAll(".creator-mock-scenarios .creator-mock-scenario")).toHaveLength(showcaseMockScenarios.length);
     expect(container.textContent).not.toContain("其他示例");
     expect(container.textContent).toContain("刷新后恢复执行计划进度");
     expect(container.textContent).toContain("回答中展示来源引用");
+  });
+
+  it("switches ready resource scenarios directly from the card or radio without a Run button", async () => {
+    let state = { ...initial, scenarios: [...initial.scenarios, { id: "nested-subagent-conversation", title: "Subagent", resources: ["task-card"] }] };
+    const fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.endsWith("/compatibility")) return json({ projectId: "project", status: "checked", requirements: [{ id: "task-card", scenarioIds: ["nested-subagent-conversation"], status: "ready" }] });
+      if (url.endsWith("/select")) {
+        const { scenarioId } = JSON.parse(String(init?.body));
+        state = { ...state, scenarioId, selection: { type: "builtin", id: scenarioId } };
+      }
+      return json(state);
+    });
+    vi.stubGlobal("fetch", fetch);
+    const container = await render();
+    const card = [...container.querySelectorAll<HTMLElement>(".creator-mock-scenario")].find(element => element.textContent?.includes("子智能体任务卡片"))!;
+    expect([...container.querySelectorAll("button")].some(button => button.textContent === "运行场景")).toBe(false);
+    await act(async () => card.click());
+    expect(state.scenarioId).toBe("nested-subagent-conversation");
+    const radio = card.querySelector<HTMLInputElement>('input[type="radio"]')!;
+    expect(radio.checked).toBe(true);
+    expect(card.dataset.selected).toBe("true");
+    expect(fetch.mock.calls.filter(([url]) => url.endsWith("/select"))).toHaveLength(1);
+    await act(async () => radio.click());
+    expect(fetch.mock.calls.filter(([url]) => url.endsWith("/select"))).toHaveLength(2);
   });
 
   it("shows local recordings, disables invalid files and sends project-scoped selection", async () => {
@@ -180,7 +204,7 @@ describe("Creator Mock service panel", () => {
     expect(fetch).toHaveBeenCalledWith(`${CREATOR_MOCK_API_PATH}/install-resources`, expect.objectContaining({
       method: "POST", body: JSON.stringify({ projectId: "project", resourceId: "chart-message" }),
     }));
-    expect(card.textContent).toContain("资源已安装并就绪，可以运行场景。");
+    expect(card.textContent).toContain("资源已安装并就绪，点击场景即可切换。");
     expect(container.textContent).not.toContain("当前项目尚未安装 图表 资源。");
     expect(container.textContent).not.toContain("图表 资源未启用或未正确放置。");
     expect(card.querySelector(".creator-mock-preview")).toBeNull();
@@ -202,7 +226,7 @@ describe("Creator Mock service panel", () => {
         installed.push(resourceId);
         requirements.find(requirement => requirement.id === resourceId)!.status = "ready";
       }
-      return json(url === CREATOR_MOCK_API_PATH ? state : compatibility);
+      return json(url.endsWith("/compatibility") || url.endsWith("/install-resources") ? compatibility : state);
     });
     vi.stubGlobal("fetch", fetch);
     const container = await render();
@@ -214,7 +238,7 @@ describe("Creator Mock service panel", () => {
     await click(container, "安装资源");
     expect(installed).toEqual(["reasoning", "tool-approval", "tool-group"]);
     expect(container.querySelectorAll(".creator-mock-resource-row")).toHaveLength(0);
-    expect(card.textContent).toContain("资源已安装并就绪，可以运行场景。");
+    expect(card.textContent).toContain("资源已安装并就绪，点击场景即可切换。");
     expect(fetch.mock.calls.some(([url]) => url.endsWith("/select"))).toBe(false);
   });
 
@@ -224,25 +248,27 @@ describe("Creator Mock service panel", () => {
     const compatibility = { projectId: "project", status: "checked", requirements };
     const installed: string[] = [];
     let fail = true;
-    vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
+    const fetch = vi.fn(async (url: string, init?: RequestInit) => {
       if (url.endsWith("/install-resources")) {
         const { resourceId } = JSON.parse(String(init?.body));
         installed.push(resourceId);
         if (resourceId === "second" && fail) return new Response("{}", { status: 500, headers: { "Content-Type": "application/json" } });
         requirements.find(item => item.id === resourceId)!.status = "ready";
       }
-      return json(url === CREATOR_MOCK_API_PATH ? state : compatibility);
-    }));
+      return json(url.endsWith("/compatibility") || url.endsWith("/install-resources") ? compatibility : state);
+    });
+    vi.stubGlobal("fetch", fetch);
     const container = await render();
     await act(async () => container.querySelector<HTMLInputElement>('input[type="radio"]')!.click());
     await click(container, "安装资源");
     expect(installed).toEqual(["first", "second"]);
     expect(container.querySelector('[role="alert"]')?.textContent).toContain("second 资源安装失败");
-    expect([...container.querySelectorAll("button")].find(button => button.textContent === "运行场景")!.disabled).toBe(true);
+    expect(fetch.mock.calls.some(([url]) => url.endsWith("/select"))).toBe(false);
     fail = false;
     await click(container, "安装资源");
     expect(installed).toEqual(["first", "second", "second", "third"]);
-    expect([...container.querySelectorAll("button")].find(button => button.textContent === "运行场景")!.disabled).toBe(false);
+    await act(async () => container.querySelector<HTMLInputElement>('input[type="radio"]')!.click());
+    expect(fetch.mock.calls.some(([url]) => url.endsWith("/select"))).toBe(true);
   });
 
   it("starts the independent service, checks its cross-origin URL and preserves it on panel unmount", async () => {
@@ -287,7 +313,7 @@ describe("Creator Mock service panel", () => {
   });
 });
 
-it("shows optional resources and keeps Run disabled until the bundle is ready", async () => {
+it("shows optional resources and blocks selection until the bundle is ready", async () => {
   const state = { ...initial, scenarios: [...initial.scenarios, { id: "frontend-tool-fill-form", title: "Frontend Tool · Fill Form", resources: ["frontend-tool-form-demo"] }] };
   let ready = false;
   const compatibility = () => ({ projectId: "project", canInstallResources: true, status: "checked", requirements: [{ id: "frontend-tool-form-demo", name: "Form", scenarioIds: ["frontend-tool-fill-form"], status: ready ? "ready" : "missing", installable: true }] });
@@ -299,14 +325,14 @@ it("shows optional resources and keeps Run disabled until the bundle is ready", 
   const container = await render();
   const radio = container.querySelectorAll<HTMLInputElement>('input[type="radio"]')[2]!;
   await act(async () => radio.click());
-  const run = [...container.querySelectorAll("button")].find(button => button.textContent === "运行场景")!;
-  expect(run.disabled).toBe(true);
+  expect([...container.querySelectorAll("button")].some(button => button.textContent === "运行场景")).toBe(false);
+  expect(fetch.mock.calls.some(([url]) => url.endsWith("/select"))).toBe(false);
   await click(container, "安装资源");
-  expect(run.disabled).toBe(false);
+
   expect(fetch).toHaveBeenCalledWith(`${CREATOR_MOCK_API_PATH}/install-resources`, expect.objectContaining({ body: JSON.stringify({ projectId: "project", resourceId: "frontend-tool-form-demo" }) }));
 });
 
-it("shows the A2UI resource installation path and enables Run only after compatibility is ready", async () => {
+it("shows the A2UI resource installation path and selects on click only after compatibility is ready", async () => {
   let state = { ...initial, scenarios: [...initial.scenarios, a2uiInteractiveOrderScenario] };
   let installed = false;
   const compatibility = () => ({
@@ -328,22 +354,22 @@ it("shows the A2UI resource installation path and enables Run only after compati
   expect(card.textContent).toContain("安装资源");
   expect(card.textContent).not.toContain("Demo 资源已安装");
   await act(async () => card.querySelector<HTMLInputElement>('input[type="radio"]')!.click());
-  const run = [...card.querySelectorAll("button")].find(button => button.textContent === "运行场景")!;
-  expect(run.disabled).toBe(true);
+  expect([...card.querySelectorAll("button")].some(button => button.textContent === "运行场景")).toBe(false);
+  expect(fetch.mock.calls.some(([url]) => url.endsWith("/select"))).toBe(false);
   expect(card.textContent).toContain("此场景需要额外的 Agent UI 资源，请先安装资源。");
   expect(card.textContent).not.toContain("此场景使用 Frontend Tools");
   expect(fetch.mock.calls.some(([url]) => url.endsWith("/select"))).toBe(false);
   await click(card, "安装资源");
   expect(fetch).toHaveBeenCalledWith(`${CREATOR_MOCK_API_PATH}/install-resources`, expect.objectContaining({ body: JSON.stringify({ projectId: "project", resourceId: "a2ui" }) }));
   expect(card.textContent).toContain("所需资源已就绪");
-  expect(card.textContent).toContain("资源已安装并就绪，可以运行场景。");
+  expect(card.textContent).toContain("资源已安装并就绪，点击场景即可切换。");
   expect(card.textContent).not.toContain("并启用");
-  expect(run.disabled).toBe(false);
-  await click(card, "运行场景");
+
+  await act(async () => card.querySelector<HTMLInputElement>('input[type="radio"]')!.click());
   expect(fetch).toHaveBeenCalledWith(`${CREATOR_MOCK_API_PATH}/select`, expect.objectContaining({ body: JSON.stringify({ scenarioId: "a2ui-interactive-order", speed: 1 }) }));
 });
 
-it("offers resource repair and blocks Run when an installed Form Provider is disabled", async () => {
+it("offers resource repair and blocks selection when an installed Form Provider is disabled", async () => {
   const state = { ...initial, scenarios: [...initial.scenarios, frontendToolFillFormScenario] };
   let enabled = false;
   const pluginId = "frontend-tool-form-demo";
@@ -362,15 +388,15 @@ it("offers resource repair and blocks Run when an installed Form Provider is dis
   const container = await render();
   const card = [...container.querySelectorAll<HTMLElement>(".creator-mock-scenario")].find(element => element.textContent?.includes("前端工具填写表单"))!;
   await act(async () => card.querySelector<HTMLInputElement>('input[type="radio"]')!.click());
-  const run = [...card.querySelectorAll("button")].find(button => button.textContent === "运行场景")!;
-  expect(run.disabled).toBe(true);
+  expect([...card.querySelectorAll("button")].some(button => button.textContent === "运行场景")).toBe(false);
+  expect(fetch.mock.calls.some(([url]) => url.endsWith("/select"))).toBe(false);
   expect(card.textContent).not.toContain("未启用或未正确放置");
   expect(card.textContent).not.toContain("所需资源已就绪");
   await click(card, "安装资源");
   expect(fetch).toHaveBeenCalledWith(`${CREATOR_MOCK_API_PATH}/install-resources`, expect.objectContaining({ body: JSON.stringify({ projectId: "project", resourceId: "frontend-tool-form-demo" }) }));
   expect(card.textContent).toContain("所需资源已就绪");
-  expect(card.textContent).toContain("资源已安装并就绪，可以运行场景。");
-  expect(run.disabled).toBe(false);
+  expect(card.textContent).toContain("资源已安装并就绪，点击场景即可切换。");
+
   expect(fetch.mock.calls.some(([url]) => url.endsWith("/select"))).toBe(false);
 });
 

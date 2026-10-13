@@ -23,6 +23,8 @@ import {
 } from "./vendor/assistant-ui/components/assistant-ui/utils/task.js";
 import { cn } from "./vendor/assistant-ui/lib/utils.js";
 import { mono } from "./vendor/assistant-ui/components/assistant-ui/elements/surfaces.js";
+import { resolveConversationTurnGroup } from "./conversation-turn.js";
+import { TaskDisclosureScopeContext, useTaskDisclosure } from "./task-disclosure-context.js";
 
 type TranscriptComponents = {
   Text: TextMessagePartComponent;
@@ -51,24 +53,29 @@ const NestedTool: ToolCallMessagePartComponent = ({ approval, interrupt, ...rest
 function NestedMessage() {
   const components = useContext(TranscriptContext)!;
   const role = useAuiState((s) => s.message.role);
+  const messageId = useAuiState((s) => s.message.id);
+  const parentScope = useContext(TaskDisclosureScopeContext);
   return (
-    <MessagePrimitive.Root
-      data-slot="aui_task-transcript-message"
-      data-role={role}
-      className="flex flex-col gap-1 text-xs leading-relaxed"
-    >
-      <span data-agent-ui-owned="" className={cn(mono, "text-foreground/35")}>{roleLabels[role]}</span>
-      <MessagePrimitive.Parts components={{
-        Text: components.Text,
-        Reasoning: components.Reasoning,
-        tools: { Fallback: NestedTool },
-      }} />
-      <components.Error />
-    </MessagePrimitive.Root>
+    <TaskDisclosureScopeContext.Provider value={[...parentScope, messageId]}>
+      <MessagePrimitive.Root
+        data-slot="aui_task-transcript-message"
+        data-role={role}
+        className="flex flex-col gap-1 text-xs leading-relaxed"
+      >
+        <span data-agent-ui-owned="" className={cn(mono, "text-foreground/35")}>{roleLabels[role]}</span>
+        <MessagePrimitive.Parts components={{
+          Text: components.Text,
+          Reasoning: components.Reasoning,
+          tools: { Fallback: NestedTool },
+        }} />
+        <components.Error />
+      </MessagePrimitive.Root>
+    </TaskDisclosureScopeContext.Provider>
   );
 }
 
 function TaskCardComposition({ part }: { part: TaskPart }) {
+  const disclosure = useTaskDisclosure(part.toolCallId);
   const elapsed = useTaskElapsed(part.timing,
     part.status.type === "running" || part.status.type === "requires-action");
   const showError = part.status.type === "incomplete" && part.status.error != null;
@@ -99,11 +106,15 @@ function TaskCardComposition({ part }: { part: TaskPart }) {
       elapsed={elapsed === undefined ? undefined : formatElapsed(elapsed)}
       actions={actions}
       result={result}
+      open={disclosure.open}
+      onOpenChange={disclosure.onOpenChange}
     >
       {part.messages?.length ? (
-        <ReadonlyThreadProvider messages={part.messages}>
-          <ThreadPrimitive.Messages>{() => <NestedMessage />}</ThreadPrimitive.Messages>
-        </ReadonlyThreadProvider>
+        <TaskDisclosureScopeContext.Provider value={disclosure.scope}>
+          <ReadonlyThreadProvider messages={part.messages}>
+            <ThreadPrimitive.Messages>{() => <NestedMessage />}</ThreadPrimitive.Messages>
+          </ReadonlyThreadProvider>
+        </TaskDisclosureScopeContext.Provider>
       ) : undefined}
     </TaskCardShell>
   );
@@ -165,5 +176,13 @@ export function ConversationTaskGroupComposition({ components, ...props }: {
   className?: string;
   components: TranscriptComponents;
 }) {
-  return <TranscriptContext.Provider value={components}><TaskLanes {...props} /></TranscriptContext.Provider>;
+  // Request + creation time distinguishes reused tool IDs and regenerated branches;
+  // neither changes when an optimistic assistant message receives its final ID.
+  const scope = useAuiState(s => JSON.stringify([
+    resolveConversationTurnGroup(s.thread.messages, s.message.id)?.requestMessageId ?? null,
+    s.message.createdAt.getTime(),
+  ]));
+  return <TaskDisclosureScopeContext.Provider value={[scope]}>
+    <TranscriptContext.Provider value={components}><TaskLanes {...props} /></TranscriptContext.Provider>
+  </TaskDisclosureScopeContext.Provider>;
 }

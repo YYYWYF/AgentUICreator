@@ -32,10 +32,10 @@
     "prepublishOnly": "node --import tsx scripts/prepare-release.mjs --verify --publish"
   },
   "devDependencies": {
-    "@types/node": "^20.19.43",
-    "typescript": "^7.0.2",
-    "vitest": "^4.1.11",
-    "zod": "^4.5.4",
+    "@types/node": "26.6.2",
+    "typescript": "7.0.2",
+    "vitest": "4.1.8",
+    "zod": "4.5.4",
     "tsx": "4.20.6",
     "esbuild": "0.25.12"
   }

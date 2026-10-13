@@ -61,8 +61,7 @@ it("uses the chart Scenario declaration for Compatibility, the UI Run gate and t
   const card = [...container.querySelectorAll<HTMLElement>(".creator-mock-scenario")].find(element => element.textContent?.includes("在消息中展示自定义图表"))!;
   await act(async () => card.querySelector<HTMLInputElement>('input[type="radio"]')!.click());
   expect(fetch.mock.calls.some(([url]) => url.endsWith("/select"))).toBe(false);
-  const run = [...card.querySelectorAll("button")].find(button => button.textContent === "运行场景")!;
-  expect(run.disabled).toBe(true);
+  expect([...card.querySelectorAll("button")].some(button => button.textContent === "运行场景")).toBe(false);
   expect(card.textContent).not.toContain("当前项目尚未安装 图表 资源。");
   expect(card.textContent).toContain("安装资源");
   const denied = await post("/select", { scenarioId: "data-message-chart", speed: 1 });
@@ -74,11 +73,11 @@ it("uses the chart Scenario declaration for Compatibility, the UI Run gate and t
   await act(async () => button.click());
   await waitForUI(() => {
     expect(install).toHaveBeenCalledWith("project", "chart-message");
-    expect(run.disabled).toBe(false);
+    expect(card.textContent).toContain("资源已安装并就绪");
   });
   expect(card.querySelector(".creator-mock-resource-row")).toBeNull();
   expect(fetch.mock.calls.some(([url]) => url.endsWith("/select"))).toBe(false);
-  await act(async () => run.click());
+  await act(async () => card.querySelector<HTMLInputElement>('input[type="radio"]')!.click());
   await waitForUI(() => expect(service!.getState().scenarioId).toBe("data-message-chart"));
   expect(fetch).toHaveBeenCalledWith(`${CREATOR_MOCK_API_PATH}/select`, expect.objectContaining({ body: JSON.stringify({ scenarioId: "data-message-chart", speed: 1 }) }));
   const selected = await post("/select", { scenarioId: "data-message-chart", speed: 1 });

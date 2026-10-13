@@ -86,6 +86,16 @@ function readiness(result: ReturnType<typeof analyze>, pluginId: string) {
 }
 
 describe("Plugin Creator Authoring Readiness", () => {
+  it("keeps an official package's unavailable parent as an authoring warning", () => {
+    const composer = asset("assistant-ui-composer", { authoring: {
+      intents: ["compose"], defaultPlacement: { type: "plugin_slot", parentPluginId: "conversation-surface", slot: "composer" },
+    } });
+    composer.ownership = "official_package";
+    const result = analyze([composer]);
+    expect(result.errors).toEqual([]);
+    expect(result.warnings).toEqual(expect.arrayContaining([expect.objectContaining({ code: "CREATOR_DEFAULT_PLACEMENT_PARENT_NOT_FOUND" })]));
+    expect(readiness(result, "assistant-ui-composer")?.addRestore).toBe("unavailable");
+  });
   it("classifies a visual Plugin without authoring as manual-only", () => {
     const result = analyze([asset("manual-plugin", { capabilities: ["visual"] })]);
 

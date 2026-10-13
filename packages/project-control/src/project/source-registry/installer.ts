@@ -25,6 +25,7 @@ import {
   type AgentUISourceTransactionTestOptions,
 } from "./transaction";
 import type { AgentUISourceApplyResult, AgentUISourceLock, AgentUISourceLockItem } from "./types";
+import { generatedSourceTargets } from "./generated-targets";
 
 export interface ApplyAgentUISourceItemInput {
   itemId: string;
@@ -216,6 +217,9 @@ export async function applyAgentUISourceItem(
     for (const file of item.loadedFiles) {
       // A source update can leave most files unchanged. Replacing those files
       // needlessly invalidates their Vite modules (including shared contexts).
+      // Generated outputs are preserved until the enclosing transaction
+      // regenerates them from the installed composition.
+      if (generatedSourceTargets.includes(file.target) && previous?.files[file.target]) continue;
       if (previous?.files[file.target]?.sha256 === sha256(file.content)) continue;
       mutations.set(file.target, { target: file.target, content: file.content });
     }

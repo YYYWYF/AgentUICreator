@@ -1,14 +1,15 @@
 import { validateOfficialPackageServices } from "./verify-package-services.mjs";
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { resolveSourceRelease, verifySourceRelease, pluginSourceDigest } from '../src/release.ts';
 const args = process.argv.slice(2);
 const positional = args.filter(arg => !arg.startsWith('--'));
-const targetRoot = path.resolve(positional[0] ?? new URL('../registry', import.meta.url).pathname);
+const targetRoot = path.resolve(positional[0] ?? fileURLToPath(new URL('../registry', import.meta.url)));
 const previousLocation = positional[1] ?? process.env.AGENT_UI_PREVIOUS_RELEASE_ROOT;
 const initialRelease = process.env.AGENT_UI_INITIAL_RELEASE === '1';
 if (args.includes('--publish') && !previousLocation && !initialRelease) throw new Error('Publishing requires AGENT_UI_PREVIOUS_RELEASE_ROOT pointing to the previous official release, or AGENT_UI_INITIAL_RELEASE=1 for the first release.');
-const previousRoot = previousLocation ? path.resolve(previousLocation) : new URL('../fixtures/releases/0.0.1', import.meta.url).pathname;
+const previousRoot = previousLocation ? path.resolve(previousLocation) : fileURLToPath(new URL('../fixtures/releases/0.0.1', import.meta.url));
 const previous = args.includes('--publish') && initialRelease && !previousLocation ? undefined : await resolveSourceRelease(previousRoot);
 if (args.includes('--publish')) {
   const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
     "predev": "node ../../scripts/prepare-host-packages.mjs && node --import tsx ../../scripts/host-examples/host-project.ts ensure platform creator-host-sandbox",
@@ -29,34 +29,40 @@
     "test": "node --import tsx ../../scripts/host-examples/test-host-example.ts platform creator-host-sandbox"
   },
   "dependencies": {
-    "@agent-ui/react": "workspace:^",
-    "@agent-ui/runtime-conversation": "workspace:^",
-    "@agent-ui/runtime-core": "workspace:^",
-    "@agent-ui/runtime-react": "workspace:^",
+    "@agent-ui/plugins": "workspace:*",
+    "@agent-ui/react": "workspace:*",
+    "@agent-ui/runtime-conversation": "workspace:*",
+    "@agent-ui/runtime-core": "workspace:*",
+    "@agent-ui/runtime-react": "workspace:*",
+    "@assistant-ui/react-generative-ui": "0.0.22",
+    "@assistant-ui/react-hook-form": "0.12.34",
     "@assistant-ui/react-lexical": "0.2.15",
+    "@base-ui/react": "1.8.0",
     "@lexical/history": "0.51.0",
     "@lexical/plain-text": "0.51.0",
     "@lexical/react": "0.51.0",
     "@lexical/utils": "0.51.0",
     "lexical": "0.51.0",
     "lucide-react": "1.41.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "zod": "^4.5.4",
-    "@agent-ui/plugins": "workspace:^"
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "react-hook-form": "7.88.0",
+    "react-markdown": "10.1.0",
+    "remark-gfm": "4.0.1",
+    "zod": "4.5.4"
   },
   "devDependencies": {
-    "@types/node": "^20.19.43",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.5",
+    "@agent-ui/bootstrap": "workspace:*",
+    "@agent-ui/mock-agent": "workspace:*",
+    "@agent-ui/project-control": "workspace:*",
     "@tailwindcss/vite": "4.3.3",
-    "@vitejs/plugin-react": "^6.1.1",
+    "@types/node": "26.6.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.0.2",
     "tailwindcss": "4.3.3",
     "tsx": "4.20.6",
-    "typescript": "^7.0.2",
-    "vite": "^8.2.2",
-    "@agent-ui/bootstrap": "workspace:^",
-    "@agent-ui/project-control": "workspace:^",
-    "@agent-ui/mock-agent": "workspace:^"
+    "typescript": "7.0.2",
+    "vite": "8.3.0"
   }
 }

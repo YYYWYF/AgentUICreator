@@ -1,0 +1,8 @@
+[
+  {
+    "mode": "stop",
+    "status": "failed",
+    "error": "Error: Subagent transcript unavailable after Stop; only cancelled ToolFallback remains.",
+    "pageerrors": []
+  }
+]

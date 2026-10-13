@@ -4,8 +4,8 @@ import json
 from types import SimpleNamespace
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
 from langchain_core.messages import HumanMessage
-from timeout_diagnostics import DiagnosticModelTrace, DiagnosticLogger
-from analyze_timeout_diagnostics import union
+from .timeout_diagnostics import DiagnosticModelTrace, DiagnosticLogger
+from .analyze_timeout_diagnostics import union
 
 
 def test_callback_lifecycle_records_volume_without_content():

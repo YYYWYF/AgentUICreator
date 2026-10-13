@@ -1,5 +1,7 @@
-import { spawn, spawnSync } from "node:child_process";
+import { execFile } from "node:child_process";
+import { spawnPnpm, spawnPnpmSync } from "./pnpm-process.mjs";
 import { fileURLToPath } from "node:url";
+import { ensureWorkspaceDependencies } from "./ensure-workspace-dependencies.mjs";
 import { prepareWorkbench } from "./prepare-workbench.mjs";
 
 const workspaceRoot = fileURLToPath(new URL("..", import.meta.url));
@@ -12,13 +14,14 @@ function port(option, fallback) {
 }
 const hostPort = port("--host-port", 5176);
 const workbenchPort = port("--workbench-port", 5174);
+ensureWorkspaceDependencies();
 prepareWorkbench();
 const environment = {
   ...process.env,
   VITE_CREATOR_DOCK_URL: process.env.VITE_CREATOR_DOCK_URL || `http://127.0.0.1:${workbenchPort}/dock.html`,
   VITE_CREATOR_HOST_PREVIEW_URL: process.env.VITE_CREATOR_HOST_PREVIEW_URL || `http://127.0.0.1:${hostPort}/?creator-preview`,
 };
-const ensure = spawnSync("pnpm", ["--filter", "@agent-ui/creator-host-sandbox", "exec", "node", "--import", "tsx", "../../scripts/host-examples/host-project.ts", "ensure", "platform", "creator-host-sandbox"], {
+const ensure = spawnPnpmSync(["--filter", "@agent-ui/creator-host-sandbox", "exec", "node", "--import", "tsx", "../../scripts/host-examples/host-project.ts", "ensure", "platform", "creator-host-sandbox"], {
   cwd: workspaceRoot, env: environment, stdio: "inherit",
 });
 if (ensure.error) throw ensure.error;
@@ -26,7 +29,7 @@ if (ensure.status !== 0) throw new Error("Could not prepare the platform Host");
 const children = [
   ["@agent-ui/creator-host-sandbox", hostPort, ["--config", fileURLToPath(new URL("../apps/creator-workbench/host-preview.vite.config.ts", import.meta.url))]],
   ["@agent-ui/creator-workbench", workbenchPort, []],
-].map(([name, listenPort, configArgs]) => spawn("pnpm", ["--filter", String(name), "dev", ...configArgs, "--host", "127.0.0.1", "--port", String(listenPort), "--strictPort"], {
+].map(([name, listenPort, configArgs]) => spawnPnpm(["--filter", String(name), "dev", ...configArgs, "--host", "127.0.0.1", "--port", String(listenPort), "--strictPort"], {
   cwd: workspaceRoot, env: environment, stdio: "inherit",
 }));
 let stopping = false;
@@ -34,7 +37,10 @@ function stop(code = 0) {
   if (stopping) return;
   stopping = true;
   process.exitCode = code;
-  for (const child of children) child.kill("SIGTERM");
+  for (const child of children) {
+    if (process.platform === "win32" && child.pid) execFile("taskkill", ["/pid", String(child.pid), "/T", "/F"]);
+    else child.kill("SIGTERM");
+  }
 }
 for (const child of children) {
   child.on("error", error => { console.error(error); stop(1); });

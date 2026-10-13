@@ -1,4 +1,6 @@
 import type { UIApplicationGateService } from "../../framework/contracts/ui-plugin";
+export const AUTH_SESSION_SERVICE = "auth.session";
+export const AUTH_GATE_SERVICE = "auth.gate";
 export interface AuthUser { id: string; displayName: string; email?: string; avatarUrl?: string; }
 export interface AuthCredentials { account: string; password: string; }
 export interface AuthSessionSnapshot {

@@ -6,14 +6,16 @@ from typing import Any, Callable, Literal
 
 import httpx
 import openai
-from deepagents import create_deep_agent
-from deepagents.middleware.filesystem import FilesystemMiddleware
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.errors import GraphRecursionError
 from langgraph.types import Command
 
 from ..activity import CreatorActivityRecorder
+from ..deepagents_compat import (
+    create_creator_deep_agent as create_deep_agent,
+    create_creator_filesystem_middleware,
+)
 from ..app_ui_model import (
     AppUIModelMutationError,
     AppUIModelMutationMetrics,
@@ -589,7 +591,7 @@ def create_domain_read_creator_agent(
         backend,
         run_control=run_control,
     )
-    # DeepAgents requires read_file in an explicit filesystem allowlist.
+    # Retain read_file for filesystem context handling.
     # The answer-only model still receives no tools through DomainReadToolPolicyMiddleware.
     filesystem_tools = (
         ["read_file"] if answer_only
@@ -598,11 +600,9 @@ def create_domain_read_creator_agent(
             if permission_scope != "inspect_read_only" or name != "edit_file"
         ]
     )
-    filesystem = FilesystemMiddleware(
+    filesystem = create_creator_filesystem_middleware(
         backend=backend,
         tools=filesystem_tools,
-        tool_token_limit_before_evict=None,
-        human_message_token_limit_before_evict=None,
     )
     graph = create_deep_agent(
         model=model,
@@ -617,9 +617,7 @@ def create_domain_read_creator_agent(
             verification_mode,
         ),
         backend=backend,
-        subagents=[],
         skills=None,
-        memory=None,
         middleware=[
             filesystem,
             DomainReadToolPolicyMiddleware(
@@ -897,11 +895,9 @@ def create_domain_write_creator_agent(
         backend,
         run_control=run_control,
     )
-    filesystem = FilesystemMiddleware(
+    filesystem = create_creator_filesystem_middleware(
         backend=skills_backend,
         tools=list(ALLOWED_MINIMAL_TOOLS),
-        tool_token_limit_before_evict=None,
-        human_message_token_limit_before_evict=None,
     )
     graph = create_deep_agent(
         model=model,
@@ -911,9 +907,7 @@ def create_domain_write_creator_agent(
             DOMAIN_WRITE_AGENT_PROMPT, verification_mode
         ),
         backend=skills_backend,
-        subagents=[],
         skills=["/skills/"],
-        memory=None,
         middleware=[
             filesystem,
             DomainWriteToolPolicyMiddleware(verification_mode, require_removal_choice=require_removal_choice, removal_intent=removal_intent),

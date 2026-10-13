@@ -8,6 +8,7 @@ export interface MockDemoCompatibility {
   projectId: string | null;
   status: "checked" | "unknown";
   requirements: MockDemoRequirement[];
+  issue?: { code: "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED" };
 }
 export interface MockDemoRequirement {
   id: string;
@@ -55,7 +56,9 @@ export async function inspectMockProjectCompatibility(target: MockProjectTarget 
   try {
     const { composition, sources } = await inspector(target);
     return inspectMockDemoCompatibility(composition, sources, target.id);
-  } catch {
-    return { projectId: target.id, status: "unknown", requirements: [] };
+  } catch (error) {
+    const restartRequired = error instanceof Error && "code" in error && error.code === "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED";
+    return { projectId: target.id, status: "unknown", requirements: [],
+      ...(restartRequired ? { issue: { code: "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED" as const } } : {}) };
   }
 }

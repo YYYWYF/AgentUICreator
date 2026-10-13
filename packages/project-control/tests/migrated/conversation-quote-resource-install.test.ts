@@ -12,6 +12,16 @@ async function project() {
   const root = await mkdtemp(path.join(tmpdir(), "conversation-quote-resource-"));
   roots.push(root);
   await cp(await generatedProjectFixture(), root, { recursive: true });
+  // This suite starts without Quote; the shared fixture already includes it.
+  const model = parseAppUIModelJson(await readFile(modelPath(root), "utf8"));
+  const composer = collectAppUIPluginLocations(model).find(entry => entry.plugin.pluginId === "assistant-ui-composer")!;
+  composer.plugin.slots!.beforeInput = [];
+  await writeFile(modelPath(root), JSON.stringify(model));
+  await rm(path.join(root, "agent-ui/plugins/conversation-quote"), { recursive: true, force: true });
+  const lockPath = path.join(root, ".agent-ui/source-lock.json");
+  const lock = JSON.parse(await readFile(lockPath, "utf8"));
+  delete lock.items["plugin/conversation-quote"];
+  await writeFile(lockPath, JSON.stringify(lock));
   return root;
 }
 const modelPath = (root: string) => path.join(root, "agent-ui/app-ui/app-ui.json");
@@ -42,13 +52,16 @@ it("keeps the model unchanged on idempotent Quote Resource reinstall", async () 
   expect(await readFile(modelPath(root), "utf8")).toBe(before);
   await expectComposerPlacement(root);
 });
-it("restores an existing Quote Resource from application scope to the composer", async () => {
+it("rejects an invalid visual Quote instance in application scope without rewriting the model", async () => {
   const root = await project();
   const model = parseAppUIModelJson(await readFile(modelPath(root), "utf8"));
   model.applicationPlugins ??= [];
   model.applicationPlugins.push({ id: "misplaced-quote", pluginId: "conversation-quote", enabled: true });
   await writeFile(modelPath(root), JSON.stringify(model));
-  await installOfficialAgentUIResource(root, "conversation-quote");
-  await expectComposerPlacement(root);
-  expect((await locations(root)).find(({ plugin }) => plugin.pluginId === "conversation-quote")!.plugin.id).toBe("misplaced-quote");
+  const before = await readFile(modelPath(root), "utf8");
+  // Application scope is reserved for headless, Data Message UI and Gate plugins.
+  await expect(installOfficialAgentUIResource(root, "conversation-quote")).rejects.toMatchObject({
+    code: "RESOURCE_INSTALL_FAILED",
+  });
+  expect(await readFile(modelPath(root), "utf8")).toBe(before);
 });

@@ -26,7 +26,7 @@ function versionCompare(left, right) {
 export function collectResolvedAgUiClientVersions(lockfileText) {
   const versions = new Set();
   for (const line of String(lockfileText ?? "").split(/\r?\n/u)) {
-    const match = line.match(/^\s*['"]?@ag-ui\/client@([^'":\s(]+)(?:\([^)]*\))?['"]?\s*:/u);
+    const match = line.match(/^\s*['"]?\/?@ag-ui\/client@(\d+\.\d+\.\d+)(?:_[^'":\s]+|\([^)]*\))?['"]?\s*:/u);
     if (match?.[1]) versions.add(match[1]);
   }
   return [...versions].sort(versionCompare);

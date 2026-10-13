@@ -23,9 +23,9 @@ it("installs and activates the optional Human Tool in application scope", async 
 
   await installOfficialAgentUIResource(root, "ask-user-question-demo");
   for (const file of closure.at(-1)!.loadedFiles) {
-    expect(await readFile(path.join(root, file.target))).toEqual(file.content);
+    expect(await readFile(path.join(root, "agent-ui", file.target))).toEqual(file.content);
   }
-  const model = JSON.parse(await readFile(path.join(root, "app-ui/app-ui.json"), "utf8"));
+  const model = JSON.parse(await readFile(path.join(root, "agent-ui/app-ui/app-ui.json"), "utf8"));
   expect(model.applicationPlugins).toEqual(expect.arrayContaining([
     expect.objectContaining({ pluginId: "ask-user-question-demo", enabled: true }),
   ]));

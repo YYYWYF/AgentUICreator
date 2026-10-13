@@ -12,13 +12,16 @@
   },
   "dependencies": {
     "@agentui/web-component": "workspace:*",
-    "vue": "^3.5.0"
+    "vue": "3.5.42"
   },
   "devDependencies": {
     "@agent-ui/mock-agent": "workspace:*",
-    "@vitejs/plugin-vue": "^6.0.0",
-    "vite": "^8.2.2",
-    "typescript": "^5.9.3",
-    "vue-tsc": "^3.0.0"
+    "@vitejs/plugin-vue": "6.0.1",
+    "vite": "8.3.0",
+    "typescript": "5.9.3",
+    "vue-tsc": "3.0.6"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
   }
 }

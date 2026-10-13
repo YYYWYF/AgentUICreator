@@ -23,7 +23,8 @@ export async function installDemoPlugin(projectRoot: string, pluginId: string): 
   if (!item) throw new Error("插件库中没有找到对应插件。");
   // Existing customized Demo code can still be selected through composition;
   // it is not a Source synchronization request.
-  if (!officialPackagePlugin(pluginId) && !["managed", "customized"].includes(item.status)) {
+  if (!officialPackagePlugin(pluginId) && (!["managed", "customized"].includes(item.status) ||
+      (item.status === "managed" && item.updateAvailable))) {
     await applyAgentUISourceProjectMutation(projectRoot, {
       itemId: item.id, expectedStateHash: sources.stateHash,
     }, { config });

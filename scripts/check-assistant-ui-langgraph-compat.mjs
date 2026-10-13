@@ -38,10 +38,10 @@ function packageTypesEntry(manifest) {
 function collectLockfileVersions(lockfileText, packageName) {
   const versions = new Set();
   for (const line of String(lockfileText ?? "").split(/\r?\n/u)) {
-    const key = line.trim().replace(/^['"]|['"]:$/gu, "");
+    const key = line.trim().replace(/^['"]|['"]:$/gu, "").replace(/^\//u, "");
     const prefix = `${packageName}@`;
     if (!key.startsWith(prefix)) continue;
-    const version = key.slice(prefix.length).split(/[(:]/u, 1)[0];
+    const version = key.slice(prefix.length).split(/[(_:]/u, 1)[0];
     if (version) versions.add(version);
   }
   return [...versions].sort();
@@ -49,16 +49,18 @@ function collectLockfileVersions(lockfileText, packageName) {
 
 function collectLangGraphSnapshotDependencies(lockfileText, packageVersion) {
   const lines = String(lockfileText ?? "").split(/\r?\n/u);
-  const snapshotsIndex = lines.findIndex((line) => line.trim() === "snapshots:");
+  if (!lines.some(line => line.trim() === "snapshots:") && !lines.some(line => /^  ['"]?\//u.test(line))) return [];
+  const snapshotsHeading = lines.some((line) => line.trim() === "snapshots:") ? "snapshots:" : "packages:";
+  const snapshotsIndex = lines.findIndex((line) => line.trim() === snapshotsHeading);
   if (snapshotsIndex < 0) return [];
   const escapedName = LANGGRAPH_PACKAGE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const heading = new RegExp(`^${escapedName}@${String(packageVersion).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:\\(|$)`, "u");
+  const heading = new RegExp(`^${escapedName}@${String(packageVersion).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:[(_:]|$)`, "u");
   const results = [];
 
   for (let index = snapshotsIndex + 1; index < lines.length; index += 1) {
     const line = lines[index] ?? "";
     if (!line.startsWith("  ") || line.startsWith("    ")) continue;
-    const key = line.trim().replace(/^['"]|['"]:$/gu, "");
+    const key = line.trim().replace(/^['"]|['"]:$/gu, "").replace(/^\//u, "");
     if (!heading.test(key)) continue;
     const dependencies = {};
     let inDependencies = false;
@@ -76,7 +78,7 @@ function collectLangGraphSnapshotDependencies(lockfileText, packageVersion) {
       const dependency = nestedLine.match(/^      (?:'([^']+)'|"([^"]+)"|([^:]+)):\s+([^\s(]+)/u);
       if (dependency) {
         const name = dependency[1] ?? dependency[2] ?? dependency[3]?.trim();
-        const version = dependency[4];
+        const version = dependency[4].replace(/^['"]|['"]$/gu, "").split("_", 1)[0];
         if (name && version) dependencies[name] = version;
       }
     }

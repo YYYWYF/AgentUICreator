@@ -60,6 +60,24 @@ async function lockedFiles(root: string, itemId: string) {
 }
 
 describe("managed Source freshness uses target set and content hashes", () => {
+  it("updates dependency source while preserving composition-generated registries", async () => {
+    const root = await projectRoot();
+    const generated = "agent-contract/frontend-tools.generated.ts";
+    const old = registry(
+      item("foundation/dependency", { "dependency.ts": "baseline", [generated]: "empty template" }),
+      item("foundation/consumer", { "consumer.ts": "consumer" }, ["foundation/dependency"]),
+    );
+    await apply(root, old, "foundation/consumer");
+    await writeFile(path.join(root, "agent-ui", generated), "composition-derived registrations");
+    const current = registry(
+      item("foundation/dependency", { "dependency.ts": "updated", [generated]: "new template", "added.ts": "new source" }),
+      item("foundation/consumer", { "consumer.ts": "consumer" }, ["foundation/dependency"]),
+    );
+    await apply(root, current, "foundation/consumer");
+    expect(await readFile(path.join(root, "agent-ui/dependency.ts"), "utf8")).toBe("updated");
+    expect(await readFile(path.join(root, "agent-ui/added.ts"), "utf8")).toBe("new source");
+    expect(await readFile(path.join(root, "agent-ui", generated), "utf8")).toBe("composition-derived registrations");
+  });
   it("synchronizes changed content without a version and updates the lock", async () => {
     const root = await projectRoot();
     const old = registry(item("foundation/example", { "example.ts": "old" }));

@@ -1,17 +1,18 @@
-import { access, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { spawnPnpm } from "../../../scripts/pnpm-process.mjs";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const tscPath = path.join(packageRoot, "node_modules", "typescript", "bin", "tsc");
 const consumerRoot = await realpath(await mkdtemp(path.join(os.tmpdir(), "runtime-conversation-consumer-")));
 
 async function run(command, args, cwd = consumerRoot) {
-  const child = spawn(command, args, { cwd, stdio: ["ignore", "pipe", "pipe"],
-    env: { ...process.env, CI: "true", NODE_PATH: "" } });
+  const options = { cwd, stdio: ["ignore", "pipe", "pipe"], env: { ...process.env, CI: "true", NODE_PATH: "" } };
+  const child = command === "pnpm" ? spawnPnpm(args, options) : spawn(command, args, options);
   let output = "";
   child.stdout.setEncoding("utf8");
   child.stderr.setEncoding("utf8");
@@ -35,18 +36,23 @@ try {
   const dependencies = {};
   // Pack the actual publishable files; never symlink a workspace package or its node_modules.
   for (const name of ["runtime-core", "react", "runtime-conversation"]) {
-    const archive = path.join(archives, `${name}.tgz`);
-    await run("pnpm", ["pack", "--out", archive], path.resolve(packageRoot, "..", name));
+    const destination = path.join(archives, name);
+    await mkdir(destination);
+    await run("pnpm", ["pack", "--pack-destination", destination], path.resolve(packageRoot, "..", name));
+    const packed = (await readdir(destination)).filter(file => file.endsWith(".tgz"));
+    if (packed.length !== 1) throw new Error(`Expected one archive for ${name}`);
+    const archive = path.join(destination, packed[0]);
     dependencies[`@agent-ui/${name}`] = `file:${archive}`;
   }
   await writeFile(path.join(consumerRoot, "pnpm-workspace.yaml"),
-    `packages: []\noverrides:\n${Object.entries(dependencies).map(([name, archive]) => `  ${JSON.stringify(name)}: ${JSON.stringify(archive)}`).join("\n")}\n`);
+    "packages: []\n");
   await writeFile(path.join(consumerRoot, "package.json"), JSON.stringify({
     name: "runtime-conversation-published-type-consumer", private: true, type: "module",
     dependencies,
+    pnpm: { overrides: dependencies },
     // Match the pinned consumer React/type/compiler environment, but do not
     // declare core: its resolution must come from the published Runtime manifest.
-    devDependencies: { "@types/react": "19.3.0", "@types/react-dom": "19.3.0", react: "19.3.0", "react-dom": "19.3.0" },
+    devDependencies: { "@types/react": "19.3.0", "@types/react-dom": "19.3.0", react: "19.1.1", "react-dom": "19.1.1" },
   }, null, 2));
   const storePath = (await run("pnpm", ["store", "path"], packageRoot)).trim();
   await run("pnpm", ["install", "--prefer-offline", "--ignore-scripts", "--no-frozen-lockfile",

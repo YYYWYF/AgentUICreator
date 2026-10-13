@@ -58,8 +58,8 @@ describe("Agent UI Source Registry public conversation contract", () => {
       target: "conversation/conversation-bridge.ts",
     }]);
     expect(foundation?.packages).toEqual({
-      "@agent-ui/react": "^0.1.0",
-      "@agent-ui/runtime-conversation": "^0.1.0",
+      "@agent-ui/react": "0.1.6",
+      "@agent-ui/runtime-conversation": "0.1.0",
     });
     expect(foundation?.upstream).toBeUndefined();
 

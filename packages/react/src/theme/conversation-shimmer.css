@@ -1,0 +1,89 @@
+/* Product-owned adaptation of tw-shimmer's sweep geometry and sine falloff.
+ * Reference: assistant-ui@3542d602272a62eddeb8989befc910841c267022,
+ * packages/tw-shimmer/src/index.css. Vendor components remain unchanged. */
+@layer utilities {
+  @keyframes agent-ui-conversation-shimmer {
+    from { background-position: 100% 0; }
+    to { background-position: 0 0; }
+  }
+
+  :where(.agent-ui-root, .agent-ui-conversation) .shimmer {
+    --_shimmer-speed: var(--shimmer-speed, 200);
+    --_shimmer-spread: var(--shimmer-spread, calc(4ch + 80px));
+    --_shimmer-base: currentColor;
+    --_shimmer-highlight: var(--shimmer-color, oklch(from currentColor l c h / calc(alpha * 0.2)));
+    --_shimmer-gradient-width: calc(var(--_shimmer-spread) + var(--shimmer-track-height, 200px) * tan(var(--shimmer-angle, 15deg)));
+    --_shimmer-distance: calc(var(--shimmer-track-width, 200px) + var(--_shimmer-gradient-width));
+    --_shimmer-duration: var(--shimmer-duration, calc(var(--_shimmer-distance) / var(--_shimmer-speed) / 1px * 1000));
+    --_shimmer-delay: var(--shimmer-repeat-delay, calc(20000 / var(--_shimmer-speed)));
+    --_shimmer-delay-width: calc(var(--_shimmer-delay) * var(--_shimmer-distance) / var(--_shimmer-duration));
+    --_shimmer-offset: calc((var(--shimmer-x, 0) + var(--shimmer-y, 0) * tan(var(--shimmer-angle, 15deg))) * 1px);
+    --_shimmer-position: calc(var(--shimmer-track-width, (100% - var(--_shimmer-gradient-width) - var(--_shimmer-delay-width)) / 2) + var(--_shimmer-gradient-width) / 2 + var(--_shimmer-delay-width) - var(--_shimmer-offset));
+    /* The image always covers the text; only its soft band travels past it. */
+    background-image: linear-gradient(
+      calc(90deg + var(--shimmer-angle, 15deg)),
+      var(--_shimmer-base) calc(var(--_shimmer-position) + var(--_shimmer-spread) * -0.5),
+      color-mix(in oklch, var(--_shimmer-highlight), var(--_shimmer-base) 96%) calc(var(--_shimmer-position) + var(--_shimmer-spread) * -0.44),
+      color-mix(in oklch, var(--_shimmer-highlight), var(--_shimmer-base) 83%) calc(var(--_shimmer-position) + var(--_shimmer-spread) * -0.37),
+      color-mix(in oklch, var(--_shimmer-highlight), var(--_shimmer-base) 67%) calc(var(--_shimmer-position) + var(--_shimmer-spread) * -0.31),
+      color-mix(in oklch, var(--_shimmer-highlight), var(--_shimmer-base) 50%) calc(var(--_shimmer-position) + var(--_shimmer-spread) * -0.25),
+      color-mix(in oklch, var(--_shimmer-highlight), var(--_shimmer-base) 33%) calc(var(--_shimmer-position) + var(--_shimmer-spread) * -0.19),
+      color-mix(in oklch, var(--_shimmer-highlight), var(--_shimmer-base) 17%) calc(var(--_shimmer-position) + var(--_shimmer-spread) * -0.12),
+      color-mix(in oklch, var(--_shimmer-highlight), var(--_shimmer-base) 4%) calc(var(--_shimmer-position) + var(--_shimmer-spread) * -0.06),
+      var(--_shimmer-highlight) calc(var(--_shimmer-position) + var(--_shimmer-spread) * 0),
+      color-mix(in oklch, var(--_shimmer-highlight), var(--_shimmer-base) 4%) calc(var(--_shimmer-position) + var(--_shimmer-spread) * 0.06),
+      color-mix(in oklch, var(--_shimmer-highlight), var(--_shimmer-base) 17%) calc(var(--_shimmer-position) + var(--_shimmer-spread) * 0.12),
+      color-mix(in oklch, var(--_shimmer-highlight), var(--_shimmer-base) 33%) calc(var(--_shimmer-position) + var(--_shimmer-spread) * 0.19),
+      color-mix(in oklch, var(--_shimmer-highlight), var(--_shimmer-base) 50%) calc(var(--_shimmer-position) + var(--_shimmer-spread) * 0.25),
+      color-mix(in oklch, var(--_shimmer-highlight), var(--_shimmer-base) 67%) calc(var(--_shimmer-position) + var(--_shimmer-spread) * 0.31),
+      color-mix(in oklch, var(--_shimmer-highlight), var(--_shimmer-base) 83%) calc(var(--_shimmer-position) + var(--_shimmer-spread) * 0.37),
+      color-mix(in oklch, var(--_shimmer-highlight), var(--_shimmer-base) 96%) calc(var(--_shimmer-position) + var(--_shimmer-spread) * 0.44),
+      var(--_shimmer-base) calc(var(--_shimmer-position) + var(--_shimmer-spread) * 0.5)
+    );
+    background-size: calc(100% + var(--shimmer-track-width, 100%) + var(--_shimmer-gradient-width) + var(--_shimmer-delay-width)) 100%;
+    background-repeat: no-repeat;
+    animation: agent-ui-conversation-shimmer calc((var(--_shimmer-duration) + var(--_shimmer-delay)) * 1ms) linear infinite backwards;
+  }
+
+  :where(.dark, [data-theme="dark"]) :where(.agent-ui-root, .agent-ui-conversation) .shimmer,
+  :where(.agent-ui-root, .agent-ui-conversation):is(.dark, [data-theme="dark"]) .shimmer {
+    --_shimmer-highlight: var(--shimmer-color, oklch(from currentColor max(0.8, calc(l + 0.4)) c h / calc(alpha + 0.4)));
+  }
+
+  :where(.agent-ui-root, .agent-ui-conversation) .shimmer.shimmer-bg {
+    --_shimmer-speed: var(--shimmer-speed, 1000);
+    --_shimmer-spread: var(--shimmer-spread, 480px);
+    --_shimmer-base: transparent;
+    --_shimmer-highlight: var(--shimmer-color, oklch(from currentColor 0 c h / 0.06));
+  }
+
+  :where(.dark, [data-theme="dark"]) :where(.agent-ui-root, .agent-ui-conversation) .shimmer.shimmer-bg,
+  :where(.agent-ui-root, .agent-ui-conversation):is(.dark, [data-theme="dark"]) .shimmer.shimmer-bg {
+    --_shimmer-highlight: var(--shimmer-color, oklch(from currentColor 0 c h / 0.3));
+  }
+
+  @supports (background-clip: text) and (color: oklch(from red l c h)) {
+    :where(.agent-ui-root, .agent-ui-conversation) .shimmer:not(.shimmer-bg) {
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+
+  @supports not ((background-clip: text) and (color: oklch(from red l c h))) {
+    :where(.agent-ui-root, .agent-ui-conversation) .shimmer:not(.shimmer-bg) {
+      background-image: none;
+      animation: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :where(.agent-ui-root, .agent-ui-conversation) .shimmer {
+      animation: none;
+      background-image: none;
+    }
+    :where(.agent-ui-root, .agent-ui-conversation) .shimmer:not(.shimmer-bg) {
+      -webkit-text-fill-color: currentColor;
+    }
+  }
+}

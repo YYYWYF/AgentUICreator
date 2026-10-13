@@ -35,7 +35,7 @@ describe("Official Resource readiness projection", () => {
     const snapshot: ProjectCompositionInspection = { pluginSources: [{ pluginId: "chart-message", status: "available", dataMessageUINames: [] }], pluginInstances: [] };
     expect(status(snapshot, "chart-message")).toBe("missing");
     snapshot.pluginSources[0]!.dataMessageUINames = ["chart"];
-    expect(inspectMockDemoCompatibility(snapshot, { items: [{ id: "plugin/chart-message", status: "partial", owned: true }] }).requirements.find(item => item.id === "chart-message")?.status).toBe("missing");
+    expect(inspectMockDemoCompatibility(snapshot, { items: [{ id: "plugin/chart-message", status: "partial", owned: true }] }).requirements.find(item => item.id === "chart-message")).toMatchObject({ status: "conflict", installable: false });
   });
   it("projects missing dependencies as installable, incompatible existing versions as conflicts, and stale integration files as missing", () => {
     const item = { id: "integration/a2ui", status: "managed", owned: true, dependencies: ["integration/generative-ui"], resolvedRequirements: [{ name: "@assistant-ui/react-generative-ui", required: "0.0.21", compatible: false }] };
@@ -46,7 +46,7 @@ describe("Official Resource readiness projection", () => {
     expect(inspect().status).toBe("ready");
     sources.integrationRegistryReady = false; expect(inspect().status).toBe("missing");
     sources.integrationRegistryReady = true;
-    sources.items[1]!.status = "partial"; expect(inspect().status).toBe("missing");
+    sources.items[1]!.status = "partial"; expect(inspect()).toMatchObject({ status: "conflict", installable: false });
     sources.items[1]!.status = "managed";
     const conflict = { ...item, resolvedRequirements: [{ name: "@assistant-ui/react-generative-ui", required: "0.0.21", installed: "0.0.18", declared: "0.0.18", compatible: false }] };
     expect(inspectMockDemoCompatibility(empty, { items: [conflict] }).requirements.find(item => item.id === "a2ui")).toMatchObject({ status: "conflict", installable: false, issue: { code: "RESOURCE_CONFLICT" } });
@@ -57,5 +57,11 @@ describe("Official Resource readiness projection", () => {
     expect(await inspectMockProjectCompatibility(undefined, inspector)).toEqual({ projectId: null, status: "unknown", requirements: [] });
     expect(inspector).not.toHaveBeenCalled();
     expect(await inspectMockProjectCompatibility({ id: "host", projectRoot: "/fresh-host" }, inspector)).toEqual({ projectId: "host", status: "unknown", requirements: [] });
+  });
+  it("reports a stale control service without exposing internal inspection details", async () => {
+    const inspector = vi.fn(async () => { throw Object.assign(new Error("private file details"), { code: "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED" }); });
+    const result = await inspectMockProjectCompatibility({ id: "host", projectRoot: "/fresh-host" }, inspector);
+    expect(result).toEqual({ projectId: "host", status: "unknown", requirements: [], issue: { code: "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED" } });
+    expect(JSON.stringify(result)).not.toContain("private file details");
   });
 });

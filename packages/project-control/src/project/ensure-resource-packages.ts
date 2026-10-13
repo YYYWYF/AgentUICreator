@@ -50,9 +50,27 @@ async function packageManagerAt(projectRoot: string, inherited = false): Promise
   return undefined;
 }
 
+/** Package managers are .cmd shims on Windows; prefer their inherited JS entry. */
+export function resourcePackageInvocation(command: string, args: readonly string[], platform = process.platform, environment = process.env) {
+  const entry = environment.npm_execpath;
+  if (entry && new RegExp(`^${command}(?:-cli)?\\.(?:c?js)$`, "iu").test(path.basename(entry))) {
+    return { command: process.execPath, args: [entry, ...args], shell: false };
+  }
+  if (platform === "win32" && entry && path.basename(entry).toLowerCase() === `${command}.exe`) {
+    return { command: entry, args: [...args], shell: false };
+  }
+  if (platform !== "win32" || command === "bun") return { command, args: [...args], shell: false };
+  // Quoting preserves comparator spaces and pipes. Reject cmd expansion tokens.
+  if (!/^(npm|pnpm|yarn)$/u.test(command) || args.some(arg => /["%\r\n!]/u.test(arg))) {
+    throw new OfficialResourceError("RESOURCE_INSTALL_FAILED", "Unsupported Windows package installation argument.");
+  }
+  return { command: `${command}.cmd`, args: args.map(arg => `"${arg}"`), shell: true };
+}
+
 export const runResourcePackageCommand: ResourcePackageRunner = async (projectRoot, { command, args }) => {
   await new Promise<void>((resolve, reject) => {
-    const child = spawn(command, args, { cwd: projectRoot, stdio: ["ignore", "pipe", "pipe"], shell: false });
+    const invocation = resourcePackageInvocation(command, args);
+    const child = spawn(invocation.command, invocation.args, { cwd: projectRoot, stdio: ["ignore", "pipe", "pipe"], shell: invocation.shell });
     let output = "";
     const capture = (chunk: Buffer) => { output = (output + chunk.toString()).slice(-16_000); };
     child.stdout.on("data", capture); child.stderr.on("data", capture);
@@ -105,7 +123,7 @@ export async function ensureResourcePackages(projectRoot: string, closure: reado
   if (!additions.length && !restore) return;
   const manager = await detectResourcePackageManager(projectRoot);
   const command = manager;
-  const args = additions.length ? [manager === "npm" ? "install" : "add", ...(manager === "npm" ? ["--save"] : []), ...additions] : ["install"];
+  const args = additions.length ? [manager === "npm" ? "install" : "add", ...(manager === "npm" ? ["--save"] : []), manager === "pnpm" || manager === "npm" ? "--save-exact" : "--exact", ...additions] : ["install"];
   if (manager === "pnpm" && additions.length) {
     try { await access(path.join(projectRoot, "pnpm-workspace.yaml")); args.splice(1, 0, "--workspace-root"); }
     catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; }

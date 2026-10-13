@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { spawnPnpm } from "./pnpm-process.mjs";
 import { access, mkdtemp, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -14,7 +15,8 @@ export const pythonInVenv = (root) => path.join(root, process.platform === "win3
 
 export function run(executable, args, options = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(executable, args, { stdio: "inherit", ...options });
+    const spawnOptions = { stdio: "inherit", ...options };
+    const child = executable === pnpm ? spawnPnpm(args, spawnOptions) : spawn(executable, args, spawnOptions);
     child.once("error", reject);
     child.once("close", (code) => code === 0 ? resolve() : reject(new Error(`${executable} exited with code ${code}`)));
   });

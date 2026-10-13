@@ -6,7 +6,10 @@ import time
 from collections import Counter
 from datetime import datetime, timezone
 from agent_ui_creator.model_protocol.request_shape import _content_chars
-from test_official_composer import ModelToolTrace, ObservedLogger
+if __package__:
+    from .test_official_composer import ModelToolTrace, ObservedLogger
+else:
+    from test_official_composer import ModelToolTrace, ObservedLogger
 
 
 def stamp():

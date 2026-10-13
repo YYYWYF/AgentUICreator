@@ -20,9 +20,15 @@ Tailwind utility prefix, Creator theme variables, and an explicit Popover portal
 container. Do not portal into the Host document body; render into the Creator
 panel to retain the style and ownership boundary.
 
-Run `pnpm --filter @agent-ui/creator build:ui` after changing component classes.
-The generated `creator-ui.css` is checked in for source-based development and
-rebuilt by the Creator package build. The package ships compiled CSS through
-its existing UI stylesheet; consumers need no Tailwind plugin. Tailwind
-preflight is omitted and the small reset is scoped to `.creator-ui-scope`.
-These dependencies and styles belong only to Creator, not generated Agent Apps.
+The compiled `creator-ui.css` is checked in and copied unchanged by the Creator
+package build. Building Creator does not require `@tailwindcss/cli`. The package
+ships this CSS through its existing UI stylesheet; consumers need no Tailwind
+plugin. `creator-ui.input.css` is retained as a reference for the original theme
+and scoped reset, but is not compiled during the build.
+
+When changing component classes, update `creator-ui.css` alongside the component
+if the required utility is not already present. New Tailwind class names are not
+automatically compiled. Preserve the `cui:` prefix, scoped selectors, private
+variables and animation names. Tailwind preflight is omitted and the small reset
+is scoped to `.creator-ui-scope`. These styles belong only to Creator, not
+generated Agent Apps.

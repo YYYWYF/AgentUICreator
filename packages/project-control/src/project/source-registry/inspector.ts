@@ -20,6 +20,8 @@ import type {
   UIProjectControlConfig,
 } from "../types";
 import { readAgentUISourceLock, sha256 } from "./lock";
+import { generatedSourceTargets } from "./generated-targets";
+import { packageSourceDependency, withPackageDependency } from "./package-dependencies";
 import {
   AgentUISourceError,
   assertNoSymbolicLinkTraversal,
@@ -219,12 +221,15 @@ export async function inspectAgentUISources(
         ),
       ),
     );
-    const status = aggregateStatus(locked !== undefined || provided, files);
-    const packageInspection = await inspectAgentUIPackages(projectRoot, [item]);
+    // Generated registries reflect the installed composition, not the source
+    // template. Their content is owned and verified by the generators.
+    const status = aggregateStatus(locked !== undefined || provided, files.filter(file =>
+      file.status !== "customized" || !generatedSourceTargets.some(target => file.path === path.posix.join(config.agentUI.sourceRoot, target))));
+    const packageInspection = await inspectAgentUIPackages(projectRoot, [withPackageDependency(item)]);
     const closure = resolveAgentUISourceItemClosure(loadedRegistry, item.id);
     const dependencies = closure.filter(dependency => dependency.id !== item.id);
-    const resolvedPackages = await inspectAgentUIPackages(projectRoot, closure);
-    const dependencyIssues: AgentUISourceIssue[] = dependencies.filter(dependency => !lock.items[dependency.id] && !config.agentUI.providedSourceItems?.includes(dependency.id)).map(dependency => ({
+    const resolvedPackages = await inspectAgentUIPackages(projectRoot, closure.map(withPackageDependency));
+    const dependencyIssues: AgentUISourceIssue[] = dependencies.filter(dependency => !packageSourceDependency(dependency.id) && !lock.items[dependency.id] && !config.agentUI.providedSourceItems?.includes(dependency.id)).map(dependency => ({
       code: "AGENT_UI_SOURCE_DEPENDENCY_NOT_INSTALLED", itemId: dependency.id,
       message: `${item.id} requires installed source item ${dependency.id}.`,
     }));

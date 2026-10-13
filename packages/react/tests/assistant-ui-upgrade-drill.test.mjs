@@ -539,6 +539,13 @@ describe("assistant-ui upgrade drill", () => {
     });
   });
 
+  it("reads pnpm 8 package keys and keeps duplicate-version detection", async () => {
+    const input = { target: { agUi: { "@ag-ui/client": "0.0.59" } } };
+    const lockfileText = "lockfileVersion: '6.0'\npackages:\n  '/@ag-ui/client@0.0.59':\n    resolution: {}\n";
+    await expect(checkAgUiLockfile({ ...input, lockfileText })).resolves.toMatchObject({ passed: true, resolvedAgUiClientVersions: ["0.0.59"] });
+    await expect(checkAgUiLockfile({ ...input, lockfileText: `${lockfileText}  '/@ag-ui/client@0.0.63':\n    resolution: {}\n` })).resolves.toMatchObject({ passed: false, duplicateClientVersions: true });
+  });
+
   it("resolves remote main B when a local source cache is still at A", async () => {
     const localA = "a".repeat(40);
     const remoteB = "b".repeat(40);

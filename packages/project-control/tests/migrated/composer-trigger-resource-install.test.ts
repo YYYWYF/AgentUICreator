@@ -1,13 +1,14 @@
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, writeFile, symlink } from "node:fs/promises";
 import path from "node:path";
 import { tmpdir } from "node:os";
 import { minVersion } from "semver";
 import { afterEach, expect, it } from "vitest";
 import { initializeAgentUIProject, createDefaultAgentUIPresetRegistry } from "@agent-ui/bootstrap";
-import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure } from "@agent-ui/source-registry";
+import { loadAgentUISourceRegistry } from "@agent-ui/source-registry";
 import { createAgentUIInitializationHost } from "../../src/project/bootstrap-host";
 import { installOfficialAgentUIResource } from "../../src/project/install-official-agent-ui-resource";
 import { inspectScenarioResources } from "../../src/project/install-scenario-resources";
+import { resolveAgentUISourceItems } from "../../src/project/source-registry/installer";
 import { verifyUIProject } from "../../src/verify-ui";
 import { collectAppUIPluginLocations, parseAppUIModel, parseAppUIModelJson } from "../../src/framework/contracts/app-ui-model";
 const roots: string[] = [];
@@ -16,13 +17,15 @@ async function project(mode: "platform" | "assistant" | "embedded") {
   const root = await mkdtemp(path.join(tmpdir(), "composer-trigger-resource-")); roots.push(root);
   const registry = await loadAgentUISourceRegistry();
   const preset = createDefaultAgentUIPresetRegistry(parseAppUIModel).list().find(item => item.mode === mode)!;
-  const items = [...preset.sourceItems!, "demo/composer-triggers"].flatMap(id => resolveAgentUISourceItemClosure(registry, id));
+  const items = resolveAgentUISourceItems(registry, [...preset.sourceItems!, "demo/composer-triggers"]);
   const dependencies = Object.assign({}, ...items.map(item => item.packages ?? {})) as Record<string, string>;
   await writeFile(path.join(root, "package.json"), JSON.stringify({ dependencies }));
   for (const [name, required] of Object.entries(dependencies)) {
     const directory = path.join(root, "node_modules", name); await mkdir(directory, { recursive: true });
     await writeFile(path.join(directory, "package.json"), JSON.stringify({ name, version: minVersion(required)!.version }));
   }
+  await rm(path.join(root, "node_modules/@agent-ui/plugins"), { recursive: true, force: true });
+  await symlink(new URL("../../../plugins", import.meta.url), path.join(root, "node_modules/@agent-ui/plugins"), "dir");
   await writeFile(path.join(root, "tsconfig.json"), JSON.stringify({ compilerOptions: { target: "ES2022", module: "ESNext", moduleResolution: "Bundler", jsx: "react-jsx", resolveJsonModule: true }, include: ["custom-ui"] }));
   await initializeAgentUIProject({ projectRoot: root, mode, sourceRoot: "custom-ui" }, createAgentUIInitializationHost());
   return root;

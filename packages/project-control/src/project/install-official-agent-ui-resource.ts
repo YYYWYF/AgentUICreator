@@ -22,7 +22,9 @@ async function install(projectRoot: string, resourceId: string, runPackages?: Re
   const sourcesBefore = await inspectScenarioResources(projectRoot);
   const before = inspectOfficialResourceImplementation(resource, await inspectUIComposition(projectRoot), sourcesBefore);
   if (before.status === "conflict") throw new OfficialResourceError("RESOURCE_CONFLICT", "Resource installation conflicts with the current project.", before);
-  if (before.status === "ready") return { resourceId, changed: false, reenabled: false };
+  if (before.status === "ready" && !before.closure.some(item => item?.status === "managed" && item.updateAvailable)) {
+    return { resourceId, changed: false, reenabled: false };
+  }
   const implementation = resource.implementation;
   const registry = await loadAgentUISourceRegistry();
   const itemId = "sourceItemId" in implementation ? implementation.sourceItemId : `plugin/${implementation.pluginId}`;
@@ -32,7 +34,7 @@ async function install(projectRoot: string, resourceId: string, runPackages?: Re
   await ensureResourcePackages(projectRoot, closure, runPackages);
   if (implementation.type === "plugin") await installDemoPlugin(projectRoot, implementation.pluginId);
   else {
-    if (!before.closure.every(item => item && ["managed", "customized"].includes(item.status))) {
+    if (!before.closure.every(item => item && ["managed", "customized"].includes(item.status) && !item.updateAvailable)) {
       await installOptionalAgentUIResource(projectRoot, implementation.sourceItemId);
     }
     if (implementation.type === "source-plugin") await activateOfficialResourcePlugin(projectRoot, implementation);

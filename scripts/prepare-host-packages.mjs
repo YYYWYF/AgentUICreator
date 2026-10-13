@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { spawnPnpmSync } from "./pnpm-process.mjs";
 import { fileURLToPath } from "node:url";
 
 import { hostPackages, preparationState } from "./preparation-state.mjs";
@@ -8,7 +8,7 @@ const workspaceRoot = fileURLToPath(new URL("..", import.meta.url));
 export function prepareHostPackages({ force = false } = {}) {
   if (!force && process.env.AGENT_UI_HOST_PACKAGES_PREPARED === preparationState(hostPackages)) return;
   for (const name of hostPackages) {
-    const result = spawnSync(process.platform === "win32" ? "pnpm.cmd" : "pnpm", ["--filter", `@agent-ui/${name}`, "build"], { cwd: workspaceRoot, stdio: "inherit", shell: process.platform === "win32" });
+    const result = spawnPnpmSync(["--filter", `@agent-ui/${name}`, "build"], { cwd: workspaceRoot, stdio: "inherit" });
     if (result.error) throw result.error;
     if (result.status !== 0) throw new Error(`Host package preparation failed: @agent-ui/${name}`);
   }

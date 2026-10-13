@@ -6,7 +6,7 @@
     "foundation/core-runtime"
   ],
   "packages": {
-    "react-hook-form": "^7",
+    "react-hook-form": "7.88.0",
     "@assistant-ui/react-hook-form": "0.12.34"
   },
   "upstream": {

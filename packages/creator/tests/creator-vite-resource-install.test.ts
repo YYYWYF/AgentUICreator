@@ -4,6 +4,8 @@ import { handleCreatorMockRequest } from "../src/mock/mock-api.js";
 import { CREATOR_MOCK_API_PATH } from "../src/mock/types.js";
 import { createCreatorDevServerPlugin } from "../src/vitePlugin.js";
 
+const projectRoot = process.cwd();
+
 vi.mock("../src/mock/mock-api.js", () => ({ handleCreatorMockRequest: vi.fn(async () => {}) }));
 function resourceInstaller(options: Parameters<typeof createCreatorDevServerPlugin>[0]) {
   const middlewares = new Map<string, (request: IncomingMessage, response: ServerResponse) => void>();
@@ -16,17 +18,17 @@ function resourceInstaller(options: Parameters<typeof createCreatorDevServerPlug
 it("prefers the Official Resource installer and forwards the stable resource ID", async () => {
   const official = vi.fn(async () => {});
   const legacy = vi.fn(async () => {});
-  const install = resourceInstaller({ projectRoot: "/test/project", installOfficialAgentUIResource: official, installMockResource: legacy });
-  await install("/test/project", "a2ui");
-  expect(official).toHaveBeenCalledWith("/test/project", "a2ui");
+  const install = resourceInstaller({ projectRoot: projectRoot, installOfficialAgentUIResource: official, installMockResource: legacy });
+  await install(projectRoot, "a2ui");
+  expect(official).toHaveBeenCalledWith(projectRoot, "a2ui");
   expect(legacy).not.toHaveBeenCalled();
   await expect(install("/test/other", "a2ui")).rejects.toThrow("当前项目已改变");
 });
 it("resolves IDs internally for the old Host option for one compatibility cycle", async () => {
   const legacy = vi.fn(async () => {});
-  const install = resourceInstaller({ projectRoot: "/test/project", installScenarioResources: legacy });
-  await install("/test/project", "frontend-tool-form-demo");
-  expect(legacy).toHaveBeenCalledWith("/test/project", "demo/frontend-tool-form");
-  await install("/test/project", "a2ui");
-  expect(legacy).toHaveBeenCalledWith("/test/project", "integration/a2ui");
+  const install = resourceInstaller({ projectRoot: projectRoot, installScenarioResources: legacy });
+  await install(projectRoot, "frontend-tool-form-demo");
+  expect(legacy).toHaveBeenCalledWith(projectRoot, "demo/frontend-tool-form");
+  await install(projectRoot, "a2ui");
+  expect(legacy).toHaveBeenCalledWith(projectRoot, "integration/a2ui");
 });

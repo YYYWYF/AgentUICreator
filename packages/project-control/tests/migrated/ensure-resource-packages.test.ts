@@ -21,7 +21,7 @@ async function fixture(present: "all" | "some" | "none" = "none") {
   await writeFile(path.join(root, "package.json"), JSON.stringify({ packageManager: "pnpm@10.15.0", dependencies }));
   const run = vi.fn(async (_root: string, command: ResourcePackageCommand) => {
     const manifest = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
-    for (const specifier of command.args.slice(1)) {
+    for (const specifier of command.args.slice(1).filter(arg => !arg.startsWith("--"))) {
       const split = specifier.lastIndexOf("@");
       const name = specifier.slice(0, split), range = specifier.slice(split + 1);
       manifest.dependencies[name] = range;
@@ -43,7 +43,8 @@ describe("Official Resource package installation", () => {
     const command = f.run.mock.calls[0]![1];
     expect(command.command).toBe("pnpm");
     expect(command.args[0]).toBe("add");
-    expect(command.args.slice(1)).toHaveLength(Object.keys(f.requirements).length);
+    expect(command.args).toContain("--save-exact");
+    expect(command.args.slice(1).filter(arg => !arg.startsWith("--"))).toHaveLength(Object.keys(f.requirements).length);
     expect(command.args).toContain("@assistant-ui/react-generative-ui@0.0.22");
     expect(command.args).toContain("react-markdown@10.1.0");
     expect(command.args).toContain("remark-gfm@4.0.1");
@@ -51,7 +52,7 @@ describe("Official Resource package installation", () => {
   it("adds only missing dependencies and does not reinstall compatible ones", async () => {
     const f = await fixture("some");
     await ensureResourcePackages(f.root, f.closure, f.run);
-    expect(f.run.mock.calls[0]![1].args).toEqual(["add", "react-markdown@10.1.0"]);
+    expect(f.run.mock.calls[0]![1].args).toEqual(["add", "--save-exact", "react-markdown@10.1.0"]);
     await ensureResourcePackages(f.root, f.closure, f.run);
     expect(f.run).toHaveBeenCalledTimes(1);
   });

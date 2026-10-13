@@ -124,7 +124,11 @@ function validatePluginSlotPlacement(
 ): void {
   const parentMatches = assetsById.get(placement.parentPluginId) ?? [];
   if (parentMatches.length === 0) {
-    addError(
+    // Package plugins are available in every Host, including Hosts that have
+    // not installed a conversation surface. Missing Add targets are unavailable
+    // authoring actions there, rather than an invalid generated project.
+    const report = asset.ownership === "official_package" ? addWarning : addError;
+    report(
       diagnostics,
       CREATOR_DEFAULT_PLACEMENT_PARENT_NOT_FOUND,
       `Plugin "${asset.pluginId}" defaultPlacement parent Plugin "${placement.parentPluginId}" does not exist.`,

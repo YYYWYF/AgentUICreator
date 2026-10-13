@@ -61,7 +61,10 @@ export default defineConfig({
       inspectMockProject: async target => {
         const composition = await handleUIProjectControlRequest({ operation: "inspect_ui_project", input: { view: "composition" } }, target.projectRoot);
         const sources = await handleUIProjectControlRequest({ operation: "inspect_agent_ui_sources", input: {} }, target.projectRoot);
-        if (!composition.ok || !sources.ok) throw new Error("Project inspection failed");
+        if (!composition.ok || !sources.ok) {
+          const failure = !composition.ok ? composition.error : !sources.ok ? sources.error : undefined;
+          throw Object.assign(new Error("Project inspection failed"), { code: failure?.code });
+        }
         const result = { composition: composition.result, sources: sources.result } as Awaited<ReturnType<MockProjectInspector>>;
         const resources = await inspectScenarioResources(target.projectRoot);
         return { ...result, sources: await mergeOptionalResourceInspection(result.sources, resources) };

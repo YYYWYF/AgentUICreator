@@ -116,3 +116,20 @@ describe("managed Creator Python environment", () => {
     expect(creatorPythonCacheRoot({ CREATOR_PYTHON_ENV_ROOT: "/override" })).toBe(path.resolve("/override"));
   });
 });
+
+it("uses the Windows py launcher when python is absent from PATH", async () => {
+  const { options, calls } = await fixture();
+  const runner: PythonCommandRunner = async (executable, args, commandOptions) => {
+    if (executable === "python" || executable === "python3") throw new Error("ENOENT");
+    const result = await options.runner(executable, args, commandOptions);
+    if (args[1] === "venv") {
+      const python = managedPythonExecutable(args[2]!, "win32");
+      await mkdir(path.dirname(python), { recursive: true });
+      await writeFile(python, "fake Windows interpreter");
+    }
+    return result;
+  };
+  const executable = await ensureManagedPythonEnvironment({ ...options, platform: "win32", bootstrapCandidates: undefined, runner });
+  expect(executable).toContain(path.join("Scripts", "python.exe"));
+  expect(calls.some(call => call[0] === "py" && call[2] === "venv")).toBe(true);
+});

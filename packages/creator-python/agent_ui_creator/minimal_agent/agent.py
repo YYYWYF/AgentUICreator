@@ -9,16 +9,18 @@ import openai
 from deepagents import (
     GeneralPurposeSubagentProfile,
     HarnessProfile,
-    create_deep_agent,
     register_harness_profile,
 )
-from deepagents.middleware.filesystem import FilesystemMiddleware
 from langchain.agents.middleware import AgentMiddleware
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage
 from langgraph.errors import GraphRecursionError
 
 from ..activity import CreatorActivityRecorder
+from ..deepagents_compat import (
+    create_creator_deep_agent as create_deep_agent,
+    create_creator_filesystem_middleware,
+)
 from ..model_protocol.errors import AgentNoProgressError, ModelTimeoutError
 from ..model_protocol.provider_trace import ProviderResponseTraceCollector
 from ..model_protocol.reliability import create_creator_model_retry_middleware
@@ -161,19 +163,15 @@ def create_minimal_creator_agent(
         recovery_factory=recovery_factory,
     )
     runtime = MinimalAgentRuntimeGuard(backend, event_sink=event_sink)
-    filesystem = FilesystemMiddleware(
+    filesystem = create_creator_filesystem_middleware(
         backend=backend,
         tools=list(ALLOWED_MINIMAL_TOOLS),
-        tool_token_limit_before_evict=None,
-        human_message_token_limit_before_evict=None,
     )
     graph = create_deep_agent(
         model=model,
         system_prompt=MINIMAL_AGENT_PROMPT,
         backend=backend,
-        subagents=[],
         skills=None,
-        memory=None,
         middleware=[
             filesystem,
             MinimalAgentToolPolicyMiddleware(),

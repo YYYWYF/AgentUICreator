@@ -68,7 +68,7 @@ if (facade.dependencies["@assistant-ui/react"] !== target.packages["@assistant-u
   errors.push("Keep assistant-ui pinned and expose the optional Lexical subpath");
 }
 const lock = await readFile(path.join(root, "pnpm-lock.yaml"), "utf8");
-const families = new Set([...lock.matchAll(/^  ['"]?(?:lexical|@lexical\/[^@'"\s]+)@(\d+\.\d+\.\d+)/gmu)].map(match => match[1]));
+const families = new Set([...lock.matchAll(/^  ['"]?\/?(?:lexical|@lexical\/[^@'"\s]+)@(\d+\.\d+\.\d+)/gmu)].map(match => match[1]));
 if (families.size !== 1 || !families.has(versions.lexical)) errors.push(`Lexical lockfile versions: ${[...families].join(", ")}`);
 if (errors.length) throw new Error(errors.join("\n"));
 console.log("Lexical optional facade and Source Plugin boundaries: OK");

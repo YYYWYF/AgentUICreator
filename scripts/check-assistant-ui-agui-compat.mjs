@@ -3,6 +3,7 @@ import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { collectResolvedAgUiClientVersions } from "./check-ag-ui-lockfile.mjs";
 
 const execFile = promisify(execFileCallback);
 const defaultRepoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -146,13 +147,14 @@ async function readLockResolution(repoRoot, version) {
     if (error?.code === "ENOENT") return { range: undefined, resolvedClientVersions: [] };
     throw error;
   }
-  const packageHeader = `  '${PACKAGE_NAME}@${version}':`;
-  const start = lock.indexOf(packageHeader);
+  const packageHeader = lock.split(/\r?\n/u).find(line => {
+    const key = line.trim().replace(/^['"]|['"]?:$/gu, "").replace(/^\//u, "");
+    return key === `${PACKAGE_NAME}@${version}` || key.startsWith(`${PACKAGE_NAME}@${version}(`) || key.startsWith(`${PACKAGE_NAME}@${version}_`);
+  });
+  const start = packageHeader === undefined ? -1 : lock.indexOf(packageHeader);
   const packageBlock = start < 0 ? "" : lock.slice(start + packageHeader.length).split(/\n  [^\n]+:\n/u, 1)[0];
-  const range = packageBlock.match(/^      '@ag-ui\/client':\s*(.+)$/mu)?.[1]?.trim();
-  const resolvedClientVersions = [...new Set(
-    [...lock.matchAll(/^  '@ag-ui\/client@(\d+\.\d+\.\d+)':/gmu)].map(match => match[1]),
-  )].sort();
+  const range = packageBlock.match(/^      ['"]?@ag-ui\/client['"]?:\s*(.+)$/mu)?.[1]?.trim().replace(/^['"]|['"]$/gu, "");
+  const resolvedClientVersions = collectResolvedAgUiClientVersions(lock);
   return { range, resolvedClientVersions };
 }
 

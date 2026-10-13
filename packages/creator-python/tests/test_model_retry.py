@@ -976,6 +976,10 @@ def test_completion_repair_round_uses_the_same_transport_retry(monkeypatch):
 
 
 def test_creator_factories_place_shared_retry_outside_protocol(monkeypatch, tmp_path):
+    (tmp_path / ".agent-ui").mkdir()
+    (tmp_path / ".agent-ui/project.json").write_text(json.dumps({
+        "mode": "assistant", "sourceRoot": "src/agent-ui",
+    }))
     captured = []
 
     def fake_create_deep_agent(**kwargs):

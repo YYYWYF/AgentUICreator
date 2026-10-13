@@ -13,7 +13,7 @@ describe("optional scenario bundles", () => {
     }
     expect(registry.byId.get("demo/frontend-tool-form")?.packages).toBeUndefined();
     expect(registry.byId.get("demo/frontend-tool-form")?.requires).toEqual(["integration/react-hook-form"]);
-    expect(registry.byId.get("integration/react-hook-form")?.packages).toEqual({ "react-hook-form": "^7", "@assistant-ui/react-hook-form": "0.12.34" });
+    expect(registry.byId.get("integration/react-hook-form")?.packages).toEqual({ "react-hook-form": "7.88.0", "@assistant-ui/react-hook-form": "0.12.34" });
     expect(registry.items.filter(item => item.kind === "foundation").some(item => item.files.some(file => /demo-(form|dialog)|frontend-tool-(form|dialog)-demo/.test(file.target)))).toBe(false);
   });
 });

@@ -17,13 +17,17 @@ on:
 
 jobs:
   distribution:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 11.24.0
+          version: 8.12.0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -34,5 +38,8 @@ jobs:
           cache: pip
           cache-dependency-path: packages/creator-python/requirements.lock
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test:python:setup
+      - run: pnpm check:dependency-pins
+      - run: pnpm build
+      - run: pnpm typecheck
+      - run: pnpm test
       - run: pnpm verify:creator-distribution

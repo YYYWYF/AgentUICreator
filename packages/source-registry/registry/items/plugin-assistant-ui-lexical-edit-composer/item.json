@@ -21,7 +21,7 @@
     }
   ],
   "packages": {
-    "react": "^19.2.0",
+    "react": "19.1.1",
     "@assistant-ui/react-lexical": "0.2.15",
     "lexical": "0.51.0",
     "@lexical/react": "0.51.0",

@@ -3,6 +3,7 @@ import { inspectAgentUISources } from "./source-registry/index";
 import { applyAgentUISourceProjectMutation, recoverPendingAgentUISourceProjectMutation } from "./source-registry/project-mutation";
 import { AgentUISourceError } from "./source-registry/path-policy";
 import { resourcePaths } from "./optional-resource-paths";
+import { packageSourceDependency } from "./source-registry/package-dependencies";
 
 /** Installs source/adapters independently of scenarios and AppUIModel composition. */
 export async function installOptionalAgentUIResource(projectRoot: string, sourceItemId: string): Promise<void> {
@@ -19,6 +20,6 @@ export async function installOptionalAgentUIResource(projectRoot: string, source
   const resource = after.items.find(item => item.id === sourceItemId);
   const closureIds = new Set([sourceItemId, ...(resource?.dependencies ?? [])]);
   const invalid = after.items.filter(item => closureIds.has(item.id)).filter(item =>
-    !["managed", "customized"].includes(item.status) || item.dependencyIssues.length || item.resolvedRequirements.some(requirement => !requirement.compatible));
+    (!packageSourceDependency(item.id) && !["managed", "customized"].includes(item.status)) || item.dependencyIssues.length || item.resolvedRequirements.some(requirement => !requirement.compatible));
   if (!resource || invalid.length) throw new AgentUISourceError("AGENT_UI_SOURCE_INTEGRITY_FAILED", "Installed resource dependency closure is incomplete.", invalid);
 }

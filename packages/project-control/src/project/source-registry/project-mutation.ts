@@ -15,6 +15,8 @@ import type { UIProjectControlConfig } from "../types";
 import { applyAgentUISourceItem, removeAgentUISourceItems, preflightAgentUISourceApply, preflightAgentUISourceRemove, type ApplyAgentUISourceItemInput, type RemoveAgentUISourceItemsInput } from "./installer";
 import { sourceItemLock } from "./installer";
 import { inspectAgentUISources } from "./inspector";
+import { generatedSourceTargets } from "./generated-targets";
+import { packageSourceDependency } from "./package-dependencies";
 import { readAgentUISourceLock, readOptionalBuffer, serializeAgentUISourceLock, sha256 } from "./lock";
 import { AgentUISourceError, assertNoSymbolicLinkTraversal, assertSafeProjectRelativePath, resolveAgentUISourceRoots } from "./path-policy";
 import { commitAgentUISourceTransaction, type AgentUISourceFileMutation, recoverPendingAgentUISourceTransaction } from "./transaction";
@@ -39,7 +41,7 @@ interface SourceMutationJournal {
   originals: Original[];
 }
 const JOURNAL = "source-project-transaction.json";
-const generatedTargets = ["plugins/registry.generated.ts", "agent-contract/frontend-tools.generated.ts", "agent-ui/conversation/frontend-tool-uis.generated.ts", "agent-ui/conversation/integrations.generated.tsx"];
+const generatedTargets = generatedSourceTargets;
 const ordered = (paths: string[]) => [...new Set(paths)].sort();
 const message = (error: unknown) => error instanceof Error ? error.message : String(error);
 
@@ -244,7 +246,7 @@ async function mutateAttempt(projectRoot: string, operation: "apply" | "remove",
     const after = await inspectAgentUISources(projectRoot, ctx.config, registry);
     if (operation === "apply") {
       const ids = new Set(resolveAgentUISourceItemClosure(registry, (input as ApplyAgentUISourceItemInput).itemId).map(item => item.id));
-      const invalid = after.items.filter(item => ids.has(item.id)).filter(item => !["managed", "customized"].includes(item.status) || item.dependencyIssues.length || item.resolvedRequirements.some(requirement => !requirement.compatible));
+      const invalid = after.items.filter(item => ids.has(item.id)).filter(item => (!packageSourceDependency(item.id) && !["managed", "customized"].includes(item.status)) || item.dependencyIssues.length || item.resolvedRequirements.some(requirement => !requirement.compatible));
       if (invalid.length) throw new AgentUISourceError("AGENT_UI_SOURCE_INTEGRITY_FAILED", "Installed source dependency closure is incomplete.", invalid);
     }
     const verification = await verifyUIProject(projectRoot, projectControlConfigForPaths(ctx.paths, ctx.config), { projectConfigOverride: ctx.project.config });

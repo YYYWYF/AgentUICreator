@@ -1,6 +1,6 @@
 # Creator Workbench
 
-`pnpm dev` builds the development infrastructure, ensures the platform Host, and starts the Workbench on port 5174 alongside `creator-host-sandbox` on port 5176. The left pane previews the real Host URL in an iframe. The Host retains its own independent build and development scripts; Workbench does not import its React application.
+`pnpm dev` installs the exact committed dependency graph, rebuilds copied native dependencies for the current platform when necessary, builds the development infrastructure, ensures the platform Host, and starts the Workbench on port 5174 alongside `creator-host-sandbox` on port 5176. The left pane previews the real Host URL in an iframe. The Host retains its own independent build and development scripts; Workbench does not import its React application.
 
 Creator configuration is read from the workspace root `.env.creator.local`. `VITE_CREATOR_HOST_PREVIEW_URL` can select another running Host preview. Project inspection, mutation, verification, and mock resource installation use `@agent-ui/project-control/dev`; initialization uses `@agent-ui/bootstrap`. Assistant and embedded integration remain separate Host examples.
 
@@ -11,3 +11,11 @@ Runtime reporting follows the Workbench's runtime-diagnostics configuration; vis
 Bootstrap accepts an explicit initialization adapter. Workbench composes `initializeAgentUIProject(input, createAgentUIInitializationHost())`; Bootstrap does not import Project Control.
 
 Host preparation builds only runtime, Bootstrap, Project Control, Source Registry, and Mock infrastructure. `scripts/prepare-workbench.mjs` separately prepares Creator after those prerequisites; both the supervisor and Workbench's package-local `predev` use it. The E2E supervisor also starts its Host on 5180 through the Workbench-owned overlay, retaining the real iframe and observation assertions. Pointing Workbench at an ordinary external Host URL renders that Host but does not inject the adapter; observation reporting requires a preview server started with the overlay.
+
+## Source-only copy on Windows
+
+Install Node.js 20.19.0+ (or 22.12.0+), pnpm 8.12.0 and Python 3.11+ (Python 3.12 recommended), and configure the company's npm/pip mirrors. From the workspace root run `pnpm dev`. No separate `pnpm install`, `pnpm build`, Host initialization or Python environment setup is required. The first launch installs locked dependencies and creates a platform-specific Python cache; subsequent launches verify the lockfile and reuse the cache. Windows supports both `python` on PATH and the `py` launcher, and pnpm may use either its JavaScript entry or standalone `pnpm.exe`.
+
+Copy source and lockfiles, excluding `.git`, `node_modules`, `dist`, `.venv`, generated Host `src/agent-ui` / `.agent-ui`, and machine-specific Python executable paths. Keep your model service settings in `.env.creator.local`; the UI starts without credentials, and actual model requests require a reachable service URL and API key. The Creator configuration remains in the tool host and is not shipped into the generated Agent Frontend.
+
+`pnpm verify:dev-startup` exercises the same supervisor with fresh ports and a fresh Python cache, validates workspace readiness and the Python proxy, and loads both pages in Chromium. Use `--install-browser` to install Chromium when necessary. The dedicated `creator-startup.yml` workflow runs this entry on Ubuntu and Windows without preparing dependencies, build output, a generated Host, or a Python venv beforehand.

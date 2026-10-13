@@ -265,6 +265,16 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
     } finally { inFlight.current = false; setBusy(false); }
   }
 
+  function selectScenario(scenario: { id: string; title: string; resources?: readonly string[] | undefined }) {
+    if (busy || !state) return;
+    if (scenario.resources?.length && (compatibility?.status !== "checked" || requirementsFor(scenario.id).length > 0)) {
+      setResourceSelection(scenario.id);
+      return;
+    }
+    setResourceSelection(null);
+    void act("/select", { scenarioId: scenario.id, speed: state.speed }, formatLocaleMessage(localeMessages.mock.selectedForTheNextRequest, titleFor(scenario)));
+  }
+
   async function copyAddress() {
     if (!state?.endpoint) return;
     try {
@@ -330,7 +340,7 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
             <p>{localeMessages.mock.afterSelectingSendAMessageInTheConnected}</p>
             <p>{localeMessages.mock.someDemosRequireExtraAgentUIResourcesCreator}</p>
           </details>
-          {compatibility?.status !== "checked" ? <p className="creator-mock-requirement" role="status">{compatibility === null ? localeMessages.mock.checkingDemoSupportInTheCurrentProject : localeMessages.mock.couldNotCheckProjectResourcesSelectAndInitialize}</p> : null}
+          {compatibility?.status !== "checked" ? <p className="creator-mock-requirement" role="status">{compatibility === null ? localeMessages.mock.checkingDemoSupportInTheCurrentProject : compatibility.issue?.code === "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED" ? localeMessages.mock.projectControlRestartRequired : localeMessages.mock.couldNotCheckProjectResourcesSelectAndInitialize}</p> : null}
           <label className="creator-mock-speed">{localeMessages.mock.replayDurationMultiplier}
             <NativeSelect disabled={busy} value={state.speed} onChange={(event) => void act("/select", { selection: state.selection ?? { type: "builtin", id: state.scenarioId }, projectId: state.projectId, speed: Number(event.target.value) }, localeMessages.mock.replayDurationUpdatedForTheNextRequest) }>
               <option value={0}>{localeMessages.mock.completeImmediately}</option><option value={0.1}>{localeMessages.mock.fastTest01}</option><option value={0.5}>{localeMessages.mock.faster05}</option><option value={1}>{localeMessages.mock.normal1}</option><option value={2}>{localeMessages.mock.slower2}</option>
@@ -357,9 +367,13 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
             {scenarios.map((scenario, index) => <Fragment key={scenario.id}>
               {index === 0 || groupIndexFor(scenario.id, localeMessages) !== groupIndexFor(scenarios[index - 1]!.id, localeMessages)
                 ? <h4 className="creator-mock-group-heading">{groupTitleFor(scenario.id, localeMessages)}</h4> : null}
-              <div className="creator-mock-scenario" data-selected={!localSelected && scenario.id === state.scenarioId}>
+              <div className="creator-mock-scenario" data-selected={!localSelected && scenario.id === state.scenarioId}
+                onClick={event => {
+                  if ((event.target as Element).closest("label, input, button, details, a")) return;
+                  selectScenario(scenario);
+                }}>
               <label className="creator-mock-scenario-choice">
-              <input type="radio" name="creator-mock-scenario" checked={scenario.id === resourceSelection || (resourceSelection === null && !localSelected && scenario.id === state.scenarioId)} disabled={busy} onChange={() => { if (scenario.resources?.length) setResourceSelection(scenario.id); else { setResourceSelection(null); void act("/select", { scenarioId: scenario.id, speed: state.speed }, formatLocaleMessage(localeMessages.mock.selectedForTheNextRequest, titleFor(scenario))); } }} />
+              <input type="radio" name="creator-mock-scenario" checked={scenario.id === resourceSelection || (resourceSelection === null && !localSelected && scenario.id === state.scenarioId)} disabled={busy} onChange={() => {}} onClick={() => selectScenario(scenario)} />
               <span><strong>{titleFor(scenario)}</strong>{descriptionFor(scenario) ? <span>{descriptionFor(scenario)}</span> : null}
               </span></label>
               {getDemoFocusTags(localeMessages)[scenario.id]?.length ? <div className="creator-mock-focus-tags" role="group" aria-label={localeMessages.mock.featuredEventsAndCapabilities}>
@@ -379,8 +393,6 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
               </div> : null}
               {scenario.resources?.length && resourceSelection === scenario.id ? <div>
                 <p>{compatibility?.status === "checked" && requirementsFor(scenario.id).length === 0 ? localeMessages.mock.requiredResourcesReady : localeMessages.mock.thisScenarioNeedsAdditionalAgentUIResourcesInstall}</p>
-                <Button size="sm" variant="outline" type="button" disabled={busy || compatibility?.status !== "checked" || requirementsFor(scenario.id).length > 0}
-                  onClick={() => void act("/select", { scenarioId: scenario.id, speed: state.speed }, formatLocaleMessage(localeMessages.mock.enabledSendAMessageInAgentUITo, titleFor(scenario)))}>{localeMessages.mock.runScenario}</Button>
               </div> : null}
               {installation?.scenarioId === scenario.id ? <div className="creator-mock-install-status" data-status={installation.status} role={installation.status === "error" ? "alert" : "status"}>{localizeCreatorPresentation(installation.message, localeMessages)}</div> : null}
               {requirementsFor(scenario.id).some(requirement => !requirement.installable && requirement.status !== "conflict") ? <div className="creator-mock-install-status">{localeMessages.mock.thisCreatorHostDoesNotSupportOneClick}</div> : null}

@@ -77,7 +77,7 @@ it("installs the Official A2UI Resource and supplements missing dependencies", a
   await rm(path.join(f.root, "node_modules/react-markdown"), { recursive: true });
   const model = await readFile(f.modelPath, "utf8");
   const runPackages = vi.fn(async (_root: string, command: { command: string; args: string[] }) => {
-    expect(command).toEqual({ command: "npm", args: ["install", "--save", "react-markdown@10.1.0"] });
+    expect(command).toEqual({ command: "npm", args: ["install", "--save", "--save-exact", "react-markdown@10.1.0"] });
     manifest.dependencies["react-markdown"] = "10.1.0";
     await writeFile(manifestPath, JSON.stringify(manifest));
     const directory = path.join(f.root, "node_modules/react-markdown"); await mkdir(directory, { recursive: true });
