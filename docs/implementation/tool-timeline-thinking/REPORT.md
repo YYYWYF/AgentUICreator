@@ -80,10 +80,9 @@ known running ordinary tool changes the neutral label to Working. Installing the
 indicator suppresses the old loading dot; disabling it restores that compatibility
 path. There is no reasoning-text analysis or inferred task phase.
 
-The elapsed property uses page-local observation time, clearly labeled as such.
-It persists across label changes, resets with active-run/message/thread identity,
-and is cleaned up after termination or unmount. Historical/server duration is not
-fabricated, and no elapsed value is shown before the local observation reaches 1s.
+The initial implementation displayed page-local observation time. Removed on
+2026-10-13 at the user's request: the product indicator now displays only its
+activity label, with no elapsed value or page-local timer.
 
 All product text has en-US/zh-CN parity through the unified locale layer, including
 Creator resource/demo names. The official surfaces and current theme tokens are

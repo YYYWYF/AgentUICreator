@@ -26,7 +26,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "../../../../../vendor/assistant-ui/components/ui/collapsible.js";
+} from "../../ui/collapsible";
 import { cn } from "../../../../../vendor/assistant-ui/lib/utils.js";
 import { Button } from "../../ui/button";
 import { Textarea } from "../../../../../vendor/assistant-ui/components/ui/textarea.js";

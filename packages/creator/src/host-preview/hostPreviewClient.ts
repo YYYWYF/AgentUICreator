@@ -1,6 +1,6 @@
 import { createCreatorRuntimeCompositionReporter, createCreatorRuntimeDiagnosticReporter } from "../runtime-diagnostics/runtimeDiagnosticReporter.js";
 import { createVisualObservationReporter } from "../visual-observation/VisualObservationReporter.js";
-import { AGENT_UI_OBSERVATION_EVENT, AGENT_UI_OBSERVATION_REQUEST_EVENT, HOST_PREVIEW_CONNECT, isHostPreviewSession, type PreviewUploadResult } from "./protocol.js";
+import { AGENT_UI_OBSERVATION_EVENT, AGENT_UI_OBSERVATION_REQUEST_EVENT, HOST_DOCK_CONNECT, HOST_PREVIEW_CONNECT, isHostPreviewSession, type PreviewUploadResult } from "./protocol.js";
 
 type Observation =
   | { type: "runtime-composition"; composition: object & { appUIModelHash?: string } }
@@ -35,8 +35,13 @@ export function installCreatorHostPreviewBridge(): () => void {
     report?.(observation);
   };
   const connect = (event: MessageEvent) => {
-    if (window.parent === window || !new URLSearchParams(location.search).has("creator-preview")) return;
-    if (event.source !== window.parent || event.data?.type !== HOST_PREVIEW_CONNECT || !isHostPreviewSession(event.data.session)) return;
+    if (!isHostPreviewSession(event.data?.session)) return;
+    const dockFrame = document.getElementById("agent-ui-creator-dock")?.shadowRoot?.querySelector<HTMLIFrameElement>("#agent-ui-creator-frame");
+    const fromDock = event.data.type === HOST_DOCK_CONNECT && dockFrame?.contentWindow != null &&
+      event.source === dockFrame.contentWindow && event.origin === new URL(dockFrame.src, location.href).origin;
+    const fromPreview = event.data.type === HOST_PREVIEW_CONNECT && window.parent !== window &&
+      new URLSearchParams(location.search).has("creator-preview") && event.source === window.parent;
+    if (!fromDock && !fromPreview) return;
     const session = event.data.session;
     const referrerOrigin = document.referrer ? new URL(document.referrer).origin : undefined;
     const parentKey = "agent-ui-creator:preview-parent-origin";
@@ -46,16 +51,22 @@ export function installCreatorHostPreviewBridge(): () => void {
     // previously authenticated against the initial parent referrer in this tab.
     const parentMatches = referrerOrigin === event.origin ||
       (referrerOrigin === location.origin && trustedParent === event.origin);
-    if (event.origin !== session.creatorOrigin || !parentMatches) return;
+    if (event.origin !== session.creatorOrigin || (!fromDock && !parentMatches)) return;
     const port = event.ports[0];
     if (port === undefined) return;
-    try { sessionStorage.setItem(parentKey, event.origin); } catch { /* The current port still works. */ }
+    if (fromPreview) { try { sessionStorage.setItem(parentKey, event.origin); } catch { /* The current port still works. */ } }
     disposeSession();
     let running = false;
     const applySource = (source: unknown) => {
       if (running || !source || typeof source !== "object") return;
       const value = source as { identity?: string; runtimeEndpoint?: string; conversationDataEndpointOverride?: string; backendProxyPrefix?: string };
-      if (typeof value.identity !== "string" || !["/__agent-ui/mock", "/__agent-ui/agent-proxy/run"].includes(value.runtimeEndpoint ?? "")) return;
+      if (typeof value.identity !== "string" || typeof value.runtimeEndpoint !== "string") return;
+      if (!["/__agent-ui/mock", "/__agent-ui/agent-proxy/run"].includes(value.runtimeEndpoint)) {
+        try {
+          const endpoint = new URL(value.runtimeEndpoint);
+          if (!["http:", "https:"].includes(endpoint.protocol) || endpoint.username || endpoint.password || endpoint.hash || value.backendProxyPrefix !== endpoint.origin) return;
+        } catch { return; }
+      }
       (window as Window & { __agentUIPreviewEnvironment?: unknown }).__agentUIPreviewEnvironment = value;
       window.dispatchEvent(new Event("agent-ui:preview-environment"));
     };

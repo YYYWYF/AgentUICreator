@@ -7,6 +7,8 @@
     ]
   },
   "include": [
+    "tests/question-style-boundary.spec.ts",
+    "playwright.question-style.config.ts",
     "tests/style-boundary-visual.spec.ts",
     "tests/embedded-style-isolation.spec.ts",
     "playwright.style-boundary.config.ts",

@@ -5,7 +5,7 @@ import { ThreadListItemMorePrimitive, ThreadListItemPrimitive, useAui, useAuiSta
 import { ArchiveIcon, Loader2Icon, MoreHorizontalIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "./adapters/assistant-ui/components/ui/button.js";
-import { Input } from "./vendor/assistant-ui/components/ui/input.js";
+import { Input } from "./adapters/assistant-ui/components/ui/input.js";
 import { useAgentUIPortalContainer } from "./style-boundary/AgentUIRoot.js";
 
 export interface ConversationThreadListItemActions {

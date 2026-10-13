@@ -68,6 +68,11 @@
   box-shadow: -12px 0 36px rgb(15 23 42 / 4%);
 }
 
+/* Semantic secondary text must stay readable at the panel's base size. */
+.creator-panel :where(small, sub, sup) {
+  font-size: max(12px, 0.875em);
+}
+
 .creator-panel-resizer {
   position: absolute;
   z-index: 10;
@@ -123,7 +128,7 @@
 
 .creator-panel-header span {
   color: #64748b;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.04em;
 }
@@ -145,7 +150,7 @@
   border-radius: 999px;
   color: #175cd3;
   background: #eff8ff;
-  font-size: 0.58rem;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.02em;
   text-transform: none;
@@ -484,7 +489,7 @@
   border-radius: 50%;
   color: #fff;
   background: #a86308;
-  font-size: 0.65rem;
+  font-size: 12px;
 }
 
 .creator-workspace-menu {
@@ -655,7 +660,7 @@
   border-bottom: 0;
   border-radius: 8px 8px 0 0;
   background: #f1f5f9;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .creator-project-integration-guide-body pre {
@@ -665,7 +670,7 @@
   border-radius: 0 0 8px 8px;
   background: #f8fafc;
   overflow-x: auto;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.75;
 }
 
@@ -677,7 +682,7 @@
   height: 24px;
   padding: 0 6px;
   color: #64748b;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .creator-project-integration-guide-body [role="alert"] {
@@ -980,7 +985,7 @@
   padding: 0.08rem 0.25rem;
   border-radius: 0.25rem;
   background: rgb(16 24 40 / 7%);
-  font-size: 0.82em;
+  font-size: 13px;
 }
 
 .creator-markdown pre {
@@ -991,7 +996,7 @@
   border-radius: 10px;
   color: #e2e8f0;
   background: #172033;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.8;
 }
 
@@ -1005,7 +1010,7 @@
 .creator-markdown table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.72rem;
+  font-size: 13px;
 }
 
 .creator-markdown th,
@@ -1061,7 +1066,7 @@
 .creator-tool-activity header strong {
   overflow: hidden;
   font-family: ui-monospace,SFMono-Regular,monospace;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1069,7 +1074,7 @@
 
 .creator-tool-activity header small {
   color: #667085;
-  font-size: 0.64rem;
+  font-size: 12px;
 }
 
 .creator-tool-activity-dot {
@@ -1105,7 +1110,7 @@
 
 .creator-tool-activity summary {
   color: #64748b;
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -1117,7 +1122,7 @@
   border-radius: 8px;
   color: #e2e8f0;
   background: #172033;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.75;
   white-space: pre-wrap;
 }
@@ -1220,7 +1225,7 @@
 .creator-stage-diagnostics > summary {
   width: fit-content;
   color: #64748b;
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -1237,7 +1242,7 @@
 .creator-stage-debug h3 {
   margin: 0 0 8px;
   color: #475569;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -1250,7 +1255,7 @@
   grid-template-columns: minmax(0,0.9fr) minmax(0,1.1fr);
   gap: 10px;
   padding: 5px 0;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.65;
 }
 
@@ -1294,7 +1299,7 @@
 
 .creator-receipt-header > span {
   color: #64748b;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
 }
 
@@ -1309,7 +1314,7 @@
 .creator-receipt-section h2 {
   margin: 0 0 10px;
   color: #475569;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -1317,7 +1322,7 @@
 .creator-receipt-meta,
 .creator-receipt-note {
   color: #64748b;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.75;
   overflow-wrap: anywhere;
 }
@@ -1355,7 +1360,7 @@
   min-width: 0;
   overflow: hidden;
   color: #475569;
-  font-size: 11px;
+  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1364,7 +1369,7 @@
   flex: none;
   padding: 2px 7px;
   border-radius: 6px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1.6;
 }
@@ -1401,7 +1406,7 @@
   border-radius: 8px;
   color: #e2e8f0;
   background: #172033;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.75;
   white-space: pre;
 }
@@ -1518,7 +1523,7 @@
 
 .creator-panel-composer small {
   color: #94a3b8;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -1678,7 +1683,7 @@
   border-radius: 8px;
   color: #334155;
   background: #f8fafc;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.75;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -1710,10 +1715,14 @@
   gap: 10px;
 }
 
+.creator-mock-local-recordings {
+  margin-bottom: 18px;
+}
+
 .creator-mock-group-heading {
   margin: 18px 0 0;
   color: #64748b;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.6;
 }
@@ -1723,6 +1732,7 @@
 }
 
 .creator-mock-scenario {
+  position: relative;
   padding: 14px;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
@@ -1794,10 +1804,57 @@
 }
 
 .creator-mock-resource-actions {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-end: 14px;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
   flex: none;
+}
+
+.creator-mock-scenario:has(.creator-mock-resource-actions) .creator-mock-scenario-choice > span > strong {
+  padding-inline-end: 148px;
+}
+
+.creator-mock-scenario-footer:has(> .creator-mock-resource-actions:only-child) {
+  margin: 0;
+}
+
+.creator-mock-install-icon {
+  width: auto;
+  height: 26px;
+  padding: 4px 7px;
+  gap: 5px;
+  font-size: 12px;
+  border: 1px solid #dbe7fa;
+  border-radius: 8px;
+  color: #175cd3;
+  background: #f5f8ff;
+  box-shadow: 0 1px 2px rgb(23 92 211 / 6%);
+}
+
+.creator-mock-install-icon:hover:not(:disabled) {
+  border-color: #b6cff5;
+  background: #eaf1ff;
+}
+
+.creator-mock-install-icon > svg {
+  width: 14px;
+  height: 14px;
+}
+
+.creator-mock-install-spinner {
+  animation: creator-mock-install-spin 900ms linear infinite;
+}
+
+@keyframes creator-mock-install-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .creator-mock-install-spinner { animation: none; }
 }
 
 .creator-mock-resource-actions > button {
@@ -1873,7 +1930,7 @@
 
 .creator-mock-scenario code {
   color: #667085;
-  font-size: 0.7rem;
+  font-size: 12px;
   overflow-wrap: anywhere;
 }
 
@@ -1899,7 +1956,7 @@
   border-radius: 6px;
   color: #64748b;
   background: #f1f5f9;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -2055,7 +2112,7 @@
   align-items: center;
   gap: 7px;
   color: #64748b;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -2104,7 +2161,7 @@
   border-radius: 5px;
   color: #64748b;
   background: #eef2f6;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .creator-tool-activity--completed .creator-tool-status {
@@ -2118,7 +2175,7 @@
 }
 
 .creator-stage-details-list dd {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .creator-panel-running::before {
@@ -2184,7 +2241,7 @@
 }
 
 .creator-mock-panel .creator-mock-address [data-slot=input] {
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .creator-mock-panel .creator-mock-search [data-slot=input] {
@@ -2202,7 +2259,7 @@
 }
 
 .creator-mock-resource-diagnostics {
-  font-size: 11px;
+  font-size: 12px;
   color: #64748b;
 }
 
@@ -2216,7 +2273,7 @@
   border-radius: 8px;
   color: #e2e8f0;
   background: #172033;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .creator-mock-install-status {
@@ -2294,7 +2351,7 @@
     font-size: 12px;
   }
   .creator-project-integration-guide > header > button {
-    font-size: 11px;
+    font-size: 12px;
   }
 }
 
@@ -2417,7 +2474,7 @@
   align-items: center;
   gap: 4px;
   margin-left: auto;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .creator-tool-group-status--failed {
@@ -2447,6 +2504,10 @@
   font-size: 12px;
   font-weight: 400;
   box-shadow: none;
+}
+
+.creator-panel [data-slot="native-select"] {
+  padding-block: 4px;
 }
 
 .creator-panel :is([data-slot="input"], [data-slot="native-select"]):focus-visible {
@@ -2524,7 +2585,7 @@
 
 .creator-workspace-metadata [data-slot="badge"] {
   flex: none;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .creator-workspace-metadata [data-project-ready="true"] {
@@ -2556,7 +2617,7 @@
 
 .creator-workspace-close > span {
   color: #94a3b8;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .creator-workspace-metadata code {
@@ -2564,11 +2625,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .creator-workspace-info {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .creator-workspace-info summary,
@@ -2638,7 +2699,7 @@
 .creator-workspace-info-panel dt {
   margin: 0;
   color: #64748b;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -2652,7 +2713,7 @@
 .creator-workspace-info-panel code {
   color: #475569;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 11px;
+  font-size: 12px;
   overflow-wrap: anywhere;
 }
 
@@ -2687,7 +2748,7 @@
 }
 
 .creator-workspace-selector > span {
-  font-size: 11px;
+  font-size: 12px;
   color: #64748b;
 }
 
@@ -2699,7 +2760,7 @@
 
 .creator-workspace-selector summary {
   padding: 4px 0;
-  font-size: 11px;
+  font-size: 12px;
   color: #64748b;
 }
 
@@ -2711,7 +2772,7 @@
 
 .creator-workspace-selector details label {
   grid-column: 1 / -1;
-  font-size: 11px;
+  font-size: 12px;
   color: #64748b;
 }
 
@@ -2733,7 +2794,7 @@
 
 .creator-panel-empty--error > details {
   margin-top: 12px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .creator-panel-empty--error summary {
@@ -2751,7 +2812,7 @@
   align-items: center;
   gap: 6px;
   color: #2563eb;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -2761,7 +2822,7 @@
 }
 
 .creator-question-selection-hint {
-  font-size: 10px;
+  font-size: 12px;
   color: #64748b;
 }
 
@@ -2801,7 +2862,7 @@
 
 .creator-mock-address-row .creator-mock-copy {
   flex: none;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .creator-mock-panel .creator-mock-service {
@@ -2810,21 +2871,21 @@
 }
 
 .creator-mock-service > p:last-child {
-  font-size: 11px;
+  font-size: 12px;
   margin-bottom: 0;
 }
 
 .creator-mock-panel .creator-mock-current-demo {
   margin: 4px 0 8px;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .creator-mock-demo-help {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .creator-mock-demo-help p {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .creator-update-plugin-card {
@@ -2851,7 +2912,7 @@
   border-radius: 5px;
   background: #f1f5f9;
   color: #64748b;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .creator-update-plugin-status[data-customized="true"] {
@@ -2884,9 +2945,9 @@
 
 .creator-delivery-report p { margin: 6px 0; font-size: 12px; line-height: 1.6; }
 .creator-delivery-checks { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
-.creator-delivery-checks span { padding: 3px 6px; border-radius: 5px; background: #f1f5f9; color: #64748b; font-size: 11px; }
+.creator-delivery-checks span { padding: 3px 6px; border-radius: 5px; background: #f1f5f9; color: #64748b; font-size: 12px; }
 .creator-delivery-report .creator-delivery-blocker { color: #b91c1c; }
-.creator-delivery-report details { margin-top: 8px; color: #64748b; font-size: 11px; }
+.creator-delivery-report details { margin-top: 8px; color: #64748b; font-size: 12px; }
 .creator-delivery-report summary { cursor: pointer; }
 
 .creator-receipt-meta { overflow-wrap: anywhere; }

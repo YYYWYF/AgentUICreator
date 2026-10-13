@@ -1,5 +1,6 @@
 import type { ResolvedPreviewAgentSource } from "../agent-connection/types.js";
 export const HOST_PREVIEW_CONNECT = "agent-ui-creator:host-preview-connect";
+export const HOST_DOCK_CONNECT = "agent-ui-creator:host-dock-connect";
 export const AGENT_UI_OBSERVATION_REQUEST_EVENT = "agent-ui:observation-request";
 export const AGENT_UI_OBSERVATION_EVENT = "agent-ui:observation";
 

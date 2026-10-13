@@ -108,6 +108,9 @@ function applyThreadListGroupIdentity(source, localPath) {
 
 export function applyProductAdaptations(source, localPath) {
   let installed = applyThreadListGroupIdentity(applyAgentUIPortalContainerBridge(source, localPath), localPath);
+  if (localPath === "components/ui/badge.tsx") {
+    installed = replaceExactlyOnce(installed, '  const defaultProps = {\n', '  const defaultProps = {\n    "data-agent-ui-owned": "",\n', localPath);
+  }
   if (localPath === "components/assistant-ui/elements/tool-call.tsx") {
     installed = replaceExactlyOnce(installed, '<CollapsibleTrigger className="group/trigger', '<CollapsibleTrigger className="focus-visible:ring-1 focus-visible:ring-ring/50 group/trigger', localPath);
   }
@@ -220,7 +223,7 @@ const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const defaultVendorRoot = path.join(packageRoot, "src/internal/vendor/assistant-ui");
 const adapterRoot = path.join(packageRoot, "src/internal/adapters/assistant-ui");
 const hash = value => createHash("sha256").update(value).digest("hex");
-const seeded = new Set(["components/ui/button.tsx", "components/assistant-ui/elements/tool-timeline.tsx", ...PORTAL_BRIDGE_FILES, ...SEARCH_LABELS_SEAM_FILES, ...Object.keys(localizationRecipes),
+const seeded = new Set(["components/ui/badge.tsx", "components/assistant-ui/elements/follow-up-suggestions.aui.tsx", "components/ui/button.tsx", "components/ui/collapsible.tsx", "components/ui/input.tsx", "components/ui/skeleton.tsx", "components/assistant-ui/elements/agent-plan.tsx", "components/assistant-ui/elements/subagent-list.tsx", "components/assistant-ui/elements/tool-timeline.tsx", ...PORTAL_BRIDGE_FILES, ...SEARCH_LABELS_SEAM_FILES, ...Object.keys(localizationRecipes),
   "components/assistant-ui/elements/thinking-indicator.tsx", "components/assistant-ui/elements/agent-status.tsx", "components/assistant-ui/elements/job-progress.tsx",
   "components/assistant-ui/elements/quote.aui.tsx", "components/assistant-ui/elements/composer-trigger-popover.aui.tsx"]);
 function dependency(importPath, filename, files) {

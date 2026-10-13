@@ -108,6 +108,7 @@
 }
 
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="aui_message-group"] {
+  --agent-ui-message-gap: 28px;
   row-gap: 28px;
   margin-bottom: 32px;
 }

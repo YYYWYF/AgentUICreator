@@ -3,8 +3,7 @@ export const enUS = {
 
   "thinkingIndicator": {
     "thinking": "Thinking...",
-    "working": "Working...",
-    "elapsed": "Observed {seconds}s on this page"
+    "working": "Working..."
 },
   "toolTimeline": {
     "pendingSummary": "Tool execution · {count} steps",
@@ -307,6 +306,12 @@ export const enUS = {
   "files": {
     "unnamed": "Unnamed file",
     "download": "Download {filename}"
+  },
+  "questionOptions": {
+    "confirm": "Confirm",
+    "noneSelected": "Nothing selected",
+    "selected": "Selected:",
+    "count": "{count} of {max}"
   },
   "toolPresentation": {
     "request": "Request:",

@@ -2,12 +2,14 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import type { AgentConnectionState } from "./types.js";
-export function validateConnection(value: unknown): Pick<AgentConnectionState, "activeSource" | "endpoint"> {
+export function validateConnection(value: unknown): Pick<AgentConnectionState, "activeSource" | "endpoint" | "connectionMode"> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid Agent connection.");
   const fields = value as Record<string, unknown>;
-  if (Object.keys(fields).some(key => key !== "activeSource" && key !== "endpoint") ||
+  if (Object.keys(fields).some(key => key !== "activeSource" && key !== "endpoint" && key !== "connectionMode") ||
     (fields.activeSource !== "mock" && fields.activeSource !== "connected")) throw new Error("Select Mock or Connected Agent.");
   let endpoint: string | undefined;
+  if (fields.connectionMode !== undefined && fields.connectionMode !== "direct" && fields.connectionMode !== "proxy") throw new Error("Invalid Agent connection mode.");
+  const connectionMode = fields.connectionMode === "direct" ? "direct" : "proxy";
   if (fields.endpoint !== undefined) {
     if (typeof fields.endpoint !== "string" || fields.endpoint.length > 4096) throw new Error("Invalid Agent endpoint.");
     const url = new URL(fields.endpoint);
@@ -15,7 +17,7 @@ export function validateConnection(value: unknown): Pick<AgentConnectionState, "
     endpoint = url.href;
   }
   if (fields.activeSource === "connected" && !endpoint) throw new Error("Agent endpoint is required.");
-  return { activeSource: fields.activeSource, ...(endpoint ? { endpoint } : {}) };
+  return { activeSource: fields.activeSource, connectionMode, ...(endpoint ? { endpoint } : {}) };
 }
 export class ConnectionStore {
   readonly file: string;

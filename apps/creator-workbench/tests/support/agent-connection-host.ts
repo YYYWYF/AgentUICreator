@@ -22,9 +22,16 @@ export async function createConnectionHostFixture(options: { themeCommands?: boo
   const servers: ViteDevServer[] = [];
   const pending = new Set<ServerResponse>();
   let runs = 0;
+  let corsEnabled = false;
   let finishRun: () => void = () => { throw new Error("Agent has not started a run."); };
   // Intentionally no CORS headers, and no preflight support.
   const agent = createHttpServer(async (request, response) => {
+    if (corsEnabled) {
+      response.setHeader("Access-Control-Allow-Origin", request.headers.origin ?? "*");
+      response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+      response.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+      if (request.method === "OPTIONS") { response.writeHead(204); response.end(); return; }
+    }
     if (request.method !== "POST" || request.url !== "/agent") { response.writeHead(405); response.end(); return; }
     let body = ""; for await (const chunk of request) body += chunk;
     const input = JSON.parse(body) as { threadId: string; runId: string };
@@ -77,24 +84,29 @@ export async function createConnectionHostFixture(options: { themeCommands?: boo
   try {
     await mkdir(hostRoot); await mkdir(creatorRoot);
     const template = JSON.parse(await readFile(path.join(repository, "packages/project-control/tests/fixtures/project/package.json"), "utf8"));
+    template.dependencies["@agent-ui/plugins"] = "workspace:*";
     const devDependencies = Object.fromEntries(["tailwindcss", "tw-animate-css", "@tailwindcss/vite"].map(name => [name, template.devDependencies[name]]));
     await writeFile(path.join(hostRoot, "package.json"), JSON.stringify({ name: "ordinary-preview-host", private: true, type: "module", dependencies: template.dependencies, devDependencies }));
     for (const name of Object.keys({ ...template.dependencies, ...devDependencies })) await link(hostRoot, name);
     await mkdir(path.join(hostRoot, "src"), { recursive: true });
     await initializeAgentUIProject({ projectRoot: hostRoot, mode: "platform", sourceRoot: "src/agent-ui" }, createAgentUIInitializationHost());
     if (existsSync(path.join(hostRoot, "node_modules/@agent-ui/mock-agent"))) throw new Error("Host fixture must not install Mock infrastructure.");
-    await writeFile(path.join(hostRoot, "index.html"), '<div id="root"></div><script type="module" src="/src/main.tsx"></script>');
+    await writeFile(path.join(hostRoot, "index.html"), '<div id="root"></div><script type="module" src="/src/main.tsx"></script><script type="module" src="/@fs/' + path.join(repository, "examples/creator-host-sandbox/dev/creator-dock.ts").replaceAll("\\", "/") + '"></script>');
     await writeFile(path.join(hostRoot, "src/main.tsx"), 'import { createRoot } from "react-dom/client"; import { Agent } from "./agent-ui"; import "./host.css"; createRoot(document.getElementById("root")!).render(<Agent />);');
     await writeFile(path.join(hostRoot, "src/host.css"), "html,body,#root { margin:0; width:100%; height:100%; } #root { height:100dvh; }");
     const workspaceId = createHash("sha256").update(realpathSync(hostRoot)).digest("hex");
     await writeFile(path.join(creatorRoot, "package.json"), JSON.stringify({ private: true, type: "module", dependencies: { react: template.dependencies.react, "react-dom": template.dependencies["react-dom"], "@agent-ui/creator": "workspace:*" } }));
     for (const name of ["react", "react-dom", "@agent-ui/creator"]) await link(creatorRoot, name);
     await writeFile(path.join(creatorRoot, "index.html"), '<div id="root"></div><script type="module" src="/main.tsx"></script>');
+    await writeFile(path.join(creatorRoot, "dock.html"), '<div id="root"></div><script type="module" src="/dock.tsx"></script>');
+    const dockSource = await readFile(path.join(repository, "apps/creator-workbench/src/dock.tsx"), "utf8");
+    await writeFile(path.join(creatorRoot, "dock.tsx"), dockSource.replace("declare const __CREATOR_HOST_WORKSPACE_ID__: string;", `const __CREATOR_HOST_WORKSPACE_ID__ = ${JSON.stringify(workspaceId)};`));
     const creator = await createServer({ configFile: false, root: creatorRoot, optimizeDeps: { noDiscovery: true, include: ["react", "react-dom/client", "@agent-ui/creator/ui", "@agent-ui/creator/host-preview"] }, plugins: [react(), createCreatorDevServerPlugin({ projectRoot: hostRoot, python: { environment: { CREATOR_VERIFICATION_MODE: "static_only" },
       ...(options.themeCommands ? { allowExternalEndpoint: false, pythonExecutable: process.env.CREATOR_THEME_TEST_PYTHON ?? path.join(repository, "packages/creator-python/.venv/bin/python"), pythonPackageRoot: path.join(repository, "packages/creator-python") } : {}), log: () => undefined } })], server: { host: "127.0.0.1", port: 0, hmr: false, fs: { allow: [root, repository] } }, resolve: { dedupe: ["react", "react-dom"] } });
     servers.push(creator); await creator.listen();
     const creatorOrigin = creator.resolvedUrls!.local[0]!;
     const host = await createServer({ configFile: false, root: hostRoot,
+      define: { "import.meta.env.VITE_CREATOR_DOCK_URL": JSON.stringify(`${creatorOrigin}dock.html`) },
       // Lazy plugin imports must not trigger dependency reloads mid-test.
       optimizeDeps: { noDiscovery: true, include: ["react", "react-dom/client", "@agent-ui/react", "@agent-ui/react/lexical", "@agent-ui/runtime-conversation", "@agent-ui/runtime-core", "@agent-ui/runtime-react", "@base-ui/react/**", "@assistant-ui/react-lexical", "lexical", "zod", "zustand"] },
       plugins: [react(), tailwindcss(), createCreatorHostPreviewPlugin({ creatorOrigin, workspaceId })], server: { host: "127.0.0.1", port: 0, fs: { allow: [root, repository] } }, resolve: { dedupe: ["react", "react-dom"] } });
@@ -117,6 +129,6 @@ export async function createConnectionHostFixture(options: { themeCommands?: boo
     await new Promise<void>(resolve => agent.listen(0, "127.0.0.1", resolve));
     const address = agent.address();
     if (!address || typeof address === "string") throw new Error("Missing Agent address");
-    return { creatorOrigin, hostOrigin, workspaceId, hostRoot, agentEndpoint: `http://127.0.0.1:${address.port}/agent`, finishRun: () => finishRun(), runCount: () => runs, pendingCount: () => pending.size, close };
+    return { creatorOrigin, hostOrigin, workspaceId, hostRoot, agentEndpoint: `http://127.0.0.1:${address.port}/agent`, enableCors: () => { corsEnabled = true; }, finishRun: () => finishRun(), runCount: () => runs, pendingCount: () => pending.size, close };
   } catch (error) { await close(); throw error; }
 }

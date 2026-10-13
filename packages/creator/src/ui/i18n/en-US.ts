@@ -56,6 +56,13 @@ export const enUS = {
     "busy": "Wait for the current operation or question to finish."
 },
   "agentConnection": {
+    "connectionMode": "Connection mode",
+    "directConnection": "Direct connection",
+    "enableForwarding": "Enable forwarding",
+    "directConnectionHelp": "The browser requests the Agent directly. The service must allow CORS. Changing the connection mode saves it immediately and keeps the current Agent source.",
+    "forwardingHelp": "Creator forwards development requests to avoid browser CORS restrictions. Changing the connection mode saves it immediately and keeps the current Agent source.",
+    "currentDirectConnection": "Current connection mode: Direct",
+    "currentForwarding": "Current connection mode: Forwarding enabled",
     "couldNotReadConnectionSettingsMakeSureThe": "Could not read connection settings. Make sure the Creator development service is running. If Creator was just updated, restart it and retry.",
     "theProjectHasChangedRefreshThePreviewAnd": "The project has changed. Refresh the preview and retry.",
     "stopTheCurrentRunBeforeSwitchingAgentSources": "Stop the current run before switching Agent sources.",
@@ -81,7 +88,7 @@ export const enUS = {
     "savingConnectionSettings": "Saving connection settings…",
     "reloadConnectionSettings": "Reload connection settings",
     "connectionAndDeployment": "Connection and deployment",
-    "creatorForwardsDevelopmentPreviewRequestsToAvoidBrowser": "Creator forwards development preview requests to avoid browser cross-origin restrictions. Save the address, then send a message in the preview.",
+    "creatorForwardsDevelopmentPreviewRequestsToAvoidBrowser": "The connection mode applies to this project’s development preview. Choose a direct connection or forwarding through Creator.",
     "theDeployedAppConnectsDirectlyToYourAgent": "The deployed app connects directly to your Agent service without Creator. For static deployments, allow cross-origin requests on the Agent service or configure a deployment proxy.",
     "connectionFailed": "Agent connection failed."
   },
@@ -534,6 +541,7 @@ export const enUS = {
     "viewRecordingDirectory": "View recording directory",
     "couldNotReadLocalMock": "Could not read local Mock:",
     "selectedForTheNextRequest": "Selected {0} for the next request.",
+    "switchingMockSource": "Switching Mock source…",
     "eventsS": "{0} events · {1}s",
     "couldNotRead": "Could not read: {0}",
     "invalidFile": "Invalid file",
@@ -541,6 +549,7 @@ export const enUS = {
     "tagsIdentifyEachDemoSEventsAndCapabilities": "Tags identify each demo's events and capabilities; * marks an event family. Search by tag.",
     "featuredEventsAndCapabilities": "Featured events and capabilities",
     "installResources": "Install resources",
+    "downloadResources": "Download resources",
     "requiredResourcesReady": "Required resources ready",
     "thisScenarioNeedsAdditionalAgentUIResourcesInstall": "This scenario needs additional Agent UI resources. Install them first.",
     "enabledSendAMessageInAgentUITo": "Enabled {0}. Send a message in Agent UI to run it.",

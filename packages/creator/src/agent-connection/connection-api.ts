@@ -36,7 +36,7 @@ export function createConnectionHandler(getWorkspace: () => ConnectionWorkspace 
           if (current?.id !== workspace.id) throw new Error("Workspace changed.");
           const previous = await store.read();
           const input = JSON.parse(body);
-          json(200, await store.save({ ...(previous.endpoint ? { endpoint: previous.endpoint } : {}), ...input }));
+          json(200, await store.save({ ...(previous.endpoint ? { endpoint: previous.endpoint } : {}), connectionMode: previous.connectionMode ?? "proxy", ...input }));
         } finally { status.saving = false; }
         return;
       }
@@ -61,6 +61,7 @@ export function createConnectionHandler(getWorkspace: () => ConnectionWorkspace 
           await handleMock(request, response); return;
         }
         if (state.activeSource !== "connected" || !state.endpoint) { json(409, { error: "Connected Agent is not selected." }); return; }
+        if (state.connectionMode === "direct") { json(409, { error: "Agent forwarding is disabled." }); return; }
         const target = new URL(state.endpoint);
         if (backend) {
           const productPath = url.pathname.slice(BACKEND_PROXY.length);

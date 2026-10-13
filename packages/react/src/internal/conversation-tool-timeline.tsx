@@ -4,7 +4,7 @@ import { useAuiState } from "@assistant-ui/react";
 import { FileTextIcon, TerminalIcon, SearchIcon, WrenchIcon } from "lucide-react";
 import { useAgentUILocale, formatPresentationMessage } from "../locale.js";
 import { ToolTimeline } from "./adapters/assistant-ui/components/assistant-ui/elements/tool-timeline.js";
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "./vendor/assistant-ui/components/ui/collapsible.js";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "./adapters/assistant-ui/components/ui/collapsible.js";
 import { projectToolTimeline, timelineToolKind, type TimelineCall } from "./tool-timeline-projection.js";
 
 export function InternalConversationToolTimeline({ children }: { children?: ReactNode }) {

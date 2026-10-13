@@ -1,0 +1,79 @@
+{
+  "before": {
+    "border-width": "2px",
+    "border-style": "outset",
+    "background-color": "rgb(239, 239, 239)",
+    "padding": "8px",
+    "border-radius": "14px",
+    "font-family": "Arial",
+    "font-size": "13.3333px",
+    "box-sizing": "border-box",
+    "outline-style": "none",
+    "outline-width": "3px"
+  },
+  "after": {
+    "border-width": "0px",
+    "border-style": "solid",
+    "background-color": "rgba(0, 0, 0, 0)",
+    "padding": "8px",
+    "border-radius": "14px",
+    "font-family": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+    "font-size": "16px",
+    "box-sizing": "border-box",
+    "outline-style": "none",
+    "outline-width": "3px"
+  },
+  "hostReset": {
+    "border-width": "0px",
+    "border-style": "solid",
+    "background-color": "rgba(0, 0, 0, 0)",
+    "padding": "8px",
+    "border-radius": "14px",
+    "font-family": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+    "font-size": "16px",
+    "box-sizing": "border-box",
+    "outline-style": "none",
+    "outline-width": "3px"
+  },
+  "hover": {
+    "border-width": "0px",
+    "border-style": "solid",
+    "background-color": "oklab(0 0 0 / 0)",
+    "padding": "8px",
+    "border-radius": "14px",
+    "font-family": "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+    "font-size": "16px",
+    "box-sizing": "border-box",
+    "outline-style": "none",
+    "outline-width": "3px"
+  },
+  "focus": {
+    "focusVisible": true,
+    "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.21 0.00164225 -0.00577088 / 0.2) 0px 0px 0px 1px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+  },
+  "businessOutside": {
+    "border-width": "2px",
+    "border-style": "solid",
+    "background-color": "rgb(245, 245, 220)",
+    "padding": "9px 13px",
+    "border-radius": "3px",
+    "font-family": "Arial",
+    "font-size": "16px",
+    "box-sizing": "content-box",
+    "outline-style": "none",
+    "outline-width": "3px"
+  },
+  "businessInside": {
+    "border-width": "2px",
+    "border-style": "solid",
+    "background-color": "rgb(245, 245, 220)",
+    "padding": "9px 13px",
+    "border-radius": "3px",
+    "font-family": "Arial",
+    "font-size": "16px",
+    "box-sizing": "content-box",
+    "outline-style": "none",
+    "outline-width": "3px"
+  },
+  "overflow": false
+}

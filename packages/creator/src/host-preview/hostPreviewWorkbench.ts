@@ -2,7 +2,7 @@ import { CONNECTION_API, type AgentConnectionState } from "../agent-connection/t
 import { resolvePreviewAgentSource } from "../agent-connection/source-resolver.js";
 import { CREATOR_RUNTIME_DIAGNOSTICS_API_PATH, CREATOR_VISUAL_OBSERVATION_API_PATH } from "../shared.js";
 import { CREATOR_WORKSPACE_ID_HEADER } from "../workspace/types.js";
-import { HOST_PREVIEW_CONNECT, type HostPreviewSession, type PreviewUpload } from "./protocol.js";
+import { HOST_DOCK_CONNECT, HOST_PREVIEW_CONNECT, type HostPreviewSession, type PreviewUpload } from "./protocol.js";
 
 /** Each iframe load / selected thread gets its own port and immutable workspace identity. */
 export function connectCreatorHostPreview(
@@ -11,6 +11,16 @@ export function connectCreatorHostPreview(
 ): () => void {
   const target = frame.contentWindow;
   if (target === null) return () => undefined;
+  return connectHost(target, new URL(frame.src, location.href).origin, HOST_PREVIEW_CONNECT, session);
+}
+
+/** The dock is inside the Host, so its connection travels to the parent. */
+export function connectCreatorDockHost(session: Omit<HostPreviewSession, "creatorOrigin">): () => void {
+  if (window.parent === window || !document.referrer) return () => undefined;
+  return connectHost(window.parent, new URL(document.referrer).origin, HOST_DOCK_CONNECT, session);
+}
+
+function connectHost(target: Window, targetOrigin: string, type: string, session: Omit<HostPreviewSession, "creatorOrigin">): () => void {
   const channel = new MessageChannel();
   const uploads = new Set<AbortController>();
   let active = true;
@@ -46,7 +56,7 @@ export function connectCreatorHostPreview(
   const controller = new AbortController();
   void fetch(CONNECTION_API, { headers: { [CREATOR_WORKSPACE_ID_HEADER]: session.workspaceId }, signal: controller.signal })
     .then(async response => { if (!response.ok) throw new Error("Preview connection unavailable"); return response.json() as Promise<AgentConnectionState>; })
-    .then(state => { if (active) { connected = true; target.postMessage({ type: HOST_PREVIEW_CONNECT, session: { ...session, previewSource: resolvePreviewAgentSource(latestState ?? state), creatorOrigin: location.origin } }, new URL(frame.src, location.href).origin, [channel.port2]); } })
+    .then(state => { if (active) { connected = true; target.postMessage({ type, session: { ...session, previewSource: resolvePreviewAgentSource(latestState ?? state), creatorOrigin: location.origin } }, targetOrigin, [channel.port2]); } })
     .catch(() => undefined);
   const changed = (event: Event) => {
     const detail = (event as CustomEvent<{ workspaceId: string; state: AgentConnectionState }>).detail;

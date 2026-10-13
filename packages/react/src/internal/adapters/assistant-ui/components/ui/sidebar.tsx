@@ -10,7 +10,7 @@ import { PanelLeftIcon } from "lucide-react";
 
 import { cn } from "../../../../vendor/assistant-ui/lib/utils.js";
 import { Button } from "./button";
-import { Input } from "../../../../vendor/assistant-ui/components/ui/input.js";
+import { Input } from "./input";
 import { Separator } from "../../../../vendor/assistant-ui/components/ui/separator.js";
 import {
   Sheet,
@@ -19,7 +19,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "./sheet";
-import { Skeleton } from "../../../../vendor/assistant-ui/components/ui/skeleton.js";
+import { Skeleton } from "./skeleton";
 import {
   Tooltip,
   TooltipContent,

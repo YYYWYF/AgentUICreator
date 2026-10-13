@@ -5,7 +5,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "../../../../../vendor/assistant-ui/components/ui/collapsible.js";
+} from "../../ui/collapsible";
 import { cn } from "../../../../../vendor/assistant-ui/lib/utils.js";
 import { collapsePanel, ShimmerLabel, SwapLabel } from "../../../../../vendor/assistant-ui/components/assistant-ui/elements/surfaces.js";
 import { take } from "../../../../../vendor/assistant-ui/components/assistant-ui/utils/range.js";

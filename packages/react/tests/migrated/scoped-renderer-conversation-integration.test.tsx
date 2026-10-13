@@ -503,17 +503,17 @@ it("T06/T07 keeps specialized Tool UI and TaskGroup once alongside ordinary summ
   expect(container.textContent).toContain("Executed 3 steps");
 });
 
-it("T13 keeps page-local elapsed across label changes and resets for message switch/cancel", async () => {
+it("T13 shows activity without page-local elapsed and clears on cancellation", async () => {
   vi.useFakeTimers();
   try {
     const { container, runtime } = await mount([message([], { type: "running" })], undefined, createModel({ thinking: true, reasoning: "disabled" }));
     expect(container.textContent).toContain("Thinking...");
     expect(container.textContent).not.toContain("Observed");
     await act(async () => { await vi.advanceTimersByTimeAsync(2100); });
-    expect(container.textContent).toContain("Observed 2s on this page");
+    expect(container.querySelector('[data-slot="thinking-indicator"]')?.textContent).toBe("Thinking...");
     await act(async () => runtime.thread.reset([message([{ type: "tool-call", toolCallId: "work", toolName: "read_file", args: {}, argsText: "{}" }], { type: "running" })]));
     expect(container.textContent).toContain("Working...");
-    expect(container.textContent).toContain("Observed 2s on this page");
+    expect(container.querySelector('[data-slot="thinking-indicator"]')?.textContent).toBe("Working...");
     await act(async () => runtime.thread.reset([{ ...message([], { type: "running" }), id: "new-message" }]));
     expect(container.textContent).not.toContain("Observed");
     await act(async () => runtime.thread.reset([message([], { type: "incomplete", reason: "cancelled" })]));

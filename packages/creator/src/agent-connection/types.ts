@@ -3,9 +3,11 @@ export const CONNECTION_API = "/__agent-ui/creator/connection";
 export const AGENT_PROXY = "/__agent-ui/agent-proxy/run";
 export const BACKEND_PROXY = "/__agent-ui/backend";
 export type PreviewAgentSource = { type: "mock" } | { type: "connected"; endpoint: string };
+export type AgentConnectionMode = "direct" | "proxy";
 export interface AgentConnectionState {
   activeSource: "mock" | "connected";
   endpoint?: string;
+  connectionMode?: AgentConnectionMode;
   configured: boolean;
   running: boolean;
 }

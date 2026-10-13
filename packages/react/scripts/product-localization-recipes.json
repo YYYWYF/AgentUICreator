@@ -778,5 +778,40 @@
         "expectedCount": 1
       }
     ]
+  },
+  "components/assistant-ui/elements/option-list.tsx": {
+    "importText": "import { useAgentUILocale, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
+    "replacements": [
+      {
+        "before": "  confirmLabel = \"Confirm\",",
+        "after": "  confirmLabel,",
+        "expectedCount": 1
+      },
+      {
+        "before": "}: OptionListProps) {",
+        "after": "}: OptionListProps) {\n  const messages = useAgentUILocale(\"questionOptions\");",
+        "expectedCount": 1
+      },
+      {
+        "before": "            Nothing selected",
+        "after": "            {messages.noneSelected}",
+        "expectedCount": 1
+      },
+      {
+        "before": "<span className=\"sr-only\">Selected:</span>",
+        "after": "<span className=\"sr-only\">{messages.selected}</span>",
+        "expectedCount": 1
+      },
+      {
+        "before": "            {count} of {max}",
+        "after": "            {formatPresentationMessage(messages.count, { count, max })}",
+        "expectedCount": 1
+      },
+      {
+        "before": "            {confirmLabel}",
+        "after": "            {confirmLabel ?? messages.confirm}",
+        "expectedCount": 1
+      }
+    ]
   }
 }

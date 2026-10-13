@@ -172,6 +172,42 @@
   row-gap: 1rem;
 }
 
+/* A reply may arrive as several assistant messages. Only user requests start a
+ * new turn; transport message boundaries must not add a larger visual gap. */
+.agent-ui-conversation [data-slot="aui_message-group"][data-agent-ui-message-spacing="turn"] {
+  row-gap: 0;
+}
+.agent-ui-conversation [data-slot="aui_message-group"][data-agent-ui-message-spacing="turn"] > * + * {
+  margin-block-start: var(--agent-ui-message-gap, 1.5rem);
+}
+.agent-ui-conversation [data-slot="aui_message-group"][data-agent-ui-message-spacing="turn"] > [data-assistant-turn-continuation="true"] {
+  margin-block-start: 1rem;
+}
+
+/* Theme paragraph/heading rules must preserve upstream first/last block edges.
+ * Interior Markdown spacing remains owned by its presentation components. */
+.agent-ui-conversation [data-slot="agent-ui-markdown"] > .aui-md > :first-child {
+  margin-block-start: 0;
+}
+.agent-ui-conversation [data-slot="agent-ui-markdown"] > .aui-md > :last-child {
+  margin-block-end: 0;
+}
+
+/* Renderer Plugins may return null while their instance boundary stays mounted.
+ * Empty items must leave flow, otherwise flex gap counts invisible content.
+ * Keep this policy inside message composition, not the general Plugin Runtime. */
+.agent-ui-conversation [data-slot="aui_assistant-message-parts"] .app-ui-plugin-instance[data-plugin-renderer="true"]:empty,
+.agent-ui-conversation [data-slot="aui_chain-of-thought"]:not(:has(> :not(:empty))) {
+  display: none;
+}
+
+/* The stack owns inter-part spacing. Standalone Reasoning and the contents of
+ * disclosures keep their own upstream spacing. Only normalize composed roots. */
+.agent-ui-conversation :is([data-slot="aui_assistant-message-parts"], [data-slot="aui_chain-of-thought"]) > [data-slot="reasoning-root"],
+.agent-ui-conversation :is([data-slot="aui_assistant-message-parts"], [data-slot="aui_chain-of-thought"]) > .app-ui-plugin-instance[data-plugin-renderer="true"] > [data-slot="reasoning-root"] {
+  margin-block: 0;
+}
+
 /*
  * Canonical starter suggestions are owned by
  * the conversation-surface `emptySuggestions` child Slot and

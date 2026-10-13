@@ -56,6 +56,27 @@ describe("workspace Agent connection", () => {
     expect(connected.runtimeEndpoint).toBe(AGENT_PROXY);
     expect(connected.conversationDataEndpointOverride).toBeUndefined();
     expect(connected.identity).not.toBe(mock.identity);
+    const direct = resolvePreviewAgentSource({ activeSource: "connected", endpoint: "http://localhost:8000/agent", connectionMode: "direct", configured: true, running: false });
+    expect(direct.runtimeEndpoint).toBe("http://localhost:8000/agent");
+    expect(direct.backendProxyPrefix).toBe("http://localhost:8000");
+    expect(direct.identity).not.toBe(connected.identity);
+  });
+  it("defaults legacy settings to forwarding and persists direct mode", async () => {
+    expect(validateConnection({ activeSource: "mock" }).connectionMode).toBe("proxy");
+    expect(() => validateConnection({ activeSource: "mock", connectionMode: "invalid" })).toThrow();
+    const selected = await workspace();
+    await new ConnectionStore(selected.projectRoot).save({ activeSource: "connected", connectionMode: "direct", endpoint: "http://localhost:8000/agent" });
+    expect(await new ConnectionStore(selected.projectRoot).read()).toMatchObject({ connectionMode: "direct" });
+  });
+  it("retains direct mode when selecting Mock and disables forwarding routes", async () => {
+    let calls = 0;
+    const { creator, headers, store, origin } = await setup(createServer((_request, response) => { calls++; response.end(); }));
+    await store.save({ activeSource: "connected", connectionMode: "direct", endpoint: `${origin}/agent` });
+    expect((await fetch(`${creator}${AGENT_PROXY}`, { method: "POST", headers })).status).toBe(409);
+    expect((await fetch(`${creator}${BACKEND_PROXY}/history`, { headers })).status).toBe(409);
+    expect(calls).toBe(0);
+    const saved = await fetch(`${creator}${CONNECTION_API}`, { method: "POST", headers, body: JSON.stringify({ activeSource: "mock" }) });
+    expect(await saved.json()).toMatchObject({ connectionMode: "direct", endpoint: `${origin}/agent` });
   });
   it("explicitly proxies Mock history from ordinary Hosts to Creator", () => {
     const plugin = createCreatorHostPreviewPlugin({ creatorOrigin: "http://127.0.0.1:1234", workspaceId: "workspace" });

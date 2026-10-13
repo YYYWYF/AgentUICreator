@@ -98,7 +98,7 @@ import {
   ComposableThread as InternalConversationThread,
   type ThreadComponents as InternalThreadComponents,
 } from "./internal/composable-thread.js";
-import { Sources as InternalSources } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.js";
+import { Sources as InternalSources } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/sources.aui.js";
 import { File as InternalFile } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/file.js";
 import { Image as InternalImage } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/image.js";
 import { ToolCall as InternalToolCall } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/tool-call.js";
@@ -122,7 +122,7 @@ import {
   Collapsible as InternalCollapsible,
   CollapsibleContent as InternalCollapsibleContent,
   CollapsibleTrigger as InternalCollapsibleTrigger,
-} from "./internal/vendor/assistant-ui/components/ui/collapsible.js";
+} from "./internal/adapters/assistant-ui/components/ui/collapsible.js";
 import { Button as InternalButton } from "./internal/adapters/assistant-ui/components/ui/button.js";
 import {
   TooltipIconButton as InternalTooltipIconButton,
@@ -147,18 +147,18 @@ import {
   ThreadListSearch as InternalConversationThreadListSearch,
   useThreadListGroups as useInternalConversationThreadListGroups,
 } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/thread-list.aui.js";
-import { AgentPlan as InternalAgentPlan } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/agent-plan.js";
+import { AgentPlan as InternalAgentPlan } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/agent-plan.js";
 import { AgentStatus as InternalAgentStatus } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.js";
 import {
   AgentStatus as InternalTaskAgentStatus,
   TaskTray as InternalTaskTray,
 } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.aui.js";
-import { SubagentList as InternalSubagentList } from "./internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.js";
+import { SubagentList as InternalSubagentList } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/subagent-list.js";
 import { JobProgress as InternalJobProgress } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/job-progress.js";
 import { ConversationTaskGroupComposition as InternalTaskGroup } from "./internal/conversation-task-group.js";
-import { Badge as InternalBadge } from "./internal/vendor/assistant-ui/components/ui/badge.js";
-import { Input as InternalInput } from "./internal/vendor/assistant-ui/components/ui/input.js";
-import { Skeleton as InternalSkeleton } from "./internal/vendor/assistant-ui/components/ui/skeleton.js";
+import { Badge as InternalBadge } from "./internal/adapters/assistant-ui/components/ui/badge.js";
+import { Input as InternalInput } from "./internal/adapters/assistant-ui/components/ui/input.js";
+import { Skeleton as InternalSkeleton } from "./internal/adapters/assistant-ui/components/ui/skeleton.js";
 import type {
   ComponentProps,
   ComponentType,
@@ -1187,6 +1187,7 @@ export function Badge({
   return (
     <InternalBadge
       {...props}
+      data-agent-ui-owned=""
       {...(variant === undefined ? {} : { variant })}
     />
   );

@@ -46,6 +46,40 @@ test("generated Host mounts independently without a root tsconfig or Creator pre
   await expect(page.locator('[data-plugin-state="error"]')).toHaveCount(0);
 });
 
+for (const mode of ["proxy", "direct"] as const) {
+test(`Host dropdown Creator applies ${mode} connection to its outer conversation`, async ({ page, preview }) => {
+  if (mode === "direct") preview.enableCors();
+  await page.goto(preview.hostOrigin);
+  await page.getByRole("button", { name: /Creator Agent/ }).click();
+  const dock = page.frameLocator('iframe[title="Creator Agent"]');
+  await dock.getByRole("button", { name: "设置", exact: true }).click();
+  await dock.getByRole("button", { name: "连接 Agent", exact: true }).click();
+  await dock.getByRole("textbox", { name: "Agent 服务地址" }).fill(preview.agentEndpoint);
+  await dock.getByRole("combobox", { name: "连接方式" }).selectOption(mode);
+  await dock.getByRole("button", { name: "使用此地址", exact: true }).click();
+  await expect(dock.getByText("当前使用：自己的 Agent 服务", { exact: true })).toBeVisible();
+  await expect(page.getByText("历史：基础会话", { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: /收起 Creator/ }).click();
+  await page.locator(".aui-composer-root").getByRole("textbox").fill("Dropdown connection");
+  const destination = mode === "direct" ? preview.agentEndpoint : `${preview.hostOrigin}__agent-ui/agent-proxy/run`;
+  const response = page.waitForResponse(value => value.url() === destination && value.request().method() === "POST");
+  await page.locator(".aui-composer-send").click();
+  expect((await response).status()).toBe(200);
+  await expect(page.locator('[data-ui-plugin="conversation-surface"]')).toContainText("wire:first");
+  expect(preview.runCount()).toBe(1);
+  await page.getByRole("button", { name: /Creator Agent/ }).click();
+  await expect(dock.getByRole("button", { name: "使用示例 Agent", exact: true })).toBeDisabled();
+  await expect(dock.getByRole("combobox", { name: "连接方式" })).toBeDisabled();
+  preview.finishRun();
+  await expect(dock.getByRole("button", { name: "使用示例 Agent", exact: true })).toBeEnabled();
+  await dock.getByRole("button", { name: "使用示例 Agent", exact: true }).click();
+  await expect(page.locator('[data-ui-plugin="conversation-thread-list"]')).toContainText("历史：基础会话");
+  await expect(page.getByText(/wire:first/)).toHaveCount(0);
+  const saved = await page.request.get(`${preview.creatorOrigin}__agent-ui/creator/connection`, { headers: { "X-Agent-UI-Workspace-Id": preview.workspaceId } });
+  expect(await saved.json()).toMatchObject({ connectionMode: mode, endpoint: preview.agentEndpoint });
+});
+}
+
 test("no-CORS Connected Agent streams before completion and Source switching isolates sessions", async ({ page, preview }) => {
   const host = page.frameLocator('iframe[title="Host Application"]');
   await expect(host.locator('[data-ui-plugin="conversation-thread-list"]')).toContainText("历史：基础会话");

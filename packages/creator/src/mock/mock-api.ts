@@ -6,6 +6,10 @@ import { CreatorMockService, isLocalMockOrigin } from "./CreatorMockService.js";
 import { inspectMockProjectCompatibility, installableMockResourceIds, mockDemoRequirements, type MockProjectTarget, type MockProjectInspector, type MockDemoCompatibility } from "./demo-compatibility.js";
 
 const diagnostics = new WeakMap<CreatorMockService, Map<string, { diagnosticId: string; technicalDetails: unknown }>>();
+const compatibilityChecks = new WeakMap<CreatorMockService, {
+  projectId: string; projectRoot: string; inspector: MockProjectInspector;
+  result: Promise<MockDemoCompatibility>;
+}>();
 
 export async function handleCreatorMockRequest(
   request: IncomingMessage, response: ServerResponse, service: CreatorMockService,
@@ -25,8 +29,21 @@ export async function handleCreatorMockRequest(
   const route = (request.url ?? "/").split("?", 1)[0];
   let installingResource: string | undefined;
   let installingProject: string | undefined;
-  const projectCompatibility = async (target: MockProjectTarget | undefined): Promise<MockDemoCompatibility> => {
-    const result = await inspectMockProjectCompatibility(target, inspector);
+  const target = resolveProject?.();
+  const cached = compatibilityChecks.get(service);
+  if (cached && (cached.projectId !== target?.id || cached.projectRoot !== target?.projectRoot || cached.inspector !== inspector)) {
+    compatibilityChecks.delete(service);
+  }
+  const projectCompatibility = async (target: MockProjectTarget | undefined, reuse = false): Promise<MockDemoCompatibility> => {
+    let check = compatibilityChecks.get(service);
+    if (!reuse || !check || check.projectId !== target?.id || check.projectRoot !== target?.projectRoot || check.inspector !== inspector) {
+      check = target ? { projectId: target.id, projectRoot: target.projectRoot, inspector,
+        result: inspectMockProjectCompatibility(target, inspector) } : undefined;
+      if (check) compatibilityChecks.set(service, check);
+      else compatibilityChecks.delete(service);
+    }
+    const result = check ? await check.result : { projectId: null, status: "unknown" as const, requirements: [] };
+    if (result.status !== "checked" && compatibilityChecks.get(service) === check) compatibilityChecks.delete(service);
     return { ...result, canInstall: installPlugin !== undefined, canInstallResources: installResources !== undefined,
       requirements: result.requirements.map(requirement => ({ ...requirement, installable: requirement.installable &&
         ((installResources !== undefined && supportsResource?.(requirement.id) !== false) || (resolveOfficialResource(requirement.id).implementation.type === "plugin" && installPlugin !== undefined)) })),
@@ -78,6 +95,7 @@ export async function handleCreatorMockRequest(
       const before = await projectCompatibility(project);
       if (before.status !== "checked") throw new Error("Resource inspection unavailable.");
       if (before.requirements.find(item => item.id === resource.id)?.status === "conflict") throw new OfficialResourceError("RESOURCE_CONFLICT", "Resource inspection found a conflict.");
+      compatibilityChecks.delete(service);
       if (installResources && supportsResource?.(resource.id) !== false) await installResources(project.id, resource.id);
       else if (resource.implementation.type === "plugin" && installPlugin) await installPlugin(project.id, resource.implementation.pluginId);
       else throw new Error("Host resource installer unavailable.");
@@ -96,6 +114,7 @@ export async function handleCreatorMockRequest(
       installingResource = mockDemoRequirements.find(requirement => { const implementation = resolveOfficialResource(requirement.id).implementation; return implementation.type === "plugin" && implementation.pluginId === fields.pluginId; })!.id;
       installingProject = project.id;
       if (!installPlugin) throw new Error("当前 Creator 宿主尚未配置一键引入。");
+      compatibilityChecks.delete(service);
       await installPlugin(project.id, fields.pluginId);
       const current = resolveProject?.();
       if (current?.id !== project.id) throw new Error("项目已切换，请查看当前项目的插件状态。");
@@ -117,16 +136,19 @@ export async function handleCreatorMockRequest(
       if (selection.selection !== undefined && selection.selection.type !== "builtin") throw new Error("无效的 Mock 来源。");
       selection.scenarioId = selection.selection?.id ?? selection.scenarioId;
       const scenario = service.getState().scenarios.find(item => item.id === selection.scenarioId);
+      const project = resolveProject?.();
       if (scenario?.resources?.length) {
-        const compatibility = await inspectMockProjectCompatibility(resolveProject?.(), inspector);
+        const compatibility = await projectCompatibility(project, true);
         if (compatibility.status !== "checked" || scenario.resources.some(resourceId => !compatibility.requirements.some(item => item.id === resourceId && item.status === "ready"))) throw new Error("请先安装所需的 Agent UI 资源，再运行场景。");
       }
+      if (project?.id !== resolveProject?.()?.id || project?.projectRoot !== resolveProject?.()?.projectRoot) throw new Error("项目已切换，请刷新后重试。");
       state = service.select(selection.scenarioId, selection.speed);
     } else { response.statusCode = 404; response.end(JSON.stringify({ error: "未知 Mock 操作。" })); return; }
     response.end(JSON.stringify(state));
   } catch (error) {
     response.statusCode = 400;
     if (installingResource && installingProject) {
+      compatibilityChecks.delete(service);
       const resource = resolveOfficialResource(installingResource);
       const code = error instanceof Error && "code" in error && error.code === "RESOURCE_CONFLICT" ? "RESOURCE_CONFLICT" : "RESOURCE_INSTALL_FAILED";
       const message = code === "RESOURCE_CONFLICT" ? `${resource.label} 资源与当前项目存在兼容性冲突。` : `${resource.label} 资源安装失败，请重试。`;

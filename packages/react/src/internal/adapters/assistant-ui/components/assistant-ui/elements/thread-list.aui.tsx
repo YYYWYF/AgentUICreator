@@ -3,8 +3,8 @@
 import { useAgentUILocale } from "../../../../../../locale.js";
 
 import { Button } from "../../ui/button";
-import { Input } from "../../../../../vendor/assistant-ui/components/ui/input.js";
-import { Skeleton } from "../../../../../vendor/assistant-ui/components/ui/skeleton.js";
+import { Input } from "../../ui/input";
+import { Skeleton } from "../../ui/skeleton";
 import { cn } from "../../../../../vendor/assistant-ui/lib/utils.js";
 import {
   AuiIf,

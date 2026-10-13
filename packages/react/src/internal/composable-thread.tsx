@@ -13,9 +13,9 @@ import {
   ComposerAttachments,
   UserMessageAttachments,
 } from "./adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.js";
-import { Sources } from "./vendor/assistant-ui/components/assistant-ui/elements/sources.aui.js";
+import { Sources } from "./adapters/assistant-ui/components/assistant-ui/elements/sources.aui.js";
 import { File } from "./adapters/assistant-ui/components/assistant-ui/elements/file.js";
-import { ThreadFollowupSuggestions } from "./vendor/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.js";
+import { ThreadFollowupSuggestions } from "./adapters/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.js";
 import { Image } from "./adapters/assistant-ui/components/assistant-ui/elements/image.js";
 import {
   Reasoning,
@@ -33,7 +33,7 @@ import {
 } from "./adapters/assistant-ui/components/assistant-ui/elements/tool-group.aui.js";
 import { TooltipIconButton } from "./adapters/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
 import { Button } from "./adapters/assistant-ui/components/ui/button.js";
-import { Skeleton } from "./vendor/assistant-ui/components/ui/skeleton.js";
+import { Skeleton } from "./adapters/assistant-ui/components/ui/skeleton.js";
 import { cn } from "./vendor/assistant-ui/lib/utils.js";
 import {
   ActionBarPrimitive,
@@ -276,6 +276,7 @@ const ThreadRoot: FC<{
 
           <div data-agent-ui-owned=""
             data-slot="aui_message-group"
+            data-agent-ui-message-spacing="turn"
             className="mb-14 flex flex-col gap-y-6 empty:hidden"
           >
             <ThreadPrimitive.Messages>
@@ -575,7 +576,7 @@ export const ComposerCancelAction: FC<{ label: string }> = ({ label }) => (
         className="aui-composer-cancel size-7 rounded-full"
         aria-label={label}
       >
-        <SquareIcon className="aui-composer-cancel-icon size-3.5 fill-current" />
+        <SquareIcon className="aui-composer-cancel-icon size-2.5 fill-current" />
       </Button>
     </ComposerPrimitive.Cancel>
   </AuiIf>
@@ -641,6 +642,11 @@ const AssistantMessage: FC = () => {
     s.message.content.length === 0,
   );
   const parts = useAuiState(s => s.message.parts);
+  const continuesTurn = useAuiState(s => {
+    const message = s.thread.messages[s.message.index];
+    const turn = resolveConversationTurnGroup(s.thread.messages, message?.id ?? "");
+    return turn !== null && turn.headAssistantMessageId !== message?.id;
+  });
   const toolUIs = useAuiState(s => s.tools.toolUIs);
   const timeline = projectToolTimeline(parts, toolUIs);
   const baseGroupBy = TaskGroupComponent ? taskAwareGroupBy : messageGroupBy;
@@ -659,6 +665,7 @@ const AssistantMessage: FC = () => {
     <MessagePrimitive.Root
       data-slot="aui_assistant-message-root"
       data-role="assistant"
+      data-assistant-turn-continuation={continuesTurn ? "true" : undefined}
       data-aui-quote-selectable="false"
       className="fade-in slide-in-from-bottom-1 animate-in relative duration-150"
     >
@@ -706,7 +713,8 @@ const AssistantMessage: FC = () => {
                       </ToolGroupRoot>
                     );
                   case "group-reasoning": {
-                    if (ThinkingIndicator && (!reasoningVisible || !part.indices.some(index => parts[index]?.type === "reasoning" && parts[index].text))) return null;
+                    if (!part.indices.some(index => parts[index]?.type === "reasoning" && parts[index].text.trim())) return null;
+                    if (ThinkingIndicator && !reasoningVisible) return null;
                     if (ReasoningGroup) {
                       return (
                         <ReasoningGroup group={part}>{children}</ReasoningGroup>
@@ -723,9 +731,9 @@ const AssistantMessage: FC = () => {
                     );
                   }
                   case "text":
-                    return <QuoteSelectableText />;
+                    return part.text.trim() ? <QuoteSelectableText /> : null;
                   case "reasoning":
-                    if (ThinkingIndicator && (!reasoningVisible || !part.text)) return null;
+                    if (!part.text.trim() || (ThinkingIndicator && !reasoningVisible)) return null;
                     return <Reasoning {...part} />;
                   case "tool-call": {
                     const call = timeline.calls.find(call => call.toolCallId === part.toolCallId);

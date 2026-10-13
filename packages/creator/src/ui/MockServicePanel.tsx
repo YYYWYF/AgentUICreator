@@ -1,7 +1,7 @@
 import { useRef as useLocaleMessagesRef } from "react";
 import { localizeCreatorPresentation, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
 import { Fragment, useEffect, useRef, useState } from "react";
-import { FlaskConical, Copy, Check } from "lucide-react";
+import { FlaskConical, Copy, Check, Download, LoaderCircle } from "lucide-react";
 import { Badge } from "./components/badge.js";
 import { Button } from "./components/button.js";
 import { Card } from "./components/card.js";
@@ -126,6 +126,7 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
   localeMessagesRef.current = localeMessages;
   const [state, setState] = useState<CreatorMockState | null>(null);
   const [busy, setBusy] = useState(false);
+  const [selecting, setSelecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
   const [copiedEndpoint, setCopiedEndpoint] = useState<string | null>(null);
@@ -137,7 +138,6 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
   const compatibilityVersion = useRef(0);
   const [installation, setInstallation] = useState<{ scenarioId: string; resourceId: string; status: "installing" | "success" | "error"; message: string } | null>(null);
 
-  const [resourceSelection, setResourceSelection] = useState<string | null>(null);
   useCreatorRefresh(data => {
     if (inFlight.current || (projectId !== undefined && data.projectId !== projectId)) return;
     if (data.mock?.projectId === data.projectId) {
@@ -151,16 +151,35 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
   });
 
   async function installRequirements(scenarioId: string) {
-    if (inFlight.current || !compatibility?.projectId) return;
-    const requirements = requirementsFor(scenarioId);
-    if (!requirements.length || requirements.some(item => !item.installable)) return;
+    if (inFlight.current) return;
     inFlight.current = true;
     const current = ++compatibilityVersion.current;
     setBusy(true); setError(null); setNotice("");
     let latest = compatibility;
-    let resourceId = requirements[0]!.id;
+    let resourceId = "";
     let projectedError = localeMessages.mock.resourceInstallationFailedRetry;
+    setInstallation({ scenarioId, resourceId, status: "installing", message: localeMessages.mock.checkingDemoSupportInTheCurrentProject });
     try {
+      if (latest?.status !== "checked") {
+        projectedError = localeMessages.mock.resourceInstallationFailedRetry;
+        const response = await fetch(`${CREATOR_MOCK_API_PATH}/compatibility`);
+        const result = await response.json() as MockDemoCompatibility;
+        if (current !== compatibilityVersion.current) return;
+        if (result.issue?.code === "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED") projectedError = localeMessages.mock.projectControlRestartRequired;
+        if (!response.ok || result.status !== "checked" || !result.projectId ||
+            (projectId !== undefined && result.projectId !== projectId)) throw new Error(projectedError);
+        latest = result;
+        setCompatibility(latest);
+      }
+      if (!latest.projectId) throw new Error(projectedError);
+      const installationProjectId = latest.projectId;
+      const requirements = latest.requirements.filter(item => item.scenarioIds.includes(scenarioId) && item.status !== "ready");
+      if (requirements.some(item => !item.installable)) {
+        projectedError = requirements.some(item => item.status === "conflict")
+          ? formatLocaleMessage(localeMessages.mock.resourcesConflictWithTheCurrentProject, requirements.find(item => item.status === "conflict")!.name)
+          : localeMessages.mock.thisCreatorHostDoesNotSupportOneClick;
+        throw new Error(projectedError);
+      }
       for (const requirement of requirements) {
         if (current !== compatibilityVersion.current) return;
         if (latest.requirements.some(item => item.id === requirement.id && item.status === "ready")) continue;
@@ -169,7 +188,7 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
         setInstallation({ scenarioId, resourceId, status: "installing", message: formatLocaleMessage(localeMessages.mock.installingResources, requirement.name) });
         const response = await fetch(`${CREATOR_MOCK_API_PATH}/install-resources`, {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ projectId: compatibility.projectId, resourceId }),
+          body: JSON.stringify({ projectId: installationProjectId, resourceId }),
         });
         const result = await response.json();
         if (current !== compatibilityVersion.current) return;
@@ -182,7 +201,7 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
         }
         latest = result as MockDemoCompatibility;
         setCompatibility(latest);
-        if (latest.status !== "checked" || latest.projectId !== compatibility.projectId ||
+        if (latest.status !== "checked" || latest.projectId !== installationProjectId ||
             !latest.requirements.some(item => item.id === resourceId && item.status === "ready")) throw new Error(projectedError);
       }
       if (latest.requirements.some(item => item.scenarioIds.includes(scenarioId) && item.status !== "ready")) throw new Error(projectedError);
@@ -197,7 +216,6 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
     compatibilityVersion.current += 1;
     setCompatibility(null);
     setInstallation(null);
-    setResourceSelection(null);
     async function refresh() {
       if (inFlight.current) return;
       const current = compatibilityVersion.current;
@@ -213,8 +231,7 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
       }
     }
     void refresh();
-    const timer = window.setInterval(() => { void refresh(); }, 4000);
-    return () => { controller.abort(); window.clearInterval(timer); };
+    return () => { controller.abort(); };
   }, [projectId, retry]);
 
   function requirementsFor(scenarioId: string) {
@@ -242,14 +259,14 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
       }
     };
     void refresh();
-    const timer = window.setInterval(() => { void refresh(); }, 4000);
-    return () => { controller.abort(); window.clearInterval(timer); };
+    return () => { controller.abort(); };
   }, [projectId, retry]);
 
   async function act(route: string, body: unknown, message: string) {
     if (inFlight.current) return;
     inFlight.current = true;
     version.current += 1;
+    setSelecting(route === "/select");
     setBusy(true); setError(null); setNotice("");
     try {
       const next = await mockRequest(route, body, undefined, localeMessages);
@@ -262,16 +279,13 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
       setNotice(message);
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : localeMessages.mock.mockOperationFailed);
-    } finally { inFlight.current = false; setBusy(false); }
+    } finally { inFlight.current = false; setBusy(false); setSelecting(false); }
   }
 
   function selectScenario(scenario: { id: string; title: string; resources?: readonly string[] | undefined }) {
     if (busy || !state) return;
-    if (scenario.resources?.length && (compatibility?.status !== "checked" || requirementsFor(scenario.id).length > 0)) {
-      setResourceSelection(scenario.id);
-      return;
-    }
-    setResourceSelection(null);
+    // The service checks readiness using its project-scoped cache. A stale or
+    // pending panel inspection must never swallow the user's selection.
     void act("/select", { scenarioId: scenario.id, speed: state.speed }, formatLocaleMessage(localeMessages.mock.selectedForTheNextRequest, titleFor(scenario)));
   }
 
@@ -286,7 +300,7 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
 
   const localSelected = state?.selection?.type === "recording";
   const selectedRecording = localSelected ? state?.recordings?.find(item => item.id === state.selection.id) : undefined;
-  const selected = state?.scenarios.find((scenario) => scenario.id === (resourceSelection ?? state.scenarioId));
+  const selected = state?.scenarios.find((scenario) => scenario.id === state.scenarioId);
   const descriptions: Readonly<Record<string, string>> = localeMessages.mockDescriptions;
   const descriptionFor = (scenario: { id: string; description?: string | undefined }) => descriptions[scenario.id] ?? scenario.description;
   const titleFor = (scenario: { id: string; title: string }) => getDemoTitles(localeMessages)[scenario.id] ?? scenario.title;
@@ -334,31 +348,34 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
         <p className="creator-mock-notice" role="status">{localizeCreatorPresentation(notice, localeMessages)}</p>
         <section aria-label={localeMessages.mock.chooseMockSource}>
           <h3>{localeMessages.mock.mockSource}</h3>
+          {selecting ? <p role="status"><LoaderCircle className="cui:size-4 cui:animate-spin" aria-hidden="true" />{localeMessages.mock.switchingMockSource}</p> : null}
           <p className="creator-mock-current-demo">{localeMessages.mock.current}<strong>{localSelected ? (selectedRecording?.title ?? state.selection.id) : (selected ? titleFor(selected) : state.scenarioId)}</strong></p>
           <p>{localeMessages.mock.source}{localSelected ? localeMessages.mock.localRecording : localeMessages.mock.builtInDemo}</p>
           <details className="creator-mock-demo-help"><summary>{localeMessages.mock.demoInstructions}</summary>
             <p>{localeMessages.mock.afterSelectingSendAMessageInTheConnected}</p>
             <p>{localeMessages.mock.someDemosRequireExtraAgentUIResourcesCreator}</p>
           </details>
-          {compatibility?.status !== "checked" ? <p className="creator-mock-requirement" role="status">{compatibility === null ? localeMessages.mock.checkingDemoSupportInTheCurrentProject : compatibility.issue?.code === "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED" ? localeMessages.mock.projectControlRestartRequired : localeMessages.mock.couldNotCheckProjectResourcesSelectAndInitialize}</p> : null}
+          {compatibility === null || compatibility.issue?.code === "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED" ? <p className="creator-mock-requirement" role="status">{compatibility === null ? localeMessages.mock.checkingDemoSupportInTheCurrentProject : localeMessages.mock.projectControlRestartRequired}</p> : null}
           <label className="creator-mock-speed">{localeMessages.mock.replayDurationMultiplier}
             <NativeSelect disabled={busy} value={state.speed} onChange={(event) => void act("/select", { selection: state.selection ?? { type: "builtin", id: state.scenarioId }, projectId: state.projectId, speed: Number(event.target.value) }, localeMessages.mock.replayDurationUpdatedForTheNextRequest) }>
               <option value={0}>{localeMessages.mock.completeImmediately}</option><option value={0.1}>{localeMessages.mock.fastTest01}</option><option value={0.5}>{localeMessages.mock.faster05}</option><option value={1}>{localeMessages.mock.normal1}</option><option value={2}>{localeMessages.mock.slower2}</option>
             </NativeSelect>
           </label>
           <label className="creator-mock-search">{localeMessages.mock.searchMocks}<Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={localeMessages.mock.nameEventCapabilityOrScenarioID} /></label>
-          <section aria-label={localeMessages.mock.localMock}>
+          <section className="creator-mock-local-recordings" aria-label={localeMessages.mock.localMock}>
             <h3>{localeMessages.mock.localMock}</h3>
             <p>{localeMessages.mock.placeJSONLFilesInThisDirectoryInYour} <code>.agentui/mocks</code>{localeMessages.mock.thenSelectARecordingAndSendAMessage}</p>
             {projectPath ? <details className="creator-mock-file-location"><summary>{localeMessages.mock.viewRecordingDirectory}</summary><code>{projectPath.replace(/[\\/]$/, "")}/.agentui/mocks</code></details> : null}
             {state.recordingsError ? <p role="alert">{localeMessages.mock.couldNotReadLocalMock}{state.recordingsError}</p> : null}
+            <div className="creator-mock-scenarios">
             {(state.recordings ?? []).filter(item => `${item.title} ${item.fileName} ${item.id}`.toLocaleLowerCase().includes(search)).map(recording => <div key={recording.id} className="creator-mock-scenario" data-selected={localSelected && state.selection.id === recording.id}>
               <label className="creator-mock-scenario-choice">
-                <input type="radio" name="creator-mock-scenario" checked={localSelected && state.selection.id === recording.id && resourceSelection === null} disabled={busy || recording.status !== "ready"}
-                  onChange={() => { setResourceSelection(null); void act("/select", { selection: { type: "recording", id: recording.id }, projectId: state.projectId, speed: state.speed }, formatLocaleMessage(localeMessages.mock.selectedForTheNextRequest, recording.title)); }} />
+                <input type="radio" name="creator-mock-scenario" checked={localSelected && state.selection.id === recording.id} disabled={busy || recording.status !== "ready"}
+                  onChange={() => { void act("/select", { selection: { type: "recording", id: recording.id }, projectId: state.projectId, speed: state.speed }, formatLocaleMessage(localeMessages.mock.selectedForTheNextRequest, recording.title)); }} />
                 <span><strong>{recording.title}</strong><span>{recording.status === "ready" ? formatLocaleMessage(localeMessages.mock.eventsS, recording.eventCount, (recording.durationMs / 1000).toFixed(1)) : formatLocaleMessage(localeMessages.mock.couldNotRead, recording.error ?? localeMessages.mock.invalidFile)}</span></span>
               </label>
             </div>)}
+            </div>
             {!(state.recordings ?? []).length && !state.recordingsError ? <p>{localeMessages.mock.noLocalMockFilesInThisProjectYet}</p> : null}
           </section>
           <h3>{localeMessages.mock.builtInDemo}</h3>
@@ -373,26 +390,30 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
                   selectScenario(scenario);
                 }}>
               <label className="creator-mock-scenario-choice">
-              <input type="radio" name="creator-mock-scenario" checked={scenario.id === resourceSelection || (resourceSelection === null && !localSelected && scenario.id === state.scenarioId)} disabled={busy} onChange={() => {}} onClick={() => selectScenario(scenario)} />
+              <input type="radio" name="creator-mock-scenario" checked={!localSelected && scenario.id === state.scenarioId} disabled={busy} onChange={() => {}} onClick={() => selectScenario(scenario)} />
               <span><strong>{titleFor(scenario)}</strong>{descriptionFor(scenario) ? <span>{descriptionFor(scenario)}</span> : null}
               </span></label>
               {getDemoFocusTags(localeMessages)[scenario.id]?.length ? <div className="creator-mock-focus-tags" role="group" aria-label={localeMessages.mock.featuredEventsAndCapabilities}>
                 {getDemoFocusTags(localeMessages)[scenario.id]!.map(tag => <Badge key={tag} variant="secondary"
                   data-event-tag={/^(TEXT_MESSAGE_|REASONING_|TOOL_CALL_|RUN_|STATE_|ACTIVITY_|SUBAGENT_|CUSTOM\b)/.test(tag)}>{tag}</Badge>)}
               </div> : null}
-              {requirementsFor(scenario.id).length > 0 ? <div className="creator-mock-scenario-footer">
+              {scenario.resources?.length && ((compatibility?.status === "checked" && requirementsFor(scenario.id).length > 0) || (busy && installation?.scenarioId === scenario.id && installation.status === "installing")) ? <div className="creator-mock-scenario-footer">
                 <div className="creator-mock-resource-actions">
-                  <Button size="sm" variant="outline" type="button" disabled={busy || requirementsFor(scenario.id).some(item => !item.installable)} onClick={() => void installRequirements(scenario.id)}>
-
-                    {localeMessages.mock.installResources}
+                  <Button size="sm" variant="outline" type="button"
+                    className="creator-mock-install-icon"
+                    aria-label={busy && installation?.scenarioId === scenario.id ? localeMessages.mock.processing : localeMessages.mock.downloadResources}
+                    title={busy && installation?.scenarioId === scenario.id ? localeMessages.mock.processing : localeMessages.mock.downloadResources}
+                    aria-busy={busy && installation?.scenarioId === scenario.id}
+                    disabled={busy || requirementsFor(scenario.id).some(item => !item.installable)} onClick={() => void installRequirements(scenario.id)}>
+                    {busy && installation?.scenarioId === scenario.id
+                      ? <LoaderCircle className="creator-mock-install-spinner" aria-hidden="true" />
+                      : <Download aria-hidden="true" />}
+                    <span>{localeMessages.mock.downloadResources}</span>
                   </Button>
                 </div>
                 {compatibility?.projectId ? requirementsFor(scenario.id)
                   .filter(requirement => requirement.status === "conflict" || (installation?.resourceId === requirement.id && installation.status === "error"))
                   .map(requirement => <MockResourceDiagnostics key={`${compatibility.projectId}:${requirement.id}:${installation?.status}`} projectId={compatibility.projectId!} resourceId={requirement.id} />) : null}
-              </div> : null}
-              {scenario.resources?.length && resourceSelection === scenario.id ? <div>
-                <p>{compatibility?.status === "checked" && requirementsFor(scenario.id).length === 0 ? localeMessages.mock.requiredResourcesReady : localeMessages.mock.thisScenarioNeedsAdditionalAgentUIResourcesInstall}</p>
               </div> : null}
               {installation?.scenarioId === scenario.id ? <div className="creator-mock-install-status" data-status={installation.status} role={installation.status === "error" ? "alert" : "status"}>{localizeCreatorPresentation(installation.message, localeMessages)}</div> : null}
               {requirementsFor(scenario.id).some(requirement => !requirement.installable && requirement.status !== "conflict") ? <div className="creator-mock-install-status">{localeMessages.mock.thisCreatorHostDoesNotSupportOneClick}</div> : null}

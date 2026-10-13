@@ -2043,7 +2043,9 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
             } as CSSProperties)
       }
     >
-      {layout === "dock" ? null : workspaceState !== null && (workspaceState.status === "ready") && workspaceState.workspace.id === previewWorkspaceId ? (
+      {layout === "dock" ? workspaceState?.status === "ready" && workspaceState.workspace.id === previewWorkspaceId
+        ? (typeof children === "function" ? children({ threadId, workspaceId: workspaceState.workspace.id }) : children)
+        : null : workspaceState !== null && (workspaceState.status === "ready") && workspaceState.workspace.id === previewWorkspaceId ? (
         <CreatorWorkbenchPreview key={commandPreviewRevision} threadId={threadId} workspaceId={workspaceState.workspace.id}>{children}</CreatorWorkbenchPreview>
       ) : (
         <section className="creator-workbench-preview creator-workbench-preview-placeholder" aria-label={localeMessages.creatorWorkbench.projectPreview}>

@@ -3,8 +3,7 @@ export const zhCN = {
 
   "thinkingIndicator": {
     "thinking": "正在思考...",
-    "working": "正在处理...",
-    "elapsed": "本页已观察 {seconds} 秒"
+    "working": "正在处理..."
 },
   "toolTimeline": {
     "pendingSummary": "工具执行 · {count} 个步骤",
@@ -307,6 +306,12 @@ export const zhCN = {
   "files": {
     "unnamed": "未命名文件",
     "download": "下载 {filename}"
+  },
+  "questionOptions": {
+    "confirm": "确认",
+    "noneSelected": "未选择",
+    "selected": "已选择：",
+    "count": "已选 {count} / {max}"
   },
   "toolPresentation": {
     "request": "请求：",

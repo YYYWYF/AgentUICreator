@@ -56,6 +56,13 @@ export const zhCN = {
     "busy": "请等待当前操作或问题结束。"
 },
   "agentConnection": {
+    "connectionMode": "连接方式",
+    "directConnection": "直连 Agent",
+    "enableForwarding": "开启转发",
+    "directConnectionHelp": "浏览器直接请求 Agent 地址，服务需允许跨域访问。切换连接方式后立即保存，保持当前 Agent 来源。",
+    "forwardingHelp": "通过 Creator 开发服务转发请求，避免浏览器跨域限制。切换连接方式后立即保存，保持当前 Agent 来源。",
+    "currentDirectConnection": "当前连接方式：直连 Agent",
+    "currentForwarding": "当前连接方式：已开启转发",
     "couldNotReadConnectionSettingsMakeSureThe": "暂时无法读取连接设置。请确认 Creator 开发服务已启动；如果刚更新过 Creator，请重启服务后重试。",
     "theProjectHasChangedRefreshThePreviewAnd": "当前项目已切换，请刷新预览后重试。",
     "stopTheCurrentRunBeforeSwitchingAgentSources": "请先停止当前运行，再切换 Agent 来源。",
@@ -81,7 +88,7 @@ export const zhCN = {
     "savingConnectionSettings": "正在保存连接设置…",
     "reloadConnectionSettings": "重新读取连接设置",
     "connectionAndDeployment": "连接与部署说明",
-    "creatorForwardsDevelopmentPreviewRequestsToAvoidBrowser": "开发预览通过 Creator 转发请求，避免浏览器跨域限制。保存地址后，在预览中发送消息即可使用你的 Agent。",
+    "creatorForwardsDevelopmentPreviewRequestsToAvoidBrowser": "开发连接方式只用于当前项目的开发预览，可选择直连或通过 Creator 转发。",
     "theDeployedAppConnectsDirectlyToYourAgent": "正式部署时，应用直接使用自己的 Agent 服务地址，不依赖 Creator。静态部署需由 Agent 服务允许跨域访问，或配置部署代理。",
     "connectionFailed": "Agent 连接失败。"
   },
@@ -534,6 +541,7 @@ export const zhCN = {
     "viewRecordingDirectory": "查看文件读取位置",
     "couldNotReadLocalMock": "无法读取本地 Mock：",
     "selectedForTheNextRequest": "已选择 {0}，下一次请求生效。",
+    "switchingMockSource": "正在切换 Mock 来源…",
     "eventsS": "{0} events · {1}s",
     "couldNotRead": "无法读取：{0}",
     "invalidFile": "无效文件",
@@ -541,6 +549,7 @@ export const zhCN = {
     "tagsIdentifyEachDemoSEventsAndCapabilities": "标签标出各 Demo 重点演示的事件或能力；* 表示该事件系列。可输入标签搜索。",
     "featuredEventsAndCapabilities": "重点事件与能力",
     "installResources": "安装资源",
+    "downloadResources": "下载资源",
     "requiredResourcesReady": "所需资源已就绪",
     "thisScenarioNeedsAdditionalAgentUIResourcesInstall": "此场景需要额外的 Agent UI 资源，请先安装资源。",
     "enabledSendAMessageInAgentUITo": "已启用 {0}，在 Agent UI 中发送消息运行。",
