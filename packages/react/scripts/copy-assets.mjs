@@ -9,7 +9,8 @@ const distRoot = path.join(packageRoot, "dist");
 async function removeInternalDeclarations(root, relativeRoot = "") {
   for (const entry of await readdir(root, { withFileTypes: true })) {
     const entryPath = path.join(root, entry.name);
-    const relativePath = path.join(relativeRoot, entry.name);
+    // Declaration allowlists use logical POSIX paths on every platform.
+    const relativePath = path.posix.join(relativeRoot, entry.name);
     if (entry.isDirectory()) {
       await removeInternalDeclarations(entryPath, relativePath);
       continue;

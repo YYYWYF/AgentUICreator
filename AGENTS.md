@@ -100,6 +100,16 @@ Do not introduce:
 - Run relevant validation/typecheck after meaningful changes.
 - Do not redesign unrelated architecture.
 
+## Windows compatibility
+
+Windows is a required supported development and deployment platform. For every implementation change, explicitly consider Windows compatibility before editing and review the affected code for platform assumptions before finishing. A successful macOS/Linux run alone does not establish Windows compatibility.
+
+- Keep native filesystem paths separate from logical paths used in manifests, archive entries, globs, allowlists, and comparisons. Use native `path` APIs for filesystem access; use `path.posix` or explicit separator normalization for logical paths that require `/`. Never compare an unnormalized `path.join()` result with a slash-delimited literal. In particular, public declaration cleanup must preserve `theme/theme-contract.d.ts` on Windows as well as macOS/Linux.
+- Convert file URLs with `fileURLToPath()` and filesystem paths with `pathToFileURL()`. Do not use URL `.pathname` as a filesystem path or construct `file://` URLs by string concatenation; account for drive letters, spaces, Unicode, and UNC paths.
+- Use the existing cross-platform process helpers, including `scripts/pnpm-process.mjs` for pnpm invocations. Pass arguments as arrays and handle Windows executable resolution (`.cmd` / `.exe`) through the appropriate helper. Do not assume Bash, POSIX shell commands, inline environment assignments, or Unix signal behavior in project scripts.
+- Avoid assumptions about path case sensitivity, executable bits, symlink privileges, line endings, open-file deletion, or rename behavior. Preserve correct cleanup and process lifecycle behavior on Windows.
+- For changes to paths, packaging, declaration cleanup, startup, or process handling, run focused validation that covers the Windows-specific behavior. Use `path.win32` fixtures where appropriate and verify packaged output when cleanup or allowlists change. Report which checks actually ran; if a real Windows run was unavailable, state that limitation rather than claiming Windows acceptance.
+
 ## Agent UI
 
 本项目用于构建可消费 **AG-UI** 的 Agent 前端 UI Plugin。
