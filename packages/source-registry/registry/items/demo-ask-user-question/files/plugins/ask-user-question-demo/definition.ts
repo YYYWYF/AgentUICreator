@@ -8,8 +8,9 @@ export default {
   toolkit: {
     ask_user_question: {
       type: "human",
+      interaction: { type: "interrupt" },
       display: "standalone",
-      description: "Ask the user to choose among structured options before continuing.",
+      description: "Pause for structured choices or text input, then resume with the user response.",
       parameters: askUserQuestionParameters,
       render: AskUserQuestionToolUI,
     },

@@ -8,34 +8,39 @@ const input: RunAgentInput = {
   messages: [{ id: "user-1", role: "user", content: "帮我生成一个首页" }],
   tools: [{ name: "ask_user_question", description: "Ask a question", parameters: { type: "object" } }],
 };
-
 async function events(run: RunAgentInput = input) {
   const result = [];
   for await (const event of runMockScenario(run, askUserQuestionScenario, { timingScale: 0 })) result.push(event);
   return result;
 }
-
-describe("optional Human Tool scenario", () => {
-  it("emits a pending Tool Call without a backend result", async () => {
+describe("question lifecycle interrupt", () => {
+  it("pauses without a tool result and associates the gate with the call", async () => {
     expect(askUserQuestionScenario.resources).toEqual(["ask-user-question-demo"]);
     const stream = await events();
     expect(stream.filter(event => event.type === "TOOL_CALL_START")).toMatchObject([
-      { toolCallName: "ask_user_question" },
+      { toolCallName: "ask_user_question", toolCallId: "question-layout-call" },
     ]);
     expect(stream.some(event => event.type === "TOOL_CALL_RESULT")).toBe(false);
-    expect(stream.at(-1)?.type).toBe("RUN_FINISHED");
+    expect(stream.at(-1)).toMatchObject({ type: "RUN_FINISHED", outcome: { type: "interrupt", interrupts: [
+      { id: "question-layout", reason: "input_required", toolCallId: "question-layout-call" },
+    ] } });
   });
-
-  it("continues from the Human Tool result without a new user message", async () => {
-    const messages: RunAgentInput["messages"] = [...input.messages,
-      { id: "assistant-1", role: "assistant", toolCalls: [{ id: "question-call", type: "function",
-        function: { name: "ask_user_question", arguments: "{}" } }] },
-      { id: "result-1", role: "tool", toolCallId: "question-call",
-        content: JSON.stringify({ answers: { layout: ["dashboard"] } }) },
-    ];
-    const stream = await events({ ...input, runId: "continuation-run", messages });
+  it("resumes from answers without a new user message or client tool result", async () => {
+    const stream = await events({ ...input, runId: "resume-run", resume: [{
+      interruptId: "question-layout", status: "resolved", payload: { answers: { layout: ["dashboard"] } },
+    }] });
     expect(stream.some(event => event.type === "TOOL_CALL_START")).toBe(false);
+    expect(stream).toContainEqual(expect.objectContaining({ type: "TOOL_CALL_RESULT", toolCallId: "question-layout-call" }));
     expect(stream.filter(event => event.type === "TEXT_MESSAGE_CONTENT").map(event => event.delta).join(""))
       .toBe("好的，我会按 Dashboard 布局继续设计。");
+    expect(stream.at(-1)).toMatchObject({ type: "RUN_FINISHED", outcome: { type: "success" } });
+  });
+  it("rejects unrelated resume ids", async () => {
+    await expect(events({ ...input, resume: [{ interruptId: "other", status: "resolved" }] })).rejects.toThrow("pending interrupt");
+  });
+  it("handles cancellation without inventing a selected answer", async () => {
+    const stream = await events({ ...input, resume: [{ interruptId: "question-layout", status: "cancelled" }] });
+    expect(stream.filter(event => event.type === "TEXT_MESSAGE_CONTENT").map(event => event.delta).join(""))
+      .toBe(askUserQuestionScenario.humanQuestionContinuation!.errorText);
   });
 });

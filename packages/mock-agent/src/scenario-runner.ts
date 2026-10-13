@@ -595,21 +595,23 @@ function selectSteps(
   }
   if (scenario.humanQuestionContinuation !== undefined) {
     const continuation = scenario.humanQuestionContinuation;
-    let lastUserIndex = -1;
-    input.messages.forEach((message, index) => { if (message.role === "user") lastUserIndex = index; });
-    const turn = input.messages.slice(lastUserIndex + 1);
-    const call = turn.flatMap(message => message.role === "assistant" ? message.toolCalls ?? [] : [])
-      .find(item => item.function.name === continuation.toolName);
-    if (call !== undefined) {
-      const result = turn.find(message => message.role === "tool" && message.toolCallId === call.id);
-      if (result === undefined) return [];
-      let answer: string | undefined;
-      try {
-        const parsed = JSON.parse(serializeToolValue(result.content)) as { answers?: Record<string, string[]> };
-        answer = parsed.answers?.[continuation.stepId]?.[0];
-      } catch { /* An invalid Tool Result uses the scenario error response. */ }
-      return [{ type: "message", text: answer === undefined
-        ? continuation.errorText : continuation.answerText[answer] ?? continuation.errorText }];
+    const gate = scenario.steps.find(step => step.type === "interrupt" && step.toolName === continuation.toolName);
+    if (gate?.type === "interrupt" && input.resume?.length) {
+      if (input.resume.length !== 1 || input.resume[0]?.interruptId !== gate.interrupt.id) {
+        throw new Error("Question resume must cover the pending interrupt");
+      }
+      const response = input.resume[0];
+      const payload = response.status === "resolved" ? response.payload : undefined;
+      const answers = typeof payload === "object" && payload !== null
+        ? (payload as { answers?: Record<string, unknown> }).answers : undefined;
+      const selection = answers?.[continuation.stepId];
+      const answer = Array.isArray(selection) && selection.length === 1 && typeof selection[0] === "string"
+        ? selection[0] : undefined;
+      return [
+        { type: "tool-result", toolCallId: gate.toolCallId, result: payload ?? { cancelled: true } },
+        { type: "message", text: answer === undefined
+          ? continuation.errorText : continuation.answerText[answer] ?? continuation.errorText },
+      ];
     }
     if (!input.tools.some(tool => tool.name === continuation.toolName)) {
       return [{ type: "message", text: continuation.errorText }];

@@ -679,6 +679,12 @@ interface UIPluginActions {
 
 标准 HITL 通过 `RUN_FINISHED` 的 structured interrupt outcome 映射为应用可消费的中断状态，并通过 Conversation Runtime 的恢复动作发起新 Run。Plugin 必须一次覆盖全部 pending interrupt，可通过 `producer` 关联 Root/Subagent、通过 `toolExecutionId` 关联 Tool，但不得直接消费 AG-UI 类型、SDK pending object、CUSTOM/RAW event，也不得把响应伪装成普通 UserMessage。AG-UI 的 `threadId`、`runId`、`subagentRunId`、`Interrupt`、`ResumeEntry` 和 Event 类型由 `@agent-ui/runtime-conversation` 的集成边界处理；Plugin 不直接订阅底层 Run Event。
 
+`ConversationToolkitEntry.interaction.type = "interrupt"` 将 Human Tool 的提交通道声明为 lifecycle resume；省略或 `normal` 保留已有 `addResult` continuation。此声明是前端集成策略，不扩展 AG-UI wire Tool schema，也不在前端合成服务端 checkpoint。Backend 必须发出 `TOOL_CALL_START/ARGS/END`，随后以 `RUN_FINISHED.outcome = { type: "interrupt", interrupts: [...] }` 暂停，并使用 `toolCallId` 关联问题。问题内容沿用已完成参数流中的 args；通用非 Tool 中断的数据可放在现有 metadata 中。
+
+Canonical Runtime 为这种 renderer 提供 `resumeInterrupt(payload)`，移除 `addResult`，并且只允许当前可回答会话中的 pending Tool Call 提交。单卡回答仍经过完整 pending response-set 校验；有多个中断时，应用必须通过现有 `resumeInterrupts` 一次提交全部响应。回答不会追加 UserMessage 或客户端 ToolMessage；服务端恢复后才能返回对应 `TOOL_CALL_RESULT`。插件不持有独立 Agent Client 或中断生命周期状态。
+
+可选 `ask-user-question-demo` 资源沿用 `humanQuestion` locale namespace，支持 `single`、`multiple` 和 `text` 问题（文本最长 4000 字符），统一回答为 `{ answers: Record<stepId, string[]> }`。现有已生成项目需要更新该资源及官方 Runtime/React 包；历史 release fixture 保持不变。Creator 自身已使用的 question interrupt/resume 通道不受此资源迁移影响。
+
 不要过早加入大量 Runtime API。
 
 ## 8.1 Plugin Services

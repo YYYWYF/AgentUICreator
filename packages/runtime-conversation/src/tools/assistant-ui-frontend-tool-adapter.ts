@@ -1,6 +1,7 @@
 import type { AgentFrontendToolSource } from "@agent-ui/runtime-core";
 import { ConversationToolFallback, type ConversationToolkit } from "@agent-ui/react";
 import type { Toolkit } from "@assistant-ui/react";
+import { createInterruptToolRenderer } from "./interrupt-tool-renderer.js";
 import type { ConversationFrontendToolUIRegistry } from "./types.js";
 
 /** Application permission is supplied by source; UI registration never grants it. */
@@ -10,6 +11,11 @@ export function createAssistantUiFrontendToolkit(
   frontendUIs: ConversationFrontendToolUIRegistry = {},
 ): Toolkit {
   const toolkit: Toolkit = Object.assign(Object.create(null), backend);
+  for (const [name, entry] of Object.entries(backend)) {
+    if (entry.interaction?.type !== "interrupt") continue;
+    if (entry.type !== "human") throw new Error(`Interrupt tool must be human: "${name}"`);
+    toolkit[name] = { ...entry, render: createInterruptToolRenderer(entry.render) } as never;
+  }
   for (const name of Object.keys(frontendUIs)) {
     if (Object.hasOwn(backend, name)) throw new Error(`Tool name collision: "${name}"`);
   }

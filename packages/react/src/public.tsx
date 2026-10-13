@@ -610,6 +610,8 @@ export interface ConversationToolCallProps {
   isError?: boolean | undefined;
   status: ConversationToolCallStatus;
   addResult?: ((result: unknown) => void) | undefined;
+  /** Resume the pending lifecycle interrupt; never writes a client ToolMessage. */
+  resumeInterrupt?: ((payload: unknown) => Promise<void>) | undefined;
   /** Preserve assistant-ui extension fields and callbacks at the facade seam. */
   readonly [key: string]: unknown;
 }
@@ -617,6 +619,8 @@ export interface ConversationToolCallProps {
 export type ConversationToolCallComponent = ComponentType<ConversationToolCallProps>;
 
 export interface ConversationToolkitEntry {
+  /** Omitted/normal preserves existing Human Tool result continuation. */
+  interaction?: { type: "normal" | "interrupt" } | undefined;
   type: "backend" | "human";
   display: "standalone";
   render: ComponentType<any>;

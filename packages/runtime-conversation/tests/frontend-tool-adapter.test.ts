@@ -63,4 +63,20 @@ describe("native frontend tool adapter", () => {
     expect(() => createAssistantUiFrontendToolkit(source(), { open_dialog: backend.search })).toThrow("Tool name collision");
     expect(() => createAssistantUiFrontendToolkit(undefined, backend, { search: { render } })).toThrow("Tool name collision");
   });
+  it("wraps only explicitly declared interrupt tools and retains normal result tools", () => {
+    const render = () => null;
+    const normal = { type: "human" as const, display: "standalone" as const, parameters: {}, render };
+    const toolkit = createAssistantUiFrontendToolkit(undefined, {
+      normal,
+      ask: { ...normal, interaction: { type: "interrupt" } },
+    });
+    expect(toolkit.normal).toBe(normal);
+    expect(toolkit.ask!.type).toBe("human");
+    expect(toolkit.ask!.render).not.toBe(render);
+    expect(toolkit.ask).not.toHaveProperty("execute");
+    expect(() => createAssistantUiFrontendToolkit(undefined, {
+      ask: { ...normal, type: "backend", interaction: { type: "interrupt" } },
+    })).toThrow("Interrupt tool must be human");
+  });
+
 });

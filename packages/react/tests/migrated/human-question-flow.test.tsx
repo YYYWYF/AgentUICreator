@@ -3,6 +3,7 @@ import { act, useState, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ConversationOptionList, ConversationQuestionFlow, type ConversationQuestionStep } from "../../src/index";
+import { parseHumanQuestionRequest, parseHumanQuestionResult } from "../../../source-registry/registry/items/demo-ask-user-question/files/agent-contract/human-tools/ask-user-question";
 import { AskUserQuestionToolUI } from "../../../source-registry/registry/items/demo-ask-user-question/files/agent-ui/conversation/human-tool-uis/ask-user-question";
 
 const state = vi.hoisted(() => ({ canAnswer: true }));
@@ -140,38 +141,38 @@ describe("ask_user_question Tool UI", () => {
   const request = { steps: [steps[0]] };
   const base = { toolCallId: "call-1", toolName: "ask_user_question", args: request, status: { type: "requires-action" as const } };
   it("submits the existing result contract once when answer capability is granted", async () => {
-    const addResult = vi.fn();
-    const host = await render(<AskUserQuestionToolUI {...base} addResult={addResult} />);
+    const resumeInterrupt = vi.fn();
+    const host = await render(<AskUserQuestionToolUI {...base} resumeInterrupt={resumeInterrupt} />);
     await click(option(host, "Dashboard"));
-    expect(addResult).toHaveBeenCalledTimes(1);
-    expect(addResult).toHaveBeenCalledWith({ answers: { layout: ["dashboard"] } });
+    expect(resumeInterrupt).toHaveBeenCalledTimes(1);
+    expect(resumeInterrupt).toHaveBeenCalledWith({ answers: { layout: ["dashboard"] } });
   });
   it("submits three steps with a bounded multiple selection only after the last step", async () => {
-    const addResult = vi.fn();
+    const resumeInterrupt = vi.fn();
     const third: ConversationQuestionStep = { id: "tone", question: "Tone?", options: [
       { id: "brief", label: "Brief" }, { id: "detailed", label: "Detailed" },
     ], selectionMode: "single", minSelections: 1, maxSelections: 1 };
-    const host = await render(<AskUserQuestionToolUI {...base} args={{ steps: [...steps, third] }} addResult={addResult} />);
+    const host = await render(<AskUserQuestionToolUI {...base} args={{ steps: [...steps, third] }} resumeInterrupt={resumeInterrupt} />);
     await click(option(host, "Dashboard"));
-    expect(addResult).not.toHaveBeenCalled();
+    expect(resumeInterrupt).not.toHaveBeenCalled();
     await click(option(host, "Alpha"));
     await click(option(host, "Beta"));
     expect(option(host, "Gamma")?.getAttribute("aria-disabled")).toBe("true");
     await click([...host.querySelectorAll("button")].find(button => button.textContent === "Next") ?? null);
-    expect(addResult).not.toHaveBeenCalled();
+    expect(resumeInterrupt).not.toHaveBeenCalled();
     await click(option(host, "Brief"));
-    expect(addResult).toHaveBeenCalledTimes(1);
-    expect(addResult).toHaveBeenCalledWith({ answers: {
+    expect(resumeInterrupt).toHaveBeenCalledTimes(1);
+    expect(resumeInterrupt).toHaveBeenCalledWith({ answers: {
       layout: ["dashboard"], features: ["a", "b"], tone: ["brief"],
     } });
   });
   it("shows a readonly request without answer controls or continuation", async () => {
     state.canAnswer = false;
-    const addResult = vi.fn();
-    const host = await render(<AskUserQuestionToolUI {...base} addResult={addResult} />);
+    const resumeInterrupt = vi.fn();
+    const host = await render(<AskUserQuestionToolUI {...base} resumeInterrupt={resumeInterrupt} />);
     expect(host.textContent).toContain("Dashboard");
     expect(host.querySelector("button")).toBeNull();
-    expect(addResult).not.toHaveBeenCalled();
+    expect(resumeInterrupt).not.toHaveBeenCalled();
   });
   it("shows only the stored result on history and rejects malformed input", async () => {
     const host = await render(<AskUserQuestionToolUI {...base} result={{ answers: { layout: ["chat"] } }} />);
@@ -183,4 +184,69 @@ describe("ask_user_question Tool UI", () => {
     const invalidResult = await render(<AskUserQuestionToolUI {...base} result={{ answers: { layout: ["missing"] } }} />);
     expect(invalidResult.textContent).toBe("Unavailable");
   });
+});
+
+
+describe("interrupt text question contract", () => {
+  const request = { steps: [{ id: "notes", question: "Requirements?", selectionMode: "text", options: [], minSelections: 1, maxSelections: 1 }] };
+  it("accepts bounded free text and rejects empty or oversized answers", () => {
+    const parsed = parseHumanQuestionRequest(request)!;
+    expect(parsed).toBeDefined();
+    expect(parseHumanQuestionResult({ answers: { notes: ["Use Docker"] } }, parsed)).toBeDefined();
+    expect(parseHumanQuestionResult({ answers: { notes: ["   "] } }, parsed)).toBeUndefined();
+    expect(parseHumanQuestionResult({ answers: { notes: ["x".repeat(4001)] } }, parsed)).toBeUndefined();
+  });
+  it("does not submit through addResult even if it is supplied", async () => {
+    const addResult = vi.fn();
+    const host = await render(<AskUserQuestionToolUI toolCallId="text-call" toolName="ask_user_question"
+      args={request} status={{ type: "requires-action" }} addResult={addResult} />);
+    expect(host.querySelector("textarea")).toBeNull();
+    expect(host.querySelector("button")).toBeNull();
+    expect(addResult).not.toHaveBeenCalled();
+  });
+  it("shows an accessible required text control and resumes with text answers", async () => {
+    const resumeInterrupt = vi.fn(async () => {});
+    const host = await render(<AskUserQuestionToolUI toolCallId="text-call" toolName="ask_user_question"
+      args={request} status={{ type: "requires-action" }} resumeInterrupt={resumeInterrupt} />);
+    const textarea = host.querySelector("textarea")!;
+    expect(textarea.required).toBe(true);
+    expect(textarea.maxLength).toBe(4000);
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(textarea, "Docker");
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      textarea.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    await act(async () => { host.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); });
+    expect(resumeInterrupt).toHaveBeenCalledWith({ answers: { notes: ["Docker"] } });
+    expect(resumeInterrupt).toHaveBeenCalledTimes(1);
+  });
+  it("combines text and option steps in one resume payload", async () => {
+    const resumeInterrupt = vi.fn(async () => {});
+    const host = await render(<AskUserQuestionToolUI toolCallId="mixed-call" toolName="ask_user_question"
+      args={{ steps: [...request.steps, steps[0]] }} status={{ type: "requires-action" }} resumeInterrupt={resumeInterrupt} />);
+    const textarea = host.querySelector("textarea")!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(textarea, "Docker");
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => { host.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); });
+    expect(resumeInterrupt).not.toHaveBeenCalled();
+    await click(option(host, "Dashboard"));
+    expect(resumeInterrupt).toHaveBeenCalledWith({ answers: { notes: ["Docker"], layout: ["dashboard"] } });
+  });
+
+  it("surfaces a rejected text resume through localized feedback", async () => {
+    const resumeInterrupt = vi.fn(async () => { throw new Error("transport failure"); });
+    const host = await render(<AskUserQuestionToolUI toolCallId="failed-call" toolName="ask_user_question"
+      args={request} status={{ type: "requires-action" }} resumeInterrupt={resumeInterrupt} />);
+    await act(async () => {
+      const textarea = host.querySelector("textarea")!;
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(textarea, "Docker");
+      textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => { host.querySelector("form")!.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); });
+    expect(host.querySelector("[role=alert]")?.textContent).toBe(labels.unavailable);
+    expect(host.querySelector("textarea")?.disabled).toBe(false);
+  });
+
 });

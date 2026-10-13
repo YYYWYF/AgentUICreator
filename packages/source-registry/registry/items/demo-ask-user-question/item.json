@@ -1,7 +1,7 @@
 {
   "id": "demo/ask-user-question",
   "kind": "demo",
-  "description": "Optional assistant-ui Human Tool question flow",
+  "description": "Optional AG-UI interrupt question flow",
   "requires": [
     "foundation/core"
   ],
@@ -13,6 +13,10 @@
     {
       "source": "files/agent-ui/conversation/human-tool-uis/ask-user-question.tsx",
       "target": "agent-ui/conversation/human-tool-uis/ask-user-question.tsx"
+    },
+    {
+      "source": "files/agent-ui/conversation/human-tool-uis/interrupt-question-flow.tsx",
+      "target": "agent-ui/conversation/human-tool-uis/interrupt-question-flow.tsx"
     },
     {
       "source": "files/plugins/ask-user-question-demo/definition.ts",

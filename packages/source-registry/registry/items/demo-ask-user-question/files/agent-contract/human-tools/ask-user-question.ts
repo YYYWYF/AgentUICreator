@@ -4,7 +4,7 @@ export interface HumanQuestionStep {
   question: string;
   description?: string;
   options: HumanQuestionOption[];
-  selectionMode: "single" | "multiple";
+  selectionMode: "single" | "multiple" | "text";
   minSelections: number;
   maxSelections: number;
 }
@@ -19,11 +19,14 @@ export const askUserQuestionParameters = {
     steps: { type: "array", minItems: 1, maxItems: 3, items: {
       type: "object", additionalProperties: false,
       required: ["id", "question", "options", "selectionMode", "minSelections", "maxSelections"],
+      allOf: [{ if: { properties: { selectionMode: { const: "text" } } },
+        then: { properties: { options: { maxItems: 0 }, minSelections: { maximum: 1 }, maxSelections: { const: 1 } } },
+        else: { properties: { options: { minItems: 2 } } } }],
       properties: {
         id: { type: "string", minLength: 1 }, question: { type: "string", minLength: 1 }, description: { type: "string" },
-        options: { type: "array", minItems: 2, maxItems: 7, items: { type: "object", additionalProperties: false,
+        options: { type: "array", minItems: 0, maxItems: 7, items: { type: "object", additionalProperties: false,
           required: ["id", "label"], properties: { id: { type: "string", minLength: 1 }, label: { type: "string", minLength: 1 }, description: { type: "string" } } } },
-        selectionMode: { enum: ["single", "multiple"] },
+        selectionMode: { enum: ["single", "multiple", "text"] },
         minSelections: { type: "integer", minimum: 0 }, maxSelections: { type: "integer", minimum: 1 },
       },
     } },
@@ -38,9 +41,11 @@ export function parseHumanQuestionRequest(value: unknown): HumanQuestionRequest 
   for (const step of raw.steps) {
     if (!step || typeof step.id !== "string" || !step.id || ids.has(step.id) || typeof step.question !== "string" || !step.question ||
         (step.description !== undefined && typeof step.description !== "string") || !Array.isArray(step.options) ||
-        step.options.length < 2 || step.options.length > 7 || !["single", "multiple"].includes(step.selectionMode) ||
+        step.options.length > 7 || !["single", "multiple", "text"].includes(step.selectionMode) ||
         !Number.isInteger(step.minSelections) || !Number.isInteger(step.maxSelections) || step.minSelections < 0 ||
-        step.minSelections > step.maxSelections || step.maxSelections > step.options.length ||
+        step.minSelections > step.maxSelections ||
+        (step.selectionMode === "text" ? step.options.length !== 0 || step.maxSelections !== 1 || step.minSelections > 1
+          : step.options.length < 2 || step.maxSelections > step.options.length) ||
         (step.selectionMode === "single" && step.maxSelections !== 1)) return undefined;
     ids.add(step.id);
     const optionIds = new Set<string>();
@@ -66,7 +71,9 @@ export function parseHumanQuestionResult(value: unknown, request: HumanQuestionR
     const selected = (answers as Record<string, unknown>)[step.id];
     if (!Array.isArray(selected) || selected.some(id => typeof id !== "string") ||
         new Set(selected).size !== selected.length || selected.length < step.minSelections ||
-        selected.length > step.maxSelections || selected.some(id => !step.options.some(option => option.id === id))) return undefined;
+        selected.length > step.maxSelections || (step.selectionMode === "text"
+          ? selected.some(text => text.length > 4000 || !text.trim())
+          : selected.some(id => !step.options.some(option => option.id === id)))) return undefined;
   }
   return { answers: answers as Record<string, string[]> };
 }
