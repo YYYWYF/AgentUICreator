@@ -10,7 +10,7 @@ export function a2uiOrderSnapshot(status: "review" | "confirmed" | "cancelled" =
     content: { a2ui_operations: [
       { version: "v0.9", createSurface: { surfaceId: "order" } },
       { version: "v0.9", updateComponents: { surfaceId: "order", components: [
-        { id: "root", component: "Card", title: interactive ? "Order Review" : `Order ${status}`, children: interactive ? ["summary", "actions"] : ["summary"] },
+        { id: "root", component: "Card", title: interactive ? "Order Review" : "Order status", children: interactive ? ["summary", "actions"] : ["summary"] },
         { id: "summary", component: "Text", text: { path: "/summary" } },
         ...(interactive ? [
           { id: "actions", component: "Row", children: ["confirm", "cancel"] },
@@ -40,8 +40,8 @@ export const a2uiInteractiveOrderScenario = defineScenario({
   steps: [a2uiOrderSnapshot()],
   a2uiActions: {
     branches: {
-      confirm_order: [a2uiOrderSnapshot("confirmed"), { type: "message", text: "Order confirmed." }],
-      cancel_order: [a2uiOrderSnapshot("cancelled"), { type: "message", text: "Order cancelled." }],
+      confirm_order: [a2uiOrderSnapshot("confirmed")],
+      cancel_order: [a2uiOrderSnapshot("cancelled")],
     },
     fallback: [{ type: "message", text: "Unknown order action." }],
   },

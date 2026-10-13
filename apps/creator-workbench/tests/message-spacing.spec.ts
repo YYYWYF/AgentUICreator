@@ -19,6 +19,10 @@ test.beforeAll(async () => {
 import {createRoot} from 'react-dom/client';
 import {AssistantRuntimeProvider,useLocalRuntime} from '@assistant-ui/react';
 import {ReasoningRoot,ReasoningTrigger} from 'standalone-reasoning';
+import {chartMessageUI} from 'chart-plugin';
+import {DataMessageUIRegistration} from '@agent-ui/react';
+const Chart=chartMessageUI.render;
+const chartData={title:'Quarterly Sales',items:[{label:'Q1',value:120},{label:'Q2',value:180},{label:'Q3',value:160},{label:'Q4',value:240}]};
 import {AgentUIRoot,AgentUILocaleProvider,ConversationThread,ConversationCanonicalReasoningGroup,ConversationCanonicalToolGroup,ConversationThinkingIndicator,ConversationToolTimeline,toConversationMessagePartGroup} from '@agent-ui/react';
 import './style.css';
 const params=new URLSearchParams(location.search),scenario=params.get('scenario')||'mixed';
@@ -34,10 +38,10 @@ function Timeline(props){return wrap(<ConversationToolTimeline {...props}/>)}
 let finish;
 const adapter={async *run(){yield {content:[{...reasoning('Streaming thought'),status:{type:'running'}}]};await new Promise(resolve=>finish=resolve);yield {content:[reasoning('Streaming thought'),text]}}};
 const historyMessage=(id,role,content)=>role==='user'?{id,role,content,createdAt:new Date()}:{id,role,content,status:{type:scenario==='cancelled'||scenario==='error'?'incomplete':'complete',reason:scenario==='cancelled'?'cancelled':scenario==='error'?'error':'stop'},createdAt:new Date(),metadata:{unstable_state:null,unstable_annotations:[],unstable_data:[],steps:[],custom:{}}};
-const initialMessages=scenario==='stream'?[]:scenario==='split'?[historyMessage('request-1','user',[{type:'text',text:'Request one'}]),historyMessage('assistant-1','assistant',[reasoning('Before tool'),tool,reasoning('After tool')]),historyMessage('assistant-2','assistant',[text]),historyMessage('request-2','user',[{type:'text',text:'Request two'}]),historyMessage('assistant-3','assistant',[{type:'text',text:'First paragraph.\\n\\nSecond paragraph.'}])]:[historyMessage('assistant-1','assistant',content)];
+const initialMessages=scenario==='stream'?[]:scenario==='chart'?[historyMessage('assistant-1','assistant',[text,{type:'data',name:'chart',data:chartData}]),historyMessage('assistant-2','assistant',[text])]:scenario==='split'?[historyMessage('request-1','user',[{type:'text',text:'Request one'}]),historyMessage('assistant-1','assistant',[reasoning('Before tool'),tool,reasoning('After tool')]),historyMessage('assistant-2','assistant',[text]),historyMessage('request-2','user',[{type:'text',text:'Request two'}]),historyMessage('assistant-3','assistant',[{type:'text',text:'First paragraph.\\n\\nSecond paragraph.'}])]:[historyMessage('assistant-1','assistant',content)];
 function App(){const runtime=useLocalRuntime(adapter,{initialMessages});
-return <AgentUILocaleProvider locale="zh-CN"><AgentUIRoot theme={params.get('theme')||'light'}><button data-testid="start" onClick={()=>runtime.thread.append({role:'user',content:[{type:'text',text:'Start'}]})}>Start</button><button data-testid="finish" onClick={()=>finish?.()}>Finish</button><div className="surface agent-ui-conversation"><AssistantRuntimeProvider runtime={runtime}><ConversationThread composer={null} components={params.get('plugins')==='off'?{}:{ReasoningGroup:Reasoning,ToolGroup:Tools,ThinkingIndicator:Thinking,...(scenario==='timeline'?{ToolTimeline:Timeline}:{})}}/></AssistantRuntimeProvider></div>
-<div data-testid="standalone"><ReasoningRoot><ReasoningTrigger/></ReasoningRoot></div></AgentUIRoot></AgentUILocaleProvider>};createRoot(document.getElementById('root')).render(<App/>);`);
+return <AgentUILocaleProvider locale="zh-CN"><AgentUIRoot theme={params.get('theme')||'light'}><button data-testid="start" onClick={()=>runtime.thread.append({role:'user',content:[{type:'text',text:'Start'}]})}>Start</button><button data-testid="finish" onClick={()=>finish?.()}>Finish</button><div className="surface agent-ui-conversation"><AssistantRuntimeProvider runtime={runtime}><DataMessageUIRegistration definition={chartMessageUI}/><ConversationThread composer={null} components={params.get('plugins')==='off'?{}:{ReasoningGroup:Reasoning,ToolGroup:Tools,ThinkingIndicator:Thinking,...(scenario==='timeline'?{ToolTimeline:Timeline}:{})}}/></AssistantRuntimeProvider></div>
+<div data-testid="standalone-chart"><Chart data={chartData}/></div><div data-testid="standalone"><ReasoningRoot><ReasoningTrigger/></ReasoningRoot></div></AgentUIRoot></AgentUILocaleProvider>};createRoot(document.getElementById('root')).render(<App/>);`);
   server = await createServer({ configFile: false, root: fixture, plugins: [react(), tailwind()],
     resolve: { dedupe: ['react','react-dom','@assistant-ui/react'], alias: {
       'use-sync-external-store': syncStoreRoot,
@@ -45,6 +49,7 @@ return <AgentUILocaleProvider locale="zh-CN"><AgentUIRoot theme={params.get('the
       'zustand': path.join(repo,'packages/react/node_modules/zustand'),
       '@agent-ui/react/styles.css': path.join(repo,'packages/react/dist/styles.css'),
       '@agent-ui/react': path.join(repo,'packages/react/dist/index.js'),
+      'chart-plugin': path.join(repo,'packages/source-registry/registry/items/plugin-chart-message/files/plugins/chart-message/index.tsx'),
       'standalone-reasoning': path.join(repo,'packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/reasoning.js'),
     } }, server: { host: '127.0.0.1', port: 0, hmr: false, fs: { allow: [repo] } } });
   await server.listen(); url = server.resolvedUrls!.local[0]!;
@@ -63,6 +68,18 @@ async function checkGaps(page: Page) {
 }
 
 for (const theme of ['light','dark','violet']) for (const width of [420,1440]) {
+  test(`${theme} ${width}: chart composition`, async ({page}) => {
+    await page.setViewportSize({width,height:1100});
+    await page.goto(url+'?'+new URLSearchParams({theme,scenario:'chart'}));
+    await expect(page.locator('.surface [data-slot="chart-message"]')).toBeVisible();
+    const gaps=await page.locator('.surface').evaluate(surface=>{
+      const chart=surface.querySelector('[data-slot="chart-message"]')!;
+      const paragraphs=surface.querySelectorAll('[data-slot="agent-ui-markdown"] p');
+      return {above:chart.getBoundingClientRect().top-paragraphs[0].getBoundingClientRect().bottom,below:paragraphs[1].getBoundingClientRect().top-chart.getBoundingClientRect().bottom};
+    });
+    expect(gaps.above).toBeCloseTo(16,0); expect(gaps.below).toBeCloseTo(16,0);
+    expect(await page.getByTestId('standalone-chart').locator('figure').evaluate(n=>getComputedStyle(n).marginBlock)).toBe('12px');
+  });
   test(`${theme} ${width}: split reply and new turn`, async ({page}) => {
     await page.setViewportSize({width,height:1100});
     await page.goto(url+'?'+new URLSearchParams({theme,scenario:'split'}));

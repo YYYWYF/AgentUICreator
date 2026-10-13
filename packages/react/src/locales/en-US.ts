@@ -118,6 +118,7 @@ export const enUS = {
     "working": "Working",
     "waitingState": "Waiting for input",
     "failedState": "Failed",
+    "childFailed": "Subagent failed. Expand for details.",
     "doneState": "Done",
     "cancelledState": "Cancelled",
     "runningOne": "{running} of {total} task running",

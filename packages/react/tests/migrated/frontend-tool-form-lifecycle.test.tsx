@@ -100,8 +100,11 @@ async function fixture(coldHistory = false) {
 describe("React Hook Form native frontend tools and replay safety", () => {
   it("fills both fields once and preserves a manual edit across conversation replay", async () => {
     const f = await fixture();
+    const panel = f.container.querySelector<HTMLFormElement>('[data-slot="frontend-tool-form"]')!;
+    expect(panel.hidden).toBe(true);
     await act(async () => { f.runtime.thread.append({ role: "user", content: [{ type: "text", text: "fill form" }], startRun: true }); await tick(); });
     await settle(() => f.inputs.length === 2 && !f.runtime.thread.getState().isRunning);
+    expect(panel.hidden).toBe(false);
     expect(f.open).toHaveBeenCalledTimes(2);
     expect(f.execute).toHaveBeenCalledTimes(2);
     const field = f.container.querySelector<HTMLInputElement>('input[name="firstName"]')!;
@@ -114,7 +117,9 @@ describe("React Hook Form native frontend tools and replay safety", () => {
     });
     expect(f.dialog.getSnapshot().values.firstName).toBe("Bob");
     await act(async () => { await f.runtime.threads.switchToThread("other"); });
+    expect(panel.hidden).toBe(true);
     await act(async () => { await f.runtime.threads.switchToThread("live"); });
+    expect(panel.hidden).toBe(false);
     expect(field.value).toBe("Bob");
     expect(f.container.textContent).toContain("Alice");
     expect(f.open).toHaveBeenCalledTimes(2);

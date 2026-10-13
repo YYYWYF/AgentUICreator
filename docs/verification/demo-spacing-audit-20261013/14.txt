@@ -1,0 +1,44 @@
+- main:
+  - group "智能助手":
+    - list:
+      - generic: 智能助手
+  - button "切换侧边栏" [expanded]:
+    - generic: 切换侧边栏
+  - navigation "侧边栏"
+  - complementary "历史会话":
+    - complementary:
+      - button "新建会话":
+        - generic: 新建会话
+      - searchbox "搜索会话"
+      - button "新会话 运行中":
+        - generic: 新会话
+        - generic: 运行中
+      - button "更多选项":
+        - generic: 更多选项
+      - button "新会话":
+        - generic: 新会话
+      - button "更多选项":
+        - generic: 更多选项
+  - main:
+    - generic: 请演示当前场景
+    - generic: 已更新 firstName 为 Alice
+    - generic: 已更新 email 为 alice@example.com
+    - generic: ●
+    - textbox "消息输入框" [active]:
+      - paragraph
+    - generic: 发送消息…
+    - button "添加附件":
+      - generic: 添加附件
+    - button "停止生成":
+    - heading "个人资料表单" [level=2]
+    - text: 名
+    - textbox "名": Alice
+    - text: 姓
+    - textbox "姓"
+    - text: 邮箱
+    - textbox "邮箱": <redacted>
+    - text: 项目想法
+    - textbox "项目想法"
+    - button "重置"
+    - button "提交"
+- button "✦ Creator Agent"

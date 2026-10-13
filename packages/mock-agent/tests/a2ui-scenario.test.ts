@@ -75,7 +75,10 @@ describe("standard activity snapshots and generic A2UI action branches", () => {
     const events = await collect(a2uiInteractiveOrderScenario, request);
     expect(events.some(event => event.type === EventType.TOOL_CALL_START || event.type === EventType.TOOL_CALL_RESULT || event.type === EventType.CUSTOM)).toBe(false);
     const text = events.flatMap(event => event.type === EventType.TEXT_MESSAGE_CONTENT ? [event.delta] : []).join("");
-    expect(text).toBe(name === "confirm_order" ? "Order confirmed." : "Order cancelled.");
+    expect(text).toBe("");
+    const snapshot = events.find(event => event.type === EventType.ACTIVITY_SNAPSHOT);
+    expect(snapshot).toBeDefined();
+    expect(JSON.stringify(snapshot)).toContain(name === "confirm_order" ? "Order confirmed" : "Order cancelled");
     expect(request.messages).toEqual(input.messages);
     expect(request).not.toHaveProperty("resume");
   });

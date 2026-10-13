@@ -49,7 +49,7 @@ export const officialResourceRegistry = createOfficialResourceRegistry([
   { id: "retrieval-chunks", discoverable: true, label: "文档检索", implementation: { type: "source-plugin", sourceItemId: "plugin/retrieval-chunks", pluginId: "retrieval-chunks", placement: "application" } },
   { id: "a2ui", label: "A2UI", description: "A2UI declarative interactive surfaces", implementation: { type: "source", sourceItemId: "integration/a2ui" } },
   { id: "ask-user-question-demo", label: "询问用户偏好 Demo", implementation: { type: "source-plugin", sourceItemId: "demo/ask-user-question", pluginId: "ask-user-question-demo", placement: "application" } },
-  { id: "frontend-tool-form-demo", label: "表单 Frontend Tool Demo", implementation: { type: "source-plugin", sourceItemId: "demo/frontend-tool-form", pluginId: "frontend-tool-form-demo", placement: "layout", layoutSize: "320px" } },
+  { id: "frontend-tool-form-demo", label: "表单 Frontend Tool Demo", implementation: { type: "source-plugin", sourceItemId: "demo/frontend-tool-form", pluginId: "frontend-tool-form-demo", placement: "layout", layoutSize: "0px" } },
   { id: "frontend-tool-dialog-demo", label: "弹窗 Frontend Tool Demo", implementation: { type: "source-plugin", sourceItemId: "demo/frontend-tool-dialog", pluginId: "frontend-tool-dialog-demo", placement: "layout", layoutSize: "0px" } },
   { id: "source-citations-message", discoverable: true, label: "来源引用", implementation: { type: "plugin", pluginId: "source-citations-message" } },
   { id: "generated-file-message", discoverable: true, label: "文件输出", implementation: { type: "plugin", pluginId: "generated-file-message" } },

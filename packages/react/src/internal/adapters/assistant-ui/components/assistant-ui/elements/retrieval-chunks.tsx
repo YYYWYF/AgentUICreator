@@ -61,7 +61,7 @@ export function RetrievalChunks({
         )}
       </div>
 
-      <div data-agent-ui-owned="" className="flex min-h-[7rem] flex-col gap-1.5">
+      <div data-agent-ui-owned="" className={cn("flex flex-col gap-1.5", searching && "min-h-[7rem]")}>
         {take(chunks, visibleCount).map((chunk) => (
           <div data-agent-ui-owned=""
             key={chunk.id}

@@ -1,0 +1,24 @@
+[
+  [
+    {
+      "gap": null,
+      "height": 24.5,
+      "slot": null,
+      "text": "已更新 firstName 为 Alice"
+    },
+    {
+      "gap": 16,
+      "height": 24.5,
+      "slot": null,
+      "text": "已更新 email 为 alice@example.com"
+    }
+  ],
+  [
+    {
+      "gap": null,
+      "height": 24.5,
+      "slot": "agent-ui-markdown",
+      "text": "已填写姓名和邮箱，表单尚未提交。"
+    }
+  ]
+]

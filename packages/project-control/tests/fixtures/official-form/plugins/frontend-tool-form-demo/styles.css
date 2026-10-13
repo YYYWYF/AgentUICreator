@@ -3,8 +3,26 @@
 .frontend-tool-form input, .frontend-tool-form textarea { padding: 8px; border: 1px solid currentColor; border-radius: 6px; background: transparent; color: inherit; }
 .frontend-tool-form > div { display: flex; gap: 12px; }
 
+/* Keep the controller mounted without reserving conversation layout space. */
+.frontend-tool-form.frontend-tool-form-overlay {
+  position: fixed;
+  inset-block-start: 56px;
+  inset-inline-end: 16px;
+  box-sizing: border-box;
+  width: min(320px, calc(100vw - 32px));
+  min-width: 0;
+  max-height: calc(100dvh - 72px);
+  overflow: auto;
+  z-index: 30;
+  background: var(--background, white);
+  border: 1px solid var(--border, #ddd);
+  border-radius: var(--radius, 12px);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 10%);
+}
+.frontend-tool-form[hidden] { display: none; }
+
 /* Product-owned Violet presentation; Light/Dark keep the original demo styles. */
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form"] {
+.frontend-tool-form:where(.agent-ui-root[data-theme="violet"] *, .agent-ui-conversation[data-theme="violet"] *) {
   box-sizing: border-box;
   width: 100%;
   max-width: 36rem;
@@ -17,18 +35,18 @@
   font-size: 14px;
   line-height: 1.5;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form"] h2 {
+.frontend-tool-form:where(.agent-ui-root[data-theme="violet"] *, .agent-ui-conversation[data-theme="violet"] *) h2 {
   margin: 0;
   font-size: 18px;
   line-height: 1.5;
   font-weight: 600;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form"] label {
+.frontend-tool-form:where(.agent-ui-root[data-theme="violet"] *, .agent-ui-conversation[data-theme="violet"] *) label {
   min-width: 0;
   gap: 8px;
   font-weight: 500;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form-input"] {
+.frontend-tool-form:where(.agent-ui-root[data-theme="violet"] *, .agent-ui-conversation[data-theme="violet"] *) [data-slot="frontend-tool-form-input"] {
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
@@ -39,16 +57,16 @@
   font-weight: 400;
   line-height: 20px;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] textarea[data-slot="frontend-tool-form-input"] {
+.frontend-tool-form:where(.agent-ui-root[data-theme="violet"] *, .agent-ui-conversation[data-theme="violet"] *) textarea[data-slot="frontend-tool-form-input"] {
   min-height: 112px;
   resize: vertical;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form-actions"] {
+.frontend-tool-form:where(.agent-ui-root[data-theme="violet"] *, .agent-ui-conversation[data-theme="violet"] *) [data-slot="frontend-tool-form-actions"] {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] :is([data-slot="frontend-tool-form-reset"], [data-slot="frontend-tool-form-submit"]) {
+.frontend-tool-form:where(.agent-ui-root[data-theme="violet"] *, .agent-ui-conversation[data-theme="violet"] *) :is([data-slot="frontend-tool-form-reset"], [data-slot="frontend-tool-form-submit"]) {
   min-height: 40px;
   padding: 8px 16px;
   border-radius: calc(var(--radius) - 2px);
@@ -56,18 +74,18 @@
   font-weight: 500;
   cursor: pointer;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form-reset"]:hover {
+.frontend-tool-form:where(.agent-ui-root[data-theme="violet"] *, .agent-ui-conversation[data-theme="violet"] *) [data-slot="frontend-tool-form-reset"]:hover {
   background-color: var(--muted);
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form-submit"]:hover {
+.frontend-tool-form:where(.agent-ui-root[data-theme="violet"] *, .agent-ui-conversation[data-theme="violet"] *) [data-slot="frontend-tool-form-submit"]:hover {
   background-color: var(--agent-brand-active);
   border-color: var(--agent-brand-active);
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form-submit"]:disabled {
+.frontend-tool-form:where(.agent-ui-root[data-theme="violet"] *, .agent-ui-conversation[data-theme="violet"] *) [data-slot="frontend-tool-form-submit"]:disabled {
   opacity: 0.5;
   cursor: default;
 }
-:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="frontend-tool-form"] :is([role="alert"], [role="status"]) {
+.frontend-tool-form:where(.agent-ui-root[data-theme="violet"] *, .agent-ui-conversation[data-theme="violet"] *) :is([role="alert"], [role="status"]) {
   margin: 0;
   font-size: 12px;
   font-weight: 400;

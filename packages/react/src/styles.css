@@ -201,9 +201,10 @@
   display: none;
 }
 
-/* The stack owns inter-part spacing. Standalone Reasoning and the contents of
- * disclosures keep their own upstream spacing. Only normalize composed roots. */
+/* The stack owns inter-part spacing. Standalone Reasoning/Chart surfaces and
+ * disclosure contents keep their own spacing. Only normalize composed roots. */
 .agent-ui-conversation :is([data-slot="aui_assistant-message-parts"], [data-slot="aui_chain-of-thought"]) > [data-slot="reasoning-root"],
+.agent-ui-conversation [data-slot="aui_assistant-message-parts"] > [data-slot="chart-message"],
 .agent-ui-conversation :is([data-slot="aui_assistant-message-parts"], [data-slot="aui_chain-of-thought"]) > .app-ui-plugin-instance[data-plugin-renderer="true"] > [data-slot="reasoning-root"] {
   margin-block: 0;
 }

@@ -4,6 +4,7 @@ import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createMockConversationApiHandler } from "../../src/conversations/handler";
+import { MockDurableRunStore } from "../../src/durable-run-store";
 
 describe("Mock Conversation API", () => {
   let server: Server;
@@ -99,6 +100,22 @@ describe("Mock Conversation API", () => {
       error: "Conversation not found: not-found",
     });
   });
+});
+
+it("exposes an existing durable run as history without starting it again", async () => {
+  const store = new MockDurableRunStore();
+  store.start({ threadId: "durable-history", runId: "original-run", messages: [{ id: "request", role: "user", content: "Continue this task" }], state: {}, tools: [], context: [], forwardedProps: {} });
+  const handler = createMockConversationApiHandler({ durableStore: store, fixtures: [], listDelayMs: 0, detailDelayMs: 0 });
+  const server = createServer((request, response) => { void handler(request, response); });
+  await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
+  const url = `http://127.0.0.1:${(server.address() as AddressInfo).port}/__agent-ui/mock-data/conversations`;
+  try {
+    expect(await (await fetch(url)).json()).toMatchObject({ conversations: [{ id: "durable-history" }] });
+    expect(await (await fetch(`${url}/durable-history`)).json()).toMatchObject({ id: "durable-history", state: { values: { messages: [
+      { type: "human", content: "Continue this task" }, { type: "ai", content: "正在分析第一部分……" },
+    ] } } });
+    expect(store.snapshot("durable-history")).toMatchObject({ runId: "original-run", runCount: 1, resumable: true });
+  } finally { await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve())); }
 });
 
 

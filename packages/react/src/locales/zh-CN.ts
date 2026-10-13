@@ -118,6 +118,7 @@ export const zhCN = {
     "working": "正在运行",
     "waitingState": "等待输入",
     "failedState": "失败",
+    "childFailed": "子任务失败，展开查看详情",
     "doneState": "已完成",
     "cancelledState": "已取消",
     "runningOne": "{total} 项任务中有 {running} 项正在运行",

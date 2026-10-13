@@ -30,12 +30,12 @@ async function project() {
   await writeFile(path.join(root, "model.json"), JSON.stringify({ root: { type: "slot", plugins: [{ id: "surface", pluginId: "conversation-surface", enabled: true }] } }));
   return root;
 }
-it("delegates bundle installation to the Host and places a visible Form beside the conversation", async () => {
+it("installs the form controller without reserving conversation layout width", async () => {
   const root = await project();
   await installScenarioResources(root, "demo/frontend-tool-form");
   expect(applyAgentUISourceProjectMutation).toHaveBeenCalledWith(root, { itemId: "demo/frontend-tool-form", expectedStateHash: "hash" }, { config: {} });
   expect(mutateAppUIModel).toHaveBeenCalledWith(root, expect.objectContaining({ operations: [expect.objectContaining({
-    type: "insert_layout_relative", anchorRef: "l0", direction: "right", size: "320px",
+    type: "insert_layout_relative", anchorRef: "l0", direction: "right", size: "0px",
     node: { type: "panel", child: { type: "slot", plugins: [{ id: "frontend-tool-form-demo-main", pluginId: "frontend-tool-form-demo", enabled: true }] } },
   })] }));
 });

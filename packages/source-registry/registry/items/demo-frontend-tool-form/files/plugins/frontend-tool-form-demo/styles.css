@@ -3,6 +3,24 @@
 .frontend-tool-form input, .frontend-tool-form textarea { padding: 8px; border: 1px solid currentColor; border-radius: 6px; background: transparent; color: inherit; }
 .frontend-tool-form > div { display: flex; gap: 12px; }
 
+/* Keep the controller mounted without reserving conversation layout space. */
+.frontend-tool-form.frontend-tool-form-overlay {
+  position: fixed;
+  inset-block-start: 56px;
+  inset-inline-end: 16px;
+  box-sizing: border-box;
+  width: min(320px, calc(100vw - 32px));
+  min-width: 0;
+  max-height: calc(100dvh - 72px);
+  overflow: auto;
+  z-index: 30;
+  background: var(--background, white);
+  border: 1px solid var(--border, #ddd);
+  border-radius: var(--radius, 12px);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 10%);
+}
+.frontend-tool-form[hidden] { display: none; }
+
 /* Product-owned Violet presentation; Light/Dark keep the original demo styles. */
 .frontend-tool-form:where(.agent-ui-root[data-theme="violet"] *, .agent-ui-conversation[data-theme="violet"] *) {
   box-sizing: border-box;

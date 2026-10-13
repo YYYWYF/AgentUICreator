@@ -153,6 +153,10 @@ describe("A2UI Official Integration (active native runtime)", () => {
     const action = next.forwardedProps.a2uiAction.userAction;
     expect(action).toMatchObject({ name: "confirm_order", surfaceId: "order", sourceComponentId: "confirm", timestamp: expect.any(String) });
     expect(action.type).toBeUndefined(); await f.finish(1);
+    const oldAction = [...f.container.querySelectorAll("button")].find(button => button.textContent === "Confirm")!;
+    expect(oldAction.closest("fieldset")?.disabled).toBe(true);
+    await act(async () => { oldAction.click(); await tick(); });
+    expect(f.inputs).toHaveLength(2);
   });
   it("defers an action while the original SSE body is still draining", async () => {
     const f = await fixture(); await f.start(); await f.snapshot(); await f.finish(0, false); await f.clickConfirm();

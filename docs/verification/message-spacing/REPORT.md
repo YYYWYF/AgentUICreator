@@ -62,6 +62,20 @@ and are superseded by the focused six-case rerun.
 The PNGs show the mixed completed case; JSON files record its measured gaps.
 Browser regression source: `apps/creator-workbench/tests/message-spacing.spec.ts`.
 
+## Custom Chart follow-up
+
+The actual `data-message-chart` Demo was run at `http://127.0.0.1:5176/`.
+The chart figure's 12px top/bottom margins combined with message stack / turn
+continuation spacing to produce 28px above and below the figure. The message
+composition stylesheet now resets only a directly composed Chart root's block
+margins, preserving its standalone margins and internal caption/row spacing.
+
+Measured on the actual Host after the change: 16px above and 16px below. See
+`chart-replay-fixed.jpg`. Six Chromium regression cases passed across
+light/dark/violet themes at 420/1440px, using the real Chart renderer via
+DataMessageUIRegistration. Each case also verifies the standalone Chart still
+has 12px block margins. Build and typecheck passed. No Windows physical run.
+
 ## Platform and scope
 
 Validation ran on macOS Chromium. No physical Windows run was available. Changes

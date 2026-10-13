@@ -1,0 +1,302 @@
+[
+  {
+    "i": 2,
+    "name": "纯文本流式回复",
+    "file": "02.jpg"
+  },
+  {
+    "i": 3,
+    "name": "一次回复包含多条消息",
+    "file": "03.jpg"
+  },
+  {
+    "i": 4,
+    "name": "流式展示 Markdown 内容",
+    "file": "04.jpg"
+  },
+  {
+    "i": 5,
+    "name": "发送文字、图片与文件",
+    "file": "05.jpg"
+  },
+  {
+    "i": 6,
+    "name": "携带上下文向 Agent 提问",
+    "file": "06.jpg"
+  },
+  {
+    "i": 7,
+    "name": "思考 → 工具时间线 → 回答",
+    "file": "07.jpg"
+  },
+  {
+    "i": 8,
+    "name": "思考占位",
+    "file": "08.jpg"
+  },
+  {
+    "i": 9,
+    "name": "思考后回复",
+    "file": "09.jpg"
+  },
+  {
+    "i": 9,
+    "name": "思考后回复",
+    "file": "09-settled.jpg"
+  },
+  {
+    "i": 9,
+    "name": "思考后回复",
+    "file": "09-expanded.jpg"
+  },
+  {
+    "i": 10,
+    "name": "思考、调用工具并回答",
+    "file": "10.jpg"
+  },
+  {
+    "i": 11,
+    "name": "并行调用多个工具",
+    "file": "11.jpg"
+  },
+  {
+    "i": 12,
+    "name": "工具调用期间发生错误",
+    "file": "12.jpg"
+  },
+  {
+    "i": 13,
+    "name": "前端工具打开弹窗",
+    "file": "13.jpg"
+  },
+  {
+    "i": 13,
+    "name": "前端工具打开弹窗",
+    "file": "13-closed.jpg"
+  },
+  {
+    "i": 14,
+    "name": "前端工具填写表单",
+    "file": "14.jpg"
+  },
+  {
+    "i": 15,
+    "name": "工具搜索网页并返回结果",
+    "file": "15.jpg"
+  },
+  {
+    "i": 16,
+    "name": "工具返回检索片段",
+    "file": "16.jpg"
+  },
+  {
+    "i": 17,
+    "name": "向用户提问并继续回答",
+    "file": "17-question.jpg"
+  },
+  {
+    "i": 17,
+    "name": "向用户提问并继续回答",
+    "file": "17-answered.jpg"
+  },
+  {
+    "i": 18,
+    "name": "工具调用等待人工审批",
+    "file": "18-pending.jpg"
+  },
+  {
+    "i": 19,
+    "name": "Agent 状态实时更新任务进度",
+    "file": "19.jpg"
+  },
+  {
+    "i": 20,
+    "name": "通过 Activity 事件展示执行计划",
+    "file": "20.jpg"
+  },
+  {
+    "i": 21,
+    "name": "通过工具参数展示 Agent 状态",
+    "file": "21.jpg"
+  },
+  {
+    "i": 22,
+    "name": "工具生成文件并提供下载",
+    "file": "22.jpg"
+  },
+  {
+    "i": 23,
+    "name": "回答中展示来源引用",
+    "file": "23.jpg"
+  },
+  {
+    "i": 24,
+    "name": "在消息中展示自定义图表",
+    "file": "24.jpg"
+  },
+  {
+    "i": 25,
+    "name": "A2UI 交互表单",
+    "file": "25.jpg"
+  },
+  {
+    "i": 26,
+    "name": "A2UI 订单确认卡片",
+    "file": "26.jpg"
+  },
+  {
+    "i": 27,
+    "name": "子智能体任务卡片",
+    "file": "27.jpg"
+  },
+  {
+    "i": 27,
+    "name": "子智能体任务卡片",
+    "file": "27-expanded.jpg"
+  },
+  {
+    "i": 28,
+    "name": "多个子智能体组成任务组",
+    "file": "28.jpg"
+  },
+  {
+    "i": 28,
+    "name": "多个子智能体组成任务组",
+    "file": "28-expanded.jpg"
+  },
+  {
+    "i": 29,
+    "name": "子智能体递归委托任务",
+    "file": "29.jpg"
+  },
+  {
+    "i": 29,
+    "name": "子智能体递归委托任务",
+    "file": "29-expanded.jpg"
+  },
+  {
+    "i": 30,
+    "name": "子智能体运行错误",
+    "file": "30.jpg"
+  },
+  {
+    "i": 30,
+    "name": "子智能体运行错误",
+    "file": "30-expanded.jpg"
+  },
+  {
+    "i": 31,
+    "name": "多个会话同时运行",
+    "file": "31-running.jpg"
+  },
+  {
+    "i": 31,
+    "name": "多个会话同时运行",
+    "file": "31-second.jpg"
+  },
+  {
+    "i": 32,
+    "name": "首次回复前取消运行",
+    "file": "32.jpg"
+  },
+  {
+    "i": 33,
+    "name": "刷新后继续接收长任务回复",
+    "file": "33-before-refresh.jpg"
+  },
+  {
+    "i": 33,
+    "name": "刷新后继续接收长任务回复",
+    "file": "33-after-refresh.jpg"
+  },
+  {
+    "i": 34,
+    "name": "刷新后恢复执行计划进度",
+    "file": "34-before-refresh.jpg"
+  },
+  {
+    "i": 34,
+    "name": "刷新后恢复执行计划进度",
+    "file": "34-after-refresh.jpg"
+  },
+  {
+    "i": 0,
+    "name": "子Agent翻译回放",
+    "file": "00.jpg"
+  },
+  {
+    "i": 1,
+    "name": "我的回放示例",
+    "file": "01.jpg"
+  },
+  {
+    "i": 10,
+    "name": "思考、调用工具并回答",
+    "file": "10-settled.jpg"
+  },
+  {
+    "i": 7,
+    "name": "思考 → 工具时间线 → 回答",
+    "file": "07-timeline-expanded.jpg"
+  },
+  {
+    "i": 7,
+    "name": "思考 → 工具时间线 → 回答",
+    "file": "07-details.jpg"
+  },
+  {
+    "i": 16,
+    "name": "工具返回检索片段",
+    "file": "16-settled.jpg"
+  },
+  {
+    "i": 22,
+    "name": "工具生成文件并提供下载",
+    "file": "22-settled.jpg"
+  },
+  {
+    "i": 14,
+    "name": "前端工具填写表单",
+    "file": "14-settled.jpg"
+  },
+  {
+    "i": 31,
+    "name": "多个会话同时运行",
+    "file": "31-complete.jpg"
+  },
+  {
+    "i": 5,
+    "name": "发送文字、图片与文件",
+    "file": "05-settled.jpg"
+  },
+  {
+    "i": 4,
+    "name": "流式展示 Markdown 内容",
+    "file": "04-top.jpg"
+  },
+  {
+    "i": 4,
+    "name": "流式展示 Markdown 内容",
+    "file": "04-middle.jpg"
+  },
+  {
+    "i": 11,
+    "name": "并行调用多个工具",
+    "file": "11-settled.jpg"
+  },
+  {
+    "i": 25,
+    "name": "A2UI 交互表单",
+    "file": "25-top.jpg"
+  },
+  {
+    "i": 16,
+    "name": "工具返回检索片段",
+    "file": "16-review.jpg"
+  },
+  {
+    "i": 15,
+    "name": "工具搜索网页并返回结果",
+    "file": "15-review.jpg"
+  }
+]

@@ -1,0 +1,16 @@
+[
+  [
+    {
+      "gap": null,
+      "height": 42,
+      "slot": "file-root",
+      "text": "quarterly-report.pdf"
+    },
+    {
+      "gap": 16,
+      "height": 24.5,
+      "slot": "agent-ui-markdown",
+      "text": "报告已经生成。"
+    }
+  ]
+]

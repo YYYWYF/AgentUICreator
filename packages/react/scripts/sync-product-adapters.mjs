@@ -125,7 +125,12 @@ export function applyProductAdaptations(source, localPath) {
     installed = replaceExactlyOnce(installed, '        <span\n          className={cn(\n            "block h-full', '        <span\n          data-slot="agent-ui-job-progress-fill"\n          className={cn(\n            "block h-full', localPath);
   }
   if (localPath === "components/assistant-ui/elements/retrieval-chunks.tsx") {
+    // Reserve loading space only while retrieving; completed results size to content.
+    installed = replaceExactlyOnce(installed, 'className="flex min-h-[7rem] flex-col gap-1.5"', 'className={cn("flex flex-col gap-1.5", searching && "min-h-[7rem]")}', localPath);
     installed = replaceExactlyOnce(installed, '              <span\n                className="block h-full', '              <span\n                data-slot="agent-ui-retrieval-score-fill"\n                className="block h-full', localPath);
+  }
+  if (localPath === "components/assistant-ui/elements/web-search.tsx") {
+    installed = replaceExactlyOnce(installed, 'className="flex min-h-[5.75rem] flex-col"', 'className={cn("flex flex-col", searching && "min-h-[5.75rem]")}', localPath);
   }
   if (localPath === "components/assistant-ui/elements/thread-list.aui.tsx") {
     for (const [before, after] of [

@@ -1,0 +1,28 @@
+[
+  [
+    {
+      "gap": null,
+      "height": 48,
+      "slot": "aui_chain-of-thought",
+      "text": "思考"
+    },
+    {
+      "gap": 16,
+      "height": 31.25,
+      "slot": "tool-call",
+      "text": "正在搜索文件已搜索文件AG-UI"
+    },
+    {
+      "gap": 16,
+      "height": 48,
+      "slot": "aui_chain-of-thought",
+      "text": "思考"
+    },
+    {
+      "gap": 16,
+      "height": 24.5,
+      "slot": "agent-ui-markdown",
+      "text": "检查完成，我找到了 AG-UI Transport 和生命周期投影相关实现。"
+    }
+  ]
+]

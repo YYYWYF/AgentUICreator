@@ -44,7 +44,9 @@ export function InternalConversationToolTimeline({ children }: { children?: Reac
       stats={[]} open={open} onOpenChange={setOpen} className="min-w-0 max-w-full" />
     {open && children ? <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
       <CollapsibleTrigger data-agent-ui-owned="" className="rounded-md py-1 text-sm text-muted-foreground">{messages.details}</CollapsibleTrigger>
-      <CollapsibleContent>{children}</CollapsibleContent>
+      <CollapsibleContent>
+        <div data-slot="agent-ui-tool-timeline-details" className="flex flex-col gap-2">{children}</div>
+      </CollapsibleContent>
     </Collapsible> : null}
   </div>;
 }

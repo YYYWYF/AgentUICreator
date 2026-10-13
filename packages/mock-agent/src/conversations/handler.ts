@@ -125,7 +125,9 @@ export function createMockConversationApiHandler({
         sendJson(response, 200, {
           conversations: fixtures
             .filter(fixture => !deletedIds.has(fixture.summary.id))
-            .map(fixture => fixture.summary),
+            .map(fixture => fixture.summary).concat(durableStore.list()
+              .filter(item => !deletedIds.has(item.id))
+              .map(({ id, title }) => ({ id, title }))),
         });
         return true;
       }
@@ -137,7 +139,14 @@ export function createMockConversationApiHandler({
         sendJson(response, 400, { error: "Invalid conversation id." });
         return true;
       }
-      const detail = detailsById.get(id);
+      const run = durableStore.snapshot(id);
+      const detail = detailsById.get(id) ?? (run === undefined ? undefined : {
+        id, title: durableStore.list().find(item => item.id === id)!.title,
+        state: { values: { messages: [
+          { id: `${run.runId}-user`, type: "human", content: run.userText },
+          { id: `${run.runId}-partial`, type: "ai", content: run.assistantText },
+        ] } },
+      });
       if (detail === undefined) {
         sendJson(response, 404, { error: `Conversation not found: ${id}` });
         return true;

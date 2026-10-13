@@ -1,4 +1,5 @@
 import { useAui, type AssistantRuntime } from "@assistant-ui/react";
+import { HttpAgent } from "@ag-ui/client";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 
@@ -50,8 +51,9 @@ async function fixture(histories: Record<string, ConversationLoadedThread>) {
     renderer = create(
       <ConversationRuntimeProvider endpoint="http://example.test/agent" threadBinding={binding}
         onError={error => errors.push(error)}
-        unstable_agentFactory={({ threadId }) => ({ threadId, runAgent, abortRun,
-          subscribe: () => ({ unsubscribe: () => {} }) }) as never}>
+        unstable_agentFactory={({ threadId }) => Object.assign(new HttpAgent({
+          url: "http://example.test/agent", threadId,
+        }), { runAgent, abortRun })}>
         <Capture />
       </ConversationRuntimeProvider>,
     );

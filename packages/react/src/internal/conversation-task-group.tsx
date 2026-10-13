@@ -75,6 +75,9 @@ function NestedMessage() {
 }
 
 function TaskCardComposition({ part }: { part: TaskPart }) {
+  const labels = useAgentUILocale("tasks");
+  const childFailed = part.messages?.some(message => message.role === "assistant" &&
+    message.status.type === "incomplete" && message.status.reason === "error") === true;
   const disclosure = useTaskDisclosure(part.toolCallId);
   const elapsed = useTaskElapsed(part.timing,
     part.status.type === "running" || part.status.type === "requires-action");
@@ -92,7 +95,8 @@ function TaskCardComposition({ part }: { part: TaskPart }) {
         {...(part.respondToApproval && { respondToApproval: part.respondToApproval })}
       />
     : undefined;
-  const result = showError || part.result !== undefined ? <>
+  const result = showError || childFailed || part.result !== undefined ? <>
+    {childFailed && <p data-agent-ui-owned="" data-slot="agent-ui-task-child-error" role="status" className="m-0 text-destructive">{labels.childFailed}</p>}
     {showError && <ToolFallbackError status={part.status} />}
     {part.result !== undefined && (typeof part.result === "string"
       ? <p data-agent-ui-owned="" className="m-0 whitespace-pre-wrap">{part.result}</p>

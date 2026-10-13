@@ -93,7 +93,7 @@
     {
       "localPath": "components/assistant-ui/elements/retrieval-chunks.tsx",
       "upstreamInstalledSha256": "48ec963d0e43af96fc747f9b7e9fe271196b9e867c0d0c956e60d5e3d8e1ac5f",
-      "installedSha256": "0266a84bbe7973e10dbb25c3325cb79a6b13957fc59d87caf0cbdcd29c8c2160"
+      "installedSha256": "b5f99aa3e21669cfd3267c049c0bb8af38957753004d4405fde4dc4174fade75"
     },
     {
       "localPath": "components/assistant-ui/elements/sources.aui.tsx",
@@ -153,7 +153,7 @@
     {
       "localPath": "components/assistant-ui/elements/web-search.tsx",
       "upstreamInstalledSha256": "17dc54e958e5c316f3b2d79d91a6cc9ba374b1113f3af8f62b78252d7665a3ee",
-      "installedSha256": "c5075be39c235f3e9783d8419415be08bacee1e00eb91f608fc2fd1d48e8256b"
+      "installedSha256": "4aaae9a6be9810512defae3c93ff098aa1af369f3cda9faab3a741b0cedaabb3"
     },
     {
       "localPath": "components/ui/badge.tsx",

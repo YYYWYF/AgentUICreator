@@ -52,7 +52,7 @@ export function AgentSurface({ composition, observability, frontendToolRuntime, 
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     const publish = () => window.dispatchEvent(new CustomEvent("agent-ui:preview-run-state", {
-      detail: { running: ["running", "awaiting-input"].includes(agentRuntime.getSnapshot().run.status) },
+      detail: { running: ["running", "awaiting-input"].includes(agentRuntime.getSnapshot().run.status), threadId: agentRuntime.getSnapshot().conversation.id },
     }));
     publish();
     const unsubscribe = agentRuntime.subscribe(publish);

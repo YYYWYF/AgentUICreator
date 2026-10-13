@@ -1,0 +1,83 @@
+- main:
+  - list:
+    - generic: 智能助手
+  - button [expanded]:
+    - generic: 切换侧边栏
+  - complementary:
+    - complementary:
+      - button:
+        - generic: 新建会话
+      - searchbox
+      - button:
+        - generic: 新会话
+      - button:
+        - generic: 更多选项
+      - button:
+        - generic: 新会话
+      - button:
+        - generic: 更多选项
+      - button:
+        - generic: 新会话
+      - button:
+        - generic: 更多选项
+      - button:
+        - generic: 新会话
+      - button:
+        - generic: 更多选项
+      - button:
+        - generic: 新会话
+      - button:
+        - generic: 更多选项
+      - button:
+        - generic: 新会话
+      - button:
+        - generic: 更多选项
+      - button:
+        - generic: 新会话
+      - button:
+        - generic: 更多选项
+      - button:
+        - generic: 新会话
+      - button:
+        - generic: 更多选项
+      - button:
+        - generic: 新会话
+      - button:
+        - generic: 更多选项
+      - button:
+        - generic: 新会话
+      - button:
+        - generic: 更多选项
+      - button:
+        - generic: 新会话
+      - button:
+        - generic: 更多选项
+      - button:
+        - generic: 新会话
+      - button:
+        - generic: 更多选项
+      - button:
+        - generic: 新会话
+      - button:
+        - generic: 更多选项
+  - main:
+    - generic: 请演示当前场景
+    - generic: 已打开弹窗 Settings
+    - button:
+      - generic: 复制
+    - button:
+      - generic: 重试
+    - button:
+      - generic: 更多
+    - textbox [active]:
+      - paragraph
+    - generic: 发送消息…
+    - button:
+      - generic: 添加附件
+    - button [disabled]:
+      - generic: 发送
+- dialog "Settings":
+  - heading "Settings" [level=2]
+  - paragraph: Review your preferences
+  - button "关闭"
+- button: ✦ Creator Agent

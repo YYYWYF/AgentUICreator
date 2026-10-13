@@ -1,10 +1,14 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useConversationThread } from "@agent-ui/react";
 import { FormProvider, useForm } from "react-hook-form";
 import { usePluginService } from "../../runtime/plugins";
 import { DEMO_FORM_SERVICE, DEMO_FORM_FIELDS, type DemoFormValues, type DemoFormService, type DemoFormSubmitResult } from "../../services/demo-form";
 import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
 import "./styles.css";
 export function FrontendToolFormDemoPlugin() {
+  const thread = useConversationThread();
+  const visible = useSyncExternalStore(thread.subscribe, () => thread.getSnapshot().messages.some(message =>
+    message.content.some(part => part.type === "tool-call" && typeof part.toolName === "string" && ["set_form_field", "submit_form", "reset_form"].includes(part.toolName))), () => false);
   const service = usePluginService<DemoFormService>(DEMO_FORM_SERVICE);
   const locale = useAgentUILocale("frontendTools");
   const form = useForm<DemoFormValues>({ defaultValues: service?.getSnapshot().values ?? { firstName: "", lastName: "", email: "", projectIdea: "" } });
@@ -45,7 +49,7 @@ export function FrontendToolFormDemoPlugin() {
       pending.current?.({ success: false, message: locale.formUnavailable }); pending.current = undefined;
     };
   }, [service, getValues, setValue, reset, watch, locale]);
-  return <FormProvider {...form}><form ref={element} noValidate data-slot="frontend-tool-form" className="frontend-tool-form" onSubmit={onSubmit}>
+  return <FormProvider {...form}><form ref={element} hidden={!visible} noValidate data-slot="frontend-tool-form" className="frontend-tool-form frontend-tool-form-overlay" onSubmit={onSubmit}>
     <h2>{locale.formTitle}</h2>
     {DEMO_FORM_FIELDS.map(name => <label key={name}>{locale[name]}
       {name === "projectIdea" ? <textarea data-slot="frontend-tool-form-input" {...register(name)} /> : <input data-slot="frontend-tool-form-input" type={name === "email" ? "email" : "text"} {...register(name, {

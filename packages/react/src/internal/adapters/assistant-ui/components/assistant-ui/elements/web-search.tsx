@@ -61,7 +61,7 @@ export function WebSearch({
           </span>
         )}
       </div>
-      <div data-agent-ui-owned="" className="flex min-h-[5.75rem] flex-col">
+      <div data-agent-ui-owned="" className={cn("flex flex-col", searching && "min-h-[5.75rem]")}>
         {take(results, visibleResults).map((result) => (
           <div data-agent-ui-owned=""
             key={`${cycle}-${result.domain}`}
