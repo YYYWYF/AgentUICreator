@@ -114,14 +114,16 @@
       "../source-registry/registry/items/plugin-agent-plan-message/files",
       "../operator/tests/support/typecheck-project",
       "../source-registry/registry/items/plugin-web-search/files",
-      "../source-registry/registry/items/plugin-retrieval-chunks/files"
+      "../source-registry/registry/items/plugin-retrieval-chunks/files",
+      "../source-registry/registry/items/plugin-auth-gate/files",
+      "../source-registry/registry/items/plugin-auth-account/files"
     ]
   },
   "exclude": [
     "tests/fixtures"
   ],
   "include": [
-    "tests/migrated/**/*.ts",
-    "tests/migrated/**/*.tsx"
+    "tests/**/*.ts",
+    "tests/**/*.tsx"
   ]
 }
