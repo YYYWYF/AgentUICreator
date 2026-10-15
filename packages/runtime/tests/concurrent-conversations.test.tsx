@@ -1,8 +1,8 @@
-import { useConversationNavigation, type ConversationNavigation } from "@za38.03/agent-ui-react";
+import { useConversationNavigation, type ConversationNavigation } from "@za38.03/agent-ui-plugins";
 import { useAui, type AssistantRuntime } from "@assistant-ui/react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
-import type { AgentRuntime } from "@za38.03/agent-ui-runtime-core";
+import type { AgentRuntime } from "@za38.03/agent-ui-core";
 import { ConversationRuntimeProvider } from "../src/ConversationRuntimeProvider.js";
 import { useConversationRuntimeBridge } from "../src/ConversationRuntimeBridgeContext.js";
 import { CancellationAwareHttpAgent } from "../src/compatibility/cancellation-aware-http-agent.js";

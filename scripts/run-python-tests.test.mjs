@@ -16,7 +16,7 @@ const repositoryRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
-const pythonPackageRoot = path.join(repositoryRoot, "packages/creator-python");
+const pythonPackageRoot = path.join(repositoryRoot, "packages/creator/python");
 
 test("parses regular, setup-only, and live-model modes", () => {
   assert.deepEqual(parseArguments([]), {

@@ -1,4 +1,4 @@
-import { RetrievalChunks, ConversationToolFallback, type ConversationToolCallProps, type RetrievalChunk } from "@za38.03/agent-ui-react";
+import { RetrievalChunks, ConversationToolFallback, type ConversationToolCallProps, type RetrievalChunk } from "@za38.03/agent-ui-plugins";
 import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
 
 function record(value: unknown): Record<string, unknown> {

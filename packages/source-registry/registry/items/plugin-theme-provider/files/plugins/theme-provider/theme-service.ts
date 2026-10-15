@@ -1,4 +1,4 @@
-import { isAgentUITheme, type AgentUITheme } from "@za38.03/agent-ui-react";
+import { isAgentUITheme, type AgentUITheme } from "@za38.03/agent-ui-plugins";
 import type { AgentUIThemeService } from "../../services/agent-ui-theme";
 
 export function readAgentUITheme(value: unknown): AgentUITheme {

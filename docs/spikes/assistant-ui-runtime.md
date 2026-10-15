@@ -124,7 +124,7 @@ AgentUICreator 当前仍独有或仍由其架构拥有：
 
 - conversation surface 内部的 timeline/composer 组合层
 - AgentMessage / AgentComposer / AgentReasoning / AgentTool / AgentToolActivity 的 conversation-domain 展示实现
-- `@agent-ui/runtime-core` 与 `@agent-ui/runtime-agui` 中仅被 assistant-ui 完整覆盖、且没有其他 Plugin 使用的 conversation-domain 投影
+- `@agent-ui/core` 与 `@agent-ui/runtime-agui` 中仅被 assistant-ui 完整覆盖、且没有其他 Plugin 使用的 conversation-domain 投影
 
 这些只是候选集合，不表示已经证明可以删除，也不包含 AppUIModel、Plugin/Slot/Layout Runtime 或 Creator 控制面。
 

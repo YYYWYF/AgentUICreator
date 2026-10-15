@@ -1,4 +1,4 @@
-import { AGENT_UI_PRESENTATION_LOCALES } from "@za38.03/agent-ui-react";
+import { AGENT_UI_PRESENTATION_LOCALES } from "@za38.03/agent-ui-plugins";
 import type { AgentUILocaleMessages } from "../locale-types";
 
 export const enUS = {

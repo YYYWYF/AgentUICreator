@@ -8,22 +8,22 @@ import { createServer, type ViteDevServer } from 'vite';
 
 const repo = path.resolve('../..');
 const output = path.join(repo, 'docs/verification/message-spacing');
-const syncStoreRoot = path.dirname(path.dirname(createRequire(import.meta.url).resolve('use-sync-external-store/shim', { paths: [path.join(repo, 'packages/react/node_modules/@base-ui/react')] })));
+const syncStoreRoot = path.dirname(path.dirname(createRequire(import.meta.url).resolve('use-sync-external-store/shim', { paths: [path.join(repo, 'packages/plugins/node_modules/@base-ui/react')] })));
 let fixture: string, server: ViteDevServer, url: string;
 test.beforeAll(async () => {
   await mkdir(output, {recursive:true});
   fixture = await mkdtemp(path.join(repo, 'apps/creator-workbench/.message-spacing-'));
   await writeFile(path.join(fixture, 'index.html'), '<div id="root"></div><script type="module" src="/fixture.tsx"></script>');
-  await writeFile(path.join(fixture, 'style.css'), '@import "@za38.03/agent-ui-react/styles.css"; .surface{height:900px}');
+  await writeFile(path.join(fixture, 'style.css'), '@import "@za38.03/agent-ui-plugins/styles.css"; .surface{height:900px}');
   await writeFile(path.join(fixture, 'fixture.tsx'), `
 import {createRoot} from 'react-dom/client';
 import {AssistantRuntimeProvider,useLocalRuntime} from '@assistant-ui/react';
 import {ReasoningRoot,ReasoningTrigger} from 'standalone-reasoning';
 import {chartMessageUI} from 'chart-plugin';
-import {DataMessageUIRegistration} from '@za38.03/agent-ui-react';
+import {DataMessageUIRegistration} from '@za38.03/agent-ui-plugins';
 const Chart=chartMessageUI.render;
 const chartData={title:'Quarterly Sales',items:[{label:'Q1',value:120},{label:'Q2',value:180},{label:'Q3',value:160},{label:'Q4',value:240}]};
-import {AgentUIRoot,AgentUILocaleProvider,ConversationThread,ConversationCanonicalReasoningGroup,ConversationCanonicalToolGroup,ConversationThinkingIndicator,ConversationToolTimeline,toConversationMessagePartGroup} from '@za38.03/agent-ui-react';
+import {AgentUIRoot,AgentUILocaleProvider,ConversationThread,ConversationCanonicalReasoningGroup,ConversationCanonicalToolGroup,ConversationThinkingIndicator,ConversationToolTimeline,toConversationMessagePartGroup} from '@za38.03/agent-ui-plugins';
 import './style.css';
 const params=new URLSearchParams(location.search),scenario=params.get('scenario')||'mixed';
 const reasoning=text=>({type:'reasoning',text,status:{type:'complete'}});
@@ -45,12 +45,12 @@ return <AgentUILocaleProvider locale="zh-CN"><AgentUIRoot theme={params.get('the
   server = await createServer({ configFile: false, root: fixture, plugins: [react(), tailwind()],
     resolve: { dedupe: ['react','react-dom','@assistant-ui/react'], alias: {
       'use-sync-external-store': syncStoreRoot,
-      '@assistant-ui/react': path.join(repo,'packages/react/node_modules/@assistant-ui/react'),
-      'zustand': path.join(repo,'packages/react/node_modules/zustand'),
-      '@za38.03/agent-ui-react/styles.css': path.join(repo,'packages/react/dist/styles.css'),
-      '@za38.03/agent-ui-react': path.join(repo,'packages/react/dist/index.js'),
+      '@assistant-ui/react': path.join(repo,'packages/plugins/node_modules/@assistant-ui/react'),
+      'zustand': path.join(repo,'packages/plugins/node_modules/zustand'),
+      '@za38.03/agent-ui-plugins/styles.css': path.join(repo,'packages/plugins/dist/styles.css'),
+      '@za38.03/agent-ui-plugins': path.join(repo,'packages/plugins/dist/index.js'),
       'chart-plugin': path.join(repo,'packages/source-registry/registry/items/plugin-chart-message/files/plugins/chart-message/index.tsx'),
-      'standalone-reasoning': path.join(repo,'packages/react/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/reasoning.js'),
+      'standalone-reasoning': path.join(repo,'packages/plugins/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/reasoning.js'),
     } }, server: { host: '127.0.0.1', port: 0, hmr: false, fs: { allow: [repo] } } });
   await server.listen(); url = server.resolvedUrls!.local[0]!;
 });

@@ -1,4 +1,4 @@
-import { WebSearch, ConversationToolFallback, type ConversationToolCallProps, type WebSearchResult } from "@za38.03/agent-ui-react";
+import { WebSearch, ConversationToolFallback, type ConversationToolCallProps, type WebSearchResult } from "@za38.03/agent-ui-plugins";
 import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
 
 function record(value: unknown): Record<string, unknown> {

@@ -1,4 +1,4 @@
-import { AgentUISidebarFrame, useAgentUILocaleCode, useAgentUILocale as useAgentUIPresentationLocale } from "@za38.03/agent-ui-react";
+import { AgentUISidebarFrame, useAgentUILocaleCode, useAgentUILocale as useAgentUIPresentationLocale } from "@za38.03/agent-ui-plugins";
 import {
   useCallback,
   useEffect,

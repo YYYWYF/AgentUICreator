@@ -22,12 +22,12 @@ ConversationSurface also projects theme and color scheme on its conversation bou
 | Service setup | `packages/source-registry/registry/items/plugin-theme-provider/files/plugins/theme-provider/definition.ts` and `theme-service.ts` | Reactive preset selection, no presentation |
 | Hook | `packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/theme/useAgentUITheme.ts` | Reads shared service and fallback |
 | Application root | `packages/source-registry/registry/items/foundation-core/files/application/Agent.tsx` | Root surrounds ModeShell / runtime composition |
-| Public boundary | `packages/react/src/public.tsx` | Supported consumer API |
-| Style root | `packages/react/src/internal/style-boundary/AgentUIRoot.tsx` | Style isolation and scoped portal container |
-| Preset contract | `packages/react/src/theme/theme-contract.ts` | light→light, dark→dark, violet→light |
-| Palette | `packages/react/src/theme/shadcn-theme-presets.css` | Scoped shadcn zinc Light/Dark and official Violet snapshot |
-| Extensions | `packages/react/src/theme/agent-ui-theme-extensions.css` | success / warning / overlay; shared `--aui-*` aliases |
-| Tailwind mapping | `packages/react/src/styles.css` | Semantic utility mappings, scoped preflight, animations, containment |
+| Public boundary | `packages/plugins/src/public.tsx` | Supported consumer API |
+| Style root | `packages/plugins/src/internal/style-boundary/AgentUIRoot.tsx` | Style isolation and scoped portal container |
+| Preset contract | `packages/plugins/src/theme/theme-contract.ts` | light→light, dark→dark, violet→light |
+| Palette | `packages/plugins/src/theme/shadcn-theme-presets.css` | Scoped shadcn zinc Light/Dark and official Violet snapshot |
+| Extensions | `packages/plugins/src/theme/agent-ui-theme-extensions.css` | success / warning / overlay; shared `--aui-*` aliases |
+| Tailwind mapping | `packages/plugins/src/styles.css` | Semantic utility mappings, scoped preflight, animations, containment |
 | Theme picker | `packages/source-registry/registry/items/plugin-theme-switch/files/plugins/theme-switch/index.tsx` | NativeSelect, locale copy, setTheme |
 | Conversation root | `packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface.tsx` | ConversationThread and semantic replacement components |
 | Mode shells | `packages/source-registry/registry/items/foundation-core-runtime/files/runtime/mode-shell/ModeShell.tsx` | Assistant / Embedded / Platform structural layout |
@@ -40,14 +40,14 @@ Violet changes primary/ring/accent/chart/sidebar palette while remaining light. 
 
 ## Ownership classes
 
-- A — upstream-owned assistant-ui: `packages/react/src/internal/vendor/assistant-ui`; provenance in `UPSTREAM.json`, official Base UI registry output with declared patches. Optional generative vocabulary is also upstream-owned under a Source Registry vendor path.
-- B — public wrapper: `packages/react/src/public.tsx`, `internal/composable-thread.tsx`, question/quote/trigger/search adapters, style boundary. Project-owned integration around upstream presentation; ownership of the wrapper does not make upstream anatomy editable.
+- A — upstream-owned assistant-ui: `packages/plugins/src/internal/vendor/assistant-ui`; provenance in `UPSTREAM.json`, official Base UI registry output with declared patches. Optional generative vocabulary is also upstream-owned under a Source Registry vendor path.
+- B — public wrapper: `packages/plugins/src/public.tsx`, `internal/composable-thread.tsx`, question/quote/trigger/search adapters, style boundary. Project-owned integration around upstream presentation; ownership of the wrapper does not make upstream anatomy editable.
 - C — foundation/runtime: Source Registry `foundation-core*`; owns composition, SlotRegistry, ModeShell, services and conversation integration. Runtime/framework stay read-only in a plugin theme task.
 - D — plugins: Source Registry `plugin-*` and `demo-*` files. Mostly thin compositions; some have product-owned markup (chart, suggestions, theme picker, demo receipts). Inspect the renderer before claiming visual freedom.
-- E — theme/token layer: `packages/react/src/theme/*` and token mapping in `styles.css`. Future implementation should coordinate here; no theme implementation in this package.
+- E — theme/token layer: `packages/plugins/src/theme/*` and token mapping in `styles.css`. Future implementation should coordinate here; no theme implementation in this package.
 
 ## Revision and target caveat
 
-Source reviewed at `662774fb8c3935584e03abf7ececea08c3d89110`, branch `dev`. assistant-ui revision is `3542d602272a62eddeb8989befc910841c267022`; pinned local source was inspected with `git show` in `/Users/yifei/Coding/assistant-ui`. See `packages/react/src/internal/vendor/assistant-ui/UPSTREAM.json` for versions and adaptations. No upstream fetch or upgrade occurred.
+Source reviewed at `662774fb8c3935584e03abf7ececea08c3d89110`, branch `dev`. assistant-ui revision is `3542d602272a62eddeb8989befc910841c267022`; pinned local source was inspected with `git show` in `/Users/yifei/Coding/assistant-ui`. See `packages/plugins/src/internal/vendor/assistant-ui/UPSTREAM.json` for versions and adaptations. No upstream fetch or upgrade occurred.
 
 The existing ignored/generated embedded Host contains older `defaultMode/getMode/useAgentUIThemeMode` foundation code. It does not wrap its application with the current AgentUIRoot. Its screenshots are labeled existing-target evidence. The isolated fixture uses current public AgentUIRoot, wrappers and CSS. This discrepancy is recorded; the target was not regenerated or repaired for prettier screenshots.

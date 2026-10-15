@@ -1,5 +1,5 @@
 import type { Context, RunAgentInput } from "@ag-ui/core";
-import { parseAgentUIDirectives, type AgentUIDirectiveReference } from "@za38.03/agent-ui-runtime-core";
+import { parseAgentUIDirectives, type AgentUIDirectiveReference } from "@za38.03/agent-ui-core";
 
 export interface DirectiveContextResolverOptions { signal: AbortSignal }
 export type DirectiveContextResolver = (

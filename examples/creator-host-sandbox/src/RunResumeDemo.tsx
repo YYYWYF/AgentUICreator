@@ -1,4 +1,4 @@
-import { useAgentUILocale } from "@za38.03/agent-ui-react";
+import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
 import { ConversationRuntimeProvider, useConversationRuntimeBridge,
   type ConversationAssistantRunUpdate, type ConversationLoadedThread, type ConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";

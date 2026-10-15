@@ -179,7 +179,7 @@ Creator 负责：
 反馈证据
 ```
 
-Creator 不进入生成应用的生产依赖。项目观察、语义化修改、撤销、澄清、诊断收集和完成门禁都属于开发控制面；协议无关的 Runtime 合同、正式 Conversation AG-UI 集成和 React Layout Runtime 分别由 `@za38.03/agent-ui-runtime-core`、`@za38.03/agent-ui-runtime`、`@za38.03/agent-ui-renderer` 提供，Plugin Runtime、AppUIModel、Plugin 实现和项目服务仍属于生成项目。这些 Runtime Library 作为普通生产依赖编译进最终 Frontend Bundle，不依赖 Creator。
+Creator 不进入生成应用的生产依赖。项目观察、语义化修改、撤销、澄清、诊断收集和完成门禁都属于开发控制面；协议无关的 Runtime 合同、正式 Conversation AG-UI 集成和 React Layout Runtime 分别由 `@za38.03/agent-ui-core`、`@za38.03/agent-ui-runtime`、`@za38.03/agent-ui-renderer` 提供，Plugin Runtime、AppUIModel、Plugin 实现和项目服务仍属于生成项目。这些 Runtime Library 作为普通生产依赖编译进最终 Frontend Bundle，不依赖 Creator。
 
 不要为了提升 Creator 的开发体验，把动态 Package Runner、任意运行时源码加载器或 Creator 私有协议带入最终应用。
 

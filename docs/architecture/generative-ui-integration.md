@@ -97,7 +97,7 @@ supports Slider, CheckboxGroup, Input.defaultValue and action-time `$field`
 resolution. ChoicePicker maps single selection (including chips presentation)
 to RadioGroup and multipleSelection to CheckboxGroup. Product code continues
 to consume these native capabilities without substitute implementations.
-`packages/react/tests/migrated/generative-ui-library.test.tsx` verifies initial
+`packages/plugins/tests/migrated/generative-ui-library.test.tsx` verifies initial
 control values and current-value action dispatch; A2UI integration tests verify
 wire rendering, radio selection and continuation. The historical gap table below
 must not be used as the current capability contract.

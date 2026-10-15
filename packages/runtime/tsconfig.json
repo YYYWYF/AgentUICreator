@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022", "DOM"],
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "jsx": "react-jsx",
@@ -13,10 +16,19 @@
     "noUncheckedIndexedAccess": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "paths": {
-      "@za38.03/agent-ui-react": ["../react/src/index.ts"]
+      "@za38.03/agent-ui-plugins": [
+        "../plugins/src/index.ts"
+      ]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "tests/**/*.ts", "tests/**/*.tsx"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "tests/**/*.ts",
+    "tests/**/*.tsx"
+  ]
 }

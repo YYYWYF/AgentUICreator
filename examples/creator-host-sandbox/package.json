@@ -30,9 +30,8 @@
   },
   "dependencies": {
     "@za38.03/agent-ui-plugins": "workspace:*",
-    "@za38.03/agent-ui-react": "workspace:*",
     "@za38.03/agent-ui-runtime": "workspace:*",
-    "@za38.03/agent-ui-runtime-core": "workspace:*",
+    "@za38.03/agent-ui-core": "workspace:*",
     "@za38.03/agent-ui-renderer": "workspace:*",
     "@assistant-ui/react-generative-ui": "0.0.22",
     "@assistant-ui/react-hook-form": "0.12.34",

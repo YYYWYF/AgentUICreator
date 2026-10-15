@@ -74,10 +74,14 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@za38.03/agent-ui-react/demo-attachments": path.join(workspaceRoot, "packages/react/src/demo-attachments.ts"),
-      "@za38.03/agent-ui-react/styles.css": path.join(
+      "@za38.03/agent-ui-plugins/assistant-ui-composer": path.join(workspaceRoot, "packages/plugins/dist/assistant-ui-composer/index.js"),
+      "@za38.03/agent-ui-plugins/generative-ui.css": path.join(workspaceRoot, "packages/plugins/src/internal/vendor/assistant-ui/generative-ui/generative-ui.css"),
+      "@za38.03/agent-ui-plugins/generative-ui": path.join(workspaceRoot, "packages/plugins/src/generative-ui.ts"),
+      "@za38.03/agent-ui-plugins/theme": path.join(workspaceRoot, "packages/plugins/src/theme/theme-contract.ts"),
+      "@za38.03/agent-ui-plugins/demo-attachments": path.join(workspaceRoot, "packages/plugins/src/demo-attachments.ts"),
+      "@za38.03/agent-ui-plugins/styles.css": path.join(
         workspaceRoot,
-        "packages/react/src/styles.css",
+        "packages/plugins/src/styles.css",
       ),
       "@za38.03/agent-ui-creator/host-preview": path.join(workspaceRoot, "packages/creator/src/host-preview/hostPreviewWorkbench.ts"),
       "@za38.03/agent-ui-creator/ui": path.join(
@@ -92,22 +96,22 @@ export default defineConfig({
         workspaceRoot,
         "packages/creator/src/visual-observation/VisualObservationReporter.ts",
       ),
-      "@za38.03/agent-ui-react/lexical": path.join(workspaceRoot, "packages/react/src/lexical.tsx"),
-      "@za38.03/agent-ui-react": path.join(
+      "@za38.03/agent-ui-plugins/lexical": path.join(workspaceRoot, "packages/plugins/src/lexical.tsx"),
+      "@za38.03/agent-ui-plugins": path.join(
         workspaceRoot,
-        "packages/react/src/index.ts",
+        "packages/plugins/src/index.ts",
       ),
       "@za38.03/agent-ui-runtime": path.join(
         workspaceRoot,
         "packages/runtime/src/index.ts",
       ),
-      "@za38.03/agent-ui-runtime-core/testing": path.join(
+      "@za38.03/agent-ui-core/testing": path.join(
         workspaceRoot,
-        "packages/runtime-core/src/testing/index.ts",
+        "packages/core/src/testing/index.ts",
       ),
-      "@za38.03/agent-ui-runtime-core": path.join(
+      "@za38.03/agent-ui-core": path.join(
         workspaceRoot,
-        "packages/runtime-core/src/index.ts",
+        "packages/core/src/index.ts",
       ),
       "@za38.03/agent-ui-renderer": path.join(
         workspaceRoot,

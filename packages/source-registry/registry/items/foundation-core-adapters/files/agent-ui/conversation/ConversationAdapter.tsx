@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from "react";
 
-import type { ConversationThreadComponents, ConversationThreadLabels } from "@za38.03/agent-ui-react";
+import type { ConversationThreadComponents, ConversationThreadLabels } from "@za38.03/agent-ui-plugins";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { useConversationPresentationConfig } from "./config";
 import { useAgentUITheme } from "../theme/useAgentUITheme";

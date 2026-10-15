@@ -71,11 +71,11 @@ Backend result：
 
 - `packages/mock-agent/tests/file-output.test.ts`：真实 scenario lifecycle、string
   result、JSON 内容及无 CUSTOM。
-- `packages/react/tests/migrated/generated-file-ag-ui-integration.test.tsx`：
+- `packages/plugins/tests/migrated/generated-file-ag-ui-integration.test.tsx`：
   真实 Mock SSE 经过 HttpAgent 和当前 ConversationRuntimeProvider 所用的
   react-ag-ui，检查对象 result、named Tool UI、下载入口和 backend renderer
   不进入 `RunAgentInput.tools`。不 mock converter，也不直接调用 parseJSONText。
-- `packages/react/tests/migrated/generated-file-message.test.tsx`：projection、
+- `packages/plugins/tests/migrated/generated-file-message.test.tsx`：projection、
   成功 File、非成功官方 fallback、PDF icon、Download DOM contract；不点击下载。
 - 现有 Host 公共入口集成测试增加该 Plugin 的安装和 AppUIModel 启用覆盖。
 

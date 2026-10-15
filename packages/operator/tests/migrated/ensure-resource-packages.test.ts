@@ -116,7 +116,7 @@ it("preserves compatible workspace and local declarations", async () => {
   const f = await fixture("all");
   const manifestPath = path.join(f.root, "package.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-  manifest.dependencies["@za38.03/agent-ui-react"] = "workspace:^";
+  manifest.dependencies["@za38.03/agent-ui-plugins"] = "workspace:^";
   manifest.dependencies["@za38.03/agent-ui-renderer"] = "file:../renderer";
   await writeFile(manifestPath, JSON.stringify(manifest));
   await ensureResourcePackages(f.root, f.closure, f.run);

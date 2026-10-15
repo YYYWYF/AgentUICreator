@@ -22,9 +22,9 @@ describe("Operator canonical wire contract", () => {
       requests: Array<{ file: string; valid: boolean }>;
       results: Array<{ file: string; operation: string; valid: boolean }>;
     };
-    const python = process.env.CREATOR_PYTHON_EXECUTABLE ?? path.join(root, "packages/creator-python/.venv", process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
+    const python = process.env.CREATOR_PYTHON_EXECUTABLE ?? path.join(root, "packages/creator/python/.venv", process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
     expect(existsSync(python), "Install the Creator Python test environment for differential checks").toBe(true);
-    const canonical = JSON.parse(execFileSync(python, [path.join(root, "packages/creator-python/tests/operator_fixture_validation.py")], { encoding: "utf8" })) as Record<string, boolean>;
+    const canonical = JSON.parse(execFileSync(python, [path.join(root, "packages/creator/python/tests/operator_fixture_validation.py")], { encoding: "utf8" })) as Record<string, boolean>;
     for (const entry of manifest.requests) {
       const value: unknown = JSON.parse(await readFile(path.join(fixtureRoot, entry.file), "utf8"));
       expect(requestSchema.safeParse(value).success, entry.file).toBe(entry.valid);

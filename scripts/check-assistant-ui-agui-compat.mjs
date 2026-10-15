@@ -112,7 +112,7 @@ async function readInstalledPackageManifest(repoRoot, expectedVersion, packageJs
   const candidates = [
     packageJsonPath,
     path.join(repoRoot, "packages/runtime/node_modules/@assistant-ui/react-ag-ui/package.json"),
-    path.join(repoRoot, "packages/react/node_modules/@assistant-ui/react-ag-ui/package.json"),
+    path.join(repoRoot, "packages/plugins/node_modules/@assistant-ui/react-ag-ui/package.json"),
     path.join(repoRoot, "node_modules/@assistant-ui/react-ag-ui/package.json"),
   ].filter(Boolean);
 

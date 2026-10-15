@@ -18,6 +18,6 @@ describe("official Timeline and Thinking source contracts", () => {
     const host = registry.byId.get("plugin/conversation-surface")!;
     const hostManifest = JSON.parse(await (await import("node:fs/promises")).readFile(host.loadedFiles.find(file => file.target.endsWith("manifest.json"))!.absolutePath, "utf8"));
     expect(hostManifest.slots.children[slot!]).toMatchObject({ mode: "renderer", cardinality: "one", optional: true, accepts: { anyOfCapabilities: [capability] } });
-    expect(item.packages?.["@za38.03/agent-ui-react"]).toBe("0.1.6");
+    expect(item.packages?.["@za38.03/agent-ui-plugins"]).toBe("0.1.6");
   });
 });

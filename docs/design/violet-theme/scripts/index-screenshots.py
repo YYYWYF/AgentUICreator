@@ -5,7 +5,7 @@ out=Path(__file__).resolve().parents[1]
 records=[]
 for f in ['capture-manifest.json','extra-capture-manifest.json']:
  m=json.loads((out/'screenshots'/f).read_text());assert not m['failures'];records+=m['records']
-V='packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/'
+V='packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/'
 fixture='examples/creator-embedded-host/dev/violet-input/fixture.tsx'
 by_surface={
  'plan':('AgentPlan','agent-plan.tsx','Level 2','Preserve title/progress/step order; foreground alpha makes Violet subtle.'),
@@ -46,16 +46,16 @@ for r in records:
  f=r['file'];q=parse_qs(urlparse(r['url']).query);surface=q.get('surface',[''])[0]
  key=next((k for k in by_surface if surface==k or surface.startswith(k+'-')), 'conversation')
  renderer,source,level,preserve=by_surface[key]
- sources=[fixture,'packages/react/src/public.tsx',V+source]
+ sources=[fixture,'packages/plugins/src/public.tsx',V+source]
  hooks=r['slots']
  if f.startswith('0') and 'production' in f or f.startswith('01-'):
   renderer='Existing generated embedded Agent + AppUIModel plugins';level='Per Plugin; Host document excluded';sources=['examples/creator-embedded-host/src/App.tsx','examples/creator-embedded-host/src/AgentMount.tsx','examples/creator-embedded-host/src/agent-ui/app-ui/app-ui.json'];preserve='Existing target composition. Stale foundation noted; do not copy Atlas host elements or Creator dock into design.'
  elif 'thread-list' in f:
-  renderer='ConversationThreadListRoot / Item / New';level='Level 2';sources=['examples/creator-embedded-host/src/theme-showcase.tsx',V+'thread-list.aui.tsx','packages/react/src/internal/conversation-thread-list-item.tsx'];preserve='Preserve existing new-chat/thread item/control hierarchy. Thread binding is fixture-only; no sidebar in embedded default.'
+  renderer='ConversationThreadListRoot / Item / New';level='Level 2';sources=['examples/creator-embedded-host/src/theme-showcase.tsx',V+'thread-list.aui.tsx','packages/plugins/src/internal/conversation-thread-list-item.tsx'];preserve='Preserve existing new-chat/thread item/control hierarchy. Thread binding is fixture-only; no sidebar in embedded default.'
  elif 'component-chart' in f:
   renderer='Actual registry chartMessageUI';level='Level 3';sources=[fixture,'packages/source-registry/registry/items/plugin-chart-message/files/plugins/chart-message/index.tsx','packages/source-registry/registry/items/plugin-chart-message/files/plugins/chart-message/style.css'];preserve='Preserve chart title/labels/value and bar ratios. Uses --chart-1, --muted and --border. Real Plugin CSS imported after root CSS.'
  if 'composer-mention' in f or 'composer-slash' in f:
-  sources+=['packages/react/src/internal/conversation-composer-triggers.tsx',V+'composer-trigger-popover.aui.tsx',V+'directive-text.tsx'];preserve+=' Preserve selection/async errors, retry and raw directive result. Result captures currently show encoded directives as textarea text; do not assume styled chips exist.'
+  sources+=['packages/plugins/src/internal/conversation-composer-triggers.tsx',V+'composer-trigger-popover.aui.tsx',V+'directive-text.tsx'];preserve+=' Preserve selection/async errors, retry and raw directive result. Result captures currently show encoded directives as textarea text; do not assume styled chips exist.'
  if 'composer-attachment' in f:sources+=[V+'attachment.aui.tsx','packages/mock-agent/src/demo-attachment-adapter.ts'];preserve+=' Actual PDF tile; filename is tooltip presentation, not always visible text.'
  data=(out/'screenshots'/f).read_bytes();w,h=struct.unpack('>II',data[16:24])
  text+=f'### {f}\n\n[Primary/crop](screenshots/{f}) · [Full context](screenshots/{r["context"]})\n\n'

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ConversationQuestionFlow, type ConversationQuestionFlowLabels } from "@za38.03/agent-ui-react";
+import { ConversationQuestionFlow, type ConversationQuestionFlowLabels } from "@za38.03/agent-ui-plugins";
 import type { HumanQuestionStep } from "../../../agent-contract/human-tools/ask-user-question";
 
 /** Text and mixed questionnaires use the same answer envelope as option questions. */

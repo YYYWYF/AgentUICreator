@@ -4,7 +4,7 @@ import type {
   AgentRuntime,
   AgentRuntimeSnapshot,
   AgentUserInput,
-} from "@za38.03/agent-ui-runtime-core";
+} from "@za38.03/agent-ui-core";
 import type { AgUiAssistantRuntime } from "@assistant-ui/react-ag-ui";
 
 import type { ConversationApplicationEventSource } from "../events/conversation-application-event-source.js";

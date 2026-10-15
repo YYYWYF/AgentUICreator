@@ -1,4 +1,4 @@
-import type { AgentUITheme, AgentUILocaleCode } from "@za38.03/agent-ui-react";
+import type { AgentUITheme, AgentUILocaleCode } from "@za38.03/agent-ui-plugins";
 import type { ConversationRuntimeProviderProps } from "@za38.03/agent-ui-runtime";
 import type { AppUIModel } from "../framework/contracts/app-ui-model";
 

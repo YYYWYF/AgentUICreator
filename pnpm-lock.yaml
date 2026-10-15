@@ -112,21 +112,18 @@ importers:
       '@lexical/utils':
         specifier: 0.51.0
         version: 0.51.0(typescript@7.0.2)
+      '@za38.03/agent-ui-core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@za38.03/agent-ui-plugins':
         specifier: workspace:*
         version: link:../../packages/plugins
-      '@za38.03/agent-ui-react':
-        specifier: workspace:*
-        version: link:../../packages/react
-      '@za38.03/agent-ui-runtime':
-        specifier: workspace:*
-        version: link:../../packages/runtime
-      '@za38.03/agent-ui-runtime-core':
-        specifier: workspace:*
-        version: link:../../packages/runtime-core
       '@za38.03/agent-ui-renderer':
         specifier: workspace:*
         version: link:../../packages/renderer
+      '@za38.03/agent-ui-runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       lexical:
         specifier: 0.51.0
         version: 0.51.0(typescript@7.0.2)
@@ -194,21 +191,18 @@ importers:
       '@lexical/utils':
         specifier: 0.51.0
         version: 0.51.0(typescript@7.0.2)
+      '@za38.03/agent-ui-core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@za38.03/agent-ui-plugins':
         specifier: workspace:*
         version: link:../../packages/plugins
-      '@za38.03/agent-ui-react':
-        specifier: workspace:*
-        version: link:../../packages/react
-      '@za38.03/agent-ui-runtime':
-        specifier: workspace:*
-        version: link:../../packages/runtime
-      '@za38.03/agent-ui-runtime-core':
-        specifier: workspace:*
-        version: link:../../packages/runtime-core
       '@za38.03/agent-ui-renderer':
         specifier: workspace:*
         version: link:../../packages/renderer
+      '@za38.03/agent-ui-runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       lexical:
         specifier: 0.51.0
         version: 0.51.0(typescript@7.0.2)
@@ -285,21 +279,18 @@ importers:
       '@lexical/utils':
         specifier: 0.51.0
         version: 0.51.0(typescript@7.0.2)
+      '@za38.03/agent-ui-core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@za38.03/agent-ui-plugins':
         specifier: workspace:*
         version: link:../../packages/plugins
-      '@za38.03/agent-ui-react':
-        specifier: workspace:*
-        version: link:../../packages/react
-      '@za38.03/agent-ui-runtime':
-        specifier: workspace:*
-        version: link:../../packages/runtime
-      '@za38.03/agent-ui-runtime-core':
-        specifier: workspace:*
-        version: link:../../packages/runtime-core
       '@za38.03/agent-ui-renderer':
         specifier: workspace:*
         version: link:../../packages/renderer
+      '@za38.03/agent-ui-runtime':
+        specifier: workspace:*
+        version: link:../../packages/runtime
       lexical:
         specifier: 0.51.0
         version: 0.51.0(typescript@7.0.2)
@@ -361,9 +352,9 @@ importers:
 
   examples/web-component-legacy:
     dependencies:
-      '@za38.03/agent-ui-react':
+      '@za38.03/agent-ui-plugins':
         specifier: workspace:*
-        version: link:../../packages/react
+        version: link:../../packages/plugins
     devDependencies:
       '@types/node':
         specifier: 26.6.2
@@ -383,9 +374,9 @@ importers:
 
   examples/web-component-vue3:
     dependencies:
-      '@za38.03/agent-ui-react':
+      '@za38.03/agent-ui-plugins':
         specifier: workspace:*
-        version: link:../../packages/react
+        version: link:../../packages/plugins
       '@za38.03/agent-ui-web-component':
         specifier: workspace:*
         version: link:../../packages/web-component
@@ -409,6 +400,15 @@ importers:
         specifier: 3.0.6
         version: 3.0.6(typescript@5.9.3)
 
+  packages/core:
+    devDependencies:
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+      vitest:
+        specifier: 4.1.8
+        version: 4.1.8(vite@8.3.0)
+
   packages/creator:
     dependencies:
       '@ag-ui/client':
@@ -423,12 +423,12 @@ importers:
       '@radix-ui/react-slot':
         specifier: 1.3.3
         version: 1.3.3(@types/react@19.3.0)(react@19.1.1)
+      '@za38.03/agent-ui-core':
+        specifier: workspace:*
+        version: link:../core
       '@za38.03/agent-ui-operator':
         specifier: workspace:*
         version: link:../operator
-      '@za38.03/agent-ui-runtime-core':
-        specifier: workspace:*
-        version: link:../runtime-core
       class-variance-authority:
         specifier: 0.7.1
         version: 0.7.1
@@ -542,12 +542,12 @@ importers:
       '@vitejs/plugin-react':
         specifier: 6.0.2
         version: 6.0.2(vite@8.3.0)
-      '@za38.03/agent-ui-react':
+      '@za38.03/agent-ui-core':
         specifier: workspace:*
-        version: link:../react
-      '@za38.03/agent-ui-runtime-core':
+        version: link:../core
+      '@za38.03/agent-ui-plugins':
         specifier: workspace:*
-        version: link:../runtime-core
+        version: link:../plugins
       '@za38.03/agent-ui-renderer':
         specifier: workspace:*
         version: link:../renderer
@@ -590,40 +590,6 @@ importers:
 
   packages/plugins:
     dependencies:
-      zod:
-        specifier: 4.5.4
-        version: 4.5.4
-    devDependencies:
-      '@types/node':
-        specifier: 26.6.2
-        version: 26.6.2
-      '@types/react':
-        specifier: 19.3.0
-        version: 19.3.0
-      '@za38.03/agent-ui-react':
-        specifier: workspace:*
-        version: link:../react
-      '@za38.03/agent-ui-runtime-core':
-        specifier: workspace:*
-        version: link:../runtime-core
-      '@za38.03/agent-ui-renderer':
-        specifier: workspace:*
-        version: link:../renderer
-      esbuild:
-        specifier: 0.25.12
-        version: 0.25.12
-      react:
-        specifier: 19.1.1
-        version: 19.1.1
-      typescript:
-        specifier: 7.0.2
-        version: 7.0.2
-      vite:
-        specifier: 8.3.0
-        version: 8.3.0(@types/node@26.6.2)(esbuild@0.25.12)(tsx@4.20.6)
-
-  packages/react:
-    dependencies:
       '@assistant-ui/react':
         specifier: 0.15.23
         version: 0.15.23(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.1.1)(react@19.1.1)
@@ -636,9 +602,9 @@ importers:
       '@base-ui/react':
         specifier: 1.8.0
         version: 1.8.0(@types/react@19.3.0)(react-dom@19.1.1)(react@19.1.1)
-      '@za38.03/agent-ui-runtime-core':
+      '@za38.03/agent-ui-core':
         specifier: workspace:*
-        version: link:../runtime-core
+        version: link:../core
       class-variance-authority:
         specifier: 0.7.1
         version: 0.7.1
@@ -657,6 +623,9 @@ importers:
       tw-animate-css:
         specifier: 1.4.0
         version: 1.4.0
+      zod:
+        specifier: 4.5.4
+        version: 4.5.4
       zustand:
         specifier: 5.0.15
         version: 5.0.15(@types/react@19.3.0)(react@19.1.1)
@@ -709,6 +678,15 @@ importers:
       '@vitejs/plugin-react':
         specifier: 6.0.2
         version: 6.0.2(vite@8.3.0)
+      '@za38.03/agent-ui-core':
+        specifier: workspace:*
+        version: link:../core
+      '@za38.03/agent-ui-renderer':
+        specifier: workspace:*
+        version: link:../renderer
+      esbuild:
+        specifier: 0.25.12
+        version: 0.25.12
       jsdom:
         specifier: 27.4.0
         version: 27.4.0
@@ -748,64 +726,6 @@ importers:
       zod:
         specifier: 4.5.4
         version: 4.5.4
-
-  packages/runtime:
-    dependencies:
-      '@ag-ui/client':
-        specifier: 0.0.59
-        version: 0.0.59
-      '@assistant-ui/core':
-        specifier: 0.3.27
-        version: 0.3.27(@assistant-ui/store@0.3.19)(@assistant-ui/tap@0.9.23)(@types/react@19.3.0)(assistant-cloud@0.2.6)(react@19.1.1)
-      '@assistant-ui/react':
-        specifier: 0.15.23
-        version: 0.15.23(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.1.1)(react@19.1.1)
-      '@assistant-ui/react-ag-ui':
-        specifier: 0.0.63
-        version: 0.0.63(@assistant-ui/react@0.15.23)(@assistant-ui/tap@0.9.23)(@types/react@19.3.0)(react@19.1.1)(zod@4.5.4)
-      '@assistant-ui/react-langgraph':
-        specifier: 0.14.29
-        version: 0.14.29(@assistant-ui/tap@0.9.23)(@types/react@19.3.0)(react@19.1.1)
-      '@za38.03/agent-ui-react':
-        specifier: workspace:*
-        version: link:../react
-      rxjs:
-        specifier: 7.8.1
-        version: 7.8.1
-    devDependencies:
-      '@types/node':
-        specifier: 26.6.2
-        version: 26.6.2
-      '@types/react':
-        specifier: 19.3.0
-        version: 19.3.0
-      '@types/react-test-renderer':
-        specifier: 19.1.0
-        version: 19.1.0
-      '@za38.03/agent-ui-runtime-core':
-        specifier: workspace:*
-        version: link:../runtime-core
-      react:
-        specifier: 19.1.1
-        version: 19.1.1
-      react-test-renderer:
-        specifier: 19.1.1
-        version: 19.1.1(react@19.1.1)
-      typescript:
-        specifier: 7.0.2
-        version: 7.0.2
-      vitest:
-        specifier: 4.1.8
-        version: 4.1.8(@types/node@26.6.2)(jsdom@27.4.0)(vite@8.3.0)
-
-  packages/runtime-core:
-    devDependencies:
-      typescript:
-        specifier: 7.0.2
-        version: 7.0.2
-      vitest:
-        specifier: 4.1.8
-        version: 4.1.8(vite@8.3.0)
 
   packages/renderer:
     devDependencies:
@@ -882,6 +802,55 @@ importers:
         specifier: 4.5.4
         version: 4.5.4
 
+  packages/runtime:
+    dependencies:
+      '@ag-ui/client':
+        specifier: 0.0.59
+        version: 0.0.59
+      '@assistant-ui/core':
+        specifier: 0.3.27
+        version: 0.3.27(@assistant-ui/store@0.3.19)(@assistant-ui/tap@0.9.23)(@types/react@19.3.0)(assistant-cloud@0.2.6)(react@19.1.1)
+      '@assistant-ui/react':
+        specifier: 0.15.23
+        version: 0.15.23(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.1.1)(react@19.1.1)
+      '@assistant-ui/react-ag-ui':
+        specifier: 0.0.63
+        version: 0.0.63(@assistant-ui/react@0.15.23)(@assistant-ui/tap@0.9.23)(@types/react@19.3.0)(react@19.1.1)(zod@4.5.4)
+      '@assistant-ui/react-langgraph':
+        specifier: 0.14.29
+        version: 0.14.29(@assistant-ui/tap@0.9.23)(@types/react@19.3.0)(react@19.1.1)
+      '@za38.03/agent-ui-plugins':
+        specifier: workspace:*
+        version: link:../plugins
+      rxjs:
+        specifier: 7.8.1
+        version: 7.8.1
+    devDependencies:
+      '@types/node':
+        specifier: 26.6.2
+        version: 26.6.2
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      '@types/react-test-renderer':
+        specifier: 19.1.0
+        version: 19.1.0
+      '@za38.03/agent-ui-core':
+        specifier: workspace:*
+        version: link:../core
+      react:
+        specifier: 19.1.1
+        version: 19.1.1
+      react-test-renderer:
+        specifier: 19.1.1
+        version: 19.1.1(react@19.1.1)
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+      vitest:
+        specifier: 4.1.8
+        version: 4.1.8(@types/node@26.6.2)(jsdom@27.4.0)(vite@8.3.0)
+
   packages/source-registry:
     devDependencies:
       '@types/node':
@@ -920,21 +889,18 @@ importers:
       '@lexical/utils':
         specifier: 0.51.0
         version: 0.51.0(typescript@7.0.2)
+      '@za38.03/agent-ui-core':
+        specifier: workspace:*
+        version: link:../core
       '@za38.03/agent-ui-plugins':
         specifier: workspace:*
         version: link:../plugins
-      '@za38.03/agent-ui-react':
-        specifier: workspace:*
-        version: link:../react
-      '@za38.03/agent-ui-runtime':
-        specifier: workspace:*
-        version: link:../runtime
-      '@za38.03/agent-ui-runtime-core':
-        specifier: workspace:*
-        version: link:../runtime-core
       '@za38.03/agent-ui-renderer':
         specifier: workspace:*
         version: link:../renderer
+      '@za38.03/agent-ui-runtime':
+        specifier: workspace:*
+        version: link:../runtime
       lexical:
         specifier: 0.51.0
         version: 0.51.0(typescript@7.0.2)

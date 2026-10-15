@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { useAgentUILocale, useAgentUILocaleCode } from "@za38.03/agent-ui-react";
-import { DemoAttachmentAdapter } from "@za38.03/agent-ui-react/demo-attachments";
+import { useAgentUILocale, useAgentUILocaleCode } from "@za38.03/agent-ui-plugins";
+import { DemoAttachmentAdapter } from "@za38.03/agent-ui-plugins/demo-attachments";
 import { Agent } from "./agent-ui";
 
 /** Host-owned integration point. The generated Agent uses Embedded Mode. */

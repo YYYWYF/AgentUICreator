@@ -4,7 +4,7 @@ Scope: final deployed Agent frontend UI, excluding Creator. A Plugin can be prod
 
 Levels: **1** token only; **2** token + thin scoped compatibility CSS; **3** product-owned Plugin presentation; **4** upstream-sensitive internals, token/public API treatment only. Every upstream component has **modify vendor source: NO**. Level 2 is a future consideration, not approval to use arbitrary descendant selectors. Risk estimates are design/maintenance judgments, not upstream guarantees.
 
-Upstream source prefix: `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/`. Project Plugin prefix: `packages/source-registry/registry/items/plugin-<id>/files/plugins/<id>/`. Demo prefix uses `demo-*`. Public renderer declarations: `packages/react/src/public.tsx`. Detailed per-file tokens/hooks/literals and actual registry renderers are in [UI-INVENTORY.md](UI-INVENTORY.md) and [source-evidence.json](source-evidence.json).
+Upstream source prefix: `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/`. Project Plugin prefix: `packages/source-registry/registry/items/plugin-<id>/files/plugins/<id>/`. Demo prefix uses `demo-*`. Public renderer declarations: `packages/plugins/src/public.tsx`. Detailed per-file tokens/hooks/literals and actual registry renderers are in [UI-INVENTORY.md](UI-INVENTORY.md) and [source-evidence.json](source-evidence.json).
 
 | UI surface | Rendered by | Product adapter / Plugin | Upstream source | Freedom | Upgrade risk | Observed hook / visual treatment |
 | --- | --- | --- | --- | --- | --- | --- |

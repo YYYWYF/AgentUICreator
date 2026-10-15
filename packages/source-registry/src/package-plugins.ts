@@ -8,7 +8,7 @@ import manifest from "../registry/items/plugin-assistant-ui-composer/files/plugi
 export const officialPackagePlugins = [{
   pluginId: manifest.id,
   manifest,
-  runtime: { type: "package" as const, package: "@za38.03/agent-ui-plugins", subpath: "./assistant-ui-composer", version: "0.1.0" },
+  runtime: { type: "package" as const, package: "@za38.03/agent-ui-plugins", subpath: "./assistant-ui-composer", version: "0.1.6" },
   referenceSourceItemId: "plugin/assistant-ui-composer",
   services: { provides: [], inject: [], optionalInject: ["agent-ui.locale"] } as { provides: string[]; inject: string[]; optionalInject: string[] },
 }];

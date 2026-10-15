@@ -58,13 +58,13 @@ describe("Agent UI Source Registry public conversation contract", () => {
       target: "conversation/conversation-bridge.ts",
     }]);
     expect(foundation?.packages).toEqual({
-      "@za38.03/agent-ui-react": "0.1.6",
+      "@za38.03/agent-ui-plugins": "0.1.6",
       "@za38.03/agent-ui-runtime": "0.1.0",
     });
     expect(foundation?.upstream).toBeUndefined();
 
     const source = foundation?.loadedFiles[0]?.content.toString("utf8") ?? "";
-    expect(source).toContain('from "@za38.03/agent-ui-react"');
+    expect(source).toContain('from "@za38.03/agent-ui-plugins"');
     expect(source).toContain("ConversationThread");
     for (const token of forbiddenPublicTokens) {
       expect(foundation?.manifestPath, token).not.toContain(token);

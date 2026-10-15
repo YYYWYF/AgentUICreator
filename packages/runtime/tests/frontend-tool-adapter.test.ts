@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { AgentFrontendToolSource } from "@za38.03/agent-ui-runtime-core";
+import type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
 import { createAssistantUiFrontendToolkit } from "../src/tools/assistant-ui-frontend-tool-adapter.js";
 
 function source() {

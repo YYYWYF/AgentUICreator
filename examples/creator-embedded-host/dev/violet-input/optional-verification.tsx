@@ -1,6 +1,6 @@
-import "@za38.03/agent-ui-react/styles.css";
+import "@za38.03/agent-ui-plugins/styles.css";
 import { createRoot } from "react-dom/client";
-import { AgentUIRoot } from "@za38.03/agent-ui-react";
+import { AgentUIRoot } from "@za38.03/agent-ui-plugins";
 import { PluginServiceRuntime, PluginServiceRuntimeContext, createPluginRegistry } from "../../../../packages/source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
 import { parseAppUIRuntimeModel } from "../../../../packages/operator/src/framework/contracts/app-ui-runtime-model";
 import { frontendToolDialogDemoPlugin } from "../../../../packages/source-registry/registry/items/demo-frontend-tool-dialog/files/plugins/frontend-tool-dialog-demo/definition";

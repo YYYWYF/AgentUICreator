@@ -27,7 +27,7 @@ function publicAPIBindings(sourceFile: SourceFile): ReadonlySet<string> {
   for (const statement of sourceFile.statements) {
     if (!isImportDeclaration(statement) ||
         !isStringLiteral(statement.moduleSpecifier) ||
-        statement.moduleSpecifier.text !== "@za38.03/agent-ui-react") continue;
+        statement.moduleSpecifier.text !== "@za38.03/agent-ui-plugins") continue;
     const clause = statement.importClause;
     if (clause === undefined || clause.phaseModifier === SyntaxKind.TypeKeyword ||
         clause.namedBindings === undefined || !isNamedImports(clause.namedBindings)) continue;
@@ -143,7 +143,7 @@ function inspectRenderer(
       !publicAPIBindings(renderer.getSourceFile()).has(renderer.expression.text)) {
     issues.push(issueAt(projectRoot, expression, asset,
       "DATA_MESSAGE_UI_DEFINITION_NOT_STATIC",
-      `Plugin "${asset.pluginId}" dataMessageUIs entry must resolve to defineDataMessageUI from @za38.03/agent-ui-react.`,
+      `Plugin "${asset.pluginId}" dataMessageUIs entry must resolve to defineDataMessageUI from @za38.03/agent-ui-plugins.`,
     ));
     return;
   }

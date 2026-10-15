@@ -1,8 +1,8 @@
 import type { ConversationFeedbackAdapter } from "./feedback.js";
 import { installConversationQuoteContext } from "./compatibility/conversation-quote-context-agent.js";
 import type { AbstractAgent } from "@ag-ui/client";
-import { ConversationQuoteLifecycleProvider, type ConversationToolkit } from "@za38.03/agent-ui-react";
-import type { AgentFrontendToolSource } from "@za38.03/agent-ui-runtime-core";
+import { ConversationQuoteLifecycleProvider, type ConversationToolkit } from "@za38.03/agent-ui-plugins";
+import type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
 import {
   AuiConfig,
   AssistantRuntimeProvider,

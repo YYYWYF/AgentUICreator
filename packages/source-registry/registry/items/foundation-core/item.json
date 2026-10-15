@@ -56,6 +56,6 @@
     }
   ],
   "packages": {
-    "@za38.03/agent-ui-react": "0.1.6"
+    "@za38.03/agent-ui-plugins": "0.1.6"
   }
 }

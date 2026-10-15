@@ -1,7 +1,7 @@
 import {
   defineDataMessageUI,
   type DataMessageUIRenderProps,
-} from "@za38.03/agent-ui-react";
+} from "@za38.03/agent-ui-plugins";
 import "./style.css";
 
 interface ChartData {

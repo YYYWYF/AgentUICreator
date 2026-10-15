@@ -85,8 +85,8 @@ describe("Sidebar contract and deterministic operations", () => {
   });
   it("requires Sidebar-capable package versions in Source Registry", () => {
     for (const [item, name, oldVersion, version] of [
-      ["foundation-core", "@za38.03/agent-ui-react", "0.1.5", "0.1.6"],
-      ["foundation-core-runtime", "@za38.03/agent-ui-react", "0.1.5", "0.1.6"],
+      ["foundation-core", "@za38.03/agent-ui-plugins", "0.1.5", "0.1.6"],
+      ["foundation-core-runtime", "@za38.03/agent-ui-plugins", "0.1.5", "0.1.6"],
       ["foundation-core-contracts", "@za38.03/agent-ui-renderer", "0.1.2", "0.1.3"],
     ]) {
       const descriptor = JSON.parse(readFileSync(new URL(`../../source-registry/registry/items/${item}/item.json`, import.meta.url), "utf8"));

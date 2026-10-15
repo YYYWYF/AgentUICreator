@@ -6,13 +6,13 @@ import type { UIProjectVerification } from "../src/verify-ui";
 const verification = { status: "passed", errors: [], warnings: [] } as unknown as UIProjectVerification;
 import { getAvailableAgentUIThemes, setAgentUITheme } from "../src/project/agent-ui-theme";
 const roots: string[] = [];
-async function project(source = 'import type { AgentUIThemeConfig } from "@za38.03/agent-ui-react";\n// 中文 keep\nexport const agentUIThemeConfig = { theme: /* retain */ "light" } satisfies AgentUIThemeConfig;\n') {
+async function project(source = 'import type { AgentUIThemeConfig } from "@za38.03/agent-ui-plugins";\n// 中文 keep\nexport const agentUIThemeConfig = { theme: /* retain */ "light" } satisfies AgentUIThemeConfig;\n') {
   const root = await mkdtemp(path.join(tmpdir(), "theme-command-")); roots.push(root);
   await mkdir(path.join(root, ".agent-ui")); await mkdir(path.join(root, "src/agent-ui/theme"), { recursive: true });
   await writeFile(path.join(root, ".agent-ui/project.json"), JSON.stringify({ mode: "platform", sourceRoot: "src" }));
-  await mkdir(path.join(root, "node_modules/@za38.03/agent-ui-react"), { recursive: true });
-  await writeFile(path.join(root, "node_modules/@za38.03/agent-ui-react/package.json"), JSON.stringify({ type: "module", exports: { "./theme": { import: "./index.js" } } }));
-  await writeFile(path.join(root, "node_modules/@za38.03/agent-ui-react/index.js"), 'export const AGENT_UI_THEME_PRESETS = { light: {}, violet: {}, custom: {} };');
+  await mkdir(path.join(root, "node_modules/@za38.03/agent-ui-plugins"), { recursive: true });
+  await writeFile(path.join(root, "node_modules/@za38.03/agent-ui-plugins/package.json"), JSON.stringify({ type: "module", exports: { "./theme": { import: "./index.js" } } }));
+  await writeFile(path.join(root, "node_modules/@za38.03/agent-ui-plugins/index.js"), 'export const AGENT_UI_THEME_PRESETS = { light: {}, violet: {}, custom: {} };');
   await writeFile(path.join(root, "tsconfig.json"), JSON.stringify({ compilerOptions: { target: "ES2022" }, include: ["src/**/*.ts"] }));
   await writeFile(path.join(root, "src/agent-ui/theme/theme-config.ts"), source); return root;
 }

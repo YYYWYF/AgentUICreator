@@ -5,7 +5,7 @@ import type {
   AgentFrontendToolExecuteOptions,
   AgentFrontendToolResult,
   AgentFrontendToolSource,
-} from "@za38.03/agent-ui-runtime-core";
+} from "@za38.03/agent-ui-core";
 
 import type { UIPluginServices } from "../../framework/contracts/ui-plugin";
 import { AppFrontendToolRegistry } from "./AppFrontendToolRegistry";

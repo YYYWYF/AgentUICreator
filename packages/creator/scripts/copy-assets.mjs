@@ -22,7 +22,7 @@ await copyFile(
 );
 await mkdir(new URL("../dist/python/", import.meta.url), { recursive: true });
 await cp(
-  new URL("../../creator-python/agent_ui_creator/", import.meta.url),
+  new URL("../python/agent_ui_creator/", import.meta.url),
   new URL("../dist/python/agent_ui_creator/", import.meta.url),
   {
     recursive: true,
@@ -30,11 +30,11 @@ await cp(
   },
 );
 await copyFile(
-  new URL("../../creator-python/pyproject.toml", import.meta.url),
+  new URL("../python/pyproject.toml", import.meta.url),
   new URL("../dist/python/pyproject.toml", import.meta.url),
 );
 await copyFile(
-  new URL("../../creator-python/requirements.lock", import.meta.url),
+  new URL("../python/requirements.lock", import.meta.url),
   new URL("../dist/python/requirements.lock", import.meta.url),
 );
 await cp(

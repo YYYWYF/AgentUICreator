@@ -7,7 +7,7 @@ import type {
   AgentRuntime,
   AgentRuntimeSnapshot,
   AgentUserInput,
-} from "@za38.03/agent-ui-runtime-core";
+} from "@za38.03/agent-ui-core";
 import type { AbstractAgent } from "@ag-ui/client";
 import type { AttachmentAdapter, DictationAdapter } from "@assistant-ui/core";
 import {
@@ -28,7 +28,7 @@ import type {
   ConversationThreadListItem,
   ConversationThreadListSnapshot,
 } from "./threads/types.js";
-import type { ConversationToolkit } from "@za38.03/agent-ui-react";
+import type { ConversationToolkit } from "@za38.03/agent-ui-plugins";
 import type { ReactNode } from "react";
 import type { ConversationStarterSuggestion } from "./conversation-types.js";
 

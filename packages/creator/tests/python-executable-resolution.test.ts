@@ -24,7 +24,7 @@ async function packageRootWithManagedPython(platform: NodeJS.Platform): Promise<
 }> {
   const repository = await mkdtemp(path.join(tmpdir(), "creator-python-resolution-"));
   temporaryDirectories.push(repository);
-  const packageRoot = path.join(repository, "packages", "creator-python");
+  const packageRoot = path.join(repository, "packages", "creator", "python");
   await mkdir(packageRoot, { recursive: true });
   await writeFile(path.join(repository, "pnpm-workspace.yaml"), "packages: []");
   const executable = path.join(

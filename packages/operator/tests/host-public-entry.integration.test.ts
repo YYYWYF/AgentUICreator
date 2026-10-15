@@ -30,9 +30,9 @@ const hostProjects = {
 };
 const hostSourceRoots = Object.values(hostProjects).map(root => path.join(root, "src"));
 const runtimeAliases = {
-  "@za38.03/agent-ui-react/demo-attachments": path.join(workspaceRoot, "packages/react/src/demo-attachments.ts"),
-  "@za38.03/agent-ui-react/styles.css": path.join(workspaceRoot, "packages/react/src/styles.css"),
-  ...Object.fromEntries(["react", "runtime", "runtime-core", "renderer"].map(name =>
+  "@za38.03/agent-ui-plugins/demo-attachments": path.join(workspaceRoot, "packages/plugins/src/demo-attachments.ts"),
+  "@za38.03/agent-ui-plugins/styles.css": path.join(workspaceRoot, "packages/plugins/src/styles.css"),
+  ...Object.fromEntries(["react", "runtime", "core", "renderer"].map(name =>
     [`@za38.03/agent-ui-${name}`, path.join(workspaceRoot, `packages/${name}/src/index.ts`)])),
 };
 const prohibited = /(?:\/|\\)agent-ui(?:\/|\\)(?:runtime|framework|plugins|app-ui)(?:\/|\\)/u;

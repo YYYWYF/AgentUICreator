@@ -34,7 +34,7 @@ Backend Agent
 2. upstream presentation 固定进入 `examples/creator-host-sandbox/src/agent-ui/agent-ui/vendor/assistant-ui/`；项目集成进入 `examples/creator-host-sandbox/src/agent-ui/agent-ui/adapters/assistant-ui/`。
 3. P3R-2 新建 `packages/runtime-assistant-ui/`，由它唯一创建并拥有 canonical active-conversation Runtime。UI Plugin 不创建 Runtime。
 4. 现有 conversation semantic Slots 全部保留，Slot 只表达可替换能力，不发展成 visual micro-slot。
-5. `runtime-core`、`runtime-agui` 只能按 capability 迁移和删除；在 Frontend Tools、HITL、Custom Events、Subagent、History、Diagnostics 完成证明前，不允许 package 级删除。
+5. `core`、`runtime-agui` 只能按 capability 迁移和删除；在 Frontend Tools、HITL、Custom Events、Subagent、History、Diagnostics 完成证明前，不允许 package 级删除。
 6. Canonical cutover 前必须消除同一 active conversation 的双 transport / 双 send ownership；A/B 期间允许 legacy 与 Spike 共存，但只能有一个交互面处理用户动作。
 
 本文件覆盖旧 launch plan 与 reference guide 中“assistant-ui 只可参考、不能成为 Runtime/Message Model”的 Conversation Domain 结论；其他架构边界继续有效。
@@ -57,7 +57,7 @@ App.tsx
      -> local child Slots             -> emptyWelcome / emptySuggestions
 ```
 
-`runtime-agui` 当前同时承担：`HttpAgent` 生命周期、AG-UI message/input 映射、message/reasoning/tool/step/subagent projection、run 状态、abort、新 thread、structured interrupt、Frontend Tool 协调、Tool continuation 和 Custom Event wire boundary。`runtime-core` 提供协议无关的 snapshot、actions、message/execution/interrupt/event/tool contracts。`renderer` 只拥有 Layout language 与确定性 `LayoutRenderer`，不属于 Conversation Domain。
+`runtime-agui` 当前同时承担：`HttpAgent` 生命周期、AG-UI message/input 映射、message/reasoning/tool/step/subagent projection、run 状态、abort、新 thread、structured interrupt、Frontend Tool 协调、Tool continuation 和 Custom Event wire boundary。`core` 提供协议无关的 snapshot、actions、message/execution/interrupt/event/tool contracts。`renderer` 只拥有 Layout language 与确定性 `LayoutRenderer`，不属于 Conversation Domain。
 
 `agent-message-list` 再次投影 turn、reasoning execution 与 tool activity，并通过 `MessageRenderProvider` 把 normalized context 交给 reasoning、tool group、tool item、attachments、sources child Slots。`agent-tool-detail` 直接从 `AgentMessage[] + AgentExecution[]` 按 `toolCallId` 组装 Inspector 数据。
 
@@ -171,7 +171,7 @@ P3R-2 creates `@agent-ui/runtime-assistant-ui` with this allowed responsibility:
 
 It must not import AppUIModel, `LayoutRenderer`, Creator, Plugin implementations, SlotRegistry, workspace layout or generated Registry. It must not decide which Plugin occupies a Slot.
 
-`runtime-core` remains the owner of protocol-independent AgentUICreator contracts while consumers still need them. `runtime-agui` retains only AG-UI capabilities not yet replaced or reused by `runtime-assistant-ui`. P3R migration may extract mappers/coordinators or add ports, but cannot keep a second `AgUiTransport` alive in canonical mode.
+`core` remains the owner of protocol-independent AgentUICreator contracts while consumers still need them. `runtime-agui` retains only AG-UI capabilities not yet replaced or reused by `runtime-assistant-ui`. P3R migration may extract mappers/coordinators or add ports, but cannot keep a second `AgUiTransport` alive in canonical mode.
 
 `renderer` is unchanged: Layout is not a Conversation capability and is not a deletion candidate.
 
@@ -351,7 +351,7 @@ Rendering a Tool does not prove Frontend Tool execution or HITL replacement. The
 - pending interrupt projection, complete response-set validation and resume;
 - application event schema registry and per-Plugin scoped delivery.
 
-P3R-2 must find a single-transport integration point. Until it does, no Frontend Tool coordinator, `resumeInterrupts`, application event registry or related runtime-core contract is removed. assistant-ui may provide presentation controls, but AgentUICreator retains product policy and authorization.
+P3R-2 must find a single-transport integration point. Until it does, no Frontend Tool coordinator, `resumeInterrupts`, application event registry or related core contract is removed. assistant-ui may provide presentation controls, but AgentUICreator retains product policy and authorization.
 
 ## 14. Mock Strategy
 
@@ -433,7 +433,7 @@ No component is deleted in P3R-0.
 
 | Capability | Current owner | Future owner | Temporary duplication | Migration phase | Removal gate |
 | --- | --- | --- | --- | --- | --- |
-| message projection | runtime-agui -> runtime-core | assistant-ui | Yes in A/B | P3R-2/3 | all message consumers moved or adapted |
+| message projection | runtime-agui -> core | assistant-ui | Yes in A/B | P3R-2/3 | all message consumers moved or adapted |
 | reasoning projection | LifecycleProjector + message-list | assistant-ui | Yes | P3R-2/3 | lifecycle/long-stream/interruption parity |
 | tool presentation projection | LifecycleProjector + message-list | assistant-ui | Yes | P3R-2/3 | call/result/group/error identity parity |
 | active run | AgUiTransport | assistant-ui Runtime | Yes in Spike | P3R-2 | one wire owner and run-lock parity |
@@ -442,7 +442,7 @@ No component is deleted in P3R-0.
 | new conversation identity | AgUiTransport + controller | Conversation Service policy + adapter rebind | Partial | P3R-2/4 | atomic identity reset and stale-run safety |
 | abort | AgUiTransport | runtime-assistant-ui action | Yes | P3R-2/4 | network/local state cancellation parity |
 | Frontend Tools | runtime-agui + AppFrontendToolRuntime | AgentUICreator bridge through one adapter | No replacement yet | P3R-2/4 | advertise/execute/result/continuation parity |
-| interrupts / resume | runtime-core + runtime-agui | AgentUICreator policy through adapter | No replacement yet | P3R-2/4 | full response, resume, producer/tool identity parity |
+| interrupts / resume | core + runtime-agui | AgentUICreator policy through adapter | No replacement yet | P3R-2/4 | full response, resume, producer/tool identity parity |
 | application events | runtime-agui + AppEventRuntime | AgentUICreator bridge through adapter | No replacement | P3R-2 | validated live-only delivery through one wire owner |
 | diagnostics | AgentUICreator diagnostics | AgentUICreator diagnostics + observation adapter | No replacement | P3R-2/3 | Inspector and reporters consume stable contract |
 | subagent execution | LifecycleProjector | AgentUICreator extension over assistant-ui base | Unknown | P3R-4 | identity/tree/lifecycle strategy confirmed |
@@ -465,7 +465,7 @@ Duplication is removed capability by capability. Package deletion is not an obje
 | old default presentation Plugins | P3R-6 or retain as optional | dependency proof plus explicit product decision |
 | unused runtime-agui projection code | P3R-6 | same transport no longer calls it and no consumers |
 
-`renderer`, SlotRegistry, Plugin Runtime, Conversation Service, Inspector and diagnostics are not deletion candidates. `runtime-core` and `runtime-agui` are not package-level deletion candidates in this plan.
+`renderer`, SlotRegistry, Plugin Runtime, Conversation Service, Inspector and diagnostics are not deletion candidates. `core` and `runtime-agui` are not package-level deletion candidates in this plan.
 
 ## 21. Capability Matrix / Remaining Unknowns
 

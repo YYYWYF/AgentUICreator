@@ -8,14 +8,14 @@
       "@za38.03/agent-ui-operator/bootstrap": [
         "../../../../packages/operator/src/bootstrap/index.ts"
       ],
-      "@za38.03/agent-ui-react": [
-        "../../../../packages/react/src/index.ts"
+      "@za38.03/agent-ui-plugins": [
+        "../../../../packages/plugins/src/index.ts"
       ],
       "@za38.03/agent-ui-runtime": [
         "../../../../packages/runtime/src/index.ts"
       ],
-      "@za38.03/agent-ui-runtime-core": [
-        "../../../../packages/runtime-core/src/index.ts"
+      "@za38.03/agent-ui-core": [
+        "../../../../packages/core/src/index.ts"
       ],
       "@za38.03/agent-ui-renderer": [
         "../../../../packages/renderer/src/index.ts"

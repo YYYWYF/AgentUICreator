@@ -3,7 +3,7 @@
 Earlier upgrade and acceptance evidence is retained in [assistant-ui-upgrade-retained-evidence.md](docs/architecture/assistant-ui-upgrade-retained-evidence.md).
 
 From:
-- packages: packages/bootstrap/package.json, packages/operator/package.json, packages/react/package.json, packages/renderer/package.json, pnpm-lock.yaml, pnpm-workspace.yaml
+- packages: packages/bootstrap/package.json, packages/operator/package.json, packages/plugins/package.json, packages/renderer/package.json, pnpm-lock.yaml, pnpm-workspace.yaml
 - upstream revision: da9a624496ae97864ae30e90f85c7533092a228d
 
 To:
@@ -353,7 +353,7 @@ Portal integration seam: UNCHANGED
 
 ## Public facade changes
 
-- 2 files: packages/react/src/internal/conversation-question-flow.tsx, packages/react/src/public.tsx
+- 2 files: packages/plugins/src/internal/conversation-question-flow.tsx, packages/plugins/src/public.tsx
 
 ## Runtime adapter changes
 
@@ -400,7 +400,7 @@ Portal integration seam: UNCHANGED
 
 ## Tests changed
 
-- 13 files: apps/creator-workbench/tests/run-resume-production-refresh.e2e.spec.ts, apps/creator-workbench/tests/run-resume-refresh.e2e.spec.ts, packages/mock-agent/tests/durable-run-store.test.ts, packages/operator/tests/migrated/source-content-freshness.test.ts, packages/react/tests/assistant-ui-upgrade-drill.test.mjs, packages/react/tests/migrated/assistant-ui-conversation-thread-binding.test.ts, packages/react/tests/migrated/assistant-ui-langgraph-history-projector.test.ts, packages/react/tests/migrated/assistant-ui-nested-subagent.test.tsx, packages/react/tests/migrated/assistant-ui-run-resume-production.test.tsx, packages/react/tests/migrated/human-question-flow.test.tsx, packages/runtime/tests/run-resume.test.tsx, packages/source-registry/tests/integration.test.ts, packages/source-registry/tests/managed-version-discipline.test.ts
+- 13 files: apps/creator-workbench/tests/run-resume-production-refresh.e2e.spec.ts, apps/creator-workbench/tests/run-resume-refresh.e2e.spec.ts, packages/mock-agent/tests/durable-run-store.test.ts, packages/operator/tests/migrated/source-content-freshness.test.ts, packages/plugins/tests/assistant-ui-upgrade-drill.test.mjs, packages/plugins/tests/migrated/assistant-ui-conversation-thread-binding.test.ts, packages/plugins/tests/migrated/assistant-ui-langgraph-history-projector.test.ts, packages/plugins/tests/migrated/assistant-ui-nested-subagent.test.tsx, packages/plugins/tests/migrated/assistant-ui-run-resume-production.test.tsx, packages/plugins/tests/migrated/human-question-flow.test.tsx, packages/runtime/tests/run-resume.test.tsx, packages/source-registry/tests/integration.test.ts, packages/source-registry/tests/managed-version-discipline.test.ts
 
 ## Upgrade cost assessment
 

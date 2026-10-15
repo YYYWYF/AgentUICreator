@@ -8,7 +8,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { assertContractParity } from "../packages/creator/scripts/contract-integrity.mjs";
 
 export const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-export const pythonRoot = path.join(repositoryRoot, "packages/creator-python");
+export const pythonRoot = path.join(repositoryRoot, "packages/creator/python");
 export const distributionRoot = path.join(repositoryRoot, "packages/creator");
 export const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 export const pythonInVenv = (root) => path.join(root, process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
@@ -66,7 +66,6 @@ export async function sidecarSmoke(unpacked, temporary, environment, pythonExecu
   const manager = new PythonCreatorProcessManager({
     projectRoot: temporary,
     skillsRoot: path.join(unpacked, "skills"),
-    pythonPackageRoot: path.join(unpacked, "dist/python"),
     pythonExecutable,
     environment,
     allowExternalEndpoint: false,

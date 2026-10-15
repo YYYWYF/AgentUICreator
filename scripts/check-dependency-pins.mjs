@@ -24,13 +24,13 @@ async function check(file) {
 }
 await check(path.join(root, "package.json"));
 for (const directory of ["packages", "apps", "examples", "scripts"]) await visit(path.join(root, directory));
-const pythonManifest = await readFile(path.join(root, "packages/creator-python/pyproject.toml"), "utf8");
+const pythonManifest = await readFile(path.join(root, "packages/creator/python/pyproject.toml"), "utf8");
 for (const block of pythonManifest.matchAll(/(?:dependencies|requires|test)\s*=\s*\[([\s\S]*?)\]/gu)) {
   for (const quoted of block[1].matchAll(/"([^"]+)"/gu)) {
     if (!/^[\w.-]+==[^\s,]+$/u.test(quoted[1])) failures.push(`pyproject.toml: ${quoted[1]}`);
   }
 }
-const pythonLock = await readFile(path.join(root, "packages/creator-python/requirements.lock"), "utf8");
+const pythonLock = await readFile(path.join(root, "packages/creator/python/requirements.lock"), "utf8");
 for (const line of pythonLock.split(/\r?\n/u)) {
   if (line.trim() && !line.startsWith("#") && !/^[\w.-]+==[^\s,]+$/u.test(line)) failures.push(`requirements.lock: ${line}`);
 }

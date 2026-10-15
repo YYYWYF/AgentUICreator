@@ -13,7 +13,7 @@
   "dependencies": {
     "@za38.03/agent-ui-web-component": "workspace:*",
     "vue": "3.5.42",
-    "@za38.03/agent-ui-react": "workspace:*"
+    "@za38.03/agent-ui-plugins": "workspace:*"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "6.0.1",

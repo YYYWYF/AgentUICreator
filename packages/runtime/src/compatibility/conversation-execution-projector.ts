@@ -1,4 +1,4 @@
-import type { AgentExecution } from "@za38.03/agent-ui-runtime-core";
+import type { AgentExecution } from "@za38.03/agent-ui-core";
 import type { ThreadMessage, ToolCallMessagePart } from "@assistant-ui/react";
 
 function stringify(value: unknown): string {

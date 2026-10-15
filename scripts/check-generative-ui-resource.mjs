@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const defaultRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const packageName = "@assistant-ui/react-generative-ui";
 const itemIds = ["agent-component-assistant-ui-generative-ui", "integration-generative-ui"];
-const vendorDirectory = "packages/react/src/internal/vendor/assistant-ui/generative-ui";
+const vendorDirectory = "packages/plugins/src/internal/vendor/assistant-ui/generative-ui";
 
 export async function checkGenerativeUiResource({ repoRoot = defaultRoot, target } = {}) {
   target ??= JSON.parse(await readFile(path.join(repoRoot, "assistant-ui-upgrade-target.json"), "utf8"));

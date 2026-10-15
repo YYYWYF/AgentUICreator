@@ -1,7 +1,7 @@
 import type {
   AgentApplicationEvent,
   AgentApplicationEventListener,
-} from "@za38.03/agent-ui-runtime-core";
+} from "@za38.03/agent-ui-core";
 
 import type { UIPluginEvents } from "../../framework/contracts/ui-plugin";
 import type { RuntimeDiagnosticEvent } from "../diagnostics";

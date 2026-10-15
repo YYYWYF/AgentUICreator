@@ -5,7 +5,7 @@ import {
   isAgentUITheme,
   NativeSelect,
   NativeSelectOption,
-} from "@za38.03/agent-ui-react";
+} from "@za38.03/agent-ui-plugins";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
 import { usePluginInstance } from "../../runtime/context";

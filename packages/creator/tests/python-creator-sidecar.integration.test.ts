@@ -31,7 +31,7 @@ const repositoryRoot = path.resolve(
   "../../..",
 );
 const projectRoot = path.join(repositoryRoot, "examples/creator-host-sandbox");
-const pythonPackageRoot = path.join(repositoryRoot, "packages/creator-python");
+const pythonPackageRoot = path.join(repositoryRoot, "packages/creator/python");
 const skillsRoot = path.join(repositoryRoot, "packages/creator/skills");
 const contractsRoot = path.join(repositoryRoot, "contracts/creator/fixtures");
 const virtualEnvironmentPython =

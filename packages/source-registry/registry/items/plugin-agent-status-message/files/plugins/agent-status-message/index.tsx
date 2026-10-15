@@ -1,11 +1,11 @@
 import type {
   ConversationToolCallComponent,
   ConversationToolCallProps,
-} from "@za38.03/agent-ui-react";
+} from "@za38.03/agent-ui-plugins";
 
 import { projectAgentStatus } from "../../agent-ui/conversation/agents/agent-status-projection";
-import { AgentStatus } from "@za38.03/agent-ui-react";
-import { ConversationToolFallback } from "@za38.03/agent-ui-react";
+import { AgentStatus } from "@za38.03/agent-ui-plugins";
+import { ConversationToolFallback } from "@za38.03/agent-ui-plugins";
 
 function shouldUseFallback(
   props: ConversationToolCallProps,

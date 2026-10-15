@@ -2,14 +2,14 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, expect, it, vi } from "vitest";
-import type { ConversationToolCallProps } from "@za38.03/agent-ui-react";
+import type { ConversationToolCallProps } from "@za38.03/agent-ui-plugins";
 import { CollectUserDetailsToolUI } from "../../source-registry/registry/items/demo-human-form/files/agent-ui/conversation/human-tool-uis/collect-user-details";
 import { PluginServiceRuntime, PluginServiceRuntimeContext } from "../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins";
 import { agentUILocaleConfig } from "../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/locale-config";
 import { resolveLocaleNamespace } from "../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/locale-registry";
 
-vi.mock("@za38.03/agent-ui-react", async importOriginal => ({
-  ...await importOriginal<typeof import("@za38.03/agent-ui-react")>(),
+vi.mock("@za38.03/agent-ui-plugins", async importOriginal => ({
+  ...await importOriginal<typeof import("@za38.03/agent-ui-plugins")>(),
   useConversationCanAnswerToolCall: () => true,
 }));
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;

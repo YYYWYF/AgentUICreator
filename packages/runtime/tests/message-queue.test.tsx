@@ -5,7 +5,7 @@ import { ConversationRuntimeProvider } from "../src/ConversationRuntimeProvider.
 import { useConversationRuntimeBridge } from "../src/ConversationRuntimeBridgeContext.js";
 import { CancellationAwareHttpAgent } from "../src/compatibility/cancellation-aware-http-agent.js";
 import type { ConversationThreadBinding } from "../src/threads/types.js";
-import type { AgentFrontendToolSource, AgentRuntime } from "@za38.03/agent-ui-runtime-core";
+import type { AgentFrontendToolSource, AgentRuntime } from "@za38.03/agent-ui-core";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 type RunInput = { threadId: string; runId: string; messages: { role: string; content?: string }[] };
 async function until(predicate: () => boolean) {

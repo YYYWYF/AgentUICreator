@@ -1,4 +1,4 @@
-import { useAgentUILocale } from "@za38.03/agent-ui-react";
+import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
 import { AgentMount } from "./AgentMount";
 
 

@@ -10,10 +10,10 @@ const examplesRoot = path.join(workspaceRoot, "examples");
 const pluginRoot = path.join(examplesRoot, "creator-host-sandbox/src/agent-ui/plugins");
 const creatorRoots = [
   path.join(workspaceRoot, "packages/creator"),
-  path.join(workspaceRoot, "packages/creator-python"),
+  path.join(workspaceRoot, "packages/creator/python"),
 ];
 const runtimePackageRoots = [
-  path.join(workspaceRoot, "packages/runtime-core"),
+  path.join(workspaceRoot, "packages/core"),
   path.join(workspaceRoot, "packages/runtime"),
 ];
 const ignoredDirectories = new Set([
@@ -99,7 +99,7 @@ function targetsCreator(filename: string, specifier: string): boolean {
 }
 
 function targetsRuntimePackage(filename: string, specifier: string): boolean {
-  return ["@za38.03/agent-ui-runtime-core", "@za38.03/agent-ui-runtime"].some(
+  return ["@za38.03/agent-ui-core", "@za38.03/agent-ui-runtime"].some(
     (packageName) => specifier === packageName || specifier.startsWith(`${packageName}/`),
   ) || runtimePackageRoots.some(
     (root) => resolvesInside(filename, specifier, root),

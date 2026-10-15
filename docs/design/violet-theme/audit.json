@@ -1,6 +1,6 @@
 [
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx",
     "line": 39,
     "category": "A upstream-owned",
     "intent": "C status semantics; preserve unless evidence says otherwise",
@@ -10,7 +10,7 @@
     "source": "<CheckIcon aria-hidden className=\"size-3 shrink-0 text-emerald-500\" />"
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx",
     "line": 48,
     "category": "A upstream-owned",
     "intent": "brand-like candidate",
@@ -21,7 +21,7 @@
     "source": "? \"animate-pulse bg-blue-500 dark:bg-blue-400\""
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
     "line": 167,
     "category": "A upstream-owned",
     "intent": "review in context",
@@ -32,7 +32,7 @@
     "source": "\"aui-attachment-tile bg-muted hover:after:bg-foreground/10 focus-visible:ring-ring/50 relative size-14 cursor-pointer overflow-hidden rounded-[calc(var(--composer-radius,1rem)-var(--composer-padding,8px))] transition-transform outline-none after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:ring-1 after:ring-black/10 after:transition-colors after:ring-inset focus-visible:ring-1 active:scale-[0.96] motion-reduce:transition-none dark:after:ring-white/10\","
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
     "line": 221,
     "category": "A upstream-owned",
     "intent": "review in context",
@@ -45,7 +45,7 @@
     "source": "className=\"aui-attachment-tile-remove absolute end-1 top-1 size-5 rounded-full bg-black/50! text-white after:absolute after:-inset-1.5 hover:bg-black/70! hover:text-white! active:scale-[0.96] motion-reduce:transition-none\""
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/image.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/image.tsx",
     "line": 466,
     "category": "A upstream-owned",
     "intent": "review in context",
@@ -55,7 +55,7 @@
     "source": "className=\"aui-image-zoom-overlay fade-in animate-in fixed inset-0 z-50 flex items-center justify-center bg-black/80 duration-200\""
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
     "line": 107,
     "category": "A upstream-owned",
     "intent": "C status semantics; preserve unless evidence says otherwise",
@@ -65,7 +65,7 @@
     "source": "? \"bg-emerald-500\""
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
     "line": 109,
     "category": "A upstream-owned",
     "intent": "C status semantics; preserve unless evidence says otherwise",
@@ -76,7 +76,7 @@
     "source": "? \"bg-amber-500 dark:bg-amber-400\""
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
     "line": 111,
     "category": "A upstream-owned",
     "intent": "C status semantics; preserve unless evidence says otherwise",
@@ -87,7 +87,7 @@
     "source": "? \"bg-red-600 dark:bg-red-400\""
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
     "line": 130,
     "category": "A upstream-owned",
     "intent": "C status semantics; preserve unless evidence says otherwise",
@@ -98,7 +98,7 @@
     "source": "<CircleAlertIcon className=\"size-3.5 shrink-0 text-amber-500 dark:text-amber-400\" />"
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
     "line": 132,
     "category": "A upstream-owned",
     "intent": "C status semantics; preserve unless evidence says otherwise",
@@ -109,7 +109,7 @@
     "source": "<XIcon className=\"size-3.5 shrink-0 text-red-600 dark:text-red-400\" />"
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
     "line": 136,
     "category": "A upstream-owned",
     "intent": "C status semantics; preserve unless evidence says otherwise",
@@ -119,7 +119,7 @@
     "source": "<CheckIcon className=\"size-3.5 shrink-0 text-emerald-500\" />"
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
     "line": 176,
     "category": "A upstream-owned",
     "intent": "brand-like candidate",
@@ -131,7 +131,7 @@
     "source": "(finished ? \"bg-emerald-500\" : \"bg-blue-500 dark:bg-blue-400\"),"
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/option-list.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/option-list.tsx",
     "line": 253,
     "category": "A upstream-owned",
     "intent": "C status semantics; preserve unless evidence says otherwise",
@@ -142,7 +142,7 @@
     "source": "className=\"px-2 pb-1 text-xs break-words text-red-600 dark:text-red-400\""
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/retrieval-chunks.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/retrieval-chunks.tsx",
     "line": 85,
     "category": "A upstream-owned",
     "intent": "C status semantics; preserve unless evidence says otherwise",
@@ -153,7 +153,7 @@
     "source": "? \"text-emerald-600 dark:text-emerald-400\""
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/retrieval-chunks.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/retrieval-chunks.tsx",
     "line": 105,
     "category": "A upstream-owned",
     "intent": "brand-like candidate",
@@ -164,7 +164,7 @@
     "source": "className=\"block h-full rounded-full bg-blue-500/70 transition-[width] duration-500 dark:bg-blue-400/70\""
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
     "line": 24,
     "category": "A upstream-owned",
     "intent": "brand-like candidate",
@@ -178,7 +178,7 @@
     "source": "info: \"bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 [a&]:hover:bg-blue-100/80\","
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
     "line": 26,
     "category": "A upstream-owned",
     "intent": "C status semantics; preserve unless evidence says otherwise",
@@ -192,7 +192,7 @@
     "source": "\"bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300 [a&]:hover:bg-amber-100/80\","
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
     "line": 28,
     "category": "A upstream-owned",
     "intent": "C status semantics; preserve unless evidence says otherwise",
@@ -206,7 +206,7 @@
     "source": "\"bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300 [a&]:hover:bg-emerald-100/80\","
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
     "line": 30,
     "category": "A upstream-owned",
     "intent": "C status semantics; preserve unless evidence says otherwise",
@@ -220,7 +220,7 @@
     "source": "\"bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 [a&]:hover:bg-red-100/80\","
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.tsx",
     "line": 62,
     "category": "A upstream-owned",
     "intent": "C status semantics; preserve unless evidence says otherwise",
@@ -230,7 +230,7 @@
     "source": "<CheckIcon className=\"fade-in zoom-in-90 animate-in size-3.5 shrink-0 text-emerald-500 duration-200\" />"
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.tsx",
     "line": 84,
     "category": "A upstream-owned",
     "intent": "C status semantics; preserve unless evidence says otherwise",
@@ -240,7 +240,7 @@
     "source": "done ? \"bg-emerald-500/70\" : \"bg-foreground/60\","
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/surfaces.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/surfaces.tsx",
     "line": 43,
     "category": "A upstream-owned",
     "intent": "brand-like candidate",
@@ -251,7 +251,7 @@
     "source": "export const live = \"text-blue-500 dark:text-blue-400\";"
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/task-card.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/task-card.tsx",
     "line": 35,
     "category": "A upstream-owned",
     "intent": "C status semantics; preserve unless evidence says otherwise",
@@ -261,7 +261,7 @@
     "source": "className={cn(\"size-3.5 shrink-0 text-emerald-500\", className)}"
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
     "line": 536,
     "category": "A upstream-owned",
     "intent": "C status semantics; preserve unless evidence says otherwise",
@@ -271,7 +271,7 @@
     "source": "<ErrorPrimitive.Root className=\"aui-message-error-root border-destructive bg-destructive/10 text-destructive dark:bg-destructive/5 mt-2 rounded-md border p-3 text-sm dark:text-red-200\">"
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.tsx",
     "line": 69,
     "category": "A upstream-owned",
     "intent": "C status semantics; preserve unless evidence says otherwise",
@@ -281,7 +281,7 @@
     "source": "<CheckIcon className=\"fade-in zoom-in-90 animate-in size-3.5 text-emerald-500 duration-200\" />"
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/ui/badge.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/ui/badge.tsx",
     "line": 16,
     "category": "A upstream-owned",
     "intent": "review in context",
@@ -291,7 +291,7 @@
     "source": "\"bg-destructive focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40 [a&]:hover:bg-destructive/90 text-white\","
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/ui/dialog.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/ui/dialog.tsx",
     "line": 37,
     "category": "A upstream-owned",
     "intent": "review in context",
@@ -301,7 +301,7 @@
     "source": "\"data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs\","
   },
   {
-    "file": "packages/react/src/internal/vendor/assistant-ui/components/ui/sheet.tsx",
+    "file": "packages/plugins/src/internal/vendor/assistant-ui/components/ui/sheet.tsx",
     "line": 34,
     "category": "A upstream-owned",
     "intent": "review in context",
@@ -311,7 +311,7 @@
     "source": "\"fixed inset-0 z-50 bg-black/10 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-backdrop-filter:backdrop-blur-xs\","
   },
   {
-    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "file": "packages/plugins/src/theme/agent-ui-theme-extensions.css",
     "line": 3,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -321,7 +321,7 @@
     "source": "--success: #16865b;"
   },
   {
-    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "file": "packages/plugins/src/theme/agent-ui-theme-extensions.css",
     "line": 4,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -331,7 +331,7 @@
     "source": "--success-foreground: oklch(0.985 0 0);"
   },
   {
-    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "file": "packages/plugins/src/theme/agent-ui-theme-extensions.css",
     "line": 5,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -341,7 +341,7 @@
     "source": "--warning: #a86308;"
   },
   {
-    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "file": "packages/plugins/src/theme/agent-ui-theme-extensions.css",
     "line": 6,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -351,7 +351,7 @@
     "source": "--warning-foreground: oklch(0.985 0 0);"
   },
   {
-    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "file": "packages/plugins/src/theme/agent-ui-theme-extensions.css",
     "line": 7,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -361,7 +361,7 @@
     "source": "--overlay: rgb(0 0 0 / 52%);"
   },
   {
-    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "file": "packages/plugins/src/theme/agent-ui-theme-extensions.css",
     "line": 11,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -371,7 +371,7 @@
     "source": "--success: oklch(0.765 0.177 163.223);"
   },
   {
-    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "file": "packages/plugins/src/theme/agent-ui-theme-extensions.css",
     "line": 12,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -381,7 +381,7 @@
     "source": "--success-foreground: oklch(0.262 0.051 172.552);"
   },
   {
-    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "file": "packages/plugins/src/theme/agent-ui-theme-extensions.css",
     "line": 13,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -391,7 +391,7 @@
     "source": "--warning: oklch(0.828 0.189 84.429);"
   },
   {
-    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "file": "packages/plugins/src/theme/agent-ui-theme-extensions.css",
     "line": 14,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -401,7 +401,7 @@
     "source": "--warning-foreground: oklch(0.279 0.077 45.635);"
   },
   {
-    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "file": "packages/plugins/src/theme/agent-ui-theme-extensions.css",
     "line": 56,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -411,7 +411,7 @@
     "source": "--aui-shadow-md: 0 4px 12px rgb(0 0 0 / 10%);"
   },
   {
-    "file": "packages/react/src/theme/agent-ui-theme-extensions.css",
+    "file": "packages/plugins/src/theme/agent-ui-theme-extensions.css",
     "line": 57,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -421,7 +421,7 @@
     "source": "--aui-shadow-lg: 0 16px 40px rgb(0 0 0 / 18%);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 4,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -431,7 +431,7 @@
     "source": "--background: oklch(1 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 5,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -441,7 +441,7 @@
     "source": "--foreground: oklch(0.141 0.005 285.823);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 6,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -451,7 +451,7 @@
     "source": "--card: oklch(1 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 7,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -461,7 +461,7 @@
     "source": "--card-foreground: oklch(0.141 0.005 285.823);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 8,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -471,7 +471,7 @@
     "source": "--popover: oklch(1 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 9,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -481,7 +481,7 @@
     "source": "--popover-foreground: oklch(0.141 0.005 285.823);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 10,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -491,7 +491,7 @@
     "source": "--primary: oklch(0.21 0.006 285.885);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 11,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -501,7 +501,7 @@
     "source": "--primary-foreground: oklch(0.985 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 12,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -511,7 +511,7 @@
     "source": "--secondary: oklch(0.967 0.001 286.375);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 13,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -521,7 +521,7 @@
     "source": "--secondary-foreground: oklch(0.21 0.006 285.885);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 14,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -531,7 +531,7 @@
     "source": "--muted: oklch(0.967 0.001 286.375);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 15,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -541,7 +541,7 @@
     "source": "--muted-foreground: oklch(0.552 0.016 285.938);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 16,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -551,7 +551,7 @@
     "source": "--accent: oklch(0.967 0.001 286.375);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 17,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -561,7 +561,7 @@
     "source": "--accent-foreground: oklch(0.21 0.006 285.885);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 18,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -571,7 +571,7 @@
     "source": "--destructive: oklch(0.577 0.245 27.325);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 19,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -581,7 +581,7 @@
     "source": "--border: oklch(0.92 0.004 286.32);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 20,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -591,7 +591,7 @@
     "source": "--input: oklch(0.92 0.004 286.32);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 21,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -601,7 +601,7 @@
     "source": "--ring: oklch(0.705 0.015 286.067);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 22,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -611,7 +611,7 @@
     "source": "--sidebar: oklch(0.985 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 23,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -621,7 +621,7 @@
     "source": "--sidebar-foreground: oklch(0.141 0.005 285.823);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 24,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -631,7 +631,7 @@
     "source": "--sidebar-primary: oklch(0.21 0.006 285.885);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 25,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -641,7 +641,7 @@
     "source": "--sidebar-primary-foreground: oklch(0.985 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 26,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -651,7 +651,7 @@
     "source": "--sidebar-accent: oklch(0.967 0.001 286.375);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 27,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -661,7 +661,7 @@
     "source": "--sidebar-accent-foreground: oklch(0.21 0.006 285.885);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 28,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -671,7 +671,7 @@
     "source": "--sidebar-border: oklch(0.92 0.004 286.32);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 29,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -681,7 +681,7 @@
     "source": "--sidebar-ring: oklch(0.705 0.015 286.067);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 31,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -691,7 +691,7 @@
     "source": "--chart-1: oklch(0.871 0.006 286.286);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 32,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -701,7 +701,7 @@
     "source": "--chart-2: oklch(0.552 0.016 285.938);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 33,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -711,7 +711,7 @@
     "source": "--chart-3: oklch(0.442 0.017 285.786);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 34,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -721,7 +721,7 @@
     "source": "--chart-4: oklch(0.37 0.013 285.805);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 35,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -731,7 +731,7 @@
     "source": "--chart-5: oklch(0.274 0.006 286.033);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 40,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -741,7 +741,7 @@
     "source": "--background: oklch(0.141 0.005 285.823);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 41,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -751,7 +751,7 @@
     "source": "--foreground: oklch(0.985 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 42,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -761,7 +761,7 @@
     "source": "--card: oklch(0.21 0.006 285.885);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 43,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -771,7 +771,7 @@
     "source": "--card-foreground: oklch(0.985 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 44,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -781,7 +781,7 @@
     "source": "--popover: oklch(0.21 0.006 285.885);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 45,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -791,7 +791,7 @@
     "source": "--popover-foreground: oklch(0.985 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 46,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -801,7 +801,7 @@
     "source": "--primary: oklch(0.92 0.004 286.32);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 47,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -811,7 +811,7 @@
     "source": "--primary-foreground: oklch(0.21 0.006 285.885);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 48,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -821,7 +821,7 @@
     "source": "--secondary: oklch(0.274 0.006 286.033);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 49,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -831,7 +831,7 @@
     "source": "--secondary-foreground: oklch(0.985 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 50,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -841,7 +841,7 @@
     "source": "--muted: oklch(0.274 0.006 286.033);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 51,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -851,7 +851,7 @@
     "source": "--muted-foreground: oklch(0.705 0.015 286.067);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 52,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -861,7 +861,7 @@
     "source": "--accent: oklch(0.274 0.006 286.033);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 53,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -871,7 +871,7 @@
     "source": "--accent-foreground: oklch(0.985 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 54,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -881,7 +881,7 @@
     "source": "--destructive: oklch(0.704 0.191 22.216);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 55,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -891,7 +891,7 @@
     "source": "--border: oklch(1 0 0 / 10%);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 56,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -901,7 +901,7 @@
     "source": "--input: oklch(1 0 0 / 15%);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 57,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -911,7 +911,7 @@
     "source": "--ring: oklch(0.552 0.016 285.938);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 58,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -921,7 +921,7 @@
     "source": "--sidebar: oklch(0.21 0.006 285.885);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 59,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -931,7 +931,7 @@
     "source": "--sidebar-foreground: oklch(0.985 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 60,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -941,7 +941,7 @@
     "source": "--sidebar-primary: oklch(0.488 0.243 264.376);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 61,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -951,7 +951,7 @@
     "source": "--sidebar-primary-foreground: oklch(0.985 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 62,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -961,7 +961,7 @@
     "source": "--sidebar-accent: oklch(0.274 0.006 286.033);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 63,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -971,7 +971,7 @@
     "source": "--sidebar-accent-foreground: oklch(0.985 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 64,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -981,7 +981,7 @@
     "source": "--sidebar-border: oklch(1 0 0 / 10%);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 65,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -991,7 +991,7 @@
     "source": "--sidebar-ring: oklch(0.552 0.016 285.938);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 67,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1001,7 +1001,7 @@
     "source": "--chart-1: oklch(0.871 0.006 286.286);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 68,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1011,7 +1011,7 @@
     "source": "--chart-2: oklch(0.552 0.016 285.938);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 69,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1021,7 +1021,7 @@
     "source": "--chart-3: oklch(0.442 0.017 285.786);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 70,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1031,7 +1031,7 @@
     "source": "--chart-4: oklch(0.37 0.013 285.805);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 71,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1041,7 +1041,7 @@
     "source": "--chart-5: oklch(0.274 0.006 286.033);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 76,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1051,7 +1051,7 @@
     "source": "--background: oklch(1 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 77,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1061,7 +1061,7 @@
     "source": "--foreground: oklch(0.141 0.005 285.823);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 78,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1071,7 +1071,7 @@
     "source": "--card: oklch(1 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 79,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1081,7 +1081,7 @@
     "source": "--card-foreground: oklch(0.141 0.005 285.823);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 80,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1091,7 +1091,7 @@
     "source": "--popover: oklch(1 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 81,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1101,7 +1101,7 @@
     "source": "--popover-foreground: oklch(0.141 0.005 285.823);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 82,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1111,7 +1111,7 @@
     "source": "--primary: oklch(0.491 0.27 292.581);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 83,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1121,7 +1121,7 @@
     "source": "--primary-foreground: oklch(0.969 0.016 293.756);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 84,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1131,7 +1131,7 @@
     "source": "--secondary: oklch(0.967 0.001 286.375);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 85,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1141,7 +1141,7 @@
     "source": "--secondary-foreground: oklch(0.21 0.006 285.885);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 86,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1151,7 +1151,7 @@
     "source": "--muted: oklch(0.967 0.001 286.375);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 87,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1161,7 +1161,7 @@
     "source": "--muted-foreground: oklch(0.552 0.016 285.938);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 88,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1171,7 +1171,7 @@
     "source": "--accent: oklch(0.967 0.001 286.375);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 89,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1181,7 +1181,7 @@
     "source": "--accent-foreground: oklch(0.21 0.006 285.885);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 90,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1191,7 +1191,7 @@
     "source": "--destructive: oklch(0.577 0.245 27.325);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 91,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1201,7 +1201,7 @@
     "source": "--border: oklch(0.92 0.004 286.32);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 92,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1211,7 +1211,7 @@
     "source": "--input: oklch(0.92 0.004 286.32);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 93,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1221,7 +1221,7 @@
     "source": "--ring: oklch(0.705 0.015 286.067);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 94,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1231,7 +1231,7 @@
     "source": "--chart-1: oklch(0.811 0.111 293.571);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 95,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1241,7 +1241,7 @@
     "source": "--chart-2: oklch(0.606 0.25 292.717);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 96,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1251,7 +1251,7 @@
     "source": "--chart-3: oklch(0.541 0.281 293.009);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 97,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1261,7 +1261,7 @@
     "source": "--chart-4: oklch(0.491 0.27 292.581);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 98,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1271,7 +1271,7 @@
     "source": "--chart-5: oklch(0.432 0.232 292.759);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 99,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1281,7 +1281,7 @@
     "source": "--sidebar: oklch(0.985 0 0);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 100,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1291,7 +1291,7 @@
     "source": "--sidebar-foreground: oklch(0.141 0.005 285.823);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 101,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1301,7 +1301,7 @@
     "source": "--sidebar-primary: oklch(0.541 0.281 293.009);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 102,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1311,7 +1311,7 @@
     "source": "--sidebar-primary-foreground: oklch(0.969 0.016 293.756);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 103,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1321,7 +1321,7 @@
     "source": "--sidebar-accent: oklch(0.967 0.001 286.375);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 104,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1331,7 +1331,7 @@
     "source": "--sidebar-accent-foreground: oklch(0.21 0.006 285.885);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 105,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",
@@ -1341,7 +1341,7 @@
     "source": "--sidebar-border: oklch(0.92 0.004 286.32);"
   },
   {
-    "file": "packages/react/src/theme/shadcn-theme-presets.css",
+    "file": "packages/plugins/src/theme/shadcn-theme-presets.css",
     "line": 106,
     "category": "E canonical token declaration (expected)",
     "intent": "review in context",

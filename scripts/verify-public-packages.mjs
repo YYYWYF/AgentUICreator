@@ -84,9 +84,9 @@ try {
  await writeFile(path.join(consumer, "package.json"), JSON.stringify({ name: "independent-public-consumer", private: true, type: "module", dependencies: Object.fromEntries(publicModules.map(name => [manifests[name].name, manifests[name].version])) }));
  await mkdir(path.join(consumer, "src"));
  await writeFile(path.join(consumer, "consumer.tsx"), `
-import { Button, type AgentUITheme } from "@za38.03/agent-ui-react";
-import { DemoAttachmentAdapter } from "@za38.03/agent-ui-react/demo-attachments";
-import { createAgentUIGenerativeUI } from "@za38.03/agent-ui-react/generative-ui";
+import { Button, type AgentUITheme } from "@za38.03/agent-ui-plugins";
+import { DemoAttachmentAdapter } from "@za38.03/agent-ui-plugins/demo-attachments";
+import { createAgentUIGenerativeUI } from "@za38.03/agent-ui-plugins/generative-ui";
 import { LayoutRenderer } from "@za38.03/agent-ui-renderer";
 import { useConversationRuntimeBridge } from "@za38.03/agent-ui-runtime";
 import { createPythonCreatorClient } from "@za38.03/agent-ui-creator";
@@ -108,7 +108,7 @@ import { createMockAgentHttpHandler, builtinMockScenarios } from "@za38.03/agent
 const registry = await loadAgentUISourceRegistry();
 assert(registry.items.length > 0);
 assert(!registry.byId.has("integration/a2ui"));
-assert(!("createAgentUIA2ui" in await import("@za38.03/agent-ui-react/generative-ui")));
+assert(!("createAgentUIA2ui" in await import("@za38.03/agent-ui-plugins/generative-ui")));
 assert(!(await readFile("node_modules/@za38.03/agent-ui-runtime/dist/public.d.ts", "utf8")).includes("useConversationA2uiAction"));
 assert(builtinMockScenarios.length > 0);
 assert.equal(typeof createMockAgentHttpHandler, "function");
@@ -145,5 +145,5 @@ assert(![...inputs].some(file => ["creator", "operator", "source-registry"].some
 console.log("Production module graph excludes Creator, Operator and Source Registry.");
 `);
  run(["bundle.mjs"]);
- console.log("9 independent tarballs: exact dependency versions, merged subpaths, Registry, initialization, consumer types and independent production build passed.");
+ console.log("8 independent tarballs: exact dependency versions, merged subpaths, Registry, initialization, consumer types and independent production build passed.");
 } finally { await rm(consumer, { recursive: true, force: true }); }

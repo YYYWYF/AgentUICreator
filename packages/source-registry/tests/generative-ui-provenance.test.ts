@@ -9,13 +9,13 @@ it("keeps official styled source and scoped CSS inside the runtime package", asy
   const item = registry.byId.get("agent-component/assistant-ui-generative-ui")!;
   const integration = registry.byId.get("integration/generative-ui")!;
   const target = JSON.parse(await readFile(path.resolve(import.meta.dirname, "../../../assistant-ui-upgrade-target.json"), "utf8"));
-  const directory = path.resolve(import.meta.dirname, "../../react/src/internal/vendor/assistant-ui/generative-ui");
+  const directory = path.resolve(import.meta.dirname, "../../plugins/src/internal/vendor/assistant-ui/generative-ui");
   const provenance = JSON.parse(await readFile(path.join(directory, "UPSTREAM.json"), "utf8"));
   expect(provenance.revision).toBe(item.upstream!.revision);
   expect(provenance.revision).toBe(target.generativeUiReleaseRevision);
   expect(integration.upstream!.revision).toBe(target.generativeUiReleaseRevision);
   expect(provenance.packages["@assistant-ui/react-generative-ui"]).toBe(target.packages["@assistant-ui/react-generative-ui"]);
-  expect(item.packages).toEqual({ "@za38.03/agent-ui-react": "0.1.6" });
+  expect(item.packages).toEqual({ "@za38.03/agent-ui-plugins": "0.1.6" });
   expect(integration.packages).toEqual(item.packages);
   expect(provenance.patches).toEqual([]);
   for (const file of provenance.files as { localPath: string; installedSha256: string; upstreamSha256: string; adaptations: string[] }[]) {

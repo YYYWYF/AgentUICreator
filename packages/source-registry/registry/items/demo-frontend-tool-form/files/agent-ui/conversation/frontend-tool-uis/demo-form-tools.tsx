@@ -1,4 +1,4 @@
-import type { ConversationToolCallProps } from "@za38.03/agent-ui-react";
+import type { ConversationToolCallProps } from "@za38.03/agent-ui-plugins";
 import type { ConversationFrontendToolUIRegistry } from "@za38.03/agent-ui-runtime";
 import { useAgentUILocale } from "../../i18n/useAgentUILocale";
 function receipt(value: unknown): Record<string, unknown> { return typeof value === "object" && value !== null ? value as Record<string, unknown> : {}; }

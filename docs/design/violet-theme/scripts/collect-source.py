@@ -3,7 +3,7 @@ import re,json,subprocess,hashlib
 root=Path(__file__).resolve().parents[4]
 out=root/'docs/design/violet-theme'
 commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip()
-V='packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/'
+V='packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/'
 R='packages/source-registry/registry/items/'
 presets={}
 def plugins(x):

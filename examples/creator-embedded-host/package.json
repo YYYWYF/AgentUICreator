@@ -24,9 +24,9 @@
     "test": "node --import tsx ../../scripts/host-examples/test-host-example.ts embedded creator-embedded-host"
   },
   "dependencies": {
-    "@za38.03/agent-ui-react": "workspace:*",
+    "@za38.03/agent-ui-plugins": "workspace:*",
     "@za38.03/agent-ui-runtime": "workspace:*",
-    "@za38.03/agent-ui-runtime-core": "workspace:*",
+    "@za38.03/agent-ui-core": "workspace:*",
     "@za38.03/agent-ui-renderer": "workspace:*",
     "lucide-react": "1.41.0",
     "react": "19.1.1",
@@ -37,8 +37,7 @@
     "@lexical/plain-text": "0.51.0",
     "@lexical/react": "0.51.0",
     "@lexical/utils": "0.51.0",
-    "lexical": "0.51.0",
-    "@za38.03/agent-ui-plugins": "workspace:*"
+    "lexical": "0.51.0"
   },
   "devDependencies": {
     "@types/node": "26.6.2",

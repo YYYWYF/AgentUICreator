@@ -51,7 +51,7 @@ export async function createCustomPlugin(projectRoot: string, raw: CreateCustomP
     } : {}),
   });
   const implementation = input.implementation ?? (basis && (!input.capabilities || input.capabilities.includes("conversation-composer")) ?
-    `import { ConversationCanonicalComposer } from "@za38.03/agent-ui-react";\nimport type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";\n\nexport function CustomPlugin({ renderSlot }: UIPluginComponentProps) {\n  return <ConversationCanonicalComposer beforeInput={renderSlot("beforeInput")} leadingActions={renderSlot("leadingActions", null, { layout: "inline" })} trailingActions={renderSlot("trailingActions", null, { layout: "inline" })} submitAction={renderSlot("submitAction")} input={renderSlot("input")} triggers={renderSlot("triggers")} />;\n}\n` :
+    `import { ConversationCanonicalComposer } from "@za38.03/agent-ui-plugins";\nimport type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";\n\nexport function CustomPlugin({ renderSlot }: UIPluginComponentProps) {\n  return <ConversationCanonicalComposer beforeInput={renderSlot("beforeInput")} leadingActions={renderSlot("leadingActions", null, { layout: "inline" })} trailingActions={renderSlot("trailingActions", null, { layout: "inline" })} submitAction={renderSlot("submitAction")} input={renderSlot("input")} triggers={renderSlot("triggers")} />;\n}\n` :
     `export function CustomPlugin() { return null; }\n`);
   const files = new Map<string, Buffer>([
     [`${target}/manifest.json`, Buffer.from(JSON.stringify(manifest, null, 2) + "\n")],

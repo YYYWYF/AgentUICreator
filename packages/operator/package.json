@@ -58,8 +58,8 @@
   "devDependencies": {
     "esbuild": "0.25.12",
     "zod": "4.5.4",
-    "@za38.03/agent-ui-react": "workspace:*",
-    "@za38.03/agent-ui-runtime-core": "workspace:*",
+    "@za38.03/agent-ui-plugins": "workspace:*",
+    "@za38.03/agent-ui-core": "workspace:*",
     "@za38.03/agent-ui-renderer": "workspace:*",
     "@types/node": "26.6.2",
     "@types/react": "19.3.0",

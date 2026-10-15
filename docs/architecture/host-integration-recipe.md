@@ -139,7 +139,7 @@ contract alignment and locale parity are separate from runtime acceptance.
 
 The clean Vue fixture and live regression pack are in
 `examples/clean-vue-vite-host` and
-`packages/creator-python/tests/live/test_vue_integration.py`. They use the real
+`packages/creator/python/tests/live/test_vue_integration.py`. They use the real
 Action Selector, domain agents, user-question resume, and managed Operator
 protocol. The initial consumer has no Bridge, wrapper, React, React Vite plugin,
 assistant-ui Vue or Web Component package. The test Host installs only its managed
@@ -155,9 +155,9 @@ Run after installing workspace dependencies and building the official distributi
 and Operator:
 
 ```sh
-CREATOR_RUN_LIVE_MODEL=1 PYTHONPATH=packages/creator-python \
-  packages/creator-python/.venv/bin/python -m pytest -s \
-  packages/creator-python/tests/live/test_vue_integration.py
+CREATOR_RUN_LIVE_MODEL=1 PYTHONPATH=packages/creator/python \
+  packages/creator/python/.venv/bin/python -m pytest -s \
+  packages/creator/python/tests/live/test_vue_integration.py
 ```
 
 The model settings come from the existing workspace `.env.creator.local`.

@@ -32,7 +32,7 @@ const fixtureConfig: UIOperatorConfig = {
 const dataMessageUIDefinition =
   'import { messageUI } from "./index";\nconst Component = () => null;\nexport default { manifest: {}, Component, dataMessageUIs: [messageUI] };\n';
 const dataMessageUISource = (name: string) =>
-  `import { defineDataMessageUI } from "@za38.03/agent-ui-react";\nexport const messageUI = defineDataMessageUI({ name: ${JSON.stringify(name)}, render: () => null });\n`;
+  `import { defineDataMessageUI } from "@za38.03/agent-ui-plugins";\nexport const messageUI = defineDataMessageUI({ name: ${JSON.stringify(name)}, render: () => null });\n`;
 
 async function createProject(options: {
   instancePluginId: string;
@@ -144,7 +144,7 @@ async function addSecondDataMessageUI(
   }));
   await writeFile(path.join(pluginRoot, "definition.ts"), dataMessageUIDefinition);
   await writeFile(path.join(pluginRoot, "index.tsx"),
-    'import { defineDataMessageUI as defineMessageUI } from "@za38.03/agent-ui-react";\n' +
+    'import { defineDataMessageUI as defineMessageUI } from "@za38.03/agent-ui-plugins";\n' +
     `export const messageUI = defineMessageUI({ name: ${JSON.stringify(name)}, render: () => null });\n`);
   const model: AppUIModel = {
     applicationPlugins: [
@@ -206,7 +206,7 @@ describe("verifyUIProject", () => {
     expect(unsafe.status).toBe("failed");
     expect(unsafe.errors.filter((issue) => issue.code === "PLUGIN_PORTAL_PRIMITIVE_IMPORT_NOT_ALLOWED")).toHaveLength(4);
     await writeFile(path.join(projectRoot, "agent-ui", "plugins", "sample", "index.tsx"),
-      'import { AgentUIDialog, AgentUIPopover, AgentUITooltip } from "@za38.03/agent-ui-react";\n');
+      'import { AgentUIDialog, AgentUIPopover, AgentUITooltip } from "@za38.03/agent-ui-plugins";\n');
     const safe = await verifyUIProject(projectRoot, fixtureConfig);
     expect(safe.status).toBe("passed");
   });
@@ -313,7 +313,7 @@ describe("verifyUIProject", () => {
     const projectRoot = await createProject({
       instancePluginId: "sample", mounted: false,
       manifest: { data: { messageUI: true } },
-      pluginSource: 'import { defineDataMessageUI } from "@za38.03/agent-ui-react";\n' +
+      pluginSource: 'import { defineDataMessageUI } from "@za38.03/agent-ui-plugins";\n' +
         'const name = getName();\nexport const messageUI = defineDataMessageUI({ name, render: () => null });\n',
       definitionSource: dataMessageUIDefinition,
     });
@@ -375,7 +375,7 @@ describe("verifyUIProject", () => {
     const projectRoot = await createProject({
       instancePluginId: "sample", mounted: false,
       manifest: { data: { messageUI: true } },
-      definitionSource: 'import { defineDataMessageUI as defineMessageUI } from "@za38.03/agent-ui-react";\n' +
+      definitionSource: 'import { defineDataMessageUI as defineMessageUI } from "@za38.03/agent-ui-plugins";\n' +
         'export default { manifest: {}, Component: () => null, dataMessageUIs: [' +
         'defineMessageUI({ name: "chart", render: () => null })] };\n',
     });

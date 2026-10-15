@@ -1,4 +1,4 @@
-import type { ConversationToolkit } from "@za38.03/agent-ui-react";
+import type { ConversationToolkit } from "@za38.03/agent-ui-plugins";
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";
 import type { PluginRegistry } from "./PluginRegistry";
 

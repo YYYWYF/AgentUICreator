@@ -157,8 +157,8 @@ export async function resolveCreatorPythonExecutable({
   );
   try {
     // A .venv is trusted only in the monorepo source package, never node_modules.
-    if (path.basename(pythonPackageRoot) !== "creator-python" || path.basename(path.dirname(pythonPackageRoot)) !== "packages") throw new Error("Not a source checkout.");
-    await access(path.resolve(pythonPackageRoot, "../../pnpm-workspace.yaml"));
+    if (path.basename(pythonPackageRoot) !== "python" || path.basename(path.dirname(pythonPackageRoot)) !== "creator" || path.basename(path.dirname(path.dirname(pythonPackageRoot))) !== "packages") throw new Error("Not a source checkout.");
+    await access(path.resolve(pythonPackageRoot, "../../../pnpm-workspace.yaml"));
     await access(managedExecutable);
     return { executable: managedExecutable, source: "managed_venv" };
   } catch {
@@ -175,7 +175,7 @@ function defaultPythonPackageRoot(): string {
   const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
   const workspacePackageRoot = path.resolve(
     moduleDirectory,
-    "../../creator-python",
+    "../python",
   );
   return existsSync(path.join(workspacePackageRoot, "pyproject.toml"))
     ? workspacePackageRoot
@@ -539,7 +539,7 @@ export class PythonCreatorProcessManager {
       if (systemError.code === "ENOENT") {
         throw new PythonCreatorRuntimeError(
           "CREATOR_PYTHON_RUNTIME_MISSING",
-          `Python executable "${pythonRuntime.executable}" is unavailable. Run \`pnpm test:python:setup\` to create the managed packages/creator-python/.venv environment, or configure CREATOR_PYTHON_EXECUTABLE explicitly with a Python 3.11+ environment containing agent-ui-creator-core dependencies.`,
+          `Python executable "${pythonRuntime.executable}" is unavailable. Run \`pnpm test:python:setup\` to create the managed packages/creator/python/.venv environment, or configure CREATOR_PYTHON_EXECUTABLE explicitly with a Python 3.11+ environment containing agent-ui-creator-core dependencies.`,
         );
       }
       throw new PythonCreatorRuntimeError(

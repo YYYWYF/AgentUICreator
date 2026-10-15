@@ -86,7 +86,7 @@ incomplete Markdown during streaming remain presentation checks.
 
 Protocol coverage is in `packages/mock-agent/tests/markdown-showcase.test.ts`;
 focused presentation coverage is in
-`packages/react/tests/migrated/assistant-ui-markdown-showcase.test.tsx`, using
+`packages/plugins/tests/migrated/assistant-ui-markdown-showcase.test.tsx`, using
 standard scenario events through `useAgUiRuntime` and the existing Markdown
 component. Browser observation is still needed for streaming layout, overflow
 and Footer actions.
@@ -195,7 +195,7 @@ the canonical nested assistant-ui path.
 无需增加另一套 streaming Scenario 或 Subagent state store。
 
 前端增量测试位于
-`packages/react/tests/migrated/assistant-ui-nested-subagent.test.tsx`。
+`packages/plugins/tests/migrated/assistant-ui-nested-subagent.test.tsx`。
 test-only `StreamingScenarioAgent` 直接消费 `runMockScenario()` async iterator，
 每个事件立即交给 `AbstractAgent` Observable，再由真实 `useAgUiRuntime`
 投影到 `ToolCallMessagePart.messages`。它使用 fake timers，并允许在事件交付后

@@ -15,7 +15,7 @@ import { checkAgUiLockfile } from "./check-ag-ui-lockfile.mjs";
 import { checkGenerativeUiResource } from "./check-generative-ui-resource.mjs";
 import { updatePackageManifests } from "./assistant-ui-workspace-packages.mjs";
 
-import { REACT_LEXICAL, resolveLexicalPeerVersions } from "../packages/react/scripts/lexical-integration-contract.mjs";
+import { REACT_LEXICAL, resolveLexicalPeerVersions } from "../packages/plugins/scripts/lexical-integration-contract.mjs";
 
 const execFile = promisify(execFileCallback);
 const defaultRepoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -122,7 +122,7 @@ async function publishedPackageArtifact(repoRoot, name, version) {
 }
 
 async function installedPackageArtifact(repoRoot, name, version) {
-  const packageRoot = path.join(repoRoot, name === REACT_LEXICAL ? "packages/react/node_modules" : "packages/runtime/node_modules", name);
+  const packageRoot = path.join(repoRoot, name === REACT_LEXICAL ? "packages/plugins/node_modules" : "packages/runtime/node_modules", name);
   return packageArtifact(
     name,
     version,
@@ -255,7 +255,7 @@ export async function main({
   }
 
   const targetPath = path.join(repoRoot, "assistant-ui-upgrade-target.json");
-  const provenancePath = path.join(repoRoot, "packages/react/src/internal/vendor/assistant-ui/UPSTREAM.json");
+  const provenancePath = path.join(repoRoot, "packages/plugins/src/internal/vendor/assistant-ui/UPSTREAM.json");
   const sessionPath = path.join(repoRoot, SESSION_FILE);
 
   try {
@@ -325,7 +325,7 @@ export async function main({
       nextReactLexicalPackage.manifest,
       packages["@assistant-ui/react"],
       skipNpm
-        ? async name => JSON.parse(await readFile(path.join(repoRoot, "packages/react/node_modules", name, "package.json"), "utf8")).version
+        ? async name => JSON.parse(await readFile(path.join(repoRoot, "packages/plugins/node_modules", name, "package.json"), "utf8")).version
         : (name, range) => peerVersionsResolver(repoRoot, name, range),
     );
     const workspacePackages = { ...packages, ...resolvedLexicalPeers };
@@ -399,7 +399,7 @@ export async function main({
     if (!resolvedLangGraphPackageCompatibility.compatible) {
       throw new Error(resolvedLangGraphPackageCompatibility.message);
     }
-    await commandRunner("pnpm", ["--filter", "@za38.03/agent-ui-react", "sync:assistant-ui-upstream", "--", "--revision", revision, "--repo", repo], {
+    await commandRunner("pnpm", ["--filter", "@za38.03/agent-ui-plugins", "sync:assistant-ui-upstream", "--", "--revision", revision, "--repo", repo], {
       cwd: repoRoot,
       stdio: "inherit",
     });

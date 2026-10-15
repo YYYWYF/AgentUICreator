@@ -74,7 +74,7 @@ export async function main({
     ).join("\n\n") + "\n";
   } finally { await rm(temporary, { recursive: true, force: true }); }
 
-  const directory = path.join(root, "packages/react/src/internal/vendor/assistant-ui/generative-ui");
+  const directory = path.join(root, "packages/plugins/src/internal/vendor/assistant-ui/generative-ui");
   const hash = value => createHash("sha256").update(value).digest("hex");
   const provenance = JSON.stringify({
     schemaVersion: 1, project: "assistant-ui/assistant-ui", revision, license: "MIT",

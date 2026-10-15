@@ -2,7 +2,7 @@ import {
   AgentPlan,
   defineDataMessageUI,
   type DataMessageUIRenderProps,
-} from "@za38.03/agent-ui-react";
+} from "@za38.03/agent-ui-plugins";
 import {
   projectAgentPlanActivity,
 } from "../../agent-contract/agent-plan-activity";

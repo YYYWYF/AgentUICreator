@@ -10,15 +10,17 @@ export function generatedSourceTestConfig(packageRoot: string) {
   return {
     root: packageRoot,
     resolve: { dedupe: ["react", "react-dom", "@assistant-ui/react", "@assistant-ui/core"], alias: [
-      { find: "@za38.03/agent-ui-react/generative-ui.css", replacement: path.join(root, "packages/react/src/internal/vendor/assistant-ui/generative-ui/generative-ui.css") },
-      { find: "@za38.03/agent-ui-react/generative-ui", replacement: path.join(root, "packages/react/src/generative-ui.ts") },
-      { find: "@za38.03/agent-ui-react/demo-attachments", replacement: path.join(root, "packages/react/src/demo-attachments.ts") },
-      { find: "@za38.03/agent-ui-react/lexical", replacement: path.join(root, "packages/react/src/lexical.tsx") },
-      { find: "@za38.03/agent-ui-react/styles.css", replacement: path.join(root, "packages/react/src/styles.css") },
-      { find: "@za38.03/agent-ui-runtime-core/testing", replacement: path.join(root, "packages/runtime-core/src/testing/index.ts") },
+      { find: "@za38.03/agent-ui-plugins/assistant-ui-composer", replacement: path.join(root, "packages/plugins/dist/assistant-ui-composer/index.js") },
+      { find: "@za38.03/agent-ui-plugins/theme", replacement: path.join(root, "packages/plugins/src/theme/theme-contract.ts") },
+      { find: "@za38.03/agent-ui-plugins/generative-ui.css", replacement: path.join(root, "packages/plugins/src/internal/vendor/assistant-ui/generative-ui/generative-ui.css") },
+      { find: "@za38.03/agent-ui-plugins/generative-ui", replacement: path.join(root, "packages/plugins/src/generative-ui.ts") },
+      { find: "@za38.03/agent-ui-plugins/demo-attachments", replacement: path.join(root, "packages/plugins/src/demo-attachments.ts") },
+      { find: "@za38.03/agent-ui-plugins/lexical", replacement: path.join(root, "packages/plugins/src/lexical.tsx") },
+      { find: "@za38.03/agent-ui-plugins/styles.css", replacement: path.join(root, "packages/plugins/src/styles.css") },
+      { find: "@za38.03/agent-ui-core/testing", replacement: path.join(root, "packages/core/src/testing/index.ts") },
       { find: "@za38.03/agent-ui-operator/bootstrap", replacement: path.join(root, "packages/operator/src/bootstrap/index.ts") },
       { find: "@za38.03/agent-ui-creator/mock-agent", replacement: path.join(root, "packages/creator/src/mock-agent/index.ts") },
-      ...["react", "runtime-core", "renderer", "runtime", "source-registry"].map(name => ({
+      ...["plugins", "core", "renderer", "runtime", "source-registry"].map(name => ({
         find: `@za38.03/agent-ui-${name}`, replacement: path.join(root, `packages/${name}/src/index.ts`),
       })),
     ] },
@@ -46,7 +48,7 @@ export function generatedSourceTestConfig(packageRoot: string) {
         if (!source.startsWith(".")) {
           if (!importer.includes("/registry/items/")) return;
           return await this.resolve(source, path.join(packageRoot, "package.json"), { skipSelf: true })
-            ?? await this.resolve(source, path.join(root, "packages/react/package.json"), { skipSelf: true });
+            ?? await this.resolve(source, path.join(root, "packages/plugins/package.json"), { skipSelf: true });
         }
         if (source.endsWith("/foundation-core/files/plugins/index") || source.endsWith("/foundation-core/files/plugins/registry.generated")) {
           const fixture = await generatedProjectFixture();

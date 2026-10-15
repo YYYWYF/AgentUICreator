@@ -42,7 +42,7 @@ export async function verifyPluginPortalImports(
         issues.push({
           code: "PLUGIN_PORTAL_PRIMITIVE_IMPORT_NOT_ALLOWED",
           pluginId: asset.pluginId,
-          message: `${relativePath}:${line}: Plugin "${asset.pluginId}" imports ${match[1]}. Use the Portal-aware AgentUIDialog, AgentUIPopover, AgentUITooltip, or corresponding official facade from @za38.03/agent-ui-react.`,
+          message: `${relativePath}:${line}: Plugin "${asset.pluginId}" imports ${match[1]}. Use the Portal-aware AgentUIDialog, AgentUIPopover, AgentUITooltip, or corresponding official facade from @za38.03/agent-ui-plugins.`,
         });
       }
     }

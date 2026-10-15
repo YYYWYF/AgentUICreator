@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import type { AgentRuntime } from "@za38.03/agent-ui-runtime-core";
+import type { AgentRuntime } from "@za38.03/agent-ui-core";
 
 import { AgentRuntimeContext } from "./AgentRuntimeContext";
 

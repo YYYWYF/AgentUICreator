@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { createServer, type ViteDevServer } from "vite";
-const syncStoreRoot = path.dirname(path.dirname(createRequire(import.meta.url).resolve('use-sync-external-store/shim', { paths: [path.resolve('../../packages/react/node_modules/@base-ui/react')] })));
+const syncStoreRoot = path.dirname(path.dirname(createRequire(import.meta.url).resolve('use-sync-external-store/shim', { paths: [path.resolve('../../packages/plugins/node_modules/@base-ui/react')] })));
 const evidence = path.resolve(process.env.STYLE_EVIDENCE || '../../docs/verification/plugin-style-boundary/full-visual');
 const phase = process.env.STYLE_PHASE || 'after';
 const bFixture = process.env.STYLE_B_FIXTURE || '/tmp/host-ui-p1-20261009/fixtures/B';
@@ -16,18 +16,18 @@ test.beforeAll(async () => {
   fixture = await mkdtemp(path.resolve('.style-boundary-'));
   await writeFile(path.join(fixture,'index.html'), '<div id="root"></div><script type="module" src="/fixture.tsx"></script>');
   const ds = await readFile(path.join(bFixture.replace(/\/B$/, '/A'), 'src/design-system/system.css'), 'utf8');
-  await writeFile(path.join(fixture,'style.css'), `@import "@za38.03/agent-ui-react/styles.css"; html,body,#root {margin:0;min-height:100%;} .shell{height:520px;} .probes{display:flex;flex-wrap:wrap;gap:12px;padding:12px;${process.env.STYLE_UNCONTROLLED ? '' : 'line-height:normal;'}} ${ds}`);
-  const baseline = execFileSync('git', ['show', '7b1d2a6518a024bf5a89840d3f6cb8b1c320d805:packages/react/src/internal/conversation-thread-list-item.tsx'], { encoding: 'utf8' }).replace(/from "(\.[^"]+)"/g, (_, specifier) => `from "${path.resolve('../../packages/react/dist/internal', specifier)}"`);
+  await writeFile(path.join(fixture,'style.css'), `@import "@za38.03/agent-ui-plugins/styles.css"; html,body,#root {margin:0;min-height:100%;} .shell{height:520px;} .probes{display:flex;flex-wrap:wrap;gap:12px;padding:12px;${process.env.STYLE_UNCONTROLLED ? '' : 'line-height:normal;'}} ${ds}`);
+  const baseline = execFileSync('git', ['show', '7b1d2a6518a024bf5a89840d3f6cb8b1c320d805:packages/plugins/src/internal/conversation-thread-list-item.tsx'], { encoding: 'utf8' }).replace(/from "(\.[^"]+)"/g, (_, specifier) => `from "${path.resolve('../../packages/plugins/dist/internal', specifier)}"`);
   await writeFile(path.join(fixture, 'thread-list-before.tsx'), baseline);
-  const baselineSidebar = execFileSync('git', ['show', 'ebc827789408dec0a52d3d72c486c3db0250ad31:packages/react/src/internal/sidebar-frame.tsx'], { encoding: 'utf8' }).replace(/from "(\.[^"]+)"/g, (_, specifier) => `from "${path.resolve('../../packages/react/dist/internal', specifier)}"`);
+  const baselineSidebar = execFileSync('git', ['show', 'ebc827789408dec0a52d3d72c486c3db0250ad31:packages/plugins/src/internal/sidebar-frame.tsx'], { encoding: 'utf8' }).replace(/from "(\.[^"]+)"/g, (_, specifier) => `from "${path.resolve('../../packages/plugins/dist/internal', specifier)}"`);
   await writeFile(path.join(fixture, 'sidebar-before.tsx'), baselineSidebar);
   await writeFile(path.join(fixture,'fixture.tsx'), `
     import {useState} from 'react'; import {createRoot} from 'react-dom/client';
     import {AssistantRuntimeProvider,ThreadListPrimitive,useLocalRuntime,useRemoteThreadListRuntime} from '@assistant-ui/react';
-    import {AgentUIRoot,AgentUISidebarFrame,AgentUILocaleProvider,ConversationThreadListItem,ConversationThreadListRoot,ConversationThreadListSearch,ConversationThreadListNew,ConversationToolCall} from '@za38.03/agent-ui-react';
+    import {AgentUIRoot,AgentUISidebarFrame,AgentUILocaleProvider,ConversationThreadListItem,ConversationThreadListRoot,ConversationThreadListSearch,ConversationThreadListNew,ConversationToolCall} from '@za38.03/agent-ui-plugins';
     import {AgentUISidebarFrame as BaselineSidebar} from './sidebar-before';
     import {ConversationThreadListItemComposition as BaselineThreadListItem} from './thread-list-before';
-    import {ToolCall as BaselineToolCall} from '${path.resolve('../../packages/react/dist/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.js')}';
+    import {ToolCall as BaselineToolCall} from '${path.resolve('../../packages/plugins/dist/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.js')}';
     import {ConfigProvider,Input,Button,Card,Modal,theme as antTheme} from 'antd';
     import './style.css';
     const theme = new URLSearchParams(location.search).get('theme') || 'light';
@@ -40,7 +40,7 @@ test.beforeAll(async () => {
     function Host(){const Frame='${phase}'==='before'?BaselineSidebar:AgentUISidebarFrame;const runtime=useRemoteThreadListRuntime({runtimeHook,adapter});return <ConfigProvider theme={{algorithm:theme==='dark'?antTheme.darkAlgorithm:antTheme.defaultAlgorithm,token:{borderRadius:12,colorPrimary:'#405bce',fontFamily:'Inter,system-ui,sans-serif'}}}><Probes id="outside"/><AssistantRuntimeProvider runtime={runtime}><AgentUILocaleProvider locale="zh-CN"><AgentUIRoot theme={theme}><div className="shell"><Frame defaultActive={innerWidth>648?"history":""} items={[{id:'history',icon:'messages-square',label:'历史',content:<Threads/>}]}><main style={{padding:16}}><Tool/><Probes id="inside"/></main></Frame></div></AgentUIRoot></AgentUILocaleProvider></AssistantRuntimeProvider></ConfigProvider>}
     createRoot(document.getElementById('root')).render(<Host/>);
   `);
-  server = await createServer({configFile:false,root:fixture,cacheDir:path.join(fixture,'.vite'),plugins:[react(),tailwindcss()],resolve:{dedupe:['react','react-dom'],alias:{'use-sync-external-store':syncStoreRoot,'zustand':path.resolve('../../packages/react/node_modules/zustand'),'antd':path.join(bFixture,'node_modules/antd'),'lucide-react':path.resolve('../../packages/react/node_modules/lucide-react'),'@za38.03/agent-ui-react/styles.css':path.resolve('../../packages/react/dist/styles.css'),'@za38.03/agent-ui-react':path.resolve('../../packages/react/dist/index.js'),'@assistant-ui/react':path.resolve('../../packages/react/node_modules/@assistant-ui/react')}},optimizeDeps:{noDiscovery:true,include:['react','react-dom/client','antd','@assistant-ui/react','lucide-react','@base-ui/react/**','@za38.03/agent-ui-react','zustand','use-sync-external-store/shim','use-sync-external-store/shim/with-selector']},server:{host:'127.0.0.1',port:0,hmr:false,fs:{allow:[path.resolve('../..'),'/tmp']}}});
+  server = await createServer({configFile:false,root:fixture,cacheDir:path.join(fixture,'.vite'),plugins:[react(),tailwindcss()],resolve:{dedupe:['react','react-dom'],alias:{'use-sync-external-store':syncStoreRoot,'zustand':path.resolve('../../packages/plugins/node_modules/zustand'),'antd':path.join(bFixture,'node_modules/antd'),'lucide-react':path.resolve('../../packages/plugins/node_modules/lucide-react'),'@za38.03/agent-ui-plugins/styles.css':path.resolve('../../packages/plugins/dist/styles.css'),'@za38.03/agent-ui-plugins':path.resolve('../../packages/plugins/dist/index.js'),'@assistant-ui/react':path.resolve('../../packages/plugins/node_modules/@assistant-ui/react')}},optimizeDeps:{noDiscovery:true,include:['react','react-dom/client','antd','@assistant-ui/react','lucide-react','@base-ui/react/**','@za38.03/agent-ui-plugins','zustand','use-sync-external-store/shim','use-sync-external-store/shim/with-selector']},server:{host:'127.0.0.1',port:0,hmr:false,fs:{allow:[path.resolve('../..'),'/tmp']}}});
   await server.listen(); url=server.resolvedUrls!.local[0]!;
 });
 test.afterAll(async()=>{await server?.close();if(fixture)await rm(fixture,{recursive:true,force:true})});

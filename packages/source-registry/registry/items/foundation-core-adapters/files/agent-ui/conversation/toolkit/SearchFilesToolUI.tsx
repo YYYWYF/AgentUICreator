@@ -1,14 +1,14 @@
-import { useAgentUILocale, resolveAgentUILocaleMessages } from "@za38.03/agent-ui-react";
+import { useAgentUILocale, resolveAgentUILocaleMessages } from "@za38.03/agent-ui-plugins";
 import { useState } from "react";
 import type {
   ConversationToolCallComponent,
   ConversationToolCallProps,
-} from "@za38.03/agent-ui-react";
+} from "@za38.03/agent-ui-plugins";
 
 import {
   ConversationToolCall,
   ConversationToolFallback,
-} from "@za38.03/agent-ui-react";
+} from "@za38.03/agent-ui-plugins";
 
 type SearchFilesArgs = Record<string, unknown>;
 

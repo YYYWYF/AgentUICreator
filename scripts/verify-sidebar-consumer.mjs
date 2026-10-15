@@ -26,7 +26,7 @@ const store = run('pnpm', ['store', 'path'], repository);
 assert.equal(store.status, 'passed');
 const storeRoot = path.dirname(store.output.trim());
 const dependencies = {};
-for (const name of ['runtime-core', 'react', 'runtime', 'renderer', 'plugins']) {
+for (const name of ['core', 'react', 'runtime', 'renderer', 'plugins']) {
   const archive = path.join(archives, `${name}.tgz`);
   const result = run('pnpm', ['pack', '--out', archive], path.join(repository, 'packages', name));
   await writeFile(path.join(evidence, `pack-${name}.log`), result.output);
@@ -50,7 +50,7 @@ for (const mode of ['platform', 'assistant']) {
     try {
       await initializeAgentUIProject({ projectRoot: hostRoot, mode, sourceRoot: 'src/agent-ui' }, createAgentUIInitializationHost());
       entry.generation = 'passed';
-      await writeFile(path.join(hostRoot, 'src/main.tsx'), `import { createRoot } from 'react-dom/client';\nimport { Agent } from './agent-ui';\nimport { AgentUISidebarFrame } from '@za38.03/agent-ui-react';\nimport type { SidebarNode } from '@za38.03/agent-ui-renderer';\nimport '@za38.03/agent-ui-react/styles.css';\nconst node: SidebarNode = {type:'sidebar',id:'probe',defaultActive:null,items:[],content:{type:'slot',id:'main',slotId:'main'}};\nvoid [node,AgentUISidebarFrame];\ncreateRoot(document.getElementById('root')!).render(<Agent/>);\n`);
+      await writeFile(path.join(hostRoot, 'src/main.tsx'), `import { createRoot } from 'react-dom/client';\nimport { Agent } from './agent-ui';\nimport { AgentUISidebarFrame } from '@za38.03/agent-ui-plugins';\nimport type { SidebarNode } from '@za38.03/agent-ui-renderer';\nimport '@za38.03/agent-ui-plugins/styles.css';\nconst node: SidebarNode = {type:'sidebar',id:'probe',defaultActive:null,items:[],content:{type:'slot',id:'main',slotId:'main'}};\nvoid [node,AgentUISidebarFrame];\ncreateRoot(document.getElementById('root')!).render(<Agent/>);\n`);
       await writeFile(path.join(hostRoot, 'index.html'), '<div id="root"></div><script type="module" src="/src/main.tsx"></script>');
       await writeFile(path.join(hostRoot, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'react-jsx', strict: true, skipLibCheck: false, noEmit: true, lib: ['DOM', 'ES2022'], types: ['vite/client'] }, include: ['src'] }));
       await writeFile(path.join(hostRoot, 'vite.config.mjs'), `import { defineConfig } from 'vite'; import react from '@vitejs/plugin-react'; import tailwind from '@tailwindcss/vite'; export default defineConfig({plugins:[react(),tailwind()]});`);

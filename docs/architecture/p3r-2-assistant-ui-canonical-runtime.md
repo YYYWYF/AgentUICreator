@@ -40,7 +40,7 @@ mounted.
 
 `packages/runtime-assistant-ui` may depend on the pinned `@ag-ui/client`,
 `@assistant-ui/react`, `@assistant-ui/react-ag-ui`, React, and
-`@agent-ui/runtime-core`. It does not depend on the generated project's
+`@agent-ui/core`. It does not depend on the generated project's
 AppUIModel, Plugin Registry, Slot Registry, Creator, Workspace, or concrete UI
 Plugins.
 

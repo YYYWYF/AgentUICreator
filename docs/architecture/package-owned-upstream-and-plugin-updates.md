@@ -8,7 +8,19 @@
 
 assistant-ui 上游实现、默认 Generative UI vocabulary、样式和来源记录属于运行时包内部。用户工程不接收 vendor 源码，不导入包的内部路径。公共会话状态和 Runtime 由已有运行时包负责；Creator、Operator 和 Source Registry 仅在开发时使用。
 
-`@za38.03/agent-ui-react/generative-ui` 提供可选能力入口，`@za38.03/agent-ui-react/generative-ui.css` 提供样式。上游依赖版本由 React 包固定。来源记录在 React 包的 `internal/vendor/assistant-ui/generative-ui/UPSTREAM.json`，与实现共同交付。Source Registry 只安装薄的项目集成、配置和可定制插件源码；release gate 禁止新资源向 `vendor` / `vendors` 目标写入文件。
+`@za38.03/agent-ui-plugins/generative-ui` 提供可选能力入口，`@za38.03/agent-ui-plugins/generative-ui.css` 提供样式。上游依赖版本由 Plugins 包固定。来源记录在 Plugins 包的 `internal/vendor/assistant-ui/generative-ui/UPSTREAM.json`，与实现共同交付。Source Registry 只安装薄的项目集成、配置和可定制插件源码；release gate 禁止新资源向 `vendor` / `vendors` 目标写入文件。
+
+## React 组件与官方插件的统一交付
+
+`@za38.03/agent-ui-plugins` 统一拥有 React 组件、主题、国际化、可选扩展和官方 Composer 插件，源码位于 `packages/plugins`。不再独立发行 `agent-ui-react`。
+
+- 主入口：会话与通用 UI 组件、主题和国际化 API。
+- `/assistant-ui-composer`：符合 UI Plugin 契约的完整 Composer；通过子 Slot 组合输入、触发器和操作插件。
+- `/styles.css`、`/theme`、`/lexical`、`/generative-ui`、`/generative-ui.css`、`/demo-attachments`：保留各自的可选能力入口。
+
+组件主入口不反向导入 Composer 插件；插件通过包的公共组件 API 复用实现。上游源码和来源记录留在包内。该包不创建 Agent Runtime，AG-UI 接入继续由 `@za38.03/agent-ui-runtime` 负责，布局解释继续由 Renderer 负责。Core 和 Renderer 是基础依赖。
+
+组件与 Composer 共用 npm 包版本，不能分别升级子路径。Source Registry 安装到用户工程的其他可定制源码插件仍可按插件选择升级。公开包现为 Core、Renderer、Plugins、Runtime、Source Registry、Operator、Creator、Web Component 共八个。
 
 ## A2UI 扩展
 
@@ -32,7 +44,7 @@ Source Release 是不可变的资源目录快照，不是要求所有插件统�
 
 更新计划列出 requestedPlugins、每个资源的 reason（requested/dependency）、requiredBy、变化文件、版本和阻塞项。执行仅触及所选插件及必要的变化依赖；不更新内容未变化的依赖基线。未选择且不属于依赖闭包的插件源码和版本保持不变。共享依赖发生变化时不能保证只修改单个插件目录，执行前会检查整个工程；失败回滚，过期计划失效。本地定制进入 BASE/LOCAL/TARGET 合并，验证后才推进基线。
 
-包内上游实现通过 npm 依赖升级，不进入源码合并。npm 子路径不具有独立版本；当前 `agent-ui-plugins` 只有 Composer 的包交付，不能把将来的多个独立升级插件都用该包的统一版本伪装成独立版本。需要独立演进的包插件应独立发行；现有源码插件继续独立选择升级。当前更新页面管理源码插件；不会宣称它能独立更新单个 npm 子路径。
+包内上游实现通过 npm 依赖升级，不进入源码合并。npm 子路径不具有独立版本；当前 `agent-ui-plugins` 在组件库之外只有 Composer 的包插件交付，不能把将来的多个独立升级插件都用该包的统一版本伪装成独立版本。需要独立演进的包插件应独立发行；现有源码插件继续独立选择升级。当前更新页面管理源码插件；不会宣称它能独立更新单个 npm 子路径。
 
 ## 验证
 
@@ -57,9 +69,9 @@ A2UI 不是独立 npm 插件包，其实验代码曾分散在以下包：
 | --- | --- |
 | @za38.03/agent-ui-source-registry | integration/a2ui 资源模板与开发测试 fixtures；发布目录不包含该资源记录 |
 | @za38.03/agent-ui-creator | 两个 A2UI Mock 示例模块、相应示例文案和安装指引 |
-| @za38.03/agent-ui-react | createAgentUIA2ui 专用入口及实验渲染实现 |
+| @za38.03/agent-ui-plugins | createAgentUIA2ui 专用入口及实验渲染实现 |
 | @za38.03/agent-ui-runtime | useConversationA2uiAction 专用动作桥接入口 |
 
-Source Registry 只发布 dist 下筛选后的资源资产，源模式工具仍可读取仓库中的实验模板；因此“仓库保留”不等于“npm 包下发”。React/Runtime 的 experimental 目录被排除构建并清理旧产物，Creator 打包保留其他 skill references。发包验证检查真实 tarball 的文件列表、发布 Registry 清单和公开 API。
+Source Registry 只发布 dist 下筛选后的资源资产，源模式工具仍可读取仓库中的实验模板；因此“仓库保留”不等于“npm 包下发”。Plugins/Runtime 的 experimental 目录被排除构建并清理旧产物，Creator 打包保留其他 skill references。发包验证检查真实 tarball 的文件列表、发布 Registry 清单和公开 API。
 
 上游 assistant-ui npm 依赖自身可能包含 A2UI 协议支持；通用协议兼容字段和禁用判断也可以保留。这不代表本产品发布 A2UI 功能，不能为消除相关字符串而修改 vendor 或破坏通用 AG-UI 支持。普通 JSON Generative UI 继续发布。

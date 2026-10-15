@@ -2,7 +2,7 @@ import {
   ConversationFile,
   ConversationToolFallback,
   type ConversationToolCallComponent,
-} from "@za38.03/agent-ui-react";
+} from "@za38.03/agent-ui-plugins";
 import { projectGeneratedFileResult } from "./generated-file-result";
 
 export const GenerateFileToolUI: ConversationToolCallComponent = (props) => {

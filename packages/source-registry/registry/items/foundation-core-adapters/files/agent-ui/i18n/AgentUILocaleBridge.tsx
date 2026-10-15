@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, type ReactNode } from "react";
-import { AgentUILocaleProvider } from "@za38.03/agent-ui-react";
+import { AgentUILocaleProvider } from "@za38.03/agent-ui-plugins";
 import { usePluginService, usePluginServiceSnapshot } from "../../runtime/plugins";
 import { AGENT_UI_LOCALE_SERVICE, type AgentUILocaleService } from "../../services/agent-ui-locale";
 import { AGENT_UI_LOCALES } from "./locale-registry";

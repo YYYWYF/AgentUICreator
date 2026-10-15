@@ -1,4 +1,4 @@
-import type { AgentApplicationEventListener } from "@za38.03/agent-ui-runtime-core";
+import type { AgentApplicationEventListener } from "@za38.03/agent-ui-core";
 import type {
   AgUiAssistantRuntime,
   AgUiInterrupt,

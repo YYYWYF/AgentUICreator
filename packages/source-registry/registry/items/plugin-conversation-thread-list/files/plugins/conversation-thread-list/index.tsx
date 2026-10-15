@@ -1,4 +1,4 @@
-import { getAgentUIThemeColorScheme, Button, useConversationNavigation, ConversationThreadListNew, useAgentUISidebarNavigation, AgentUITooltip, AgentUITooltipTrigger, AgentUITooltipContent } from "@za38.03/agent-ui-react";
+import { getAgentUIThemeColorScheme, Button, useConversationNavigation, ConversationThreadListNew, useAgentUISidebarNavigation, AgentUITooltip, AgentUITooltipTrigger, AgentUITooltipContent } from "@za38.03/agent-ui-plugins";
 import { Plus } from "lucide-react";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { useAgentUITheme } from "../../agent-ui/theme/useAgentUITheme";

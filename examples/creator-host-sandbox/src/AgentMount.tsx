@@ -1,5 +1,5 @@
-import { useAgentUILocale, useAgentUILocaleCode } from "@za38.03/agent-ui-react";
-import { DemoAttachmentAdapter } from "@za38.03/agent-ui-react/demo-attachments";
+import { useAgentUILocale, useAgentUILocaleCode } from "@za38.03/agent-ui-plugins";
+import { DemoAttachmentAdapter } from "@za38.03/agent-ui-plugins/demo-attachments";
 import { Agent } from "./agent-ui";
 import { useEffect, useMemo, useState } from "react";
 import { continuation, RUN_RESUME_API, type RunSnapshot } from "./RunResumeDemo";

@@ -1,4 +1,4 @@
-import { prepareProductAdapters } from "../packages/react/scripts/sync-product-adapters.mjs";
+import { prepareProductAdapters } from "../packages/plugins/scripts/sync-product-adapters.mjs";
 import { execFile as execFileCallback } from "node:child_process";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -17,11 +17,11 @@ const CANCELLATION_UPSTREAM_PATTERNS = [
   /(^|\/)(?:run[-/]?http[-/]?request|transform[-/]?http|httpagent|cancell?ation)/iu,
 ];
 const QUOTE_SELECTION_SEAM_FILES = [
-  "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
-  "packages/react/src/internal/quote-selection-root.tsx",
-  "packages/react/src/internal/quote-selection-action.tsx",
-  "packages/react/src/internal/quote-selection-message-id.ts",
-  "packages/react/src/internal/quote-selection-UPSTREAM.json",
+  "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
+  "packages/plugins/src/internal/quote-selection-root.tsx",
+  "packages/plugins/src/internal/quote-selection-action.tsx",
+  "packages/plugins/src/internal/quote-selection-message-id.ts",
+  "packages/plugins/src/internal/quote-selection-UPSTREAM.json",
 ];
 const QUOTE_SELECTION_UPSTREAM_FILES = [
   "packages/ui/src/components/react/assistant-ui/elements/quote.aui.tsx",
@@ -43,10 +43,10 @@ export function quoteSelectionIntegrationReport(files, upstreamChangedFiles) {
   };
 }
 
-const PRODUCT_ADAPTER_ROOT = "packages/react/src/internal/adapters/assistant-ui";
-const STYLE_BOUNDARY_ROOT = "packages/react/src/internal/style-boundary";
-const PRODUCT_ADAPTER_GENERATOR = "packages/react/scripts/sync-product-adapters.mjs";
-const THREAD_LIST_PORTAL_SEAM = "packages/react/src/internal/conversation-thread-list-item.tsx";
+const PRODUCT_ADAPTER_ROOT = "packages/plugins/src/internal/adapters/assistant-ui";
+const STYLE_BOUNDARY_ROOT = "packages/plugins/src/internal/style-boundary";
+const PRODUCT_ADAPTER_GENERATOR = "packages/plugins/scripts/sync-product-adapters.mjs";
+const THREAD_LIST_PORTAL_SEAM = "packages/plugins/src/internal/conversation-thread-list-item.tsx";
 const PRODUCT_ADAPTER_PROVENANCE = `${PRODUCT_ADAPTER_ROOT}/UPSTREAM.json`;
 
 export function productIntegrationReport(files, upstreamChangedFiles, audit) {
@@ -87,7 +87,7 @@ async function auditProductIntegration(repoRoot, baseGitSha, vendorProvenance) {
     }
     const integrated = new Set(record.files.map(file => file.localPath));
     audit.upstreamPaths = vendorProvenance.files.filter(file => integrated.has(file.localPath)).map(file => file.upstreamPath);
-    const expected = await prepareProductAdapters(path.join(repoRoot, "packages/react/src/internal/vendor/assistant-ui"));
+    const expected = await prepareProductAdapters(path.join(repoRoot, "packages/plugins/src/internal/vendor/assistant-ui"));
     if (record.revision !== expected.revision ||
       JSON.stringify(record.files) !== JSON.stringify(expected.files.map(({source, ...file}) => file))) {
       throw new Error("Product adapter provenance differs from the current clean vendor / generator");
@@ -147,7 +147,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
   }
 
   const target = JSON.parse(await readFile(path.join(repoRoot, "assistant-ui-upgrade-target.json"), "utf8"));
-  const provenance = JSON.parse(await readFile(path.join(repoRoot, "packages/react/src/internal/vendor/assistant-ui/UPSTREAM.json"), "utf8"));
+  const provenance = JSON.parse(await readFile(path.join(repoRoot, "packages/plugins/src/internal/vendor/assistant-ui/UPSTREAM.json"), "utf8"));
   const prior = JSON.parse(await readFile(reportPath, "utf8"));
   const generatedUntrackedArtifacts = Array.isArray(session?.generatedUntrackedArtifacts)
     ? session.generatedUntrackedArtifacts
@@ -309,7 +309,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     fromRevision: session?.fromRevision ?? prior.fromRevision,
     toRevision: session?.toRevision ?? provenance.revision,
     packagesChanged: select((file) => file === "pnpm-lock.yaml" || file === "pnpm-workspace.yaml" || file.endsWith("/package.json") || file === "package.json"),
-    localFacadeFilesChanged: select((file) => file.startsWith("packages/react/src/") && !file.startsWith("packages/react/src/internal/vendor/")),
+    localFacadeFilesChanged: select((file) => file.startsWith("packages/plugins/src/") && !file.startsWith("packages/plugins/src/internal/vendor/")),
     runtimeAdapterFilesChanged: select((file) => file.startsWith("packages/runtime/")),
     sourceRegistryAssistantUiFilesChanged: select((file) => [
       "packages/source-registry/registry/items/agent-component-assistant-ui-generative-ui/",

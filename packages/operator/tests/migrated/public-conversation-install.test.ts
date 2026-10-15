@@ -56,7 +56,7 @@ describe("public Conversation Source Registry install", () => {
       private: true,
       type: "module",
       dependencies: {
-        "@za38.03/agent-ui-react": "^0.1.0",
+        "@za38.03/agent-ui-plugins": "^0.1.0",
         "@za38.03/agent-ui-runtime": "^0.1.0",
       },
     };
@@ -64,7 +64,7 @@ describe("public Conversation Source Registry install", () => {
       path.join(projectRoot, "package.json"),
       `${JSON.stringify(packageJson, null, 2)}\n`,
     );
-    await writeInstalledPackage(projectRoot, "@za38.03/agent-ui-react", "0.1.0");
+    await writeInstalledPackage(projectRoot, "@za38.03/agent-ui-plugins", "0.1.0");
     await writeInstalledPackage(projectRoot, "@za38.03/agent-ui-runtime", "0.1.0");
 
     const inspection = await inspectAgentUISources(projectRoot);

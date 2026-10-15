@@ -35,20 +35,20 @@
       "@za38.03/agent-ui-creator/mock-agent": [
         "../../packages/creator/src/mock-agent/index.ts"
       ],
-      "@za38.03/agent-ui-react": [
-        "../../packages/react/src/index.ts"
+      "@za38.03/agent-ui-plugins": [
+        "../../packages/plugins/src/index.ts"
       ],
       "@za38.03/agent-ui-runtime": [
         "../../packages/runtime/src/index.ts"
       ],
-      "@za38.03/agent-ui-runtime-core": [
-        "../../packages/runtime-core/src/index.ts"
+      "@za38.03/agent-ui-core": [
+        "../../packages/core/src/index.ts"
       ],
       "@za38.03/agent-ui-renderer": [
         "../../packages/renderer/src/index.ts"
       ],
-      "@za38.03/agent-ui-runtime-core/testing": [
-        "../../packages/runtime-core/src/testing/index.ts"
+      "@za38.03/agent-ui-core/testing": [
+        "../../packages/core/src/testing/index.ts"
       ],
       "@za38.03/agent-ui-creator/host-preview": [
         "../../packages/creator/src/host-preview/hostPreviewWorkbench.ts"
@@ -65,11 +65,11 @@
     "../../packages/creator/src/visual-observation/VisualObservationReporter.ts",
     "../../packages/creator/src/shared.ts",
     "../../packages/creator/src/mock-agent/**/*.ts",
-    "../../packages/react/src/**/*.ts",
-    "../../packages/react/src/**/*.tsx",
+    "../../packages/plugins/src/**/*.ts",
+    "../../packages/plugins/src/**/*.tsx",
     "../../packages/runtime/src/**/*.ts",
     "../../packages/runtime/src/**/*.tsx",
-    "../../packages/runtime-core/src/**/*.ts",
+    "../../packages/core/src/**/*.ts",
     "../../packages/renderer/src/**/*.ts",
     "../../packages/renderer/src/**/*.tsx"
   ]

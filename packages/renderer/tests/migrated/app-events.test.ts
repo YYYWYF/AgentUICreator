@@ -1,5 +1,5 @@
-import type { AgentApplicationEvent } from "@za38.03/agent-ui-runtime-core";
-import { MockAgentTransport } from "@za38.03/agent-ui-runtime-core/testing";
+import type { AgentApplicationEvent } from "@za38.03/agent-ui-core";
+import { MockAgentTransport } from "@za38.03/agent-ui-core/testing";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 

@@ -1,4 +1,4 @@
-import type { DataMessageUIDefinition } from "@za38.03/agent-ui-react";
+import type { DataMessageUIDefinition } from "@za38.03/agent-ui-plugins";
 
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";
 import { isValidDataMessageUIName } from "../../framework/contracts/data-message-ui";

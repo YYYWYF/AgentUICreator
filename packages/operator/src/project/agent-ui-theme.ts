@@ -48,7 +48,7 @@ async function inspect(root: string) {
   } finally { api.close(); }
   if (!literal) throw new Error("THEME_CONFIGURATION_UNSUPPORTED");
   // An ESM subprocess resolves the facade from this project's installed dependencies.
-  const { stdout } = await promisify(execFile)(process.execPath, ["--input-type=module", "-e", "const { AGENT_UI_THEME_PRESETS } = await import('@za38.03/agent-ui-react/theme'); process.stdout.write(JSON.stringify(AGENT_UI_THEME_PRESETS));"], { cwd: root, timeout: 15000, maxBuffer: 65536 });
+  const { stdout } = await promisify(execFile)(process.execPath, ["--input-type=module", "-e", "const { AGENT_UI_THEME_PRESETS } = await import('@za38.03/agent-ui-plugins/theme'); process.stdout.write(JSON.stringify(AGENT_UI_THEME_PRESETS));"], { cwd: root, timeout: 15000, maxBuffer: 65536 });
   const presets: unknown = JSON.parse(stdout);
   if (!presets || typeof presets !== "object" || Array.isArray(presets) || !Object.hasOwn(presets, literal.text)) throw new Error("THEME_CAPABILITY_UNAVAILABLE");
   const catalog: ThemeCatalog = { current: literal.text, options: Object.keys(presets).map(id => ({ id })) };

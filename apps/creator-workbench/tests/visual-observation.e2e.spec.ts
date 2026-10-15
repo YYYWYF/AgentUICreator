@@ -11,7 +11,7 @@ const workspaceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)),
 const frontendRoot = path.join(workspaceRoot, "examples/creator-host-sandbox");
 const appUIPath = path.join(frontendRoot, "src/agent-ui/app-ui/app-ui.json");
 const revisionPath = path.join(frontendRoot, "src/agent-ui/app-ui/composition-revision.generated.json");
-const python = path.join(workspaceRoot, "packages/creator-python/.venv/bin/python");
+const python = path.join(workspaceRoot, "packages/creator/python/.venv/bin/python");
 
 type CompositionReport = {
   appUIModelHash: string;
@@ -38,7 +38,7 @@ print(json.dumps(verify_expected_workspace_fill(r,[{"instanceId":"agent-conversa
     encoding: "utf8",
     env: {
       ...process.env,
-      PYTHONPATH: path.join(workspaceRoot, "packages/creator-python"),
+      PYTHONPATH: path.join(workspaceRoot, "packages/creator/python"),
     },
   }));
 }

@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import type { AgentUITheme } from "@za38.03/agent-ui-react";
+import type { AgentUITheme } from "@za38.03/agent-ui-plugins";
 import { AGENT_UI_THEME_SERVICE, type AgentUIThemeService } from "../../services/agent-ui-theme";
 import { usePluginService } from "../../runtime/plugins";
 import { agentUIThemeConfig } from "./theme-config";

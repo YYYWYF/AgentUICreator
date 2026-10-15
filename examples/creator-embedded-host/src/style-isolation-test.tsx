@@ -14,7 +14,7 @@ import {
   AgentUITooltipContent,
   AgentUITooltipProvider,
   AgentUITooltipTrigger,
-} from "@za38.03/agent-ui-react";
+} from "@za38.03/agent-ui-plugins";
 
 import "./hostile-host.css";
 import installedAgentSource from "./agent-ui/application/Agent.tsx?raw";

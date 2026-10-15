@@ -49,4 +49,4 @@ exact, `^` stays `^`, and `~` stays `~`, with the floor raised to the target
 version. Other peer range forms fail the update for an explicit review.
 
 
-Current delivery: Generative UI source/CSS/provenance are synchronized into `packages/react/src/internal/vendor/assistant-ui/generative-ui`, not installable Registry resources. Registry adapters reference the public React facade. Historical descriptions of Registry-managed vendor installation above are superseded. See `docs/architecture/package-owned-upstream-and-plugin-updates.md`.
+Current delivery: Generative UI source/CSS/provenance are synchronized into `packages/plugins/src/internal/vendor/assistant-ui/generative-ui`, not installable Registry resources. Registry adapters reference the public React facade. Historical descriptions of Registry-managed vendor installation above are superseded. See `docs/architecture/package-owned-upstream-and-plugin-updates.md`.

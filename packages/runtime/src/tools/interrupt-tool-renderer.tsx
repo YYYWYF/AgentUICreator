@@ -1,5 +1,5 @@
 import { useSyncExternalStore, type ComponentType } from "react";
-import { useConversationCanAnswerToolCall, type ConversationToolCallProps } from "@za38.03/agent-ui-react";
+import { useConversationCanAnswerToolCall, type ConversationToolCallProps } from "@za38.03/agent-ui-plugins";
 import { useConversationRuntimeBridge } from "../ConversationRuntimeBridgeContext.js";
 
 /** One lifecycle owner: renderers observe the runtime and submit responses to it. */

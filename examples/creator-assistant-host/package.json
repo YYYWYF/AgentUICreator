@@ -24,15 +24,14 @@
     "test": "node --import tsx ../../scripts/host-examples/test-host-example.ts assistant creator-assistant-host"
   },
   "dependencies": {
-    "@za38.03/agent-ui-react": "workspace:*",
+    "@za38.03/agent-ui-plugins": "workspace:*",
     "@za38.03/agent-ui-runtime": "workspace:*",
-    "@za38.03/agent-ui-runtime-core": "workspace:*",
+    "@za38.03/agent-ui-core": "workspace:*",
     "@za38.03/agent-ui-renderer": "workspace:*",
     "lucide-react": "1.41.0",
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "zod": "4.5.4",
-    "@za38.03/agent-ui-plugins": "workspace:*",
     "@assistant-ui/react-lexical": "0.2.15",
     "@lexical/history": "0.51.0",
     "@lexical/plain-text": "0.51.0",

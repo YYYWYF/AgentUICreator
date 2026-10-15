@@ -102,13 +102,13 @@ export async function createConnectionHostFixture(options: { themeCommands?: boo
     const dockSource = await readFile(path.join(repository, "apps/creator-workbench/src/dock.tsx"), "utf8");
     await writeFile(path.join(creatorRoot, "dock.tsx"), dockSource.replace("declare const __CREATOR_HOST_WORKSPACE_ID__: string;", `const __CREATOR_HOST_WORKSPACE_ID__ = ${JSON.stringify(workspaceId)};`));
     const creator = await createServer({ configFile: false, root: creatorRoot, optimizeDeps: { noDiscovery: true, include: ["react", "react-dom/client", "@za38.03/agent-ui-creator/ui", "@za38.03/agent-ui-creator/host-preview"] }, plugins: [react(), createCreatorDevServerPlugin({ projectRoot: hostRoot, python: { environment: { CREATOR_VERIFICATION_MODE: "static_only" },
-      ...(options.themeCommands ? { allowExternalEndpoint: false, pythonExecutable: process.env.CREATOR_THEME_TEST_PYTHON ?? path.join(repository, "packages/creator-python/.venv/bin/python"), pythonPackageRoot: path.join(repository, "packages/creator-python") } : {}), log: () => undefined } })], server: { host: "127.0.0.1", port: 0, hmr: false, fs: { allow: [root, repository] } }, resolve: { dedupe: ["react", "react-dom"] } });
+      ...(options.themeCommands ? { allowExternalEndpoint: false, pythonExecutable: process.env.CREATOR_THEME_TEST_PYTHON ?? path.join(repository, "packages/creator/python/.venv/bin/python"), pythonPackageRoot: path.join(repository, "packages/creator/python") } : {}), log: () => undefined } })], server: { host: "127.0.0.1", port: 0, hmr: false, fs: { allow: [root, repository] } }, resolve: { dedupe: ["react", "react-dom"] } });
     servers.push(creator); await creator.listen();
     const creatorOrigin = creator.resolvedUrls!.local[0]!;
     const host = await createServer({ configFile: false, root: hostRoot,
       define: { "import.meta.env.VITE_CREATOR_DOCK_URL": JSON.stringify(`${creatorOrigin}dock.html`) },
       // Lazy plugin imports must not trigger dependency reloads mid-test.
-      optimizeDeps: { noDiscovery: true, include: ["react", "react-dom/client", "@za38.03/agent-ui-react", "@za38.03/agent-ui-react/lexical", "@za38.03/agent-ui-runtime", "@za38.03/agent-ui-runtime-core", "@za38.03/agent-ui-renderer", "@base-ui/react/**", "@assistant-ui/react-lexical", "lexical", "zod", "zustand"] },
+      optimizeDeps: { noDiscovery: true, include: ["react", "react-dom/client", "@za38.03/agent-ui-plugins", "@za38.03/agent-ui-plugins/lexical", "@za38.03/agent-ui-runtime", "@za38.03/agent-ui-core", "@za38.03/agent-ui-renderer", "@base-ui/react/**", "@assistant-ui/react-lexical", "lexical", "zod", "zustand"] },
       plugins: [react(), tailwindcss(), createCreatorHostPreviewPlugin({ creatorOrigin, workspaceId })], server: { host: "127.0.0.1", port: 0, fs: { allow: [root, repository] } }, resolve: { dedupe: ["react", "react-dom"] } });
     servers.push(host); await host.listen();
     const hostOrigin = host.resolvedUrls!.local[0]!;

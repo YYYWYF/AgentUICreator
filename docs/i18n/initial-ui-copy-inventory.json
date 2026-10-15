@@ -3910,91 +3910,91 @@
       "category": "mock/example content"
     },
     {
-      "file": "packages/react/src/lexical.tsx",
+      "file": "packages/plugins/src/lexical.tsx",
       "line": 31,
       "value": "ConversationComposerLexicalInput requires a canonical Composer input host.",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/public.tsx",
+      "file": "packages/plugins/src/public.tsx",
       "line": 367,
       "value": "Send a message...",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/public.tsx",
+      "file": "packages/plugins/src/public.tsx",
       "line": 368,
       "value": "Message input",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/public.tsx",
+      "file": "packages/plugins/src/public.tsx",
       "line": 369,
       "value": "Remove queued message",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/public.tsx",
+      "file": "packages/plugins/src/public.tsx",
       "line": 441,
       "value": "Add Attachment",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/public.tsx",
+      "file": "packages/plugins/src/public.tsx",
       "line": 462,
       "value": "Voice input",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/public.tsx",
+      "file": "packages/plugins/src/public.tsx",
       "line": 463,
       "value": "Start voice input",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/public.tsx",
+      "file": "packages/plugins/src/public.tsx",
       "line": 485,
       "value": "Stop dictation",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/public.tsx",
+      "file": "packages/plugins/src/public.tsx",
       "line": 486,
       "value": "Stop voice input",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/public.tsx",
+      "file": "packages/plugins/src/public.tsx",
       "line": 491,
       "value": "Send message",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/public.tsx",
+      "file": "packages/plugins/src/public.tsx",
       "line": 491,
       "value": "Queue message",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/public.tsx",
+      "file": "packages/plugins/src/public.tsx",
       "line": 495,
       "value": "Stop generating",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/public.tsx",
+      "file": "packages/plugins/src/public.tsx",
       "line": 720,
       "value": "Copy",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/public.tsx",
+      "file": "packages/plugins/src/public.tsx",
       "line": 741,
       "value": "Refresh",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/public.tsx",
+      "file": "packages/plugins/src/public.tsx",
       "line": 751,
       "value": "Export as Markdown",
       "category": "user-facing UI"
@@ -4354,145 +4354,145 @@
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/conversation-task-group.tsx",
+      "file": "packages/plugins/src/internal/conversation-task-group.tsx",
       "line": 156,
       "value": "Show ",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/conversation-task-group.tsx",
+      "file": "packages/plugins/src/internal/conversation-task-group.tsx",
       "line": 156,
       "value": " more",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/conversation-thread-list-item.tsx",
+      "file": "packages/plugins/src/internal/conversation-thread-list-item.tsx",
       "line": 33,
       "value": "New Chat",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/conversation-thread-list-item.tsx",
+      "file": "packages/plugins/src/internal/conversation-thread-list-item.tsx",
       "line": 33,
       "value": "More options",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/directive-formatter.ts",
+      "file": "packages/plugins/src/internal/directive-formatter.ts",
       "line": 19,
       "value": "Invalid Agent UI directive reference.",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/composable-thread.tsx",
+      "file": "packages/plugins/src/internal/composable-thread.tsx",
       "line": 157,
       "value": "Generation stopped",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/composable-thread.tsx",
+      "file": "packages/plugins/src/internal/composable-thread.tsx",
       "line": 157,
       "value": "Edit message",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/composable-thread.tsx",
+      "file": "packages/plugins/src/internal/composable-thread.tsx",
       "line": 187,
       "value": "Loading conversation",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/composable-thread.tsx",
+      "file": "packages/plugins/src/internal/composable-thread.tsx",
       "line": 306,
       "value": "Scroll to bottom",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/composable-thread.tsx",
+      "file": "packages/plugins/src/internal/composable-thread.tsx",
       "line": 320,
       "value": "\n        How can I help you today?\n      ",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/composable-thread.tsx",
+      "file": "packages/plugins/src/internal/composable-thread.tsx",
       "line": 464,
       "value": "Add Attachment",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/composable-thread.tsx",
+      "file": "packages/plugins/src/internal/composable-thread.tsx",
       "line": 710,
       "value": "Assistant is working",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/composable-thread.tsx",
+      "file": "packages/plugins/src/internal/composable-thread.tsx",
       "line": 758,
       "value": "Copy",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/composable-thread.tsx",
+      "file": "packages/plugins/src/internal/composable-thread.tsx",
       "line": 803,
       "value": "Refresh",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/composable-thread.tsx",
+      "file": "packages/plugins/src/internal/composable-thread.tsx",
       "line": 830,
       "value": "Export as Markdown",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/composable-thread.tsx",
+      "file": "packages/plugins/src/internal/composable-thread.tsx",
       "line": 840,
       "value": "Previous",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/composable-thread.tsx",
+      "file": "packages/plugins/src/internal/composable-thread.tsx",
       "line": 844,
       "value": "Next",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/composable-thread.tsx",
+      "file": "packages/plugins/src/internal/composable-thread.tsx",
       "line": 913,
       "value": "Edit",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/composable-thread.tsx",
+      "file": "packages/plugins/src/internal/composable-thread.tsx",
       "line": 969,
       "value": "Previous",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/composable-thread.tsx",
+      "file": "packages/plugins/src/internal/composable-thread.tsx",
       "line": 977,
       "value": "Next",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/composer-input-host-context.tsx",
+      "file": "packages/plugins/src/internal/composer-input-host-context.tsx",
       "line": 19,
       "value": "ComposerTextareaInput requires a canonical Composer input host.",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/conversation-question-flow.tsx",
+      "file": "packages/plugins/src/internal/conversation-question-flow.tsx",
       "line": 116,
       "value": "`${((stepIndex + 1) / steps.length) * 100}%`",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/quote-selection-root.tsx",
+      "file": "packages/plugins/src/internal/quote-selection-root.tsx",
       "line": 92,
       "value": "[SelectionToolbarPrimitive.Root] ThreadPrimitive.Root did not provide a DOM element, so the selection cannot be scoped to its thread. Ensure a custom root child forwards its ref.",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/assistant-response-runtime.tsx",
+      "file": "packages/plugins/src/internal/assistant-response-runtime.tsx",
       "line": 27,
       "value": "Assistant response actions require a Response Footer context",
       "category": "developer-facing text"
@@ -4858,259 +4858,259 @@
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
       "line": 118,
       "value": "\n          Quote\n        ",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
       "line": 226,
       "value": "Dismiss quote",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
       "line": 135,
       "value": "Clipboard API is not available in this environment.",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
       "line": 204,
       "value": "Image content",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
       "line": 347,
       "value": " (opens in a new tab)",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
       "line": 384,
       "value": "Image preview",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
       "line": 455,
       "value": "Click to zoom image",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
       "line": 468,
       "value": "Zoomed image",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
       "line": 483,
       "value": "Close zoomed image",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
       "line": 509,
       "value": "Generating image…",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
       "line": 530,
       "value": "Image could not be generated",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
       "line": 566,
       "value": "Regenerate image",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
       "line": 586,
       "value": "Download image",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
       "line": 597,
       "value": "Copy image",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
       "line": 622,
       "value": "The provider blocked this image.",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
       "line": 629,
       "value": "Image content",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image.tsx",
       "line": 630,
       "value": "Image content",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.aui.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.aui.tsx",
       "line": 212,
       "value": "Tasks",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.aui.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.aui.tsx",
       "line": 226,
       "value": "\n                Show ",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.aui.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.aui.tsx",
       "line": 226,
       "value": " more\n              ",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
       "line": 49,
       "value": "Attachment preview",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
       "line": 81,
       "value": "\n          Image Attachment Preview\n        ",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
       "line": 98,
       "value": "Attachment preview",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
       "line": 145,
       "value": "Upload failed",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
       "line": 220,
       "value": "Remove file",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
       "line": 256,
       "value": "Add Attachment",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
       "line": 261,
       "value": "Add Attachment",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/web-search.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/web-search.tsx",
       "line": 57,
       "value": "Read 3 sources",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/task-card.aui.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/task-card.aui.tsx",
       "line": 229,
       "value": "\n          Show ",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/task-card.aui.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/task-card.aui.tsx",
       "line": 229,
       "value": " more\n        ",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/markdown-text.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/markdown-text.tsx",
       "line": 74,
       "value": "Copy",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
       "line": 196,
       "value": "No items available",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
       "line": 197,
       "value": "No matching items",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
       "line": 213,
       "value": "[assistant-ui] ComposerTriggerPopover requires exactly one of `directive` or `action` props.",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
       "line": 50,
       "value": "useSidebar must be used within a SidebarProvider.",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
       "line": 192,
       "value": "Sidebar",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
       "line": 193,
       "value": "Displays the mobile sidebar.",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
       "line": 266,
       "value": "Toggle Sidebar",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
       "line": 278,
       "value": "Toggle Sidebar",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/ui/sidebar.tsx",
       "line": 281,
       "value": "Toggle Sidebar",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/dialog.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/ui/dialog.tsx",
       "line": 77,
       "value": "Close",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/dialog.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/ui/dialog.tsx",
       "line": 115,
       "value": "\n          Close\n        ",
       "category": "user-facing UI"
     },
     {
-      "file": "packages/react/src/internal/adapters/assistant-ui/components/ui/sheet.tsx",
+      "file": "packages/plugins/src/internal/adapters/assistant-ui/components/ui/sheet.tsx",
       "line": 77,
       "value": "Close",
       "category": "user-facing UI"

@@ -1,4 +1,4 @@
-import { ConversationComposerQuotePreview, ConversationQuoteSelectionToolbar, useConversationQuoteLifecycle } from "@za38.03/agent-ui-react";
+import { ConversationComposerQuotePreview, ConversationQuoteSelectionToolbar, useConversationQuoteLifecycle } from "@za38.03/agent-ui-plugins";
 import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
 
 export function ConversationQuotePlugin() {

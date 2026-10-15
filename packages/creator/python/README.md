@@ -1,0 +1,185 @@
+# agent-ui-creator-core
+
+Agent UI Creator 的唯一 Python 控制面。它通过经过鉴权的 FastAPI sidecar 提供
+AG-UI stream、runtime diagnostics、Operator 领域读取，以及由 Python Host
+拥有 transaction / receipt / undo 的 AppUIModel semantic mutation，以及 Runtime
+Verification、Host Validation 和 Completion Gate。
+
+HTTP wire event 由锁定的 `ag-ui-protocol` 官方模型和 `EventEncoder` 产生。每次
+`POST /creator` 都创建独立的 bounded `CreatorEventBus`。Minimal / Domain Agent 通过
+`DeepAgentV3Runner` 从同一次 `astream_events(version="v3")` 并发消费官方
+`tool_calls` 投影与 final output；`DeepAgentToolStreamAdapter` 在 tool handle 出现时立即
+发布调用定义，在官方 tool lifecycle 结束后发布有界结果。RuntimeGuard 只保留
+no-progress、permission、activity、mutation revision 和 terminal error 责任，不再生成 UI 事件。
+server 仍只消费内部 EventBus 并映射为官方 AG-UI 事件。
+
+此包是开发时依赖，不进入生成的 Agent Frontend。
+
+## 测试门禁
+
+仓库使用锁定的 `requirements.lock` 自动维护
+`packages/creator/python/.venv`，不需要开发者手工创建或激活虚拟环境。
+
+```bash
+# Python unit + contract tests
+pnpm test:python
+
+# 真实 Node → Python sidecar 进程 / Proxy / SSE 测试
+pnpm test:python-sidecar
+
+# Python + Node host + sidecar integration 统一门禁
+pnpm test
+
+# 显式调用真实 MiMo，运行 A/B/C 各十次共 30 个 conformance run
+pnpm test:python-live-model
+```
+
+正式门禁要求 Python 3.11+ 且不会默认 skip。仅本地开发需要临时
+跳过真实进程集成测试时，可显式设置
+`CREATOR_SKIP_PYTHON_INTEGRATION=1`。如果用于 CI required check，不得设置该变量。
+
+## 手工启动
+
+先执行 `pnpm test:python:setup` 安装开发/测试依赖，然后运行：
+
+```bash
+packages/creator/python/.venv/bin/python -m agent_ui_creator.server \
+  --project-root examples/creator-host-sandbox \
+  --skills-root packages/creator/skills \
+  --port 0 \
+  --auth-token development-only-token
+```
+
+服务启动后，stdout 第一行是`creator_ready` JSON handshake；普通
+运行日志只写 stderr。
+
+如果工作区根目录已经配置了 `.env.creator.local`，也可以直接运行快捷命令启动
+固定的 8010 外部 sidecar：
+
+```bash
+pnpm creator:python
+```
+
+本地开发可在 `.env.creator.local` 设置 `CREATOR_PYTHON_HOT_RELOAD=1`。此时快捷命令
+会监听 `agent_ui_creator/**/*.py`，检测到源码变化后自动重启 sidecar；依赖文件变化
+仍需手动重新安装环境。
+
+默认 `CREATOR_PYTHON_AGENT_MODE=domain-write`，无需显式配置 runtime 或 agent mode。
+正常配置只需要：
+
+```env
+CREATOR_MODEL_NAME=mimo-v2.5-pro
+CREATOR_MODEL_BASE_URL=https://example.com/v1
+CREATOR_MODEL_API_KEY=your-key
+CREATOR_MODEL_TEMPERATURE=0.2
+CREATOR_MODEL_MAX_TOKENS=2048
+CREATOR_MODEL_TIMEOUT_SECONDS=120
+CREATOR_MODEL_MAX_RETRIES=2
+CREATOR_SELECTOR_MAX_TOKENS=512
+# 默认安全关闭 Runtime Verification；需要时显式打开
+CREATOR_VERIFICATION_MODE=static_only
+# CREATOR_SELECTOR_REASONING_EFFORT=low
+```
+
+使用 OpenCode Go 时，在 `.env.creator.local` 设置
+`CREATOR_MODEL_OPENCODE_SESSION_HEADER=1`，Creator 才会把当前会话 ID 作为
+`x-opencode-session` 请求头发送。默认不发送，其他模型服务无需启用。
+
+`CREATOR_VERIFICATION_MODE` 只有两个值：默认的 `static_only` 只以当前 revision 的
+Host 静态验证作为完成门槛，并关闭 Workbench 对 Runtime diagnostics endpoint 的上报；
+设置为 `static_and_runtime` 时同时启用上报和运行时验证。静态模式不会把 Runtime 的
+`stale` 或 `unavailable` 当成提交失败。
+
+Selector 使用单独的非流式模型副本，默认输出上限为 512，temperature 不发送。
+仅在网关模型明确支持时设置 `CREATOR_SELECTOR_REASONING_EFFORT`；2026-09-19
+xKiro `/v1/models` 对请求的 `z-ai/glm-5.3-flash` 返回同名模型，
+`reasoning_efforts.levels=[low, high, max]`，默认 `low`，
+`max_output_tokens=65536`。General Agent 继续读取
+原有 `CREATOR_MODEL_*` 设置，并创建独立模型。
+
+`CREATOR_MODEL_MAX_RETRIES` 表示初次模型请求之后由 Creator 的
+`ModelRetryMiddleware` 执行的重试次数；`ChatOpenAI` client 自身保持
+`max_retries=0`，避免形成双层重试。
+
+Minimal Agent 仅作为工具协议诊断模式保留：
+
+```env
+CREATOR_PYTHON_AGENT_MODE=minimal
+```
+
+历史领域诊断模式使用相同模型配置，并设置：
+
+```env
+CREATOR_PYTHON_AGENT_MODE=domain-read
+```
+
+该显式诊断模式仍允许受限的 `edit_file`，不能作为只读权限边界。它在 Minimal Agent
+的 `ls`、`read_file`、`glob`、`grep`、`edit_file` 之外，
+新增 `inspect_ui_project`、`inspect_app_ui_model`、`list_ui_plugins`、
+`inspect_ui_slots`、`inspect_ui_plugin`、`inspect_ui_services` 和
+`inspect_ui_plugin_source_references`。领域事实只通过目标工程固定的
+`scripts/ui-operator.ts` 获取；不会自动向每轮模型调用注入全量 snapshot。
+默认领域写模式中 Selector 选择 `INSPECT` 时，单独构造只读执行作用域：模型看不到
+修改工具，文件系统执行侧也拒绝项目写入；之前会话的写任务不会扩大该轮权限。
+
+默认的可写领域模式在上述工具面上增加受限的领域写入口：
+
+```env
+CREATOR_PYTHON_AGENT_MODE=domain-write
+```
+
+`mutate_app_ui_model` 复用正式 AppUIModel operation JSON Schema，由
+`AppUIModelMutationService` 在 project-level lock 内统一完成双文件 capture-before、
+Operator transaction、真实磁盘 changedPaths 对账、Activity touch、receipt 与 undo
+证据记录。Hash conflict 不会自动重试，必须重新 inspect；完成回执会记录当前验证模式、
+静态验证状态和 Runtime 状态。
+
+`create_ui_plugin` 以 create-only 事务创建一个完整 Plugin；已有 Plugin 的单文件小修改
+继续使用 `edit_file`，跨多个 Plugin 文件或“修改已有文件 + 创建 Plugin 内新文件”的需求
+使用 `mutate_ui_plugin_source`。后者只接受 Plugin 目录内的 exact text edit 和 create，
+要求每个 edit 目标在当前 run 已读取，并在同一个 project-level lock 内完成全部 preflight、
+原子 commit、失败回滚、Activity revision、receipt、createdDirectories 与 undo 记录；不提供
+删除、重命名、移动或跨 Plugin 写入语义。
+
+`OperatorClient` 固定从目标工程的 `node_modules/.bin/tsx`（Windows 为
+`tsx.cmd`）启动该入口，`cwd` 为目标工程，环境固定 `CI=1`、`FORCE_COLOR=0`，
+超时 15 秒，stdout/stderr 合计上限 1,000,000 bytes。请求和响应均通过
+`contracts/creator/operator.schema.json` 验证。
+Client 保留 public read operation，并提供 AppUIModel 与 Agent UI Source
+domain capability 使用的 bounded mutation transport；Agent 不直接拿到 Client。
+
+`CREATOR_*` 的模型配置优先于兼容的 `MODEL_API_NAME` / `MODEL_NAME`、
+`MODEL_BASE_URL`、`MODEL_API_KEY` 和 `OPENAI_API_KEY`。模型请求固定使用
+OpenAI-compatible Chat Completions、`streaming=false`，并把预初始化的
+`ChatOpenAI` 实例传给 DeepAgents。
+
+Minimal Agent 每轮只暴露 `ls`、`read_file`、`glob`、`grep`、`edit_file`。
+`task`、`write_todos`、`execute`、`write_file` 和 `delete` 均不可用。开发模式可以
+读取项目内非敏感文件，但拒绝 `.env*`、`.git`、`node_modules`、`dist`、`build`、
+`coverage` 和 `cache`；写入只允许 `plugins/**`，并额外拒绝
+`plugins/registry.generated.ts` 和 `app-ui/app-ui.json`。
+
+Domain Read Agent 复用相同 PathPolicy，因此仍不能直接写
+`plugins/registry.generated.ts`、`app-ui/composition-revision.generated.json` 或
+`app-ui/app-ui.json`。普通 Plugin 源码修改仍可通过
+`edit_file` 完成；Domain Write 同样禁止直接编辑这三个文件，注册、挂载、移动或删除实例
+必须使用 semantic mutation tool。Domain Read 始终不开放 mutation，用作安全回归模式。
+
+每次 `RUN_FINISHED.result.toolProtocol` 包含模型调用、有效/无效工具调用、pseudo
+call 恢复、单次 protocol repair、参数解析、缺失 ID、token 和有界 model trace
+统计。设置 `CREATOR_MODEL_RAW_TRACE=1` 会在 HTTPX request / response hook 中
+记录限定字段的请求摘要，并读取已缓存的
+Chat Completions response body，并只保存有界的协议结构摘要（状态码、request id、
+finish reason、明确报告的 token 用量、content 形态、tool call 名称与 arguments 长度/JSON 有效性、重试状态），
+随后与 LangChain `AIMessage` 摘要配对。常规 trace 不保存 prompt、content、完整 tool
+arguments、源码、Authorization header 或 API key。原先容易误解为 provider raw response
+的 LangChain 元数据现命名为 `langChainProviderMetadata`；真实的 pre-LangChain 摘要位于
+`providerResponse`。关闭该开关时不会安装 response hook，也不会读取或解析响应 body。
+在该开关开启时，Action Selector 的 `protocol_parse_failed` 和
+`output_budget_exhausted` 回答另记一条诊断：
+仅包含响应形态和最多 300 字符的文本预览；成功回答不记录文本。
+
+当前锁定的 Agent 栈为 Python 3.11+、`langchain-openai 1.3.3`、
+`langchain-core 1.6.1`、`langchain 1.3.18`、`langgraph 1.2.11`、
+`deepagents 0.7.11`、`openai 2.54.0` 和 `ag-ui-protocol 0.1.22`。升级其中任意依赖后必须重新运行 live
+tool protocol conformance。

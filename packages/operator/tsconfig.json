@@ -39,14 +39,14 @@
       "@za38.03/agent-ui-source-registry": [
         "../../packages/source-registry/src/index.ts"
       ],
-      "@za38.03/agent-ui-react": [
-        "../../packages/react/src/index.ts"
+      "@za38.03/agent-ui-plugins": [
+        "../../packages/plugins/src/index.ts"
       ],
       "@za38.03/agent-ui-runtime": [
         "../../packages/runtime/src/index.ts"
       ],
       "@assistant-ui/react": [
-        "../../packages/react/node_modules/@assistant-ui/react"
+        "../../packages/plugins/node_modules/@assistant-ui/react"
       ],
       "@assistant-ui/react-generative-ui": [
         "../../packages/operator/node_modules/@assistant-ui/react-generative-ui"
@@ -54,14 +54,14 @@
       "@assistant-ui/react-ag-ui": [
         "../../packages/runtime/node_modules/@assistant-ui/react-ag-ui"
       ],
-      "@za38.03/agent-ui-runtime-core": [
-        "../../packages/runtime-core/src/index.ts"
+      "@za38.03/agent-ui-core": [
+        "../../packages/core/src/index.ts"
       ],
       "@za38.03/agent-ui-renderer": [
         "../../packages/renderer/src/index.ts"
       ],
-      "@za38.03/agent-ui-runtime-core/testing": [
-        "../../packages/runtime-core/src/testing/index.ts"
+      "@za38.03/agent-ui-core/testing": [
+        "../../packages/core/src/testing/index.ts"
       ],
       "react-markdown": [
         "../../packages/operator/node_modules/react-markdown"

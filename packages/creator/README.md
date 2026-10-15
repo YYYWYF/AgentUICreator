@@ -1,6 +1,8 @@
 # @za38.03/agent-ui-creator
 
-Python Agent UI Creator 的开发时 Node host、CLI、Vite 代理与 React Workbench。模型、Agent loop、项目工具、验证、回执和运行时诊断状态都由 `packages/creator-python` 负责；目标前端不需要把 Creator 打进生产 Bundle。
+Creator 源码统一位于本目录：`src/` 是 Node Host、CLI 和 UI，`python/` 是 Python Agent sidecar（含独立 `pyproject.toml`、依赖锁和测试），`skills/` 是共享技能。Python 代码随 npm 包复制到 `dist/python`，部署产物不依赖仓库目录。
+
+Python Agent UI Creator 的开发时 Node host、CLI、Vite 代理与 React Workbench。模型、Agent loop、项目工具、验证、回执和运行时诊断状态都由 `packages/creator/python` 负责；目标前端不需要把 Creator 打进生产 Bundle。
 
 Creator 是 Agent UI 的开发助手。用户可以直接提问了解使用方法，让它检查当前工程、先设计方案，也可以要求修改和验证。仅在请求依赖工程现状时读取项目；仅在请求修改时进入写路径。普通对话直接显示回答，开发执行信息随实际工作出现。
 
@@ -201,7 +203,7 @@ Creator 检查版本并启动，不创建 venv，也不修改用户环境。缺�
 
 ### Repository development
 
-仓库开发使用 `pnpm test:python:setup` 创建 `packages/creator-python/.venv`。
+仓库开发使用 `pnpm test:python:setup` 创建 `packages/creator/python/.venv`。
 未显式配置 Python 时，source checkout 优先复用该环境；不存在时使用上述独立缓存。
 
 ### Distribution gate
@@ -226,7 +228,7 @@ Vite 插件会按项目惰性启动一个 Python 进程，透明代理 AG-UI 与
 CREATOR_PYTHON_HOT_RELOAD=1
 ```
 
-该开关只监听 `packages/creator-python/agent_ui_creator/**/*.py`。内部托管的 sidecar
+该开关只监听 `packages/creator/python/agent_ui_creator/**/*.py`。内部托管的 sidecar
 由 Creator Host 重启；使用 `pnpm creator:python` 启动的外部 sidecar 由开发监督器重启。
 修改依赖或 `requirements.lock` 后仍需手动重新安装环境。
 

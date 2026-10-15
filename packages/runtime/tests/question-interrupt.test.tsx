@@ -1,7 +1,7 @@
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { useAui, ThreadPrimitive, MessagePrimitive, type AssistantRuntime } from "@assistant-ui/react";
-import type { AgentRuntime } from "@za38.03/agent-ui-runtime-core";
-import type { ConversationToolCallProps, ConversationToolkit } from "@za38.03/agent-ui-react";
+import type { AgentRuntime } from "@za38.03/agent-ui-core";
+import type { ConversationToolCallProps, ConversationToolkit } from "@za38.03/agent-ui-plugins";
 import { describe, expect, it } from "vitest";
 import { ConversationRuntimeProvider } from "../src/ConversationRuntimeProvider.js";
 import { useConversationRuntimeBridge } from "../src/ConversationRuntimeBridgeContext.js";

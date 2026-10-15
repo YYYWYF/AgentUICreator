@@ -9,7 +9,7 @@ import type {
   AgentRunState,
   AgentRuntimeSnapshot,
   AgentUserInput,
-} from "@za38.03/agent-ui-runtime-core";
+} from "@za38.03/agent-ui-core";
 
 import { useRequiredAgentRuntime } from "./AgentRuntimeContext";
 

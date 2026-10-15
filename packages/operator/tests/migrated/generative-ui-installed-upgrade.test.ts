@@ -9,8 +9,8 @@ it("keeps A2UI upstream source inside the package and verifies its pinned proven
   const registry = await loadAgentUISourceRegistry();
   const closure = resolveAgentUISourceItemClosure(registry, "integration/a2ui");
   expect(closure.flatMap(item => item.loadedFiles).filter(file => /(^|\/)vendors?\//u.test(file.target))).toEqual([]);
-  expect(closure.find(item => item.id === "agent-component/assistant-ui-generative-ui")!.packages).toEqual({ "@za38.03/agent-ui-react": "0.1.6" });
+  expect(closure.find(item => item.id === "agent-component/assistant-ui-generative-ui")!.packages).toEqual({ "@za38.03/agent-ui-plugins": "0.1.6" });
   expect(await checkGenerativeUiResource()).toEqual([]);
-  const source = await readFile(fileURLToPath(new URL("../../../react/src/internal/vendor/assistant-ui/generative-ui/styled-generative-ui.tsx", import.meta.url)), "utf8");
+  const source = await readFile(fileURLToPath(new URL("../../../plugins/src/internal/vendor/assistant-ui/generative-ui/styled-generative-ui.tsx", import.meta.url)), "utf8");
   expect(source).toContain("defaultGenerativeUILibrary");
 });

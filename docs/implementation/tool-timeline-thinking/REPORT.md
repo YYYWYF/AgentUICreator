@@ -25,7 +25,7 @@ Conversation Surface advances through 0.0.3 (P0) and 0.0.4 (P1).
 
 Both official components were imported from the local assistant-ui repository at
 `3542d602272a62eddeb8989befc910841c267022` using
-`packages/react/scripts/sync-assistant-ui-upstream.mjs --repo /Users/yifei/Coding/assistant-ui --revision 3542d602272a62eddeb8989befc910841c267022`.
+`packages/plugins/scripts/sync-assistant-ui-upstream.mjs --repo /Users/yifei/Coding/assistant-ui --revision 3542d602272a62eddeb8989befc910841c267022`.
 The existing sync closed their dependency graph; Collapsible, surfaces and range
 were already tracked. Upstream behavior and vendor source remain unchanged except
 for the existing deterministic registry/import adaptations. Provenance, ownership,
@@ -171,26 +171,26 @@ Paths below include P0 and P1 only; unrelated pre-existing changes are excluded.
 | `packages/operator/tests/fixtures/project/registry-files.json` | Materialize new registry templates in disposable generated-project fixtures. |
 | `packages/operator/tests/migrated/install-demo-plugin.test.ts` | Automated behavior, contract, installation, preset or catalog regression coverage. |
 | `packages/operator/tsconfig.tests.json` | TypeScript roots for the new registry source templates. |
-| `packages/react/package.json` | Public facade version 0.1.5. |
-| `packages/react/src/internal/composable-thread.tsx` | Message-level anchor, tool detail reuse, protected action visibility and thinking handoff. |
-| `packages/react/src/internal/conversation-thinking-indicator.tsx` | Official Indicator facade with message/thread-local observed elapsed time. |
-| `packages/react/src/internal/conversation-tool-timeline.tsx` | Official Timeline facade: projected steps, status copy, disclosures and wrapper styles. |
-| `packages/react/src/internal/thinking-indicator-policy.ts` | Pure placeholder/reasoning/tool/approval display priority. |
-| `packages/react/src/internal/tool-timeline-projection.ts` | Pure toolCallId/status projection and exact semantic allowlist. |
-| `packages/react/src/internal/vendor/assistant-ui/UPSTREAM.json` | Regenerated upstream ownership, provenance, hashes and dependency inventory. |
-| `packages/react/src/internal/vendor/assistant-ui/UPSTREAM.md` | Regenerated upstream ownership, provenance, hashes and dependency inventory. |
-| `packages/react/src/internal/vendor/assistant-ui/assistant-ui-upstream.lock.json` | Regenerated upstream ownership, provenance, hashes and dependency inventory. |
-| `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thinking-indicator.tsx` | Official pinned component imported through the existing sync workflow. |
-| `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-timeline.tsx` | Official pinned component imported through the existing sync workflow. |
-| `packages/react/src/internal/vendor/assistant-ui/upstream-elements.json` | Regenerated upstream ownership, provenance, hashes and dependency inventory. |
-| `packages/react/src/locales/en-US.ts` | Unified bilingual product presentation messages. |
-| `packages/react/src/locales/zh-CN.ts` | Unified bilingual product presentation messages. |
-| `packages/react/src/public.tsx` | Stable public facade exports and semantic component/scope contracts. |
-| `packages/react/tests/migrated/scoped-renderer-conversation-integration.test.tsx` | Automated behavior, contract, installation, preset or catalog regression coverage. |
-| `packages/react/tests/thinking-indicator-policy.test.ts` | Automated behavior, contract, installation, preset or catalog regression coverage. |
-| `packages/react/tests/tool-timeline-composition.test.tsx` | Automated behavior, contract, installation, preset or catalog regression coverage. |
-| `packages/react/tests/tool-timeline-projection.test.ts` | Automated behavior, contract, installation, preset or catalog regression coverage. |
-| `packages/react/tsconfig.tests.json` | TypeScript roots for the new registry source templates. |
+| `packages/plugins/package.json` | Public facade version 0.1.5. |
+| `packages/plugins/src/internal/composable-thread.tsx` | Message-level anchor, tool detail reuse, protected action visibility and thinking handoff. |
+| `packages/plugins/src/internal/conversation-thinking-indicator.tsx` | Official Indicator facade with message/thread-local observed elapsed time. |
+| `packages/plugins/src/internal/conversation-tool-timeline.tsx` | Official Timeline facade: projected steps, status copy, disclosures and wrapper styles. |
+| `packages/plugins/src/internal/thinking-indicator-policy.ts` | Pure placeholder/reasoning/tool/approval display priority. |
+| `packages/plugins/src/internal/tool-timeline-projection.ts` | Pure toolCallId/status projection and exact semantic allowlist. |
+| `packages/plugins/src/internal/vendor/assistant-ui/UPSTREAM.json` | Regenerated upstream ownership, provenance, hashes and dependency inventory. |
+| `packages/plugins/src/internal/vendor/assistant-ui/UPSTREAM.md` | Regenerated upstream ownership, provenance, hashes and dependency inventory. |
+| `packages/plugins/src/internal/vendor/assistant-ui/assistant-ui-upstream.lock.json` | Regenerated upstream ownership, provenance, hashes and dependency inventory. |
+| `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thinking-indicator.tsx` | Official pinned component imported through the existing sync workflow. |
+| `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-timeline.tsx` | Official pinned component imported through the existing sync workflow. |
+| `packages/plugins/src/internal/vendor/assistant-ui/upstream-elements.json` | Regenerated upstream ownership, provenance, hashes and dependency inventory. |
+| `packages/plugins/src/locales/en-US.ts` | Unified bilingual product presentation messages. |
+| `packages/plugins/src/locales/zh-CN.ts` | Unified bilingual product presentation messages. |
+| `packages/plugins/src/public.tsx` | Stable public facade exports and semantic component/scope contracts. |
+| `packages/plugins/tests/migrated/scoped-renderer-conversation-integration.test.tsx` | Automated behavior, contract, installation, preset or catalog regression coverage. |
+| `packages/plugins/tests/thinking-indicator-policy.test.ts` | Automated behavior, contract, installation, preset or catalog regression coverage. |
+| `packages/plugins/tests/tool-timeline-composition.test.tsx` | Automated behavior, contract, installation, preset or catalog regression coverage. |
+| `packages/plugins/tests/tool-timeline-projection.test.ts` | Automated behavior, contract, installation, preset or catalog regression coverage. |
+| `packages/plugins/tsconfig.tests.json` | TypeScript roots for the new registry source templates. |
 | `packages/renderer/tsconfig.tests.json` | TypeScript roots for the new registry source templates. |
 | `packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter.tsx` | Wire active semantic renderer overrides into ConversationThread. |
 | `packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ScopedRendererBridge.tsx` | Bridge message renderer scopes to the existing runtime Slot system. |

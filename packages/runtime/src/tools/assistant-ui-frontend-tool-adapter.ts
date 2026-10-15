@@ -1,5 +1,5 @@
-import type { AgentFrontendToolSource } from "@za38.03/agent-ui-runtime-core";
-import { ConversationToolFallback, type ConversationToolkit } from "@za38.03/agent-ui-react";
+import type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
+import { ConversationToolFallback, type ConversationToolkit } from "@za38.03/agent-ui-plugins";
 import type { Toolkit } from "@assistant-ui/react";
 import { createInterruptToolRenderer } from "./interrupt-tool-renderer.js";
 import type { ConversationFrontendToolUIRegistry } from "./types.js";

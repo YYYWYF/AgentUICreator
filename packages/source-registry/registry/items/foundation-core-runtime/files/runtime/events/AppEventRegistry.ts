@@ -1,4 +1,4 @@
-import type { AgentApplicationEvent } from "@za38.03/agent-ui-runtime-core";
+import type { AgentApplicationEvent } from "@za38.03/agent-ui-core";
 import { z } from "zod";
 
 import {

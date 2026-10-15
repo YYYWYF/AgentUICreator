@@ -186,7 +186,7 @@ react-ag-ui, other types, primitives, runtime types and value imports stay rejec
 Revisit this fallback when the upstream formal entry supports strict consumers.
 
 check-consumer-types.mjs now packs the actual runtime, react and
-runtime-core publishable tarballs and installs them in a separate temporary
+core publishable tarballs and installs them in a separate temporary
 project. Overrides point only the local unpublished Agent UI packages to their
 real tarballs; external dependencies use the package manager. Copy import mode,
 a local virtual store and empty NODE_PATH prevent borrowing workspace package

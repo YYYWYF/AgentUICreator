@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type {
   AgentRuntime,
   AgentRuntimeSnapshot,
-} from "@za38.03/agent-ui-runtime-core";
+} from "@za38.03/agent-ui-core";
 
 import { AgentRuntimeProvider } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/context/index";
 import {

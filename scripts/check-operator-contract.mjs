@@ -9,11 +9,11 @@ export async function checkOperatorContract() {
     read('contracts/creator/operator.operations.json'),
     read('contracts/creator/operator.schema.json'),
     read('packages/operator/src/handler.ts'),
-    read('packages/creator-python/agent_ui_creator/operator/models.py'),
-    read('packages/creator-python/agent_ui_creator/domain_tools/operator_tools.py'),
-    read('packages/creator-python/agent_ui_creator/app_ui_model/mutation_tool.py'),
-    read('packages/creator-python/agent_ui_creator/app_ui_model/recovery_tool.py'),
-    read('packages/creator-python/agent_ui_creator/domain_agent/tool_policy.py'),
+    read('packages/creator/python/agent_ui_creator/operator/models.py'),
+    read('packages/creator/python/agent_ui_creator/domain_tools/operator_tools.py'),
+    read('packages/creator/python/agent_ui_creator/app_ui_model/mutation_tool.py'),
+    read('packages/creator/python/agent_ui_creator/app_ui_model/recovery_tool.py'),
+    read('packages/creator/python/agent_ui_creator/domain_agent/tool_policy.py'),
   ]);
   const inventory = JSON.parse(inventoryText);
   const schema = JSON.parse(schemaText);

@@ -8,7 +8,7 @@ const repositoryRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
-const pythonPackageRoot = path.join(repositoryRoot, "packages/creator-python");
+const pythonPackageRoot = path.join(repositoryRoot, "packages/creator/python");
 const requirementsPath = path.join(pythonPackageRoot, "requirements.lock");
 const creatorEnvironmentPath = path.join(repositoryRoot, ".env.creator.local");
 const virtualEnvironmentRoot = path.join(pythonPackageRoot, ".venv");

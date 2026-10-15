@@ -67,7 +67,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 384×159.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=plan-running&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-plan.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-plan.tsx`.
 - Observed selectors in rendered page: `[data-slot="agent-plan"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 2. Preserve title/progress/step order; foreground alpha makes Violet subtle.
 
@@ -79,7 +79,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 384×159.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=plan-completed&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-plan.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-plan.tsx`.
 - Observed selectors in rendered page: `[data-slot="agent-plan"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 2. Preserve title/progress/step order; foreground alpha makes Violet subtle.
 
@@ -91,7 +91,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 600×38.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=status-working&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx`.
 - Observed selectors in rendered page: `[data-slot="agent-status"]`, `[data-slot="agent-status-trailing"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 2. Preserve indicator/label/elapsed/trailing structure. Working blue, done emerald.
 
@@ -103,7 +103,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 600×38.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=status-done&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx`.
 - Observed selectors in rendered page: `[data-slot="agent-status"]`, `[data-slot="agent-status-trailing"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 2. Preserve indicator/label/elapsed/trailing structure. Working blue, done emerald.
 
@@ -115,7 +115,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 600×38.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=status-waiting&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx`.
 - Observed selectors in rendered page: `[data-slot="agent-status"]`, `[data-slot="agent-status-trailing"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 2. Preserve indicator/label/elapsed/trailing structure. Working blue, done emerald.
 
@@ -127,7 +127,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 384×99.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=job-running&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx`.
 - Observed selectors in rendered page: `[data-slot="job-progress"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 2. Preserve stage weights, progress and outcome semantics. Blue running; emerald success.
 
@@ -139,7 +139,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 384×129.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=job-success&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx`.
 - Observed selectors in rendered page: `[data-slot="job-progress"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 2. Preserve stage weights, progress and outcome semantics. Blue running; emerald success.
 
@@ -151,7 +151,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 384×160.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=web-search&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/web-search.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/web-search.tsx`.
 - Observed selectors in rendered page: `[data-slot="web-search"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 2. Preserve query, status and results. Foreground alpha.
 
@@ -163,7 +163,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 384×244.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=retrieval&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/retrieval-chunks.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/retrieval-chunks.tsx`.
 - Observed selectors in rendered page: `[data-slot="retrieval-chunks"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 2. Preserve source/locator/score/text hierarchy. Blue relevance bar and emerald high score.
 
@@ -175,7 +175,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 600×143.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=tool-running&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.tsx`.
 - Observed selectors in rendered page: `[data-slot="tool-call"]`, `[data-slot="collapsible-trigger"]`, `[data-slot="collapsible-content"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 2. Preserve request/result disclosure. Foreground alpha and shared paper surface.
 
@@ -187,7 +187,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 600×143.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=tool-completed&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.tsx`.
 - Observed selectors in rendered page: `[data-slot="tool-call"]`, `[data-slot="collapsible-trigger"]`, `[data-slot="collapsible-content"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 2. Preserve request/result disclosure. Foreground alpha and shared paper surface.
 
@@ -199,7 +199,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 600×28.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=fallback-error&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx`.
 - Observed selectors in rendered page: `[data-slot="tool-fallback-root"]`, `[data-slot="tool-fallback-trigger"]`, `[data-slot="tool-fallback-trigger-icon"]`, `[data-slot="tool-fallback-trigger-label"]`, `[data-slot="tool-fallback-trigger-chevron"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 4. Actual collapsed error tool; inner error details not expanded in this screenshot. Preserve lifecycle/disclosure.
 
@@ -211,7 +211,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 600×87.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=reasoning&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/reasoning.aui.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/reasoning.aui.tsx`.
 - Observed selectors in rendered page: `[data-slot="reasoning-root"]`, `[data-slot="reasoning-trigger"]`, `[data-slot="reasoning-trigger-icon"]`, `[data-slot="reasoning-trigger-label"]`, `[data-slot="reasoning-trigger-chevron"]`, `[data-slot="reasoning-content"]`, `[data-slot="reasoning-fade"]`, `[data-slot="reasoning-text"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 2. Preserve trigger, content, fade/scroll and collapse anatomy. Expanded in capture.
 
@@ -223,7 +223,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 600×218.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=question&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/option-list.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/option-list.tsx`.
 - Observed selectors in rendered page: `[data-slot="option-list"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 3 product flow / Level 4 upstream internals. Preserve steps, choices, submission and receipt model. Additional selected shot is submitting/waiting for receipt.
 
@@ -235,7 +235,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 600×26.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=source&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx`.
 - Observed selectors in rendered page: `[data-slot="source"]`, `[data-slot="source-icon"]`, `[data-slot="source-title"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 2. Preserve source URL/title/icon. No invented citation numbers.
 
@@ -247,7 +247,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 600×56.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=file&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/file.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/file.tsx`.
 - Observed selectors in rendered page: `[data-slot="file-root"]`, `[data-slot="file-icon"]`, `[data-slot="file-name"]`, `[data-slot="file-size"]`, `[data-slot="file-download"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 2. Preserve filename, MIME and download action.
 
@@ -259,7 +259,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 384×164.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=dialog&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/../../ui/dialog.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/../../ui/dialog.tsx`.
 - Observed selectors in rendered page: `[data-slot="dialog-portal"]`, `[data-slot="dialog-overlay"]`, `[data-slot="dialog-content"]`, `[data-slot="button"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 1. Preserve title/description/action and scoped portal. Do not change modal positioning DOM.
 
@@ -271,7 +271,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 288×64.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=popover&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/../../ui/popover.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/../../ui/popover.tsx`.
 - Observed selectors in rendered page: `[data-slot="popover-trigger"]`, `[data-slot="popover-content"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 1. Preserve anchor and popup behavior. Popover tokens plus foreground/10 ring.
 
@@ -283,7 +283,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 112×28.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=tooltip&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real @agent-ui/react public component with fixed mock props, development fixture; not proof that this surface is installed in default composition.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/../../ui/tooltip.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/../../ui/tooltip.tsx`.
 - Observed selectors in rendered page: `[data-slot="tooltip-trigger"]`, `[data-slot="tooltip-content"]`, `[data-slot="tooltip-arrow"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 1. Preserve trigger/placement. Tooltip uses foreground/background, not popover tokens.
 
@@ -295,7 +295,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 672×102.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=light&scenario=markdown-showcase`.
 - Origin/data: Real canonical Composer in isolated ConversationRuntimeProvider.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback.
 
@@ -307,7 +307,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 900×760.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=light&scenario=markdown-showcase`.
 - Origin/data: Actual ConversationThread driven by built-in AG-UI markdown-showcase. Scroll position as rendered, full viewport context retained.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="aui_user-message-root"]`, `[data-slot="aui_assistant-message-root"]`, `[data-slot="aui_assistant-message-content"]`, `[data-slot="aui_assistant-message-parts"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="aui_assistant-response-footer"]`, `[data-slot="assistant-ui-copy-action-idle"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback.
 
@@ -319,7 +319,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 672×102.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=dark&scenario=markdown-showcase`.
 - Origin/data: Real canonical Composer in isolated ConversationRuntimeProvider.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback.
 
@@ -331,7 +331,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 900×760.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=dark&scenario=markdown-showcase`.
 - Origin/data: Actual ConversationThread driven by built-in AG-UI markdown-showcase. Scroll position as rendered, full viewport context retained.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="aui_user-message-root"]`, `[data-slot="aui_assistant-message-root"]`, `[data-slot="aui_assistant-message-content"]`, `[data-slot="aui_assistant-message-parts"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="aui_assistant-response-footer"]`, `[data-slot="assistant-ui-copy-action-idle"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback.
 
@@ -343,7 +343,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 672×102.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=violet&scenario=markdown-showcase`.
 - Origin/data: Real canonical Composer in isolated ConversationRuntimeProvider.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback.
 
@@ -355,7 +355,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 900×760.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=violet&scenario=markdown-showcase`.
 - Origin/data: Actual ConversationThread driven by built-in AG-UI markdown-showcase. Scroll position as rendered, full viewport context retained.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="aui_user-message-root"]`, `[data-slot="aui_assistant-message-root"]`, `[data-slot="aui_assistant-message-content"]`, `[data-slot="aui_assistant-message-parts"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="aui_assistant-response-footer"]`, `[data-slot="assistant-ui-copy-action-idle"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback.
 
@@ -367,7 +367,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 900×760.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real trigger components; fixture mention source deliberately supplies success, empty, and error.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`, `packages/react/src/internal/conversation-composer-triggers.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`, `packages/plugins/src/internal/conversation-composer-triggers.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="composer-trigger-popover"]`, `[data-slot="composer-trigger-popover-items"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback. Preserve selection/async errors, retry and raw directive result. Result captures currently show encoded directives as textarea text; do not assume styled chips exist.
 
@@ -379,7 +379,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 900×760.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real trigger components; fixture mention source deliberately supplies success, empty, and error.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`, `packages/react/src/internal/conversation-composer-triggers.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`, `packages/plugins/src/internal/conversation-composer-triggers.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="composer-trigger-popover"]`, `[data-slot="composer-trigger-popover-items"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback. Preserve selection/async errors, retry and raw directive result. Result captures currently show encoded directives as textarea text; do not assume styled chips exist.
 
@@ -391,7 +391,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 900×760.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real trigger components; fixture mention source deliberately supplies success, empty, and error.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`, `packages/react/src/internal/conversation-composer-triggers.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`, `packages/plugins/src/internal/conversation-composer-triggers.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="composer-trigger-popover"]`, `[data-slot="composer-trigger-popover-items"]`, `[data-slot="composer-trigger-error"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback. Preserve selection/async errors, retry and raw directive result. Result captures currently show encoded directives as textarea text; do not assume styled chips exist.
 
@@ -403,7 +403,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 900×760.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real trigger components; fixture mention source deliberately supplies success, empty, and error.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`, `packages/react/src/internal/conversation-composer-triggers.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`, `packages/plugins/src/internal/conversation-composer-triggers.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="composer-trigger-popover"]`, `[data-slot="composer-trigger-popover-items"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback. Preserve selection/async errors, retry and raw directive result. Result captures currently show encoded directives as textarea text; do not assume styled chips exist.
 
@@ -427,7 +427,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 224×626.
 - Capture URL: `http://127.0.0.1:5186/theme-showcase.html`.
 - Origin/data: Real ThreadList public surfaces with fixture thread binding. Showcase samples are not product Messages.
-- Relevant files: `examples/creator-embedded-host/src/theme-showcase.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx`, `packages/react/src/internal/conversation-thread-list-item.tsx`.
+- Relevant files: `examples/creator-embedded-host/src/theme-showcase.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx`, `packages/plugins/src/internal/conversation-thread-list-item.tsx`.
 - Observed selectors in rendered page: `[data-slot="native-select-wrapper"]`, `[data-slot="native-select"]`, `[data-slot="native-select-option"]`, `[data-slot="native-select-icon"]`, `[data-slot="aui_thread-list-root"]`, `[data-slot="aui_thread-list-new"]`, `[data-slot="aui_thread-list-item"]`, `[data-slot="aui_thread-list-item-trigger"]`, `[data-slot="aui_thread-list-item-title"]`, `[data-slot="button"]`, `[data-slot="popover-trigger"]`, `[data-slot="tool-call"]`, `[data-slot="collapsible-trigger"]`, `[data-slot="collapsible-content"]`, `[data-slot="collapsible"]`, `[data-slot="source"]`, `[data-slot="source-icon"]`, `[data-slot="source-title"]`, `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 2. Preserve existing new-chat/thread item/control hierarchy. Thread binding is fixture-only; no sidebar in embedded default.
 
@@ -439,7 +439,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 390×844; primary PNG: 390×844.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&theme=light&scenario=reasoning-tool-success`.
 - Origin/data: Real canonical thread/composer at narrow viewport; fixture outer padding 48px is not production layout.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback.
 
@@ -451,7 +451,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 600×20.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=quote&scenario=reasoning-tool-success&theme=light`.
 - Origin/data: Actual public component, fixed props; does not assert default installation.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/quote.aui.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/quote.aui.tsx`.
 - Observed selectors in rendered page: `[data-slot="quote-block"]`, `[data-slot="quote-block-icon"]`, `[data-slot="quote-block-text"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 2. Preserve quote text and source message identity.
 
@@ -463,7 +463,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 600×232.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=subagents&scenario=reasoning-tool-success&theme=light`.
 - Origin/data: Actual public component, fixed props; does not assert default installation.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.tsx`.
 - Observed selectors in rendered page: `[data-slot="subagent-list"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 2. Preserve agent/model/progress/completion and summary distinction.
 
@@ -475,7 +475,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 600×242.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=question&scenario=reasoning-tool-success&theme=light`.
 - Origin/data: Real QuestionFlow / OptionList selected state.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/option-list.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/option-list.tsx`.
 - Observed selectors in rendered page: `[data-slot="option-list"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Level 3 product flow / Level 4 upstream internals. Preserve steps, choices, submission and receipt model. Additional selected shot is submitting/waiting for receipt.
 
@@ -487,7 +487,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 672×166.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=reasoning-tool-success&theme=light`.
 - Origin/data: Actual Composer PDF attachment with official PDF-only DemoAttachmentAdapter, mock PDF bytes; no claim of PDF content validation.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx`, `packages/mock-agent/src/demo-attachment-adapter.ts`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx`, `packages/mock-agent/src/demo-attachment-adapter.ts`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="avatar"]`, `[data-slot="avatar-fallback"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback. Actual PDF tile; filename is tooltip presentation, not always visible text.
 
@@ -499,7 +499,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 672×102.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=reasoning-tool-success&theme=light`.
 - Origin/data: Real focus state, not a CSS reconstruction.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback.
 
@@ -511,7 +511,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 900×760.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=reasoning-tool-success&theme=light`.
 - Origin/data: Actual current public Thread with AG-UI reasoning-tool-success, current root/tokens. Fixture tool registry is empty: actual fallback is visible.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="aui_user-message-root"]`, `[data-slot="aui_assistant-message-root"]`, `[data-slot="aui_assistant-message-content"]`, `[data-slot="aui_assistant-message-parts"]`, `[data-slot="aui_chain-of-thought"]`, `[data-slot="reasoning-root"]`, `[data-slot="reasoning-trigger"]`, `[data-slot="reasoning-trigger-icon"]`, `[data-slot="reasoning-trigger-label"]`, `[data-slot="reasoning-trigger-chevron"]`, `[data-slot="tool-group-root"]`, `[data-slot="tool-group-trigger"]`, `[data-slot="tool-group-trigger-label"]`, `[data-slot="tool-group-trigger-chevron"]`, `[data-slot="aui_assistant-response-footer"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="assistant-ui-copy-action-idle"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback.
 
@@ -523,7 +523,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 900×760.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=reasoning-tool-success&theme=dark`.
 - Origin/data: Actual current public Thread with AG-UI reasoning-tool-success, current root/tokens. Fixture tool registry is empty: actual fallback is visible.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="aui_user-message-root"]`, `[data-slot="aui_assistant-message-root"]`, `[data-slot="aui_assistant-message-content"]`, `[data-slot="aui_assistant-message-parts"]`, `[data-slot="aui_chain-of-thought"]`, `[data-slot="reasoning-root"]`, `[data-slot="reasoning-trigger"]`, `[data-slot="reasoning-trigger-icon"]`, `[data-slot="reasoning-trigger-label"]`, `[data-slot="reasoning-trigger-chevron"]`, `[data-slot="tool-group-root"]`, `[data-slot="tool-group-trigger"]`, `[data-slot="tool-group-trigger-label"]`, `[data-slot="tool-group-trigger-chevron"]`, `[data-slot="aui_assistant-response-footer"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="assistant-ui-copy-action-idle"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback.
 
@@ -535,7 +535,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 900×760.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=reasoning-tool-success&theme=violet`.
 - Origin/data: Actual current public Thread with AG-UI reasoning-tool-success, current root/tokens. Fixture tool registry is empty: actual fallback is visible.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="aui_user-message-root"]`, `[data-slot="aui_assistant-message-root"]`, `[data-slot="aui_assistant-message-content"]`, `[data-slot="aui_assistant-message-parts"]`, `[data-slot="aui_chain-of-thought"]`, `[data-slot="reasoning-root"]`, `[data-slot="reasoning-trigger"]`, `[data-slot="reasoning-trigger-icon"]`, `[data-slot="reasoning-trigger-label"]`, `[data-slot="reasoning-trigger-chevron"]`, `[data-slot="tool-group-root"]`, `[data-slot="tool-group-trigger"]`, `[data-slot="tool-group-trigger-label"]`, `[data-slot="tool-group-trigger-chevron"]`, `[data-slot="aui_assistant-response-footer"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="assistant-ui-copy-action-idle"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback.
 
@@ -547,7 +547,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 900×760.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=markdown-showcase&theme=light`.
 - Origin/data: Actual streamed Markdown at top scroll position.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="aui_user-message-root"]`, `[data-slot="aui_assistant-message-root"]`, `[data-slot="aui_assistant-message-content"]`, `[data-slot="aui_assistant-message-parts"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="aui_assistant-response-footer"]`, `[data-slot="assistant-ui-copy-action-idle"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback.
 
@@ -559,7 +559,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 900×760.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=markdown-showcase&theme=light`.
 - Origin/data: Actual streamed Markdown at middle scroll position.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="aui_user-message-root"]`, `[data-slot="aui_assistant-message-root"]`, `[data-slot="aui_assistant-message-content"]`, `[data-slot="aui_assistant-message-parts"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="aui_assistant-response-footer"]`, `[data-slot="assistant-ui-copy-action-idle"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback.
 
@@ -571,7 +571,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 672×102.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=reasoning-tool-success&theme=light`.
 - Origin/data: Actual selected mention result in Composer.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`, `packages/react/src/internal/conversation-composer-triggers.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`, `packages/plugins/src/internal/conversation-composer-triggers.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback. Preserve selection/async errors, retry and raw directive result. Result captures currently show encoded directives as textarea text; do not assume styled chips exist.
 
@@ -583,7 +583,7 @@ Compare `conversation-full-dark.png` / `conversation-full-violet.png`; use Compo
 - Viewport: 1440×900; primary PNG: 672×102.
 - Capture URL: `http://127.0.0.1:5186/dev/violet-input/index.html?surface=conversation&scenario=reasoning-tool-success&theme=light`.
 - Origin/data: Actual selected slash directive result in Composer.
-- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/react/src/public.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`, `packages/react/src/internal/conversation-composer-triggers.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx`, `packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.tsx`.
+- Relevant files: `examples/creator-embedded-host/dev/violet-input/fixture.tsx`, `packages/plugins/src/public.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx`, `packages/plugins/src/internal/conversation-composer-triggers.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx`, `packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.tsx`.
 - Observed selectors in rendered page: `[data-slot="aui_thread-viewport"]`, `[data-slot="aui_message-group"]`, `[data-slot="tooltip-trigger"]`, `[data-slot="aui_composer-shell"]`, `[data-slot="aui_composer-before-input"]`, `[data-slot="aui_composer-leading-actions"]`, `[data-slot="aui_composer-trailing-actions"]`. These are observed page-wide hooks; verify component scope before overriding.
 - Design freedom / current visual characteristics / must preserve: Mixed: Level 2 composer / Level 4 message internals. Actual current public Thread driven by AG-UI Mock. Preserve controls/message anatomy; fixture welcome is upstream fallback. Preserve selection/async errors, retry and raw directive result. Result captures currently show encoded directives as textarea text; do not assume styled chips exist.
 

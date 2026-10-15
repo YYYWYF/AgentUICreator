@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useConversationCanAnswerToolCall, type ConversationToolCallProps } from "@za38.03/agent-ui-react";
+import { useConversationCanAnswerToolCall, type ConversationToolCallProps } from "@za38.03/agent-ui-plugins";
 import { USER_DETAIL_FIELDS, parseUserDetailsResult, type UserDetails } from "../../../agent-contract/human-tools/collect-user-details";
 import { useAgentUILocale } from "../../i18n/useAgentUILocale";
 import "./collect-user-details.css";

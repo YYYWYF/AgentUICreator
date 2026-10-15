@@ -1,7 +1,7 @@
 import {
   createConversationToolkit as createToolkit,
   type ConversationToolkit,
-} from "@za38.03/agent-ui-react";
+} from "@za38.03/agent-ui-plugins";
 
 import { SearchFilesToolUI } from "./SearchFilesToolUI";
 export interface CreateConversationToolkitOptions {}

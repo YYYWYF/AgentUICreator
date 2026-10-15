@@ -6,7 +6,7 @@ import { mergeEnvironmentFileValues, parseEnvironmentFile } from "./run-python-t
 import { spawnPnpmSync } from "./pnpm-process.mjs";
 
 const workspaceRoot = fileURLToPath(new URL("..", import.meta.url));
-const pythonRoot = path.join(workspaceRoot, "packages/creator-python");
+const pythonRoot = path.join(workspaceRoot, "packages/creator/python");
 const environment = mergeEnvironmentFileValues(process.env, parseEnvironmentFile(
   await readFile(path.join(workspaceRoot, ".env.creator.local"), "utf8"),
 ));

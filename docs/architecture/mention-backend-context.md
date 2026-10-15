@@ -16,7 +16,7 @@ ConversationMentionSource.search("张")
 
 ## Shared text contract
 
-`@agent-ui/runtime-core` exports `AgentUIDirectiveReference`, `AgentUIDirectiveSegment`, `parseAgentUIDirectives` and `trySerializeAgentUIDirective`. This pure codec has no React, assistant-ui or AG-UI dependencies. React adapts directive segments to assistant-ui mention segments internally; Mention insertion, Slash directives and historical DirectiveText use the same contract.
+`@agent-ui/core` exports `AgentUIDirectiveReference`, `AgentUIDirectiveSegment`, `parseAgentUIDirectives` and `trySerializeAgentUIDirective`. This pure codec has no React, assistant-ui or AG-UI dependencies. React adapts directive segments to assistant-ui mention segments internally; Mention insertion, Slash directives and historical DirectiveText use the same contract.
 
 The wire format remains `:type[label]{name=id}`; when ID equals label, `{name=…}` is omitted. Unclosed or empty bracket directives remain ordinary text. Parsing retains the pinned upstream grammar, including its optional name attribute behavior: `:user[x]{name=}` parses the valid `:user[x]` prefix and leaves `{name=}` as text. Serialization rejects unsafe references rather than escaping or changing the wire format. Unknown types can be parsed; presentation and backend resolution independently select supported types.
 
@@ -56,4 +56,4 @@ Codec tests cover mixed text, multiple/unknown directive types, omitted redundan
 
 Behavioral/browser acceptance is intentionally not run for this implementation, as requested.
 
-Implementation checks: runtime-core full suite and typecheck, React directive conformance and Composer trigger regression, Mock Backend focused resolver/HTTP/runner/catalog regression, and builds for runtime-core, React and Mock Agent passed. React package-wide typecheck remains blocked by the existing missing jsdom declaration in `tests/violet-brand.test.tsx` (TS7016); the React source/declaration build passes. Migrated/full workspace checks and behavioral acceptance were not run.
+Implementation checks: core full suite and typecheck, React directive conformance and Composer trigger regression, Mock Backend focused resolver/HTTP/runner/catalog regression, and builds for core, React and Mock Agent passed. React package-wide typecheck remains blocked by the existing missing jsdom declaration in `tests/violet-brand.test.tsx` (TS7016); the React source/declaration build passes. Migrated/full workspace checks and behavioral acceptance were not run.

@@ -2,7 +2,7 @@ import type { AgentSubscriber } from "@ag-ui/client";
 import type {
   AgentApplicationEventListener,
   AgentRuntime,
-} from "@za38.03/agent-ui-runtime-core";
+} from "@za38.03/agent-ui-core";
 
 export interface ConversationSubscribableAgent {
   subscribe(subscriber: AgentSubscriber): { unsubscribe(): void };

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import React from "react";
 import TestRenderer from "react-test-renderer";
-import { Button, AgentUIRoot } from "@za38.03/agent-ui-react";
+import { Button, AgentUIRoot } from "@za38.03/agent-ui-plugins";
 import { LayoutRenderer } from "@za38.03/agent-ui-renderer";
 import {
   ConversationRuntimeProvider, createEphemeralConversationThreadBinding,
@@ -13,7 +13,7 @@ import {
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const { act, create } = TestRenderer;
 const runtimeRequire = createRequire(import.meta.resolve("@za38.03/agent-ui-runtime"));
-const uiRequire = createRequire(import.meta.resolve("@za38.03/agent-ui-react"));
+const uiRequire = createRequire(import.meta.resolve("@za38.03/agent-ui-plugins"));
 assert.equal(runtimeRequire("react"), React, "Runtime must share the host React instance");
 assert.equal(uiRequire("react"), React, "UI must share the host React instance");
 const { HttpAgent } = runtimeRequire("@ag-ui/client");

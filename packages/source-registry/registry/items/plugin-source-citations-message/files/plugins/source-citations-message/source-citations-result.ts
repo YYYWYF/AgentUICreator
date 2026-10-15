@@ -1,4 +1,4 @@
-import type { ConversationSourcePart } from "@za38.03/agent-ui-react";
+import type { ConversationSourcePart } from "@za38.03/agent-ui-plugins";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);

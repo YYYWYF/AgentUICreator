@@ -45,11 +45,11 @@
 | --- | --- | --- |
 | AppUIModel Zod 与跨字段校验 | `examples/creator-host-sandbox/src/agent-ui/framework/contracts/app-ui-model.ts` | 继续作为目标项目事实源，不在 Creator 复制 Schema |
 | Plugin Contract 与 Service 生命周期 | `framework/contracts/ui-plugin.ts`、`runtime/plugins/PluginServiceRuntime.ts` | 保留，不引入动态 Package 模型 |
-| Creator 文件和命令权限 | `packages/creator-python/agent_ui_creator/minimal_agent/`、`domain_agent/` | Python PathPolicy 与领域工具统一拥有 |
-| mutation revision 与修改回执 | `packages/creator-python/agent_ui_creator/activity/recorder.py` | 稳定 run id、hash 与 transaction 记录 |
-| Verified Completion Gate | `packages/creator-python/agent_ui_creator/domain_agent/completion_gate.py` | 绑定当前 revision 的验证与 runtime diagnostics 证据 |
-| AG-UI 流、压缩快照和新会话 | `packages/creator-python/agent_ui_creator/streaming/`、`packages/creator/src/ui/CreatorWorkbench.tsx` | Python 发流，Workbench 消费并保存会话 |
-| 本地 JSONL 诊断日志 | `packages/creator-python/agent_ui_creator/observability/run_logger.py` | 与 transaction journal 分开保存 |
+| Creator 文件和命令权限 | `packages/creator/python/agent_ui_creator/minimal_agent/`、`domain_agent/` | Python PathPolicy 与领域工具统一拥有 |
+| mutation revision 与修改回执 | `packages/creator/python/agent_ui_creator/activity/recorder.py` | 稳定 run id、hash 与 transaction 记录 |
+| Verified Completion Gate | `packages/creator/python/agent_ui_creator/domain_agent/completion_gate.py` | 绑定当前 revision 的验证与 runtime diagnostics 证据 |
+| AG-UI 流、压缩快照和新会话 | `packages/creator/python/agent_ui_creator/streaming/`、`packages/creator/src/ui/CreatorWorkbench.tsx` | Python 发流，Workbench 消费并保存会话 |
+| 本地 JSONL 诊断日志 | `packages/creator/python/agent_ui_creator/observability/run_logger.py` | 与 transaction journal 分开保存 |
 | Plugin Error Boundary | `runtime/plugins/PluginErrorBoundary.tsx` | 增加开发期结构化上报出口 |
 
 ### 3.2 已知基线问题
@@ -439,12 +439,12 @@ examples/creator-host-sandbox/package.json
 建议新增：
 
 ```text
-packages/creator-python/agent_ui_creator/operator/client.py
-packages/creator-python/agent_ui_creator/operator/models.py
-packages/creator-python/agent_ui_creator/domain_tools/operator_tools.py
-packages/creator-python/agent_ui_creator/domain_state/observation_context.py
-packages/creator-python/tests/test_operator_client.py
-packages/creator-python/tests/test_domain_tools.py
+packages/creator/python/agent_ui_creator/operator/client.py
+packages/creator/python/agent_ui_creator/operator/models.py
+packages/creator/python/agent_ui_creator/domain_tools/operator_tools.py
+packages/creator/python/agent_ui_creator/domain_state/observation_context.py
+packages/creator/python/tests/test_operator_client.py
+packages/creator/python/tests/test_domain_tools.py
 ```
 
 正式协议实现由 Operator package 持有；Host 初始化安装固定 Node JSON 控制入口：
@@ -466,10 +466,10 @@ packages/operator/src/handler.ts
 需要修改：
 
 ```text
-packages/creator-python/agent_ui_creator/domain_agent/agent.py
-packages/creator-python/agent_ui_creator/server.py
-packages/creator-python/agent_ui_creator/streaming/deepagent_v3_runner.py
-packages/creator-python/agent_ui_creator/domain_agent/prompt.py
+packages/creator/python/agent_ui_creator/domain_agent/agent.py
+packages/creator/python/agent_ui_creator/server.py
+packages/creator/python/agent_ui_creator/streaming/deepagent_v3_runner.py
+packages/creator/python/agent_ui_creator/domain_agent/prompt.py
 packages/creator/src/PythonCreatorClient.ts
 ```
 
@@ -506,8 +506,8 @@ examples/creator-host-sandbox/tests/app-ui-transaction.test.ts
 Creator 建议新增：
 
 ```text
-packages/creator-python/agent_ui_creator/app_ui_model/mutation_tool.py
-packages/creator-python/tests/test_app_ui_model_mutation.py
+packages/creator/python/agent_ui_creator/app_ui_model/mutation_tool.py
+packages/creator/python/tests/test_app_ui_model_mutation.py
 ```
 
 实施步骤：
@@ -550,22 +550,22 @@ packages/creator-python/tests/test_app_ui_model_mutation.py
 建议新增：
 
 ```text
-packages/creator-python/agent_ui_creator/files/observation_store.py
-packages/creator-python/agent_ui_creator/transactions/store.py
-packages/creator-python/agent_ui_creator/transactions/
-packages/creator-python/tests/test_creator_file_state.py
-packages/creator-python/tests/test_creator_transactions.py
-packages/creator-python/tests/test_creator_activity.py
+packages/creator/python/agent_ui_creator/files/observation_store.py
+packages/creator/python/agent_ui_creator/transactions/store.py
+packages/creator/python/agent_ui_creator/transactions/
+packages/creator/python/tests/test_creator_file_state.py
+packages/creator/python/tests/test_creator_transactions.py
+packages/creator/python/tests/test_creator_activity.py
 ```
 
 建议修改：
 
 ```text
-packages/creator-python/agent_ui_creator/minimal_agent/
-packages/creator-python/agent_ui_creator/activity/recorder.py
+packages/creator/python/agent_ui_creator/minimal_agent/
+packages/creator/python/agent_ui_creator/activity/recorder.py
 packages/creator/src/receiptTypes.ts
 packages/creator/src/PythonCreatorClient.ts
-packages/creator-python/agent_ui_creator/streaming/
+packages/creator/python/agent_ui_creator/streaming/
 packages/creator/src/ui/CreatorWorkbench.tsx
 ```
 
@@ -618,8 +618,8 @@ packages/creator/src/ui/CreatorWorkbench.tsx
 源码删除建议新增：
 
 ```text
-packages/creator-python/agent_ui_creator/source_tools/
-packages/creator-python/tests/test_plugin_source_deletion.py
+packages/creator/python/agent_ui_creator/source_tools/
+packages/creator/python/tests/test_plugin_source_deletion.py
 ```
 
 Phase 5 完成删除 preflight、transaction 和测试，但 `CREATOR_PLUGIN_SOURCE_DELETE` 保持关闭；等 Phase 7 的同 run 确认通道完成后再对真实 Creator 会话启用。
@@ -637,7 +637,7 @@ Phase 5 完成删除 preflight、transaction 和测试，但 `CREATOR_PLUGIN_SOU
 需要同步更新：
 
 ```text
-packages/creator-python/agent_ui_creator/domain_agent/prompt.py
+packages/creator/python/agent_ui_creator/domain_agent/prompt.py
 packages/creator/skills/app-ui-model/SKILL.md
 packages/creator/skills/ui-plugin-development/SKILL.md
 packages/creator/skills/ui-debugging/SKILL.md
@@ -677,11 +677,11 @@ examples/creator-host-sandbox/tests/plugin-runtime-diagnostics.test.tsx
 Creator 建议新增或修改：
 
 ```text
-packages/creator-python/agent_ui_creator/runtime_diagnostics/store.py
-packages/creator-python/agent_ui_creator/runtime_diagnostics/tool.py
+packages/creator/python/agent_ui_creator/runtime_diagnostics/store.py
+packages/creator/python/agent_ui_creator/runtime_diagnostics/tool.py
 packages/creator/src/vitePlugin.ts
-packages/creator-python/agent_ui_creator/domain_agent/agent.py
-packages/creator-python/tests/test_runtime_diagnostic_store.py
+packages/creator/python/agent_ui_creator/domain_agent/agent.py
+packages/creator/python/tests/test_runtime_diagnostic_store.py
 apps/creator-workbench/src/main.tsx
 ```
 
@@ -724,21 +724,21 @@ apps/creator-workbench/src/main.tsx
 建议新增：
 
 ```text
-packages/creator-python/agent_ui_creator/user_questions/broker.py
-packages/creator-python/agent_ui_creator/user_questions/tool.py
-packages/creator-python/agent_ui_creator/user_questions/models.py
-packages/creator-python/tests/test_creator_user_questions.py
+packages/creator/python/agent_ui_creator/user_questions/broker.py
+packages/creator/python/agent_ui_creator/user_questions/tool.py
+packages/creator/python/agent_ui_creator/user_questions/models.py
+packages/creator/python/tests/test_creator_user_questions.py
 ```
 
 建议修改：
 
 ```text
-packages/creator-python/agent_ui_creator/streaming/
+packages/creator/python/agent_ui_creator/streaming/
 packages/creator/src/vitePlugin.ts
 packages/creator/src/shared.ts
 packages/creator/src/ui/CreatorWorkbench.tsx
 packages/creator/src/ui/creator-workbench.css
-packages/creator-python/agent_ui_creator/domain_agent/prompt.py
+packages/creator/python/agent_ui_creator/domain_agent/prompt.py
 ```
 
 传输设计：
@@ -787,15 +787,15 @@ packages/creator-python/agent_ui_creator/domain_agent/prompt.py
 建议修改：
 
 ```text
-packages/creator-python/agent_ui_creator/domain_agent/completion_gate.py
-packages/creator-python/agent_ui_creator/activity/recorder.py
+packages/creator/python/agent_ui_creator/domain_agent/completion_gate.py
+packages/creator/python/agent_ui_creator/activity/recorder.py
 packages/creator/src/receiptTypes.ts
-packages/creator-python/agent_ui_creator/model_factory.py
+packages/creator/python/agent_ui_creator/model_factory.py
 packages/creator/src/ui/CreatorWorkbench.tsx
-packages/creator-python/agent_ui_creator/domain_agent/prompt.py
+packages/creator/python/agent_ui_creator/domain_agent/prompt.py
 packages/creator/skills/*/SKILL.md
-packages/creator-python/tests/test_plugin_development_golden.py
-packages/creator-python/tests/test_model_factory.py
+packages/creator/python/tests/test_plugin_development_golden.py
+packages/creator/python/tests/test_model_factory.py
 ```
 
 验收场景：

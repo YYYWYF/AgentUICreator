@@ -33,4 +33,4 @@ export const agentUIThemeConfig = { theme: "violet" } satisfies AgentUIThemeConf
 
 The headless Theme Provider supplies `getTheme/setTheme/subscribe`; the optional
 `theme-switch` plugin is a three-preset picker. Upstream snapshot and maintenance
-instructions live in `packages/react/src/theme/UPSTREAM.md`.
+instructions live in `packages/plugins/src/theme/UPSTREAM.md`.

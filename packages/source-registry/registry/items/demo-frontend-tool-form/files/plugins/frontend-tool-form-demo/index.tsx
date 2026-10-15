@@ -1,5 +1,5 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
-import { useConversationThread } from "@za38.03/agent-ui-react";
+import { useConversationThread } from "@za38.03/agent-ui-plugins";
 import { FormProvider, useForm } from "react-hook-form";
 import { usePluginService } from "../../runtime/plugins";
 import { DEMO_FORM_SERVICE, DEMO_FORM_FIELDS, type DemoFormValues, type DemoFormService, type DemoFormSubmitResult } from "../../services/demo-form";

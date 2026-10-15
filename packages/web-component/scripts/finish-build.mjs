@@ -17,4 +17,4 @@ for (const name of ["agent-ui.js", "agent-ui.es.js"]) {
   await writeFile(file, source.replace(marker, () => JSON.stringify(pluginCSS)));
 }
 await writeFile(new URL("types.d.ts", dist), 'export * from "./types/src/register.js";\n');
-await copyFile(new URL("../../react/THIRD_PARTY_NOTICES.md", import.meta.url), new URL("THIRD_PARTY_NOTICES.md", dist));
+await copyFile(new URL("../../plugins/THIRD_PARTY_NOTICES.md", import.meta.url), new URL("THIRD_PARTY_NOTICES.md", dist));

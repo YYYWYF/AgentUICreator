@@ -9,4 +9,4 @@ plans `/agent-ui.js` without writing, and copies it to `public/agent-ui.js` duri
 approved apply. Consumer dependencies and the original entry stay unchanged.
 
 Live guide/apply/manual-check scenarios are in
-`packages/creator-python/tests/live/test_vue_integration.py`.
+`packages/creator/python/tests/live/test_vue_integration.py`.

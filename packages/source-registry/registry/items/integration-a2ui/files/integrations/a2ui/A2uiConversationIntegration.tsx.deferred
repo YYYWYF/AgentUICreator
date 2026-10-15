@@ -1,6 +1,6 @@
-import type { GenerativeUILibrary } from "@za38.03/agent-ui-react/generative-ui";
+import type { GenerativeUILibrary } from "@za38.03/agent-ui-plugins/generative-ui";
 import { useMemo, type ReactNode } from "react";
-import { ConversationToolkitProvider } from "@za38.03/agent-ui-react";
+import { ConversationToolkitProvider } from "@za38.03/agent-ui-plugins";
 import { useConversationA2uiAction } from "@za38.03/agent-ui-runtime";
 import { a2uiComponents } from "./components";
 import { createA2uiConversationToolkit } from "./create-a2ui-toolkit";

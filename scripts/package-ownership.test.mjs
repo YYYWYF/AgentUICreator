@@ -6,7 +6,7 @@ import test from "node:test";
 import { publicModules } from "./build-public-packages.mjs";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const manifest = async name => JSON.parse(await readFile(path.join(root, "packages", name, "package.json"), "utf8"));
-test("nine independently versioned public packages own Bootstrap and Mock subpaths", async () => {
+test("eight independently versioned public packages own Bootstrap and Mock subpaths", async () => {
   const published = [];
   for (const name of await readdir(path.join(root, "packages"))) {
     let pkg;
@@ -17,6 +17,8 @@ test("nine independently versioned public packages own Bootstrap and Mock subpat
   const control = await manifest("operator"), creator = await manifest("creator");
   assert(control.exports["./bootstrap"]);
   assert(creator.exports["./mock-agent"]);
+  const plugins = await manifest("plugins");
+  for (const entry of [".", "./assistant-ui-composer", "./styles.css", "./theme", "./lexical", "./generative-ui"]) assert(plugins.exports[entry], entry);
   for (const name of publicModules) {
     const pkg = await manifest(name);
     assert.equal(pkg.name, `@za38.03/agent-ui-${name}`);
@@ -53,5 +55,5 @@ test("logical export paths stay portable and bootstrap presets use native file U
     const file = pathApi.join(base, "dist", "bootstrap", "index.js");
     assert.equal(pathApi.resolve(pathApi.dirname(file), "../../presets"), pathApi.join(base, "presets"));
   }
-  await access(path.join(root, "packages/react/dist/theme/theme-contract.d.ts"));
+  await access(path.join(root, "packages/plugins/dist/theme/theme-contract.d.ts"));
 });

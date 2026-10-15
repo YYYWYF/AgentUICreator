@@ -48,7 +48,7 @@ it.skip("installs a pluginless/tool-less A2UI resource without changing AppUIMod
 });
 it.skip("reports incompatible optional dependencies before writing source", async () => {
   const f = await fixture();
-  await writeFile(path.join(f.root, "node_modules/@za38.03/agent-ui-react/package.json"), JSON.stringify({ name: "@za38.03/agent-ui-react", version: "0.0.0" }));
+  await writeFile(path.join(f.root, "node_modules/@za38.03/agent-ui-plugins/package.json"), JSON.stringify({ name: "@za38.03/agent-ui-plugins", version: "0.0.0" }));
   await expect(installMockResource(f.root, "integration/a2ui")).rejects.toMatchObject({ code: "AGENT_UI_PACKAGE_REQUIREMENTS_UNMET" });
   await expect(readFile(path.join(f.sourceRoot, "integrations/a2ui/index.ts"))).rejects.toMatchObject({ code: "ENOENT" });
 });
@@ -75,16 +75,16 @@ it.skip("installs the Official A2UI Resource and supplements missing dependencie
   const f = await fixture();
   const manifestPath = path.join(f.root, "package.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-  delete manifest.dependencies["@za38.03/agent-ui-react"];
+  delete manifest.dependencies["@za38.03/agent-ui-plugins"];
   await writeFile(manifestPath, JSON.stringify(manifest));
-  await rm(path.join(f.root, "node_modules/@za38.03/agent-ui-react"), { recursive: true });
+  await rm(path.join(f.root, "node_modules/@za38.03/agent-ui-plugins"), { recursive: true });
   const model = await readFile(f.modelPath, "utf8");
   const runPackages = vi.fn(async (_root: string, command: { command: string; args: string[] }) => {
-    expect(command).toEqual({ command: "npm", args: ["install", "--save", "--save-exact", "@za38.03/agent-ui-react@0.1.6"] });
-    manifest.dependencies["@za38.03/agent-ui-react"] = "0.1.6";
+    expect(command).toEqual({ command: "npm", args: ["install", "--save", "--save-exact", "@za38.03/agent-ui-plugins@0.1.6"] });
+    manifest.dependencies["@za38.03/agent-ui-plugins"] = "0.1.6";
     await writeFile(manifestPath, JSON.stringify(manifest));
-    const directory = path.join(f.root, "node_modules/@za38.03/agent-ui-react"); await mkdir(directory, { recursive: true });
-    await writeFile(path.join(directory, "package.json"), JSON.stringify({ name: "@za38.03/agent-ui-react", version: "0.1.6" }));
+    const directory = path.join(f.root, "node_modules/@za38.03/agent-ui-plugins"); await mkdir(directory, { recursive: true });
+    await writeFile(path.join(directory, "package.json"), JSON.stringify({ name: "@za38.03/agent-ui-plugins", version: "0.1.6" }));
   });
   await installOfficialAgentUIResource(f.root, "a2ui", { runPackages });
   expect(runPackages).toHaveBeenCalledTimes(1);
@@ -100,16 +100,16 @@ it.skip("does not install Source or report readiness after package installation 
   const f = await fixture();
   const manifestPath = path.join(f.root, "package.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-  delete manifest.dependencies["@za38.03/agent-ui-react"];
+  delete manifest.dependencies["@za38.03/agent-ui-plugins"];
   await writeFile(manifestPath, JSON.stringify(manifest));
-  await rm(path.join(f.root, "node_modules/@za38.03/agent-ui-react"), { recursive: true });
+  await rm(path.join(f.root, "node_modules/@za38.03/agent-ui-plugins"), { recursive: true });
   await expect(installOfficialAgentUIResource(f.root, "a2ui", { runPackages: async () => { throw new Error("package manager failed"); } })).rejects.toMatchObject({ code: "RESOURCE_INSTALL_FAILED", technicalDetails: { message: "package manager failed" } });
   await expect(readFile(path.join(f.sourceRoot, "integrations/a2ui/index.ts"))).rejects.toMatchObject({ code: "ENOENT" });
   expect((await inspectScenarioResources(f.root)).items.find(item => item.id === "integration/a2ui")?.status).toBe("not-installed");
-  manifest.dependencies["@za38.03/agent-ui-react"] = "0.1.6";
+  manifest.dependencies["@za38.03/agent-ui-plugins"] = "0.1.6";
   await writeFile(manifestPath, JSON.stringify(manifest));
-  const directory = path.join(f.root, "node_modules/@za38.03/agent-ui-react"); await mkdir(directory, { recursive: true });
-  await writeFile(path.join(directory, "package.json"), JSON.stringify({ name: "@za38.03/agent-ui-react", version: "0.1.6" }));
+  const directory = path.join(f.root, "node_modules/@za38.03/agent-ui-plugins"); await mkdir(directory, { recursive: true });
+  await writeFile(path.join(directory, "package.json"), JSON.stringify({ name: "@za38.03/agent-ui-plugins", version: "0.1.6" }));
   await installOfficialAgentUIResource(f.root, "a2ui");
   expect((await inspectScenarioResources(f.root)).integrationRegistryReady).toBe(true);
 });

@@ -21,6 +21,6 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "dependencies": {
-    "@za38.03/agent-ui-react": "workspace:*"
+    "@za38.03/agent-ui-plugins": "workspace:*"
   }
 }

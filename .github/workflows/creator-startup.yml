@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
-          cache-dependency-path: packages/creator-python/requirements.lock
+          cache-dependency-path: packages/creator/python/requirements.lock
       # No install, build, generated Host or repository Python venv is prepared.
       # The command under test must bootstrap everything through pnpm dev.
       - run: pnpm verify:dev-startup --install-browser

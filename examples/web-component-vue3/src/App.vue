@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, shallowRef } from "vue";
-import { DemoAttachmentAdapter } from "@za38.03/agent-ui-react/demo-attachments";
+import { DemoAttachmentAdapter } from "@za38.03/agent-ui-plugins/demo-attachments";
 import AgentUIWrapper from "./AgentUIWrapper.vue";
 import type { AgentUIConfig } from "@za38.03/agent-ui-web-component";
 const config = shallowRef<AgentUIConfig>({ attachmentAdapter: new DemoAttachmentAdapter(), endpoint: "/agent", conversationDataEndpoint: "/api", locale: "zh-CN", theme: "violet" });

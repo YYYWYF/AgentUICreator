@@ -1,4 +1,4 @@
-import { ConversationActionMoreMenu, ConversationCanonicalResponseExportMarkdownAction } from "@za38.03/agent-ui-react";
+import { ConversationActionMoreMenu, ConversationCanonicalResponseExportMarkdownAction } from "@za38.03/agent-ui-plugins";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
 

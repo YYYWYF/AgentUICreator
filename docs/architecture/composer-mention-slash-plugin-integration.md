@@ -37,7 +37,7 @@ canonical Composer 统一持有一个官方 `Unstable_TriggerPopoverRoot`。两�
 
 ## Mention 来源
 
-公共契约位于 `packages/react/src/public.tsx`：
+公共契约位于 `packages/plugins/src/public.tsx`：
 
 ```ts
 interface ConversationMentionSource {
@@ -63,7 +63,7 @@ interface ConversationMentionItem {
 
 facade 复用官方 live completion hook 进行 debounce、loading 和过期响应隔离，并补充请求取消、来源身份失效和候选校验。查询变化后不显示前一次查询的候选。来源切换、cacheKey 更新、禁用、线程切换或插件卸载会取消关联请求。
 
-每个候选必须通过 runtime-core 产品 codec 的 serialize/parse 往返校验，重复 ID 或非法字段不会进入菜单。搜索失败、空结果、loading、重试和非法候选提示均使用 locale 文案。
+每个候选必须通过 core 产品 codec 的 serialize/parse 往返校验，重复 ID 或非法字段不会进入菜单。搜索失败、空结果、loading、重试和非法候选提示均使用 locale 文案。
 
 选择 Mention 只改变草稿，不发送请求。例如：
 
@@ -73,7 +73,7 @@ facade 复用官方 live completion hook 进行 debounce、loading 和过期响�
 
 HTTP Agent 收到的是包含上述稳定 ID 的普通 user text；本次未改变 AG-UI 协议。AgentUICreator provides a backend reference implementation demonstrating stable directive ID → authorized resolver → AG-UI Context. Production applications supply their own business resolver.
 
-参见 [Mention Backend Context Reference](./mention-backend-context.md)。前后端共享 runtime-core directive codec；Mock 花名册仅用于开发场景，不进入正式默认模板。
+参见 [Mention Backend Context Reference](./mention-backend-context.md)。前后端共享 core directive codec；Mock 花名册仅用于开发场景，不进入正式默认模板。
 
 ## Slash 命令
 

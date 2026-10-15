@@ -1,7 +1,7 @@
 import {
   ConversationActionBarRoot,
   ConversationBranchPicker,
-} from "@za38.03/agent-ui-react";
+} from "@za38.03/agent-ui-plugins";
 import type { UIPluginComponentProps } from "../../../../../src/framework/contracts/ui-plugin";
 
 export function AssistantUiMessageFooterPlugin({

@@ -24,7 +24,7 @@ pnpm test
 pnpm verify:creator-distribution
 ```
 
-安装不能把 macOS 的 node_modules 或 Python .venv 搬到 Windows；在 Windows 上按锁文件重新安装，以获取对应平台的原生二进制。公司 npm 镜像需包含完整锁文件依赖（不仅上表里的直接包），pip 镜像需包含 `packages/creator-python/requirements.lock` 中的依赖和 Windows wheels。通过本机 npm/pnpm 和 pip 配置设置公司镜像，不在仓库提交凭据。
+安装不能把 macOS 的 node_modules 或 Python .venv 搬到 Windows；在 Windows 上按锁文件重新安装，以获取对应平台的原生二进制。公司 npm 镜像需包含完整锁文件依赖（不仅上表里的直接包），pip 镜像需包含 `packages/creator/python/requirements.lock` 中的依赖和 Windows wheels。通过本机 npm/pnpm 和 pip 配置设置公司镜像，不在仓库提交凭据。
 
 从源码拷贝后，在根目录直接执行 `pnpm dev`；该入口自动冻结安装 JS 依赖、构建开发包、初始化平台 Host，并由 Creator 自动准备 Python 环境。UI 启动不需要模型密钥，发起真实模型请求前配置根目录 `.env.creator.local`（参考 `.env.creator.example`）。使用独立 sidecar 时，先运行 `pnpm test:python:setup`，再在一个 PowerShell 窗口执行 `pnpm creator:python`，另一个窗口执行 `pnpm dev`。`creator:python` 已使用 Node 跨平台入口，无需 Bash。模型/API 地址和凭据必须使用公司环境的可访问配置。
 
@@ -43,7 +43,7 @@ Creator distribution CI 包含 Ubuntu 和 Windows；CI 尚未实际执行时，�
 - `pnpm dev --host-port 15176 --workbench-port 15174` 实际启动两台 Vite server 和 Python sidecar；Host、Dock HTTP 均为 200，Chromium 加载两页无 pageerror。检查后已停止本轮服务。没有运行真实模型生成请求。
 - 全仓库 `pnpm build` 仍因保留的 assistant Host 源码与当前 Sidebar 类型合同不匹配而失败；embedded Host 的类型检查也有同类错误。现有源码被判定为 customized，未重置或覆盖。
 - 全仓库 `pnpm typecheck` 仍有 renderer 测试的 NodeNext 导入扩展名 / JSON import attribute 错误。首轮 Vue TypeScript 被误统一到 7.0.2，现已修回图片指定的 5.9.3 并通过定向检查。
-- `pnpm test:ts` 在 renderer 的 3 项语言/主题预期错误处停止（该包 173 passed、3 failed）；runtime-core 31 项、bootstrap 41 项、Source Registry 31 项通过。后续包的全量测试没有继续执行，不能视为全部通过。
+- `pnpm test:ts` 在 renderer 的 3 项语言/主题预期错误处停止（该包 173 passed、3 failed）；core 31 项、bootstrap 41 项、Source Registry 31 项通过。后续包的全量测试没有继续执行，不能视为全部通过。
 - 全量 Python：1057 passed、381 failed、89 skipped。未修改的 HEAD 副本中，对 path_policy / source_grounding 的代表性基线验证为 14 failed、6 passed，确认部分失败早于本轮修改；其余失败未逐一归因。修复了 live diagnostics 测试的相对导入，使全量测试可以正常收集。
 
 本轮还修正了根目录 build/typecheck/test 脚本覆盖准备摘要为旧 `"1"` 标记的问题，避免多个 Host 同时重建共享 dist 而出现 ENOENT/EEXIST；独立资源安装显式使用包管理器的 exact 保存选项，避免生成项目脱离工作区后再次保存浮动版本。
@@ -79,18 +79,18 @@ Creator 的模型仍通过 `langchain-openai` / `ChatOpenAI` 使用 OpenAI Chat 
 公司电脑同步以下六个文件（含新增模块）后，在 Git Bash 的仓库根目录停止旧服务并执行：
 
 ```bash
-./packages/creator-python/.venv/Scripts/python.exe -m pip install -r packages/creator-python/requirements.lock
-./packages/creator-python/.venv/Scripts/python.exe -m pip check
-PYTHONPATH=./packages/creator-python ./packages/creator-python/.venv/Scripts/python.exe -c "import agent_ui_creator.server; print('Creator imports OK')"
+./packages/creator/python/.venv/Scripts/python.exe -m pip install -r packages/creator/python/requirements.lock
+./packages/creator/python/.venv/Scripts/python.exe -m pip check
+PYTHONPATH=./packages/creator/python ./packages/creator/python/.venv/Scripts/python.exe -c "import agent_ui_creator.server; print('Creator imports OK')"
 pnpm dev
 ```
 
-- `packages/creator-python/requirements.lock`
-- `packages/creator-python/pyproject.toml`
-- `packages/creator-python/agent_ui_creator/deepagents_compat.py`
-- `packages/creator-python/agent_ui_creator/minimal_agent/agent.py`
-- `packages/creator-python/agent_ui_creator/domain_agent/agent.py`
-- `packages/creator-python/agent_ui_creator/domain_agent/skills.py`
+- `packages/creator/python/requirements.lock`
+- `packages/creator/python/pyproject.toml`
+- `packages/creator/python/agent_ui_creator/deepagents_compat.py`
+- `packages/creator/python/agent_ui_creator/minimal_agent/agent.py`
+- `packages/creator/python/agent_ui_creator/domain_agent/agent.py`
+- `packages/creator/python/agent_ui_creator/domain_agent/skills.py`
 
 验证在独立 macOS / Python 3.14 环境执行：完整锁定依赖安装、`pip check`、Creator 导入、sidecar 实际启动及鉴权 `/health` 200；280 项定向测试通过，包括四种 Creator 模式、OpenAI SSE 请求、文件读取/编辑、HITL checkpoint 暂停恢复、Skills 加载与分页、工具权限、重试与协议检查。另用 pip 针对 Windows x64 / Python 3.12 做全锁文件二进制依赖 dry-run，解析通过。没有完成 Windows 实机验收、公司镜像安装或真实模型服务调用。
 

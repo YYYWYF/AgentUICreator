@@ -60,7 +60,7 @@ it("creates a project-owned custom Composer, preserves instance Slots and actual
   const result = await createCustomPlugin(root, { pluginId: "company-composer", basedOn: "assistant-ui-composer", replaceInstanceId: "composer-main" }, async staged => {
     await build({ root: staged, configFile: false, logLevel: "silent", build: { write: false,
       lib: { entry: path.join(staged, "src/agent-ui/plugins/registry.generated.ts"), formats: ["es"] },
-    }, resolve: { alias: { "@za38.03/agent-ui-react": path.join(repositoryRoot, "packages/react/dist/index.js"), "zod": path.join(repositoryRoot, "packages/operator/node_modules/zod/index.js") } } });
+    }, resolve: { alias: { "@za38.03/agent-ui-plugins": path.join(repositoryRoot, "packages/plugins/dist/index.js"), "zod": path.join(repositoryRoot, "packages/operator/node_modules/zod/index.js") } } });
   });
   expect(result.ownership).toBe("project_source"); expect(result.checks).toEqual(["build"]);
   const ctx = await resourcePaths(root); const model = JSON.parse(await readFile(ctx.paths.appUIModelPath, "utf8"));

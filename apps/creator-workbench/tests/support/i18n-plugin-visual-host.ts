@@ -25,7 +25,7 @@ export async function createI18nPluginHost(releaseIds: readonly string[]) {
   // Composer is dependency-owned; the source-registry legacy copy is not installed.
   await rm(path.join(root, "agent-ui/plugins/assistant-ui-composer"), { recursive: true, force: true });
   // Prefer current workspace releases to stale installed fixture tarballs.
-  for (const name of ["react", "runtime-core", "renderer", "runtime"]) {
+  for (const name of ["react", "core", "renderer", "runtime"]) {
     const target = path.join(root, "node_modules/@za38.03", `agent-ui-${name}`);
     await rm(target, { recursive: true, force: true });
     await symlink(path.join(repositoryRoot, "packages", name), target, "dir");
@@ -33,7 +33,7 @@ export async function createI18nPluginHost(releaseIds: readonly string[]) {
   for (const name of ["@assistant-ui/react", "@assistant-ui/react-markdown"]) {
     const target = path.join(root, "node_modules", name);
     await mkdir(path.dirname(target), { recursive: true });
-    await symlink(path.join(repositoryRoot, "packages/react/node_modules", name), target, "dir");
+    await symlink(path.join(repositoryRoot, "packages/plugins/node_modules", name), target, "dir");
   }
   const model = JSON.parse(await readFile(path.join(root, "agent-ui/app-ui/app-ui.json"), "utf8"));
   const surface = model.root.children[1].child.plugins[0];
@@ -78,7 +78,7 @@ export async function createI18nPluginHost(releaseIds: readonly string[]) {
   await writeFile(path.join(root, "index.html"), '<div id="root"></div><script type="module" src="/visual.tsx"></script>');
   await writeFile(path.join(root, "visual.tsx"), `
     import { useState } from "react"; import { createRoot } from "react-dom/client";
-    import { Agent } from "./agent-ui/application/Agent"; import { DemoAttachmentAdapter } from "@za38.03/agent-ui-react/demo-attachments";
+    import { Agent } from "./agent-ui/application/Agent"; import { DemoAttachmentAdapter } from "@za38.03/agent-ui-plugins/demo-attachments";
     import "./src/preview-shell.css";
     const params = new URLSearchParams(location.search); const attachmentAdapter = new DemoAttachmentAdapter();
     const feedbackAdapter = { submit: async () => undefined };
@@ -88,7 +88,7 @@ export async function createI18nPluginHost(releaseIds: readonly string[]) {
       <Agent locale={locale} feedbackAdapter={feedbackAdapter} dictationAdapter={dictationAdapter} attachmentAdapter={attachmentAdapter} endpoint={"/agent?scenario=" + (params.get("scenario") || "simple-chat") + "&speed=" + (params.get("speed") || "0.05")} /></>; }
     createRoot(document.getElementById("root")).render(<Host />);
   `);
-  const server = await createServer({ configFile: false, root, cacheDir: path.join(root, ".vite"), plugins: [react(), tailwindcss(), createMockAgentVitePlugin({ endpoint: "/agent", scenarios: builtinMockScenarios, defaultScenarioId: "simple-chat" }), createMockConversationApiVitePlugin({ endpoint: "/__agent-ui/mock-data" })], resolve: { dedupe: ["react", "react-dom"] }, optimizeDeps: { noDiscovery: true, include: ["react", "react-dom/client", "@za38.03/agent-ui-react", "@za38.03/agent-ui-react/lexical", "@za38.03/agent-ui-runtime", "@za38.03/agent-ui-runtime-core", "@za38.03/agent-ui-renderer", "@base-ui/react/**", "@assistant-ui/react", "@assistant-ui/react-markdown", "@assistant-ui/react-lexical", "@assistant-ui/react-generative-ui", "@assistant-ui/react-hook-form", "lexical", "@ag-ui/client", "@ag-ui/core", "zod", "zustand"] }, server: { hmr: false, watch: null, host: "127.0.0.1", port: 0, fs: { allow: [root, repositoryRoot] } } });
+  const server = await createServer({ configFile: false, root, cacheDir: path.join(root, ".vite"), plugins: [react(), tailwindcss(), createMockAgentVitePlugin({ endpoint: "/agent", scenarios: builtinMockScenarios, defaultScenarioId: "simple-chat" }), createMockConversationApiVitePlugin({ endpoint: "/__agent-ui/mock-data" })], resolve: { dedupe: ["react", "react-dom"] }, optimizeDeps: { noDiscovery: true, include: ["react", "react-dom/client", "@za38.03/agent-ui-plugins", "@za38.03/agent-ui-plugins/lexical", "@za38.03/agent-ui-runtime", "@za38.03/agent-ui-core", "@za38.03/agent-ui-renderer", "@base-ui/react/**", "@assistant-ui/react", "@assistant-ui/react-markdown", "@assistant-ui/react-lexical", "@assistant-ui/react-generative-ui", "@assistant-ui/react-hook-form", "lexical", "@ag-ui/client", "@ag-ui/core", "zod", "zustand"] }, server: { hmr: false, watch: null, host: "127.0.0.1", port: 0, fs: { allow: [root, repositoryRoot] } } });
   await server.listen();
   return { setMessagePresentation: async (options: { timeline: boolean; thinking: boolean; reasoning: boolean }) => {
     surface.slots.toolTimeline[0].enabled = options.timeline;

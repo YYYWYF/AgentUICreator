@@ -97,7 +97,7 @@
   ],
   "upstreamElements": [
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-plan.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-plan.tsx",
       "tokens": [
         "foreground"
       ],
@@ -107,7 +107,7 @@
       "colors": []
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.aui.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.aui.tsx",
       "tokens": [
         "foreground",
         "muted-foreground",
@@ -121,7 +121,7 @@
       "colors": []
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-status.tsx",
       "tokens": [
         "destructive",
         "foreground"
@@ -137,7 +137,7 @@
       ]
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
       "tokens": [
         "background",
         "destructive",
@@ -158,7 +158,7 @@
       ]
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
       "tokens": [
         "accent",
         "muted-foreground",
@@ -174,13 +174,13 @@
       "colors": []
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.aui.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.aui.tsx",
       "tokens": [],
       "hooks": [],
       "colors": []
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/directive-text.tsx",
       "tokens": [],
       "hooks": [
         "directive-text-chip"
@@ -188,7 +188,7 @@
       "colors": []
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/file.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/file.tsx",
       "tokens": [
         "accent",
         "accent-foreground",
@@ -208,7 +208,7 @@
       "colors": []
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
       "tokens": [
         "foreground",
         "muted-foreground"
@@ -217,7 +217,7 @@
       "colors": []
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/image.tsx",
       "tokens": [
         "background",
         "border",
@@ -249,7 +249,7 @@
       ]
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
       "tokens": [
         "foreground"
       ],
@@ -267,7 +267,7 @@
       ]
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/markdown-text.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/markdown-text.tsx",
       "tokens": [
         "border",
         "muted",
@@ -278,7 +278,7 @@
       "colors": []
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/media-player.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/media-player.tsx",
       "tokens": [
         "foreground"
       ],
@@ -289,7 +289,7 @@
       "colors": []
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/option-list.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/option-list.tsx",
       "tokens": [
         "background",
         "foreground"
@@ -303,7 +303,7 @@
       ]
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
       "tokens": [
         "accent",
         "foreground",
@@ -326,13 +326,13 @@
       "colors": []
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/reasoning.aui.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/reasoning.aui.tsx",
       "tokens": [],
       "hooks": [],
       "colors": []
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/reasoning.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/reasoning.tsx",
       "tokens": [
         "foreground",
         "muted",
@@ -354,7 +354,7 @@
       "colors": []
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/retrieval-chunks.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/retrieval-chunks.tsx",
       "tokens": [
         "foreground"
       ],
@@ -369,7 +369,7 @@
       ]
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
       "tokens": [
         "accent",
         "accent-foreground",
@@ -412,7 +412,7 @@
       ]
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/subagent-list.tsx",
       "tokens": [
         "foreground"
       ],
@@ -425,7 +425,7 @@
       ]
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/surfaces.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/surfaces.tsx",
       "tokens": [
         "background",
         "border",
@@ -439,7 +439,7 @@
       ]
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/task-card.aui.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/task-card.aui.tsx",
       "tokens": [
         "foreground",
         "muted-foreground"
@@ -453,7 +453,7 @@
       "colors": []
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/task-card.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/task-card.tsx",
       "tokens": [
         "border",
         "destructive",
@@ -470,7 +470,7 @@
       ]
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx",
       "tokens": [
         "accent",
         "accent-foreground",
@@ -505,7 +505,7 @@
       "colors": []
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
       "tokens": [
         "accent",
         "accent-foreground",
@@ -549,7 +549,7 @@
       ]
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.tsx",
       "tokens": [
         "foreground"
       ],
@@ -561,7 +561,7 @@
       ]
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx",
       "tokens": [
         "destructive",
         "foreground",
@@ -587,7 +587,7 @@
       "colors": []
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-group.aui.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-group.aui.tsx",
       "tokens": [
         "foreground",
         "muted",
@@ -605,13 +605,13 @@
       "colors": []
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.tsx",
       "tokens": [],
       "hooks": [],
       "colors": []
     },
     {
-      "source": "packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/web-search.tsx",
+      "source": "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/web-search.tsx",
       "tokens": [
         "foreground"
       ],

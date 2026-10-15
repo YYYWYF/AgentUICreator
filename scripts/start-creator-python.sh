@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
-PYTHON_ROOT="${WORKSPACE_ROOT}/packages/creator-python"
+PYTHON_ROOT="${WORKSPACE_ROOT}/packages/creator/python"
 ENV_FILE="${WORKSPACE_ROOT}/.env.creator.local"
 PYTHON_BIN="${PYTHON_ROOT}/.venv/bin/python"
 

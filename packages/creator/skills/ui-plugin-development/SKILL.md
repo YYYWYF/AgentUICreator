@@ -181,7 +181,7 @@ imports, source evidence, Provider/theme/style convention and why other discover
 systems were not selected. List actual reused components in
 `deliveryContract.reusedComponents`. If none fit, record inspected page and
 dependency evidence and explain the existing-primitives or approved-dependency
-choice. `@za38.03/agent-ui-react` familiarity never outranks the Host's adopted Design
+choice. `@za38.03/agent-ui-plugins` familiarity never outranks the Host's adopted Design
 System. The Host checks facts and freshness; Creator owns semantic selection.
 Once one closest Plugin, the used public control, and the relevant locale/theme
 conventions are known, stop exploratory reads and implement. Inspect another
@@ -200,7 +200,7 @@ or ambient type declarations do not register a namespace. Never
 claim a completed Plugin while its rendered copy is hard-coded in TSX.
 
    For a project-owned Composer view, use `useConversationComposer()` from
-   `@za38.03/agent-ui-react` in that adapter. It exposes the active Thread's draft,
+   `@za38.03/agent-ui-plugins` in that adapter. It exposes the active Thread's draft,
    attachments, running/disabled state, and send/cancel/add/remove actions;
    it does not create another Runtime. Connect only capabilities already enabled
    in the project. A component's attachment callback can open a local file input
@@ -514,7 +514,7 @@ uses its canonical Source Item path; Nuxt is unsupported. See
 
 Official plugins are dependency-owned; custom plugins are project-owned.
 For `official_plugin_reference`, read reference with `inspect_ui_plugin`, inspect
-configuration and public semantic Slots first. Use `@za38.03/agent-ui-react` public Composer
+configuration and public semantic Slots first. Use `@za38.03/agent-ui-plugins` public Composer
 components/controller for custom implementations; do not copy private or whole
 official implementation. Create with `create_custom_plugin` under a new ID and
 replace the intended instance in AppUIModel. Host validates the manifest, generates

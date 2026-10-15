@@ -80,7 +80,7 @@ call `useAssistantForm`. The assistant-ui MIT notice above applies.
 ## assistant-ui Generative UI
 
 Upstream styled implementation, CSS and provenance are delivered inside
-`@za38.03/agent-ui-react`, revision `3542d602272a62eddeb8989befc910841c267022`,
+`@za38.03/agent-ui-plugins`, revision `3542d602272a62eddeb8989befc910841c267022`,
 Generative UI package 0.0.22. Registry items install only package-backed adapters;
 no upstream TSX or CSS is copied into the generated project. The assistant-ui
 MIT notice above applies; exact per-file provenance ships in the React package.

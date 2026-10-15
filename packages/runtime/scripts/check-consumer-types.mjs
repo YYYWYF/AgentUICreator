@@ -40,8 +40,8 @@ try {
   await mkdir(archives);
   const dependencies = {};
   // Pack the actual publishable files; never symlink a workspace package or its node_modules.
-  const packageNames = ["runtime-core", "react", "runtime"];
-  if (checkReactCompatibility) packageNames.push("renderer", "plugins", "source-registry", "operator", "creator", "web-component");
+  const packageNames = ["core", "renderer", "plugins", "runtime"];
+  if (checkReactCompatibility) packageNames.push("source-registry", "operator", "creator", "web-component");
   for (const name of packageNames) {
     const destination = path.join(archives, name);
     await mkdir(destination);
@@ -106,7 +106,7 @@ module.exports = { hooks: { readPackage(pkg) {
 } from "@za38.03/agent-ui-runtime";
 
 ${checkReactCompatibility ? `import { createElement } from "react";
-import { Button } from "@za38.03/agent-ui-react";
+import { Button } from "@za38.03/agent-ui-plugins";
 import { LayoutRenderer } from "@za38.03/agent-ui-renderer";
 import { CreatorWorkbench } from "@za38.03/agent-ui-creator/ui";
 const hostUI = createElement(Button, null, "Send");

@@ -2,7 +2,7 @@ import {
   ConversationSource,
   ConversationToolFallback,
   type ConversationToolCallComponent,
-} from "@za38.03/agent-ui-react";
+} from "@za38.03/agent-ui-plugins";
 import { projectSourceCitationsResult } from "./source-citations-result";
 
 export const SearchSourcesToolUI: ConversationToolCallComponent = (props) => {

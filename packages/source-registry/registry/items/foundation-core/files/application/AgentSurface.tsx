@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useLayoutEffect, type ReactNode } from "react";
-import { AgentUIRoot, AgentUILocaleProvider, type AgentUITheme } from "@za38.03/agent-ui-react";
+import { AgentUIRoot, AgentUILocaleProvider, type AgentUITheme } from "@za38.03/agent-ui-plugins";
 import { useConversationRuntimeBridge } from "@za38.03/agent-ui-runtime";
 import { AGENT_UI_LOCALES } from "../agent-ui/i18n/locale-registry";
 import { AgentUILocaleBridge } from "../agent-ui/i18n/AgentUILocaleBridge";

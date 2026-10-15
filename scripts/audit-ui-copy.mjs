@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const agentUIOnly = process.argv.includes("--agent-ui-only");
-const scopes = agentUIOnly ? ["packages/react/src", "packages/renderer/src", "packages/runtime/src", "packages/source-registry/registry/items", ...["creator-host-sandbox", "creator-assistant-host", "creator-embedded-host"].map(name => `examples/${name}/src/agent-ui`)] : ["packages/creator/src/ui", "packages/react/src", "packages/renderer/src", "packages/runtime/src", "packages/source-registry/registry/items", "examples", "apps/creator-workbench/src"];
+const scopes = agentUIOnly ? ["packages/plugins/src", "packages/renderer/src", "packages/runtime/src", "packages/source-registry/registry/items", ...["creator-host-sandbox", "creator-assistant-host", "creator-embedded-host"].map(name => `examples/${name}/src/agent-ui`)] : ["packages/creator/src/ui", "packages/plugins/src", "packages/renderer/src", "packages/runtime/src", "packages/source-registry/registry/items", "examples", "apps/creator-workbench/src"];
 const excluded = /\/(?:vendor|vendors|fixtures|node_modules|dist|dev)\/|(?:\.test|\.spec)\.[cm]?[jt]sx?$|\.generated\./;
 async function collect(directory) {
   const results = [];
@@ -23,11 +23,11 @@ async function dictionary(file) {
   const output = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const exports = {};
   const presentation = source.includes("AGENT_UI_PRESENTATION_LOCALES") ? {
-    "en-US": await dictionary("packages/react/src/locales/en-US.ts"),
-    "zh-CN": await dictionary("packages/react/src/locales/zh-CN.ts"),
+    "en-US": await dictionary("packages/plugins/src/locales/en-US.ts"),
+    "zh-CN": await dictionary("packages/plugins/src/locales/zh-CN.ts"),
   } : undefined;
   vm.runInNewContext(output, { exports, require: specifier => {
-    if (specifier === "@za38.03/agent-ui-react" && presentation) return { AGENT_UI_PRESENTATION_LOCALES: presentation };
+    if (specifier === "@za38.03/agent-ui-plugins" && presentation) return { AGENT_UI_PRESENTATION_LOCALES: presentation };
     throw new Error(`Unsupported locale dictionary import: ${specifier}`);
   } });
   return Object.values(exports)[0];
@@ -40,7 +40,7 @@ function flatten(value, prefix = "") {
 }
 const dictionaries = [
   ["creator", "packages/creator/src/ui/i18n"],
-  ["presentation", "packages/react/src/locales"],
+  ["presentation", "packages/plugins/src/locales"],
   ["generated", "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/locales"],
 ];
 const failures = [], parity = [], duplicates = [], unusedCandidates = [];

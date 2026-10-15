@@ -1,5 +1,5 @@
-import { createConversationToolkit, useConversationState, useConversationCanAnswerToolCall, type ConversationToolkit } from "@za38.03/agent-ui-react";
-import type { GenerativeUILibrary } from "@za38.03/agent-ui-react/generative-ui";
+import { createConversationToolkit, useConversationState, useConversationCanAnswerToolCall, type ConversationToolkit } from "@za38.03/agent-ui-plugins";
+import type { GenerativeUILibrary } from "@za38.03/agent-ui-plugins/generative-ui";
 import type { ComponentProps } from "react";
 import { createAgentUIGenerativeUI, createAgentUIGenerativeActions } from "../generative-ui";
 
