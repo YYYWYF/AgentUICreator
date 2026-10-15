@@ -16,7 +16,7 @@ GitHub API 确认 `adf221a297c2e6fb8d6a0b6eaaea42971b9997a5` 的 [run 3757125267
 
 | Job | 远端结果 | 当前本地结果与证据 |
 | --- | --- | --- |
-| [style-isolation](https://github.com/YYYWYF/AgentUICreator/actions/runs/37571252670/job/112630173414) | failure | [升级验证日志](i18n-upgrade.log)：81 个 React 测试（包含 Thread Delete 2 项）、39 个 Project Control 测试、3 个浏览器测试通过 |
+| [style-isolation](https://github.com/YYYWYF/AgentUICreator/actions/runs/37571252670/job/112630173414) | failure | [升级验证日志](i18n-upgrade.log)：81 个 React 测试（包含 Thread Delete 2 项）、39 个 Operator 测试、3 个浏览器测试通过 |
 | [agent-connection](https://github.com/YYYWYF/AgentUICreator/actions/runs/37571252670/job/112630172975) | failure | [16 个 focused unit tests](i18n-connection-unit.log) 和 [3 个浏览器 E2E](i18n-connection.log) 通过 |
 
 Thread Delete 原 fixture 的 `PluginServiceProvider is missing` 已复现，随后加入真实 `PluginServiceProvider`、真实 `locale-provider` registry/model；没有 mock locale hook 或放宽 Service 依赖。

@@ -1,7 +1,7 @@
 import {
   projectLangChainHistory,
   type ConversationMessage,
-} from "@agent-ui/runtime-conversation";
+} from "@za38.03/agent-ui-runtime";
 
 import type { ConversationDetail } from "../../../services/conversations";
 

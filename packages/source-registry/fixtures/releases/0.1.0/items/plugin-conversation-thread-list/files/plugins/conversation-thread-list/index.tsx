@@ -1,4 +1,4 @@
-import { getAgentUIThemeColorScheme, Button, useConversationNavigation } from "@agent-ui/react";
+import { getAgentUIThemeColorScheme, Button, useConversationNavigation } from "@za38.03/agent-ui-react";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { useAgentUITheme } from "../../agent-ui/theme/useAgentUITheme";
 import { useAgentRun } from "../../runtime/context";

@@ -1,6 +1,6 @@
 # Vue 3 compatibility demo
 
-Run `pnpm --filter @agent-ui/web-component-vue3-demo dev` from the workspace.
+Run `pnpm --filter @za38.03/agent-ui-web-component-vue3-demo dev` from the workspace.
 The predev step builds the independent Web Component bundle. This Vue/Vite
 application does not depend directly on React or use the React Vite plugin.
 `AgentUIWrapper.vue` creates the element, assigns configuration, forwards three

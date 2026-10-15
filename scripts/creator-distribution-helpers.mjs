@@ -9,7 +9,7 @@ import { assertContractParity } from "../packages/creator/scripts/contract-integ
 
 export const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const pythonRoot = path.join(repositoryRoot, "packages/creator-python");
-export const creatorRoot = path.join(repositoryRoot, "packages/creator");
+export const distributionRoot = path.join(repositoryRoot, "packages/creator");
 export const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 export const pythonInVenv = (root) => path.join(root, process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
 
@@ -38,24 +38,24 @@ import sys
 from pathlib import Path
 import agent_ui_creator
 from agent_ui_creator.contract_resources import creator_contract_root, read_creator_contract
-from agent_ui_creator.project_control.client import ProjectControlClient
+from agent_ui_creator.operator.client import OperatorClient
 package = Path(agent_ui_creator.__file__).resolve().parent
 expected = Path(sys.argv[1]).resolve()
 assert package.is_relative_to(expected), (package, expected)
 assert Path(str(creator_contract_root())).resolve() == package / "_contracts" / "creator"
-assert read_creator_contract("project-control.schema.json")["$id"]
-ProjectControlClient(project_root=Path.cwd())
-print("Packaged Creator contracts and ProjectControl validator initialized.")
+assert read_creator_contract("operator.schema.json")["$id"]
+OperatorClient(project_root=Path.cwd())
+print("Packaged Creator contracts and Operator validator initialized.")
 `;
 
 export async function unpackCreator(temporary) {
-  await run(pnpm, ["-r", "--filter", "@agent-ui/creator...", "build"], { cwd: repositoryRoot });
-  await run(pnpm, ["pack", "--pack-destination", temporary], { cwd: creatorRoot });
+  await run(pnpm, ["--filter", "@za38.03/agent-ui-creator", "build"], { cwd: repositoryRoot });
+  await run(pnpm, ["pack", "--pack-destination", temporary], { cwd: distributionRoot, env: { ...process.env, npm_config_ignore_scripts: "true" } });
   const archives = (await readdir(temporary)).filter((name) => name.endsWith(".tgz"));
   assert.equal(archives.length, 1);
   await run("tar", ["-xzf", path.join(temporary, archives[0]), "-C", temporary], { cwd: temporary });
   const unpacked = path.join(temporary, "package");
-  for (const file of ["dist/cli.js", "dist/python/agent_ui_creator/server.py", "dist/python/pyproject.toml", "dist/python/requirements.lock", "skills"]) await access(path.join(unpacked, file));
+  for (const file of ["dist/cli.js", "dist/standaloneServer.js", "dist/browser/index.html", "dist/browser/dock.html", "dist/browser/dock-client.js", "dist/python/agent_ui_creator/server.py", "dist/python/pyproject.toml", "dist/python/requirements.lock", "skills"]) await access(path.join(unpacked, file));
   assert((await readdir(path.join(unpacked, "skills"))).length > 0);
   await assertContractParity(path.join(repositoryRoot, "contracts/creator"), path.join(unpacked, "dist/python/agent_ui_creator/_contracts/creator"));
   return unpacked;

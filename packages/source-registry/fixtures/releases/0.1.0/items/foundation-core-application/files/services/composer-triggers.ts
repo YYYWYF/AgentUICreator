@@ -1,5 +1,5 @@
-import type { ConversationMentionSource, ConversationSlashCommand, ConversationSlashCommandSource } from "@agent-ui/react";
-export type { ConversationMentionSource, ConversationSlashCommand, ConversationSlashCommandSource } from "@agent-ui/react";
+import type { ConversationMentionSource, ConversationSlashCommand, ConversationSlashCommandSource } from "@za38.03/agent-ui-react";
+export type { ConversationMentionSource, ConversationSlashCommand, ConversationSlashCommandSource } from "@za38.03/agent-ui-react";
 export const CONVERSATION_MENTION_SOURCE = "conversation.mention-source" as const;
 export const CONVERSATION_COMMAND_SOURCE = "conversation.slash-command-source" as const;
 export interface ConversationCommandRegistry extends ConversationSlashCommandSource {

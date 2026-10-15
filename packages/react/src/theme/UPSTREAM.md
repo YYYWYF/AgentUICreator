@@ -22,6 +22,11 @@ The user selected this palette on 2026-10-06 after comparing it with the previou
 `#8263FC` seed sampled from the A+ reference's progress fill.
 Future shadcn palette syncs must not automatically change Violet visuals.
 
+Tool approval allow actions, including declared allow options and their confirmation,
+use a 6% brand fill with solid brand text and a soft brand border. Hover uses the
+10% selected fill; keyboard focus retains the solid focus border. This product
+approval hook leaves other primary actions and Light / Dark presentation unchanged.
+
 `shadcn-theme-presets.css` contains only Light / Dark Zinc upstream snapshots.
 The snapshot hash guards those two palettes, excluding the product theme.
 General canvas, cards, popovers, secondary surfaces and thread-management sidebar

@@ -29,6 +29,10 @@
     {
       "source": "files/agent-ui/conversation/integrations/a2ui.tsx",
       "target": "agent-ui/conversation/integrations/a2ui.tsx"
+    },
+    {
+      "source": "files/integrations/a2ui/components.ts",
+      "target": "integrations/a2ui/components.ts"
     }
   ]
 }

@@ -1,4 +1,4 @@
-import type { LayoutTrackSize, PanelDimension, RowDrawerPolicy } from "@agent-ui/runtime-react";
+import type { LayoutTrackSize, PanelDimension, RowDrawerPolicy } from "@za38.03/agent-ui-renderer";
 import { z } from "zod";
 import { isGridTrackOnlyDimension } from "./panel-dimension";
 

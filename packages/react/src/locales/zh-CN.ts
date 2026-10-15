@@ -89,7 +89,12 @@ export const zhCN = {
     "fileType": "文件",
     "tile": "{type}附件",
     "tileUploading": "{type}附件，正在上传",
-    "tileFailed": "{type}附件，上传失败"
+    "tileFailed": "{type}附件，上传失败",
+    "demoSizeExceeded": "示例附件每个文件不能超过 5 MiB。",
+    "demoPdfOnly": "示例 PDF 附件只接受 PDF 文件。",
+    "demoReadAborted": "附件读取已取消",
+    "demoExpectedDataUrl": "未能获取文件数据地址。",
+    "demoReadFailed": "无法读取示例附件。"
   },
   "images": {
     "content": "图片内容",

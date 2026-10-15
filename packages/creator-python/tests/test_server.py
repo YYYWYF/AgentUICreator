@@ -689,7 +689,7 @@ def test_minimal_mode_propagates_protocol_failure_as_run_error(tmp_path, monkeyp
     assert '"type":"RUN_FINISHED"' not in response.text
 
 
-def test_domain_read_mode_streams_project_control_metrics(tmp_path, monkeypatch):
+def test_domain_read_mode_streams_operator_metrics(tmp_path, monkeypatch):
     monkeypatch.setenv("CREATOR_PYTHON_AGENT_MODE", "domain-read")
     settings = CreatorServerSettings(
         project_root=tmp_path,
@@ -710,7 +710,7 @@ def test_domain_read_mode_streams_project_control_metrics(tmp_path, monkeypatch)
         return SimpleNamespace(
             text="Inspected.",
             metrics=metrics,
-            project_control=SimpleNamespace(
+            operator=SimpleNamespace(
                 to_dict=lambda: {
                     "requests": 1,
                     "byOperation": {"inspect_ui_project": 1},
@@ -718,7 +718,7 @@ def test_domain_read_mode_streams_project_control_metrics(tmp_path, monkeypatch)
                     "durationMs": 12,
                 }
             ),
-            repeated_project_control_reads=0,
+            repeated_operator_reads=0,
             domain_observations=DomainObservationMetrics(updates=1),
             activities=(),
         )
@@ -740,7 +740,7 @@ def test_domain_read_mode_streams_project_control_metrics(tmp_path, monkeypatch)
 
     assert '"phase":"domain-read-agent"' in response.text
     assert '"inspect_ui_project":1' in response.text
-    assert '"repeatedProjectControlReads":0' in response.text
+    assert '"repeatedOperatorReads":0' in response.text
 
 
 def test_default_mode_runs_domain_write_with_runtime_identity(tmp_path, monkeypatch):
@@ -766,7 +766,7 @@ def test_default_mode_runs_domain_write_with_runtime_identity(tmp_path, monkeypa
         return SimpleNamespace(
             text="Static composition committed.",
             metrics=metrics,
-            project_control=SimpleNamespace(
+            operator=SimpleNamespace(
                 to_dict=lambda: {
                     "requests": 2,
                     "byOperation": {
@@ -777,7 +777,7 @@ def test_default_mode_runs_domain_write_with_runtime_identity(tmp_path, monkeypa
                     "durationMs": 12,
                 }
             ),
-            repeated_project_control_reads=0,
+            repeated_operator_reads=0,
             domain_observations=DomainObservationMetrics(
                 updates=2, hashReuses=1
             ),

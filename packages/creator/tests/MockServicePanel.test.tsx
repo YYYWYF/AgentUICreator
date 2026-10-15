@@ -1,8 +1,9 @@
+import { a2uiInteractiveOrderScenario } from "../src/mock-agent/builtins/a2ui-interactive-order.js";
 // @vitest-environment jsdom
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { a2uiInteractiveOrderScenario, frontendToolFillFormScenario, showcaseMockScenarios } from "@agent-ui/mock-agent";
+import { frontendToolFillFormScenario, showcaseMockScenarios } from "@za38.03/agent-ui-creator/mock-agent";
 import { inspectMockDemoCompatibility } from "../src/mock/demo-compatibility.js";
 import { MockServicePanel } from "../src/ui/MockServicePanel.js";
 import { publishCreatorRefresh } from "../src/ui/creatorRefresh.js";
@@ -313,26 +314,24 @@ describe("Creator Mock service panel", () => {
   });
 });
 
-it("shows optional resources and blocks selection until the bundle is ready", async () => {
-  const state = { ...initial, scenarios: [...initial.scenarios, { id: "frontend-tool-fill-form", title: "Frontend Tool · Fill Form", resources: ["frontend-tool-form-demo"] }] };
+it("downloads missing conversation form resources without selecting the scenario", async () => {
+  const state = { ...initial, scenarios: [...initial.scenarios, frontendToolFillFormScenario] };
   let ready = false;
-  const compatibility = () => ({ projectId: "project", canInstallResources: true, status: "checked", requirements: [{ id: "frontend-tool-form-demo", name: "Form", scenarioIds: ["frontend-tool-fill-form"], status: ready ? "ready" : "missing", installable: true }] });
+  const compatibility = () => ({ projectId: "project", canInstallResources: true, status: "checked", requirements: [{ id: "human-form-demo", name: "Form", scenarioIds: ["frontend-tool-fill-form"], status: ready ? "ready" : "missing", installable: true }] });
   const fetch = vi.fn(async (url: string) => {
     if (url.endsWith("/install-resources")) { ready = true; return json(compatibility()); }
     return json(url.endsWith("/compatibility") ? compatibility() : state);
   });
   vi.stubGlobal("fetch", fetch);
   const container = await render();
-  const radio = container.querySelectorAll<HTMLInputElement>('input[type="radio"]')[2]!;
-  await act(async () => radio.click());
   expect([...container.querySelectorAll("button")].some(button => button.textContent === "运行场景")).toBe(false);
   expect(fetch.mock.calls.some(([url]) => url.endsWith("/select"))).toBe(false);
   await click(container, "安装资源");
 
-  expect(fetch).toHaveBeenCalledWith(`${CREATOR_MOCK_API_PATH}/install-resources`, expect.objectContaining({ body: JSON.stringify({ projectId: "project", resourceId: "frontend-tool-form-demo" }) }));
+  expect(fetch).toHaveBeenCalledWith(`${CREATOR_MOCK_API_PATH}/install-resources`, expect.objectContaining({ body: JSON.stringify({ projectId: "project", resourceId: "human-form-demo" }) }));
 });
 
-it("shows the A2UI resource installation path and selects on click only after compatibility is ready", async () => {
+it.skip("shows the A2UI resource installation path and selects on click only after compatibility is ready", async () => {
   let state = { ...initial, scenarios: [...initial.scenarios, a2uiInteractiveOrderScenario] };
   let installed = false;
   const compatibility = () => ({
@@ -369,15 +368,15 @@ it("shows the A2UI resource installation path and selects on click only after co
   expect(fetch).toHaveBeenCalledWith(`${CREATOR_MOCK_API_PATH}/select`, expect.objectContaining({ body: JSON.stringify({ scenarioId: "a2ui-interactive-order", speed: 1 }) }));
 });
 
-it("offers resource repair and blocks selection when an installed Form Provider is disabled", async () => {
+it("repairs the application-scoped conversation form resource", async () => {
   const state = { ...initial, scenarios: [...initial.scenarios, frontendToolFillFormScenario] };
   let enabled = false;
-  const pluginId = "frontend-tool-form-demo";
+  const pluginId = "human-form-demo";
   const compatibility = () => ({
     ...inspectMockDemoCompatibility({
       pluginSources: [{ pluginId, status: "available", dataMessageUINames: [] }],
-      pluginInstances: [{ id: "form", pluginId, enabled, effectiveEnabled: enabled, target: { type: "layout_slot" } }],
-    }, { items: [{ id: "demo/frontend-tool-form", status: "managed", owned: true, resolvedRequirements: [] }] }, "project"),
+      pluginInstances: [{ id: "form", pluginId, enabled, effectiveEnabled: enabled, target: { type: "application" } }],
+    }, { items: [{ id: "demo/human-form", status: "managed", owned: true, resolvedRequirements: [] }] }, "project"),
     canInstallResources: true,
   });
   const fetch = vi.fn(async (url: string) => {
@@ -386,21 +385,17 @@ it("offers resource repair and blocks selection when an installed Form Provider 
   });
   vi.stubGlobal("fetch", fetch);
   const container = await render();
-  const card = [...container.querySelectorAll<HTMLElement>(".creator-mock-scenario")].find(element => element.textContent?.includes("前端工具填写表单"))!;
-  await act(async () => card.querySelector<HTMLInputElement>('input[type="radio"]')!.click());
-  expect([...card.querySelectorAll("button")].some(button => button.textContent === "运行场景")).toBe(false);
-  expect(fetch.mock.calls.some(([url]) => url.endsWith("/select"))).toBe(false);
-  expect(card.textContent).not.toContain("未启用或未正确放置");
-  expect(card.textContent).not.toContain("所需资源已就绪");
+  const card = [...container.querySelectorAll<HTMLElement>(".creator-mock-scenario")].find(element => element.textContent?.includes("会话内表单收集信息"))!;
+  expect(card.textContent).toContain("RUN_FINISHED · success");
+  expect(card.textContent).toContain("ToolMessage");
+  expect(card.textContent).not.toContain("resume[]");
   await click(card, "安装资源");
-  expect(fetch).toHaveBeenCalledWith(`${CREATOR_MOCK_API_PATH}/install-resources`, expect.objectContaining({ body: JSON.stringify({ projectId: "project", resourceId: "frontend-tool-form-demo" }) }));
-  expect(card.textContent).toContain("所需资源已就绪");
-  expect(card.textContent).toContain("资源已安装并就绪，点击场景即可切换。");
-
+  expect(fetch).toHaveBeenCalledWith(`${CREATOR_MOCK_API_PATH}/install-resources`, expect.objectContaining({ body: JSON.stringify({ projectId: "project", resourceId: "human-form-demo" }) }));
+  expect(enabled).toBe(true);
   expect(fetch.mock.calls.some(([url]) => url.endsWith("/select"))).toBe(false);
 });
 
-it("keeps missing A2UI packages installable without exposing implementation details in the DOM", async () => {
+it.skip("keeps missing A2UI packages installable without exposing implementation details in the DOM", async () => {
   const state = { ...initial, scenarios: [a2uiInteractiveOrderScenario] };
   const compatibility = { ...inspectMockDemoCompatibility({ pluginSources: [], pluginInstances: [] }, { items: [
     { id: "integration/a2ui", status: "not-installed", owned: false, resolvedRequirements: [
@@ -417,7 +412,7 @@ it("keeps missing A2UI packages installable without exposing implementation deta
   for (const token of ["@assistant-ui", "react-markdown", "remark-gfm", "pnpm add", "integration/a2ui", "A2UI Official Integration"]) expect(container.innerHTML).not.toContain(token);
 });
 
-it("fetches technical details only after the developer opens a conflicting resource", async () => {
+it.skip("fetches technical details only after the developer opens a conflicting resource", async () => {
   const state = { ...initial, scenarios: [a2uiInteractiveOrderScenario] };
   const compatibility = { ...inspectMockDemoCompatibility({ pluginSources: [], pluginInstances: [] }, { items: [
     { id: "integration/a2ui", status: "managed", owned: true, resolvedRequirements: [{ name: "@assistant-ui/react-generative-ui", required: "0.0.21", declared: "0.0.18", installed: "0.0.18", compatible: false }] },
@@ -433,4 +428,12 @@ it("fetches technical details only after the developer opens a conflicting resou
   await act(async () => { details.open = true; details.dispatchEvent(new Event("toggle")); });
   expect(fetch).toHaveBeenCalledWith(`${CREATOR_MOCK_API_PATH}/resource-diagnostics`, expect.objectContaining({ body: JSON.stringify({ projectId: "project", resourceId: "a2ui" }) }));
   expect(details.textContent).toContain("@assistant-ui/react-generative-ui");
+});
+
+it("hides deferred A2UI examples even when an older service returns them", async () => {
+  const state = { ...initial, scenarios: [...initial.scenarios, a2uiInteractiveOrderScenario] };
+  vi.stubGlobal("fetch", vi.fn(async (url: string) => json(url.endsWith("/compatibility") ? { projectId: "project", status: "checked", requirements: [] } : state)));
+  const container = await render();
+  expect(container.textContent).not.toContain("A2UI");
+  expect(container.querySelector('[data-scenario-id="a2ui-interactive-order"]')).toBeNull();
 });

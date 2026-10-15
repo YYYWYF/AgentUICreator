@@ -4,13 +4,13 @@ import type {
   AgentInterrupt,
   AgentMessage,
   AgentRunState,
-} from "@agent-ui/runtime-core";
+} from "@za38.03/agent-ui-runtime-core";
 import { describe, expect, expectTypeOf, it } from "vitest";
 
 import {
   parseUIPluginManifest,
   uiPluginManifestSchema,
-} from "../../../project-control/src/framework/contracts/ui-plugin";
+} from "../../../operator/src/framework/contracts/ui-plugin";
 import {
   useAgentConversation,
   useAgentExecutions,

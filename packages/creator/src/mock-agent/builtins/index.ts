@@ -1,0 +1,133 @@
+import { toolTimelineThinkingScenario, thinkingPlaceholderScenario } from "./tool-timeline-thinking.js";
+import { composerMentionContextScenario } from "./composer-mention-context.js";
+import { webSearchScenario } from "./web-search.js";
+import { retrievalChunksScenario } from "./retrieval-chunks.js";
+import { composerMentionScenario } from "./composer-mention.js";
+import { composerSlashScenario } from "./composer-slash.js";
+import { quoteReplyScenario } from "./quote-reply.js";
+import { sourceCitationsScenario } from "./source-citations.js";
+import { multimodalInputScenario } from "./multimodal-input.js";
+import { fileOutputScenario } from "./file-output.js";
+import { frontendToolFillFormScenario } from "./frontend-tool-fill-form.js";
+import { askUserQuestionScenario } from "./ask-user-question.js";
+import { frontendToolOpenDialogScenario } from "./frontend-tool-open-dialog.js";
+import { concurrentConversationsScenario } from "./concurrent-conversations.js";
+import { multiMessageResponseScenario } from "./multi-message-response.js";
+import { cancelBeforeFirstOutputScenario } from "./cancel-before-first-output.js";
+import { agentPlanScenario } from "./agent-plan.js";
+import { agentStatusScenario } from "./agent-status.js";
+import { dataMessageChartScenario } from "./data-message-chart.js";
+import { agentStateSyncScenario } from "./agent-state-sync.js";
+import { approvalResumeScenario } from "./approval-resume.js";
+import { multiToolScenario } from "./multi-tool.js";
+import { nestedSubagentConversationScenario } from "./nested-subagent-conversation.js";
+import { nestedSubagentErrorScenario } from "./nested-subagent-error.js";
+import { nestedSubagentRecursiveScenario } from "./nested-subagent-recursive.js";
+import { nestedSubagentTaskGroupScenario } from "./nested-subagent-task-group.js";
+import { parallelToolsScenario } from "./parallel-tools.js";
+import { reasoningChatScenario } from "./reasoning-chat.js";
+import { reasoningLongPreviewScenario } from "./reasoning-long-preview.js";
+import { reasoningToolSuccessScenario } from "./reasoning-tool-success.js";
+import { simpleChatScenario } from "./simple-chat.js";
+import { resumableAgentPlanScenario } from "./resumable-agent-plan.js";
+import { resumableLongRunScenario } from "./resumable-long-run.js";
+import { markdownShowcaseScenario } from "./markdown-showcase.js";
+import { subagentLifecycleScenario } from "./subagent-lifecycle.js";
+import { toolErrorScenario } from "./tool-error.js";
+import { toolLongRunningScenario } from "./tool-long-running.js";
+import type { MockScenario } from "../scenario.js";
+
+export {
+  toolTimelineThinkingScenario, thinkingPlaceholderScenario,
+  composerMentionContextScenario,
+  webSearchScenario,
+  retrievalChunksScenario,
+  composerMentionScenario,
+  composerSlashScenario,
+  quoteReplyScenario,
+  sourceCitationsScenario,
+  cancelBeforeFirstOutputScenario,
+  fileOutputScenario,
+  multimodalInputScenario,
+  frontendToolOpenDialogScenario,
+  frontendToolFillFormScenario,
+  askUserQuestionScenario,
+  concurrentConversationsScenario,
+  multiMessageResponseScenario,
+  agentPlanScenario,
+  agentStatusScenario,
+  dataMessageChartScenario,
+  agentStateSyncScenario,
+  approvalResumeScenario,
+  multiToolScenario,
+  nestedSubagentConversationScenario,
+  nestedSubagentErrorScenario,
+  nestedSubagentRecursiveScenario,
+  nestedSubagentTaskGroupScenario,
+  parallelToolsScenario,
+  reasoningChatScenario,
+  reasoningLongPreviewScenario,
+  reasoningToolSuccessScenario,
+  simpleChatScenario,
+  resumableAgentPlanScenario,
+  resumableLongRunScenario,
+  markdownShowcaseScenario,
+  subagentLifecycleScenario,
+  toolErrorScenario,
+  toolLongRunningScenario,
+};
+
+export const backendReferenceMockScenarios: MockScenario[] = [
+  composerMentionContextScenario,
+  webSearchScenario,
+  retrievalChunksScenario,
+  sourceCitationsScenario,
+  multimodalInputScenario,
+  concurrentConversationsScenario,
+  simpleChatScenario,
+  markdownShowcaseScenario,
+  reasoningChatScenario,
+  reasoningToolSuccessScenario,
+  parallelToolsScenario,
+  toolErrorScenario,
+  approvalResumeScenario,
+  agentStateSyncScenario,
+  nestedSubagentConversationScenario,
+];
+
+export const frontendPresentationMockScenarios: MockScenario[] = [
+  toolTimelineThinkingScenario, thinkingPlaceholderScenario,
+  resumableLongRunScenario,
+  resumableAgentPlanScenario,
+  cancelBeforeFirstOutputScenario,
+  fileOutputScenario,
+  frontendToolOpenDialogScenario,
+  frontendToolFillFormScenario,
+  askUserQuestionScenario,
+  multiMessageResponseScenario,
+  dataMessageChartScenario,
+  nestedSubagentTaskGroupScenario,
+  agentPlanScenario,
+  agentStatusScenario,
+  nestedSubagentRecursiveScenario,
+  nestedSubagentErrorScenario,
+];
+
+export const showcaseMockScenarios: MockScenario[] = [
+  // Public demos teach Agent conversation flows. Pure Composer/Quote UI
+  // fixtures stay individually exported for component development only.
+  ...backendReferenceMockScenarios,
+  ...frontendPresentationMockScenarios,
+];
+
+export const mockRegressionScenarios: MockScenario[] = [
+  reasoningLongPreviewScenario,
+  multiToolScenario,
+  toolLongRunningScenario,
+  subagentLifecycleScenario,
+];
+
+export const builtinMockScenarios: MockScenario[] = [
+  ...showcaseMockScenarios,
+  ...mockRegressionScenarios,
+];

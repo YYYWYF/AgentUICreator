@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig, mergeConfig, type Plugin } from "vite";
-import { createCreatorHostPreviewPlugin } from "@agent-ui/creator/host-preview/vite";
+import { createCreatorHostPreviewPlugin } from "@za38.03/agent-ui-creator/host-preview/vite";
 import hostConfig from "../../examples/creator-host-sandbox/vite.config";
 
 /** Workbench-only overlay; the real Host config remains Creator-independent. */

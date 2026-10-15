@@ -11,7 +11,7 @@ from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.domain_state import DomainObservationContext
 from agent_ui_creator.domain_agent.prompt import DOMAIN_WRITE_AGENT_PROMPT
 from agent_ui_creator.observability import CreatorRunLogger
-from agent_ui_creator.project_control import ProjectControlMetrics
+from agent_ui_creator.operator import OperatorMetrics
 from agent_ui_creator.runtime_diagnostics import (
     RuntimeDiagnosticEnvelope,
     RuntimeDiagnosticInspectionService,
@@ -158,8 +158,8 @@ def composition_project(*, app_hash: str = APP_HASH) -> dict[str, object]:
     }
 
 
-class CompositionProjectControl:
-    metrics = ProjectControlMetrics()
+class CompositionOperator:
+    metrics = OperatorMetrics()
 
     def __init__(self, project: dict[str, object]):
         self.project = project
@@ -242,7 +242,7 @@ def test_layout_tool_is_sanitized_filtered_and_read_only(tmp_path):
     service = RuntimeDiagnosticInspectionService(
         store=store,
         thread_id="layout-thread",
-        project_control=CompositionProjectControl(composition_project()),
+        operator=CompositionOperator(composition_project()),
         observations=DomainObservationContext(),
         activity=activity,
     )
@@ -342,7 +342,7 @@ def _recording_layout_tool(tmp_path):
     service = RuntimeDiagnosticInspectionService(
         store=store,
         thread_id="layout-thread",
-        project_control=CompositionProjectControl(composition_project()),
+        operator=CompositionOperator(composition_project()),
         observations=DomainObservationContext(),
         activity=activity,
     )
@@ -403,7 +403,7 @@ def test_layout_tool_rejects_unbounded_filters(tmp_path):
     service = RuntimeDiagnosticInspectionService(
         store=RuntimeDiagnosticStore(),
         thread_id="layout-thread",
-        project_control=object(),
+        operator=object(),
         observations=DomainObservationContext(),
         activity=activity,
     )
@@ -445,7 +445,7 @@ def test_node_ref_filter_applies_after_authoring_projection(tmp_path):
     service = RuntimeDiagnosticInspectionService(
         store=recording_store,
         thread_id="layout-thread",
-        project_control=CompositionProjectControl(composition_project()),
+        operator=CompositionOperator(composition_project()),
         observations=DomainObservationContext(),
         activity=activity,
     )
@@ -468,7 +468,7 @@ def test_stale_node_ref_is_rejected_deterministically(tmp_path):
     service = RuntimeDiagnosticInspectionService(
         store=RuntimeDiagnosticStore(),
         thread_id="layout-thread",
-        project_control=CompositionProjectControl(composition_project()),
+        operator=CompositionOperator(composition_project()),
         observations=DomainObservationContext(),
         activity=activity,
     )
@@ -510,7 +510,7 @@ def test_unmapped_runtime_layout_node_is_omitted_and_counted_in_host_log(tmp_pat
     service = RuntimeDiagnosticInspectionService(
         store=store,
         thread_id="layout-thread",
-        project_control=CompositionProjectControl(composition_project()),
+        operator=CompositionOperator(composition_project()),
         observations=DomainObservationContext(),
         activity=activity,
     )
@@ -537,7 +537,7 @@ def test_model_facing_layout_result_contains_no_runtime_identity(tmp_path):
     service = RuntimeDiagnosticInspectionService(
         store=store,
         thread_id="layout-thread",
-        project_control=CompositionProjectControl(composition_project()),
+        operator=CompositionOperator(composition_project()),
         observations=DomainObservationContext(),
         activity=activity,
     )
@@ -565,7 +565,7 @@ def test_layout_inspection_keeps_revision_unchanged(tmp_path):
     service = RuntimeDiagnosticInspectionService(
         store=store,
         thread_id="layout-thread",
-        project_control=CompositionProjectControl(composition_project()),
+        operator=CompositionOperator(composition_project()),
         observations=DomainObservationContext(),
         activity=activity,
     )

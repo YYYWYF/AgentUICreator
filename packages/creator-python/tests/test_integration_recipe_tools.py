@@ -1,7 +1,7 @@
 from __future__ import annotations
 import asyncio
 import json
-from agent_ui_creator.domain_tools import create_project_control_tools
+from agent_ui_creator.domain_tools import create_operator_tools
 from agent_ui_creator.domain_agent.tool_policy import ALLOWED_INSPECT_READ_ONLY_TOOLS, SIDE_EFFECT_TOOL_NAMES
 
 class Client:
@@ -22,7 +22,7 @@ class Client:
 
 def test_recipe_is_forwarded_unchanged_and_apply_is_unavailable_in_read_only_mode():
     client = Client()
-    tools = {tool.name: tool for tool in create_project_control_tools(client)}
+    tools = {tool.name: tool for tool in create_operator_tools(client)}
     recipe = {"id": "host-owned", "edits": []}
     for name, args in [("plan_agent_ui_integration", {}), ("apply_agent_ui_integration", {"recipe": recipe}), ("verify_agent_ui_integration", {"recipe": recipe})]:
         assert json.loads(asyncio.run(tools[name].ainvoke(args)))["ok"]
@@ -35,7 +35,7 @@ def test_recipe_is_forwarded_unchanged_and_apply_is_unavailable_in_read_only_mod
 
 def test_json_encoded_integration_arguments_are_decoded_without_changing_the_host_recipe():
     client = Client()
-    tools = {tool.name: tool for tool in create_project_control_tools(client)}
+    tools = {tool.name: tool for tool in create_operator_tools(client)}
     recipe = {"id": "host-owned", "edits": []}
     for name, args in [
         ("plan_agent_ui_integration", {"options": json.dumps({"targetFile": "src/App.vue"})}),
@@ -48,7 +48,7 @@ def test_json_encoded_integration_arguments_are_decoded_without_changing_the_hos
 
 def test_asset_only_request_forwards_the_original_recipe_without_full_apply():
     client = Client()
-    tools = {tool.name: tool for tool in create_project_control_tools(client)}
+    tools = {tool.name: tool for tool in create_operator_tools(client)}
     recipe = {"id": "host-owned", "edits": [], "manualPrerequisites": [{"status": "missing"}]}
     result = json.loads(asyncio.run(tools["prepare_agent_ui_integration_asset"].ainvoke({"recipe": json.dumps(recipe)})))
     assert result["ok"]

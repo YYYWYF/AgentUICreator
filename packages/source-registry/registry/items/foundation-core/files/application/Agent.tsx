@@ -1,11 +1,11 @@
 import { agentUILocaleConfig } from "../agent-ui/i18n/locale-config";
 import type { AgentUILocaleCode } from "../agent-ui/i18n/locale-types";
 import { usePreviewAgentEnvironment } from "./preview-environment";
-import type { ConversationRuntimeProviderProps } from "@agent-ui/runtime-conversation";
+import type { ConversationRuntimeProviderProps } from "@za38.03/agent-ui-runtime";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import {
   ConversationRuntimeProvider,
-} from "@agent-ui/runtime-conversation";
+} from "@za38.03/agent-ui-runtime";
 
 import appUIModelSource from "../app-ui/app-ui.json?raw";
 import type { AppAgentState } from "../agent-contract/agent-state";
@@ -31,7 +31,7 @@ import { AgentSurface } from "./AgentSurface";
 
 import "../agent-ui/conversation/styles.css";
 
-// The revision descriptor is optional until the first project-control mutation.
+// The revision descriptor is optional until the first operator mutation.
 const revisionSources = import.meta.glob<string>("../app-ui/composition-revision.generated.json", { eager: true, query: "?raw", import: "default" });
 const revisionDescriptorSource = revisionSources["../app-ui/composition-revision.generated.json"];
 

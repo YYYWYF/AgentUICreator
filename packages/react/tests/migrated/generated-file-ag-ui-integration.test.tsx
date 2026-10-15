@@ -5,8 +5,8 @@ import { MessagePrimitive, ThreadPrimitive, useAui, type AssistantRuntime, type 
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, it } from "vitest";
-import { fileOutputScenario, runMockScenario } from "@agent-ui/mock-agent";
-import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@agent-ui/runtime-conversation";
+import { fileOutputScenario, runMockScenario } from "@za38.03/agent-ui-creator/mock-agent";
+import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { ConversationToolFallback } from "../../src/index.js";
 import plugin from "../../../source-registry/registry/items/plugin-generated-file-message/files/plugins/generated-file-message/definition";
 

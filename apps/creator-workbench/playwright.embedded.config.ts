@@ -13,7 +13,7 @@ export default defineConfig({
     }),
   },
   webServer: {
-    command: "pnpm --filter @agent-ui/creator-embedded-host exec vite --host 127.0.0.1 --port 5178 --strictPort",
+    command: "pnpm --filter @za38.03/agent-ui-creator-embedded-host exec vite --host 127.0.0.1 --port 5178 --strictPort",
     url: "http://127.0.0.1:5178/style-isolation.html",
     reuseExistingServer: false,
     timeout: 240_000,

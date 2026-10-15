@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { describe, expect, it, vi } from "vitest";
 
-import type { UIPluginServices } from "../../../project-control/src/framework/contracts/ui-plugin";
+import type { UIPluginServices } from "../../../operator/src/framework/contracts/ui-plugin";
 import {
   AppFrontendToolRegistry,
   AppFrontendToolRuntime,

@@ -1,4 +1,4 @@
-import { ConversationToolTimeline, type ConversationToolTimelineRenderScope } from "@agent-ui/react";
+import { ConversationToolTimeline, type ConversationToolTimelineRenderScope } from "@za38.03/agent-ui-react";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 import { usePluginRenderScope } from "../../runtime/plugins";
 export function AssistantUiToolTimelinePlugin(_props: UIPluginComponentProps) {

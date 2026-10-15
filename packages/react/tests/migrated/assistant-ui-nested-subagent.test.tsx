@@ -29,13 +29,13 @@ import {
   nestedSubagentRecursiveScenario,
   nestedSubagentTaskGroupScenario,
   type MockScenario,
-} from "@agent-ui/mock-agent";
-import { runMockScenario } from "@agent-ui/mock-agent";
+} from "@za38.03/agent-ui-creator/mock-agent";
+import { runMockScenario } from "@za38.03/agent-ui-creator/mock-agent";
 import { ConversationAdapter } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter";
 import { createConversationToolkit } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
 import { AssistantUiResponseFooterPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-response-footer/files/plugins/assistant-ui-response-footer/index";
 import { TaskGroupPlugin } from "../../../source-registry/registry/items/plugin-task-group/files/plugins/task-group/index";
-import type { UIPluginRenderScope } from "../../../project-control/src/framework/contracts/ui-plugin";
+import type { UIPluginRenderScope } from "../../../operator/src/framework/contracts/ui-plugin";
 import {
   PluginRenderScopeProvider,
   PluginServiceRuntime,
@@ -435,7 +435,7 @@ describe("Subagent Streaming Contract Tests and product acceptance", () => {
     expect(card()).toBe(originalCard);
     expect(container.querySelectorAll('[data-slot="task-card"]')).toHaveLength(1);
     expect(child().result).toEqual({ files: [
-      "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "examples/creator-host-sandbox/src/agent-ui/conversation/ConversationAdapter.tsx",
     ] });
     expect(container.textContent).toContain("Searched files");

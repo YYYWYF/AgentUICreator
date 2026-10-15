@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { AgentUILocaleProvider, useAgentUILocale, type AgentUILocaleCode } from "@agent-ui/react";
+import { AgentUILocaleProvider, useAgentUILocale, type AgentUILocaleCode } from "@za38.03/agent-ui-react";
 
 function LocalePicker({ locale, onChange }: { locale: AgentUILocaleCode; onChange: (locale: AgentUILocaleCode) => void }) {
   const messages = useAgentUILocale("accessibility");

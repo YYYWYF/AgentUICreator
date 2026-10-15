@@ -22,7 +22,7 @@ class CreatorRunTelemetry:
 
     activity: Any | None = None
     protocol: Any | None = None
-    project_control: Any | None = None
+    operator: Any | None = None
     mutation: Any | None = None
     scope: Any | None = None
     composition_fast_path: Any | None = None
@@ -43,7 +43,7 @@ class CreatorRunTelemetry:
         *,
         activity: Any | None = None,
         protocol: Any | None = None,
-        project_control: Any | None = None,
+        operator: Any | None = None,
         mutation: Any | None = None,
         scope: Any | None = None,
         composition_fast_path: Any | None = None,
@@ -63,8 +63,8 @@ class CreatorRunTelemetry:
             self.activity = activity
         if protocol is not None:
             self.protocol = protocol
-        if project_control is not None:
-            self.project_control = project_control
+        if operator is not None:
+            self.operator = operator
         if mutation is not None:
             self.mutation = mutation
         if scope is not None:
@@ -111,8 +111,8 @@ class CreatorRunTelemetry:
                 ) + selector_calls
         return metrics
 
-    def project_control_metrics(self) -> dict[str, object] | None:
-        return _to_dict(self.project_control)
+    def operator_metrics(self) -> dict[str, object] | None:
+        return _to_dict(self.operator)
 
     def mutation_metrics(self) -> dict[str, object] | None:
         return _to_dict(self.mutation, method="summary") or _to_dict(self.mutation)
@@ -128,7 +128,7 @@ class CreatorRunTelemetry:
                     scope=self.scope,
                     activity=self.activity,
                     protocol=self.protocol,
-                    project_control=self.project_control,
+                    operator=self.operator,
                     mutation=self.mutation,
                     run_control=self.run_control,
                 )
@@ -164,9 +164,9 @@ class CreatorRunTelemetry:
             snapshot["selectedCreatorIntent"] = dict(self.selected_creator_intent)
         if self.authoring_handoff is not None:
             snapshot["authoringHandoff"] = dict(self.authoring_handoff)
-        project_control = self.project_control_metrics()
-        if project_control is not None:
-            snapshot["projectControlMetrics"] = project_control
+        operator = self.operator_metrics()
+        if operator is not None:
+            snapshot["operatorMetrics"] = operator
         mutation = self.mutation_metrics()
         if mutation is not None:
             snapshot["mutationMetrics"] = mutation

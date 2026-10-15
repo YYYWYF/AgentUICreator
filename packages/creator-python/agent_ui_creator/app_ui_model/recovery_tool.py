@@ -6,7 +6,7 @@ from typing import Any
 from langchain_core.tools import BaseTool, tool
 
 from ..domain_state import DomainObservationContext, DomainObservationError
-from ..project_control import ProjectControlError
+from ..operator import OperatorError
 from .mutation_tool import _bounded_error
 from .mutation_service import AppUIModelMutationService
 
@@ -29,7 +29,7 @@ def create_app_ui_model_recovery_tool(
                 before = service._read_mutable_states()
                 committed = False
                 try:
-                    result = await service.project_control.repair_app_ui_model(
+                    result = await service.operator.repair_app_ui_model(
                         expected_raw_hash=expectedRawHash, candidate_model=candidateModel,
                     )
                     committed = True
@@ -41,7 +41,7 @@ def create_app_ui_model_recovery_tool(
                         observations.recovery_pending = not committed
                         observations.recovery_requires_composition = committed
             return json.dumps({"ok": True, "result": result}, ensure_ascii=False)
-        except (ProjectControlError, DomainObservationError) as error:
+        except (OperatorError, DomainObservationError) as error:
             if error.code == "APP_UI_MODEL_REPAIR_CANDIDATE_INVALID":
                 attempts[expectedRawHash] = attempts.get(expectedRawHash, 0) + 1
             elif error.code not in {"APP_UI_MODEL_RECOVERY_OBSERVATION_REQUIRED", "APP_UI_MODEL_REPAIR_REPLAN_LIMIT"}:

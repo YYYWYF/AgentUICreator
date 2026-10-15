@@ -9,7 +9,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from ..project_control import ProjectControlClient, ProjectControlError
+from ..operator import OperatorClient, OperatorError
 from .models import (
     AddDefaultActionEffect,
     CreatorAuthoringTargetBinding,
@@ -78,7 +78,7 @@ _REQUIRED_OBSERVATION_COVERAGE = frozenset(
 
 
 class CreatorDomainSnapshotError(RuntimeError):
-    """Raised when a successful ProjectControl response is not a valid snapshot."""
+    """Raised when a successful Operator response is not a valid snapshot."""
 
     code: str
     details: Any
@@ -912,18 +912,18 @@ def _build_plugin_index(result: Mapping[str, Any]) -> PluginCapabilityIndex:
 class CreatorDomainSnapshotProvider:
     """Build the authoritative composition snapshot before Action selection."""
 
-    def __init__(self, project_control: ProjectControlClient) -> None:
-        self.project_control = project_control
+    def __init__(self, operator: OperatorClient) -> None:
+        self.operator = operator
         self.metrics = CreatorDomainSnapshotMetrics()
 
     async def build(self) -> CreatorDomainSnapshot:
         started_at = time.monotonic()
         self.metrics.builds += 1
         try:
-            result = await self.project_control.inspect_ui_project(view="composition")
+            result = await self.operator.inspect_ui_project(view="composition")
             snapshot = self._parse(result)
             return snapshot
-        except ProjectControlError:
+        except OperatorError:
             self.metrics.failures += 1
             raise
         except CreatorDomainSnapshotError:

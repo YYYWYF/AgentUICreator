@@ -105,7 +105,7 @@ Host 开发态保存当前会话并接入现有 run-resume；Mock 会话接口�
 - Runtime：提问 interrupt 1、刷新恢复 6 个用例通过；修正旧测试夹具以使用当前 HttpAgent 接口，生产 Runtime 源码未因此改动。
 - 资源注册表 4、安装组合 3 个用例通过。
 - React typecheck、Host 直接 tsc --noEmit 通过；check:i18n 无失败。
-- React、Mock、Source Registry 已构建；Project Control 构建通过并重启开发服务载入新资源配置。
+- React、Mock、Source Registry 已构建；Operator 构建通过并重启开发服务载入新资源配置。
 
 日志：[最终类型与资源检查](final-checks.log)、[行为回归与 i18n](regression-checks.log)、[刷新恢复测试](resume-tests.log)、[Runtime 与构建检查](owner-checks.log)、[表单最终回归与类型检查](form-final-checks.log)。
 

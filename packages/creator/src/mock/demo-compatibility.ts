@@ -1,5 +1,5 @@
-import { showcaseMockScenarios, type MockScenario } from "@agent-ui/mock-agent";
-import { resolveOfficialResource, inspectOfficialResourceImplementation, type ResourceCompositionInspection, type ResourceSourceInspection } from "@agent-ui/project-control/resources";
+import { showcaseMockScenarios, type MockScenario } from "../mock-agent/index.js";
+import { resolveOfficialResource, inspectOfficialResourceImplementation, type ResourceCompositionInspection, type ResourceSourceInspection } from "@za38.03/agent-ui-operator/resources";
 
 export interface MockProjectTarget { id: string; projectRoot: string; sourceRoot?: string }
 export interface MockDemoCompatibility {
@@ -8,7 +8,7 @@ export interface MockDemoCompatibility {
   projectId: string | null;
   status: "checked" | "unknown";
   requirements: MockDemoRequirement[];
-  issue?: { code: "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED" };
+  issue?: { code: "CREATOR_OPERATOR_RESTART_REQUIRED" };
 }
 export interface MockDemoRequirement {
   id: string;
@@ -57,8 +57,8 @@ export async function inspectMockProjectCompatibility(target: MockProjectTarget 
     const { composition, sources } = await inspector(target);
     return inspectMockDemoCompatibility(composition, sources, target.id);
   } catch (error) {
-    const restartRequired = error instanceof Error && "code" in error && error.code === "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED";
+    const restartRequired = error instanceof Error && "code" in error && error.code === "CREATOR_OPERATOR_RESTART_REQUIRED";
     return { projectId: target.id, status: "unknown", requirements: [],
-      ...(restartRequired ? { issue: { code: "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED" as const } } : {}) };
+      ...(restartRequired ? { issue: { code: "CREATOR_OPERATOR_RESTART_REQUIRED" as const } } : {}) };
   }
 }

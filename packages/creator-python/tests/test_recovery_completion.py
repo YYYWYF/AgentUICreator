@@ -12,7 +12,7 @@ from agent_ui_creator.domain_agent import create_domain_write_creator_agent
 from agent_ui_creator.domain_agent.completion_gate import CreatorDevelopmentCompletionGate
 from agent_ui_creator.domain_tools.recovery_tools import CreatorRecoveryQueries, create_recovery_query_tools
 from agent_ui_creator.observability import CreatorRunLogger, CreatorRunTelemetry
-from agent_ui_creator.project_control import ProjectControlMetrics
+from agent_ui_creator.operator import OperatorMetrics
 from agent_ui_creator.repair import CreatorRepairState
 from agent_ui_creator.run_control import CreatorRunControlState
 from agent_ui_creator.server import _execute_agent_run
@@ -264,9 +264,9 @@ def test_real_agent_recovery_converges_and_logs_completion(tmp_path, include_val
     activity = CreatorActivityRecorder(tmp_path, logger=logger)
     activity.begin('recovery-real')
     telemetry = CreatorRunTelemetry(activity=activity)
-    client = SimpleNamespace(metrics=ProjectControlMetrics())
+    client = SimpleNamespace(metrics=OperatorMetrics())
     agent = create_domain_write_creator_agent(model=RecoveryModel(responses=responses), workspace=tmp_path,
-        activity=activity, project_control=client, telemetry=telemetry, validation_runner=PassingRunner(),
+        activity=activity, operator=client, telemetry=telemetry, validation_runner=PassingRunner(),
         automatic_completion_repair=True, verification_mode='static_and_runtime')
     execution = asyncio.run(_execute_agent_run(agent.run('撤销刚刚修改 C'), activity=activity,
         logger=logger, telemetry=telemetry, event_bus=CreatorEventBus()))
@@ -314,7 +314,7 @@ def test_simple_panel_change_keeps_composition_path(tmp_path):
     model = RecoveryModel(responses=[call('inspect_ui_project', {'view': 'composition'}, 'inspect'),
         call('mutate_app_ui_model', {'operations': [{'type': 'remove_layout_node', 'nodeRef': 'l2'}]}, 'hide'),
         call('validate_creator_changes', {}, 'validate'), AIMessage(content='已隐藏右侧面板')])
-    agent = create_domain_write_creator_agent(model=model, workspace=tmp_path, project_control=client,
+    agent = create_domain_write_creator_agent(model=model, workspace=tmp_path, operator=client,
         telemetry=telemetry, validation_runner=PassingRunner(), verification_mode='static_only',
         automatic_completion_repair=True)
     agent.activity.begin('simple-panel')
@@ -329,7 +329,7 @@ def test_simple_panel_change_keeps_composition_path(tmp_path):
 @pytest.mark.parametrize('scenario', ['missing', 'conflict'])
 def test_real_agent_recovery_terminal_status_never_requires_reply_format(tmp_path, scenario):
     project(tmp_path)
-    client = SimpleNamespace(metrics=ProjectControlMetrics())
+    client = SimpleNamespace(metrics=OperatorMetrics())
     responses = [call('inspect_creator_transactions', {}, 'list')]
     path = 'src/agent-ui/plugins/A.ts'
     if scenario == 'conflict':
@@ -342,7 +342,7 @@ def test_real_agent_recovery_terminal_status_never_requires_reply_format(tmp_pat
         responses.append(AIMessage(content='我没有修改工程'))
     telemetry = CreatorRunTelemetry()
     agent = create_domain_write_creator_agent(model=RecoveryModel(responses=responses), workspace=tmp_path,
-        project_control=client, telemetry=telemetry, automatic_completion_repair=True,
+        operator=client, telemetry=telemetry, automatic_completion_repair=True,
         validation_runner=PassingRunner())
     agent.activity.begin('terminal-' + scenario)
     result = asyncio.run(agent.run('恢复我的历史修改'))

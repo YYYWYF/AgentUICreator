@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["browser/**/*.ts", "browser/**/*.tsx", "src/styles.d.ts"],
+  "exclude": ["tests", "scripts"]
+}

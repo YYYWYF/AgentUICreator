@@ -155,7 +155,7 @@ def create_app_ui_model_mutation_tool(
             "After success, assess whether the result satisfies the goal and finish "
             "if so. ok=true with changed=false is not a reason to retry. "
             "Atomically apply semantic AppUIModel operations using the Creator Host's most "
-            "recent valid AppUIModel observation. Inspect current ProjectControl state "
+            "recent valid AppUIModel observation. Inspect current Operator state "
             "before the first mutation, but do not repeat inspection solely to refresh the "
             "hash. Use this instead of direct edits for layout, Slots, and plugin nodes. "
             "Never pass Runtime slot ids or mounts; target a Layout Slot node, parent "

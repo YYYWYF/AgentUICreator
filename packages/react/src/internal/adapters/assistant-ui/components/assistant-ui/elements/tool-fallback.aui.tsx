@@ -724,6 +724,7 @@ function ToolFallbackApproval({
             size="sm"
             className={pressable}
             onClick={() => respondWithOption(confirming)}
+            data-agent-ui-approval-action={isAllowKind(confirming.kind) ? "allow" : undefined}
             disabled={locked}
           >
             {messages.confirm}
@@ -765,6 +766,7 @@ function ToolFallbackApproval({
                 key={option.id}
                 size="sm"
                 variant={option === allowOptions[0] ? "default" : "outline"}
+                data-agent-ui-approval-action={isAllowKind(option.kind) ? "allow" : undefined}
                 className={pressable}
                 onClick={() => handleOption(option)}
                 disabled={locked}
@@ -829,6 +831,7 @@ function ToolFallbackApproval({
           size="sm"
           className={pressable}
           onClick={() => respond(true)}
+          data-agent-ui-approval-action="allow"
           disabled={locked}
         >
           {messages.allow}

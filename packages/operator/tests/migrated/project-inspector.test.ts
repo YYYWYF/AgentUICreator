@@ -1,0 +1,409 @@
+import { generatedProjectFixture } from "../support/generated-project";
+import { cp, mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { afterEach, describe, expect, it } from "vitest";
+
+import type { AppUIModel } from "../../src/framework/contracts/app-ui-model";
+import { APP_UI_MUTATION_ADMISSION_GUARANTEES } from "../../src/project/app-ui-transaction";
+import {
+  inspectUIComposition,
+  inspectUIProject,
+  uiPackageContext,
+} from "../../src/project/project-inspector";
+import {
+  GENERATED_PLUGIN_REGISTRY_PATH,
+  PLUGIN_REGISTRY_ENTRY_PATH,
+  PLUGIN_REGISTRY_ENTRY_SOURCE,
+} from "../../src/project/registry-generator";
+import { generatePluginRegistry } from "../support/fixture-project-paths";
+import type { UIOperatorConfig } from "../../src/project/types";
+
+const temporaryProjects: string[] = [];
+describe("Host UI dependency evidence", () => {
+  it("preserves unknown libraries and all declaration sections without selecting a UI system", () => {
+    const facts = uiPackageContext({
+      dependencies: { antd: "^5", "@host/ui": "workspace:*" },
+      devDependencies: { tailwindcss: "^4" },
+      peerDependencies: { vue: "^3" },
+      optionalDependencies: { "custom-theme": "^1" },
+      packageManager: "npm@11.0.0",
+      scripts: { build: "vite build" },
+      privateConfig: "must not be returned",
+    });
+    expect(facts.dependencyDeclarations).toEqual([
+      { packageName: "antd", version: "^5", section: "dependencies" },
+      { packageName: "@host/ui", version: "workspace:*", section: "dependencies" },
+      { packageName: "tailwindcss", version: "^4", section: "devDependencies" },
+      { packageName: "vue", version: "^3", section: "peerDependencies" },
+      { packageName: "custom-theme", version: "^1", section: "optionalDependencies" },
+    ]);
+    expect(facts.packageManager).toBe("npm@11.0.0");
+    expect(facts.scriptNames).toEqual(["build"]);
+    expect(facts).not.toHaveProperty("privateConfig");
+    expect(facts).not.toHaveProperty("selectedLibrary");
+  });
+  it("reports empty facts for missing or malformed declarations", () => {
+    expect(uiPackageContext(null).dependencyDeclarations).toEqual([]);
+    expect(uiPackageContext({ dependencies: [], devDependencies: { invalid: 3 } }).dependencyDeclarations).toEqual([]);
+  });
+});
+const fixtureConfig: UIOperatorConfig = {
+  catalogs: ["plugins/catalog"],
+  uiPackages: ["react", "@base-ui/react"],
+  agentUI: { sourceRoot: "agent-ui", metadataRoot: ".agent-ui" },
+};
+
+afterEach(async () => {
+  await Promise.all(
+    temporaryProjects.splice(0).map((projectRoot) =>
+      rm(projectRoot, { recursive: true, force: true }),
+    ),
+  );
+});
+
+describe("inspectUIProject", () => {
+  it("discovers the canonical assistant-ui conversation Slots", async () => {
+    const projectRoot = await generatedProjectFixture();
+
+    const result = await inspectUIProject(projectRoot);
+
+    expect(result.mode).toBe("platform");
+    expect(result.modeResolution).toEqual({
+      configPath: ".agent-ui/project.json",
+    });
+    for (const slot of [
+      "emptyWelcome",
+      "emptySuggestions",
+    ] as const) {
+      const plugins = slot === "emptySuggestions"
+        ? [
+            expect.objectContaining({
+              id: "conversation-suggestions-main",
+              pluginId: "conversation-suggestions",
+            }),
+          ]
+        : [];
+      expect(result.appUIModel.slots).toContainEqual(
+        expect.objectContaining({
+          target: {
+            type: "plugin_slot",
+            parentInstanceId: "agent-conversation-surface-main",
+            slot,
+          },
+          owner: expect.objectContaining({
+            kind: "plugin",
+            instanceId: "agent-conversation-surface-main",
+            pluginId: "conversation-surface",
+          }),
+          plugins,
+        }),
+      );
+    }
+
+    const composition = await inspectUIComposition(projectRoot);
+    expect(composition.capabilitySummaries).toContainEqual(
+      expect.objectContaining({
+        pluginId: "conversation-thread-list",
+        selectionOwner: "composition",
+        authoring: {
+          intents: [
+            "add conversation management",
+            "browse conversation history",
+            "select an existing conversation",
+            "start a new conversation",
+          ],
+          visualRole: "conversation navigation",
+          defaultPlacement: { type: "relative",
+            relation: "before",
+            anchorPluginId: "conversation-surface",
+          },
+          recommendedSize: {
+            width: "280px",
+          },
+        },
+        requiredServices: {
+          names: ["agent-ui.conversations"],
+          status: "resolved",
+          missing: [],
+        },
+      }),
+    );
+    expect(composition.hostGuarantees).toEqual({
+      mutation: "mutate_app_ui_model",
+      admission: "deterministic-atomic",
+      checks: APP_UI_MUTATION_ADMISSION_GUARANTEES,
+      commit: "all-or-nothing",
+      postCommitVerificationRequired: true,
+      guidance: expect.stringContaining("Do not preflight"),
+    });
+  });
+
+  it("bounds the current Composition snapshot independently of the full project snapshot", async () => {
+    const projectRoot = await generatedProjectFixture();
+    const [composition, project] = await Promise.all([
+      inspectUIComposition(projectRoot),
+      inspectUIProject(projectRoot),
+    ]);
+    const evidence = {
+      compositionSnapshotChars: JSON.stringify(composition).length,
+      fullProjectSnapshotChars: JSON.stringify(project).length,
+    };
+    console.info(`[phase1 snapshot-size] ${JSON.stringify(evidence)}`);
+    expect(evidence.fullProjectSnapshotChars).toBeGreaterThan(0);
+    expect(evidence.compositionSnapshotChars).toBeLessThan(1_000_000);
+  });
+
+  it("returns a compact, revision-bound project snapshot", async () => {
+    const projectRoot = await mkdtemp(path.join(tmpdir(), "inspect-agent-ui-"));
+    temporaryProjects.push(projectRoot);
+    await mkdir(path.join(projectRoot, "app-ui"));
+    await mkdir(path.join(projectRoot, "plugins", "sample"), {
+      recursive: true,
+    });
+    await mkdir(path.join(projectRoot, "plugins", "renderer"), {
+      recursive: true,
+    });
+    await mkdir(path.join(projectRoot, "plugins", "catalog"));
+    await writeFile(
+      path.join(projectRoot, "package.json"),
+      JSON.stringify({
+        dependencies: { react: "19.2.8" },
+        devDependencies: { "@base-ui/react": "1.8.0" },
+        peerDependencies: { "@host/design-system": "^2" },
+        optionalDependencies: { "host-theme": "^1" },
+        packageManager: "pnpm@10.0.0",
+        scripts: { build: "vite build" },
+      }),
+    );
+    await writeFile(
+      path.join(projectRoot, "plugins", "sample", "manifest.json"),
+      JSON.stringify({
+        id: "sample",
+        name: "Sample",
+        description: "Fixture plugin",
+        version: "1.0.0",
+        capabilities: ["visual"],
+        slots: {
+          children: {
+            message: {
+              description: "Sample child content.",
+              cardinality: "many",
+              optional: true,
+              accepts: { anyOfCapabilities: ["sample-content"] },
+            }
+          }
+        },
+      }),
+    );
+    await writeFile(
+      path.join(projectRoot, "plugins", "sample", "definition.ts"),
+      "const plugin = { manifest: {}, Component: ({renderSlot}) => { renderSlot(\"message\"); return null; } };\nexport default plugin;\n",
+    );
+    await writeFile(
+      path.join(projectRoot, "plugins", "renderer", "manifest.json"),
+      JSON.stringify({
+        id: "renderer",
+        name: "Renderer",
+        description: "Fixture child renderer",
+        version: "1.0.0",
+        capabilities: ["sample-content"],
+      }),
+    );
+    await writeFile(
+      path.join(projectRoot, "plugins", "renderer", "definition.ts"),
+      "const plugin = { manifest: {}, Component: () => null };\nexport default plugin;\n",
+    );
+    const model: AppUIModel = {
+      root: {
+        type: "row",
+        sizes: ["1fr"],
+        children: [
+          {
+            type: "slot",
+            plugins: [
+              {
+                id: "sample-main",
+                pluginId: "sample",
+                enabled: true,
+                slots: {
+                  message: [
+                    {
+                      id: "renderer-main",
+                      pluginId: "renderer",
+                      enabled: true
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+        ],
+      },
+    };
+    await writeFile(
+      path.join(projectRoot, "app-ui", "app-ui.json"),
+      JSON.stringify(model),
+    );
+    const registry = await generatePluginRegistry(
+      projectRoot,
+      model,
+      fixtureConfig,
+    );
+    await writeFile(
+      path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH),
+      registry.capabilityCatalog.source,
+    );
+    await writeFile(
+      path.join(projectRoot, PLUGIN_REGISTRY_ENTRY_PATH),
+      PLUGIN_REGISTRY_ENTRY_SOURCE,
+    );
+
+    await mkdir(path.join(projectRoot, ".agent-ui"));
+    await writeFile(
+      path.join(projectRoot, ".agent-ui", "project.json"),
+      JSON.stringify({ mode: "platform", sourceRoot: "agent-ui" }),
+    );
+    await mkdir(path.join(projectRoot, "agent-ui"));
+    await cp(path.join(projectRoot, "app-ui"), path.join(projectRoot, "agent-ui", "app-ui"), { recursive: true });
+    await cp(path.join(projectRoot, "plugins"), path.join(projectRoot, "agent-ui", "plugins"), { recursive: true });
+    const result = await inspectUIProject(projectRoot, fixtureConfig);
+    expect(result.mode).toBe("platform");
+    expect(result.modeResolution).toEqual({
+      configPath: ".agent-ui/project.json",
+    });
+    expect(result.appUIModel.hash).toMatch(/^[a-f0-9]{64}$/u);
+    expect(result.appUIModel.slots).toEqual([
+      {
+        target: { type: "layout_slot", slotRef: "l1" },
+        nodeRef: "l1",
+        plugins: [expect.objectContaining({ id: "sample-main", pluginId: "sample" })],
+      },
+      {
+        target: { type: "plugin_slot", parentInstanceId: "sample-main", slot: "message" },
+        description: "Sample child content.",
+        cardinality: "many",
+        mode: "content",
+        optional: true,
+        accepts: { anyOfCapabilities: ["sample-content"] },
+        owner: {
+          kind: "plugin",
+          instanceId: "sample-main",
+          pluginId: "sample",
+        },
+        plugins: [{ id: "renderer-main", pluginId: "renderer", enabled: true }],
+      },
+    ]);
+    expect(result.plugins).toContainEqual(
+      expect.objectContaining({
+        id: "sample-main",
+        target: { type: "layout_slot", slotRef: "l1" },
+      }),
+    );
+    expect(result.pluginAssets).toContainEqual(
+      expect.objectContaining({
+        pluginId: "sample",
+        name: "Sample",
+        description: "Fixture plugin",
+      }),
+    );
+    expect(result.capabilityCatalog.generatedFileFresh).toBe(true);
+    expect(result.activeComposition).toMatchObject({
+      selectedPluginIds: ["renderer", "sample"],
+      resolvedPluginIds: ["renderer", "sample"],
+    });
+    expect(result.catalogs).toEqual([
+      { path: "plugins/catalog", exists: true },
+    ]);
+    expect(result.uiStack).toEqual([
+      { packageName: "react", version: "19.2.8" },
+      { packageName: "@base-ui/react", version: "1.8.0" },
+    ]);
+    expect(result.uiContext).toMatchObject({
+      manifestPath: "package.json",
+      packageManager: "pnpm@10.0.0",
+      scriptNames: ["build"],
+      dependencyDeclarations: [
+        { packageName: "react", version: "19.2.8", section: "dependencies" },
+        { packageName: "@base-ui/react", version: "1.8.0", section: "devDependencies" },
+        { packageName: "@host/design-system", version: "^2", section: "peerDependencies" },
+        { packageName: "host-theme", version: "^1", section: "optionalDependencies" },
+      ],
+    });
+
+    const composition = await inspectUIComposition(projectRoot, fixtureConfig);
+    expect(composition).toMatchObject({
+      view: "composition",
+      appUIModel: {
+        hash: result.appUIModel.hash,
+        layout: { nodeRef: "l0", type: "row", sizes: ["1fr"] },
+      },
+      pluginInstances: [
+        expect.objectContaining({
+          id: "renderer-main",
+          enabled: true,
+          target: {
+            type: "plugin_slot",
+            parentInstanceId: "sample-main",
+            slot: "message",
+          },
+        }),
+        expect.objectContaining({
+          id: "sample-main",
+          enabled: true,
+          target: { type: "layout_slot", slotRef: "l1" },
+        }),
+      ],
+      capabilitySummaries: expect.arrayContaining([
+        expect.objectContaining({
+          pluginId: "sample",
+          name: "Sample",
+          description: "Fixture plugin",
+          capabilities: ["visual"],
+          selected: true,
+          currentInstances: [
+            expect.objectContaining({ instanceId: "sample-main", enabled: true }),
+          ],
+          childSlots: {
+            message: {
+              description: "Sample child content.",
+              cardinality: "many",
+              optional: true,
+              accepts: { anyOfCapabilities: ["sample-content"] },
+            },
+          },
+        }),
+      ]),
+      capabilityCatalogRevision: result.capabilityCatalog.revision,
+      layoutConstraints: {
+        refs: "snapshot-scoped",
+        pluginTargets: ["application", "layout_slot", "plugin_slot"],
+        sizedContainerInsertion: {
+          rule: "size-required",
+          operations: ["insert_layout_node", "move_layout_node", "insert_layout_relative"],
+        },
+        relativeWrapperSizing: {
+          rule: "size-and-anchorSize-together",
+          operation: "insert_layout_relative",
+        },
+        operationApplication: "sequential-atomic",
+      },
+    });
+    expect(composition.observationCoverage).toEqual([
+      "composition.model",
+      "composition.layout",
+      "composition.slots",
+      "composition.instances",
+      "capability.inventory",
+      "capability.composition-summary",
+      "creator.actions",
+      "creator.authoring-targets",
+    ]);
+    expect(composition).not.toHaveProperty("pluginAssets");
+    expect(composition).not.toHaveProperty("uiStack");
+    expect(composition).not.toHaveProperty("agentUI");
+    expect(composition).not.toHaveProperty("catalogs");
+  });
+});

@@ -74,8 +74,7 @@ export async function main({
     ).join("\n\n") + "\n";
   } finally { await rm(temporary, { recursive: true, force: true }); }
 
-  const itemRoot = path.join(root, "packages/source-registry/registry/items");
-  const directory = path.join(itemRoot, "agent-component-assistant-ui-generative-ui/files/agent-ui/vendor/assistant-ui/generative-ui");
+  const directory = path.join(root, "packages/react/src/internal/vendor/assistant-ui/generative-ui");
   const hash = value => createHash("sha256").update(value).digest("hex");
   const provenance = JSON.stringify({
     schemaVersion: 1, project: "assistant-ui/assistant-ui", revision, license: "MIT",
@@ -90,12 +89,9 @@ export async function main({
     [path.join(directory, "generative-ui.css"), css],
     [path.join(directory, "UPSTREAM.json"), provenance],
   ]);
-  const items = await Promise.all(["agent-component-assistant-ui-generative-ui", "integration-generative-ui"].map(async id => {
-    const itemPath = path.join(itemRoot, id, "item.json");
-    return { id, itemPath, item: JSON.parse(await readFile(itemPath, "utf8")) };
-  }));
-  for (const { id, itemPath, item } of items) {
-    item.packages[packageName] = version;
+  for (const id of ["agent-component-assistant-ui-generative-ui", "integration-generative-ui"]) {
+    const itemPath = path.join(root, "packages/source-registry/registry/items", id, "item.json");
+    const item = JSON.parse(await readFile(itemPath, "utf8"));
     item.upstream.revision = revision;
     await writeChanged(itemPath, JSON.stringify(item, null, 2) + "\n");
   }

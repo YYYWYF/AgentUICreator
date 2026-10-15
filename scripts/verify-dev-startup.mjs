@@ -62,7 +62,7 @@ try {
   assert.equal((await fetch(host)).status, 200);
   assert.equal((await fetch(dock)).status, 200);
   if (args.includes("--install-browser")) {
-    const result = spawnPnpmSync(["--filter", "@agent-ui/creator-workbench", "exec", "playwright", "install", "--with-deps", "chromium"], { cwd: root, stdio: "inherit" });
+    const result = spawnPnpmSync(["--filter", "@za38.03/agent-ui-creator-workbench", "exec", "playwright", "install", "--with-deps", "chromium"], { cwd: root, stdio: "inherit" });
     if (result.error) throw result.error;
     assert.equal(result.status, 0, "Chromium installation failed");
   }

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 
 
-import { useConversationRuntimeBridge } from "@agent-ui/runtime-conversation";
+import { useConversationRuntimeBridge } from "@za38.03/agent-ui-runtime-conversation";
 import type { AppAgentState } from "../../../agent-contract/agent-state";
 
 import {

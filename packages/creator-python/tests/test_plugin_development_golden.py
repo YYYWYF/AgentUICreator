@@ -12,7 +12,7 @@ from langchain_core.messages import AIMessage
 
 from agent_ui_creator.domain_agent import create_domain_write_creator_agent
 from agent_ui_creator.files import read_creator_file_state
-from agent_ui_creator.project_control import ProjectControlMetrics
+from agent_ui_creator.operator import OperatorMetrics
 from agent_ui_creator.runtime_diagnostics import (
     RuntimeDiagnosticEnvelope,
     RuntimeDiagnosticStore,
@@ -177,7 +177,7 @@ def model_plugins(model):
     return [*model.get("applicationPlugins", []), *model["root"]["plugins"]]
 
 
-class PluginProjectControl:
+class PluginOperator:
     def __init__(
         self,
         root: Path,
@@ -201,7 +201,7 @@ class PluginProjectControl:
             "plugins": [],
             "issues": [],
         }
-        self.metrics = ProjectControlMetrics()
+        self.metrics = OperatorMetrics()
 
     def hash(self) -> str:
         return read_creator_file_state(self.root, APP_UI_MODEL_PATH).hash
@@ -358,7 +358,7 @@ class PluginProjectControl:
         }
 
 
-class ServiceProjectControl(PluginProjectControl):
+class ServiceOperator(PluginOperator):
     async def inspect_ui_services(self):
         self.record("inspect_ui_services")
         contract = self.root / SERVICE_PATH
@@ -407,7 +407,7 @@ class ServiceProjectControl(PluginProjectControl):
         }
 
 
-class GateProjectControl(PluginProjectControl):
+class GateOperator(PluginOperator):
     async def request_app_ui_model_mutation(self, input):
         self.record("mutate_app_ui_model")
         before_hash = self.hash()
@@ -663,7 +663,7 @@ def make_agent(
             encoding="utf-8",
         )
     diagnostics = RuntimeDiagnosticStore()
-    client = PluginProjectControl(
+    client = PluginOperator(
         root, diagnostics, runtime_error=runtime_error
     )
     model = ScriptModel(responses=responses)
@@ -706,7 +706,7 @@ def make_agent(
     agent = create_domain_write_creator_agent(
         model=model,
         workspace=root,
-        project_control=client,
+        operator=client,
         skills_root=SKILLS_ROOT,
         diagnostics=diagnostics,
         thread_id="golden-thread",
@@ -731,7 +731,7 @@ def make_service_project(tmp_path: Path) -> Path:
 def make_gate_agent(tmp_path, responses):
     root = make_project(tmp_path)
     diagnostics = RuntimeDiagnosticStore()
-    client = GateProjectControl(root, diagnostics)
+    client = GateOperator(root, diagnostics)
     validation = ValidationScript()
 
     def publish_runtime(_call_count, command, result):
@@ -764,7 +764,7 @@ def make_gate_agent(tmp_path, responses):
     agent = create_domain_write_creator_agent(
         model=ScriptModel(responses=responses),
         workspace=root,
-        project_control=client,
+        operator=client,
         skills_root=SKILLS_ROOT,
         diagnostics=diagnostics,
         thread_id="golden-thread",
@@ -806,7 +806,7 @@ def make_service_agent(
     agent = create_domain_write_creator_agent(
         model=ScriptModel(responses=responses),
         workspace=root,
-        project_control=client,
+        operator=client,
         skills_root=SKILLS_ROOT,
         diagnostics=diagnostics,
         thread_id="golden-thread",
@@ -1298,7 +1298,7 @@ def test_service_authorization_multi_turn_creation_golden(tmp_path, monkeypatch)
     )
     root = make_service_project(tmp_path)
     diagnostics = RuntimeDiagnosticStore()
-    client = ServiceProjectControl(root, diagnostics)
+    client = ServiceOperator(root, diagnostics)
     proposal_responses = [
         call("inspect_ui_services", {}, "inspect-services"),
         call(
@@ -1513,7 +1513,7 @@ def test_runtime_repair_cannot_bypass_service_authorization_golden(tmp_path):
         encoding="utf-8",
     )
     diagnostics = RuntimeDiagnosticStore()
-    client = ServiceProjectControl(root, diagnostics)
+    client = ServiceOperator(root, diagnostics)
     responses = [
         call("inspect_ui_services", {}, "inspect-services"),
         batch(

@@ -42,8 +42,8 @@ Creator distribution CI 包含 Ubuntu 和 Windows；CI 尚未实际执行时，�
 - 新的 `pnpm creator:python` Node 入口实际启动独立 sidecar，鉴权 `/health` 返回 200 / runtime=python，检查后已停止。
 - `pnpm dev --host-port 15176 --workbench-port 15174` 实际启动两台 Vite server 和 Python sidecar；Host、Dock HTTP 均为 200，Chromium 加载两页无 pageerror。检查后已停止本轮服务。没有运行真实模型生成请求。
 - 全仓库 `pnpm build` 仍因保留的 assistant Host 源码与当前 Sidebar 类型合同不匹配而失败；embedded Host 的类型检查也有同类错误。现有源码被判定为 customized，未重置或覆盖。
-- 全仓库 `pnpm typecheck` 仍有 runtime-react 测试的 NodeNext 导入扩展名 / JSON import attribute 错误。首轮 Vue TypeScript 被误统一到 7.0.2，现已修回图片指定的 5.9.3 并通过定向检查。
-- `pnpm test:ts` 在 runtime-react 的 3 项语言/主题预期错误处停止（该包 173 passed、3 failed）；runtime-core 31 项、bootstrap 41 项、Source Registry 31 项通过。后续包的全量测试没有继续执行，不能视为全部通过。
+- 全仓库 `pnpm typecheck` 仍有 renderer 测试的 NodeNext 导入扩展名 / JSON import attribute 错误。首轮 Vue TypeScript 被误统一到 7.0.2，现已修回图片指定的 5.9.3 并通过定向检查。
+- `pnpm test:ts` 在 renderer 的 3 项语言/主题预期错误处停止（该包 173 passed、3 failed）；runtime-core 31 项、bootstrap 41 项、Source Registry 31 项通过。后续包的全量测试没有继续执行，不能视为全部通过。
 - 全量 Python：1057 passed、381 failed、89 skipped。未修改的 HEAD 副本中，对 path_policy / source_grounding 的代表性基线验证为 14 failed、6 passed，确认部分失败早于本轮修改；其余失败未逐一归因。修复了 live diagnostics 测试的相对导入，使全量测试可以正常收集。
 
 本轮还修正了根目录 build/typecheck/test 脚本覆盖准备摘要为旧 `"1"` 标记的问题，避免多个 Host 同时重建共享 dist 而出现 ENOENT/EEXIST；独立资源安装显式使用包管理器的 exact 保存选项，避免生成项目脱离工作区后再次保存浮动版本。

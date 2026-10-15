@@ -30,20 +30,20 @@
       "react/*": [
         "../../packages/react/node_modules/@types/react/*"
       ],
-      "@agent-ui/bootstrap": [
-        "../../packages/bootstrap/src/index.ts"
+      "@za38.03/agent-ui-operator/bootstrap": [
+        "../../packages/operator/src/bootstrap/index.ts"
       ],
-      "@agent-ui/mock-agent": [
-        "../../packages/mock-agent/src/index.ts"
+      "@za38.03/agent-ui-creator/mock-agent": [
+        "../../packages/creator/src/mock-agent/index.ts"
       ],
-      "@agent-ui/source-registry": [
+      "@za38.03/agent-ui-source-registry": [
         "../../packages/source-registry/src/index.ts"
       ],
-      "@agent-ui/react": [
+      "@za38.03/agent-ui-react": [
         "../../packages/react/src/index.ts"
       ],
-      "@agent-ui/runtime-conversation": [
-        "../../packages/runtime-conversation/src/index.ts"
+      "@za38.03/agent-ui-runtime": [
+        "../../packages/runtime/src/index.ts"
       ],
       "@assistant-ui/react": [
         "../../packages/react/node_modules/@assistant-ui/react"
@@ -52,15 +52,15 @@
         "../../packages/react/node_modules/@assistant-ui/react-generative-ui"
       ],
       "@assistant-ui/react-ag-ui": [
-        "../../packages/runtime-conversation/node_modules/@assistant-ui/react-ag-ui"
+        "../../packages/runtime/node_modules/@assistant-ui/react-ag-ui"
       ],
-      "@agent-ui/runtime-core": [
+      "@za38.03/agent-ui-runtime-core": [
         "../../packages/runtime-core/src/index.ts"
       ],
-      "@agent-ui/runtime-react": [
-        "../../packages/runtime-react/src/index.ts"
+      "@za38.03/agent-ui-renderer": [
+        "../../packages/renderer/src/index.ts"
       ],
-      "@agent-ui/runtime-core/testing": [
+      "@za38.03/agent-ui-runtime-core/testing": [
         "../../packages/runtime-core/src/testing/index.ts"
       ],
       "react-markdown": [
@@ -75,8 +75,11 @@
       "lucide-react": [
         "./node_modules/lucide-react"
       ],
-      "@agent-ui/react/lexical": [
+      "@za38.03/agent-ui-react/lexical": [
         "./src/lexical.tsx"
+      ],
+      "@za38.03/agent-ui-react/generative-ui": [
+        "../../packages/react/src/generative-ui.ts"
       ]
     },
     "rootDirs": [
@@ -124,7 +127,7 @@
       "../source-registry/registry/items/plugin-conversation-data-source/files",
       "../source-registry/registry/items/plugin-conversation-surface/files",
       "../source-registry/registry/items/plugin-agent-plan-message/files",
-      "../project-control/tests/support/typecheck-project",
+      "../operator/tests/support/typecheck-project",
       "../source-registry/registry/items/plugin-web-search/files",
       "../source-registry/registry/items/plugin-retrieval-chunks/files",
       "../source-registry/registry/items/plugin-assistant-ui-lexical-edit-composer/files",

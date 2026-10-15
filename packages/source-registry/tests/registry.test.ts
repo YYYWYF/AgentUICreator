@@ -22,7 +22,7 @@ describe("Agent UI Source Registry public conversation contract", () => {
     expect(registry.items.map((entry) => entry.id)).toEqual(expect.arrayContaining([
       "foundation/conversation", "demo/frontend-tool-dialog", "demo/frontend-tool-form", "demo/ask-user-question",
     ]));
-    expect(registry.items.filter(entry => entry.kind === "demo")).toHaveLength(4);
+    expect(registry.items.filter(entry => entry.kind === "demo")).toHaveLength(5);
     expect(() => validateOfficialResourceSources(registry)).not.toThrow();
     expect(registry.byId.get("foundation/conversation")?.kind).toBe("foundation");
     expect(registry.items.filter((entry) => entry.kind === "primitive")).toHaveLength(0);
@@ -58,13 +58,13 @@ describe("Agent UI Source Registry public conversation contract", () => {
       target: "conversation/conversation-bridge.ts",
     }]);
     expect(foundation?.packages).toEqual({
-      "@agent-ui/react": "0.1.6",
-      "@agent-ui/runtime-conversation": "0.1.0",
+      "@za38.03/agent-ui-react": "0.1.6",
+      "@za38.03/agent-ui-runtime": "0.1.0",
     });
     expect(foundation?.upstream).toBeUndefined();
 
     const source = foundation?.loadedFiles[0]?.content.toString("utf8") ?? "";
-    expect(source).toContain('from "@agent-ui/react"');
+    expect(source).toContain('from "@za38.03/agent-ui-react"');
     expect(source).toContain("ConversationThread");
     for (const token of forbiddenPublicTokens) {
       expect(foundation?.manifestPath, token).not.toContain(token);

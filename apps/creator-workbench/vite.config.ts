@@ -10,14 +10,14 @@ import { defineConfig } from "vite";
 import { createCreatorDevServerPlugin } from "../../packages/creator/src/vitePlugin.js";
 import { CreatorWorkspaceManager } from "../../packages/creator/src/workspace/CreatorWorkspaceManager.js";
 import { PythonCreatorProcessManager } from "../../packages/creator/src/PythonCreatorProcessManager.js";
-import { createAgentUIInitializationHost, inspectCreatorProject } from "@agent-ui/project-control/dev";
-import { initializeAgentUIProject } from "@agent-ui/bootstrap";
-import { handleUIProjectControlRequest } from "@agent-ui/project-control/dev";
+import { createAgentUIInitializationHost, inspectCreatorProject } from "@za38.03/agent-ui-operator/dev";
+import { initializeAgentUIProject } from "@za38.03/agent-ui-operator/bootstrap";
+import { handleUIOperatorRequest } from "@za38.03/agent-ui-operator/dev";
 import type { MockProjectInspector } from "../../packages/creator/src/mock/demo-compatibility";
-import { installOfficialAgentUIResource, inspectScenarioResources } from "@agent-ui/project-control/dev";
-import { mergeOptionalResourceInspection } from "@agent-ui/project-control/dev";
-import { installDemoPlugin } from "@agent-ui/project-control/dev";
-import { suggestAgentUISourceRoot, validateAgentUIProjectSetup } from "@agent-ui/bootstrap";
+import { installOfficialAgentUIResource, inspectScenarioResources } from "@za38.03/agent-ui-operator/dev";
+import { mergeOptionalResourceInspection } from "@za38.03/agent-ui-operator/dev";
+import { installDemoPlugin } from "@za38.03/agent-ui-operator/dev";
+import { suggestAgentUISourceRoot, validateAgentUIProjectSetup } from "@za38.03/agent-ui-operator/bootstrap";
 
 const workspaceRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -59,8 +59,8 @@ export default defineConfig({
       installOfficialAgentUIResource: async (projectRoot, resourceId) => { await installOfficialAgentUIResource(projectRoot, resourceId); },
       // Host adapter calls the same formal protocol as Python Creator tools.
       inspectMockProject: async target => {
-        const composition = await handleUIProjectControlRequest({ operation: "inspect_ui_project", input: { view: "composition" } }, target.projectRoot);
-        const sources = await handleUIProjectControlRequest({ operation: "inspect_agent_ui_sources", input: {} }, target.projectRoot);
+        const composition = await handleUIOperatorRequest({ operation: "inspect_ui_project", input: { view: "composition" } }, target.projectRoot);
+        const sources = await handleUIOperatorRequest({ operation: "inspect_agent_ui_sources", input: {} }, target.projectRoot);
         if (!composition.ok || !sources.ok) {
           const failure = !composition.ok ? composition.error : !sources.ok ? sources.error : undefined;
           throw Object.assign(new Error("Project inspection failed"), { code: failure?.code });
@@ -74,43 +74,44 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@agent-ui/react/styles.css": path.join(
+      "@za38.03/agent-ui-react/demo-attachments": path.join(workspaceRoot, "packages/react/src/demo-attachments.ts"),
+      "@za38.03/agent-ui-react/styles.css": path.join(
         workspaceRoot,
         "packages/react/src/styles.css",
       ),
-      "@agent-ui/creator/host-preview": path.join(workspaceRoot, "packages/creator/src/host-preview/hostPreviewWorkbench.ts"),
-      "@agent-ui/creator/ui": path.join(
+      "@za38.03/agent-ui-creator/host-preview": path.join(workspaceRoot, "packages/creator/src/host-preview/hostPreviewWorkbench.ts"),
+      "@za38.03/agent-ui-creator/ui": path.join(
         workspaceRoot,
         "packages/creator/src/ui/CreatorWorkbench.tsx",
       ),
-      "@agent-ui/creator/runtime-diagnostics": path.join(
+      "@za38.03/agent-ui-creator/runtime-diagnostics": path.join(
         workspaceRoot,
         "packages/creator/src/runtime-diagnostics/runtimeDiagnosticReporter.ts",
       ),
-      "@agent-ui/creator/visual-observation": path.join(
+      "@za38.03/agent-ui-creator/visual-observation": path.join(
         workspaceRoot,
         "packages/creator/src/visual-observation/VisualObservationReporter.ts",
       ),
-      "@agent-ui/react/lexical": path.join(workspaceRoot, "packages/react/src/lexical.tsx"),
-      "@agent-ui/react": path.join(
+      "@za38.03/agent-ui-react/lexical": path.join(workspaceRoot, "packages/react/src/lexical.tsx"),
+      "@za38.03/agent-ui-react": path.join(
         workspaceRoot,
         "packages/react/src/index.ts",
       ),
-      "@agent-ui/runtime-conversation": path.join(
+      "@za38.03/agent-ui-runtime": path.join(
         workspaceRoot,
-        "packages/runtime-conversation/src/index.ts",
+        "packages/runtime/src/index.ts",
       ),
-      "@agent-ui/runtime-core/testing": path.join(
+      "@za38.03/agent-ui-runtime-core/testing": path.join(
         workspaceRoot,
         "packages/runtime-core/src/testing/index.ts",
       ),
-      "@agent-ui/runtime-core": path.join(
+      "@za38.03/agent-ui-runtime-core": path.join(
         workspaceRoot,
         "packages/runtime-core/src/index.ts",
       ),
-      "@agent-ui/runtime-react": path.join(
+      "@za38.03/agent-ui-renderer": path.join(
         workspaceRoot,
-        "packages/runtime-react/src/index.ts",
+        "packages/renderer/src/index.ts",
       ),
     },
     dedupe: ["react", "react-dom"],

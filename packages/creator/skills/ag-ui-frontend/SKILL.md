@@ -89,30 +89,6 @@ frontend-tool modules included in the generated allowlist expose operations.
 Integrations can be pluginless and tool-less. Demo consumers own UI, field names,
 Service lifecycle and replayable receipts; the Integration owns reusable contracts.
 
-## A2UI
-
-A2UI is not a CUSTOM event and is not a Frontend Tool. Backend surfaces use
-standard `ACTIVITY_SNAPSHOT`, `activityType: "a2ui-surface"`, and
-`content.a2ui_operations` (the Mock reference uses v0.9 operations).
-`@assistant-ui/react-ag-ui.useAgUiRuntime` is the only surface converter;
-`integration/a2ui` owns the official renderer and action bridge through project
-facades. Install it as an optional, pluginless Integration; do not edit AppUIModel.
-
-The integration registers only the backend/render-only `present` Toolkit entry.
-Never advertise `present` in `RunAgentInput.tools` merely to render an A2UI
-surface. Plugins must not parse A2UI, import `@assistant-ui/react-ag-ui`, directly
-use `useAgUiSendA2uiAction`, register `present`, or translate CUSTOM into A2UI.
-Use the public `useConversationA2uiAction` facade within the Conversation Runtime
-provider; native actions use `forwardedProps.a2uiAction.userAction` in a new Run
-without a new UserMessage, Tool result or resume entry. Do not implement another
-action continuation coordinator.
-
-Use only `defaultGenerativeUILibrary` in this stage. Custom catalogs require a
-separate authorization contract. Renderer mounts must not send actions; replay
-and in-memory revisit are projections. Persisted cold A2UI history requires a
-separate backend ActivityMessage contract and is not implied by LangGraph history.
-
-
 ## assistant-ui Generative UI
 
 `@assistant-ui/react-generative-ui` is the canonical component vocabulary and
@@ -123,24 +99,13 @@ source or from the presence of related CSS selectors.
 - Install optional `integration/generative-ui` for the shared factory, official
   styled vocabulary and Action Registry. It requires the Registry-managed
   `agent-component/assistant-ui-generative-ui`; neither is a default Foundation.
-- A2UI is a protocol transport into the official Generative UI vocabulary:
-  `ACTIVITY_SNAPSHOT → official A2UI converter → official renderer`.
-  A2UI does not own the component library or styles. Do not implement its parser,
-  reducer or Basic Catalog mappings in Plugin or application code.
 - `createAgentUIGenerativeUI` exposes `present()` and `promptUser()` capabilities.
   Capability availability does not grant Agent permission. Do not automatically
-  mount or advertise `present` / `prompt_user`. A2UI uses only a backend render
-  projection; explicit Tool authorization requires a separate product decision.
-- The fixed 0.0.21 release lacks Slider, CheckboxGroup, `$field` and
-  Input.defaultValue. ChoicePicker does not implement multipleSelection.
-  Use supported controls and official Form `$input` collection; never fabricate
-  these missing APIs or describe Table/Chart as A2UI Basic Catalog components.
+  mount or advertise `present` / `prompt_user`; explicit Tool authorization requires a separate product decision.
+- Use the pinned package types and official Form `$input` collection; do not infer availability from CSS selectors.
 - Keep optional source provenance and official styles under Source Registry;
   regenerate from the pinned local assistant-ui source. CSS permits only
   mechanical `.agent-ui-conversation` selector scoping, with no visual redesign.
-- assistant-ui supports restored A2UI activity history, but the current LangGraph
-  checkpoint adapter does not define Activity persistence. Do not claim cold
-  history support or add a frontend cache.
 
 ## Localization ownership
 

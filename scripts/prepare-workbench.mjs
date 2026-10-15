@@ -9,7 +9,7 @@ const workspaceRoot = fileURLToPath(new URL("..", import.meta.url));
 export function prepareWorkbench() {
   if (process.env.AGENT_UI_WORKBENCH_PREPARED === preparationState([...hostPackages, "creator"])) return;
   prepareHostPackages();
-  const result = spawnPnpmSync(["--filter", "@agent-ui/creator", "build"], {
+  const result = spawnPnpmSync(["--filter", "@za38.03/agent-ui-creator", "build"], {
     cwd: workspaceRoot, stdio: "inherit",
   });
   if (result.error) throw result.error;

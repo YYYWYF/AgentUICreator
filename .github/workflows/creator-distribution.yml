@@ -5,8 +5,7 @@ on:
   pull_request:
     paths:
       - 'contracts/creator/**'
-      - 'packages/creator/**'
-      - 'packages/creator-python/**'
+      - 'packages/**'
       - 'scripts/*creator*'
       - 'package.json'
       - 'pnpm-lock.yaml'
@@ -43,3 +42,4 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm verify:creator-distribution
+      - run: pnpm verify:package

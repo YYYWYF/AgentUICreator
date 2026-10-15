@@ -1,7 +1,7 @@
 import path from "node:path";
 import { readdirSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { generatedProjectFixture } from "../packages/project-control/tests/support/generated-project";
+import { generatedProjectFixture } from "../packages/operator/tests/support/generated-project";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const itemsRoot = path.join(root, "packages/source-registry/registry/items");
 const filesRoots = readdirSync(itemsRoot).map(item => path.join(itemsRoot, item, "files"));
@@ -10,11 +10,16 @@ export function generatedSourceTestConfig(packageRoot: string) {
   return {
     root: packageRoot,
     resolve: { dedupe: ["react", "react-dom", "@assistant-ui/react", "@assistant-ui/core"], alias: [
-      { find: "@agent-ui/react/lexical", replacement: path.join(root, "packages/react/src/lexical.tsx") },
-      { find: "@agent-ui/react/styles.css", replacement: path.join(root, "packages/react/src/styles.css") },
-      { find: "@agent-ui/runtime-core/testing", replacement: path.join(root, "packages/runtime-core/src/testing/index.ts") },
-      ...["react", "runtime-core", "runtime-react", "runtime-conversation", "bootstrap", "source-registry", "mock-agent"].map(name => ({
-        find: `@agent-ui/${name}`, replacement: path.join(root, `packages/${name}/src/index.ts`),
+      { find: "@za38.03/agent-ui-react/generative-ui.css", replacement: path.join(root, "packages/react/src/internal/vendor/assistant-ui/generative-ui/generative-ui.css") },
+      { find: "@za38.03/agent-ui-react/generative-ui", replacement: path.join(root, "packages/react/src/generative-ui.ts") },
+      { find: "@za38.03/agent-ui-react/demo-attachments", replacement: path.join(root, "packages/react/src/demo-attachments.ts") },
+      { find: "@za38.03/agent-ui-react/lexical", replacement: path.join(root, "packages/react/src/lexical.tsx") },
+      { find: "@za38.03/agent-ui-react/styles.css", replacement: path.join(root, "packages/react/src/styles.css") },
+      { find: "@za38.03/agent-ui-runtime-core/testing", replacement: path.join(root, "packages/runtime-core/src/testing/index.ts") },
+      { find: "@za38.03/agent-ui-operator/bootstrap", replacement: path.join(root, "packages/operator/src/bootstrap/index.ts") },
+      { find: "@za38.03/agent-ui-creator/mock-agent", replacement: path.join(root, "packages/creator/src/mock-agent/index.ts") },
+      ...["react", "runtime-core", "renderer", "runtime", "source-registry"].map(name => ({
+        find: `@za38.03/agent-ui-${name}`, replacement: path.join(root, `packages/${name}/src/index.ts`),
       })),
     ] },
     plugins: [{
@@ -23,7 +28,7 @@ export function generatedSourceTestConfig(packageRoot: string) {
       transform(code: string, id: string) {
         // DOM tests also use Node filesystem fixtures. Preserve their physical
         // module URL before Vite's browser asset transform rewrites new URL().
-        if ((id.includes("/tests/") || id.endsWith("/bootstrap/src/default-presets.ts") || id.endsWith("/source-registry/src/loader.ts") || id.endsWith("/project-control/src/install.mjs") || id.includes("/scripts/")) && code.includes("import.meta.url")) {
+        if ((id.includes("/tests/") || id.endsWith("/src/bootstrap/default-presets.ts") || id.endsWith("/source-registry/src/loader.ts") || id.endsWith("/operator/src/install.mjs") || id.includes("/scripts/")) && code.includes("import.meta.url")) {
           return { code: code.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|import\.meta\.url/g, token => token === "import.meta.url" ? JSON.stringify(pathToFileURL(id.split("?")[0]!).href) : token), map: null };
         }
       },
@@ -63,6 +68,6 @@ export function generatedSourceTestConfig(packageRoot: string) {
         }
       },
     }],
-    test: { environment: "jsdom", maxWorkers: 2, testTimeout: 30_000, setupFiles: [path.join(root, "packages/project-control/tests/support/dom-setup.ts")], include: ["tests/**/*.test.{ts,tsx,mjs}", "src/**/*.test.{ts,tsx}"], exclude: ["tests/fixtures/**"] },
+    test: { environment: "jsdom", maxWorkers: 2, testTimeout: 30_000, setupFiles: [path.join(root, "packages/operator/tests/support/dom-setup.ts")], include: ["tests/**/*.test.{ts,tsx,mjs}", "src/**/*.test.{ts,tsx}"], exclude: ["tests/fixtures/**"] },
   };
 }

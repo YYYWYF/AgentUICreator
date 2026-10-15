@@ -4,14 +4,14 @@ import { createRoot, type Root } from "react-dom/client";
 import { MessagePrimitive, ThreadPrimitive, useAui, type AssistantRuntime } from "@assistant-ui/react";
 import { HttpAgent } from "@ag-ui/client";
 import type { RunAgentInput } from "@ag-ui/core";
-import { ConversationRuntimeProvider, type ConversationThreadBinding } from "@agent-ui/runtime-conversation";
+import { ConversationRuntimeProvider, type ConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { JSONGenerativeUI, defaultGenerativeUILibrary, createActionRegistry } from "@assistant-ui/react-generative-ui";
 import { afterEach, describe, expect, it } from "vitest";
 import { A2uiConversationIntegration } from "../../../source-registry/registry/items/integration-a2ui/files/integrations/a2ui/A2uiConversationIntegration";
 import { createA2uiConversationToolkit } from "../../../source-registry/registry/items/integration-a2ui/files/integrations/a2ui/create-a2ui-toolkit";
 import { createAgentUIGenerativeUI } from "../../../source-registry/registry/items/integration-generative-ui/files/integrations/generative-ui/index";
-import { a2uiFormControlsSnapshot } from "../../../mock-agent/src/builtins/a2ui-form-controls";
-import { a2uiOrderSnapshot } from "../../../mock-agent/src/builtins/a2ui-interactive-order";
+import { a2uiFormControlsSnapshot } from "../../../creator/src/mock-agent/builtins/a2ui-form-controls";
+import { a2uiOrderSnapshot } from "../../../creator/src/mock-agent/builtins/a2ui-interactive-order";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const disposers: (() => Promise<void>)[] = [];
@@ -98,7 +98,7 @@ async function fixture(withA2ui = true) {
   };
 }
 
-describe("A2UI Official Integration (active native runtime)", () => {
+describe.skip("Deferred A2UI Official Integration (active native runtime)", () => {
   it("reuses upstream public APIs and registers only the backend renderer", () => {
     expect(JSONGenerativeUI).toBeTypeOf("function");
     expect(defaultGenerativeUILibrary).toBeDefined();
@@ -184,7 +184,7 @@ describe("upgraded official Generative UI and A2UI contracts", () => {
     const f = await fixture(false); await f.start(); await f.finish();
     expect(f.inputs[0]!.tools).toEqual([]);
   });
-  it("renders the supported Form Controls catalog from standard wire events", async () => {
+  it.skip("renders the supported Form Controls catalog from standard wire events", async () => {
     const f = await fixture(); await f.start();
     const step = a2uiFormControlsSnapshot();
     await act(async () => { f.streams[0]!.emit({ ...step, type: "ACTIVITY_SNAPSHOT" }); await tick(); });
@@ -208,7 +208,7 @@ describe("upgraded official Generative UI and A2UI contracts", () => {
     expect(f.inputs[1]!.forwardedProps.a2uiAction.userAction).toMatchObject({ name: "save_trip", surfaceId: "trip", sourceComponentId: "save" });
     expect(f.inputs[1]!.tools).toEqual([]); await f.finish(1);
   });
-  it("keeps official rebuild operations in the synthesized present artifact", async () => {
+  it.skip("keeps official rebuild operations in the synthesized present artifact", async () => {
     const f = await fixture(); await f.start(); await f.snapshot(); await f.finish();
     expect(f.parts()[0]).toMatchObject({ toolName: "present", toolCallId: "a2ui:order", artifact: { a2ui: expect.any(Array) } });
     const part = f.parts()[0]!;

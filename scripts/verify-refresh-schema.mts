@@ -2,9 +2,9 @@ import { readFile, writeFile, mkdtemp, mkdir, cp, rm } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { parseAppUIModelJson } from "../packages/project-control/src/framework/contracts/app-ui-model";
-import { inspectCreatorProject as sourceInspect } from "../packages/project-control/src/project/creator-project-inspector";
-import { inspectCreatorProject as compiledInspect } from "../packages/project-control/dist/runtime/project-control-runtime.mjs";
+import { parseAppUIModelJson } from "../packages/operator/src/framework/contracts/app-ui-model";
+import { inspectCreatorProject as sourceInspect } from "../packages/operator/src/project/creator-project-inspector";
+import { inspectCreatorProject as compiledInspect } from "../packages/operator/dist/runtime/operator-runtime.mjs";
 const host = path.resolve(import.meta.dirname, "../examples/creator-host-sandbox");
 const file = path.join(host, "src/agent-ui/app-ui/app-ui.json");
 const source = await readFile(file, "utf8");
@@ -35,5 +35,5 @@ try {
   if (!rejected || invalid.status !== "broken" || !invalid.issues.some(issue => issue.code === "AGENT_UI_APP_UI_MODEL_INVALID")) throw new Error("Illegal Sidebar was accepted");
   const after = await readFile(file, "utf8");
   if (after !== source) throw new Error("Real AppUIModel changed");
-  console.log(JSON.stringify({ runtime: path.resolve(import.meta.dirname, "../packages/project-control/dist/runtime/project-control-runtime.mjs"), schema: model.root.type, realSource: actual.source.status, realCompiled: actual.compiled.status, headerFooterCompiled: footer.status, illegalSourceRejected: rejected, illegalCompiledRejected: invalid.status, modelHash: createHash("sha256").update(source).digest("hex"), unchanged: true }, null, 2));
+  console.log(JSON.stringify({ runtime: path.resolve(import.meta.dirname, "../packages/operator/dist/runtime/operator-runtime.mjs"), schema: model.root.type, realSource: actual.source.status, realCompiled: actual.compiled.status, headerFooterCompiled: footer.status, illegalSourceRejected: rejected, illegalCompiledRejected: invalid.status, modelHash: createHash("sha256").update(source).digest("hex"), unchanged: true }, null, 2));
 } finally { await rm(root, { recursive: true, force: true }); }

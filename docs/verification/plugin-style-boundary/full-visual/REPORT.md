@@ -104,7 +104,7 @@ An additional one-case typography diagnostic was executed separately.
 records 5,496 owned-control observations with no ordinary `outset` border.
 Generic Layout Runtime collapse/close buttons currently retain native browser
 styles and are excluded from that Agent UI component ownership assertion. Their
-source is `packages/runtime-react/src/layout/LayoutRenderer.tsx`; those generic
+source is `packages/renderer/src/layout/LayoutRenderer.tsx`; those generic
 framework controls were not modified under the framework read-only boundary.
 This exclusion is not third-party Plugin isolation evidence. `contact-sheets/` helps inspect the scenario
 matrix; full-size PNGs remain available. Screenshot review covers default borders,

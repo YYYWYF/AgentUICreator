@@ -2,7 +2,7 @@
   "id": "agent-status-message",
   "name": "Agent Status",
   "description": "Renders mock_agent_status tool calls with the conversation UI facade.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "headless"
   ],

@@ -1,4 +1,4 @@
-import type { MockScenarioSummary } from "@agent-ui/mock-agent";
+import type { MockScenarioSummary } from "../mock-agent/index.js";
 
 export const CREATOR_MOCK_API_PATH = "/__agent-ui/creator/mock";
 

@@ -26,7 +26,7 @@ from ..domain_tools.debugging_tools import create_debugging_target_tools
 from ..app_ui_model.recovery_tool import create_app_ui_model_recovery_tool
 from ..app_ui_model.mutation_tool import create_app_ui_model_mutation_tool
 from ..removal_intent import RemovalIntent
-from ..domain_tools import CreatorRecoveryQueries, create_project_control_tools, create_recovery_query_tools, create_recovery_undo_tool
+from ..domain_tools import CreatorRecoveryQueries, create_operator_tools, create_recovery_query_tools, create_recovery_undo_tool
 from ..domain_state import (
     CompositionFastPathMetrics,
     DomainObservationContext,
@@ -54,7 +54,7 @@ from ..plugin_development.delivery import create_plugin_delivery_tool, delivery_
 from ..plugin_development.behavior import create_plugin_behavior_tool
 from ..plugin_development.prepare_tool import create_prepare_ui_plugin_development_tool
 from ..plugin_development.admission_middleware import PluginDevelopmentAdmissionMiddleware
-from ..project_control import ProjectControlClient, ProjectControlMetrics
+from ..operator import OperatorClient, OperatorMetrics
 from ..repair import CreatorRepairState
 from ..run_control import (
     CompletionStatus,
@@ -113,7 +113,7 @@ from .prompt import (
     DOMAIN_WRITE_AGENT_PROMPT,
     creator_verification_prompt,
 )
-from .runtime_guard import RepeatedProjectControlReadGuard
+from .runtime_guard import RepeatedOperatorReadGuard
 from .skills import create_domain_skills_backend, default_creator_skills_root
 from .tool_batch_policy import DomainToolBatchPolicyMiddleware
 from .tool_policy import ALLOWED_INSPECT_READ_ONLY_TOOLS, ANSWER_ONLY_FORBIDDEN_TOOL_NAMES, SIDE_EFFECT_TOOL_NAMES, DomainReadToolPolicyMiddleware, DomainWriteToolPolicyMiddleware
@@ -123,8 +123,8 @@ from .tool_policy import ALLOWED_INSPECT_READ_ONLY_TOOLS, ANSWER_ONLY_FORBIDDEN_
 class DomainReadAgentResult:
     text: str
     metrics: ToolProtocolMetrics
-    project_control: ProjectControlMetrics
-    repeated_project_control_reads: int
+    operator: OperatorMetrics
+    repeated_operator_reads: int
     activities: tuple[ToolActivity, ...]
     domain_observations: DomainObservationMetrics
     completion: CompletionStatus
@@ -161,8 +161,8 @@ class CreatorDomainReadAgent:
         graph: Any,
         protocol: ToolProtocolMiddleware,
         runtime: MinimalAgentRuntimeGuard,
-        repeated_read_guard: RepeatedProjectControlReadGuard,
-        project_control: ProjectControlClient,
+        repeated_read_guard: RepeatedOperatorReadGuard,
+        operator: OperatorClient,
         observations: DomainObservationContext,
         mutation_service: AppUIModelMutationService | None = None,
         completion_gate: CreatorDevelopmentCompletionGate | None = None,
@@ -178,7 +178,7 @@ class CreatorDomainReadAgent:
         self.protocol = protocol
         self.runtime = runtime
         self.repeated_read_guard = repeated_read_guard
-        self.project_control = project_control
+        self.operator = operator
         self.observations = observations
         self.mutation_service = mutation_service
         self.completion_gate = completion_gate
@@ -334,8 +334,8 @@ class CreatorDomainReadAgent:
         values = dict(
             text=text,
             metrics=self.protocol.metrics,
-            project_control=self.project_control.metrics,
-            repeated_project_control_reads=self.repeated_read_guard.repeated_reads,
+            operator=self.operator.metrics,
+            repeated_operator_reads=self.repeated_read_guard.repeated_reads,
             activities=tuple(self.runtime.activities),
             domain_observations=self.observations.metrics,
             completion=completion,
@@ -353,7 +353,7 @@ class CreatorDomainReadAgent:
                 ),
                 activity=self.activity,
                 protocol=self.protocol.metrics,
-                project_control=self.project_control.metrics,
+                operator=self.operator.metrics,
                 mutation=self.mutation_service.metrics,
                 run_control=self.run_control,
             )
@@ -435,7 +435,7 @@ class CreatorDomainReadAgent:
         stages = reports[0]["delivery"]["stages"]
         if not stages["created"] or not stages["registered"] or stages["composed"]:
             return False
-        snapshot = await self.project_control.inspect_ui_project(view="composition")
+        snapshot = await self.operator.inspect_ui_project(view="composition")
         model = snapshot.get("appUIModel") if isinstance(snapshot, dict) else None
         model_hash = model.get("hash") if isinstance(model, dict) else None
         if not isinstance(model_hash, str):
@@ -465,8 +465,8 @@ class CreatorDomainReadAgent:
         values: dict[str, Any] = {
             "text": text,
             "metrics": self.protocol.metrics,
-            "project_control": self.project_control.metrics,
-            "repeated_project_control_reads": self.repeated_read_guard.repeated_reads,
+            "operator": self.operator.metrics,
+            "repeated_operator_reads": self.repeated_read_guard.repeated_reads,
             "activities": tuple(self.runtime.activities),
             "domain_observations": self.observations.metrics,
             "completion": completion,
@@ -484,7 +484,7 @@ class CreatorDomainReadAgent:
                 ),
                 activity=self.activity,
                 protocol=self.protocol.metrics,
-                project_control=self.project_control.metrics,
+                operator=self.operator.metrics,
                 mutation=self.mutation_service.metrics,
                 run_control=self.run_control,
             )
@@ -511,7 +511,7 @@ def create_domain_read_creator_agent(
     answer_only: bool = False,
     raw_trace: bool = False,
     provider_trace_collector: ProviderResponseTraceCollector | None = None,
-    project_control: ProjectControlClient | None = None,
+    operator: OperatorClient | None = None,
     activity: CreatorActivityRecorder | None = None,
     event_sink: CreatorEventSink | None = None,
     telemetry: CreatorRunTelemetry | None = None,
@@ -531,18 +531,18 @@ def create_domain_read_creator_agent(
         else MinimalAgentPathPolicy.conformance()
     )
     backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
-    client = project_control or ProjectControlClient(project_root=Path(workspace))
+    client = operator or OperatorClient(project_root=Path(workspace))
     observations = DomainObservationContext()
     runtime_inspection = RuntimeDiagnosticInspectionService(
         store=diagnostics or RuntimeDiagnosticStore(),
         thread_id=thread_id,
-        project_control=client,
+        operator=client,
         observations=observations,
         activity=backend.activity,
     )
     domain_tools = () if answer_only else (
         *create_recovery_query_tools(CreatorRecoveryQueries(workspace)),
-        *create_project_control_tools(
+        *create_operator_tools(
             client,
             observations=observations,
             activity=backend.activity,
@@ -573,7 +573,7 @@ def create_domain_read_creator_agent(
         telemetry.bind(
             activity=backend.activity,
             protocol=metrics,
-            project_control=client.metrics,
+            operator=client.metrics,
             run_control=run_control,
         )
     model_retry = create_creator_model_retry_middleware(
@@ -587,7 +587,7 @@ def create_domain_read_creator_agent(
         event_sink=event_sink,
         run_control=run_control,
     )
-    repeated_read_guard = RepeatedProjectControlReadGuard(
+    repeated_read_guard = RepeatedOperatorReadGuard(
         backend,
         run_control=run_control,
     )
@@ -638,7 +638,7 @@ def create_domain_read_creator_agent(
         protocol=protocol,
         runtime=runtime,
         repeated_read_guard=repeated_read_guard,
-        project_control=client,
+        operator=client,
         observations=observations,
         run_control=run_control,
         thread_id=thread_id,
@@ -656,7 +656,7 @@ def create_domain_write_creator_agent(
     mode: Literal["development", "conformance"] = "development",
     raw_trace: bool = False,
     provider_trace_collector: ProviderResponseTraceCollector | None = None,
-    project_control: ProjectControlClient | None = None,
+    operator: OperatorClient | None = None,
     activity: CreatorActivityRecorder | None = None,
     mutation_coordinator: ProjectMutationCoordinator | None = None,
     event_sink: CreatorEventSink | None = None,
@@ -685,7 +685,7 @@ def create_domain_write_creator_agent(
     skills_backend = create_domain_skills_backend(
         backend, skills_root or default_creator_skills_root()
     )
-    client = project_control or ProjectControlClient(project_root=Path(workspace))
+    client = operator or OperatorClient(project_root=Path(workspace))
     coordinator = mutation_coordinator or ProjectMutationCoordinator()
     development_authority = plugin_development_authority or PluginDevelopmentAuthority(
         workspace, thread_id=thread_id or "local", skills_root=skills_root,
@@ -693,7 +693,7 @@ def create_domain_write_creator_agent(
     diagnostic_store = diagnostics or RuntimeDiagnosticStore()
     service = AppUIModelMutationService(
         project_root=workspace,
-        project_control=client,
+        operator=client,
         activity=backend.activity,
         mutation_coordinator=coordinator,
         runtime_diagnostics=diagnostic_store,
@@ -717,7 +717,7 @@ def create_domain_write_creator_agent(
         source_creation=source_creation,
         activity=backend.activity,
         development_authority=development_authority,
-        project_control=client,
+        operator=client,
     )
     plugin_mutation = UIPluginSourceMutationService(
         project_root=workspace,
@@ -730,24 +730,24 @@ def create_domain_write_creator_agent(
     )
     service_authorization = ServiceContractAuthorizationService(
         project_root=workspace,
-        project_control=client,
+        operator=client,
         store=service_authorizations,
     )
     service_creation = UIServiceContractCreationService(
         project_root=workspace,
-        project_control=client,
+        operator=client,
         store=service_authorizations,
         source_creation=service_contract_source_creation,
     )
     service_mutation = UIServiceContractMutationService(
         project_root=workspace,
-        project_control=client,
+        operator=client,
         store=service_authorizations,
         activity=backend.activity,
         mutation_coordinator=coordinator,
     )
     service_verifier = ServiceContractAuthorizationVerifier(
-        project_control=client,
+        operator=client,
         store=service_authorizations,
     )
 
@@ -788,7 +788,7 @@ def create_domain_write_creator_agent(
         repair_state=repair_state,
         host_verifier=service_verifier,
         scope=scope_guard.metrics,
-        project_control=client,
+        operator=client,
         mutation_coordinator=coordinator,
     )
     scope_guard.set_baseline_capture(validation.ensure_baseline)
@@ -798,7 +798,7 @@ def create_domain_write_creator_agent(
     runtime_inspection = RuntimeDiagnosticInspectionService(
         store=diagnostic_store,
         thread_id=thread_id,
-        project_control=client,
+        operator=client,
         observations=observations,
         activity=backend.activity,
         repair_state=repair_state,
@@ -821,7 +821,7 @@ def create_domain_write_creator_agent(
     backend.activity.plugin_delivery_provider = completion_gate.inspect_deliveries
     domain_tools = [
         ask_user_question,
-        *create_project_control_tools(
+        *create_operator_tools(
             client,
             observations=observations,
             activity=backend.activity,
@@ -872,7 +872,7 @@ def create_domain_write_creator_agent(
         telemetry.bind(
             activity=backend.activity,
             protocol=metrics,
-            project_control=client.metrics,
+            operator=client.metrics,
             mutation=service.metrics,
             scope=scope_guard.metrics,
             composition_fast_path=observations.composition_fast_path_metrics,
@@ -891,7 +891,7 @@ def create_domain_write_creator_agent(
         event_sink=event_sink,
         run_control=run_control,
     )
-    repeated_read_guard = RepeatedProjectControlReadGuard(
+    repeated_read_guard = RepeatedOperatorReadGuard(
         backend,
         run_control=run_control,
     )
@@ -943,7 +943,7 @@ def create_domain_write_creator_agent(
         protocol=protocol,
         runtime=runtime,
         repeated_read_guard=repeated_read_guard,
-        project_control=client,
+        operator=client,
         observations=observations,
         mutation_service=service,
         completion_verification_tail=completion_verification_tail,

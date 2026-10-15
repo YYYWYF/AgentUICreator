@@ -1,4 +1,4 @@
-import type { LayoutNode, LayoutTrackSize, PanelDimension, RowDrawerPolicy } from "@agent-ui/runtime-react";
+import type { LayoutNode, LayoutTrackSize, PanelDimension, RowDrawerPolicy } from "@za38.03/agent-ui-runtime-react";
 import { z } from "zod";
 import { isGridTrackOnlyDimension } from "./panel-dimension";
 
@@ -11,7 +11,7 @@ export type {
   RowNode as RuntimeRowNode,
   SlotNode as RuntimeSlotNode,
   StackNode as RuntimeStackNode,
-} from "@agent-ui/runtime-react";
+} from "@za38.03/agent-ui-runtime-react";
 
 export interface AppUIRuntimePluginInstance {
   id: string;

@@ -16,7 +16,7 @@ from agent_ui_creator.minimal_agent.path_policy import (
     MinimalAgentPathPolicy,
     PolicyFilesystemBackend,
 )
-from agent_ui_creator.domain_agent.runtime_guard import RepeatedProjectControlReadGuard
+from agent_ui_creator.domain_agent.runtime_guard import RepeatedOperatorReadGuard
 from agent_ui_creator.model_protocol.errors import (
     AgentNoProgressError,
     ToolPermissionDeniedError,
@@ -29,13 +29,13 @@ TARGET_PROJECT = REPOSITORY_ROOT / "examples" / "creator-host-sandbox"
 def _ensure_real_host_project():
     import subprocess
     subprocess.run(
-        ["pnpm", "--filter", "@agent-ui/project-control", "build"], cwd=REPOSITORY_ROOT, check=True,
+        ["pnpm", "--filter", "@za38.03/agent-ui-operator", "build"], cwd=REPOSITORY_ROOT, check=True,
     )
     subprocess.run(
-        ["pnpm", "--filter", "@agent-ui/bootstrap", "build"], cwd=REPOSITORY_ROOT, check=True,
+        ["pnpm", "--filter", "@za38.03/agent-ui-operator/bootstrap", "build"], cwd=REPOSITORY_ROOT, check=True,
     )
     subprocess.run(
-        ["pnpm", "--filter", "@agent-ui/creator-host-sandbox", "exec", "node", "--import", "tsx", "../../scripts/host-examples/host-project.ts", "ensure", "platform", "creator-host-sandbox"],
+        ["pnpm", "--filter", "@za38.03/agent-ui-creator-host-sandbox", "exec", "node", "--import", "tsx", "../../scripts/host-examples/host-project.ts", "ensure", "platform", "creator-host-sandbox"],
         cwd=REPOSITORY_ROOT, check=True,
     )
 
@@ -54,7 +54,7 @@ def call(name, arguments, call_id):
     )
 
 
-def test_domain_agent_uses_real_project_control_then_bounded_filesystem():
+def test_domain_agent_uses_real_operator_then_bounded_filesystem():
     model = ToolCallingFakeModel(
         responses=[
             call("inspect_ui_project", {}, "call-1"),
@@ -83,14 +83,14 @@ def test_domain_agent_uses_real_project_control_then_bounded_filesystem():
         "inspect_ui_plugin",
         "read_file",
     ]
-    assert result.project_control.requests == 2
-    assert result.project_control.failures == 0
+    assert result.operator.requests == 2
+    assert result.operator.failures == 0
     assert result.metrics.modelCalls == 4
     assert set(model.bound_tool_names) == set(ALLOWED_DOMAIN_READ_TOOLS)
     assert "mutate_app_ui_model" not in model.bound_tool_names
 
 
-def test_domain_agent_blocks_third_identical_project_control_read():
+def test_domain_agent_blocks_third_identical_operator_read():
     model = ToolCallingFakeModel(
         responses=[
             call("inspect_ui_project", {}, "call-1"),
@@ -107,12 +107,12 @@ def test_domain_agent_blocks_third_identical_project_control_read():
         asyncio.run(agent.run("Repeat the broad inspection."))
 
     assert agent.repeated_read_guard.repeated_reads == 2
-    assert agent.project_control.metrics.requests == 2
+    assert agent.operator.metrics.requests == 2
 
 
 def test_failed_app_ui_model_mutation_starts_a_new_project_read_epoch(tmp_path):
     backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
-    guard = RepeatedProjectControlReadGuard(backend)
+    guard = RepeatedOperatorReadGuard(backend)
 
     def request(name):
         return SimpleNamespace(

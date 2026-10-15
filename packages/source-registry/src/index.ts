@@ -22,11 +22,11 @@ export type {
   LoadedAgentUISourceRegistry,
 } from "./types.js";
 export { resolveAgentUISourceItemClosure } from "./closure.js";
-export { isOptionalAgentUISourceItem } from "./optional-resource.js";
+export { isAgentUISourceItemAvailable, isOptionalAgentUISourceItem } from "./optional-resource.js";
 export { OfficialResourceError } from "./official-resource.js";
 export type { OfficialAgentUIResource } from "./official-resource.js";
 export { createOfficialResourceRegistry, officialResourceRegistry, resolveOfficialResource, validateOfficialResourceSources } from "./official-resource-registry.js";
-export { MockUpdateSourceProvider, comparePluginVersions, parseReleaseDescriptor, resolveSourceRelease, verifySourceRelease, pluginSourceDigest } from "./release.js";
+export { InstalledUpdateSourceProvider, MockUpdateSourceProvider, comparePluginVersions, parseReleaseDescriptor, resolveSourceRelease, verifySourceRelease, pluginSourceDigest } from "./release.js";
 export type { UpdateSourceProvider, ReleaseDescriptor, ResolvedSourceRelease, ChangelogEntry } from "./release.js";
 
 export { officialPackagePlugins, officialPackagePlugin } from "./package-plugins.js";

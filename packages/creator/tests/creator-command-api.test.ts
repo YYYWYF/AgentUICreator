@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterEach, expect, it, vi } from "vitest";
-vi.mock("@agent-ui/project-control/commands", () => ({
+vi.mock("@za38.03/agent-ui-operator/commands", () => ({
   getAvailableAgentUIThemes: vi.fn(async () => ({ current: "light", options: [{ id: "light" }, { id: "violet" }] })),
   setAgentUITheme: vi.fn(),
   synchronizeAgentUIPluginRegistry: vi.fn(async () => ({ changed: true, path: "plugins/registry.generated.ts", pluginIds: [] })),
@@ -12,11 +12,11 @@ vi.mock("@agent-ui/project-control/commands", () => ({
   resolveOfficialResource: (id: string) => { if (id === "unknown") throw Object.assign(new Error("unknown"), { code: "RESOURCE_UNKNOWN" }); return { id, discoverable: id !== "demo" }; },
   installOfficialAgentUIResource: vi.fn(async (_root: string, resourceId: string) => ({ resourceId, changed: true, reenabled: false, verification: { status: "passed", errors: [], warnings: [] } })),
 }));
-import { inspectIntegrationHost, planIntegrationRecipe, installOfficialAgentUIResource, inspectOfficialAgentUIResourceCatalog } from "@agent-ui/project-control/resources";
-import { synchronizeAgentUIPluginRegistry } from "@agent-ui/project-control/commands";
+import { inspectIntegrationHost, planIntegrationRecipe, installOfficialAgentUIResource, inspectOfficialAgentUIResourceCatalog } from "@za38.03/agent-ui-operator/resources";
+import { synchronizeAgentUIPluginRegistry } from "@za38.03/agent-ui-operator/commands";
 import { createCreatorCommandHandler } from "../src/commands/command-api.js";
 import type { CreatorWorkspaceManager } from "../src/workspace/CreatorWorkspaceManager.js";
-import { setAgentUITheme } from "@agent-ui/project-control/commands";
+import { setAgentUITheme } from "@za38.03/agent-ui-operator/commands";
 const servers: ReturnType<typeof createServer>[] = [];
 afterEach(async () => { vi.clearAllMocks(); await Promise.all(servers.splice(0).map(server => new Promise<void>(resolve => server.close(() => resolve())))); });
 async function host(active = false) {
@@ -40,7 +40,7 @@ it("returns authoritative project themes", async () => {
 it.each([{}, { "x-agent-ui-workspace-id": "stale" }])("rejects missing or stale workspace identity", async headers => {
   const base = await host(); expect((await fetch(base, { headers })).status).toBe(409);
 });
-it("rejects unknown commands without reaching ProjectControl", async () => {
+it("rejects unknown commands without reaching Operator", async () => {
   const base = await host();
   const response = await fetch(base + "/execute", { method: "POST", headers: { "Content-Type": "application/json", "x-agent-ui-workspace-id": "project-1" }, body: JSON.stringify({ id: "unknown", args: {} }) });
   expect((await response.json()).code).toBe("UNKNOWN_COMMAND"); expect(setAgentUITheme).not.toHaveBeenCalled();

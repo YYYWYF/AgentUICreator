@@ -1,4 +1,4 @@
-import { ConversationComposerCommandTrigger } from "@agent-ui/react";
+import { ConversationComposerCommandTrigger } from "@za38.03/agent-ui-react";
 import { usePluginService } from "../../runtime/plugins";
 import { CONVERSATION_COMMAND_SOURCE, type ConversationCommandRegistry } from "../../services/composer-triggers";
 import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";

@@ -1,5 +1,5 @@
 {
-  "name": "@agent-ui/creator-workbench",
+  "name": "@za38.03/agent-ui-creator-workbench",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,7 +15,7 @@
     "test:e2e:theme-commands": "node ../../scripts/prepare-workbench.mjs && playwright test -c playwright.theme-commands.config.ts"
   },
   "dependencies": {
-    "@agent-ui/creator": "workspace:*",
+    "@za38.03/agent-ui-creator": "workspace:*",
     "react": "19.1.1",
     "react-dom": "19.1.1"
   },
@@ -29,8 +29,7 @@
     "tailwindcss": "4.3.3",
     "typescript": "7.0.2",
     "vite": "8.3.0",
-    "@agent-ui/project-control": "workspace:*",
-    "@agent-ui/bootstrap": "workspace:*",
-    "@agent-ui/mock-agent": "workspace:*"
+    "@za38.03/agent-ui-operator": "workspace:*",
+    "@za38.03/agent-ui-creator": "workspace:*"
   }
 }

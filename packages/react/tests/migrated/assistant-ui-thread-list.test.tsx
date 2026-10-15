@@ -111,11 +111,11 @@ vi.mock("@assistant-ui/react", async (importOriginal) => {
   };
 });
 
-import type { UIPluginDefinition } from "../../../project-control/src/framework/contracts/ui-plugin";
-import { Button, ConversationThreadListItem } from "@agent-ui/react";
+import type { UIPluginDefinition } from "../../../operator/src/framework/contracts/ui-plugin";
+import { Button, ConversationThreadListItem } from "@za38.03/agent-ui-react";
 import { zhCN } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/locales/zh-CN";
 import { AGENT_UI_LOCALE_SERVICE } from "../../../source-registry/registry/items/foundation-core-application/files/services/agent-ui-locale";
-import { parseAppUIRuntimeModel } from "../../../project-control/src/framework/contracts/app-ui-runtime-model";
+import { parseAppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
 import { AGENT_UI_THEME_SERVICE } from "../../../source-registry/registry/items/foundation-core-application/files/services/agent-ui-theme";
 import {
   AGENT_UI_CONVERSATION_SERVICE,
@@ -125,7 +125,7 @@ import {
 } from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations";
 import { conversationThreadListPlugin } from "../../../source-registry/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/definition";
 import { createPluginRegistry } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
-import { PluginRuntimeFixture } from "../../../project-control/tests/support/agent-runtime-fixture";
+import { PluginRuntimeFixture } from "../../../operator/tests/support/agent-runtime-fixture";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
   .IS_REACT_ACT_ENVIRONMENT = true;

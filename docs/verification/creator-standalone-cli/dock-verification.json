@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-14",
+  "creator": {
+    "launcher": "http://127.0.0.1:47832/",
+    "dock": "dock.html",
+    "client": "dock-client.js"
+  },
+  "rsbuild": {
+    "testedVersion": "2.2.13",
+    "publishedPluginTypecheck": "passed",
+    "developmentHtmlInjection": "passed",
+    "productionHtmlExclusion": "passed",
+    "forwardingWorkspaceGate": "passed (409 for another selected workspace)"
+  },
+  "browser": {
+    "collapsedTopEntry": "passed",
+    "expandedIframePanel": "passed",
+    "collapsePreservesIframe": "unit test passed",
+    "crossOriginIframeControlAutomation": "Cua could read the iframe but reported unavailable click targets inside it; opening/collapsing the parent tab worked"
+  },
+  "validation": {
+    "focusedTests": 19,
+    "creatorTypecheck": "passed",
+    "i18nParity": "passed",
+    "isolatedTarballInstall": "passed"
+  },
+  "windows": "Native paths use realpath, browser URLs use URL, packed browser paths use fileURLToPath. No real Windows execution in this turn.",
+  "screenshots": [
+    "dock-rsbuild-expanded.png",
+    "dock-rsbuild-collapsed.png"
+  ]
+}

@@ -1,7 +1,7 @@
 """Explicit real-model acceptance: official Composer -> project-owned customization.
 
 Run with pnpm verify:creator:official-composer-live. No scripted model, fabricated
-snapshot, or mocked Project Control response. Temporary Host uses real build checks.
+snapshot, or mocked Operator response. Temporary Host uses real build checks.
 """
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ from agent_ui_creator.observability import CreatorRunLogger
 from agent_ui_creator.operations import (
     CreatorActionSelector, CreatorActionSelectorContext, CreatorDomainSnapshotProvider,
 )
-from agent_ui_creator.project_control.client import ProjectControlClient
+from agent_ui_creator.operator.client import OperatorClient
 from agent_ui_creator.server import _authoring_handoff_messages
 from agent_ui_creator.streaming.deepagent_v3_runner import DeepAgentInterrupted
 
@@ -36,7 +36,7 @@ pytestmark = [pytest.mark.live_model, pytest.mark.skipif(
     os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1", reason="Explicit live-model acceptance only.")]
 
 
-class ObservedHost(ProjectControlClient):
+class ObservedHost(OperatorClient):
     def __init__(self, project):
         super().__init__(project_root=project)
         self.calls = []
@@ -111,8 +111,8 @@ def fresh_host(tmp_path):
     (project / "tsconfig.json").write_text(json.dumps(tsconfig, indent=2) + "\n")
     (project / "vite-runtime-aliases.ts").write_text("export const runtimeAliases = {};\n")
     script = '''
-import { initializeAgentUIProject } from "./packages/bootstrap/dist/index.js";
-import { createAgentUIInitializationHost } from "./packages/project-control/dist/runtime/project-control-runtime.mjs";
+import { initializeAgentUIProject } from "./packages/operator/dist/bootstrap/index.js";
+import { createAgentUIInitializationHost } from "./packages/operator/dist/runtime/operator-runtime.mjs";
 await initializeAgentUIProject({ projectRoot: process.argv[1], mode: "platform", sourceRoot: "src/agent-ui" }, createAgentUIInitializationHost());
 '''
     subprocess.run(["node", "--input-type=module", "-e", script, str(project)], cwd=ROOT, check=True)
@@ -153,7 +153,7 @@ def test_real_creator_customizes_official_composer_without_source_mutation(tmp_p
         model.callbacks = [model_trace]
         creator = create_domain_write_creator_agent(
             model=model,
-            workspace=project, project_control=host, authoring_handoff=handoff,
+            workspace=project, operator=host, authoring_handoff=handoff,
             activity=activity, checkpointer=InMemorySaver(), thread_id="official-composer-live",
             skills_root=ROOT / "packages/creator/skills", max_retries=settings.max_retries,
             automatic_completion_repair=True,
@@ -178,7 +178,7 @@ def test_real_creator_customizes_official_composer_without_source_mutation(tmp_p
             public_checks = logger.tools[inspect_at + 1:create_at]
             assert any(tool["name"] in {"inspect_ui_slots", "inspect_ui_plugin_source_references"} or
                        (tool["name"] == "read_file" and any(part in tool["arguments"].get("file_path", "")
-                        for part in ("framework/", "conversation/", "@agent-ui/react", "assistant-ui-composer")))
+                        for part in ("framework/", "conversation/", "@za38.03/agent-ui-react", "assistant-ui-composer")))
                        for tool in public_checks), public_checks
             assert any(calls[i].get("result", {}).get("ownership") == "project_source" and
                        "build" in calls[i]["result"].get("checks", []) for i in creations), calls

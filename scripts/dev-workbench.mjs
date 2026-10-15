@@ -21,14 +21,14 @@ const environment = {
   VITE_CREATOR_DOCK_URL: process.env.VITE_CREATOR_DOCK_URL || `http://127.0.0.1:${workbenchPort}/dock.html`,
   VITE_CREATOR_HOST_PREVIEW_URL: process.env.VITE_CREATOR_HOST_PREVIEW_URL || `http://127.0.0.1:${hostPort}/?creator-preview`,
 };
-const ensure = spawnPnpmSync(["--filter", "@agent-ui/creator-host-sandbox", "exec", "node", "--import", "tsx", "../../scripts/host-examples/host-project.ts", "ensure", "platform", "creator-host-sandbox"], {
+const ensure = spawnPnpmSync(["--filter", "@za38.03/agent-ui-creator-host-sandbox", "exec", "node", "--import", "tsx", "../../scripts/host-examples/host-project.ts", "ensure", "platform", "creator-host-sandbox"], {
   cwd: workspaceRoot, env: environment, stdio: "inherit",
 });
 if (ensure.error) throw ensure.error;
 if (ensure.status !== 0) throw new Error("Could not prepare the platform Host");
 const children = [
-  ["@agent-ui/creator-host-sandbox", hostPort, ["--config", fileURLToPath(new URL("../apps/creator-workbench/host-preview.vite.config.ts", import.meta.url))]],
-  ["@agent-ui/creator-workbench", workbenchPort, []],
+  ["@za38.03/agent-ui-creator-host-sandbox", hostPort, ["--config", fileURLToPath(new URL("../apps/creator-workbench/host-preview.vite.config.ts", import.meta.url))]],
+  ["@za38.03/agent-ui-creator-workbench", workbenchPort, []],
 ].map(([name, listenPort, configArgs]) => spawnPnpm(["--filter", String(name), "dev", ...configArgs, "--host", "127.0.0.1", "--port", String(listenPort), "--strictPort"], {
   cwd: workspaceRoot, env: environment, stdio: "inherit",
 }));

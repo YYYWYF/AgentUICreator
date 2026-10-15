@@ -64,7 +64,7 @@ def test_productized_validation_uses_committed_footprint_without_workspace_comma
         control = Control(status)
         result = await CompositionOperationVerificationService(
             validation=validation,
-            project_control=control,
+            operator=control,
             runtime=_Runtime({}),
             verification_mode="static_only",
         ).verify(
@@ -125,7 +125,7 @@ def test_source_validation_preserves_delta_mode(tmp_path):
         "workspaceInfrastructure": False,
     })
     result = asyncio.run(CompositionOperationVerificationService(
-        validation=validation, project_control=Control(),
+        validation=validation, operator=Control(),
         runtime=_Runtime({}), verification_mode="static_only",
     ).verify(
         mutation_result={"changedPaths": ["arbitrary"]},
@@ -136,7 +136,7 @@ def test_source_validation_preserves_delta_mode(tmp_path):
 
     validation.has_pre_mutation_baseline = False
     unavailable = asyncio.run(CompositionOperationVerificationService(
-        validation=validation, project_control=Control(),
+        validation=validation, operator=Control(),
         runtime=_Runtime({}), verification_mode="static_only",
     ).verify(
         mutation_result={"changedPaths": ["arbitrary"]},

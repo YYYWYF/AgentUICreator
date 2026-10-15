@@ -14,7 +14,7 @@ from agent_ui_creator.domain_agent import (
 )
 from agent_ui_creator.files import read_creator_file_state
 from agent_ui_creator.operations import CreatorAuthoringHandoff
-from agent_ui_creator.project_control import ProjectControlError, ProjectControlMetrics
+from agent_ui_creator.operator import OperatorError, OperatorMetrics
 from agent_ui_creator.server import _authoring_handoff_messages
 from agent_ui_creator.validation import CommandExecutionResult
 import agent_ui_creator.validation.attribution as validation_attribution
@@ -52,7 +52,7 @@ def _project(tmp_path: Path) -> Path:
 class MutationClient:
     def __init__(self, root: Path):
         self.root = root
-        self.metrics = ProjectControlMetrics()
+        self.metrics = OperatorMetrics()
         self.inspect_calls = 0
         self.mutation_calls = 0
 
@@ -113,7 +113,7 @@ class TerminalBlockerMutationClient(MutationClient):
     async def request_app_ui_model_mutation(self, _input):
         self.mutation_calls += 1
         self.metrics.record("mutate_app_ui_model", 1, True)
-        raise ProjectControlError(
+        raise OperatorError(
             "PLUGIN_CHILD_SLOT_CONTRACT_INVALID",
             "Selected plugins contain inconsistent child Slots.",
             {"pluginId": "conversation-surface"},
@@ -178,7 +178,7 @@ def test_domain_write_golden_scenario_uses_inspect_then_one_atomic_mutation(tmp_
     agent = create_domain_write_creator_agent(
         model=model,
         workspace=root,
-        project_control=client,
+        operator=client,
     )
     agent.activity.begin("domain-write-golden")
 
@@ -330,7 +330,7 @@ def test_workspace_integrity_terminal_blocker_stops_before_next_model_call(tmp_p
     agent = create_domain_write_creator_agent(
         model=model,
         workspace=root,
-        project_control=client,
+        operator=client,
     )
     agent.activity.begin("domain-write-terminal-blocker")
 
@@ -391,7 +391,7 @@ def test_validation_attribution_degradation_finishes_as_terminal_blocker(
     agent = create_domain_write_creator_agent(
         model=model,
         workspace=root,
-        project_control=client,
+        operator=client,
         validation_runner=FailedValidationRunner(),
     )
     agent.activity.begin("validation-attribution-degraded")

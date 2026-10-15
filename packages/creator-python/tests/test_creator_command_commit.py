@@ -29,7 +29,7 @@ def setup(tmp_path: Path):
     settings = CreatorServerSettings(project_root=tmp_path, skills_root=tmp_path, auth_token="x" * 32)
     app = create_app(settings)
     client = TestClient(app, headers={"Authorization": f"Bearer {settings.auth_token}"})
-    return app, client, file, {"path": relative, "before": before, "after": after, "verificationRuntime": "file:///test/project-control-runtime.mjs"}
+    return app, client, file, {"path": relative, "before": before, "after": after, "verificationRuntime": "file:///test/operator-runtime.mjs"}
 
 
 def test_command_uses_existing_undo_reapply_store(tmp_path):

@@ -4,8 +4,8 @@ import { mkdir, mkdtemp, readFile, realpath, writeFile } from 'node:fs/promises'
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { initializeAgentUIProject } from '../packages/bootstrap/dist/index.js';
-import { createAgentUIInitializationHost } from '../packages/project-control/dist/runtime/project-control-runtime.mjs';
+import { initializeAgentUIProject } from '../packages/operator/dist/bootstrap/index.js';
+import { createAgentUIInitializationHost } from '../packages/operator/dist/runtime/operator-runtime.mjs';
 
 // Run after package builds. Keep the disposable consumers and logs for diagnosis.
 const repository = fileURLToPath(new URL('../', import.meta.url));
@@ -26,20 +26,20 @@ const store = run('pnpm', ['store', 'path'], repository);
 assert.equal(store.status, 'passed');
 const storeRoot = path.dirname(store.output.trim());
 const dependencies = {};
-for (const name of ['runtime-core', 'react', 'runtime-conversation', 'runtime-react', 'plugins']) {
+for (const name of ['runtime-core', 'react', 'runtime', 'renderer', 'plugins']) {
   const archive = path.join(archives, `${name}.tgz`);
   const result = run('pnpm', ['pack', '--out', archive], path.join(repository, 'packages', name));
   await writeFile(path.join(evidence, `pack-${name}.log`), result.output);
   assert.equal(result.status, 'passed', `Pack ${name}`);
-  dependencies[`@agent-ui/${name}`] = `file:${archive}`;
+  dependencies[`@za38.03/agent-ui-${name}`] = `file:${archive}`;
   const manifest = JSON.parse(await readFile(path.join(repository, 'packages', name, 'package.json'), 'utf8'));
   results.packages[manifest.name] = { version: manifest.version, archive };
 }
 const template = JSON.parse(await readFile(path.join(repository, 'examples/creator-host-sandbox/package.json'), 'utf8'));
 for (const mode of ['platform', 'assistant']) {
   const hostRoot = path.join(root, mode); await mkdir(path.join(hostRoot, 'src'), { recursive: true });
-  const production = Object.fromEntries(Object.entries(template.dependencies).filter(([name]) => !name.startsWith('@agent-ui/')));
-  const devDependencies = Object.fromEntries(Object.entries(template.devDependencies).filter(([name]) => !name.startsWith('@agent-ui/')));
+  const production = Object.fromEntries(Object.entries(template.dependencies).filter(([name]) => !name.startsWith('@za38.03/agent-ui-')));
+  const devDependencies = Object.fromEntries(Object.entries(template.devDependencies).filter(([name]) => !name.startsWith('@za38.03/agent-ui-')));
   await writeFile(path.join(hostRoot, 'package.json'), JSON.stringify({ name: `sidebar-${mode}-consumer`, private: true, type: 'module', dependencies: { ...production, ...dependencies }, devDependencies }, null, 2));
   await writeFile(path.join(hostRoot, 'pnpm-workspace.yaml'), `packages: []\noverrides:\n${Object.entries(dependencies).map(([name, value]) => `  ${JSON.stringify(name)}: ${JSON.stringify(value)}`).join('\n')}\n`);
   const install = run('pnpm', ['install', '--ignore-scripts', '--no-frozen-lockfile', '--prefer-offline', '--store-dir', storeRoot, '--fetch-retries=0', '--fetch-timeout=15000', '--config.enableGlobalVirtualStore=false', '--config.packageImportMethod=copy', '--config.nodeLinker=isolated'], hostRoot);
@@ -50,7 +50,7 @@ for (const mode of ['platform', 'assistant']) {
     try {
       await initializeAgentUIProject({ projectRoot: hostRoot, mode, sourceRoot: 'src/agent-ui' }, createAgentUIInitializationHost());
       entry.generation = 'passed';
-      await writeFile(path.join(hostRoot, 'src/main.tsx'), `import { createRoot } from 'react-dom/client';\nimport { Agent } from './agent-ui';\nimport { AgentUISidebarFrame } from '@agent-ui/react';\nimport type { SidebarNode } from '@agent-ui/runtime-react';\nimport '@agent-ui/react/styles.css';\nconst node: SidebarNode = {type:'sidebar',id:'probe',defaultActive:null,items:[],content:{type:'slot',id:'main',slotId:'main'}};\nvoid [node,AgentUISidebarFrame];\ncreateRoot(document.getElementById('root')!).render(<Agent/>);\n`);
+      await writeFile(path.join(hostRoot, 'src/main.tsx'), `import { createRoot } from 'react-dom/client';\nimport { Agent } from './agent-ui';\nimport { AgentUISidebarFrame } from '@za38.03/agent-ui-react';\nimport type { SidebarNode } from '@za38.03/agent-ui-renderer';\nimport '@za38.03/agent-ui-react/styles.css';\nconst node: SidebarNode = {type:'sidebar',id:'probe',defaultActive:null,items:[],content:{type:'slot',id:'main',slotId:'main'}};\nvoid [node,AgentUISidebarFrame];\ncreateRoot(document.getElementById('root')!).render(<Agent/>);\n`);
       await writeFile(path.join(hostRoot, 'index.html'), '<div id="root"></div><script type="module" src="/src/main.tsx"></script>');
       await writeFile(path.join(hostRoot, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'react-jsx', strict: true, skipLibCheck: false, noEmit: true, lib: ['DOM', 'ES2022'], types: ['vite/client'] }, include: ['src'] }));
       await writeFile(path.join(hostRoot, 'vite.config.mjs'), `import { defineConfig } from 'vite'; import react from '@vitejs/plugin-react'; import tailwind from '@tailwindcss/vite'; export default defineConfig({plugins:[react(),tailwind()]});`);

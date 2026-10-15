@@ -1,10 +1,10 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-import { loadAgentUISourceRegistry } from "@agent-ui/source-registry";
-import { readAgentUISourceLock, serializeAgentUISourceLock, sha256 } from "../../packages/project-control/src/project/source-registry/lock";
-import { commitAgentUISourceTransaction, recoverPendingAgentUISourceTransaction } from "../../packages/project-control/src/project/source-registry/transaction";
-import { uiProjectControlConfig } from "../../packages/project-control/src/project/project-config";
+import { loadAgentUISourceRegistry } from "@za38.03/agent-ui-source-registry";
+import { readAgentUISourceLock, serializeAgentUISourceLock, sha256 } from "../../packages/operator/src/project/source-registry/lock";
+import { commitAgentUISourceTransaction, recoverPendingAgentUISourceTransaction } from "../../packages/operator/src/project/source-registry/transaction";
+import { uiOperatorConfig } from "../../packages/operator/src/project/project-config";
 
 const itemId = "foundation/core-adapters";
 const target = "agent-ui/conversation/threads/conversation-service-thread-binding.ts";
@@ -12,7 +12,7 @@ const target = "agent-ui/conversation/threads/conversation-service-thread-bindin
 /** Keep this managed demo seam current even when unrelated Host files customize its Source Item. */
 export async function ensureManagedConversationBinding(projectRoot: string): Promise<void> {
   const config = {
-    ...uiProjectControlConfig,
+    ...uiOperatorConfig,
     agentUI: { sourceRoot: "src/agent-ui", metadataRoot: ".agent-ui" },
   };
   await recoverPendingAgentUISourceTransaction(projectRoot, config);

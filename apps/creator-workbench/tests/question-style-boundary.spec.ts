@@ -13,10 +13,10 @@ test.beforeAll(async () => {
   await mkdir(output, { recursive: true });
   fixture = await mkdtemp(path.resolve('.question-style-'));
   await writeFile(path.join(fixture, 'index.html'), '<div id="root"></div><script type="module" src="/fixture.tsx"></script>');
-  await writeFile(path.join(fixture, 'style.css'), `@import "@agent-ui/react/styles.css"; body{margin:0} .surface{padding:16px;max-width:700px} .business{font:16px Arial;padding:9px 13px;border:2px solid tomato;background:beige;border-radius:3px;box-sizing:content-box} .probe{margin-bottom:24px}`);
+  await writeFile(path.join(fixture, 'style.css'), `@import "@za38.03/agent-ui-react/styles.css"; body{margin:0} .surface{padding:16px;max-width:700px} .business{font:16px Arial;padding:9px 13px;border:2px solid tomato;background:beige;border-radius:3px;box-sizing:content-box} .probe{margin-bottom:24px}`);
   await writeFile(path.join(fixture, 'fixture.tsx'), `
 import {useState} from 'react';import {createRoot} from 'react-dom/client';
-import {AgentUIRoot,AgentUILocaleProvider,ConversationQuestionFlow,ConversationOptionList,Collapsible,CollapsibleTrigger,CollapsibleContent,AgentPlan,SubagentList,Badge,Skeleton,Input,ConversationSource} from '@agent-ui/react';
+import {AgentUIRoot,AgentUILocaleProvider,ConversationQuestionFlow,ConversationOptionList,Collapsible,CollapsibleTrigger,CollapsibleContent,AgentPlan,SubagentList,Badge,Skeleton,Input,ConversationSource} from '@za38.03/agent-ui-react';
 import {OptionList as Before} from '${path.join(repo, 'packages/react/dist/internal/vendor/assistant-ui/components/assistant-ui/elements/option-list.js').replaceAll('\\', '/')}';
 import './style.css';
 const params=new URLSearchParams(location.search),locale=params.get('locale')||'zh-CN',theme=params.get('theme')||'light',zh=locale==='zh-CN';
@@ -33,7 +33,7 @@ function App(){const[choice,setChoice]=useState();const[answer,setAnswer]=useSta
 <div className="probe" data-testid="subagents"><SubagentList agents={[{name:'Alpha',model:'model'}]} completedCount={0} progress={[50]} showSummary={false} summaryAgent={{name:'Summary',model:'model'}}/></div>
 <Badge data-testid="badge">Badge</Badge><Skeleton data-testid="skeleton" className="h-4 w-20"/><Input data-testid="input"/><div data-testid="source"><ConversationSource sourceType="document" id="document" title="Document" mediaType="text/plain"/></div><Collapsible><CollapsibleTrigger data-testid="collapse">Details</CollapsibleTrigger><CollapsibleContent><button className="business" data-testid="business-inside">Business</button></CollapsibleContent></Collapsible>
 </div></AgentUIRoot></AgentUILocaleProvider>};createRoot(document.getElementById('root')).render(<App/>);`);
-  server = await createServer({ configFile:false, root:fixture, cacheDir:path.join(fixture,'.vite'), plugins:[react(),tailwind()], resolve:{dedupe:['react','react-dom'],alias:{'use-sync-external-store':syncStoreRoot,'zustand':path.join(repo,'packages/react/node_modules/zustand'),'@agent-ui/react/styles.css':path.join(repo,'packages/react/dist/styles.css'),'@agent-ui/react':path.join(repo,'packages/react/dist/index.js')}}, optimizeDeps:{noDiscovery:true,include:['react','react-dom/client','@agent-ui/react','@base-ui/react/**','zustand','use-sync-external-store/shim','use-sync-external-store/shim/with-selector']},server:{host:'127.0.0.1',port:0,hmr:false,fs:{allow:[repo]}}});
+  server = await createServer({ configFile:false, root:fixture, cacheDir:path.join(fixture,'.vite'), plugins:[react(),tailwind()], resolve:{dedupe:['react','react-dom'],alias:{'use-sync-external-store':syncStoreRoot,'zustand':path.join(repo,'packages/react/node_modules/zustand'),'@za38.03/agent-ui-react/styles.css':path.join(repo,'packages/react/dist/styles.css'),'@za38.03/agent-ui-react':path.join(repo,'packages/react/dist/index.js')}}, optimizeDeps:{noDiscovery:true,include:['react','react-dom/client','@za38.03/agent-ui-react','@base-ui/react/**','zustand','use-sync-external-store/shim','use-sync-external-store/shim/with-selector']},server:{host:'127.0.0.1',port:0,hmr:false,fs:{allow:[repo]}}});
   await server.listen(); url=server.resolvedUrls!.local[0]!;
 });
 test.afterAll(async()=>{await server?.close();if(fixture)await rm(fixture,{recursive:true,force:true});});

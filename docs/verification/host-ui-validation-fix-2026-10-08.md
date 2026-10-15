@@ -5,7 +5,7 @@
 ## 修改与边界
 
 - `packages/creator-python/agent_ui_creator/validation/command_runner.py`：仅允许 `verify:ui`、`typecheck`、`build` 三个既有验证脚本。读取目标 Host 的实际脚本声明，执行 `<manager> run <script>`，不使用 shell，不提供模型任意命令入口。
-- 识别优先级沿用 Project Control 的 `ensure-resource-packages.ts`：有效 `packageManager` 声明、唯一 lockfile、显式 workspace 祖先。支持既有 npm/pnpm/yarn/bun。Python sidecar 不能直接调用该 TypeScript 私有 helper，因此在现有 validation 模块内对齐其识别行为；没有引入跨进程服务。与资源安装不同，验证不在缺乏证据时默认 npm。
+- 识别优先级沿用 Operator 的 `ensure-resource-packages.ts`：有效 `packageManager` 声明、唯一 lockfile、显式 workspace 祖先。支持既有 npm/pnpm/yarn/bun。Python sidecar 不能直接调用该 TypeScript 私有 helper，因此在现有 validation 模块内对齐其识别行为；没有引入跨进程服务。与资源安装不同，验证不在缺乏证据时默认 npm。
 - 缺失或空脚本、无包管理器证据、多个冲突 lockfile、不支持的声明、无效 package.json、启动失败和非零退出都保留明确失败证据。解析失败的回执显示 `<script> (not executed)`。
 - `packages/creator-python/agent_ui_creator/validation/service.py`：baseline、开始日志、验证回执和缓存统一采用实际命令名称；保留 revision、delta/clean、失败归因以及 build 请求持续生效的原机制。既有 pnpm 字符串只保留为内部 allowlist 标识，不再决定执行器。
 - `packages/creator-python/tests/test_validation_command_runner.py`：新增 20 项确定性回归测试。

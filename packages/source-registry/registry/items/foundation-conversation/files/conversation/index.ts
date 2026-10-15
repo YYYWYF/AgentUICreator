@@ -1,7 +1,7 @@
 export {
   ConversationThread,
-} from "@agent-ui/react";
+} from "@za38.03/agent-ui-react";
 export type {
   ConversationMessage,
   ConversationThreadComponents,
-} from "@agent-ui/react";
+} from "@za38.03/agent-ui-react";

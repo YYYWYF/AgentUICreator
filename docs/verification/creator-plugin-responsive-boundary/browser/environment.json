@@ -9,7 +9,7 @@
     " M packages/creator/package.json",
     " D packages/creator/scripts/build-ui.mjs",
     " M packages/creator/src/ui/components/README.md",
-    " M packages/project-control/tests/fixtures/project/package.json",
+    " M packages/operator/tests/fixtures/project/package.json",
     " M packages/react/package.json",
     " M packages/react/src/styles.css",
     " M pnpm-lock.yaml",

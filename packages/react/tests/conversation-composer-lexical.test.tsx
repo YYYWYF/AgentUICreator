@@ -5,8 +5,8 @@ import { $getRoot, getNearestEditorFromDOMNode, KEY_BACKSPACE_COMMAND, KEY_DELET
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, expect, it, vi } from "vitest";
-import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@agent-ui/runtime-conversation";
-import { CancellationAwareHttpAgent } from "../../runtime-conversation/src/compatibility/cancellation-aware-http-agent.js";
+import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@za38.03/agent-ui-runtime";
+import { CancellationAwareHttpAgent } from "../../runtime/src/compatibility/cancellation-aware-http-agent.js";
 import { AgentUIRoot, ConversationThread, ConversationCanonicalComposer, ConversationComposerTextareaInput, ConversationComposerMentionTrigger, ConversationComposerCommandTrigger, type ConversationTriggerLabels } from "../src/index.js";
 import { ConversationComposerLexicalInput } from "../src/lexical.js";
 

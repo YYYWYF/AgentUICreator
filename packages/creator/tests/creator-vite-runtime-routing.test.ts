@@ -116,7 +116,7 @@ describe("Creator Vite Python routing", () => {
     const log = vi.fn();
     runtimeMocks.proxyPythonRequest.mockResolvedValue(undefined);
     const middlewares = configuredMiddlewares({
-      projectRoot: "/tmp/python-project",
+      projectRoot: process.cwd(),
       python: { environment: {}, log },
     });
     const request = {};
@@ -171,7 +171,7 @@ describe("Creator Vite Python routing", () => {
       },
     );
     const middlewares = configuredMiddlewares({
-      projectRoot: "/tmp/failing-python-project",
+      projectRoot: process.cwd(),
       python: { environment: {}, log: vi.fn() },
     });
     const response = responseDouble();

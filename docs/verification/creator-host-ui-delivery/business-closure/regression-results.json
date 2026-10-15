@@ -205,10 +205,10 @@
   },
   "result-contract": {
     "currentFailures": [
-      "packages/creator-python/tests/test_project_control_contract.py::test_python_and_canonical_schema_accept_and_reject_the_same_fixtures"
+      "packages/creator-python/tests/test_operator_contract.py::test_python_and_canonical_schema_accept_and_reject_the_same_fixtures"
     ],
     "baselineFailures": [
-      "packages/creator-python/tests/test_project_control_contract.py::test_python_and_canonical_schema_accept_and_reject_the_same_fixtures"
+      "packages/creator-python/tests/test_operator_contract.py::test_python_and_canonical_schema_accept_and_reject_the_same_fixtures"
     ],
     "newFailures": [],
     "resolvedFailures": [],
@@ -220,7 +220,7 @@
     "newFailures": [],
     "summary": "73 failed, 64 passed, 1 warning in 3.14s"
   },
-  "projectControlRecovery": {
+  "operatorRecovery": {
     "currentFailures": [
       "tests/app-ui-recovery.test.ts > invalid AppUIModel Recovery > Plugin context remains inspectable while the model is broken",
       "tests/app-ui-recovery.test.ts > invalid AppUIModel Recovery > does not classify Plugin definition missing export errors as model corruption",

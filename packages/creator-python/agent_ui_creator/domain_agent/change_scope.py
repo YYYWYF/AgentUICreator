@@ -38,7 +38,7 @@ class TaskScope:
             "resources": list(self.resources),
         }
 
-_PROJECT_CONTROL_READ_OPERATIONS = frozenset(
+_OPERATOR_READ_OPERATIONS = frozenset(
     {
         "inspect_ui_project",
         "inspect_app_ui_model",
@@ -984,7 +984,7 @@ def build_change_layer_run_metrics(
     scope: ChangeScopeMetrics,
     activity: Any,
     protocol: Any,
-    project_control: Any,
+    operator: Any,
     mutation: Any,
     run_control: CreatorRunControlState | None = None,
 ) -> dict[str, object]:
@@ -1001,9 +1001,9 @@ def build_change_layer_run_metrics(
         if change_layer_for_path(path, project_root=getattr(activity, "project_root", None)) != "composition"
     ]
     source_paths = list(dict.fromkeys(source_write_events))
-    by_operation = getattr(project_control, "requestsByOperation", {})
-    project_control_reads = sum(
-        int(by_operation.get(name, 0)) for name in _PROJECT_CONTROL_READ_OPERATIONS
+    by_operation = getattr(operator, "requestsByOperation", {})
+    operator_reads = sum(
+        int(by_operation.get(name, 0)) for name in _OPERATOR_READ_OPERATIONS
     )
     layers = list(scope.taskChangeLayers)
     scope_resources = list(scope.scopeResources)
@@ -1028,7 +1028,7 @@ def build_change_layer_run_metrics(
         "failedSideEffectAttempts": scope.failedSideEffectAttempts,
         "skillLoaded": bool(scope.skillsLoaded),
         "skillsLoaded": list(scope.skillsLoaded),
-        "projectControlReads": project_control_reads,
+        "operatorReads": operator_reads,
         "appUIModelMutationAttempts": int(getattr(mutation, "requests", 0)),
         "appUIModelMutationOperations": int(getattr(mutation, "operations", 0)),
         "successfulAppUIModelMutations": int(

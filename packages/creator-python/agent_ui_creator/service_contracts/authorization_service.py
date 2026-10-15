@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ..project_control import ProjectControlClient
+from ..operator import OperatorClient
 from .authorization_store import ServiceContractAuthorizationStore
 from .models import (
     PrepareUIServiceContractChangeInput,
@@ -23,11 +23,11 @@ class ServiceContractAuthorizationService:
         self,
         *,
         project_root: str | Path,
-        project_control: ProjectControlClient,
+        operator: OperatorClient,
         store: ServiceContractAuthorizationStore,
     ) -> None:
         self.project_root = Path(project_root).resolve()
-        self.project_control = project_control
+        self.operator = operator
         self.store = store
 
     @staticmethod
@@ -53,7 +53,7 @@ class ServiceContractAuthorizationService:
         return spec
 
     async def _assert_current(self, spec: ServiceOwnershipSpec) -> None:
-        topology = await self.project_control.inspect_ui_services()
+        topology = await self.operator.inspect_ui_services()
         if spec.change_kind == "mutate":
             spec_from_existing_service(spec, topology)
         elif service_by_name(topology, spec.service_name) is not None:
@@ -62,7 +62,7 @@ class ServiceContractAuthorizationService:
                 f'Service "{spec.service_name}" already exists.',
             )
 
-        inventory = await self.project_control.list_ui_plugins()
+        inventory = await self.operator.list_ui_plugins()
         available = available_plugin_ids(inventory)
         required = {spec.owner_plugin_id, *(plugin for plugin, _ in spec.consumers)}
         missing = sorted(required - available)

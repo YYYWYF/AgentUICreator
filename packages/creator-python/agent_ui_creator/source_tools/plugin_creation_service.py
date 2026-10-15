@@ -8,7 +8,7 @@ from ..activity import CreatorActivityRecorder
 from ..files import resolve_creator_project_file
 from ..project_paths import agent_ui_source_path
 from ..plugin_development.authority import PluginDevelopmentAuthority, PluginDevelopmentError
-from ..project_control import ProjectControlClient, ProjectControlError
+from ..operator import OperatorClient, OperatorError
 from .models import (
     PluginCreationResult,
     SourceCreationError,
@@ -49,14 +49,14 @@ class UIPluginCreationService:
         source_creation: UISourceCreationService,
         activity: CreatorActivityRecorder,
         development_authority: PluginDevelopmentAuthority | None = None,
-        project_control: ProjectControlClient | None = None,
+        operator: OperatorClient | None = None,
         internal_trusted: bool = False,
     ) -> None:
         self.project_root = Path(project_root).resolve()
         self.source_creation = source_creation
         self.activity = activity
         self.development_authority = development_authority
-        self.project_control = project_control
+        self.operator = operator
         self.internal_trusted = internal_trusted
 
     @staticmethod
@@ -274,11 +274,11 @@ class UIPluginCreationService:
 
                 # The manifest is still only a candidate. Reuse the same Host
                 # planner that will lower insert_plugin_default after creation.
-                if self.project_control is not None and isinstance(
+                if self.operator is not None and isinstance(
                     manifest.get("authoring"), dict
                 ) and manifest["authoring"].get("defaultPlacement") is not None:
                     try:
-                        inspection = await self.project_control.inspect_ui_project()
+                        inspection = await self.operator.inspect_ui_project()
                         model_hash = inspection.get("appUIModel", {}).get("hash")
                         catalog_revision = inspection.get("capabilityCatalog", {}).get("revision")
                         if not isinstance(model_hash, str) or not isinstance(catalog_revision, str):
@@ -287,13 +287,13 @@ class UIPluginCreationService:
                                 "Current AppUIModel and capability catalog revisions are required before creating a placed Plugin.",
                                 {"relativePath": "manifest.json"},
                             )
-                        placement = await self.project_control.preflight_ui_plugin_placement(
+                        placement = await self.operator.preflight_ui_plugin_placement(
                             app_ui_model_hash=model_hash,
                             capability_catalog_revision=catalog_revision,
                             instance_id=f"{plugin_id}-main",
                             manifest=manifest,
                         )
-                    except ProjectControlError as error:
+                    except OperatorError as error:
                         raise SourceCreationError(
                             "PLUGIN_PLACEMENT_PREFLIGHT_FAILED",
                             str(error),

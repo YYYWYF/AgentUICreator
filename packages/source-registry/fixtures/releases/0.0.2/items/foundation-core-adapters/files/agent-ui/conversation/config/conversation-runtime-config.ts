@@ -1,4 +1,4 @@
-import type { ConversationStarterSuggestion } from "@agent-ui/runtime-conversation";
+import type { ConversationStarterSuggestion } from "@za38.03/agent-ui-runtime-conversation";
 
 /** Host-owned endpoint. Set this when integrating Agent UI with your application. */
 export const conversationDataEndpoint: string | undefined = undefined;

@@ -2,7 +2,7 @@
   "id": "assistant-ui-dictation-action",
   "name": "Assistant UI Dictation Action",
   "description": "Adds assistant-ui dictation controls to the conversation composer.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "conversation-composer-trailing-action"
   ],

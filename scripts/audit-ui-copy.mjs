@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const agentUIOnly = process.argv.includes("--agent-ui-only");
-const scopes = agentUIOnly ? ["packages/react/src", "packages/runtime-react/src", "packages/runtime-conversation/src", "packages/source-registry/registry/items", ...["creator-host-sandbox", "creator-assistant-host", "creator-embedded-host"].map(name => `examples/${name}/src/agent-ui`)] : ["packages/creator/src/ui", "packages/react/src", "packages/runtime-react/src", "packages/runtime-conversation/src", "packages/source-registry/registry/items", "examples", "apps/creator-workbench/src"];
+const scopes = agentUIOnly ? ["packages/react/src", "packages/renderer/src", "packages/runtime/src", "packages/source-registry/registry/items", ...["creator-host-sandbox", "creator-assistant-host", "creator-embedded-host"].map(name => `examples/${name}/src/agent-ui`)] : ["packages/creator/src/ui", "packages/react/src", "packages/renderer/src", "packages/runtime/src", "packages/source-registry/registry/items", "examples", "apps/creator-workbench/src"];
 const excluded = /\/(?:vendor|vendors|fixtures|node_modules|dist|dev)\/|(?:\.test|\.spec)\.[cm]?[jt]sx?$|\.generated\./;
 async function collect(directory) {
   const results = [];
@@ -27,7 +27,7 @@ async function dictionary(file) {
     "zh-CN": await dictionary("packages/react/src/locales/zh-CN.ts"),
   } : undefined;
   vm.runInNewContext(output, { exports, require: specifier => {
-    if (specifier === "@agent-ui/react" && presentation) return { AGENT_UI_PRESENTATION_LOCALES: presentation };
+    if (specifier === "@za38.03/agent-ui-react" && presentation) return { AGENT_UI_PRESENTATION_LOCALES: presentation };
     throw new Error(`Unsupported locale dictionary import: ${specifier}`);
   } });
   return Object.values(exports)[0];

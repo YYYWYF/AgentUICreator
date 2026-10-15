@@ -43,7 +43,7 @@
   - import "./custom-event-protocol" without a file extension (src/framework/contracts/ui-plugin.ts:12:39). Add the file extension
 Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
 
- RUN  v4.1.11 /Users/yifei/Coding/AgentUICreator/packages/project-control
+ RUN  v4.1.11 /Users/yifei/Coding/AgentUICreator/packages/operator
 
  ❯ tests/app-ui-recovery.test.ts (35 tests | 4 failed) 2897ms
      × Plugin context remains inspectable while the model is broken 7ms

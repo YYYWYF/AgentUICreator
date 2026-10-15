@@ -1,4 +1,4 @@
-import { ensureManagedProjectControl } from "@agent-ui/project-control";
+import { ensureManagedOperator } from "@za38.03/agent-ui-operator";
 import { createHash } from "node:crypto";
 import { realpath, stat } from "node:fs/promises";
 import path from "node:path";
@@ -21,7 +21,7 @@ export class CreatorWorkspaceError extends Error {
 }
 
 export class CreatorWorkspaceManager {
-  readonly #ensureControl: typeof ensureManagedProjectControl;
+  readonly #ensureOperator: typeof ensureManagedOperator;
   readonly #inspect: (projectRoot: string) => Promise<CreatorProjectInspection>;
   readonly #initialize: (input: CreatorWorkspaceInitializeInput & { projectRoot: string }) => Promise<unknown>;
   readonly #validateSetup: (input: CreatorWorkspaceInitializeInput & { projectRoot: string }) => Promise<CreatorProjectSetupValidation>;
@@ -39,9 +39,9 @@ export class CreatorWorkspaceManager {
     validateProjectSetup: (input: CreatorWorkspaceInitializeInput & { projectRoot: string }) => Promise<CreatorProjectSetupValidation>;
     suggestSourceRoot: (projectRoot: string) => Promise<string>;
     createPythonManager: CreatorPythonManagerFactory;
-    ensureProjectControl?: typeof ensureManagedProjectControl;
+    ensureOperator?: typeof ensureManagedOperator;
   }) {
-    this.#ensureControl = options.ensureProjectControl ?? ensureManagedProjectControl;
+    this.#ensureOperator = options.ensureOperator ?? ensureManagedOperator;
     this.#inspect = options.inspectProject;
     this.#initialize = options.initializeProject;
     this.#validateSetup = options.validateProjectSetup;
@@ -92,20 +92,20 @@ export class CreatorWorkspaceManager {
     try {
       inspection = knownInspection ?? await this.#inspect(workspace.projectRoot);
     } catch (error) {
-      const toolOutdated = typeof error === "object" && error !== null && "code" in error && error.code === "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED";
+      const toolOutdated = typeof error === "object" && error !== null && "code" in error && error.code === "CREATOR_OPERATOR_RESTART_REQUIRED";
       if (toolOutdated && this.#state.status === "ready" && this.#state.workspace.id === workspace.id) {
         this.#state = { ...this.#state, runtime: { status: "unavailable", code: error.code as string,
           message: error instanceof Error ? error.message : String(error) } };
         return this.#state;
       }
-      inspection = { status: "broken", issues: [{ code: typeof error === "object" && error !== null && "code" in error && error.code === "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED" ? error.code : "CREATOR_WORKSPACE_INSPECTION_FAILED", message: error instanceof Error ? error.message : String(error) }] };
+      inspection = { status: "broken", issues: [{ code: typeof error === "object" && error !== null && "code" in error && error.code === "CREATOR_OPERATOR_RESTART_REQUIRED" ? error.code : "CREATOR_WORKSPACE_INSPECTION_FAILED", message: error instanceof Error ? error.message : String(error) }] };
     }
     if (inspection.status === "ready") {
       const projectState = { status: inspection.status, workspace, project: inspection.projectConfig,
         ...(inspection.warnings === undefined ? {} : { warnings: inspection.warnings }) } as const;
       this.#state = { ...projectState, runtime: { status: "starting" } };
       try {
-        await this.#ensureControl(workspace.projectRoot);
+        await this.#ensureOperator(workspace.projectRoot);
         this.#python = this.#createPython(workspace.projectRoot);
         await this.#python.ensureStarted();
         this.#state = { ...projectState, runtime: { status: "ready" } };
@@ -183,13 +183,13 @@ export class CreatorWorkspaceManager {
       if ((this.#state.status === "ready") &&
           this.#state.runtime.status === "ready" && this.#state.workspace.projectRoot === canonicalRoot) {
         try {
-          await this.#ensureControl(canonicalRoot);
+          await this.#ensureOperator(canonicalRoot);
           return this.#state;
         } catch (error) {
           const previous = this.#state;
           await this.#stopCurrent();
           this.#state = { ...previous, runtime: {
-            status: "unavailable", code: "CREATOR_CONTROL_ENSURE_FAILED",
+            status: "unavailable", code: "CREATOR_OPERATOR_ENSURE_FAILED",
             message: error instanceof Error ? error.message : String(error),
           } };
           return this.#state;

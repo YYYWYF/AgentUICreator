@@ -11,15 +11,15 @@ import {
   type ThreadMessage,
 } from "@assistant-ui/react";
 import { AgentUIRoot } from "../../src/internal/style-boundary/AgentUIRoot";
-import { projectLangChainHistory } from "@agent-ui/runtime-conversation";
-import { useConversationState } from "@agent-ui/react";
+import { projectLangChainHistory } from "@za38.03/agent-ui-runtime";
+import { useConversationState } from "@za38.03/agent-ui-react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ConversationAdapter } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter";
 import type {
   UIPluginComponentProps,
   UIPluginDefinition,
-} from "../../../project-control/src/framework/contracts/ui-plugin";
+} from "../../../operator/src/framework/contracts/ui-plugin";
 import { assistantUiCopyActionPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-copy-action/files/plugins/assistant-ui-copy-action/definition";
 import { assistantUiExportMarkdownActionPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-export-markdown-action/files/plugins/assistant-ui-export-markdown-action/definition";
 import { assistantUiMessageFooterPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-message-footer/files/plugins/assistant-ui-message-footer/definition";
@@ -30,10 +30,10 @@ import { AGENT_UI_THEME_SERVICE } from "../../../source-registry/registry/items/
 import {
   parseAppUIRuntimeModel,
   type AppUIRuntimeModel,
-} from "../../../project-control/src/framework/contracts/app-ui-runtime-model";
-import { resolveRuntimePluginSlotId } from "../../../project-control/src/framework/contracts/app-ui-composition";
+} from "../../../operator/src/framework/contracts/app-ui-runtime-model";
+import { resolveRuntimePluginSlotId } from "../../../operator/src/framework/contracts/app-ui-composition";
 import { createPluginRegistry } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
-import { PluginRuntimeFixture } from "../../../project-control/tests/support/agent-runtime-fixture";
+import { PluginRuntimeFixture } from "../../../operator/tests/support/agent-runtime-fixture";
 
 const assistantConfig = AuiConfig({});
 const roots: Root[] = [];

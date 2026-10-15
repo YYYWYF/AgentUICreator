@@ -2,7 +2,7 @@
   "id": "assistant-ui-response-footer",
   "name": "Assistant UI Response Footer",
   "description": "Renders the canonical assistant response footer and its composable actions.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "conversation-assistant-response-footer-renderer"
   ],

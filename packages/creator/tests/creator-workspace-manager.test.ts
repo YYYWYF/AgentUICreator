@@ -244,7 +244,7 @@ describe("CreatorWorkspaceManager", () => {
 it("mutation gate rejects new requests and commands and waits before switching workspace", async () => {
   const manager = new CreatorWorkspaceManager({ ...setupDependencies(),
     inspectProject: async () => ({ status: "ready", projectConfig: { mode: "platform", sourceRoot: "agent-ui" }, paths: { sourceRoot: "agent-ui" } }),
-    ensureProjectControl: vi.fn(async () => ({})) as unknown as typeof import("@agent-ui/project-control").ensureManagedProjectControl,
+    ensureOperator: vi.fn(async () => ({})) as unknown as typeof import("@za38.03/agent-ui-operator").ensureManagedOperator,
     createPythonManager: () => ({ ensureStarted: async () => undefined, dispose: async () => undefined }) as unknown as PythonCreatorProcessManager,
   });
   await manager.selectProject(await root());
@@ -264,38 +264,38 @@ it("mutation gate rejects new requests and commands and waits before switching w
   untrack();
 });
 
-it("reports stale Project Control as a tool failure without installing control or starting Python", async () => {
-  const ensureProjectControl = vi.fn();
+it("reports stale Operator as a tool failure without installing control or starting Python", async () => {
+  const ensureOperator = vi.fn();
   const createPythonManager = vi.fn();
-  const manager = new CreatorWorkspaceManager({ ...setupDependencies(), ensureProjectControl, createPythonManager,
-    inspectProject: async () => { throw Object.assign(new Error('Restart Creator using pnpm dev.'), { code: 'CREATOR_PROJECT_CONTROL_RESTART_REQUIRED' }); },
+  const manager = new CreatorWorkspaceManager({ ...setupDependencies(), ensureOperator, createPythonManager,
+    inspectProject: async () => { throw Object.assign(new Error('Restart Creator using pnpm dev.'), { code: 'CREATOR_OPERATOR_RESTART_REQUIRED' }); },
   });
-  expect(await manager.selectProject(await root())).toMatchObject({ issues: [{ code: 'CREATOR_PROJECT_CONTROL_RESTART_REQUIRED' }] });
-  expect(ensureProjectControl).not.toHaveBeenCalled();
+  expect(await manager.selectProject(await root())).toMatchObject({ issues: [{ code: 'CREATOR_OPERATOR_RESTART_REQUIRED' }] });
+  expect(ensureOperator).not.toHaveBeenCalled();
   expect(createPythonManager).not.toHaveBeenCalled();
 });
 
 it("keeps a previously valid project ready when its loaded tool becomes stale", async () => {
   let stale = false;
-  const manager = new CreatorWorkspaceManager({ ...setupDependencies(), ensureProjectControl: vi.fn(async () => []),
+  const manager = new CreatorWorkspaceManager({ ...setupDependencies(), ensureOperator: vi.fn(async () => []),
     createPythonManager: () => ({ ensureStarted: async () => {}, dispose: async () => {} }) as unknown as PythonCreatorProcessManager,
     inspectProject: async () => {
-      if (stale) throw Object.assign(new Error('Restart Creator.'), { code: 'CREATOR_PROJECT_CONTROL_RESTART_REQUIRED' });
+      if (stale) throw Object.assign(new Error('Restart Creator.'), { code: 'CREATOR_OPERATOR_RESTART_REQUIRED' });
       return { status: 'ready', projectConfig: { mode: 'platform', sourceRoot: 'agent-ui' }, paths: { sourceRoot: 'agent-ui' } };
     },
   });
   await manager.selectProject(await root());
   stale = true;
-  expect(await manager.refresh()).toMatchObject({ status: 'ready', runtime: { status: 'unavailable', code: 'CREATOR_PROJECT_CONTROL_RESTART_REQUIRED' } });
+  expect(await manager.refresh()).toMatchObject({ status: 'ready', runtime: { status: 'unavailable', code: 'CREATOR_OPERATOR_RESTART_REQUIRED' } });
   expect(() => manager.ensureCreatorRuntime()).toThrow('Restart Creator.');
 });
 
 it("does not install a control plane when selecting or refreshing an uninitialized project", async () => {
-  const ensureProjectControl = vi.fn();
-  const manager = new CreatorWorkspaceManager({ ...setupDependencies(), ensureProjectControl, createPythonManager: vi.fn(),
+  const ensureOperator = vi.fn();
+  const manager = new CreatorWorkspaceManager({ ...setupDependencies(), ensureOperator, createPythonManager: vi.fn(),
     inspectProject: async () => ({ status: 'uninitialized' }),
   });
   expect(await manager.selectProject(await root())).toMatchObject({ status: 'uninitialized' });
   expect(await manager.refresh()).toMatchObject({ status: 'uninitialized' });
-  expect(ensureProjectControl).not.toHaveBeenCalled();
+  expect(ensureOperator).not.toHaveBeenCalled();
 });

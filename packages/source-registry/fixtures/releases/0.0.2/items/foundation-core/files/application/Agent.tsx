@@ -1,10 +1,10 @@
-import type { ConversationRuntimeProviderProps } from "@agent-ui/runtime-conversation";
-import { AgentUIRoot } from "@agent-ui/react";
+import type { ConversationRuntimeProviderProps } from "@za38.03/agent-ui-runtime-conversation";
+import { AgentUIRoot } from "@za38.03/agent-ui-react";
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 import {
   ConversationRuntimeProvider,
   useConversationRuntimeBridge,
-} from "@agent-ui/runtime-conversation";
+} from "@za38.03/agent-ui-runtime-conversation";
 
 import appUIModelSource from "../app-ui/app-ui.json?raw";
 import type { AppAgentState } from "../agent-contract/agent-state";
@@ -42,7 +42,7 @@ const agentUIRuntimeConfig: Readonly<{ mode: AgentUIMode }> = generatedAgentUIRu
 
 import "../agent-ui/conversation/styles.css";
 
-// The revision descriptor is optional until the first project-control mutation.
+// The revision descriptor is optional until the first operator mutation.
 const revisionSources = import.meta.glob<string>("../app-ui/composition-revision.generated.json", { eager: true, query: "?raw", import: "default" });
 const revisionDescriptorSource = revisionSources["../app-ui/composition-revision.generated.json"];
 

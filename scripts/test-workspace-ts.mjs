@@ -22,6 +22,6 @@ function run(command, args, shell = false) {
   if (result.status !== 0) throw new Error(`Workspace TypeScript tests failed: ${command} ${args.join(" ")}`);
 }
 
-run(pnpm, ["check:project-control-contract"], process.platform === "win32");
+run(pnpm, ["check:operator-contract"], process.platform === "win32");
 run(process.execPath, ["--test", "scripts/run-python-tests.test.mjs", "scripts/pnpm-process.test.mjs", "scripts/ensure-workspace-dependencies.test.mjs"]);
 run(pnpm, ["-r", "--if-present", "test"], process.platform === "win32");

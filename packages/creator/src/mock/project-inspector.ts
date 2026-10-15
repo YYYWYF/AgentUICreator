@@ -1,4 +1,4 @@
-import { inspectScenarioResources, mergeOptionalResourceInspection } from "@agent-ui/project-control/resources";
+import { inspectScenarioResources, mergeOptionalResourceInspection } from "@za38.03/agent-ui-operator/resources";
 import { spawn } from "node:child_process";
 import { access } from "node:fs/promises";
 import path from "node:path";
@@ -10,9 +10,9 @@ async function exists(file: string) {
 
 /** Generic fixed-entry protocol transport, without AppUIModel knowledge. */
 async function inspect(target: MockProjectTarget, operation: string, input: object = {}): Promise<unknown> {
-  const managed = path.join(target.projectRoot, ".agent-ui/control/project-control.mjs");
+  const managed = path.join(target.projectRoot, ".agent-ui/operator/entry.mjs");
   // Remove legacy selection after a full migration cycle and Host regression coverage passes.
-  const entry = await exists(managed) ? managed : path.join(target.projectRoot, "scripts/ui-project-control.ts");
+  const entry = await exists(managed) ? managed : path.join(target.projectRoot, "scripts/ui-operator.ts");
   const runtime = entry === managed ? process.execPath : path.join(target.projectRoot, "node_modules/.bin", process.platform === "win32" ? "tsx.cmd" : "tsx");
   return new Promise((resolve, reject) => {
     const child = spawn(runtime, [entry], { cwd: target.projectRoot, stdio: ["pipe", "pipe", "pipe"], shell: false });
@@ -40,7 +40,7 @@ async function inspect(target: MockProjectTarget, operation: string, input: obje
   });
 }
 
-export const inspectMockProjectThroughControl: MockProjectInspector = async target => {
+export const inspectMockProjectThroughOperator: MockProjectInspector = async target => {
   const composition = await inspect(target, "inspect_ui_project", { view: "composition" });
   const sources = await inspect(target, "inspect_agent_ui_sources");
   const result = { composition, sources } as Awaited<ReturnType<MockProjectInspector>>;

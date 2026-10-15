@@ -11,7 +11,7 @@ import {
   useConversationRuntimeBridge,
   type ConversationAgentRuntimeBridge,
   type ConversationAgentFactory,
-} from "@agent-ui/runtime-conversation";
+} from "@za38.03/agent-ui-runtime";
 import {
   createConversationServiceThreadBinding,
   type ConversationServiceThreadBinding,

@@ -1,16 +1,16 @@
-import { showcaseMockScenarios, type MockScenario } from "@agent-ui/mock-agent";
+import { showcaseMockScenarios, type MockScenario } from "@za38.03/agent-ui-creator/mock-agent";
 import { describe, expect, it } from "vitest";
 import { collectScenarioResourceRequirements, installableMockResourceIds, mockDemoRequirements } from "../src/mock/demo-compatibility.js";
 
-function scenario(id: string, resources: string[] = ["a2ui"]): MockScenario { return { id, title: id, steps: [], resources }; }
+function scenario(id: string, resources: string[] = ["web-search"]): MockScenario { return { id, title: id, steps: [], resources }; }
 describe("Scenario → Official Resource policy", () => {
-  it("resolves A2UI's name from the catalog and merges both Demo memberships", () => {
-    expect(mockDemoRequirements.find(item => item.id === "a2ui")).toEqual({ id: "a2ui", name: "A2UI", scenarioIds: expect.arrayContaining(["a2ui-interactive-order", "a2ui-form-controls"]) });
-    expect(installableMockResourceIds.has("a2ui")).toBe(true);
-    expect(installableMockResourceIds.has("integration/a2ui")).toBe(false);
+  it("does not advertise deferred A2UI resources or examples", () => {
+    expect(mockDemoRequirements.some(item => item.id === "a2ui")).toBe(false);
+    expect(showcaseMockScenarios.some(item => item.id.startsWith("a2ui-"))).toBe(false);
+    expect(installableMockResourceIds.has("a2ui")).toBe(false);
   });
   it("deduplicates resource membership without accepting Scenario-owned metadata", () => {
-    expect(collectScenarioResourceRequirements([scenario("order", ["a2ui", "a2ui"]), scenario("form")])).toEqual([{ id: "a2ui", name: "A2UI", scenarioIds: ["order", "form"] }]);
+    expect(collectScenarioResourceRequirements([scenario("order", ["web-search", "web-search"]), scenario("form")])).toEqual([{ id: "web-search", name: "网页搜索", scenarioIds: ["order", "form"] }]);
     const malformed = { id: "a2ui", label: "Other", sourceItemId: "integration/other" } as unknown as string;
     expect(() => collectScenarioResourceRequirements([scenario("bad", [malformed])])).toThrow();
   });

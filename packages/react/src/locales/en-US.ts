@@ -89,7 +89,12 @@ export const enUS = {
     "fileType": "File",
     "tile": "{type} attachment",
     "tileUploading": "{type} attachment, uploading",
-    "tileFailed": "{type} attachment, upload failed"
+    "tileFailed": "{type} attachment, upload failed",
+    "demoSizeExceeded": "Demo attachments are limited to 5 MiB per file.",
+    "demoPdfOnly": "Demo PDF attachments accept only PDF files.",
+    "demoReadAborted": "Attachment read aborted",
+    "demoExpectedDataUrl": "Expected a file data URL.",
+    "demoReadFailed": "Could not read demo attachment."
   },
   "images": {
     "content": "Image content",

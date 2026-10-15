@@ -1,4 +1,4 @@
-import { generatedProjectFixture, repositoryRoot } from "../../../project-control/tests/support/generated-project";
+import { generatedProjectFixture, repositoryRoot } from "../../../operator/tests/support/generated-project";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -28,7 +28,7 @@ describe("Conversation Suggestions boundary", () => {
         "utf8",
       ),
       readFile(
-        path.join(repositoryRoot, "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx"),
+        path.join(repositoryRoot, "packages/runtime/src/ConversationRuntimeProvider.tsx"),
         "utf8",
       ),
       readFile(
@@ -41,7 +41,7 @@ describe("Conversation Suggestions boundary", () => {
       version: "0.0.1",
       capabilities: ["conversation-suggestions"],
     });
-    expect(source).toContain('from "@agent-ui/react"');
+    expect(source).toContain('from "@za38.03/agent-ui-react"');
     expect(source).toContain("ConversationSuggestions");
     expect(source).toContain("send");
     expect(source).not.toContain("usePluginInstance");

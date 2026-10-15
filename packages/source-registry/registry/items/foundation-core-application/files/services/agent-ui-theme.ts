@@ -1,5 +1,5 @@
-import type { AgentUITheme } from "@agent-ui/react";
-export type { AgentUITheme, AgentUIColorScheme, AgentUIThemeConfig } from "@agent-ui/react";
+import type { AgentUITheme } from "@za38.03/agent-ui-react";
+export type { AgentUITheme, AgentUIColorScheme, AgentUIThemeConfig } from "@za38.03/agent-ui-react";
 
 export const AGENT_UI_THEME_SERVICE = "agent-ui.theme" as const;
 

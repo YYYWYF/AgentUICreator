@@ -7,15 +7,15 @@ import { fileURLToPath } from "node:url";
 import { build } from "vite";
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
 test("Composer subpath imports independently and Vite graph contains no other official plugins", async () => {
-  assert(import.meta.resolve("@agent-ui/plugins/assistant-ui-composer").endsWith("/dist/assistant-ui-composer/index.js"));
+  assert(import.meta.resolve("@za38.03/agent-ui-plugins/assistant-ui-composer").endsWith("/dist/assistant-ui-composer/index.js"));
   const pkg = JSON.parse(await readFile(`${packageRoot}package.json`, "utf8"));
   assert.equal(pkg.exports["."], undefined);
   const temporary = await mkdtemp(path.join(tmpdir(), "composer-bundle-"));
   let moduleIds = [];
   try {
-    await writeFile(`${temporary}/entry.js`, 'export { default } from "@agent-ui/plugins/assistant-ui-composer";\n');
+    await writeFile(`${temporary}/entry.js`, 'export { default } from "@za38.03/agent-ui-plugins/assistant-ui-composer";\n');
     const result = await build({ configFile: false, root: temporary, logLevel: "silent",
-      resolve: { alias: { "@agent-ui/plugins/assistant-ui-composer": `${packageRoot}dist/assistant-ui-composer/index.js` } },
+      resolve: { alias: { "@za38.03/agent-ui-plugins/assistant-ui-composer": `${packageRoot}dist/assistant-ui-composer/index.js` } },
       plugins: [{ name: "assert-graph", generateBundle() { moduleIds = [...this.getModuleIds()]; } }],
       build: { write: false, lib: { entry: `${temporary}/entry.js`, formats: ["es"] } },
     });

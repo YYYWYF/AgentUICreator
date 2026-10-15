@@ -35,13 +35,13 @@
     "finishedAt": "2026-10-08T03:20:19.768150+00:00",
     "durationMs": 85,
     "status": "rejected",
-    "structuredErrorCode": "PROJECT_CONTROL_BUSY",
+    "structuredErrorCode": "OPERATOR_BUSY",
     "structuredErrorReason": "Another Host request is active; retry after it completes.",
     "phase": "before_first_mutation",
     "arguments": {},
     "result": {
       "status": "rejected",
-      "code": "PROJECT_CONTROL_BUSY",
+      "code": "OPERATOR_BUSY",
       "factKinds": []
     },
     "evidenceRun": "original-final-8192",
@@ -90,7 +90,7 @@
     "finishedAt": "2026-10-08T03:20:35.834485+00:00",
     "durationMs": 98,
     "status": "rejected",
-    "structuredErrorCode": "PROJECT_CONTROL_BUSY",
+    "structuredErrorCode": "OPERATOR_BUSY",
     "structuredErrorReason": "Another Host request is active; retry after it completes.",
     "phase": "before_first_mutation",
     "arguments": {
@@ -98,7 +98,7 @@
     },
     "result": {
       "status": "rejected",
-      "code": "PROJECT_CONTROL_BUSY",
+      "code": "OPERATOR_BUSY",
       "factKinds": [
         "composition.snapshot",
         "capability.summary",
@@ -121,13 +121,13 @@
     "finishedAt": "2026-10-08T03:20:36.461935+00:00",
     "durationMs": 725,
     "status": "rejected",
-    "structuredErrorCode": "CONTROL_RESULT_CONTRACT_VIOLATION",
-    "structuredErrorReason": "ProjectControl produced a result that does not match the current contract.",
+    "structuredErrorCode": "OPERATOR_RESULT_CONTRACT_VIOLATION",
+    "structuredErrorReason": "Operator produced a result that does not match the current contract.",
     "phase": "before_first_mutation",
     "arguments": {},
     "result": {
       "status": "rejected",
-      "code": "CONTROL_RESULT_CONTRACT_VIOLATION",
+      "code": "OPERATOR_RESULT_CONTRACT_VIOLATION",
       "factKinds": []
     },
     "evidenceRun": "original-final-8192",
@@ -207,13 +207,13 @@
     "finishedAt": "2026-10-08T03:21:50.669372+00:00",
     "durationMs": 100,
     "status": "rejected",
-    "structuredErrorCode": "PROJECT_CONTROL_BUSY",
+    "structuredErrorCode": "OPERATOR_BUSY",
     "structuredErrorReason": "Another Host request is active; retry after it completes.",
     "phase": "before_first_mutation",
     "arguments": {},
     "result": {
       "status": "rejected",
-      "code": "PROJECT_CONTROL_BUSY",
+      "code": "OPERATOR_BUSY",
       "factKinds": []
     },
     "evidenceRun": "original-final-8192",
@@ -1152,7 +1152,7 @@
     "arguments": {
       "view": "composition"
     },
-    "structuredErrorCode": "PROJECT_CONTROL_BUSY",
+    "structuredErrorCode": "OPERATOR_BUSY",
     "repeatOfSequences": [],
     "sameResultAsPreviousSameArguments": null,
     "newEvidence": "first-observation",
@@ -1175,7 +1175,7 @@
     "errorType": null,
     "status": "rejected",
     "arguments": {},
-    "structuredErrorCode": "CONTROL_RESULT_CONTRACT_VIOLATION",
+    "structuredErrorCode": "OPERATOR_RESULT_CONTRACT_VIOLATION",
     "repeatOfSequences": [],
     "sameResultAsPreviousSameArguments": null,
     "newEvidence": "first-observation",

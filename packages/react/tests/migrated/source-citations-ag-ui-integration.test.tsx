@@ -5,8 +5,8 @@ import { useAui, type AssistantRuntime } from "@assistant-ui/react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, it } from "vitest";
-import { sourceCitationsScenario, runMockScenario } from "@agent-ui/mock-agent";
-import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@agent-ui/runtime-conversation";
+import { sourceCitationsScenario, runMockScenario } from "@za38.03/agent-ui-creator/mock-agent";
+import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { ConversationThread, TooltipProvider } from "../../src/index.js";
 import plugin from "../../../source-registry/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/definition";
 

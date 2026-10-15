@@ -1,25 +1,26 @@
 {
-  "name": "@agent-ui/web-component-vue3-demo",
+  "name": "@za38.03/agent-ui-web-component-vue3-demo",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "pnpm --filter @agentui/web-component build",
+    "predev": "pnpm --filter @za38.03/agent-ui-web-component build",
     "dev": "vite --host 127.0.0.1 --port 5180",
     "build": "vue-tsc --noEmit && vite build",
     "typecheck": "vue-tsc --noEmit",
-    "prebuild": "pnpm --filter @agentui/web-component build"
+    "prebuild": "pnpm --filter @za38.03/agent-ui-web-component build"
   },
   "dependencies": {
-    "@agentui/web-component": "workspace:*",
-    "vue": "3.5.42"
+    "@za38.03/agent-ui-web-component": "workspace:*",
+    "vue": "3.5.42",
+    "@za38.03/agent-ui-react": "workspace:*"
   },
   "devDependencies": {
-    "@agent-ui/mock-agent": "workspace:*",
     "@vitejs/plugin-vue": "6.0.1",
     "vite": "8.3.0",
     "typescript": "5.9.3",
-    "vue-tsc": "3.0.6"
+    "vue-tsc": "3.0.6",
+    "@za38.03/agent-ui-creator": "workspace:*"
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"

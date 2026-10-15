@@ -62,7 +62,7 @@ def validation(tmp_path, control):
     )
     store.update_status(record, "applied")
     verifier = ServiceContractAuthorizationVerifier(
-        project_control=control, store=store
+        operator=control, store=store
     )
     service = CreatorValidationService(
         project_root=tmp_path,

@@ -1,12 +1,7 @@
-import { useMemo, type ReactNode } from "react";
-import { ConversationToolkitProvider } from "@agent-ui/react";
-import { useConversationA2uiAction } from "@agent-ui/runtime-conversation";
-import { createA2uiConversationToolkit } from "./create-a2ui-toolkit";
-
-export function A2uiConversationIntegration({ children }: { children: ReactNode }) {
-  const sendAction = useConversationA2uiAction();
-  const toolkit = useMemo(() => createA2uiConversationToolkit({ sendAction }), [sendAction]);
-  return <ConversationToolkitProvider toolkit={toolkit}>{children}</ConversationToolkitProvider>;
+import type { ReactNode } from "react";
+import type { GenerativeUILibrary } from "@za38.03/agent-ui-react/generative-ui";
+/** Workspace-only placeholder; this resource is excluded from distribution. */
+export function A2uiConversationIntegration({ children }: { children: ReactNode; components?: GenerativeUILibrary }) {
+  return children;
 }
-
 export { A2uiConversationIntegration as ConversationIntegration };

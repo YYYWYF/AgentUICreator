@@ -1,12 +1,12 @@
-import { useAgentUILocale } from "@agent-ui/react";
-import { ConversationRuntimeProvider, useConversationRuntimeBridge } from "@agent-ui/runtime-conversation";
+import { useAgentUILocale } from "@za38.03/agent-ui-react";
+import { ConversationRuntimeProvider, useConversationRuntimeBridge } from "@za38.03/agent-ui-runtime";
 import {
   AgentPlan,
   ConversationThread,
   DataMessageUIRegistration,
   defineDataMessageUI,
   type ConversationAgentPlanProps,
-} from "@agent-ui/react";
+} from "@za38.03/agent-ui-react";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import {
   useConversationServiceThreadBinding,

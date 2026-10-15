@@ -19,8 +19,8 @@ import { createConversationToolkit } from "../../../source-registry/registry/ite
 import {
   parseAppUIRuntimeModel,
   type AppUIRuntimeModel,
-} from "../../../project-control/src/framework/contracts/app-ui-runtime-model";
-import type { UIPluginComponentProps, UIPluginDefinition, UIPluginRenderScope } from "../../../project-control/src/framework/contracts/ui-plugin";
+} from "../../../operator/src/framework/contracts/app-ui-runtime-model";
+import type { UIPluginComponentProps, UIPluginDefinition, UIPluginRenderScope } from "../../../operator/src/framework/contracts/ui-plugin";
 import { AssistantUiReasoningPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-reasoning/files/plugins/assistant-ui-reasoning/index";
 import { AssistantUiToolFallbackPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-tool-fallback/files/plugins/assistant-ui-tool-fallback/index";
 import { AssistantUiToolGroupPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-tool-group/files/plugins/assistant-ui-tool-group/index";
@@ -30,7 +30,7 @@ import {
   type RuntimeDiagnostic,
   usePluginRenderScope,
 } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
-import { PluginRuntimeFixture } from "../../../project-control/tests/support/agent-runtime-fixture";
+import { PluginRuntimeFixture } from "../../../operator/tests/support/agent-runtime-fixture";
 
 const roots: Root[] = [];
 const fallbackInvocations = vi.fn();

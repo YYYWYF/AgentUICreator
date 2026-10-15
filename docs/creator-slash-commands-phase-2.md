@@ -6,7 +6,7 @@ history or fall back to a model. Natural-language requests retain the original
 Creator Agent transport.
 
 `/install` discovers capabilities from `officialResourceRegistry` entries with
-`discoverable: true`. ProjectControl produces the public Catalog and owns source,
+`discoverable: true`. Operator produces the public Catalog and owns source,
 package, and composition admission. Creator's locale dictionary supplies display
 names, with Host label and resource ID fallbacks. Filtering is substring matching
 against ID, translated label, and description. Installed and conflicting options
@@ -14,7 +14,7 @@ are disabled; missing and disabled options can be selected.
 
 The execute protocol is a discriminated union with exact fields. Install accepts
 only `resourceId`; official dependency closures determine all package manager
-commands. ProjectControl re-inspects current facts, rejects source/package or
+commands. Operator re-inspects current facts, rejects source/package or
 duplicate-instance conflicts, retains complete managed/customized source, and
 activates composition through the existing AppUI transaction. Only successful
 `verifyUIProject` followed by a `ready` inspection produces an installation
@@ -22,7 +22,7 @@ success receipt. Already-ready resources are a no-op. Source mutation journals,
 AppUI rollback, and recovery remain in use. Compatible package additions can
 survive a later failure and are safe to retry.
 
-`/sync` holds the existing ProjectControl lock, recovers pending AppUI writes,
+`/sync` holds the existing Operator lock, recovers pending AppUI writes,
 and regenerates only Plugin Registry from current source and AppUIModel. It
 checks the published output against a fresh generation. Missing/stale output is
 changed; fresh output is a no-op. Its receipt records the real
@@ -45,14 +45,14 @@ and its existing Python commit lock.
 
 ## Checks and acceptance boundary
 
-Focused command/UI/Workspace tests, real ProjectControl source/composition
+Focused command/UI/Workspace tests, real Operator source/composition
 regressions, fake package-runner tests, Python command/transaction tests, package
 builds, typechecks, and locale parity checks are the implementation checks.
 
 The existing command CI job now includes the resource Catalog/customized-source
 and Sync tests plus two disposable real Host browser scenarios. The scenarios
 exercise capability installation/rendering/persistence and stale/missing/fresh
-registry synchronization without mocking command APIs or ProjectControl. Only
+registry synchronization without mocking command APIs or Operator. Only
 workspace display metadata is supplied by the fixture.
 
 Per the user's instruction, browser E2E, visual acceptance, the full assistant-ui

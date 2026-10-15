@@ -7,7 +7,7 @@
     "agent-component/assistant-ui-generative-ui"
   ],
   "packages": {
-    "@assistant-ui/react-generative-ui": "0.0.22"
+    "@za38.03/agent-ui-react": "0.1.6"
   },
   "upstream": {
     "project": "assistant-ui/assistant-ui",

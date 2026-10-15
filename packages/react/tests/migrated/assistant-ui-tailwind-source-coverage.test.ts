@@ -1,4 +1,4 @@
-import { generatedProjectFixture } from "../../../project-control/tests/support/generated-project";
+import { generatedProjectFixture } from "../../../operator/tests/support/generated-project";
 import { readFile } from "node:fs/promises";
 
 import { describe, expect, it } from "vitest";
@@ -16,7 +16,7 @@ describe("assistant-ui scoped Tailwind source coverage", () => {
     expect(packageStyles).toContain(
       '@import "tailwindcss/utilities.css" layer(utilities) source("./internal/vendor/assistant-ui");',
     );
-    expect(projectStyles).toContain('@import "@agent-ui/react/styles.css";');
+    expect(projectStyles).toContain('@import "@za38.03/agent-ui-react/styles.css";');
     expect(projectStyles).toContain('@source ".";');
     expect(projectStyles).toContain('@source "../../plugins";');
   });

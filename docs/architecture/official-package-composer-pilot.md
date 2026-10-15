@@ -28,7 +28,7 @@ next package release; it does not publish to npm.
 ## Facts, discovery and selected registry
 
 The Source Registry official package catalog separates `runtime` delivery from
-`referenceSourceItemId`. Project Control merges those dependency-owned assets
+`referenceSourceItemId`. Operator merges those dependency-owned assets
 with project-owned source manifests and definitions. Ownership is exposed as
 `official_package` or `project_source` in project facts.
 
@@ -78,7 +78,7 @@ generates the selected registry, and executes available host `typecheck`, `build
 and `test` scripts in a temporary project. A `build` script is required. Failures
 leave the live project unchanged. It rechecks model/ownership and cancellation
 before committing source, model and registry through the existing source journal.
-The formal operation is available over Project Control and as a Creator tool.
+The formal operation is available over Operator and as a Creator tool.
 
 A Host-resolved official customization handoff authorizes its corresponding
 custom derivation without an additional new-plugin approval round. Other new
@@ -112,7 +112,7 @@ not delete npm implementation files.
 
 - Actual Vite library build checks the Composer subpath output graph; no other
   official plugin implementation enters it. Source-registry reference remains.
-- Project Control tests cover selected imports, reserved IDs, writable targets,
+- Operator tests cover selected imports, reserved IDs, writable targets,
   full replacement build, thin Slot extension, failed-build rollback, safe baseline
   migration, modified-source preservation and initialization in all three modes.
 - Creator Python tests use a scripted Selector response to the natural-language
@@ -135,7 +135,7 @@ The runner loads the normal `.env.creator.local` model settings, selects only
 `tests/live/test_official_composer.py`, and sets the existing live-model opt-in.
 Ordinary test runs skip the test. StaticChatModel regressions remain unchanged.
 
-The test initializes a disposable platform Host with real Project Control, runs the
+The test initializes a disposable platform Host with real Operator, runs the
 natural-language request above through the real Selector and Creator Agent, and
 asserts an `official_plugin_reference` handoff with no writable owner binding.
 It requires official `inspect_ui_plugin`, then public Slot/API inspection, then
@@ -150,7 +150,7 @@ official-ID shadow creation, dependency-directory writes, changes to reference o
 package files, and a local `plugins/assistant-ui-composer` directory. Final Host
 inspection must report at least one newly created `project_source` Plugin.
 
-Implementation checks: Source Registry 29 tests, Project Control package pilot
+Implementation checks: Source Registry 29 tests, Operator package pilot
 9 tests, Python StaticChatModel/admission 3 tests, package boundary 1 test and
 runner 6 tests passed, with relevant builds/typechecks. The broader release check
 remains blocked by the existing `conversation-quote` version/changelog drift,

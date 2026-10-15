@@ -1,7 +1,7 @@
 {
   "id": "demo/ask-user-question",
   "kind": "demo",
-  "description": "Optional AG-UI interrupt question flow",
+  "description": "Optional question flow with client-side tool results",
   "requires": [
     "foundation/core"
   ],

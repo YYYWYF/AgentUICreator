@@ -9,8 +9,8 @@ import {
 import { act, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { describe, expect, it, vi } from "vitest";
-import { ConversationRuntimeProvider } from "@agent-ui/runtime-conversation";
-import { DataMessageUIRegistration } from "@agent-ui/react";
+import { ConversationRuntimeProvider } from "@za38.03/agent-ui-runtime";
+import { DataMessageUIRegistration } from "@za38.03/agent-ui-react";
 import { agentPlanActivityMessageUI } from "../../../source-registry/registry/items/plugin-agent-plan-message/files/plugins/agent-plan-message/index";
 import {
   useConversationServiceThreadBinding,

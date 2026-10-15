@@ -14,7 +14,7 @@ permission ownership. The source pin is
 | Wire protocol | AG-UI 0.0.59 + A2UI; `ACTIVITY_SNAPSHOT` |
 | Surface conversion / update / deletion | `@assistant-ui/react-ag-ui` 0.0.62, native `useAgUiRuntime` |
 | Rendering and Basic Catalog | `@assistant-ui/react-generative-ui` 0.0.21 |
-| Public action API | `@agent-ui/runtime-conversation.useConversationA2uiAction` |
+| Public action API | `@agent-ui/runtime.useConversationA2uiAction` |
 | Render-only Toolkit provider | `@agent-ui/react.ConversationToolkitProvider` |
 | Optional source installation and generated Host | AgentUICreator Official Integration seam |
 | Restored Activity history | assistant-ui supports restored A2UI activity messages; current LangGraph adapter does not define Activity persistence |

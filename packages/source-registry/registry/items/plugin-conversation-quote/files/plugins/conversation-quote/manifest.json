@@ -2,7 +2,7 @@
   "id": "conversation-quote",
   "name": "Conversation Quote",
   "description": "Quote assistant passages with an optional composer preview and selection toolbar. Sent quotes remain conversation history.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "conversation-quote",
     "conversation-composer-before-input"

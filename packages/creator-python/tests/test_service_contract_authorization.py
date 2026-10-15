@@ -61,7 +61,7 @@ def service(tmp_path):
     return (
         ServiceContractAuthorizationService(
             project_root=tmp_path,
-            project_control=control,
+            operator=control,
             store=store,
         ),
         store,

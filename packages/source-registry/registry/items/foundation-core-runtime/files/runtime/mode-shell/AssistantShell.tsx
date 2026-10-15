@@ -1,4 +1,4 @@
-import { useAgentUILocale } from "@agent-ui/react";
+import { useAgentUILocale } from "@za38.03/agent-ui-react";
 import { useId, useState, type ReactNode } from "react";
 
 import "./mode-shell.css";

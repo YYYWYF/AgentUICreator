@@ -2,7 +2,7 @@
   "id": "chart-message",
   "name": "Chart Message",
   "description": "Renders named chart data inside assistant messages.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "data": {
     "messageUI": true
   },

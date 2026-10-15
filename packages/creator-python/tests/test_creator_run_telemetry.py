@@ -25,7 +25,7 @@ from agent_ui_creator.operations.models import (
     CreatorOperationVerificationResult,
 )
 from agent_ui_creator.operations.snapshot import CreatorDomainSnapshotMetrics
-from agent_ui_creator.project_control import ProjectControlMetrics
+from agent_ui_creator.operator import OperatorMetrics
 from agent_ui_creator.run_control import CreatorRunControlState
 from agent_ui_creator.server import _execute_agent_run
 from agent_ui_creator.streaming import CreatorEventBus
@@ -41,7 +41,7 @@ def test_interrupt_records_existing_metrics_without_extra_call(tmp_path, model_c
     telemetry = CreatorRunTelemetry(
         activity=activity,
         protocol=ToolProtocolMetrics(modelCalls=model_calls, toolCalls=tool_calls),
-        project_control=ProjectControlMetrics(),
+        operator=OperatorMetrics(),
         mutation=AppUIModelMutationMetrics(),
         action_selector={"actionSelectorCalls": 1},
     )
@@ -57,7 +57,7 @@ def test_interrupt_records_existing_metrics_without_extra_call(tmp_path, model_c
     assert data["modelToolMetrics"]["modelCalls"] == model_calls
     assert data["modelToolMetrics"]["toolCalls"] == tool_calls
     assert data["modelToolMetrics"]["totalModelCalls"] == model_calls + 1
-    assert "projectControlMetrics" in data
+    assert "operatorMetrics" in data
     assert "mutationMetrics" in data
 
 
@@ -77,7 +77,7 @@ def test_failure_path_logs_bound_metrics_without_agent_result(tmp_path):
     telemetry = CreatorRunTelemetry(
         activity=activity,
         protocol=ToolProtocolMetrics(modelCalls=24, toolCalls=6),
-        project_control=SimpleNamespace(
+        operator=SimpleNamespace(
             to_dict=lambda: {
                 "requests": 3,
                 "byOperation": {"inspect_app_ui_model": 2},
@@ -138,11 +138,11 @@ def test_real_domain_write_wiring_logs_all_metrics_on_no_progress(tmp_path):
     activity = CreatorActivityRecorder(tmp_path, logger=logger)
     activity.begin("real-wiring-failure")
     telemetry = CreatorRunTelemetry(activity=activity)
-    client = SimpleNamespace(metrics=ProjectControlMetrics())
+    client = SimpleNamespace(metrics=OperatorMetrics())
     agent = create_domain_write_creator_agent(
         model=NoProgressModel(responses=[]),
         workspace=tmp_path,
-        project_control=client,
+        operator=client,
         telemetry=telemetry,
     )
 
@@ -169,7 +169,7 @@ def test_real_domain_write_wiring_logs_all_metrics_on_no_progress(tmp_path):
     assert "mutationMetrics" in data
     assert "changeLayerMetrics" in data
     assert "compositionFastPath" in data
-    assert "projectControlMetrics" in data
+    assert "operatorMetrics" in data
 
 
 def test_terminal_blocker_metrics_are_flat_and_preserve_zero_after_counts():
@@ -271,8 +271,8 @@ def test_successful_productized_repair_reason_is_logged_in_run_finished(tmp_path
             actionSelectorInvalidResponses=1,
             totalModelCalls=2,
         ),
-        project_control=ProjectControlMetrics(),
-        repeated_project_control_reads=0,
+        operator=OperatorMetrics(),
+        repeated_operator_reads=0,
         domain_observations=DomainObservationMetrics(),
         app_ui_model_mutations=AppUIModelMutationMetrics(),
         snapshot_metrics=CreatorDomainSnapshotMetrics(),
@@ -330,8 +330,8 @@ def _finish_productized_run(
     result = ProductizedOperationRun(
         text="Productized operation finished.",
         metrics=ProductizedOperationToolMetrics(modelCalls=0),
-        project_control=ProjectControlMetrics(),
-        repeated_project_control_reads=0,
+        operator=OperatorMetrics(),
+        repeated_operator_reads=0,
         domain_observations=DomainObservationMetrics(),
         app_ui_model_mutations=AppUIModelMutationMetrics(),
         snapshot_metrics=CreatorDomainSnapshotMetrics(),

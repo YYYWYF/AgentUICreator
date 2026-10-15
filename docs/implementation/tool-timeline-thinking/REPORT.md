@@ -114,9 +114,9 @@ release plugins without modifying user projects.
 | Source Registry suite incl. new contracts | 31 tests passed (10 files) |
 | Mock Agent suite incl. catalog | 117 tests passed (22 files) |
 | Bootstrap presets incl. new defaults | 13 tests passed (2 files) |
-| Project Control install/readiness/style/verify selection | 43 passed, 13 existing failures |
+| Operator install/readiness/style/verify selection | 43 passed, 13 existing failures |
 | Static style/upstream/theme/portal selection | 25 passed, 2 existing failures |
-| Owning package typechecks | React, Creator, Source Registry, Bootstrap, Mock Agent, Project Control, Runtime React passed |
+| Owning package typechecks | React, Creator, Source Registry, Bootstrap, Mock Agent, Operator, Runtime React passed |
 | Public facade/package declaration build | passed during workspace preparation |
 | `pnpm check:assistant-ui-upstream` | passed |
 | `pnpm check:i18n` | passed |
@@ -168,9 +168,9 @@ Paths below include P0 and P1 only; unrelated pre-existing changes are excluded.
 | `packages/mock-agent/tests/p5-scenarios.test.ts` | Automated behavior, contract, installation, preset or catalog regression coverage. |
 | `packages/mock-agent/tests/scenario-registry.test.ts` | Automated behavior, contract, installation, preset or catalog regression coverage. |
 | `packages/mock-agent/tsconfig.tests.json` | TypeScript roots for the new registry source templates. |
-| `packages/project-control/tests/fixtures/project/registry-files.json` | Materialize new registry templates in disposable generated-project fixtures. |
-| `packages/project-control/tests/migrated/install-demo-plugin.test.ts` | Automated behavior, contract, installation, preset or catalog regression coverage. |
-| `packages/project-control/tsconfig.tests.json` | TypeScript roots for the new registry source templates. |
+| `packages/operator/tests/fixtures/project/registry-files.json` | Materialize new registry templates in disposable generated-project fixtures. |
+| `packages/operator/tests/migrated/install-demo-plugin.test.ts` | Automated behavior, contract, installation, preset or catalog regression coverage. |
+| `packages/operator/tsconfig.tests.json` | TypeScript roots for the new registry source templates. |
 | `packages/react/package.json` | Public facade version 0.1.5. |
 | `packages/react/src/internal/composable-thread.tsx` | Message-level anchor, tool detail reuse, protected action visibility and thinking handoff. |
 | `packages/react/src/internal/conversation-thinking-indicator.tsx` | Official Indicator facade with message/thread-local observed elapsed time. |
@@ -191,7 +191,7 @@ Paths below include P0 and P1 only; unrelated pre-existing changes are excluded.
 | `packages/react/tests/tool-timeline-composition.test.tsx` | Automated behavior, contract, installation, preset or catalog regression coverage. |
 | `packages/react/tests/tool-timeline-projection.test.ts` | Automated behavior, contract, installation, preset or catalog regression coverage. |
 | `packages/react/tsconfig.tests.json` | TypeScript roots for the new registry source templates. |
-| `packages/runtime-react/tsconfig.tests.json` | TypeScript roots for the new registry source templates. |
+| `packages/renderer/tsconfig.tests.json` | TypeScript roots for the new registry source templates. |
 | `packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter.tsx` | Wire active semantic renderer overrides into ConversationThread. |
 | `packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ScopedRendererBridge.tsx` | Bridge message renderer scopes to the existing runtime Slot system. |
 | `packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/useConversationRendererSlots.ts` | Read existing active SlotRegistry contributions; no new registration or state store. |

@@ -2,7 +2,7 @@
   "id": "generated-file-message",
   "name": "Generated File",
   "description": "Renders successful generate_file backend results with the official File element.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "headless"
   ],

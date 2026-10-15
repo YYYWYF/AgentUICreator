@@ -29,7 +29,7 @@ complete:
 release tag, records its commit in `assistant-ui-upgrade-target.json`, and runs
 `sync:generative-ui-upstream --revision <release-sha>` automatically. For a
 manual regeneration, pass that exact `--revision` and optionally `--repo` to
-`pnpm --filter @agent-ui/source-registry sync:generative-ui-upstream`.
+`pnpm --filter @za38.03/agent-ui-source-registry sync:generative-ui-upstream`.
 The sync updates the styled element, CSS, provenance, and the package/version
 metadata of the Generative UI agent-component and integration items.
 The styled source is unchanged. Official vocabulary CSS declarations are unchanged;
@@ -47,3 +47,6 @@ Dependency, devDependency and optionalDependency declarations use the exact
 target version. Peer dependencies keep their declared policy: exact stays
 exact, `^` stays `^`, and `~` stays `~`, with the floor raised to the target
 version. Other peer range forms fail the update for an explicit review.
+
+
+Current delivery: Generative UI source/CSS/provenance are synchronized into `packages/react/src/internal/vendor/assistant-ui/generative-ui`, not installable Registry resources. Registry adapters reference the public React facade. Historical descriptions of Registry-managed vendor installation above are superseded. See `docs/architecture/package-owned-upstream-and-plugin-updates.md`.

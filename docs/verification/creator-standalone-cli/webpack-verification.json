@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-14",
+  "adapter": "@agent-ui/creator/dock/webpack",
+  "webpack": "5.111.1",
+  "htmlWebpackPlugin": "5.6.8",
+  "webpackDevServer": ["5.2.2", "6.0.0"],
+  "checks": {
+    "developmentHtmlInjection": "passed",
+    "productionHtmlExclusion": "passed",
+    "existingHostHtmlAndProxyPreserved": "passed",
+    "nodeApiDevServerHtmlAndCreatorForwardingBothVersions": "passed",
+    "browserDockExpandAndCollapse": "passed",
+    "creatorTypecheck": "passed",
+    "hostWebpackAndDevServerTypes": "passed",
+    "creatorBuild": "passed",
+    "isolatedTarballCommonJsImportAndCliGui": "passed",
+    "focusedDockTests": { "files": 3, "passed": 11 },
+    "windowsLogicalAssetPathFixture": "passed",
+    "realWindows": "not_run",
+    "webpackServeCli": "not_run_npm_connection_failure"
+  },
+  "screenshots": ["dock-webpack-expanded.png", "dock-webpack-collapsed.png"],
+  "limitations": [
+    "HTML served directly by a backend or devServer.static is outside the emitted-asset injection hook.",
+    "No real Windows or company-registry acceptance was performed."
+  ]
+}

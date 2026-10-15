@@ -1,12 +1,12 @@
 # Web Component Compatibility Bridge
 
-`@agentui/web-component` mounts the existing React Agent UI inside `<agent-ui>`.
+`@za38.03/agent-ui-web-component` mounts the existing React Agent UI inside `<agent-ui>`.
 It is a compatibility host, with one assistant-ui / AG-UI Runtime per element.
 It bundles React, React DOM, assistant-ui and the official embedded preset's
 React plugins. Host applications do not declare React or compile TSX.
 
 ```ts
-import "@agentui/web-component/register";
+import "@za38.03/agent-ui-web-component/register";
 const element = document.createElement("agent-ui");
 element.config = {
   endpoint: "/agent",
@@ -72,16 +72,16 @@ From this repository:
 
 ```sh
 pnpm install
-pnpm --filter @agentui/web-component build
-pnpm --filter @agentui/web-component test
-pnpm --filter @agentui/web-component test:distribution
-pnpm --filter @agent-ui/web-component-vue3-demo dev
-pnpm --filter @agent-ui/web-component-legacy-demo dev
+pnpm --filter @za38.03/agent-ui-web-component build
+pnpm --filter @za38.03/agent-ui-web-component test
+pnpm --filter @za38.03/agent-ui-web-component test:distribution
+pnpm --filter @za38.03/agent-ui-web-component-vue3-demo dev
+pnpm --filter @za38.03/agent-ui-web-component-legacy-demo dev
 ```
 
 Build preparation generates disposable `.generated` sources from the official
 Source Registry embedded preset, using the same bootstrap as React Hosts. It does
-not copy an example Host, patch vendor source or ship Creator/project-control.
+not copy an example Host, patch vendor source or ship Creator/operator.
 Build tools are development dependencies; the final bundle is standalone.
 `AGENT_UI_HOST_PACKAGES_PREPARED=1` reuses already-built workspace dependencies.
 Both demos consume the built bundle, serve the existing mock AG-UI/history APIs,
@@ -110,7 +110,7 @@ then rebuild; the consumer does not gain a separate set of Plugins.
 
 The default package preset and native React Hosts share the generated
 `application/AgentSurface.tsx`. `AgentUIBridgeRoot` reexports the product-owned
-compatibility composition. `@agentui/web-component/host` exports the thin Custom
+compatibility composition. `@za38.03/agent-ui-web-component/host` exports the thin Custom
 Element factory used by project-specific bundles, without importing the default
 preset. Ordinary React entries never load that factory or create Shadow DOM.
 

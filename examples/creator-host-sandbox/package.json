@@ -1,5 +1,5 @@
 {
-  "name": "@agent-ui/creator-host-sandbox",
+  "name": "@za38.03/agent-ui-creator-host-sandbox",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -7,7 +7,7 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
-    "predev": "node ../../scripts/prepare-host-packages.mjs && node --import tsx ../../scripts/host-examples/host-project.ts ensure platform creator-host-sandbox",
+    "predev": "node ../../scripts/prepare-host-packages.mjs --with-mock && node --import tsx ../../scripts/host-examples/host-project.ts ensure platform creator-host-sandbox",
     "dev": "vite --host 127.0.0.1 --port 5176 --strictPort",
     "prebuild": "node ../../scripts/prepare-host-packages.mjs && node --import tsx ../../scripts/host-examples/host-project.ts ensure platform creator-host-sandbox",
     "build": "tsc --noEmit && vite build",
@@ -29,11 +29,11 @@
     "test": "node --import tsx ../../scripts/host-examples/test-host-example.ts platform creator-host-sandbox"
   },
   "dependencies": {
-    "@agent-ui/plugins": "workspace:*",
-    "@agent-ui/react": "workspace:*",
-    "@agent-ui/runtime-conversation": "workspace:*",
-    "@agent-ui/runtime-core": "workspace:*",
-    "@agent-ui/runtime-react": "workspace:*",
+    "@za38.03/agent-ui-plugins": "workspace:*",
+    "@za38.03/agent-ui-react": "workspace:*",
+    "@za38.03/agent-ui-runtime": "workspace:*",
+    "@za38.03/agent-ui-runtime-core": "workspace:*",
+    "@za38.03/agent-ui-renderer": "workspace:*",
     "@assistant-ui/react-generative-ui": "0.0.22",
     "@assistant-ui/react-hook-form": "0.12.34",
     "@assistant-ui/react-lexical": "0.2.15",
@@ -52,9 +52,7 @@
     "zod": "4.5.4"
   },
   "devDependencies": {
-    "@agent-ui/bootstrap": "workspace:*",
-    "@agent-ui/mock-agent": "workspace:*",
-    "@agent-ui/project-control": "workspace:*",
+    "@za38.03/agent-ui-operator": "workspace:*",
     "@tailwindcss/vite": "4.3.3",
     "@types/node": "26.6.2",
     "@types/react": "19.3.0",
@@ -63,6 +61,7 @@
     "tailwindcss": "4.3.3",
     "tsx": "4.20.6",
     "typescript": "7.0.2",
-    "vite": "8.3.0"
+    "vite": "8.3.0",
+    "@za38.03/agent-ui-creator": "workspace:*"
   }
 }

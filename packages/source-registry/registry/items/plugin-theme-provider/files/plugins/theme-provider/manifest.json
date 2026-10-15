@@ -2,7 +2,7 @@
   "id": "theme-provider",
   "name": "Headless Theme Service Provider",
   "description": "Provides the shared Agent UI theme preset service to other UI plugins.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "plugin-service-provider",
     "theme",

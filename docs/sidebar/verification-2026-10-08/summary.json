@@ -5,7 +5,7 @@
   "scope": "Contract fixes, package guards and reproducible verification; browser/visual acceptance excluded by final user instruction",
   "checks": [
     {
-      "command": "pnpm --filter @agent-ui/project-control exec vitest run tests/sidebar.test.ts",
+      "command": "pnpm --filter @agent-ui/operator exec vitest run tests/sidebar.test.ts",
       "status": "passed",
       "classification": null,
       "detail": "17 passed",
@@ -48,12 +48,12 @@
       ]
     },
     {
-      "command": "pnpm check:project-control-contract",
+      "command": "pnpm check:operator-contract",
       "status": "passed",
       "classification": null,
       "detail": null,
       "artifacts": [
-        "logs/project-control-contract.log"
+        "logs/operator-contract.log"
       ]
     },
     {
@@ -75,12 +75,12 @@
       ]
     },
     {
-      "command": "pnpm --filter @agent-ui/project-control typecheck",
+      "command": "pnpm --filter @agent-ui/operator typecheck",
       "status": "passed",
       "classification": null,
       "detail": null,
       "artifacts": [
-        "logs/project-control-typecheck.log"
+        "logs/operator-typecheck.log"
       ]
     },
     {
@@ -93,12 +93,12 @@
       ]
     },
     {
-      "command": "pnpm --filter @agent-ui/runtime-react typecheck",
+      "command": "pnpm --filter @agent-ui/renderer typecheck",
       "status": "passed",
       "classification": null,
       "detail": null,
       "artifacts": [
-        "logs/runtime-react-typecheck.log"
+        "logs/renderer-typecheck.log"
       ]
     },
     {
@@ -174,7 +174,7 @@
       ]
     },
     {
-      "command": "pnpm --filter @agent-ui/project-control exec vitest run tests/migrated/app-ui-operations.test.ts tests/migrated/app-ui-transaction.test.ts",
+      "command": "pnpm --filter @agent-ui/operator exec vitest run tests/migrated/app-ui-operations.test.ts tests/migrated/app-ui-transaction.test.ts",
       "status": "failed",
       "classification": "baseline_existing",
       "detail": "59 passed / 40 failed / 2 errors; same results and failed case names on clean 770a679: logs/baseline-operations-regression.log",
@@ -228,12 +228,12 @@
       ]
     },
     {
-      "command": "npm view @agent-ui/runtime-react version dist.tarball --json --fetch-retries=0 --fetch-timeout=20000",
+      "command": "npm view @agent-ui/renderer version dist.tarball --json --fetch-retries=0 --fetch-timeout=20000",
       "status": "blocked",
       "classification": "publication_dependency",
       "detail": "npm registry returns E404 (missing or inaccessible); public npm availability remains blocked; local packed Sidebar APIs verified",
       "artifacts": [
-        "logs/published-runtime-react.log"
+        "logs/published-renderer.log"
       ]
     }
   ],

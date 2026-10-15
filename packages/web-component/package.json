@@ -1,5 +1,5 @@
 {
-  "name": "@agentui/web-component",
+  "name": "@za38.03/agent-ui-web-component",
   "version": "0.1.0",
   "description": "Standalone Web Component compatibility host for the React Agent UI",
   "type": "module",
@@ -28,17 +28,17 @@
   "sideEffects": true,
   "scripts": {
     "prepare:shell": "node scripts/prepare-shell.mjs",
-    "build": "pnpm prepare:shell && tsc --noEmit && vite build && vite build --config vite.host.config.ts && tsc -p tsconfig.types.json && node scripts/finish-build.mjs",
+    "build": "pnpm prepare:shell && tsc --noEmit && node scripts/build-register.mjs && vite build --config vite.host.config.ts && tsc -p tsconfig.types.json && node scripts/finish-build.mjs",
     "typecheck": "pnpm prepare:shell && tsc --noEmit",
     "test": "vitest run",
     "test:distribution": "node tests/distribution.test.mjs",
     "test:installation": "node tests/installation.test.mjs"
   },
   "dependencies": {
-    "@agent-ui/react": "workspace:*",
-    "@agent-ui/runtime-conversation": "workspace:*",
-    "@agent-ui/runtime-core": "workspace:*",
-    "@agent-ui/runtime-react": "workspace:*",
+    "@za38.03/agent-ui-react": "workspace:*",
+    "@za38.03/agent-ui-runtime": "workspace:*",
+    "@za38.03/agent-ui-runtime-core": "workspace:*",
+    "@za38.03/agent-ui-renderer": "workspace:*",
     "lucide-react": "1.41.0",
     "react": "19.1.1",
     "react-dom": "19.1.1",
@@ -49,7 +49,7 @@
     "@lexical/react": "0.51.0",
     "@lexical/utils": "0.51.0",
     "lexical": "0.51.0",
-    "@agent-ui/plugins": "workspace:*"
+    "@za38.03/agent-ui-plugins": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "26.6.2",
@@ -61,11 +61,10 @@
     "tsx": "4.20.6",
     "typescript": "7.0.2",
     "vite": "8.3.0",
-    "@agent-ui/bootstrap": "workspace:*",
-    "@agent-ui/project-control": "workspace:*",
-    "@agent-ui/mock-agent": "workspace:*",
+    "@za38.03/agent-ui-operator": "workspace:*",
     "vitest": "4.1.8",
-    "jsdom": "27.4.0"
+    "jsdom": "27.4.0",
+    "esbuild": "0.25.12"
   },
   "agentUICompatibility": {
     "kind": "compatibility",
@@ -74,5 +73,8 @@
       "legacy",
       "html"
     ]
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

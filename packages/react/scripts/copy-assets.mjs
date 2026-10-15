@@ -16,7 +16,7 @@ async function removeInternalDeclarations(root, relativeRoot = "") {
       continue;
     }
     const isPublicDeclaration = relativePath === "index.d.ts" ||
-      relativePath === "locale.d.ts" || relativePath.startsWith("locales/") || relativePath === "public.d.ts" || relativePath === "lexical.d.ts" || relativePath === "theme/theme-contract.d.ts";
+      relativePath === "locale.d.ts" || relativePath.startsWith("locales/") || relativePath === "public.d.ts" || relativePath === "lexical.d.ts" || relativePath === "generative-ui.d.ts" || relativePath === "demo-attachments.d.ts" || relativePath === "theme/theme-contract.d.ts";
     if (!isPublicDeclaration &&
       (entry.name.endsWith(".d.ts") || entry.name.endsWith(".d.ts.map"))) {
       await rm(entryPath);
@@ -62,3 +62,7 @@ await copyFile(
 );
 await cp(path.join(sourceRoot, "theme"), path.join(distRoot, "theme"), { recursive: true, filter: (source) => !source.endsWith(".ts") });
 await removeInternalDeclarations(distRoot);
+
+await cp(path.join(sourceRoot, "internal/vendor/assistant-ui/generative-ui"), path.join(distRoot, "internal/vendor/assistant-ui/generative-ui"), { recursive: true, filter: source => !source.endsWith(".tsx") });
+
+await rm(path.join(distRoot, "experimental"), { recursive: true, force: true });

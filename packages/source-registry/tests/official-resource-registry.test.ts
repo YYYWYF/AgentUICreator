@@ -7,7 +7,7 @@ describe("Official Resource Catalog", () => {
     expect(resolveOfficialResource("conversation-lexical-input").implementation).toEqual({ type: "plugin", pluginId: "assistant-ui-lexical-composer-input" });
     expect(resolveOfficialResource("conversation-quote").implementation).toEqual({ type: "plugin", pluginId: "conversation-quote" });
     expect(resolveOfficialResource("source-citations-message").implementation).toEqual({ type: "plugin", pluginId: "source-citations-message" });
-    expect(resolveOfficialResource("a2ui")).toMatchObject({ id: "a2ui", label: "A2UI", implementation: { type: "source", sourceItemId: "integration/a2ui" } });
+    expect(() => resolveOfficialResource("a2ui")).toThrow(/Unknown official/);
     expect(resolveOfficialResource("frontend-tool-form-demo").implementation).toMatchObject({ type: "source-plugin", sourceItemId: "demo/frontend-tool-form", pluginId: "frontend-tool-form-demo" });
     expect(resolveOfficialResource("ask-user-question-demo").implementation).toMatchObject({ type: "source-plugin", sourceItemId: "demo/ask-user-question", placement: "application" });
     expect(new Set(officialResourceRegistry.resources.map(resource => resource.id)).size).toBe(officialResourceRegistry.resources.length);
@@ -19,7 +19,7 @@ describe("Official Resource Catalog", () => {
     expect(() => validateOfficialResourceSources({ ...sources, byId: new Map() })).toThrow(/unavailable source/);
   });
   it("rejects duplicate IDs, empty labels and conflicting implementations", () => {
-    const a2ui = resolveOfficialResource("a2ui");
+    const a2ui = resolveOfficialResource("web-component-bridge");
     expect(() => createOfficialResourceRegistry([a2ui, a2ui])).toThrow(/Duplicate/);
     expect(() => createOfficialResourceRegistry([{ ...a2ui, label: " " }])).toThrow(/Invalid/);
     expect(() => createOfficialResourceRegistry([a2ui, { ...a2ui, id: "other" }])).toThrow(/Conflicting/);
@@ -29,7 +29,7 @@ describe("Official Resource Catalog", () => {
     expect(() => createOfficialResourceRegistry([wrongPlacement])).toThrow(/placement/);
   });
   it("prevents callers from redefining resource metadata", () => {
-    expect(Object.isFrozen(resolveOfficialResource("a2ui"))).toBe(true);
-    expect(Object.isFrozen(resolveOfficialResource("a2ui").implementation)).toBe(true);
+    expect(Object.isFrozen(resolveOfficialResource("web-component-bridge"))).toBe(true);
+    expect(Object.isFrozen(resolveOfficialResource("web-component-bridge").implementation)).toBe(true);
   });
 });

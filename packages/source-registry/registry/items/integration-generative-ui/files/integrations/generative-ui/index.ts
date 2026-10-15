@@ -1,1 +1,1 @@
-export { agentUIGenerativeUILibrary, createAgentUIGenerativeUI, createAgentUIGenerativeActions } from "./create-generative-ui";
+export { createAgentUIGenerativeUI, createAgentUIGenerativeActions } from "./create-generative-ui";

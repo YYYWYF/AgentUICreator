@@ -16,7 +16,7 @@ describe("official package metadata authority", () => {
   });
   it("keeps runtime delivery dependencies out of the reference item", async () => {
     const registry = await loadAgentUISourceRegistry();
-    expect(registry.byId.get("plugin/assistant-ui-composer").packages).not.toHaveProperty("@agent-ui/plugins");
+    expect(registry.byId.get("plugin/assistant-ui-composer").packages).not.toHaveProperty("@za38.03/agent-ui-plugins");
   });
   it("matches service metadata against the actual reference definition", async () => {
     await expect(validateOfficialPackageServices(await loadAgentUISourceRegistry())).resolves.toBeUndefined();

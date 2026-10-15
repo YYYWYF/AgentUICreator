@@ -8,7 +8,7 @@ Implemented 2026-10-08. Browser, visual, live-model and product acceptance were 
 
 Navigation metadata belongs to `UIPluginManifest.sidebar`: a finite, validated Lucide icon name and optional `en-US`/`zh-CN` labels with manifest-name fallback. Icons are static imports; no dynamic code loading. Sidebar is neither a Plugin type nor an Agent Runtime.
 
-`runtime-react` calls the Host's `renderSidebar(node, renderNode)` adapter. Source Registry `UIPluginRuntime` resolves item mounts and manifest metadata, renders the active Slot through the existing outlet, and delegates main content to the same LayoutRenderer. The frame owns only local active-item state; changing it never edits AppUIModel. Removed/disabled items clear selection, reordering preserves selection by item ID, and inactive content unmounts.
+`renderer` calls the Host's `renderSidebar(node, renderNode)` adapter. Source Registry `UIPluginRuntime` resolves item mounts and manifest metadata, renders the active Slot through the existing outlet, and delegates main content to the same LayoutRenderer. The frame owns only local active-item state; changing it never edits AppUIModel. Removed/disabled items clear selection, reordering preserves selection by item ID, and inactive content unmounts.
 
 ## Reused assistant-ui components
 
@@ -42,12 +42,12 @@ Passed:
 - Source Registry: 29 tests.
 - Sidebar/Portal/adapter generation: 10 focused tests.
 - Python Sidebar schema, diagnostic traversal and resource scope: 3 tests.
-- Runtime React, React, Project Control and Bootstrap typechecks; Sidebar E2E TypeScript check.
-- i18n parity, Project Control contract inventory, upstream purity and 33 assistant-ui upgrade-contract tests.
+- Runtime React, React, Operator and Bootstrap typechecks; Sidebar E2E TypeScript check.
+- i18n parity, Operator contract inventory, upstream purity and 33 assistant-ui upgrade-contract tests.
 
 Requested broad commands were attempted: `pnpm typecheck`, `pnpm test:ts`, and `pnpm verify:ui` hit the temporary published-consumer dependency-install network timeout before completing. A separate recursive local typecheck also encountered existing customized Host foundations that predate the new Runtime union and a Web Component shell missing `@agent-ui/plugins`. Their layouts and customized files were preserved.
 
-Expanded package results: React 654 passed / 7 failed; Runtime React 164 passed / 2 failed; Project Control 390 passed / 182 failed (plus two errors). HEAD-only source archive runs reproduced the same seven React failures, two Runtime failures and five representative Project Control package-requirement failures. Python expanded checks yielded 54 passed / 4 failed; all four failures reproduced on HEAD. These results do not establish an all-green full regression suite.
+Expanded package results: React 654 passed / 7 failed; Runtime React 164 passed / 2 failed; Operator 390 passed / 182 failed (plus two errors). HEAD-only source archive runs reproduced the same seven React failures, two Runtime failures and five representative Operator package-requirement failures. Python expanded checks yielded 54 passed / 4 failed; all four failures reproduced on HEAD. These results do not establish an all-green full regression suite.
 
 Added browser coverage lives in `apps/creator-workbench/tests/sidebar.spec.ts`, with `playwright.sidebar.config.ts`. It covers desktop collapse/expansion/switching and narrow-container Sheet focus/Escape/navigation. Per request it was not executed; no screenshots or visual acceptance were produced. Real Host/Web Component responsive and theme acceptance remains unverified.
 

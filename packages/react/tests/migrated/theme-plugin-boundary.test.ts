@@ -1,11 +1,11 @@
-import { generatedProjectFixture } from "../../../project-control/tests/support/generated-project";
+import { generatedProjectFixture } from "../../../operator/tests/support/generated-project";
 import { readFile } from "node:fs/promises";
 
 import { describe, expect, it } from "vitest";
 
-import appUIJson from "../../../project-control/tests/fixtures/project/app-ui/app-ui.json";
-import { parseAppUIModel } from "../../../project-control/src/framework/contracts/app-ui-model";
-import { collectAppUIPluginLocations } from "../../../project-control/src/framework/contracts/app-ui-model";
+import appUIJson from "../../../operator/tests/fixtures/project/app-ui/app-ui.json";
+import { parseAppUIModel } from "../../../operator/src/framework/contracts/app-ui-model";
+import { collectAppUIPluginLocations } from "../../../operator/src/framework/contracts/app-ui-model";
 
 describe("theme plugin boundary", () => {
   it("keeps public component implementation dependencies out of the picker item", async () => {
@@ -51,7 +51,7 @@ describe("theme plugin boundary", () => {
 
     expect(themeSwitch).toMatchObject({ id: "theme-switch" });
     expect(switchDefinition).toContain("inject: [AGENT_UI_THEME_SERVICE]");
-    expect(switchSource).toContain('from "@agent-ui/react"');
+    expect(switchSource).toContain('from "@za38.03/agent-ui-react"');
     expect(switchSource).toContain("<NativeSelect");
     expect(switchSource).toContain("service.setTheme(nextTheme)");
     expect(switchSource).not.toContain("toggle()");

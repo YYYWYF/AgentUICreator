@@ -11,7 +11,7 @@ import {
   Skeleton,
   useConversationState,
   useConversationThreadListGroups,
-} from "@agent-ui/react";
+} from "@za38.03/agent-ui-react";
 import { createContext, Fragment, useContext, useState, type FC } from "react";
 
 const ThreadListLabelsContext = createContext<ConversationThreadListItemLabels | undefined>(undefined);

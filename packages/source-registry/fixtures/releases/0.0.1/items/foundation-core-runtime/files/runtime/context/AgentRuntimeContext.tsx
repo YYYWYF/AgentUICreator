@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 
-import type { AgentRuntime } from "@agent-ui/runtime-core";
+import type { AgentRuntime } from "@za38.03/agent-ui-runtime-core";
 
 export const AgentRuntimeContext =
   createContext<AgentRuntime<unknown> | null>(null);

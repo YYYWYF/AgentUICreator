@@ -1,4 +1,4 @@
-import type { AgentUILocaleMessages as AgentUIPresentationMessages } from "@agent-ui/react";
+import type { AgentUILocaleMessages as AgentUIPresentationMessages } from "@za38.03/agent-ui-react";
 export type AgentUILocaleCode = "zh-CN" | "en-US";
 
 export type AgentUIDirection = "ltr" | "rtl";

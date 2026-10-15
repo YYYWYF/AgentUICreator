@@ -138,7 +138,7 @@ def test_http_interrupt_resume_and_pending_guards(tmp_path, monkeypatch):
         if isinstance(result, DeepAgentInterrupted):
             return result
         return SimpleNamespace(text="Done", metrics=ToolProtocolMetrics(),
-            project_control=SimpleNamespace(to_dict=lambda: {}), repeated_project_control_reads=0,
+            operator=SimpleNamespace(to_dict=lambda: {}), repeated_operator_reads=0,
             domain_observations=DomainObservationMetrics())
 
     monkeypatch.setattr("agent_ui_creator.server._domain_read_agent_result", fake_result)

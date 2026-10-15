@@ -1,7 +1,7 @@
 import { resolveLocaleNamespace } from "../../i18n/locale-registry";
 import { agentUILocaleConfig } from "../../i18n/locale-config";
 import type { AgentUILocaleCode } from "../../i18n/locale-types";
-import type { ConversationStarterSuggestion } from "@agent-ui/runtime-conversation";
+import type { ConversationStarterSuggestion } from "@za38.03/agent-ui-runtime";
 
 /** Opt in only after reviewing the pinned upstream client-tool handoff race.
  * Browser-memory follow-up Queue; not durable across refresh. */

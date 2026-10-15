@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
-import { ConversationQuestionFlow, type ConversationQuestionFlowLabels } from "@agent-ui/react";
+import { ConversationQuestionFlow, type ConversationQuestionFlowLabels } from "@za38.03/agent-ui-react";
 import type { HumanQuestionStep } from "../../../agent-contract/human-tools/ask-user-question";
 
 /** Text and mixed questionnaires use the same answer envelope as option questions. */
-export function InterruptQuestionFlow({ steps, choice, labels, onComplete }: {
+export function HumanQuestionFlow({ steps, choice, labels, onComplete }: {
   steps: readonly HumanQuestionStep[];
   choice?: Readonly<Record<string, readonly string[]>> | undefined;
   labels: ConversationQuestionFlowLabels & { unavailable: string };
@@ -32,7 +32,7 @@ export function InterruptQuestionFlow({ steps, choice, labels, onComplete }: {
     submitting.current = true;
     setBusy(true);
     try { await onComplete(next); }
-    finally { submitting.current = false; setBusy(false); }
+    catch (error) { submitting.current = false; setBusy(false); throw error; }
   };
   if (step.selectionMode !== "text") return <ConversationQuestionFlow key={step.id}
     steps={[{ ...step, selectionMode: step.selectionMode }]} labels={labels}

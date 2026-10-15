@@ -408,7 +408,7 @@ export class PythonCreatorProcessManager {
     } catch (error) {
       throw new PythonCreatorRuntimeError(
         "CREATOR_PYTHON_RUNTIME_MISSING",
-        `Packaged Python Creator runtime is unavailable at ${this.#pythonPackageRoot}. Reinstall @agent-ui/creator.`,
+        `Packaged Python Creator runtime is unavailable at ${this.#pythonPackageRoot}. Reinstall @za38.03/agent-ui-creator.`,
         { cause: error instanceof Error ? error.message : String(error) },
       );
     }

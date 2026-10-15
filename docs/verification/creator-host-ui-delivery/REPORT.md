@@ -17,7 +17,7 @@
 
 ## 真实运行证据
 
-沿用原 ui_selection_acceptance.py、ObservedHost/ProjectControlClient、真实 Creator、既有 Skill、完成门和 static_only 模式，没有 Fake Model 或手写业务插件。运行用隔离工作树的基线 Python、Skill 及编译包，Host 是复制的既有 Fixture，用户宿主工程未修改。模型配置来自现有工具宿主配置，不复制密钥到报告。
+沿用原 ui_selection_acceptance.py、ObservedHost/OperatorClient、真实 Creator、既有 Skill、完成门和 static_only 模式，没有 Fake Model 或手写业务插件。运行用隔离工作树的基线 Python、Skill 及编译包，Host 是复制的既有 Fixture，用户宿主工程未修改。模型配置来自现有工具宿主配置，不复制密钥到报告。
 
 Smoke 耗时 13.32 秒并通过。但小规模工具兼容通过不证明完整 Creator 能交付。B 耗时 313.42 秒：指标为 22 次模型调用、21 次 transport attempt、52 个工具调用、50 个有效调用、2 个参数失败。无 transport failure。配置保持 maxTokens=2048、单请求 120 秒、整体 600 秒、maxRetries=2、模型调用预算 24，未修改默认配置、Prompt、Skill、预算或超时。
 

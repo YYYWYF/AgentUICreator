@@ -1,11 +1,11 @@
-import { createAgentUIInitializationHost } from "../../packages/project-control/dist/runtime/project-control-runtime.mjs";
+import { createAgentUIInitializationHost } from "../../packages/operator/dist/runtime/operator-runtime.mjs";
 import { access, readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { handleUIProjectControlRequest, inspectCreatorProject } from "../../packages/project-control/dist/runtime/project-control-runtime.mjs";
-import { initializeAgentUIProject } from "../../packages/bootstrap/dist/index.js";
+import { handleUIOperatorRequest, inspectCreatorProject } from "../../packages/operator/dist/runtime/operator-runtime.mjs";
+import { initializeAgentUIProject } from "../../packages/operator/dist/bootstrap/index.js";
 import { ensureManagedHostPlugins } from "./ensure-managed-plugins.js";
 import { ensureManagedConversationBinding } from "./ensure-managed-conversation-binding.js";
 
@@ -60,9 +60,9 @@ async function main() {
         history.child.plugins?.length !== 1 || history.child.plugins[0].pluginId !== "conversation-thread-list" || root.children.length < 2)) {
       throw new Error("Sidebar adoption requires the legacy default history-first Row; customized layouts must be migrated explicitly.");
     }
-    const sources = await handleUIProjectControlRequest({ operation: "inspect_agent_ui_sources", input: {} }, projectRoot);
+    const sources = await handleUIOperatorRequest({ operation: "inspect_agent_ui_sources", input: {} }, projectRoot);
     if (!sources.ok) throw new Error("Could not inspect managed Host sources");
-    const installed = await handleUIProjectControlRequest({ operation: "apply_agent_ui_source_item", input: {
+    const installed = await handleUIOperatorRequest({ operation: "apply_agent_ui_source_item", input: {
       itemId: "plugin/agent-identity", expectedStateHash: (sources.result as { stateHash: string }).stateHash,
     } }, projectRoot);
     if (!installed.ok) throw new Error(`Could not install Agent identity: ${JSON.stringify(installed.error)}`);
@@ -72,7 +72,7 @@ async function main() {
       if (content.responsive.primaryIndex < 1 || content.responsive.drawerIndex < 1) throw new Error("Unsupported responsive history placement.");
       content.responsive = { ...content.responsive, primaryIndex: content.responsive.primaryIndex - 1, drawerIndex: content.responsive.drawerIndex - 1 };
     }
-    const result = await handleUIProjectControlRequest({ operation: "mutate_app_ui_model", input: {
+    const result = await handleUIOperatorRequest({ operation: "mutate_app_ui_model", input: {
       appUIModelHash: createHash("sha256").update(source).digest("hex"),
       operations: [{ type: "replace_layout_node", nodeRef: "l0", node: {
         ...(root.type === "sidebar" ? root : {
@@ -87,7 +87,7 @@ async function main() {
     return;
   }
   if (command === "ensure" && await access(path.join(projectRoot, ".agent-ui/project.json")).then(() => true, () => false)) {
-    const migration = await handleUIProjectControlRequest({ operation: "migrate_official_package_plugin", input: { pluginId: "assistant-ui-composer" } }, projectRoot);
+    const migration = await handleUIOperatorRequest({ operation: "migrate_official_package_plugin", input: { pluginId: "assistant-ui-composer" } }, projectRoot);
     if (!migration.ok) throw new Error(`${migration.error.code}: ${migration.error.message}`);
   }
   const before = await inspectCreatorProject(projectRoot);
@@ -95,15 +95,15 @@ async function main() {
     if (before.projectConfig.mode !== mode || before.projectConfig.sourceRoot !== sourceRoot) {
       throw new Error(`Project is already initialized with a different configuration: ${JSON.stringify(describeState(before))}`);
     }
-    const sources = await handleUIProjectControlRequest({ operation: "inspect_agent_ui_sources", input: {} }, projectRoot);
+    const sources = await handleUIOperatorRequest({ operation: "inspect_agent_ui_sources", input: {} }, projectRoot);
     if (!sources.ok) throw new Error("Could not inspect managed Host sources");
-    const inspection = sources.result as import("../../packages/project-control/src/dev").AgentUISourceInspection;
+    const inspection = sources.result as import("../../packages/operator/src/dev").AgentUISourceInspection;
     const core = inspection.items.find(item => item.id === "foundation/core");
     if (core && (core.updateAvailable || core.dependencies.some(id => inspection.items.some(item => item.id === id && item.updateAvailable)))) {
       if (core.status === "customized" || core.status === "blocked") {
         console.warn("Preserving the Host's customized foundation; automatic source upgrades are skipped.");
       } else {
-        const upgraded = await handleUIProjectControlRequest({ operation: "apply_agent_ui_source_item", input: {
+        const upgraded = await handleUIOperatorRequest({ operation: "apply_agent_ui_source_item", input: {
           itemId: "foundation/core", expectedStateHash: inspection.stateHash,
         } }, projectRoot);
         if (!upgraded.ok) {
@@ -112,7 +112,7 @@ async function main() {
         }
       }
     }
-    await ensureManagedHostPlugins(request => handleUIProjectControlRequest({ ...request }, projectRoot), { preserveCustomized: true });
+    await ensureManagedHostPlugins(request => handleUIOperatorRequest({ ...request }, projectRoot), { preserveCustomized: true });
     if (projectName === "creator-host-sandbox") await ensureManagedConversationBinding(projectRoot);
     return;
   }

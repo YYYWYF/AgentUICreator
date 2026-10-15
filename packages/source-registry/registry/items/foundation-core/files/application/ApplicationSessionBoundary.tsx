@@ -1,6 +1,6 @@
 import { createContext, useContext, useLayoutEffect, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
-import type { AgentRuntime } from "@agent-ui/runtime-core";
-import { AgentUIRoot, AgentUILocaleProvider } from "@agent-ui/react";
+import type { AgentRuntime } from "@za38.03/agent-ui-runtime-core";
+import { AgentUIRoot, AgentUILocaleProvider } from "@za38.03/agent-ui-react";
 import { PluginServiceProvider, usePluginServiceRuntime } from "../runtime/plugins";
 import { useApplicationLifecycleRuntime } from "../runtime/application/ApplicationLifecycleContext";
 import { ApplicationGateSurface } from "../runtime/application/ApplicationGateSurface";

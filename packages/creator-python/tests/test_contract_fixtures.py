@@ -15,7 +15,7 @@ from agent_ui_creator.server import AgUiRunInput
 CONTRACTS_ROOT = Path(__file__).resolve().parents[3] / "contracts" / "creator"
 SCHEMA_NAMES = (
     "creator-transport.schema.json",
-    "project-control.schema.json",
+    "operator.schema.json",
     "app-ui-model-operation.schema.json",
     "creator-receipt.schema.json",
     "creator-host-results.schema.json",
@@ -61,17 +61,17 @@ def test_transport_fixtures_match_json_schema_and_python_models():
     RuntimeDiagnosticEnvelope.model_validate(diagnostics["compositionEnvelope"])
 
 
-def test_project_control_operation_receipt_and_host_fixtures_match_schemas():
-    project_control = _fixture("project-control.json")
+def test_operator_operation_receipt_and_host_fixtures_match_schemas():
+    operator = _fixture("operator.json")
     host_results = _fixture("creator-host-results.json")
 
     for value in (
-        project_control["request"],
-        project_control["success"],
-        project_control["failure"],
+        operator["request"],
+        operator["success"],
+        operator["failure"],
     ):
-        _validate("project-control.schema.json", value)
-    for operation in project_control["request"]["input"]["operations"]:
+        _validate("operator.schema.json", value)
+    for operation in operator["request"]["input"]["operations"]:
         _validate("app-ui-model-operation.schema.json", operation)
     _validate("creator-receipt.schema.json", host_results["receipt"])
     _validate("creator-host-results.schema.json", host_results["validation"])
@@ -79,11 +79,11 @@ def test_project_control_operation_receipt_and_host_fixtures_match_schemas():
 
 
 def test_unknown_request_field_is_rejected():
-    project_control = _fixture("project-control.json")
-    drifted = {**project_control["request"], "unexpectedField": True}
+    operator = _fixture("operator.json")
+    drifted = {**operator["request"], "unexpectedField": True}
 
     with pytest.raises(ValidationError):
-        _validate("project-control.schema.json", drifted)
+        _validate("operator.schema.json", drifted)
 
 
 def test_app_ui_remove_plugin_schema_accepts_explicit_reflow_mode():
@@ -207,10 +207,10 @@ def test_creator_layout_track_sizes_require_explicit_css_strings():
             _validate("app-ui-model-operation.schema.json", operation)
 
 
-def test_project_control_runtime_composition_accepts_bounded_geometry():
+def test_operator_runtime_composition_accepts_bounded_geometry():
     app_hash = "a" * 64
     _validate(
-        "project-control.schema.json",
+        "operator.schema.json",
         {
             "operation": "verify_runtime_composition",
             "input": {
@@ -273,18 +273,18 @@ def test_targeted_layout_slot_inspection_requires_snapshot_hash():
             "target": {"type": "layout_slot", "slotRef": "l2"},
         },
     }
-    _validate("project-control.schema.json", valid_layout_target)
+    _validate("operator.schema.json", valid_layout_target)
 
     with pytest.raises(ValidationError):
         _validate(
-            "project-control.schema.json",
+            "operator.schema.json",
             {
                 **valid_layout_target,
                 "input": {"target": {"type": "layout_slot", "slotRef": "l2"}},
             },
         )
 
-    _validate("project-control.schema.json", {
+    _validate("operator.schema.json", {
         "operation": "inspect_ui_slots",
         "input": {
             "target": {

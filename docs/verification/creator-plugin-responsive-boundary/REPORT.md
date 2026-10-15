@@ -28,7 +28,7 @@
 | 检查 | 结果 |
 | --- | --- |
 | Plugin style verifier focused tests | PASS，5 tests，包括风险发现、可收缩安全样式及警告输出 |
-| Project Control typecheck | PASS |
+| Operator typecheck | PASS |
 | Python prompt/tool py_compile | PASS |
 | `pnpm --filter @agent-ui/react build` | PASS |
 | `pnpm check:i18n` | PASS |

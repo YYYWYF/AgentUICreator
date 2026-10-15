@@ -21,8 +21,8 @@
       "node"
     ],
     "paths": {
-      "@agent-ui/runtime-conversation": [
-        "../runtime-conversation/src/index.ts"
+      "@za38.03/agent-ui-runtime": [
+        "../runtime/src/index.ts"
       ]
     }
   },

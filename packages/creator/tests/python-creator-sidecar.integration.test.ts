@@ -330,7 +330,7 @@ async function createDomainWriteMockChatCompletionsServer(
 }
 
 async function copyTargetProject(label: string): Promise<string> {
-  execFileSync("pnpm", ["--filter", "@agent-ui/creator-host-sandbox", "exec", "node", "--import", "tsx", "../../scripts/host-examples/host-project.ts", "ensure", "platform", "creator-host-sandbox"], { cwd: repositoryRoot, stdio: "pipe" });
+  execFileSync("pnpm", ["--filter", "@za38.03/agent-ui-creator-host-sandbox", "exec", "node", "--import", "tsx", "../../scripts/host-examples/host-project.ts", "ensure", "platform", "creator-host-sandbox"], { cwd: repositoryRoot, stdio: "pipe" });
   const root = await mkdtemp(path.join(tmpdir(), `creator-${label}-`));
   temporaryDirectories.push(root);
   await cp(projectRoot, root, {
@@ -344,9 +344,9 @@ async function copyTargetProject(label: string): Promise<string> {
   return root;
 }
 
-async function delayProjectControl(root: string, delaySeconds: number): Promise<void> {
+async function delayOperator(root: string, delaySeconds: number): Promise<void> {
   if (process.platform === "win32") {
-    throw new Error("The delayed Project Control fixture requires a POSIX shell.");
+    throw new Error("The delayed Operator fixture requires a POSIX shell.");
   }
   const nodeModules = path.join(root, "node_modules");
   await rm(nodeModules, { force: true });
@@ -836,7 +836,7 @@ server.serve_forever()
     expect(events.at(-1)?.result).toMatchObject({
       phase: "domain-read-agent",
       toolProtocol: { modelCalls: 4, toolCalls: 3, validToolCalls: 3 },
-      projectControl: {
+      operator: {
         requests: 2,
         byOperation: {
           inspect_app_ui_model: 1,
@@ -848,10 +848,10 @@ server.serve_forever()
   }, 60_000);
 
   it.skipIf(process.platform === "win32")(
-    "streams a real DeepAgents tool start through the proxy before delayed Project Control finishes",
+    "streams a real DeepAgents tool start through the proxy before delayed Operator finishes",
     async () => {
       const fixtureRoot = await copyTargetProject("delayed-domain-read");
-      await delayProjectControl(fixtureRoot, 1.5);
+      await delayOperator(fixtureRoot, 1.5);
       const modelBaseUrl = await createDomainReadMockChatCompletionsServer();
       const processManager = manager({
         projectRoot: fixtureRoot,
@@ -961,7 +961,7 @@ server.serve_forever()
       agentMode: "domain-write",
       phase: "domain-write-agent",
       toolProtocol: { modelCalls: expect.any(Number), toolCalls: 2, validToolCalls: 2 },
-      projectControl: {
+      operator: {
         requests: 2,
         byOperation: {
           inspect_app_ui_model: 1,

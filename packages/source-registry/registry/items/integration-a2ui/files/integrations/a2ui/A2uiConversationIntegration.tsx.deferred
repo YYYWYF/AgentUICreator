@@ -1,0 +1,18 @@
+import type { GenerativeUILibrary } from "@za38.03/agent-ui-react/generative-ui";
+import { useMemo, type ReactNode } from "react";
+import { ConversationToolkitProvider } from "@za38.03/agent-ui-react";
+import { useConversationA2uiAction } from "@za38.03/agent-ui-runtime";
+import { a2uiComponents } from "./components";
+import { createA2uiConversationToolkit } from "./create-a2ui-toolkit";
+
+function DeferredA2uiConversationIntegration({ children, components = a2uiComponents }: { children: ReactNode; components?: GenerativeUILibrary }) {
+  const sendAction = useConversationA2uiAction();
+  const toolkit = useMemo(() => createA2uiConversationToolkit({ sendAction, ...(components === undefined ? {} : { components }) }), [sendAction, components]);
+  return <ConversationToolkitProvider toolkit={toolkit}>{children}</ConversationToolkitProvider>;
+}
+
+/** Deferred product integration: existing projects keep their children usable. */
+export function A2uiConversationIntegration({ children }: { children: ReactNode; components?: GenerativeUILibrary }) {
+  return children;
+}
+export { A2uiConversationIntegration as ConversationIntegration };

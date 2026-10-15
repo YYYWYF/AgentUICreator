@@ -9,7 +9,7 @@ from ..debugging import DebuggingEvidence, evidence_hash
 from ..activity import CreatorActivityRecorder
 from ..app_ui_model import ProjectMutationCoordinator
 from ..files import read_creator_file_state
-from ..project_control import ProjectControlClient
+from ..operator import OperatorClient
 from ..project_paths import agent_ui_source_path
 from ..resource_scope import project_logical_path
 from ..repair import CreatorRepairState
@@ -57,7 +57,7 @@ class CreatorValidationService:
         repair_state: CreatorRepairState | None = None,
         host_verifier: ServiceContractAuthorizationVerifier | None = None,
         scope: ChangeScopeMetrics | None = None,
-        project_control: ProjectControlClient | None = None,
+        operator: OperatorClient | None = None,
         mutation_coordinator: ProjectMutationCoordinator | None = None,
     ) -> None:
         self.debugging = DebuggingEvidence()
@@ -70,7 +70,7 @@ class CreatorValidationService:
         self.latest_result: CreatorValidationResult | None = None
         self.host_verifier = host_verifier
         self.scope = scope
-        self.project_control = project_control
+        self.operator = operator
         self.mutation_coordinator = mutation_coordinator
         self._registry_sync_mutation_index = 0
         self._baseline_run_id: str | None = None
@@ -99,7 +99,7 @@ class CreatorValidationService:
         self._registry_sync_mutation_index = 0
 
     async def _synchronize_plugin_registry(self) -> None:
-        if self.project_control is None or self.mutation_coordinator is None:
+        if self.operator is None or self.mutation_coordinator is None:
             return
         changes = self.activity.mutation_paths[self._registry_sync_mutation_index:]
         if not any(
@@ -116,7 +116,7 @@ class CreatorValidationService:
                 self._registry_sync_mutation_index = len(self.activity.mutation_paths)
                 return
             self.activity.capture_before_content(registry_path, before.content)
-            result = await self.project_control.synchronize_plugin_registry(
+            result = await self.operator.synchronize_plugin_registry(
                 expected_source_hash=before.hash
             )
             after = read_creator_file_state(self.project_root, registry_path)

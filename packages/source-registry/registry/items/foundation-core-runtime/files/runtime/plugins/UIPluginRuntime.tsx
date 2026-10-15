@@ -1,4 +1,4 @@
-import { AgentUISidebarFrame, useAgentUILocaleCode, useAgentUILocale as useAgentUIPresentationLocale } from "@agent-ui/react";
+import { AgentUISidebarFrame, useAgentUILocaleCode, useAgentUILocale as useAgentUIPresentationLocale } from "@za38.03/agent-ui-react";
 import {
   useCallback,
   useEffect,
@@ -11,7 +11,7 @@ import {
 import {
   LayoutRenderer,
   type SlotNode,
-} from "@agent-ui/runtime-react";
+} from "@za38.03/agent-ui-renderer";
 import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
 
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";

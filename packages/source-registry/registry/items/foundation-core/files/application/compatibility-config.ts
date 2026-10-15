@@ -1,5 +1,5 @@
-import type { AgentUITheme, AgentUILocaleCode } from "@agent-ui/react";
-import type { ConversationRuntimeProviderProps } from "@agent-ui/runtime-conversation";
+import type { AgentUITheme, AgentUILocaleCode } from "@za38.03/agent-ui-react";
+import type { ConversationRuntimeProviderProps } from "@za38.03/agent-ui-runtime";
 import type { AppUIModel } from "../framework/contracts/app-ui-model";
 
 /** Host configuration; composition uses the existing AppUIModel unchanged. */

@@ -111,7 +111,7 @@ async function readJsonIfPresent(filePath) {
 async function readInstalledPackageManifest(repoRoot, expectedVersion, packageJsonPath) {
   const candidates = [
     packageJsonPath,
-    path.join(repoRoot, "packages/runtime-conversation/node_modules/@assistant-ui/react-ag-ui/package.json"),
+    path.join(repoRoot, "packages/runtime/node_modules/@assistant-ui/react-ag-ui/package.json"),
     path.join(repoRoot, "packages/react/node_modules/@assistant-ui/react-ag-ui/package.json"),
     path.join(repoRoot, "node_modules/@assistant-ui/react-ag-ui/package.json"),
   ].filter(Boolean);

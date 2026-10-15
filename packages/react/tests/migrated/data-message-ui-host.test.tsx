@@ -1,9 +1,9 @@
-import { defineDataMessageUI } from "@agent-ui/react";
+import { defineDataMessageUI } from "@za38.03/agent-ui-react";
 import { describe, expect, it, vi } from "vitest";
 
-import { AppUICompilerError, compileAppUIModel } from "../../../project-control/src/framework/contracts/app-ui-compiler";
-import { parseAppUIRuntimeModel } from "../../../project-control/src/framework/contracts/app-ui-runtime-model";
-import type { UIPluginDefinition } from "../../../project-control/src/framework/contracts/ui-plugin";
+import { AppUICompilerError, compileAppUIModel } from "../../../operator/src/framework/contracts/app-ui-compiler";
+import { parseAppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
+import type { UIPluginDefinition } from "../../../operator/src/framework/contracts/ui-plugin";
 import { buildRuntimeComposition, createPluginCapabilityCatalog } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/composition/index";
 import { createPluginCompositionCatalog, createPluginRegistry } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/PluginRegistry";
 import { PluginServiceRuntime } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/PluginServiceRuntime";

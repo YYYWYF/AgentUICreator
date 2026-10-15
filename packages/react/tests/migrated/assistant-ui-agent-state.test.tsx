@@ -19,7 +19,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   agentStateSyncScenario,
   runMockScenario,
-} from "@agent-ui/mock-agent";
+} from "@za38.03/agent-ui-creator/mock-agent";
 
 const mockInput: Parameters<typeof runMockScenario>[0] = {
   threadId: "state-thread",

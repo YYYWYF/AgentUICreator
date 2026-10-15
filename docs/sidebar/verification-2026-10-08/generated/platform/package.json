@@ -15,8 +15,8 @@
     "zod": "^4.5.4",
     "@agent-ui/runtime-core": "file:/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/runtime-core.tgz",
     "@agent-ui/react": "file:/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/react.tgz",
-    "@agent-ui/runtime-conversation": "file:/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/runtime-conversation.tgz",
-    "@agent-ui/runtime-react": "file:/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/runtime-react.tgz",
+    "@agent-ui/runtime": "file:/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/runtime.tgz",
+    "@agent-ui/renderer": "file:/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/renderer.tgz",
     "@agent-ui/plugins": "file:/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/plugins.tgz"
   },
   "devDependencies": {

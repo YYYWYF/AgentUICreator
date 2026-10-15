@@ -13,7 +13,7 @@ from langchain_core.outputs import ChatGeneration, ChatResult
 from pydantic import PrivateAttr
 
 from agent_ui_creator.config import CreatorServerSettings
-from agent_ui_creator.project_control import ProjectControlClient
+from agent_ui_creator.operator import OperatorClient
 from agent_ui_creator.server import create_app
 from agent_ui_creator.validation.models import CommandExecutionResult
 
@@ -84,19 +84,19 @@ def call(name, args, identifier):
 
 @pytest.fixture(scope="module", autouse=True)
 def build_host_runtime():
-    subprocess.run(["pnpm", "--filter", "@agent-ui/project-control", "build"], cwd=ROOT, check=True, capture_output=True)
+    subprocess.run(["pnpm", "--filter", "@za38.03/agent-ui-operator", "build"], cwd=ROOT, check=True, capture_output=True)
 
 
 @pytest.mark.parametrize("choice", ["hide", "purge"])
 def test_selector_question_interrupt_answer_and_real_host_removal(tmp_path, monkeypatch, choice):
-    # All mutations run through the actual compiled ProjectControl against a
+    # All mutations run through the actual compiled Operator against a
     # disposable official preset. Only the model and external typecheck command
     # are fixtures; this does not exercise a live model or frontend acceptance.
-    subprocess.run(["pnpm", "--filter", "@agent-ui/project-control", "exec", "tsx",
+    subprocess.run(["pnpm", "--filter", "@za38.03/agent-ui-operator", "exec", "tsx",
                     "tests/support/create-removal-host.ts", str(tmp_path)], cwd=ROOT, check=True, capture_output=True)
-    project_control = ProjectControlClient(project_root=tmp_path)
-    model_before = asyncio.run(project_control.inspect_app_ui_model())
-    sources_before = asyncio.run(project_control.inspect_agent_ui_sources())
+    operator = OperatorClient(project_root=tmp_path)
+    model_before = asyncio.run(operator.inspect_app_ui_model())
+    sources_before = asyncio.run(operator.inspect_agent_ui_sources())
     composition_file = tmp_path / "agent-ui/app-ui/app-ui.json"
     lock_file = tmp_path / ".agent-ui/source-lock.json"
     original_composition = composition_file.read_bytes()

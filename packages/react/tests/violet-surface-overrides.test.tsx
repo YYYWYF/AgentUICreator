@@ -112,7 +112,7 @@ describe("Phase 4A Violet surfaces", () => {
     const gate = scripts["verify:style-isolation"]!;
     const stages = gate.split(" && ");
     const upstreamStage = stages.indexOf("pnpm check:assistant-ui-upstream");
-    const themeStage = stages.findIndex(stage => stage.startsWith("pnpm --filter @agent-ui/react exec vitest run ") && stage.split(" ").includes("tests/violet-surface-overrides.test.tsx"));
+    const themeStage = stages.findIndex(stage => stage.startsWith("pnpm --filter @za38.03/agent-ui-react exec vitest run ") && stage.split(" ").includes("tests/violet-surface-overrides.test.tsx"));
     expect(upstreamStage).toBeGreaterThanOrEqual(0);
     expect(themeStage).toBeGreaterThan(upstreamStage);
   });

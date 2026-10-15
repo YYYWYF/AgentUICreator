@@ -39,5 +39,8 @@ if (!args.includes('--verify')) {
 }
 const target = await resolveSourceRelease(targetRoot);
 await validateOfficialPackageServices(target.registry);
+for (const item of target.registry.items) for (const file of item.loadedFiles) {
+  if (/(^|\/)vendors?(\/|$)/iu.test(file.target)) throw new Error(`Upstream source must remain inside runtime packages: ${item.id}: ${file.target}`);
+}
 verifySourceRelease(target, previous);
 console.log('Release metadata verified against ' + (previous?.descriptor.releaseVersion ?? 'initial release'));

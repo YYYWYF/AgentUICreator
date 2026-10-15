@@ -18,7 +18,7 @@ test.beforeEach(async ({ page, preview }) => {
 });
 
 test("ordinary Host receives Mock thread list, history and chat through Creator", async ({ page, preview }) => {
-  expect(existsSync(path.join(preview.hostRoot, "node_modules/@agent-ui/mock-agent"))).toBe(false);
+  expect(existsSync(path.join(preview.hostRoot, "node_modules/@za38.03/agent-ui-creator"))).toBe(false);
   await page.getByRole("button", { name: "返回对话", exact: true }).click();
   const host = page.frameLocator('iframe[title="Host Application"]');
   const list = host.locator('[data-ui-plugin="conversation-thread-list"]');

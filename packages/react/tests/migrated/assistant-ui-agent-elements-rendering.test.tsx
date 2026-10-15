@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { AgentPlan, AgentStatus, JobProgress, SubagentList } from "@agent-ui/react";
+import { AgentPlan, AgentStatus, JobProgress, SubagentList } from "@za38.03/agent-ui-react";
 
 describe("assistant-ui official agent element fixtures", () => {
   it("renders the dormant foundation elements through their official contracts", () => {

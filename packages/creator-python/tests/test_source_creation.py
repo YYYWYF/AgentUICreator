@@ -275,7 +275,7 @@ def test_create_ui_plugin_preflights_declared_placement_before_source_commit(
         def mark_created(self, plugin_id):
             assert plugin_id == "task-status"
 
-    class ProjectControl:
+    class Operator:
         eligible = False
         calls = []
 
@@ -286,13 +286,13 @@ def test_create_ui_plugin_preflights_declared_placement_before_source_commit(
             self.calls.append(kwargs)
             return {"eligible": self.eligible, "diagnostic": {"code": diagnostic_code}}
 
-    control = ProjectControl()
+    control = Operator()
     creation = UIPluginCreationService(
         project_root=tmp_path,
         source_creation=source_creation,
         activity=activity,
         development_authority=Authority(),
-        project_control=control,
+        operator=control,
     )
     files = plugin_sources()
     manifest = {"id": "task-status", "authoring": {"defaultPlacement": {

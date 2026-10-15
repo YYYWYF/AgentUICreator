@@ -8,9 +8,8 @@ export default {
   toolkit: {
     ask_user_question: {
       type: "human",
-      interaction: { type: "interrupt" },
       display: "standalone",
-      description: "Pause for structured choices or text input, then resume with the user response.",
+      description: "Collect structured choices or text input and return the user's response as the tool result.",
       parameters: askUserQuestionParameters,
       render: AskUserQuestionToolUI,
     },

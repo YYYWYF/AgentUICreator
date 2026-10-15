@@ -115,7 +115,7 @@ def test_answer_only_streams_without_project_tools_or_mutation(tmp_path, monkeyp
     assert finished["result"]["executionPolicy"] == "read-only"
     assert finished["result"].get("mutationAttempts", 0) == 0
     assert "productizedOperation" not in finished["result"]
-    assert finished["result"]["projectControl"]["requests"] == 0
+    assert finished["result"]["operator"]["requests"] == 0
     assert all(not trace["offeredToolNames"]
                for trace in finished["result"]["toolProtocol"]["traces"])
     assert any("我可以解释" in event.get("delta", "") for event in events)
@@ -158,7 +158,7 @@ def test_answer_only_rejects_unoffered_read_file_before_execution(tmp_path, monk
     assert all(not trace.offeredToolNames for trace in agent.protocol.metrics.traces)
     assert reads == []
     assert target.read_text() == original
-    assert agent.project_control.metrics.requests == 0
+    assert agent.operator.metrics.requests == 0
     assert agent.activity.revision == 0
 
 

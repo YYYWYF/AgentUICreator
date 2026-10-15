@@ -2,8 +2,8 @@
   "policy": "Advisory AST copy inventory; semantic review decides localization. Protocol IDs, domain data, developer diagnostics, mock transcripts and upstream vendor are excluded from translation.",
   "scopes": [
     "packages/react/src",
-    "packages/runtime-react/src",
-    "packages/runtime-conversation/src",
+    "packages/renderer/src",
+    "packages/runtime/src",
     "packages/source-registry/registry/items",
     "examples/creator-host-sandbox/src/agent-ui",
     "examples/creator-assistant-host/src/agent-ui",
@@ -965,7 +965,7 @@
       "file": "examples/creator-assistant-host/src/agent-ui/agent-ui/conversation/config/conversation-runtime-config.ts",
       "line": 4,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -1154,7 +1154,7 @@
       "file": "examples/creator-assistant-host/src/agent-ui/agent-ui/conversation/threads/ConversationThreadBindingConnector.tsx",
       "line": 5,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -1210,7 +1210,7 @@
       "file": "examples/creator-assistant-host/src/agent-ui/agent-ui/conversation/threads/conversation-history-projector.ts",
       "line": 4,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -1231,7 +1231,7 @@
       "file": "examples/creator-assistant-host/src/agent-ui/agent-ui/conversation/threads/conversation-service-thread-binding.ts",
       "line": 6,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -1574,7 +1574,7 @@
       "file": "examples/creator-assistant-host/src/agent-ui/application/Agent.tsx",
       "line": 10,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -2673,7 +2673,7 @@
       "file": "examples/creator-assistant-host/src/agent-ui/framework/contracts/app-ui-model.ts",
       "line": 1,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-react",
+      "value": "@agent-ui/renderer",
       "category": "protocol / identifier"
     },
     {
@@ -3100,7 +3100,7 @@
       "file": "examples/creator-assistant-host/src/agent-ui/framework/contracts/app-ui-runtime-model.ts",
       "line": 1,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-react",
+      "value": "@agent-ui/renderer",
       "category": "protocol / identifier"
     },
     {
@@ -3121,7 +3121,7 @@
       "file": "examples/creator-assistant-host/src/agent-ui/framework/contracts/app-ui-runtime-model.ts",
       "line": 14,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-react",
+      "value": "@agent-ui/renderer",
       "category": "protocol / identifier"
     },
     {
@@ -7902,7 +7902,7 @@
       "file": "examples/creator-assistant-host/src/agent-ui/runtime/plugins/UIPluginRuntime.tsx",
       "line": 14,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-react",
+      "value": "@agent-ui/renderer",
       "category": "protocol / identifier"
     },
     {
@@ -9981,7 +9981,7 @@
       "file": "examples/creator-embedded-host/src/agent-ui/agent-ui/conversation/config/conversation-runtime-config.ts",
       "line": 4,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -10170,7 +10170,7 @@
       "file": "examples/creator-embedded-host/src/agent-ui/agent-ui/conversation/threads/ConversationThreadBindingConnector.tsx",
       "line": 5,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -10226,7 +10226,7 @@
       "file": "examples/creator-embedded-host/src/agent-ui/agent-ui/conversation/threads/conversation-history-projector.ts",
       "line": 4,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -10247,7 +10247,7 @@
       "file": "examples/creator-embedded-host/src/agent-ui/agent-ui/conversation/threads/conversation-service-thread-binding.ts",
       "line": 6,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -10590,7 +10590,7 @@
       "file": "examples/creator-embedded-host/src/agent-ui/application/Agent.tsx",
       "line": 10,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -11689,7 +11689,7 @@
       "file": "examples/creator-embedded-host/src/agent-ui/framework/contracts/app-ui-model.ts",
       "line": 1,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-react",
+      "value": "@agent-ui/renderer",
       "category": "protocol / identifier"
     },
     {
@@ -12116,7 +12116,7 @@
       "file": "examples/creator-embedded-host/src/agent-ui/framework/contracts/app-ui-runtime-model.ts",
       "line": 1,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-react",
+      "value": "@agent-ui/renderer",
       "category": "protocol / identifier"
     },
     {
@@ -12137,7 +12137,7 @@
       "file": "examples/creator-embedded-host/src/agent-ui/framework/contracts/app-ui-runtime-model.ts",
       "line": 14,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-react",
+      "value": "@agent-ui/renderer",
       "category": "protocol / identifier"
     },
     {
@@ -16918,7 +16918,7 @@
       "file": "examples/creator-embedded-host/src/agent-ui/runtime/plugins/UIPluginRuntime.tsx",
       "line": 14,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-react",
+      "value": "@agent-ui/renderer",
       "category": "protocol / identifier"
     },
     {
@@ -19018,7 +19018,7 @@
       "file": "examples/creator-host-sandbox/src/agent-ui/agent-ui/conversation/config/conversation-runtime-config.ts",
       "line": 4,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -19298,7 +19298,7 @@
       "file": "examples/creator-host-sandbox/src/agent-ui/agent-ui/conversation/threads/ConversationThreadBindingConnector.tsx",
       "line": 5,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -19333,7 +19333,7 @@
       "file": "examples/creator-host-sandbox/src/agent-ui/agent-ui/conversation/threads/conversation-history-projector.ts",
       "line": 4,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -19354,7 +19354,7 @@
       "file": "examples/creator-host-sandbox/src/agent-ui/agent-ui/conversation/threads/conversation-service-thread-binding.ts",
       "line": 8,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -19718,7 +19718,7 @@
       "file": "examples/creator-host-sandbox/src/agent-ui/application/Agent.tsx",
       "line": 6,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -19739,7 +19739,7 @@
       "file": "examples/creator-host-sandbox/src/agent-ui/application/Agent.tsx",
       "line": 12,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -21223,7 +21223,7 @@
       "file": "examples/creator-host-sandbox/src/agent-ui/framework/contracts/app-ui-model.ts",
       "line": 1,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-react",
+      "value": "@agent-ui/renderer",
       "category": "protocol / identifier"
     },
     {
@@ -21685,7 +21685,7 @@
       "file": "examples/creator-host-sandbox/src/agent-ui/framework/contracts/app-ui-runtime-model.ts",
       "line": 1,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-react",
+      "value": "@agent-ui/renderer",
       "category": "protocol / identifier"
     },
     {
@@ -21706,7 +21706,7 @@
       "file": "examples/creator-host-sandbox/src/agent-ui/framework/contracts/app-ui-runtime-model.ts",
       "line": 14,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-react",
+      "value": "@agent-ui/renderer",
       "category": "protocol / identifier"
     },
     {
@@ -27474,7 +27474,7 @@
       "file": "examples/creator-host-sandbox/src/agent-ui/runtime/plugins/UIPluginRuntime.tsx",
       "line": 14,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-react",
+      "value": "@agent-ui/renderer",
       "category": "protocol / identifier"
     },
     {
@@ -44380,2177 +44380,2177 @@
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeBridgeContext.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeBridgeContext.tsx",
       "line": 1,
       "kind": "StringLiteral",
       "value": "react",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeBridgeContext.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeBridgeContext.tsx",
       "line": 2,
       "kind": "StringLiteral",
       "value": "react",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeBridgeContext.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeBridgeContext.tsx",
       "line": 4,
       "kind": "StringLiteral",
       "value": "./compatibility/conversation-runtime-bridge.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeBridgeContext.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeBridgeContext.tsx",
       "line": 5,
       "kind": "StringLiteral",
       "value": "./events/conversation-application-event-source.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeBridgeContext.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeBridgeContext.tsx",
       "line": 6,
       "kind": "StringLiteral",
       "value": "./observation/types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeBridgeContext.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeBridgeContext.tsx",
       "line": 7,
       "kind": "StringLiteral",
       "value": "./threads/types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeBridgeContext.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeBridgeContext.tsx",
       "line": 8,
       "kind": "StringLiteral",
       "value": "./tools/types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeBridgeContext.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeBridgeContext.tsx",
       "line": 13,
       "kind": "StringLiteral",
       "value": "observation",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeBridgeContext.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeBridgeContext.tsx",
       "line": 41,
       "kind": "StringLiteral",
       "value": "useConversationRuntimeBridge must be used within ConversationRuntimeProvider",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 1,
       "kind": "StringLiteral",
       "value": "./feedback.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 2,
       "kind": "StringLiteral",
       "value": "./compatibility/conversation-quote-context-agent.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 3,
       "kind": "StringLiteral",
       "value": "@ag-ui/client",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 4,
       "kind": "StringLiteral",
       "value": "@agent-ui/react",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 5,
       "kind": "StringLiteral",
       "value": "@agent-ui/runtime-core",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 21,
       "kind": "StringLiteral",
       "value": "@assistant-ui/react",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 24,
       "kind": "StringLiteral",
       "value": "@assistant-ui/react-ag-ui",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 34,
       "kind": "StringLiteral",
       "value": "react",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 39,
       "kind": "StringLiteral",
       "value": "./ConversationRuntimeBridgeContext.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 43,
       "kind": "StringLiteral",
       "value": "./compatibility/conversation-runtime-bridge.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 44,
       "kind": "StringLiteral",
       "value": "./compatibility/cancellation-aware-http-agent.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 45,
       "kind": "StringLiteral",
       "value": "./events/conversation-application-event-source.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 51,
       "kind": "StringLiteral",
       "value": "./threads/types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 52,
       "kind": "StringLiteral",
       "value": "./threads/conversation-remote-thread-list-adapter.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 53,
       "kind": "StringLiteral",
       "value": "./tools/types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 54,
       "kind": "StringLiteral",
       "value": "./tools/assistant-ui-frontend-tool-adapter.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 55,
       "kind": "StringLiteral",
       "value": "./conversation-types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 90,
       "kind": "StringLiteral",
       "value": "text/event-stream",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 173,
       "kind": "StringLiteral",
       "value": "user",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 194,
       "kind": "TemplateExpression",
       "value": "`No resumable run for conversation ${ownedId}`",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 201,
       "kind": "StringLiteral",
       "value": "user",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 219,
       "kind": "StringLiteral",
       "value": "[agent-ui] feedback persistence failed",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 296,
       "kind": "StringLiteral",
       "value": "content",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 297,
       "kind": "StringLiteral",
       "value": "status",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/ConversationRuntimeProvider.tsx",
+      "file": "packages/runtime/src/ConversationRuntimeProvider.tsx",
       "line": 298,
       "kind": "StringLiteral",
       "value": "metadata",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/cancellation-aware-http-agent.ts",
+      "file": "packages/runtime/src/compatibility/cancellation-aware-http-agent.ts",
       "line": 10,
       "kind": "StringLiteral",
       "value": "@ag-ui/client",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/cancellation-aware-http-agent.ts",
+      "file": "packages/runtime/src/compatibility/cancellation-aware-http-agent.ts",
       "line": 12,
       "kind": "StringLiteral",
       "value": "rxjs",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/cancellation-aware-http-agent.ts",
+      "file": "packages/runtime/src/compatibility/cancellation-aware-http-agent.ts",
       "line": 17,
       "kind": "StringLiteral",
       "value": "../errors.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/cancellation-aware-http-agent.ts",
+      "file": "packages/runtime/src/compatibility/cancellation-aware-http-agent.ts",
       "line": 20,
       "kind": "StringLiteral",
       "value": "AbortError",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/cancellation-aware-http-agent.ts",
+      "file": "packages/runtime/src/compatibility/cancellation-aware-http-agent.ts",
       "line": 22,
       "kind": "StringLiteral",
       "value": "BodyStreamBuffer was aborted",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/cancellation-aware-http-agent.ts",
+      "file": "packages/runtime/src/compatibility/cancellation-aware-http-agent.ts",
       "line": 64,
       "kind": "StringLiteral",
       "value": "body",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/cancellation-aware-http-agent.ts",
+      "file": "packages/runtime/src/compatibility/cancellation-aware-http-agent.ts",
       "line": 67,
       "kind": "StringLiteral",
       "value": "function",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-execution-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-execution-projector.ts",
       "line": 1,
       "kind": "StringLiteral",
       "value": "@agent-ui/runtime-core",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-execution-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-execution-projector.ts",
       "line": 2,
       "kind": "StringLiteral",
       "value": "@assistant-ui/react",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-execution-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-execution-projector.ts",
       "line": 5,
       "kind": "StringLiteral",
       "value": "string",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-execution-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-execution-projector.ts",
       "line": 18,
       "kind": "StringLiteral",
       "value": "awaiting-result",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-execution-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-execution-projector.ts",
       "line": 18,
       "kind": "StringLiteral",
       "value": "interrupted",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-execution-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-execution-projector.ts",
       "line": 19,
       "kind": "StringLiteral",
       "value": "error",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-execution-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-execution-projector.ts",
       "line": 19,
       "kind": "StringLiteral",
       "value": "completed",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-execution-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-execution-projector.ts",
       "line": 21,
       "kind": "StringLiteral",
       "value": "tool",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-execution-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-execution-projector.ts",
       "line": 23,
       "kind": "StringLiteral",
       "value": "root",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-execution-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-execution-projector.ts",
       "line": 32,
       "kind": "TemplateExpression",
       "value": "`${messageId}:tool-result:${part.toolCallId}`",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-execution-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-execution-projector.ts",
       "line": 46,
       "kind": "StringLiteral",
       "value": "assistant",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-execution-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-execution-projector.ts",
       "line": 48,
       "kind": "StringLiteral",
       "value": "tool-call",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-interrupt-mapper.ts",
+      "file": "packages/runtime/src/compatibility/conversation-interrupt-mapper.ts",
       "line": 4,
       "kind": "StringLiteral",
       "value": "@agent-ui/runtime-core",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-interrupt-mapper.ts",
+      "file": "packages/runtime/src/compatibility/conversation-interrupt-mapper.ts",
       "line": 8,
       "kind": "StringLiteral",
       "value": "@assistant-ui/react-ag-ui",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-interrupt-mapper.ts",
+      "file": "packages/runtime/src/compatibility/conversation-interrupt-mapper.ts",
       "line": 16,
       "kind": "StringLiteral",
       "value": "root",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 5,
       "kind": "StringLiteral",
       "value": "@agent-ui/runtime-core",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 10,
       "kind": "StringLiteral",
       "value": "@assistant-ui/react",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 13,
       "kind": "StringLiteral",
       "value": "string",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 23,
       "kind": "StringLiteral",
       "value": "text",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 24,
       "kind": "StringLiteral",
       "value": "text",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 25,
       "kind": "StringLiteral",
       "value": "image",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 27,
       "kind": "StringLiteral",
       "value": "image",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 31,
       "kind": "StringLiteral",
       "value": "file",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 33,
       "kind": "StringLiteral",
       "value": "document",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 36,
       "kind": "StringLiteral",
       "value": "data",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 41,
       "kind": "StringLiteral",
       "value": "audio",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 43,
       "kind": "StringLiteral",
       "value": "audio",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 45,
       "kind": "StringLiteral",
       "value": "data",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 47,
       "kind": "TemplateExpression",
       "value": "`audio/${part.audio.format}`",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 50,
       "kind": "StringLiteral",
       "value": "data",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 51,
       "kind": "StringLiteral",
       "value": "data",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 58,
       "kind": "StringLiteral",
       "value": "function",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 66,
       "kind": "StringLiteral",
       "value": "assistant",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 68,
       "kind": "StringLiteral",
       "value": "reasoning",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 71,
       "kind": "TemplateExpression",
       "value": "`${message.id}:reasoning:${index}`",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 72,
       "kind": "StringLiteral",
       "value": "reasoning",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 73,
       "kind": "StringLiteral",
       "value": "root",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 75,
       "kind": "StringLiteral",
       "value": "running",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 75,
       "kind": "StringLiteral",
       "value": "streaming",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 75,
       "kind": "StringLiteral",
       "value": "completed",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 80,
       "kind": "StringLiteral",
       "value": "text",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 84,
       "kind": "StringLiteral",
       "value": "tool-call",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 88,
       "kind": "StringLiteral",
       "value": "assistant",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 89,
       "kind": "StringLiteral",
       "value": "root",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 94,
       "kind": "StringLiteral",
       "value": "running",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 94,
       "kind": "StringLiteral",
       "value": "streaming",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 94,
       "kind": "StringLiteral",
       "value": "completed",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 100,
       "kind": "TemplateExpression",
       "value": "`${message.id}:tool-result:${part.toolCallId}`",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 101,
       "kind": "StringLiteral",
       "value": "tool",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 102,
       "kind": "StringLiteral",
       "value": "root",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 115,
       "kind": "StringLiteral",
       "value": "assistant",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 116,
       "kind": "StringLiteral",
       "value": "system",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 119,
       "kind": "StringLiteral",
       "value": "system",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 120,
       "kind": "StringLiteral",
       "value": "root",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 127,
       "kind": "StringLiteral",
       "value": "user",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 128,
       "kind": "StringLiteral",
       "value": "root",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-message-projector.ts",
+      "file": "packages/runtime/src/compatibility/conversation-message-projector.ts",
       "line": 129,
       "kind": "StringLiteral",
       "value": "text",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-quote-context-agent.ts",
+      "file": "packages/runtime/src/compatibility/conversation-quote-context-agent.ts",
       "line": 1,
       "kind": "StringLiteral",
       "value": "@ag-ui/client",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-quote-context-agent.ts",
+      "file": "packages/runtime/src/compatibility/conversation-quote-context-agent.ts",
       "line": 2,
       "kind": "StringLiteral",
       "value": "@assistant-ui/react",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-quote-context-agent.ts",
+      "file": "packages/runtime/src/compatibility/conversation-quote-context-agent.ts",
       "line": 8,
       "kind": "StringLiteral",
       "value": "user",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-quote-context-agent.ts",
+      "file": "packages/runtime/src/compatibility/conversation-quote-context-agent.ts",
       "line": 10,
       "kind": "StringLiteral",
       "value": "object",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-quote-context-agent.ts",
+      "file": "packages/runtime/src/compatibility/conversation-quote-context-agent.ts",
       "line": 10,
       "kind": "StringLiteral",
       "value": "text",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-quote-context-agent.ts",
+      "file": "packages/runtime/src/compatibility/conversation-quote-context-agent.ts",
       "line": 10,
       "kind": "StringLiteral",
       "value": "string",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-quote-context-agent.ts",
+      "file": "packages/runtime/src/compatibility/conversation-quote-context-agent.ts",
       "line": 10,
       "kind": "StringLiteral",
       "value": "messageId",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-quote-context-agent.ts",
+      "file": "packages/runtime/src/compatibility/conversation-quote-context-agent.ts",
       "line": 10,
       "kind": "StringLiteral",
       "value": "string",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-quote-context-agent.ts",
+      "file": "packages/runtime/src/compatibility/conversation-quote-context-agent.ts",
       "line": 11,
       "kind": "TemplateExpression",
       "value": "`> ${line}`",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-quote-context-agent.ts",
+      "file": "packages/runtime/src/compatibility/conversation-quote-context-agent.ts",
       "line": 15,
       "kind": "StringLiteral",
       "value": "user",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-quote-context-agent.ts",
+      "file": "packages/runtime/src/compatibility/conversation-quote-context-agent.ts",
       "line": 21,
       "kind": "StringLiteral",
       "value": "string",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-quote-context-agent.ts",
+      "file": "packages/runtime/src/compatibility/conversation-quote-context-agent.ts",
       "line": 22,
       "kind": "TemplateExpression",
       "value": "`${context}\\n\\n${message.content}`",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-quote-context-agent.ts",
+      "file": "packages/runtime/src/compatibility/conversation-quote-context-agent.ts",
       "line": 23,
       "kind": "StringLiteral",
       "value": "text",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-quote-context-agent.ts",
+      "file": "packages/runtime/src/compatibility/conversation-quote-context-agent.ts",
       "line": 23,
       "kind": "TemplateExpression",
       "value": "`${context}\\n\\n`",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-quote-context-agent.ts",
+      "file": "packages/runtime/src/compatibility/conversation-quote-context-agent.ts",
       "line": 32,
       "kind": "StringLiteral",
       "value": "run",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 7,
       "kind": "StringLiteral",
       "value": "@agent-ui/runtime-core",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 8,
       "kind": "StringLiteral",
       "value": "@assistant-ui/react-ag-ui",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 10,
       "kind": "StringLiteral",
       "value": "../events/conversation-application-event-source.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 14,
       "kind": "StringLiteral",
       "value": "../errors.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 15,
       "kind": "StringLiteral",
       "value": "../observation/conversation-observation-source.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 16,
       "kind": "StringLiteral",
       "value": "../observation/types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 17,
       "kind": "StringLiteral",
       "value": "../threads/types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 18,
       "kind": "StringLiteral",
       "value": "./conversation-execution-projector.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 22,
       "kind": "StringLiteral",
       "value": "./conversation-interrupt-mapper.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 23,
       "kind": "StringLiteral",
       "value": "./conversation-message-projector.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 25,
       "kind": "StringLiteral",
       "value": "../errors.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 38,
       "kind": "StringLiteral",
       "value": "AGENT_UI_UNSUPPORTED_INTERRUPT_RESPONSE_METADATA",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 42,
       "kind": "TemplateExpression",
       "value": "`Conversation runtime does not support interrupt response metadata for \"${interruptId}\"`",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 44,
       "kind": "StringLiteral",
       "value": "UnsupportedInterruptResponseMetadataError",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 49,
       "kind": "StringLiteral",
       "value": "string",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 50,
       "kind": "StringLiteral",
       "value": "string",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 53,
       "kind": "StringLiteral",
       "value": "text",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 63,
       "kind": "StringLiteral",
       "value": "No pending interrupts",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 66,
       "kind": "StringLiteral",
       "value": "Interrupt responses must not contain duplicate IDs",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 70,
       "kind": "TemplateExpression",
       "value": "`Unknown interrupt response ID: ${unknown}`",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 73,
       "kind": "TemplateExpression",
       "value": "`Missing response for pending interrupt: ${missing.id}`",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 87,
       "kind": "StringLiteral",
       "value": "conversation",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 110,
       "kind": "StringLiteral",
       "value": "The conversation runtime was disposed",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 135,
       "kind": "StringLiteral",
       "value": "当前会话正在等待用户响应，请先处理 pending interrupts。",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 146,
       "kind": "StringLiteral",
       "value": "user",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 147,
       "kind": "StringLiteral",
       "value": "text",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 184,
       "kind": "StringLiteral",
       "value": "The conversation runtime was disposed",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 223,
       "kind": "StringLiteral",
       "value": "The conversation runtime was disposed",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 244,
       "kind": "StringLiteral",
       "value": "running",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 257,
       "kind": "StringLiteral",
       "value": "awaiting-input",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 258,
       "kind": "StringLiteral",
       "value": "running",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 258,
       "kind": "StringLiteral",
       "value": "idle",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/compatibility/conversation-runtime-bridge.ts",
+      "file": "packages/runtime/src/compatibility/conversation-runtime-bridge.ts",
       "line": 261,
       "kind": "StringLiteral",
       "value": "error",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/errors.ts",
+      "file": "packages/runtime/src/errors.ts",
       "line": 2,
       "kind": "StringLiteral",
       "value": "AGENT_UI_UNSUPPORTED_INPUT",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/errors.ts",
+      "file": "packages/runtime/src/errors.ts",
       "line": 5,
       "kind": "TemplateExpression",
       "value": "`Conversation runtime does not support ${kind} input yet`",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/errors.ts",
+      "file": "packages/runtime/src/errors.ts",
       "line": 6,
       "kind": "StringLiteral",
       "value": "UnsupportedAgentInputError",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/errors.ts",
+      "file": "packages/runtime/src/errors.ts",
       "line": 11,
       "kind": "StringLiteral",
       "value": "AGENT_UI_RUNTIME_BUSY",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/errors.ts",
+      "file": "packages/runtime/src/errors.ts",
       "line": 14,
       "kind": "StringLiteral",
       "value": "The conversation runtime is already handling an operation",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/errors.ts",
+      "file": "packages/runtime/src/errors.ts",
       "line": 15,
       "kind": "StringLiteral",
       "value": "AgentUiRuntimeBusyError",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/errors.ts",
+      "file": "packages/runtime/src/errors.ts",
       "line": 20,
       "kind": "StringLiteral",
       "value": "Fetch is aborted",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/errors.ts",
+      "file": "packages/runtime/src/errors.ts",
       "line": 21,
       "kind": "StringLiteral",
       "value": "signal is aborted without reason",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/errors.ts",
+      "file": "packages/runtime/src/errors.ts",
       "line": 22,
       "kind": "StringLiteral",
       "value": "component unmounted",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/errors.ts",
+      "file": "packages/runtime/src/errors.ts",
       "line": 24,
       "kind": "StringLiteral",
       "value": "BodyStreamBuffer was aborted",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/errors.ts",
+      "file": "packages/runtime/src/errors.ts",
       "line": 28,
       "kind": "StringLiteral",
       "value": "object",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/errors.ts",
+      "file": "packages/runtime/src/errors.ts",
       "line": 44,
       "kind": "StringLiteral",
       "value": "AbortError",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/errors.ts",
+      "file": "packages/runtime/src/errors.ts",
       "line": 45,
       "kind": "StringLiteral",
       "value": "string",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/errors.ts",
+      "file": "packages/runtime/src/errors.ts",
       "line": 48,
       "kind": "StringLiteral",
       "value": "component unmounted",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/errors.ts",
+      "file": "packages/runtime/src/errors.ts",
       "line": 61,
       "kind": "StringLiteral",
       "value": "AbortError",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/errors.ts",
+      "file": "packages/runtime/src/errors.ts",
       "line": 63,
       "kind": "StringLiteral",
       "value": "The operation was aborted",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/errors.ts",
+      "file": "packages/runtime/src/errors.ts",
       "line": 64,
       "kind": "StringLiteral",
       "value": "AbortError",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/events/conversation-application-event-source.ts",
+      "file": "packages/runtime/src/events/conversation-application-event-source.ts",
       "line": 1,
       "kind": "StringLiteral",
       "value": "@ag-ui/client",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/events/conversation-application-event-source.ts",
+      "file": "packages/runtime/src/events/conversation-application-event-source.ts",
       "line": 5,
       "kind": "StringLiteral",
       "value": "@agent-ui/runtime-core",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/events/conversation-application-event-source.ts",
+      "file": "packages/runtime/src/events/conversation-application-event-source.ts",
       "line": 25,
       "kind": "StringLiteral",
       "value": "root",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/events/conversation-application-event-source.ts",
+      "file": "packages/runtime/src/events/conversation-application-event-source.ts",
       "line": 26,
       "kind": "StringLiteral",
       "value": "subagent",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/events/conversation-application-event-source.ts",
+      "file": "packages/runtime/src/events/conversation-application-event-source.ts",
       "line": 52,
       "kind": "StringLiteral",
       "value": "subscribeApplicationEvents",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/feedback.ts",
+      "file": "packages/runtime/src/feedback.ts",
       "line": 5,
       "kind": "StringLiteral",
       "value": "positive",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/feedback.ts",
+      "file": "packages/runtime/src/feedback.ts",
       "line": 5,
       "kind": "StringLiteral",
       "value": "negative",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/history/langchain-history-projector.ts",
+      "file": "packages/runtime/src/history/langchain-history-projector.ts",
       "line": 1,
       "kind": "StringLiteral",
       "value": "@assistant-ui/react",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/history/langchain-history-projector.ts",
+      "file": "packages/runtime/src/history/langchain-history-projector.ts",
       "line": 5,
       "kind": "StringLiteral",
       "value": "@assistant-ui/react-langgraph",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/history/langchain-history-projector.ts",
+      "file": "packages/runtime/src/history/langchain-history-projector.ts",
       "line": 7,
       "kind": "StringLiteral",
       "value": "../threads/types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/index.ts",
+      "file": "packages/runtime/src/index.ts",
       "line": 1,
       "kind": "StringLiteral",
       "value": "./public.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/observation/conversation-observation-source.ts",
+      "file": "packages/runtime/src/observation/conversation-observation-source.ts",
       "line": 1,
       "kind": "StringLiteral",
       "value": "@assistant-ui/react",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/observation/conversation-observation-source.ts",
+      "file": "packages/runtime/src/observation/conversation-observation-source.ts",
       "line": 7,
       "kind": "StringLiteral",
       "value": "./types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/observation/conversation-observation-source.ts",
+      "file": "packages/runtime/src/observation/conversation-observation-source.ts",
       "line": 10,
       "kind": "StringLiteral",
       "value": "string",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/observation/conversation-observation-source.ts",
+      "file": "packages/runtime/src/observation/conversation-observation-source.ts",
       "line": 25,
       "kind": "StringLiteral",
       "value": "running",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/observation/conversation-observation-source.ts",
+      "file": "packages/runtime/src/observation/conversation-observation-source.ts",
       "line": 25,
       "kind": "StringLiteral",
       "value": "preparing",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/observation/conversation-observation-source.ts",
+      "file": "packages/runtime/src/observation/conversation-observation-source.ts",
       "line": 26,
       "kind": "StringLiteral",
       "value": "interrupted",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/observation/conversation-observation-source.ts",
+      "file": "packages/runtime/src/observation/conversation-observation-source.ts",
       "line": 27,
       "kind": "StringLiteral",
       "value": "error",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/observation/conversation-observation-source.ts",
+      "file": "packages/runtime/src/observation/conversation-observation-source.ts",
       "line": 27,
       "kind": "StringLiteral",
       "value": "completed",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/observation/conversation-observation-source.ts",
+      "file": "packages/runtime/src/observation/conversation-observation-source.ts",
       "line": 87,
       "kind": "StringLiteral",
       "value": "assistant",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/observation/conversation-observation-source.ts",
+      "file": "packages/runtime/src/observation/conversation-observation-source.ts",
       "line": 89,
       "kind": "StringLiteral",
       "value": "tool-call",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/observation/types.ts",
+      "file": "packages/runtime/src/observation/types.ts",
       "line": 2,
       "kind": "StringLiteral",
       "value": "preparing",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/observation/types.ts",
+      "file": "packages/runtime/src/observation/types.ts",
       "line": 3,
       "kind": "StringLiteral",
       "value": "running",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/observation/types.ts",
+      "file": "packages/runtime/src/observation/types.ts",
       "line": 4,
       "kind": "StringLiteral",
       "value": "completed",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/observation/types.ts",
+      "file": "packages/runtime/src/observation/types.ts",
       "line": 5,
       "kind": "StringLiteral",
       "value": "error",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/observation/types.ts",
+      "file": "packages/runtime/src/observation/types.ts",
       "line": 6,
       "kind": "StringLiteral",
       "value": "interrupted",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 1,
       "kind": "StringLiteral",
       "value": "./feedback.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 10,
       "kind": "StringLiteral",
       "value": "@agent-ui/runtime-core",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 11,
       "kind": "StringLiteral",
       "value": "@ag-ui/client",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 12,
       "kind": "StringLiteral",
       "value": "@assistant-ui/core",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 16,
       "kind": "StringLiteral",
       "value": "./ConversationRuntimeProvider.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 20,
       "kind": "StringLiteral",
       "value": "./ConversationRuntimeBridgeContext.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 21,
       "kind": "StringLiteral",
       "value": "./observation/types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 30,
       "kind": "StringLiteral",
       "value": "./threads/types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 31,
       "kind": "StringLiteral",
       "value": "@agent-ui/react",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 32,
       "kind": "StringLiteral",
       "value": "react",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 33,
       "kind": "StringLiteral",
       "value": "@assistant-ui/react-ag-ui",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 34,
       "kind": "StringLiteral",
       "value": "./conversation-types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 44,
       "kind": "StringLiteral",
       "value": "./history/langchain-history-projector.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 59,
       "kind": "StringLiteral",
       "value": "./tools/types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 121,
       "kind": "StringLiteral",
       "value": "./tools/types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 122,
       "kind": "StringLiteral",
       "value": "./tools/types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 123,
       "kind": "StringLiteral",
       "value": "./tools/types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 145,
       "kind": "StringLiteral",
       "value": "./conversation-types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 155,
       "kind": "StringLiteral",
       "value": "./threads/types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 160,
       "kind": "StringLiteral",
       "value": "./observation/types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 162,
       "kind": "StringLiteral",
       "value": "./errors.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/public.tsx",
+      "file": "packages/runtime/src/public.tsx",
       "line": 170,
       "kind": "StringLiteral",
       "value": "./feedback.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/conversation-remote-thread-list-adapter.ts",
+      "file": "packages/runtime/src/threads/conversation-remote-thread-list-adapter.ts",
       "line": 1,
       "kind": "StringLiteral",
       "value": "@assistant-ui/react",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/conversation-remote-thread-list-adapter.ts",
+      "file": "packages/runtime/src/threads/conversation-remote-thread-list-adapter.ts",
       "line": 2,
       "kind": "StringLiteral",
       "value": "./types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/conversation-remote-thread-list-adapter.ts",
+      "file": "packages/runtime/src/threads/conversation-remote-thread-list-adapter.ts",
       "line": 4,
       "kind": "StringLiteral",
       "value": "fetch",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/conversation-remote-thread-list-adapter.ts",
+      "file": "packages/runtime/src/threads/conversation-remote-thread-list-adapter.ts",
       "line": 21,
       "kind": "StringLiteral",
       "value": "regular",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/conversation-remote-thread-list-adapter.ts",
+      "file": "packages/runtime/src/threads/conversation-remote-thread-list-adapter.ts",
       "line": 21,
       "kind": "StringLiteral",
       "value": "archived",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/conversation-remote-thread-list-adapter.ts",
+      "file": "packages/runtime/src/threads/conversation-remote-thread-list-adapter.ts",
       "line": 26,
       "kind": "StringLiteral",
       "value": "Conversation persistence does not support this operation.",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/conversation-remote-thread-list-adapter.ts",
+      "file": "packages/runtime/src/threads/conversation-remote-thread-list-adapter.ts",
       "line": 38,
       "kind": "TemplateExpression",
       "value": "`Conversation \"${id}\" was deleted.`",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/conversation-remote-thread-list-adapter.ts",
+      "file": "packages/runtime/src/threads/conversation-remote-thread-list-adapter.ts",
       "line": 49,
       "kind": "StringLiteral",
       "value": "regular",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/conversation-remote-thread-list-adapter.ts",
+      "file": "packages/runtime/src/threads/conversation-remote-thread-list-adapter.ts",
       "line": 56,
       "kind": "TemplateExpression",
       "value": "`Conversation \"${id}\" was deleted.`",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/conversation-remote-thread-list-adapter.ts",
+      "file": "packages/runtime/src/threads/conversation-remote-thread-list-adapter.ts",
       "line": 60,
       "kind": "TemplateExpression",
       "value": "`Conversation \"${id}\" was not found.`",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/conversation-remote-thread-list-adapter.ts",
+      "file": "packages/runtime/src/threads/conversation-remote-thread-list-adapter.ts",
       "line": 66,
       "kind": "StringLiteral",
       "value": "Conversation initialization changed the reserved Agent identity.",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/conversation-remote-thread-list-adapter.ts",
+      "file": "packages/runtime/src/threads/conversation-remote-thread-list-adapter.ts",
       "line": 67,
       "kind": "StringLiteral",
       "value": "regular",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/conversation-remote-thread-list-adapter.ts",
+      "file": "packages/runtime/src/threads/conversation-remote-thread-list-adapter.ts",
       "line": 73,
       "kind": "StringLiteral",
       "value": "Conversation persistence does not support deleting threads.",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/ephemeral-thread-binding.ts",
+      "file": "packages/runtime/src/threads/ephemeral-thread-binding.ts",
       "line": 1,
       "kind": "StringLiteral",
       "value": "./types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 3,
       "kind": "StringLiteral",
       "value": "user",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 3,
       "kind": "StringLiteral",
       "value": "assistant",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 3,
       "kind": "StringLiteral",
       "value": "system",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 19,
       "kind": "StringLiteral",
       "value": "content",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 21,
       "kind": "StringLiteral",
       "value": "running",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 22,
       "kind": "StringLiteral",
       "value": "requires-action",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 22,
       "kind": "StringLiteral",
       "value": "tool-calls",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 22,
       "kind": "StringLiteral",
       "value": "interrupt",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 23,
       "kind": "StringLiteral",
       "value": "complete",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 23,
       "kind": "StringLiteral",
       "value": "stop",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 23,
       "kind": "StringLiteral",
       "value": "unknown",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 24,
       "kind": "StringLiteral",
       "value": "incomplete",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 24,
       "kind": "StringLiteral",
       "value": "cancelled",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 24,
       "kind": "StringLiteral",
       "value": "tool-calls",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 24,
       "kind": "StringLiteral",
       "value": "length",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 24,
       "kind": "StringLiteral",
       "value": "content-filter",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 24,
       "kind": "StringLiteral",
       "value": "other",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 24,
       "kind": "StringLiteral",
       "value": "error",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 36,
       "kind": "StringLiteral",
       "value": "regular",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 36,
       "kind": "StringLiteral",
       "value": "archived",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 46,
       "kind": "StringLiteral",
       "value": "regular",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 47,
       "kind": "StringLiteral",
       "value": "archived",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/threads/types.ts",
+      "file": "packages/runtime/src/threads/types.ts",
       "line": 61,
       "kind": "StringLiteral",
       "value": "regular",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/tools/assistant-ui-frontend-tool-adapter.ts",
+      "file": "packages/runtime/src/tools/assistant-ui-frontend-tool-adapter.ts",
       "line": 1,
       "kind": "StringLiteral",
       "value": "@agent-ui/runtime-core",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/tools/assistant-ui-frontend-tool-adapter.ts",
+      "file": "packages/runtime/src/tools/assistant-ui-frontend-tool-adapter.ts",
       "line": 2,
       "kind": "StringLiteral",
       "value": "@agent-ui/react",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/tools/assistant-ui-frontend-tool-adapter.ts",
+      "file": "packages/runtime/src/tools/assistant-ui-frontend-tool-adapter.ts",
       "line": 3,
       "kind": "StringLiteral",
       "value": "@assistant-ui/react",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/tools/assistant-ui-frontend-tool-adapter.ts",
+      "file": "packages/runtime/src/tools/assistant-ui-frontend-tool-adapter.ts",
       "line": 4,
       "kind": "StringLiteral",
       "value": "./types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/tools/assistant-ui-frontend-tool-adapter.ts",
+      "file": "packages/runtime/src/tools/assistant-ui-frontend-tool-adapter.ts",
       "line": 14,
       "kind": "TemplateExpression",
       "value": "`Tool name collision: \"${name}\"`",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/tools/assistant-ui-frontend-tool-adapter.ts",
+      "file": "packages/runtime/src/tools/assistant-ui-frontend-tool-adapter.ts",
       "line": 17,
       "kind": "TemplateExpression",
       "value": "`Tool name collision: \"${definition.name}\"`",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-conversation/src/tools/assistant-ui-frontend-tool-adapter.ts",
+      "file": "packages/runtime/src/tools/assistant-ui-frontend-tool-adapter.ts",
       "line": 20,
       "kind": "StringLiteral",
       "value": "frontend",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/tools/assistant-ui-frontend-tool-adapter.ts",
+      "file": "packages/runtime/src/tools/assistant-ui-frontend-tool-adapter.ts",
       "line": 31,
       "kind": "StringLiteral",
       "value": "root",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/tools/assistant-ui-frontend-tool-adapter.ts",
+      "file": "packages/runtime/src/tools/assistant-ui-frontend-tool-adapter.ts",
       "line": 44,
       "kind": "StringLiteral",
       "value": "backend",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/tools/types.ts",
+      "file": "packages/runtime/src/tools/types.ts",
       "line": 1,
       "kind": "StringLiteral",
       "value": "@agent-ui/runtime-core",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/tools/types.ts",
+      "file": "packages/runtime/src/tools/types.ts",
       "line": 2,
       "kind": "StringLiteral",
       "value": "@agent-ui/react",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/tools/types.ts",
+      "file": "packages/runtime/src/tools/types.ts",
       "line": 6,
       "kind": "StringLiteral",
       "value": "inline",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/tools/types.ts",
+      "file": "packages/runtime/src/tools/types.ts",
       "line": 6,
       "kind": "StringLiteral",
       "value": "standalone",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/tools/types.ts",
+      "file": "packages/runtime/src/tools/types.ts",
       "line": 13,
       "kind": "StringLiteral",
       "value": "ConversationRuntime.frontendTools",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/tools/types.ts",
+      "file": "packages/runtime/src/tools/types.ts",
       "line": 14,
       "kind": "StringLiteral",
       "value": "active",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/tools/types.ts",
+      "file": "packages/runtime/src/tools/types.ts",
       "line": 17,
       "kind": "StringLiteral",
       "value": "ConversationRuntime.frontendTools",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/tools/types.ts",
+      "file": "packages/runtime/src/tools/types.ts",
       "line": 17,
       "kind": "StringLiteral",
       "value": "active",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-conversation/src/vendor.d.ts",
+      "file": "packages/runtime/src/vendor.d.ts",
       "line": 1,
       "kind": "StringLiteral",
       "value": "@assistant-ui/react-markdown/styles/dot.css",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/index.ts",
+      "file": "packages/renderer/src/index.ts",
       "line": 1,
       "kind": "StringLiteral",
       "value": "./layout/LayoutRenderer.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/index.ts",
+      "file": "packages/renderer/src/index.ts",
       "line": 2,
       "kind": "StringLiteral",
       "value": "./layout/LayoutRenderer.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/index.ts",
+      "file": "packages/renderer/src/index.ts",
       "line": 13,
       "kind": "StringLiteral",
       "value": "./layout/types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/index.ts",
+      "file": "packages/renderer/src/index.ts",
       "line": 14,
       "kind": "StringLiteral",
       "value": "./layout/panelDimension.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 1,
       "kind": "StringLiteral",
       "value": "react",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 3,
       "kind": "StringLiteral",
       "value": "./types.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 4,
       "kind": "StringLiteral",
       "value": "./panelDimension.js",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 6,
       "kind": "StringLiteral",
       "value": "./layout.css",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 24,
       "kind": "StringLiteral",
       "value": "drawerLabels",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 28,
       "kind": "StringLiteral",
       "value": "number",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 28,
       "kind": "TemplateExpression",
       "value": "`${size}fr`",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 40,
       "kind": "TemplateExpression",
       "value": "`repeat(${childCount}, minmax(0, 1fr))`",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 50,
       "kind": "StringLiteral",
       "value": "renderSlot",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 51,
       "kind": "StringLiteral",
       "value": "drawerLabels",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 60,
       "kind": "StringLiteral",
       "value": "Responsive Row requires project locale drawer labels.",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 104,
       "kind": "StringLiteral",
       "value": "app-ui-layout-responsive-row",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 104,
       "kind": "StringLiteral",
       "value": "drawer",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 104,
       "kind": "StringLiteral",
       "value": "grid",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 105,
       "kind": "StringLiteral",
       "value": "app-ui-layout-drawer-controls",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 106,
       "kind": "StringLiteral",
       "value": "button",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 111,
       "kind": "StringLiteral",
       "value": "app-ui-layout-node app-ui-layout-row",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 114,
       "kind": "StringLiteral",
       "value": "open",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 114,
       "kind": "StringLiteral",
       "value": "closed",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 114,
       "kind": "StringLiteral",
       "value": "collapsed",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 114,
       "kind": "StringLiteral",
       "value": "inline",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 121,
       "kind": "StringLiteral",
       "value": "app-ui-layout-drawer",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 122,
       "kind": "StringLiteral",
       "value": "modal",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 122,
       "kind": "StringLiteral",
       "value": "collapsed",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 122,
       "kind": "StringLiteral",
       "value": "inline",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 126,
       "kind": "StringLiteral",
       "value": "app-ui-layout-drawer-close",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 126,
       "kind": "StringLiteral",
       "value": "button",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 136,
       "kind": "StringLiteral",
       "value": "row",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 142,
       "kind": "TemplateExpression",
       "value": "`Invalid responsive Row indices for \"${node.id}\".`",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 154,
       "kind": "StringLiteral",
       "value": "app-ui-layout-node app-ui-layout-row",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 164,
       "kind": "StringLiteral",
       "value": "column",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 172,
       "kind": "StringLiteral",
       "value": "app-ui-layout-node app-ui-layout-column",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 182,
       "kind": "StringLiteral",
       "value": "stack",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 188,
       "kind": "StringLiteral",
       "value": "app-ui-layout-node app-ui-layout-stack",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 200,
       "kind": "StringLiteral",
       "value": "panel",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 206,
       "kind": "StringLiteral",
       "value": "auto",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 207,
       "kind": "StringLiteral",
       "value": "horizontal",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 212,
       "kind": "StringLiteral",
       "value": "app-ui-layout-node app-ui-layout-panel",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 225,
       "kind": "StringLiteral",
       "value": "app-ui-layout-node app-ui-layout-slot",
       "category": "developer-facing text"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 231,
       "kind": "StringLiteral",
       "value": "app-ui-layout-slot-placeholder",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 232,
       "kind": "JsxText",
       "value": "Slot",
@@ -46558,63 +46558,63 @@
       "review": "Review presentation boundary; code samples, brands, dynamic content and protocol labels may be intentional."
     },
     {
-      "file": "packages/runtime-react/src/layout/LayoutRenderer.tsx",
+      "file": "packages/renderer/src/layout/LayoutRenderer.tsx",
       "line": 249,
       "kind": "StringLiteral",
       "value": "app-ui-layout-root",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/panelDimension.ts",
+      "file": "packages/renderer/src/layout/panelDimension.ts",
       "line": 3,
       "kind": "StringLiteral",
       "value": "string",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/types.ts",
+      "file": "packages/renderer/src/layout/types.ts",
       "line": 6,
       "kind": "StringLiteral",
       "value": "trailing-drawer",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/types.ts",
+      "file": "packages/renderer/src/layout/types.ts",
       "line": 13,
       "kind": "StringLiteral",
       "value": "row",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/types.ts",
+      "file": "packages/renderer/src/layout/types.ts",
       "line": 22,
       "kind": "StringLiteral",
       "value": "column",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/types.ts",
+      "file": "packages/renderer/src/layout/types.ts",
       "line": 30,
       "kind": "StringLiteral",
       "value": "stack",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/types.ts",
+      "file": "packages/renderer/src/layout/types.ts",
       "line": 37,
       "kind": "StringLiteral",
       "value": "panel",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/layout/types.ts",
+      "file": "packages/renderer/src/layout/types.ts",
       "line": 49,
       "kind": "StringLiteral",
       "value": "slot",
       "category": "protocol / identifier"
     },
     {
-      "file": "packages/runtime-react/src/styles.d.ts",
+      "file": "packages/renderer/src/styles.d.ts",
       "line": 1,
       "kind": "StringLiteral",
       "value": "*.css",
@@ -47275,7 +47275,7 @@
       "file": "packages/source-registry/registry/items/demo-frontend-tool-dialog/files/agent-ui/conversation/frontend-tool-uis/open-demo-dialog.tsx",
       "line": 2,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -47520,7 +47520,7 @@
       "file": "packages/source-registry/registry/items/demo-frontend-tool-form/files/agent-ui/conversation/frontend-tool-uis/demo-form-tools.tsx",
       "line": 2,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -48528,7 +48528,7 @@
       "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/conversation-runtime-config.ts",
       "line": 4,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -48808,7 +48808,7 @@
       "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/ConversationThreadBindingConnector.tsx",
       "line": 5,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -48843,7 +48843,7 @@
       "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-history-projector.ts",
       "line": 4,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -48864,7 +48864,7 @@
       "file": "packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding.ts",
       "line": 8,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -50747,7 +50747,7 @@
       "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-model.ts",
       "line": 1,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-react",
+      "value": "@agent-ui/renderer",
       "category": "protocol / identifier"
     },
     {
@@ -51209,7 +51209,7 @@
       "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-runtime-model.ts",
       "line": 1,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-react",
+      "value": "@agent-ui/renderer",
       "category": "protocol / identifier"
     },
     {
@@ -51230,7 +51230,7 @@
       "file": "packages/source-registry/registry/items/foundation-core-contracts/files/framework/contracts/app-ui-runtime-model.ts",
       "line": 14,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-react",
+      "value": "@agent-ui/renderer",
       "category": "protocol / identifier"
     },
     {
@@ -54961,7 +54961,7 @@
       "file": "packages/source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/UIPluginRuntime.tsx",
       "line": 14,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-react",
+      "value": "@agent-ui/renderer",
       "category": "protocol / identifier"
     },
     {
@@ -56158,7 +56158,7 @@
       "file": "packages/source-registry/registry/items/foundation-core/files/application/Agent.tsx",
       "line": 6,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -56179,7 +56179,7 @@
       "file": "packages/source-registry/registry/items/foundation-core/files/application/Agent.tsx",
       "line": 12,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {
@@ -56816,7 +56816,7 @@
       "file": "packages/source-registry/registry/items/integration-a2ui/files/integrations/a2ui/A2uiConversationIntegration.tsx",
       "line": 3,
       "kind": "StringLiteral",
-      "value": "@agent-ui/runtime-conversation",
+      "value": "@agent-ui/runtime",
       "category": "protocol / identifier"
     },
     {

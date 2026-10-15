@@ -25,7 +25,7 @@
 | attempt-2 | TimeoutError | 42 | 38 | 19 | 4.601 / 4.062 秒 |
 | 最后 8192 轮 | TimeoutError | 41 | 40 | 18 | 4.147 / 3.645 秒 |
 
-下限来自日志的 `modelCallSequence`，不是根据工具数推算请求数。最后一轮 30 次 `read_file`、4 次项目检查、3 次能力检查、各 1 次 Source 检查/开发计划准备/交付检查；35 次成功、4 次拒绝、1 次文件读取错误。拒绝含 3 次 PROJECT_CONTROL_BUSY、1 次 CONTROL_RESULT_CONTRACT_VIOLATION。
+下限来自日志的 `modelCallSequence`，不是根据工具数推算请求数。最后一轮 30 次 `read_file`、4 次项目检查、3 次能力检查、各 1 次 Source 检查/开发计划准备/交付检查；35 次成功、4 次拒绝、1 次文件读取错误。拒绝含 3 次 OPERATOR_BUSY、1 次 OPERATOR_RESULT_CONTRACT_VIOLATION。
 
 原始轮第 14 轮才准备计划，第 16–17 轮重复读取 en-US/zh-CN，第 18 轮继续读其他插件；没有源码写入。完整参数的重复分组哈希见 `summary.json`，不能用被日志裁剪后的参数把分页误认作同一请求。
 

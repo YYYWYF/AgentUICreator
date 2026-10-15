@@ -2,7 +2,7 @@
   "id": "task-group",
   "name": "Task Group",
   "description": "Renders nested agent work as expandable task cards.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "conversation-task-group-renderer"
   ],

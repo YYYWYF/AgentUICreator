@@ -1,4 +1,4 @@
-import { createAgentUIElement } from "@agentui/web-component/host";
+import { createAgentUIElement } from "@za38.03/agent-ui-web-component/host";
 import { AgentUICompatibilityRoot } from "../../application/AgentUICompatibilityRoot";
 import styles from "./styles.css?inline";
 

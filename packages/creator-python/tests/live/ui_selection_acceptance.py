@@ -85,7 +85,7 @@ def setup():
             provider_end = '</div></ConfigProvider>'
         extra = "import { ConfigProvider } from 'antd';\nexport const LegacyProvider = ConfigProvider;\n" if name == 'C' else ''
         (root / 'src/App.tsx').write_text(f'''import {{ useState }} from 'react';
-import {{ useAgentUILocale }} from '@agent-ui/react';
+import {{ useAgentUILocale }} from '@za38.03/agent-ui-react';
 import {{ AgentMount }} from './AgentMount';
 {imports}
 {extra}
@@ -182,7 +182,7 @@ async def run(name):
     model.callbacks=[trace]
     authority = ObservedAuthority(root,thread_id=run_id,skills_root=ROOT/'packages/creator/skills')
     authority.begin_task(task_id=run_id,request_id=run_id,user_message=prompt,intent='explicit')
-    creator = create_domain_write_creator_agent(model=model,workspace=root,project_control=host,
+    creator = create_domain_write_creator_agent(model=model,workspace=root,operator=host,
         activity=activity,checkpointer=InMemorySaver(),thread_id=run_id,
         skills_root=ROOT/'packages/creator/skills',max_retries=settings.max_retries,
         automatic_completion_repair=True,verification_mode='static_only',
@@ -232,7 +232,7 @@ async def run(name):
         (root/'activity.json').write_text(json.dumps(activity.snapshot(),ensure_ascii=False,indent=2,default=str))
         (root/'outcome.json').write_text(json.dumps(outcome,ensure_ascii=False,indent=2,default=str))
         print(json.dumps(outcome,ensure_ascii=False),flush=True)
-        # ProjectControlClient owns no persistent connection to close.
+        # OperatorClient owns no persistent connection to close.
 
 if __name__ == '__main__':
     if sys.argv[1]=='setup': setup()

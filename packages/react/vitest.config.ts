@@ -7,7 +7,7 @@ const config = generatedSourceTestConfig(fileURLToPath(new URL(".", import.meta.
 config.resolve.alias.push({
   find: "@assistant-ui/react-ag-ui",
   replacement: fileURLToPath(new URL(
-    "../runtime-conversation/node_modules/@assistant-ui/react-ag-ui",
+    "../runtime/node_modules/@assistant-ui/react-ag-ui",
     import.meta.url,
   )),
 });

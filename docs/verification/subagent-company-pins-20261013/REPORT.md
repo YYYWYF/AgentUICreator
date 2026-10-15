@@ -19,7 +19,7 @@
 ```bash
 pnpm --filter @agent-ui/react exec vitest run tests/migrated/assistant-ui-nested-subagent.test.tsx tests/migrated/task-group-boundary.test.ts tests/migrated/assistant-ui-agent-elements-contract.test.ts tests/migrated/assistant-ui-agent-elements-rendering.test.tsx tests/assistant-message-ownership.test.ts
 pnpm --filter @agent-ui/mock-agent exec vitest run tests/p6-nested-subagent.test.ts
-pnpm --filter @agent-ui/runtime-conversation exec vitest run tests/application-event-source.test.ts
+pnpm --filter @agent-ui/runtime exec vitest run tests/application-event-source.test.ts
 ```
 
 ## Chromium 完成态矩阵：16 passed

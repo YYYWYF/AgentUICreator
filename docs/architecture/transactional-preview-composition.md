@@ -48,7 +48,7 @@ generation cancellation, diagnostics, and the last-known-good
 snapshot. Its only public mutation entry is `stageCandidate()`, so every input
 change submits a complete candidate.
 
-For a ProjectControl transaction that changes both model and catalog,
+For a Operator transaction that changes both model and catalog,
 `app-ui/composition-revision.generated.json` is renamed first. Its
 `transactionId`, target `appUIModelHash`, and target
 `capabilityCatalogRevision` place the Preview in staging until both later HMR
@@ -67,5 +67,5 @@ development error surface for that instance without taking down other Plugins
 or the control plane.
 
 Runtime diagnostics carry `compositionRevision`, `appUIModelHash`,
-`capabilityCatalogRevision`, and `publishedAt`, allowing ProjectControl to
+`capabilityCatalogRevision`, and `publishedAt`, allowing Operator to
 prove that observations belong to the intended published snapshot.

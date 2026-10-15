@@ -9,7 +9,7 @@ from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.app_ui_model import ProjectMutationCoordinator
 from agent_ui_creator.domain_agent.change_scope import ChangeScopeMetrics
 from agent_ui_creator.observability import CreatorRunLogger
-from agent_ui_creator.project_control.errors import ProjectControlError
+from agent_ui_creator.operator.errors import OperatorError
 import agent_ui_creator.validation.attribution as validation_attribution
 from agent_ui_creator.validation import (
     CREATOR_COMPLETION_VALIDATIONS,
@@ -43,8 +43,8 @@ def test_registry_sync_error_is_recoverable_tool_diagnostic():
         def current_result(self):
             return None
         async def validate(self, mode="delta"):
-            raise ProjectControlError(
-                "CONTROL_OPERATION_FAILED", "Plugin manifest is invalid",
+            raise OperatorError(
+                "OPERATOR_OPERATION_FAILED", "Plugin manifest is invalid",
                 {"cause": "data.state must be boolean"},
             )
 
@@ -52,7 +52,7 @@ def test_registry_sync_error_is_recoverable_tool_diagnostic():
     payload = json.loads(asyncio.run(tool.ainvoke({})))
 
     assert payload == {"ok": False, "error": {
-        "code": "CONTROL_OPERATION_FAILED",
+        "code": "OPERATOR_OPERATION_FAILED",
         "message": "Plugin manifest is invalid",
         "details": {"cause": "data.state must be boolean"},
     }}
@@ -137,7 +137,7 @@ def test_plugin_declaration_edit_synchronizes_generated_registry_before_validati
         project_root=tmp_path,
         activity=activity,
         runner=runner,
-        project_control=control,
+        operator=control,
         mutation_coordinator=ProjectMutationCoordinator(),
     )
     asyncio.run(service.ensure_baseline())

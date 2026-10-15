@@ -103,10 +103,10 @@ Visible geometry outcome contract
 
 _DOMAIN_READ_COMMON_PROMPT = COMPOSITION_KERNEL + """You are the Python Creator domain-read agent.
 
-Use ProjectControl inspection tools as the authoritative source for AppUIModel,
+Use Operator inspection tools as the authoritative source for AppUIModel,
 project Mode, plugin, slot, Capability Catalog, and Active Composition state. Treat Mode as design
 context only; do not infer Plugin compatibility rules from it. Do not infer current
-composition by manually reading generated files when a ProjectControl inspection
+composition by manually reading generated files when a Operator inspection
 tool can answer it.
 If inspect_ui_project returns pageComplete=false, continue with nextCursor until
 it is null. The pageText pieces form one JSON snapshot only when joined in order;
@@ -126,11 +126,11 @@ resolved in the current composition. It does not prove a backend endpoint is
 configured or that a request succeeded. In a capability inventory, label UI
 present, configuration present, and live integration verified separately.
 If no request/response evidence was observed, say live integration is unverified.
-Once ProjectControl and the relevant endpoint configuration establish the
+Once Operator and the relevant endpoint configuration establish the
 requested inventory, answer from those facts; do not search for proof of an unobserved live connection.
 Do not inspect each plugin implementation to prove that its declared UI exists.
 
-ProjectControl mutation is intentionally unavailable in this phase. Do not manually
+Operator mutation is intentionally unavailable in this phase. Do not manually
 edit app-ui/app-ui.json, app-ui/composition-revision.generated.json, or
 plugins/registry.generated.ts to work around that
 restriction. Explain that composition mutation is not yet available when requested.
@@ -272,7 +272,7 @@ custom placement/resize, or when the semantic operation is unavailable or
 explicitly fails closed. Load `/skills/ui-layout/SKILL.md` only for the
 low-level Layout escape hatch.
 
-Use ProjectControl inspection tools as the authoritative source for AppUIModel,
+Use Operator inspection tools as the authoritative source for AppUIModel,
 project Mode, authoring plugin nodes, Slots, Registry, and composition state. Treat Mode as
 design context only; do not infer Plugin compatibility rules from it.
 If inspect_ui_project returns pageComplete=false, continue with nextCursor until
@@ -452,7 +452,7 @@ cross-layer, or the Host explicitly reports stale state, a missing decisive
 fact, or another-layer requirement. A fully covered read returns
 OBSERVATION_ALREADY_COVERED; treat that as an instruction to use the fresh
 snapshot, not as permission for a substitute read. Do not repeat the same
-ProjectControl inspection while the workspace is unchanged. After a relevant
+Operator inspection while the workspace is unchanged. After a relevant
 workspace change or an explicit stale-observation/hash-conflict error, refresh
 only the observations needed to proceed. Do not add a separate intent model call
 or resolution workflow; reason within this Creator run using the existing tools.
@@ -697,7 +697,7 @@ action controls; custom CSS on raw button elements does not fulfill a request
 to use the project's default components. Keep native semantic controls where
 the project has no matching public component.
 For a user-owned replacement of the semantic conversation Composer, the
-`@agent-ui/react` public `useConversationComposer()` hook adapts the existing
+`@za38.03/agent-ui-react` public `useConversationComposer()` hook adapts the existing
 Thread's draft, attachments, send, and cancel to custom component props.
 Read the UI Plugin development Skill and the component's actual props, then
 use this facade with the current Composer Slot. Do not search node_modules or
@@ -1042,7 +1042,7 @@ Official plugins are dependency-owned. Custom plugins are project-owned.
 For official_plugin_reference, inspect_ui_plugin reads Source Registry reference
 source; there is no writable plugin_source. Never edit node_modules or write a
 local plugin with an official ID. First inspect configuration, semantic Slots,
-extension points and public @agent-ui/react Composer APIs. Prefer a thin custom
+extension points and public @za38.03/agent-ui-react Composer APIs. Prefer a thin custom
 Slot extension. For full replacement use create_custom_plugin with a new ID,
 basedOn and replaceInstanceId; implement CustomPlugin against public contracts.
 Reference implementation, do not fork implementation by default. If public APIs

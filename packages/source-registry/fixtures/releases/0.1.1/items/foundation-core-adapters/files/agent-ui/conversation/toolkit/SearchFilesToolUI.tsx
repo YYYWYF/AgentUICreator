@@ -2,12 +2,12 @@ import { useState } from "react";
 import type {
   ConversationToolCallComponent,
   ConversationToolCallProps,
-} from "@agent-ui/react";
+} from "@za38.03/agent-ui-react";
 
 import {
   ConversationToolCall,
   ConversationToolFallback,
-} from "@agent-ui/react";
+} from "@za38.03/agent-ui-react";
 
 type SearchFilesArgs = Record<string, unknown>;
 

@@ -1,4 +1,4 @@
-import { AgentUIDialog as Dialog } from "@agent-ui/react";
+import { AgentUIDialog as Dialog } from "@za38.03/agent-ui-react";
 import { usePluginService, usePluginServiceSnapshot } from "../../runtime/plugins";
 import { DEMO_DIALOG_SERVICE, type DemoDialogService, type DemoDialogSnapshot } from "../../services/demo-dialog";
 import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";

@@ -30,19 +30,21 @@ try {
   declarationFiles = await collectDeclarationFiles(declarationRoot);
 } catch (error) {
   if (error?.code === "ENOENT") {
-    console.error("@agent-ui/react public declaration boundary: dist is missing; build the package first.");
+    console.error("@za38.03/agent-ui-react public declaration boundary: dist is missing; build the package first.");
     process.exit(1);
   }
   throw error;
 }
 
 if (declarationFiles.length === 0) {
-  console.error("@agent-ui/react public declaration boundary: no dist/**/*.d.ts files found.");
+  console.error("@za38.03/agent-ui-react public declaration boundary: no dist/**/*.d.ts files found.");
   process.exit(1);
 }
 
 const violations = [];
 for (const filePath of declarationFiles.sort()) {
+  // Opt-in attachment and Generative UI entries expose their upstream contracts; the UI root stays neutral.
+  if (path.relative(declarationRoot, filePath).replaceAll("\\", "/") === "demo-attachments.d.ts" || path.relative(declarationRoot, filePath).replaceAll("\\", "/") === "generative-ui.d.ts") continue;
   const source = await readFile(filePath, "utf8");
   for (const token of forbiddenTokens) {
     if (source.includes(token)) {
@@ -52,8 +54,8 @@ for (const filePath of declarationFiles.sort()) {
 }
 
 if (violations.length > 0) {
-  console.error(["@agent-ui/react public declaration boundary failed:", ...violations].join("\n"));
+  console.error(["@za38.03/agent-ui-react public declaration boundary failed:", ...violations].join("\n"));
   process.exit(1);
 }
 
-console.log(`@agent-ui/react public declaration boundary: OK (${declarationFiles.length} declarations)`);
+console.log(`@za38.03/agent-ui-react public declaration boundary: OK (${declarationFiles.length} declarations)`);

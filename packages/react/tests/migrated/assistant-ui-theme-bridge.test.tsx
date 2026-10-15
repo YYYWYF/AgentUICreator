@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { AgentUIRoot, type AgentUIThemeConfig } from "@agent-ui/react";
+import { AgentUIRoot, type AgentUIThemeConfig } from "@za38.03/agent-ui-react";
 import { agentUIThemeConfig } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/theme/theme-config";
 import { useEffect } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
@@ -17,7 +17,7 @@ import {
   AGENT_UI_THEME_SERVICE,
   type AgentUIThemeService,
 } from "../../../source-registry/registry/items/foundation-core-application/files/services/agent-ui-theme";
-import type { AppUIRuntimeModel } from "../../../project-control/src/framework/contracts/app-ui-runtime-model";
+import type { AppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
 
 const runtimeActions = {
   sendMessage: async () => undefined,

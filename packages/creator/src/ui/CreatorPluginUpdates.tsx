@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowUpCircle, RefreshCw } from "lucide-react";
 import { Button } from "./components/button.js";
 import { Alert, AlertDescription } from "./components/alert.js";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/card.js";
-import type { UpdateInspection, UpgradePlan } from "@agent-ui/project-control/updates";
+import type { UpdateInspection, UpgradePlan } from "@za38.03/agent-ui-operator/updates";
 import { useCreatorRefresh } from "./creatorRefresh.js";
 
 export interface UpdateNotificationStateStore { isDismissed(projectId: string, fingerprint: string): boolean; dismiss(projectId: string, fingerprint: string): void }
@@ -86,7 +86,7 @@ export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkReque
   const planContent = plan ? <section className="creator-upgrade-plan" ref={planRegion} tabIndex={-1} role="region" aria-label={localeMessages.pluginUpdates.updatePlan}>
         <h3 className="cui:text-sm cui:font-semibold">{localeMessages.pluginUpdates.confirmTheseUpdates}</h3>
         <div className="cui:flex cui:flex-col cui:gap-3 cui:text-xs">
-          <ul className="cui:list-disc cui:space-y-1 cui:pl-4">{plan.items.map(item => <li key={item.itemId}>{item.itemId}{item.targetVersion ? formatLocaleMessage(localeMessages.pluginUpdates.message, item.currentVersion ?? localeMessages.pluginUpdates.notInstalledUntracked, item.targetVersion) : localeMessages.pluginUpdates.foundationDependency} · {updateStatusLabel(item.status, localeMessages)}{item.changed ? "" : localeMessages.pluginUpdates.keepCurrentSource}</li>)}</ul>
+          <ul className="cui:list-disc cui:space-y-1 cui:pl-4">{plan.items.map(item => <li key={item.itemId}>{item.itemId}{item.targetVersion ? formatLocaleMessage(localeMessages.pluginUpdates.message, item.currentVersion ?? localeMessages.pluginUpdates.notInstalledUntracked, item.targetVersion) : localeMessages.pluginUpdates.foundationDependency} · {updateStatusLabel(item.status, localeMessages)}{item.changed ? "" : localeMessages.pluginUpdates.keepCurrentSource}{item.reason === "dependency" && item.requiredBy?.length ? <span className="cui:block cui:text-muted-foreground">{formatLocaleMessage(localeMessages.pluginUpdates.requiredByPlugins, item.requiredBy.join(", "))}</span> : null}</li>)}</ul>
           <p className="cui:text-muted-foreground">{localeMessages.pluginUpdates.expectedChanges} {plan.fileCount} {localeMessages.pluginUpdates.sourceFilesPlusSourceLockAndRequiredGenerated}</p>
           {plan.compatibility !== "compatible" ? <Alert variant="destructive"><AlertDescription>{localeMessages.pluginUpdates.upgradeCreatorFirst}</AlertDescription></Alert> : null}
           {plan.issues.map((issue, index) => <Alert key={index} variant="destructive"><AlertDescription>{issue}</AlertDescription></Alert>)}

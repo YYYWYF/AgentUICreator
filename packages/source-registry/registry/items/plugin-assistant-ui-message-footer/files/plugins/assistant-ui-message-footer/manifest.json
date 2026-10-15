@@ -2,7 +2,7 @@
   "id": "assistant-ui-message-footer",
   "name": "Assistant UI Message Footer",
   "description": "Deprecated compatibility wrapper for the canonical turn footer.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "conversation-assistant-message-footer-renderer"
   ],

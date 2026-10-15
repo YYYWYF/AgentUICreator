@@ -31,7 +31,7 @@ from agent_ui_creator.domain_agent.tool_policy import ALLOWED_DOMAIN_WRITE_TOOLS
 from agent_ui_creator.files import read_creator_file_state
 from agent_ui_creator.model_protocol.errors import AgentNoProgressError
 from agent_ui_creator.model_settings import CreatorModelSettings
-from agent_ui_creator.project_control import ProjectControlMetrics
+from agent_ui_creator.operator import OperatorMetrics
 from agent_ui_creator.server import create_app
 
 APP_UI_MODEL_PATH = "app-ui/app-ui.json"
@@ -71,12 +71,12 @@ def call(name, arguments, call_id):
 
 
 class GroundingClient:
-    """Small authoritative ProjectControl fixture with real mutation receipts."""
+    """Small authoritative Operator fixture with real mutation receipts."""
 
     def __init__(self, root, plugin_ids=("session-manager",)):
         self.root = root
         self.plugin_ids = plugin_ids
-        self.metrics = ProjectControlMetrics()
+        self.metrics = OperatorMetrics()
         self.reads = []
         self.mutations = []
         (root / "app-ui").mkdir()
@@ -429,14 +429,14 @@ def project_files(root):
 def run_script(client, prompt, responses):
     model = GroundingScriptModel(responses=responses)
     agent = create_domain_write_creator_agent(
-        model=model, workspace=client.root, project_control=client
+        model=model, workspace=client.root, operator=client
     )
     result = asyncio.run(
         agent.run(prompt) if isinstance(prompt, str) else agent.run_messages(prompt)
     )
     receipt = agent.activity.finish()
     assert result.metrics.modelCalls == len(responses) == len(model.seen_messages)
-    assert result.repeated_project_control_reads == 0
+    assert result.repeated_operator_reads == 0
     assert result.metrics.repeatedToolLoops == 0
     return result, receipt, model
 
@@ -466,7 +466,7 @@ def test_grounding_prompt_preserves_decision_and_write_boundaries():
         "When requiredServices.status is resolved",
         "Do not preflight checks listed in hostGuarantees",
         "OBSERVATION_ALREADY_COVERED",
-        "Do not repeat the same ProjectControl inspection while the workspace is unchanged",
+        "Do not repeat the same Operator inspection while the workspace is unchanged",
         "request the smallest targeted cross-layer read",
         "explicit exit signal",
         "restores the full tool surface on the next model call",
@@ -812,7 +812,7 @@ def test_domain_messages_preserve_clarification_roles_without_extra_calls(tmp_pa
         expected_system_prompt=DOMAIN_READ_AGENT_PROMPT if mode == "domain-read" else DOMAIN_WRITE_AGENT_PROMPT,
     )
     factory = create_domain_read_creator_agent if mode == "domain-read" else create_domain_write_creator_agent
-    agent = factory(model=model, workspace=tmp_path, project_control=client)
+    agent = factory(model=model, workspace=tmp_path, operator=client)
 
     result = asyncio.run(agent.run_messages(messages))
 
@@ -864,7 +864,7 @@ def test_server_passes_conversation_to_model_in_one_call(
         "agent_ui_creator.model_factory.create_creator_chat_model", lambda *args, **kwargs: model
     )
     monkeypatch.setattr(
-        "agent_ui_creator.domain_agent.agent.ProjectControlClient", lambda **kwargs: client
+        "agent_ui_creator.domain_agent.agent.OperatorClient", lambda **kwargs: client
     )
     settings = CreatorServerSettings(
         project_root=tmp_path, skills_root=tmp_path, auth_token="x" * 32
@@ -921,7 +921,7 @@ def test_grounding_does_not_weaken_existing_repeated_read_guard(tmp_path, name, 
         responses=[call(name, arguments, f"repeat-{index}") for index in range(3)]
     )
     agent = create_domain_write_creator_agent(
-        model=model, workspace=tmp_path, project_control=client
+        model=model, workspace=tmp_path, operator=client
     )
     before = project_files(tmp_path)
     with pytest.raises(AgentNoProgressError):
@@ -955,7 +955,7 @@ def test_server_clarification_stream_succeeds_with_zero_mutations(tmp_path, monk
     )
     monkeypatch.setattr("agent_ui_creator.model_factory.create_creator_chat_model", create_model)
     monkeypatch.setattr(
-        "agent_ui_creator.domain_agent.agent.ProjectControlClient", lambda **kwargs: client
+        "agent_ui_creator.domain_agent.agent.OperatorClient", lambda **kwargs: client
     )
     settings = CreatorServerSettings(
         project_root=tmp_path, skills_root=tmp_path, auth_token="x" * 32
@@ -993,7 +993,7 @@ def test_server_clarification_stream_succeeds_with_zero_mutations(tmp_path, monk
     assert result["appUIModelMutations"]["requests"] == 0
     assert result["appUIModelMutations"]["changedPaths"] == 0
     assert result["receipt"]["files"] == []
-    assert result["projectControl"]["repeatedProjectControlReads"] == 0
+    assert result["operator"]["repeatedOperatorReads"] == 0
     assert result["toolProtocol"]["modelCalls"] == 2
     assert result["toolProtocol"]["toolCalls"] == 1
     assert result["compositionFastPath"]["attempted"] is False

@@ -60,7 +60,7 @@ test.afterEach(async ({ page }, testInfo) => {
 });
 test.beforeEach(async ({ page, preview }) => {
   // Workspace display metadata only; commands, Python mutation guard,
-  // ProjectControl, Source transactions, generated application and Preview are real.
+  // Operator, Source transactions, generated application and Preview are real.
   await page.route(`${preview.creatorOrigin}__agent-ui/creator/workspace{,/refresh}`, route => route.fulfill({ json: {
     status: "ready", workspace: { id: preview.workspaceId, name: "Commands Host", displayPath: preview.hostRoot },
     project: { mode: "platform", sourceRoot: "src/agent-ui" }, runtime: { status: "ready" },

@@ -14,7 +14,7 @@ A recipe resolves the official `web-component-bridge` resource. It contains a
 project-bound content ID, host facts, configuration, canonical before/after edits,
 verification identifiers and warning identifiers. Both the guide and automatic
 application consume these same edits. There is no Vue Plugin renderer or second
-Agent Runtime. Templates live in Project Control, not in Creator prompts.
+Agent Runtime. Templates live in Operator, not in Creator prompts.
 
 Creator tools expose planning, asset preparation, application and verification through the existing canonical Project
 Control protocol. Guide and manual-check requests route to the read-only agent;
@@ -24,6 +24,20 @@ a Host plan and continues through the same Creator integration request. On a Rea
 producer it retains the existing official resource installer.
 
 ## Producer and consumer
+
+React consumers share their host's React instance. Public React peers accept
+`>=18 <20`, including the Conversation Runtime and the optional Creator UI peers.
+Workspace development dependencies and overrides stay pinned to React 19.1.1;
+they do not define the external consumer's React version. Keep React and ReactDOM
+on matching versions in the host. The standalone Web Component continues to bundle
+its own React, independently of this shared-React integration.
+
+`pnpm check:react-compat` checks React 18.2.0, 18.3.1, 19.1.1 and 19.2.0 in
+temporary consumers using actual package tarballs, strict peer dependency checks,
+matching React type majors and `skipLibCheck: false`. It also bundles and mounts
+the conversation/layout/UI with the host React, sends a message through a local
+AG-UI stream fixture and unmounts. These checks do not replace browser visual
+acceptance or a real Windows run.
 
 The existing installer installs `integration/web-component-bridge` in the canonical
 React producer. Its build emits a compiled ESM bundle containing that project's
@@ -36,7 +50,7 @@ resolve its installed official Web Component distribution. Planning writes no
 files. After approval, apply exclusively copies the official compiled ESM bundle
 into `public/agent-ui.js` if missing, then applies the same Host-owned wrapper and
 mount edits. Ordinary apply errors roll back a newly copied bundle. Existing
-consumer bundles are preserved. The development Host's Project Control package
+consumer bundles are preserved. The development Host's Operator package
 owns the distribution dependency; the Vue consumer receives only the compiled
 asset, never its producer Source Item or React dependency closure.
 
@@ -103,7 +117,7 @@ mount plus script tag in the selected document.
 
 `apply_agent_ui_integration(recipe)` regenerates the canonical recipe using the
 original snapshots, validates its project identity/content, and checks conflicts
-before writing. It uses the existing Project Control lock, cancellation markers,
+before writing. It uses the existing Operator lock, cancellation markers,
 atomic file replacement and rollback on ordinary commit errors. Repeating the
 same apply is a no-op. It does not provide a durable crash-recovery journal.
 
@@ -126,7 +140,7 @@ contract alignment and locale parity are separate from runtime acceptance.
 The clean Vue fixture and live regression pack are in
 `examples/clean-vue-vite-host` and
 `packages/creator-python/tests/live/test_vue_integration.py`. They use the real
-Action Selector, domain agents, user-question resume, and managed Project Control
+Action Selector, domain agents, user-question resume, and managed Operator
 protocol. The initial consumer has no Bridge, wrapper, React, React Vite plugin,
 assistant-ui Vue or Web Component package. The test Host installs only its managed
 control entry and existing development project configuration before requests.
@@ -138,7 +152,7 @@ unchanged and still undergoes canonical validation.
 This is a focused regression pack, separate from final product/backend acceptance.
 
 Run after installing workspace dependencies and building the official distribution
-and Project Control:
+and Operator:
 
 ```sh
 CREATOR_RUN_LIVE_MODEL=1 PYTHONPATH=packages/creator-python \
@@ -156,7 +170,7 @@ Control typechecks, locale parity and canonical contract alignment also passed.
 The live cases ran through the actual Selector/domain agents and managed Host
 protocol; they do not claim full Workbench HTTP/UI or backend acceptance.
 
-The existing `test_domain_tools.py` and `test_project_control_client.py` suites
+The existing `test_domain_tools.py` and `test_operator_client.py` suites
 have 36 failures and 18 passes. The same failure list was reproduced using HEAD
 Python sources and HEAD canonical contracts in an isolated temporary package.
 Those fixtures include outdated positional tool expectations and the retired

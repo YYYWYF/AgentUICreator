@@ -1,4 +1,4 @@
-import { ConversationComposerMentionTrigger } from "@agent-ui/react";
+import { ConversationComposerMentionTrigger } from "@za38.03/agent-ui-react";
 import { usePluginService } from "../../runtime/plugins";
 import { CONVERSATION_MENTION_SOURCE, type ConversationMentionSource } from "../../services/composer-triggers";
 import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";

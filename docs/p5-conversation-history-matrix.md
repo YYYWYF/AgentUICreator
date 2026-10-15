@@ -60,7 +60,7 @@ Unknown `values` and snapshot fields remain accepted. `state.values` does not
 become AG-UI application state; only the explicit `agentState` field is
 provided as loaded thread state.
 
-`packages/runtime-conversation/src/history/langchain-history-projector.ts` is
+`packages/runtime/src/history/langchain-history-projector.ts` is
 the sole direct import boundary for `@assistant-ui/react-langgraph`. It uses
 the upstream `convertLangChainMessages` function, then
 `@assistant-ui/react.unstable_convertExternalMessages` to hydrate assistant-ui

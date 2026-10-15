@@ -163,7 +163,7 @@ limited Creator operation -> warnings -> verify:ui passed
 
 `validate_creator_changes` already runs `pnpm verify:ui` and `pnpm typecheck`,
 so no readiness-specific Creator Tool is needed. Readiness is not added to the
-ProjectControl inspection protocol in this phase; the Creator completion loop
+Operator inspection protocol in this phase; the Creator completion loop
 gets the diagnostics through the existing validation result.
 
 When a newly created visual Plugin receives a warning, Creator decides whether

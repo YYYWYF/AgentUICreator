@@ -6,12 +6,12 @@ import pytest
 from agent_ui_creator.domain_tools import (
     DOMAIN_READ_TOOL_NAMES,
     MAX_DOMAIN_TOOL_RESULT_CHARS,
-    create_project_control_tools,
+    create_operator_tools,
 )
 from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.domain_state import DomainObservationContext
 from agent_ui_creator.domain_state import DomainObservationError
-from agent_ui_creator.project_control import ProjectControlError
+from agent_ui_creator.operator import OperatorError
 from agent_ui_creator.domain_agent.prompt import DOMAIN_READ_AGENT_PROMPT, DOMAIN_WRITE_AGENT_PROMPT
 from agent_ui_creator.app_ui_model.mutation_tool import create_app_ui_model_mutation_tool
 
@@ -82,7 +82,7 @@ class StubClient:
 
 
 def test_domain_tools_keep_ts_names_and_bounded_success_envelopes():
-    tools = create_project_control_tools(StubClient())
+    tools = create_operator_tools(StubClient())
 
     assert tuple(tool.name for tool in tools) == (
         *DOMAIN_READ_TOOL_NAMES,
@@ -95,21 +95,21 @@ def test_domain_tools_keep_ts_names_and_bounded_success_envelopes():
     }
 
 
-def test_domain_tool_preserves_project_control_error_code():
+def test_domain_tool_preserves_operator_error_code():
     client = StubClient()
 
     async def fail():
-        raise ProjectControlError("CONTROL_ENTRY_TIMEOUT", "timed out", {"seconds": 15})
+        raise OperatorError("OPERATOR_ENTRY_TIMEOUT", "timed out", {"seconds": 15})
 
     client.inspect_ui_project = fail
-    tool = create_project_control_tools(client)[0]
+    tool = create_operator_tools(client)[0]
 
     result = json.loads(asyncio.run(tool.ainvoke({})))
-    assert result["error"]["code"] == "CONTROL_ENTRY_TIMEOUT"
+    assert result["error"]["code"] == "OPERATOR_ENTRY_TIMEOUT"
 
 
 def test_service_inspection_distinguishes_resolved_provider_from_live_backend():
-    tool = create_project_control_tools(StubClient())[5]
+    tool = create_operator_tools(StubClient())[5]
     response = json.loads(asyncio.run(tool.ainvoke({})))
 
     assert response["result"]["availabilityEvidence"] == {
@@ -126,7 +126,7 @@ def test_source_inventory_marks_current_run_for_available_install_tool(tmp_path)
     observations = DomainObservationContext()
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("source-inventory")
-    tool = create_project_control_tools(
+    tool = create_operator_tools(
         StubClient(), observations=observations, activity=activity,
     )[7]
     assert observations.source_inventory_observed is False
@@ -159,7 +159,7 @@ def test_existing_source_install_returns_explicit_observation_handoff(tmp_path, 
     observations.observe_app_ui_model(
         hash="a" * 64, revision=activity.revision, source="inspect_app_ui_model",
     )
-    tool = create_project_control_tools(
+    tool = create_operator_tools(
         client, observations=observations, activity=activity,
     )[-1]
     result = json.loads(asyncio.run(tool.ainvoke({
@@ -179,7 +179,7 @@ def test_source_reuse_guidance_precedes_unneeded_host_exploration():
 
 
 def test_domain_slot_tool_forwards_layout_hash_binding():
-    tool = create_project_control_tools(StubClient())[3]
+    tool = create_operator_tools(StubClient())[3]
 
     rendered = asyncio.run(tool.ainvoke({
         "target": {"type": "layout_slot", "slotRef": "l2"},
@@ -201,7 +201,7 @@ def test_oversized_project_result_pages_complete_snapshot_without_truncation():
         return snapshot
 
     client.inspect_ui_project = huge
-    tool = create_project_control_tools(client)[0]
+    tool = create_operator_tools(client)[0]
 
     cursor = None
     chunks = []
@@ -226,13 +226,13 @@ def test_project_page_cursor_rejects_changed_snapshot():
         return snapshot
 
     client.inspect_ui_project = huge
-    tool = create_project_control_tools(client)[0]
+    tool = create_operator_tools(client)[0]
     first = json.loads(asyncio.run(tool.ainvoke({})))
     snapshot["source"] += "y"
 
     response = json.loads(asyncio.run(tool.ainvoke({"cursor": first["result"]["nextCursor"]})))
 
-    assert response["error"]["code"] == "PROJECT_CONTROL_SNAPSHOT_STALE"
+    assert response["error"]["code"] == "OPERATOR_SNAPSHOT_STALE"
 
 
 def test_skipped_project_page_cannot_authorize_mutation(tmp_path):
@@ -254,7 +254,7 @@ def test_skipped_project_page_cannot_authorize_mutation(tmp_path):
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("paging-run")
     observations = DomainObservationContext()
-    tool = create_project_control_tools(
+    tool = create_operator_tools(
         client, observations=observations, activity=activity,
     )[0]
     first = json.loads(asyncio.run(tool.ainvoke({"view": "composition"})))
@@ -265,7 +265,7 @@ def test_skipped_project_page_cannot_authorize_mutation(tmp_path):
     skipped = json.loads(asyncio.run(tool.ainvoke({
         "view": "composition", "cursor": f"{cursor_prefix}:{last_offset}",
     })))
-    assert skipped["error"]["code"] == "PROJECT_CONTROL_CURSOR_OUT_OF_ORDER"
+    assert skipped["error"]["code"] == "OPERATOR_CURSOR_OUT_OF_ORDER"
     assert observations.current_hash(current_revision=0) is None
     try:
         observations.require_app_ui_model_hash(current_revision=0)
@@ -314,38 +314,38 @@ def test_project_cursor_is_scoped_to_view_run_and_revision(tmp_path):
     client.inspect_ui_project = huge
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("first-run")
-    first_tool = create_project_control_tools(client, activity=activity)[0]
+    first_tool = create_operator_tools(client, activity=activity)[0]
     first = json.loads(asyncio.run(first_tool.ainvoke({"view": "composition"})))
     cursor = first["result"]["nextCursor"]
 
     wrong_view = json.loads(asyncio.run(first_tool.ainvoke({"cursor": cursor})))
-    assert wrong_view["error"]["code"] == "PROJECT_CONTROL_CURSOR_INVALID"
+    assert wrong_view["error"]["code"] == "OPERATOR_CURSOR_INVALID"
 
-    other_run = create_project_control_tools(client, activity=activity)[0]
+    other_run = create_operator_tools(client, activity=activity)[0]
     wrong_run = json.loads(asyncio.run(other_run.ainvoke({
         "view": "composition", "cursor": cursor,
     })))
-    assert wrong_run["error"]["code"] == "PROJECT_CONTROL_CURSOR_INVALID"
+    assert wrong_run["error"]["code"] == "OPERATOR_CURSOR_INVALID"
 
     other_first = json.loads(asyncio.run(other_run.ainvoke({"view": "composition"})))
     assert other_first["result"]["nextCursor"] != cursor
     still_wrong_run = json.loads(asyncio.run(other_run.ainvoke({
         "view": "composition", "cursor": cursor,
     })))
-    assert still_wrong_run["error"]["code"] == "PROJECT_CONTROL_CURSOR_INVALID"
+    assert still_wrong_run["error"]["code"] == "OPERATOR_CURSOR_INVALID"
 
     hash_part, nonce, offset = cursor.split(":")
     forged_nonce = "0" * 32 if nonce != "0" * 32 else "1" * 32
     forged = json.loads(asyncio.run(first_tool.ainvoke({
         "view": "composition", "cursor": f"{hash_part}:{forged_nonce}:{offset}",
     })))
-    assert forged["error"]["code"] == "PROJECT_CONTROL_CURSOR_INVALID"
+    assert forged["error"]["code"] == "OPERATOR_CURSOR_INVALID"
 
     activity.touch("src/agent-ui/plugins/changed.ts")
     changed_revision = json.loads(asyncio.run(first_tool.ainvoke({
         "view": "composition", "cursor": cursor,
     })))
-    assert changed_revision["error"]["code"] == "PROJECT_CONTROL_SNAPSHOT_STALE"
+    assert changed_revision["error"]["code"] == "OPERATOR_SNAPSHOT_STALE"
 
 
 def test_project_page_retry_does_not_skip_missing_middle_pages(tmp_path):
@@ -358,7 +358,7 @@ def test_project_page_retry_does_not_skip_missing_middle_pages(tmp_path):
     client.inspect_ui_project = huge
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("retry-run")
-    tool = create_project_control_tools(client, activity=activity)[0]
+    tool = create_operator_tools(client, activity=activity)[0]
     first = json.loads(asyncio.run(tool.ainvoke({"view": "composition"})))
     cursor = first["result"]["nextCursor"]
     middle = json.loads(asyncio.run(tool.ainvoke({
@@ -378,7 +378,7 @@ def test_project_inspection_bounds_utf8_bytes_as_well_as_characters():
         return {"appUIModel": {"hash": "a" * 64}, "text": "😀" * 15_000}
 
     client.inspect_ui_project = unicode_snapshot
-    tool = create_project_control_tools(client)[0]
+    tool = create_operator_tools(client)[0]
     first = asyncio.run(tool.ainvoke({}))
     assert len(first) <= MAX_DOMAIN_TOOL_RESULT_CHARS
     assert len(first.encode("utf-8")) <= MAX_DOMAIN_TOOL_RESULT_CHARS
@@ -389,7 +389,7 @@ def test_authoritative_domain_reads_update_shared_observation(tmp_path):
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("domain-reads")
     observations = DomainObservationContext()
-    tools = create_project_control_tools(
+    tools = create_operator_tools(
         StubClient(),
         observations=observations,
         activity=activity,
@@ -416,7 +416,7 @@ def test_failed_inspection_preserves_existing_observation(tmp_path):
     activity.begin("failed-read")
     observations = DomainObservationContext()
     client = StubClient()
-    tools = create_project_control_tools(
+    tools = create_operator_tools(
         client,
         observations=observations,
         activity=activity,
@@ -424,7 +424,7 @@ def test_failed_inspection_preserves_existing_observation(tmp_path):
     asyncio.run(tools[0].ainvoke({}))
 
     async def fail():
-        raise ProjectControlError("CONTROL_ENTRY_TIMEOUT", "timed out")
+        raise OperatorError("OPERATOR_ENTRY_TIMEOUT", "timed out")
 
     client.inspect_ui_project = fail
     asyncio.run(tools[0].ainvoke({}))
@@ -437,7 +437,7 @@ def test_composition_snapshot_grounds_and_rejects_fully_covered_reads(tmp_path):
     activity.begin("composition-grounding")
     observations = DomainObservationContext()
     client = StubClient()
-    tools = create_project_control_tools(
+    tools = create_operator_tools(
         client,
         observations=observations,
         activity=activity,
@@ -479,7 +479,7 @@ def test_composition_fast_path_blocks_domain_reads_until_full_project_exit(tmp_p
     activity.begin("composition-fast-path-domain-guard")
     observations = DomainObservationContext()
     client = StubClient()
-    tools = create_project_control_tools(
+    tools = create_operator_tools(
         client,
         observations=observations,
         activity=activity,
@@ -517,7 +517,7 @@ def test_stale_composition_grounding_does_not_block_domain_reads(tmp_path):
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("composition-fast-path-stale")
     observations = DomainObservationContext()
-    tools = create_project_control_tools(
+    tools = create_operator_tools(
         StubClient(),
         observations=observations,
         activity=activity,
@@ -534,7 +534,7 @@ def test_stale_composition_grounding_does_not_block_domain_reads(tmp_path):
 def test_agent_ui_source_tools_keep_inspection_read_only_and_apply_is_a_noop(tmp_path):
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("agent-ui-sources")
-    tools = create_project_control_tools(StubClient(), activity=activity)
+    tools = create_operator_tools(StubClient(), activity=activity)
 
     inspected = json.loads(asyncio.run(tools[7].ainvoke({})))
     applied = json.loads(

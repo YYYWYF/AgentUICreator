@@ -135,14 +135,14 @@ async function sourceInputs(sourceRepo) {
 async function installedInputs(repoRoot, packageJsonPath) {
   const packageRoot = path.dirname(packageJsonPath ?? path.join(
     repoRoot,
-    "packages/runtime-conversation/node_modules/@assistant-ui/react-langgraph/package.json",
+    "packages/runtime/node_modules/@assistant-ui/react-langgraph/package.json",
   ));
   const manifest = await readJson(packageJsonPath ?? path.join(packageRoot, "package.json"));
   const typeEntry = packageTypesEntry(manifest);
   const typePath = typeEntry === undefined ? undefined : path.join(packageRoot, typeEntry);
   if (typePath === undefined) throw new Error(`${LANGGRAPH_PACKAGE} does not declare a TypeScript type entry.`);
   const langGraphTypes = await readFile(typePath, "utf8");
-  const reactRoot = path.join(repoRoot, "packages/runtime-conversation/node_modules/@assistant-ui/react");
+  const reactRoot = path.join(repoRoot, "packages/runtime/node_modules/@assistant-ui/react");
   const reactManifest = await readJson(path.join(reactRoot, "package.json"));
   const reactTypeEntry = packageTypesEntry(reactManifest);
   if (reactTypeEntry === undefined) throw new Error(`${REACT_PACKAGE} does not declare a TypeScript type entry.`);

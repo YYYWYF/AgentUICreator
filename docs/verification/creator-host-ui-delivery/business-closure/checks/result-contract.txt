@@ -3,7 +3,7 @@
 _____ test_python_and_canonical_schema_accept_and_reject_the_same_fixtures _____
 
     def test_python_and_canonical_schema_accept_and_reject_the_same_fixtures():
-        client = ProjectControlClient(project_root=ROOT)
+        client = OperatorClient(project_root=ROOT)
         canonical = canonical_fixture_outcomes()
         manifest = json.loads((FIXTURES / "manifest.json").read_text())
         for kind, entries in manifest.items():
@@ -15,14 +15,14 @@ _____ test_python_and_canonical_schema_accept_and_reject_the_same_fixtures _____
                     else:
                         client._validate_result(entry["operation"], value)
                     accepted = True
-                except ProjectControlError as error:
-                    assert error.code == "CONTROL_PROTOCOL_INCOMPATIBLE"
+                except OperatorError as error:
+                    assert error.code == "OPERATOR_PROTOCOL_INCOMPATIBLE"
                     accepted = False
 >               assert accepted == canonical[entry["file"]] == entry["valid"], entry["file"]
 E               AssertionError: mutate_app_ui_model.result.json
 E               assert False == True
 
-packages/creator-python/tests/test_project_control_contract.py:51: AssertionError
+packages/creator-python/tests/test_operator_contract.py:51: AssertionError
 =============================== warnings summary ===============================
 packages/creator-python/.venv/lib/python3.14/site-packages/google/genai/types.py:42
   /Users/yifei/Coding/AgentUICreator/packages/creator-python/.venv/lib/python3.14/site-packages/google/genai/types.py:42: DeprecationWarning: '_UnionGenericAlias' is deprecated and slated for removal in Python 3.17
@@ -30,5 +30,5 @@ packages/creator-python/.venv/lib/python3.14/site-packages/google/genai/types.py
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
 =========================== short test summary info ============================
-FAILED packages/creator-python/tests/test_project_control_contract.py::test_python_and_canonical_schema_accept_and_reject_the_same_fixtures
+FAILED packages/creator-python/tests/test_operator_contract.py::test_python_and_canonical_schema_accept_and_reject_the_same_fixtures
 1 failed, 4 passed, 1 warning in 1.20s

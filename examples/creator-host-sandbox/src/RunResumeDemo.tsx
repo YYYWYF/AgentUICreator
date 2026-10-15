@@ -1,6 +1,6 @@
-import { useAgentUILocale } from "@agent-ui/react";
+import { useAgentUILocale } from "@za38.03/agent-ui-react";
 import { ConversationRuntimeProvider, useConversationRuntimeBridge,
-  type ConversationAssistantRunUpdate, type ConversationLoadedThread, type ConversationThreadBinding } from "@agent-ui/runtime-conversation";
+  type ConversationAssistantRunUpdate, type ConversationLoadedThread, type ConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 export const RUN_RESUME_API = "/__agent-ui/mock-data/run-resume/threads";

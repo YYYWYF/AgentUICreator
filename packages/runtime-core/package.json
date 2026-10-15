@@ -1,5 +1,5 @@
 {
-  "name": "@agent-ui/runtime-core",
+  "name": "@za38.03/agent-ui-runtime-core",
   "version": "0.1.0",
   "description": "Framework- and protocol-independent runtime contracts for Agent UI frontends",
   "type": "module",
@@ -19,9 +19,6 @@
   "files": [
     "dist"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
@@ -31,5 +28,8 @@
   "devDependencies": {
     "typescript": "7.0.2",
     "vitest": "4.1.8"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

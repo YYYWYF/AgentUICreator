@@ -2,7 +2,7 @@
   "id": "theme-switch",
   "name": "Theme Switch",
   "description": "Calls the shared theme service exposed by another UI plugin.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "theme-control",
     "plugin-service-consumer"

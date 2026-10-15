@@ -1,4 +1,4 @@
-import type { ConversationToolCallStatus } from "@agent-ui/react";
+import type { ConversationToolCallStatus } from "@za38.03/agent-ui-react";
 
 export type AgentStatusState = "working" | "waiting" | "done";
 

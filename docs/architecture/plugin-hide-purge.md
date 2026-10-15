@@ -14,7 +14,7 @@ the write agent with the chosen removal authority. Hide exposes read/inspect,
 questions and Composition mutation, and execution permits only nonempty batches
 of `set_plugin_enabled(false)`. Purge exposes read/inspect, questions and
 `purge_ui_plugin`. Source edits and other mutation tools are unavailable. The
-execution middleware and ProjectControl transport also reject forbidden calls,
+execution middleware and Operator transport also reject forbidden calls,
 including calls synthesized without advertised tools. Removal authority persists
 through subsequent interrupts, and answering the removal question clears pending
 clarification. No natural-language removal regex is used.
@@ -57,8 +57,8 @@ registries/revision, Source Lock and deleted source. Immediately before committi
 the Host rechecks cancellation, both hashes and the entire source snapshot. File
 failures restore all original files and directories. Admission conflicts never
 restore snapshots over external edits. Crash recovery runs before subsequent
-ProjectControl requests, under cross-process Host admission locking. Active
-requests fail closed with `PROJECT_CONTROL_BUSY`; active purge owners are not
+Operator requests, under cross-process Host admission locking. Active
+requests fail closed with `OPERATOR_BUSY`; active purge owners are not
 recovered as crashed transactions.
 
 A successful purge includes static verification of the prepared final project and

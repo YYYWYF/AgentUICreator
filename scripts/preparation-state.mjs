@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("..", import.meta.url));
-export const hostPackages = ["runtime-core", "react", "runtime-conversation", "runtime-react", "plugins", "source-registry", "bootstrap", "mock-agent", "project-control"];
+export const hostPackages = ["runtime-core", "react", "runtime", "renderer", "plugins", "source-registry", "operator"];
 // A child may reuse preparation only for the exact inputs AND outputs its parent built.
 // Legacy flags ("1"), deleted output, and edited source never qualify.
 export function preparationState(packages) {
@@ -20,7 +20,7 @@ export function preparationState(packages) {
   }
   for (const name of packages) {
     hash.update(readFileSync(path.join(root, "packages", name, "package.json")));
-    for (const directory of ["src", "scripts", "registry", "fixtures", "dist"]) visit(`packages/${name}/${directory}`);
+    for (const directory of ["src", "scripts", "registry", "fixtures", "presets", "skills", "browser", "dist"]) visit(`packages/${name}/${directory}`);
   }
   hash.update(readFileSync(path.join(root, "pnpm-lock.yaml")));
   return hash.digest("hex");

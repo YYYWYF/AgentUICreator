@@ -54,7 +54,7 @@ def fixture(tmp_path):
     )
     service = UIServiceContractMutationService(
         project_root=tmp_path,
-        project_control=MutationControl(),
+        operator=MutationControl(),
         store=store,
         activity=activity,
         mutation_coordinator=ProjectMutationCoordinator(),

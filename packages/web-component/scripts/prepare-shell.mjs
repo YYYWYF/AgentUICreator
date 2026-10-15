@@ -3,8 +3,8 @@ import { fileURLToPath } from "node:url";
 import { prepareHostPackages } from "../../../scripts/prepare-host-packages.mjs";
 
 prepareHostPackages();
-const { initializeAgentUIProject } = await import("../../bootstrap/dist/index.js");
-const { createAgentUIInitializationHost } = await import("../../project-control/dist/runtime/project-control-runtime.mjs");
+const { initializeAgentUIProject } = await import("../../operator/dist/bootstrap/index.js");
+const { createAgentUIInitializationHost } = await import("../../operator/dist/runtime/operator-runtime.mjs");
 const projectRoot = fileURLToPath(new URL("../.generated/", import.meta.url));
 // Disposable build input: generate the same official embedded preset, never copy
 // a user's installed project or maintain a second set of feature implementations.
@@ -18,6 +18,6 @@ const host = createAgentUIInitializationHost();
 // Build input has no development control plane: only production source items.
 await initializeAgentUIProject({ projectRoot, mode: "embedded", sourceRoot: "src/agent-ui" }, {
   ...host,
-  installControlPlane: async () => [],
+  installOperatorEntry: async () => [],
   installDevelopmentDefaults: async () => [],
 });

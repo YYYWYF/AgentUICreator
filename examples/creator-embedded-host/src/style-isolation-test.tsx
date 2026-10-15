@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
-import { LayoutRenderer } from "@agent-ui/runtime-react";
+import { LayoutRenderer } from "@za38.03/agent-ui-renderer";
 
 import {
   AgentUIRoot,
@@ -14,7 +14,7 @@ import {
   AgentUITooltipContent,
   AgentUITooltipProvider,
   AgentUITooltipTrigger,
-} from "@agent-ui/react";
+} from "@za38.03/agent-ui-react";
 
 import "./hostile-host.css";
 import installedAgentSource from "./agent-ui/application/Agent.tsx?raw";

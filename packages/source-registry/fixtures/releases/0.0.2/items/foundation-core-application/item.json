@@ -64,6 +64,6 @@
     "foundation/core-adapters"
   ],
   "packages": {
-    "@agent-ui/runtime-conversation": "^0.1.0"
+    "@za38.03/agent-ui-runtime-conversation": "^0.1.0"
   }
 }

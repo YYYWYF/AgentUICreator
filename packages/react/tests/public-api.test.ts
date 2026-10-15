@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-describe("@agent-ui/react public API", () => {
+describe("@za38.03/agent-ui-react public API", () => {
   it("exposes the root facade, optional lexical entry, theme contract and styles", async () => {
     const packageJson = JSON.parse(
       await readFile(path.join(packageRoot, "package.json"), "utf8"),

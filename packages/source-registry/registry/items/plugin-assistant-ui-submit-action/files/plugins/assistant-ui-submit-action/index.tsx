@@ -1,7 +1,7 @@
 import {
   ConversationComposerCancel,
   ConversationComposerSend,
-} from "@agent-ui/react";
+} from "@za38.03/agent-ui-react";
 import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 

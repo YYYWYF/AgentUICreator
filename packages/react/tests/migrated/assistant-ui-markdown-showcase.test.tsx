@@ -15,7 +15,7 @@ import {
   useAgUiRuntime,
   type AgUiAssistantRuntime,
 } from "@assistant-ui/react-ag-ui";
-import { markdownShowcaseScenario, runMockScenario } from "@agent-ui/mock-agent";
+import { markdownShowcaseScenario, runMockScenario } from "@za38.03/agent-ui-creator/mock-agent";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { from, type Observable } from "rxjs";

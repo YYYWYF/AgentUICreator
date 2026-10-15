@@ -15,7 +15,7 @@ from ..domain_state import DomainObservationContext, DomainObservationMetrics
 from ..observability import CreatorRunTelemetry
 from ..model_protocol.provider_trace import ProviderResponseTraceCollector
 from ..model_settings import CreatorSelectorModelSettings
-from ..project_control import ProjectControlClient, ProjectControlMetrics
+from ..operator import OperatorClient, OperatorMetrics
 from ..project_paths import agent_ui_source_root
 from ..repair import CreatorRepairState
 from ..runtime_diagnostics import (
@@ -85,8 +85,8 @@ class ProductizedOperationRun:
 
     text: str
     metrics: ProductizedOperationToolMetrics
-    project_control: ProjectControlMetrics
-    repeated_project_control_reads: int
+    operator: OperatorMetrics
+    repeated_operator_reads: int
     domain_observations: DomainObservationMetrics
     app_ui_model_mutations: AppUIModelMutationMetrics
     snapshot_metrics: CreatorDomainSnapshotMetrics
@@ -219,7 +219,7 @@ class ProductizedOperationEngine:
         model: Any,
         project_root: str | Path,
         activity: CreatorActivityRecorder,
-        project_control: ProjectControlClient,
+        operator: OperatorClient,
         mutation_coordinator: ProjectMutationCoordinator,
         diagnostics: RuntimeDiagnosticStore,
         thread_id: str,
@@ -237,15 +237,15 @@ class ProductizedOperationEngine:
         self.project_root = Path(project_root).resolve()
         self.thread_id = thread_id
         self.activity = activity
-        self.project_control = project_control
+        self.operator = operator
         self.event_sink = event_sink
         self.verification_mode = verification_mode
         self.observations = DomainObservationContext()
         self.repair_state = CreatorRepairState()
-        self.snapshot_provider = CreatorDomainSnapshotProvider(project_control)
+        self.snapshot_provider = CreatorDomainSnapshotProvider(operator)
         self.mutation_service = AppUIModelMutationService(
             project_root=self.project_root,
-            project_control=project_control,
+            operator=operator,
             activity=activity,
             mutation_coordinator=mutation_coordinator,
             runtime_diagnostics=diagnostics,
@@ -259,14 +259,14 @@ class ProductizedOperationEngine:
         self.runtime_inspection = RuntimeDiagnosticInspectionService(
             store=diagnostics,
             thread_id=thread_id,
-            project_control=project_control,
+            operator=operator,
             observations=self.observations,
             activity=activity,
             repair_state=self.repair_state,
         )
         verification = CompositionOperationVerificationService(
             validation=self.validation,
-            project_control=project_control,
+            operator=operator,
             runtime=self.runtime_inspection,
             visual_observations=visual_observations,
             verification_mode=verification_mode,
@@ -295,7 +295,7 @@ class ProductizedOperationEngine:
         if telemetry is not None:
             telemetry.bind(
                 activity=activity,
-                project_control=project_control.metrics,
+                operator=operator.metrics,
                 mutation=self.mutation_service.metrics,
                 validation=self.validation,
             )
@@ -604,7 +604,7 @@ class ProductizedOperationEngine:
                     "metrics": operation_result.metrics.model_dump(mode="json"),
                     "actionSelectorCalls": selector_metrics.modelCalls,
                     "productActions": 1,
-                    "projectControlCalls": self.project_control.metrics.requests,
+                    "operatorCalls": self.operator.metrics.requests,
                     "validationLevel": (
                         operation_result.verification.validationLevel
                         if operation_result.verification is not None else None
@@ -628,8 +628,8 @@ class ProductizedOperationEngine:
                 actionSelectorContextCharacters=selector_metrics.contextCharacters,
                 totalModelCalls=selector_metrics.modelCalls,
             ),
-            project_control=self.project_control.metrics,
-            repeated_project_control_reads=0,
+            operator=self.operator.metrics,
+            repeated_operator_reads=0,
             domain_observations=self.observations.metrics,
             app_ui_model_mutations=self.mutation_service.metrics,
             snapshot_metrics=self.snapshot_provider.metrics,
@@ -825,8 +825,8 @@ class ProductizedOperationEngine:
                 actionSelectorContextCharacters=metrics.contextCharacters,
                 totalModelCalls=metrics.modelCalls,
             ),
-            project_control=self.project_control.metrics,
-            repeated_project_control_reads=0,
+            operator=self.operator.metrics,
+            repeated_operator_reads=0,
             domain_observations=self.observations.metrics,
             app_ui_model_mutations=self.mutation_service.metrics,
             snapshot_metrics=self.snapshot_provider.metrics,

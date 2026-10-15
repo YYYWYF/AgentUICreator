@@ -1,0 +1,353 @@
+import {
+  officialPackagePlugin,
+  isAgentUISourceItemAvailable,
+  loadAgentUISourceRegistry,
+  resolveAgentUISourceItemClosure,
+  type LoadedAgentUISourceItem,
+  type LoadedAgentUISourceRegistry,
+} from "@za38.03/agent-ui-source-registry";
+
+import { uiOperatorConfig } from "../project-config";
+import type { UIOperatorConfig } from "../types";
+import {
+  readAgentUISourceLock,
+  serializeAgentUISourceLock,
+  sha256,
+} from "./lock";
+import {
+  inspectAgentUIPackages,
+  inspectAgentUISources,
+} from "./inspector";
+import { AgentUISourceError } from "./path-policy";
+import {
+  commitAgentUISourceTransaction,
+  recoverPendingAgentUISourceTransaction,
+  type AgentUISourceFileMutation,
+  type AgentUISourceTransactionTestOptions,
+} from "./transaction";
+import type { AgentUISourceApplyResult, AgentUISourceLock, AgentUISourceLockItem } from "./types";
+import { generatedSourceTargets } from "./generated-targets";
+
+export interface ApplyAgentUISourceItemInput {
+  itemId: string;
+  expectedStateHash: string;
+}
+
+export interface RemoveAgentUISourceItemsInput {
+  itemIds: string[];
+  expectedStateHash: string;
+}
+
+export interface InstallAgentUISourceItemsResult {
+  readonly installedSourceItems: readonly string[];
+  readonly createdPaths: readonly string[];
+  readonly stateHash: string;
+}
+
+export function resolveAgentUISourceItems(
+  registry: LoadedAgentUISourceRegistry,
+  itemIds: readonly string[],
+): LoadedAgentUISourceItem[] {
+  const ordered = new Map<string, LoadedAgentUISourceItem>();
+  for (const itemId of itemIds) {
+    for (const item of resolveAgentUISourceItemClosure(registry, itemId)) ordered.set(item.id, item);
+  }
+  for (const item of ordered.values()) {
+    if (!isAgentUISourceItemAvailable(item.id)) throw new AgentUISourceError("AGENT_UI_RESOURCE_DISABLED", "This resource is not available in this release.", { itemId: item.id });
+  }
+  return [...ordered.values()].map(item => {
+    const official = item.id.startsWith("plugin/") ? officialPackagePlugin(item.id.slice(7)) : undefined;
+    return official ? { ...item, loadedFiles: [], files: [], packages: {
+      ...item.packages, [official.runtime.package]: official.runtime.version,
+    } } : item;
+  });
+}
+
+function stateError(itemId: string, status: string): AgentUISourceError {
+  const code =
+    status === "customized"
+      ? "AGENT_UI_SOURCE_CUSTOMIZED"
+      : status === "partial"
+        ? "AGENT_UI_SOURCE_PARTIAL"
+        : "AGENT_UI_SOURCE_PATH_CONFLICT";
+  return new AgentUISourceError(
+    code,
+    `Agent UI source item ${itemId} is ${status}; refusing to overwrite project source.`,
+    { itemId, status },
+  );
+}
+
+export function sourceItemLock(item: LoadedAgentUISourceItem, registry: LoadedAgentUISourceRegistry): AgentUISourceLockItem {
+  const manifest = item.id.startsWith("plugin/") ? item.loadedFiles.find(file => file.target === `plugins/${item.id.slice(7)}/manifest.json`) : undefined;
+  const pluginVersion = manifest ? JSON.parse(manifest.content.toString()).version as string : undefined;
+  return { files: Object.fromEntries(item.loadedFiles.map(file => [file.target, { sha256: sha256(file.content) }])),
+    ...(pluginVersion && registry.sourceRelease ? { pluginVersion, sourceRelease: registry.sourceRelease } : {}) };
+}
+
+function lockedSourceMatchesRegistry(
+  item: LoadedAgentUISourceItem,
+  locked: AgentUISourceLockItem | undefined,
+): boolean {
+  if (!locked || Object.keys(locked.files).length !== item.loadedFiles.length) return false;
+  return item.loadedFiles.every(file => locked.files[file.target]?.sha256 === sha256(file.content));
+}
+
+/** Installs a clean dependency closure as one Source Registry transaction. */
+export async function installAgentUISourceItems(
+  projectRoot: string,
+  itemIds: readonly string[],
+  config: UIOperatorConfig,
+  registry?: LoadedAgentUISourceRegistry,
+): Promise<InstallAgentUISourceItemsResult> {
+  await recoverPendingAgentUISourceTransaction(projectRoot, config);
+  const loadedRegistry = registry ?? await loadAgentUISourceRegistry();
+  const items = resolveAgentUISourceItems(loadedRegistry, itemIds);
+  const before = await inspectAgentUISources(projectRoot, config, loadedRegistry);
+  const inspectionById = new Map(before.items.map((item) => [item.id, item]));
+  for (const item of items) {
+    const status = inspectionById.get(item.id)?.status;
+    if (status !== "not-installed") throw stateError(item.id, status ?? "unavailable");
+  }
+  const packageInspection = await inspectAgentUIPackages(projectRoot, items);
+  if (packageInspection.issues.length > 0) {
+    throw new AgentUISourceError(
+      "AGENT_UI_PACKAGE_REQUIREMENTS_UNMET",
+      "Agent UI package requirements are not installed or are incompatible.",
+      packageInspection.issues,
+    );
+  }
+  const { lock } = await readAgentUISourceLock(projectRoot, config);
+  if (Object.keys(lock.items).length > 0) {
+    throw new AgentUISourceError("AGENT_UI_SOURCE_PATH_CONFLICT", "Clean installation requires an empty Source Registry lock.");
+  }
+  const nextLock: AgentUISourceLock = structuredClone(lock);
+  const mutations: AgentUISourceFileMutation[] = [];
+  for (const item of items) {
+    for (const file of item.loadedFiles) {
+      mutations.push({ target: file.target, content: file.content });
+    }
+    if (item.loadedFiles.length) nextLock.items[item.id] = sourceItemLock(item, loadedRegistry);
+  }
+  mutations.sort((left, right) => left.target.localeCompare(right.target));
+  await commitAgentUISourceTransaction(
+    projectRoot, config, "initialization", mutations,
+    serializeAgentUISourceLock(nextLock),
+  );
+  const after = await inspectAgentUISources(projectRoot, config, loadedRegistry);
+  return {
+    installedSourceItems: items.map((item) => item.id),
+    createdPaths: [
+      ...mutations.map((mutation) => `${config.agentUI.sourceRoot}/${mutation.target}`),
+      `${config.agentUI.metadataRoot}/source-lock.json`,
+    ],
+    stateHash: after.stateHash,
+  };
+}
+
+/** Storage admission checks shared with the Host before its journal is written. */
+export async function preflightAgentUISourceApply(
+  projectRoot: string,
+  input: ApplyAgentUISourceItemInput,
+  config: UIOperatorConfig,
+  registry?: LoadedAgentUISourceRegistry,
+) {
+  const loadedRegistry = registry ?? await loadAgentUISourceRegistry();
+  if (input.itemId === "plugin/assistant-ui-composer") throw new AgentUISourceError("PLUGIN_ID_RESERVED_BY_OFFICIAL", "Install the official package or create a project-owned custom plugin; reference source is read-only.");
+  const closure = resolveAgentUISourceItems(loadedRegistry, [input.itemId]).filter(item => item.loadedFiles.length > 0);
+  const before = await inspectAgentUISources(projectRoot, config, loadedRegistry);
+  if (before.stateHash !== input.expectedStateHash) {
+    throw new AgentUISourceError(
+      "AGENT_UI_SOURCE_STATE_CONFLICT",
+      "Agent UI source state changed after inspection. Inspect again and retry.",
+      { expectedStateHash: input.expectedStateHash, actualStateHash: before.stateHash },
+    );
+  }
+  const byId = new Map(before.items.map((item) => [item.id, item]));
+  const { lock } = await readAgentUISourceLock(projectRoot, config);
+  for (const item of closure) {
+    const inspection = byId.get(item.id);
+    const status = inspection?.status;
+    if (status === "blocked" || status === "partial") throw stateError(item.id, status);
+    if (config.agentUI.providedSourceItems?.includes(item.id)) {
+      if (item.id === input.itemId) throw new AgentUISourceError("AGENT_UI_SOURCE_HOST_OWNED", "Host-owned foundation cannot be installed through optional resources.");
+      continue;
+    }
+    if (status === "customized" && item.id === input.itemId) throw stateError(item.id, status);
+    if (
+      status === "customized" &&
+      item.id !== input.itemId &&
+      !lockedSourceMatchesRegistry(item, lock.items[item.id])
+    ) {
+      throw new AgentUISourceError(
+        "AGENT_UI_SOURCE_CUSTOMIZED_DEPENDENCY",
+        `Agent UI source dependency ${item.id} was customized by the project and cannot be synchronized automatically; ${input.itemId} requires changed dependency source.`,
+        {
+          requestedItemId: input.itemId,
+          dependencyItemId: item.id,
+        },
+      );
+    }
+  }
+  const packageInspection = await inspectAgentUIPackages(projectRoot, closure);
+  const packageIssue = packageInspection.issues[0];
+  if (packageIssue !== undefined) {
+    throw new AgentUISourceError(packageIssue.code, packageIssue.message, packageIssue);
+  }
+  return { loadedRegistry, closure, before, byId, lock };
+}
+
+export async function applyAgentUISourceItem(
+  projectRoot: string,
+  input: ApplyAgentUISourceItemInput,
+  config: UIOperatorConfig = uiOperatorConfig,
+  registry?: LoadedAgentUISourceRegistry,
+  testOptions: AgentUISourceTransactionTestOptions = {},
+): Promise<AgentUISourceApplyResult> {
+  await recoverPendingAgentUISourceTransaction(projectRoot, config);
+  const { loadedRegistry, closure, before, byId, lock } = await preflightAgentUISourceApply(projectRoot, input, config, registry);
+  const nextLock: AgentUISourceLock = structuredClone(lock);
+  const mutations = new Map<string, AgentUISourceFileMutation>();
+  const changedItems: string[] = [];
+  for (const item of closure) {
+    if (config.agentUI.providedSourceItems?.includes(item.id)) continue;
+    const inspection = byId.get(item.id);
+    if (inspection?.status === "customized") continue;
+    if (inspection?.status === "managed" && lockedSourceMatchesRegistry(item, lock.items[item.id])) continue;
+    const previous = nextLock.items[item.id];
+    const nextTargets = new Set(item.loadedFiles.map((file) => file.target));
+    for (const oldTarget of Object.keys(previous?.files ?? {})) {
+      if (!nextTargets.has(oldTarget)) mutations.set(oldTarget, { target: oldTarget });
+    }
+    for (const file of item.loadedFiles) {
+      // A source update can leave most files unchanged. Replacing those files
+      // needlessly invalidates their Vite modules (including shared contexts).
+      // Generated outputs are preserved until the enclosing transaction
+      // regenerates them from the installed composition.
+      if (generatedSourceTargets.includes(file.target) && previous?.files[file.target]) continue;
+      if (previous?.files[file.target]?.sha256 === sha256(file.content)) continue;
+      mutations.set(file.target, { target: file.target, content: file.content });
+    }
+    if (item.loadedFiles.length) nextLock.items[item.id] = sourceItemLock(item, loadedRegistry);
+    changedItems.push(item.id);
+  }
+
+  if (changedItems.length === 0) {
+    return {
+      itemId: input.itemId,
+      changed: false,
+      changedItems: [],
+      changedPaths: [],
+      stateHash: before.stateHash,
+    };
+  }
+  const orderedMutations = [...mutations.values()].sort((left, right) =>
+    left.target.localeCompare(right.target),
+  );
+  await commitAgentUISourceTransaction(
+    projectRoot,
+    config,
+    input.itemId,
+    orderedMutations,
+    serializeAgentUISourceLock(nextLock),
+    testOptions,
+  );
+  const after = await inspectAgentUISources(projectRoot, config, loadedRegistry);
+  return {
+    itemId: input.itemId,
+    changed: true,
+    changedItems,
+    changedPaths: [
+      ...orderedMutations.map((mutation) =>
+        `${config.agentUI.sourceRoot}/${mutation.target}`,
+      ),
+      `${config.agentUI.metadataRoot}/source-lock.json`,
+    ],
+    stateHash: after.stateHash,
+  };
+}
+
+export async function preflightAgentUISourceRemove(
+  projectRoot: string,
+  input: RemoveAgentUISourceItemsInput,
+  config: UIOperatorConfig,
+  registry?: LoadedAgentUISourceRegistry,
+) {
+  const loadedRegistry = registry ?? await loadAgentUISourceRegistry();
+  const before = await inspectAgentUISources(projectRoot, config, loadedRegistry);
+  if (before.stateHash !== input.expectedStateHash) {
+    throw new AgentUISourceError(
+      "AGENT_UI_SOURCE_STATE_CONFLICT",
+      "Agent UI source state changed after inspection. Inspect again and retry.",
+      { expectedStateHash: input.expectedStateHash, actualStateHash: before.stateHash },
+    );
+  }
+
+  const { lock } = await readAgentUISourceLock(projectRoot, config);
+  const removeIds = [...new Set(input.itemIds)].sort();
+  for (const remainingId of Object.keys(lock.items).filter(id => !removeIds.includes(id))) {
+    if (!loadedRegistry.byId.has(remainingId)) throw new AgentUISourceError("AGENT_UI_SOURCE_ITEM_UNAVAILABLE", `Cannot determine dependencies of installed item ${remainingId}.`);
+    const dependency = resolveAgentUISourceItemClosure(loadedRegistry, remainingId).find(item => removeIds.includes(item.id));
+    if (dependency) throw new AgentUISourceError("AGENT_UI_SOURCE_DEPENDENCY_IN_USE", `${remainingId} requires ${dependency.id}; remove its consumers first.`, { itemId: dependency.id, consumerId: remainingId });
+  }
+  for (const itemId of removeIds) {
+    if (!lock.items[itemId]) throw new AgentUISourceError("AGENT_UI_SOURCE_ITEM_NOT_INSTALLED", `Agent UI source item ${itemId} is not installed in the project lock.`, { itemId });
+  }
+  return { loadedRegistry, before, lock, removeIds };
+}
+
+/**
+ * Removes managed source items and their files as one lock-aware transaction.
+ * This is intentionally narrow: callers must inspect first and provide the
+ * resulting state hash, just like source installation.
+ */
+export async function removeAgentUISourceItems(
+  projectRoot: string,
+  input: RemoveAgentUISourceItemsInput,
+  config: UIOperatorConfig = uiOperatorConfig,
+  registry?: LoadedAgentUISourceRegistry,
+  testOptions: AgentUISourceTransactionTestOptions = {},
+): Promise<AgentUISourceApplyResult> {
+  await recoverPendingAgentUISourceTransaction(projectRoot, config);
+  const { loadedRegistry, lock, removeIds } = await preflightAgentUISourceRemove(projectRoot, input, config, registry);
+  const nextLock: AgentUISourceLock = structuredClone(lock);
+  const removedFileTargets = new Set<string>();
+  for (const itemId of removeIds) {
+    const locked = nextLock.items[itemId];
+    if (locked === undefined) {
+      throw new AgentUISourceError(
+        "AGENT_UI_SOURCE_ITEM_NOT_INSTALLED",
+        `Agent UI source item ${itemId} is not installed in the project lock.`,
+        { itemId },
+      );
+    }
+    for (const target of Object.keys(locked.files)) removedFileTargets.add(target);
+    delete nextLock.items[itemId];
+  }
+  const remainingFileTargets = new Set(
+    Object.values(nextLock.items).flatMap((item) => Object.keys(item.files)),
+  );
+  const mutations = [...removedFileTargets]
+    .filter((target) => !remainingFileTargets.has(target))
+    .sort()
+    .map((target): AgentUISourceFileMutation => ({ target }));
+
+  await commitAgentUISourceTransaction(
+    projectRoot,
+    config,
+    "cleanup",
+    mutations,
+    serializeAgentUISourceLock(nextLock),
+    testOptions,
+  );
+  const after = await inspectAgentUISources(projectRoot, config, loadedRegistry);
+  return {
+    itemId: "cleanup",
+    changed: true,
+    changedItems: removeIds,
+    changedPaths: [
+      ...mutations.map((mutation) => `${config.agentUI.sourceRoot}/${mutation.target}`),
+      `${config.agentUI.metadataRoot}/source-lock.json`,
+    ],
+    stateHash: after.stateHash,
+  };
+}

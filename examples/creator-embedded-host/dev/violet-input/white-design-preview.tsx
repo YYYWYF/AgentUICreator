@@ -1,7 +1,7 @@
 // Development-only fixture. Imports real public surfaces; no component/CSS replicas.
 // Load foundation styles before real Plugin CSS, matching the host style boundary.
-import "@agent-ui/react/styles.css";
-import { DemoAttachmentAdapter } from "@agent-ui/mock-agent/attachments";
+import "@za38.03/agent-ui-react/styles.css";
+import { DemoAttachmentAdapter } from "@za38.03/agent-ui-react/demo-attachments";
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
@@ -14,8 +14,8 @@ import {
   AgentUIDialog, AgentUIDialogContent, AgentUIPopover, AgentUIPopoverTrigger, AgentUIPopoverContent,
   AgentUITooltip, AgentUITooltipTrigger, AgentUITooltipContent, TooltipProvider, Button,
   type AgentUITheme,
-} from "@agent-ui/react";
-import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@agent-ui/runtime-conversation";
+} from "@za38.03/agent-ui-react";
+import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { chartMessageUI } from "../../../../packages/source-registry/registry/items/plugin-chart-message/files/plugins/chart-message/index";
 import { themeShowcaseLocale as copy } from "../../src/theme-showcase.locale";
 const params = new URLSearchParams(location.search);

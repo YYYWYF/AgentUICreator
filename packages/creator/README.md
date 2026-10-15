@@ -1,4 +1,4 @@
-# @agent-ui/creator
+# @za38.03/agent-ui-creator
 
 Python Agent UI Creator 的开发时 Node host、CLI、Vite 代理与 React Workbench。模型、Agent loop、项目工具、验证、回执和运行时诊断状态都由 `packages/creator-python` 负责；目标前端不需要把 Creator 打进生产 Bundle。
 
@@ -6,16 +6,23 @@ Creator 是 Agent UI 的开发助手。用户可以直接提问了解使用方�
 
 ## CLI
 
-在包含 `.env.creator.local` 的目录运行：
+安装到工具宿主工程的 `devDependencies`，在包含 `.env.creator.local` 的目录运行：
 
 ```bash
-npx @agent-ui/creator --project ./my-agent-app
+npm install -D @za38.03/agent-ui-creator
+npx agent-ui-creator
 ```
 
-也可以执行单次需求：
+命令启动本地服务并打开带有顶部折叠条的启动页。点击 **Creator Agent** 展开浮层。
+工程选择、安装位置、产品模式、资源安装和模型对话
+都在现有 Creator 界面中完成；不传工程参数时不会自动选择仓库示例。
+选择已有前端工程后，未初始化的工程会显示初始化界面；已初始化工程可通过 `/install`
+选择官方能力。模型配置仍从启动目录的 `.env.creator.local` 读取，与选中的目标工程分开。
+
+也可以用 `--project ./my-agent-app` 预选工程，或执行单次需求：
 
 ```bash
-npx @agent-ui/creator \
+npx @za38.03/agent-ui-creator \
   --project ./my-agent-app \
   --message "把用户消息放在左边，AI 消息放在右边"
 ```
@@ -28,10 +35,119 @@ CREATOR_MODEL_API_KEY=your-key
 CREATOR_MODEL_NAME=your-model
 ```
 
+### 最小图形启动演示与公司构建接入
+
+在本仓库运行 `pnpm creator:demo`，会准备开发工具依赖、构建 Creator，再启动图形界面。
+它不启动或初始化示例 Host。结束时按 Ctrl+C；项目预览仍由目标工程自己的开发服务提供，
+这个最小入口只提供 Creator 界面和本地操作接口，不自动启动目标工程预览。
+
+### 在自己的开发页面显示顶部浮层
+
+目标工程的开发服务只需接入一次。Creator 界面由 `dock.html` 的 iframe 承载，顶部标签
+使用 Shadow DOM 隔离宿主样式；收起时保留 iframe 和会话，支持拖动标签位置。
+独立启动页也使用同样的浮层，不再显示占满屏幕的左右工作台。
+
+如果使用 Vite，在开发工具宿主的配置中添加：
+
+```ts
+import { createCreatorDockVitePlugin } from "@za38.03/agent-ui-creator/dock/vite";
+
+// 加入现有 plugins 数组，保留工程自己的 React/Vue 等插件。
+createCreatorDockVitePlugin({ creatorUrl: "http://127.0.0.1:47832" });
+```
+
+如果使用 Rsbuild，在开发工具宿主的配置中添加：
+
+```ts
+import { createCreatorDockRsbuildPlugin } from "@za38.03/agent-ui-creator/dock/rsbuild";
+
+// 加入现有 plugins 数组，不需要为 Creator 加入宿主 React 插件。
+createCreatorDockRsbuildPlugin({ creatorUrl: "http://127.0.0.1:47832" });
+```
+
+如果使用 Webpack 5，在现有开发配置的 `plugins` 数组中加入：
+
+```js
+// webpack.config.cjs / webpack.dev.cjs
+const { createCreatorDockWebpackPlugin } = require("@za38.03/agent-ui-creator/dock/webpack");
+
+// mode 必须为 development。保留已有的 HTML 生成插件和其他配置。
+createCreatorDockWebpackPlugin({ creatorUrl: "http://127.0.0.1:47832" });
+```
+
+ESM 配置使用 `import { createCreatorDockWebpackPlugin } from "@za38.03/agent-ui-creator/dock/webpack"`。
+Webpack 适配器在 `processAssets` 的 Report 阶段处理编译产生的 `.html` / `.htm` 资产，
+兼容已有 HtmlWebpackPlugin 或复制到输出的 HTML，不安装第二份 Webpack 或 HTML 插件。
+如果 HTML 由后端或 `devServer.static` 直接提供、不经过 Webpack 输出，则应在那一层
+使用通用脚本注入方式；此插件不会自动改写那些磁盘文件或服务器模板。
+非 `development` 模式不注册注入 hook，也不修改开发服务器选项。
+
+普通 `webpack serve` 会使用插件配置的 `compiler.options.devServer`。通过 Node API
+启动 webpack-dev-server 时，也请使用这份选项，而不是从原始配置重新复制：
+
+```js
+const compiler = webpack(config);
+const server = new WebpackDevServer(compiler.options.devServer, compiler);
+```
+
+自定义 Node 启动器需要另行合并服务器选项时，可用同一出口提供的
+`createCreatorDockWebpackDevServerOptions(serverOptions, { projectRoot, creatorUrl })`。
+插件会保留已有设置和代理，并为 Creator 的四个开发转发路径补上工程身份。
+已实际验证 Webpack 5.111.1、HtmlWebpackPlugin 5.6.8、webpack-dev-server 5.2.2 / 6.0.0；
+其他封装或旧版本需要按其实际入口验收。
+
+三个适配器都只在开发页面注入已构建的 `dock-client.js`，并配置开发时 Agent 转发路径。
+Rsbuild 适配器使用官方 `onBeforeStartDevServer` / `modifyHTMLTags` hooks；生产构建不注入
+浮层。没有捆绑或要求用户安装特定 Rsbuild major version。
+可选 `projectRoot` 指定开发页面对应的工程（默认配置执行目录，Vite 优先使用其 root，Webpack 使用 compiler context），
+可选 `locale` 为 `zh-CN` / `en-US`。它们是宿主接入配置，用户日常的工程与资源选择仍在界面中完成。
+CLI 端口占用而改用其他端口时，将实际地址填入 `creatorUrl`，或通过 `CREATOR_DOCK_URL`
+配置开发适配器。适配器不会扫描工程、自动改写宿主配置或自动打开任意网页。
+
+请把这段接入放在可选的开发配置或工具宿主中；生成 Agent Frontend 的普通生产配置和源码
+保持 Creator 独立，仍可卸载 Creator 后构建。未接入的已有工程页面不会自动出现标签。
+公司若有统一 HTML 注入封装，也可让它在开发时加载 `http://127.0.0.1:47832/dock-client.js`；
+使用现成适配器还能携带工程身份，并接通 Preview 的开发转发。
+
+当前 `scripts/build-browser.mjs` 仅在构建阶段调用 Vite，安装后启动不需要 Vite。
+接入公司 Rsbuild 时，用公司构建命令替换这一段，输出保持为：
+
+```text
+dist/cli.js                 # package.json bin 指向的 Node 入口
+dist/standaloneServer.js    # 本地服务与工程操作装配
+dist/browser/index.html    # Creator 界面
+dist/browser/dock.html     # 浮层 iframe 中的 Creator 界面
+dist/browser/dock-client.js # 注入宿主页面的 classic script
+dist/browser/assets/*      # index.html 引用的静态资源（目录名可由构建工具决定）
+dist/python/*              # Python 源码与 requirements.lock
+skills/*                   # Creator Skills
+```
+
+Rsbuild 浏览器入口对应 `browser/main.tsx` 与 `browser/dock.tsx`，HTML 对应 `index.html` 与
+`dock.html`。`browser/dock-client.ts` 需单独输出一个无外部 imports 的 classic/IIFE
+`dock-client.js`，供宿主开发页面加载；其内容包含顶部标签和 Preview bridge。界面的 React
+依赖应打入浏览器产物，不要求目标工程安装 Creator 的 React 版本。静态资源引用使用相对
+路径或本站绝对路径。Node 入口目前保留 TypeScript 编译产物的目录结构；如果再改成单文件
+Node bundle，须一并调整 package.json、Python、Skills、更新服务等使用 `import.meta.url`
+解析的路径，并重新跑发行验收，不能直接合并文件。
+
+CLI 默认监听 `127.0.0.1:47832`，端口占用时自动选择空闲端口。
+测试时可设置 `CREATOR_PORT=0` 和 `CREATOR_OPEN_BROWSER=0`；普通用户无需设置。
+机器仍需安装 Node.js 与 Python 3.11+，首次 Python 安装需要可用的 pip 源。
+Creator 以 `@za38.03/agent-ui-creator` 独立发行，包含开发用 Mock Agent。
+通过 `@za38.03/agent-ui-creator/mock-agent` 导入场景、HTTP handler 和 Vite Mock 集成。
+Operator（`@za38.03/agent-ui-operator`，包含 Bootstrap）与 Source Registry 独立发行，不与 Creator 共享版本。
+更新 Creator 不会自动修改已经生成的项目源码。
+
+`pnpm verify:creator-workbench` 会构建、打包本仓库的 npm 包，用本地 tarball 模拟内部
+Registry，然后在仓库外的新工程中仅直接安装 Creator，验证图形资产、工程选择、
+初始化设置、dock 资产和退出清理。该验收不发送模型请求，也不修改已有工程。
+已构建时可加 `--skip-build`；npm 元数据与依赖缓存完整时可加 `--offline`。
+
 ## API
 
 ```ts
-import { createPythonCreatorClient } from "@agent-ui/creator";
+import { createPythonCreatorClient } from "@za38.03/agent-ui-creator";
 
 const creator = createPythonCreatorClient({
   projectRoot: "/path/to/creator-host-sandbox",
@@ -45,7 +161,7 @@ try {
 }
 ```
 
-Vite 开发服务适配器由 `@agent-ui/creator/vite` 导出，React 工作台面板由 `@agent-ui/creator/ui` 导出。它们是可选的开发时集成，不属于生成应用的生产运行时。
+Vite 开发服务适配器由 `@za38.03/agent-ui-creator/vite` 导出，React 工作台面板由 `@za38.03/agent-ui-creator/ui` 导出。它们是可选的开发时集成，不属于生成应用的生产运行时。
 
 ## Python Creator
 
@@ -65,7 +181,7 @@ Host 静态验证，Workbench 也不会发送 Runtime diagnostics 或 compositio
 需要 Runtime Verification 和这些上报时，把它改成 `static_and_runtime`；Runtime
 `stale` 或 `unavailable` 不会把已经提交的修改标成红色失败。
 
-### Installed @agent-ui/creator
+### Installed @za38.03/agent-ui-creator
 
 安装 npm 包后，机器需要 Python 3.11+。第一次真正启动 Creator 时，会自动创建
 isolated managed Python environment 并安装随包发布的 `requirements.lock`；首次安装需要
@@ -94,7 +210,7 @@ Creator 检查版本并启动，不创建 venv，也不修改用户环境。缺�
 该门禁包含 managed environment 单测、npm tarball 结构与完整 Contract parity、脱离仓库
 运行的 Contract / Sidecar health smoke、isolated wheel 安装与 validator 初始化，以及真实
 system Python → 临时缓存 venv → locked dependencies → Sidecar health 的 bootstrap。
-测试不发送模型请求。`prepublishOnly` 和 Creator distribution CI 使用此门禁。
+测试不发送模型请求。Creator distribution CI 使用此门禁；独立 npm 包发行还执行 `pnpm verify:package`。
 
 可分别执行 `pnpm verify:creator-package`、`pnpm verify:creator-python-wheel` 或较重的
 `pnpm test:creator-package-runtime`。Contract 的唯一源码是 `contracts/creator`；npm
@@ -134,14 +250,14 @@ CREATOR_MODEL_BASE_URL=https://example.com/v1
 CREATOR_MODEL_API_KEY=your-key
 ```
 
-该模式只验证受限的 read/edit/grep 工具协议，不包含 AppUIModel、Project Control、
+该模式只验证受限的 read/edit/grep 工具协议，不包含 AppUIModel、Operator、
 Fast Path、Validation 或 Completion 业务能力。Phase 3A 的历史领域诊断模式改用：
 
 ```env
 CREATOR_PYTHON_AGENT_MODE=domain-read
 ```
 
-Domain Read 模式复用相同模型栈，并通过正式 ProjectControl v2 入口开放六个只读领域工具；
+Domain Read 模式复用相同模型栈，并通过正式 Operator v2 入口开放六个只读领域工具；
 不会开放 `mutate_app_ui_model`，但仍保留受限 `edit_file`，不能据此认定该显式模式是只读执行边界。
 默认模式的 `INSPECT` 请求使用单独的只读权限作用域，模型工具与文件系统执行侧均禁止写入。
 

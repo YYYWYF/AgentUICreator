@@ -26,8 +26,9 @@ UI Plugin implementation dependencies also belong to the generated project, incl
 
 ## Workspace Boundary
 
-- `packages/creator` is the publishable development tool, including Creator core, CLI, optional Vite integration, UI, prompts, skills, and tool permissions.
-- `examples/creator-host-sandbox`, `examples/creator-assistant-host`, and `examples/creator-embedded-host` are independent Host targets and must not depend on `@agent-ui/creator`.
+- `packages/creator` is the development tool implementation, including Creator core, CLI, optional Vite integration, UI, prompts, skills, and tool permissions. It is delivered through `@za38.03/agent-ui-creator` and its subpaths.
+- Public npm packages use `@za38.03/agent-ui-*` names and independent versions. `packages/source-registry` owns source resources; `packages/operator` is published as `@za38.03/agent-ui-operator` and includes Bootstrap; `packages/creator` includes Mock Agent. Bootstrap and Mock are module/subpath boundaries, not independently installable packages. Source Registry must not be bundled or copied into Operator or Creator.
+- `examples/creator-host-sandbox`, `examples/creator-assistant-host`, and `examples/creator-embedded-host` are independent Host targets and must not import Creator subpaths in their production frontend.
 - `apps/creator-workbench` is a development-only composition shell that connects Creator to the example target through an explicit `projectRoot`.
 - Creator configuration belongs to the tool host, not the generated Agent Frontend. The workspace workbench reads `.env.creator.local` from the workspace root.
 - Keep the target project usable through its own `dev`, `test`, `typecheck`, and `build` scripts without the Creator package or workbench.
@@ -87,8 +88,8 @@ Do not introduce:
 - Prefer editing AppUIModel for layout, size, placement, and composition changes.
 - Edit or create UI Plugin code only when custom behavior is needed.
 - Reuse existing plugins when practical.
-- assistant-ui is the upstream Conversation Domain implementation; keep upstream presentation in `agent-ui/vendor/assistant-ui` and put product integration in `agent-ui/adapters/assistant-ui`.
-- The canonical assistant-ui Runtime integration belongs in `@agent-ui/runtime-assistant-ui`; UI Plugins must not create or manage their own Agent Runtime.
+- assistant-ui is the upstream Conversation Domain implementation. Keep upstream presentation and provenance inside runtime packages; never install vendor source into generated projects. Generated projects retain only necessary adapters and customizable plugins. See `docs/architecture/package-owned-upstream-and-plugin-updates.md`.
+- The canonical assistant-ui Runtime integration belongs in `@za38.03/agent-ui-runtime`; UI Plugins must not create or manage their own Agent Runtime.
 - Keep conversation Slots as semantic replacement boundaries; do not expose assistant-ui implementation details or visual micro-slots through AppUIModel.
 - UI Plugins consume conversation state through the provided runtime/adapter context.
 - Creator may modify `app-ui/*`, `plugins/*`, and frontend dependencies required by the generated project.

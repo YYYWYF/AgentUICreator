@@ -16,7 +16,7 @@
 
 ## 工程证据
 
-通过 fetch 确认最新 dev，并创建隔离工作树 `/Users/yifei/.codex/worktrees/host-ui-rerun/AgentUICreator`。Source Registry、Project Control、React Runtime、Creator Python 和 Fixture 均来自上述 HEAD。使用 `pnpm install --frozen-lockfile`、`node scripts/prepare-host-packages.mjs` 和 `node scripts/run-python-tests.mjs --setup-only`，新建依赖及 Python 环境，没有复制旧 dist 或 Framework/Runtime。正式准备状态摘要保存在 host-baseline/preparation-state.json。所有 Project Control/初始化进程均在当前包构建后启动，未观察到 CREATOR_PROJECT_CONTROL_RESTART_REQUIRED。
+通过 fetch 确认最新 dev，并创建隔离工作树 `/Users/yifei/.codex/worktrees/host-ui-rerun/AgentUICreator`。Source Registry、Operator、React Runtime、Creator Python 和 Fixture 均来自上述 HEAD。使用 `pnpm install --frozen-lockfile`、`node scripts/prepare-host-packages.mjs` 和 `node scripts/run-python-tests.mjs --setup-only`，新建依赖及 Python 环境，没有复制旧 dist 或 Framework/Runtime。正式准备状态摘要保存在 host-baseline/preparation-state.json。所有 Operator/初始化进程均在当前包构建后启动，未观察到 CREATOR_OPERATOR_RESTART_REQUIRED。
 
 另建真实 Platform Host，初始化 exit=0；`npm run verify:ui` status=passed。官方 CSS 的两个祖先状态条件现在均以 `.agent-identity-plugin:where(...) .agent-identity-heading` 为根。完整样式与验证日志在 host-baseline/。两个历史错误码均未出现。
 

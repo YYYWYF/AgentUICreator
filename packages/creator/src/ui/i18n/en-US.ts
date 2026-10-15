@@ -1,4 +1,18 @@
 export const enUS = {
+  "creatorDock": {
+    "label": "Creator Agent",
+    "collapse": "Collapse Creator",
+    "started": "Creator is running",
+    "hint": "Open Creator Agent above to select a project and install UI capabilities."
+},
+  "launcher": {
+    "help": "Agent UI Creator\n\nUsage:\n  agent-ui-creator                 Open Creator in the browser\n  agent-ui-creator --message <request> --project <directory>\n\nOptional:\n  -p, --project      Select an initial project\n  -c, --config-root  Directory containing .env.creator.local\n  -m, --message      Run one request in the terminal\n  -h, --help         Show help\n",
+    "started": "Creator is running: {0}",
+    "stop": "Press Ctrl+C to stop. Select your project and capabilities in Creator.",
+    "browserUnavailable": "Could not open the browser automatically. Open the address above.",
+    "failed": "Could not start Creator: {0}",
+    "invalidPort": "CREATOR_PORT must be an integer between 0 and 65535."
+},
   "commands": {
     "integrateAgentUI": "Help me integrate Agent UI into this project.",
     "install": "Install capability",
@@ -317,7 +331,7 @@ export const enUS = {
     "projectFilesWillBeKept": "Project files will be kept",
     "refreshWorkspaceNotReady": "Project inspection did not complete successfully. Review the project status before retrying; resources were not refreshed.",
     "refreshRuntimeUnavailable": "Creator runtime is unavailable. Review the service status and retry.",
-    "projectControlRestartRequired": "Project Control is out of date. Restart Creator using pnpm dev, then refresh.",
+    "operatorRestartRequired": "Operator is out of date. Restart Creator using pnpm dev, then refresh.",
     "projectInspectionFailedAdvice": "Project inspection failed. Review the technical details, fix the reported issue, and refresh.",
     "refresh": "Refresh",
     "reloadCurrentProjectAndPanelData": "Reload current project and panel data",
@@ -383,6 +397,7 @@ export const enUS = {
     "confirmTheseUpdates": "Confirm these updates",
     "message": " {0} → {1}",
     "notInstalledUntracked": "Not installed / untracked",
+    "requiredByPlugins": "Required by: {0}",
     "foundationDependency": "(Foundation dependency)",
     "keepCurrentSource": "(Keep current source)",
     "expectedChanges": "Expected changes",
@@ -423,9 +438,7 @@ export const enUS = {
     "askAgentWithContext": "Ask Agent with context",
     "sendTextImagesAndFiles": "Send text, images, and files",
     "generateDownloadableFilesWithTools": "Generate downloadable files with tools",
-    "interactiveA2UIForm": "Interactive A2UI form",
-    "a2UIOrderConfirmationCard": "A2UI order confirmation card",
-    "fillAFormWithFrontendTools": "Fill a form with frontend tools",
+    "fillAFormWithFrontendTools": "Collect information in a conversation form",
     "openADialogWithFrontendTools": "Open a dialog with frontend tools",
     "askTheUserAQuestionAndContinue": "Ask the user a question and continue",
     "runSeveralConversationsConcurrently": "Run several conversations concurrently",
@@ -477,7 +490,7 @@ export const enUS = {
     "stateAndExecutionPlans": "State and execution plans",
     "structuredResultsAndInteractiveUI": "Structured results and interactive UI",
     "subagentCollaboration": "Subagent collaboration",
-    "runControlAndRecovery": "Run control and recovery",
+    "runOperatorAndRecovery": "Run control and recovery",
     "otherDemos": "Other demos",
     "creatorDoesNotProvideTheMockControlAPI": "Creator does not provide the Mock control API yet. Restart its development service.",
     "mockRequestFailed": "Mock request failed ({0})",
@@ -525,7 +538,7 @@ export const enUS = {
     "someDemosRequireExtraAgentUIResourcesCreator": "Some demos require extra Agent UI resources. Creator checks and offers installation before running.",
     "checkingDemoSupportInTheCurrentProject": "Checking demo support in the current project…",
     "couldNotCheckProjectResourcesSelectAndInitialize": "Could not check project resources. Select and initialize a project first.",
-    "projectControlRestartRequired": "Creator's project control service is out of date. Restart Creator and try again.",
+    "operatorRestartRequired": "Creator's operator service is out of date. Restart Creator and try again.",
     "replayDurationMultiplier": "Replay duration multiplier",
     "replayDurationUpdatedForTheNextRequest": "Replay duration updated for the next request.",
     "completeImmediately": "Complete immediately",
@@ -565,7 +578,6 @@ export const enUS = {
     "toolCalls": "Tool calls",
     "stateAndPlans": "State and plans",
     "contentComponents": "Content components",
-    "a2UIInteractiveUI": "A2UI interactive UI",
     "subagents": "Subagents",
     "runsAndConversations": "Runs and conversations",
     "nameDescriptionOrScenarioID": "Name, description, or scenario ID"
@@ -673,8 +685,7 @@ export const enUS = {
     "multimodal-input": "Send text, a small image, or a PDF using standard AG-UI multimodal input. A fixed response does not verify attachments; inspect the actual request.",
     "reasoning-chat": "Simulate reasoning followed by a final response.",
     "file-output": "Backend generate_file returns a virtual PDF URL. A named Tool UI renders the file card and download action.",
-    "a2ui-interactive-order": "A declarative Basic Catalog surface with native A2UI action continuation.",
-    "ask-user-question": "Ask a question, select options, return a tool result, and continue with assistant-ui Human Tools.",
+    "ask-user-question": "Stream reasoning, ask a question, and submit a tool result to continue with assistant-ui Human Tools.",
     "composer-slash": "One slash-command list supports frontend /new and Agent directive /summarize.",
     "source-citations": "search_sources returns application-defined source data. A named Tool UI renders official Sources.",
     "simple-chat": "Simulate a plain-text streaming response.",
@@ -700,11 +711,10 @@ export const enUS = {
     "cancel-before-first-output": "Wait 10 seconds before the first output. Click Stop to explore cancellation of an empty response.",
     "composer-mention": "Type @ to search a demo directory, select a person, and send. Inspect the stable employee ID in the request.",
     "markdown-showcase": "Stream common Markdown and GFM content, including code blocks.",
-    "a2ui-form-controls": "Official Basic Catalog controls with native surface conversion and action continuation.",
     "multi-message-response": "One response contains three consecutive assistant messages sharing response actions.",
     "tool-long-running": "Simulate a two-minute tool. Use the development speed control to accelerate it.",
     "quote-reply": "Select assistant text, quote it, and send a follow-up. Quoting is a user interaction rather than an AG-UI event.",
     "web-search": "Search the web and display results through a dedicated Tool UI.",
-    "frontend-tool-fill-form": "Fill a form with a standard AG-UI frontend tool without submitting it."
+    "frontend-tool-fill-form": "Fill multiple fields in a conversation card, validate, and submit a tool result to continue the Agent."
   }
 };

@@ -383,7 +383,7 @@ class CreatorRunLogger:
         change_layer_metrics: Mapping[str, object] | None = None,
         composition_fast_path_metrics: Mapping[str, object] | None = None,
         source_grounding_metrics: Mapping[str, object] | None = None,
-        project_control_metrics: Mapping[str, object] | None = None,
+        operator_metrics: Mapping[str, object] | None = None,
         validation_metrics: Mapping[str, object] | None = None,
         recovery_metrics: Mapping[str, object] | None = None,
         action_selector_metrics: Mapping[str, object] | None = None,
@@ -457,8 +457,8 @@ class CreatorRunLogger:
                     else {}
                 ),
                 **(
-                    {"projectControlMetrics": dict(project_control_metrics)}
-                    if project_control_metrics is not None
+                    {"operatorMetrics": dict(operator_metrics)}
+                    if operator_metrics is not None
                     else {}
                 ),
                 **(

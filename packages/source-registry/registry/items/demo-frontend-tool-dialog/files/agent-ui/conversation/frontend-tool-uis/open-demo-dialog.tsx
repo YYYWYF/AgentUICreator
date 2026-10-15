@@ -1,5 +1,5 @@
-import type { ConversationToolCallProps } from "@agent-ui/react";
-import type { ConversationFrontendToolUIRegistry } from "@agent-ui/runtime-conversation";
+import type { ConversationToolCallProps } from "@za38.03/agent-ui-react";
+import type { ConversationFrontendToolUIRegistry } from "@za38.03/agent-ui-runtime";
 import { useAgentUILocale } from "../../i18n/useAgentUILocale";
 function titleOf(value: unknown): string {
   if (value === null || typeof value !== "object") return "";

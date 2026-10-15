@@ -1,5 +1,5 @@
 {
-  "name": "@agent-ui/source-registry",
+  "name": "@za38.03/agent-ui-source-registry",
   "version": "0.1.0",
   "description": "Development-time source registry for Agent UI foundations and primitives",
   "type": "module",
@@ -14,16 +14,11 @@
   },
   "files": [
     "dist",
-    "registry/**",
     "THIRD_PARTY_NOTICES.md",
-    "UPSTREAM_ADAPTATION.md",
-    "fixtures/releases/**"
+    "UPSTREAM_ADAPTATION.md"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node --import tsx scripts/verify-package-services.mjs",
+    "build": "tsc -p tsconfig.build.json && node scripts/prepare-distribution.mjs && node --import tsx scripts/verify-package-services.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "sync:generative-ui-upstream": "node scripts/sync-generative-ui-upstream.mjs",
@@ -38,5 +33,8 @@
     "zod": "4.5.4",
     "tsx": "4.20.6",
     "esbuild": "0.25.12"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

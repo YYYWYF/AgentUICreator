@@ -15,10 +15,10 @@ import type {
   LoadedAgentUISourceRegistry,
 } from "./types.js";
 
+// Source-mode tooling reads the workspace; published JS reads its curated assets.
+const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
 export const DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "registry",
+  moduleDirectory, path.basename(moduleDirectory) === "dist" ? "registry" : "../registry",
 );
 
 async function readJson(filePath: string): Promise<unknown> {

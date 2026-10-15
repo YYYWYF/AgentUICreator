@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, ref, watch } from "vue";
-import "@agentui/web-component/register";
-import type { AgentUIConfig, AgentUIElement, AgentUIEventDetails } from "@agentui/web-component";
+import "@za38.03/agent-ui-web-component/register";
+import type { AgentUIConfig, AgentUIElement, AgentUIEventDetails } from "@za38.03/agent-ui-web-component";
 const props = defineProps<{ config: AgentUIConfig }>();
 const emit = defineEmits<{
   ready: [detail: AgentUIEventDetails["agent-ready"]];

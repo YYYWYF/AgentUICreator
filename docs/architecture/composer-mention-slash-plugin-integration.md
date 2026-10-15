@@ -162,8 +162,8 @@ DirectiveText 属于 canonical 消息呈现，因此删除 Mention / Slash 插�
 | Mock Agent 全量测试 | 95 项通过 |
 | 新资源安装、资源所有权、Plugin 样式检查 | 10 项通过 |
 | React 源码 typecheck、公开声明构建、上游 guard | 通过 |
-| Project Control / Source Registry / Bootstrap / Mock Agent typecheck | 通过 |
+| Operator / Source Registry / Bootstrap / Mock Agent typecheck | 通过 |
 | 三模式临时生成项目独立 typecheck / production build，Platform Demo build | 通过 |
 | React 全量对照 | 21 个既有测试失败、7 个运行错误；失败集合无新增，locale 断言已修正 |
-| React migrated typecheck、旧 Project Control migrated fixtures | 仍有历史问题，未声明通过 |
+| React migrated typecheck、旧 Operator migrated fixtures | 仍有历史问题，未声明通过 |
 | 浏览器人工验收 | 未执行 |

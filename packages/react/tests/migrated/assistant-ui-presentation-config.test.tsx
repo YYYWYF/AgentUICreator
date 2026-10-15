@@ -1,4 +1,4 @@
-import { generatedProjectFixture } from "../../../project-control/tests/support/generated-project";
+import { generatedProjectFixture } from "../../../operator/tests/support/generated-project";
 import { describe, expect, it } from "vitest";
 
 import {

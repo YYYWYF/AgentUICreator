@@ -93,14 +93,14 @@ typecheck、build、上游检查或人工 UI 验收。
 | --- | --- |
 | `pnpm --filter @agent-ui/mock-agent exec vitest run tests/file-output.test.ts` | 1 test passed |
 | `pnpm --filter @agent-ui/react exec vitest run tests/migrated/generated-file-ag-ui-integration.test.tsx tests/migrated/generated-file-message.test.tsx` | 2 files / 23 tests passed |
-| `pnpm --filter @agent-ui/project-control exec vitest run tests/host-public-entry.integration.test.ts` | 4 tests passed |
+| `pnpm --filter @agent-ui/operator exec vitest run tests/host-public-entry.integration.test.ts` | 4 tests passed |
 | `pnpm --filter @agent-ui/mock-agent typecheck` | Passed |
 | `pnpm --filter @agent-ui/mock-agent build` | Passed |
 | `pnpm --filter @agent-ui/react typecheck` | Passed |
 | `pnpm --filter @agent-ui/react build` | Passed; public declaration boundary OK |
 | `pnpm --filter @agent-ui/source-registry typecheck` | Passed |
 | `pnpm --filter @agent-ui/source-registry build` | Passed |
-| `pnpm --filter @agent-ui/project-control typecheck` | Passed |
+| `pnpm --filter @agent-ui/operator typecheck` | Passed |
 
 共 28 个 focused tests 通过。验收重点对应如下：
 

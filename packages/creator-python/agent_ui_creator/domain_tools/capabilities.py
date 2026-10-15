@@ -28,7 +28,7 @@ def component_navigation(root: Path, *, limit: int = 200) -> tuple[list[dict[str
                 "id": relative, "kind": "host-component", "sourcePath": "/" + relative,
                 "integration": "inspect-source-then-adapter",
                 "behaviorVerified": False,
-                **({"suggestedFacade": "useConversationComposer from @agent-ui/react",
+                **({"suggestedFacade": "useConversationComposer from @za38.03/agent-ui-react",
                     "preserveBehavior": ["send", "stop", "attachment", "draft"],
                     "suggestedSlot": "composer"} if "composer" in name.lower() else {}),
             })
@@ -42,7 +42,7 @@ def capability_navigation(project: dict, sources: dict, root: Path | None) -> di
     plugins = project.get("pluginAssets", [])
     summaries = [{key: plugin[key] for key in ("pluginId", "name", "description", "capabilities", "authoring", "childSlots", "manifestPath", "definitionPath", "layoutWidth", "applicationGate", "selected") if key in plugin}
                  for plugin in plugins if isinstance(plugin, dict)]
-    # Full ProjectControl inspection is the owner of installed asset identity.
+    # Full Operator inspection is the owner of installed asset identity.
     plugin_ids = [p["pluginId"] for p in plugins if isinstance(p, dict) and isinstance(p.get("pluginId"), str)]
     return {
         "authority": "navigation-only; inspect the referenced declaration/source before implementation",

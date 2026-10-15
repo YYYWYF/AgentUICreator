@@ -1,6 +1,6 @@
 import { useMemo, type ReactNode } from "react";
-import { ConversationToolkitProvider } from "@agent-ui/react";
-import { useConversationA2uiAction } from "@agent-ui/runtime-conversation";
+import { ConversationToolkitProvider } from "@za38.03/agent-ui-react";
+import { useConversationA2uiAction } from "@za38.03/agent-ui-runtime-conversation";
 import { createA2uiConversationToolkit } from "./create-a2ui-toolkit";
 
 export function A2uiConversationIntegration({ children }: { children: ReactNode }) {

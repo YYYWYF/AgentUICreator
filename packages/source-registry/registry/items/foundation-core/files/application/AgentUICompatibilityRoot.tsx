@@ -1,7 +1,7 @@
 import { ApplicationSessionBoundary, useApplicationSessionEpoch } from "./ApplicationSessionBoundary";
 import { AgentSurface } from "./AgentSurface";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { ConversationRuntimeProvider, useConversationRuntimeBridge } from "@agent-ui/runtime-conversation";
+import { ConversationRuntimeProvider, useConversationRuntimeBridge } from "@za38.03/agent-ui-runtime";
 import type { ResolvedAgentUICompatibilityConfig as ResolvedAgentUIConfig, AgentUIEmit } from "./compatibility-config";
 import appUIModelSource from "../app-ui/app-ui.json?raw";
 import type { AppAgentState } from "../agent-contract/agent-state";

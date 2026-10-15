@@ -3,7 +3,7 @@ import {
   JobProgress,
   type ConversationToolCallComponent,
   type ConversationToolCallProps,
-} from "@agent-ui/react";
+} from "@za38.03/agent-ui-react";
 
 import {
   projectJobProgressState,

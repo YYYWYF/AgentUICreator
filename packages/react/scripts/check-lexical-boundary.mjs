@@ -41,7 +41,7 @@ await visit(path.join(reactRoot, "index.ts"));
 const itemsRoot = path.join(root, "packages/source-registry/registry/items");
 for (const file of await files(itemsRoot)) {
   if (!/[/\\]plugins[/\\].*\.[jt]sx?$/u.test(file)) continue;
-  if (upstream.test(await readFile(file, "utf8"))) errors.push(`${path.relative(root, file)}: Source Plugins must use @agent-ui/react/lexical`);
+  if (upstream.test(await readFile(file, "utf8"))) errors.push(`${path.relative(root, file)}: Source Plugins must use @za38.03/agent-ui-react/lexical`);
 }
 // Optional peers never make the main facade install the editor. The Source Item
 // and workspace lock must resolve exactly one Lexical release family.

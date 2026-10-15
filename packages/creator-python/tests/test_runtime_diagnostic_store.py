@@ -8,7 +8,7 @@ import pytest
 
 from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.domain_state import DomainObservationContext
-from agent_ui_creator.project_control import ProjectControlMetrics
+from agent_ui_creator.operator import OperatorMetrics
 from agent_ui_creator.runtime_diagnostics import (
     RuntimeDiagnosticEnvelope,
     RuntimeDiagnosticInspectionService,
@@ -356,8 +356,8 @@ def test_composition_verification_stays_stale_after_fresh_unrelated_diagnostic(
     activity.touch("plugins/task-status/index.tsx")
     store.record(diagnostic("thread-1", app_hash, status="resolved"))
 
-    class ProjectControl:
-        metrics = ProjectControlMetrics()
+    class Operator:
+        metrics = OperatorMetrics()
 
         async def inspect_ui_project(self):
             return {
@@ -381,7 +381,7 @@ def test_composition_verification_stays_stale_after_fresh_unrelated_diagnostic(
     inspection = RuntimeDiagnosticInspectionService(
         store=store,
         thread_id="thread-1",
-        project_control=ProjectControl(),
+        operator=Operator(),
         observations=DomainObservationContext(),
         activity=activity,
     )
@@ -404,8 +404,8 @@ def test_non_ready_application_does_not_require_workspace_composition(
         composition("thread-1", app_hash, application_phase=application_phase)
     )
 
-    class ProjectControl:
-        metrics = ProjectControlMetrics()
+    class Operator:
+        metrics = OperatorMetrics()
 
         async def inspect_ui_project(self):
             return {
@@ -431,7 +431,7 @@ def test_non_ready_application_does_not_require_workspace_composition(
     inspection = RuntimeDiagnosticInspectionService(
         store=store,
         thread_id="thread-1",
-        project_control=ProjectControl(),
+        operator=Operator(),
         observations=DomainObservationContext(),
         activity=activity,
     )
@@ -452,8 +452,8 @@ def test_ready_application_still_requires_workspace_composition(tmp_path):
     store = RuntimeDiagnosticStore()
     store.record(composition("thread-1", app_hash, application_phase="ready"))
 
-    class ProjectControl:
-        metrics = ProjectControlMetrics()
+    class Operator:
+        metrics = OperatorMetrics()
 
         async def inspect_ui_project(self):
             return {
@@ -482,7 +482,7 @@ def test_ready_application_still_requires_workspace_composition(tmp_path):
     inspection = RuntimeDiagnosticInspectionService(
         store=store,
         thread_id="thread-1",
-        project_control=ProjectControl(),
+        operator=Operator(),
         observations=DomainObservationContext(),
         activity=activity,
     )
@@ -575,8 +575,8 @@ def test_runtime_diagnostic_agent_surface_contains_only_authoring_semantics(tmp_
         )
     )
 
-    class ProjectControl:
-        metrics = ProjectControlMetrics()
+    class Operator:
+        metrics = OperatorMetrics()
 
         async def inspect_ui_project(self):
             return {
@@ -603,7 +603,7 @@ def test_runtime_diagnostic_agent_surface_contains_only_authoring_semantics(tmp_
     inspection = RuntimeDiagnosticInspectionService(
         store=store,
         thread_id="thread-1",
-        project_control=ProjectControl(),
+        operator=Operator(),
         observations=DomainObservationContext(),
         activity=activity,
     )

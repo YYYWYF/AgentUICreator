@@ -23,7 +23,7 @@ PLUGIN_RESPONSIVE_BOUNDARY = PASS
 
 ## Creator 最小能力
 
-`prepare_plugin_responsive_repair` 是自主 Coding Agent 可调用的只读工具，不改变 Agent 的执行模型。通过已有 Project Control inspect/verify 协议获取真实 Plugin 身份、源码和 warnings，返回 plan、精确 CSS anchors、原因、before/after diff 和源码哈希。拒绝官方依赖源码、非 CSS/未检查文件、不唯一或陈旧 anchor、无修改理由，以及需要额外发现的嵌套/截断源码。工具不写文件、不授予写权限；沿用已有确认和 scoped source edit 工具。
+`prepare_plugin_responsive_repair` 是自主 Coding Agent 可调用的只读工具，不改变 Agent 的执行模型。通过已有 Operator inspect/verify 协议获取真实 Plugin 身份、源码和 warnings，返回 plan、精确 CSS anchors、原因、before/after diff 和源码哈希。拒绝官方依赖源码、非 CSS/未检查文件、不唯一或陈旧 anchor、无修改理由，以及需要额外发现的嵌套/截断源码。工具不写文件、不授予写权限；沿用已有确认和 scoped source edit 工具。
 
 模型先运行 validate 捕获静态 baseline，检查 cascade、组件结构和真实 Slot，判断 warning 是实际风险、误报还是不确定，再提交具体 plan 并请求确认。CSS-in-JS、复杂 utility、inline layout 和动画必须暂停具体审查，不能猜测重写。纯主题变量不需修改组件。确认后重新读源并校验哈希；变更后 validate 和浏览器验收。根容器、Flex/Grid、长文本和固定宽度策略在现有开发 Skill 中说明，固定宽度可用 `width:min(100%,500px); max-width:100%`。
 
@@ -55,7 +55,7 @@ PLUGIN_RESPONSIVE_BOUNDARY = PASS
 | 原始失败 + 修复后浏览器四组合 | 8/8 PASS，原始四项为 EXPECTED_RESPONSIVE_FAIL |
 | 响应式 repair 单元测试 | 11 PASS：风险解析、策略、exact diff、边界/陈旧 anchor、只读工具、validate 计数/缓存/run reset、新插件创建 |
 | Plugin CSS focused tests | 5 PASS，风险保持 warning、安全根规范通过 |
-| Project Control typecheck / build / 协议契约 | PASS |
+| Operator typecheck / build / 协议契约 | PASS |
 | Browser 测试 TypeScript | PASS |
 | 修复 B Host typecheck / build / verify:ui | PASS |
 | 真实 Creator plan 工具 before/after 联调 | PASS，riskCount 1 → 0，无源码修改 |
@@ -65,7 +65,7 @@ PLUGIN_RESPONSIVE_BOUNDARY = PASS
 
 新插件响应式规范、创建工具说明和开发 Skill 保留；新增测试通过真实 create-only Plugin 创建服务保存并加载安全根 CSS。未新增生成模板、UI 库依赖或固定流程。本轮不运行新的模型生成验收；该测试验证确定性的 authoring/create 接口与规范回归，不能保证任意模型输出自动正确。
 
-扩大检查发现既有失败，不能宣称仓库全套测试绿色：Creator validation/differential tests 当前 15 FAIL，在独立修改前 Python package 同样 15 FAIL（同名失败）；宽范围 `verify-ui.test.ts` 当前 13 FAIL，另有 23 PASS，独立修改前 Project Control 副本同样 13 FAIL / 23 PASS；两组失败名称一致，见 baseline 日志。与本次专项、新增测试和真实 B Host 的 PASS 分开报告。
+扩大检查发现既有失败，不能宣称仓库全套测试绿色：Creator validation/differential tests 当前 15 FAIL，在独立修改前 Python package 同样 15 FAIL（同名失败）；宽范围 `verify-ui.test.ts` 当前 13 FAIL，另有 23 PASS，独立修改前 Operator 副本同样 13 FAIL / 23 PASS；两组失败名称一致，见 baseline 日志。与本次专项、新增测试和真实 B Host 的 PASS 分开报告。
 
 当前工作区仍有此前的 React shimmer/global styles、Tailwind 构建/依赖和 fixture package 未提交改动。本次没有修改或提交这些内容；浏览器使用当前 built React 包，执行环境已记录，不能描述为干净 checkout 的全产品验收。未改 AgentUIRoot、preflight、全局 styles.css、vendor、Plugin Runtime、Portal 或 Host UI 样式。现有 pnpm lockfile 漂移、AntD 5/React 19 提示、Vite native-loader 提示保留在日志；仅去除日志行末空白以满足 diff check。
 

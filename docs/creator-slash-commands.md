@@ -15,18 +15,18 @@ components in the Host. Older facade versions without this export do not adverti
 the command capability. Missing or unsupported canonical configuration removes
 this capability from the catalog. Custom preset IDs remain protocol data.
 
-ProjectControl reads `.agent-ui/project.json`, resolves its `sourceRoot`, and edits
+Operator reads `.agent-ui/project.json`, resolves its `sourceRoot`, and edits
 only the string literal of exported `agentUIThemeConfig` in
 `agent-ui/theme/theme-config.ts`. Native TypeScript AST parsing rejects dynamic or
 spread configuration. It validates the preset and project statically under the
-existing ProjectControl admission lock. This changes the generated application,
+existing Operator admission lock. This changes the generated application,
 not Workbench's own theme and not merely the current Preview service.
 
 The authenticated Python Host storage port checks pending questions, active runs,
 and expected file contents under the existing writing lock. It persists an
 unverified before/after record in `CreatorTransactionStore`, journals the pending
 operation, atomically publishes the candidate, and invokes the managed
-ProjectControl runtime's `verifyUIProject` against the changed files. The runtime
+Operator runtime's `verifyUIProject` against the changed files. The runtime
 URL must match the project's installed managed control entry; no caller-selected
 module is executed. Only a passed result advances `validationRevision` and returns
 a verified receipt. Failed results, verifier exceptions, timeouts, or finalization
@@ -45,7 +45,7 @@ in place to avoid racing an iframe remount against this reload.
 
 The `theme-commands` CI job runs focused regressions and
 `test:e2e:theme-commands`: a disposable generated Host with real command APIs,
-Python transaction storage, ProjectControl verification and Preview. It covers
+Python transaction storage, Operator verification and Preview. It covers
 persistent Violet rendering, reload, shared undo/reapply, idempotence and invalid
 input without a Creator Model request. Static verification receipts do not claim
 runtime or visual verification.

@@ -5,7 +5,7 @@
 > 配套实施文档：[Creator 开发控制面实施计划](./creator-control-plane-implementation-plan.md)
 
 > Conversation Runtime 更新：当前生产链路由
-> `packages/runtime-conversation` 的 `ConversationRuntimeProvider` 通过
+> `packages/runtime` 的 `ConversationRuntimeProvider` 通过
 > `@assistant-ui/react-ag-ui` / `useAgUiRuntime()` 和 `@ag-ui/client` 接入 AG-UI。
 > 旧版 Generic Runtime 的传输设计仅作为历史背景；旧 Adapter 包已退役。
 
@@ -179,7 +179,7 @@ Creator 负责：
 反馈证据
 ```
 
-Creator 不进入生成应用的生产依赖。项目观察、语义化修改、撤销、澄清、诊断收集和完成门禁都属于开发控制面；协议无关的 Runtime 合同、正式 Conversation AG-UI 集成和 React Layout Runtime 分别由 `@agent-ui/runtime-core`、`@agent-ui/runtime-conversation`、`@agent-ui/runtime-react` 提供，Plugin Runtime、AppUIModel、Plugin 实现和项目服务仍属于生成项目。这些 Runtime Library 作为普通生产依赖编译进最终 Frontend Bundle，不依赖 Creator。
+Creator 不进入生成应用的生产依赖。项目观察、语义化修改、撤销、澄清、诊断收集和完成门禁都属于开发控制面；协议无关的 Runtime 合同、正式 Conversation AG-UI 集成和 React Layout Runtime 分别由 `@za38.03/agent-ui-runtime-core`、`@za38.03/agent-ui-runtime`、`@za38.03/agent-ui-renderer` 提供，Plugin Runtime、AppUIModel、Plugin 实现和项目服务仍属于生成项目。这些 Runtime Library 作为普通生产依赖编译进最终 Frontend Bundle，不依赖 Creator。
 
 不要为了提升 Creator 的开发体验，把动态 Package Runner、任意运行时源码加载器或 Creator 私有协议带入最终应用。
 
@@ -675,15 +675,15 @@ interface UIPluginActions {
 
 `conversation`、`messages`、`state`、`run`、`executions` 与 `interrupts` 由 Agent Runtime 提供稳定、协议无关的前端状态。`run` 表示一个 wire request；当标准 structured interrupt 暂停执行时，其状态为 `awaiting-input`。`interrupts` 只包含当前 Conversation 尚待处理的输入，不是历史记录。`executions` 是当前 fresh user turn 的 live execution projection：普通 `sendMessage` 开始新的 execution chain 并清理上一条 chain，由 Interrupt 触发的 `resumeInterrupts` 是原 chain 的 continuation，因此 Tool、Reasoning、Step 与 Subagent execution 跨多个 resume run 保留，直到下一次 fresh user turn；它仍然不是持久化 execution history。Message 通过 `producer` 保留 Root/Subagent 归属，并只在观察到标准流式生命周期时携带 `streamStatus`。
 
-`events` 是 Backend-originated、application-specific、live-only 的瞬时 Application Event 通道，产品能力名称为 **Custom Event Protocol**。AG-UI `CUSTOM` 的 wire 集成由 `@agent-ui/runtime-conversation` 持有；Generated Application 在 `agent-contract/agent-events.ts` 统一注册名称和 payload schema，Plugin Manifest 的 `data.events` 只声明消费权限。未知名称、非法 payload 和未声明订阅必须丢弃并产生无 payload 的诊断；每个 listener 获得独立 payload clone，handler 错误不得影响其他 listener 或 Agent Run。Event 不 replay、不持久化、不进入 Snapshot，也不得替代 State、Activity 或标准 lifecycle。
+`events` 是 Backend-originated、application-specific、live-only 的瞬时 Application Event 通道，产品能力名称为 **Custom Event Protocol**。AG-UI `CUSTOM` 的 wire 集成由 `@za38.03/agent-ui-runtime` 持有；Generated Application 在 `agent-contract/agent-events.ts` 统一注册名称和 payload schema，Plugin Manifest 的 `data.events` 只声明消费权限。未知名称、非法 payload 和未声明订阅必须丢弃并产生无 payload 的诊断；每个 listener 获得独立 payload clone，handler 错误不得影响其他 listener 或 Agent Run。Event 不 replay、不持久化、不进入 Snapshot，也不得替代 State、Activity 或标准 lifecycle。
 
-标准 HITL 通过 `RUN_FINISHED` 的 structured interrupt outcome 映射为应用可消费的中断状态，并通过 Conversation Runtime 的恢复动作发起新 Run。Plugin 必须一次覆盖全部 pending interrupt，可通过 `producer` 关联 Root/Subagent、通过 `toolExecutionId` 关联 Tool，但不得直接消费 AG-UI 类型、SDK pending object、CUSTOM/RAW event，也不得把响应伪装成普通 UserMessage。AG-UI 的 `threadId`、`runId`、`subagentRunId`、`Interrupt`、`ResumeEntry` 和 Event 类型由 `@agent-ui/runtime-conversation` 的集成边界处理；Plugin 不直接订阅底层 Run Event。
+标准 HITL 通过 `RUN_FINISHED` 的 structured interrupt outcome 映射为应用可消费的中断状态，并通过 Conversation Runtime 的恢复动作发起新 Run。Plugin 必须一次覆盖全部 pending interrupt，可通过 `producer` 关联 Root/Subagent、通过 `toolExecutionId` 关联 Tool，但不得直接消费 AG-UI 类型、SDK pending object、CUSTOM/RAW event，也不得把响应伪装成普通 UserMessage。AG-UI 的 `threadId`、`runId`、`subagentRunId`、`Interrupt`、`ResumeEntry` 和 Event 类型由 `@za38.03/agent-ui-runtime` 的集成边界处理；Plugin 不直接订阅底层 Run Event。
 
 `ConversationToolkitEntry.interaction.type = "interrupt"` 将 Human Tool 的提交通道声明为 lifecycle resume；省略或 `normal` 保留已有 `addResult` continuation。此声明是前端集成策略，不扩展 AG-UI wire Tool schema，也不在前端合成服务端 checkpoint。Backend 必须发出 `TOOL_CALL_START/ARGS/END`，随后以 `RUN_FINISHED.outcome = { type: "interrupt", interrupts: [...] }` 暂停，并使用 `toolCallId` 关联问题。问题内容沿用已完成参数流中的 args；通用非 Tool 中断的数据可放在现有 metadata 中。
 
 Canonical Runtime 为这种 renderer 提供 `resumeInterrupt(payload)`，移除 `addResult`，并且只允许当前可回答会话中的 pending Tool Call 提交。单卡回答仍经过完整 pending response-set 校验；有多个中断时，应用必须通过现有 `resumeInterrupts` 一次提交全部响应。回答不会追加 UserMessage 或客户端 ToolMessage；服务端恢复后才能返回对应 `TOOL_CALL_RESULT`。插件不持有独立 Agent Client 或中断生命周期状态。
 
-可选 `ask-user-question-demo` 资源沿用 `humanQuestion` locale namespace，支持 `single`、`multiple` 和 `text` 问题（文本最长 4000 字符），统一回答为 `{ answers: Record<stepId, string[]> }`。现有已生成项目需要更新该资源及官方 Runtime/React 包；历史 release fixture 保持不变。Creator 自身已使用的 question interrupt/resume 通道不受此资源迁移影响。
+可选 `ask-user-question-demo` 与 `human-form-demo` 使用普通 Human Tool 流程：Backend 发出 Tool Call 后以 `success` 收尾，前端等待用户提交，通过 `addResult` 生成 ToolMessage，并由 canonical Runtime 发起 continuation。它们不声明 `interaction.type = "interrupt"`，不提交 `resume[]`。`ask-user-question-demo` 沿用 `humanQuestion` locale namespace，支持 `single`、`multiple` 和 `text` 问题（文本最长 4000 字符），统一回答为 `{ answers: Record<stepId, string[]> }`。现有已生成项目需要更新对应资源；历史 release fixture 保持不变。审批示例保留后端 structured interrupt/resume 流程，Creator 自身的 question interrupt/resume 通道不受影响。
 
 不要过早加入大量 Runtime API。
 
@@ -776,7 +776,7 @@ Generated Application 使用 Zod strict object 作为 Tool 输入校验和 JSON 
 
 # 9. UI Runtime
 
-稳定的 React Layout Runtime 由官方 `@agent-ui/runtime-react` 包维护。它拥有 `Row`、`Column`、`Stack`、`Panel`、`Slot` 的 Runtime Layout Language、`LayoutRenderer` 和 Layout CSS，只接收编译后的 `root`、`theme` 与项目提供的 `renderSlot`。生成项目继续拥有 AppUIModel、AppUIRuntimeModel、Compiler、SlotRegistry、Plugin Runtime、Services 与 Agent Contract。
+稳定的 React Layout Runtime 由官方 `@za38.03/agent-ui-renderer` 包维护。它拥有 `Row`、`Column`、`Stack`、`Panel`、`Slot` 的 Runtime Layout Language、`LayoutRenderer` 和 Layout CSS，只接收编译后的 `root`、`theme` 与项目提供的 `renderSlot`。生成项目继续拥有 AppUIModel、AppUIRuntimeModel、Compiler、SlotRegistry、Plugin Runtime、Services 与 Agent Contract。
 
 Creator 改变具体布局时只通过 `mutate_app_ui_model` 修改 `app-ui/app-ui.json`。新增 Grid、Dock 等 Layout Language 才是官方 Runtime 的框架开发任务。Preset 只在项目初始化时提供初始 AppUIModel，不得在启动时覆盖用户后续修改；Mode 不参与 AppUICompiler 或 Plugin 组合分支。
 
@@ -1160,10 +1160,10 @@ delete_ui_plugin_source
 
 Capability Catalog 由 Plugin inventory 自动生成，Active Registry 由 published composition 解析，因此不再向模型暴露 `register_plugin` / `unregister_plugin` bookkeeping 工具。
 
-专项工具通过 Agent UI 管理的 Project Control Adapter 使用目标项目自己的 Schema、Registry generator 和验证逻辑。Creator package 负责模型工具、权限、事务编排与回执，不在自身复制一份 AppUIModel 或 Plugin Contract；目标项目也不反向依赖 Creator。初始化在 `.agent-ui/control/project-control.mjs` 安装 Node 入口，正式协议 implementation 由 development-only `@agent-ui/project-control` 提供；不要求 Host 手写脚本或安装 tsx。Adapter 使用固定入口和结构化 JSON 输入输出，不能退化成可由模型传入任意 shell 命令的执行器。
+专项工具通过 Agent UI 管理的 Operator Adapter 使用目标项目自己的 Schema、Registry generator 和验证逻辑。Creator package 负责模型工具、权限、事务编排与回执，不在自身复制一份 AppUIModel 或 Plugin Contract；目标项目也不反向依赖 Creator。初始化在 `.agent-ui/operator/entry.mjs` 安装 Node 入口，正式协议 implementation 由 development-only `@za38.03/agent-ui-operator` 提供；不要求 Host 手写脚本或安装 tsx。Adapter 使用固定入口和结构化 JSON 输入输出，不能退化成可由模型传入任意 shell 命令的执行器。
 
-ProjectControl 的 canonical wire contract 是 `contracts/creator/project-control.schema.json`，
-`contracts/creator/project-control.operations.json` 是 operation/input/result/Agent exposure 的单一清单。
+Operator 的 canonical wire contract 是 `contracts/creator/operator.schema.json`，
+`contracts/creator/operator.operations.json` 是 operation/input/result/Agent exposure 的单一清单。
 TypeScript Zod request parsing 是 Host 实现细节；Python Literal/client methods 是 transport bindings，
 两者不能独立定义协议。Host 返回前与 Python 接收后均根据请求 operation 校验 canonical Result Schema，
 保持当前 response envelope。Agent Tool exposure 是独立授权面：内部 remove capability 不开放给模型。
@@ -1182,7 +1182,7 @@ Creator 可以自主选择工具。
 ```text
 workspace/
 ├── packages/
-│   └── creator/                 # 可发布的开发工具
+│   └── creator/                 # 独立发行的开发工具（包含 Mock）
 │       ├── src/                 # Agent、CLI、Vite 适配、Creator UI
 │       ├── skills/
 │       └── package.json
@@ -1200,6 +1200,21 @@ workspace/
 ```
 
 Creator 通过显式 `projectRoot` 操作目标前端；目标前端不依赖 Creator package。CLI、Vite 适配器与 Creator UI 复用同一 Creator Core，但都不进入目标前端的生产 Bundle。
+
+对外 npm 包使用 `@za38.03/agent-ui-*`，按职责独立发行和版本管理，不提供绑定所有模块的统一安装包。
+`packages/source-registry` 独立持有源码资源、元数据与 Source Release；
+`packages/operator` 以 `@za38.03/agent-ui-operator` 独立发行，包含 Bootstrap（`/bootstrap` 子路径），负责项目初始化、安装、检查和升级；
+`packages/creator` 包含 Mock Agent（`/mock-agent` 子路径），负责 Creator CLI、工作台和开发模拟服务。
+其他生产包（Runtime、React、Plugins、Web Component）保留各自职责。
+
+只修改 Bootstrap 时只发布 Operator，Source Registry 无需版本递增或重新发布。
+Operator 通过已安装的 Source Registry 依赖加载资源，不打包或复制 Registry 与测试 fixtures。
+第一方依赖由各包独立声明，发行时固定到各自依赖版本，不使用统一版本替换。
+只有接口、契约或资源兼容要求发生变化时，才更新关联依赖版本。
+
+生成项目只安装和导入需要的生产包，不能在生产模块图中导入 Creator、Operator 或 Source Registry。
+Mock 的服务端入口在 Creator 下；示例使用的纯浏览器附件适配器位于 React 的 `/demo-attachments` 独立入口。
+生成前端仍可独立构建部署。发行验证覆盖每个包的实际 tarball、类型、CLI、Registry、初始化和生产 bundle。
 
 权限：
 
@@ -1403,8 +1418,8 @@ Vite 集成和浏览器诊断 reporter 留在 TypeScript；模型、Agent loop�
 Agent 控制面。Python 启动失败必须显式失败，不得切换到另一套 Agent。
 第一阶段仅建立版本化合同、Python FastAPI health/echo sidecar、随机端口鉴权
 handshake、流式代理和 diagnostics 代理；不得在 transport 稳定前迁移 Agent，
-也不得静默 fallback。Project Control 优先调用 `.agent-ui/control/project-control.mjs`
-Node JSON 协议入口；旧 `scripts/ui-project-control.ts` / tsx 仅保留一个完整迁移周期，
+也不得静默 fallback。Operator 优先调用 `.agent-ui/operator/entry.mjs`
+Node JSON 协议入口；旧 `scripts/ui-operator.ts` / tsx 仅保留一个完整迁移周期，
 managed 路径稳定并完成 Host 回归后才能删除。AppUIModel mutation engine 不得在 Python 重复实现。
 
 第二阶段只在显式 `CREATOR_PYTHON_AGENT_MODE=minimal` 下接入预初始化的
@@ -1800,3 +1815,10 @@ UI Runtime 是运行基础设施。
 Creator 控制面的最终原则：
 
 > 让 Agent 准确观察项目、语义化修改组合、可恢复地操作用户资产，并用当前 revision 的验证和运行时证据证明结果；不要用额外运行时复杂度弥补开发控制面的缺失。
+
+
+## 当前源码交付与插件升级边界
+
+以 [包内上游实现与按插件更新](architecture/package-owned-upstream-and-plugin-updates.md) 为准：assistant-ui 实现与默认 A2UI/Generative UI 组件封装于包内部；用户工程仅接收必要适配层和可定制插件源码。保留组件扩展能力，源码插件按选择及必要依赖升级，不把所有插件绑定为统一版本。旧文中的项目内 vendor 路径仅描述历史迁移状态。
+
+A2UI 当前暂缓推出：不出现在官方资源和 Mock 示例中，不允许安装或自动启用；底层实验代码保留。普通 JSON Generative UI 不受影响。恢复条件见上述边界文档。

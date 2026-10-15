@@ -1,7 +1,7 @@
 import type {
   ConversationJobOutcome,
   JobProgressStage,
-} from "@agent-ui/react";
+} from "@za38.03/agent-ui-react";
 
 export interface JobProgressRuntimeState {
   readonly stageIndex: number;

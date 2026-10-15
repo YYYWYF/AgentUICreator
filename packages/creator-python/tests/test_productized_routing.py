@@ -42,7 +42,7 @@ from agent_ui_creator.operations.engine import (
 from agent_ui_creator.model_settings import CreatorSelectorModelSettings
 from agent_ui_creator.operations.snapshot import CreatorDomainSnapshotMetrics
 from agent_ui_creator.observability import CreatorRunTelemetry
-from agent_ui_creator.project_control import ProjectControlMetrics
+from agent_ui_creator.operator import OperatorMetrics
 from agent_ui_creator.server import create_app
 from agent_ui_creator.streaming import (
     CreatorEventBus,
@@ -286,7 +286,7 @@ def _engine(
     engine.observations = DomainObservationContext()
     engine.selector = selector
     engine.action_playbook = action_playbook
-    engine.project_control = SimpleNamespace(metrics=ProjectControlMetrics())
+    engine.operator = SimpleNamespace(metrics=OperatorMetrics())
     engine.mutation_service = SimpleNamespace(metrics=AppUIModelMutationMetrics())
     validation_calls: list[None] = []
     engine.validation = SimpleNamespace(
@@ -964,8 +964,8 @@ def _server_productized_result() -> ProductizedOperationRun:
             actionSelectorContextCharacters=900,
             totalModelCalls=1,
         ),
-        project_control=ProjectControlMetrics(),
-        repeated_project_control_reads=0,
+        operator=OperatorMetrics(),
+        repeated_operator_reads=0,
         domain_observations=DomainObservationMetrics(),
         app_ui_model_mutations=AppUIModelMutationMetrics(),
         snapshot_metrics=CreatorDomainSnapshotMetrics(builds=1),

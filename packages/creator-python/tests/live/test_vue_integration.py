@@ -17,7 +17,7 @@ from agent_ui_creator.domain_agent import create_domain_read_creator_agent, crea
 from agent_ui_creator.model_factory import create_creator_chat_model
 from agent_ui_creator.model_settings import CreatorModelSettings
 from agent_ui_creator.operations import CreatorActionSelector, CreatorActionSelectorContext
-from agent_ui_creator.project_control.client import ProjectControlClient
+from agent_ui_creator.operator.client import OperatorClient
 from agent_ui_creator.streaming.deepagent_v3_runner import DeepAgentInterrupted
 
 ROOT = Path(__file__).resolve().parents[4]
@@ -25,7 +25,7 @@ FIXTURE = ROOT / "examples/clean-vue-vite-host"
 pytestmark = [pytest.mark.live_model, pytest.mark.skipif(os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1", reason="Set CREATOR_RUN_LIVE_MODEL=1.")]
 
 
-class ObservedHost(ProjectControlClient):
+class ObservedHost(OperatorClient):
     def __init__(self, project):
         super().__init__(project_root=project)
         self.calls = []
@@ -48,7 +48,7 @@ def fresh(tmp_path):
     shutil.copytree(FIXTURE, project, ignore=shutil.ignore_patterns("node_modules", "dist", ".agent-ui", ".agentuicreator"))
     # Development tooling is installed by Host before the user request.
     subprocess.run(["node", "--input-type=module", "-e",
-                    'import { installManagedProjectControl } from "./packages/project-control/src/install.mjs"; await installManagedProjectControl(process.argv[1]);', str(project)], cwd=ROOT, check=True)
+                    'import { installManagedOperator } from "./packages/operator/src/install.mjs"; await installManagedOperator(process.argv[1]);', str(project)], cwd=ROOT, check=True)
     (project / ".agent-ui/project.json").write_text(json.dumps({"mode": "embedded", "sourceRoot": "src/agent-ui"}))
     assert not (project / "public/agent-ui.js").exists()
     assert not (project / "src/components/AgentUIBridge.vue").exists()
@@ -69,7 +69,7 @@ def agent(project, host, write=False):
     create = create_domain_write_creator_agent if write else create_domain_read_creator_agent
     kwargs = {} if write else {"permission_scope": "inspect_read_only"}
     return create(model=create_creator_chat_model(settings(), thread_id="vue-integration"), workspace=project,
-                  project_control=host, thread_id="vue-integration", checkpointer=InMemorySaver(), **kwargs)
+                  operator=host, thread_id="vue-integration", checkpointer=InMemorySaver(), **kwargs)
 
 
 async def run(creator, messages, resume=None):

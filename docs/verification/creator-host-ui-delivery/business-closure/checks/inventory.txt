@@ -43,7 +43,7 @@
   - import "./custom-event-protocol" without a file extension (src/framework/contracts/ui-plugin.ts:12:39). Add the file extension
 Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
 
- RUN  v4.1.11 /Users/yifei/Coding/AgentUICreator/packages/project-control
+ RUN  v4.1.11 /Users/yifei/Coding/AgentUICreator/packages/operator
 
  ❯ tests/app-ui-recovery.test.ts (35 tests | 6 failed) 2413ms
      × lists sidebar plugins through the strict asset wire contract 26ms
@@ -69,7 +69,7 @@ AssertionError: {"ok":false,"error":{"code":"APP_UI_MODEL_WORKSPACE_INTEGRITY","
 
  ❯ tests/app-ui-recovery.test.ts:38:50
      36|     for (const operation of ["list_ui_plugins", "inspect_ui_project"] …
-     37|       const response = await handleUIProjectControlRequest({ operation…
+     37|       const response = await handleUIOperatorRequest({ operation…
      38|       expect(response, JSON.stringify(response)).toMatchObject({ ok: t…
        |                                                  ^
      39|       if (response.ok) {
@@ -245,5 +245,5 @@ AppUITransactionError: Workspace declarations prevent model health classificatio
    Duration  3.03s (transform 210ms, setup 9ms, import 300ms, tests 2.41s, environment 249ms)
 
 undefined
-/Users/yifei/Coding/AgentUICreator/packages/project-control:
+/Users/yifei/Coding/AgentUICreator/packages/operator:
 [ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL] Command failed with exit code 1: vitest run tests/app-ui-recovery.test.ts

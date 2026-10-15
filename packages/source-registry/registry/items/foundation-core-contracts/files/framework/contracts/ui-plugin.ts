@@ -2,7 +2,7 @@ import type {
   AgentApplicationEvent,
   AgentInterruptResponse,
   AgentUserInput,
-} from "@agent-ui/runtime-core";
+} from "@za38.03/agent-ui-runtime-core";
 import type { ComponentType, ReactNode } from "react";
 import { z } from "zod";
 
@@ -10,7 +10,7 @@ import type { AppUIRuntimePluginInstance } from "./app-ui-runtime-model";
 import type { AppUILayoutTrackSize } from "./app-ui-model";
 import type { PluginChildSlotDefinition } from "./app-ui-composition";
 import { customEventNameSchema } from "./custom-event-protocol";
-import type { DataMessageUIDefinition, ConversationToolkit } from "@agent-ui/react";
+import type { DataMessageUIDefinition, ConversationToolkit } from "@za38.03/agent-ui-react";
 
 export type {
   AgentApplicationEvent,
@@ -23,7 +23,7 @@ export type {
   AgentRunState,
   AgentToolCall,
   AgentUserInput,
-} from "@agent-ui/runtime-core";
+} from "@za38.03/agent-ui-runtime-core";
 
 export interface UIPluginManifest {
   id: string;
@@ -33,7 +33,7 @@ export interface UIPluginManifest {
   capabilities?: string[] | undefined;
   /** This Plugin requires a runtime entity scope and cannot mount as static content. */
   requiresRenderScope?: boolean | undefined;
-  sidebar?: { icon: import("@agent-ui/react").AgentUISidebarIcon; labels?: { "en-US"?: string | undefined; "zh-CN"?: string | undefined } | undefined } | undefined;
+  sidebar?: { icon: import("@za38.03/agent-ui-react").AgentUISidebarIcon; labels?: { "en-US"?: string | undefined; "zh-CN"?: string | undefined } | undefined } | undefined;
   layout?:
     | {
         width?: "narrow" | "wide" | undefined;

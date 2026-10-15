@@ -16,19 +16,19 @@ import { ConversationSurface } from "../../../source-registry/registry/items/fou
 import type {
   UIPluginComponentProps,
   UIPluginDefinition,
-} from "../../../project-control/src/framework/contracts/ui-plugin";
+} from "../../../operator/src/framework/contracts/ui-plugin";
 import {
   parseAppUIRuntimeModel,
   type AppUIRuntimeModel,
   type AppUIRuntimePluginInstance,
-} from "../../../project-control/src/framework/contracts/app-ui-runtime-model";
-import { resolveRuntimePluginSlotId } from "../../../project-control/src/framework/contracts/app-ui-composition";
+} from "../../../operator/src/framework/contracts/app-ui-runtime-model";
+import { resolveRuntimePluginSlotId } from "../../../operator/src/framework/contracts/app-ui-composition";
 import { assistantUiAddAttachmentActionPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-add-attachment-action/files/plugins/assistant-ui-add-attachment-action/definition";
 import { assistantUiComposerPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-composer/files/plugins/assistant-ui-composer/definition";
 import { assistantUiDictationActionPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-dictation-action/files/plugins/assistant-ui-dictation-action/definition";
 import { assistantUiSubmitActionPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-submit-action/files/plugins/assistant-ui-submit-action/definition";
 import { createPluginRegistry } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
-import { PluginRuntimeFixture } from "../../../project-control/tests/support/agent-runtime-fixture";
+import { PluginRuntimeFixture } from "../../../operator/tests/support/agent-runtime-fixture";
 
 const assistantConfig = AuiConfig({});
 const roots: Root[] = [];

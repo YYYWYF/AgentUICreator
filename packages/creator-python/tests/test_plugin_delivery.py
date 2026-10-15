@@ -9,7 +9,7 @@ from pydantic import ValidationError
 
 from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.domain_agent.completion_gate import CreatorDevelopmentCompletionGate
-from agent_ui_creator.domain_tools import create_project_control_tools
+from agent_ui_creator.domain_tools import create_operator_tools
 from agent_ui_creator.domain_tools.capabilities import component_navigation
 from agent_ui_creator.plugin_development.authority import PluginDevelopmentAuthority
 from agent_ui_creator.plugin_development.admission_middleware import PluginDevelopmentAdmissionMiddleware
@@ -72,7 +72,7 @@ class CatalogClient:
 def test_d01_formal_source_discovery_does_not_grant_development(tmp_path):
     authority = PluginDevelopmentAuthority(tmp_path, thread_id="thread")
     authority.begin_task(task_id="task", request_id="request", user_message="把文件展示出来", intent="needs_decision")
-    tool = next(t for t in create_project_control_tools(CatalogClient()) if t.name == "inspect_ui_capabilities")
+    tool = next(t for t in create_operator_tools(CatalogClient()) if t.name == "inspect_ui_capabilities")
     output = asyncio.run(tool.ainvoke({}))
     result = json.loads(output)["result"]
     assert result["sources"]["items"][0]["id"] == "plugin/generated-file-message"

@@ -1,4 +1,4 @@
-import { parseAgentUIDirectives, trySerializeAgentUIDirective } from "@agent-ui/runtime-core";
+import { parseAgentUIDirectives, trySerializeAgentUIDirective } from "@za38.03/agent-ui-runtime-core";
 import type { Unstable_DirectiveFormatter } from "@assistant-ui/react";
 
 const knownDirectiveTypes = new Set(["user", "resource", "file", "document", "command"]);

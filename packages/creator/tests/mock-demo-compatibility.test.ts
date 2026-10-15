@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { resolveOfficialResource } from "@agent-ui/project-control/resources";
+import { resolveOfficialResource } from "@za38.03/agent-ui-operator/resources";
 import { inspectMockDemoCompatibility, inspectMockProjectCompatibility, mockDemoRequirements, type ProjectCompositionInspection } from "../src/mock/demo-compatibility.js";
 const empty: ProjectCompositionInspection = { pluginSources: [], pluginInstances: [] };
 const sources = { items: mockDemoRequirements.map(requirement => {
@@ -53,15 +53,15 @@ describe("Official Resource readiness projection", () => {
     for (const token of ["sourceItemId", "missingPackages", "@assistant-ui", "react-markdown", "remark-gfm", "integration/a2ui", "pluginId"]) expect(JSON.stringify(inspect())).not.toContain(token);
   });
   it("returns unknown when formal inspection is unavailable", async () => {
-    const inspector = vi.fn().mockRejectedValue(new Error("CONTROL_ENTRY_MISSING"));
+    const inspector = vi.fn().mockRejectedValue(new Error("OPERATOR_ENTRY_MISSING"));
     expect(await inspectMockProjectCompatibility(undefined, inspector)).toEqual({ projectId: null, status: "unknown", requirements: [] });
     expect(inspector).not.toHaveBeenCalled();
     expect(await inspectMockProjectCompatibility({ id: "host", projectRoot: "/fresh-host" }, inspector)).toEqual({ projectId: "host", status: "unknown", requirements: [] });
   });
   it("reports a stale control service without exposing internal inspection details", async () => {
-    const inspector = vi.fn(async () => { throw Object.assign(new Error("private file details"), { code: "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED" }); });
+    const inspector = vi.fn(async () => { throw Object.assign(new Error("private file details"), { code: "CREATOR_OPERATOR_RESTART_REQUIRED" }); });
     const result = await inspectMockProjectCompatibility({ id: "host", projectRoot: "/fresh-host" }, inspector);
-    expect(result).toEqual({ projectId: "host", status: "unknown", requirements: [], issue: { code: "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED" } });
+    expect(result).toEqual({ projectId: "host", status: "unknown", requirements: [], issue: { code: "CREATOR_OPERATOR_RESTART_REQUIRED" } });
     expect(JSON.stringify(result)).not.toContain("private file details");
   });
 });

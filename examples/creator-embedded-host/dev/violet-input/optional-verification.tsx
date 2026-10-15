@@ -1,14 +1,14 @@
-import "@agent-ui/react/styles.css";
+import "@za38.03/agent-ui-react/styles.css";
 import { createRoot } from "react-dom/client";
-import { AgentUIRoot } from "@agent-ui/react";
+import { AgentUIRoot } from "@za38.03/agent-ui-react";
 import { PluginServiceRuntime, PluginServiceRuntimeContext, createPluginRegistry } from "../../../../packages/source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
-import { parseAppUIRuntimeModel } from "../../../../packages/project-control/src/framework/contracts/app-ui-runtime-model";
+import { parseAppUIRuntimeModel } from "../../../../packages/operator/src/framework/contracts/app-ui-runtime-model";
 import { frontendToolDialogDemoPlugin } from "../../../../packages/source-registry/registry/items/demo-frontend-tool-dialog/files/plugins/frontend-tool-dialog-demo/definition";
 import frontendToolFormDemoPlugin from "../../../../packages/source-registry/registry/items/demo-frontend-tool-form/files/plugins/frontend-tool-form-demo/definition";
 import { FrontendToolFormDemoPlugin } from "../../../../packages/source-registry/registry/items/demo-frontend-tool-form/files/plugins/frontend-tool-form-demo/index";
 import { FrontendToolDialogDemoPlugin } from "../../../../packages/source-registry/registry/items/demo-frontend-tool-dialog/files/plugins/frontend-tool-dialog-demo/index";
 import { createAgentUIGenerativeUI } from "../../../../packages/source-registry/registry/items/integration-generative-ui/files/integrations/generative-ui/index";
-import { generativeUIGallery } from "../../../../packages/project-control/tests/fixtures/generative-ui-gallery";
+import { generativeUIGallery } from "../../../../packages/operator/tests/fixtures/generative-ui-gallery";
 const params=new URLSearchParams(location.search);
 const surface=params.get("surface")||"form";
 const theme=params.get("theme")==="light"?"light":params.get("theme")==="dark"?"dark":"violet";

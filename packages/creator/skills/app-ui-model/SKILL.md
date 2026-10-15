@@ -47,7 +47,7 @@ Do not choose a tool operation from the wording alone.
 Treat `/app-ui/app-ui.json` as the editable authoring source of truth. Runtime
 IR, Runtime slot ids, compiler-generated Layout ids, contributions, mounts, and
 SlotRegistry state are derived and must never be edited or passed to Creator
-tools. Use ProjectControl inspections for current facts and
+tools. Use Operator inspections for current facts and
 `mutate_app_ui_model` for every Composition write; never edit AppUIModel or the
 generated Registry with filesystem tools.
 

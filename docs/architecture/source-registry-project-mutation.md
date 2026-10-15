@@ -5,7 +5,7 @@ Installing or deleting Source items never inserts, enables, disables, or removes
 AppUIModel Plugin instances.
 
 ```text
-Mock Studio / Creator ProjectControl / Demo installer / future CLI
+Mock Studio / Creator Operator / Demo installer / future CLI
   ↓
 Host Source Project Mutation (apply / remove)
   ↓
@@ -26,7 +26,7 @@ Initialization retains its separate clean-install transaction.
 
 Product callers use `applyAgentUISourceProjectMutation` or
 `removeAgentUISourceProjectMutation` from
-`packages/project-control/src/project/source-registry/project-mutation.ts`.
+`packages/operator/src/project/source-registry/project-mutation.ts`.
 The architecture guard rejects direct storage apply/remove references outside the
 storage module, its compatibility exports, and this Host orchestrator. Low-level
 unit tests may continue testing storage APIs directly.
@@ -50,7 +50,7 @@ another process may acquire its Host journal immediately after that read. Source
 apply/remove recover their storage transaction under their own acquired Host
 journal, while initialization keeps its separate clean-install recovery.
 
-ProjectControl recovers before inspection, and product installers recover before
+Operator recovers before inspection, and product installers recover before
 obtaining their expectedStateHash. Journal publication remains atomic and
 create-only. An `EEXIST` loser re-reads the winning journal, refuses to recover a
 living owner's work, or recovers a stale journal and retries admission and snapshots
@@ -83,17 +83,17 @@ or protocol-schema changes are introduced.
 
 Legacy optional resources pass their existing `resourcePaths().config` unchanged,
 including provided foundations, `sourceRoot: "."`, and scenario-resource metadata.
-The shared implementation now belongs to `@agent-ui/project-control`. Hosts and
+The shared implementation now belongs to `@za38.03/agent-ui-operator`. Hosts and
 the Workbench consume its development APIs; they do not own storage or mutation
 implementations. `@agent-ui/bootstrap` owns initialization transactions and receives
-the Project Control adapter explicitly from the composition root.
+the Operator adapter explicitly from the composition root.
 
 Regression coverage lives in `source-project-mutation.test.ts` and
 `source-project-mutation-architecture.test.ts`. Failure injection uses module mocks
 around real registry writers and verification, with no test-only public options.
 Owner regressions cover live/dead PIDs, v1 compatibility, permission failures,
 create-only publication races, bounded admission retry, and real child processes:
-one process holds the journal while a separate ProjectControl process refuses
+one process holds the journal while a separate Operator process refuses
 inspect/apply/remove without changing its files, then recovers after owner exit.
 
 

@@ -1,4 +1,4 @@
-"""Host storage for a ProjectControl-planned theme change; never invokes a model."""
+"""Host storage for a Operator-planned theme change; never invokes a model."""
 from __future__ import annotations
 
 import asyncio
@@ -16,13 +16,13 @@ JOURNAL = ".agentuicreator/control/pending-theme-command.json"
 
 async def verify_published_theme(root: Path, runtime: str) -> dict:
     # Bind verification to the managed tool entry, rather than executing a caller-selected module.
-    entry = (root / ".agent-ui/control/project-control.mjs").read_text()
-    match = re.search(r'import \{ runUIProjectControlCli \} from ("[^"\n]+");', entry)
+    entry = (root / ".agent-ui/operator/entry.mjs").read_text()
+    match = re.search(r'import \{ runUIOperatorCli \} from ("[^"\n]+");', entry)
     if not match or json.loads(match.group(1)) != runtime:
         raise ValueError("THEME_VERIFIER_RUNTIME_MISMATCH")
     node = os.environ.get("CREATOR_NODE_EXECUTABLE") or shutil.which("node")
     if not node:
-        raise ValueError("CONTROL_RUNTIME_MISSING")
+        raise ValueError("OPERATOR_RUNTIME_MISSING")
     script = "const {verifyUIProject}=await import(process.argv[1]); process.stdout.write(JSON.stringify(await verifyUIProject(process.argv[2])));"
     process = await asyncio.create_subprocess_exec(node, "--input-type=module", "-e", script, runtime, str(root),
         cwd=root, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)

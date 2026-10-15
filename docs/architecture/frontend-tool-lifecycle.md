@@ -12,7 +12,7 @@ Plugin activation -> Service capability
 Application allowlist -> AppFrontendToolRuntime
                             |
                             v
-runtime-conversation adapter -> assistant-ui Tools({ toolkit })
+runtime adapter -> assistant-ui Tools({ toolkit })
                             |
                             v
 RunAgentInput.tools -> Agent decision -> TOOL_CALL_START / ARGS / END
@@ -28,7 +28,7 @@ standard continuation run -> assistant response
 
 `AgentFrontendToolSource` remains protocol independent. Its schema, allowlist,
 validation, Service availability and error conversion are application concerns.
-The small adapter in `packages/runtime-conversation/src/tools` converts definitions
+The small adapter in `packages/runtime/src/tools` converts definitions
 into native frontend Toolkit entries. Backend `ConversationToolkit` remains a
 render-only input. The independent `ConversationFrontendToolUIRegistry` cannot
 supply execute functions or grant permissions. Duplicate tool names fail

@@ -11,10 +11,10 @@ let url: string;
 test.beforeAll(async () => {
   fixture = await mkdtemp(path.resolve(".sidebar-e2e-"));
   await writeFile(path.join(fixture, "index.html"), '<div id="root"></div><script type="module" src="/fixture.tsx"></script>');
-  await writeFile(path.join(fixture, "style.css"), '@import "tailwindcss"; @import "@agent-ui/react/styles.css"; html,body,#root { height:100%; margin:0; } .shell { height:500px; width:900px; }');
+  await writeFile(path.join(fixture, "style.css"), '@import "tailwindcss"; @import "@za38.03/agent-ui-react/styles.css"; html,body,#root { height:100%; margin:0; } .shell { height:500px; width:900px; }');
   await writeFile(path.join(fixture, "fixture.tsx"), `
     import { createRoot } from "react-dom/client";
-    import { AgentUIRoot, AgentUISidebarFrame, AgentUILocaleProvider, useAgentUISidebarNavigation } from "@agent-ui/react";
+    import { AgentUIRoot, AgentUISidebarFrame, AgentUILocaleProvider, useAgentUISidebarNavigation } from "@za38.03/agent-ui-react";
     import "./style.css";
     function Navigate() { const navigate = useAgentUISidebarNavigation(); return <button onClick={navigate}>Navigate files</button>; }
     const params = new URLSearchParams(location.search);
@@ -25,7 +25,7 @@ test.beforeAll(async () => {
       ]}><button>Main content</button></AgentUISidebarFrame>
     </AgentUIRoot></div></AgentUILocaleProvider>);
   `);
-  server = await createServer({ configFile: false, root: fixture, plugins: [react(), tailwindcss()], resolve: { dedupe: ["react", "react-dom"], alias: { "@agent-ui/react/styles.css": path.resolve("../../packages/react/dist/styles.css"), "@agent-ui/react": path.resolve("../../packages/react/dist/index.js") } }, server: { host: "127.0.0.1", port: 0 } });
+  server = await createServer({ configFile: false, root: fixture, plugins: [react(), tailwindcss()], resolve: { dedupe: ["react", "react-dom"], alias: { "@za38.03/agent-ui-react/styles.css": path.resolve("../../packages/react/dist/styles.css"), "@za38.03/agent-ui-react": path.resolve("../../packages/react/dist/index.js") } }, server: { host: "127.0.0.1", port: 0 } });
   await server.listen(); url = server.resolvedUrls!.local[0]!;
 });
 test.afterAll(async () => { await server?.close(); if (fixture) await rm(fixture, { recursive: true, force: true }); });

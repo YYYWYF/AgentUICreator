@@ -1,4 +1,3 @@
-import { createMockAgentVitePlugin, createMockConversationApiVitePlugin, showcaseMockScenarios, withPreviewAgentState } from "@agent-ui/mock-agent";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, type Plugin } from "vite";
@@ -14,8 +13,15 @@ const creatorDockPlugin: Plugin = {
 };
 
 
+
+// Creator supplies optional development mocks; production builds only need frontend packages.
+const mockSpecifier = "@za38.03/agent-ui-creator/mock-agent";
+const mockPlugins = process.env.NODE_ENV === "production" ? [] : await import(mockSpecifier)
+  .then(({ createMockAgentVitePlugin, createMockConversationApiVitePlugin, showcaseMockScenarios, withPreviewAgentState }) => [createMockAgentVitePlugin({ endpoint: "/agent", scenarios: showcaseMockScenarios.map(withPreviewAgentState), defaultScenarioId: "reasoning-tool-success" }), createMockConversationApiVitePlugin({ endpoint: "/__agent-ui/mock-data" })])
+  .catch(error => { if (error?.code === "ERR_MODULE_NOT_FOUND") return []; throw error; });
+
 export default defineConfig({
-  plugins: [react(), tailwindcss(), creatorDockPlugin, createMockAgentVitePlugin({ endpoint: "/agent", scenarios: showcaseMockScenarios.map(withPreviewAgentState), defaultScenarioId: "reasoning-tool-success" }), createMockConversationApiVitePlugin({ endpoint: "/__agent-ui/mock-data" })],
+  plugins: [react(), tailwindcss(), creatorDockPlugin, ...mockPlugins],
   resolve: { alias: runtimeAliases },
   server: { host: "127.0.0.1", port: 5176, strictPort: true },
 });

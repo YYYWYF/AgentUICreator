@@ -2,7 +2,7 @@
 
 > Historical P3R-2 implementation record. Its legacy/A/B branches and
 > `runtime-assistant-ui` package names describe the migration period. The
-> current production integration is `packages/runtime-conversation` through
+> current production integration is `packages/runtime` through
 > `ConversationRuntimeProvider` and `useAgUiRuntime()`.
 
 ## Status and scope

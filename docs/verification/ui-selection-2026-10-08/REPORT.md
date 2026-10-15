@@ -17,11 +17,11 @@
 
 ## P1：真实 Creator 运行
 
-使用现有 `create_domain_write_creator_agent`、真实 `ProjectControlClient`、现有 `ui-plugin-development` Skill 与当前配置的 `mimo-v2.6-flash`。未用模拟模型、未改 Prompt。以明确插件开发委托运行备注输入/添加/列表/说明弹层任务。
+使用现有 `create_domain_write_creator_agent`、真实 `OperatorClient`、现有 `ui-plugin-development` Skill 与当前配置的 `mimo-v2.6-flash`。未用模拟模型、未改 Prompt。以明确插件开发委托运行备注输入/添加/列表/说明弹层任务。
 
 三个工程真实保留在证据目录：A 页面使用 `src/design-system/index.tsx` 的自研 Button/Input/Card 与 CSS tokens；B 页面使用实际安装的 `antd@5.29.3`、ConfigProvider 和明暗算法；C 安装 Antd，但实际页面使用自研组件。各 Host 的 verify:ui、typecheck、build 单独通过。这些结果只验证原始 Host；不是 Creator 的生成插件验证回执。
 
-首次工具准备因 runtime-conversation 消费者依赖下载超时失败；测试初始化随后使用已有构建产物。临时 Host 的 `.bin` 相对路径与 Antd 独立安装/type declarations 路径已在测试工程侧修正。完整 Antd 依赖保存在证据目录 `.dependencies/antd`，不修改仓库宿主依赖。B/C 保留首轮及环境稳定后的重试记录。
+首次工具准备因 runtime 消费者依赖下载超时失败；测试初始化随后使用已有构建产物。临时 Host 的 `.bin` 相对路径与 Antd 独立安装/type declarations 路径已在测试工程侧修正。完整 Antd 依赖保存在证据目录 `.dependencies/antd`，不修改仓库宿主依赖。B/C 保留首轮及环境稳定后的重试记录。
 
 真实运行的最终状态、工具次数、源码差异见证据目录 `summary.json`。当前模型默认输出上限为 2048 tokens；C 的稳定环境重试发生一次续写后仍截断的错误，因此又以同一模型、同一 Prompt、仅在验收进程覆盖 `CREATOR_MODEL_MAX_TOKENS=8192` 运行三个场景。此覆盖未写入配置文件。A 的 8192 重试仍以 ModelToolProtocolError 终止。A 首轮 600 秒超时，45 次模型工具调用、未进入开发授权或修改。B/C 首轮均为 `ModelToolProtocolError: MiMo returned malformed tool intent after one repair attempt.`。首轮 A/C 的测试清理曾调用不存在的 `creator.close()`，发生在证据文件保存之后；已修正验收脚本，未改变 Creator 实现。错误与超时均不得记作交付成功。
 

@@ -27,7 +27,7 @@
 
 ## 已通过
 
-- Node 启动/包管理器/Python test entry helpers：官方 `pnpm test:ts` 前置 16 项通过；Project Control contract guard 通过。官方 JS 测试仍在 runtime-react 的 3 项已复现失败处停止。
+- Node 启动/包管理器/Python test entry helpers：官方 `pnpm test:ts` 前置 16 项通过；Operator contract guard 通过。官方 JS 测试仍在 renderer 的 3 项已复现失败处停止。
 - `pnpm check:dependency-pins`；16 个目标包的 lockfile resolutions 均为指定版本，包含传递依赖。
 - `pnpm install --frozen-lockfile --strict-peer-dependencies`。
 - assistant-ui upstream、AG-UI compatibility、LangGraph compatibility、AG-UI lockfile guards。
@@ -46,10 +46,10 @@
 
 - 全仓库 build：assistant Host 的 SidebarNode 缺少 children / slotId 类型错误。相同源码恢复本轮调整前依赖后复现。
 - 全仓库 typecheck：准备 Web Component declarations 时被 IIFE build 阻断。bridge 的 ES 产物可生成，但 IIFE 在 Rolldown 报 code-splitting 不支持 IIFE；旧依赖组合也复现。Vue Web Component 示例的标准 build 同样在 prebuild 阻断。
-- 扩展 workspace JS 测试没有全部通过。当前包结果：runtime-core 31 passed；source-registry 31 passed；bootstrap 41 passed；runtime-react 173 passed / 3 failed；mock-agent 117 passed；React 683 passed / 17 failed；Conversation Runtime 121 passed / 7 failed / 1 expected fail；Plugins 1 passed；Web Component 7 passed；Project Control 410 passed / 184 failed。
+- 扩展 workspace JS 测试没有全部通过。当前包结果：runtime-core 31 passed；source-registry 31 passed；bootstrap 41 passed；renderer 173 passed / 3 failed；mock-agent 117 passed；React 683 passed / 17 failed；Conversation Runtime 121 passed / 7 failed / 1 expected fail；Plugins 1 passed；Web Component 7 passed；Operator 410 passed / 184 failed。
 - Creator 单独全量：264 passed / 15 failed；扩展递归轮为 265 passed / 14 failed，Mock lifecycle 用例受并发端口占用影响而不同。失败包含 setup 语言/展示预期、mock readiness、Vite routing/resource fixtures、Mock lifecycle，以及 Python sidecar integration prerequisites/fixtures；不把失败测试计为功能通过。
 - 原有 Agent connection 浏览器 suite：3 项均在初始化 package preflight 阶段失败，未进入交互。因此另用现有平台 Host 验证实际输入和 AG-UI 会话。
-- 调整前版本对照使用临时源码副本，恢复本轮原版本（cloud 0.2.4 / React plugin 6.1.1 / Vue plugin 6.0.9 / Vue 3.5.43 / vue-tsc 3.3.12 / Node types 20.19.43 / semver types 7.8.0 / jsdom types 30.0.0 / tailwind-merge 3.7.0）。React/core/store/tap/stream 本轮未改变。Conversation 的 7 项失败、runtime-react 的 3 项失败、React 的 16 项失败及 Creator 的 11 项 JS fixture 失败在旧组合下复现；React 的额外 Violet CSS 排序失败在单独重跑时通过，不归因为版本回归。Project Control 的旧组合对照也为 410 passed / 184 failed，失败用例标识集合与当前组合一致（旧对照另报 2 项 unhandled errors）。未逐一证明所有失败的根因。
+- 调整前版本对照使用临时源码副本，恢复本轮原版本（cloud 0.2.4 / React plugin 6.1.1 / Vue plugin 6.0.9 / Vue 3.5.43 / vue-tsc 3.3.12 / Node types 20.19.43 / semver types 7.8.0 / jsdom types 30.0.0 / tailwind-merge 3.7.0）。React/core/store/tap/stream 本轮未改变。Conversation 的 7 项失败、renderer 的 3 项失败、React 的 16 项失败及 Creator 的 11 项 JS fixture 失败在旧组合下复现；React 的额外 Violet CSS 排序失败在单独重跑时通过，不归因为版本回归。Operator 的旧组合对照也为 410 passed / 184 failed，失败用例标识集合与当前组合一致（旧对照另报 2 项 unhandled errors）。未逐一证明所有失败的根因。
 - 本轮曾同时启动两个共享 dist 的构建，造成 ENOENT；已按串行方式重跑启动验收并通过。扩展 `pnpm -r --no-bail --if-present test` 的 Host pretest 也会并发重建共享 dist，其准备失败不能用作依赖功能退化证据。
 
 ## 判断

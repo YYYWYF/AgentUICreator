@@ -1,4 +1,4 @@
-import { createMockConversationApiHandler, MockDurableRunStore, type MockConversationApiHandler } from "@agent-ui/mock-agent";
+import { createMockConversationApiHandler, MockDurableRunStore, type MockConversationApiHandler } from "../mock-agent/index.js";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { ConnectionStore } from "./connection-store.js";
 import { forwardAgentRequest } from "./connected-agent-proxy.js";

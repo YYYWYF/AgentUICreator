@@ -6,7 +6,7 @@ import type { Plugin } from "vite";
 
 /** Inject one shared adapter into real Hosts; no Creator client is included in builds. */
 export function createCreatorHostPreviewPlugin(options: { creatorOrigin?: string; workspaceId?: string } = {}): Plugin {
-  const clientPath = createRequire(import.meta.url).resolve("@agent-ui/creator/host-preview/client");
+  const clientPath = createRequire(import.meta.url).resolve("@za38.03/agent-ui-creator/host-preview/client");
   return {
     name: "agent-ui-creator-host-preview",
     apply: "serve",

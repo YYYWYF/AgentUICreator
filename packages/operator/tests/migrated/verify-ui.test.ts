@@ -1,0 +1,774 @@
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { tmpdir } from "node:os";
+import path from "node:path";
+
+import { afterEach, describe, expect, it } from "vitest";
+
+import type { AppUIModel } from "../../src/framework/contracts/app-ui-model";
+import { verifyUIProject } from "../../src/verify-ui";
+import { handleUIOperatorRequest } from "../../src/handler";
+import {
+  GENERATED_PLUGIN_REGISTRY_PATH,
+  PLUGIN_REGISTRY_ENTRY_PATH,
+  PLUGIN_REGISTRY_ENTRY_SOURCE,
+} from "../../src/project/registry-generator";
+import { collectPluginProjectFacts as collectFacts, generatePluginRegistry as generateRegistry } from "../../src/project/registry-generator";
+import { resolveAgentUIProjectPaths } from "../../src/project/agent-ui-project-paths";
+import type { UIOperatorConfig } from "../../src/project/types";
+
+const projectConfig = { mode: "platform", sourceRoot: "agent-ui" } as const;
+const generatePluginRegistry = (root: string, model: AppUIModel, config: UIOperatorConfig) =>
+  generateRegistry(root, model, { config, paths: resolveAgentUIProjectPaths(root, projectConfig, config) });
+const collectPluginProjectFacts = (root: string, config: UIOperatorConfig) =>
+  collectFacts(root, config, resolveAgentUIProjectPaths(root, projectConfig, config));
+
+const temporaryProjects: string[] = [];
+const fixtureConfig: UIOperatorConfig = {
+  catalogs: [],
+  uiPackages: [],
+  agentUI: { sourceRoot: "agent-ui", metadataRoot: ".agent-ui" },
+};
+const dataMessageUIDefinition =
+  'import { messageUI } from "./index";\nconst Component = () => null;\nexport default { manifest: {}, Component, dataMessageUIs: [messageUI] };\n';
+const dataMessageUISource = (name: string) =>
+  `import { defineDataMessageUI } from "@za38.03/agent-ui-react";\nexport const messageUI = defineDataMessageUI({ name: ${JSON.stringify(name)}, render: () => null });\n`;
+
+async function createProject(options: {
+  instancePluginId: string;
+  mounted: boolean;
+  headless?: boolean;
+  childSlots?: readonly string[];
+  manifest?: Record<string, unknown>;
+  pluginSource?: string;
+  definitionSource?: string;
+}): Promise<string> {
+  const projectRoot = await mkdtemp(path.join(tmpdir(), "verify-agent-ui-"));
+  temporaryProjects.push(projectRoot);
+  await mkdir(path.join(projectRoot, ".agent-ui"));
+  await writeFile(path.join(projectRoot, ".agent-ui", "project.json"), JSON.stringify(projectConfig));
+  await mkdir(path.join(projectRoot, "agent-ui", "app-ui"), { recursive: true });
+  await mkdir(path.join(projectRoot, "agent-ui", "plugins", "sample"), {
+    recursive: true,
+  });
+  await writeFile(
+    path.join(projectRoot, "tsconfig.json"),
+    JSON.stringify({
+      compilerOptions: {
+        module: "ESNext",
+        moduleResolution: "Bundler",
+        target: "ES2022",
+      },
+      include: ["agent-ui/plugins/**/*.ts", "agent-ui/plugins/**/*.tsx", "agent-ui/services/**/*.ts"],
+    }),
+  );
+  await writeFile(
+    path.join(projectRoot, "agent-ui", "plugins", "sample", "manifest.json"),
+    JSON.stringify({
+      id: "sample",
+      name: "Sample",
+      description: "Fixture",
+      version: "1.0.0",
+      capabilities: options.headless ? ["headless"] : ["visual"],
+      ...(options.childSlots === undefined
+        ? {}
+        : {
+            slots: {
+              children: Object.fromEntries(options.childSlots.map((slot) => [
+                slot,
+                { description: `${slot} fixture Slot.`, cardinality: "many", optional: true },
+              ])),
+            },
+          }),
+      ...(options.manifest ?? {}),
+    }),
+  );
+  await writeFile(
+    path.join(projectRoot, "agent-ui", "plugins", "sample", "definition.ts"),
+    options.definitionSource ??
+      "const Component = () => null;\nconst samplePlugin = { manifest: {}, Component };\nexport default samplePlugin;\n",
+  );
+  if (options.pluginSource !== undefined) {
+    await writeFile(
+      path.join(projectRoot, "agent-ui", "plugins", "sample", "index.tsx"),
+      options.pluginSource,
+    );
+  }
+  const model: AppUIModel = {
+    ...(options.mounted
+      ? {}
+      : {
+          applicationPlugins: [{
+            id: "sample-main",
+            pluginId: options.instancePluginId,
+            enabled: true,
+          }],
+        }),
+    root: {
+      type: "slot",
+      plugins: options.mounted
+        ? [{ id: "sample-main", pluginId: options.instancePluginId, enabled: true }]
+        : [],
+    },
+  };
+  await writeFile(
+    path.join(projectRoot, "agent-ui", "app-ui", "app-ui.json"),
+    JSON.stringify(model),
+  );
+  const registry = await generatePluginRegistry(
+    projectRoot,
+    model,
+    fixtureConfig,
+  );
+  await writeFile(
+    path.join(projectRoot, "agent-ui", GENERATED_PLUGIN_REGISTRY_PATH),
+    registry.capabilityCatalog.source,
+  );
+  await writeFile(
+    path.join(projectRoot, "agent-ui", PLUGIN_REGISTRY_ENTRY_PATH),
+    PLUGIN_REGISTRY_ENTRY_SOURCE,
+  );
+  return projectRoot;
+}
+
+async function addSecondDataMessageUI(
+  projectRoot: string,
+  enabled: boolean,
+  name = "chart",
+): Promise<void> {
+  const pluginRoot = path.join(projectRoot, "agent-ui", "plugins", "second");
+  await mkdir(pluginRoot);
+  await writeFile(path.join(pluginRoot, "manifest.json"), JSON.stringify({
+    id: "second", name: "Second", description: "Fixture", version: "1.0.0",
+    capabilities: ["visual"], data: { messageUI: true },
+  }));
+  await writeFile(path.join(pluginRoot, "definition.ts"), dataMessageUIDefinition);
+  await writeFile(path.join(pluginRoot, "index.tsx"),
+    'import { defineDataMessageUI as defineMessageUI } from "@za38.03/agent-ui-react";\n' +
+    `export const messageUI = defineMessageUI({ name: ${JSON.stringify(name)}, render: () => null });\n`);
+  const model: AppUIModel = {
+    applicationPlugins: [
+      { id: "sample-main", pluginId: "sample", enabled: true },
+      { id: "second-main", pluginId: "second", enabled },
+    ],
+    root: { type: "slot", plugins: [] },
+  };
+  await writeFile(path.join(projectRoot, "agent-ui", "app-ui", "app-ui.json"), JSON.stringify(model));
+  const registry = await generatePluginRegistry(projectRoot, model, fixtureConfig);
+  await writeFile(path.join(projectRoot, "agent-ui", GENERATED_PLUGIN_REGISTRY_PATH), registry.capabilityCatalog.source);
+}
+
+async function addExperimentalPlugin(
+  projectRoot: string,
+  options: {
+    manifestDataMessageUI: boolean;
+    definitionSource: string;
+    pluginSource?: string;
+  },
+): Promise<void> {
+  const pluginRoot = path.join(projectRoot, "agent-ui", "plugins", "experimental");
+  await mkdir(pluginRoot);
+  await writeFile(path.join(pluginRoot, "manifest.json"), JSON.stringify({
+    id: "experimental", name: "Experimental", description: "Fixture", version: "1.0.0",
+    capabilities: ["visual"],
+    ...(options.manifestDataMessageUI ? { data: { messageUI: true } } : {}),
+  }));
+  await writeFile(path.join(pluginRoot, "definition.ts"), options.definitionSource);
+  if (options.pluginSource !== undefined) {
+    await writeFile(path.join(pluginRoot, "index.tsx"), options.pluginSource);
+  }
+}
+
+async function writeModelAndRegistry(projectRoot: string, model: AppUIModel): Promise<void> {
+  await writeFile(path.join(projectRoot, "agent-ui", "app-ui", "app-ui.json"), JSON.stringify(model));
+  const registry = await generatePluginRegistry(projectRoot, model, fixtureConfig);
+  await writeFile(
+    path.join(projectRoot, "agent-ui", GENERATED_PLUGIN_REGISTRY_PATH),
+    registry.capabilityCatalog.source,
+  );
+}
+
+afterEach(async () => {
+  await Promise.all(
+    temporaryProjects.splice(0).map((projectRoot) =>
+      rm(projectRoot, { recursive: true, force: true }),
+    ),
+  );
+});
+
+describe("verifyUIProject", () => {
+  it("blocks direct Portal primitive imports in a generated user Plugin and accepts the public facade", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: true,
+      pluginSource: `import { Dialog } from "@base-ui/react/dialog";\nimport type { Popover } from "@base-ui/react/popover";\nexport { Tooltip } from "@base-ui/react/tooltip";\nconst loadSheet = () => import("@base-ui/react/sheet");\n`,
+    });
+    const unsafe = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(unsafe.status).toBe("failed");
+    expect(unsafe.errors.filter((issue) => issue.code === "PLUGIN_PORTAL_PRIMITIVE_IMPORT_NOT_ALLOWED")).toHaveLength(4);
+    await writeFile(path.join(projectRoot, "agent-ui", "plugins", "sample", "index.tsx"),
+      'import { AgentUIDialog, AgentUIPopover, AgentUITooltip } from "@za38.03/agent-ui-react";\n');
+    const safe = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(safe.status).toBe("passed");
+  });
+
+  it("blocks global Plugin CSS and accepts the same Plugin after scoping", async () => {
+    const projectRoot = await createProject({ instancePluginId: "sample", mounted: true });
+    const stylesheet = path.join(projectRoot, "agent-ui", "plugins", "sample", "styles.css");
+    await writeFile(stylesheet, "button { color: red; }\n:root { --primary: red; }\n");
+    const unsafe = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(unsafe.status).toBe("failed");
+    expect(unsafe.errors.filter((issue) => issue.code === "PLUGIN_STYLE_GLOBAL_SELECTOR_NOT_ALLOWED")).toHaveLength(2);
+
+    await writeFile(stylesheet, ".sample button { color: var(--primary); }\n");
+    const scoped = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(scoped.status).toBe("passed");
+  });
+
+  it("accepts an enabled Data Message UI without a mount or headless classification", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+      pluginSource: dataMessageUISource("chart"),
+      definitionSource: dataMessageUIDefinition,
+    });
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.status).toBe("passed");
+    expect(result.activeComposition.headlessPluginIds).toEqual([]);
+    expect(result.warnings).not.toContainEqual(
+      expect.objectContaining({ code: "unmounted-enabled-instance" }),
+    );
+  });
+
+  it("rejects a Data Message UI mounted in Layout", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: true,
+      manifest: { data: { messageUI: true } },
+      pluginSource: dataMessageUISource("chart"),
+      definitionSource: dataMessageUIDefinition,
+    });
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(expect.objectContaining({
+      code: "data-message-ui-must-be-application",
+    }));
+  });
+
+  it("rejects a declared Data Message UI without a renderer", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+    });
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(expect.objectContaining({ code: "DATA_MESSAGE_UI_RENDERER_MISSING" }));
+  });
+
+  it("does not count an unregistered renderer toward the manifest requirement", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+      pluginSource: dataMessageUISource("chart"),
+      definitionSource: "export default { manifest: {}, Component: () => null, dataMessageUIs: [] };\n",
+    });
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.errors).toContainEqual(expect.objectContaining({
+      code: "DATA_MESSAGE_UI_RENDERER_MISSING",
+    }));
+  });
+
+  it("ignores an unregistered renderer when the manifest omits Data Message UI", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: true,
+      pluginSource: dataMessageUISource("chart"),
+    });
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.errors.some((issue) => issue.code === "DATA_MESSAGE_UI_MANIFEST_MISSING"))
+      .toBe(false);
+  });
+
+  it("rejects a renderer whose manifest omits Data Message UI", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: true,
+      pluginSource: dataMessageUISource("chart"),
+      definitionSource: dataMessageUIDefinition,
+    });
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(expect.objectContaining({ code: "DATA_MESSAGE_UI_MANIFEST_MISSING" }));
+  });
+
+  it.each(["", " chart "])("rejects invalid Data Message UI name %j", async (name) => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+      pluginSource: dataMessageUISource(name),
+      definitionSource: dataMessageUIDefinition,
+    });
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(expect.objectContaining({ code: "DATA_MESSAGE_UI_INVALID_NAME" }));
+  });
+
+  it("rejects a dynamic Data Message UI name", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+      pluginSource: 'import { defineDataMessageUI } from "@za38.03/agent-ui-react";\n' +
+        'const name = getName();\nexport const messageUI = defineDataMessageUI({ name, render: () => null });\n',
+      definitionSource: dataMessageUIDefinition,
+    });
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(expect.objectContaining({ code: "DATA_MESSAGE_UI_NAME_NOT_STATIC" }));
+  });
+
+  it.each([
+    { enabled: true, status: "failed", conflict: true },
+    { enabled: false, status: "passed", conflict: false },
+  ] as const)("checks duplicate names only for enabled instances: $enabled", async ({ enabled, status, conflict }) => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+      pluginSource: dataMessageUISource("chart"),
+      definitionSource: dataMessageUIDefinition,
+    });
+    await addSecondDataMessageUI(projectRoot, enabled);
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.status).toBe(status);
+    expect(result.errors.some((issue) => issue.code === "DATA_MESSAGE_UI_NAME_CONFLICT")).toBe(conflict);
+    if (conflict) {
+      expect(result.errors.find((issue) => issue.code === "DATA_MESSAGE_UI_NAME_CONFLICT")?.message)
+        .toContain('plugin "sample" instance "sample-main"');
+    }
+  });
+
+  it("ignores unregistered names when checking enabled Plugin conflicts", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+      pluginSource: dataMessageUISource("chart") +
+        'export const debugUI = defineDataMessageUI({ name: "debug", render: () => null });\n',
+      definitionSource: dataMessageUIDefinition,
+    });
+    await addSecondDataMessageUI(projectRoot, true, "debug");
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.status).toBe("passed");
+    expect(result.errors.some((issue) => issue.code === "DATA_MESSAGE_UI_NAME_CONFLICT"))
+      .toBe(false);
+  });
+
+  it("extracts multiple registered names through imported symbols", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+      pluginSource: dataMessageUISource("chart") +
+        'export const sourcesUI = defineDataMessageUI({ name: "sources", render: () => null });\n',
+      definitionSource: 'import { messageUI, sourcesUI } from "./index";\n' +
+        'export default { manifest: {}, Component: () => null, dataMessageUIs: [messageUI, sourcesUI] };\n',
+    });
+    const facts = await collectPluginProjectFacts(projectRoot, fixtureConfig);
+    expect(facts.assets.find((asset) => asset.pluginId === "sample")?.dataMessageUINames)
+      .toEqual(["chart", "sources"]);
+  });
+
+  it("resolves an inline renderer in the default definition", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+      definitionSource: 'import { defineDataMessageUI as defineMessageUI } from "@za38.03/agent-ui-react";\n' +
+        'export default { manifest: {}, Component: () => null, dataMessageUIs: [' +
+        'defineMessageUI({ name: "chart", render: () => null })] };\n',
+    });
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.status).toBe("passed");
+  });
+
+  it("reports a dynamic registration array explicitly", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+      definitionSource: 'export default { manifest: {}, Component: () => null, ' +
+        'dataMessageUIs: createRenderers() };\n',
+    });
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.errors).toContainEqual(expect.objectContaining({
+      code: "DATA_MESSAGE_UI_DEFINITION_NOT_STATIC",
+    }));
+  });
+
+  it.each([
+    {
+      issueCode: "DATA_MESSAGE_UI_DEFINITION_NOT_STATIC",
+      manifestDataMessageUI: true,
+      definitionSource: 'export default { manifest: {}, Component: () => null, ' +
+        'dataMessageUIs: createRenderers() };\n',
+    },
+    {
+      issueCode: "DATA_MESSAGE_UI_RENDERER_MISSING",
+      manifestDataMessageUI: true,
+      definitionSource: 'export default { manifest: {}, Component: () => null, dataMessageUIs: [] };\n',
+    },
+    {
+      issueCode: "DATA_MESSAGE_UI_MANIFEST_MISSING",
+      manifestDataMessageUI: false,
+      definitionSource: dataMessageUIDefinition,
+      pluginSource: dataMessageUISource("experimental-chart"),
+    },
+  ])("blocks $issueCode only when its Plugin is selected", async (scenario) => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+      pluginSource: dataMessageUISource("chart"),
+      definitionSource: dataMessageUIDefinition,
+    });
+    await addExperimentalPlugin(projectRoot, scenario);
+    const unselectedModel: AppUIModel = {
+      applicationPlugins: [{ id: "sample-main", pluginId: "sample", enabled: true }],
+      root: { type: "slot", plugins: [] },
+    };
+    await writeModelAndRegistry(projectRoot, unselectedModel);
+
+    const facts = await collectPluginProjectFacts(projectRoot, fixtureConfig);
+    expect(facts.dataMessageUIIssues).toContainEqual(expect.objectContaining({
+      code: scenario.issueCode,
+      pluginId: "experimental",
+    }));
+    const unselected = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(unselected.status).toBe("passed");
+    expect(unselected.activeComposition.selectedPluginIds).toEqual(["sample"]);
+
+    const selectedModel: AppUIModel = {
+      ...unselectedModel,
+      applicationPlugins: [
+        { id: "sample-main", pluginId: "sample", enabled: true },
+        { id: "experimental-main", pluginId: "experimental", enabled: true },
+      ],
+    };
+    await writeModelAndRegistry(projectRoot, selectedModel);
+    const selected = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(selected.status).toBe("failed");
+    expect(selected.errors).toContainEqual(expect.objectContaining({
+      code: scenario.issueCode,
+      pluginId: "experimental",
+    }));
+  });
+
+  it("checks same-named renderers only after both Plugins are selected", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+      pluginSource: dataMessageUISource("chart"),
+      definitionSource: dataMessageUIDefinition,
+    });
+    await addExperimentalPlugin(projectRoot, {
+      manifestDataMessageUI: true,
+      definitionSource: dataMessageUIDefinition,
+      pluginSource: dataMessageUISource("chart"),
+    });
+    const unselectedModel: AppUIModel = {
+      applicationPlugins: [{ id: "sample-main", pluginId: "sample", enabled: true }],
+      root: { type: "slot", plugins: [] },
+    };
+    await writeModelAndRegistry(projectRoot, unselectedModel);
+    const unselected = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(unselected.status).toBe("passed");
+    expect(unselected.errors.some((issue) => issue.code === "DATA_MESSAGE_UI_NAME_CONFLICT"))
+      .toBe(false);
+
+    await writeModelAndRegistry(projectRoot, {
+      ...unselectedModel,
+      applicationPlugins: [
+        { id: "sample-main", pluginId: "sample", enabled: true },
+        { id: "experimental-main", pluginId: "experimental", enabled: true },
+      ],
+    });
+    const selected = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(selected.status).toBe("failed");
+    expect(selected.errors).toContainEqual(expect.objectContaining({
+      code: "DATA_MESSAGE_UI_NAME_CONFLICT",
+    }));
+  });
+
+  it("ignores same-named functions from other packages", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample", mounted: false,
+      manifest: { data: { messageUI: true } },
+      pluginSource: 'import { defineDataMessageUI } from "other-package";\n' +
+        'export const messageUI = defineDataMessageUI({ name: "chart", render: () => null });\n',
+    });
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.errors).toContainEqual(expect.objectContaining({ code: "DATA_MESSAGE_UI_RENDERER_MISSING" }));
+  });
+  it("reports limited Creator readiness without failing verification", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: true,
+      manifest: {
+        authoring: { intents: ["show the sample Plugin"] },
+      },
+    });
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("passed");
+    expect(result.creatorReadiness.plugins).toContainEqual(
+      expect.objectContaining({
+        pluginId: "sample",
+        status: "limited",
+        discoverable: true,
+        addRestore: "unavailable",
+      }),
+    );
+    expect(result.errors).toEqual([]);
+    expect(result.warnings).toContainEqual(
+      expect.objectContaining({
+        code: "CREATOR_ADD_RESTORE_UNAVAILABLE",
+        pluginId: "sample",
+      }),
+    );
+  });
+
+  it("fails when a declared Creator default placement is invalid", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: true,
+      manifest: {
+        authoring: {
+          intents: ["show the sample Plugin"],
+          defaultPlacement: {
+            type: "plugin_slot",
+            parentPluginId: "missing-parent",
+            slot: "content",
+          },
+        },
+      },
+    });
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({
+        code: "CREATOR_DEFAULT_PLACEMENT_PARENT_NOT_FOUND",
+        pluginId: "sample",
+      }),
+    );
+  });
+
+  it("rejects a visual plugin in application scope", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: false,
+    });
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({ code: "application-plugin-must-be-headless" }),
+    );
+  });
+
+  it("allows an explicitly headless plugin in application scope", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: false,
+      headless: true,
+    });
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("passed");
+    expect(result.activeComposition.headlessPluginIds).toEqual(["sample"]);
+    expect(result.capabilityCatalog.generatedFileFresh).toBe(true);
+  });
+
+  it("fails when an active Service Provider is dependency-blocked", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: false,
+      headless: true,
+      definitionSource:
+        "const Component = () => null;\n" +
+        'const samplePlugin = { manifest: {}, provides: ["x"], inject: ["missing.service"], Component };\n' +
+        "export default samplePlugin;\n",
+    });
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({
+        code: "service-provider-dependency-blocked",
+        service: "x",
+      }),
+    );
+  });
+
+  it("rejects plugin nodes whose plugin asset does not exist", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "missing",
+      mounted: true,
+    });
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({ code: "selected-plugin-asset-missing" }),
+    );
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({ code: "plugin-not-found" }),
+    );
+  });
+
+  it("reports a stale generated registry without modifying it", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: true,
+    });
+    const registryPath = path.join(projectRoot, "agent-ui", GENERATED_PLUGIN_REGISTRY_PATH);
+    await writeFile(registryPath, "// stale\n");
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("failed");
+    expect(result.capabilityCatalog.generatedFileFresh).toBe(false);
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({ code: "plugin-registry-generated-stale" }),
+    );
+    expect(await readFile(registryPath, "utf8")).toBe("// stale\n");
+  });
+
+  it("synchronizes a changed Plugin declaration through the internal Host operation", async () => {
+    const projectRoot = await createProject({ instancePluginId: "sample", mounted: true });
+    const definitionPath = path.join(projectRoot, "agent-ui", "plugins/sample/definition.ts");
+    const registryPath = path.join(projectRoot, "agent-ui", GENERATED_PLUGIN_REGISTRY_PATH);
+    const original = await readFile(registryPath, "utf8");
+    await writeFile(definitionPath,
+      'const Component = () => null;\nconst samplePlugin = { manifest: {}, Component, optionalInject: ["agent-ui.locale"] };\nexport default samplePlugin;\n');
+    expect((await verifyUIProject(projectRoot, fixtureConfig)).capabilityCatalog.generatedFileFresh).toBe(false);
+
+    const input = { expectedSourceHash: createHash("sha256").update(original).digest("hex") };
+    const first = await handleUIOperatorRequest({
+      operation: "synchronize_plugin_registry", input,
+    }, projectRoot);
+    expect(first).toMatchObject({ ok: true, result: { changed: true, path: `agent-ui/${GENERATED_PLUGIN_REGISTRY_PATH}` } });
+    expect((await verifyUIProject(projectRoot, fixtureConfig)).capabilityCatalog.generatedFileFresh).toBe(true);
+    const second = await handleUIOperatorRequest({
+      operation: "synchronize_plugin_registry",
+      input: { expectedSourceHash: createHash("sha256").update(await readFile(registryPath)).digest("hex") },
+    }, projectRoot);
+    expect(second).toMatchObject({ ok: true, result: { changed: false } });
+    const stale = await handleUIOperatorRequest({
+      operation: "synchronize_plugin_registry", input,
+    }, projectRoot);
+    expect(stale).toMatchObject({ ok: false, error: { code: "PLUGIN_REGISTRY_HASH_CONFLICT" } });
+  });
+
+  it("rejects mount targets unreachable from the Layout-rooted composition", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: true,
+    });
+    const modelPath = path.join(projectRoot, "agent-ui", "app-ui", "app-ui.json");
+    const model = JSON.parse(await readFile(modelPath, "utf8")) as AppUIModel;
+    if (model.root.type !== "slot") throw new Error("fixture");
+    model.root.plugins[0]!.slots = {
+      missing: [{ id: "child-main", pluginId: "sample", enabled: true }],
+    };
+    await writeFile(modelPath, JSON.stringify(model));
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({
+        code: "plugin-slot-not-declared",
+        instanceId: "sample-main",
+      }),
+    );
+  });
+
+  it("accepts matching manifest and rendered child Slots", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: true,
+      childSlots: ["sample.child"],
+      pluginSource:
+        'export function Sample({ renderSlot }) {\n  return renderSlot("sample.child");\n}\n',
+    });
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("passed");
+  });
+
+  it("rejects child Slots declared by the manifest but not rendered", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: true,
+      childSlots: ["sample.child"],
+      pluginSource: "export function Sample() { return null; }\n",
+    });
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({
+        code: "plugin-child-slot-declared-not-rendered",
+      }),
+    );
+  });
+
+  it("rejects rendered child Slots missing from the manifest", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: true,
+      pluginSource:
+        'export function Sample(props) {\n  return props.renderSlot("sample.child");\n}\n',
+    });
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({
+        code: "plugin-child-slot-rendered-not-declared",
+      }),
+    );
+  });
+
+  it("rejects dynamic child Slot identifiers", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: true,
+      pluginSource:
+        "export function Sample({ renderSlot, slotId }) {\n  return renderSlot(slotId);\n}\n",
+    });
+
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+
+    expect(result.status).toBe("failed");
+    expect(result.errors).toContainEqual(
+      expect.objectContaining({
+        code: "plugin-child-slot-dynamic-render-unsupported",
+      }),
+    );
+  });
+
+  it("rejects rendering a content Slot as a scoped renderer", async () => {
+    const projectRoot = await createProject({
+      instancePluginId: "sample",
+      mounted: true,
+      childSlots: ["sample.child"],
+      pluginSource:
+        'export function Sample({ renderScopedSlot }) { return renderScopedSlot("sample.child", { kind: "sample", value: 1 }); }\n',
+    });
+    const result = await verifyUIProject(projectRoot, fixtureConfig);
+    expect(result.errors).toContainEqual(expect.objectContaining({
+      code: "plugin-child-slot-mode-mismatch",
+    }));
+  });
+});

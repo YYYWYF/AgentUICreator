@@ -6,16 +6,16 @@ import { useAui, useAuiState, type AssistantRuntime } from "@assistant-ui/react"
 import type { RunAgentInput } from "@ag-ui/client";
 import { $getRoot, $isTextNode, getNearestEditorFromDOMNode, HISTORY_PUSH_TAG, KEY_BACKSPACE_COMMAND, KEY_DELETE_COMMAND, KEY_ENTER_COMMAND, UNDO_COMMAND } from "lexical";
 import { afterEach, expect, it, vi } from "vitest";
-import { createDefaultAgentUIPresetRegistry } from "@agent-ui/bootstrap";
-import { ConversationRuntimeProvider } from "@agent-ui/runtime-conversation";
-import { CancellationAwareHttpAgent } from "../../runtime-conversation/src/compatibility/cancellation-aware-http-agent.js";
+import { createDefaultAgentUIPresetRegistry } from "@za38.03/agent-ui-operator/bootstrap";
+import { ConversationRuntimeProvider } from "@za38.03/agent-ui-runtime";
+import { CancellationAwareHttpAgent } from "../../runtime/src/compatibility/cancellation-aware-http-agent.js";
 import { AgentUIRoot, ConversationThread, ConversationCanonicalUserEditComposer } from "../src/index.js";
 import { ConversationUserEditLexicalComposer } from "../src/lexical.js";
-import { parseAppUIModel, collectAppUIPluginLocations, type AppUIModel } from "../../project-control/src/framework/contracts/app-ui-model";
-import { compileAppUIModel } from "../../project-control/src/framework/contracts/app-ui-compiler";
-import { applyAppUIOperations, type AppUIOperation } from "../../project-control/src/project/app-ui-operations";
-import { parseUIPluginManifest, type UIPluginDefinition } from "../../project-control/src/framework/contracts/ui-plugin";
-import { PluginRuntimeFixture } from "../../project-control/tests/support/agent-runtime-fixture";
+import { parseAppUIModel, collectAppUIPluginLocations, type AppUIModel } from "../../operator/src/framework/contracts/app-ui-model";
+import { compileAppUIModel } from "../../operator/src/framework/contracts/app-ui-compiler";
+import { applyAppUIOperations, type AppUIOperation } from "../../operator/src/project/app-ui-operations";
+import { parseUIPluginManifest, type UIPluginDefinition } from "../../operator/src/framework/contracts/ui-plugin";
+import { PluginRuntimeFixture } from "../../operator/tests/support/agent-runtime-fixture";
 import { createPluginRegistry, createPluginCompositionCatalog, usePluginRenderScope } from "../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
 import { ConversationAdapter } from "../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter";
 import { AGENT_UI_LOCALES } from "../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/locale-registry";
@@ -23,7 +23,7 @@ import surfaceManifest from "../../source-registry/registry/items/plugin-convers
 import { assistantUiLexicalEditComposerPlugin } from "../../source-registry/registry/items/plugin-assistant-ui-lexical-edit-composer/files/plugins/assistant-ui-lexical-edit-composer/definition";
 import { assistantUiComposerPlugin } from "../../source-registry/registry/items/plugin-assistant-ui-composer/files/plugins/assistant-ui-composer/definition";
 import { assistantUiLexicalComposerInputPlugin } from "../../source-registry/registry/items/plugin-assistant-ui-lexical-composer-input/files/plugins/assistant-ui-lexical-composer-input/definition";
-import { resolveDirectiveContexts } from "../../mock-agent/src/context/directive-context.js";
+import { resolveDirectiveContexts } from "../../creator/src/mock-agent/context/directive-context.js";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const directive = ":user[张三]{name=employee_84721}";

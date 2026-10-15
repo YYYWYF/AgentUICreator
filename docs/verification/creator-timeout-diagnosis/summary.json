@@ -20,7 +20,7 @@
         "rejected": 1
       },
       "toolErrorCodes": {
-        "CONTROL_RESULT_CONTRACT_VIOLATION": 1
+        "OPERATOR_RESULT_CONTRACT_VIOLATION": 1
       },
       "repeatedProposedArgumentGroups": [
         {
@@ -154,8 +154,8 @@
         "error": 1
       },
       "toolErrorCodes": {
-        "PROJECT_CONTROL_BUSY": 3,
-        "CONTROL_RESULT_CONTRACT_VIOLATION": 1
+        "OPERATOR_BUSY": 3,
+        "OPERATOR_RESULT_CONTRACT_VIOLATION": 1
       },
       "repeatedProposedArgumentGroups": [
         {
@@ -225,7 +225,7 @@
       "errorType": null,
       "status": "rejected",
       "arguments": {},
-      "structuredErrorCode": "CONTROL_RESULT_CONTRACT_VIOLATION",
+      "structuredErrorCode": "OPERATOR_RESULT_CONTRACT_VIOLATION",
       "repeatOfSequences": [],
       "sameResultAsPreviousSameArguments": null,
       "newEvidence": "first-observation",
@@ -307,8 +307,8 @@
       "error": 1
     },
     "toolErrorCodes": {
-      "PROJECT_CONTROL_BUSY": 1,
-      "CONTROL_RESULT_CONTRACT_VIOLATION": 1
+      "OPERATOR_BUSY": 1,
+      "OPERATOR_RESULT_CONTRACT_VIOLATION": 1
     },
     "toolRanking": [
       {
@@ -607,7 +607,7 @@
       }
     ],
     "recommendationsOnly": [
-      "串行处理同一 Host 的检查，减少 PROJECT_CONTROL_BUSY 后再请求模型的轮次。",
+      "串行处理同一 Host 的检查，减少 OPERATOR_BUSY 后再请求模型的轮次。",
       "评估将开发场景已有上下文改为按需读取，并按阶段使用已有工具集边界；先测量，不直接改 Prompt/Skill/Schema。",
       "原始轮后期 locale 重读可用已有读取证据避免重复，仅在文件变更时刷新。",
       "模型流式停顿和连接失败按模型/传输问题记录，本次不修复。"

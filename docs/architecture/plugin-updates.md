@@ -33,7 +33,7 @@ release by exact version; no latest lookup may replace a missing BASE.
 
 ## Control boundary
 
-`AgentUIUpdateService`, exported via `@agent-ui/project-control/updates`, owns
+`AgentUIUpdateService`, exported via `@za38.03/agent-ui-operator/updates`, owns
 inspection, dependency planning, compatibility admission, project-bound expiring
 plan IDs, and execution. Creator's Vite Host exposes these operations under
 `/__creator/updates`. `updateSourceProvider` is an injectable Host option. No
@@ -105,7 +105,7 @@ plans, source/lock rollback on verification failure, customized baseline adoptio
 next-merge BASE selection, dependency upgrades, and compatibility refusal.
 UI/model behavioral acceptance is deliberately outside this implementation run.
 
-Builds of Source Registry, ProjectControl and Creator passed. Source Registry
+Builds of Source Registry, Operator and Creator passed. Source Registry
 passed 21 unit tests, the focused update/source suites passed 22 tests, and the
 existing Source mutation suite passed 40 tests. The new UI unit suite passed
 2 tests. The broader checks still expose pre-existing Workbench receipt

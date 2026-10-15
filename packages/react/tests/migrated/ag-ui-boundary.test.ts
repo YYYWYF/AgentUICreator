@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 const workspaceRoot = fileURLToPath(new URL("../../../..", import.meta.url));
 const projectRoot = path.join(workspaceRoot, "examples/creator-host-sandbox");
 const coreRoot = path.join(workspaceRoot, "packages/runtime-core");
-const conversationRoot = path.join(workspaceRoot, "packages/runtime-conversation");
+const conversationRoot = path.join(workspaceRoot, "packages/runtime");
 const protectedRoots = [
   coreRoot,
   path.join(projectRoot, "framework"),
@@ -74,8 +74,8 @@ describe("generated app AG-UI dependency boundary", () => {
         }
         if (filename.startsWith(`${coreRoot}${path.sep}`) && (
           specifier.startsWith("@assistant-ui/") ||
-          specifier === "@agent-ui/runtime-conversation" ||
-          specifier.startsWith("@agent-ui/runtime-conversation/")
+          specifier === "@za38.03/agent-ui-runtime" ||
+          specifier.startsWith("@za38.03/agent-ui-runtime/")
         )) {
           violations.push(`${relative}: core imports conversation integration ${specifier}`);
         }
@@ -123,23 +123,23 @@ describe("generated app AG-UI dependency boundary", () => {
           (manifest[field] as Record<string, string> | undefined) ?? {},
         ));
 
-    expect(dependencyNames(corePackage)).not.toContain("@agent-ui/runtime-conversation");
+    expect(dependencyNames(corePackage)).not.toContain("@za38.03/agent-ui-runtime");
     expect(dependencyNames(corePackage).filter((name) => name.startsWith("@assistant-ui/"))).toEqual([]);
     expect(dependencyNames(corePackage)).not.toContain("react");
     expect(dependencyNames(corePackage).filter((name) => name.startsWith("@ag-ui/"))).toEqual([]);
     expect(dependencyNames(appPackage).filter((name) => name.startsWith("@ag-ui/"))).toEqual([]);
     expect(appPackage.dependencies).toMatchObject({
-      "@agent-ui/runtime-core": "workspace:^",
+      "@za38.03/agent-ui-runtime-core": "workspace:^",
     });
     expect(conversationPackage.dependencies).toMatchObject({
       "@ag-ui/client": "0.0.59",
-      "@agent-ui/react": "workspace:^",
+      "@za38.03/agent-ui-react": "workspace:^",
       "@assistant-ui/react": "0.15.23",
       "@assistant-ui/react-ag-ui": "0.0.63",
       "@assistant-ui/react-langgraph": "0.14.29",
     });
     expect(conversationPackage.peerDependencies).toMatchObject({
-      "@agent-ui/runtime-core": "^0.1.0",
+      "@za38.03/agent-ui-runtime-core": "^0.1.0",
     });
   });
 
@@ -149,7 +149,7 @@ describe("generated app AG-UI dependency boundary", () => {
       const relative = path.relative(workspaceRoot, filename).split(path.sep).join("/");
       for (const specifier of moduleReferences(await readFile(filename, "utf8"))) {
         if (
-          specifier.startsWith("@agent-ui/runtime-core/") ||
+          specifier.startsWith("@za38.03/agent-ui-runtime-core/") ||
           specifier.includes("runtime-core/src") ||
           specifier.includes("runtime-core/dist")
         ) {

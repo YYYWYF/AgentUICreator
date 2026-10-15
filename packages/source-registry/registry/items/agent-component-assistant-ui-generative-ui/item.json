@@ -1,14 +1,12 @@
 {
   "id": "agent-component/assistant-ui-generative-ui",
   "kind": "agent-component",
-  "description": "Official assistant-ui styled Generative UI vocabulary and Host-scoped vocabulary CSS",
+  "description": "Package-backed Generative UI capabilities; no upstream source is installed into the project",
   "requires": [
     "foundation/core"
   ],
   "packages": {
-    "@assistant-ui/react-generative-ui": "0.0.22",
-    "react-markdown": "10.1.0",
-    "remark-gfm": "4.0.1"
+    "@za38.03/agent-ui-react": "0.1.6"
   },
   "upstream": {
     "project": "assistant-ui/assistant-ui",
@@ -20,16 +18,8 @@
   },
   "files": [
     {
-      "source": "files/agent-ui/vendor/assistant-ui/generative-ui/styled-generative-ui.tsx",
-      "target": "agent-ui/vendor/assistant-ui/generative-ui/styled-generative-ui.tsx"
-    },
-    {
-      "source": "files/agent-ui/vendor/assistant-ui/generative-ui/generative-ui.css",
-      "target": "agent-ui/vendor/assistant-ui/generative-ui/generative-ui.css"
-    },
-    {
-      "source": "files/agent-ui/vendor/assistant-ui/generative-ui/UPSTREAM.json",
-      "target": "agent-ui/vendor/assistant-ui/generative-ui/UPSTREAM.json"
+      "source": "files/agent-ui/conversation/generative-ui.ts",
+      "target": "agent-ui/conversation/generative-ui.ts"
     }
   ]
 }

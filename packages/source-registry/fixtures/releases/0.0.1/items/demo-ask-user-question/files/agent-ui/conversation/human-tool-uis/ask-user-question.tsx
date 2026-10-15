@@ -2,7 +2,7 @@ import {
   ConversationQuestionFlow,
   useConversationCanAnswerToolCall,
   type ConversationToolCallProps,
-} from "@agent-ui/react";
+} from "@za38.03/agent-ui-react";
 import { useAgentUILocale } from "../../i18n/useAgentUILocale";
 import { parseHumanQuestionRequest, parseHumanQuestionResult } from "../../../agent-contract/human-tools/ask-user-question";
 

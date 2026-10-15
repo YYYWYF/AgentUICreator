@@ -123,12 +123,12 @@ unchanged by this repair.
 
 Automated checks executed on 2026-09-27, without manual/browser acceptance:
 
-- runtime-conversation, mock-agent and react: typecheck and build passed.
+- runtime, mock-agent and react: typecheck and build passed.
 - New demo adapter tests: 6 passed, including real official image/PDF routing,
   accept, size bounds and pre-read abort.
 - New declaration allowlist tests: 24 passed. The real emitted declaration
-  boundary and consumer typecheck passed during runtime-conversation build.
-- Full runtime-conversation test command failed: 14 failures and 17 unhandled
+  boundary and consumer typecheck passed during runtime build.
+- Full runtime test command failed: 14 failures and 17 unhandled
   errors, including existing package-policy expectations, wire-test fixture
   readiness timeouts, history expectations and cancellation errors.
 - Full mock-agent tests (rerun outside the sandbox for local HTTP listening):
@@ -138,7 +138,7 @@ Automated checks executed on 2026-09-27, without manual/browser acceptance:
   theme service declarations, history/tool expectations and the attachment smoke
   test's missing Remove file button. No full attachment UI pass is claimed.
 - Workspace `pnpm typecheck` was rerun after an initial concurrent Host build
-  race; it failed in project-control/tests/host-public-entry.integration.test.ts
+  race; it failed in operator/tests/host-public-entry.integration.test.ts
   on RolldownOutput | RolldownWatcher.output (TS2339).
 - Workspace `pnpm test:ts` failed in existing bootstrap fixture paths
   (/presets/assistant/app-ui.json and non-file import URLs), so it did not
@@ -180,12 +180,12 @@ incompatible onPlaced inheritance (TS2320). Weakening consumer checks, patching
 upstream or upgrading unrelated presentation dependencies is outside this repair.
 
 The supported defining-module fallback therefore remains AttachmentAdapter from
-@assistant-ui/core 0.3.21, which is already a real runtime-conversation dependency
+@assistant-ui/core 0.3.21, which is already a real runtime dependency
 in package.json/lockfile. The explicit allowlist permits only AttachmentAdapter;
 react-ag-ui, other types, primitives, runtime types and value imports stay rejected.
 Revisit this fallback when the upstream formal entry supports strict consumers.
 
-check-consumer-types.mjs now packs the actual runtime-conversation, react and
+check-consumer-types.mjs now packs the actual runtime, react and
 runtime-core publishable tarballs and installs them in a separate temporary
 project. Overrides point only the local unpublished Agent UI packages to their
 real tarballs; external dependencies use the package manager. Copy import mode,
@@ -199,14 +199,14 @@ fetches have bounded timeout/retries. Consumer typecheck remains skipLibCheck:fa
 
 ### Final focused results (2026-09-27)
 
-- runtime-conversation attachment/wire/history tests: 8 passed.
+- runtime attachment/wire/history tests: 8 passed.
 - mock-agent demo attachment tests: 6 passed.
 - react canonical attachment UI tests: 3 passed.
 - public declaration allowlist tests: 24 passed.
-- runtime-conversation, mock-agent and react typecheck/build: all passed.
+- runtime, mock-agent and react typecheck/build: all passed.
 - Real emitted public boundary and isolated published-package consumer: passed.
 
-The earlier project-control Rolldown, bootstrap fixture paths and other full-suite
+The earlier operator Rolldown, bootstrap fixture paths and other full-suite
 failures are pre-existing/unrelated to this focused repair; their earlier reports
 remain above. Workspace-wide suites were not rerun or repaired in this final
 pass. No production ConversationRuntimeProvider, converter, HttpAgent or

@@ -196,8 +196,8 @@ def test_deferred_development_does_not_block_new_task_source_transaction(tmp_pat
                                           content='{"id":"new-task"}\n')])
         metrics = SimpleNamespace(to_dict=lambda: {})
         return SimpleNamespace(text="新任务写入完成", completion="committed_unverified",
-                               metrics=metrics, project_control=metrics,
-                               repeated_project_control_reads=0,
+                               metrics=metrics, operator=metrics,
+                               repeated_operator_reads=0,
                                domain_observations=metrics)
 
     monkeypatch.setattr("agent_ui_creator.server._domain_write_agent_result", new_task_run)
@@ -407,8 +407,8 @@ def test_cancelled_run_transaction_undo_is_explicit_idempotent_and_conflict_safe
             empty_metrics = SimpleNamespace(to_dict=lambda: {})
             return SimpleNamespace(
                 text="新任务已写入", completion="committed_unverified",
-                metrics=empty_metrics, project_control=empty_metrics,
-                repeated_project_control_reads=0, domain_observations=empty_metrics,
+                metrics=empty_metrics, operator=empty_metrics,
+                repeated_operator_reads=0, domain_observations=empty_metrics,
             )
         await source.create([
             UISourceFile(path="/plugins/task-list/manifest.json", content='{"id":"task-list"}\n'),
@@ -671,8 +671,8 @@ def test_server_tool_admission_rejects_other_plugin_composition_before_write(tmp
         observed["result"] = json.loads(response.content)
         metrics = SimpleNamespace(to_dict=lambda: {})
         return SimpleNamespace(text="授权拒绝已由实际工具中间件返回。", completion="success",
-                               metrics=metrics, project_control=metrics,
-                               repeated_project_control_reads=0,
+                               metrics=metrics, operator=metrics,
+                               repeated_operator_reads=0,
                                domain_observations=metrics)
 
     monkeypatch.setattr("agent_ui_creator.server._domain_write_agent_result", call_tool_on_server)
@@ -736,8 +736,8 @@ def test_server_tool_admission_rejects_new_platform_panel_in_navigation_slot(tmp
         observed["result"] = json.loads(response.content)
         metrics = SimpleNamespace(to_dict=lambda: {})
         return SimpleNamespace(text="已拦截错误区域。", completion="success",
-                               metrics=metrics, project_control=metrics,
-                               repeated_project_control_reads=0,
+                               metrics=metrics, operator=metrics,
+                               repeated_operator_reads=0,
                                domain_observations=metrics)
 
     monkeypatch.setattr("agent_ui_creator.server._domain_write_agent_result", call_tool_on_server)
@@ -827,8 +827,8 @@ def test_server_tool_admission_requires_declared_relative_plugin_placement(tmp_p
         }), lambda _request: "admitted")
         metrics = SimpleNamespace(to_dict=lambda: {})
         return SimpleNamespace(text="布局授权检查完成。", completion="success",
-                               metrics=metrics, project_control=metrics,
-                               repeated_project_control_reads=0,
+                               metrics=metrics, operator=metrics,
+                               repeated_operator_reads=0,
                                domain_observations=metrics)
 
     monkeypatch.setattr("agent_ui_creator.server._domain_write_agent_result", call_tool_on_server)

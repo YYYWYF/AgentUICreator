@@ -1,7 +1,7 @@
 # agent-ui-creator-core
 
 Agent UI Creator 的唯一 Python 控制面。它通过经过鉴权的 FastAPI sidecar 提供
-AG-UI stream、runtime diagnostics、ProjectControl 领域读取，以及由 Python Host
+AG-UI stream、runtime diagnostics、Operator 领域读取，以及由 Python Host
 拥有 transaction / receipt / undo 的 AppUIModel semantic mutation，以及 Runtime
 Verification、Host Validation 和 Completion Gate。
 
@@ -118,7 +118,7 @@ CREATOR_PYTHON_AGENT_MODE=domain-read
 新增 `inspect_ui_project`、`inspect_app_ui_model`、`list_ui_plugins`、
 `inspect_ui_slots`、`inspect_ui_plugin`、`inspect_ui_services` 和
 `inspect_ui_plugin_source_references`。领域事实只通过目标工程固定的
-`scripts/ui-project-control.ts` 获取；不会自动向每轮模型调用注入全量 snapshot。
+`scripts/ui-operator.ts` 获取；不会自动向每轮模型调用注入全量 snapshot。
 默认领域写模式中 Selector 选择 `INSPECT` 时，单独构造只读执行作用域：模型看不到
 修改工具，文件系统执行侧也拒绝项目写入；之前会话的写任务不会扩大该轮权限。
 
@@ -130,7 +130,7 @@ CREATOR_PYTHON_AGENT_MODE=domain-write
 
 `mutate_app_ui_model` 复用正式 AppUIModel operation JSON Schema，由
 `AppUIModelMutationService` 在 project-level lock 内统一完成双文件 capture-before、
-ProjectControl transaction、真实磁盘 changedPaths 对账、Activity touch、receipt 与 undo
+Operator transaction、真实磁盘 changedPaths 对账、Activity touch、receipt 与 undo
 证据记录。Hash conflict 不会自动重试，必须重新 inspect；完成回执会记录当前验证模式、
 静态验证状态和 Runtime 状态。
 
@@ -141,10 +141,10 @@ ProjectControl transaction、真实磁盘 changedPaths 对账、Activity touch�
 原子 commit、失败回滚、Activity revision、receipt、createdDirectories 与 undo 记录；不提供
 删除、重命名、移动或跨 Plugin 写入语义。
 
-`ProjectControlClient` 固定从目标工程的 `node_modules/.bin/tsx`（Windows 为
+`OperatorClient` 固定从目标工程的 `node_modules/.bin/tsx`（Windows 为
 `tsx.cmd`）启动该入口，`cwd` 为目标工程，环境固定 `CI=1`、`FORCE_COLOR=0`，
 超时 15 秒，stdout/stderr 合计上限 1,000,000 bytes。请求和响应均通过
-`contracts/creator/project-control.schema.json` 验证。
+`contracts/creator/operator.schema.json` 验证。
 Client 保留 public read operation，并提供 AppUIModel 与 Agent UI Source
 domain capability 使用的 bounded mutation transport；Agent 不直接拿到 Client。
 

@@ -1,0 +1,66 @@
+import path from "node:path";
+
+import type { AgentUIProjectConfig } from "../framework/contracts/agent-ui-project";
+import type { UIOperatorConfig } from "./types";
+import { uiOperatorConfig } from "./project-config";
+import { validateAgentUISourceRoot } from "../bootstrap/index.js";
+
+export interface AgentUIProjectPaths {
+  readonly projectRoot: string;
+  readonly metadataRoot: string;
+  readonly projectConfigPath: string;
+  readonly sourceRoot: string;
+  readonly agentUIAdaptersRoot: string;
+  readonly appUIModelPath: string;
+  readonly sourceLockPath: string;
+  readonly pluginsRoot: string;
+  readonly generatedPluginRegistryPath: string;
+  readonly generatedRuntimeConfigPath: string;
+  readonly pluginRegistryEntryPath: string;
+  readonly runtimeRoot: string;
+}
+
+export function projectRelativePath(projectRoot: string, absolutePath: string): string {
+  return path.relative(projectRoot, absolutePath).split(path.sep).join("/");
+}
+
+export { AgentUISourceRootError, validateAgentUISourceRoot } from "../bootstrap/index.js";
+
+export function operatorConfigForPaths(
+  paths: AgentUIProjectPaths,
+  config: UIOperatorConfig = uiOperatorConfig,
+): UIOperatorConfig {
+  return {
+    ...config,
+    agentUI: {
+      ...config.agentUI,
+      sourceRoot: path.relative(paths.projectRoot, paths.sourceRoot).split(path.sep).join("/"),
+    },
+  };
+}
+
+export function resolveAgentUIProjectPaths(
+  projectRoot: string,
+  projectConfig: AgentUIProjectConfig,
+  config: UIOperatorConfig = uiOperatorConfig,
+): AgentUIProjectPaths {
+  const root = path.resolve(projectRoot);
+  const metadataRoot = path.resolve(root, config.agentUI.metadataRoot);
+  const sourceRoot = validateAgentUISourceRoot(root, projectConfig.sourceRoot);
+  const managedRoot = sourceRoot;
+  const pluginsRoot = path.join(managedRoot, "plugins");
+  return {
+    projectRoot: root,
+    metadataRoot,
+    projectConfigPath: path.join(metadataRoot, "project.json"),
+    sourceRoot,
+    agentUIAdaptersRoot: path.join(managedRoot, "agent-ui"),
+    appUIModelPath: path.join(managedRoot, "app-ui", "app-ui.json"),
+    sourceLockPath: path.join(metadataRoot, "source-lock.json"),
+    pluginsRoot,
+    generatedPluginRegistryPath: path.join(pluginsRoot, "registry.generated.ts"),
+    generatedRuntimeConfigPath: path.join(managedRoot, "application", "runtime-config.generated.ts"),
+    pluginRegistryEntryPath: path.join(pluginsRoot, "index.ts"),
+    runtimeRoot: path.join(managedRoot, "runtime"),
+  };
+}

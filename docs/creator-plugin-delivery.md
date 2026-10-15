@@ -4,7 +4,7 @@ Creator 仍然是通用 Coding Agent。交付机制记录实施义务、读取�
 
 ## 能力发现
 
-`inspect_ui_capabilities` 从现有 ProjectControl 获取已安装 Plugin、正式 Source、当前 Layout / Slot 和项目 UI Stack，并对项目组件路径作有限扫描。返回的是实时导航索引，不生成第二份权威 manifest。AppUIModel、Plugin 声明和被选组件的源码仍是事实来源。
+`inspect_ui_capabilities` 从现有 Operator 获取已安装 Plugin、正式 Source、当前 Layout / Slot 和项目 UI Stack，并对项目组件路径作有限扫描。返回的是实时导航索引，不生成第二份权威 manifest。AppUIModel、Plugin 声明和被选组件的源码仍是事实来源。
 
 返回值包括 `pluginInventoryComplete`、`componentInventoryComplete`、Source hash 和项目 hash。较大的结果使用现有连续分页机制；没有完整读取同一快照，不能据此声称能力不存在。组件路径扫描不跟随符号链接，不读取组件正文，不把文件名当作已验证能力。开发授权观察器只消费宿主返回的完整 Plugin / Source inventory，不消费模型自报的“已检查”。
 
@@ -60,6 +60,6 @@ D01–D04 回归覆盖 Source 优先发现与权限、完整生命周期、组�
 
 本次整合全量 Python：795 passed / 109 failed，失败用例 ID 与上述基线完全相同，没有新增失败。后续固定轨道位置断言使用相关测试单独复核。
 
-相关验证：Creator、ProjectControl、React typecheck；Creator build；ProjectControl contract inventory；ProjectControl 布局/verify-ui 75 项；Composer action/history 9 项；Creator 完成状态/回执 UI 12 项。真实生成的 embedded Host 能力索引已检查到 18 个 Plugin、39 个 Source Item、16 个 Slot。未运行真实模型的 D01–D04 自主产品验收。
+相关验证：Creator、Operator、React typecheck；Creator build；Operator contract inventory；Operator 布局/verify-ui 75 项；Composer action/history 9 项；Creator 完成状态/回执 UI 12 项。真实生成的 embedded Host 能力索引已检查到 18 个 Plugin、39 个 Source Item、16 个 Slot。未运行真实模型的 D01–D04 自主产品验收。
 
 最后一次相关 Python 回归：181 passed，包含真实 Chrome 的 3 个交互测试。其他工作区未跟踪的 dictation 测试已对照：主干版本正确传递 endpoint/threadId，比旧测试工作区完整，因此保留主干版本。

@@ -1,5 +1,5 @@
 {
-  "name": "@agent-ui/creator-embedded-host",
+  "name": "@za38.03/agent-ui-creator-embedded-host",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -7,7 +7,7 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
-    "predev": "node ../../scripts/prepare-host-packages.mjs && node --import tsx ../../scripts/host-examples/host-project.ts ensure embedded creator-embedded-host",
+    "predev": "node ../../scripts/prepare-host-packages.mjs --with-mock && node --import tsx ../../scripts/host-examples/host-project.ts ensure embedded creator-embedded-host",
     "dev": "vite --host 127.0.0.1 --port 5178 --strictPort",
     "prebuild": "node ../../scripts/prepare-host-packages.mjs && node --import tsx ../../scripts/host-examples/host-project.ts ensure embedded creator-embedded-host",
     "build": "tsc --noEmit && vite build",
@@ -24,10 +24,10 @@
     "test": "node --import tsx ../../scripts/host-examples/test-host-example.ts embedded creator-embedded-host"
   },
   "dependencies": {
-    "@agent-ui/react": "workspace:*",
-    "@agent-ui/runtime-conversation": "workspace:*",
-    "@agent-ui/runtime-core": "workspace:*",
-    "@agent-ui/runtime-react": "workspace:*",
+    "@za38.03/agent-ui-react": "workspace:*",
+    "@za38.03/agent-ui-runtime": "workspace:*",
+    "@za38.03/agent-ui-runtime-core": "workspace:*",
+    "@za38.03/agent-ui-renderer": "workspace:*",
     "lucide-react": "1.41.0",
     "react": "19.1.1",
     "react-dom": "19.1.1",
@@ -38,7 +38,7 @@
     "@lexical/react": "0.51.0",
     "@lexical/utils": "0.51.0",
     "lexical": "0.51.0",
-    "@agent-ui/plugins": "workspace:*"
+    "@za38.03/agent-ui-plugins": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "26.6.2",
@@ -50,8 +50,7 @@
     "tsx": "4.20.6",
     "typescript": "7.0.2",
     "vite": "8.3.0",
-    "@agent-ui/bootstrap": "workspace:*",
-    "@agent-ui/project-control": "workspace:*",
-    "@agent-ui/mock-agent": "workspace:*"
+    "@za38.03/agent-ui-operator": "workspace:*",
+    "@za38.03/agent-ui-creator": "workspace:*"
   }
 }

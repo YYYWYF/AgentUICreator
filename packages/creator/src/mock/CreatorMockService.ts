@@ -7,7 +7,7 @@ import {
   withPreviewAgentState,
   MockDurableRunStore,
   type MockAgentHttpHandler,
-} from "@agent-ui/mock-agent";
+} from "../mock-agent/index.js";
 import { LocalMockRecordingStore, type LocalMockRecordingSummary } from "./local-recording-store.js";
 import type { MockProjectTarget } from "./demo-compatibility.js";
 import type { CreatorMockSelection, CreatorMockState } from "./types.js";

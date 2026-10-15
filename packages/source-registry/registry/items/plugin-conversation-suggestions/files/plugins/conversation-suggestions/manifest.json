@@ -2,7 +2,7 @@
   "id": "conversation-suggestions",
   "name": "Conversation Suggestions",
   "description": "Renders starter prompts through the Conversation public surface.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "conversation-suggestions"
   ],

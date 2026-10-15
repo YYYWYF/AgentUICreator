@@ -1,4 +1,4 @@
-import { chmod, copyFile, cp, mkdir } from "node:fs/promises";
+import { chmod, copyFile, cp, mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { assertContractParity } from "./contract-integrity.mjs";
@@ -47,3 +47,10 @@ await assertContractParity(
   fileURLToPath(new URL("../dist/python/agent_ui_creator/_contracts/creator/", import.meta.url)),
 );
 await chmod(new URL("../dist/cli.js", import.meta.url), 0o755);
+
+// Retain deferred demos only in the workspace, never in the npm payload.
+for (const name of ["a2ui-form-controls", "a2ui-interactive-order"]) {
+  for (const extension of [".js", ".js.map", ".d.ts", ".d.ts.map"]) {
+    await rm(new URL(`../dist/mock-agent/builtins/${name}${extension}`, import.meta.url), { force: true });
+  }
+}

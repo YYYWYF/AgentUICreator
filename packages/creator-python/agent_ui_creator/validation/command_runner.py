@@ -25,7 +25,7 @@ _LOCKFILES = {
 
 
 def _package_manager_at(root: Path, *, inherited: bool = False) -> str | None:
-    """Match Project Control's resource-package detection, without npm guessing."""
+    """Match Operator's resource-package detection, without npm guessing."""
     manifest_path = root / "package.json"
     if not manifest_path.is_file():
         return None

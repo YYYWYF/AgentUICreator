@@ -27,7 +27,7 @@ Final logs are in logs/. These are static/unit checks, not product acceptance.
 | Source Registry | 29 passed |
 | Python Creator schema/diagnostic traversal/resource scope | 11 passed |
 | assistant-ui upgrade contract | 33 passed |
-| React, Runtime React, Project Control, Bootstrap, Source Registry typechecks | Passed |
+| React, Runtime React, Operator, Bootstrap, Source Registry typechecks | Passed |
 | Sidebar E2E source typecheck | Passed; browser execution excluded |
 | React and Runtime React builds/public boundaries | Passed |
 | i18n parity and upstream purity/provenance | Passed |

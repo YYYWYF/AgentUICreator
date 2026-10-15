@@ -80,7 +80,7 @@ def test_run_logger_finishes_once_with_failure_snapshot(tmp_path):
             "executedChangeLayer": "composition",
             "scopeResources": ["app-ui-model"],
         },
-        project_control_metrics={"requests": 3},
+        operator_metrics={"requests": 3},
         error=RuntimeError("agent stopped"),
     )
     logger.finish("success", metrics={"modelCalls": 999})
@@ -96,7 +96,7 @@ def test_run_logger_finishes_once_with_failure_snapshot(tmp_path):
     assert data["modelToolMetrics"]["modelCalls"] == 24
     assert data["mutationMetrics"]["mutationRequests"] == 6
     assert data["changeLayerMetrics"]["scopeResources"] == ["app-ui-model"]
-    assert data["projectControlMetrics"]["requests"] == 3
+    assert data["operatorMetrics"]["requests"] == 3
 
 
 def test_run_logger_records_bounded_tool_trajectory(tmp_path):

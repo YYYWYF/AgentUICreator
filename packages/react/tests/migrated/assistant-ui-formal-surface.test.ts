@@ -1,4 +1,4 @@
-import { generatedProjectFixture } from "../../../project-control/tests/support/generated-project";
+import { generatedProjectFixture } from "../../../operator/tests/support/generated-project";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,7 +14,7 @@ describe("formal Conversation surface", () => {
       "utf8",
     );
 
-    expect(surface).toContain('from "@agent-ui/react"');
+    expect(surface).toContain('from "@za38.03/agent-ui-react"');
     expect(surface).toContain("ConversationThread");
     expect(surface).toContain("TooltipProvider");
     expect(surface).toContain('data-agent-ui-conversation="true"');

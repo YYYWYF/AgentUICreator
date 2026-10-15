@@ -1,4 +1,4 @@
-import { ConversationCanonicalResponseExportMarkdownAction } from "@agent-ui/react";
+import { ConversationCanonicalResponseExportMarkdownAction } from "@za38.03/agent-ui-react";
 import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
 
 export function AssistantUiExportMarkdownActionPlugin(_props: UIPluginComponentProps) {

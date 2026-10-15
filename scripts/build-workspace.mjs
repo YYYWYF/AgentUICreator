@@ -5,7 +5,7 @@ import { prepareHostPackages } from "./prepare-host-packages.mjs";
 const workspaceRoot = fileURLToPath(new URL("..", import.meta.url));
 // Always prepare this invocation, even if the caller inherited a Host skip flag.
 prepareHostPackages({ force: true });
-for (const name of ["@agent-ui/creator", "@agent-ui/creator-host-sandbox", "@agent-ui/creator-assistant-host", "@agent-ui/creator-embedded-host", "@agentui/web-component", "@agent-ui/web-component-vue3-demo", "@agent-ui/web-component-legacy-demo"]) {
+for (const name of ["@za38.03/agent-ui-creator", "@za38.03/agent-ui-creator-host-sandbox", "@za38.03/agent-ui-creator-assistant-host", "@za38.03/agent-ui-creator-embedded-host", "@za38.03/agent-ui-web-component", "@za38.03/agent-ui-web-component-vue3-demo", "@za38.03/agent-ui-web-component-legacy-demo"]) {
   const result = spawnPnpmSync(["--filter", name, "build"], {
     cwd: workspaceRoot,
     stdio: "inherit",

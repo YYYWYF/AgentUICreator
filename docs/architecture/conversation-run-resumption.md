@@ -19,7 +19,7 @@ Application-owned resume provider (optional for generated Agent)
 ```
 
 The provider maps this capability to the pinned assistant-ui `unstable_resume`
-and `resume()` API. That API stays inside `runtime-conversation`.
+and `resume()` API. That API stays inside `runtime`.
 
 1. No guessing from message status or unfinished tools.
 2. No fallback that starts a new Agent run after resume fails.

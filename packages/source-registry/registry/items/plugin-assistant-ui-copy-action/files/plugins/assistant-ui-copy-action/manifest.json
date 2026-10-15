@@ -2,7 +2,7 @@
   "id": "assistant-ui-copy-action",
   "name": "Assistant UI Copy Action",
   "description": "Copies text from the complete assistant response.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "conversation-assistant-response-action",
     "conversation-message-action"

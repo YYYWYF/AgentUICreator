@@ -1,0 +1,235 @@
+import { verifyEvents } from "@ag-ui/client";
+import {
+  EventSchemas,
+  EventType,
+  type RunAgentInput,
+} from "@ag-ui/core";
+import { from, lastValueFrom } from "rxjs";
+import { describe, expect, it } from "vitest";
+
+import {
+  approvalResumeScenario,
+  backendReferenceMockScenarios,
+  builtinMockScenarios,
+  mockRegressionScenarios,
+  parallelToolsScenario,
+  showcaseMockScenarios,
+  subagentLifecycleScenario,
+  toolErrorScenario,
+} from "../../src/mock-agent/builtins/index.js";
+import { runMockScenario } from "../../src/mock-agent/scenario-runner.js";
+import { defineScenario, type MockScenario } from "../../src/mock-agent/scenario.js";
+
+const input: RunAgentInput = {
+  threadId: "p5-thread",
+  runId: "p5-run",
+  state: {},
+  messages: [],
+  tools: [],
+  context: [],
+  forwardedProps: {},
+};
+
+async function collect(
+  scenario: MockScenario,
+  runInput = input,
+) {
+  const events = [] as Awaited<ReturnType<typeof EventSchemas.parse>>[];
+  for await (const event of runMockScenario(runInput, scenario, {
+    timingScale: 0,
+  })) {
+    events.push(EventSchemas.parse(event));
+  }
+  await lastValueFrom(from(events).pipe(verifyEvents()));
+  return events;
+}
+
+describe("P5-A mock scenarios", () => {
+  it("uses deterministic run-scoped ids", async () => {
+    const scenario = defineScenario({
+      id: "deterministic-ids",
+      title: "Deterministic IDs",
+      steps: [{
+        type: "tool",
+        name: "search_files",
+        args: { query: "agent" },
+        result: { matches: [] },
+        prepareDurationMs: 0,
+        durationMs: 0,
+      }],
+    });
+    const first = await collect(scenario);
+    const second = await collect(scenario);
+    expect(first).toEqual(second);
+    expect(first).toContainEqual(expect.objectContaining({
+      type: EventType.TOOL_CALL_START,
+      toolCallId: "p5-run:tool-call:1",
+    }));
+  });
+
+  it("schedules parallel tools with stable interleaving", async () => {
+    const events = await collect(parallelToolsScenario);
+    const lifecycle = events.filter((event) =>
+      event.type === EventType.TOOL_CALL_START ||
+      event.type === EventType.TOOL_CALL_ARGS ||
+      event.type === EventType.TOOL_CALL_END ||
+      event.type === EventType.TOOL_CALL_RESULT
+    );
+    expect(lifecycle.slice(0, 6)).toEqual([
+      expect.objectContaining({ type: EventType.TOOL_CALL_START, toolCallId: "parallel-search-files" }),
+      expect.objectContaining({ type: EventType.TOOL_CALL_ARGS, toolCallId: "parallel-search-files" }),
+      expect.objectContaining({ type: EventType.TOOL_CALL_START, toolCallId: "parallel-inspect-component" }),
+      expect.objectContaining({ type: EventType.TOOL_CALL_ARGS, toolCallId: "parallel-inspect-component" }),
+      expect.objectContaining({ type: EventType.TOOL_CALL_START, toolCallId: "parallel-read-config" }),
+      expect.objectContaining({ type: EventType.TOOL_CALL_ARGS, toolCallId: "parallel-read-config" }),
+    ]);
+    expect(lifecycle.map((event) => event.type)).toContain(
+      EventType.TOOL_CALL_RESULT,
+    );
+  });
+
+  it("compiles and verifies every builtin through the pinned AG-UI client", async () => {
+    for (const scenario of builtinMockScenarios) {
+      const events = await collect(scenario);
+      expect(events[0]).toMatchObject({ type: EventType.RUN_STARTED });
+      expect(events.some(({ type }) => type === EventType.RUN_FINISHED || type === EventType.RUN_ERROR))
+        .toBe(true);
+    }
+  });
+
+  it("keeps the Backend Reference scenarios parseable as AG-UI 0.0.59", async () => {
+    expect(backendReferenceMockScenarios).toHaveLength(15);
+
+    for (const scenario of backendReferenceMockScenarios) {
+      const events = await collect(scenario);
+      expect(events[0]).toMatchObject({ type: EventType.RUN_STARTED });
+
+      for (const event of events) {
+        EventSchemas.parse(event);
+      }
+
+      for (const event of events) {
+        if (event.type !== EventType.TOOL_CALL_ARGS) continue;
+        const args = JSON.parse(event.delta) as unknown;
+        expect(args).toEqual(expect.any(Object));
+        expect(Array.isArray(args)).toBe(false);
+        expect(args).not.toBeNull();
+      }
+    }
+  });
+
+  it("keeps the live catalog limited to showcase scenarios", () => {
+    expect(showcaseMockScenarios).toHaveLength(33);
+    expect(showcaseMockScenarios.map(({ id }) => id)).not.toContain("quote-reply");
+    expect(showcaseMockScenarios.map(({ id }) => id)).toContain("source-citations");
+    expect(showcaseMockScenarios.map(({ id }) => id)).toContain("file-output");
+    expect(showcaseMockScenarios.map(({ id }) => id)).toContain("multi-message-response");
+    expect(showcaseMockScenarios.map(({ id }) => id)).toContain("resumable-agent-plan");
+    expect(mockRegressionScenarios.map(({ id }) => id)).toEqual([
+      "reasoning-long-preview",
+      "multi-tool",
+      "tool-long-running",
+      "subagent-lifecycle",
+    ]);
+  });
+
+  it("uses resume steps for structured approval interrupts", async () => {
+    const first = await collect(approvalResumeScenario);
+    const interrupt = first.find((event) =>
+      event.type === EventType.RUN_FINISHED && event.outcome?.type === "interrupt"
+    );
+    expect(interrupt).toMatchObject({
+      type: EventType.RUN_FINISHED,
+      outcome: {
+        type: "interrupt",
+        interrupts: [expect.objectContaining({ reason: "tool_call" })],
+      },
+    });
+    if (interrupt?.type !== EventType.RUN_FINISHED ||
+      interrupt.outcome?.type !== "interrupt") return;
+
+    const resumed = await collect(approvalResumeScenario, {
+      ...input,
+      runId: "p5-resume",
+      resume: interrupt.outcome.interrupts.map(({ id }) => ({
+        interruptId: id,
+        status: "resolved" as const,
+        payload: { approved: true },
+      })),
+    });
+    expect(resumed).toContainEqual(expect.objectContaining({
+      type: EventType.TOOL_CALL_RESULT,
+      toolCallId: "approval-dangerous-tool",
+      content: JSON.stringify({ deleted: ["dist/", ".cache/"] }),
+    }));
+    expect(resumed).toContainEqual(expect.objectContaining({
+      type: EventType.TEXT_MESSAGE_START,
+    }));
+    expect(resumed.at(-1)).toMatchObject({
+      type: EventType.RUN_FINISHED,
+      outcome: { type: "success" },
+    });
+
+    const denied = await collect(approvalResumeScenario, {
+      ...input,
+      runId: "p5-denied",
+      resume: interrupt.outcome.interrupts.map(({ id }) => ({
+        interruptId: id,
+        status: "resolved" as const,
+        payload: { approved: false },
+      })),
+    });
+    expect(denied).toContainEqual(expect.objectContaining({
+      type: EventType.TOOL_CALL_RESULT,
+      toolCallId: "approval-dangerous-tool",
+      content: JSON.stringify({ skipped: true, reason: "denied by user" }),
+    }));
+
+    const cancelled = await collect(approvalResumeScenario, {
+      ...input,
+      runId: "p5-cancelled",
+      resume: interrupt.outcome.interrupts.map(({ id }) => ({
+        interruptId: id,
+        status: "cancelled" as const,
+      })),
+    });
+    expect(cancelled.some(({ type }) => type === EventType.TOOL_CALL_RESULT))
+      .toBe(false);
+  });
+
+  it("models a failed Tool Call with standard RUN_ERROR", async () => {
+    const events = await collect(toolErrorScenario);
+
+    expect(events).toContainEqual(expect.objectContaining({
+      type: EventType.RUN_ERROR,
+      code: "MOCK_SERVICE_UNAVAILABLE",
+    }));
+    const runError = events.find(({ type }) => type === EventType.RUN_ERROR);
+    expect(runError).not.toHaveProperty("subagentRunId");
+    expect(events.some(({ type }) => type === EventType.TOOL_CALL_RESULT)).toBe(false);
+  });
+
+  it("keeps standard subagent lifecycle separate from dispatch presentation", async () => {
+    const events = await collect(subagentLifecycleScenario);
+    expect(events).toContainEqual(expect.objectContaining({
+      type: EventType.SUBAGENT_STARTED,
+      subagentRunId: "lifecycle-completed",
+    }));
+    expect(events).toContainEqual(expect.objectContaining({
+      type: EventType.SUBAGENT_FINISHED,
+      subagentRunId: "lifecycle-completed",
+      outcome: { type: "success" },
+    }));
+    expect(events).toContainEqual(expect.objectContaining({
+      type: EventType.SUBAGENT_STARTED,
+      subagentRunId: "lifecycle-error",
+    }));
+    expect(events).toContainEqual(expect.objectContaining({
+      type: EventType.SUBAGENT_ERROR,
+      subagentRunId: "lifecycle-error",
+      message: "Worker failed",
+      code: "WORKER_FAILED",
+    }));
+  });
+
+});

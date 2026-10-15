@@ -1,8 +1,10 @@
 # P3R-0: assistant-ui Conversation Domain Architecture Rebaseline
 
+> 当前源码交付边界见 [包内上游实现与按插件更新](package-owned-upstream-and-plugin-updates.md)。本文中的生成项目 vendor 路径属于历史状态，禁止继续向用户工程安装上游源码。
+
 > Historical migration baseline. Its descriptions of `runtime-agui`, the A/B
 > period, and package deletion gates record the P3R-0 state. The current
-> production owner is `packages/runtime-conversation`:
+> production owner is `packages/runtime`:
 > `ConversationRuntimeProvider` -> `@assistant-ui/react-ag-ui` -> `useAgUiRuntime()`
 > -> `@ag-ui/client` `HttpAgent`. The legacy package has been retired.
 
@@ -55,7 +57,7 @@ App.tsx
      -> local child Slots             -> emptyWelcome / emptySuggestions
 ```
 
-`runtime-agui` 当前同时承担：`HttpAgent` 生命周期、AG-UI message/input 映射、message/reasoning/tool/step/subagent projection、run 状态、abort、新 thread、structured interrupt、Frontend Tool 协调、Tool continuation 和 Custom Event wire boundary。`runtime-core` 提供协议无关的 snapshot、actions、message/execution/interrupt/event/tool contracts。`runtime-react` 只拥有 Layout language 与确定性 `LayoutRenderer`，不属于 Conversation Domain。
+`runtime-agui` 当前同时承担：`HttpAgent` 生命周期、AG-UI message/input 映射、message/reasoning/tool/step/subagent projection、run 状态、abort、新 thread、structured interrupt、Frontend Tool 协调、Tool continuation 和 Custom Event wire boundary。`runtime-core` 提供协议无关的 snapshot、actions、message/execution/interrupt/event/tool contracts。`renderer` 只拥有 Layout language 与确定性 `LayoutRenderer`，不属于 Conversation Domain。
 
 `agent-message-list` 再次投影 turn、reasoning execution 与 tool activity，并通过 `MessageRenderProvider` 把 normalized context 交给 reasoning、tool group、tool item、attachments、sources child Slots。`agent-tool-detail` 直接从 `AgentMessage[] + AgentExecution[]` 按 `toolCallId` 组装 Inspector 数据。
 
@@ -171,7 +173,7 @@ It must not import AppUIModel, `LayoutRenderer`, Creator, Plugin implementations
 
 `runtime-core` remains the owner of protocol-independent AgentUICreator contracts while consumers still need them. `runtime-agui` retains only AG-UI capabilities not yet replaced or reused by `runtime-assistant-ui`. P3R migration may extract mappers/coordinators or add ports, but cannot keep a second `AgUiTransport` alive in canonical mode.
 
-`runtime-react` is unchanged: Layout is not a Conversation capability and is not a deletion candidate.
+`renderer` is unchanged: Layout is not a Conversation capability and is not a deletion candidate.
 
 ## 7. Vendor / Adapter Boundary
 
@@ -463,7 +465,7 @@ Duplication is removed capability by capability. Package deletion is not an obje
 | old default presentation Plugins | P3R-6 or retain as optional | dependency proof plus explicit product decision |
 | unused runtime-agui projection code | P3R-6 | same transport no longer calls it and no consumers |
 
-`runtime-react`, SlotRegistry, Plugin Runtime, Conversation Service, Inspector and diagnostics are not deletion candidates. `runtime-core` and `runtime-agui` are not package-level deletion candidates in this plan.
+`renderer`, SlotRegistry, Plugin Runtime, Conversation Service, Inspector and diagnostics are not deletion candidates. `runtime-core` and `runtime-agui` are not package-level deletion candidates in this plan.
 
 ## 21. Capability Matrix / Remaining Unknowns
 

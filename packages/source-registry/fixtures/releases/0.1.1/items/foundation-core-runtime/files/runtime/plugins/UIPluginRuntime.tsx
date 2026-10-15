@@ -10,7 +10,7 @@ import {
 import {
   LayoutRenderer,
   type SlotNode,
-} from "@agent-ui/runtime-react";
+} from "@za38.03/agent-ui-runtime-react";
 import { useAgentUILocale } from "../../agent-ui/i18n/useAgentUILocale";
 
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";

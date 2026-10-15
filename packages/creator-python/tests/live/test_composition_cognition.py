@@ -33,13 +33,13 @@ TARGET_PROJECT = REPOSITORY_ROOT / "examples" / "creator-host-sandbox"
 def _ensure_real_host_project():
     import subprocess
     subprocess.run(
-        ["pnpm", "--filter", "@agent-ui/project-control", "build"], cwd=REPOSITORY_ROOT, check=True,
+        ["pnpm", "--filter", "@za38.03/agent-ui-operator", "build"], cwd=REPOSITORY_ROOT, check=True,
     )
     subprocess.run(
-        ["pnpm", "--filter", "@agent-ui/bootstrap", "build"], cwd=REPOSITORY_ROOT, check=True,
+        ["pnpm", "--filter", "@za38.03/agent-ui-operator/bootstrap", "build"], cwd=REPOSITORY_ROOT, check=True,
     )
     subprocess.run(
-        ["pnpm", "--filter", "@agent-ui/creator-host-sandbox", "exec", "node", "--import", "tsx", "../../scripts/host-examples/host-project.ts", "ensure", "platform", "creator-host-sandbox"],
+        ["pnpm", "--filter", "@za38.03/agent-ui-creator-host-sandbox", "exec", "node", "--import", "tsx", "../../scripts/host-examples/host-project.ts", "ensure", "platform", "creator-host-sandbox"],
         cwd=REPOSITORY_ROOT, check=True,
     )
 
@@ -60,11 +60,11 @@ def _live_slo_report():
     if len(_LIVE_RUN_METRICS) < 3:
         return
     model_calls = [item[0] for item in _LIVE_RUN_METRICS]
-    project_control_reads = [item[1] for item in _LIVE_RUN_METRICS]
+    operator_reads = [item[1] for item in _LIVE_RUN_METRICS]
     assert median(model_calls) <= 6
     assert max(model_calls) <= 8
-    assert median(project_control_reads) <= 2
-    assert max(project_control_reads) <= 3
+    assert median(operator_reads) <= 2
+    assert max(operator_reads) <= 3
 
 
 def _copy_target(tmp_path: Path) -> Path:
@@ -432,7 +432,7 @@ def _finish_live_run(
         metrics=result.metrics.to_dict(),
         change_layer_metrics=result.change_layer_metrics,
         composition_fast_path_metrics=result.composition_fast_path_metrics.to_dict(),
-        project_control_metrics=result.project_control.to_dict(),
+        operator_metrics=result.operator.to_dict(),
     )
     _print_live_trajectory(
         case=case,
@@ -485,7 +485,7 @@ def test_live_conversation_management_reuses_composition_capability(tmp_path, re
 
     metrics = result.change_layer_metrics
     _assert_fast_path_slo(result)
-    assert result.project_control.requestsByOperation.get("inspect_ui_services", 0) == 0
+    assert result.operator.requestsByOperation.get("inspect_ui_services", 0) == 0
     assert metrics["executedChangeLayer"] == "composition"
     assert metrics["executedChangeLayers"] == ["composition"]
     assert metrics["appUIModelMutationAttempts"] == 1
@@ -494,7 +494,7 @@ def test_live_conversation_management_reuses_composition_capability(tmp_path, re
     assert metrics["sourceWrites"] == 0
     assert metrics["semanticReplans"] == 0
     _LIVE_RUN_METRICS.append(
-        (result.metrics.modelCalls, metrics["projectControlReads"])
+        (result.metrics.modelCalls, metrics["operatorReads"])
     )
     assert receipt["verification"]["status"] == "changed-and-verified"
     assert all(
@@ -545,9 +545,9 @@ def test_live_composition_cognition_is_resource_scoped(tmp_path, repeat):
 
     metrics = result.change_layer_metrics
     _assert_fast_path_slo(result)
-    assert result.project_control.requestsByOperation.get("inspect_ui_services", 0) == 0
+    assert result.operator.requestsByOperation.get("inspect_ui_services", 0) == 0
     _LIVE_RUN_METRICS.append(
-        (result.metrics.modelCalls, metrics["projectControlReads"])
+        (result.metrics.modelCalls, metrics["operatorReads"])
     )
     assert metrics["executedChangeLayer"] == "composition"
     assert metrics["executedChangeLayers"] == ["composition"]
@@ -570,7 +570,7 @@ def test_live_composition_cognition_is_resource_scoped(tmp_path, repeat):
     )
     assert all(check["status"] == "passed" for check in receipt["validations"])
     assert result.metrics.modelCalls <= 8
-    assert metrics["projectControlReads"] <= 3
+    assert metrics["operatorReads"] <= 3
 
 
 @pytest.mark.live_model
@@ -615,7 +615,7 @@ def test_live_theme_switch_reuses_existing_capability(tmp_path, repeat):
 
     metrics = result.change_layer_metrics
     _assert_fast_path_slo(result)
-    assert result.project_control.requestsByOperation.get("inspect_ui_services", 0) == 0
+    assert result.operator.requestsByOperation.get("inspect_ui_services", 0) == 0
     assert metrics["executedChangeLayer"] == "composition"
     assert metrics["executedChangeLayers"] == ["composition"]
     assert metrics["appUIModelMutationAttempts"] == 1
@@ -623,7 +623,7 @@ def test_live_theme_switch_reuses_existing_capability(tmp_path, repeat):
     assert metrics["sourceWrites"] == 0
     assert metrics["semanticReplans"] == 0
     _LIVE_RUN_METRICS.append(
-        (result.metrics.modelCalls, metrics["projectControlReads"])
+        (result.metrics.modelCalls, metrics["operatorReads"])
     )
     assert receipt["verification"]["status"] == "changed-and-verified"
 
@@ -650,7 +650,7 @@ def test_live_behavior_request_enters_plugin_layer(tmp_path):
     )
     metrics = result.change_layer_metrics
     behavior_reads = sum(
-        result.project_control.requestsByOperation.get(operation, 0)
+        result.operator.requestsByOperation.get(operation, 0)
         for operation in (
             "inspect_ui_plugin",
             "inspect_ui_plugin_source_references",
@@ -688,7 +688,7 @@ def test_live_hybrid_request_does_not_stop_at_composition(tmp_path):
     )
     metrics = result.change_layer_metrics
     behavior_reads = sum(
-        result.project_control.requestsByOperation.get(operation, 0)
+        result.operator.requestsByOperation.get(operation, 0)
         for operation in (
             "inspect_ui_plugin",
             "inspect_ui_plugin_source_references",

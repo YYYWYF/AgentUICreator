@@ -59,8 +59,8 @@ Creator 按 `static_only` 交付，回执为 `statically-verified`，其中 `ver
 - 授权回归：基线与当前均 60 failed / 17 passed，新增失败 0。
 - 相同 P0 测试集：基线 32 failed / 81 passed；当前 32 failed / 89 passed。新增 8 个 Sidebar 实例交付测试通过，新增失败 0。历史 31 个失败之外的一项是本机旧 `.bin/playwright` 入口缺失；相同环境的基线也失败，本次真实浏览器使用已安装 Playwright JS API 正常执行。
 - Python result contract：原有一个 fixture 失败在基线和当前相同；新增严格 uiContext 测试通过。
-- Project Control recovery：基线 5 failed / 29 passed；当前 4 failed / 31 passed，新增失败 0，新增 inventory 测试通过，并解决一个既有协议失败。
-- Project Control typecheck、`pnpm check:i18n`、Python compileall、diff 检查通过。没有触发 GitHub CI 或 release 签收。
+- Operator recovery：基线 5 failed / 29 passed；当前 4 failed / 31 passed，新增失败 0，新增 inventory 测试通过，并解决一个既有协议失败。
+- Operator typecheck、`pnpm check:i18n`、Python compileall、diff 检查通过。没有触发 GitHub CI 或 release 签收。
 
 失败集合、已解决项和日志见 [regression-results.json](regression-results.json) 与 [checks/](checks/)。没有宣称全套测试通过。
 

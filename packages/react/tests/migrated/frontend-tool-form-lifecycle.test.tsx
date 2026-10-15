@@ -3,19 +3,19 @@ import { StrictMode, act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { useAui, type AssistantRuntime, type ThreadMessage } from "@assistant-ui/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ConversationRuntimeProvider, type ConversationThreadBinding } from "@agent-ui/runtime-conversation";
+import { ConversationRuntimeProvider, type ConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { HttpAgent } from "@ag-ui/client";
 import type { RunAgentInput } from "@ag-ui/core";
-import { runMockScenario } from "@agent-ui/mock-agent";
-import { frontendToolFillFormScenario } from "@agent-ui/mock-agent";
-import { frontendTools as appFrontendTools } from "../../../project-control/tests/fixtures/official-form/agent-contract/frontend-tools/demo-form-tools";
-import { frontendToolUIs } from "../../../project-control/tests/fixtures/official-form/agent-ui/conversation/frontend-tool-uis/demo-form-tools";
+import { runMockScenario } from "@za38.03/agent-ui-creator/mock-agent";
+import { frontendToolFillFormScenario } from "@za38.03/agent-ui-creator/mock-agent";
+import { frontendTools as appFrontendTools } from "../../../operator/tests/fixtures/official-form/agent-contract/frontend-tools/demo-form-tools";
+import { frontendToolUIs } from "../../../operator/tests/fixtures/official-form/agent-ui/conversation/frontend-tool-uis/demo-form-tools";
 import { ConversationSurface } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface";
-import { parseAppUIRuntimeModel } from "../../../project-control/src/framework/contracts/app-ui-runtime-model";
-import frontendToolFormDemoPlugin from "../../../project-control/tests/fixtures/official-form/plugins/frontend-tool-form-demo/definition";
+import { parseAppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
+import frontendToolFormDemoPlugin from "../../../operator/tests/fixtures/official-form/plugins/frontend-tool-form-demo/definition";
 import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/tools/index";
 import { PluginServiceRuntime, PluginServiceRuntimeContext, createPluginRegistry, UIPluginRuntime } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
-import { DEMO_FORM_SERVICE, type DemoFormService } from "../../../project-control/tests/fixtures/official-form/services/demo-form";
+import { DEMO_FORM_SERVICE, type DemoFormService } from "../../../operator/tests/fixtures/official-form/services/demo-form";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 class ResizeObserverMock { observe() {} unobserve() {} disconnect() {} }

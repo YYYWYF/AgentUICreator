@@ -2,7 +2,7 @@
 
 > Historical design record for the retired Generic Runtime adapter. The
 > `AgUiTransport` route below is no longer a production route; current AG-UI
-> integration is owned by `packages/runtime-conversation`.
+> integration is owned by `packages/runtime`.
 
 Custom Event Protocol is the generated application's extension channel for
 backend-originated, application-specific, transient events. It does not replace

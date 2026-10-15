@@ -56,7 +56,7 @@ from .operations import (
     ProductizedOperationRun,
     use_pending_creator_clarifications,
 )
-from .project_control import ProjectControlClient
+from .operator import OperatorClient
 from .plugin_development.authority import PluginDevelopmentAuthority, PluginDevelopmentError
 from .plugin_development.admission_middleware import PluginDevelopmentAdmissionMiddleware
 from .plugin_development.prepare_tool import (
@@ -405,7 +405,7 @@ async def _domain_write_agent_result(
         model=model,
         project_root=settings.project_root,
         activity=activity,
-        project_control=ProjectControlClient(project_root=settings.project_root),
+        operator=OperatorClient(project_root=settings.project_root),
         mutation_coordinator=mutation_coordinator,
         diagnostics=diagnostics,
         visual_observations=visual_observations,
@@ -761,7 +761,7 @@ async def _execute_agent_run(
                     run_telemetry.source_grounding.to_dict()
                     if run_telemetry.source_grounding is not None else None
                 ),
-                project_control_metrics=run_telemetry.project_control_metrics(),
+                operator_metrics=run_telemetry.operator_metrics(),
                 validation_metrics=run_telemetry.validation_metrics(),
                 recovery_metrics=run_telemetry.recovery_metrics(),
                 action_selector_metrics=run_telemetry.action_selector,
@@ -805,7 +805,7 @@ async def _execute_agent_run(
                     if result.composition_fast_path_metrics is not None
                     else None
                 ),
-                project_control_metrics=result.project_control.to_dict(),
+                operator_metrics=result.operator.to_dict(),
                 validation_metrics=result.validation_metrics,
                 action_selector_metrics=(
                     result.action_selector_metrics
@@ -854,7 +854,7 @@ async def _execute_agent_run(
                     run_telemetry.source_grounding.to_dict()
                     if run_telemetry.source_grounding is not None else None
                 ),
-                project_control_metrics=run_telemetry.project_control_metrics(),
+                operator_metrics=run_telemetry.operator_metrics(),
                 validation_metrics=run_telemetry.validation_metrics(),
                 recovery_metrics=run_telemetry.recovery_metrics(),
                 action_selector_metrics=run_telemetry.action_selector,
@@ -884,7 +884,7 @@ async def _execute_agent_run(
                 run_telemetry.source_grounding.to_dict()
                 if run_telemetry.source_grounding is not None else None
             ),
-            project_control_metrics=run_telemetry.project_control_metrics(),
+            operator_metrics=run_telemetry.operator_metrics(),
             validation_metrics=run_telemetry.validation_metrics(),
             recovery_metrics=run_telemetry.recovery_metrics(),
             action_selector_metrics=run_telemetry.action_selector,
@@ -1457,10 +1457,10 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                     else {}
                                 ),
                             },
-                            "projectControl": {
-                                **result.project_control.to_dict(),
-                                "repeatedProjectControlReads": (
-                                    result.repeated_project_control_reads
+                            "operator": {
+                                **result.operator.to_dict(),
+                                "repeatedOperatorReads": (
+                                    result.repeated_operator_reads
                                 ),
                             },
                             "domainObservations": result.domain_observations.to_dict(),

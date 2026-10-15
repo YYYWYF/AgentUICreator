@@ -58,7 +58,7 @@ def test_tracker_baseline_resolution_and_missing_evidence():
 
 @pytest.mark.asyncio
 async def test_creator_tool_uses_host_warnings_and_actual_plugin_source(tmp_path):
-    from agent_ui_creator.domain_tools import create_project_control_tools
+    from agent_ui_creator.domain_tools import create_operator_tools
     directory=tmp_path/'plugins'/'notes'
     directory.mkdir(parents=True)
     css=directory/'styles.css'; css.write_text('.notes { width:100%; padding:12px; }')
@@ -72,7 +72,7 @@ async def test_creator_tool_uses_host_warnings_and_actual_plugin_source(tmp_path
         async def verify_ui_project(self):
             return {'status':'passed','warnings':[{'code':'PLUGIN_RESPONSIVE_FULL_WIDTH_PADDING','pluginId':'notes',
                      'file':'plugins/notes/styles.css','selector':'.notes','line':1}]}
-    tool=next(t for t in create_project_control_tools(Client()) if t.name=='prepare_plugin_responsive_repair')
+    tool=next(t for t in create_operator_tools(Client()) if t.name=='prepare_plugin_responsive_repair')
     raw=await tool.ainvoke({'pluginId':'notes','slotRef':'sidebar','slotWidth':279,
                            'edits':[{'file':'plugins/notes/styles.css','before':'width:100%;',
                                      'after':'width:100%; box-sizing:border-box;','reason':'confirmed overflow'}]})

@@ -12,7 +12,7 @@ from ..model_protocol.errors import AgentNoProgressError
 from ..run_control import CreatorRunControlState
 
 
-class RepeatedProjectControlReadGuard(AgentMiddleware):
+class RepeatedOperatorReadGuard(AgentMiddleware):
     """Reject the third identical domain read in one unchanged read epoch."""
 
     def __init__(
@@ -36,7 +36,7 @@ class RepeatedProjectControlReadGuard(AgentMiddleware):
         # A semantic AppUIModel mutation attempt is a meaningful recovery
         # boundary even when the Host rejects it without changing the files.
         # In particular, APP_UI_MODEL_OBSERVATION_REQUIRED invalidates the
-        # previous observation and requires a fresh ProjectControl read before
+        # previous observation and requires a fresh Operator read before
         # the next mutation. Do not mistake that required refresh for a pure
         # read loop; successful writes still reset this epoch via revision.
         if name in {"mutate_app_ui_model", "repair_app_ui_model", "purge_ui_plugin"}:
@@ -63,7 +63,7 @@ class RepeatedProjectControlReadGuard(AgentMiddleware):
         self._last_revision = revision
         if self._repeat_count >= 3:
             raise AgentNoProgressError(
-                "The same ProjectControl read was requested three times without a workspace change."
+                "The same Operator read was requested three times without a workspace change."
             )
 
     def wrap_tool_call(self, request: Any, handler: Callable[[Any], Any]) -> Any:

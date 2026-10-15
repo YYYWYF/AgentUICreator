@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { initializeAgentUIProject } from '../../bootstrap/dist/index.js';
-import { createAgentUIInitializationHost, installOfficialAgentUIResource, inspectOfficialAgentUIResourceCatalog } from '../../project-control/dist/runtime/project-control-runtime.mjs';
+import { initializeAgentUIProject } from '../../operator/dist/bootstrap/index.js';
+import { createAgentUIInitializationHost, installOfficialAgentUIResource, inspectOfficialAgentUIResourceCatalog } from '../../operator/dist/runtime/operator-runtime.mjs';
 
 const packageRoot = fileURLToPath(new URL('../', import.meta.url));
 const root = await mkdtemp(path.join(tmpdir(), 'agent-ui-compatibility-'));
@@ -21,12 +21,12 @@ try {
       }
     } else await symlink(path.join(packageRoot, 'node_modules', name), path.join(root, 'node_modules', name), 'junction');
   }
-  await mkdir(path.join(root, 'node_modules/@agentui'), { recursive: true });
-  await symlink(packageRoot, path.join(root, 'node_modules/@agentui/web-component'), 'junction');
-  await writeFile(path.join(root, 'package.json'), JSON.stringify({ name: 'bridge-install-fixture', private: true, type: 'module', dependencies: { ...manifest.dependencies, ...manifest.devDependencies, '@agentui/web-component': '^0.1.0' } }));
+  await mkdir(path.join(root, 'node_modules/@za38.03'), { recursive: true });
+  await symlink(packageRoot, path.join(root, 'node_modules/@za38.03/agent-ui-web-component'), 'junction');
+  await writeFile(path.join(root, 'package.json'), JSON.stringify({ name: 'bridge-install-fixture', private: true, type: 'module', dependencies: { ...manifest.dependencies, ...manifest.devDependencies, '@za38.03/agent-ui-web-component': '^0.1.0' } }));
   await writeFile(path.join(root, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'react-jsx', strict: true, skipLibCheck: true, types: ['vite/client', 'node'] }, include: ['src'] }));
   const host = createAgentUIInitializationHost();
-  await initializeAgentUIProject({ projectRoot: root, mode: 'embedded', sourceRoot: 'src/agent-ui' }, { ...host, installControlPlane: async () => [], installDevelopmentDefaults: async () => [] });
+  await initializeAgentUIProject({ projectRoot: root, mode: 'embedded', sourceRoot: 'src/agent-ui' }, { ...host, installOperatorEntry: async () => [], installDevelopmentDefaults: async () => [] });
   const before = await inspectOfficialAgentUIResourceCatalog(root);
   assert.equal(before.find(item => item.id === 'web-component-bridge').status, 'missing');
   const result = await installOfficialAgentUIResource(root, 'web-component-bridge', { runPackages: async () => { throw new Error('Fixture dependencies should already satisfy the normal installation plan'); } });

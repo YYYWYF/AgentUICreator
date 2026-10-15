@@ -81,3 +81,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+## assistant-ui Generative UI
+
+The unmodified styled Generative UI component and mechanically scoped vocabulary CSS are pinned to `3542d602272a62eddeb8989befc910841c267022` (MIT, AgentbaseAI Inc.). Exact source paths, hashes and mechanical CSS scoping are recorded in `internal/vendor/assistant-ui/generative-ui/UPSTREAM.json`. The opt-in facade uses `@assistant-ui/react-generative-ui` 0.0.22. Project integration is owned outside vendor.

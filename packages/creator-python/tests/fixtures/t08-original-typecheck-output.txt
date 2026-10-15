@@ -1,8 +1,8 @@
 TypeScript differential unavailable: an unrecognized TypeScript diagnostic was present.
 [WARN] Your node_modules are out of sync with your lockfile. The value of the enableGlobalVirtualStore setting has changed
 @agent-ui/react public declaration boundary: OK (2 declarations)
-@agent-ui/runtime-conversation public declaration boundary: OK (8 reachable declarations)
-@agent-ui/runtime-conversation published-package consumer typecheck: OK (isolated tarball install, skipLibCheck: false)
+@agent-ui/runtime public declaration boundary: OK (8 reachable declarations)
+@agent-ui/runtime published-package consumer typecheck: OK (isolated tarball install, skipLibCheck: false)
 [96msrc/unrelated-type-error.ts[0m:[93m2[0m:[93m14[0m - [91merror[0m[90m TS2322: [0mType 'string' is not assignable to type 'number'.
 
 [7m2[0m export const unrelatedFixtureNumber: number = "known-baseline-error";

@@ -9,7 +9,7 @@ from agent_ui_creator.minimal_agent.agent import _register_minimal_harness_profi
 from agent_ui_creator.domain_agent import create_domain_write_creator_agent
 from agent_ui_creator.model_factory import create_creator_chat_model
 from agent_ui_creator.model_settings import CreatorModelSettings
-from agent_ui_creator.project_control import ProjectControlMetrics
+from agent_ui_creator.operator import OperatorMetrics
 
 
 @pytest.mark.parametrize('name', ['mimo-v2.5-pro', 'qwen/qwen3-coder-plus:free'])
@@ -29,7 +29,7 @@ def test_colon_model_constructs_domain_agent_without_opencode_header(tmp_path):
     model = create_creator_chat_model(CreatorModelSettings(model_name='qwen/qwen3-coder-plus:free',
         api_key='test-only', base_url='https://model.example/v1'), thread_id='profile-test')
     agent = create_domain_write_creator_agent(model=model, workspace=tmp_path,
-        project_control=SimpleNamespace(metrics=ProjectControlMetrics()))
+        operator=SimpleNamespace(metrics=OperatorMetrics()))
     assert agent.graph is not None
     assert model.model_name == 'qwen/qwen3-coder-plus:free'
     assert 'x-opencode-session' not in model.default_headers

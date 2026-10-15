@@ -2,7 +2,7 @@ import type {
   AgentApplicationEvent,
   AgentInterruptResponse,
   AgentUserInput,
-} from "@agent-ui/runtime-core";
+} from "@za38.03/agent-ui-runtime-core";
 import type { ComponentType, ReactNode } from "react";
 import { z } from "zod";
 
@@ -10,7 +10,7 @@ import type { AppUIRuntimePluginInstance } from "./app-ui-runtime-model";
 import type { AppUILayoutTrackSize } from "./app-ui-model";
 import type { PluginChildSlotDefinition } from "./app-ui-composition";
 import { customEventNameSchema } from "./custom-event-protocol";
-import type { DataMessageUIDefinition, ConversationToolkit } from "@agent-ui/react";
+import type { DataMessageUIDefinition, ConversationToolkit } from "@za38.03/agent-ui-react";
 
 export type {
   AgentApplicationEvent,
@@ -23,7 +23,7 @@ export type {
   AgentRunState,
   AgentToolCall,
   AgentUserInput,
-} from "@agent-ui/runtime-core";
+} from "@za38.03/agent-ui-runtime-core";
 
 export interface UIPluginManifest {
   id: string;

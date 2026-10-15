@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Button, Input } from "@agent-ui/react";
+import { Button, Input } from "@za38.03/agent-ui-react";
 import { usePluginService, usePluginServiceSnapshot } from "../../runtime/plugins";
-import { useAgentUILocale } from "@agent-ui/react";
+import { useAgentUILocale } from "@za38.03/agent-ui-react";
 import type { AuthSessionService, AuthSessionSnapshot } from "../../services/auth/session";
 import "./styles.css";
 const fallback: AuthSessionSnapshot = { status: "checking", user: null, busy: false, error: null };

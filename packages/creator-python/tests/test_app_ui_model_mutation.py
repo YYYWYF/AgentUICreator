@@ -25,8 +25,8 @@ from agent_ui_creator.app_ui_model.mutation_tool import (
 from agent_ui_creator.files import creator_content_hash, read_creator_file_state
 from agent_ui_creator.app_ui_model.mutation_models import resolve_mutable_paths
 from agent_ui_creator.domain_state import DomainObservationContext
-from agent_ui_creator.domain_tools import create_project_control_tools
-from agent_ui_creator.project_control import ProjectControlError
+from agent_ui_creator.domain_tools import create_operator_tools
+from agent_ui_creator.operator import OperatorError
 from agent_ui_creator.model_protocol import ToolProtocolGuard, ToolProtocolMetrics
 from agent_ui_creator.transactions import CreatorTransactionError
 from agent_ui_creator.runtime_diagnostics import (
@@ -112,7 +112,7 @@ def _service(
     return (
         AppUIModelMutationService(
             project_root=root,
-            project_control=client,
+            operator=client,
             activity=activity,
             mutation_coordinator=coordinator or ProjectMutationCoordinator(),
             runtime_diagnostics=runtime_diagnostics,
@@ -367,7 +367,7 @@ def test_hash_conflict_is_not_retried_and_does_not_touch_activity(tmp_path):
 
         async def request_app_ui_model_mutation(self, _input):
             self.calls += 1
-            raise ProjectControlError(
+            raise OperatorError(
                 "APP_UI_MODEL_HASH_CONFLICT",
                 "stale",
                 {"expectedHash": "a" * 64, "actualHash": "b" * 64},
@@ -393,7 +393,7 @@ def test_third_identical_failed_signature_is_refused_without_target_call(tmp_pat
 
         async def request_app_ui_model_mutation(self, _input):
             self.calls += 1
-            raise ProjectControlError("APP_UI_MODEL_OPERATION_INVALID", "invalid")
+            raise OperatorError("APP_UI_MODEL_OPERATION_INVALID", "invalid")
 
     client = InvalidClient()
     service, _activity = _service(root, client)
@@ -445,7 +445,7 @@ def test_same_hash_concurrent_mutations_serialize_and_only_one_commits(tmp_path)
                 await asyncio.sleep(0.01)
                 before_hash = read_creator_file_state(root, APP_UI_MODEL_PATH).hash
                 if before_hash != input["appUIModelHash"]:
-                    raise ProjectControlError("APP_UI_MODEL_HASH_CONFLICT", "stale")
+                    raise OperatorError("APP_UI_MODEL_HASH_CONFLICT", "stale")
                 path = root / APP_UI_MODEL_PATH
                 path.write_text(path.read_text(encoding="utf-8") + "// committed\n", encoding="utf-8")
                 return _result(root, before_hash, [APP_UI_MODEL_PATH])
@@ -777,7 +777,7 @@ def test_stale_state_error_invalidates_observation_until_new_inspection(tmp_path
 
         async def request_app_ui_model_mutation(self, _input):
             self.calls += 1
-            raise ProjectControlError("APP_UI_MODEL_HASH_CONFLICT", "stale")
+            raise OperatorError("APP_UI_MODEL_HASH_CONFLICT", "stale")
 
     client = ConflictClient()
     service, _activity = _service(root, client)
@@ -809,7 +809,7 @@ def test_operation_precondition_keeps_observation_and_returns_recovery(tmp_path)
 
         async def request_app_ui_model_mutation(self, _input):
             self.calls += 1
-            raise ProjectControlError(
+            raise OperatorError(
                 "LAYOUT_SUBTREE_HAS_PLUGINS",
                 "Move or remove plugins first.",
                 {"instanceIds": ["conversation-thread-list-main"]},
@@ -859,7 +859,7 @@ def test_headless_lifecycle_protection_tool_error_returns_typed_recovery(tmp_pat
 
     class HeadlessProtectionClient:
         async def request_app_ui_model_mutation(self, _input):
-            raise ProjectControlError(
+            raise OperatorError(
                 "HEADLESS_PLUGIN_LIFECYCLE_PROTECTED",
                 "Generic lifecycle operations are not allowed for Headless Plugins.",
             )
@@ -900,7 +900,7 @@ def test_workspace_integrity_error_keeps_observation_and_forbids_cross_layer_rep
 
     class IntegrityClient:
         async def request_app_ui_model_mutation(self, _input):
-            raise ProjectControlError(
+            raise OperatorError(
                 "PLUGIN_CHILD_SLOT_CONTRACT_INVALID",
                 "Selected plugins contain inconsistent child Slots.",
                 {"issues": [{"pluginId": "conversation-surface"}]},
@@ -942,7 +942,7 @@ def test_only_one_semantic_composition_replan_is_dispatched(tmp_path):
 
         async def request_app_ui_model_mutation(self, _input):
             self.calls += 1
-            raise ProjectControlError("PLUGIN_NOT_FOUND", "missing")
+            raise OperatorError("PLUGIN_NOT_FOUND", "missing")
 
     client = AlwaysInvalidClient()
     service, _activity = _service(root, client)
@@ -979,9 +979,9 @@ def test_stale_state_during_replan_does_not_consume_semantic_budget(tmp_path):
         async def request_app_ui_model_mutation(self, _input):
             self.calls += 1
             if self.calls == 1:
-                raise ProjectControlError("PLUGIN_NOT_FOUND", "semantic failure")
+                raise OperatorError("PLUGIN_NOT_FOUND", "semantic failure")
             if self.calls == 2:
-                raise ProjectControlError("APP_UI_MODEL_HASH_CONFLICT", "stale")
+                raise OperatorError("APP_UI_MODEL_HASH_CONFLICT", "stale")
             current_hash = read_creator_file_state(root, APP_UI_MODEL_PATH).hash
             return _result(root, current_hash, [])
 
@@ -1036,7 +1036,7 @@ def test_conflict_then_inspect_allows_retry_with_new_host_hash(tmp_path):
             self.inputs.append(copy.deepcopy(input))
             current_hash = read_creator_file_state(root, APP_UI_MODEL_PATH).hash
             if input["appUIModelHash"] != current_hash:
-                raise ProjectControlError("APP_UI_MODEL_HASH_CONFLICT", "stale")
+                raise OperatorError("APP_UI_MODEL_HASH_CONFLICT", "stale")
             return _result(root, current_hash, [])
 
         async def inspect_ui_project(self):
@@ -1058,7 +1058,7 @@ def test_conflict_then_inspect_allows_retry_with_new_host_hash(tmp_path):
     service, activity = _service(root, client)
     observations = _observations(service, initial_hash)
     mutation_tool = create_app_ui_model_mutation_tool(service, observations)
-    read_tools = create_project_control_tools(
+    read_tools = create_operator_tools(
         client,
         observations=observations,
         activity=activity,

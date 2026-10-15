@@ -10,10 +10,10 @@ import {
   ConversationToolCall, ConversationSource, Collapsible, CollapsibleTrigger, CollapsibleContent,
   ConversationThreadListRoot, ConversationThreadListNew, ConversationThreadListItem, ConversationThreadListItemByIndex, useConversationThreadListGroups,
   type ConversationMentionSource, type ConversationSlashCommandSource,
-} from "@agent-ui/react";
-import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@agent-ui/runtime-conversation";
+} from "@za38.03/agent-ui-react";
+import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { themeShowcaseLocale as copy } from "./theme-showcase.locale";
-import "@agent-ui/react/styles.css";
+import "@za38.03/agent-ui-react/styles.css";
 import "./theme-showcase.css";
 
 const binding = createEphemeralConversationThreadBinding();

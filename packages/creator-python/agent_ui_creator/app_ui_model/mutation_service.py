@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 from ..activity import CreatorActivityRecorder
 from ..domain_state import DomainObservationError
 from ..files import CreatorFileState, read_creator_file_state
-from ..project_control import ProjectControlClient, ProjectControlError
+from ..operator import OperatorClient, OperatorError
 from ..run_cancellation import assert_run_writable, current_cancel_marker
 from .mutation_lock import ProjectMutationCoordinator
 from .mutation_models import (
@@ -174,7 +174,7 @@ class AppUIModelMutationService:
         self,
         *,
         project_root: str | Path,
-        project_control: ProjectControlClient,
+        operator: OperatorClient,
         activity: CreatorActivityRecorder,
         mutation_coordinator: ProjectMutationCoordinator,
         runtime_diagnostics: RuntimeDiagnosticStore | None = None,
@@ -184,7 +184,7 @@ class AppUIModelMutationService:
         self.mutable_paths = resolve_mutable_paths(self.project_root)
         self.app_ui_model_path = self.mutable_paths[0]
         self.registry_path = self.mutable_paths[2]
-        self.project_control = project_control
+        self.operator = operator
         self.activity = activity
         self.mutation_coordinator = mutation_coordinator
         self.runtime_diagnostics = runtime_diagnostics
@@ -392,7 +392,7 @@ class AppUIModelMutationService:
                 )
                 assert_run_writable()
                 cancel_marker = current_cancel_marker(self.project_root)
-                raw_result = await self.project_control.request_app_ui_model_mutation(
+                raw_result = await self.operator.request_app_ui_model_mutation(
                     {
                         "appUIModelHash": app_ui_model_hash,
                         "operations": operations,
@@ -405,7 +405,7 @@ class AppUIModelMutationService:
                         ),
                     }
                 )
-            except ProjectControlError as error:
+            except OperatorError as error:
                 actual_changed_paths, _after_states = self._reconcile(before_states)
                 if actual_changed_paths:
                     self.metrics.resultMismatches += 1
@@ -424,7 +424,7 @@ class AppUIModelMutationService:
                 actual_changed_paths, _after_states = self._reconcile(before_states)
                 if actual_changed_paths:
                     self.metrics.resultMismatches += 1
-                logger.exception("Unexpected ProjectControl mutation failure")
+                logger.exception("Unexpected Operator mutation failure")
                 raise AppUIModelMutationError(
                     "APP_UI_MODEL_MUTATION_FAILED",
                     "The Creator Host could not complete the AppUIModel mutation.",

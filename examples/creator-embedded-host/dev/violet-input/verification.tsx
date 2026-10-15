@@ -1,12 +1,11 @@
 import { createConversationService, createHttpConversationDataSource } from "../../../../packages/source-registry/registry/items/foundation-core-application/files/services/conversations";
 import { createConversationServiceThreadBinding } from "../../../../packages/source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
-import { A2uiConversationIntegration } from "../../../../packages/source-registry/registry/items/integration-a2ui/files/integrations/a2ui/A2uiConversationIntegration";
 // Development-only fixture. Imports real public surfaces; no component/CSS replicas.
 // Load foundation styles before real Plugin CSS, matching the host style boundary.
-import "@agent-ui/react/styles.css";
+import "@za38.03/agent-ui-react/styles.css";
 import { ImageRoot, ImageGenerating, ImageContentFilterError, ImageZoom, ImagePreview } from "../../../../packages/react/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image";
 import { TaskCard } from "../../../../packages/react/src/internal/vendor/assistant-ui/components/assistant-ui/elements/task-card";
-import { DemoAttachmentAdapter } from "@agent-ui/mock-agent/attachments";
+import { DemoAttachmentAdapter } from "@za38.03/agent-ui-react/demo-attachments";
 import { useAui } from "@assistant-ui/react";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -21,8 +20,8 @@ import {
   AgentUIDialog, AgentUIDialogContent, AgentUIPopover, AgentUIPopoverTrigger, AgentUIPopoverContent,
   AgentUITooltip, AgentUITooltipTrigger, AgentUITooltipContent, TooltipProvider, Button,
   type AgentUITheme,
-} from "@agent-ui/react";
-import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@agent-ui/runtime-conversation";
+} from "@za38.03/agent-ui-react";
+import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { chartMessageUI } from "../../../../packages/source-registry/registry/items/plugin-chart-message/files/plugins/chart-message/index";
 import { themeShowcaseLocale as copy } from "../../src/theme-showcase.locale";
 const params = new URLSearchParams(location.search);
@@ -50,7 +49,7 @@ const commandSource = {getSnapshot:()=>fixtureCommands,subscribe:()=>()=>{}};
 const mentionSource = {cacheKey:"fixture",search:async({query}:{query:string})=> query === "none" ? [] : query === "error" ? Promise.reject(new Error("Fixture source error")) : [{id:"design",type:"team",label:copy.mention}]};
 const emptyToolkit = {};
 function SeedAttachmentWrapper(){return surface.startsWith("attachment-")?<SeedAttachment />:null;}
-function FixtureToolkit({children}:{children:React.ReactNode}){return (params.get("scenario")||"").startsWith("a2ui")?<A2uiConversationIntegration>{children}</A2uiConversationIntegration>:<ConversationToolkitProvider toolkit={emptyToolkit}>{children}</ConversationToolkitProvider>;}
+function FixtureToolkit({children}:{children:React.ReactNode}){return <ConversationToolkitProvider toolkit={emptyToolkit}>{children}</ConversationToolkitProvider>;}
 function Fixture() {
   const [open, setOpen] = useState(true);
   const [dialog, setDialog] = useState(surface === "dialog");

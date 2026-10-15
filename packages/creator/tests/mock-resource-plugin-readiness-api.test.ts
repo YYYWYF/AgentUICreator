@@ -11,7 +11,7 @@ afterEach(async () => {
 });
 
 it.each([
-  { resourceId: "frontend-tool-form-demo", scenarioId: "frontend-tool-fill-form" },
+  { resourceId: "human-form-demo", scenarioId: "frontend-tool-fill-form" },
   { resourceId: "frontend-tool-dialog-demo", scenarioId: "frontend-tool-open-dialog" },
 ])("rejects $resourceId after its Provider is disabled and allows selection after resource repair", async ({ resourceId, scenarioId }) => {
   const service = new CreatorMockService({ port: 0 }); services.push(service);
@@ -23,7 +23,7 @@ it.each([
   const inspector = vi.fn(async () => ({
     composition: {
       pluginSources: [{ pluginId, status: "available" as const, dataMessageUINames: [] }],
-      pluginInstances: [{ id: "provider", pluginId, enabled, effectiveEnabled: enabled, target: { type: "layout_slot" } }],
+      pluginInstances: [{ id: "provider", pluginId, enabled, effectiveEnabled: enabled, target: { type: resourceId === "human-form-demo" ? "application" : "layout_slot" } }],
     },
     sources: { items: [{ id: sourceItemId, status: "managed", owned: true, resolvedRequirements: [] }] },
   }));

@@ -3,7 +3,7 @@
 Earlier upgrade and acceptance evidence is retained in [assistant-ui-upgrade-retained-evidence.md](docs/architecture/assistant-ui-upgrade-retained-evidence.md).
 
 From:
-- packages: packages/bootstrap/package.json, packages/project-control/package.json, packages/react/package.json, packages/runtime-react/package.json, pnpm-lock.yaml, pnpm-workspace.yaml
+- packages: packages/bootstrap/package.json, packages/operator/package.json, packages/react/package.json, packages/renderer/package.json, pnpm-lock.yaml, pnpm-workspace.yaml
 - upstream revision: da9a624496ae97864ae30e90f85c7533092a228d
 
 To:
@@ -357,7 +357,7 @@ Portal integration seam: UNCHANGED
 
 ## Runtime adapter changes
 
-- 4 files: packages/runtime-conversation/src/ConversationRuntimeProvider.tsx, packages/runtime-conversation/src/public.tsx, packages/runtime-conversation/src/threads/types.ts, packages/runtime-conversation/tests/run-resume.test.tsx
+- 4 files: packages/runtime/src/ConversationRuntimeProvider.tsx, packages/runtime/src/public.tsx, packages/runtime/src/threads/types.ts, packages/runtime/tests/run-resume.test.tsx
 
 ## Source Registry assistant-ui Resources
 
@@ -400,7 +400,7 @@ Portal integration seam: UNCHANGED
 
 ## Tests changed
 
-- 13 files: apps/creator-workbench/tests/run-resume-production-refresh.e2e.spec.ts, apps/creator-workbench/tests/run-resume-refresh.e2e.spec.ts, packages/mock-agent/tests/durable-run-store.test.ts, packages/project-control/tests/migrated/source-content-freshness.test.ts, packages/react/tests/assistant-ui-upgrade-drill.test.mjs, packages/react/tests/migrated/assistant-ui-conversation-thread-binding.test.ts, packages/react/tests/migrated/assistant-ui-langgraph-history-projector.test.ts, packages/react/tests/migrated/assistant-ui-nested-subagent.test.tsx, packages/react/tests/migrated/assistant-ui-run-resume-production.test.tsx, packages/react/tests/migrated/human-question-flow.test.tsx, packages/runtime-conversation/tests/run-resume.test.tsx, packages/source-registry/tests/integration.test.ts, packages/source-registry/tests/managed-version-discipline.test.ts
+- 13 files: apps/creator-workbench/tests/run-resume-production-refresh.e2e.spec.ts, apps/creator-workbench/tests/run-resume-refresh.e2e.spec.ts, packages/mock-agent/tests/durable-run-store.test.ts, packages/operator/tests/migrated/source-content-freshness.test.ts, packages/react/tests/assistant-ui-upgrade-drill.test.mjs, packages/react/tests/migrated/assistant-ui-conversation-thread-binding.test.ts, packages/react/tests/migrated/assistant-ui-langgraph-history-projector.test.ts, packages/react/tests/migrated/assistant-ui-nested-subagent.test.tsx, packages/react/tests/migrated/assistant-ui-run-resume-production.test.tsx, packages/react/tests/migrated/human-question-flow.test.tsx, packages/runtime/tests/run-resume.test.tsx, packages/source-registry/tests/integration.test.ts, packages/source-registry/tests/managed-version-discipline.test.ts
 
 ## Upgrade cost assessment
 

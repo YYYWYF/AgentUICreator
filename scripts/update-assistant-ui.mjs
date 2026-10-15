@@ -122,7 +122,7 @@ async function publishedPackageArtifact(repoRoot, name, version) {
 }
 
 async function installedPackageArtifact(repoRoot, name, version) {
-  const packageRoot = path.join(repoRoot, name === REACT_LEXICAL ? "packages/react/node_modules" : "packages/runtime-conversation/node_modules", name);
+  const packageRoot = path.join(repoRoot, name === REACT_LEXICAL ? "packages/react/node_modules" : "packages/runtime/node_modules", name);
   return packageArtifact(
     name,
     version,
@@ -399,12 +399,12 @@ export async function main({
     if (!resolvedLangGraphPackageCompatibility.compatible) {
       throw new Error(resolvedLangGraphPackageCompatibility.message);
     }
-    await commandRunner("pnpm", ["--filter", "@agent-ui/react", "sync:assistant-ui-upstream", "--", "--revision", revision, "--repo", repo], {
+    await commandRunner("pnpm", ["--filter", "@za38.03/agent-ui-react", "sync:assistant-ui-upstream", "--", "--revision", revision, "--repo", repo], {
       cwd: repoRoot,
       stdio: "inherit",
     });
     if (generativeUiRevision) {
-      await commandRunner("pnpm", ["--filter", "@agent-ui/source-registry", "sync:generative-ui-upstream", "--", "--revision", generativeUiRevision, "--repo", repo], {
+      await commandRunner("pnpm", ["--filter", "@za38.03/agent-ui-source-registry", "sync:generative-ui-upstream", "--", "--revision", generativeUiRevision, "--repo", repo], {
         cwd: repoRoot,
         stdio: "inherit",
       });

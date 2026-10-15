@@ -7,9 +7,9 @@ import { act, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { AgentUIRoot } from "../../src/internal/style-boundary/AgentUIRoot";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ConversationRuntimeProvider, useConversationRuntimeBridge, type ConversationAgentFactory } from "@agent-ui/runtime-conversation";
+import { ConversationRuntimeProvider, useConversationRuntimeBridge, type ConversationAgentFactory } from "@za38.03/agent-ui-runtime";
 import { createConversationServiceThreadBinding } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
-import { createMockConversationApiHandler } from "../../../mock-agent/src/conversations/handler";
+import { createMockConversationApiHandler } from "../../../creator/src/mock-agent/conversations/handler";
 import { AGENT_UI_LOCALE_SERVICE } from "../../../source-registry/registry/items/foundation-core-application/files/services/agent-ui-locale";
 import { createAgentUILocaleService } from "../../../source-registry/registry/items/plugin-locale-provider/files/plugins/locale-provider/locale-service";
 import { enUS } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/locales/en-US";
@@ -18,7 +18,7 @@ import { PolicyThreadList } from "../../../source-registry/registry/items/plugin
 import { createConversationService, createHttpConversationDataSource } from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations";
 
 import { PluginServiceProvider, createPluginRegistry, UIPluginRuntime } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
-import { parseAppUIRuntimeModel } from "../../../project-control/src/framework/contracts/app-ui-runtime-model";
+import { parseAppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
 import { AgentRuntimeProvider } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/context/AgentRuntimeProvider";
 import { conversationThreadListPlugin } from "../../../source-registry/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/definition";
 import { AGENT_UI_CONVERSATION_SERVICE } from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations";

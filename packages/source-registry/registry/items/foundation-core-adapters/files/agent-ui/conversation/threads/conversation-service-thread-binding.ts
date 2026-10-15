@@ -5,7 +5,7 @@ import type {
   ConversationThreadBinding,
   ConversationThreadListItem,
   ConversationThreadListSnapshot,
-} from "@agent-ui/runtime-conversation";
+} from "@za38.03/agent-ui-runtime";
 
 import {
   projectConversationDetail,

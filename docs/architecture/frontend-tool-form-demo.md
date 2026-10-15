@@ -1,5 +1,15 @@
 # Optional Dialog and Form Frontend Tool demos
 
+The `frontend-tool-fill-form` Mock scenario now uses `human-form-demo` to collect
+user-entered details in a conversation card. Like `ask-user-question`, it emits
+the call and `RUN_FINISHED(success)`, leaves the tool unanswered until the user
+submits, and continues from the client's correlated ToolMessage. Both renderers
+use native `addResult`, with no `resume[]` or backend-generated duplicate result.
+The separate `frontend-tool-form-demo` resource below still exposes RHF form
+mutation capabilities. Approval remains a backend interrupt demo; its HTTP
+handler retains pending interrupts per thread and rejects requests that omit a
+complete matching resume, including attempts to switch scenarios.
+
 Dialog and Form scenarios are always listed in Mock Studio. Their code belongs to
 `demo/frontend-tool-dialog` and `demo/frontend-tool-form` Source Registry bundles
 (kind `demo`), rather than the default foundation. Select a scenario to see its
@@ -114,7 +124,7 @@ overwritten by the optional-resource lock. V2 foundations remain managed through
 A future `integration/a2ui` may supply Runtime, renderer and action bridges without
 any Plugin or Frontend Tool. A future Demo can depend on that resource. This change
 does not implement A2UI. Ordinary Plugins should consume a thin public facade in
-`@agent-ui/runtime-conversation`, such as `useConversationA2uiAction`, rather than
+`@agent-ui/runtime`, such as `useConversationA2uiAction`, rather than
 import `useAgUiSendA2uiAction` directly from `@assistant-ui/react-ag-ui`.
 Integration adapters should centralize `JSONGenerativeUI` and
 `defaultGenerativeUILibrary` usage so assistant-ui API changes stay at that boundary.

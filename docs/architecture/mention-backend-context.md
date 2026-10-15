@@ -48,7 +48,7 @@ The reference hook injects resolved Context and builds deterministic response st
 
 A follow-up message without a directive still resolves prior user references from the submitted transcript on every run. No frontend context cache is needed. A real model adapter must consume messages plus the server-prepared Context when building its model call.
 
-Frontend and backend share only type, stable ID and directive grammar; they do not share full business objects. No Mention business logic enters runtime-conversation, no private AG-UI event or schema is added, and no roster is installed into default production templates. Quote is unchanged. This reference does not introduce a backend plugin registry.
+Frontend and backend share only type, stable ID and directive grammar; they do not share full business objects. No Mention business logic enters runtime, no private AG-UI event or schema is added, and no roster is installed into default production templates. Quote is unchanged. This reference does not introduce a backend plugin registry.
 
 ## Automated coverage
 

@@ -8,16 +8,16 @@ import { act, useCallback } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
-import type { ConversationToolkit } from "@agent-ui/react";
+import type { ConversationToolkit } from "@za38.03/agent-ui-react";
 import {
   ConversationRuntimeProvider,
   type ConversationAgentFactory,
-} from "@agent-ui/runtime-conversation";
+} from "@za38.03/agent-ui-runtime";
 import {
   createConversationServiceThreadBinding,
   type ConversationServiceThreadBinding,
 } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
-import { createMockConversationApiHandler } from "../../../mock-agent/src/conversations/handler";
+import { createMockConversationApiHandler } from "../../../creator/src/mock-agent/conversations/handler";
 import { ConversationSurface } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface";
 import {
   createConversationService,

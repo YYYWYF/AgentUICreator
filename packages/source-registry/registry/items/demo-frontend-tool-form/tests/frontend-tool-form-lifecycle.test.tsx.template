@@ -3,11 +3,18 @@ import { StrictMode, act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { useAui, type AssistantRuntime, type ThreadMessage } from "@assistant-ui/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ConversationRuntimeProvider, type ConversationThreadBinding } from "@agent-ui/runtime-conversation";
+import { ConversationRuntimeProvider, type ConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { HttpAgent } from "@ag-ui/client";
 import type { RunAgentInput } from "@ag-ui/core";
-import { runMockScenario } from "@agent-ui/mock-agent";
-import { frontendToolFillFormScenario } from "@agent-ui/mock-agent";
+import { runMockScenario } from "@za38.03/agent-ui-creator/mock-agent";
+import { defineScenario } from "@za38.03/agent-ui-creator/mock-agent";
+// This optional resource still covers application form mutation independently of the conversation form demo.
+const frontendToolFillFormScenario = defineScenario({
+  id: "application-form-fixture", steps: [
+    { type: "tool", frontend: true, name: "set_form_field", args: { name: "firstName", value: "Alice" }, result: null },
+    { type: "tool", frontend: true, name: "set_form_field", args: { name: "email", value: "alice@example.com" }, result: null },
+  ], frontendContinuation: { toolName: "set_form_field", successText: "Done", errorText: "Failed" },
+});
 import { frontendTools as appFrontendTools } from "../agent-contract/frontend-tools/demo-form-tools";
 import { frontendToolUIs } from "../agent-ui/conversation/frontend-tool-uis/demo-form-tools";
 import { ConversationSurface } from "../agent-ui/conversation/ConversationSurface";

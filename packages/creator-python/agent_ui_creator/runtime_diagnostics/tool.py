@@ -12,7 +12,7 @@ from pydantic import Field
 from ..debugging import DebuggingEvidence, evidence_hash
 from ..activity import CreatorActivityRecorder
 from ..domain_state import DomainObservationContext
-from ..project_control import ProjectControlClient, ProjectControlError
+from ..operator import OperatorClient, OperatorError
 from ..repair import CreatorRepairState
 from .store import RuntimeDiagnosticStore
 from .layout_intent import layout_intent_checks
@@ -49,7 +49,7 @@ class RuntimeDiagnosticInspectionService:
         *,
         store: RuntimeDiagnosticStore,
         thread_id: str | None,
-        project_control: ProjectControlClient,
+        operator: OperatorClient,
         observations: DomainObservationContext,
         activity: CreatorActivityRecorder,
         repair_state: CreatorRepairState | None = None,
@@ -61,7 +61,7 @@ class RuntimeDiagnosticInspectionService:
         self._observed_include_stale = False
         self.store = store
         self.thread_id = thread_id
-        self.project_control = project_control
+        self.operator = operator
         self.observations = observations
         self.activity = activity
         self.repair_state = repair_state or CreatorRepairState()
@@ -82,7 +82,7 @@ class RuntimeDiagnosticInspectionService:
             and all(character in "0123456789abcdef" for character in value)
         ):
             raise ValueError(
-                "ProjectControl did not return a valid current AppUIModel hash."
+                "Operator did not return a valid current AppUIModel hash."
             )
         return value
 
@@ -153,7 +153,7 @@ class RuntimeDiagnosticInspectionService:
         """
 
         self.repair_state.begin_verification(self.activity.revision)
-        project = await self.project_control.inspect_ui_project()
+        project = await self.operator.inspect_ui_project()
         current_hash = self._current_hash(project)
         self.observations.observe_app_ui_model(
             hash=current_hash,
@@ -172,7 +172,7 @@ class RuntimeDiagnosticInspectionService:
             app_ui_model_hash=current_hash,
         )
         verification = (
-            await self.project_control.verify_runtime_composition(
+            await self.operator.verify_runtime_composition(
                 app_ui_model_hash=current_hash,
                 composition=raw_composition,
             )
@@ -205,7 +205,7 @@ class RuntimeDiagnosticInspectionService:
         self.debugging.ensure_run(self.activity.run_id)
         self.debugging.runtime_reads += 1
         self.repair_state.begin_verification(self.activity.revision)
-        project = await self.project_control.inspect_ui_project()
+        project = await self.operator.inspect_ui_project()
         current_hash = self._current_hash(project)
         self.observations.observe_app_ui_model(
             hash=current_hash,
@@ -229,7 +229,7 @@ class RuntimeDiagnosticInspectionService:
             app_ui_model_hash=current_hash,
         )
         verification = (
-            await self.project_control.verify_runtime_composition(
+            await self.operator.verify_runtime_composition(
                 app_ui_model_hash=current_hash,
                 composition=raw_composition,
             )
@@ -480,7 +480,7 @@ class RuntimeDiagnosticInspectionService:
             node_refs,
             field_name="nodeRefs",
         )
-        project = await self.project_control.inspect_ui_project(view="composition")
+        project = await self.operator.inspect_ui_project(view="composition")
         current_hash = self._current_hash(project)
         path_to_node_ref, valid_node_refs = self._build_authoring_layout_index(project)
         if node_refs is not None:
@@ -572,7 +572,7 @@ def create_runtime_diagnostic_tool(
                 separators=(",", ":"),
                 default=str,
             )
-        except ProjectControlError as error:
+        except OperatorError as error:
             return json.dumps(
                 {
                     "ok": False,
@@ -653,7 +653,7 @@ def create_runtime_layout_tool(
                 ensure_ascii=False,
                 separators=(",", ":"),
             )
-        except ProjectControlError as error:
+        except OperatorError as error:
             return json.dumps(
                 {
                     "ok": False,

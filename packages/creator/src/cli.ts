@@ -1,88 +1,58 @@
 #!/usr/bin/env node
 
-import { access } from "node:fs/promises";
 import path from "node:path";
-import process from "node:process";
-import { createInterface } from "node:readline/promises";
 import { parseArgs } from "node:util";
-
 import { createPythonCreatorClient } from "./PythonCreatorClient.js";
+import { zhCN } from "./ui/i18n/zh-CN.js";
+import { openCreatorBrowser } from "./openBrowser.js";
 
-const HELP = `Agent UI Creator (Python)
-
-用法：
-  agent-ui-creator --project <目录>
-  agent-ui-creator --project <目录> --message <需求>
-
-选项：
-  -p, --project      要修改的 Agent 前端项目，默认是当前目录
-  -c, --config-root  .env.creator.local 所在目录，默认是当前目录
-  -m, --message      执行一次需求后退出
-  -h, --help         显示帮助
-`;
-
+const messages = zhCN.launcher;
 const { values } = parseArgs({
   options: {
     project: { type: "string", short: "p" },
     "config-root": { type: "string", short: "c" },
     message: { type: "string", short: "m" },
     help: { type: "boolean", short: "h" },
-  },
-  strict: true,
+  }, strict: true,
 });
 
-if (values.help === true) {
-  process.stdout.write(HELP);
-  process.exitCode = 0;
+if (values.help) {
+  process.stdout.write(messages.help);
 } else {
-  const projectRoot = path.resolve(values.project ?? process.cwd());
-  const configRoot = path.resolve(values["config-root"] ?? process.cwd());
-
   try {
-    await access(projectRoot);
-    const creator = createPythonCreatorClient({ projectRoot, configRoot });
-    try {
-      if (values.message !== undefined) {
-        const result = await creator.run(values.message);
-        process.stdout.write(`${result.message}\n`);
-      } else {
-        const terminal = createInterface({
-          input: process.stdin,
-          output: process.stdout,
-        });
-        process.stdout.write(
-          `Python Creator 已连接项目：${projectRoot}\n输入需求开始修改；输入 /exit 退出。\n`,
-        );
-
-        try {
-          while (true) {
-            const request = (await terminal.question("Creator> ")).trim();
-            if (request === "/exit" || request === "/quit") {
-              break;
-            }
-            if (request === "") {
-              continue;
-            }
-
-            try {
-              const result = await creator.run(request);
-              process.stdout.write(`${result.message}\n`);
-            } catch (error) {
-              const message =
-                error instanceof Error ? error.message : String(error);
-              process.stderr.write(`错误：${message}\n`);
-            }
-          }
-        } finally {
-          terminal.close();
-        }
+    const configRoot = path.resolve(values["config-root"] ?? process.cwd());
+    if (values.message !== undefined) {
+      const creator = createPythonCreatorClient({ projectRoot: path.resolve(values.project ?? process.cwd()), configRoot });
+      try { process.stdout.write(`${(await creator.run(values.message)).message}\n`); }
+      finally { await creator.dispose(); }
+    } else {
+      const { startCreatorWorkbench } = await import("./standaloneServer.js");
+      const port = process.env.CREATOR_PORT === undefined ? undefined : Number(process.env.CREATOR_PORT);
+      if (port !== undefined && (!Number.isInteger(port) || port < 0 || port > 65535)) throw new Error(messages.invalidPort);
+      const app = await startCreatorWorkbench({
+        configRoot,
+        ...(port === undefined ? {} : { port }),
+        ...(values.project === undefined ? {} : { projectRoot: path.resolve(values.project) }),
+      });
+      process.stdout.write(`${messages.started.replace("{0}", app.url)}\n${messages.stop}\n`);
+      const stop = async () => {
+        process.off("SIGINT", stop);
+        process.off("SIGTERM", stop);
+        process.off("disconnect", stop);
+        try { await app.close(); }
+        catch (error) { console.error(error); process.exitCode = 1; }
+      };
+      process.on("SIGINT", stop);
+      process.on("SIGTERM", stop);
+      // A Node parent can disconnect IPC to stop cleanly on Windows as well.
+      if (process.connected) process.on("disconnect", stop);
+      if (process.env.CREATOR_OPEN_BROWSER !== "0") {
+        try { await openCreatorBrowser(app.url); }
+        catch { process.stderr.write(`${messages.browserUnavailable}\n`); }
       }
-    } finally {
-      await creator.dispose();
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    process.stderr.write(`Creator 启动失败：${message}\n`);
+    process.stderr.write(`${messages.failed.replace("{0}", error instanceof Error ? error.message : String(error))}\n`);
     process.exitCode = 1;
   }
 }

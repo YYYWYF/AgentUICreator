@@ -7,7 +7,7 @@ import {
   type ConversationThreadComponents,
   type ConversationThreadLabels,
   TooltipProvider,
-} from "@agent-ui/react";
+} from "@za38.03/agent-ui-react";
 
 export interface ConversationSurfaceProps {
   autoFocus?: boolean;

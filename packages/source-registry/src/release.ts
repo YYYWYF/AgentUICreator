@@ -85,3 +85,20 @@ export class MockUpdateSourceProvider implements UpdateSourceProvider {
     return result;
   }
 }
+
+/** Real release source: the installed registry is latest; immutable historical
+ * registries may be supplied by the tool host for three-way merges. No network
+ * fetch or fixture fallback is performed. */
+export class InstalledUpdateSourceProvider implements UpdateSourceProvider {
+  constructor(readonly root = DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT, readonly historyRoot?: string) {}
+  async getLatestRelease(): Promise<ReleaseDescriptor> { return (await resolveSourceRelease(this.root)).descriptor; }
+  async resolveRelease(version: string): Promise<ResolvedSourceRelease> {
+    if (!releaseVersionPattern.test(version)) throw new Error("Invalid exact release version");
+    const current = await resolveSourceRelease(this.root);
+    if (current.descriptor.releaseVersion === version) return current;
+    if (!this.historyRoot) throw new Error(`Historical Source Release ${version} is unavailable; configure an immutable release archive before merging customized source.`);
+    const release = await resolveSourceRelease(path.join(this.historyRoot, version));
+    if (release.descriptor.releaseVersion !== version) throw new Error("Exact release mismatch");
+    return release;
+  }
+}

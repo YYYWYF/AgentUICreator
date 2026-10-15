@@ -4,7 +4,7 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { inspectCreatorProject, verifyUIProject } from "../../packages/project-control/dist/runtime/project-control-runtime.mjs";
+import { inspectCreatorProject, verifyUIProject } from "../../packages/operator/dist/runtime/operator-runtime.mjs";
 
 const projects = {
   platform: "creator-host-sandbox",

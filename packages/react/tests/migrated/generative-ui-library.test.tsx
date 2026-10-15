@@ -3,9 +3,9 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import type { ToolCallMessagePartProps } from "@assistant-ui/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { agentUIGenerativeUILibrary, createAgentUIGenerativeUI, createAgentUIGenerativeActions } from "../../../source-registry/registry/items/integration-generative-ui/files/integrations/generative-ui/index";
-import { styledGenerativeUILibrary } from "../../../source-registry/registry/items/agent-component-assistant-ui-generative-ui/files/agent-ui/vendor/assistant-ui/generative-ui/styled-generative-ui";
-import { generativeUIGallery } from "../../../project-control/tests/fixtures/generative-ui-gallery";
+import { createAgentUIGenerativeUI, createAgentUIGenerativeActions } from "../../../source-registry/registry/items/integration-generative-ui/files/integrations/generative-ui/index";
+import { styledGenerativeUILibrary } from "../../src/internal/vendor/assistant-ui/generative-ui/styled-generative-ui";
+import { generativeUIGallery } from "../../../operator/tests/fixtures/generative-ui-gallery";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const disposers: (() => Promise<void>)[] = [];
@@ -22,10 +22,9 @@ async function render(spec: ToolCallMessagePartProps["args"], handler = vi.fn())
 }
 
 it("uses the official styled library and renders its supported vocabulary through JSONGenerativeUI", async () => {
-  expect(agentUIGenerativeUILibrary).toBe(styledGenerativeUILibrary);
   const f = await render(generativeUIGallery);
   for (const name of ["Card", "Row", "Col", "Markdown", "Fact", "Badge", "Alert", "Table", "Chart", "Form", "Input", "Select", "Checkbox", "RadioGroup", "DatePicker", "Image", "Icon"]) {
-    expect(agentUIGenerativeUILibrary[name], name).toBeDefined();
+    expect(styledGenerativeUILibrary[name], name).toBeDefined();
   }
   for (const name of ["card", "row", "col", "markdown", "fact", "badge", "alert", "table", "chart", "form", "input", "select", "checkbox", "radiogroup", "datepicker", "image", "icon"]) {
     expect(f.container.querySelector(`[data-aui="${name}"]`), name).not.toBeNull();

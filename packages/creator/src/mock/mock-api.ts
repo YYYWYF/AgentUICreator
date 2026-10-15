@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { resolveOfficialResource, inspectOfficialResourceImplementation, OfficialResourceError } from "@agent-ui/project-control/resources";
+import { resolveOfficialResource, inspectOfficialResourceImplementation, OfficialResourceError } from "@za38.03/agent-ui-operator/resources";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { inspectMockProjectThroughControl } from "./project-inspector.js";
+import { inspectMockProjectThroughOperator } from "./project-inspector.js";
 import { CreatorMockService, isLocalMockOrigin } from "./CreatorMockService.js";
 import { inspectMockProjectCompatibility, installableMockResourceIds, mockDemoRequirements, type MockProjectTarget, type MockProjectInspector, type MockDemoCompatibility } from "./demo-compatibility.js";
 
@@ -15,7 +15,7 @@ export async function handleCreatorMockRequest(
   request: IncomingMessage, response: ServerResponse, service: CreatorMockService,
   resolveProject?: () => MockProjectTarget | undefined,
   installPlugin?: (projectId: string, pluginId: string) => Promise<void>,
-  inspector: MockProjectInspector = inspectMockProjectThroughControl,
+  inspector: MockProjectInspector = inspectMockProjectThroughOperator,
   installResources?: (projectId: string, resourceId: string) => Promise<void>,
   supportsResource?: (resourceId: string) => boolean,
 ): Promise<void> {

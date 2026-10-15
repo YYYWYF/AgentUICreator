@@ -261,7 +261,7 @@ Source Registry 的依赖与版本检查共 10 项通过。
 fresh Host 的三种模式、两个 sourceRoot 与旧版升级回归共 7 项通过，包含
 正式协议增删 visual Plugin 和独立生产构建。fixture 补齐现有 Tailwind 样式
 依赖／Vite 插件，使用可移除的 visual child Slot probe，保留 Headless 生命周期
-保护。`@agent-ui/project-control` 与 `@agent-ui/react` typecheck 通过。
+保护。`@agent-ui/operator` 与 `@agent-ui/react` typecheck 通过。
 
 升级后浏览器最终态通过：TaskCard 为 done，仅一个 card、一个 nested message
 及一个 Footer；Stop generating 消失，Copy、Refresh、Export as Markdown 均

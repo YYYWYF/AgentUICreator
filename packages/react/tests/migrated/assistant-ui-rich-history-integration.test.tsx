@@ -7,7 +7,7 @@ import {
   useLocalRuntime,
   type ChatModelAdapter,
 } from "@assistant-ui/react";
-import { projectLangChainHistory } from "@agent-ui/runtime-conversation";
+import { projectLangChainHistory } from "@za38.03/agent-ui-runtime";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -15,7 +15,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createConversationSemanticThreadComponents } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/index";
 import { ConversationSurface } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface";
 import { createConversationToolkit } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
-import { mockConversationFixtures } from "../../../mock-agent/src/conversations/fixtures";
+import { mockConversationFixtures } from "../../../creator/src/mock-agent/conversations/fixtures";
 
 const chatModel: ChatModelAdapter = { run: async () => ({ content: [] }) };
 const mountedRoots: Root[] = [];

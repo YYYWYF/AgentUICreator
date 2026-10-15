@@ -12,7 +12,7 @@ from ..files import (
     replace_creator_file_atomically,
     resolve_creator_project_file,
 )
-from ..project_control import ProjectControlClient
+from ..operator import OperatorClient
 from ..run_cancellation import assert_run_writable
 from ..source_tools.models import PluginSourceEdit
 from ..transactions import CreatorTransactionError
@@ -27,13 +27,13 @@ class UIServiceContractMutationService:
         self,
         *,
         project_root: str | Path,
-        project_control: ProjectControlClient,
+        operator: OperatorClient,
         store: ServiceContractAuthorizationStore,
         activity: CreatorActivityRecorder,
         mutation_coordinator: ProjectMutationCoordinator,
     ) -> None:
         self.project_root = Path(project_root).resolve()
-        self.project_control = project_control
+        self.operator = operator
         self.store = store
         self.activity = activity
         self.mutation_coordinator = mutation_coordinator
@@ -83,7 +83,7 @@ class UIServiceContractMutationService:
         async with self.mutation_coordinator.transaction(self.project_root):
             if spec.change_kind == "mutate":
                 try:
-                    topology = await self.project_control.inspect_ui_services()
+                    topology = await self.operator.inspect_ui_services()
                     spec_from_existing_service(spec, topology)
                 except ServiceContractError as error:
                     self.store.update_status(record, "invalidated")

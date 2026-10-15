@@ -1,4 +1,18 @@
 export const zhCN = {
+  "creatorDock": {
+    "label": "Creator Agent",
+    "collapse": "收起 Creator",
+    "started": "Creator 已启动",
+    "hint": "点击上方 Creator Agent，选择工程并安装 UI 能力。"
+},
+  "launcher": {
+    "help": "Agent UI Creator\n\n用法：\n  agent-ui-creator                 在浏览器中打开 Creator\n  agent-ui-creator --message <需求> --project <目录>\n\n可选参数：\n  -p, --project      预选工程目录\n  -c, --config-root  .env.creator.local 所在目录\n  -m, --message      在终端执行一次需求\n  -h, --help         显示帮助\n",
+    "started": "Creator 已启动：{0}",
+    "stop": "按 Ctrl+C 停止。工程和能力请在 Creator 界面中选择。",
+    "browserUnavailable": "无法自动打开浏览器，请打开上面的地址。",
+    "failed": "Creator 启动失败：{0}",
+    "invalidPort": "CREATOR_PORT 必须是 0 到 65535 之间的整数。"
+},
   "commands": {
     "integrateAgentUI": "帮我把 Agent UI 接入这个项目。",
     "install": "安装能力",
@@ -317,7 +331,7 @@ export const zhCN = {
     "projectFilesWillBeKept": "项目文件会保留",
     "refreshWorkspaceNotReady": "项目检查未通过，请查看项目状态后重试；相关资源尚未刷新。",
     "refreshRuntimeUnavailable": "Creator 服务不可用，请查看服务状态后重试。",
-    "projectControlRestartRequired": "Project Control 已过期，请通过 pnpm dev 重启 Creator 后刷新。",
+    "operatorRestartRequired": "Operator 已过期，请通过 pnpm dev 重启 Creator 后刷新。",
     "projectInspectionFailedAdvice": "项目检查未通过，请查看技术详情，处理报告的问题后刷新。",
     "refresh": "刷新",
     "reloadCurrentProjectAndPanelData": "重新读取当前项目与面板数据",
@@ -383,6 +397,7 @@ export const zhCN = {
     "confirmTheseUpdates": "确认本次更新",
     "message": " {0} → {1}",
     "notInstalledUntracked": "未安装 / 未记录",
+    "requiredByPlugins": "由以下插件依赖：{0}",
     "foundationDependency": "（基础依赖）",
     "keepCurrentSource": "（保持当前源码）",
     "expectedChanges": "预计修改",
@@ -423,9 +438,7 @@ export const zhCN = {
     "askAgentWithContext": "携带上下文向 Agent 提问",
     "sendTextImagesAndFiles": "发送文字、图片与文件",
     "generateDownloadableFilesWithTools": "工具生成文件并提供下载",
-    "interactiveA2UIForm": "A2UI 交互表单",
-    "a2UIOrderConfirmationCard": "A2UI 订单确认卡片",
-    "fillAFormWithFrontendTools": "前端工具填写表单",
+    "fillAFormWithFrontendTools": "会话内表单收集信息",
     "openADialogWithFrontendTools": "前端工具打开弹窗",
     "askTheUserAQuestionAndContinue": "向用户提问并继续回答",
     "runSeveralConversationsConcurrently": "多个会话同时运行",
@@ -477,7 +490,7 @@ export const zhCN = {
     "stateAndExecutionPlans": "状态与执行计划",
     "structuredResultsAndInteractiveUI": "结构化结果与交互界面",
     "subagentCollaboration": "子智能体协作",
-    "runControlAndRecovery": "运行控制与恢复",
+    "runOperatorAndRecovery": "运行控制与恢复",
     "otherDemos": "其他示例",
     "creatorDoesNotProvideTheMockControlAPI": "Creator 服务端尚未提供 Mock 控制接口，请重启 Creator 开发服务。",
     "mockRequestFailed": "Mock 请求失败（{0}）",
@@ -525,7 +538,7 @@ export const zhCN = {
     "someDemosRequireExtraAgentUIResourcesCreator": "部分 Demo 需要额外的 Agent UI 资源，Creator 会在运行前检查并提示安装。",
     "checkingDemoSupportInTheCurrentProject": "正在检查当前项目的 Demo 支持…",
     "couldNotCheckProjectResourcesSelectAndInitialize": "无法检查当前项目的资源，请确认已选择并初始化项目。",
-    "projectControlRestartRequired": "Creator 的项目控制服务已过期，请重新启动 Creator 后重试。",
+    "operatorRestartRequired": "Creator 的项目控制服务已过期，请重新启动 Creator 后重试。",
     "replayDurationMultiplier": "播放时长倍率",
     "replayDurationUpdatedForTheNextRequest": "播放时长已更新，下一次请求生效。",
     "completeImmediately": "立即完成",
@@ -565,7 +578,6 @@ export const zhCN = {
     "toolCalls": "工具调用",
     "stateAndPlans": "状态与计划",
     "contentComponents": "内容组件",
-    "a2UIInteractiveUI": "A2UI 交互界面",
     "subagents": "子智能体",
     "runsAndConversations": "运行与会话",
     "nameDescriptionOrScenarioID": "名称、描述或场景 ID"
@@ -673,8 +685,7 @@ export const zhCN = {
     "multimodal-input": "发送文本、小图片或 PDF 附件，使用标准 AG-UI 多模态输入。固定回复不代表附件已经验收，请检查实际请求。",
     "reasoning-chat": "模拟一次思考和最终回复。",
     "file-output": "Backend generate_file 返回虚拟 PDF URL，由 named Tool UI 展示官方文件卡片和下载入口。",
-    "a2ui-interactive-order": "A declarative Basic Catalog surface with native A2UI action continuation.",
-    "ask-user-question": "assistant-ui Human Tool · 提问、选择、Tool Result、继续回答",
+    "ask-user-question": "assistant-ui Human Tool · 流式思考、提问、选择、提交工具结果、继续回答",
     "composer-slash": "同一 Slash 列表支持前端 /new 和 Agent 指令 /summarize。",
     "source-citations": "search_sources 返回应用自定义来源结构，由 named Tool UI 展示官方 Sources。",
     "simple-chat": "模拟一次纯文本流式回复。",
@@ -700,11 +711,10 @@ export const zhCN = {
     "cancel-before-first-output": "运行开始后等待 10 秒再输出；等待期间点击 Stop 可查看空响应取消展示。",
     "composer-mention": "输入 @ 搜索示例花名册，选中对象后发送；在请求记录中检查稳定员工 ID。",
     "markdown-showcase": "展示 Markdown / GFM 常见文本类型及代码块的流式渲染。",
-    "a2ui-form-controls": "Official Basic Catalog controls, using native surface conversion and action continuation.",
     "multi-message-response": "一次回答包含三条连续 assistant 消息，共用一组 Response 操作。",
     "tool-long-running": "模拟一个真实两分钟工具，并允许开发时按 speed 加速。",
     "quote-reply": "选中 Assistant 正文、引用并发送追问。Quote 是用户交互，不是 AG-UI Event。",
     "web-search": "标准 AG-UI 工具调用，通过独立 UI Plugin 展示网页搜索结果。",
-    "frontend-tool-fill-form": "标准 AG-UI Frontend Tool 填写表单，不提交表单。"
+    "frontend-tool-fill-form": "在会话中填写多个字段，校验并整体提交工具结果后继续 Agent。"
   }
 };

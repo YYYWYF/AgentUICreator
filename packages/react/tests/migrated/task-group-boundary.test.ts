@@ -1,4 +1,4 @@
-import { generatedProjectFixture } from "../../../project-control/tests/support/generated-project";
+import { generatedProjectFixture } from "../../../operator/tests/support/generated-project";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,7 +13,7 @@ describe("task group Plugin boundary", () => {
       "utf8",
     );
 
-    expect(source).toContain('from "@agent-ui/react"');
+    expect(source).toContain('from "@za38.03/agent-ui-react"');
     expect(source).toContain("conversation.task-group");
     expect(source).not.toMatch(/@ag-ui\/(?:core|client)/u);
     expect(source).not.toMatch(/SUBAGENT_(?:STARTED|FINISHED|ERROR)/u);

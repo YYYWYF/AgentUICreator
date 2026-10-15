@@ -8,7 +8,7 @@ const test = base.extend<{ preview: Awaited<ReturnType<typeof createConnectionHo
 });
 test("real command persists Violet, verifies published files, refreshes Preview and shares undo/reapply", async ({ page, preview }) => {
   // Only workspace presentation metadata is supplied. Command APIs, Python storage,
-  // ProjectControl verifier, generated application and Preview all run for real.
+  // Operator verifier, generated application and Preview all run for real.
   await page.route(`${preview.creatorOrigin}__agent-ui/creator/workspace{,/refresh}`, route => route.fulfill({ json: {
     status: "ready", workspace: { id: preview.workspaceId, name: "Theme Host", displayPath: preview.hostRoot },
     project: { mode: "platform", sourceRoot: "src/agent-ui" }, runtime: { status: "ready" },
@@ -56,7 +56,7 @@ test("real command persists Violet, verifies published files, refreshes Preview 
   await input.fill("/theme invalid"); await input.press("Enter");
   await expect(page.locator(".creator-command-activity").last()).toContainText("未知主题");
   expect(await readFile(canonical, "utf8")).toBe(before);
-  // A real failed ProjectControl verification must roll back the published candidate.
+  // A real failed Operator verification must roll back the published candidate.
   const modelPath = path.join(preview.hostRoot, "src/agent-ui/app-ui/app-ui.json");
   const model = await readFile(modelPath, "utf8");
   try {

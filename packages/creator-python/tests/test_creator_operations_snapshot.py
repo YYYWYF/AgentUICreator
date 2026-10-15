@@ -29,7 +29,7 @@ from agent_ui_creator.operations import (
     MAX_TOTAL_PLUGIN_CHILD_SLOTS,
     MAX_TOTAL_PLUGIN_INSTANCES,
 )
-from agent_ui_creator.project_control import ProjectControlError
+from agent_ui_creator.operator import OperatorError
 
 
 OBSERVATION_COVERAGE = [
@@ -112,7 +112,7 @@ def snapshot_result() -> dict[str, object]:
     }
 
 
-class FakeProjectControl:
+class FakeOperator:
     def __init__(self, result: object) -> None:
         self.result = result
         self.views: list[str | None] = []
@@ -125,7 +125,7 @@ class FakeProjectControl:
 
 
 def test_snapshot_provider_uses_one_authoritative_composition_read():
-    client = FakeProjectControl(snapshot_result())
+    client = FakeOperator(snapshot_result())
 
     snapshot = asyncio.run(CreatorDomainSnapshotProvider(client).build())
 
@@ -236,22 +236,22 @@ def test_snapshot_provider_projects_plugin_slot_default_placement():
     assert plugin.defaultPlacement.slot == "emptySuggestions"
 
 
-def test_snapshot_provider_fails_fast_on_project_control_failure():
-    error = ProjectControlError(
-        "CONTROL_PROTOCOL_INVALID_JSON", "synthetic control failure"
+def test_snapshot_provider_fails_fast_on_operator_failure():
+    error = OperatorError(
+        "OPERATOR_PROTOCOL_INVALID_JSON", "synthetic control failure"
     )
-    client = FakeProjectControl(error)
+    client = FakeOperator(error)
     provider = CreatorDomainSnapshotProvider(client)
 
-    with pytest.raises(ProjectControlError) as raised:
+    with pytest.raises(OperatorError) as raised:
         asyncio.run(provider.build())
 
-    assert raised.value.code == "CONTROL_PROTOCOL_INVALID_JSON"
+    assert raised.value.code == "OPERATOR_PROTOCOL_INVALID_JSON"
     assert provider.metrics.failures == 1
 
 
 def test_snapshot_provider_rejects_incomplete_success_payload():
-    client = FakeProjectControl({"view": "composition"})
+    client = FakeOperator({"view": "composition"})
 
     with pytest.raises(CreatorDomainSnapshotError) as raised:
         asyncio.run(CreatorDomainSnapshotProvider(client).build())

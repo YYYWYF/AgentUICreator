@@ -1,4 +1,4 @@
-import type { ConversationMentionItem, ConversationMentionSource } from "@agent-ui/react";
+import type { ConversationMentionItem, ConversationMentionSource } from "@za38.03/agent-ui-react";
 export interface DemoMentionSource extends ConversationMentionSource { setItems(items: readonly ConversationMentionItem[], locale: string): void; }
 export function createDemoMentionSource(): DemoMentionSource {
   let items: readonly ConversationMentionItem[] = [];

@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-from ..project_control import ProjectControlClient
+from ..operator import OperatorClient
 from .authorization_store import ServiceContractAuthorizationStore
 from .models import ServiceAuthorizationRecord
 from .topology import plugin_ids, service_by_name
@@ -29,10 +29,10 @@ class ServiceContractAuthorizationVerifier:
     def __init__(
         self,
         *,
-        project_control: ProjectControlClient,
+        operator: OperatorClient,
         store: ServiceContractAuthorizationStore,
     ) -> None:
-        self.project_control = project_control
+        self.operator = operator
         self.store = store
         self._verified_applied_proposal_ids: tuple[str, ...] = ()
 
@@ -48,7 +48,7 @@ class ServiceContractAuthorizationVerifier:
         if not obligations:
             self._verified_applied_proposal_ids = ()
             return (), ()
-        topology = await self.project_control.inspect_ui_services()
+        topology = await self.operator.inspect_ui_services()
         checks: list[ServiceContractHostCheck] = []
         passed: list[ServiceAuthorizationRecord] = []
         for record in obligations:

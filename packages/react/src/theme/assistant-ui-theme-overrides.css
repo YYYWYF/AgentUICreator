@@ -1,3 +1,19 @@
+/* Approval choices use a soft brand fill to match the surrounding tool card. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="button"][data-agent-ui-approval-action="allow"] {
+  background: var(--agent-brand-surface);
+  color: var(--agent-brand-solid);
+  border-color: var(--agent-brand-border);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="button"][data-agent-ui-approval-action="allow"]:enabled:hover {
+  background: var(--agent-brand-selected);
+  border-color: var(--agent-brand-hover-border);
+}
+
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="button"][data-agent-ui-approval-action="allow"]:focus-visible {
+  border-color: var(--agent-brand-focus-border);
+}
+
 /* Stable presentation seams only. No vendor class matching;
  * light/dark retain their upstream presentation. */
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] [data-slot="agent-ui-code-header"] {

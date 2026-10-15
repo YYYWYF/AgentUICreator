@@ -56,7 +56,7 @@ it("keeps product Plugin and application code off Base UI Portal imports", async
 });
 
 it("keeps Generative UI vocabulary under its independent scoped source contract", async () => {
-  const directory = path.join(repositoryRoot, "packages/source-registry/registry/items/agent-component-assistant-ui-generative-ui/files/agent-ui/vendor/assistant-ui/generative-ui");
+  const directory = path.join(repositoryRoot, "packages/react/src/internal/vendor/assistant-ui/generative-ui");
   const record = JSON.parse(await readFile(path.join(directory, "UPSTREAM.json"), "utf8"));
   for (const entry of record.files) {
     const source = await readFile(path.join(directory, entry.localPath));

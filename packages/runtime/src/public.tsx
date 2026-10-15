@@ -1,0 +1,161 @@
+import type { ConversationFeedbackAdapter } from "./feedback.js";
+import type {
+  AgentApplicationEvent,
+  AgentApplicationEventListener,
+  AgentFrontendToolSource,
+  AgentInterruptResponse,
+  AgentRuntime,
+  AgentRuntimeSnapshot,
+  AgentUserInput,
+} from "@za38.03/agent-ui-runtime-core";
+import type { AbstractAgent } from "@ag-ui/client";
+import type { AttachmentAdapter, DictationAdapter } from "@assistant-ui/core";
+import {
+  ConversationRuntimeProvider as InternalConversationRuntimeProvider,
+  type ConversationAgentFactory as InternalConversationAgentFactory,
+} from "./ConversationRuntimeProvider.js";
+import {
+  useConversationRuntimeBridge as useInternalConversationRuntimeBridge,
+  useConversationRuntimeObservation as useInternalConversationRuntimeObservation,
+} from "./ConversationRuntimeBridgeContext.js";
+import type { ConversationObservationSnapshot } from "./observation/types.js";
+import type {
+  ConversationLoadedThread,
+  ConversationAssistantRunUpdate,
+  ConversationMessage,
+  ConversationRunResume,
+  ConversationThreadBinding,
+  ConversationThreadListItem,
+  ConversationThreadListSnapshot,
+} from "./threads/types.js";
+import type { ConversationToolkit } from "@za38.03/agent-ui-react";
+import type { ReactNode } from "react";
+import type { ConversationStarterSuggestion } from "./conversation-types.js";
+
+export { projectLangChainHistory } from "./history/langchain-history-projector.js";
+
+export interface ConversationAgentFactoryConfig {
+  endpoint: string;
+  threadId: string;
+}
+
+export type ConversationAgentFactory = (
+  config: ConversationAgentFactoryConfig,
+) => AbstractAgent;
+
+export interface ConversationRuntimeProviderProps<TState = unknown> {
+  endpoint: string;
+  threadBinding: ConversationThreadBinding<TState>;
+  frontendTools?: AgentFrontendToolSource | undefined;
+  frontendToolUIs?: import("./tools/types.js").ConversationFrontendToolUIRegistry | undefined;
+  toolkit?: ConversationToolkit | undefined;
+  suggestions?: readonly ConversationStarterSuggestion[] | undefined;
+  /** Official assistant-ui adapter; the application owns file preparation and storage. */
+  attachmentAdapter?: AttachmentAdapter | undefined;
+  /** Official assistant-ui adapter; the application owns speech-to-text. */
+  dictationAdapter?: DictationAdapter | undefined;
+  /** Ephemeral upstream follow-up queue; disabled by default for direct callers. */
+  enableMessageQueue?: boolean | undefined;
+  feedbackAdapter?: ConversationFeedbackAdapter | undefined;
+  children: ReactNode;
+  onError?: ((error: Error) => void) | undefined;
+  unstable_agentFactory?: ConversationAgentFactory | undefined;
+}
+
+export function ConversationRuntimeProvider<TState = unknown>(
+  props: Readonly<ConversationRuntimeProviderProps<TState>>,
+) {
+  return (
+    <InternalConversationRuntimeProvider
+      {...props}
+      unstable_agentFactory={
+        props.unstable_agentFactory as InternalConversationAgentFactory | undefined
+      }
+    />
+  );
+}
+
+export interface ConversationRuntimeBridge<TState = unknown> {
+  agentRuntime: ConversationAgentRuntimeBridge<TState>;
+  applicationEvents: ConversationApplicationEventSource;
+  observation: ConversationObservationSource;
+  threadBinding: ConversationThreadBinding<TState>;
+  frontendTools?: ConversationFrontendToolPort | undefined;
+}
+
+export function useConversationRuntimeBridge<TState = unknown>(): ConversationRuntimeBridge<TState> {
+  return useInternalConversationRuntimeBridge<TState>() as unknown as ConversationRuntimeBridge<TState>;
+}
+
+export function useConversationRuntimeObservation(): ConversationObservationSnapshot {
+  return useInternalConversationRuntimeObservation();
+}
+
+export interface ConversationAgentRuntimeBridge<TState = unknown>
+  extends AgentRuntime<TState> {
+  readonly observation: ConversationObservationSource;
+  recordCancellation(): void;
+  recordError(value: unknown): void;
+}
+
+export interface ConversationApplicationEventSource {
+  start(): void;
+  stop(): void;
+  subscribe(listener: AgentApplicationEventListener): () => void;
+}
+
+export interface ConversationObservationSource {
+  getSnapshot(): ConversationObservationSnapshot;
+  subscribe(listener: () => void): () => void;
+}
+
+export { createConversationFrontendToolPort } from "./tools/types.js";
+export type { ConversationFrontendToolPort, ConversationFrontendToolUIEntry, ConversationFrontendToolUIRegistry } from "./tools/types.js";
+import type { ConversationFrontendToolPort } from "./tools/types.js";
+
+export function createEphemeralConversationThreadBinding(): ConversationThreadBinding {
+  let threadId = crypto.randomUUID();
+  const listeners = new Set<() => void>();
+
+  return {
+    getThreadId: () => threadId,
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    async createNewThread() {
+      threadId = crypto.randomUUID();
+      for (const listener of listeners) listener();
+      return threadId;
+    },
+  };
+}
+
+export type {
+  ConversationStarterSuggestion,
+} from "./conversation-types.js";
+
+export type {
+  ConversationLoadedThread,
+  ConversationAssistantRunUpdate,
+  ConversationMessage,
+  ConversationRunResume,
+  ConversationThreadBinding,
+  ConversationThreadListItem,
+  ConversationThreadListSnapshot,
+} from "./threads/types.js";
+
+export type {
+  ConversationObservationSnapshot,
+  ConversationToolCallObservation,
+} from "./observation/types.js";
+
+export { AgentUiRuntimeBusyError, UnsupportedAgentInputError } from "./errors.js";
+
+export type {
+  AgentInterruptResponse,
+  AgentRuntimeSnapshot,
+  AgentUserInput,
+};
+
+export type { ConversationFeedbackAdapter, ConversationFeedbackSubmission } from "./feedback.js";

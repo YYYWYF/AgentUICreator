@@ -1,8 +1,8 @@
 import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 
-import { CreatorWorkbench } from "@agent-ui/creator/ui";
-import { connectCreatorDockHost } from "@agent-ui/creator/host-preview";
+import { CreatorWorkbench } from "@za38.03/agent-ui-creator/ui";
+import { connectCreatorDockHost } from "@za38.03/agent-ui-creator/host-preview";
 
 declare const __CREATOR_HOST_WORKSPACE_ID__: string;
 function DockHostBridge({ threadId, workspaceId }: { threadId: string; workspaceId: string }) {

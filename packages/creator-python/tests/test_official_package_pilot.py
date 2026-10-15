@@ -3,7 +3,7 @@ import asyncio
 import json
 from agent_ui_creator.domain_agent.prompt import DOMAIN_WRITE_AGENT_PROMPT
 from agent_ui_creator.domain_agent.tool_policy import SIDE_EFFECT_TOOL_NAMES
-from agent_ui_creator.domain_tools import create_project_control_tools
+from agent_ui_creator.domain_tools import create_operator_tools
 from agent_ui_creator.operations import (
     CreatorActionCatalogSnapshot, CreatorAuthoringTargetBinding,
     CreatorAuthoringTargetCandidate, CreatorAuthoringTargetCatalogSnapshot,
@@ -48,7 +48,7 @@ def test_custom_creation_tool_forwards_semantic_input_and_classifies_mutation():
                 "replaceInstanceId": "composer-main"}
             return {"pluginId": "company-composer", "ownership": "project_source",
                 "checks": ["build"], "changedPaths": []}
-    tool = next(tool for tool in create_project_control_tools(Client()) if tool.name == "create_custom_plugin")
+    tool = next(tool for tool in create_operator_tools(Client()) if tool.name == "create_custom_plugin")
     result = json.loads(asyncio.run(tool.ainvoke({"pluginId": "company-composer",
         "basedOn": "assistant-ui-composer", "replaceInstanceId": "composer-main"})))
     assert result["ok"] and result["result"]["ownership"] == "project_source"

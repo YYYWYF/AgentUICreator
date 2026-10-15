@@ -6,7 +6,7 @@ import { prepareHostPackages } from "./prepare-host-packages.mjs";
 // so Host pretypecheck hooks cannot concurrently rewrite the same dist directories.
 prepareHostPackages({ force: true });
 // Vue and plain HTML consumers read the bridge's built public declarations.
-const bridge = spawnPnpmSync(["--filter", "@agentui/web-component", "build"], {
+const bridge = spawnPnpmSync(["--filter", "@za38.03/agent-ui-web-component", "build"], {
   cwd: fileURLToPath(new URL("..", import.meta.url)), stdio: "inherit",
   env: { ...process.env },
 });

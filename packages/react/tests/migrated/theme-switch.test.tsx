@@ -8,13 +8,13 @@ import {
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { NativeSelect } from "@agent-ui/react";
+import { NativeSelect } from "@za38.03/agent-ui-react";
 import {
   ConversationRuntimeProvider,
   type ConversationAgentFactory,
-} from "@agent-ui/runtime-conversation";
-import type { AppUIModel } from "../../../project-control/src/framework/contracts/app-ui-model";
-import { parseAppUIRuntimeModel } from "../../../project-control/src/framework/contracts/app-ui-runtime-model";
+} from "@za38.03/agent-ui-runtime";
+import type { AppUIModel } from "../../../operator/src/framework/contracts/app-ui-model";
+import { parseAppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
 import {
   capabilityCatalogRevision,
   pluginCapabilityCatalog,
@@ -33,7 +33,7 @@ import {
   UIPluginRuntime,
   type UIPluginRuntimeActions,
 } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
-import { createStaticAgentRuntime } from "../../../project-control/tests/support/agent-runtime-fixture";
+import { createStaticAgentRuntime } from "../../../operator/tests/support/agent-runtime-fixture";
 import { ThemeSwitchPlugin } from "../../../source-registry/registry/items/plugin-theme-switch/files/plugins/theme-switch/index";
 import { themeProviderPlugin } from "../../../source-registry/registry/items/plugin-theme-provider/files/plugins/theme-provider/definition";
 import { localeProviderPlugin } from "../../../source-registry/registry/items/plugin-locale-provider/files/plugins/locale-provider/definition";

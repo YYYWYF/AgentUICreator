@@ -5,22 +5,22 @@
   ],
   "compilerOptions": {
     "paths": {
-      "@agent-ui/bootstrap": [
-        "../../../../packages/bootstrap/src/index.ts"
+      "@za38.03/agent-ui-operator/bootstrap": [
+        "../../../../packages/operator/src/bootstrap/index.ts"
       ],
-      "@agent-ui/react": [
+      "@za38.03/agent-ui-react": [
         "../../../../packages/react/src/index.ts"
       ],
-      "@agent-ui/runtime-conversation": [
-        "../../../../packages/runtime-conversation/src/index.ts"
+      "@za38.03/agent-ui-runtime": [
+        "../../../../packages/runtime/src/index.ts"
       ],
-      "@agent-ui/runtime-core": [
+      "@za38.03/agent-ui-runtime-core": [
         "../../../../packages/runtime-core/src/index.ts"
       ],
-      "@agent-ui/runtime-react": [
-        "../../../../packages/runtime-react/src/index.ts"
+      "@za38.03/agent-ui-renderer": [
+        "../../../../packages/renderer/src/index.ts"
       ],
-      "@agent-ui/source-registry": [
+      "@za38.03/agent-ui-source-registry": [
         "../../../../packages/source-registry/src/index.ts"
       ],
       "react/jsx-runtime": [

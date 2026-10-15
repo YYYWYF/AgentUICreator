@@ -20,8 +20,6 @@ function getDemoTitles(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_M
   "composer-mention-context": localeMessages.mock.askAgentWithContext,
   "multimodal-input": localeMessages.mock.sendTextImagesAndFiles,
   "file-output": localeMessages.mock.generateDownloadableFilesWithTools,
-  "a2ui-form-controls": localeMessages.mock.interactiveA2UIForm,
-  "a2ui-interactive-order": localeMessages.mock.a2UIOrderConfirmationCard,
   "frontend-tool-fill-form": localeMessages.mock.fillAFormWithFrontendTools,
   "frontend-tool-open-dialog": localeMessages.mock.openADialogWithFrontendTools,
   "ask-user-question": localeMessages.mock.askTheUserAQuestionAndContinue,
@@ -67,15 +65,13 @@ function getDemoFocusTags(localeMessages: CreatorLocaleMessages = DEFAULT_CREATO
   "tool-error": ["TOOL_CALL_*", "RUN_ERROR"],
   "file-output": ["TOOL_CALL_RESULT", localeMessages.mock.fileOutput],
   "frontend-tool-open-dialog": ["TOOL_CALL_*", localeMessages.mock.frontendTools],
-  "frontend-tool-fill-form": ["TOOL_CALL_*", localeMessages.mock.frontendTools],
-  "ask-user-question": ["TOOL_CALL_*", localeMessages.mock.userQuestion],
+  "frontend-tool-fill-form": ["TOOL_CALL_*", "RUN_FINISHED · success", "ToolMessage"],
+  "ask-user-question": ["TOOL_CALL_*", "RUN_FINISHED · success", "ToolMessage"],
   "approval-resume": ["RUN_FINISHED · interrupt", "TOOL_CALL_RESULT", localeMessages.mock.approvalRecovery],
   "agent-state-sync": ["STATE_SNAPSHOT", "STATE_DELTA"],
   "agent-plan": ["ACTIVITY_SNAPSHOT", "ACTIVITY_DELTA"],
   "agent-status": ["TOOL_CALL_ARGS", localeMessages.mock.agentState],
   "data-message-chart": ["CUSTOM · chart"],
-  "a2ui-form-controls": ["ACTIVITY_SNAPSHOT", "A2UI"],
-  "a2ui-interactive-order": ["ACTIVITY_SNAPSHOT", "A2UI"],
   "nested-subagent-conversation": ["SUBAGENT_STARTED", "SUBAGENT_FINISHED"],
   "nested-subagent-task-group": ["SUBAGENT_STARTED", "SUBAGENT_FINISHED", localeMessages.mock.taskGroup],
   "nested-subagent-recursive": ["SUBAGENT_STARTED", "SUBAGENT_FINISHED", localeMessages.mock.recursiveDelegation],
@@ -93,12 +89,12 @@ function getDemoFocusTags(localeMessages: CreatorLocaleMessages = DEFAULT_CREATO
 
 function getDemoGroups(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) { return [
   { title: localeMessages.mock.messagesAndContext, ids: ["simple-chat", "multi-message-response", "markdown-showcase", "multimodal-input", "composer-mention-context"] },
-  { title: localeMessages.mock.reasoningAndTools, ids: ["tool-timeline-thinking", "thinking-placeholder", "reasoning-chat", "reasoning-tool-success", "parallel-tools", "tool-error", "frontend-tool-open-dialog", "frontend-tool-fill-form", "web-search", "retrieval-chunks"] },
-  { title: localeMessages.mock.questionsAndApprovals, ids: ["ask-user-question", "approval-resume"] },
+  { title: localeMessages.mock.reasoningAndTools, ids: ["tool-timeline-thinking", "thinking-placeholder", "reasoning-chat", "reasoning-tool-success", "parallel-tools", "tool-error", "frontend-tool-open-dialog", "web-search", "retrieval-chunks"] },
+  { title: localeMessages.mock.questionsAndApprovals, ids: ["ask-user-question", "frontend-tool-fill-form", "approval-resume"] },
   { title: localeMessages.mock.stateAndExecutionPlans, ids: ["agent-state-sync", "agent-plan", "agent-status"] },
-  { title: localeMessages.mock.structuredResultsAndInteractiveUI, ids: ["file-output", "source-citations", "data-message-chart", "a2ui-form-controls", "a2ui-interactive-order"] },
+  { title: localeMessages.mock.structuredResultsAndInteractiveUI, ids: ["file-output", "source-citations", "data-message-chart"] },
   { title: localeMessages.mock.subagentCollaboration, ids: ["nested-subagent-conversation", "nested-subagent-task-group", "nested-subagent-recursive", "nested-subagent-error"] },
-  { title: localeMessages.mock.runControlAndRecovery, ids: ["concurrent-conversations", "cancel-before-first-output", "resumable-long-run", "resumable-agent-plan"] },
+  { title: localeMessages.mock.runOperatorAndRecovery, ids: ["concurrent-conversations", "cancel-before-first-output", "resumable-long-run", "resumable-agent-plan"] },
 ] as const; }
 function getDemoGroupIndex(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) { return new Map<string, number>(getDemoGroups(localeMessages).flatMap((group, index) => group.ids.map(id => [id, index] as const))); }
 function getDemoOrderIndex(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) { return new Map<string, number>(getDemoGroups(localeMessages).flatMap(group => group.ids.map((id, index) => [id, index] as const))); }
@@ -165,7 +161,7 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
         const response = await fetch(`${CREATOR_MOCK_API_PATH}/compatibility`);
         const result = await response.json() as MockDemoCompatibility;
         if (current !== compatibilityVersion.current) return;
-        if (result.issue?.code === "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED") projectedError = localeMessages.mock.projectControlRestartRequired;
+        if (result.issue?.code === "CREATOR_OPERATOR_RESTART_REQUIRED") projectedError = localeMessages.mock.operatorRestartRequired;
         if (!response.ok || result.status !== "checked" || !result.projectId ||
             (projectId !== undefined && result.projectId !== projectId)) throw new Error(projectedError);
         latest = result;
@@ -300,12 +296,13 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
 
   const localSelected = state?.selection?.type === "recording";
   const selectedRecording = localSelected ? state?.recordings?.find(item => item.id === state.selection.id) : undefined;
-  const selected = state?.scenarios.find((scenario) => scenario.id === state.scenarioId);
+  const availableScenarios = state?.scenarios.filter(scenario => !scenario.id.startsWith("a2ui-") && !scenario.capabilities?.includes("a2ui")) ?? [];
+  const selected = availableScenarios.find((scenario) => scenario.id === state?.scenarioId);
   const descriptions: Readonly<Record<string, string>> = localeMessages.mockDescriptions;
   const descriptionFor = (scenario: { id: string; description?: string | undefined }) => descriptions[scenario.id] ?? scenario.description;
   const titleFor = (scenario: { id: string; title: string }) => getDemoTitles(localeMessages)[scenario.id] ?? scenario.title;
   const search = query.trim().toLocaleLowerCase();
-  const scenarios = state?.scenarios.filter((scenario) =>
+  const scenarios = availableScenarios.filter((scenario) =>
     `${scenario.id} ${titleFor(scenario)} ${scenario.title} ${descriptionFor(scenario) ?? ""} ${(getDemoFocusTags(localeMessages)[scenario.id] ?? []).join(" ")}`.toLocaleLowerCase().includes(search),
   ).sort((first, second) => groupIndexFor(first.id, localeMessages) - groupIndexFor(second.id, localeMessages)
     || (getDemoOrderIndex(localeMessages).get(first.id) ?? 0) - (getDemoOrderIndex(localeMessages).get(second.id) ?? 0)) ?? [];
@@ -355,7 +352,7 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
             <p>{localeMessages.mock.afterSelectingSendAMessageInTheConnected}</p>
             <p>{localeMessages.mock.someDemosRequireExtraAgentUIResourcesCreator}</p>
           </details>
-          {compatibility === null || compatibility.issue?.code === "CREATOR_PROJECT_CONTROL_RESTART_REQUIRED" ? <p className="creator-mock-requirement" role="status">{compatibility === null ? localeMessages.mock.checkingDemoSupportInTheCurrentProject : localeMessages.mock.projectControlRestartRequired}</p> : null}
+          {compatibility === null || compatibility.issue?.code === "CREATOR_OPERATOR_RESTART_REQUIRED" ? <p className="creator-mock-requirement" role="status">{compatibility === null ? localeMessages.mock.checkingDemoSupportInTheCurrentProject : localeMessages.mock.operatorRestartRequired}</p> : null}
           <label className="creator-mock-speed">{localeMessages.mock.replayDurationMultiplier}
             <NativeSelect disabled={busy} value={state.speed} onChange={(event) => void act("/select", { selection: state.selection ?? { type: "builtin", id: state.scenarioId }, projectId: state.projectId, speed: Number(event.target.value) }, localeMessages.mock.replayDurationUpdatedForTheNextRequest) }>
               <option value={0}>{localeMessages.mock.completeImmediately}</option><option value={0.1}>{localeMessages.mock.fastTest01}</option><option value={0.5}>{localeMessages.mock.faster05}</option><option value={1}>{localeMessages.mock.normal1}</option><option value={2}>{localeMessages.mock.slower2}</option>
@@ -384,13 +381,13 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
             {scenarios.map((scenario, index) => <Fragment key={scenario.id}>
               {index === 0 || groupIndexFor(scenario.id, localeMessages) !== groupIndexFor(scenarios[index - 1]!.id, localeMessages)
                 ? <h4 className="creator-mock-group-heading">{groupTitleFor(scenario.id, localeMessages)}</h4> : null}
-              <div className="creator-mock-scenario" data-selected={!localSelected && scenario.id === state.scenarioId}
+              <div className="creator-mock-scenario" data-selected={!localSelected && scenario.id === state?.scenarioId}
                 onClick={event => {
                   if ((event.target as Element).closest("label, input, button, details, a")) return;
                   selectScenario(scenario);
                 }}>
               <label className="creator-mock-scenario-choice">
-              <input type="radio" name="creator-mock-scenario" checked={!localSelected && scenario.id === state.scenarioId} disabled={busy} onChange={() => {}} onClick={() => selectScenario(scenario)} />
+              <input type="radio" name="creator-mock-scenario" checked={!localSelected && scenario.id === state?.scenarioId} disabled={busy} onChange={() => {}} onClick={() => selectScenario(scenario)} />
               <span><strong>{titleFor(scenario)}</strong>{descriptionFor(scenario) ? <span>{descriptionFor(scenario)}</span> : null}
               </span></label>
               {getDemoFocusTags(localeMessages)[scenario.id]?.length ? <div className="creator-mock-focus-tags" role="group" aria-label={localeMessages.mock.featuredEventsAndCapabilities}>

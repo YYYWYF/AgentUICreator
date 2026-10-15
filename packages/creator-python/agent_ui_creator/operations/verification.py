@@ -8,7 +8,7 @@ from typing import Any, Protocol
 from urllib.parse import quote
 
 from ..validation import CreatorValidationService
-from ..project_control import ProjectControlClient
+from ..operator import OperatorClient
 from ..visual_observation import VisualObservationStore
 from ..verification_policy import (
     CreatorVerificationMode,
@@ -379,13 +379,13 @@ class CompositionOperationVerificationService:
         self,
         *,
         validation: CreatorValidationService,
-        project_control: ProjectControlClient | None = None,
+        operator: OperatorClient | None = None,
         runtime: RuntimeInspectionForOperation,
         visual_observations: VisualObservationStore | None = None,
         verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
     ) -> None:
         self.validation = validation
-        self.project_control = project_control
+        self.operator = operator
         self.runtime = runtime
         self.visual_observations = visual_observations
         self.verification_mode = verification_mode
@@ -440,7 +440,7 @@ class CompositionOperationVerificationService:
         validation_metadata: dict[str, Any] = {}
         started_validation = monotonic()
         try:
-            if self.project_control is None:
+            if self.operator is None:
                 # Legacy injected verifier used by isolated operation tests.
                 validation = await self.validation.validate(mode="delta")
                 validation_passed = getattr(validation, "status", None) == "passed"
@@ -454,11 +454,11 @@ class CompositionOperationVerificationService:
                     "validationLevel": level,
                     "validationChecks": checks,
                 }
-                ui_result = await self.project_control.verify_ui_project()
+                ui_result = await self.operator.verify_ui_project()
                 validation_passed = ui_result.get("status") == "passed"
                 if ui_result.get("status") not in {"passed", "failed"}:
                     validation_passed = False
-                    errors.append("ProjectControl returned an invalid UI verification status.")
+                    errors.append("Operator returned an invalid UI verification status.")
                 for issue in ui_result.get("errors", []):
                     if isinstance(issue, Mapping):
                         errors.append(str(issue.get("message", issue.get("code", "unknown"))))
@@ -492,7 +492,7 @@ class CompositionOperationVerificationService:
                     logger.record("productized_validation_finished", {
                         "level": level,
                         "checks": checks,
-                        "targetProject": str(self.project_control.project_root),
+                        "targetProject": str(self.operator.project_root),
                         "footprint": mutation_footprint.to_dict(),
                         "durationMs": round((monotonic() - started_validation) * 1000),
                         "status": "passed" if validation_passed else "failed",

@@ -133,8 +133,8 @@
   ],
   "packages": {
     "react": "^19.2.0",
-    "@agent-ui/react": "^0.1.0",
-    "@agent-ui/runtime-conversation": "^0.1.0",
+    "@za38.03/agent-ui-react": "^0.1.0",
+    "@za38.03/agent-ui-runtime-conversation": "^0.1.0",
     "lucide-react": "^1.41.0"
   }
 }

@@ -14,15 +14,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ConversationRuntimeProvider,
   type ConversationAgentFactory,
-} from "@agent-ui/runtime-conversation";
-import type { AppUIModel } from "../../../project-control/src/framework/contracts/app-ui-model";
+} from "@za38.03/agent-ui-runtime";
+import type { AppUIModel } from "../../../operator/src/framework/contracts/app-ui-model";
 import { ConversationSuggestionsPlugin } from "../../../source-registry/registry/items/plugin-conversation-suggestions/files/plugins/conversation-suggestions/index";
 import {
   capabilityCatalogRevision,
   pluginCapabilityCatalog,
 } from "../../../source-registry/registry/items/foundation-core/files/plugins/index";
 import { createConversationServiceThreadBinding } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
-import { platformMode } from "../../../project-control/src/framework/modes/platform";
+import { platformMode } from "../../../operator/src/framework/modes/platform";
 import { AgentRuntimeProvider } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/context/index";
 import {
   buildRuntimeComposition,
@@ -32,21 +32,21 @@ import {
   UIPluginRuntime,
   type UIPluginRuntimeActions,
 } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
-import { createStaticAgentRuntime } from "../../../project-control/tests/support/agent-runtime-fixture";
-import { mutateAppUIModel } from "../../../project-control/src/project/app-ui-transaction";
+import { createStaticAgentRuntime } from "../../../operator/tests/support/agent-runtime-fixture";
+import { mutateAppUIModel } from "../../../operator/src/project/app-ui-transaction";
 import {
   buildCreatorActionCatalog,
-} from "../../../project-control/src/project/creator-action-catalog";
+} from "../../../operator/src/project/creator-action-catalog";
 import {
   generatePluginRegistryFromFacts,
   collectPluginProjectFacts,
-} from "../../../project-control/src/project/registry-generator";
-import { resolveAgentUIProjectPaths } from "../../../project-control/src/project/agent-ui-project-paths";
-import type { UIProjectControlConfig } from "../../../project-control/src/project/types";
+} from "../../../operator/src/project/registry-generator";
+import { resolveAgentUIProjectPaths } from "../../../operator/src/project/agent-ui-project-paths";
+import type { UIOperatorConfig } from "../../../operator/src/project/types";
 
 const mountedRoots: Root[] = [];
 const temporaryProjects: string[] = [];
-const fixtureConfig: UIProjectControlConfig = {
+const fixtureConfig: UIOperatorConfig = {
   catalogs: [],
   uiPackages: [],
   agentUI: { sourceRoot: "agent-ui", metadataRoot: ".agent-ui" },

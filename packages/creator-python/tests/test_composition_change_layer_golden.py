@@ -18,7 +18,7 @@ from langchain_core.messages import AIMessage
 
 from agent_ui_creator.domain_agent import create_domain_write_creator_agent
 from agent_ui_creator.files import read_creator_file_state
-from agent_ui_creator.project_control import ProjectControlMetrics
+from agent_ui_creator.operator import OperatorMetrics
 from agent_ui_creator.runtime_diagnostics import (
     RuntimeDiagnosticEnvelope,
     RuntimeDiagnosticStore,
@@ -128,7 +128,7 @@ def walk_plugins(model):
 class CompositionClient:
     def __init__(self, root: Path, model: dict):
         self.root = root
-        self.metrics = ProjectControlMetrics()
+        self.metrics = OperatorMetrics()
         self.mutations = []
         (root / "app-ui").mkdir()
         (root / "plugins").mkdir()
@@ -371,7 +371,7 @@ def test_composition_graph_contract_e2e_pack(
     agent = create_domain_write_creator_agent(
         model=model,
         workspace=tmp_path,
-        project_control=client,
+        operator=client,
         skills_root=SKILLS_ROOT,
         diagnostics=diagnostics,
         thread_id="composition-golden",
@@ -386,7 +386,7 @@ def test_composition_graph_contract_e2e_pack(
     assert assert_final(client.model())
     assert result.text == "Composition updated and verified."
     assert result.metrics.modelCalls <= 6
-    assert result.change_layer_metrics["projectControlReads"] <= 2
+    assert result.change_layer_metrics["operatorReads"] <= 2
     assert result.change_layer_metrics["appUIModelMutationAttempts"] == 1
     assert result.change_layer_metrics["sourceWrites"] == 0
     assert result.change_layer_metrics["crossLayerTransitionCount"] == 0

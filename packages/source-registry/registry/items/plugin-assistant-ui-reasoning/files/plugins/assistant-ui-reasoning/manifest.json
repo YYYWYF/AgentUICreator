@@ -2,7 +2,7 @@
   "id": "assistant-ui-reasoning",
   "name": "Assistant UI Reasoning Renderer",
   "description": "Displays one assistant-ui reasoning group with canonical presentation.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "conversation-reasoning-renderer"
   ],

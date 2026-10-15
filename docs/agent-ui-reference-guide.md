@@ -617,3 +617,10 @@ Reference Project 的职责是提供答案：
 ```
 
 而不是构建 CopilotKit UI、assistant-ui UI、Ant Design X UI 或 TDesign UI 的复制品。
+
+
+## 当前源码交付与插件升级边界
+
+以 [包内上游实现与按插件更新](architecture/package-owned-upstream-and-plugin-updates.md) 为准：assistant-ui 实现与默认 A2UI/Generative UI 组件封装于包内部；用户工程仅接收必要适配层和可定制插件源码。保留组件扩展能力，源码插件按选择及必要依赖升级，不把所有插件绑定为统一版本。旧文中的项目内 vendor 路径仅描述历史迁移状态。
+
+A2UI 当前暂缓推出：不出现在官方资源和 Mock 示例中，不允许安装或自动启用；底层实验代码保留。普通 JSON Generative UI 不受影响。恢复条件见上述边界文档。

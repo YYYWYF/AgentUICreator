@@ -145,6 +145,10 @@
       "path": "items/demo-ask-user-question/item.json"
     },
     {
+      "id": "demo/human-form",
+      "path": "items/demo-human-form/item.json"
+    },
+    {
       "id": "integration/react-hook-form",
       "path": "items/integration-react-hook-form/item.json"
     },

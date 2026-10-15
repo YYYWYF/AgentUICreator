@@ -3,8 +3,8 @@
   "kind": "foundation",
   "description": "Generic Conversation bridge sources backed by the public Agent UI packages",
   "packages": {
-    "@agent-ui/react": "^0.1.0",
-    "@agent-ui/runtime-conversation": "^0.1.0"
+    "@za38.03/agent-ui-react": "^0.1.0",
+    "@za38.03/agent-ui-runtime-conversation": "^0.1.0"
   },
   "files": [
     {

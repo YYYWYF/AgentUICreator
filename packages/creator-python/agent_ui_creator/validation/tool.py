@@ -5,7 +5,7 @@ from typing import Literal
 
 from langchain_core.tools import BaseTool, tool
 
-from ..project_control.errors import ProjectControlError
+from ..operator.errors import OperatorError
 from .service import CreatorValidationService
 
 
@@ -37,7 +37,7 @@ def create_validation_tool(service: CreatorValidationService) -> BaseTool:
             return json.dumps({"ok": False, "error": {
                 "code": "DEBUGGING_TARGET_INVALID", "message": str(error),
             }})
-        except ProjectControlError as error:
+        except OperatorError as error:
             return json.dumps({
                 "ok": False,
                 "error": {

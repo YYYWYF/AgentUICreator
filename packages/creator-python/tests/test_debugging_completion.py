@@ -168,7 +168,7 @@ def runtime_service(activity, debugging, initial, repair_state=None):
     client.inspect_ui_project = project
     client.verify_runtime_composition = verify
     service = RuntimeDiagnosticInspectionService(store=store, thread_id='test',
-        project_control=client, observations=DomainObservationContext(), activity=activity,
+        operator=client, observations=DomainObservationContext(), activity=activity,
         debugging=debugging, repair_state=repair_state)
     return service, store, client
 

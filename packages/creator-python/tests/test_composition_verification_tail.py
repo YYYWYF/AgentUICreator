@@ -23,7 +23,7 @@ from agent_ui_creator.domain_state import (
 )
 from agent_ui_creator.model_protocol.trace import ToolProtocolMetrics
 from agent_ui_creator.model_protocol.errors import AgentNoProgressError
-from agent_ui_creator.project_control import ProjectControlMetrics
+from agent_ui_creator.operator import OperatorMetrics
 from agent_ui_creator.repair import CreatorRepairState
 from agent_ui_creator.run_control import CreatorRunControlState
 from langchain_core.messages import AIMessage
@@ -415,7 +415,7 @@ async def test_agent_lifecycle_accepts_stale_then_fresh_without_second_graph_inv
         activities=[],
         raise_terminal_error=lambda: None,
     )
-    project_control = SimpleNamespace(metrics=ProjectControlMetrics())
+    operator = SimpleNamespace(metrics=OperatorMetrics())
     repeated_read_guard = SimpleNamespace(repeated_reads=0)
     observations = DomainObservationContext()
     protocol = SimpleNamespace(metrics=ToolProtocolMetrics())
@@ -432,7 +432,7 @@ async def test_agent_lifecycle_accepts_stale_then_fresh_without_second_graph_inv
         protocol=protocol,
         runtime=agent_runtime,
         repeated_read_guard=repeated_read_guard,
-        project_control=project_control,
+        operator=operator,
         observations=observations,
         mutation_service=mutation_service,
         completion_gate=completion_gate,
@@ -493,7 +493,7 @@ def test_model_budget_after_composition_uses_current_revision_evidence_only(
             raise_terminal_error=lambda: None, event_sink=None,
         ),
         repeated_read_guard=SimpleNamespace(repeated_reads=0),
-        project_control=SimpleNamespace(metrics=ProjectControlMetrics()),
+        operator=SimpleNamespace(metrics=OperatorMetrics()),
         observations=DomainObservationContext(),
         mutation_service=mutation_service,
         completion_gate=SimpleNamespace(
@@ -566,8 +566,8 @@ def test_model_budget_after_source_uses_authorized_default_transaction(tmp_path,
             raise_terminal_error=lambda: None, event_sink=None,
         ),
         repeated_read_guard=SimpleNamespace(repeated_reads=0),
-        project_control=SimpleNamespace(
-            metrics=ProjectControlMetrics(), inspect_ui_project=inspect_ui_project,
+        operator=SimpleNamespace(
+            metrics=OperatorMetrics(), inspect_ui_project=inspect_ui_project,
         ),
         observations=DomainObservationContext(),
         mutation_service=mutation_service,

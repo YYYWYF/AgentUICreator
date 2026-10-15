@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { repositoryRoot } from "../../../../packages/project-control/tests/support/generated-project";
+import { repositoryRoot } from "../../../../packages/operator/tests/support/generated-project";
 import path from "node:path";
 
 export type PluginCoverage = Record<string, { kind: "visual" | "headless"; scenarios: string[]; excludedReason?: string }>;

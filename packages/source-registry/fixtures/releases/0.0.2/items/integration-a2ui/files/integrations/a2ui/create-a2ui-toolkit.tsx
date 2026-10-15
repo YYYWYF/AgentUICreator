@@ -1,4 +1,4 @@
-import { createConversationToolkit, type ConversationToolkit } from "@agent-ui/react";
+import { createConversationToolkit, type ConversationToolkit } from "@za38.03/agent-ui-react";
 import { createAgentUIGenerativeUI, createAgentUIGenerativeActions } from "../generative-ui";
 
 /** Reuse only the official renderer, never its frontend tool capability. */

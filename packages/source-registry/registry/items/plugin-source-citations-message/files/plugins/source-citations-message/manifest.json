@@ -2,7 +2,7 @@
   "id": "source-citations-message",
   "name": "Source Citations",
   "description": "Renders validated search_sources backend results with the official Sources element.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "headless"
   ],

@@ -54,6 +54,6 @@ AgentPlan has a root hook but its active/completed steps are expressed through r
 
 Vendor snapshot and recorded adaptations are guarded through `UPSTREAM.json` / lockfiles. Local upstream revision was inspected; do not fetch latest source to design against an unpinned component. Future theme changes should keep the upgrade delta limited to tokens and removable compatibility rules. Keep wrappers, project projections, SlotRegistry and runtime ownership separate.
 
-The older architecture document names `runtime-assistant-ui`; current repository package naming is `runtime-conversation`. This collection records source as it is and makes no package rename or architecture change.
+The older architecture document names `runtime-assistant-ui`; current repository package naming is `runtime`. This collection records source as it is and makes no package rename or architecture change.
 
 No public Card component was found. Existing cards are component/Plugin surfaces; do not create a separate Card product capability from generic shadcn terminology.

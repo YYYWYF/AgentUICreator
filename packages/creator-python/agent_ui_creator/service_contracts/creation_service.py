@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from ..files import read_creator_file_state, resolve_creator_project_file
-from ..project_control import ProjectControlClient
+from ..operator import OperatorClient
 from ..source_tools import SourceCreationError, UISourceCreationService, UISourceFile
 from .authorization_store import ServiceContractAuthorizationStore
 from .models import ServiceContractError
@@ -16,12 +16,12 @@ class UIServiceContractCreationService:
         self,
         *,
         project_root: str | Path,
-        project_control: ProjectControlClient,
+        operator: OperatorClient,
         store: ServiceContractAuthorizationStore,
         source_creation: UISourceCreationService,
     ) -> None:
         self.project_root = Path(project_root).resolve()
-        self.project_control = project_control
+        self.operator = operator
         self.store = store
         self.source_creation = source_creation
         self.activity = source_creation.activity
@@ -35,14 +35,14 @@ class UIServiceContractCreationService:
                 "SERVICE_CONTRACT_AUTHORIZATION_SCOPE_MISMATCH",
                 "This authorization cannot create a Service Contract.",
             )
-        topology = await self.project_control.inspect_ui_services()
+        topology = await self.operator.inspect_ui_services()
         if service_by_name(topology, spec.service_name) is not None:
             self.store.update_status(record, "invalidated")
             raise ServiceContractError(
                 "SERVICE_CONTRACT_AUTHORIZATION_STALE",
                 f'Service "{spec.service_name}" appeared after authorization.',
             )
-        inventory = await self.project_control.list_ui_plugins()
+        inventory = await self.operator.list_ui_plugins()
         existing = available_plugin_ids(inventory)
         required = {spec.owner_plugin_id, *(plugin for plugin, _ in spec.consumers)}
         missing = sorted(required - existing)

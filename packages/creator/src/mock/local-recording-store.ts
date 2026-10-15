@@ -1,7 +1,7 @@
 import { constants } from "node:fs";
 import { open, readdir, realpath } from "node:fs/promises";
 import path from "node:path";
-import { MAX_MOCK_RECORDING_BYTES, parseMockRecording, type MockRecording } from "@agent-ui/mock-agent";
+import { MAX_MOCK_RECORDING_BYTES, parseMockRecording, type MockRecording } from "../mock-agent/index.js";
 
 export interface LocalMockRecordingSummary {
   id: string; title: string; fileName: string;

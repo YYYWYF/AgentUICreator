@@ -1,6 +1,6 @@
 """Scripted real-graph regressions; these do not establish live-model latency.
 
-The barrier runs inside real ProjectControl tools dispatched by DeepAgent. No
+The barrier runs inside real Operator tools dispatched by DeepAgent. No
 test-side tool executor can make a serial ToolNode pass the concurrency test.
 """
 
@@ -33,7 +33,7 @@ from agent_ui_creator.files import read_creator_file_state
 from agent_ui_creator.model_protocol.errors import ModelToolProtocolError
 from agent_ui_creator.model_protocol.trace import ToolProtocolMetrics
 from agent_ui_creator.model_settings import CreatorModelSettings
-from agent_ui_creator.project_control import ProjectControlError
+from agent_ui_creator.operator import OperatorError
 from agent_ui_creator.server import create_app
 
 from test_domain_write_grounding import (
@@ -129,7 +129,7 @@ class BatchClient(GroundingClient):
         self.mutations.append(copy.deepcopy(input))
         self.metrics.record("mutate_app_ui_model", 1, False)
         if self.conflict_once and len(self.mutations) == 1:
-            raise ProjectControlError("APP_UI_MODEL_HASH_CONFLICT", "stale observation")
+            raise OperatorError("APP_UI_MODEL_HASH_CONFLICT", "stale observation")
         assert input["appUIModelHash"] == self.hash()
         before_hash = self.hash()
         model = self.model()
@@ -154,7 +154,7 @@ class BatchClient(GroundingClient):
 def make_agent(client, responses, *, before_response=None):
     model = BatchScriptModel(responses=responses, before_response=before_response)
     agent = create_domain_write_creator_agent(
-        model=model, workspace=client.root, project_control=client
+        model=model, workspace=client.root, operator=client
     )
     agent.activity.begin("round-trip-test")
     return agent, model
@@ -246,7 +246,7 @@ def test_deepagent_parallel_read_batch_preserves_guards_and_activity(tmp_path):
     assert result.metrics.toolCalls == 3
     assert result.metrics.batchPolicyViolations == 0
     assert result.metrics.batchPolicyRepairAttempts == 0
-    assert result.metrics.repeatedToolLoops == result.repeated_project_control_reads == 0
+    assert result.metrics.repeatedToolLoops == result.repeated_operator_reads == 0
     assert result.domain_observations.updates == 3
     assert receipt["files"] == []
     assert agent.activity.revision == 0
@@ -469,7 +469,7 @@ def test_creator_endpoint_preserves_parallel_tool_lifecycles(tmp_path, monkeypat
         )),
     )
     monkeypatch.setattr("agent_ui_creator.model_factory.create_creator_chat_model", lambda *args, **kwargs: model)
-    monkeypatch.setattr("agent_ui_creator.domain_agent.agent.ProjectControlClient", lambda **kwargs: client)
+    monkeypatch.setattr("agent_ui_creator.domain_agent.agent.OperatorClient", lambda **kwargs: client)
     settings = CreatorServerSettings(project_root=tmp_path, skills_root=tmp_path, auth_token="x" * 32)
     with TestClient(create_app(settings), headers={"Authorization": f"Bearer {settings.auth_token}"}) as http:
         response = http.post("/creator", json={
@@ -503,5 +503,5 @@ def test_creator_endpoint_preserves_parallel_tool_lifecycles(tmp_path, monkeypat
     assert result["toolProtocol"]["modelCalls"] == 2
     assert result["toolProtocol"]["toolCalls"] == 2
     assert result["toolProtocol"]["batchPolicyViolations"] == 0
-    assert result["projectControl"]["repeatedProjectControlReads"] == 0
+    assert result["operator"]["repeatedOperatorReads"] == 0
     assert result["receipt"]["files"] == []

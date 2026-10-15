@@ -1,4 +1,4 @@
-import { DataMessageUIRegistration } from "@agent-ui/react";
+import { DataMessageUIRegistration } from "@za38.03/agent-ui-react";
 
 import type { AppUIRuntimeModel } from "../../framework/contracts/app-ui-runtime-model";
 import type { PluginRegistry } from "./PluginRegistry";

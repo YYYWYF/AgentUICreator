@@ -310,7 +310,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     toRevision: session?.toRevision ?? provenance.revision,
     packagesChanged: select((file) => file === "pnpm-lock.yaml" || file === "pnpm-workspace.yaml" || file.endsWith("/package.json") || file === "package.json"),
     localFacadeFilesChanged: select((file) => file.startsWith("packages/react/src/") && !file.startsWith("packages/react/src/internal/vendor/")),
-    runtimeAdapterFilesChanged: select((file) => file.startsWith("packages/runtime-conversation/")),
+    runtimeAdapterFilesChanged: select((file) => file.startsWith("packages/runtime/")),
     sourceRegistryAssistantUiFilesChanged: select((file) => [
       "packages/source-registry/registry/items/agent-component-assistant-ui-generative-ui/",
       "packages/source-registry/registry/items/integration-generative-ui/",

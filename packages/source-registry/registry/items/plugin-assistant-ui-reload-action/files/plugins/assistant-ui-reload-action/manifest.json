@@ -2,7 +2,7 @@
   "id": "assistant-ui-reload-action",
   "name": "Assistant UI Reload Action",
   "description": "Regenerates the current assistant response through assistant-ui.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "conversation-assistant-response-action",
     "conversation-message-action"

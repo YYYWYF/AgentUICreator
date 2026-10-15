@@ -128,7 +128,7 @@ tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/p
             project_root=tmp_path,
             activity=activity,
             runner=runner,
-            project_control=control,
+            operator=control,
             mutation_coordinator=ProjectMutationCoordinator(),
         )
         asyncio.run(service.ensure_baseline())
@@ -1365,7 +1365,7 @@ tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/p
 >       agent = create_domain_write_creator_agent(
             model=model,
             workspace=root,
-            project_control=client,
+            operator=client,
         )
 
 packages/creator-python/tests/test_domain_write_agent.py:178: 
@@ -1628,7 +1628,7 @@ tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/p
 >       agent = create_domain_write_creator_agent(
             model=model,
             workspace=root,
-            project_control=client,
+            operator=client,
         )
 
 packages/creator-python/tests/test_domain_write_agent.py:330: 
@@ -1736,7 +1736,7 @@ monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10ef00dd0>
 >       agent = create_domain_write_creator_agent(
             model=model,
             workspace=root,
-            project_control=client,
+            operator=client,
             validation_runner=FailedValidationRunner(),
         )
 

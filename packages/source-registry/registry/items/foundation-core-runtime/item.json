@@ -197,8 +197,8 @@
   ],
   "packages": {
     "react": "19.1.1",
-    "@agent-ui/runtime-core": "0.1.0",
-    "@agent-ui/runtime-react": "0.1.3",
-    "@agent-ui/react": "0.1.6"
+    "@za38.03/agent-ui-runtime-core": "0.1.0",
+    "@za38.03/agent-ui-renderer": "0.1.3",
+    "@za38.03/agent-ui-react": "0.1.6"
   }
 }

@@ -77,20 +77,10 @@ upgrade; the shared Generative UI release revision does not replace it.
 It imports official descriptions from the installed package and does not copy or
 call `useAssistantForm`. The assistant-ui MIT notice above applies.
 
-## assistant-ui A2UI integration
-
-`integration/a2ui` adapts the native renderer/action entry points via
-`integration/generative-ui`. Native surface conversion and actions remain in
-`@assistant-ui/react-ag-ui` 0.0.62; it does not copy their parser or reducer.
-The shared vocabulary comes from `@assistant-ui/react-generative-ui` 0.0.21.
-The assistant-ui MIT notice above applies.
-
 ## assistant-ui Generative UI
 
-`agent-component/assistant-ui-generative-ui` carries the official styled element
-and mechanically scoped vocabulary CSS from release revision
-`da9a624496ae97864ae30e90f85c7533092a228d` (MIT, AgentbaseAI Inc.).
-Its installed `UPSTREAM.json` records original paths, source and installed hashes,
-and the selector-only Host adaptation. `integration/generative-ui` owns the
-public factories from `@assistant-ui/react-generative-ui` 0.0.21; A2UI consumes
-that capability. No parser, vocabulary implementation or tool permission is copied.
+Upstream styled implementation, CSS and provenance are delivered inside
+`@za38.03/agent-ui-react`, revision `3542d602272a62eddeb8989befc910841c267022`,
+Generative UI package 0.0.22. Registry items install only package-backed adapters;
+no upstream TSX or CSS is copied into the generated project. The assistant-ui
+MIT notice above applies; exact per-file provenance ships in the React package.

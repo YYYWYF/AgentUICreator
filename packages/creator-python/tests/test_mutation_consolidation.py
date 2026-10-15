@@ -72,7 +72,7 @@ def scripted_agent(client, responses, *, before_response=None):
     activity.begin("consolidation")
     model = BatchScriptModel(responses=responses, before_response=before_response)
     agent = create_domain_write_creator_agent(
-        model=model, workspace=client.root, project_control=client, activity=activity
+        model=model, workspace=client.root, operator=client, activity=activity
     )
     return agent, model, logger
 
@@ -237,7 +237,7 @@ def test_endpoint_logs_mutation_summary_without_blocking_success(tmp_path, monke
         )),
     )
     monkeypatch.setattr("agent_ui_creator.model_factory.create_creator_chat_model", lambda *args, **kwargs: model)
-    monkeypatch.setattr("agent_ui_creator.domain_agent.agent.ProjectControlClient", lambda **kwargs: client)
+    monkeypatch.setattr("agent_ui_creator.domain_agent.agent.OperatorClient", lambda **kwargs: client)
     settings = CreatorServerSettings(project_root=tmp_path, skills_root=tmp_path, auth_token="x" * 32)
     with TestClient(create_app(settings), headers={"Authorization": f"Bearer {settings.auth_token}"}) as http:
         response = http.post("/creator", json={

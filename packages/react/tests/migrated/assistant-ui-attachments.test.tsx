@@ -3,10 +3,10 @@ import { useAui, ComposerPrimitive, type AssistantRuntime } from "@assistant-ui/
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@agent-ui/runtime-conversation";
+import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { ConversationThread, ConversationCanonicalComposer, ConversationComposerAddAttachment } from "../../src/index.js";
-import { DemoAttachmentAdapter } from "../../../mock-agent/src/demo-attachment-adapter.js";
-import { CancellationAwareHttpAgent } from "../../../runtime-conversation/src/compatibility/cancellation-aware-http-agent.js";
+import { DemoAttachmentAdapter } from "@za38.03/agent-ui-react/demo-attachments";
+import { CancellationAwareHttpAgent } from "../../../runtime/src/compatibility/cancellation-aware-http-agent.js";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 let root: Root | undefined;

@@ -34,7 +34,7 @@ not viewport sizing. No vendor or AG-UI protocol changes are included.
   placeholder after removal. These are unit checks, not visual acceptance.
 - Default preset opt-in tests: 3 passed.
 - Source Registry contract tests: 4 passed.
-- React, Project Control and Source Registry typechecks/builds passed.
+- React, Operator and Source Registry typechecks/builds passed.
 - `pnpm check:i18n`: passed, en-US/zh-CN parity.
 - `pnpm check:assistant-ui-upstream`: passed; upstream vendor unchanged.
 - Disposable independent Platform consumer with both plugins: TypeScript and

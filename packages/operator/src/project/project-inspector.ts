@@ -1,0 +1,480 @@
+import { AppUIModelInvalidError, appUIModelDiagnostics } from "./app-ui-diagnostics";
+import { validateAppUIModelCandidateStructure } from "./app-ui-admission";
+import { verifyPluginChildSlots } from "./plugin-child-slot-verifier";
+import { createHash } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
+import {
+  buildLayoutRefIndex,
+  collectAppUIPluginLocations,
+  parseAppUIModelJson,
+  walkAppUILayout,
+  type AppUILayoutNode,
+} from "../framework/contracts/app-ui-model";
+import { pathExists } from "./plugin-assets";
+import { uiOperatorConfig } from "./project-config";
+import { readAgentUIProjectConfig } from "./project-mode";
+import { resolveAgentUIProjectPaths, operatorConfigForPaths, type AgentUIProjectPaths } from "./agent-ui-project-paths";
+import type { ReadAgentUIProjectConfigResult } from "./project-mode";
+import { agentUIModeRegistry } from "../framework/modes/index";
+import {
+  collectPluginProjectFacts,
+  generatePluginRegistryFromFacts,
+  PLUGIN_REGISTRY_ENTRY_SOURCE,
+} from "./registry-generator";
+import {
+  agentUISourceSummary,
+  inspectAgentUISources,
+} from "./source-registry/index";
+import { APP_UI_MUTATION_ADMISSION_GUARANTEES } from "./app-ui-transaction";
+import { buildCreatorActionCatalog } from "./creator-action-catalog";
+import { buildCreatorAuthoringTargetCatalog } from "./creator-authoring-target-catalog";
+import type {
+  CompactLayoutNode,
+  InspectedSlot,
+  UICompositionInspection,
+  UIOperatorConfig,
+  UIProjectInspection,
+} from "./types";
+
+const COMPOSITION_OBSERVATION_COVERAGE = [
+  "composition.model",
+  "composition.layout",
+  "composition.slots",
+  "composition.instances",
+  "capability.inventory",
+  "capability.composition-summary",
+  "creator.actions",
+  "creator.authoring-targets",
+] as const;
+
+function compactLayout(
+  node: AppUILayoutNode,
+  nodePath: string,
+  nodeRef: string,
+  refIndex: ReturnType<typeof buildLayoutRefIndex>,
+): CompactLayoutNode {
+  if (node.type === "slot") {
+    return {
+      nodeRef,
+      type: node.type,
+      plugins: structuredClone(node.plugins),
+    };
+  }
+  if (node.type === "panel") {
+    return {
+      nodeRef,
+      type: node.type,
+      ...(node.width === undefined ? {} : { width: node.width }),
+      ...(node.height === undefined ? {} : { height: node.height }),
+      ...(node.minWidth === undefined ? {} : { minWidth: node.minWidth }),
+      ...(node.maxWidth === undefined ? {} : { maxWidth: node.maxWidth }),
+      ...(node.resizable === undefined ? {} : { resizable: node.resizable }),
+      child: compactLayout(node.child, `${nodePath}.child`, refIndex.byPath.get(`${nodePath}.child`)!, refIndex),
+    };
+  }
+
+  if (node.type === "sidebar") {
+    return { nodeRef, type: node.type, defaultActive: node.defaultActive,
+      ...(node.header === undefined ? {} : { header: compactLayout(node.header, `${nodePath}.header`, refIndex.byNode.get(node.header)!, refIndex) }),
+      ...(node.footer === undefined ? {} : { footer: compactLayout(node.footer, `${nodePath}.footer`, refIndex.byNode.get(node.footer)!, refIndex) }),
+      items: node.items.map((item, index) => ({ id: item.id, child: compactLayout(item.child, `${nodePath}.items[${index}].child`, refIndex.byNode.get(item.child)!, refIndex) })),
+      content: compactLayout(node.content, `${nodePath}.content`, refIndex.byNode.get(node.content)!, refIndex) };
+  }
+  return {
+    nodeRef,
+    type: node.type,
+    ...(node.type !== "row" && node.type !== "column"
+      ? {}
+      : node.sizes === undefined
+        ? {}
+        : { sizes: [...node.sizes] }),
+    ...(node.type !== "row" && node.type !== "column"
+      ? {}
+      : node.gap === undefined
+        ? {}
+        : { gap: node.gap }),
+    ...(node.type !== "stack" || node.activeIndex === undefined
+      ? {}
+      : { activeIndex: node.activeIndex }),
+    children: node.children.map((child, index) =>
+      compactLayout(child, `${nodePath}.children[${index}]`, refIndex.byPath.get(`${nodePath}.children[${index}]`)!, refIndex),
+    ),
+  };
+}
+
+async function readOptional(filePath: string): Promise<string | undefined> {
+  try {
+    return await readFile(filePath, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return undefined;
+    }
+    throw error;
+  }
+}
+
+function dependencyVersions(source: unknown): Record<string, string> {
+  if (typeof source !== "object" || source === null || Array.isArray(source)) {
+    return {};
+  }
+  const packageJson = source as Record<string, unknown>;
+  const versions: Record<string, string> = {};
+  for (const field of ["dependencies", "devDependencies"]) {
+    const value = packageJson[field];
+    if (typeof value !== "object" || value === null || Array.isArray(value)) {
+      continue;
+    }
+    for (const [name, version] of Object.entries(value)) {
+      if (typeof version === "string") {
+        versions[name] = version;
+      }
+    }
+  }
+  return versions;
+}
+
+export function uiPackageContext(source: unknown): UIProjectInspection["uiContext"] {
+  const manifest = typeof source === "object" && source !== null && !Array.isArray(source)
+    ? source as Record<string, unknown> : {};
+  // Report declarations, not a library recommendation or resolved install state.
+  const dependencyDeclarations = ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"].flatMap(section => {
+    const declarations = manifest[section];
+    if (typeof declarations !== "object" || declarations === null || Array.isArray(declarations)) return [];
+    return Object.entries(declarations).flatMap(([packageName, version]) =>
+      typeof version === "string" ? [{ packageName, version, section }] : []);
+  });
+  return {
+    authority: "package declarations only; inspect actual components, imports, providers and styles before selecting a UI system",
+    manifestPath: "package.json",
+    dependencyDeclarations,
+    ...(typeof manifest.packageManager === "string" ? { packageManager: manifest.packageManager } : {}),
+    scriptNames: typeof manifest.scripts === "object" && manifest.scripts !== null && !Array.isArray(manifest.scripts)
+      ? Object.keys(manifest.scripts) : [],
+  };
+}
+
+export async function inspectUIProject(
+  projectRoot: string,
+  config: UIOperatorConfig = uiOperatorConfig,
+): Promise<UIProjectInspection> {
+  const projectConfig = await readAgentUIProjectConfig(
+    projectRoot,
+    config.agentUI.metadataRoot,
+  );
+  const paths = resolveAgentUIProjectPaths(projectRoot, projectConfig.config, config);
+  const effectiveConfig = operatorConfigForPaths(paths, config);
+  const composition = await inspectUICompositionData(projectRoot, config, { projectConfig, paths, effectiveConfig });
+  const generatedSource = await readOptional(
+    paths.generatedPluginRegistryPath,
+  );
+  const entrySource = await readOptional(
+    paths.pluginRegistryEntryPath,
+  );
+  const packageJson = JSON.parse(
+    await readFile(path.join(projectRoot, "package.json"), "utf8"),
+  ) as unknown;
+  const versions = dependencyVersions(packageJson);
+  const agentUI = agentUISourceSummary(
+    await inspectAgentUISources(projectRoot, effectiveConfig),
+  );
+
+  return {
+    mode: projectConfig.config.mode,
+    modeResolution: {
+      configPath: projectConfig.path,
+    },
+    appUIModel: composition.appUIModel,
+    plugins: composition.pluginInstances,
+    capabilityCatalog: {
+      revision: composition.capabilityCatalogRevision,
+      pluginIds: composition.capabilityCatalogPluginIds,
+      generatedFileFresh:
+        composition.issues.length === 0 &&
+        generatedSource === composition.capabilityCatalogSource &&
+        entrySource === PLUGIN_REGISTRY_ENTRY_SOURCE,
+    },
+    activeComposition: composition.activeComposition,
+    issues: composition.issues,
+    pluginAssets: composition.pluginAssets,
+    authoringTargetCatalog: composition.authoringTargetCatalog,
+    catalogs: await Promise.all(
+      config.catalogs.map(async (catalogPath) => ({
+        path: catalogPath,
+        exists: await pathExists(path.join(projectRoot, catalogPath)),
+      })),
+    ),
+    uiStack: config.uiPackages.flatMap((packageName) => {
+      const version = versions[packageName];
+      return version === undefined ? [] : [{ packageName, version }];
+    }),
+    uiContext: uiPackageContext(packageJson),
+    agentUI,
+  };
+}
+
+interface UICompositionInspectionInternal extends UICompositionInspection {
+  capabilityCatalogSource: string;
+  capabilityCatalogPluginIds: string[];
+  issues: UIProjectInspection["issues"];
+  pluginAssets: UIProjectInspection["pluginAssets"];
+}
+
+async function inspectUICompositionData(
+  projectRoot: string,
+  config: UIOperatorConfig = uiOperatorConfig,
+  resolved?: {
+    projectConfig: ReadAgentUIProjectConfigResult;
+    paths: AgentUIProjectPaths;
+    effectiveConfig: UIOperatorConfig;
+  },
+): Promise<UICompositionInspectionInternal> {
+  const projectConfig = resolved?.projectConfig ?? await readAgentUIProjectConfig(
+    projectRoot,
+    config.agentUI.metadataRoot,
+  );
+  const paths = resolved?.paths ?? resolveAgentUIProjectPaths(projectRoot, projectConfig.config, config);
+  const effectiveConfig = resolved?.effectiveConfig ?? operatorConfigForPaths(paths, config);
+  const workspacePolicy = agentUIModeRegistry.get(
+    projectConfig.config.mode,
+  ).workspace;
+  const appUIModelSource = await readFile(paths.appUIModelPath, "utf8");
+  let model;
+  try { model = parseAppUIModelJson(appUIModelSource); }
+  catch (error) {
+    const syntax = error instanceof SyntaxError;
+    throw new AppUIModelInvalidError({ status: syntax ? "syntax_invalid" : "schema_invalid",
+      diagnostics: appUIModelDiagnostics(error, syntax ? "syntax" : "schema", syntax ? undefined : JSON.parse(appUIModelSource)) });
+  }
+  const appUIModelHash = createHash("sha256").update(appUIModelSource).digest("hex");
+  const projectFacts = await collectPluginProjectFacts(projectRoot, effectiveConfig, paths);
+  const generation = generatePluginRegistryFromFacts(model, projectFacts, { validateComposition: false });
+  try { validateAppUIModelCandidateStructure(model, projectFacts); }
+  catch (error) {
+    if (!(error as { details?: { workspaceIntegrity?: boolean } }).details?.workspaceIntegrity) {
+      throw new AppUIModelInvalidError({ status: "composition_invalid", diagnostics: appUIModelDiagnostics(error, "composition") });
+    }
+    // The snapshot carries workspace issues for normal debugging attribution.
+    // Incomplete source declarations cannot establish a model recovery baseline.
+  }
+  generation.errors.push(...await verifyPluginChildSlots(projectRoot,
+    generation.assets.filter(asset => generation.activeComposition.selectedPluginIds.includes(asset.pluginId))));
+  const refIndex = buildLayoutRefIndex(model.root);
+  const layout = compactLayout(model.root, "root", refIndex.byPath.get("root")!, refIndex);
+  const slots: InspectedSlot[] = [];
+  for (const entry of walkAppUILayout(model.root)) {
+    if (entry.node.type === "slot") {
+      slots.push({
+        target: { type: "layout_slot", slotRef: refIndex.byPath.get(entry.path)! },
+        nodeRef: refIndex.byPath.get(entry.path)!,
+        plugins: structuredClone(entry.node.plugins),
+      });
+    }
+  }
+  const assetsByPluginId = new Map(generation.assets.map((asset) => [asset.pluginId, asset]));
+  for (const location of collectAppUIPluginLocations(model)) {
+    const definitions = assetsByPluginId.get(location.plugin.pluginId)?.childSlots ?? {};
+    for (const [slot, definition] of Object.entries(definitions)) {
+      slots.push({
+        target: { type: "plugin_slot", parentInstanceId: location.plugin.id, slot },
+        description: definition.description,
+        cardinality: definition.cardinality,
+        mode: definition.mode ?? "content",
+        optional: definition.optional === true,
+        ...(definition.accepts === undefined
+          ? {}
+          : { accepts: structuredClone(definition.accepts) }),
+        owner: {
+          kind: "plugin",
+          instanceId: location.plugin.id,
+          pluginId: location.plugin.pluginId,
+        },
+        plugins: structuredClone(location.plugin.slots?.[slot] ?? []),
+      });
+    }
+  }
+  const pluginInstances = collectAppUIPluginLocations(model)
+    .sort((left, right) => left.plugin.id.localeCompare(right.plugin.id))
+    .map(({ plugin, target, index }) => ({
+      ...structuredClone(plugin),
+      target: target.type === "layout_slot"
+        ? { type: "layout_slot" as const, slotRef: refIndex.byPath.get(target.slotPath)! }
+        : target,
+      index,
+    }));
+  // Activation is a composition fact. Consumers must not walk AppUIModel slots.
+  const instancesById = new Map(pluginInstances.map(instance => [instance.id, instance]));
+  function effectiveEnabled(instance: typeof pluginInstances[number], visited = new Set<string>()): boolean {
+    if (!instance.enabled || visited.has(instance.id)) return false;
+    visited.add(instance.id);
+    if (instance.target.type !== "plugin_slot") return true;
+    const parent = instancesById.get(instance.target.parentInstanceId);
+    return parent !== undefined && effectiveEnabled(parent, visited);
+  }
+  const inspectedInstances = pluginInstances.map(instance => ({ ...instance, effectiveEnabled: effectiveEnabled(instance) }));
+  const pluginSources = await Promise.all(generation.assets.map(async asset => ({
+    pluginId: asset.pluginId,
+    status: asset.ownership === "official_package" ? (projectFacts.definitionIssuesByPath.has(asset.definitionPath) ? "missing" as const : "available" as const) : await pathExists(path.join(projectRoot, asset.definitionPath)) ? "available" as const : "missing" as const,
+    dataMessageUINames: asset.dataMessageUINames ?? [],
+  })));
+  const selectedPluginIds = generation.activeComposition.selectedPluginIds;
+  const pluginAssets = generation.assets.map(({ manifest: _manifest, ...asset }) => ({
+    ...(_manifest.sidebar === undefined ? {} : { sidebar: _manifest.sidebar }),
+    ...asset,
+    selected: selectedPluginIds.includes(asset.pluginId),
+  }));
+  const serviceDeclarationsByPluginId = new Map(
+    generation.serviceDependencies.plugins.map((declaration) => [
+      declaration.pluginId,
+      declaration,
+    ]),
+  );
+  const serviceStatusByName = new Map(
+    generation.serviceDependencies.services.map((service) => [
+      service.name,
+      service.status,
+    ]),
+  );
+  const blockedCatalogRevision = createHash("sha256").update(JSON.stringify({
+    appUIModelHash, capabilityCatalogRevision: generation.capabilityCatalog.revision,
+    workspaceIssues: generation.errors,
+  })).digest("hex");
+  const creatorActionCatalog = generation.errors.length > 0
+    ? { revision: blockedCatalogRevision, candidates: [] }
+    : await buildCreatorActionCatalog({
+    model,
+    generation,
+    projectFacts,
+    appUIModelHash,
+    workspacePolicy,
+  });
+  const authoringTargetCatalog = projectFacts.inventoryIssues.length > 0
+    ? { revision: blockedCatalogRevision, candidates: [], bindings: [] }
+    : await buildCreatorAuthoringTargetCatalog({
+    projectRoot,
+    config: effectiveConfig,
+    paths,
+    projectFacts: {
+      ...projectFacts,
+      assets: projectFacts.assets.filter(asset => pluginSources.some(source =>
+        source.pluginId === asset.pluginId && source.status === "available")),
+    },
+  });
+
+  return {
+    view: "composition",
+    workspaceDiagnostics: appUIModelDiagnostics({ details: { issues: generation.errors } }, "workspace"),
+    sourceRoot: effectiveConfig.agentUI.sourceRoot,
+    observationCoverage: [...COMPOSITION_OBSERVATION_COVERAGE],
+    appUIModel: {
+      hash: appUIModelHash,
+      layout,
+      slots,
+    },
+    pluginInstances: inspectedInstances,
+    pluginSources,
+    capabilitySummaries: pluginAssets.map((asset) => ({
+      pluginId: asset.pluginId,
+      name: asset.name,
+      description: asset.description,
+      capabilities: [...asset.capabilities],
+      selected: asset.selected,
+      currentInstances: pluginInstances
+        .filter((instance) => instance.pluginId === asset.pluginId)
+        .map((instance) => ({
+          instanceId: instance.id,
+          enabled: instance.enabled,
+          target: structuredClone(instance.target),
+          index: instance.index,
+        })),
+      selectionOwner: "composition",
+      ...(asset.authoring === undefined
+        ? {}
+        : { authoring: structuredClone(asset.authoring) }),
+      requiredServices: (() => {
+        const declaration = serviceDeclarationsByPluginId.get(asset.pluginId);
+        const names = declaration?.inject ?? [];
+        const missing = names.filter(
+          (name) => serviceStatusByName.get(name) !== "available",
+        );
+        return {
+          names: [...names],
+          status: declaration === undefined
+            ? "unknown" as const
+            : names.length === 0
+              ? "not-required" as const
+              : missing.length === 0
+                ? "resolved" as const
+                : "unresolved" as const,
+          missing,
+        };
+      })(),
+      optionalServices: (() => {
+        const names =
+          serviceDeclarationsByPluginId.get(asset.pluginId)?.optionalInject ?? [];
+        return {
+          names: [...names],
+          available: names.filter(
+            (name) => serviceStatusByName.get(name) === "available",
+          ),
+        };
+      })(),
+      ...(asset.layoutWidth === undefined ? {} : { layoutWidth: asset.layoutWidth }),
+      ...(asset.sidebar === undefined ? {} : { sidebar: structuredClone(asset.sidebar) }),
+      ...(asset.childSlots === undefined ? {} : { childSlots: structuredClone(asset.childSlots) }),
+    })),
+    activeComposition: {
+      selectedPluginIds,
+      resolvedPluginIds: generation.activeComposition.resolvedPluginIds,
+      headlessPluginIds: generation.activeComposition.headlessPluginIds,
+    },
+    capabilityCatalogRevision: generation.capabilityCatalog.revision,
+    creatorActions: {
+      revision: creatorActionCatalog.revision,
+      candidates: creatorActionCatalog.candidates,
+    },
+    authoringTargetCatalog,
+    layoutConstraints: {
+      refs: "snapshot-scoped",
+      pluginTargets: ["application", "layout_slot", "plugin_slot"],
+      sizedContainerInsertion: {
+        rule: "size-required",
+        operations: ["insert_layout_node", "move_layout_node", "insert_layout_relative"],
+      },
+      relativeWrapperSizing: {
+        rule: "size-and-anchorSize-together",
+        operation: "insert_layout_relative",
+      },
+      operationApplication: "sequential-atomic",
+    },
+    hostGuarantees: {
+      mutation: "mutate_app_ui_model",
+      admission: "deterministic-atomic",
+      checks: APP_UI_MUTATION_ADMISSION_GUARANTEES,
+      commit: "all-or-nothing",
+      postCommitVerificationRequired: true,
+      guidance: "Use this snapshot to form the semantic delta. Do not preflight facts covered by these admission checks with manifest, source, CSS, Service, or generated-file reads. Admission success commits static AppUIModel state only; post-commit verification is still required against the current revision.",
+    },
+    capabilityCatalogSource: generation.capabilityCatalog.source,
+    capabilityCatalogPluginIds: generation.capabilityCatalog.pluginIds,
+    issues: generation.errors,
+    // Sidebar presentation is exposed through capabilitySummaries. The inventory
+    // wire contract contains asset facts only, not this internal manifest seam.
+    pluginAssets: pluginAssets.map(({ sidebar: _sidebar, ...asset }) => asset),
+  };
+}
+
+export async function inspectUIComposition(
+  projectRoot: string,
+  config: UIOperatorConfig = uiOperatorConfig,
+): Promise<UICompositionInspection> {
+  const {
+    capabilityCatalogSource: _capabilityCatalogSource,
+    capabilityCatalogPluginIds: _capabilityCatalogPluginIds,
+    issues: _issues,
+    pluginAssets: _pluginAssets,
+    ...snapshot
+  } = await inspectUICompositionData(projectRoot, config);
+  return snapshot;
+}

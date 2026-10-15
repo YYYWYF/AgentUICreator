@@ -208,7 +208,7 @@ describe("assistant-ui upgrade drill", () => {
     const target = JSON.parse(await readFile(targetPath, "utf8"));
     target.packages["@assistant-ui/react-ag-ui"] = "0.0.63";
     await writeFile(targetPath, JSON.stringify(target));
-    await writeFixtureFile(root, "packages/runtime-conversation/node_modules/@assistant-ui/react-ag-ui/package.json", JSON.stringify({
+    await writeFixtureFile(root, "packages/runtime/node_modules/@assistant-ui/react-ag-ui/package.json", JSON.stringify({
       name: "@assistant-ui/react-ag-ui", version: "0.0.63", dependencies: { "@ag-ui/client": "^0.0.59" },
     }));
     await writeFixtureFile(root, "pnpm-lock.yaml", "packages:\n  '@ag-ui/client@0.0.59':\n    resolution: {}\n");
@@ -757,7 +757,7 @@ exit 99
         "@assistant-ui/react-markdown": "0.14.16",
       },
     }, null, 2));
-    await writeFixtureFile(root, "packages/runtime-conversation/package.json", JSON.stringify({
+    await writeFixtureFile(root, "packages/runtime/package.json", JSON.stringify({
       dependencies: {
         "@assistant-ui/react": "0.15.21",
         "@assistant-ui/react-ag-ui": "0.0.60",
@@ -884,7 +884,7 @@ exit 99
       "@assistant-ui/react-langgraph",
       "@assistant-ui/react-markdown",
     ]));
-    await expect(readFile(path.join(root, "packages/runtime-conversation/package.json"), "utf8"))
+    await expect(readFile(path.join(root, "packages/runtime/package.json"), "utf8"))
       .resolves.toContain('"@assistant-ui/react-langgraph": "0.14.30"');
     await expect(readFile(path.join(root, "assistant-ui-upgrade-target.json"), "utf8"))
       .resolves.toContain('"@assistant-ui/react-langgraph": "0.14.30"');
@@ -1057,13 +1057,13 @@ exit 99
     target.packages["@assistant-ui/react-generative-ui"] = "0.0.21";
     target.generativeUiReleaseRevision = oldRevision;
     await writeFile(targetPath, `${JSON.stringify(target, null, 2)}\n`);
-    await writeFixtureFile(root, "packages/runtime-react/package.json", JSON.stringify({
+    await writeFixtureFile(root, "packages/renderer/package.json", JSON.stringify({
       dependencies: { "@assistant-ui/react-generative-ui": "0.0.21" },
     }, null, 2));
-    await writeFixtureFile(root, "packages/project-control/package.json", JSON.stringify({
+    await writeFixtureFile(root, "packages/operator/package.json", JSON.stringify({
       optionalDependencies: { "@assistant-ui/react-generative-ui": "0.0.21" },
     }, null, 2));
-    await writeFixtureFile(root, "packages/mock-agent/package.json", JSON.stringify({
+    await writeFixtureFile(root, "packages/creator/package.json", JSON.stringify({
       peerDependencies: { "@assistant-ui/react-generative-ui": "^0.0.21" },
       devDependencies: { "@assistant-ui/react-generative-ui": "0.0.21" },
     }, null, 2));
@@ -1124,7 +1124,7 @@ exit 99
     expect(upgradedTarget.generativeUiReleaseRevision).toBe(nextRevision);
     expect(upgradedTarget).not.toHaveProperty("packageRevisions");
     expect(await packageManifestMismatches(root, upgradedTarget.packages)).toEqual([]);
-    expect(await readFile(path.join(root, "packages/mock-agent/package.json"), "utf8")).toContain('"@assistant-ui/react-generative-ui": "^0.0.22"');
+    expect(await readFile(path.join(root, "packages/creator/package.json"), "utf8")).toContain('"@assistant-ui/react-generative-ui": "^0.0.22"');
     expect(await checkGenerativeUiResource({ repoRoot: root, target: upgradedTarget })).toEqual([]);
     expect(await checkGenerativeUiResource({ repoRoot: root, target: upgradedTarget, baseGitSha })).toEqual([]);
     expect(JSON.parse(await readFile(componentItemPath, "utf8"))).not.toHaveProperty("version");

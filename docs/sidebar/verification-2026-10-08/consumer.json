@@ -12,14 +12,14 @@
       "archive": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/react.tgz",
       "sha256": "52d92e4ff8beb8e29fcb91b4bf1ac36522b53138f72e3acd6e1b73159ebd3cab"
     },
-    "@agent-ui/runtime-conversation": {
+    "@agent-ui/runtime": {
       "version": "0.1.0",
-      "archive": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/runtime-conversation.tgz",
+      "archive": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/runtime.tgz",
       "sha256": "827434e5a23cdfbc7e658b85e9590d648a863574418be9549aba1aa753b1ba09"
     },
-    "@agent-ui/runtime-react": {
+    "@agent-ui/renderer": {
       "version": "0.1.1",
-      "archive": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/runtime-react.tgz",
+      "archive": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/sidebar-package-consumer-2Ok1Mg/archives/renderer.tgz",
       "sha256": "f9b2cec51d400233dfc6aec2ab624d2d68642de59cad14147129946651cd4b04"
     },
     "@agent-ui/plugins": {

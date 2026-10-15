@@ -1,0 +1,63 @@
+import { mkdtemp, writeFile, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { afterEach, expect, it, vi } from "vitest";
+import { installScenarioResources, installMockResource } from "../../src/project/install-scenario-resources";
+vi.mock("../../src/verify-ui", () => ({ verifyUIProject: vi.fn(async () => ({ status: "passed" })) }));
+vi.mock("../../src/project/project-mode", () => ({ readAgentUIProjectConfig: vi.fn(async () => ({ config: { mode: "platform", sourceRoot: "agent-ui" } })) }));
+vi.mock("../../src/project/agent-ui-project-paths", () => ({
+  resolveAgentUIProjectPaths: (root: string) => ({ appUIModelPath: path.join(root, "model.json") }),
+  operatorConfigForPaths: () => ({}),
+}));
+vi.mock("../../src/project/source-registry/index", () => ({
+  inspectAgentUISources: vi.fn(async () => ({ stateHash: "hash", items: [{ id: "demo/frontend-tool-form", status: "not-installed", dependencies: [], dependencyIssues: [], resolvedRequirements: [{ name: "react-hook-form", required: "^7", compatible: true }] }] })),
+}));
+vi.mock("../../src/project/source-registry/project-mutation", () => ({
+  recoverPendingAgentUISourceProjectMutation: vi.fn(),
+  applyAgentUISourceProjectMutation: vi.fn(async () => {
+    vi.mocked(inspectAgentUISources).mockResolvedValueOnce({ stateHash: "after", items: [{ id: "demo/frontend-tool-form", status: "managed", dependencies: [], dependencyIssues: [], resolvedRequirements: [] }] } as unknown as Awaited<ReturnType<typeof inspectAgentUISources>>);
+  }),
+}));
+vi.mock("../../src/project/app-ui-transaction", () => ({ mutateAppUIModel: vi.fn() }));
+import { verifyUIProject } from "../../src/verify-ui";
+import { mutateAppUIModel } from "../../src/project/app-ui-transaction";
+import { inspectAgentUISources } from "../../src/project/source-registry/index";
+import { applyAgentUISourceProjectMutation } from "../../src/project/source-registry/project-mutation";
+const roots: string[] = [];
+afterEach(async () => { vi.clearAllMocks(); await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
+async function project() {
+  const root = await mkdtemp(path.join(tmpdir(), "scenario-install-")); roots.push(root);
+  await writeFile(path.join(root, "model.json"), JSON.stringify({ root: { type: "slot", plugins: [{ id: "surface", pluginId: "conversation-surface", enabled: true }] } }));
+  return root;
+}
+it("installs the form controller without reserving conversation layout width", async () => {
+  const root = await project();
+  await installScenarioResources(root, "demo/frontend-tool-form");
+  expect(applyAgentUISourceProjectMutation).toHaveBeenCalledWith(root, { itemId: "demo/frontend-tool-form", expectedStateHash: "hash" }, { config: {} });
+  expect(mutateAppUIModel).toHaveBeenCalledWith(root, expect.objectContaining({ operations: [expect.objectContaining({
+    type: "insert_layout_relative", anchorRef: "l0", direction: "right", size: "0px",
+    node: { type: "panel", child: { type: "slot", plugins: [{ id: "frontend-tool-form-demo-main", pluginId: "frontend-tool-form-demo", enabled: true }] } },
+  })] }));
+});
+it("reports missing dependencies before any source or composition mutation", async () => {
+  vi.mocked(inspectAgentUISources).mockResolvedValueOnce({ stateHash: "hash", sourceRoot: ".", metadataRoot: ".agent-ui", packages: [], issues: [], items: [{ id: "demo/frontend-tool-form", owned: false, updateAvailable: false, status: "not-installed", files: [], requirements: [], issues: [], dependencies: [], dependencyIssues: [], resolvedRequirements: [{ name: "react-hook-form", required: "^7", compatible: false }] }] });
+  await expect(installScenarioResources(await project(), "demo/frontend-tool-form")).rejects.toThrow("react-hook-form ^7");
+  expect(applyAgentUISourceProjectMutation).not.toHaveBeenCalled();
+  expect(mutateAppUIModel).not.toHaveBeenCalled();
+});
+
+it("installs a pluginless Integration through the same Mock seam without composition", async () => {
+  const root = await project();
+  vi.mocked(inspectAgentUISources)
+    .mockResolvedValueOnce({ stateHash: "hash", items: [{ id: "integration/react-hook-form", status: "not-installed", dependencies: [], dependencyIssues: [], resolvedRequirements: [] }] } as unknown as Awaited<ReturnType<typeof inspectAgentUISources>>);
+  vi.mocked(applyAgentUISourceProjectMutation).mockImplementationOnce(async () => {
+    vi.mocked(inspectAgentUISources).mockResolvedValueOnce({ stateHash: "after", items: [{ id: "integration/react-hook-form", status: "managed", dependencies: [], dependencyIssues: [], resolvedRequirements: [] }] } as unknown as Awaited<ReturnType<typeof inspectAgentUISources>>);
+    return {} as Awaited<ReturnType<typeof applyAgentUISourceProjectMutation>>;
+  });
+  const before = await readFile(path.join(root, "model.json"), "utf8");
+  await installMockResource(root, "integration/react-hook-form");
+  expect(applyAgentUISourceProjectMutation).toHaveBeenCalledWith(root, { itemId: "integration/react-hook-form", expectedStateHash: "hash" }, { config: {} });
+  expect(mutateAppUIModel).not.toHaveBeenCalled();
+  expect(verifyUIProject).not.toHaveBeenCalled();
+  expect(await readFile(path.join(root, "model.json"), "utf8")).toBe(before);
+});

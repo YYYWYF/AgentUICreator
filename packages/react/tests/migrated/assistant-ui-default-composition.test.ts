@@ -1,13 +1,13 @@
-import { generatedProjectFixture, repositoryRoot } from "../../../project-control/tests/support/generated-project";
+import { generatedProjectFixture, repositoryRoot } from "../../../operator/tests/support/generated-project";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import appUIJson from "../../../project-control/tests/fixtures/project/app-ui/app-ui.json";
+import appUIJson from "../../../operator/tests/fixtures/project/app-ui/app-ui.json";
 import { conversationPresentationConfig } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/index";
-import { collectAppUIPluginLocations, parseAppUIModel } from "../../../project-control/src/framework/contracts/app-ui-model";
+import { collectAppUIPluginLocations, parseAppUIModel } from "../../../operator/src/framework/contracts/app-ui-model";
 import { pluginCapabilityCatalog } from "../../../source-registry/registry/items/foundation-core/files/plugins/index";
 
 const projectRoot = await generatedProjectFixture();

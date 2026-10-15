@@ -1,6 +1,6 @@
 # Legacy HTML compatibility demo
 
-Run `pnpm --filter @agent-ui/web-component-legacy-demo dev` from the workspace.
+Run `pnpm --filter @za38.03/agent-ui-web-component-legacy-demo dev` from the workspace.
 The page loads the standalone `agent-ui.js` classic script. There is no Vue or
 React compiler in this Host. `config` is deliberately set before registration;
 the optional demo-only module adds the existing mock attachment adapter.

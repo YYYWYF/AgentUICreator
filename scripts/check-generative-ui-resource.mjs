@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const defaultRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const packageName = "@assistant-ui/react-generative-ui";
 const itemIds = ["agent-component-assistant-ui-generative-ui", "integration-generative-ui"];
-const vendorDirectory = "packages/source-registry/registry/items/agent-component-assistant-ui-generative-ui/files/agent-ui/vendor/assistant-ui/generative-ui";
+const vendorDirectory = "packages/react/src/internal/vendor/assistant-ui/generative-ui";
 
 export async function checkGenerativeUiResource({ repoRoot = defaultRoot, target } = {}) {
   target ??= JSON.parse(await readFile(path.join(repoRoot, "assistant-ui-upgrade-target.json"), "utf8"));
@@ -39,7 +39,8 @@ export async function checkGenerativeUiResource({ repoRoot = defaultRoot, target
   for (const id of itemIds) {
     const relativePath = `packages/source-registry/registry/items/${id}/item.json`;
     const item = JSON.parse(await readFile(path.join(repoRoot, relativePath), "utf8"));
-    if (item.packages?.[packageName] !== version) errors.push(`${id}/item.json ${packageName} is ${item.packages?.[packageName]}; expected ${version}`);
+    if (item.packages?.[packageName]) errors.push(`${id} must use the package facade instead of depending directly on upstream`);
+    if (item.files.some(file => /(^|\/)vendors?\//u.test(file.target))) errors.push(`${id} installs vendor source`);
     if (item.upstream?.revision !== revision) errors.push(`${id}/item.json upstream.revision is ${item.upstream?.revision}; expected ${revision}`);
     if (Object.hasOwn(item, "version")) errors.push(`${id}/item.json must not declare a Source Item version`);
   }

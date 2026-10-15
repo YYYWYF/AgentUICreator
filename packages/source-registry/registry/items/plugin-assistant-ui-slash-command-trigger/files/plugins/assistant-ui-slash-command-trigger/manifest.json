@@ -2,7 +2,7 @@
   "id": "assistant-ui-slash-command-trigger",
   "name": "Assistant Ui Slash Command Trigger",
   "description": "Optional composer trigger backed by project-owned Plugin Services.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "capabilities": [
     "conversation-composer-trigger"
   ],

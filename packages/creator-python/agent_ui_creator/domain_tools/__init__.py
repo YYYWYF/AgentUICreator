@@ -1,7 +1,7 @@
-from .project_control_tools import (
+from .operator_tools import (
     DOMAIN_READ_TOOL_NAMES,
     MAX_DOMAIN_TOOL_RESULT_CHARS,
-    create_project_control_tools,
+    create_operator_tools,
 )
 from .recovery_tools import (
     RECOVERY_READ_TOOL_NAMES,
@@ -14,7 +14,7 @@ from .recovery_tools import (
 __all__ = [
     "DOMAIN_READ_TOOL_NAMES",
     "MAX_DOMAIN_TOOL_RESULT_CHARS",
-    "create_project_control_tools",
+    "create_operator_tools",
     "RECOVERY_READ_TOOL_NAMES",
     "RECOVERY_WRITE_TOOL_NAMES",
     "CreatorRecoveryQueries",

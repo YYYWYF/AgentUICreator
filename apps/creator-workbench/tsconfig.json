@@ -23,34 +23,34 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "paths": {
-      "@agent-ui/creator/ui": [
+      "@za38.03/agent-ui-creator/ui": [
         "../../packages/creator/src/ui/CreatorWorkbench.tsx"
       ],
-      "@agent-ui/creator/runtime-diagnostics": [
+      "@za38.03/agent-ui-creator/runtime-diagnostics": [
         "../../packages/creator/src/runtime-diagnostics/runtimeDiagnosticReporter.ts"
       ],
-      "@agent-ui/creator/visual-observation": [
+      "@za38.03/agent-ui-creator/visual-observation": [
         "../../packages/creator/src/visual-observation/VisualObservationReporter.ts"
       ],
-      "@agent-ui/mock-agent": [
-        "../../packages/mock-agent/src/index.ts"
+      "@za38.03/agent-ui-creator/mock-agent": [
+        "../../packages/creator/src/mock-agent/index.ts"
       ],
-      "@agent-ui/react": [
+      "@za38.03/agent-ui-react": [
         "../../packages/react/src/index.ts"
       ],
-      "@agent-ui/runtime-conversation": [
-        "../../packages/runtime-conversation/src/index.ts"
+      "@za38.03/agent-ui-runtime": [
+        "../../packages/runtime/src/index.ts"
       ],
-      "@agent-ui/runtime-core": [
+      "@za38.03/agent-ui-runtime-core": [
         "../../packages/runtime-core/src/index.ts"
       ],
-      "@agent-ui/runtime-react": [
-        "../../packages/runtime-react/src/index.ts"
+      "@za38.03/agent-ui-renderer": [
+        "../../packages/renderer/src/index.ts"
       ],
-      "@agent-ui/runtime-core/testing": [
+      "@za38.03/agent-ui-runtime-core/testing": [
         "../../packages/runtime-core/src/testing/index.ts"
       ],
-      "@agent-ui/creator/host-preview": [
+      "@za38.03/agent-ui-creator/host-preview": [
         "../../packages/creator/src/host-preview/hostPreviewWorkbench.ts"
       ]
     }
@@ -64,13 +64,13 @@
     "../../packages/creator/src/runtime-diagnostics/runtimeDiagnosticReporter.ts",
     "../../packages/creator/src/visual-observation/VisualObservationReporter.ts",
     "../../packages/creator/src/shared.ts",
-    "../../packages/mock-agent/src/**/*.ts",
+    "../../packages/creator/src/mock-agent/**/*.ts",
     "../../packages/react/src/**/*.ts",
     "../../packages/react/src/**/*.tsx",
-    "../../packages/runtime-conversation/src/**/*.ts",
-    "../../packages/runtime-conversation/src/**/*.tsx",
+    "../../packages/runtime/src/**/*.ts",
+    "../../packages/runtime/src/**/*.tsx",
     "../../packages/runtime-core/src/**/*.ts",
-    "../../packages/runtime-react/src/**/*.ts",
-    "../../packages/runtime-react/src/**/*.tsx"
+    "../../packages/renderer/src/**/*.ts",
+    "../../packages/renderer/src/**/*.tsx"
   ]
 }
