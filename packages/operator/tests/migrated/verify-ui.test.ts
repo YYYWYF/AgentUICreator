@@ -7,6 +7,8 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import type { AppUIModel } from "../../src/framework/contracts/app-ui-model";
 import { verifyUIProject } from "../../src/verify-ui";
+import { verifyRuntimeComposition } from "../../src/project/runtime-composition-verifier";
+import { compileAppUIModel } from "../../src/framework/contracts/app-ui-compiler";
 import { handleUIOperatorRequest } from "../../src/handler";
 import {
   GENERATED_PLUGIN_REGISTRY_PATH,
@@ -197,6 +199,38 @@ afterEach(async () => {
 });
 
 describe("verifyUIProject", () => {
+  it.each([true, false])("checks conditional content mounts without hiding missing rendered children (optional=%s)", async (optional) => {
+    const projectRoot = await createProject({ instancePluginId: "sample", mounted: true,
+      manifest: { slots: { children: { content: {description:"History content",cardinality:"one",optional} } } } });
+    const leafRoot = path.join(projectRoot,"agent-ui/plugins/leaf");
+    await mkdir(leafRoot);
+    await writeFile(path.join(leafRoot,"manifest.json"),JSON.stringify({id:"leaf",name:"Leaf",description:"Content",version:"1.0.0"}));
+    await writeFile(path.join(leafRoot,"definition.ts"),"const Component = () => null; export default {manifest:{},Component};");
+    const model: AppUIModel = { root: {type:"slot",plugins:[{id:"sample-main",pluginId:"sample",enabled:true,
+      slots:{content:[{id:"child-main",pluginId:"leaf",enabled:true}]}}]} };
+    await writeModelAndRegistry(projectRoot, model);
+    const source = await readFile(path.join(projectRoot,"agent-ui/app-ui/app-ui.json"),"utf8");
+    const hash = createHash("sha256").update(source).digest("hex");
+    const registry = await generatePluginRegistry(projectRoot,model,fixtureConfig);
+    const runtime = compileAppUIModel(model,registry.activeComposition.compositionCatalog);
+    const childSlotId = runtime.pluginInstances["child-main"]!.mount!.slotId;
+    const snapshot = {appUIModelHash:hash,compositionRevision:"test",capabilityCatalogRevision:registry.capabilityCatalog.revision,
+      publishedAt:new Date().toISOString(),observedAt:new Date().toISOString(),application:{phase:"ready"},
+      instances:[{instanceId:"sample-main",pluginId:"sample",slotId:runtime.pluginInstances["sample-main"]!.mount!.slotId}],slots:[] as {slotId:string;widthClass:"unknown"}[]};
+    const verify = () => verifyRuntimeComposition(projectRoot,{appUIModelHash:hash,composition:snapshot});
+    expect((await verify()).verified).toBe(optional);
+    // Opening a content outlet makes the child's absence an error even when optional.
+    snapshot.slots.push({slotId:childSlotId,widthClass:"unknown"});
+    expect((await verify()).checks).toContainEqual(expect.objectContaining({instanceId:"child-main",status:"missing"}));
+    snapshot.instances.push({instanceId:"child-main",pluginId:"leaf",slotId:childSlotId});
+    expect((await verify()).verified).toBe(true);
+    snapshot.instances[1]!.slotId = "wrong-slot";
+    expect((await verify()).verified).toBe(false);
+    snapshot.instances.length = 0;
+    snapshot.slots.length = 0;
+    expect((await verify()).verified).toBe(false);
+  });
+
   it("blocks direct Portal primitive imports in a generated user Plugin and accepts the public facade", async () => {
     const projectRoot = await createProject({
       instancePluginId: "sample", mounted: true,

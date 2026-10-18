@@ -98,7 +98,7 @@ def test_source_owner_lane_exposes_native_takeover_then_expands(tmp_path):
     )
     assert grounding.metrics.sourceFastPathExited is True
     assert grounding.metrics.sourceFastPathExitTool == "takeover_plugin_source"
-    assert grounding._request(request) is request
+    assert "authoringTarget" in grounding._request(request).messages[-1].content
 
 
 def test_source_owner_lane_keeps_runtime_verification_available(tmp_path):
@@ -111,7 +111,7 @@ def test_source_owner_lane_keeps_runtime_verification_available(tmp_path):
         lambda _: ToolMessage(content='{"runtimeStatus":"passed"}', tool_call_id="runtime", status="success"),
     )
     assert grounding.metrics.sourceFastPathExited is True
-    assert grounding._request(request) is request
+    assert "authoringTarget" in grounding._request(request).messages[-1].content
 
 
 def test_missing_handoff_file_leaves_search_and_expansion_available(tmp_path):
@@ -139,7 +139,7 @@ def test_first_source_read_does_not_claim_grounding_is_sufficient(tmp_path):
 
     assert [item.name for item in next_request.tools] == [item.name for item in tools]
     control = " ".join(next_request.messages[-1].content.split())
-    assert "Once the files and dependencies actually required" in control
+    assert "not read evidence, consent or mutation authority" in control
     assert "Fresh source evidence is available" not in control
     assert "Prefer the mutation now" not in control
 
@@ -232,3 +232,170 @@ def test_diagnostic_read_select_edit_remains_in_source_lane(tmp_path):
     assert json.loads(tools[-1].invoke(args))['ok']
     assert not grounding.metrics.sourceFastPathExited
     assert 'fixed' in path.read_text()
+
+
+def test_application_config_uses_source_guidance_without_forcing_mutation(tmp_path):
+    backend, _grounding_instance, _path, _virtual = _grounding(tmp_path)
+    handoff = CreatorAuthoringHandoff(
+        targetId="theme.brand-palette", kind="application_config",
+        name="Palette", description="Project styles",
+        ownerPath="src/agent-ui/conversation/styles.css",
+    )
+    grounding = SourceGroundingConvergenceMiddleware(backend, handoff, ToolProtocolMetrics())
+    tools = [SimpleNamespace(name=name) for name in (
+        "read_file", "grep", "glob", "ask_user_question", "edit_file",
+        "edit_file_from_read", "inspect_ui_services", "create_ui_plugin",
+    )]
+    request = SimpleNamespace(messages=[], tools=tools,
+                              override=lambda **kwargs: SimpleNamespace(**kwargs))
+    offered = grounding._request(request)
+    assert grounding.metrics.sourceFastPathActivated
+    assert {tool.name for tool in offered.tools} == {tool.name for tool in tools} - {
+        "create_ui_plugin", "edit_file", "edit_file_from_read"}
+    assert "Host has resolved this authoring owner" in offered.messages[-1].content
+    assert "targeted installed public contracts" in offered.messages[-1].content
+    grounding.wrap_tool_call(
+        SimpleNamespace(tool_call={"name": "inspect_ui_services", "args": {}}),
+        lambda _: ToolMessage(content="{}", tool_call_id="cross-layer", status="success"),
+    )
+    assert "authoringTarget" in grounding._request(request).messages[-1].content
+
+
+def test_unresolved_target_keeps_general_agent_surface(tmp_path):
+    backend, _, _, _ = _grounding(tmp_path)
+    grounding = SourceGroundingConvergenceMiddleware(backend, None, ToolProtocolMetrics())
+    request = SimpleNamespace(messages=[], tools=[SimpleNamespace(name="create_ui_plugin")])
+    assert grounding._request(request) is request
+    assert not grounding.metrics.sourceFastPathActivated
+
+
+def test_same_owner_api_inspection_keeps_lane_but_another_owner_expands(tmp_path):
+    _backend, grounding, _path, _virtual = _grounding(tmp_path)
+    own = SimpleNamespace(tool_call={"name": "inspect_ui_plugin", "args": {"pluginId": "conversation-thread-list"}})
+    grounding.wrap_tool_call(own, lambda _: ToolMessage(content='{"ok":true}', tool_call_id="own", status="success"))
+    assert not grounding.metrics.sourceFastPathExited
+    grounding._failed(own)
+    assert not grounding.metrics.sourceFastPathExited
+    other = SimpleNamespace(tool_call={"name": "inspect_ui_plugin", "args": {"pluginId": "conversation-history"}})
+    grounding.wrap_tool_call(other, lambda _: ToolMessage(content='{"ok":true}', tool_call_id="other", status="success"))
+    assert grounding.metrics.sourceFastPathExited
+    assert grounding.metrics.sourceFastPathExitTool == "inspect_ui_plugin"
+
+
+def test_general_inspection_keeps_owner_context_without_scope_or_consent(tmp_path):
+    backend, _, _, _ = _grounding(tmp_path)
+    grounding = SourceGroundingConvergenceMiddleware(backend, None, ToolProtocolMetrics())
+    tools = [SimpleNamespace(name=name) for name in ("read_file", "takeover_plugin_source", "inspect_ui_services")]
+    request = SimpleNamespace(messages=[], tools=tools, override=lambda **kwargs: SimpleNamespace(tools=tools, **kwargs))
+    assert grounding._request(request) is request
+    payload = {"ok": True, "result": {"asset": {"pluginId": "composer"}, "application": {
+        "entryPath": "src/plugins/composer/index.tsx", "implementationOwnership": "npm",
+        "publicApi": {"status": "available"},
+    }}}
+    call = SimpleNamespace(tool_call={"name": "inspect_ui_plugin", "args": {"pluginId": "composer"}})
+    grounding._after(call, ToolMessage(content=json.dumps(payload), tool_call_id="api", status="success"))
+    contextual = grounding._request(request)
+    assert contextual.tools is tools
+    assert "src/plugins/composer/index.tsx" in contextual.messages[-1].content
+    assert "not fresh read evidence or write authority" in contextual.messages[-1].content
+    assert grounding.handoff is None
+    assert grounding.metrics.sourceFastPathActivated is False
+    # Error/mismatched results must not promote an unverified owner.
+    payload["result"]["asset"]["pluginId"] = "other"
+    grounding._after(call, ToolMessage(content=json.dumps(payload), tool_call_id="bad", status="success"))
+    assert list(grounding.inspected_owners) == ["composer"]
+    grounding._after(call, ToolMessage(content='{"ok":false}', tool_call_id="err", status="success"))
+    assert list(grounding.inspected_owners) == ["composer"]
+
+
+def test_scoped_owner_context_survives_cross_layer_expansion(tmp_path):
+    _, grounding, _, _ = _grounding(tmp_path)
+    payload = {"ok": True, "result": {"asset": {"pluginId": "conversation-thread-list"},
+        "application": {"entryPath": "src/plugins/conversation-thread-list/index.ts",
+                        "implementationOwnership": "npm", "publicApi": {"status": "unavailable"}}}}
+    grounding._after(SimpleNamespace(tool_call={"name": "inspect_ui_plugin", "args": {
+        "pluginId": "conversation-thread-list"}}),
+        ToolMessage(content=json.dumps(payload), tool_call_id="api", status="success"))
+    assert grounding.metrics.sourceFastPathExited is False
+    grounding._after(SimpleNamespace(tool_call={"name": "inspect_ui_services", "args": {}}),
+                     ToolMessage(content='{}', tool_call_id="services", status="success"))
+    request = SimpleNamespace(messages=[], tools=[], override=lambda **kwargs: SimpleNamespace(**kwargs))
+    assert "unavailable" in grounding._request(request).messages[-1].content
+
+
+def test_checkpoint_navigation_preserves_expansion_but_not_read_or_write_authority(tmp_path):
+    backend, before, _, virtual = _grounding(tmp_path)
+    _read(backend, before, virtual)
+    before.metrics.sourceFastPathExited = True
+    before.metrics.sourceFastPathExitTool = "inspect_ui_services"
+    before.metrics.sourceFastPathExitReason = "cross_layer_dependency"
+    state = before.export_navigation()
+    after = SourceGroundingConvergenceMiddleware(backend, before.handoff, ToolProtocolMetrics())
+    after.restore_navigation(state)
+    assert after.metrics.sourceFastPathExited is True
+    assert after.reads == {}
+    assert after.first_write is False
+    tools = [SimpleNamespace(name="create_custom_plugin")]
+    request = SimpleNamespace(messages=[], tools=tools, override=lambda **kwargs: SimpleNamespace(tools=tools, **kwargs))
+    result = after._request(request)
+    assert result.tools is tools
+    assert "conversation-thread-list" in result.messages[-1].content
+    assert "not fresh read evidence or write authority" in result.messages[-1].content
+
+
+def test_general_takeover_keeps_navigation_but_invalidates_old_contract(tmp_path):
+    backend, _, _, _ = _grounding(tmp_path)
+    grounding = SourceGroundingConvergenceMiddleware(backend, None, ToolProtocolMetrics())
+    grounding.inspected_owners["sample"] = {"pluginId":"sample", "entryPath":"src/plugins/sample/index.tsx", "implementationOwnership":"npm", "apiStatus":"available"}
+    grounding._after(SimpleNamespace(tool_call={"name":"takeover_plugin_source","args":{"pluginId":"sample"}}),
+        ToolMessage(content='{"ok":true}',tool_call_id="takeover",status="success"))
+    restored = SourceGroundingConvergenceMiddleware(backend, None, ToolProtocolMetrics())
+    restored.restore_navigation(grounding.export_navigation())
+    assert restored.inspected_owners["sample"]["apiStatus"] == "refresh-required"
+    assert restored.reads == {}
+    assert restored.handoff is None
+
+
+def test_owner_file_navigation_is_real_bounded_and_does_not_grant_fresh_reads(tmp_path):
+    backend, grounding, path, virtual = _grounding(tmp_path)
+    (path.parent / "styles.css").write_text(".owned {}")
+    files = grounding._owner_files()
+    assert virtual in files
+    assert virtual.rsplit("/", 1)[0] + "/styles.css" in files
+    assert not any("render.tsx" in item for item in files)
+    assert grounding.reads == {}
+    assert backend.activity.file_observations.get(virtual) is None
+    assert backend.activity.file_observations.get(virtual.rsplit("/", 1)[0] + "/styles.css") is None
+
+
+def test_unread_owner_does_not_offer_text_edits_but_read_restores_them(tmp_path):
+    backend, grounding, path, virtual = _grounding(tmp_path)
+    tools = [SimpleNamespace(name=name) for name in (
+        "read_file", "grep", "edit_file", "edit_file_from_read", "mutate_ui_plugin_source")]
+    request = SimpleNamespace(messages=[], tools=tools,
+        override=lambda **kwargs: SimpleNamespace(**kwargs))
+    initial = grounding._request(request)
+    assert {t.name for t in initial.tools} == {"read_file", "grep", "mutate_ui_plugin_source"}
+    assert "registrationPath" in initial.messages[-1].content
+    assert backend.activity.file_observations.get(virtual) is None
+    _read(backend, grounding, virtual)
+    assert {t.name for t in grounding._request(request).tools} == {t.name for t in tools}
+    path.write_text("external change\n")
+    assert backend.edit(virtual, "external", "replacement").error is not None
+    # Navigation restore never restores a prior run's fresh reads.
+    other = SourceGroundingConvergenceMiddleware(backend, grounding.handoff, ToolProtocolMetrics())
+    other.restore_navigation(grounding.export_navigation())
+    assert "edit_file" not in {t.name for t in other._request(request).tools}
+
+
+def test_custom_plugin_public_query_index_is_current_run_only(tmp_path):
+    _backend, grounding, _path, _virtual = _grounding(tmp_path)
+    payload = {"ok":True,"result":{"sharedTypes":{
+        "module":"public-package", "packageVersion":"1.2.3",
+        "symbols":[{"name":"Panel", "status":"available", "presentationContract":{"styles":"packaged"}},
+                   {"name":"Unknown", "status":"unavailable"}]}}}
+    grounding._observe_plugin_contract({"pluginId":"conversation-thread-list"}, json.dumps(payload))
+    assert list(grounding.contract_queries.values()) == [{
+        "module":"public-package", "symbol":"Panel", "packageVersion":"1.2.3",
+        "presentationAvailable":True}]
+    assert "resolvedPublicQueries" not in grounding.export_navigation()

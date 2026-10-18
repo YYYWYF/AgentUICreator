@@ -508,7 +508,7 @@
               "const": "inspect_ui_plugin"
             },
             "input": {
-              "$ref": "#/$defs/pluginInput"
+              "$ref": "#/$defs/inspectUIPluginInput"
             }
           }
         },
@@ -1556,6 +1556,9 @@
         },
         "referenceSourceItemId": {
           "type": "string"
+        },
+        "application": {
+          "$ref": "#/$defs/pluginApplicationNavigation"
         }
       }
     },
@@ -2044,6 +2047,111 @@
         },
         "recoveryOnly": {
           "const": true
+        },
+        "application": {
+          "$ref": "#/$defs/pluginApplicationInspection"
+        },
+        "compositionParents": {
+          "type": "array",
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "instanceId",
+              "slot",
+              "interpretation"
+            ],
+            "properties": {
+              "instanceId": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "slot": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "pluginId": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "interpretation": {
+                "type": "string",
+                "maxLength": 1200
+              },
+              "entryPath": {
+                "$ref": "#/$defs/path"
+              },
+              "entryHash": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "implementationOwnership": {
+                "enum": [
+                  "npm",
+                  "project"
+                ]
+              },
+              "compositionContract": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "preserveSlots",
+                  "replacementProps",
+                  "semantics"
+                ],
+                "properties": {
+                  "preserveSlots": {
+                    "type": "array",
+                    "maxItems": 16,
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "name",
+                        "renderMethod",
+                        "layout",
+                        "overrideProp"
+                      ],
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "maxLength": 200
+                        },
+                        "renderMethod": {
+                          "type": "string",
+                          "maxLength": 200
+                        },
+                        "layout": {
+                          "type": "string",
+                          "maxLength": 200
+                        },
+                        "overrideProp": {
+                          "type": "string",
+                          "maxLength": 200
+                        }
+                      }
+                    }
+                  },
+                  "replacementProps": {
+                    "type": "array",
+                    "maxItems": 16,
+                    "items": {
+                      "type": "string",
+                      "maxLength": 200
+                    }
+                  },
+                  "semantics": {
+                    "type": "string",
+                    "maxLength": 2000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "sharedTypes": {
+          "$ref": "#/$defs/pluginSharedTypesInspection"
         }
       }
     },
@@ -3718,16 +3826,19 @@
           }
         },
         "compatibility": {
+          "description": "Non-empty shared API version requirements from the target project installed Plugin takeover catalog. Operator checks every declared version against that same installed catalog sharedApis before planning or execution.",
           "type": "object",
-          "properties": {
-            "composerSupport": {
-              "const": 1
-            }
+          "minProperties": 1,
+          "maxProperties": 64,
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9]*$",
+            "maxLength": 100
           },
-          "required": [
-            "composerSupport"
-          ],
-          "additionalProperties": false
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1
+          }
         },
         "origins": {
           "type": "object",
@@ -3791,6 +3902,669 @@
         "checks"
       ],
       "additionalProperties": false
+    },
+    "pluginApplicationNavigation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entryPath",
+        "implementationOwnership",
+        "implementationImport"
+      ],
+      "properties": {
+        "entryPath": {
+          "$ref": "#/$defs/path"
+        },
+        "implementationOwnership": {
+          "enum": [
+            "npm",
+            "project"
+          ]
+        },
+        "implementationImport": {
+          "type": "string",
+          "maxLength": 400
+        }
+      }
+    },
+    "pluginApiMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "type": {
+          "type": "string",
+          "maxLength": 900
+        },
+        "typeTruncated": {
+          "type": "boolean"
+        },
+        "status": {
+          "const": "unresolved"
+        }
+      }
+    },
+    "pluginApiProperty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "type": {
+          "type": "string",
+          "maxLength": 900
+        },
+        "typeTruncated": {
+          "type": "boolean"
+        },
+        "status": {
+          "const": "unresolved"
+        },
+        "runtimeManaged": {
+          "type": "boolean"
+        },
+        "members": {
+          "type": "array",
+          "maxItems": 24,
+          "items": {
+            "$ref": "#/$defs/pluginApiMember"
+          }
+        },
+        "memberCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "membersOmitted": {
+          "type": "boolean"
+        },
+        "detailsOmitted": {
+          "type": "boolean"
+        }
+      }
+    },
+    "pluginPublicApi": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "interpretation"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "available",
+            "unavailable"
+          ]
+        },
+        "interpretation": {
+          "type": "string",
+          "maxLength": 1200
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "component": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "package": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "version"
+          ],
+          "properties": {
+            "name": {
+              "const": "@za38.03/agent-ui-plugins"
+            },
+            "version": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        },
+        "source": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "completePropNames": {
+          "type": "boolean"
+        },
+        "props": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/pluginApiProperty"
+          }
+        },
+        "evidenceBoundary": {
+          "type": "string",
+          "maxLength": 1200
+        },
+        "publicModuleQueries": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "defaultModule",
+            "presentationModule",
+            "note"
+          ],
+          "properties": {
+            "defaultModule": {
+              "type": "string",
+              "maxLength": 200,
+              "pattern": "^@za38\\.03/agent-ui-plugins(?:/[a-z][a-z0-9-]*)?$"
+            },
+            "presentationModule": {
+              "type": "string",
+              "maxLength": 200,
+              "pattern": "^@za38\\.03/agent-ui-plugins(?:/[a-z][a-z0-9-]*)?$"
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 1200
+            }
+          }
+        },
+        "compositionContract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "preserveSlots",
+            "replacementProps",
+            "semantics"
+          ],
+          "properties": {
+            "preserveSlots": {
+              "type": "array",
+              "maxItems": 16,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "renderMethod",
+                  "layout",
+                  "overrideProp"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "renderMethod": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "layout": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "overrideProp": {
+                    "type": "string",
+                    "maxLength": 200
+                  }
+                }
+              }
+            },
+            "replacementProps": {
+              "type": "array",
+              "maxItems": 16,
+              "items": {
+                "type": "string",
+                "maxLength": 200
+              }
+            },
+            "semantics": {
+              "type": "string",
+              "maxLength": 2000
+            }
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "status": {
+              "const": "available"
+            }
+          },
+          "required": [
+            "component",
+            "package",
+            "source",
+            "completePropNames",
+            "props"
+          ]
+        },
+        {
+          "properties": {
+            "status": {
+              "const": "unavailable"
+            }
+          },
+          "required": [
+            "reason"
+          ]
+        }
+      ]
+    },
+    "pluginApplicationInspection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entryPath",
+        "implementationOwnership",
+        "implementationImport",
+        "entryHash",
+        "editable",
+        "implementationBoundary",
+        "publicApi"
+      ],
+      "properties": {
+        "entryPath": {
+          "$ref": "#/$defs/path"
+        },
+        "implementationOwnership": {
+          "enum": [
+            "npm",
+            "project"
+          ]
+        },
+        "implementationImport": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "entryHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "editable": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "implementationBoundary": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "publicApi": {
+          "$ref": "#/$defs/pluginPublicApi"
+        },
+        "sharedTypes": {
+          "$ref": "#/$defs/pluginSharedTypesInspection"
+        }
+      }
+    },
+    "inspectUIPluginInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pluginId"
+      ],
+      "properties": {
+        "pluginId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "\\S"
+        },
+        "sharedSymbols": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z_$][A-Za-z0-9_$]{0,99}(?:\\.[A-Za-z_$][A-Za-z0-9_$]{0,99}){0,8}$"
+          }
+        },
+        "sharedModule": {
+          "type": "string",
+          "maxLength": 200,
+          "pattern": "^@za38\\.03/agent-ui-plugins(?:/[a-z][a-z0-9-]*)?$"
+        }
+      }
+    },
+    "pluginSharedTypesInspection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "available",
+            "unavailable"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "packageVersion": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "module": {
+          "type": "string",
+          "maxLength": 200,
+          "pattern": "^@za38\\.03/agent-ui-plugins(?:/[a-z][a-z0-9-]*)?$"
+        },
+        "interpretation": {
+          "type": "string",
+          "maxLength": 1200
+        },
+        "symbols": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "status"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "maxLength": 908
+              },
+              "status": {
+                "enum": [
+                  "available",
+                  "unavailable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "maxLength": 300
+              },
+              "type": {
+                "type": "string",
+                "maxLength": 1200
+              },
+              "truncated": {
+                "type": "boolean"
+              },
+              "members": {
+                "type": "array",
+                "maxItems": 48,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "name",
+                    "type",
+                    "truncated"
+                  ],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "maxLength": 200
+                    },
+                    "type": {
+                      "type": "string",
+                      "maxLength": 1200
+                    },
+                    "truncated": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              },
+              "membersTruncated": {
+                "type": "boolean"
+              },
+              "returns": {
+                "type": "array",
+                "maxItems": 4,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "truncated"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "maxLength": 1200
+                    },
+                    "truncated": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              },
+              "signaturesTruncated": {
+                "type": "boolean"
+              },
+              "exportedNameSuggestions": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "type": "string",
+                  "maxLength": 200
+                }
+              },
+              "nextEvidence": {
+                "type": "string",
+                "maxLength": 1200
+              },
+              "parameterQueries": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "type": "string",
+                  "maxLength": 908
+                }
+              },
+              "parameterContractsTruncated": {
+                "type": "boolean"
+              },
+              "parameterContracts": {
+                "type": "array",
+                "maxItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "query",
+                    "type",
+                    "truncated",
+                    "propNames",
+                    "propNamesTruncated",
+                    "members",
+                    "membersTruncated"
+                  ],
+                  "properties": {
+                    "query": {
+                      "type": "string",
+                      "maxLength": 908
+                    },
+                    "type": {
+                      "type": "string",
+                      "maxLength": 1200
+                    },
+                    "truncated": {
+                      "type": "boolean"
+                    },
+                    "propNames": {
+                      "type": "array",
+                      "maxItems": 384,
+                      "items": {
+                        "type": "string",
+                        "maxLength": 200
+                      }
+                    },
+                    "propNamesTruncated": {
+                      "type": "boolean"
+                    },
+                    "members": {
+                      "type": "array",
+                      "maxItems": 4,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "name",
+                          "type",
+                          "truncated"
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "maxLength": 200
+                          },
+                          "type": {
+                            "type": "string",
+                            "maxLength": 1200
+                          },
+                          "truncated": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    },
+                    "membersTruncated": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              },
+              "presentationContract": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "presentation": {
+                    "type": "string",
+                    "maxLength": 1200
+                  },
+                  "composition": {
+                    "type": "string",
+                    "maxLength": 1200
+                  },
+                  "portal": {
+                    "type": "string",
+                    "maxLength": 1200
+                  },
+                  "interaction": {
+                    "type": "string",
+                    "maxLength": 1200
+                  },
+                  "styles": {
+                    "type": "string",
+                    "maxLength": 1200
+                  }
+                }
+              }
+            },
+            "oneOf": [
+              {
+                "properties": {
+                  "status": {
+                    "const": "available"
+                  }
+                },
+                "required": [
+                  "type",
+                  "truncated",
+                  "members",
+                  "membersTruncated",
+                  "returns",
+                  "signaturesTruncated"
+                ]
+              },
+              {
+                "properties": {
+                  "status": {
+                    "const": "unavailable"
+                  }
+                },
+                "required": [
+                  "reason"
+                ]
+              }
+            ]
+          }
+        },
+        "statusMeaning": {
+          "type": "string",
+          "maxLength": 1200
+        },
+        "queryResolution": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "requested",
+            "resolved",
+            "unresolved"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "complete",
+                "partial",
+                "unresolved"
+              ]
+            },
+            "requested": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 8
+            },
+            "resolved": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 8
+            },
+            "unresolved": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 8
+            }
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "status": {
+              "const": "available"
+            }
+          },
+          "required": [
+            "module",
+            "packageVersion",
+            "symbols",
+            "interpretation"
+          ]
+        },
+        {
+          "properties": {
+            "status": {
+              "const": "unavailable"
+            }
+          },
+          "required": [
+            "reason"
+          ]
+        }
+      ]
     }
   },
   "oneOf": [

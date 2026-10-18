@@ -1,7 +1,7 @@
 {
   "id": "reasoning",
   "name": "Conversation Reasoning Renderer",
-  "description": "Displays one Agent UI reasoning group with canonical presentation.",
+  "description": "Displays detailed Agent UI reasoning in a collapsible group. Disable this semantic contribution for status-only presentation; collapsing still permits viewing details.",
   "version": "0.0.1",
   "capabilities": [
     "conversation-reasoning-renderer"

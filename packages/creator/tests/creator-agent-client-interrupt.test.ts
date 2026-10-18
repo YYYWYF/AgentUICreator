@@ -49,6 +49,22 @@ describe("Creator AG-UI 0.0.59 compatibility", () => {
     expect(requests[0]).toEqual({ action: "reapply", threadId: "thread-1", runId: "run-a" });
   });
 
+  it("acknowledges a consumed answer before later execution failure", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (_url: string, init: RequestInit) => {
+      const input = JSON.parse(String(init.body));
+      return stream([
+        {type:"RUN_STARTED", threadId:"thread-1", runId:input.runId},
+        {type:"CUSTOM", name:"on_interrupt_resumed", value:{interruptId:"interrupt-1"}},
+        {type:"RUN_ERROR", code:"MODEL_FAILED", message:"failed after answer"},
+      ]);
+    }));
+    const resolved: string[] = [];
+    await new CreatorAgentClient("workspace-1", "thread-1").resumeInterrupt(
+      "interrupt-1", {layout:["dashboard"]}, {onQuestionResumed: id => resolved.push(id)}
+    ).catch(() => undefined);
+    expect(resolved).toEqual(["interrupt-1"]);
+  });
+
   it("projects on_interrupt and sends resume only through forwardedProps.command.resume", async () => {
     const inputs: Record<string, unknown>[] = [];
     vi.stubGlobal("fetch", vi.fn(async (_url: string, init: RequestInit) => {

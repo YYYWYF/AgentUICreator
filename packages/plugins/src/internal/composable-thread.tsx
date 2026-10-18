@@ -2,6 +2,7 @@
 
 import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../locale.js";
 import { useTransientMessages, type ConversationTransientMessagesRenderScope } from "./conversation-transient-messages.js";
+import { resolveTransientMessageAnchor } from "../conversation-transient-message-service.js";
 import { ComposerHostConfigContext, ComposerInputHostContext, ComposerTextareaInput } from "./composer-input-host-context.js";
 
 import { ConversationUserDirectiveText } from "./conversation-directive-text.js";
@@ -232,6 +233,12 @@ const ThreadRoot: FC<{
 }) => {
   const quoteRootRef = useRef<HTMLDivElement | null>(null);
   const { Welcome = ThreadWelcome, TransientMessages } = useContext(ThreadComponentsContext);
+  const transientMessages = useTransientMessages();
+  const messages = useAuiState(s => s.thread.messages);
+  const messageIds = messages.map(message => message.id);
+  // A scoped renderer can leave an empty Plugin boundary even when it returns
+  // null. Mount only populated anchors so those boundaries cannot double gaps.
+  const transientAnchors = new Set(transientMessages.map(message => resolveTransientMessageAnchor(message, messageIds)));
 
   return (
     <QuoteThreadRootContext.Provider value={quoteRootRef}>
@@ -269,9 +276,9 @@ const ThreadRoot: FC<{
             data-agent-ui-message-spacing="turn"
             className="mb-14 flex flex-col gap-y-6 empty:hidden"
           >
-            {TransientMessages && <TransientMessages afterMessageId={null} />}
+            {TransientMessages && transientAnchors.has(null) && <TransientMessages afterMessageId={null} />}
             <ThreadPrimitive.Messages>
-              {({ message }) => <><ThreadMessage />{TransientMessages && <TransientMessages afterMessageId={message.id} />}</>}
+              {({ message }) => <><ThreadMessage />{TransientMessages && transientAnchors.has(message.id) && <TransientMessages afterMessageId={message.id} />}</>}
             </ThreadPrimitive.Messages>
           </div>
 

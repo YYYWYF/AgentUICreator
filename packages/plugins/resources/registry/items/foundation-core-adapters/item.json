@@ -4,6 +4,10 @@
   "description": "Managed Agent UI foundation-core-adapters source",
   "files": [
     {
+      "source": "files/agent-ui/appearance/shell-config.ts",
+      "target": "agent-ui/appearance/shell-config.ts"
+    },
+    {
       "source": "files/agent-ui/authoring/creator-authoring-targets.ts",
       "target": "agent-ui/authoring/creator-authoring-targets.ts"
     },
@@ -134,6 +138,10 @@
     {
       "source": "files/agent-ui/conversation/useConversationRendererSlots.ts",
       "target": "agent-ui/conversation/useConversationRendererSlots.ts"
+    },
+    {
+      "source": "files/agent-ui/theme/theme-customization.md",
+      "target": "agent-ui/theme/theme-customization.md"
     }
   ],
   "requires": [

@@ -4,7 +4,7 @@ import { AgentUILocaleProvider, useAgentUILocale, type AgentUILocaleCode } from 
 function LocalePicker({ locale, onChange }: { locale: AgentUILocaleCode; onChange: (locale: AgentUILocaleCode) => void }) {
   const messages = useAgentUILocale("accessibility");
   return <label style={{ position: "fixed", right: 16, top: 12, zIndex: 50, fontSize: 12 }}>
-    {messages.language} <select aria-label={messages.language} value={locale} onChange={event => onChange(event.target.value as AgentUILocaleCode)}>
+    <select aria-label={messages.language} value={locale} onChange={event => onChange(event.target.value as AgentUILocaleCode)}>
       <option value="zh-CN">{messages.chineseName}</option><option value="en-US">{messages.englishName}</option>
     </select>
   </label>;

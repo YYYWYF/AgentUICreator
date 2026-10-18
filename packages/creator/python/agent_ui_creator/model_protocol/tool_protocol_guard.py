@@ -210,21 +210,35 @@ def _validate_arguments(
     except PydanticValidationError as error:
         errors = error.errors(
             include_url=False,
-            include_context=False,
+            include_context=True,
             include_input=False,
         )
         first = errors[0] if errors else {}
-        return False, _validation_failure(
+        diagnostic = _validation_failure(
             arguments,
             error_path=first.get("loc", ()),
             error_type=first.get("type", "argument_validation_error"),
         )
+        diagnostic["validationErrors"] = [
+            {"path": _bounded_error_path(item.get("loc", ())),
+             "type": _trace_label(item.get("type", "argument_validation_error"))}
+            for item in errors[:8]
+        ]
+        # Report a numeric bound, never validator context/input contents. Length
+        # failures need an actionable repair rather than generic JSON advice.
+        context = first.get("ctx", {})
+        maximum = context.get("max_length") if isinstance(context, Mapping) else None
+        if first.get("type") == "string_too_long" and type(maximum) is int:
+            diagnostic["maxLength"] = maximum
+        return False, diagnostic
     except ValidationError as error:
         diagnostic = _validation_failure(
             arguments,
             error_path=getattr(error, "absolute_path", getattr(error, "path", ())),
             error_type=getattr(error, "validator", None) or "argument_validation_error",
         )
+        if getattr(error, "validator", None) == "maxLength" and type(error.validator_value) is int:
+            diagnostic["maxLength"] = error.validator_value
         if (_tool_name(tool) == "mutate_app_ui_model"
                 and diagnostic["errorType"] == "oneOf"
                 and len(diagnostic["errorPath"]) == 2
@@ -325,6 +339,21 @@ def _repair_validation_hint(
     error_type = diagnostic.get("errorType")
     if not isinstance(error_type, str):
         return None
+    if error_type in {"missing", "required", "extra_forbidden", "additionalProperties"}:
+        return _bounded_json({
+            "errorType": error_type,
+            "errorPath": diagnostic.get("errorPath", []),
+            "receivedArgumentKeys": diagnostic.get("argumentKeys", []),
+            "validationErrors": diagnostic.get("validationErrors", []),
+        }, _MAX_PROTOCOL_REPAIR_HINT_LENGTH)
+    if error_type in {"string_too_long", "maxLength"} and type(diagnostic.get("maxLength")) is int:
+        error_path = diagnostic.get("errorPath")
+        if isinstance(error_path, list) and error_path:
+            path = ".".join(_trace_label(str(part)) for part in error_path)
+            return (f"`{path}` exceeds its maximum of {diagnostic['maxLength']} characters. "
+                    "Rewrite that field as a shorter summary within the bound; preserve the "
+                    "requested behavior, evidence references and authorization boundaries. "
+                    "Do not drop required fields, truncate code, or change the intended tool.")[:_MAX_PROTOCOL_REPAIR_HINT_LENGTH]
     if (expected_tool_name == "mutate_app_ui_model"
             and error_type == "oneOf"
             and diagnostic.get("errorPath") == ["operations", 0]
@@ -899,21 +928,19 @@ and whitespace from generated source. Do not switch tools or explain in prose.""
                     model_call_sequence=self.metrics.modelCalls,
                     expected_tool_name=expected_tool_name,
                 )
-                if validation_hint is not None:
-                    prompt = f"""Your previous call to `{expected_tool_name}` had an invalid argument shape.
-
-{validation_hint}
-
-Re-issue only that same tool call using valid structured arguments.
-Do not switch to another tool.
-Do not explain the error in prose."""
-                else:
-                    prompt = f"""Your previous response attempted an invalid structured call to
-`{expected_tool_name}`.
-
-Re-issue only that intended action using the provided structured tool interface.
-Do not switch to another tool.
-Do not explain the error in prose."""
+                message = _ai_message(response)
+                calls = ([*message.tool_calls, *message.invalid_tool_calls]
+                         if message is not None else [])
+                original = calls[0] if len(calls) == 1 else None
+                feedback = {
+                    "toolName": expected_tool_name,
+                    "validationError": validation_hint,
+                    "attemptedArgumentShape": _argument_shape(original.get("args", {}))
+                        if isinstance(original, Mapping) and isinstance(original.get("args"), Mapping)
+                        else {"argumentsType": _json_type(original.get("args"))}
+                        if isinstance(original, Mapping) else None,
+                }
+                prompt = PROTOCOL_REPAIR_PROMPT + "\n\nValidation feedback (data):\n" + _bounded_json(feedback, 12_000)
         return request.override(
             messages=[*request.messages, HumanMessage(content=prompt)],
             tools=repair_tools,
@@ -940,6 +967,24 @@ Do not explain the error in prose."""
         raise ModelResponseTruncatedError(
             "Creator model response remained truncated after one bounded continuation attempt."
         )
+
+    def _accept_replan(self, decision: GuardDecision, original_tool_name: str | None) -> bool:
+        # The candidate passed schema/offered-tool checks. The normal graph tool
+        # path still enforces batch, scope, authorization and fresh-read checks.
+        # This layer never executes a tool or grants mutation authority.
+        if decision.status not in {"tool_call", "recovered"} or original_tool_name is None:
+            return False
+        next_name = _single_tool_intent_name(decision.response)
+        if not next_name or next_name == original_tool_name:
+            return False
+        self.metrics.protocolReplans += 1
+        _record_protocol_diagnostic(self.metrics, {
+            "kind": "protocol_replanned",
+            "originalToolName": _trace_label(original_tool_name),
+            "replanToolName": _trace_label(next_name),
+            "modelCallSequence": self.metrics.modelCalls,
+        })
+        return True
 
     def _record_repair_drift(
         self,
@@ -1008,6 +1053,8 @@ Do not explain the error in prose."""
         ):
             self.metrics.protocolRepairSuccesses += 1
             return decision.response
+        if not ambiguous and self._accept_replan(decision, expected_tool_name):
+            return decision.response
         self._record_repair_drift(
             original_tool_name=expected_tool_name,
             repaired=repaired,
@@ -1060,6 +1107,8 @@ Do not explain the error in prose."""
             )
         ):
             self.metrics.protocolRepairSuccesses += 1
+            return decision.response
+        if not ambiguous and self._accept_replan(decision, expected_tool_name):
             return decision.response
         self._record_repair_drift(
             original_tool_name=expected_tool_name,

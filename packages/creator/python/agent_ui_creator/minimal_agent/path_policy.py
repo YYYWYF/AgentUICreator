@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import os
+import re
+import fnmatch
+from functools import lru_cache
 from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
 from typing import Literal
@@ -204,12 +207,20 @@ class PolicyFilesystemBackend(FilesystemBackend):
     def _denied(error: PathPolicyViolation) -> str:
         return str(error)
 
+    def _missing_path_hint(self) -> str:
+        root = self.policy.source_root
+        return (" Filesystem tools use virtual paths rooted at /. "
+                + (f"Agent UI files are under /{root}/. " if root else "")
+                + "Do not prepend a host home directory, drive letter or guessed workspace path.")
+
     def ls(self, path: str) -> LsResult:
         try:
             self._authorize(path, "read")
         except PathPolicyViolation as error:
             return LsResult(error=self._denied(error), entries=None)
         result = super().ls(path)
+        if result.error:
+            result.error += self._missing_path_hint()
         if result.entries is not None:
             result.entries = [
                 entry
@@ -228,14 +239,17 @@ class PolicyFilesystemBackend(FilesystemBackend):
                 error=f"{authorized} is a directory; use ls for its entries. "
                 "Use inspect_agent_ui_sources for available Agent UI Source Items."
             )
+        def read_virtual():
+            result = super(PolicyFilesystemBackend, self).read(authorized, offset=offset, limit=limit)
+            if result.error:
+                result.error += self._missing_path_hint()
+            return result
         if not self.enforce_observations:
-            return super().read(authorized, offset=offset, limit=limit)
+            return read_virtual()
         try:
             return self.activity.file_observations.observe_stable_read(
                 authorized,
-                lambda: super(PolicyFilesystemBackend, self).read(
-                    authorized, offset=offset, limit=limit
-                ),
+                read_virtual,
                 lambda result: result.error is None,
             )
         except (CreatorFileObservationError, OSError, UnicodeError, ValueError) as error:
@@ -334,6 +348,11 @@ class PolicyFilesystemBackend(FilesystemBackend):
             virtual_root = self._authorize(path or "/", "read")
         except PathPolicyViolation as error:
             return GrepResult(error=self._denied(error), matches=None)
+        if glob:
+            try:
+                self._glob_patterns(glob)
+            except ValueError as error:
+                return GrepResult(error=f"SEARCH_SYNTAX_UNSUPPORTED: {error}", matches=None)
         root = super()._resolve_path(virtual_root)
         if root.is_file():
             candidates = [root]
@@ -354,6 +373,8 @@ class PolicyFilesystemBackend(FilesystemBackend):
                     matches.append({"path": virtual, "line": index, "text": text})
                     if max_count is not None and len(matches) >= max_count:
                         return GrepResult(matches=matches, truncated=True)
+        if not matches and re.search(r"\||\\[bBdDsSwW]|\[[^]]+\]|\{\d+(?:,\d*)?\}", pattern):
+            return GrepResult(error="SEARCH_SYNTAX_UNSUPPORTED: grep searches literal text, not regular expressions. Search one literal keyword (for example violet or theme) per call. Pipes, character classes and regex escapes are not operators.", matches=None)
         return GrepResult(matches=matches)
 
     def glob(self, pattern: str, path: str | None = None) -> GlobResult:
@@ -364,6 +385,10 @@ class PolicyFilesystemBackend(FilesystemBackend):
         if ".." in PurePosixPath(pattern).parts:
             return GlobResult(error="TOOL_PERMISSION_DENIED: parent glob segments are unavailable.")
         root = super()._resolve_path(virtual_root)
+        try:
+            self._glob_patterns(pattern)
+        except ValueError as error:
+            return GlobResult(error=f"SEARCH_SYNTAX_UNSUPPORTED: {error}", matches=None)
         matches = []
         for candidate in self._safe_files(root):
             relative = candidate.relative_to(root).as_posix()
@@ -408,9 +433,41 @@ class PolicyFilesystemBackend(FilesystemBackend):
         return True
 
     @staticmethod
+    @lru_cache(maxsize=128)
+    def _glob_patterns(pattern: str) -> tuple[str, ...]:
+        if "\\" in pattern:
+            raise ValueError("Use / separators in virtual glob paths on every platform.")
+        patterns = [pattern.lstrip("/")]
+        while any("{" in value or "}" in value for value in patterns):
+            expanded = []
+            for value in patterns:
+                match = re.search(r"\{([^{}]+)\}", value)
+                if match is None:
+                    if "{" in value or "}" in value:
+                        raise ValueError("Malformed brace glob; use comma alternatives such as **/*.{css,scss}.")
+                    expanded.append(value)
+                    continue
+                choices = match[1].split(",")
+                if len(choices) < 2 or any(not choice for choice in choices):
+                    raise ValueError("Brace globs require nonempty comma alternatives.")
+                expanded.extend(value[:match.start()] + choice + value[match.end():] for choice in choices)
+            if len(expanded) > 32:
+                raise ValueError("Glob has too many brace alternatives (maximum 32).")
+            patterns = expanded
+        return tuple(patterns)
+
+    @staticmethod
     def _matches(relative: str, pattern: str) -> bool:
-        normalized = pattern.lstrip("/")
-        candidate = PurePosixPath(relative)
-        return candidate.match(normalized) or (
-            "/" not in normalized and candidate.name and PurePosixPath(candidate.name).match(normalized)
-        )
+        candidate = relative if "/" in pattern.lstrip("/") else PurePosixPath(relative).name
+        parts = tuple(candidate.split("/"))
+        def match(value: str) -> bool:
+            segments = tuple(value.split("/"))
+            @lru_cache(maxsize=None)
+            def visit(index: int, offset: int) -> bool:
+                if index == len(segments):
+                    return offset == len(parts)
+                if segments[index] == "**":
+                    return visit(index + 1, offset) or (offset < len(parts) and visit(index, offset + 1))
+                return offset < len(parts) and fnmatch.fnmatchcase(parts[offset], segments[index]) and visit(index + 1, offset + 1)
+            return visit(0, 0)
+        return any(match(value) for value in PolicyFilesystemBackend._glob_patterns(pattern))

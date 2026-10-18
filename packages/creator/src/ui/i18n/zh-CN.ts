@@ -1,4 +1,15 @@
 export const zhCN = {
+  creatorRunOutcome: {
+    stopped: "本次任务已停止。",
+    failed: "本次任务未完成。",
+    noChanges: "本轮没有修改项目文件，页面保持原样。",
+    changesKept: "本轮已有项目文件修改并已保留，但请求结果尚未确认。",
+    changesUnknown: "暂时无法确认项目文件的修改状态。",
+    lastTool: "最后完成的步骤：{0}。",
+    toolError: "遇到的问题（{0}）：{1}",
+    unknownReason: "工具未提供详细原因",
+    incomplete: "当前请求尚未完成，可根据以上原因继续定位；未自动重试。",
+  },
   "creatorDock": {
     "label": "Creator Agent",
     "collapse": "收起 Creator",

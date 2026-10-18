@@ -267,7 +267,24 @@
       "inject": [],
       "optionalInject": []
     },
-    "publicPresentationTypes": true
+    "publicPresentationTypes": true,
+    "applicationComposition": {
+      "preserveSlots": [
+        {
+          "name": "actions",
+          "renderMethod": "renderSlot",
+          "layout": "inline",
+          "overrideProp": "actions"
+        }
+      ],
+      "replacementProps": [
+        "actions",
+        "children",
+        "rootProps.children",
+        "actionBarProps.children"
+      ],
+      "semantics": "The npm bridge supplies default actions from the semantic actions Slot. To append application-owned controls, preserve that Slot output alongside the new controls in actions. Setting replacement props without it replaces existing controls. Local popup state and public controls require no implementation takeover; preserve response scope and existing action behavior."
+    }
   },
   {
     "id": "conversation-suggestions",

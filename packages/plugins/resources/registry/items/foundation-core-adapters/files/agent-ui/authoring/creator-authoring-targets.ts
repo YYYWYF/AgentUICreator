@@ -12,9 +12,19 @@ export interface CreatorApplicationAuthoringTarget {
   intents: readonly string[];
   ownerPath: string;
   relatedPluginIds?: readonly string[];
+  optional?: boolean;
 }
 
 export const creatorApplicationAuthoringTargets = [
+  {
+    id: "appearance.assistant-panel-width",
+    kind: "application_config",
+    name: "Floating assistant panel width",
+    description: "Project-owned outer floating chat panel width in pixels. In assistant mode, adjust this for a wider/narrower chat area; AppUIModel controls only the inner layout. The panel remains clamped to the viewport.",
+    intents: ["make chat area wider", "change floating assistant width", "聊天区域太窄，调宽一点", "调整悬浮聊天面板宽度"],
+    ownerPath: "appearance/shell-config.ts",
+    optional: true,
+  },
   {
     id: "conversation.starter-suggestions",
     kind: "application_config",
@@ -43,6 +53,16 @@ export const creatorApplicationAuthoringTargets = [
     relatedPluginIds: ["conversation-surface"],
   },
   {
+    id: "theme.brand-palette",
+    kind: "application_config",
+    name: "Agent UI brand colors and visual styling",
+    description: "Customize Agent UI brand colors, surfaces, radius and shadows in this project stylesheet. Read ../theme/theme-customization.md for public tokens, scope, cascade and derived colors. Ordinary scoped application CSS editing needs no source takeover. Preserve npm imports, vendor and Host CSS. Presets are light/dark/violet; blue is a palette, not a preset.",
+    intents: ["change brand colors", "customize theme palette", "make the assistant blue and white", "simplify visual styling", "紫色换蓝白配色", "企业配色，整体简洁一点"],
+    ownerPath: "conversation/styles.css",
+    optional: true,
+    relatedPluginIds: ["theme-provider"],
+  },
+  {
     id: "theme.default-mode",
     kind: "application_config",
     name: "Application default theme mode",
@@ -53,6 +73,6 @@ export const creatorApplicationAuthoringTargets = [
       "change application theme default",
     ],
     ownerPath: "theme/theme-config.ts",
-    relatedPluginIds: ["theme-provider", "theme-switch"],
+    relatedPluginIds: ["theme-provider"],
   },
 ] as const satisfies readonly CreatorApplicationAuthoringTarget[];

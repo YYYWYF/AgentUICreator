@@ -49,7 +49,14 @@ class EditUIPluginSourceChange(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     type: Literal["edit"]
-    relativePath: str = Field(min_length=1, max_length=1_000)
+    relativePath: str = Field(
+        min_length=1, max_length=1_000,
+        description=("POSIX file path relative to the selected Plugin directory, e.g. "
+                     "index.tsx or components/Dialog.tsx. Do not include the project "
+                     "source root or plugins/<pluginId> prefix. read_file.file_path "
+                     "uses a project virtual path instead; do not copy it here."),
+        examples=["index.tsx", "components/Dialog.tsx"],
+    )
     edits: list[PluginSourceEdit] = Field(min_length=1)
 
 
@@ -57,7 +64,14 @@ class CreateUIPluginSourceChange(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     type: Literal["create"]
-    relativePath: str = Field(min_length=1, max_length=1_000)
+    relativePath: str = Field(
+        min_length=1, max_length=1_000,
+        description=("POSIX file path relative to the selected Plugin directory, e.g. "
+                     "index.tsx or components/Dialog.tsx. Do not include the project "
+                     "source root or plugins/<pluginId> prefix. read_file.file_path "
+                     "uses a project virtual path instead; do not copy it here."),
+        examples=["index.tsx", "components/Dialog.tsx"],
+    )
     content: str = Field(max_length=MAX_SOURCE_FILE_CHARACTERS)
 
 

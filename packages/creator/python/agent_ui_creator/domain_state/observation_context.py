@@ -106,6 +106,7 @@ class DomainObservationContext:
         self._composition_grounding: CompositionGroundingObservation | None = None
         self._composition_grounding_invalidated = False
         self._composition_grounding_exit_reason: str | None = None
+        self._composition_lane_exited = False
         self._invalidation_reason: str | None = None
         self.recovery_observation: dict[str, Any] | None = None
         self.recovery_blocked: str | None = None
@@ -189,6 +190,8 @@ class DomainObservationContext:
         self.recovery_requires_composition = False
         self.recovery_pending = False
         self.recovery_observation = None
+        if self._composition_lane_exited:
+            return  # Late pages retain model evidence but cannot re-enter an exited lane.
         self._composition_grounding = CompositionGroundingObservation(
             hash=hash,
             revision=revision,
@@ -216,6 +219,12 @@ class DomainObservationContext:
             self._composition_grounding_exit_reason = reason
         if was_grounded:
             self.composition_fast_path_metrics.record_exit()
+
+    def exit_composition_lane(self, *, current_revision: int) -> None:
+        # Shared by middleware and the tool body: a concurrently completed page
+        # must not re-enable this run-scoped optimization. No authority is changed.
+        self._composition_lane_exited = True
+        self.clear_composition_grounding(reason="cross_layer_read", current_revision=current_revision)
 
     def composition_grounding_status(
         self, *, current_revision: int

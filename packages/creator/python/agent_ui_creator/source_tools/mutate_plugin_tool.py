@@ -53,7 +53,10 @@ def mutate_ui_plugin_source_tool(service: UIPluginSourceMutationService) -> Base
             "to existing files with new Plugin-local files. Every edit target must "
             "have been read in the current run. Each changes entry requires "
             "type='edit' with relativePath and edits [{oldText,newText}], or "
-            "type='create' with relativePath and content. Changes support only exact text edit "
+            "type='create' with relativePath and content. relativePath is relative to "
+            "the selected Plugin directory (index.tsx), unlike read_file.file_path "
+            "which includes the project source root and plugins/<pluginId>. "
+            "Changes support only exact text edit "
             "and create-only operations; deletion, rename, move, and cross-Plugin "
             "paths are forbidden."
         ),

@@ -282,3 +282,31 @@ it("keeps application props and composition through npm upgrade, takeover and im
   expect((await service.inspect(root))[0]?.updateAvailable).toBe(false);
 
 });
+
+it("validates takeover compatibility as installed shared API requirements, not Composer-only", async () => {
+  const root=await fixture("tool-timeline",true);
+  await ensurePluginApplication(root,"tool-timeline");
+  const {paths}=await resourcePaths(root);
+  const index=path.join(paths.pluginsRoot,"tool-timeline/index.tsx");
+  const before=await readFile(index,"utf8");
+  const plan=await planPluginSourceTakeover(root,{pluginId:"tool-timeline"});
+  expect(plan.compatibility).toEqual({pluginSupport:1});
+  expect(()=>validateOperatorResult("plan_plugin_source_takeover",plan)).not.toThrow();
+  expect(()=>validateOperatorResult("plan_plugin_source_takeover",{...plan,compatibility:{composerSupport:1}})).not.toThrow();
+  expect(()=>validateOperatorResult("plan_plugin_source_takeover",{...plan,compatibility:{futureSharedApi:2}})).not.toThrow();
+  for(const compatibility of [{},{pluginSupport:0},{pluginSupport:-1},{pluginSupport:1.5},{pluginSupport:"1"},{"../pluginSupport":1},Object.fromEntries(Array.from({length:65},(_,n)=>[`api${n}`,1]))]) {
+    expect(()=>validateOperatorResult("plan_plugin_source_takeover",{...plan,compatibility})).toThrow();
+  }
+  expect(await readFile(index,"utf8")).toBe(before);
+  await expect(readFile(path.join(paths.pluginsRoot,"tool-timeline/source/index.tsx"))).rejects.toMatchObject({code:"ENOENT"});
+  const catalogPath=path.join(root,"node_modules/@za38.03/agent-ui-plugins/dist/catalog.json");
+  const catalog=JSON.parse(await readFile(catalogPath,"utf8"));
+  catalog.sharedApis.pluginSupport=2;
+  await writeFile(catalogPath,JSON.stringify(catalog));
+  await expect(planPluginSourceTakeover(root,{pluginId:"tool-timeline"})).rejects.toMatchObject({code:"PLUGIN_SOURCE_INCOMPATIBLE"});
+  expect(await readFile(index,"utf8")).toBe(before);
+  catalog.sharedApis.pluginSupport=1;
+  catalog.plugins.find((plugin: {id:string})=>plugin.id==="tool-timeline").takeover.compatibility={unknownSupport:1};
+  await writeFile(catalogPath,JSON.stringify(catalog));
+  await expect(planPluginSourceTakeover(root,{pluginId:"tool-timeline"})).rejects.toMatchObject({code:"PLUGIN_SOURCE_INCOMPATIBLE"});
+});

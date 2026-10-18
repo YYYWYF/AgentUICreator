@@ -15,6 +15,7 @@ function message(content: Content, status: Extract<ThreadMessage, { role: "assis
   return { id: "assistant-1", role: "assistant", content, status, createdAt: new Date(0), metadata: { unstable_state: null, unstable_annotations: [], unstable_data: [], steps: [], custom: {} } };
 }
 const tool = (id: string, extra = {}) => ({ type: "tool-call" as const, toolCallId: id, toolName: "read_file", args: {}, argsText: "{}", result: { ok: true }, ...extra });
+const EmptyScopedTransientMessages = () => <div data-testid="empty-transient-plugin-boundary" />;
 async function mount(content: Content, enabled = true, tasks = false, status?: Extract<ThreadMessage, { role: "assistant" }>["status"]) {
   const container = document.createElement("div"); document.body.append(container);
   const root = createRoot(container); roots.push(root);
@@ -23,7 +24,7 @@ async function mount(content: Content, enabled = true, tasks = false, status?: E
     const current = useLocalRuntime({ run: async () => ({ content: [] }) }, { initialMessages: [message(content, status)] });
     useEffect(() => { runtime = current; }, [current]);
     return <AgentUILocaleProvider locale="en-US"><AssistantRuntimeProvider runtime={current}>
-      <ConversationThread components={{ ...(enabled ? { ToolTimeline: ConversationToolTimeline } : {}), ...(tasks ? { TaskGroup: ConversationTaskGroup } : {}) }} />
+      <ConversationThread components={{ TransientMessages: EmptyScopedTransientMessages, ...(enabled ? { ToolTimeline: ConversationToolTimeline } : {}), ...(tasks ? { TaskGroup: ConversationTaskGroup } : {}) }} />
     </AssistantRuntimeProvider></AgentUILocaleProvider>;
   }
   await act(async () => root.render(<Host />));
@@ -31,6 +32,12 @@ async function mount(content: Content, enabled = true, tasks = false, status?: E
 }
 afterEach(async () => { await act(async () => roots.splice(0).forEach(root => root.unmount())); document.body.replaceChildren(); });
 describe("official message ToolTimeline composition", () => {
+  it("does not mount empty scoped transient boundaries between transcript messages", async () => {
+    const { container } = await mount([tool("a")]);
+    const group = container.querySelector('[data-slot="aui_message-group"]')!;
+    expect(group.querySelector('[data-testid="empty-transient-plugin-boundary"]')).toBeNull();
+    expect(group.children).toHaveLength(1);
+  });
   it("T02 renders a single collapsed summary with three same-name tool calls", async () => {
     const { container } = await mount([tool("a"), tool("b"), tool("c")]);
     expect(container.querySelectorAll('[data-slot="tool-timeline"]')).toHaveLength(1);

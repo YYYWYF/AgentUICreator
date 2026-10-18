@@ -61,12 +61,16 @@ class ToolProtocolMetrics:
     protocolRepairAttempts: int = 0
     protocolRepairSuccesses: int = 0
     protocolRepairFailures: int = 0
+    protocolReplans: int = 0
     batchPolicyViolations: int = 0
     batchPolicyRepairAttempts: int = 0
     batchPolicyRepairSuccesses: int = 0
     toolArgumentParseFailures: int = 0
     missingToolCallIds: int = 0
     repeatedToolLoops: int = 0
+    contextCompactionRequests: int = 0
+    contextCompactionSavedChars: int = 0
+    contextCompactionMaxSavedChars: int = 0
     inputTokens: int = 0
     outputTokens: int = 0
     traces: list[ModelCallTrace] = field(default_factory=list)

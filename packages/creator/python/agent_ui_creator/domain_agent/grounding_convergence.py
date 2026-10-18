@@ -35,6 +35,9 @@ COMPOSITION_PRE_MUTATION_TOOL_NAMES = (
     *RECOVERY_READ_TOOL_NAMES,
     *RECOVERY_WRITE_TOOL_NAMES,
     "read_file",
+    "ls", "grep", "glob",
+    "inspect_ui_plugin", "inspect_ui_services", "inspect_ui_plugin_source_references",
+    "takeover_plugin_source",
     "inspect_ui_project",
     "inspect_app_ui_model_source",
     "inspect_agent_ui_sources",
@@ -84,15 +87,16 @@ SOURCE_INSTALLED_TOOL_NAMES = (
 )
 
 
-COMPOSITION_GROUNDING_CONTROL = """Composition grounding is sufficient.
+COMPOSITION_GROUNDING_CONTROL = """Composition evidence is complete; task scope is not determined by this snapshot.
 Authoritative evidence already covers the AppUIModel hash, Layout refs and sizes,
 Slots and current instances, available Plugin capability summaries, and Active
 Composition. For a pure Composition change, the next side effect should be
-mutate_app_ui_model. Do not read Plugin source, CSS, Services, or generated files.
-If another authoring layer is genuinely required, issue the smallest targeted
-cross-layer read. For a missing reusable capability, inspect_agent_ui_sources
-is available and exits the Composition fast path in one read. Other cross-layer
-reads are rejected as explicit exit signals; retry them on the next model call.
+mutate_app_ui_model. Component props, rendering and interaction behavior may require
+an application/source owner even when the Plugin is already enabled. If another
+authoring layer is required, issue the smallest targeted cross-layer inspection;
+it executes normally and exits this lane without a retry. Do not rediscover known
+owners. Inspection is not takeover consent. takeover_plugin_source retains its
+independent installed-package plan and explicit user authorization.
 For an explicit user commission, prepare_ui_plugin_development is available
 to bind the development grant and exit this lane. For other requests, inspect
 existing Plugins and Source Items before proposing new development.
@@ -344,23 +348,14 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
         if ((self.observations.recovery_pending or self.observations.recovery_requires_composition)
                 and name not in self._recovery_tools()):
             return call, name, arguments, True
-        prohibited = (
-            self.observations.composition_grounding_status(
-                current_revision=self.backend.mutation_revision
-            )
-            == "grounded"
-            and is_cross_layer_read(name, arguments, project_root=str(self.backend.cwd))
-        )
-        if prohibited:
-            metrics.record_cross_layer_read_attempt()
-            if filesystem_source_read_path(name, arguments, project_root=str(self.backend.cwd)) is not None:
-                metrics.record_filesystem_source_read()
-            self.observations.clear_composition_grounding(
-                reason="cross_layer_read",
-                current_revision=self.backend.mutation_revision,
-            )
-            if name == "inspect_agent_ui_sources":
-                prohibited = False
+        cross_layer = (is_cross_layer_read(name, arguments, project_root=str(self.backend.cwd))
+                       or name == "takeover_plugin_source")
+        if cross_layer:
+            if self.observations.composition_grounding_status(current_revision=self.backend.mutation_revision) == "grounded":
+                metrics.record_cross_layer_read_attempt()
+            self.observations.exit_composition_lane(current_revision=self.backend.mutation_revision)
+        # Optimization exit never changes the normal tool's admission/authority.
+        prohibited = False
         return call, name, arguments, prohibited
 
     def _after_tool_call(

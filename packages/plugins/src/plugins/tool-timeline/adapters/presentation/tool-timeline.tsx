@@ -45,10 +45,10 @@ export function InternalConversationToolTimeline({children, rootProps, timelineP
       restingLabel={formatPresentationMessage(projection.calls.every(call => call.status === "complete") ? messages.summary : messages.pendingSummary, { count: steps.length })}
       activeLabel={formatPresentationMessage(messages.active, { count: steps.length })}
       stats={[]} className="min-w-0 max-w-full" {...timelineProps} open={effectiveOpen} onOpenChange={value=>{setOpen(value);timelineProps?.onOpenChange?.(value);}} />
-    {effectiveOpen && children ? <Collapsible {...detailsProps} open={detailsProps?.open ?? detailsOpen} onOpenChange={(value, event)=>{detailsProps?.onOpenChange?.(value,event);if(!event.isCanceled)setDetailsOpen(value);}}>
+    {effectiveOpen && children ? <Collapsible className="mt-3" {...detailsProps} open={detailsProps?.open ?? detailsOpen} onOpenChange={(value, event)=>{detailsProps?.onOpenChange?.(value,event);if(!event.isCanceled)setDetailsOpen(value);}}>
       <CollapsibleTrigger data-agent-ui-owned="" className="rounded-md py-1 text-sm text-muted-foreground" {...detailsTriggerProps}>{messages.details}</CollapsibleTrigger>
       <CollapsibleContent {...detailsContentProps}>
-        <div data-slot="agent-ui-tool-timeline-details" className="flex flex-col gap-2">{children}</div>
+        <div data-slot="agent-ui-tool-timeline-details" className="flex flex-col gap-4 pt-3">{children}</div>
       </CollapsibleContent>
     </Collapsible> : null}
   </div>;

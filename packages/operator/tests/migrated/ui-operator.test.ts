@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdtemp, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { cp, mkdtemp, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -1073,4 +1073,22 @@ describe("ui-operator", () => {
       error: { code: "UI_PLUGIN_NOT_FOUND" },
     });
   });
+});
+
+it("queries shared public contracts through the real custom-plugin entry without application metadata", async () => {
+  const {projectRoot}=await createProject();
+  await mkdir(path.join(projectRoot,".agent-ui"),{recursive:true});
+  await writeFile(path.join(projectRoot,".agent-ui/project.json"),JSON.stringify({mode:"platform",sourceRoot:"src"}));
+  await cp(path.join(projectRoot,"plugins"),path.join(projectRoot,"src/plugins"),{recursive:true});
+  await cp(path.join(projectRoot,"app-ui"),path.join(projectRoot,"src/app-ui"),{recursive:true});
+  const pkg=path.join(projectRoot,"node_modules/@za38.03/agent-ui-plugins");
+  await mkdir(path.join(pkg,"dist"),{recursive:true});
+  await writeFile(path.join(pkg,"package.json"),JSON.stringify({name:"@za38.03/agent-ui-plugins",version:"4.2.1",exports:{".":{types:"./public.d.ts"},"./catalog.json":"./dist/catalog.json"}}));
+  await writeFile(path.join(pkg,"dist/catalog.json"),JSON.stringify({schemaVersion:1,package:{name:"@za38.03/agent-ui-plugins",version:"4.2.1"},plugins:[],publicComponents:{schemaVersion:1,modules:{"@za38.03/agent-ui-plugins":{Dialog:{presentation:"Unstyled primitive"}}}}}));
+  await writeFile(path.join(pkg,"public.d.ts"),'export declare const Dialog: { Root: (props: {open?: boolean}) => null };');
+  const before=await readFile(path.join(projectRoot,"plugins/sample/definition.ts"),"utf8");
+  const response=await handleUIOperatorRequest({operation:"inspect_ui_plugin",input:{pluginId:"sample",sharedModule:"@za38.03/agent-ui-plugins",sharedSymbols:["Dialog","Dialog.$Root"]}},projectRoot);
+  expect(response, JSON.stringify(response)).toMatchObject({ok:true,result:{asset:{ownership:"project_source"},sharedTypes:{queryResolution:{status:"partial",resolved:1,unresolved:1},symbols:[{name:"Dialog",status:"available",presentationContract:{presentation:"Unstyled primitive"}},{name:"Dialog.$Root",status:"unavailable",nextEvidence:expect.stringContaining("Root")}]}}});
+  expect(response.ok && response.result).not.toHaveProperty("application");
+  expect(await readFile(path.join(projectRoot,"plugins/sample/definition.ts"),"utf8")).toBe(before);
 });

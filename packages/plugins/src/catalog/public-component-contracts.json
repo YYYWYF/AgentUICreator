@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "modules": {
+    "@za38.03/agent-ui-plugins": {
+      "AgentUIDialog": {
+        "presentation": "Unstyled Dialog compound primitives. Root manages dialog state; Popup and Backdrop supply behavior but no product positioning, backdrop color, size or surface styles.",
+        "composition": "Root contains Trigger and either (a) Portal with explicitly styled Backdrop and Popup, or (b) AgentUIDialogContent, which owns its Portal and Backdrop. Do not wrap Content in an additional Portal.",
+        "portal": "Portal targets the nearest AgentUIRoot portal container, preserving the Agent UI theme boundary; it does not center its children. No caller container override or separate document.body portal is needed.",
+        "interaction": "Use the public Trigger/Close composition or documented focus props for trigger registration and focus restoration. Controlled open state alone does not register an arbitrary external button as the trigger. Verify Escape, close and focus return in the actual Host.",
+        "styles": "Import @za38.03/agent-ui-plugins/styles.css for styled public controls. Raw Popup still needs project-owned scoped positioning and surface styles."
+      },
+      "AgentUIDialogContent": {
+        "presentation": "Styled Dialog Popup with centered fixed positioning, responsive width, surface styles and a default localized close button (showCloseButton can disable it). Requires package styles.css.",
+        "composition": "Render directly inside AgentUIDialog.Root. Content includes its own themed Portal and styled Backdrop; put Title, Description and project content inside Content, not another Popup or Portal.",
+        "portal": "Uses the nearest AgentUIRoot portal container, preserving theme. Centering is relative to its CSS fixed-position containing block; inspect actual Host ancestors if geometry is wrong.",
+        "interaction": "Inherits Popup props, including public focus controls. Pair with a registered Trigger or deliberate finalFocus targeting when controlled by an external button; validate actual focus restoration.",
+        "styles": "Required asset: @za38.03/agent-ui-plugins/styles.css. className composes with the package styles; imported project CSS can override them. Check the owned stylesheet/cascade when visual placement fails."
+      }
+    }
+  }
+}

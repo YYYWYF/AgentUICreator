@@ -6,6 +6,7 @@ import { useCreatorCommandState } from "./commands/useCreatorCommandState.js";
 import { CreatorCommandMenu } from "./commands/CreatorCommandMenu.js";
 import { useRef as useLocaleMessagesRef } from "react";
 import { localizeCreatorPresentation, CreatorLocaleProvider, type CreatorLocaleCode, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
+import { creatorRunOutcomeText } from "./run-outcome.js";
 import { AgentConnectionPanel, CONNECTION_CHANGED, readAgentConnection } from "./AgentConnectionPanel.js";
 import { publishCreatorRefresh, readRefreshJson, type CreatorRefreshData } from "./creatorRefresh.js";
 import {
@@ -1505,6 +1506,10 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
 
     try {
       const subscriber = {
+        onQuestionResumed(interruptId: string) {
+          updateRunItems(current => current.map(item => item.kind === "question" && item.interruptId === interruptId
+            ? { ...item, status: "resolved" as const } : item));
+        },
         onRunStartedEvent() {
           setRunAccepted(true);
         },
@@ -1613,7 +1618,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
           runErrorHandled = true;
           runErrorCode = event.code;
           if (response !== undefined) {
-            updateRunItems(current => current.map(item => item.kind === "question" && item.id === response.question.id
+            updateRunItems(current => current.map(item => item.kind === "question" && item.id === response.question.id && item.status !== "resolved"
               ? { ...item, status: (questionContextIsGone(event.code) ? "stale" : "pending") as CreatorQuestionActivity["status"] } : item));
           }
           updateRunItems((current) => [
@@ -1631,13 +1636,19 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
               kind: "message",
               id: crypto.randomUUID(),
               role: "error",
-              content: event.message,
+              content: creatorRunOutcomeText(event.metadata, event.message, localeMessages),
             },
           ]);
         },
       } satisfies Parameters<CreatorAgentClient["run"]>[0];
       const result = response === undefined ? await agent.run(subscriber)
         : await agent.resumeInterrupt(response.question.interruptId, response.answers, subscriber);
+      if (isRecord(result.result) && result.result.completion === "blocked") {
+        updateRunItems(current => current.map(item =>
+          item.kind === "message" && item.id === latestAssistantMessageId
+            ? { ...item, content: creatorRunOutcomeText(result.result, item.content, localeMessages) }
+            : item));
+      }
       if (response !== undefined && !runErrorHandled) {
         updateRunItems(current => current.map(item => item.kind === "question" && item.id === response.question.id
           ? { ...item, status: "resolved" as const } : item));
@@ -1688,7 +1699,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
       }
     } catch (error) {
       if (response !== undefined) {
-        updateRunItems(current => current.map(item => item.kind === "question" && item.id === response.question.id
+        updateRunItems(current => current.map(item => item.kind === "question" && item.id === response.question.id && item.status !== "resolved"
           ? { ...item, status: (questionContextIsGone(runErrorCode) ? "stale" : "pending") as CreatorQuestionActivity["status"] } : item));
       }
       if (!runErrorHandled) {

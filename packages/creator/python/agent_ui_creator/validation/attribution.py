@@ -31,11 +31,11 @@ class ValidationAttributionContext:
 
 def _attribution_context(activity: Any, scope: Any) -> ValidationAttributionContext:
     receipt = activity.snapshot()
-    changed_paths = tuple(
+    changed_paths = tuple(dict.fromkeys((*getattr(activity, "recovered_paths", ()), *(
         str(item.get("path"))
         for item in receipt.get("files", [])
         if isinstance(item, dict) and isinstance(item.get("path"), str)
-    )
+    ))))
     project_root = getattr(activity, "project_root", None)
     changed_resources = resource_keys_for_paths(changed_paths, project_root=project_root)
     changed_layers = change_layers_for_paths(changed_paths, project_root=project_root)

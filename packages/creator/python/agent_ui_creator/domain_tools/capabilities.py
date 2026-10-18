@@ -58,6 +58,37 @@ def capability_evidence(project: dict, sources: dict) -> dict:
     }
 
 
+def capability_summary(project: dict, sources: dict, services: dict) -> dict:
+    """Keep all candidates, but omit detailed authoring contracts and duplicated layout."""
+    plugins = project.get("pluginAssets", [])
+    compact_plugins = [
+        {key: plugin[key] for key in ("pluginId", "name", "description", "selected", "applicationGate") if key in plugin}
+        for plugin in plugins if isinstance(plugin, dict)
+    ]
+    compact_sources = {key: sources[key] for key in ("stateHash", "inventoryComplete", "error") if key in sources}
+    if isinstance(sources.get("items"), list):
+        compact_sources["items"] = [
+            {key: item[key] for key in ("id", "description", "status", "owned", "updateAvailable") if key in item}
+            for item in sources["items"] if isinstance(item, dict)
+        ]
+    return {
+        "detail": "summary",
+        "authority": "Project declarations and configuration; live Agent behavior is unverified.",
+        "appUIModelHash": project.get("appUIModel", {}).get("hash"),
+        "plugins": compact_plugins,
+        "sources": compact_sources,
+        "services": {key: services[key] for key in ("services", "issues", "error") if key in services},
+        "uiStack": project.get("uiStack", []),
+        "capabilityEvidence": capability_evidence(project, sources),
+        "customization": {
+            "layout": "AppUIModel placement, sizing and semantic composition",
+            "appearanceAndBehavior": "Project application props, composition and public renderers first",
+            "implementation": "Per-Plugin source takeover requires explicit agreement",
+        },
+        "nextInspection": "Overview needs no full layout dump. Inspect a selected Plugin or use detail='full' only for a concrete follow-up. Service availability does not prove endpoint configuration or a successful request.",
+    }
+
+
 def capability_navigation(project: dict, sources: dict, root: Path | None) -> dict:
     components, complete = component_navigation(root) if root is not None else ([], False)
     plugins = project.get("pluginAssets", [])

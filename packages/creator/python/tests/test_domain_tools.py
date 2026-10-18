@@ -16,6 +16,10 @@ from agent_ui_creator.domain_agent.prompt import DOMAIN_READ_AGENT_PROMPT, DOMAI
 from agent_ui_creator.app_ui_model.mutation_tool import create_app_ui_model_mutation_tool
 
 
+def _tool(tools, name):
+    return next(tool for tool in tools if tool.name == name)
+
+
 class StubClient:
     async def inspect_ui_project(self, *, view=None):
         if view == "composition":
@@ -84,11 +88,11 @@ class StubClient:
 def test_domain_tools_keep_ts_names_and_bounded_success_envelopes():
     tools = create_operator_tools(StubClient())
 
-    assert tuple(tool.name for tool in tools) == (
+    assert set(tool.name for tool in tools).issuperset((
         *DOMAIN_READ_TOOL_NAMES,
         "apply_agent_ui_source_item",
-    )
-    result = json.loads(asyncio.run(tools[4].ainvoke({"pluginId": "workspace-inspector"})))
+    ))
+    result = json.loads(asyncio.run(_tool(tools, "inspect_ui_plugin").ainvoke({"pluginId": "workspace-inspector"})))
     assert result == {
         "ok": True,
         "result": {"pluginId": "workspace-inspector"},
@@ -102,14 +106,14 @@ def test_domain_tool_preserves_operator_error_code():
         raise OperatorError("OPERATOR_ENTRY_TIMEOUT", "timed out", {"seconds": 15})
 
     client.inspect_ui_project = fail
-    tool = create_operator_tools(client)[0]
+    tool = _tool(create_operator_tools(client), "inspect_ui_project")
 
     result = json.loads(asyncio.run(tool.ainvoke({})))
     assert result["error"]["code"] == "OPERATOR_ENTRY_TIMEOUT"
 
 
 def test_service_inspection_distinguishes_resolved_provider_from_live_backend():
-    tool = create_operator_tools(StubClient())[5]
+    tool = _tool(create_operator_tools(StubClient()), "inspect_ui_services")
     response = json.loads(asyncio.run(tool.ainvoke({})))
 
     assert response["result"]["availabilityEvidence"] == {
@@ -126,9 +130,9 @@ def test_source_inventory_marks_current_run_for_available_install_tool(tmp_path)
     observations = DomainObservationContext()
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("source-inventory")
-    tool = create_operator_tools(
+    tool = _tool(create_operator_tools(
         StubClient(), observations=observations, activity=activity,
-    )[7]
+    ), "inspect_agent_ui_sources")
     assert observations.source_inventory_observed is False
     response = json.loads(asyncio.run(tool.ainvoke({})))
     assert response['ok'] is True
@@ -159,9 +163,9 @@ def test_existing_source_install_returns_explicit_observation_handoff(tmp_path, 
     observations.observe_app_ui_model(
         hash="a" * 64, revision=activity.revision, source="inspect_app_ui_model",
     )
-    tool = create_operator_tools(
+    tool = _tool(create_operator_tools(
         client, observations=observations, activity=activity,
-    )[-1]
+    ), "apply_agent_ui_source_item")
     result = json.loads(asyncio.run(tool.ainvoke({
         "itemId": source_item_id, "expectedStateHash": "f" * 64,
     })))
@@ -173,13 +177,13 @@ def test_existing_source_install_returns_explicit_observation_handoff(tmp_path, 
 
 
 def test_source_reuse_guidance_precedes_unneeded_host_exploration():
-    assert "available Source Item metadata is sufficient to install" in DOMAIN_WRITE_AGENT_PROMPT
-    assert "Do not invent a Skill path from a tool name" in DOMAIN_WRITE_AGENT_PROMPT
-    assert "After a changed source install, inspect_ui_project(view=\"composition\")" in DOMAIN_WRITE_AGENT_PROMPT
+    assert "exact returned id/stateHash" in DOMAIN_WRITE_AGENT_PROMPT
+    assert "do not manually reproduce Registry templates" in DOMAIN_WRITE_AGENT_PROMPT
+    assert "acquire fresh Composition before composing" in DOMAIN_WRITE_AGENT_PROMPT
 
 
 def test_domain_slot_tool_forwards_layout_hash_binding():
-    tool = create_operator_tools(StubClient())[3]
+    tool = _tool(create_operator_tools(StubClient()), "inspect_ui_slots")
 
     rendered = asyncio.run(tool.ainvoke({
         "target": {"type": "layout_slot", "slotRef": "l2"},
@@ -201,13 +205,13 @@ def test_oversized_project_result_pages_complete_snapshot_without_truncation():
         return snapshot
 
     client.inspect_ui_project = huge
-    tool = create_operator_tools(client)[0]
+    tool = _tool(create_operator_tools(client), "inspect_ui_project")
 
     cursor = None
     chunks = []
     while True:
         rendered = asyncio.run(tool.ainvoke({"cursor": cursor} if cursor else {}))
-        assert len(rendered) < MAX_DOMAIN_TOOL_RESULT_CHARS
+        assert len(rendered) <= MAX_DOMAIN_TOOL_RESULT_CHARS
         page = json.loads(rendered)["result"]
         assert page["pageComplete"] is (page["nextCursor"] is None)
         chunks.append(page["pageText"])
@@ -218,7 +222,7 @@ def test_oversized_project_result_pages_complete_snapshot_without_truncation():
     assert json.loads("".join(chunks)) == {"ok": True, "result": snapshot}
 
 
-def test_project_page_cursor_rejects_changed_snapshot():
+def test_project_pages_keep_captured_snapshot_until_explicit_refresh():
     client = StubClient()
     snapshot = {"source": "x" * (MAX_DOMAIN_TOOL_RESULT_CHARS + 1)}
 
@@ -226,13 +230,17 @@ def test_project_page_cursor_rejects_changed_snapshot():
         return snapshot
 
     client.inspect_ui_project = huge
-    tool = create_operator_tools(client)[0]
+    tool = _tool(create_operator_tools(client), "inspect_ui_project")
     first = json.loads(asyncio.run(tool.ainvoke({})))
     snapshot["source"] += "y"
 
     response = json.loads(asyncio.run(tool.ainvoke({"cursor": first["result"]["nextCursor"]})))
 
-    assert response["error"]["code"] == "OPERATOR_SNAPSHOT_STALE"
+    assert response["ok"] is True
+    refreshed = json.loads(asyncio.run(tool.ainvoke({})))
+    assert refreshed["result"]["snapshotHash"] != first["result"]["snapshotHash"]
+    stale = json.loads(asyncio.run(tool.ainvoke({"cursor": first["result"]["nextCursor"]})))
+    assert stale["error"]["code"] == "OPERATOR_SNAPSHOT_STALE"
 
 
 def test_skipped_project_page_cannot_authorize_mutation(tmp_path):
@@ -254,13 +262,13 @@ def test_skipped_project_page_cannot_authorize_mutation(tmp_path):
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("paging-run")
     observations = DomainObservationContext()
-    tool = create_operator_tools(
+    tool = _tool(create_operator_tools(
         client, observations=observations, activity=activity,
-    )[0]
+    ), "inspect_ui_project")
     first = json.loads(asyncio.run(tool.ainvoke({"view": "composition"})))
     assert observations.current_hash(current_revision=0) is None
     page = first["result"]
-    last_offset = ((page["totalChars"] - 1) // 20_000) * 20_000
+    last_offset = int(page["nextCursor"].rsplit(":", 1)[1]) + 1
     cursor_prefix = page["nextCursor"].rsplit(":", 1)[0]
     skipped = json.loads(asyncio.run(tool.ainvoke({
         "view": "composition", "cursor": f"{cursor_prefix}:{last_offset}",
@@ -314,14 +322,14 @@ def test_project_cursor_is_scoped_to_view_run_and_revision(tmp_path):
     client.inspect_ui_project = huge
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("first-run")
-    first_tool = create_operator_tools(client, activity=activity)[0]
+    first_tool = _tool(create_operator_tools(client, activity=activity), "inspect_ui_project")
     first = json.loads(asyncio.run(first_tool.ainvoke({"view": "composition"})))
     cursor = first["result"]["nextCursor"]
 
     wrong_view = json.loads(asyncio.run(first_tool.ainvoke({"cursor": cursor})))
     assert wrong_view["error"]["code"] == "OPERATOR_CURSOR_INVALID"
 
-    other_run = create_operator_tools(client, activity=activity)[0]
+    other_run = _tool(create_operator_tools(client, activity=activity), "inspect_ui_project")
     wrong_run = json.loads(asyncio.run(other_run.ainvoke({
         "view": "composition", "cursor": cursor,
     })))
@@ -358,7 +366,7 @@ def test_project_page_retry_does_not_skip_missing_middle_pages(tmp_path):
     client.inspect_ui_project = huge
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("retry-run")
-    tool = create_operator_tools(client, activity=activity)[0]
+    tool = _tool(create_operator_tools(client, activity=activity), "inspect_ui_project")
     first = json.loads(asyncio.run(tool.ainvoke({"view": "composition"})))
     cursor = first["result"]["nextCursor"]
     middle = json.loads(asyncio.run(tool.ainvoke({
@@ -378,7 +386,7 @@ def test_project_inspection_bounds_utf8_bytes_as_well_as_characters():
         return {"appUIModel": {"hash": "a" * 64}, "text": "😀" * 15_000}
 
     client.inspect_ui_project = unicode_snapshot
-    tool = create_operator_tools(client)[0]
+    tool = _tool(create_operator_tools(client), "inspect_ui_project")
     first = asyncio.run(tool.ainvoke({}))
     assert len(first) <= MAX_DOMAIN_TOOL_RESULT_CHARS
     assert len(first.encode("utf-8")) <= MAX_DOMAIN_TOOL_RESULT_CHARS
@@ -396,13 +404,13 @@ def test_authoritative_domain_reads_update_shared_observation(tmp_path):
     )
 
     for index, expected_hash, expected_source in (
-        (0, "a" * 64, "inspect_ui_project"),
-        (1, "b" * 64, "inspect_app_ui_model"),
-        (2, "c" * 64, "list_ui_plugins"),
-        (3, "d" * 64, "inspect_ui_slots"),
-        (5, "e" * 64, "inspect_ui_services"),
+        ('inspect_ui_project', "a" * 64, "inspect_ui_project"),
+        ('inspect_app_ui_model', "b" * 64, "inspect_app_ui_model"),
+        ('list_ui_plugins', "c" * 64, "list_ui_plugins"),
+        ('inspect_ui_slots', "d" * 64, "inspect_ui_slots"),
+        ('inspect_ui_services', "e" * 64, "inspect_ui_services"),
     ):
-        asyncio.run(tools[index].ainvoke({}))
+        asyncio.run(_tool(tools, index).ainvoke({}))
         snapshot = observations.snapshot()["appUIModel"]
         assert snapshot == {
             "hash": expected_hash,
@@ -421,13 +429,13 @@ def test_failed_inspection_preserves_existing_observation(tmp_path):
         observations=observations,
         activity=activity,
     )
-    asyncio.run(tools[0].ainvoke({}))
+    asyncio.run(_tool(tools, "inspect_ui_project").ainvoke({}))
 
     async def fail():
         raise OperatorError("OPERATOR_ENTRY_TIMEOUT", "timed out")
 
     client.inspect_ui_project = fail
-    asyncio.run(tools[0].ainvoke({}))
+    asyncio.run(_tool(tools, "inspect_ui_project").ainvoke({}))
 
     assert observations.current_hash(current_revision=0) == "a" * 64
 
@@ -444,7 +452,7 @@ def test_composition_snapshot_grounds_and_rejects_fully_covered_reads(tmp_path):
     )
 
     snapshot = json.loads(
-        asyncio.run(tools[0].ainvoke({"view": "composition"}))
+        asyncio.run(_tool(tools, "inspect_ui_project").ainvoke({"view": "composition"}))
     )
     assert snapshot["ok"] is True
     assert observations.composition_grounding_status(current_revision=0) == (
@@ -452,12 +460,12 @@ def test_composition_snapshot_grounds_and_rejects_fully_covered_reads(tmp_path):
     )
 
     for index, arguments in (
-        (0, {"view": "composition"}),
-        (1, {}),
-        (2, {}),
-        (3, {}),
+        ('inspect_ui_project', {"view": "composition"}),
+        ('inspect_app_ui_model', {}),
+        ('list_ui_plugins', {}),
+        ('inspect_ui_slots', {}),
     ):
-        covered = json.loads(asyncio.run(tools[index].ainvoke(arguments)))
+        covered = json.loads(asyncio.run(_tool(tools, index).ainvoke(arguments)))
         assert covered == {
             "ok": False,
             "error": {
@@ -469,12 +477,12 @@ def test_composition_snapshot_grounds_and_rejects_fully_covered_reads(tmp_path):
     assert observations.metrics.coveredReadRejections == 4
     activity.touch("app-ui/app-ui.json")
     assert observations.composition_grounding_status(current_revision=1) == "stale"
-    refreshed = json.loads(asyncio.run(tools[1].ainvoke({})))
+    refreshed = json.loads(asyncio.run(_tool(tools, "inspect_app_ui_model").ainvoke({})))
     assert refreshed["ok"] is True
     assert refreshed["result"]["hash"] == "b" * 64
 
 
-def test_composition_fast_path_blocks_domain_reads_until_full_project_exit(tmp_path):
+def test_cross_layer_domain_reads_exit_without_full_project_detour(tmp_path):
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("composition-fast-path-domain-guard")
     observations = DomainObservationContext()
@@ -485,20 +493,19 @@ def test_composition_fast_path_blocks_domain_reads_until_full_project_exit(tmp_p
         activity=activity,
     )
 
-    asyncio.run(tools[0].ainvoke({"view": "composition"}))
+    asyncio.run(_tool(tools, "inspect_ui_project").ainvoke({"view": "composition"}))
     for index, arguments in (
-        (4, {"pluginId": "workspace-inspector"}),
-        (5, {}),
-        (6, {"pluginId": "workspace-inspector"}),
-        (7, {}),
+        ('inspect_ui_plugin', {"pluginId": "workspace-inspector"}),
+        ('inspect_ui_services', {}),
+        ('inspect_ui_plugin_source_references', {"pluginId": "workspace-inspector"}),
+        ('inspect_agent_ui_sources', {}),
     ):
-        prohibited = json.loads(asyncio.run(tools[index].ainvoke(arguments)))
-        assert prohibited["error"]["code"] == (
-            "COMPOSITION_FAST_PATH_CROSS_LAYER_READ_PROHIBITED"
-        )
+        result = json.loads(asyncio.run(_tool(tools, index).ainvoke(arguments)))
+        assert result["ok"] is True
+        assert observations.composition_grounding_status(current_revision=0) == "unobserved"
 
-    full = json.loads(asyncio.run(tools[0].ainvoke({})))
-    services = json.loads(asyncio.run(tools[5].ainvoke({})))
+    full = json.loads(asyncio.run(_tool(tools, "inspect_ui_project").ainvoke({})))
+    services = json.loads(asyncio.run(_tool(tools, "inspect_ui_services").ainvoke({})))
     assert full["ok"] is True
     assert services["ok"] is True
     assert observations.composition_grounding_status(current_revision=0) == (
@@ -510,7 +517,7 @@ def test_composition_fast_path_blocks_domain_reads_until_full_project_exit(tmp_p
     assert metrics["eligible"] is True
     assert metrics["compositionSnapshots"] == 1
     assert metrics["fastPathExits"] == 1
-    assert metrics["crossLayerReadAttemptsBeforeMutation"] == 4
+    assert metrics["crossLayerReadAttemptsBeforeMutation"] == 1
 
 
 def test_stale_composition_grounding_does_not_block_domain_reads(tmp_path):
@@ -523,12 +530,12 @@ def test_stale_composition_grounding_does_not_block_domain_reads(tmp_path):
         activity=activity,
     )
 
-    asyncio.run(tools[0].ainvoke({"view": "composition"}))
+    asyncio.run(_tool(tools, "inspect_ui_project").ainvoke({"view": "composition"}))
     activity.touch("app-ui/app-ui.json")
-    services = json.loads(asyncio.run(tools[5].ainvoke({})))
+    services = json.loads(asyncio.run(_tool(tools, "inspect_ui_services").ainvoke({})))
 
     assert services["ok"] is True
-    assert observations.composition_grounding_status(current_revision=1) == "stale"
+    assert observations.composition_grounding_status(current_revision=1) == "unobserved"
 
 
 def test_agent_ui_source_tools_keep_inspection_read_only_and_apply_is_a_noop(tmp_path):
@@ -536,7 +543,7 @@ def test_agent_ui_source_tools_keep_inspection_read_only_and_apply_is_a_noop(tmp
     activity.begin("agent-ui-sources")
     tools = create_operator_tools(StubClient(), activity=activity)
 
-    inspected = json.loads(asyncio.run(tools[7].ainvoke({})))
+    inspected = json.loads(asyncio.run(_tool(tools, "inspect_agent_ui_sources").ainvoke({})))
     applied = json.loads(
         asyncio.run(
             next(tool for tool in tools if tool.name == "apply_agent_ui_source_item").ainvoke(
@@ -551,3 +558,97 @@ def test_agent_ui_source_tools_keep_inspection_read_only_and_apply_is_a_noop(tmp
         "source": "apply_agent_ui_source_item",
         "reason": "already-managed",
     }
+
+
+@pytest.mark.parametrize("symbols", [["TimelineCall"], '["TimelineCall"]'])
+def test_shared_type_query_normalizes_json_arrays_without_granting_source_access(symbols):
+    class SharedClient(StubClient):
+        async def inspect_ui_plugin(self, plugin_id, shared_symbols=None):
+            assert shared_symbols == ["TimelineCall"]
+            return {"pluginId": plugin_id, "symbols": shared_symbols}
+    tools = create_operator_tools(SharedClient())
+    value = json.loads(asyncio.run(_tool(tools,"inspect_ui_plugin").ainvoke({"pluginId":"tool-timeline","sharedSymbols":symbols})))
+    assert value["ok"] is True
+    assert value["result"]["symbols"] == ["TimelineCall"]
+
+
+def test_shared_module_query_forwards_the_explicit_public_boundary():
+    class SharedClient(StubClient):
+        async def inspect_ui_plugin(self, plugin_id, shared_symbols=None, shared_module=None):
+            assert shared_symbols == ["AgentUIDialog.Root.$parameter0"]
+            assert shared_module == "@za38.03/agent-ui-plugins"
+            return {"module": shared_module}
+    tools = create_operator_tools(SharedClient())
+    value = json.loads(asyncio.run(_tool(tools, "inspect_ui_plugin").ainvoke({
+        "pluginId": "response-footer", "sharedSymbols": ["AgentUIDialog.Root.$parameter0"],
+        "sharedModule": "@za38.03/agent-ui-plugins",
+    })))
+    assert value["ok"] is True
+    assert value["result"]["module"] == "@za38.03/agent-ui-plugins"
+
+
+def test_plugin_contract_compaction_reinspects_and_delivers_changed_contracts():
+    class Client(StubClient):
+        calls = 0
+        changed = False
+        async def inspect_ui_plugin(self, plugin_id, shared_symbols=None):
+            self.calls += 1
+            return {"asset": {"pluginId": plugin_id, "ownership": "project_source"},
+                    "appUIModelHash": str(self.calls),
+                    "application": {"entryPath": "src/plugins/foo/index.tsx", "implementationOwnership": "project",
+                        "publicApi": {"status": "available", "props": [{"name": "changed" if self.changed else "open"}]},
+                        "sharedTypes": {"status": "available", "symbols": [{"name": name, "type": "string"} for name in (shared_symbols or [])]}}}
+    client = Client()
+    inspect = _tool(create_operator_tools(client), "inspect_ui_plugin")
+    async def check():
+        first = json.loads(await inspect.ainvoke({"pluginId": "foo", "sharedSymbols": '["Messages.toolTimeline"]'}))["result"]
+        second = json.loads(await inspect.ainvoke({"pluginId": "foo", "sharedSymbols": ["Messages.toolTimeline"]}))["result"]
+        assert client.calls == 2
+        assert first["application"]["publicApi"]["props"] == [{"name": "open"}]
+        assert second["application"]["publicApi"]["unchanged"] is True
+        assert second["application"]["sharedTypes"]["unchanged"] is True
+        assert second["application"]["publicApi"]["contractReference"] == first["application"]["publicApi"]["contractReference"]
+        assert second["appUIModelHash"] == "2"
+        await inspect.ainvoke({"pluginId": "foo", "sharedSymbols": ["Different"]})
+        repeated = json.loads(await inspect.ainvoke({"pluginId": "foo", "sharedSymbols": ["Messages.toolTimeline"]}))["result"]
+        assert repeated["application"]["sharedTypes"]["unchanged"] is True
+        assert client.calls == 4  # Reinspect each request, including a prior non-adjacent contract.
+        client.changed = True
+        third = json.loads(await inspect.ainvoke({"pluginId": "foo"}))["result"]
+        assert third["application"]["publicApi"]["props"] == [{"name": "changed"}]
+        assert third["application"]["publicApi"]["contractReference"] != first["application"]["publicApi"]["contractReference"]
+    asyncio.run(check())
+
+
+def test_undelivered_oversized_contract_is_never_referenced(monkeypatch):
+    import agent_ui_creator.domain_tools.operator_tools as module
+    class Client(StubClient):
+        async def inspect_ui_plugin(self, plugin_id):
+            return {"application": {"publicApi": {"status": "available", "props": ["x" * 1000]}}}
+    inspect = _tool(create_operator_tools(Client()), "inspect_ui_plugin")
+    async def check():
+        monkeypatch.setattr(module, "MAX_DOMAIN_TOOL_RESULT_CHARS", 100)
+        first = json.loads(await inspect.ainvoke({"pluginId": "foo"}))
+        assert first["ok"] is False
+        monkeypatch.setattr(module, "MAX_DOMAIN_TOOL_RESULT_CHARS", 48000)
+        second = json.loads(await inspect.ainvoke({"pluginId": "foo"}))["result"]
+        assert "props" in second["application"]["publicApi"]
+    asyncio.run(check())
+
+
+def test_custom_plugin_shared_contract_is_delivered_and_compacted_without_application_metadata():
+    class Client(StubClient):
+        async def inspect_ui_plugin(self, plugin_id, shared_symbols=None, shared_module=None):
+            return {"asset": {"pluginId": plugin_id, "ownership": "project_source"},
+                    "sharedTypes": {"status": "available", "module": shared_module,
+                                    "symbols": [{"name": "Dialog", "status": "available"}]}}
+    inspect = _tool(create_operator_tools(Client()), "inspect_ui_plugin")
+    async def check():
+        args={"pluginId":"custom", "sharedSymbols":["Dialog"],"sharedModule":"@za38.03/agent-ui-plugins"}
+        first=json.loads(await inspect.ainvoke(args))["result"]
+        second=json.loads(await inspect.ainvoke(args))["result"]
+        assert "application" not in first
+        assert first["sharedTypes"]["symbols"][0]["status"] == "available"
+        assert second["sharedTypes"]["unchanged"] is True
+        assert first["sharedTypes"]["contractReference"] == second["sharedTypes"]["contractReference"]
+    asyncio.run(check())

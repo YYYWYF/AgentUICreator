@@ -36,6 +36,15 @@ COMPOSITION_COVERAGE = (
 )
 
 
+@pytest.fixture(autouse=True)
+def configured_project(tmp_path):
+    config = tmp_path / ".agent-ui"
+    config.mkdir(exist_ok=True)
+    (config / "project.json").write_text(
+        '{"mode":"assistant","sourceRoot":"src"}', encoding="utf-8",
+    )
+
+
 def test_grounded_composition_injects_short_execution_control(tmp_path):
     backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
     observations = DomainObservationContext()
@@ -112,8 +121,8 @@ def test_grounded_composition_narrows_and_restores_tool_surface(tmp_path):
     assert "inspect_app_ui_model" not in pre_mutation_tool_names
     assert "list_ui_plugins" not in pre_mutation_tool_names
     assert "inspect_ui_slots" not in pre_mutation_tool_names
-    assert "inspect_ui_plugin" not in pre_mutation_tool_names
-    assert "inspect_ui_services" not in pre_mutation_tool_names
+    assert "inspect_ui_plugin" in pre_mutation_tool_names
+    assert "inspect_ui_services" in pre_mutation_tool_names
 
     def mutate_and_touch(candidate):
         backend.activity.touch("app-ui/app-ui.json")
@@ -348,7 +357,7 @@ def test_source_discovery_after_composition_exits_fast_path_in_one_read(tmp_path
 
 def test_source_root_managed_source_read_exits_composition_lane(tmp_path):
     config = tmp_path / ".agent-ui"
-    config.mkdir()
+    config.mkdir(exist_ok=True)
     (config / "project.json").write_text(
         '{"mode":"platform","sourceRoot":"src/agent-ui"}',
         encoding="utf-8",
@@ -364,9 +373,14 @@ def test_source_root_managed_source_read_exits_composition_lane(tmp_path):
         "read_file", {"file_path": "/src/agent-ui/plugins/conversation-thread-list/index.tsx"},
     )
 
-    result = middleware.wrap_tool_call(request, lambda _: pytest.fail("read should signal lane exit"))
+    executed = []
+    result = middleware.wrap_tool_call(request, lambda call: executed.append(call) or ToolMessage(
+        content="source", tool_call_id="read", status="success",
+    ))
 
-    assert "COMPOSITION_FAST_PATH_CROSS_LAYER_READ_PROHIBITED" in result.content
+    assert result.content == "source"
+    assert len(executed) == 1
+    assert observations.require_app_ui_model_hash(current_revision=0) == "a" * 64
     assert observations.composition_grounding_status(current_revision=0) == "unobserved"
     offered = []
     middleware.wrap_model_call(
@@ -385,7 +399,7 @@ def _tool_request(name, arguments, call_id="call-1"):
     )
 
 
-def test_grounded_composition_blocks_source_read_but_allows_skill_read(tmp_path):
+def test_grounded_composition_executes_cross_layer_read_without_retry(tmp_path):
     backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
     observations = DomainObservationContext()
     observations.observe_composition_snapshot(
@@ -405,7 +419,7 @@ def test_grounded_composition_blocks_source_read_but_allows_skill_read(tmp_path)
             status="success",
         )
 
-    prohibited = middleware.wrap_tool_call(
+    crossed = middleware.wrap_tool_call(
         _tool_request("read_file", {"file_path": "/plugins/foo/index.tsx"}),
         handler,
     )
@@ -418,11 +432,9 @@ def test_grounded_composition_blocks_source_read_but_allows_skill_read(tmp_path)
         handler,
     )
 
-    assert json.loads(prohibited.content)["error"]["code"] == (
-        "COMPOSITION_FAST_PATH_CROSS_LAYER_READ_PROHIBITED"
-    )
+    assert crossed.content == "1: skill"
     assert allowed.content == "1: skill"
-    assert [call["id"] for call in executed] == ["call-2"]
+    assert [call["id"] for call in executed] == ["call-1", "call-2"]
     assert (
         observations.composition_fast_path_metrics.crossLayerReadAttemptsBeforeMutation
         == 1
@@ -629,7 +641,7 @@ def test_grounding_middleware_emits_bounded_tool_trajectory(tmp_path):
     )
     middleware.wrap_tool_call(
         _tool_request("read_file", {"file_path": "/plugins/foo/index.ts"}, "call-2"),
-        lambda request: pytest.fail("source read should be blocked"),
+        lambda request: ToolMessage(content="source", tool_call_id=request.tool_call["id"], status="success"),
     )
 
     entries = [
@@ -648,7 +660,7 @@ def test_grounding_middleware_emits_bounded_tool_trajectory(tmp_path):
         "service.readiness",
         "creator.authoring-targets",
     ]
-    assert entries[1]["data"]["result"]["status"] == "rejected"
+    assert entries[1]["data"]["result"]["status"] == "success"
 
 
 @pytest.mark.parametrize('verification_mode', ['static_only', 'static_and_runtime'])
@@ -674,3 +686,29 @@ def test_debugging_selection_survives_installed_source_lane(tmp_path, verificati
     names = {tool.name for tool in middleware._request(request).tools}
     assert {'select_debugging_target', 'ask_user_question', 'inspect_static_diagnostics'} <= names
     assert ('select_all_current_runtime_diagnostics' in names) == (verification_mode == 'static_and_runtime')
+
+
+def test_cross_layer_exit_preserves_underlying_authorization_failure(tmp_path):
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+    observations = DomainObservationContext()
+    observations.observe_composition_snapshot(hash="a" * 64, revision=0, coverage=COMPOSITION_COVERAGE)
+    middleware = CompositionGroundingConvergenceMiddleware(observations, backend)
+    def require_consent(_):
+        raise PermissionError("Explicit takeover consent required")
+    with pytest.raises(PermissionError, match="Explicit takeover consent"):
+        middleware.wrap_tool_call(_tool_request("takeover_plugin_source", {"pluginId": "composer"}), require_consent)
+    assert observations.composition_grounding_status(current_revision=0) == "unobserved"
+    assert observations.require_app_ui_model_hash(current_revision=0) == "a" * 64
+
+
+def test_cross_layer_exit_survives_late_snapshot_and_keeps_model_evidence(tmp_path):
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+    observations = DomainObservationContext()
+    middleware = CompositionGroundingConvergenceMiddleware(observations, backend)
+    middleware.wrap_tool_call(
+        _tool_request("read_file", {"file_path": "/plugins/foo/index.tsx"}),
+        lambda request: ToolMessage(content="source", tool_call_id="call-1"),
+    )
+    observations.observe_composition_snapshot(hash="a" * 64, revision=0, coverage=COMPOSITION_COVERAGE)
+    assert observations.composition_grounding_status(current_revision=0) == "unobserved"
+    assert observations.current_hash(current_revision=0) == "a" * 64

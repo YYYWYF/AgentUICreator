@@ -231,6 +231,21 @@ def test_prepare_schema_explains_evidence_without_requiring_it_for_all_work():
     assert 'import origins' in properties['uiScope']['description']
 
 
+def test_detailed_ui_scope_preserves_evidence_binding_and_permission_checks(host):
+    scope = "采用已检查的公开组件与本地主题，保留原有操作。" * 60
+    arguments = dict(workKind="create-plugin", targetPluginId="business-notes",
+        desiredOutcome="业务备注交互", missingCapabilities=["备注交互"],
+        componentBasisRefs=["src/App.tsx"], uiScope=scope,
+        deliveryContract={"capability": "备注", "renderingCategory": "panel",
+                          "placement": "panel", "lifecycle": "memory",
+                          "dependencies": [], "verificationMethod": "runtime"})
+    result = json.loads(create_prepare_ui_plugin_development_tool(host).invoke(arguments))
+    assert result["ok"] is True
+    assert host.active.ui_scope == scope
+    assert host.active.component_basis_hashes[0][0] == "src/App.tsx"
+    assert not (host.project_root / "src/agent-ui/plugins/business-notes").exists()
+
+
 @pytest.mark.parametrize("kind", ["create-plugin", "adapt-component"])
 def test_existing_identity_rejection_explains_extension_without_grant(host, kind):
     target = host.project_root / "src/agent-ui/plugins/business-notes"

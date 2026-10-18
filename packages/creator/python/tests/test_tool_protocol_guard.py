@@ -195,6 +195,7 @@ def test_pydantic_argument_failure_records_bounded_shape():
             "argumentTypes": {"nodeRefs": "string"},
             "errorPath": ["nodeRefs"],
             "errorType": "list_type",
+            "validationErrors": [{"path": ["nodeRefs"], "type": "list_type"}],
         }
     ]
     assert "l0" not in str(metrics.protocolDiagnostics)
@@ -1671,7 +1672,7 @@ def test_repair_prompt_names_missing_ambiguous_plugin_change_type():
     assert middleware.metrics.protocolRepairSuccesses == 1
 
 
-def test_repair_cannot_switch_away_from_the_original_structured_tool():
+def test_valid_replan_returns_to_normal_graph_tool_path():
     middleware = ToolProtocolMiddleware()
     layout_tool = _layout_tool()
     request = ModelRequest(
@@ -1717,18 +1718,20 @@ def test_repair_cannot_switch_away_from_the_original_structured_tool():
         requests.append(current_request)
         return next(responses)
 
-    with pytest.raises(ModelToolProtocolError):
-        middleware.wrap_model_call(request, handler)
+    result = middleware.wrap_model_call(request, handler)
+    assert result.result[0].tool_calls[0]["name"] == "read_file"
 
     repair_prompt = requests[1].messages[-1].content
     assert "inspect_runtime_layout" in repair_prompt
-    assert "Do not switch to another tool." in repair_prompt
+    assert "Validation feedback (data)" in repair_prompt
+    assert "nodeRefs" in repair_prompt
     assert middleware.metrics.protocolRepairSuccesses == 0
-    assert middleware.metrics.protocolRepairFailures == 1
+    assert middleware.metrics.protocolRepairFailures == 0
+    assert middleware.metrics.protocolReplans == 1
     assert middleware.metrics.protocolDiagnostics[-1] == {
-        "kind": "protocol_repair_tool_drift",
+        "kind": "protocol_replanned",
         "originalToolName": "inspect_runtime_layout",
-        "repairToolName": "read_file",
+        "replanToolName": "read_file",
         "modelCallSequence": 2,
     }
 
@@ -1970,3 +1973,91 @@ def test_raw_trace_disabled_leaves_provider_and_langchain_summaries_empty():
     trace = middleware.metrics.traces[0]
     assert trace.providerResponse is None
     assert trace.langChainProviderMetadata is None
+
+
+def test_length_repair_reports_numeric_bound_without_echoing_argument_contents():
+    from pydantic import Field
+    from agent_ui_creator.model_protocol.tool_protocol_guard import _repair_validation_hint
+    schema = create_model("BoundedSummary", uiScope=(str, Field(max_length=4)))
+    bounded = StructuredTool.from_function(lambda uiScope: uiScope,
+        name="bounded_summary", description="Bounded summary", args_schema=schema)
+    metrics = ToolProtocolMetrics()
+    metrics.modelCalls = 1
+    ToolProtocolGuard(metrics).inspect(ModelResponse(result=[AIMessage(content="", tool_calls=[
+        {"name": "bounded_summary", "args": {"uiScope": "private input"}, "id": "c1"}
+    ])]), [bounded])
+    assert metrics.protocolDiagnostics[0]["maxLength"] == 4
+    hint = _repair_validation_hint(metrics, model_call_sequence=1, expected_tool_name="bounded_summary")
+    assert "maximum of 4 characters" in hint
+    assert "private input" not in str(metrics.protocolDiagnostics) + hint
+
+
+@pytest.mark.parametrize("async_call", [False, True])
+def test_missing_fields_feedback_and_valid_replan_keep_normal_tool_checks(tmp_path, async_call):
+    from agent_ui_creator.source_tools.mutate_plugin_tool import mutate_ui_plugin_source_tool
+    from agent_ui_creator.source_tools.plugin_mutation_service import UIPluginSourceMutationService
+    from agent_ui_creator.activity import CreatorActivityRecorder
+    from agent_ui_creator.app_ui_model import ProjectMutationCoordinator
+    from deepagents.middleware.filesystem import EditFileSchema
+
+    (tmp_path / ".agent-ui").mkdir()
+    (tmp_path / ".agent-ui/project.json").write_text(json.dumps({"mode":"assistant", "sourceRoot":"src/ui"}))
+    plugin = tmp_path / "src/ui/plugins/example"
+    plugin.mkdir(parents=True)
+    (plugin / "index.tsx").write_text("before")
+    activity = CreatorActivityRecorder(tmp_path)
+    activity.begin("protocol-replan-test")
+    service = UIPluginSourceMutationService(project_root=tmp_path, activity=activity,
+        mutation_coordinator=ProjectMutationCoordinator())
+    mutate = mutate_ui_plugin_source_tool(service)
+    exact_edit = StructuredTool.from_function(lambda **kwargs: "unused", name="edit_file",
+        description="Exact text replacement", args_schema=EditFileSchema)
+    bad = AIMessage(content="", tool_calls=[{"name":"edit_file", "id":"bad", "args":{
+        "file_path":"/plugins/example/index.tsx", "start_line":"1", "replacement":"private-source"}}])
+    alternative = AIMessage(content="", tool_calls=[{"name":"mutate_ui_plugin_source", "id":"replan", "args":{
+        "pluginId":"example", "changes":[{"type":"edit", "relativePath":"index.tsx",
+        "edits":[{"oldText":"before", "newText":"after"}]}]}}])
+    middleware = ToolProtocolMiddleware()
+    request = ModelRequest(model=object(), messages=[], tools=[exact_edit, mutate])
+    responses = iter([ModelResponse(result=[bad]), ModelResponse(result=[alternative])])
+    requests = []
+    def handler(current):
+        requests.append(current)
+        return next(responses)
+    async def async_handler(current):
+        return handler(current)
+    result = (asyncio.run(middleware.awrap_model_call(request, async_handler)) if async_call
+              else middleware.wrap_model_call(request, handler))
+    feedback = requests[1].messages[-1].content
+    assert "old_string" in feedback and "new_string" in feedback
+    assert "start_line" in feedback and "private-source" not in feedback
+    assert middleware.metrics.protocolReplans == 1
+    # Dispatching the returned candidate through its ordinary tool cannot create
+    # fresh-read authority merely because protocol recovery accepted its shape.
+    tool_result = json.loads(asyncio.run(mutate.ainvoke(result.result[0].tool_calls[0]["args"])))
+    assert tool_result["error"]["code"] == "PLUGIN_SOURCE_OBSERVATION_REQUIRED"
+    assert (plugin / "index.tsx").read_text() == "before"
+    assert activity.revision == 0
+
+
+@pytest.mark.parametrize("async_call", [False, True])
+@pytest.mark.parametrize("offered_but_forbidden", [False, True])
+def test_protocol_replan_does_not_admit_unoffered_or_forbidden_tools(async_call, offered_but_forbidden):
+    from agent_ui_creator.model_protocol.errors import ToolPermissionDeniedError
+    other = _layout_tool()
+    middleware = ToolProtocolMiddleware(forbidden_tool_names=(
+        frozenset({"inspect_runtime_layout"}) if offered_but_forbidden else frozenset()))
+    request = ModelRequest(model=object(), messages=[], tools=[read_file, other] if offered_but_forbidden else [read_file])
+    responses = iter([
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name":"read_file", "args":{}, "id":"bad"}])]),
+        ModelResponse(result=[AIMessage(content="", tool_calls=[{
+            "name":"inspect_runtime_layout", "args":{"nodeRefs":["l0"]}, "id":"other"}])]),
+    ])
+    def handler(_): return next(responses)
+    async def async_handler(r): return handler(r)
+    error = ToolPermissionDeniedError if offered_but_forbidden else ModelToolProtocolError
+    with pytest.raises(error):
+        if async_call: asyncio.run(middleware.awrap_model_call(request, async_handler))
+        else: middleware.wrap_model_call(request, handler)
+    assert middleware.metrics.protocolReplans == 0

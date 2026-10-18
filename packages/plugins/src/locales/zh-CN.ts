@@ -1,4 +1,5 @@
 export const zhCN = {
+  copyAction: { failed: "复制失败，请检查浏览器权限后重试。" },
   theme: {
     settings: "主题设置",
     light: "浅色",

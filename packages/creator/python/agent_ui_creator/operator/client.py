@@ -5,6 +5,7 @@ import json
 import os
 import shutil
 import time
+import weakref
 from pathlib import Path
 from typing import Any, Literal
 
@@ -27,6 +28,15 @@ from .models import (
 
 _ERROR_DETAIL_LIMIT = 2_000
 _TERMINATE_TIMEOUT_SECONDS = 1.0
+# Separate loops must not share asyncio primitives. All clients in one server
+# loop share admission by canonical project, rather than by agent/client object.
+_PROJECT_GATES: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
+
+
+def _project_gate(root: Path) -> asyncio.Lock:
+    gates = _PROJECT_GATES.setdefault(asyncio.get_running_loop(), {})
+    return gates.setdefault(os.path.normcase(str(root)), asyncio.Lock())
+
 
 
 def _load_protocol_validator() -> Draft202012Validator:
@@ -113,8 +123,8 @@ class OperatorClient:
             "inspect_ui_slots", input
         )
 
-    async def inspect_ui_plugin(self, plugin_id: str) -> dict[str, Any]:
-        return await self._request("inspect_ui_plugin", {"pluginId": plugin_id})
+    async def inspect_ui_plugin(self, plugin_id: str, shared_symbols: list[str] | None = None, shared_module: str | None = None) -> dict[str, Any]:
+        return await self._request("inspect_ui_plugin", {"pluginId": plugin_id, **({"sharedSymbols": shared_symbols} if shared_symbols else {}), **({"sharedModule": shared_module} if shared_module else {})})
 
     async def preflight_ui_plugin_placement(
         self, *, app_ui_model_hash: str, capability_catalog_revision: str,
@@ -204,7 +214,14 @@ class OperatorClient:
             {"expectedSourceHash": expected_source_hash},
         )
 
-    async def _request(
+    async def _request(self, operation: OperatorOperation, input: dict[str, Any]) -> dict[str, Any]:
+        waiting = time.monotonic()
+        async with _project_gate(self.project_root):
+            self.metrics.queueWaitMs += round((time.monotonic() - waiting) * 1_000)
+            # Validate runtime, permissions and cancellation after waiting too.
+            return await self._request_admitted(operation, input)
+
+    async def _request_admitted(
         self,
         operation: OperatorOperation,
         input: dict[str, Any],
@@ -286,13 +303,23 @@ class OperatorClient:
             "$defs": self._validator.schema["$defs"],
             "$ref": f"#/$defs/{definition}",
         }
+        # Validate a known operation's exact branch first so input failures name
+        # the field instead of returning the entire request's oneOf failure.
+        if request and isinstance(value, dict):
+            branch = next((item for item in self._validator.schema["$defs"]["request"].get("oneOf", [])
+                           if item.get("properties", {}).get("operation", {}).get("const") == value.get("operation")), None)
+            if branch is not None:
+                schema = {**schema, "$ref": None, **branch}
+                schema.pop("$ref", None)
         try:
             self._validator.evolve(schema=schema).validate(value)
         except ValidationError as error:
             raise OperatorError(
                 "OPERATOR_PROTOCOL_INCOMPATIBLE",
                 f"Operator {definition} does not match the current contract.",
-                {"cause": error.message},
+                {"field": ".".join(str(part) for part in error.absolute_path),
+                 "constraint": str(error.validator),
+                 "cause": error.message[:_ERROR_DETAIL_LIMIT]},
             ) from error
 
     def _validate_result(self, operation: OperatorOperation, value: Any) -> None:
@@ -334,9 +361,11 @@ class OperatorClient:
 
         output_bytes = 0
         output_lock = asyncio.Lock()
+        admitted = asyncio.Event()
+        admission_tail = b""
 
         async def read_stream(stream: asyncio.StreamReader | None) -> bytes:
-            nonlocal output_bytes
+            nonlocal output_bytes, admission_tail
             if stream is None:
                 return b""
             chunks: list[bytes] = []
@@ -345,6 +374,10 @@ class OperatorClient:
                     output_bytes += len(chunk)
                     if output_bytes > self.max_output_bytes:
                         raise _OutputLimitExceeded
+                if stream is process.stderr:
+                    admission_tail = (admission_tail + chunk)[-256:]
+                    if b"AGENT_UI_OPERATOR_ADMITTED\n" in admission_tail:
+                        admitted.set()
                 chunks.append(chunk)
             return b"".join(chunks)
 
@@ -352,6 +385,9 @@ class OperatorClient:
         stderr_task = asyncio.create_task(read_stream(process.stderr))
         wait_task = asyncio.create_task(process.wait())
         tasks = (stdout_task, stderr_task, wait_task)
+        phase = "admission"
+        transport_started = time.monotonic()
+        execution_started: float | None = None
         try:
             if process.stdin is None:
                 raise OSError("Operator stdin pipe is unavailable.")
@@ -359,9 +395,30 @@ class OperatorClient:
             await process.stdin.drain()
             process.stdin.close()
             await process.stdin.wait_closed()
-            stdout, stderr, exit_code = await asyncio.wait_for(
-                asyncio.gather(*tasks), timeout=max(self.timeout_seconds, 300) if json.loads(payload).get("operation") in {"create_custom_plugin", "takeover_plugin_source"} else self.timeout_seconds
-            )
+            completion = asyncio.gather(*tasks)
+            admission_task = asyncio.create_task(admitted.wait())
+            phase = "admission"
+            try:
+                done, _ = await asyncio.wait(
+                    {completion, admission_task}, timeout=self.timeout_seconds,
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+                if not done:
+                    raise TimeoutError
+                # Older entries without admission telemetry remain supported:
+                # completion wins, while a hung older entry times out above.
+                if admitted.is_set():
+                    phase = "execution"
+                    execution_started = time.monotonic()
+                    self.metrics.admissionWaitMs += round((execution_started - transport_started) * 1_000)
+                budget = max(self.timeout_seconds, 300) if json.loads(payload).get("operation") in {"create_custom_plugin", "takeover_plugin_source"} else self.timeout_seconds
+                stdout, stderr, exit_code = await asyncio.wait_for(completion, timeout=budget)
+            finally:
+                admission_task.cancel()
+                await asyncio.gather(admission_task, return_exceptions=True)
+                if not completion.done():
+                    completion.cancel()
+                await asyncio.gather(completion, return_exceptions=True)
             return stdout, stderr, int(exit_code)
         except _OutputLimitExceeded as error:
             await self._terminate(process)
@@ -369,11 +426,14 @@ class OperatorClient:
                 "OPERATOR_OUTPUT_TOO_LARGE",
                 f"Target operator output exceeds {self.max_output_bytes} bytes.",
             ) from error
+        except asyncio.CancelledError:
+            await self._terminate(process)
+            raise
         except TimeoutError as error:
             await self._terminate(process)
             raise OperatorError(
                 "OPERATOR_ENTRY_TIMEOUT",
-                f"Target operator entry timed out after {self.timeout_seconds:g}s.",
+                f"Target operator {phase} timed out after {self.timeout_seconds:g}s.",
             ) from error
         except (BrokenPipeError, ConnectionResetError, OSError) as error:
             await self._terminate(process)
@@ -381,16 +441,42 @@ class OperatorClient:
                 "OPERATOR_ENTRY_SPAWN_FAILED", str(error)
             ) from error
         finally:
+            if execution_started is not None:
+                self.metrics.executionMs += round((time.monotonic() - execution_started) * 1_000)
+            else:
+                self.metrics.admissionWaitMs += round((time.monotonic() - transport_started) * 1_000)
             for task in tasks:
                 if not task.done():
                     task.cancel()
             await asyncio.gather(*tasks, return_exceptions=True)
+            if process.returncode is not None:
+                self._release_child_tickets(process.pid)
+
+    def _release_child_tickets(self, pid: int) -> None:
+        directory = self.project_root / ".agentuicreator" / "control" / "operator-locks"
+        if directory.is_symlink() or not directory.is_dir():
+            return
+        if not directory.resolve().is_relative_to(self.project_root):
+            return
+        for ticket in directory.glob(f"{pid}.*.json"):
+            if ticket.is_symlink():
+                continue
+            try:
+                record = json.loads(ticket.read_text())
+                if record.get("pid") == pid and ticket.name == f"{pid}.{record.get('token')}.json":
+                    ticket.unlink(missing_ok=True)
+            except (FileNotFoundError, ValueError):
+                continue
+
 
     @staticmethod
     async def _terminate(process: asyncio.subprocess.Process) -> None:
         if process.returncode is not None:
             return
-        process.terminate()
+        try:
+            process.terminate()
+        except ProcessLookupError:
+            return
         try:
             await asyncio.wait_for(process.wait(), timeout=_TERMINATE_TIMEOUT_SECONDS)
         except TimeoutError:

@@ -1,0 +1,246 @@
+# Task-specific Plugin authoring contracts
+
+Consult only sections relevant to the actual change. Creating a new Plugin,
+changing a Service or binding Agent data has obligations beyond an existing
+owned presentation edit. This reference grants no authority.
+
+## Creator Authoring Contract
+
+Runtime-compatible, Composition-compatible, and Creator-operable are separate
+decisions:
+
+- Runtime-compatible means the Plugin can be activated by the UI Runtime.
+- Composition-compatible means its Layout or child Slot contract is valid.
+- Creator-operable means the Host can discover, add, and restore it
+  deterministically.
+
+The existing `manifest.authoring` fields are the Creator Authoring Contract.
+Do not add `creatorReady`, a readiness score, or Plugin-specific Creator logic.
+The Host derives readiness from the manifest, capabilities, and child Slot
+contracts; it does not inspect React source to guess placement.
+
+Before writing source, classify the Plugin and decide whether users should be
+able to ask Creator to add or restore it:
+
+- A visual Plugin intended for natural-language Add/Restore declares semantic
+  `authoring.intents` and a deterministic `defaultPlacement`.
+- A relative `before`/`after` `defaultPlacement` requires
+  `recommendedSize.width`.
+- A relative `above`/`below` `defaultPlacement` requires
+  `recommendedSize.height`.
+- Before choosing a relative placement, inspect the anchor's current Layout
+  parent. `before`/`after` require an existing Row or root anchor;
+  `above`/`below` require an existing Column or root anchor. An anchor inside
+  a root Row cannot use `below` through `insert_plugin_default`. If no
+  supported default fits the requested UI, use the low-level AppUIModel path
+  after reading its Skill instead of declaring an unusable default.
+- A `plugin_slot` placement points at an existing parent child Slot, matches
+  one of that Slot's accepted capabilities, and matches renderer mode.
+- A Plugin with `requiresRenderScope: true` uses a renderer child Slot; a
+  non-renderer Plugin must not target one.
+- A visual Plugin without `authoring` is intentionally `manual-only` and is
+  valid. `authoring` without `defaultPlacement` is discoverable but
+  `limited`, with Add/Restore unavailable.
+- A Plugin with `capabilities: ["headless"]` or `manifest.application.gate` is
+  not a visual placement target and does not need authoring metadata.
+
+Read the readiness diagnostics returned by `validate_creator_changes` through
+the existing `verify:ui` result. A limited warning is not automatically a
+failure: if the Plugin should be Creator-operable, repair its authoring
+contract; if it is intentionally manual-only, do not invent a placement.
+
+
+## Service dependency and ownership decision
+
+When a Plugin needs another capability, call `inspect_ui_services` instead of
+guessing a Provider from Plugin names or source proximity.
+
+```text
+Plugin needs capability X
+-> inspect_ui_services
+-> existing Service?
+   -> yes: classify core requirement as inject, enhancement as optionalInject
+   -> no: is a cross-boundary shared Service actually necessary?
+      -> no: keep the behavior private to the Plugin
+      -> yes: resolve the natural Owner, exact Consumers and dependency modes
+              -> prepare_ui_service_contract_change
+              -> confirmation-required: ask the User and stop project writes
+              -> authorized: create_ui_service_contract
+                 -> wire Provider and Consumers
+                 -> validate, then Runtime verify only in static_and_runtime mode
+```
+
+- `inject` is only for a capability without which the Plugin's core behavior cannot work.
+- `optionalInject` is for an enhancement with a complete fallback when the Service is unavailable.
+- A missing optional Service is not permission to create it. Omit the dependency unless the user explicitly authorizes a new shared capability.
+- A new Plugin does not declare `provides` merely because another Plugin might use its behavior later.
+- If the User explicitly identifies the Service Owner and Consumer, pass an exact substring of the current User message as authorization evidence and do not repeat confirmation. Never fabricate or paraphrase evidence.
+- To change an existing Service Contract, inspect all `contractPaths`, Providers and Consumers, require one canonical path, read that file, authorize the exact impact, then use `mutate_ui_service_contract` exact edits and update affected Plugins.
+- Generic `edit_file` and Plugin tools never write `/services/**`; only authorized Service Contract tools may do so.
+- A public Service is justified only across a real boundary: multiple Plugins, another Plugin caller, Application Shell, or a Frontend Tool/Agent adapter. Private state and helpers stay inside the Plugin.
+
+
+## Creating a Plugin
+
+1. Classify the Plugin, decide whether it should be Creator-operable, and define its Runtime, Composition, and optional Creator Authoring contracts.
+2. Read the relevant declarations in `/framework/contracts/ui-plugin.ts` and one
+   closest existing Plugin end to end. A self-contained local-state Plugin does
+   not need every unrelated Runtime and child-Slot declaration in that contract.
+3. For a new visible Plugin, draft its manifest and call `preflight_ui_plugin_placement` with the current AppUIModel hash, capability catalog revision, and intended instance id before writing source. Use its canonical `defaultPlacement` only if it matches the user's location and lifecycle. A rejection requires a same-semantics repair or a user decision; do not switch to application scope, another side, or a conditional Slot as fallback. Preflight does not verify source, Services, or narrow Runtime geometry, and the final mutation checks again. Once eligible, proceed to locale edits and the atomic `create_ui_plugin` call; further source searches need a specific unresolved API.
+4. Create `/plugins/<plugin-id>/manifest.json` with a unique id, useful description, version, capabilities when applicable, accurate `data.messages`, `data.state`, or `data.events` declarations, and the authoring contract when Add/Restore is intended.
+   `data.messages`, `data.state`, and `data.messageUI` are booleans for AG-UI subscriptions; `data.events` is an array of event names. Local React `useState` is private Plugin state and does not belong in `manifest.data`.
+5. Create `index.tsx` with a named React component. When an existing project component implements the requested UI, this may be a thin adapter importing it; do not recreate that UI for Plugin self-containment. Accept `UIPluginComponentProps` only when it needs `renderSlot`; read Agent and instance data through Runtime Context hooks in the adapter and narrow unknown state safely.
+6. Create `definition.ts` that validates the manifest and exports a `UIPluginDefinition`.
+   Import the component with `from "./index"` when it lives in the required `index.tsx`. Do not also create `index.ts` as a barrel: TypeScript resolves `./index` to that file first and can make the component import circular. Do not add a `.tsx` extension to the import; the Host TypeScript configuration does not enable that syntax.
+   Declare every service a built-in hook consumes. `useAgentUILocale` needs `AGENT_UI_LOCALE_SERVICE`; `useAgentUITheme` needs `AGENT_UI_THEME_SERVICE`, each in `inject` or `optionalInject` as appropriate. Theme CSS tokens alone do not need the theme hook.
+7. Add styles using the generated project's existing styling approach; do not introduce a UI library or dependency without project support.
+   Import a Plugin stylesheet once. For ordinary action buttons, use the
+   project's inspected public Button facade when one exists.
+8. Default-export the definition so the target-owned generator can include it in the static Registry. Do not spread a template catalog into the production registry.
+9. Submit `pluginId` and all currently known new Plugin files together in one `create_ui_plugin` call, using `relativePath` values inside that Plugin directory. It requires `manifest.json`, `definition.ts`, and `index.tsx`, is create-only, and transactionally rolls back the whole call on failure. Never use it to replace an existing Plugin directory or file.
+10. Run `validate_creator_changes`. Fix returned diagnostics with `read_file` plus `edit_file`, then validate the new revision again.
+11. Add exactly one AppUIPluginNode through `mutate_app_ui_model`. When an
+    eligible relative `defaultPlacement` declares the intended side panel,
+    use `insert_plugin_default` so the Host places it beside the anchor in the
+    public Layout and preserves the Platform drawer track. Do not insert it into
+    the conversation's existing Slot or nest a Row inside its Panel. Use a
+    low-level Layout operation only for a different authorized location after
+    checking its root track and responsive contract. An Application Gate goes
+    at application scope. The transaction updates the generated Registry.
+12. Because composition changes the Activity revision, run `validate_creator_changes` again for the final revision.
+13. In `static_and_runtime` mode, call `inspect_runtime_errors`. Fresh current-hash evidence with zero current errors is required before claiming Runtime success. In `static_only` mode, stop after current-revision static validation and do not claim Runtime success.
+
+
+## Contract boundaries
+
+### Application Gate contract
+
+Use `manifest.application.gate` when entry to the Workspace must be denied until a condition is ready. Do not model this requirement as a modal, overlay, root/main Slot contribution, dedicated Login Slot, or high-z-index element, and do not change the Layout Tree merely to host it.
+
+- The Gate manifest names one observable Service and may assign a numeric priority. Do not also add an `app-gate` capability; `application.gate` is the single source of truth and is distinct from `headless`.
+- The definition declares the Gate Service in `provides`, and `setup()` synchronously provides it with an initial `checking`, `blocked`, `ready`, or `error` snapshot. Async session recovery begins only after the observable Service is available.
+- A Gate plugin node is `enabled: true` in `applicationPlugins`. A Gate manifest must not declare child Slots.
+- Gate hard dependencies use `inject`. Every Provider in that dependency closure must be an application-scoped `headless` Plugin or another Application Gate. `optionalInject` never expands the startup dependency closure.
+- The Gate component may read its own provided Gate Service with `usePluginService()`. This self-read permission applies to Components only; `setup({ services }).get()` still reads only `inject` and `optionalInject` dependencies.
+- Multiple Gates all must become `ready`. Priority selects which non-ready Gate surface is currently displayed; it does not weaken the all-ready rule.
+- Gate state is frontend Application lifecycle state. Never add AG-UI custom events or modify Agent protocol semantics to control it.
+
+For requests such as “不登录不能进入应用”, “打开应用必须先登录”, “没有 License 不能使用”, “必须先选择组织”, or “初始化完成前不能进入工作台”, inspect existing Gate/Auth assets and Services first, then create or reuse an Application Gate without introducing a Login Slot or Layout overlay.
+
+### Child Slot contract
+
+When adding, removing, or renaming a child `renderSlot(...)` outlet in a container Plugin, update `manifest.json` `slots.children` in the same task. Each local Slot name maps to a required `description`, `cardinality: "one" | "many"`, and optional `optional` flag. Names must be static string literals; do not create dynamic `renderSlot(slot)` outlets or global Runtime slot ids. Host verification treats the Plugin source and manifest child Slot sets as an exact contract.
+
+For a runtime entity renderer, declare `mode: "renderer"`, `cardinality: "one"`, and `accepts.anyOfCapabilities`, then call `renderScopedSlot("localName", scope)`. Renderer Slots have no presentation fallback: an empty, disabled, unavailable, inactive, or capability-mismatched occupant renders nothing. Omitted `mode` means ordinary content. The renderer Plugin reads `usePluginRenderScope()` and checks its `kind`; a Plugin that requires scope declares `requiresRenderScope: true` and returns `null` without the expected scope. Prefer changing the renderer Plugin instance in AppUIModel when changing Reasoning, Tool Group, or Tool Fallback presentation. Keep Agent UI grouping, part order, named Tool UI selection, and message lifecycle in the canonical Thread.
+
+- Read Agent data through the domain hooks exported by `/runtime/context`: `useAgentConversation`, `useAgentMessages`, `useAgentState`, `useAgentRun`, `useAgentExecutions`, and `useAgentInterrupts`. Use `useAgentRuntimeSnapshot` only when the component genuinely needs the complete snapshot.
+- Read the current instance scope through `usePluginInstance`, `usePluginActions`, and `usePluginEvents`. Never recreate a combined context prop or pass Runtime snapshot fields through component props.
+- Before a Plugin consumes a backend Application Event, read `/agent-contract/agent-events.ts`, reuse or add the application-owned payload schema, then declare the same exact name in `manifest.data.events`. Preserve an explicitly supplied Custom Event name exactly; lowercase dot-separated naming is recommended only when the application has not already chosen a name. A manifest declaration consumes an application-owned contract; it does not register one.
+- Prefer the project-local `subscribeAppEvent` helper so the registered payload type is inferred; `usePluginEvents().subscribe` and `setup({ events })` remain the underlying scoped APIs. Never import AG-UI protocol event types into Plugin code, invent a schema inside a Plugin, emit an Application Event from the frontend, or use this channel for persistent state, standard lifecycle, Activity, interrupts, Frontend Tools, or local Plugin communication. If the backend payload contract is unknown, ask for it instead of inventing fields.
+- Use `usePluginActions()` for instance-scoped Agent commands; `useAgentRuntimeActions()` is available when only Agent commands are needed. Keep runtime-only UI state in a named service or runtime store rather than mutating AppUIModel composition. Never create a separate Agent Runtime inside a Plugin.
+- Keep Plugin dependencies in the generated project and follow its current UI stack and versions.
+- Service contracts are stable project-owned capability seams, not concrete
+  Provider Plugins or Runtime Core actions:
+  - `provides` means this Plugin owns and declares one or more capabilities for the current activation lifecycle.
+  - `inject` means this Plugin requires a hard capability dependency before activation.
+  - `optionalInject` means this Plugin can use an enhancement but remains complete and active without it.
+  - `usePluginService()` is runtime capability lookup for component access; `setup({ services })` remains the non-React activation API.
+- Provider rules are strict: if `setup` calls `services.provide`, the Plugin **must** declare the same Service Name in `UIPluginDefinition.provides`.
+- For a hard capability dependency, import its stable Service seam from `/services/*` and declare `inject` on `UIPluginDefinition`; do not import concrete Provider Plugin source.
+- Provider implementations must be exposed only through `setup({ services })` + `services.provide(...)`, and the same Service Name must be declared in `provides`.
+- Optional dependency behavior must declare `optionalInject`, call `usePluginService(...)`, and tolerate `undefined` with a complete fallback.
+- `setup({ services }).get(X)` requires X to appear in `inject` or `optionalInject`. A component `usePluginService(X)` may also read a Service declared by its own definition in `provides`; Application-owned lookup remains unrestricted.
+- `provides`, `inject`, and `optionalInject` are pairwise disjoint.
+- When multiple Plugins share a capability, reuse an existing seam name/type from `/services/*` and never invent a synonym service contract.
+- Prefer `UIPluginObservableService` only when other Plugins need sustained observation of service-owned state.
+- `UIPluginObservableService` requires `getSnapshot()` + `subscribe()`; otherwise prefer a structural interface with explicit methods.
+- Structural interface service examples are acceptable, and `EventEmitter`-style ad-hoc emitters should remain project-local, not runtime API additions.
+- Do not place capability implementations into Plugin actions or Agent Runtime actions.
+- A Frontend Tool is an Agent-facing adapter for a selected capability operation; it is not a Plugin capability and is not registered by a Plugin.
+- When the product explicitly asks the Agent to invoke frontend behavior, first reuse an existing stable Service seam, have the Provider Plugin declare `provides`, and expose the selected operation from `/agent-contract/agent-tools.ts`. If no suitable seam exists, use the authorized Service ownership flow; never use `create_ui_plugin` or generic writes for `/services`.
+- Frontend Tool names use `lower_snake_case`, inputs use `z.strictObject(...)`, descriptions explain when to call the Tool plus what it does and does not do, and results stay short, structured, and serializable.
+- Frontend Tool handlers call `services.get(...)` and must tolerate a capability disappearing before execution. Never bind a Tool to a React component, ref, DOM query, Plugin instance, or concrete Provider implementation.
+- Do not automatically expose every Service method. A Service may have zero, one, or many explicitly authorized Frontend Tools.
+- Never generate `context.tools.register(...)`, `services.registerTool(...)`, `plugin.registerTool(...)`, or another Plugin self-registration API. Frontend Tool exposure is an Application permission boundary.
+- Provider implementation lifetime is the Plugin activation lifetime; consumers should always read through runtime services instead of direct imports.
+- Do not couple a generated Plugin to Creator packages or Creator UI dependencies.
+- Do not modify `/runtime` or `/framework` for Plugin-specific behavior.
+- Do not rewrite unrelated registration entries.
+- Hiding, removing an instance, and replacing a feature all preserve Plugin source. Do not delete a Plugin directory with generic file tools. Permanent source deletion may only use the dedicated gated domain tool after exact authorization and reference checks; if that tool is unavailable, report the gate instead of approximating it.
+
+
+## Frontend Tool capability consumers
+
+A Plugin capability consumed by an application-owned Frontend Tool is a valid
+cross-boundary reason for a public Service seam: Plugin provides Service,
+Frontend Tool consumes Service. Follow existing Service ownership and authorization
+rules; Service existence does not grant Agent exposure permission.
+
+Plugin Component effects manage UI/component lifecycle only. They must never
+simulate Frontend Tool execution by opening a dialog, navigating or mutating a
+capability when a Tool renderer mounts. Follow the `ag-ui-frontend` skill's
+Frontend Tool execution and replay contract. For integration details, read the
+packaged [Frontend Tool lifecycle reference](../ag-ui-frontend/references/frontend-tool-lifecycle.md).
+
+
+
+## Delivery obligations
+
+For new-Plugin gap discovery, `inspect_ui_capabilities` is a live,
+paged navigation index over the existing Operator catalog, formal Sources,
+and project component paths. Complete every page before treating an inventory
+as complete; filenames alone never prove component behavior. Inspect the selected
+implementation and use an existing Plugin or formal Source whenever it fits.
+
+For first new-Plugin implementation, provide `deliveryContract` to
+`prepare_ui_plugin_development`: `capability`, `renderingCategory`, `placement`,
+`lifecycle`, `dependencies`, `reusedComponents`, `verificationMethod`, and
+`interactions`. `renderingCategory` is `panel`, `semantic-slot`, or `application`.
+`verificationMethod` is `runtime` or `browser-test`. Bind placement to actual
+current authoring choices. For requested dimensions/positions, include `geometry`
+entries with `instanceId`, `property` (`x`, `y`, `width`, `height`), `expected`, and
+`tolerance` in pixels. Do not change the Runtime manifest schema for this plan.
+
+Creation, registration, enabled composition, static validation, Runtime observation,
+and behavioral validation are separate facts. The Host completion gate derives
+delivery from those facts at the current revision. `static_only` cannot establish
+Runtime or interaction success. Missing placement or verification leaves a blocked
+receipt naming saved changes and the last successful stage.
+
+For declared interactions, the Host tool `verify_ui_plugin_behavior` runs the
+project's installed Playwright configuration. Test titles must exactly match
+`[delivery:<pluginId>] <interaction>`; use `runtime` when the browser-test method has
+no interaction list. Every required test must pass without skips or flaky retries.
+Reuse existing test infrastructure and respect the writable project boundary;
+if tests/configuration cannot be supplied within that boundary, report the blocker.
+Do not replace an absent browser test with a model-written PASS claim. Composer
+adapters require send, stop, attachment add/remove/attachment-only send, and draft
+parity for the capabilities already enabled in the target project.
+
+
+## Localization ownership
+
+Vendor-owned code must remain locale-agnostic and unmodified; all product
+localization is owned by AgentUICreator composition, adapters, plugins, and Host
+UI. New user-visible copy must use the existing `useAgentUILocale` namespace and
+complete `en-US` / `zh-CN` dictionaries. Do not create per-Plugin i18n hooks or
+language conditionals. Preserve protocol IDs, enums, schema and persisted fields;
+locale is a view concern. Prefer public props/composition, then owned adapters.
+If upstream lacks a seam, record a localization gap instead of modifying vendor.
+Include `pnpm check:i18n` where available and check new copy during upgrades.
+
+
+## Non-React Hosts
+
+For Vue, HTML and legacy Hosts, discover/install the `web-component-bridge` compatibility resource through the existing resource protocol. React remains the canonical Plugin implementation. Never generate Vue Plugins, Agent UI Vue components or a second AG-UI client. Edit the generated project's AppUIModel and React Plugins, then rebuild its compatibility bundle with `vite build --config <sourceRoot>/integrations/web-component-bridge/vite.config.ts`. The consumer loads the compiled bundle and uses `<agent-ui>`; it does not configure React, JSX, Tailwind or TSX. The build configuration belongs to the Agent UI producer project, not the Vue consumer.
+
+
+For Host integration requests, consume `plan_agent_ui_integration` before editing.
+A how-to guide presents the Host's canonical `edits.after` without writes. Resolve
+an explicit target and compiled module; for automatic integration present the
+same recipe, obtain authorization, then use `apply_agent_ui_integration`. Check
+manual or automatic changes with `verify_agent_ui_integration` and the original
+recipe. Never generate Vue-specific snippets, infer Host versions/entries in the
+prompt, or install the React producer build closure into the Vue consumer. React
+uses its canonical Source Item path; Nuxt is unsupported. See
+`docs/architecture/host-integration-recipe.md` for the Host contract.

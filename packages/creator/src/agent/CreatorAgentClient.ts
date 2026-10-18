@@ -5,6 +5,7 @@ import { questionFromInterrupt, type CreatorQuestionActivity } from "./creatorIn
 
 export type CreatorRunSubscriber = Omit<AgentSubscriber, "onCustomEvent"> & {
   onQuestion?: (question: CreatorQuestionActivity) => void;
+  onQuestionResumed?: (interruptId: string) => void;
 };
 
 /** The only Creator boundary that knows AG-UI 0.0.59 interrupt wire fields. */
@@ -85,8 +86,13 @@ export class CreatorAgentClient {
     };
   }
 
-  #subscriber({ onQuestion, ...subscriber }: CreatorRunSubscriber): AgentSubscriber {
+  #subscriber({ onQuestion, onQuestionResumed, ...subscriber }: CreatorRunSubscriber): AgentSubscriber {
     return { ...subscriber, onCustomEvent({ event }) {
+      if (event.name === "on_interrupt_resumed" && typeof event.value === "object" && event.value !== null &&
+          "interruptId" in event.value && typeof event.value.interruptId === "string") {
+        onQuestionResumed?.(event.value.interruptId);
+        return;
+      }
       if (event.name !== "on_interrupt") return;
       const question = questionFromInterrupt(event.value);
       if (question !== undefined) onQuestion?.(question);

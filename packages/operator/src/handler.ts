@@ -1,3 +1,5 @@
+import { inspectPluginSharedTypes } from "./project/plugin-shared-types";
+import { inspectPluginApplication } from "./project/plugin-application-inspector";
 import { resolveCompatibilityConsumer } from "./project/compatibility-binding";
 import { planPluginSourceTakeover, takeoverPluginSource, recoverPluginSourceTakeover, planPluginSourceInputSchema, takeoverPluginSourceInputSchema } from "./project/takeover-plugin-source";
 import { assertRuntimeBuildCurrent } from "./runtime-integrity.mjs";
@@ -110,7 +112,7 @@ export const requestSchema = z.discriminatedUnion("operation", [
   }),
   z.strictObject({
     operation: z.literal("inspect_ui_plugin"),
-    input: z.strictObject({ pluginId: z.string().min(1).max(200).regex(/\S/u).transform((value) => value.trim()) }),
+    input: z.strictObject({ pluginId: z.string().min(1).max(200).regex(/\S/u).transform((value) => value.trim()), sharedModule: z.string().regex(/^@za38\.03\/agent-ui-plugins(?:\/[a-z][a-z0-9-]*)?$/u).optional(), sharedSymbols: z.array(z.string().regex(/^[A-Za-z_$][A-Za-z0-9_$]{0,99}(?:\.[A-Za-z_$][A-Za-z0-9_$]{0,99}){0,8}$/u)).min(1).max(8).optional() }),
   }),
   z.strictObject({
     operation: z.literal("preflight_ui_plugin_placement"),
@@ -292,13 +294,15 @@ async function inspectUISlots(
 async function inspectUIPlugin(
   projectRoot: string,
   pluginId: string,
+  sharedSymbols: readonly string[] = [],
+  sharedModule?: string,
 ): Promise<unknown> {
   const source = await inspectAppUIModelSource(projectRoot);
   const recoveryOnly = source.status !== "valid";
   const inspection = recoveryOnly ? {
     appUIModel: { hash: source.rawHash },
     pluginAssets: source.pluginInventory.assets.map(({ manifest: _manifest, ...asset }) => ({ ...asset, selected: false })),
-    plugins: [] as Array<{ pluginId: string }>,
+    plugins: [] as Awaited<ReturnType<typeof inspectUIProject>>["plugins"],
   } : await inspectUIProject(projectRoot);
   const matches = inspection.pluginAssets.filter(
     (asset) => asset.pluginId === pluginId,
@@ -324,11 +328,13 @@ async function inspectUIPlugin(
       `UI plugin "${pluginId}" is unavailable.`,
     );
   }
+  const sharedTypes = !asset.application && sharedSymbols.length
+    ? await inspectPluginSharedTypes(projectRoot, sharedSymbols, sharedModule) : undefined;
   const official = officialPackagePlugin(pluginId);
   if (official && asset.ownership === "official_package") {
     const registry = await loadAgentUISourceRegistry();
     const item = registry.byId.get(official.referenceSourceItemId)!;
-    return { appUIModelHash: inspection.appUIModel.hash, asset, selected: asset.selected,
+    return { appUIModelHash: inspection.appUIModel.hash, asset, ...(sharedTypes ? {sharedTypes} : {}), selected: asset.selected,
       instances: inspection.plugins.filter(instance => instance.pluginId === pluginId),
       manifest: official.manifest,
       definitionSource: boundedText(item.loadedFiles.find(file => file.target.endsWith("definition.ts"))!.content.toString("utf8"), MAX_PLUGIN_SOURCE_CHARACTERS),
@@ -372,11 +378,29 @@ async function inspectUIPlugin(
   const serviceDeclaration = serviceInspection.plugins.find(
     (plugin) => plugin.pluginId === pluginId,
   );
+  // Derive navigation from actual mounted instances, never from a suggested
+  // default placement or a Plugin-specific route. It carries no write grant.
+  const parentTargets = inspection.plugins.filter(instance => instance.pluginId === pluginId)
+    .flatMap(instance => instance.target.type === "plugin_slot" ? [instance.target] : []);
+  const compositionParents = await Promise.all([...new Map(parentTargets.map(target => [target.parentInstanceId, target])).values()].slice(0, 4).map(async target => {
+    const parent = inspection.plugins.find(instance => instance.id === target.parentInstanceId);
+    const parentAsset = parent && inspection.pluginAssets.find(item => item.pluginId === parent.pluginId);
+    const application = parentAsset?.application ? await inspectPluginApplication(projectRoot, parentAsset) : undefined;
+    return { instanceId: target.parentInstanceId, slot: target.slot,
+      ...(parent ? {pluginId: parent.pluginId} : {}),
+      ...(application ? {entryPath: application.entryPath, entryHash: application.entryHash,
+        implementationOwnership: application.implementationOwnership,
+        ...("compositionContract" in application.publicApi ? {compositionContract: application.publicApi.compositionContract} : {})} : {}),
+      interpretation: "Current mounted parent boundary, not a selected mutation target or authority. A child action API does not describe append/replacement behavior in its parent. Use the parent's composition contract only if that boundary answers the requested change; preserve existing actions and permission checks." };
+  }));
 
   return {
     ...(recoveryOnly ? { recoveryOnly: true } : {}),
     appUIModelHash: inspection.appUIModel.hash,
     asset,
+    ...(compositionParents.length ? {compositionParents} : {}),
+    ...(sharedTypes ? {sharedTypes} : {}),
+    ...(asset.application ? { application: await inspectPluginApplication(projectRoot, asset, sharedSymbols, sharedModule) } : {}),
     selected: asset.selected,
     instances: inspection.plugins.filter(
       (instance) => instance.pluginId === pluginId,
@@ -486,7 +510,7 @@ async function executeRequest(
     case "inspect_ui_services":
       return inspectUIServices(projectRoot);
     case "inspect_ui_plugin":
-      return inspectUIPlugin(projectRoot, request.input.pluginId);
+      return inspectUIPlugin(projectRoot, request.input.pluginId, request.input.sharedSymbols, request.input.sharedModule);
     case "preflight_ui_plugin_placement":
       return preflightCreatorPluginPlacement(projectRoot, request.input);
     case "inspect_ui_plugin_source_references":
@@ -576,6 +600,7 @@ function failure(error: unknown): UIOperatorFailure {
 export async function handleUIOperatorRequest(
   input: unknown,
   projectRoot = defaultProjectRoot,
+  onAdmission?: () => void,
 ): Promise<UIOperatorResponse> {
   let release: (() => Promise<void>) | undefined;
   try {
@@ -583,11 +608,13 @@ export async function handleUIOperatorRequest(
     const parsed = requestSchema.parse(input);
     if (["plan_agent_ui_integration", "apply_agent_ui_integration", "prepare_agent_ui_integration_asset", "verify_agent_ui_integration"].includes(parsed.operation)) {
       if (parsed.operation === "apply_agent_ui_integration" || parsed.operation === "prepare_agent_ui_integration_asset") release = await acquireOperatorLock((await resolveCompatibilityConsumer(projectRoot))?.hostRoot ?? projectRoot);
+      onAdmission?.();
       const result = await executeRequest(parsed, projectRoot);
       validateOperatorResult(parsed.operation, result);
       return { ok: true, result };
     }
-    release = await acquireOperatorLock(projectRoot);
+    release = await acquireOperatorLock(projectRoot, { waitMs: 10_000 });
+    onAdmission?.();
     const projectConfig = await readAgentUIProjectConfig(projectRoot);
     const effectiveConfig = operatorConfigForPaths(
       resolveAgentUIProjectPaths(projectRoot, projectConfig.config),
@@ -638,6 +665,7 @@ export async function runUIOperatorCli(projectRoot = defaultProjectRoot): Promis
     response = await handleUIOperatorRequest(
       JSON.parse(await readStandardInput()) as unknown,
       projectRoot,
+      () => { process.stderr.write("AGENT_UI_OPERATOR_ADMITTED\n"); },
     );
   } catch (error) {
     response = failure(error);

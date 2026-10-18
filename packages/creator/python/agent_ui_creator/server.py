@@ -112,6 +112,8 @@ CreatorExecutionPermission = Literal[
 class CreatorExecutionContext:
     permission: CreatorExecutionPermission | None = None
     removal_intent: RemovalIntent = "none"
+    authoring_handoff: CreatorAuthoringHandoff | None = None
+    source_navigation: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -124,6 +126,8 @@ class PendingCreatorQuestion:
     checkpoint_id: str
     run_id: str
     removal_intent: RemovalIntent = "none"
+    authoring_handoff: CreatorAuthoringHandoff | None = None
+    source_navigation: dict[str, Any] | None = None
 
 
 def _question_envelope(interrupted: DeepAgentInterrupted) -> CreatorInterruptEnvelope:
@@ -194,7 +198,7 @@ def _authoring_handoff_messages(
     }
     instruction = (
         "The Creator Host has already resolved the semantic authoring target. "
-        "Treat this Host ownership as authoritative; do not inspect the Composition "
+        "Treat this Host ownership as authoritative navigation, not an obligation to edit. The agent may conclude the complete request is already satisfied after relevant verification. Targeted Composition reads to verify current state are allowed; do not inspect the Composition "
         "catalog to rediscover or replace the target. Read only the supplied owner "
         "source needed for the requested change, then keep product integration within "
         "that owner boundary. For application_config, read ownerPath first. For "
@@ -471,7 +475,7 @@ async def _domain_write_agent_result(
         )
         review_marker = "ROUTE_REVIEW_REQUESTED"
         if (
-            productized_result.route == "read_only_general"
+            productized_result.route in {"read_only_general", "answer_only"}
             and isinstance(getattr(read_result, "text", None), str)
             and read_result.text.startswith(review_marker + "\n")
         ):
@@ -537,7 +541,7 @@ async def _domain_write_agent_result(
                         final_result = await _general_domain_write_agent_result(
                             settings, messages, activity, mutation_coordinator, diagnostics,
                             thread_id, event_sink, telemetry, handoff=reviewed.handoff,
-                            checkpointer=checkpointer, development_authority=development_authority,
+                            execution_context=execution_context, checkpointer=checkpointer, development_authority=development_authority,
                         )
                 else:
                     raise RuntimeError(f"路由复核返回未支持的路线：{reviewed.route}")
@@ -568,6 +572,7 @@ async def _domain_write_agent_result(
         event_sink,
         telemetry,
         handoff=productized_result.handoff,
+        execution_context=execution_context,
         require_removal_choice=productized_result.selection.removalIntent == "uncertain",
         removal_intent=productized_result.selection.removalIntent,
         checkpointer=checkpointer,
@@ -590,6 +595,7 @@ async def _general_domain_write_agent_result(
     checkpointer: Any = None,
     resume: dict[str, Any] | None = None,
     development_authority: PluginDevelopmentAuthority | None = None,
+    execution_context: CreatorExecutionContext | None = None,
 ):
     from .domain_agent import create_domain_write_creator_agent
     from .model_factory import create_creator_chat_model
@@ -637,6 +643,12 @@ async def _general_domain_write_agent_result(
         require_removal_choice=require_removal_choice,
         removal_intent=removal_intent,
     )
+    if telemetry is not None and handoff is not None:
+        telemetry.authoring_handoff = handoff.model_dump(mode="json")
+    if execution_context is not None:
+        execution_context.authoring_handoff = handoff
+        if execution_context.source_navigation is not None:
+            agent.source_grounding.restore_navigation(execution_context.source_navigation)
     if (resume is None and handoff is not None and handoff.kind == "plugin_source"
             and handoff.pluginId is not None and development_authority is not None
             and PluginDevelopmentAdmissionMiddleware(
@@ -655,7 +667,11 @@ async def _general_domain_write_agent_result(
     input_messages = _authoring_handoff_messages(messages, handoff)
     graph_messages = await _checkpoint_input_messages(checkpointer, thread_id, input_messages) if resume is None else input_messages
     with bind_removal_intent("uncertain" if require_removal_choice else removal_intent):
-        return await agent.run_messages(graph_messages) if resume is None else await agent.run_messages(input_messages, resume=resume)
+        try:
+            return await agent.run_messages(graph_messages) if resume is None else await agent.run_messages(input_messages, resume=resume)
+        finally:
+            if execution_context is not None:
+                execution_context.source_navigation = agent.source_grounding.export_navigation()
 
 
 def _error_code(error: Exception) -> str:
@@ -693,6 +709,22 @@ def _failed_run_change_summary(activity: CreatorActivityRecorder) -> str:
         "not-run": "尚未验证",
     }.get(status, "尚未确认当前版本通过验证")
     return f"本次已提交并保留目标工程修改：{visible}。{scope}。"
+
+
+def _failed_run_outcome(activity: CreatorActivityRecorder, logger: CreatorRunLogger, *, stopped: bool) -> dict:
+    try:
+        files = activity.finish().get("files", [])
+        paths = [file["path"] for file in files if isinstance(file, dict) and isinstance(file.get("path"), str)]
+        change_status = "committed" if paths else "none"
+    except Exception:
+        paths, change_status = [], "unknown"
+    observations = [item for item in logger.tool_observations if item.get("reason") != "CancelledError"]
+    errors = [item for item in observations if item.get("status") in {"error", "rejected"}]
+    return {"creatorRunOutcome": {
+        "status": "stopped" if stopped else "failed", "changeStatus": change_status,
+        "changedPaths": paths[:20], "toolErrors": errors[-3:], "toolErrorCount": len(errors),
+        "lastToolName": observations[-1]["toolName"] if observations else None,
+    }}
 
 
 @dataclass(frozen=True, slots=True)
@@ -866,6 +898,9 @@ async def _execute_agent_run(
             )
         return _AgentExecution(result=result, receipt=receipt)
     except BaseException as error:
+        logger.record("run_exception", {"errorType": type(error).__name__,
+            "causeType": type(error.__cause__).__name__ if error.__cause__ else None,
+            "cancelSource": event_bus.cancel_source, "stopRequested": event_bus.stop_requested})
         try:
             activity.finish()
         except Exception:
@@ -1230,10 +1265,14 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                     ):
                         yield encode(event)
                     return
+                if resume_requested:
+                    pending_questions.pop(run_input.threadId, None)
+                    yield encode(CustomEvent(type=EventType.CUSTOM, name="on_interrupt_resumed",
+                        value={"interruptId": pending.envelope.id}))
                 if agent_mode in {"minimal", "domain-read", "domain-write"}:
                     assert activity is not None
                     assert logger is not None
-                    event_bus = CreatorEventBus()
+                    event_bus = CreatorEventBus(event_sink=logger.record)
                     telemetry = CreatorRunTelemetry(activity=activity)
                     execution_context = CreatorExecutionContext()
                     with use_pending_creator_clarifications(pending_clarifications):
@@ -1242,6 +1281,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             if resume_requested:
                                 execution_context.permission = pending.permission
                                 execution_context.removal_intent = removal_intent
+                                execution_context.authoring_handoff = pending.authoring_handoff
+                                execution_context.source_navigation = pending.source_navigation
                                 if pending.permission == "inspect_read_only":
                                     agent_result = _domain_read_agent_result(
                                         settings, messages, activity, run_input.threadId,
@@ -1254,6 +1295,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                         settings, messages, activity, mutation_coordinator,
                                         diagnostics, run_input.threadId, event_bus, telemetry,
                                         checkpointer=checkpointer, resume=resume_answers,
+                                        handoff=pending.authoring_handoff,
+                                        execution_context=execution_context,
                                         removal_intent=removal_intent,
                                         development_authority=development_authority,
                                     )
@@ -1324,16 +1367,17 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             changed_summary = _failed_run_change_summary(activity)
                             yield encode(RunErrorEvent(
                                 type=EventType.RUN_ERROR, code="CREATOR_RUN_STOPPED",
+                                metadata=_failed_run_outcome(activity, logger, stopped=True),
                                 message="已停止本次 Creator 执行；已提交的修改保留。"
                                         + (f" {changed_summary}" if changed_summary else " 本轮没有项目文件修改。"),
                             ))
                             return
-                        event_bus.request_cancel()
+                        event_bus.request_cancel("response_stream_cancelled")
                         if not event_bus.has_active_tools and not agent_task.done():
                             agent_task.cancel()
                         raise
                     except Exception as error:
-                        event_bus.request_cancel()
+                        event_bus.request_cancel("response_stream_exception")
                         if not event_bus.has_active_tools and not agent_task.done():
                             agent_task.cancel()
                         if event_bus.stop_requested and not agent_task.done():
@@ -1350,6 +1394,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             RunErrorEvent(
                                 type=EventType.RUN_ERROR,
                                 code="CREATOR_RUN_STOPPED" if event_bus.stop_requested else _error_code(error),
+                                metadata=_failed_run_outcome(activity, logger, stopped=event_bus.stop_requested),
                                 message=(("已停止本次 Creator 执行；已提交的修改保留。" if event_bus.stop_requested
                                           else f"Creator Agent 执行失败：{error}")
                                          + (f" {changed_summary}" if changed_summary else "")),
@@ -1359,7 +1404,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                     finally:
                         active_runs.pop(run_input.threadId, None)
                         if not agent_task.done():
-                            event_bus.request_cancel()
+                            event_bus.request_cancel("response_stream_finalized")
                             if not event_bus.has_active_tools:
                                 agent_task.cancel()
                     result = execution.result
@@ -1371,6 +1416,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                         changed_summary = _failed_run_change_summary(activity)
                         yield encode(RunErrorEvent(
                             type=EventType.RUN_ERROR, code="CREATOR_RUN_STOPPED",
+                            metadata=_failed_run_outcome(activity, logger, stopped=True),
                             message="已停止本次 Creator 执行；已提交的修改保留。"
                                     + (f" {changed_summary}" if changed_summary else " 本轮没有项目文件修改。"),
                         ))
@@ -1402,6 +1448,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             checkpoint_id=checkpoint_id,
                             run_id=run_input.runId,
                             removal_intent=execution_context.removal_intent,
+                            authoring_handoff=execution_context.authoring_handoff,
+                            source_navigation=execution_context.source_navigation,
                         )
                         active = development_authority.active
                         if (agent_mode == "domain-write" and execution_context.permission == "domain_write"
@@ -1553,6 +1601,8 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                         }
                     completion = str(getattr(result, "completion", "success"))
                     run_result["completion"] = completion
+                    if completion == "blocked":
+                        run_result.update(_failed_run_outcome(activity, logger, stopped=False))
                     if getattr(result, "completion_reason", None) is not None:
                         run_result["completionReason"] = result.completion_reason
                     static_validation_status, runtime_verification_status = (

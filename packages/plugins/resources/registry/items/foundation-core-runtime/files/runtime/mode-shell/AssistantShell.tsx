@@ -1,13 +1,14 @@
 import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
-import { useId, useState, type ReactNode } from "react";
+import { useId, useState, type ReactNode, type CSSProperties } from "react";
 
 import "./mode-shell.css";
 
 export interface AssistantShellProps {
   children: ReactNode;
+  panelWidth?: number | undefined;
 }
 
-export function AssistantShell({ children }: AssistantShellProps) {
+export function AssistantShell({ children, panelWidth }: AssistantShellProps) {
   const messages = useAgentUILocale("runtime");
   const [open, setOpen] = useState(false);
   const panelId = useId();
@@ -16,6 +17,8 @@ export function AssistantShell({ children }: AssistantShellProps) {
     <section
       className="agent-ui-assistant-shell"
       data-agent-ui-mode="assistant"
+      style={Number.isFinite(panelWidth) && panelWidth! > 0
+        ? { "--agent-ui-assistant-panel-width": `${panelWidth}px` } as CSSProperties : undefined}
     >
       <div
         aria-label={messages.assistant}

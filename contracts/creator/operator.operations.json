@@ -45,7 +45,7 @@
     {
       "name": "inspect_ui_plugin",
       "kind": "read",
-      "inputDef": "pluginInput",
+      "inputDef": "inspectUIPluginInput",
       "resultDef": "inspectUIPluginResult",
       "agentExposed": true
     },

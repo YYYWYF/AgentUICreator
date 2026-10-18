@@ -5,15 +5,15 @@ import hashlib
 import re
 import secrets
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from langchain_core.tools import BaseTool, tool
-from pydantic import Json
+from pydantic import Field, Json
 from langgraph.types import interrupt
 from ..human_input.models import QuestionRequest, QuestionAnswers
 from ..human_input.plugin_source_messages import MESSAGES as SOURCE_OWNERSHIP_MESSAGES
 
-from .capabilities import capability_evidence, capability_navigation
+from .capabilities import capability_evidence, capability_navigation, capability_summary
 from ..responsive_repair import build_repair_plan, responsive_risks
 from ..files import read_creator_file_state
 from ..activity import CreatorActivityRecorder
@@ -23,14 +23,13 @@ from ..domain_state import (
     DomainObservationError,
     ObservationCoverage,
     ObservationSource,
-    composition_fast_path_error,
 )
 from ..operator import OperatorClient, OperatorError
 from ..removal_intent import RemovalIntent
 
 MAX_DOMAIN_TOOL_RESULT_CHARS = 48_000
 MAX_DOMAIN_TOOL_RESULT_BYTES = 48_000
-PROJECT_INSPECTION_PAGE_CHARS = 20_000
+PROJECT_INSPECTION_PAGE_CHARS = MAX_DOMAIN_TOOL_RESULT_CHARS
 _PROJECT_CURSOR = re.compile(r"([0-9a-f]{64}):([0-9a-f]{32}):([1-9][0-9]*)\Z")
 DOMAIN_READ_TOOL_NAMES = (
     "plan_agent_ui_integration",
@@ -58,6 +57,96 @@ COMPOSITION_SNAPSHOT_COVERAGE: tuple[ObservationCoverage, ...] = (
 )
 
 
+def _inspection_navigation(result: dict[str, Any]) -> dict[str, Any]:
+    catalog = result.get("authoringTargetCatalog", {})
+    bindings = {item["targetId"]: item for item in catalog.get("bindings", [])}
+    owners = [{"id": item["id"], "name": item["name"], "description": item.get("description", ""),
+               "ownerPath": bindings[item["id"]].get("ownerPath")}
+              for item in catalog.get("candidates", [])
+              if item.get("kind") == "application_config" and item["id"] in bindings][:16]
+    return {"filesystem": {"root": "/", "sourceRoot": "/" + result.get("sourceRoot", "").strip("/")},
+            "applicationOwners": owners,
+            "sourceDiscovery": "inspect_agent_ui_sources",
+            "searchSyntax": "grep is literal, not regex; use one keyword. glob supports recursive ** and {css,scss} alternatives.",
+            "coverage": "Navigation only. Read all inspection pages for complete Composition facts."}
+
+
+def _compact_composition_facts(result: dict[str, Any]) -> dict[str, Any]:
+    """Lossless references for repeated Plugin trees; no capability filtering."""
+    instances = result.get("pluginInstances")
+    model = result.get("appUIModel")
+    if not isinstance(instances, list) or not isinstance(model, dict):
+        return result
+    def has_reference_keys(value: Any) -> bool:
+        if isinstance(value, dict):
+            return bool({"instanceRef", "slotDefinitionRef"}.intersection(value)) or any(has_reference_keys(item) for item in value.values())
+        return isinstance(value, list) and any(has_reference_keys(item) for item in value)
+
+    if has_reference_keys(model) or has_reference_keys(instances):
+        return result
+    metadata = {"target", "index", "effectiveEnabled"}
+    originals = {
+        item["id"]: {key: value for key, value in item.items() if key not in metadata}
+        for item in instances if isinstance(item, dict) and isinstance(item.get("id"), str)
+    }
+    if len(originals) != len(instances):
+        return result
+
+    def references(value: Any) -> Any:
+        if isinstance(value, dict):
+            identity = value.get("id")
+            if isinstance(identity, str) and originals.get(identity) == value:
+                return {"instanceRef": identity}
+            return {key: references(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [references(item) for item in value]
+        return value
+
+    summaries = {item.get("pluginId"): item for item in result.get("capabilitySummaries", [])}
+    compact_model = references(model)
+    for slot in compact_model.get("slots", []):
+        owner = slot.get("owner", {})
+        target = slot.get("target", {})
+        definition = summaries.get(owner.get("pluginId"), {}).get("childSlots", {}).get(target.get("slot"))
+        if target.get("type") != "plugin_slot" or not isinstance(definition, dict):
+            continue
+        expected = {
+            "description": definition.get("description"),
+            "cardinality": definition.get("cardinality"),
+            "mode": definition.get("mode", "content"),
+            "optional": definition.get("optional") is True,
+        }
+        if "accepts" in definition:
+            expected["accepts"] = definition["accepts"]
+        shared = [key for key, value in expected.items() if key in slot and slot[key] == value]
+        if len(shared) == len(expected):
+            slot["slotDefinitionRef"] = {"pluginId": owner["pluginId"], "slot": target["slot"]}
+            for key in shared:
+                del slot[key]
+
+    defaults = {
+        "selectionOwner": "composition",
+        "requiredServices": {"names": [], "status": "not-required", "missing": []},
+        "optionalServices": {"names": [], "available": []},
+    }
+    defaults = {key: value for key, value in defaults.items()
+                if all(key in item for item in result.get("capabilitySummaries", []))}
+    return {
+        **result,
+        "compositionEncoding": {
+            "instanceRef": "Plugin node = pluginInstances[id] excluding target/index/effectiveEnabled. Expand slots recursively.",
+            "slotDefinitionRef": "Use capabilitySummaries[pluginId].childSlots[slot] for description/cardinality/accepts; mode defaults content, optional false.",
+            "capabilitySummaryDefaults": defaults,
+        },
+        "appUIModel": compact_model,
+        "pluginInstances": [references(item) for item in instances],
+        "capabilitySummaries": [
+            {key: value for key, value in item.items() if key not in defaults or value != defaults[key]}
+            for item in result.get("capabilitySummaries", [])
+        ],
+    }
+
+
 def _composition_navigation(result: dict[str, Any]) -> dict[str, Any]:
     """Keep the facts needed for a composition decision without catalog duplication.
 
@@ -69,7 +158,8 @@ def _composition_navigation(result: dict[str, Any]) -> dict[str, Any]:
         return result
     actions = result["creatorActions"]
     targets = result["authoringTargetCatalog"]
-    return {
+    return _compact_composition_facts({
+        "navigation": _inspection_navigation(result),
         **{key: value for key, value in result.items()
            if key not in {"creatorActions", "authoringTargetCatalog"}},
         "observationCoverage": [
@@ -88,7 +178,9 @@ def _composition_navigation(result: dict[str, Any]) -> dict[str, Any]:
             "availableVia": "inspect_agent_ui_sources",
             "note": "Plugin inventory covers installed project plugins; inspect available Source Items before implementing a missing reusable capability.",
         },
-    }
+        "filesystem": {"root": "/", "sourceRoot": "/" + result.get("sourceRoot", "").strip("/"),
+                       "paths": "Use project virtual paths, not host absolute paths or invented workspace directories."},
+    })
 
 
 def _project_navigation(result: dict[str, Any]) -> dict[str, Any]:
@@ -96,6 +188,7 @@ def _project_navigation(result: dict[str, Any]) -> dict[str, Any]:
         return result
     targets = result["authoringTargetCatalog"]
     return {
+        "navigation": _inspection_navigation(result),
         **{key: value for key, value in result.items() if key != "authoringTargetCatalog"},
         "authoringTargetNavigation": {
             "revision": targets["revision"],
@@ -177,6 +270,7 @@ class _ProjectInspectionPages:
     snapshot_hash: str
     nonce: str
     revision: int
+    serialized: str = ""
     next_offset: int = 0
     delivered_offsets: set[int] = field(default_factory=set)
     complete: bool = False
@@ -232,12 +326,14 @@ def _render_project_inspection(
             snapshot_hash=snapshot_hash,
             nonce=secrets.token_hex(16),
             revision=revision,
+            serialized=complete,
         )
 
     assert state is not None
     end = min(offset + PROJECT_INSPECTION_PAGE_CHARS, len(complete))
-    while True:
-        rendered = _render_json({"ok": True, "result": {
+    def render_page(end: int) -> str:
+        return _render_json({"ok": True, "result": {
+            **({"navigation": result["navigation"]} if offset == 0 and isinstance(result, dict) and "navigation" in result else {}),
             "pageComplete": end == len(complete),
             "snapshotHash": snapshot_hash,
             "appUIModelHash": result.get("appUIModel", {}).get("hash") if isinstance(result, dict) else None,
@@ -246,11 +342,23 @@ def _render_project_inspection(
             "pageText": complete[offset:end],
             "nextCursor": f"{snapshot_hash}:{state.nonce}:{end}" if end < len(complete) else None,
         }})
-        if _within_result_limit(rendered):
-            break
-        if end - offset <= 1:
+    rendered = render_page(end)
+    if not _within_result_limit(rendered):
+        # Fit the escaped JSON envelope and UTF-8 bytes, not a fixed character
+        # estimate. This keeps non-ASCII pages bounded without tiny half-pages.
+        low, high = offset + 1, end - 1
+        best: tuple[int, str] | None = None
+        while low <= high:
+            candidate = (low + high) // 2
+            candidate_page = render_page(candidate)
+            if _within_result_limit(candidate_page):
+                best = candidate, candidate_page
+                low = candidate + 1
+            else:
+                high = candidate - 1
+        if best is None:
             raise ValueError("A project inspection page cannot fit the tool result limit.")
-        end = offset + (end - offset) // 2
+        end, rendered = best
     if offset == state.next_offset:
         state.delivered_offsets.add(offset)
         state.next_offset = end
@@ -298,6 +406,17 @@ def create_operator_tools(
 ) -> tuple[BaseTool, ...]:
     paging_states: dict[str, _ProjectInspectionPages] = {}
     integration_recipes: dict[str, dict[str, Any]] = {}
+    plugin_contracts: dict[tuple[str, str, str], str] = {}
+
+    def page_snapshot(key: str, cursor: str | None) -> Any:
+        if cursor is None:
+            return None
+        state = paging_states.get(key)
+        if state is None:
+            raise OperatorError("OPERATOR_CURSOR_INVALID", "The cursor belongs to another inspection.")
+        if state.revision != (activity.revision if activity else 0):
+            raise OperatorError("OPERATOR_SNAPSHOT_STALE", "Project revision changed; restart inspection.")
+        return json.loads(state.serialized)["result"]
 
     def integration_recipe(value: dict[str, Any]) -> dict[str, Any]:
         if set(value) != {"id"}:
@@ -383,32 +502,37 @@ def create_operator_tools(
         )
 
     def cross_layer_read_prohibited(name: str) -> str | None:
-        if (
-            observations is None
-            or activity is None
-            or name not in CROSS_LAYER_DOMAIN_READ_NAMES
-            or observations.composition_grounding_status(
-                current_revision=activity.revision
-            )
-            != "grounded"
-        ):
-            return None
-        observations.composition_fast_path_metrics.record_cross_layer_read_attempt()
-        return _render_json(composition_fast_path_error())
+        if observations is not None and activity is not None and name in CROSS_LAYER_DOMAIN_READ_NAMES:
+            if observations.composition_grounding_status(current_revision=activity.revision) == "grounded":
+                observations.composition_fast_path_metrics.record_cross_layer_read_attempt()
+            observations.exit_composition_lane(current_revision=activity.revision)
+        return None
 
     @tool("inspect_ui_capabilities")
-    async def inspect_ui_capabilities(cursor: str | None = None) -> str:
-        """Discover installed Plugins, formal Source Items, project component paths, UI stack and legal authoring targets together. This live navigation index is not source truth. Read every page before concluding absence; then inspect only the selected implementation. It never grants development permission."""
+    async def inspect_ui_capabilities(cursor: str | None = None, detail: Literal["summary", "full"] = "summary") -> str:
+        """Start here for a feature overview or what users can customize. Default summary includes configured Plugins, official candidates and Service readiness; enough for an overview without additional composition inspection. Use detail='full' only for complete authoring/navigation details. Continuation cursors read the captured run snapshot; omit cursor to refresh. Read all pages before concluding absence. This never grants mutation permission or proves live backend behavior."""
         try:
-            project = await client.inspect_ui_project()
-            sources = await source_inventory()
-            result = capability_navigation(project, sources, activity.project_root if activity else None)
+            key = "capabilities:" + detail
+            result = page_snapshot(key, cursor)
+            if result is None:
+                project = await client.inspect_ui_project()
+                sources = await source_inventory()
+                if detail == "summary":
+                    try:
+                        services = await client.inspect_ui_services()
+                    except OperatorError as error:
+                        services = {"error": {"code": error.code, "message": str(error)}}
+                    result = capability_summary(project, sources, services)
+                else:
+                    result = capability_navigation(project, sources, activity.project_root if activity else None)
             rendered, complete, state = _render_project_inspection(
-                result, cursor, state=paging_states.get("capabilities"),
+                result, cursor, state=paging_states.get(key),
                 revision=activity.revision if activity else 0,
             )
             if state is not None:
-                paging_states["capabilities"] = state
+                paging_states[key] = state
+            else:
+                paging_states.pop(key, None)
             if complete and observations is not None and activity is not None:
                 observations.clear_composition_grounding(
                     reason="capability_navigation", current_revision=activity.revision,
@@ -431,18 +555,20 @@ def create_operator_tools(
                 return covered
         try:
             view_key = view or "project"
-            result = (
-                await client.inspect_ui_project(view="composition")
-                if view == "composition"
-                else await client.inspect_ui_project()
-            )
-            result = (
-                _composition_navigation(result)
-                if view == "composition"
-                else _project_navigation(result)
-            )
-            if include_official_inventory and view is None:
-                result = await with_official_inventory(result)
+            result = page_snapshot(view_key, cursor)
+            if result is None:
+                result = (
+                    await client.inspect_ui_project(view="composition")
+                    if view == "composition"
+                    else await client.inspect_ui_project()
+                )
+                result = (
+                    _composition_navigation(result)
+                    if view == "composition"
+                    else _project_navigation(result)
+                )
+                if include_official_inventory and view is None:
+                    result = await with_official_inventory(result)
             current_revision = activity.revision if activity is not None else 0
             current_hash = (
                 observations.current_hash(current_revision=current_revision)
@@ -491,7 +617,9 @@ def create_operator_tools(
     async def inspect_app_ui_model_source(cursor: str | None = None) -> str:
         """Read raw AppUIModel source, hash and factual diagnostics. Read all pages before constructing a complete recovery candidate. Host never supplies repair hints."""
         try:
-            result = await client.inspect_app_ui_model_source()
+            result = page_snapshot("recovery", cursor)
+            if result is None:
+                result = await client.inspect_app_ui_model_source()
             rendered, complete, state = _render_project_inspection(
                 result, cursor, state=paging_states.get("recovery"),
                 revision=activity.revision if activity else 0,
@@ -538,11 +666,14 @@ def create_operator_tools(
         if covered is not None and not include_official_inventory:
             return covered
         try:
-            result = await client.list_ui_plugins()
+            result = page_snapshot("plugins", cursor)
+            if result is None:
+                result = await client.list_ui_plugins()
+                if include_official_inventory:
+                    result = await with_official_inventory(result)
             if result.get("recoveryOnly") is not True:
                 observe(result.get("appUIModelHash"), "list_ui_plugins")
             if include_official_inventory:
-                result = await with_official_inventory(result)
                 rendered, _, state = _render_project_inspection(
                     result, cursor, state=paging_states.get("plugins"),
                     revision=activity.revision if activity else 0,
@@ -579,13 +710,44 @@ def create_operator_tools(
             return _render_error(error)
 
     @tool("inspect_ui_plugin")
-    async def inspect_ui_plugin(pluginId: str) -> str:
-        """Inspect one currently known UI Plugin's declaration and current authoring composition state. Prefer this after pluginId is known."""
+    async def inspect_ui_plugin(pluginId: str, sharedSymbols: Annotated[list[str] | Json[list[str]] | None, Field(description="Up to 8 public export paths. Plain members use dots: AgentUIDialog.Root or AgentUIDialog.Popup. Only type operators use $: AgentUIDialog.Popup.$parameter0 for props, $return for callable return, $element for array/index values. Do not prefix ordinary members with $. Response reports exact resolution/truncation.")] = None, sharedModule: Annotated[str | None, Field(description="Exact installed public module specifier. Presentation controls: @za38.03/agent-ui-plugins (not / or root). Default when omitted: @za38.03/agent-ui-plugins/plugin-support for shared Runtime types.")] = None) -> str:
+        """Inspect a known Plugin's current application/implementation ownership, public API and composition facts. sharedModule is an exact package specifier: @za38.03/agent-ui-plugins for presentation controls, default @za38.03/agent-ui-plugins/plugin-support for shared types. Queries work for custom source and packaged Plugins alike. sharedSymbols queries up to 8 actual export.member paths; .$parameter0 through 9 expands invocation props, .$return a callable return, .$element array/index values. Results include bounded parameterContracts, exact expansion paths, optional presentation contracts and explicit truncation/resolution status. Identical contracts reference prior messages in this run. Inspection grants no mutation authority."""
         prohibited = cross_layer_read_prohibited("inspect_ui_plugin")
         if prohibited is not None:
             return prohibited
         try:
-            return _render_result(await client.inspect_ui_plugin(pluginId))
+            result = await client.inspect_ui_plugin(pluginId, sharedSymbols, sharedModule) if sharedModule else (await client.inspect_ui_plugin(pluginId, sharedSymbols) if sharedSymbols else await client.inspect_ui_plugin(pluginId))
+            # Always re-inspect the current project through Operator. This is
+            # response compaction, never a cache of ownership or write authority.
+            updates: dict[tuple[str, str, str], str] = {}
+            def compact(value, section):
+                if not isinstance(value, dict):
+                    return value
+                fingerprint = hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+                key = (pluginId, section, fingerprint)
+                reference = f"{section}:{fingerprint}"
+                if plugin_contracts.get(key) == fingerprint:
+                    return {"status": value.get("status"), "unchanged": True,
+                            "contractReference": reference,
+                            "interpretation": "Identical to the earlier full contract in this run; reuse that message. This reference grants no authority."}
+                updates[key] = fingerprint
+                return {**value, "contractReference": reference}
+
+            if isinstance(result.get("sharedTypes"), dict):
+                result = {**result, "sharedTypes": compact(result["sharedTypes"], "sharedTypes")}
+            application = result.get("application")
+            if isinstance(application, dict):
+                application = dict(application)
+                for section in ("publicApi", "sharedTypes"):
+                    if isinstance(application.get(section), dict):
+                        application[section] = compact(application[section], section)
+                result = {**result, "application": application}
+            rendered = _render_result(result)
+            if json.loads(rendered).get("ok") is True:
+                plugin_contracts.update(updates)
+                while len(plugin_contracts) > 128:
+                    plugin_contracts.pop(next(iter(plugin_contracts)))
+            return rendered
         except OperatorError as error:
             return _render_error(error)
 

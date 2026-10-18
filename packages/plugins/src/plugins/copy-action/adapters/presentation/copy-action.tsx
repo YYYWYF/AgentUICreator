@@ -6,10 +6,12 @@ export const CanonicalResponseCopyAction: FC<CanonicalResponseCopyActionProps> =
   const localeMessages = useAgentUILocale();
   const response = useAssistantResponseRuntime();
   const [copied, setCopied] = useState(false);
+  const [failed, setFailed] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const generation = useRef(0);
   useEffect(() => {
     setCopied(false);
+    setFailed(false);
     generation.current++;
     return () => {
       generation.current++;
@@ -18,7 +20,7 @@ export const CanonicalResponseCopyAction: FC<CanonicalResponseCopyActionProps> =
   }, [response.group.headAssistantMessageId, response.text]);
   const disabled = response.isRunning || !response.text;
   return (
-    <TooltipIconButton
+    <><TooltipIconButton
       {...buttonProps}
       tooltip={tooltip ?? localeMessages.common.copy}
       type="button"
@@ -27,6 +29,7 @@ export const CanonicalResponseCopyAction: FC<CanonicalResponseCopyActionProps> =
       onClick={async event => {
         onClick?.(event);
         if (event.defaultPrevented || disabled || disabledProp) return;
+        setFailed(false);
         const current = generation.current;
         try {
           await navigator.clipboard.writeText(response.text);
@@ -35,6 +38,8 @@ export const CanonicalResponseCopyAction: FC<CanonicalResponseCopyActionProps> =
           setCopied(true);
           timer.current = setTimeout(() => setCopied(false), 3000);
         } catch (error) {
+          if (current !== generation.current) return;
+          setFailed(true);
           console.error("[agent-ui] response copy failed:", error);
         }
       }}
@@ -45,6 +50,8 @@ export const CanonicalResponseCopyAction: FC<CanonicalResponseCopyActionProps> =
         <CopyIcon data-slot="copy-action-idle" className="animate-in zoom-in-75 fade-in duration-150" />
       ))}
     </TooltipIconButton>
+    {failed && <span role="status" data-slot="copy-action-error" className="text-destructive text-xs">{localeMessages.copyAction.failed}</span>}
+    </>
   );
 };
 

@@ -38,7 +38,7 @@
   right: 1.5rem;
   bottom: 5.75rem;
   z-index: 1000;
-  width: min(26rem, calc(100vw - 3rem));
+  width: min(var(--agent-ui-assistant-panel-width, 26rem), calc(100vw - 3rem));
   height: min(38rem, calc(100dvh - 7.25rem));
   min-height: 0;
   padding: 6px 0 4px;

@@ -202,6 +202,10 @@ Capability Catalog revision 与 Active Registry 选择结果
 摘要只负责导航，不代替真实项目文件。Creator 需要精确信息时，通过 `inspect_app_ui_model`、`inspect_ui_plugin`、`inspect_runtime_errors` 等工具渐进查询，不把整个项目或全部插件源码重复注入上下文。
 
 能力发现使用 `inspect_ui_capabilities` 同时查询工程插件和 Plugins 包内官方目录（原 Source Registry 职责，合包待实现）。
+普通功能介绍默认返回精简摘要，包含工程插件、官方候选及 Service 就绪事实；不携带完整 authoring 合同、重复 Layout 或组件文件导航。需要精确导航时使用 `detail='full'`，需要修改组合时重新读取 Composition，不将摘要作为写入依据。
+
+领域工具的分页读取复用本次 run、view/detail 和 mutation revision 内捕获的快照，不为每一页重新调用 Operator；cursor 保留顺序、nonce 和 revision 校验。省略 cursor 可重新捕获，运行内 revision 变化使旧 cursor 失效。外部编辑不混入后续分页；捕获的快照不声称持续实时，修改仍由 Host 校验当前 hash。普通 Operator 协议请求遇同工程占用时最多等待 10 秒，不立即把短暂锁竞争交给模型重试；工程间仍独立，超时明确报告，既有安装执行入口的 fail-fast admission 不变。
+
 在 `inspect_read_only` 请求中，完整 `inspect_ui_project` 和 `list_ui_plugins` 也附带官方 Source Item 清单，
 不依赖模型记住补查另一个工具。结果中的 `capabilityEvidence` 分别声明工程和官方库清单的完整性及
 Source stateHash；官方库查询失败时保留工程事实并标记清单不完整，不将失败转换为空清单。
@@ -310,11 +314,15 @@ required 或 optional consumer；disabled 或 dependency-blocked consumer 也阻
 
 Agent UI 项目支持 `assistant`、`embedded` 和 `platform` 三种 Mode。Mode 声明产品容器形态、Workspace Policy 和初始化时使用的默认 Preset ID；Mode 不创建或持有 AppUIModel。
 
+`assistant/default` 和 `embedded/default` 共用一份会话模板；嵌入式 Preset 直接引用助理式的模板源，模板调整同时用于两种形态。两者仍保留独立 Mode 与外部 Shell，初始化各自返回 fresh AppUIModel；共用模板不覆盖已生成项目的组合或定制。会话展示样式共用，外壳负责悬浮或嵌入方式。
+
 Mode 保存在 `.agent-ui/project.json`，不进入 AppUIModel。没有该配置的项目需要初始化。Preset Registry 在项目初始化时解析默认组合并返回 fresh AppUIModel；初始化完成后，当前 `app-ui/app-ui.json` 是项目的组合事实源。运行时只读取项目 Mode 和当前 AppUIModel，不加载 Preset，也不根据 Mode 改写组合。
 
 Mode Registry 只负责注册和查找 Mode Definition，不是新的 Plugin 系统。Preset Registry 只负责发现初始化组合，不安装 Plugin 或进入 Runtime。UI Plugin、SlotRegistry、LayoutRenderer、AppUICompiler 和 UIPluginRuntime 均不感知 Mode；第一阶段也不引入 Host、surface、density、`supportsModes`、DOM 注入或 Mode 迁移规则。
 
 运行时通过 `runtime/mode-shell` 中唯一的 `ModeShell` 路由 `AssistantShell`、`EmbeddedShell` 和 `PlatformShell`。ModeShell 只决定整套 Agent UI 的外部形态，AppUIModel 继续决定壳内布局和 Plugin 组合；Shell 不创建 Slot，也不直接渲染业务 Plugin。`AgentRuntimeProvider` 与 `PluginServiceProvider` 位于 ModeShell 外部，Assistant 收起时只隐藏 Panel、保持运行时 Surface 挂载，不能销毁会话、运行状态或 Plugin Service。Mode Definition 不引用 Preset 内容或 React Shell，也不增加 ModeShell Registry。
+
+悬浮面板宽度由项目自有 `agent-ui/appearance/shell-config.ts` 的 `assistantPanelWidth`（像素）配置，Application 将其传给 ModeShell；Shell 保留视口宽度约束。Creator 通过 application_config 目标发现该入口，普通定制不修改只读 Runtime、不接管插件，也不把外壳宽度放进 AppUIModel。缺少入口的旧工程不自动迁移、不生成错误的定制目标；接入入口属于单独的应用基础代码迁移。
 
 ---
 

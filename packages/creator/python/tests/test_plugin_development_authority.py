@@ -845,3 +845,20 @@ def test_formal_source_install_allows_only_its_plugin_composition_without_new_gr
     assert json.loads(_call(middleware, "mutate_app_ui_model", {
         "operations": [{"type": "insert_layout_node", "node": {"id": "empty"}}],
     }).content)["ok"] is False
+
+
+def test_ui_scope_accepts_detailed_bounded_evidence_without_truncating_or_granting(tmp_path):
+    contract = {"capability": "转发", "renderingCategory": "semantic-slot",
+                "placement": "actions", "lifecycle": "memory", "dependencies": [],
+                "verificationMethod": "runtime"}
+    arguments = {"deliveryContract": contract, "targetPluginId": "forward-action",
+                 "desiredOutcome": "转发弹窗", "missingCapabilities": ["转发"],
+                 "uiScope": "界面与公开 API 证据。" * 120}
+    parsed = PrepareUIPluginDevelopmentInput.model_validate(arguments)
+    assert parsed.uiScope == arguments["uiScope"]
+    assert len(parsed.uiScope) > 500
+    assert PrepareUIPluginDevelopmentInput.model_json_schema()["properties"]["uiScope"]["maxLength"] == 4000
+    with pytest.raises(ValidationError):
+        PrepareUIPluginDevelopmentInput.model_validate({**arguments, "uiScope": "x" * 4001})
+    with pytest.raises(ValidationError):
+        PrepareUIPluginDevelopmentInput.model_validate({**arguments, "approved": True})

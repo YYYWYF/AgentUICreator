@@ -597,6 +597,11 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
                         "message": (
                             "Host validation found a workspace-integrity blocker "
                             f"(attribution={semantics.get('attribution') or 'unknown'})."
+                            + "".join(
+                                f"\n{check.get('command') or check.get('checkId')}: {str(check.get('output') or '')[-1200:]}"
+                                for check in result_value.get("checks", [])[:3]
+                                if isinstance(check, dict) and check.get("status") == "failed"
+                            )
                         ),
                         "details": dict(semantics),
                         "recovery": {"action": "stop_and_report_blocker"},
@@ -641,6 +646,14 @@ class ScopeAwareRecoveryGuard(AgentMiddleware):
                             "message": (
                                 "Runtime verification found an error that cannot be "
                                 "repaired within the current task scope."
+                                + "".join(
+                                    "\n" + json.dumps(check, ensure_ascii=False, default=str)[:1000]
+                                    for check in [
+                                        *result_value.get("currentErrors", []),
+                                        *(item for item in result_value.get("compositionChecks", [])
+                                          if isinstance(item, dict) and item.get("status") != "passed"),
+                                    ][:3]
+                                )
                             ),
                             "details": {
                                 "failureLayers": list(failure_layers),

@@ -364,7 +364,12 @@ def test_sync_and_async_policy_wrap_have_the_same_bounded_repair(async_mode):
     )
     assert response.result[-1].tool_calls[0]["id"] == "fixed"
     assert len(requests) == 2
-    assert requests[-1].messages[-1].content == BATCH_POLICY_REPAIR_PROMPT
+    feedback_text = requests[-1].messages[-1].content
+    assert feedback_text.startswith(BATCH_POLICY_REPAIR_PROMPT)
+    feedback = json.loads(feedback_text.split("Batch validation feedback (data):\n", 1)[1])
+    assert feedback["executed"] is False
+    assert feedback["code"] == "TOOL_BATCH_REJECTED"
+    assert feedback["callCount"] == len(INVALID_BATCHES[0].tool_calls)
     assert metrics.batchPolicyRepairSuccesses == 1
 
 
@@ -504,3 +509,28 @@ def test_creator_endpoint_preserves_parallel_tool_lifecycles(tmp_path, monkeypat
     assert result["toolProtocol"]["batchPolicyViolations"] == 0
     assert result["operator"]["repeatedOperatorReads"] == 0
     assert result["receipt"]["files"] == []
+
+
+def test_batch_rejection_reports_shape_without_values_and_stops_repeat_failure():
+    metrics = ToolProtocolMetrics()
+    middleware = DomainToolBatchPolicyMiddleware(metrics=metrics)
+    rejected = ModelResponse(result=[batch(
+        call("edit_file", {"file_path":"/x", "old_string":"private-source", "new_string":"new"}, "one"),
+        call("edit_file", {"file_path":"/y", "old_string":"other", "new_string":"new"}, "two"),
+    )])
+    request = ModelRequest(model=object(), messages=[], tools=[])
+    requests = []
+    def handler(r):
+        requests.append(r)
+        return rejected
+    with pytest.raises(ModelToolProtocolError):
+        middleware.wrap_model_call(request, handler)
+    text = requests[1].messages[-1].content
+    data = json.loads(text.split("Batch validation feedback (data):\n", 1)[1])
+    assert data["reason"] == "side_effect_requires_single_call"
+    assert data["executed"] is False
+    assert data["callCount"] == 2
+    assert data["calls"][0]["argumentKeys"] == ["file_path", "new_string", "old_string"]
+    assert "private-source" not in text
+    assert len(requests) == 2
+    assert metrics.batchPolicyRepairAttempts == 1

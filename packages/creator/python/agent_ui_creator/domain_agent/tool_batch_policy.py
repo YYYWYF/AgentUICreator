@@ -64,13 +64,33 @@ class DomainToolBatchPolicyMiddleware(AgentMiddleware):
         if self.run_control is not None:
             self.run_control.assert_runnable()
 
-    def _repair_request(self, request: ModelRequest) -> ModelRequest:
+    def _repair_request(self, request: ModelRequest, rejected: ModelResponse) -> ModelRequest:
         self.metrics.batchPolicyViolations += 1
         self.metrics.batchPolicyRepairAttempts += 1
         # Do not append the rejected AIMessage: its calls were never dispatched
         # and would leave unmatched tool call ids in provider history.
+        message = next((item for item in reversed(rejected.result) if isinstance(item, AIMessage)), None)
+        calls = message.tool_calls if message is not None else []
+        if any(call["name"] not in READ_ONLY_TOOL_NAMES for call in calls):
+            reason = "side_effect_requires_single_call"
+        elif len(calls) > MAX_READ_BATCH_SIZE:
+            reason = "read_batch_too_large"
+        else:
+            reason = "duplicate_read_calls"
+        feedback = {
+            "code": "TOOL_BATCH_REJECTED", "reason": reason,
+            "callCount": len(calls), "executed": False,
+            "calls": [{"tool": call["name"], "argumentKeys": sorted(call["args"])[:32]}
+                      for call in calls[:8]],
+        }
+        self.metrics.protocolDiagnostics.append({
+            "kind": "tool_batch_rejected", "modelCallSequence": self.metrics.modelCalls,
+            **feedback,
+        })
+        del self.metrics.protocolDiagnostics[:-32]
         return request.override(
-            messages=[*request.messages, HumanMessage(content=BATCH_POLICY_REPAIR_PROMPT)]
+            messages=[*request.messages, HumanMessage(content=BATCH_POLICY_REPAIR_PROMPT
+                + "\n\nBatch validation feedback (data):\n" + json.dumps(feedback, ensure_ascii=False))]
         )
 
     def _finish_repair(self, response: ModelResponse) -> ModelResponse:
@@ -91,7 +111,7 @@ class DomainToolBatchPolicyMiddleware(AgentMiddleware):
         response = handler(request)
         if is_valid_domain_tool_batch(response):
             return response
-        return self._finish_repair(handler(self._repair_request(request)))
+        return self._finish_repair(handler(self._repair_request(request, response)))
 
     async def awrap_model_call(
         self,
@@ -102,4 +122,4 @@ class DomainToolBatchPolicyMiddleware(AgentMiddleware):
         response = await handler(request)
         if is_valid_domain_tool_batch(response):
             return response
-        return self._finish_repair(await handler(self._repair_request(request)))
+        return self._finish_repair(await handler(self._repair_request(request, response)))

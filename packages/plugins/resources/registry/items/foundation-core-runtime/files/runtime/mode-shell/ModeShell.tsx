@@ -7,13 +7,14 @@ import { PlatformShell } from "./PlatformShell";
 
 export interface ModeShellProps {
   mode: AgentUIMode;
+  assistantPanelWidth?: number | undefined;
   children: ReactNode;
 }
 
-export function ModeShell({ mode, children }: ModeShellProps) {
+export function ModeShell({ mode, children, assistantPanelWidth }: ModeShellProps) {
   switch (mode) {
     case "assistant":
-      return <AssistantShell>{children}</AssistantShell>;
+      return <AssistantShell panelWidth={assistantPanelWidth}>{children}</AssistantShell>;
     case "embedded":
       return <EmbeddedShell>{children}</EmbeddedShell>;
     case "platform":

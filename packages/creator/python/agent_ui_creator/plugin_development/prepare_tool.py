@@ -35,10 +35,13 @@ class PrepareUIPluginDevelopmentInput(BaseModel):
         "Existing Plugin / Source Item reuse investigation conclusions. These are not "
         "Host UI component source evidence and cannot replace componentBasisRefs."
     ))
-    uiScope: str = Field(default="", max_length=500, description=(
+    uiScope: str = Field(default="", max_length=4000, description=(
         "UI business scope and selected UI system: cite actual source usage, controls "
         "and import origins, Provider/theme conventions, and why other discovered "
-        "systems were not selected. Generated imports must match this plan."
+        "systems were not selected. Concise summary, at most 4000 characters; "
+        "put evidence paths in componentBasisRefs rather than copying source or "
+        "full tool contracts here. Generated imports must match this plan. "
+        "This description does not grant development or source ownership."
     ))
     dataScope: str = Field(default="", max_length=500)
     excludedOperations: list[str] = Field(default_factory=list, max_length=12)

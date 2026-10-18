@@ -110,6 +110,11 @@ export async function collectPluginAssets(
       }
       assets.push({
         ownership: "project_source",
+        ...(application ? { application: {
+          entryPath: projectPath(projectRoot, path.join(directoryPath, "index.tsx")),
+          implementationOwnership: sourceOwned ? "project" as const : "npm" as const,
+          implementationImport: sourceOwned ? "./source/index" : `@za38.03/agent-ui-plugins/${manifest.id}`,
+        } } : {}),
         pluginId: manifest.id,
         manifest,
         name: manifest.name,

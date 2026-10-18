@@ -109,6 +109,10 @@ READ_ONLY INSPECT. Do not route these requests to a Plugin development decision
 or a Composer/Layout action. The general agent consumes Host Integration Recipes.
 
 
+Choice records contain one action effect or authoring target each. Internal IDs
+and duplicated wrapper text are held by the Host; return the supplied choice
+key, never infer an ID. All supplied candidates remain available.
+
 The Host has already determined the currently valid Composition Actions and
 Authoring Targets. You only select one supplied choice; you do not construct
 operations, invent ownership, or execute changes.
@@ -126,6 +130,15 @@ GENERAL DEVELOPMENT_PROHIBITED, GENERAL HIDE, GENERAL PURGE, GENERAL REMOVAL_UNC
 Examples: MODIFY GENERAL; READ_ONLY INSPECT; READ_ONLY_EXPLICIT INSPECT;
 MODIFY SELECT A1.
 Determine task intent from the final deliverable before choosing a route.
+MODIFY authorizes a necessary change; it does not require one when fresh evidence
+shows the complete desired behavior already works. For a capability request,
+consider current presence, enablement and declared behavior before assuming a
+source edit. Choose GENERAL when verification of existing composition/behavior
+is the decisive work and no concrete source delta is established. A source Target
+is appropriate for an identified customization, not merely a matching feature
+name. Do not treat an enabled Plugin as proof of visibility or interaction.
+The coding agent may conclude no change is needed after sufficient verification,
+or report the precise unavailable behavioral evidence without inventing edits.
 Inspection needed before editing, an unidentified target, or no matching atomic
 Action never turns a modification request into READ_ONLY. Use MODIFY GENERAL
 to discover the target and make an authorized frontend change. Historical
@@ -173,11 +186,28 @@ copy is an evidence-based read-only check; use INSPECT to confirm the current
 Composition. Do not ask whether the user wants to keep the current state when
 they have already said so.
 Never select only one part of a multi-layer request; use GENERAL when the
-complete desired state spans Composition and source/config ownership, or has
-related implementation steps such as inspecting an existing component, adapting
-it, and composing it. Having no matching atomic Action is not a reason
-to reject legitimate frontend work: choose GENERAL for authorized source work.
-An already_satisfied Action may still be selected.
+complete desired state spans independent Composition and source/config owners.
+Implementation steps (inspection, API assessment, editing and validation) do not
+by themselves make a request multi-owner. A supplied scoped authoring Target
+is an entry point for coding, not an atomic Action or a claim of completed behavior.
+Choose that Target when it owns the requested behavior, even if several edits or
+an implementation takeover may be needed; takeover still requires its own consent.
+Having no matching atomic Action is not a reason to reject legitimate frontend work.
+Select an atomic Action only when its declared effect covers the WHOLE requested
+final state, including exclusions, preservation and behavior constraints. This
+applies even within a single Composition layer. An already_satisfied status proves
+only that Action's own postcondition, not that the user's full request is met.
+Adding/enabling a Plugin proves its presence; it does not hide another renderer,
+change a sibling's behavior or establish a requested presentation policy. Plugin
+intent phrases are discovery hints, not guarantees about other Plugins.
+Use GENERAL when required changes fall outside a supplied authoring Target,
+or when no atomic Action covers the request and no scoped authoring Target owns it.
+Uncertainty about a Target's public API is for the coding agent to investigate;
+it does not alone make the task unscoped. For example, a status indicator being present does
+not establish that reasoning details are hidden. Do not drop the negative clause
+of a request merely because the positive clause matches an installed Plugin.
+An already_satisfied Action may still be selected when its own postcondition
+fully establishes the complete requested final state.
 Moving an instance changes placement only. When the user asks to restore a
 hidden visual instance, a Move Action cannot make it visible even if its
 placement is already satisfied; choose GENERAL to inspect and restore the
@@ -417,13 +447,22 @@ def _repair_feedback(
 
 def _selector_prompt_context(context: CreatorActionSelectorContext) -> dict[str, object]:
     if context.intentCatalog is not None:
-        choices = [
-            {
-                "choice": f"A{number}",
-                **candidate.model_dump(mode="json", exclude_none=True),
-            }
-            for number, candidate in enumerate(context.intentCatalog.candidates, 1)
-        ]
+        choices = []
+        for number, candidate in enumerate(context.intentCatalog.candidates, 1):
+            # One semantic record per choice. The Host keeps the exact IDs and
+            # bindings in `choices`; duplicated wrapper text is not model input.
+            subject = candidate.action or candidate.target
+            assert subject is not None
+            record = subject.model_dump(mode="json", exclude_none=True)
+            record.pop("actionId", None)
+            record.pop("targetId", None)
+            record["type"] = candidate.type
+            label = record.get("label", record.get("name"))
+            if candidate.label != label:
+                record["catalogLabel"] = candidate.label
+            if candidate.description != record.get("description"):
+                record["catalogDescription"] = candidate.description
+            choices.append({"choice": f"A{number}", **record})
     else:
         choices = [
             {

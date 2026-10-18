@@ -924,12 +924,12 @@ def test_selector_normalizes_terminal_routes(response, decision):
     assert result.actionId is None
 
 
-def test_selector_has_project_read_route_and_keeps_multistep_work_general():
+def test_selector_distinguishes_atomic_actions_from_scoped_coding_targets():
     selection = _parse_selector_response("READ_ONLY INSPECT", {})
     assert selection.decision == "read_only_analysis"
     assert "project-related read-only" in _SELECTOR_SYSTEM_PROMPT
-    assert "related implementation steps" in _SELECTOR_SYSTEM_PROMPT
-    assert "no matching atomic Action" in _SELECTOR_SYSTEM_PROMPT
+    assert "do not\nby themselves make a request multi-owner" in _SELECTOR_SYSTEM_PROMPT
+    assert "takeover still requires its own consent" in _SELECTOR_SYSTEM_PROMPT
 
 
 @pytest.mark.parametrize("message", [
@@ -1065,3 +1065,24 @@ def test_plugin_removal_semantics_from_model_fixture(message, response, intent, 
     if intent == "uncertain":
         assert "隐藏" in result.clarificationQuestion
         assert "彻底删除" in result.clarificationQuestion
+
+
+def test_selector_context_retains_all_semantics_without_wrapper_duplication():
+    from agent_ui_creator.operations.selector import _selector_prompt_context
+    context = _unified_context()
+    compact = _selector_prompt_context(context)
+    assert len(compact['choices']) == len(context.intentCatalog.candidates)
+    for number, (candidate, actual) in enumerate(zip(context.intentCatalog.candidates, compact['choices']), 1):
+        subject = candidate.action or candidate.target
+        expected = subject.model_dump(mode='json', exclude_none=True)
+        expected.pop('actionId', None)
+        expected.pop('targetId', None)
+        assert all(actual[key] == value for key, value in expected.items())
+        assert actual['choice'] == f'A{number}'
+        assert actual['type'] == candidate.type
+        assert 'actionId' not in actual and 'targetId' not in actual
+        if candidate.label != expected.get('label', expected.get('name')):
+            assert actual['catalogLabel'] == candidate.label
+        if candidate.description != expected.get('description'):
+            assert actual['catalogDescription'] == candidate.description
+    assert compact['pluginSemantics'] == [item.model_dump(mode='json', exclude_none=True) for item in context.pluginSemantics]

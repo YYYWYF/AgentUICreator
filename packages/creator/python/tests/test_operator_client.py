@@ -139,7 +139,7 @@ sys.stdin.read()
 time.sleep(60)
 """
     project_root, _client = _operator_project(tmp_path, source)
-    client = OperatorClient(project_root=project_root, timeout_seconds=0.05, node_executable=sys.executable)
+    client = OperatorClient(project_root=project_root, timeout_seconds=0.3, node_executable=sys.executable)
 
     with pytest.raises(OperatorError) as raised:
         asyncio.run(client.inspect_ui_project())
@@ -155,6 +155,37 @@ time.sleep(60)
         time.sleep(0.01)
     else:
         pytest.fail("timed-out Operator child is still alive")
+
+
+def test_cancelling_a_waiting_operator_request_terminates_its_child(tmp_path):
+    root, client = _operator_project(tmp_path, """
+import os, pathlib, sys, time
+pathlib.Path(__file__).with_name("child.pid").write_text(str(os.getpid()))
+sys.stdin.read()
+time.sleep(60)
+""")
+    pid_file = (root / OPERATOR_ENTRY_PATH).with_name("child.pid")
+    terminated = []
+    terminate = client._terminate
+
+    async def record_termination(process):
+        await terminate(process)
+        terminated.append(process.returncode)
+    client._terminate = record_termination
+
+    async def cancel():
+        task = asyncio.create_task(client.inspect_ui_project())
+        for _ in range(200):
+            if pid_file.exists():
+                break
+            await asyncio.sleep(0.01)
+        assert pid_file.exists()
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+    asyncio.run(cancel())
+    assert len(terminated) == 1
+    assert terminated[0] is not None
 
 
 @pytest.mark.parametrize(
@@ -248,3 +279,121 @@ def test_removal_authority_rejects_direct_transport_bypass(tmp_path, monkeypatch
     monkeypatch.setattr(client, "_execute", forbidden_execute)
     with bind_removal_intent(intent), pytest.raises(RemovalIntentViolation):
         asyncio.run(client._request(operation, input))
+
+
+def test_project_queue_is_shared_across_clients_and_excludes_wait_from_timeout(tmp_path):
+    root, first = _operator_project(tmp_path, _success())
+    second = OperatorClient(project_root=root, node_executable=sys.executable, timeout_seconds=0.3)
+    entered = asyncio.Event()
+    release = asyncio.Event()
+    original = first._execute
+    async def slow(payload):
+        entered.set()
+        await release.wait()
+        return await original(payload)
+    first._execute = slow
+    async def check():
+        a = asyncio.create_task(first.inspect_ui_project())
+        await entered.wait()
+        b = asyncio.create_task(second.inspect_ui_project())
+        await asyncio.sleep(0.5)
+        assert not b.done()
+        release.set()
+        await asyncio.gather(a, b)
+        assert second.metrics.queueWaitMs >= 450
+    asyncio.run(check())
+
+
+def test_cancelled_queue_waiter_does_not_spawn_or_block_successor(tmp_path):
+    root, first = _operator_project(tmp_path, _success())
+    second = OperatorClient(project_root=root, node_executable=sys.executable)
+    entered, release = asyncio.Event(), asyncio.Event()
+    original = first._execute
+    async def slow(payload):
+        entered.set()
+        await release.wait()
+        return await original(payload)
+    first._execute = slow
+    async def check():
+        a = asyncio.create_task(first.inspect_ui_project())
+        await entered.wait()
+        b = asyncio.create_task(second.inspect_ui_project())
+        await asyncio.sleep(0)
+        b.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await b
+        release.set()
+        await a
+        await second.inspect_ui_project()
+    asyncio.run(check())
+
+
+def test_admission_wait_does_not_consume_execution_budget(tmp_path):
+    source = _success().replace("request = json.loads(sys.stdin.read())", '''request = json.loads(sys.stdin.read())
+import time
+time.sleep(0.15)
+sys.stderr.write("AGENT_UI_OPERATOR_ADMITTED\\n")
+sys.stderr.flush()
+time.sleep(0.15)''')
+    root, _ = _operator_project(tmp_path, source)
+    client = OperatorClient(project_root=root, node_executable=sys.executable, timeout_seconds=0.25)
+    asyncio.run(client.inspect_ui_project())
+
+
+def test_cancelled_child_tickets_are_released_without_touching_other_owners(tmp_path):
+    source = '''import json, os, pathlib, sys, time
+sys.stdin.read()
+pid = os.getpid()
+directory = pathlib.Path('.agentuicreator/control/operator-locks')
+directory.mkdir(parents=True, exist_ok=True)
+token = '00000000-0000-0000-0000-000000000000'
+(directory / f'{pid}.{token}.json').write_text(json.dumps({'pid':pid,'token':token,'number':1}))
+pathlib.Path('ready').write_text(str(pid))
+time.sleep(60)
+'''
+    root, client = _operator_project(tmp_path, source)
+    directory = root / '.agentuicreator/control/operator-locks'
+    directory.mkdir(parents=True)
+    other = directory / '999.keep.json'
+    other.write_text('{}')
+    async def check():
+        task = asyncio.create_task(client.inspect_ui_project())
+        for _ in range(200):
+            if (root / 'ready').exists():
+                break
+            await asyncio.sleep(0.01)
+        assert (root / 'ready').exists()
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        assert list(directory.iterdir()) == [other]
+    asyncio.run(check())
+
+
+def test_another_project_is_not_blocked_by_queue(tmp_path):
+    root, first = _operator_project(tmp_path / 'a', _success())
+    _, other = _operator_project(tmp_path / 'b', _success())
+    entered, release = asyncio.Event(), asyncio.Event()
+    original = first._execute
+    async def slow(payload):
+        entered.set()
+        await release.wait()
+        return await original(payload)
+    first._execute = slow
+    async def check():
+        a = asyncio.create_task(first.inspect_ui_project())
+        await entered.wait()
+        await other.inspect_ui_project()
+        assert not a.done()
+        release.set()
+        await a
+    asyncio.run(check())
+
+
+def test_invalid_shared_module_reports_exact_field_before_process_start(tmp_path):
+    client=OperatorClient(project_root=tmp_path)
+    with pytest.raises(OperatorError) as failure:
+        client._validate_protocol({"operation":"inspect_ui_plugin","input":{"pluginId":"custom","sharedModule":"/"}},request=True)
+    assert failure.value.code == "OPERATOR_PROTOCOL_INCOMPATIBLE"
+    assert failure.value.details["field"] == "input.sharedModule"
+    assert failure.value.details["constraint"] == "pattern"

@@ -135,6 +135,19 @@ class UIPluginSourceMutationService:
         total_bytes = len(plugin_id.encode("utf-8"))
         for change in changes:
             relative_path = self._normalize_relative_path(change.relativePath)
+            plugin_path = agent_ui_source_path(
+                self.project_root, f"plugins/{plugin_id}"
+            ).lstrip("/")
+            if relative_path.startswith(plugin_path + "/"):
+                raise PluginSourceMutationError(
+                    "PLUGIN_SOURCE_PATH_INVALID",
+                    "relativePath includes the project Plugin directory; supply only "
+                    "the file path relative to that directory. Re-reading the file "
+                    "does not correct this parameter.",
+                    {"relativePath": change.relativePath, "pluginRoot": plugin_path,
+                     "suggestedRelativePath": relative_path[len(plugin_path) + 1:],
+                     "readFilePath": "/" + relative_path},
+                )
             virtual_path = agent_ui_source_path(
                 self.project_root, f"plugins/{plugin_id}/{relative_path}"
             )
@@ -236,11 +249,19 @@ class UIPluginSourceMutationService:
             observation = self.activity.file_observations.get(item.virtual_path)
             current = read_creator_file_state(self.project_root, item.virtual_path)
             if isinstance(item.change, EditUIPluginSourceChange):
+                if not current.exists:
+                    raise PluginSourceMutationError(
+                        "PLUGIN_SOURCE_FILE_NOT_FOUND",
+                        "Plugin source edit target does not exist; verify relativePath "
+                        "against the selected Plugin directory.",
+                        {"path": item.receipt_path, "relativePath": item.relative_path},
+                    )
                 if observation is None:
                     raise PluginSourceMutationError(
                         "PLUGIN_SOURCE_OBSERVATION_REQUIRED",
                         "Read every existing mutation target in the current run first.",
-                        {"path": item.receipt_path},
+                        {"path": item.receipt_path, "relativePath": item.relative_path,
+                         "readFilePath": item.virtual_path},
                     )
                 if not observation.exists:
                     raise PluginSourceMutationError(

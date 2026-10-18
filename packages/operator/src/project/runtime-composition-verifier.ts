@@ -235,7 +235,7 @@ export async function verifyRuntimeComposition(
     }
   }
 
-  let runtimeModel;
+  let runtimeModel: ReturnType<typeof compileAppUIModel>;
   try {
     runtimeModel = compileAppUIModel(
       model,
@@ -256,9 +256,10 @@ export async function verifyRuntimeComposition(
   const actualById = new Map(
     input.composition.instances.map((instance) => [instance.instanceId, instance]),
   );
+  const observedSlotIds = new Set(input.composition.slots.map((slot) => slot.slotId));
   const locations = collectAppUIPluginLocations(model);
   const locationsById = new Map(locations.map(location => [location.plugin.id, location]));
-  function awaitsRenderScope(location: AppUIPluginLocation): boolean {
+  function awaitsSlotRendering(location: AppUIPluginLocation): boolean {
     let current: AppUIPluginLocation | undefined = location;
     while (current?.target.type === "plugin_slot") {
       const parent = locationsById.get(current.target.parentInstanceId);
@@ -268,6 +269,12 @@ export async function verifyRuntimeComposition(
       // matching message/tool scope exists. Ordinary content remains required;
       // any observed renderer must still match its declared plugin and Slot.
       if (slot?.mode === "renderer" && !actualById.has(current.plugin.id)) return true;
+      // Optional content can be deferred behind a closed popover/drawer. Only
+      // defer it while the mounted parent has not rendered that Slot outlet.
+      // Once the outlet is observed, missing children must still fail checks.
+      const runtimeSlotId = runtimeModel.pluginInstances[current.plugin.id]?.mount?.slotId;
+      if (slot?.optional === true && actualById.has(parent.plugin.id) &&
+          runtimeSlotId !== undefined && !observedSlotIds.has(runtimeSlotId)) return true;
       current = parent;
     }
     return false;
@@ -281,7 +288,7 @@ export async function verifyRuntimeComposition(
     const expectedRuntimeInstance = runtimeModel.pluginInstances[location.plugin.id];
     const expectedTarget = authoringTarget(location, layoutRefs);
     const actual = actualById.get(location.plugin.id);
-    if (actual === undefined && awaitsRenderScope(location)) continue;
+    if (actual === undefined && awaitsSlotRendering(location)) continue;
     let status: "passed" | "missing" | "plugin-mismatch" | "slot-mismatch" =
       "passed";
     if (actual === undefined) {

@@ -588,3 +588,40 @@ def test_domain_write_exposes_mutation_as_side_effect_exclusive(tmp_path):
             ]
         )
     )
+
+
+def test_project_relative_mutation_path_reports_parameter_error_without_writes(tmp_path):
+    service, activity = make_service(tmp_path)
+    observe(activity, "index.tsx")
+    with pytest.raises(PluginSourceMutationError) as captured:
+        asyncio.run(service.mutate("task-status", changes(
+            edit("src/ui/plugins/task-status/index.tsx", "Ready", "Changed")
+        )))
+    assert captured.value.code == "PLUGIN_SOURCE_PATH_INVALID"
+    assert captured.value.details == {
+        "relativePath": "src/ui/plugins/task-status/index.tsx",
+        "pluginRoot": "src/ui/plugins/task-status",
+        "suggestedRelativePath": "index.tsx",
+        "readFilePath": "/src/ui/plugins/task-status/index.tsx",
+    }
+    assert activity.file_observations.get("/src/ui/plugins/task-status/index.tsx")
+    assert activity.revision == 0
+    assert not (tmp_path / "src/ui/plugins/task-status/src").exists()
+
+
+def test_missing_unread_mutation_target_is_file_not_found(tmp_path):
+    service, activity = make_service(tmp_path)
+    with pytest.raises(PluginSourceMutationError) as captured:
+        asyncio.run(service.mutate("task-status", changes(edit("missing.tsx", "a", "b"))))
+    assert captured.value.code == "PLUGIN_SOURCE_FILE_NOT_FOUND"
+    assert activity.revision == 0
+
+
+def test_mutation_schema_explains_plugin_local_coordinate_system():
+    from agent_ui_creator.source_tools.mutate_plugin_tool import mutate_ui_plugin_source_tool
+    schema = mutate_ui_plugin_source_tool(None).get_input_schema().model_json_schema()
+    for name in ("EditUIPluginSourceChange", "CreateUIPluginSourceChange"):
+        field = schema["$defs"][name]["properties"]["relativePath"]
+        assert "relative to the selected Plugin directory" in field["description"]
+        assert "read_file.file_path" in field["description"]
+        assert field["examples"][0] == "index.tsx"

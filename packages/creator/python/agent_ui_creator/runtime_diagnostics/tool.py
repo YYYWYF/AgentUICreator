@@ -288,6 +288,12 @@ class RuntimeDiagnosticInspectionService:
                     "runtimeStatus": result["runtimeStatus"],
                     "runtimeObserved": result["runtimeObserved"],
                     "currentOpenCount": result["summary"]["currentOpenCount"],
+                    "compositionChecks": result.get("compositionChecks", []),
+                    "compositionFresh": result.get("compositionFresh"),
+                    "latestCompositionObservedAt": result.get("latestCompositionObservedAt"),
+                    "latestCompositionReceivedAt": result.get("latestCompositionReceivedAt"),
+                    "lastMutationAt": result.get("lastMutationAt"),
+                    "currentErrors": result.get("currentErrors", []),
                 },
             )
         return result

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Protocol
 
 from ..debugging import DebuggingEvidence, evidence_hash
 from ..activity import CreatorActivityRecorder
+from ..activity.recovery import recover_registry_evidence
 from ..app_ui_model import ProjectMutationCoordinator
 from ..files import read_creator_file_state
 from ..operator import OperatorClient
@@ -73,6 +74,7 @@ class CreatorValidationService:
         self.operator = operator
         self.mutation_coordinator = mutation_coordinator
         self._registry_sync_mutation_index = 0
+        self._registry_recovery_synced: tuple[str, ...] = ()
         self._baseline_run_id: str | None = None
         self._baseline_capture_started = False
         self._baseline: TypeScriptDiagnosticParseResult | None = None
@@ -97,11 +99,14 @@ class CreatorValidationService:
         self._latest_revision = None
         self._build_requested = False
         self._registry_sync_mutation_index = 0
+        self._registry_recovery_synced: tuple[str, ...] = ()
 
     async def _synchronize_plugin_registry(self) -> None:
         if self.operator is None or self.mutation_coordinator is None:
             return
-        changes = self.activity.mutation_paths[self._registry_sync_mutation_index:]
+        recovered = recover_registry_evidence(self.activity)
+        self.activity.recovered_paths = recovered
+        changes = (*self.activity.mutation_paths[self._registry_sync_mutation_index:], *(recovered if recovered != self._registry_recovery_synced else ()))
         if not any(
             (logical := project_logical_path(path, self.project_root)).startswith("/plugins/")
             and logical.rsplit("/", 1)[-1] in {"manifest.json", "definition.ts"}
@@ -111,6 +116,10 @@ class CreatorValidationService:
             return
         registry_path = agent_ui_source_path(self.project_root, "plugins/registry.generated.ts")
         async with self.mutation_coordinator.transaction(self.project_root):
+            if recovered != recover_registry_evidence(self.activity):
+                raise ValueError("Registry recovery evidence changed before synchronization.")
+            if recovered and self.activity.logger is not None:
+                self.activity.logger.record("registry_recovery_verified", {"paths": list(recovered), "authority": "derived_registry_only"})
             before = read_creator_file_state(self.project_root, registry_path)
             if not before.exists:
                 self._registry_sync_mutation_index = len(self.activity.mutation_paths)
@@ -129,6 +138,7 @@ class CreatorValidationService:
                 self.activity.file_observations.observe(registry_path)
                 self.activity.touch(registry_path)
         self._registry_sync_mutation_index = len(self.activity.mutation_paths)
+        self._registry_recovery_synced = recovered
 
     @staticmethod
     def _bounded(output: str, truncated: bool) -> tuple[str, bool]:

@@ -2,7 +2,7 @@ import contract from '../../../contracts/creator/operator.schema.json' with { ty
 import inventory from '../../../contracts/creator/operator.operations.json' with { type: 'json' };
 
 const resultDefs = new Map(inventory.operations.map(entry => [entry.name, entry.resultDef]));
-const supported = new Set(['$ref', 'description', 'type', 'const', 'enum', 'oneOf', 'anyOf', 'allOf', 'required', 'properties', 'additionalProperties', 'items', 'minItems', 'maxItems', 'minLength', 'maxLength', 'pattern', 'minimum', 'maximum']);
+const supported = new Set(['$ref', 'description', 'type', 'const', 'enum', 'oneOf', 'anyOf', 'allOf', 'required', 'properties', 'additionalProperties', 'items', 'minItems', 'maxItems', 'minProperties', 'maxProperties', 'propertyNames', 'minLength', 'maxLength', 'pattern', 'minimum', 'maximum']);
 
 // Deliberately limited to the canonical Result vocabulary. Fail closed when a
 // contract author introduces a keyword this development-only validator lacks.
@@ -22,6 +22,7 @@ function assertSupported(schema, seen = new Set()) {
   for (const key of ['oneOf', 'anyOf', 'allOf']) for (const branch of schema[key] ?? []) assertSupported(branch, seen);
   for (const property of Object.values(schema.properties ?? {})) assertSupported(property, seen);
   if (schema.items) assertSupported(schema.items, seen);
+  if (schema.propertyNames) assertSupported(schema.propertyNames, seen);
   if (schema.additionalProperties && typeof schema.additionalProperties === 'object') assertSupported(schema.additionalProperties, seen);
 }
 for (const name of resultDefs.values()) assertSupported(contract.$defs[name]);
@@ -52,6 +53,10 @@ function validate(schema, value, location = '$') {
     if (!matches) fail(`expected ${schema.type}`);
   }
   if (isObject) {
+    const keys = Object.keys(value);
+    if (schema.minProperties !== undefined && keys.length < schema.minProperties) fail('too few properties');
+    if (schema.maxProperties !== undefined && keys.length > schema.maxProperties) fail('too many properties');
+    if (schema.propertyNames) for (const key of keys) validate(schema.propertyNames, key, `${location}.<key>`);
     for (const key of schema.required ?? []) if (!Object.hasOwn(value, key)) fail(`missing ${key}`);
     for (const [key, child] of Object.entries(value)) {
       if (Object.hasOwn(schema.properties ?? {}, key)) validate(schema.properties[key], child, `${location}.${key}`);

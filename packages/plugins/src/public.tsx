@@ -210,6 +210,8 @@ export const AgentUITooltipProvider: ComponentType<TooltipPrimitive.Provider.Pro
 export const AgentUIPopover: ComponentType<PopoverPrimitive.Root.Props> = InternalAgentUIPopover;
 export const AgentUIPopoverTrigger: ComponentType<PopoverPrimitive.Trigger.Props> = InternalAgentUIPopoverTrigger;
 export const AgentUIPopoverContent: ComponentType<PopoverPrimitive.Popup.Props & Pick<PopoverPrimitive.Positioner.Props, "align" | "alignOffset" | "side" | "sideOffset">> = InternalAgentUIPopoverContent;
+/** Unstyled Dialog primitives. Portal preserves AgentUIRoot theme but supplies no positioning.
+ * Use styled AgentUIDialogContent directly inside Root, or style Popup/Backdrop explicitly. */
 export const AgentUIDialog: Readonly<{
   Root: ComponentType<DialogPrimitive.Root.Props>;
   Trigger: ComponentType<DialogPrimitive.Trigger.Props>;
@@ -220,6 +222,8 @@ export const AgentUIDialog: Readonly<{
   Description: ComponentType<DialogPrimitive.Description.Props>;
   Close: ComponentType<DialogPrimitive.Close.Props>;
 }> = InternalAgentUIDialog;
+/** Styled centered Popup with its own themed Portal and Backdrop; requires package styles.css.
+ * Render directly inside AgentUIDialog.Root, without an additional Portal. */
 export const AgentUIDialogContent: ComponentType<DialogPrimitive.Popup.Props & { showCloseButton?: boolean }> = InternalAgentUIDialogContent;
 import { useMemo } from "react";
 import {

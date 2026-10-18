@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { createCreatorRuntimeCompositionReporter, createCreatorRuntimeDiagnosticReporter } from "../runtime-diagnostics/runtimeDiagnosticReporter.js";
 import { createVisualObservationReporter } from "../visual-observation/VisualObservationReporter.js";
 import { AGENT_UI_OBSERVATION_EVENT, AGENT_UI_OBSERVATION_REQUEST_EVENT, HOST_DOCK_CONNECT, HOST_PREVIEW_CONNECT, isHostPreviewSession, type PreviewUploadResult } from "./protocol.js";
@@ -124,11 +125,18 @@ export function installCreatorHostPreviewBridge(): () => void {
     if (composition) report(composition);
     for (const diagnostic of diagnostics.values()) report(diagnostic);
   };
+  // Vite applies CSS without a React commit. Ask the live Runtime to collect a
+  // new observation after the update; replay must retain its original timestamp.
+  const afterUpdate = () => {
+    if (report !== undefined) window.dispatchEvent(new Event(AGENT_UI_OBSERVATION_REQUEST_EVENT));
+  };
+  import.meta.hot?.on("vite:afterUpdate", afterUpdate);
   window.addEventListener(AGENT_UI_OBSERVATION_EVENT, observe);
   window.addEventListener("message", connect);
   window.dispatchEvent(new Event(AGENT_UI_OBSERVATION_REQUEST_EVENT));
   return () => {
     disposeSession();
+    import.meta.hot?.off?.("vite:afterUpdate", afterUpdate);
     window.removeEventListener(AGENT_UI_OBSERVATION_EVENT, observe);
     window.removeEventListener("message", connect);
   };

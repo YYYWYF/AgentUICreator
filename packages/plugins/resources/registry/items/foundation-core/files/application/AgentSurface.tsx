@@ -12,6 +12,7 @@ import type { AppFrontendToolRuntime } from "../runtime/tools";
 import { PluginServiceProvider, UIPluginRuntime } from "../runtime/plugins";
 import { PluginDataMessageUIHost } from "../runtime/plugins/PluginDataMessageUIHost";
 import { ModeShell } from "../runtime/mode-shell";
+import { agentUIShellConfig } from "../agent-ui/appearance/shell-config";
 import { PluginDiagnosticProvider, type RuntimeDiagnostic, type RuntimeCompositionSnapshot as ObservedComposition } from "../runtime/diagnostics";
 import { publishAgentUIObservation, type AgentObservability } from "./observability";
 import type { RuntimeCompositionSnapshot } from "../runtime/composition";
@@ -138,7 +139,7 @@ function AgentSurfaceView({ composition, observability, frontendToolRuntime, loc
         <AgentUILocaleBridge locale={locale} onLocaleChange={onLocaleChange}>
         <AgentUIStyleSurface themeOverride={theme}>
           <ConversationPresentationConfigProvider value={conversationPresentationConfig}>
-            <ModeShell mode={mode}>
+            <ModeShell mode={mode} assistantPanelWidth={agentUIShellConfig.assistantPanelWidth}>
               <UIPluginRuntime
                 actions={actions}
                 appUIModelHash={observed ? composition.appUIModelHash : undefined}

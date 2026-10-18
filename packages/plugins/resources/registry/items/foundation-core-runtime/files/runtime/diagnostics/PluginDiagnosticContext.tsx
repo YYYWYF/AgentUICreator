@@ -140,6 +140,22 @@ export function PluginDiagnosticProvider<TState = unknown>({
   );
   const snapshotScheduled = useRef(false);
   const scheduledFrame = useRef<number | undefined>(undefined);
+  const publicationActive = useRef(false);
+  const publicationGeneration = useRef(0);
+  useLayoutEffect(() => {
+    publicationActive.current = true;
+    return () => {
+      // A retiring provider must not overwrite its replacement with the empty
+      // registrations produced by child cleanup (including during Fast Refresh).
+      publicationActive.current = false;
+      publicationGeneration.current += 1;
+      if (scheduledFrame.current !== undefined) {
+        cancelAnimationFrame(scheduledFrame.current);
+        scheduledFrame.current = undefined;
+      }
+      snapshotScheduled.current = false;
+    };
+  }, []);
   const currentHash = useRef(appUIModelHash);
   const currentCompositionRevision = useRef(compositionRevision);
   const currentCapabilityCatalogRevision = useRef(
@@ -286,9 +302,13 @@ export function PluginDiagnosticProvider<TState = unknown>({
     incompatibleInstances.current = next;
   }, [model, registry, report]);
   const scheduleCompositionSnapshot = useCallback(() => {
-    if (snapshotScheduled.current) return;
+    if (!publicationActive.current || snapshotScheduled.current) return;
     snapshotScheduled.current = true;
+    const generation = publicationGeneration.current;
     const flush = () => {
+      // Also invalidate uncancellable microtasks and callbacks already queued
+      // for dispatch. StrictMode can start a new effect lifetime on the same ref.
+      if (!publicationActive.current || generation !== publicationGeneration.current) return;
       snapshotScheduled.current = false;
       const reporter = currentCompositionReporter.current;
       if (reporter === undefined) return;
@@ -362,6 +382,15 @@ export function PluginDiagnosticProvider<TState = unknown>({
       queueMicrotask(flush);
     }
   }, []);
+  useEffect(() => {
+    if (typeof window === "undefined" || onRuntimeComposition === undefined) return;
+    // A Host observation request must collect current registrations/geometry,
+    // not merely replay a cached pre-edit snapshot. CSS HMR need not render React.
+    const refresh = () => scheduleCompositionSnapshot();
+    window.addEventListener("agent-ui:observation-request", refresh);
+    return () => window.removeEventListener("agent-ui:observation-request", refresh);
+  }, [onRuntimeComposition, scheduleCompositionSnapshot]);
+
   const registerMountedInstance = useCallback(
     (instance: RuntimeCompositionInstance) => {
       const registration = Symbol(instance.instanceId);

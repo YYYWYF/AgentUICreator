@@ -49,6 +49,7 @@ class CreatorActivityRecorder:
         self._before_by_path: dict[str, str | None] = {}
         self._touched_paths: set[str] = set()
         self._mutation_paths: list[str] = []
+        self.recovered_paths: tuple[str, ...] = ()
         self._created_directories: set[str] = set()
         self._validations: list[dict[str, Any]] = []
         self._plugin_deliveries: list[dict[str, Any]] = []
@@ -72,6 +73,7 @@ class CreatorActivityRecorder:
         self._before_by_path.clear()
         self._touched_paths.clear()
         self._mutation_paths.clear()
+        self.recovered_paths = ()
         self._created_directories.clear()
         self._validations.clear()
         self._plugin_deliveries: list[dict[str, Any]] = []

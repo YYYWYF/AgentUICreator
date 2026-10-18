@@ -1,4 +1,15 @@
 export const enUS = {
+  creatorRunOutcome: {
+    stopped: "This task was stopped.",
+    failed: "This task did not complete.",
+    noChanges: "No project files were changed in this run. The page is unchanged.",
+    changesKept: "Project file changes were kept, but the requested result has not been confirmed.",
+    changesUnknown: "The project file change status could not be confirmed.",
+    lastTool: "Last completed step: {0}.",
+    toolError: "Issue encountered ({0}): {1}",
+    unknownReason: "The tool did not provide a detailed reason",
+    incomplete: "The request remains incomplete. Use the reasons above to continue diagnosis; no automatic retry was started.",
+  },
   "creatorDock": {
     "label": "Creator Agent",
     "collapse": "Collapse Creator",

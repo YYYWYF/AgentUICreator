@@ -34,8 +34,12 @@ def test_ag_ui_skill_declares_only_available_tools():
 
 def test_plugin_skill_runtime_instructions_follow_verification_mode():
     skill = (SKILLS_ROOT / "ui-plugin-development" / "SKILL.md").read_text()
-    assert "In `static_and_runtime` mode, call `inspect_runtime_errors`" in skill
-    assert "In `static_only` mode, stop after current-revision static validation" in skill
+    from agent_ui_creator.domain_agent.prompt import creator_verification_prompt
+    assert "static, Runtime and browser evidence distinct" in skill
+    assert "source edits also require inspect_runtime_errors" in DOMAIN_WRITE_AGENT_PROMPT
+    policy = creator_verification_prompt(DOMAIN_WRITE_AGENT_PROMPT, "static_only")
+    assert "do not call Runtime tools" in " ".join(policy.split())
+    assert "never claim Runtime PASS" in policy
 
 
 def test_domain_read_policy_exposes_only_filesystem_and_read_domain_tools():

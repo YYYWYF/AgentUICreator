@@ -294,3 +294,25 @@ def test_targeted_layout_slot_inspection_requires_snapshot_hash():
             },
         },
     })
+
+
+def test_plugin_public_api_contract_requires_evidence_and_rejects_unknown_fields():
+    schema = {"$defs": SCHEMAS["operator.schema.json"]["$defs"], "$ref": "#/$defs/pluginPublicApi"}
+    validator = Draft202012Validator(schema)
+    valid = {"status": "available", "interpretation": "Type evidence only", "component": "Sample", "package": {"name": "@za38.03/agent-ui-plugins", "version": "4.2.1"}, "source": "installed declarations", "completePropNames": True, "props": [{"name": "defaultOpen", "type": "boolean", "typeTruncated": False}]}
+    validator.validate(valid)
+    validator.validate({"status": "unavailable", "interpretation": "Not evidence of absence", "reason": "unresolved"})
+    with pytest.raises(ValidationError):
+        validator.validate({key: value for key, value in valid.items() if key != "props"})
+    with pytest.raises(ValidationError):
+        validator.validate({**valid, "skipValidation": True})
+
+
+def test_takeover_plan_shared_api_map_is_not_composer_specific():
+    compatibility = SCHEMAS["operator.schema.json"]["$defs"]["planPluginSourceResult"]["properties"]["compatibility"]
+    validator = Draft202012Validator(compatibility)
+    for value in ({"pluginSupport": 1}, {"composerSupport": 1}, {"futureApi": 2, "pluginSupport": 1}):
+        validator.validate(value)
+    for value in ({}, {"pluginSupport": 0}, {"pluginSupport": -1}, {"pluginSupport": 1.5}, {"pluginSupport": "1"}, {"pluginSupport": True}, {"../api": 1}, {f"api{i}": 1 for i in range(65)}):
+        with pytest.raises(ValidationError):
+            validator.validate(value)

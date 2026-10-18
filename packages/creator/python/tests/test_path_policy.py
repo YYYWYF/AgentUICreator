@@ -1,4 +1,5 @@
 import json
+import pytest
 
 import agent_ui_creator.minimal_agent.path_policy as path_policy_module
 
@@ -7,6 +8,15 @@ from agent_ui_creator.minimal_agent.path_policy import (
     PathPolicyViolation,
     PolicyFilesystemBackend,
 )
+
+
+@pytest.mark.parametrize("path", ["/Users/dev/workspace-missing/src/a.ts", "/home/dev/workspace-missing/src/a.ts"])
+def test_missing_host_path_returns_virtual_root_guidance(tmp_path, path):
+    (tmp_path / ".agent-ui").mkdir()
+    (tmp_path / ".agent-ui/project.json").write_text(json.dumps({"mode":"assistant","sourceRoot":"src/agent-ui"}))
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
+    assert "virtual paths rooted at /" in backend.read(path).error
+    assert "virtual paths rooted at /" in backend.ls(path).error
 
 
 def test_project_writes_stay_inside_declared_source_root(tmp_path):

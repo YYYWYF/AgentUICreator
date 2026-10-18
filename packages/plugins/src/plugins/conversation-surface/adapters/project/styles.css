@@ -38,6 +38,21 @@
   padding-inline: 16px;
 }
 
+/* Assistant and embedded are the same conversation presentation. Keep their
+ * turn spacing here so theme defaults cannot make either surface looser. */
+.conversation-surface-plugin[data-ui-plugin="conversation-surface"]:where(:is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) *) .agent-ui-conversation [data-slot="aui_message-group"][data-agent-ui-message-spacing="turn"] {
+  --agent-ui-message-gap: 1rem;
+}
+
+/* Platform keeps turn and assistant continuation spacing at 12px. */
+.conversation-surface-plugin[data-ui-plugin="conversation-surface"]:where(.agent-ui-platform-shell *) .agent-ui-conversation [data-slot="aui_message-group"][data-agent-ui-message-spacing="turn"] {
+  --agent-ui-message-gap: 12px;
+}
+
+.conversation-surface-plugin[data-ui-plugin="conversation-surface"]:where(.agent-ui-platform-shell *) .agent-ui-conversation [data-slot="aui_message-group"][data-agent-ui-message-spacing="turn"] > [data-assistant-turn-continuation="true"] {
+  margin-block-start: 12px;
+}
+
 .conversation-surface-plugin:where(:is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) *) .aui-thread-viewport-footer {
   position: sticky;
   bottom: 0;

@@ -33,6 +33,10 @@ def create_creator_filesystem_middleware(
         backend=backend,
         tool_token_limit_before_evict=None,
         human_message_token_limit_before_evict=None,
+        custom_tool_descriptions={
+            "grep": "Search literal text, NOT regex. Use one keyword such as violet, theme or --primary per call. Do not combine terms with pipes or use regex character classes. Returns matching files/content according to output_mode; restrict path/glob when known. An invalid regex-like query with no literal match returns SEARCH_SYNTAX_UNSUPPORTED, not proof of absence.",
+            "glob": "Find project files. Paths use / on every OS. ** matches zero or more directory levels; * and ? stay within one path segment. Comma brace alternatives are supported: **/*.{css,scss}. Example: src/**/*theme* finds deeply nested theme files. Paths are relative to path (default /); no parent traversal or denied directories.",
+        },
     )
     # DeepAgents 0.6 provides the tool list but no tools= constructor option.
     allowed = frozenset(tools)

@@ -79,7 +79,7 @@ async function prepare(root: string, id: string, sync = false) {
   }
   if (Object.keys(plugin.takeover.requiredDependencies).length) fail("PLUGIN_SOURCE_DEPENDENCIES_REQUIRED", "Install the planned source dependencies before requesting takeover.");
   require.resolve(`@za38.03/agent-ui-plugins/${id}`);
-  const compatibility = z.record(z.string(), z.number().int().positive()).parse(plugin.takeover.compatibility);
+  const compatibility = z.record(z.string().regex(/^[a-zA-Z][a-zA-Z0-9]*$/u).max(100), z.number().int().positive()).parse(plugin.takeover.compatibility);
   if (!Object.keys(compatibility).length || Object.entries(compatibility).some(([api, version]) => catalog.sharedApis?.[api] !== version)) fail("PLUGIN_SOURCE_INCOMPATIBLE", "Installed package does not support the planned shared APIs.");
   const sharedApi = z.string().regex(/^@za38\.03\/agent-ui-plugins\/[a-z][a-z-]*$/u).parse(plugin.takeover.sharedApi);
   require.resolve(sharedApi);

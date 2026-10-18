@@ -15,7 +15,8 @@ from agent_ui_creator.operations import CreatorActionSelection, CreatorResolveRe
 from agent_ui_creator.streaming import ToolInvocationFinished, ToolInvocationStarted
 
 
-def test_route_review_requires_host_modify_selection(tmp_path, monkeypatch):
+@pytest.mark.parametrize("initial_route", ["read_only_general", "answer_only"])
+def test_route_review_requires_host_modify_selection(tmp_path, monkeypatch, initial_route):
     from agent_ui_creator.activity import CreatorActivityRecorder
     from agent_ui_creator.app_ui_model import ProjectMutationCoordinator
     from agent_ui_creator.runtime_diagnostics import RuntimeDiagnosticStore
@@ -29,7 +30,7 @@ def test_route_review_requires_host_modify_selection(tmp_path, monkeypatch):
         return CreatorResolveResult(
             route=route,
             selection=CreatorActionSelection(
-                decision="general_change" if intent == "modify" else "read_only_analysis",
+                decision="general_change" if intent == "modify" else ("answer_only" if route == "answer_only" else "read_only_analysis"),
                 taskIntent=intent,
                 explicitReadOnly=explicit,
             ),
@@ -42,7 +43,7 @@ def test_route_review_requires_host_modify_selection(tmp_path, monkeypatch):
     calls = []
     read_responses = ["ROUTE_REVIEW_REQUESTED\nThis may need a change"]
     reviewed = resolved("modify", "unscoped_general")
-    initial = resolved("read_only", "read_only_general", explicit=True)
+    initial = resolved("read_only", initial_route, explicit=True)
 
     class FakeEngine:
         def __init__(self, **_kwargs):
@@ -79,7 +80,7 @@ def test_route_review_requires_host_modify_selection(tmp_path, monkeypatch):
         asyncio.run(_domain_write_agent_result(*args))
     assert calls == [("select", None), ("read",), ("select", "This may need a change")]
 
-    initial = resolved("read_only", "read_only_general")
+    initial = resolved("read_only", initial_route)
     calls.clear()
     read_responses[:] = ["ROUTE_REVIEW_REQUESTED\nThis may need a change"]
     modify_args = (settings, [{"role": "user", "content": "先查清楚再帮我恢复"}], activity,

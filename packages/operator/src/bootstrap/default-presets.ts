@@ -8,7 +8,14 @@ import {
 } from "./project-definition.js";
 
 function readPreset(mode: AgentUIMode): unknown {
-  return JSON.parse(readFileSync(new URL(`../../presets/${mode}/app-ui.json`, import.meta.url), "utf8")) as unknown;
+  const url = new URL(`../../presets/${mode}/app-ui.json`, import.meta.url);
+  const model: unknown = JSON.parse(readFileSync(url, "utf8"));
+  // Package-owned aliases share one template without filesystem symlinks.
+  // Resolve before parsing: references never enter a generated AppUIModel.
+  if (typeof model === "object" && model !== null && "$ref" in model && typeof model.$ref === "string") {
+    return JSON.parse(readFileSync(new URL(model.$ref, url), "utf8")) as unknown;
+  }
+  return model;
 }
 
 function collectPluginIds(value: unknown, ids: Set<string>): void {

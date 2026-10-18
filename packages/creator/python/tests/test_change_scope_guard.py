@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from langchain_core.messages import ToolMessage
 
 from agent_ui_creator.domain_agent.change_scope import ScopeAwareRecoveryGuard
+from agent_ui_creator.run_control import CreatorRunControlState
 
 
 def request(name, arguments, call_id):
@@ -21,11 +22,33 @@ def tool_result(call_id, payload):
         else "success"
     )
     return ToolMessage(
-        content=json.dumps(payload),
-        tool_call_id=call_id,
-        name="tool",
-        status=status,
+        content=json.dumps(payload), tool_call_id=call_id, name="tool", status=status,
     )
+
+
+def test_validation_blocker_reports_the_actual_failed_command_output():
+    state = CreatorRunControlState()
+    guard = ScopeAwareRecoveryGuard(run_control=state)
+    result = ToolMessage(content=json.dumps({"ok":True,"result":{
+        "failureSemantics":{"category":"workspace_integrity","attribution":"unknown",
+                            "automaticRepairAllowed":False,"recovery":{"action":"stop_and_report_blocker"}},
+        "checks":[{"command":"pnpm run typecheck","status":"failed","output":"sh: tsc: command not found"}],
+    }}),tool_call_id="validation")
+    guard._observe_result("validate_creator_changes",{},result)
+    assert "tsc: command not found" in state.render_blocker_response()
+    assert "pnpm run typecheck" in state.render_blocker_response()
+
+
+def test_runtime_blocker_names_the_failed_mount_check():
+    state = CreatorRunControlState()
+    guard = ScopeAwareRecoveryGuard(run_control=state)
+    guard.metrics.record_layer("plugin_behavior")
+    guard._observe_result("inspect_runtime_errors",{},ToolMessage(content=json.dumps({"ok":True,"result":{
+        "runtimeStatus":"failed","currentErrors":[],
+        "compositionChecks":[{"instanceId":"history-main","status":"missing"}],
+    }}),tool_call_id="runtime"))
+    assert "history-main" in state.render_blocker_response()
+    assert "missing" in state.render_blocker_response()
 
 
 def test_workspace_integrity_blocks_cross_layer_plugin_repair():

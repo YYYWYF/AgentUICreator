@@ -63,7 +63,7 @@ async function writeApplicationOwner(root: string, ownerPath = "agent-ui/test-co
 }
 
 describe("Creator Authoring Target Catalog", () => {
-  it("publishes the three application targets with source-root bindings", async () => {
+  it("publishes application targets with source-root bindings", async () => {
     const root = await createFixture();
     for (const declaration of creatorApplicationAuthoringTargets) {
       const ownerPath = path.join(root, "agent-ui", declaration.ownerPath);
@@ -86,12 +86,21 @@ describe("Creator Authoring Target Catalog", () => {
     });
 
     expect(catalog.candidates.filter(candidate => candidate.kind === "application_config").map((candidate) => candidate.id)).toEqual([
+      "appearance.assistant-panel-width",
       "conversation.starter-suggestions",
       "conversation.welcome",
+      "theme.brand-palette",
       "theme.default-mode",
     ]);
     expect(catalog.candidates.filter(candidate => candidate.kind === "application_config").every((candidate) => candidate.kind === "application_config")).toBe(true);
     expect(catalog.bindings.filter(binding => binding.kind === "application_config").every((binding) => binding.ownerPath?.startsWith("agent-ui/") === true)).toBe(true);
+  });
+
+  it("does not advertise a shell configuration seam missing from an older project", async () => {
+    const root = await createFixture();
+    const catalog = await buildCreatorAuthoringTargetCatalog({projectRoot:root, config,
+      paths:fixtureProjectPaths(root,config), projectFacts:emptyFacts()});
+    expect(catalog.candidates.some(candidate => candidate.id === "appearance.assistant-panel-width")).toBe(false);
   });
 
   it("creates Plugin Source targets with implementation-only intents and bounded plugin ownership", async () => {
@@ -203,4 +212,15 @@ describe("Creator Authoring Target Catalog", () => {
       new Set(),
     )).toThrow(/mismatched Host binding/);
   });
+});
+
+it("binds an application to its editable entry without confusing npm implementation ownership", async () => {
+  const root = await createFixture();
+  const directory=path.join(root,"plugins/sample");await mkdir(directory,{recursive:true});
+  for(const file of ["index.tsx","definition.ts","manifest.json"])await writeFile(path.join(directory,file),'{}');
+  const asset:PluginAsset={pluginId:"sample",name:"Sample",description:"Sample",directory:"sample",capabilities:[],manifest:{id:"sample",name:"Sample",description:"Sample",version:"1.0.0"},manifestPath:"plugins/sample/manifest.json",definitionPath:"plugins/sample/definition.ts",application:{entryPath:"plugins/sample/index.tsx",implementationOwnership:"npm",implementationImport:"@za38.03/agent-ui-plugins/sample"}};
+  const catalog=await buildCreatorAuthoringTargetCatalog({projectRoot:root,config,paths:fixtureProjectPaths(root,config),projectFacts:emptyFacts([asset]),applicationTargets:[]});
+  expect(catalog.bindings[0]?.ownerPath).toBe("plugins/sample/index.tsx");
+  expect(catalog.candidates[0]?.name).toContain("application");
+  expect(catalog.candidates[0]?.description).toContain("inspect_ui_plugin");
 });

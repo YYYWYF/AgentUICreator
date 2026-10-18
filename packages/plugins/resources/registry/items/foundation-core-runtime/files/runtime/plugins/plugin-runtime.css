@@ -68,7 +68,9 @@
 .app-ui-plugin-instance {
   min-width: 0;
   min-height: 0;
-  overflow: hidden;
+  /* Mount wrappers must allow anchored UI to extend beyond the Plugin's box.
+   * Plugins and layout surfaces own their scrolling and clipping boundaries. */
+  overflow: visible;
 }
 
 .app-ui-plugin-instance[data-plugin-renderer="true"] {

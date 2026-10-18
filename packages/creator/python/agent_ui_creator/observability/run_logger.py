@@ -68,10 +68,25 @@ def _sanitized_tool_arguments(
 
     if tool_name == "inspect_ui_project":
         view = arguments.get("view")
-        return {"view": view} if isinstance(view, str) else {}
+        fields: dict[str, object] = {"view": view} if isinstance(view, str) else {}
+        cursor = arguments.get("cursor")
+        if isinstance(cursor, str):
+            match = re.fullmatch(r"([0-9a-f]{64}):[0-9a-f]{32}:([1-9][0-9]*)", cursor)
+            fields["hasCursor"] = True
+            fields["cursorValid"] = match is not None
+            if match is not None:
+                fields.update(snapshotHash=match.group(1), offset=int(match.group(2)))
+        return fields
     if tool_name == "inspect_ui_plugin":
         plugin_id = arguments.get("pluginId")
-        return {"pluginId": plugin_id} if isinstance(plugin_id, str) else {}
+        symbols = arguments.get("sharedSymbols")
+        if isinstance(symbols, str) and len(symbols) <= 8_000:
+            try:
+                symbols = json.loads(symbols)
+            except ValueError:
+                symbols = None
+        valid = [v for v in symbols[:8] if isinstance(v, str) and re.fullmatch(r"[A-Za-z_$][A-Za-z0-9_$]{0,99}(?:\.[A-Za-z_$][A-Za-z0-9_$]{0,99}){0,8}", v)] if isinstance(symbols, list) else []
+        return {"pluginId": plugin_id, **({"sharedSymbols": valid} if valid else {}), **({"sharedModule": arguments["sharedModule"]} if isinstance(arguments.get("sharedModule"), str) else {})} if isinstance(plugin_id, str) else {}
     if tool_name == "inspect_ui_plugin_source_references":
         plugin_id = arguments.get("pluginId")
         return {"pluginId": plugin_id} if isinstance(plugin_id, str) else {}
@@ -114,7 +129,20 @@ def _sanitized_tool_arguments(
         if tool_name == "glob":
             key = "pattern"
         value = arguments.get(key)
-        return {key: value} if isinstance(value, str) else {}
+        fields = {key: value} if isinstance(value, str) else {}
+        if tool_name == "grep":
+            pattern = arguments.get("pattern")
+            if isinstance(pattern, str):
+                fields["pattern"] = _redact(pattern)[:300]
+                if len(pattern) > 300:
+                    fields["patternTruncated"] = True
+            for option in ("glob", "output_mode"):
+                if isinstance(arguments.get(option), str):
+                    fields[option] = _redact(arguments[option])[:200]
+        if tool_name == "read_file":
+            fields.update({option: arguments[option] for option in ("offset", "limit")
+                           if isinstance(arguments.get(option), int) and not isinstance(arguments[option], bool)})
+        return fields
     if tool_name == "purge_ui_plugin":
         return {"pluginId": arguments.get("pluginId")}
     if tool_name == "mutate_app_ui_model":
@@ -125,9 +153,16 @@ def _sanitized_tool_arguments(
             if isinstance(operation, Mapping)
             and isinstance(operation.get("type"), str)
         ] if isinstance(operations, (list, tuple)) else []
+        targets = [
+            {key: operation[key] for key in ("type", "instanceId", "nodeRef", "enabled")
+             if isinstance(operation.get(key), (str, bool))}
+            for operation in operations if isinstance(operation, Mapping)
+            and any(key in operation for key in ("instanceId", "nodeRef"))
+        ] if isinstance(operations, (list, tuple)) else []
         return {
             "operationCount": len(operation_types),
             "operationTypes": operation_types,
+            **({"operationTargets": targets[:64]} if targets else {}),
         }
     if tool_name in {
         "create_ui_plugin",
@@ -145,6 +180,52 @@ def _sanitized_tool_arguments(
         item_id = arguments.get("itemId")
         return {"itemId": item_id} if isinstance(item_id, str) else {}
     return {}
+
+
+def _paging_metadata(result: Any) -> dict[str, object]:
+    content = getattr(result, "content", result)
+    if isinstance(content, str):
+        try:
+            content = json.loads(content)
+        except (ValueError, TypeError):
+            return {}
+    page = content.get("result") if isinstance(content, Mapping) else None
+    if not isinstance(page, Mapping) or "pageText" not in page:
+        return {}
+    fields = {key: page[key] for key in ("pageOffset", "totalChars", "pageComplete")
+              if isinstance(page.get(key), (int, bool))}
+    digest = page.get("snapshotHash")
+    if isinstance(digest, str) and re.fullmatch(r"[0-9a-f]{64}", digest):
+        fields["snapshotHash"] = digest
+    cursor = page.get("nextCursor")
+    if isinstance(cursor, str):
+        match = re.fullmatch(r"[0-9a-f]{64}:[0-9a-f]{32}:([1-9][0-9]*)", cursor)
+        if match is not None:
+            fields["nextOffset"] = int(match.group(1))
+    return {"paging": fields}
+
+
+def _shared_contract_metadata(result: Any) -> dict[str, object]:
+    """Bounded evidence from the actual rendered ToolMessage, never inferred."""
+    content = getattr(result, "content", result)
+    if not isinstance(content, str):
+        return {}
+    try:
+        payload = json.loads(content)
+    except ValueError:
+        return {}
+    value = payload.get("result") if isinstance(payload, dict) else None
+    if not isinstance(value, dict):
+        return {}
+    application = value.get("application")
+    shared = value.get("sharedTypes") or (application.get("sharedTypes") if isinstance(application, dict) else None)
+    if not isinstance(shared, dict):
+        return {}
+    return {"sharedContract": {key: shared[key] for key in
+            ("status", "module", "packageVersion", "queryResolution", "unchanged", "contractReference") if key in shared},
+            "sharedContractSymbols": [{"name": symbol.get("name"), "status": symbol.get("status"),
+                "hasPresentationContract": bool(symbol.get("presentationContract"))}
+                for symbol in shared.get("symbols", [])[:8] if isinstance(symbol, dict)]}
 
 
 def _filesystem_fact_kinds(arguments: Mapping[str, Any]) -> list[str]:
@@ -243,6 +324,7 @@ class CreatorRunLogger:
         self.path: Path | None = None
         self.agent_mode = "domain-write"
         self._finished = False
+        self.tool_observations: list[dict[str, Any]] = []
 
     def begin(
         self,
@@ -255,6 +337,7 @@ class CreatorRunLogger:
         self.run_id = run_id
         self.thread_id = thread_id
         self.agent_mode = agent_mode
+        self.tool_observations.clear()
         self.sequence = 0
         self._finished = False
         try:
@@ -352,6 +435,9 @@ class CreatorRunLogger:
                         content = content[:content.index("String not found in file")
                                           + len("String not found in file")]
                     reason = _redact(content[:300])
+        self.tool_observations.append({"toolName": tool_name, "status": status,
+                                       "code": code, "reason": reason})
+        self.tool_observations = self.tool_observations[-100:]
         self.record(
             _TOOL_OBSERVATION_EVENT,
             {
@@ -370,6 +456,8 @@ class CreatorRunLogger:
                     "status": status,
                     "code": code,
                     "factKinds": _tool_fact_kinds(tool_name, arguments),
+                    **_paging_metadata(result),
+                    **(_shared_contract_metadata(result) if tool_name == "inspect_ui_plugin" else {}),
                 },
             },
         )
@@ -502,7 +590,8 @@ class CreatorRunLogger:
                     if productized_operation is not None
                     else {}
                 ),
-                **({"error": str(error)} if error is not None else {}),
+                **({"error": str(error), "errorType": type(error).__name__,
+                    "causeType": type(error.__cause__).__name__ if error.__cause__ is not None else None} if error is not None else {}),
                 **({"errorDetails": error_details} if error_details is not None else {}),
             },
         )

@@ -36,7 +36,7 @@ class CreatorEventStreamMetrics:
 class CreatorEventBus:
     """Run-scoped bounded FIFO for intermediate Creator runtime events."""
 
-    def __init__(self, *, maxsize: int = 256) -> None:
+    def __init__(self, *, maxsize: int = 256, event_sink=None) -> None:
         if maxsize < 1:
             raise ValueError("Creator event stream maxsize must be positive.")
         self._queue: asyncio.Queue[CreatorRuntimeEvent] = asyncio.Queue(
@@ -44,6 +44,8 @@ class CreatorEventBus:
         )
         self._closed = asyncio.Event()
         self._cancel_requested = False
+        self.cancel_source: str | None = None
+        self._event_sink = event_sink
         self._stop_requested = False
         self._active_tool_calls: set[str] = set()
         self._assistant_text: dict[str, str] = {}
@@ -69,12 +71,16 @@ class CreatorEventBus:
     def closed(self) -> bool:
         return self._closed.is_set()
 
-    def request_cancel(self) -> None:
+    def request_cancel(self, source: str = "unspecified") -> None:
+        if not self._cancel_requested:
+            self.cancel_source = source
+            if self._event_sink is not None:
+                self._event_sink("run_cancel_requested", {"source": source, "activeTools": len(self._active_tool_calls)})
         self._cancel_requested = True
 
     def request_stop(self) -> None:
         self._stop_requested = True
-        self.request_cancel()
+        self.request_cancel("user_stop")
 
     def close(self) -> None:
         self._closed.set()

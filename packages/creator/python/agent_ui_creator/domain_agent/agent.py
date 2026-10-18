@@ -97,6 +97,7 @@ from .completion_gate import CreatorDevelopmentCompletionGate
 from .composition_verification_tail import CompositionVerificationTail
 from .debugging_convergence import DebuggingEvidenceConvergenceMiddleware
 from .grounding_convergence import CompositionGroundingConvergenceMiddleware
+from .tool_context import ToolContextCompactionMiddleware
 from .source_grounding import (
     SourceGroundingConvergenceMiddleware, SourceGroundingMetrics,
     create_edit_file_from_read_tool,
@@ -639,6 +640,7 @@ def create_domain_read_creator_agent(
             repeated_read_guard,
             runtime,
             model_retry,
+            ToolContextCompactionMiddleware(metrics),
             protocol,
             _NoSummaryMiddleware(),
         ],
@@ -943,6 +945,7 @@ def create_domain_write_creator_agent(
                 run_control=run_control,
             ),
             model_retry,
+            ToolContextCompactionMiddleware(metrics),
             protocol,
             _NoSummaryMiddleware(),
         ],

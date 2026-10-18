@@ -53,6 +53,9 @@ class OperatorMetrics:
     requestsByOperation: dict[str, int] = field(default_factory=dict)
     failures: int = 0
     durationMs: int = 0
+    queueWaitMs: int = 0
+    admissionWaitMs: int = 0
+    executionMs: int = 0
 
     def record(self, operation: OperatorOperation, duration_ms: int, failed: bool) -> None:
         self.requests += 1

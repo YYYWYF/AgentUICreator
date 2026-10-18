@@ -1,4 +1,5 @@
 export const enUS = {
+  copyAction: { failed: "Copy failed. Check browser permissions and try again." },
   theme: {
     settings: "Theme settings",
     light: "Light",

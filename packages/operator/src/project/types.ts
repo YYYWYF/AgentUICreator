@@ -85,6 +85,11 @@ export interface UIOperatorConfig {
 }
 
 export interface PluginAsset {
+  application?: {
+    entryPath: string;
+    implementationOwnership: "npm" | "project";
+    implementationImport: string;
+  };
   ownership?: "official_package" | "project_source";
   referenceSourceItemId?: string;
   runtimeImport?: string;

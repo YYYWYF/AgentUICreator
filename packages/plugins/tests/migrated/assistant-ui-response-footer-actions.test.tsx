@@ -382,6 +382,24 @@ describe("assistant-ui response footer action Plugins", () => {
     }
   });
 
+  it("reports clipboard rejection without success and allows an explicit retry", async () => {
+    const writeText = vi.fn().mockRejectedValueOnce(new DOMException("Denied", "NotAllowedError")).mockResolvedValueOnce(undefined);
+    const restoreClipboard = installClipboardMock(writeText);
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      const { container } = await mount({ run: async () => ({ content: [] }) });
+      const copy = findActionButton(container, "copy-action");
+      await act(async () => { copy.click(); await Promise.resolve(); });
+      expect(container.querySelector('[data-slot="copy-action-error"]')?.getAttribute("role")).toBe("status");
+      expect(container.querySelector('[data-slot="copy-action-error"]')?.textContent).toBeTruthy();
+      expect(container.querySelector('[data-slot="copy-action-copied"]')).toBeNull();
+      await act(async () => { copy.click(); await Promise.resolve(); });
+      expect(writeText).toHaveBeenCalledTimes(2);
+      expect(container.querySelector('[data-slot="copy-action-error"]')).toBeNull();
+      expect(container.querySelector('[data-slot="copy-action-copied"]')).not.toBeNull();
+    } finally { restoreClipboard(); errorLog.mockRestore(); }
+  });
+
   it("routes Reload from the child Plugin to the response head", async () => {
     const run = vi.fn<ChatModelAdapter["run"]>(async () => ({
       content: [{ type: "text", text: "Reloaded" }],

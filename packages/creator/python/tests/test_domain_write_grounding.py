@@ -443,76 +443,31 @@ def run_script(client, prompt, responses):
 
 def test_uninstalled_source_discovery_and_directory_navigation_are_explicit():
     prompt = " ".join(DOMAIN_WRITE_AGENT_PROMPT.split())
-    assert "Use inspect_agent_ui_sources before browsing Plugin directories when the requested capability is not installed" in prompt
+    assert "Use inspect_agent_ui_sources for missing formal resources" in prompt
     assert "read_file accepts files, not directories" in prompt
 
 
 def test_grounding_prompt_preserves_decision_and_write_boundaries():
     prompt = " ".join(DOMAIN_WRITE_AGENT_PROMPT.split())
     for rule in (
-        "Before the first side-effecting operation",
-        "Reuse -> Restore -> Reconfigure -> Modify -> Create",
-        "two or more reasonable interpretations",
-        "materially different side effects",
-        "do not call edit_file, create_ui_plugin, mutate_ui_plugin_source, mutate_app_ui_model",
-        "successful assistant response, not an error",
-        "Do not ask for confirmation when the target and operation are sufficiently clear",
-        "new independent plugin must not be blocked",
+        "The user's current intent and Host authorization determine permission",
+        "materially different interpretations",
         "A user's explicit correction supersedes every previous interpretation or plan",
-        'inspect_ui_project(view="composition")',
-        "the default convergence boundary",
-        "positive user intents, visual role, typical placement",
-        "hostGuarantees.postCommitVerificationRequired",
-        "When requiredServices.status is resolved",
-        "Do not preflight checks listed in hostGuarantees",
-        "OBSERVATION_ALREADY_COVERED",
-        "Do not repeat the same Operator inspection while the workspace is unchanged",
-        "request the smallest targeted cross-layer read",
-        "explicit exit signal",
-        "restores the full tool surface on the next model call",
-        "inspect_ui_project() without a view is already available",
-        "likewise explicitly exits the Composition fast path",
-        "Do not add a separate intent model call",
-        "Never edit app-ui/app-ui.json,",
-        "app-ui/composition-revision.generated.json, or plugins/registry.generated.ts",
-        "smallest determinable atomic mutation",
-        "stale refreshes do not consume the one allowed semantic replan",
-        "Use the smallest set of layers necessary to satisfy the user's desired final state",
-        "concrete validation evidence proves that a defect introduced by this run",
-        "Pre-existing diagnostics that remain unchanged",
-        "workspace warnings, not task blockers",
-        "Creator is a domain-aware coding agent",
-        "Use clean mode only for requests to fix all current typecheck errors, make typecheck clean, or make the project's TypeScript validation pass with no remaining diagnostics",
-        "For a fix targeting one or a finite set of explicitly identified pre-existing diagnostics, continue using delta mode",
-        "Before completion, confirm that every requested diagnostic appears in resolved diagnostics or is no longer present",
-        "Do not add a third validation mode or a target-diagnostic workflow",
-        "request those two independent reads together",
-        "/skills/ui-layout/SKILL.md as the third read",
+        "AppUIModel owns layout and semantic Plugin composition",
+        "takeover_plugin_source presents the installed-version plan and obtains explicit consent",
+        "Use prepare_ui_plugin_development",
+        "Refresh affected observations",
+        "Automatically repair only introduced or in_scope defects",
+        "Preserve existing capabilities, semantic slots and approval/interrupt/error renderers",
     ):
         assert rule in prompt
 
 
 def test_validation_mode_prompt_narrows_clean_mode_to_workspace_clean_requests():
     prompt = " ".join(DOMAIN_WRITE_AGENT_PROMPT.split())
-
-    assert (
-        "Use clean mode only for requests to fix all current typecheck errors, "
-        "make typecheck clean, or make the project's TypeScript validation pass "
-        "with no remaining diagnostics"
-    ) in prompt
-    assert (
-        "For a fix targeting one or a finite set of explicitly identified "
-        "pre-existing diagnostics, continue using delta mode"
-    ) in prompt
-    assert (
-        "Before completion, confirm that every requested diagnostic appears in "
-        "resolved diagnostics or is no longer present"
-    ) in prompt
-    assert "Do not add a third validation mode or a target-diagnostic workflow" in prompt
-    assert (
-        "Use clean mode when the user's desired state includes fixing existing "
-        "diagnostics"
-    ) not in prompt
+    assert "Use clean mode only for a request to make all current TypeScript diagnostics clean" in prompt
+    assert "A request for specific diagnostics uses delta mode" in prompt
+    assert "those requested diagnostics are resolved" in prompt
 
 
 @pytest.mark.parametrize(

@@ -14,11 +14,16 @@ class InventoryClient:
         self.fail_sources = fail_sources
         self.item_count = item_count
         self.source_reads = 0
+        self.project_reads = 0
 
     async def inspect_ui_project(self, *, view=None):
+        self.project_reads += 1
         return {"appUIModel": {"hash": "a" * 64}, "pluginAssets": [
             {"pluginId": "existing-plugin", "selected": False},
         ]}
+
+    async def inspect_ui_services(self):
+        return {"services": [{"name": "conversation", "status": "available"}], "issues": []}
 
     async def list_ui_plugins(self):
         project = await self.inspect_ui_project()
@@ -116,6 +121,8 @@ def test_large_official_inventory_is_paged_without_losing_candidates():
     result = asyncio.run(read_all())
     assert len(result["sources"]["items"]) == 500
     assert result["sources"]["items"][-1]["id"] == "plugin/tool-ui-499"
+    assert client.source_reads == 1
+    assert client.project_reads == 1
 
 
 @pytest.mark.parametrize("name", ["inspect_ui_capabilities", "inspect_ui_project", "list_ui_plugins"])
@@ -145,6 +152,7 @@ def test_read_only_agent_delivers_official_candidates_even_through_legacy_tools(
     client.inspect_ui_project = stub.inspect_ui_project
     client.list_ui_plugins = stub.list_ui_plugins
     client.inspect_agent_ui_sources = stub.inspect_agent_ui_sources
+    client.inspect_ui_services = stub.inspect_ui_services
     model = ReadingModel(responses=[
         AIMessage(content="", tool_calls=[{"name": name, "args": {}, "id": "inventory"}]),
         AIMessage(content="Official candidate found."),
@@ -158,3 +166,29 @@ def test_read_only_agent_delivers_official_candidates_even_through_legacy_tools(
     assert stub.source_reads == 1
     assert agent.activity.revision == 0
     assert result.text == "Official candidate found."
+
+
+def test_summary_keeps_candidates_and_services_without_authoring_payload():
+    result = inspect(InventoryClient(item_count=100), "inspect_ui_capabilities")
+    assert result["detail"] == "summary"
+    assert len(result["sources"]["items"]) == 100
+    assert result["services"]["services"][0]["status"] == "available"
+    assert "placements" not in result
+    assert "components" not in result
+    assert "live Agent behavior is unverified" in result["authority"]
+
+
+def test_capability_full_pages_reuse_the_original_snapshot():
+    client = InventoryClient(item_count=500)
+    tool = next(t for t in create_operator_tools(client) if t.name == "inspect_ui_capabilities")
+
+    async def read_all():
+        cursor = None
+        while True:
+            page = json.loads(await tool.ainvoke({"detail": "full", "cursor": cursor}))["result"]
+            client.item_count = 1  # External drift cannot mix two snapshots.
+            cursor = page["nextCursor"]
+            if cursor is None:
+                break
+    asyncio.run(read_all())
+    assert client.project_reads == client.source_reads == 1

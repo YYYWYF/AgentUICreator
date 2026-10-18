@@ -425,7 +425,7 @@ describe("plugin runtime composition", () => {
     ]);
   });
 
-  it("coalesces StrictMode effect replay and reports an empty synchronized snapshot after unmount", async () => {
+  it("coalesces StrictMode effect replay and reports an empty snapshot when Plugins are disabled", async () => {
     const snapshots: RuntimeCompositionSnapshot[] = [];
     const reporter = (snapshot: RuntimeCompositionSnapshot) =>
       snapshots.push(snapshot);
@@ -451,5 +451,57 @@ describe("plugin runtime composition", () => {
       appUIModelHash,
       instances: [],
     });
+  });
+
+  it("collects a fresh snapshot on Host request without remounting React, then removes its listener", async () => {
+    const host = new EventTarget();
+    vi.stubGlobal("window", host);
+    const snapshots: RuntimeCompositionSnapshot[] = [];
+    const reporter = (snapshot: RuntimeCompositionSnapshot) => snapshots.push(snapshot);
+    await act(async () => { renderer = create(<RuntimeFixture reporter={reporter} />); });
+    const previous = snapshots.at(-1)!;
+    expect(previous.instances).toHaveLength(2);
+    snapshots.length = 0;
+    const later = new Date(Date.parse(previous.observedAt) + 1000);
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(later);
+    try {
+      await act(async () => {
+        host.dispatchEvent(new Event("agent-ui:observation-request"));
+        host.dispatchEvent(new Event("agent-ui:observation-request"));
+        await Promise.resolve();
+      });
+      expect(snapshots).toHaveLength(1);
+      expect(snapshots[0]).toMatchObject({ appUIModelHash, observedAt: later.toISOString(), instances: previous.instances });
+      await act(async () => { renderer?.unmount(); renderer = undefined; });
+      snapshots.length = 0;
+      await act(async () => { host.dispatchEvent(new Event("agent-ui:observation-request")); await Promise.resolve(); });
+      expect(snapshots).toEqual([]);
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("does not publish retiring provider cleanup over its replacement during a refresh", async () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => frames.push(callback));
+    const cancelFrame = vi.fn();
+    vi.stubGlobal("cancelAnimationFrame", cancelFrame);
+    const snapshots: RuntimeCompositionSnapshot[] = [];
+    const reporter = (snapshot: RuntimeCompositionSnapshot) => snapshots.push(snapshot);
+    try {
+      await act(async () => { renderer = create(<RuntimeFixture key="old" reporter={reporter} />); });
+      // Keep the old provider's publication pending until after its replacement
+      // commits, matching a delayed background-tab/refresh frame.
+      await act(async () => { renderer?.update(<RuntimeFixture key="new" reporter={reporter} />); });
+      await act(async () => { for (const frame of frames.reverse()) frame(0); });
+      expect(cancelFrame).toHaveBeenCalled();
+      expect(snapshots).toHaveLength(1);
+      expect(snapshots[0]?.instances).toHaveLength(2);
+      snapshots.length = 0;
+      await act(async () => { renderer?.unmount(); renderer = undefined; });
+      await act(async () => { for (const frame of frames) frame(0); });
+      expect(snapshots).toEqual([]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
