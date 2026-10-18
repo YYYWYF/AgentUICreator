@@ -9,7 +9,7 @@ import {
   SearchFilesToolUI,
   conversationToolkit,
   formatSearchFilesResult,
-} from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
+} from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
 
 type SearchFilesToolProps = ToolCallMessagePartProps<
   Record<string, unknown>,

@@ -49,3 +49,16 @@ it("removes window listeners and uses the caller's locale messages", () => {
   expect(document.getElementById(CREATOR_DOCK_ID)).toBeNull();
   expect(remove).toHaveBeenCalledWith("resize", expect.any(Function));
 });
+
+it("opens immediately when requested by the standalone shell and can collapse", () => {
+  cleanups.push(installCreatorDock({ creatorUrl: "http://127.0.0.1:47832", initiallyOpen: true,
+    messages: creatorDockMessages("zh-CN") }));
+  const shadow = document.getElementById(CREATOR_DOCK_ID)!.shadowRoot!;
+  const frame = shadow.querySelector("iframe")!;
+  const button = shadow.querySelector("button")!;
+  expect(frame.src).toBe("http://127.0.0.1:47832/dock.html");
+  expect(frame.hidden).toBe(false);
+  expect(button.getAttribute("aria-expanded")).toBe("true");
+  button.click();
+  expect(frame.hidden).toBe(true);
+});

@@ -1,0 +1,74 @@
+更新中心
+
+查看官方版本，管理项目更新。
+
+有 2 项更新
+
+暂不提醒
+已在线检查官方版本
+
+上次检查：10/18 01:57
+
+项目 Agent UI
+2
+runtime
+0.0.1 → 0.0.2
+
+该版本区间的变更记录可能不完整。
+
+包信息
+
+@za38.03/agent-ui-runtime
+
+依赖声明：0.0.1
+
+plugins
+0.0.1 → 0.0.2
+composer · Composer 新增实时输入字数统计
+查看逐版本变更
+0.0.2
+
+composer · Composer 新增实时输入字数统计
+
+包信息
+
+@za38.03/agent-ui-plugins
+
+依赖声明：0.0.1
+
+校验产物并准备升级
+已是兼容版本 · 2 个包
+core
+0.0.1
+包信息
+
+@za38.03/agent-ui-core
+
+依赖声明：0.0.1
+
+renderer
+0.0.1
+包信息
+
+@za38.03/agent-ui-renderer
+
+依赖声明：0.0.1
+
+Creator 开发工具
+creator
+0.0.1
+包信息
+
+@za38.03/agent-ui-creator
+
+operator
+0.0.1
+包信息
+
+@za38.03/agent-ui-operator
+
+依赖声明：workspace:*
+
+兼容版本清单
+
+推荐兼容组合：acceptance-real-npm-composer-counter

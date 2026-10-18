@@ -15,8 +15,8 @@ import type { UIPluginDefinition } from "../../../operator/src/framework/contrac
 import {
   createPluginRegistry,
   type RuntimeDiagnostic,
-} from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
-import { sha256Text } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/diagnostics/index";
+} from "../../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+import { sha256Text } from "../../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/diagnostics/index";
 import { PluginRuntimeFixture } from "../../../operator/tests/support/agent-runtime-fixture";
 
 const appUIModelHash = "a".repeat(64);

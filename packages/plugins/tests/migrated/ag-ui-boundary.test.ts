@@ -139,7 +139,7 @@ describe("generated app AG-UI dependency boundary", () => {
       "@assistant-ui/react-langgraph": "0.14.29",
     });
     expect(conversationPackage.peerDependencies).toMatchObject({
-      "@za38.03/agent-ui-core": "^0.1.0",
+      "@za38.03/agent-ui-core": "^0.0.1",
     });
   });
 

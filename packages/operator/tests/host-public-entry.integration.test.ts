@@ -38,6 +38,41 @@ const runtimeAliases = {
 const prohibited = /(?:\/|\\)agent-ui(?:\/|\\)(?:runtime|framework|plugins|app-ui)(?:\/|\\)/u;
 const execFileAsync = promisify(execFile);
 
+test("Host can pass a user through the public Agent entry with account source and no auth adapter", async () => {
+  const hostRoot = hostProjects.embedded;
+  const projectRoot = await mkdtemp(path.join(os.tmpdir(), "creator-host-user-"));
+  try {
+    await writeFile(path.join(projectRoot, "package.json"), await readFile(path.join(hostRoot, "package.json")));
+    await symlink(path.join(hostRoot, "node_modules"), path.join(projectRoot, "node_modules"), "dir");
+    await mkdir(path.join(projectRoot, "src"));
+    await writeFile(path.join(projectRoot, "tsconfig.json"), JSON.stringify({ extends: path.join(hostRoot, "tsconfig.json"), include: ["src"] }));
+    await writeFile(path.join(projectRoot, "index.html"), '<div id="root"></div><script type="module" src="/src/main.tsx"></script>');
+    await writeFile(path.join(projectRoot, "src/main.tsx"), 'import { createRoot } from "react-dom/client";\nimport { ProviderPage } from "./provider-example";\nimport { Agent, type AgentUser } from "./agent-ui";\nconst user: AgentUser = { userId: "host-user", userName: "Host user", avatar: "/avatar.png" };\ncreateRoot(document.getElementById("root")!).render(<><ProviderPage /><Agent user={user} /><Agent /><Agent user={null} /><Agent user={{}} /><Agent user={{ userId: "id-only" }} /><Agent user={{ userName: "Name only" }} /><Agent user={{ avatar: "/avatar.png" }} /><Agent user={{ userId: undefined, userName: undefined, avatar: undefined }} /></>);\n');
+    await writeFile(path.join(projectRoot, "src/provider-example.tsx"), `
+import { Agent, AgentUIProvider, useAgentUI, useAgentUIState, useAgentUIEvent } from "./agent-ui";
+function Controls() {
+  const host = useAgentUI();
+  const ready = useAgentUIState(s => s.status === "ready");
+  useAgentUIEvent("run-end", event => { void event.threadId; void event.run.status; });
+  return <button disabled={!ready} onClick={() => void host.sendMessage("hello").catch(() => {})}>Send</button>;
+}
+export function ProviderPage() {
+  return <AgentUIProvider user={{ userName: "Host" }}><Controls /><Agent /></AgentUIProvider>;
+}
+`);
+    await initializeAgentUIProject({ projectRoot, mode: "embedded", sourceRoot: "src/agent-ui" }, initializationHost);
+    const inspection = await handleUIOperatorRequest({ operation: "inspect_agent_ui_sources", input: {} }, projectRoot);
+    assert.equal(inspection.ok, true, JSON.stringify(inspection));
+    const installed = await handleUIOperatorRequest({ operation: "apply_agent_ui_source_item", input: { itemId: "plugin/auth-account", expectedStateHash: (inspection.result as { stateHash: string }).stateHash } }, projectRoot);
+    assert.equal(installed.ok, true, JSON.stringify(installed));
+    await assert.rejects(readFile(path.join(projectRoot, "src/agent-ui/services/auth/adapter.ts")), { code: "ENOENT" });
+    await assert.rejects(readFile(path.join(projectRoot, "src/agent-ui/plugins/auth-gate/definition.ts")), { code: "ENOENT" });
+    await rm(path.join(projectRoot, ".agent-ui"), { recursive: true });
+    await execFileAsync(process.execPath, [path.join(hostRoot, "node_modules/typescript/bin/tsc"), "--project", path.join(projectRoot, "tsconfig.json"), "--noEmit"]);
+    await build({ root: projectRoot, configFile: false, plugins: [react(), tailwindcss()], resolve: { alias: runtimeAliases }, build: { outDir: path.join(projectRoot, "dist"), emptyOutDir: true }, logLevel: "silent" });
+  } finally { await rm(projectRoot, { recursive: true, force: true }); }
+}, 120_000);
+
 async function hostFiles(directory: string): Promise<string[]> {
   const files: string[] = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {

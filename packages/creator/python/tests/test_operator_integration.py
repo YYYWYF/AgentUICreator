@@ -247,14 +247,14 @@ def test_real_target_mutation_uses_temp_copy_and_python_transaction(tmp_path):
 
 def test_hide_restore_keeps_custom_plugin_source_and_single_instance(tmp_path):
     project_root = _copy_target(tmp_path, "hide-restore-source")
-    source = project_root / "src/agent-ui/plugins/assistant-ui-reasoning/index.tsx"
+    source = project_root / "src/agent-ui/plugins/reasoning/index.tsx"
     source.write_text(source.read_text(encoding="utf-8") + "\n// user customization\n",
                       encoding="utf-8")
     preserved = source.read_bytes()
     client, _activity, service = _mutation_service(project_root, "hide-restore")
     before = asyncio.run(client.inspect_app_ui_model())
     instance = next(item for item in _authoring_plugins(before["model"])
-                    if item["pluginId"] == "assistant-ui-reasoning")
+                    if item["pluginId"] == "reasoning")
     assert instance["enabled"] is True
 
     asyncio.run(service.mutate(app_ui_model_hash=before["hash"], operations=[{
@@ -529,7 +529,7 @@ import path from 'node:path';
 const [repository, target] = process.argv.slice(1);
 const require = createRequire(path.join(repository, 'examples/creator-host-sandbox/package.json'));
 const { minVersion } = require('semver');
-const registry = path.join(repository, 'packages/source-registry/registry/items');
+const registry = path.join(repository, 'packages/plugins/resources/registry/items');
 const byId = new Map();
 for (const directory of await readdir(registry)) {
   const item = JSON.parse(await readFile(path.join(registry, directory, 'item.json'), 'utf8'));

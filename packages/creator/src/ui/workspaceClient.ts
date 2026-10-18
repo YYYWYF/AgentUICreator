@@ -70,3 +70,5 @@ export async function executeCreatorCommand(workspaceId: string, request: import
   if (!response.ok) throw new CreatorWorkspaceRequestError(localeMessages.commands.failed, result);
   return result as import("../commands/types.js").CreatorCommandResult;
 }
+
+export const buildCompatibilityProjectRequest = (messages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) => workspaceFetch<unknown>("/integration/build", {}, undefined, messages);

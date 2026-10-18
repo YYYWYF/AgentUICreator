@@ -621,6 +621,12 @@ Reference Project 的职责是提供答案：
 
 ## 当前源码交付与插件升级边界
 
-以 [包内上游实现与按插件更新](architecture/package-owned-upstream-and-plugin-updates.md) 为准：assistant-ui 实现与默认 A2UI/Generative UI 组件封装于包内部；用户工程仅接收必要适配层和可定制插件源码。保留组件扩展能力，源码插件按选择及必要依赖升级，不把所有插件绑定为统一版本。旧文中的项目内 vendor 路径仅描述历史迁移状态。
+2026-10-17 当前决策以 [统一 Plugins 包、内置源码目录与按需源码托管](architecture/npm-default-plugin-source-ownership.md) 为准。Source Registry 合并到 `packages/plugins`，不再独立 npm 发布。一个 `@za38.03/agent-ui-plugins` 包同时交付运行插件、精确源码快照及版本/来源目录；Registry 仅是包内逻辑能力，不是另一份实现或第二个安装包。
 
-A2UI 当前暂缓推出：不出现在官方资源和 Mock 示例中，不允许安装或自动启用；底层实验代码保留。普通 JSON Generative UI 不受影响。恢复条件见上述边界文档。
+官方实现按 `src/plugins/<id>/` 的平级插件目录组织；每个插件内区分 `upstream/`、`adapters/`、产品样式/locale/资源、定义、插件版本、上游来源和 changelog。共享展示资源单一所有者；同一源码生成 `dist/plugins/`、`dist/sources/` 和 `dist/catalog.json`，生成物不手工维护。原模板/Demo 迁入包内资源，Node 文件/历史/安装/合并工具归 Operator，不进入浏览器运行入口。
+
+默认在用户工程保留很薄的插件应用层：Registry 解析本地定义，应用层直接引用 npm 公开组件。AppUIModel 只负责布局、实例身份/启停和语义组合；React props、子组件组合与 renderer 在应用层代码里调整，不映射为 JSON 配置。创建或修改应用层不算源码接管。Creator 优先使用这些公开 API；只有无法满足、必须改实现时才准备计划并询问用户。明确同意后提取工程实际安装版本到独立实现子树、记录 BASE，并只切换应用层的实现 import，保留其 props/组合、Plugin ID、实例配置和语义 Slot，不重复注册。接管后仍先改应用层，再改实现适配层；vendor 保持原样与来源可追踪。
+
+升级包同时取得新版运行实现和目录材料，但不覆盖用户应用层或本地托管源码、不切回包引用或推进 BASE。用户要求同步时仅在实现受管范围内以精确 BASE/LOCAL/TARGET 合并和验证；应用层不纳入合并、删除或模板重生成，API 不兼容单独报告和适配；仅移植特性不冒充完整升级。共享依赖仍须兼容检查，Core、Renderer、canonical Runtime 继续 npm 交付。旧 Registry Release/锁需保留来源，不能当作同号 Plugins 包版本。
+
+合包与基础源码目录已实现，独立 Source Registry 已从 workspace/发布清单移除，资源和目录随 Plugins 交付；旧历史合同与更新路径保留。已安装版本的确认接管已支持 Composer 与兼容旧 ID；始终本地的薄应用层、完整 props/组合 API、更多插件包化和新 ownership 的显式源码同步仍待实现。Creator、Operator 和目录/快照读取工具不进入生产浏览器模块图。A2UI 暂缓状态不变。详见主架构文档的阶段状态和验证记录。

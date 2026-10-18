@@ -16,10 +16,15 @@ it.each([['image','图片','Image'],['document','文档','Document'],['file','�
  function Host({locale}:{locale:AgentUILocaleCode}){runtime=useLocalRuntime({async *run(){}},{adapters:{attachments:adapter}});return <AssistantRuntimeProvider runtime={runtime}><AgentUILocaleProvider locale={locale}><ConversationCanonicalComposer leadingActions={<ConversationComposerAddAttachment/>}/></AgentUILocaleProvider></AssistantRuntimeProvider>;}
  const el=document.createElement('div');document.body.append(el);root=createRoot(el);await act(async()=>root!.render(<Host locale='zh-CN'/>));
  let upload!:Promise<void>;await act(async()=>{upload=runtime.thread.composer.addAttachment(new File(['data'],'original-$&.pdf',{type:'application/pdf'}));await Promise.resolve();});
- const tile=el.querySelector(`[role="button"][aria-label="${chinese}附件，正在上传"]`);expect(tile).not.toBeNull();
- await act(async()=>root!.render(<Host locale='en-US'/>));expect(el.querySelector(`[role="button"][aria-label="${english} attachment, uploading"]`)).toBe(tile);
- await act(async()=>{finish();await upload;});expect(el.querySelector(`[role="button"][aria-label="${english} attachment, upload failed"]`)).toBe(tile);
- await act(async()=>root!.render(<Host locale='zh-CN'/>));expect(el.querySelector(`[role="button"][aria-label="${chinese}附件，上传失败"]`)).toBe(tile);
+ const tile=el.querySelector('.aui-attachment-tile');expect(tile).not.toBeNull();
+ const label=(locale:AgentUILocaleCode, failed=false)=>locale==='zh-CN'
+   ? `${type === 'image' ? '预览' : chinese+'附件'} original-$&.pdf，${failed ? '上传失败' : '上传中'}`
+   : `${type === 'image' ? 'Preview' : english+' attachment'} original-$&.pdf, ${failed ? 'upload failed' : 'uploading'}`;
+ expect(tile?.getAttribute('aria-label')).toBe(label('zh-CN'));
+ await act(async()=>root!.render(<Host locale='en-US'/>));
+ expect(el.querySelector('.aui-attachment-tile')).toBe(tile);expect(tile?.getAttribute('aria-label')).toBe(label('en-US'));
+ await act(async()=>{finish();await upload;});expect(tile?.getAttribute('aria-label')).toBe(label('en-US',true));
+ await act(async()=>root!.render(<Host locale='zh-CN'/>));expect(el.querySelector('.aui-attachment-tile')).toBe(tile);expect(tile?.getAttribute('aria-label')).toBe(label('zh-CN',true));
  expect(runtime.thread.composer.getState().attachments[0]?.name).toBe('original-$&.pdf');
  expect(runtime.thread.composer.getState().attachments[0]?.status).toMatchObject({message:'raw upload $& error'});
  expect(el.querySelectorAll('.aui-attachment-add-icon')).toHaveLength(1);

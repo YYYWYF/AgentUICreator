@@ -6,7 +6,7 @@ import {
   type AgentUIProjectConfig,
 } from "../bootstrap/index.js";
 import { installManagedOperator, MANAGED_OPERATOR_ENTRY } from "../install.mjs";
-import { loadAgentUISourceRegistry } from "@za38.03/agent-ui-source-registry";
+import { officialPackagePlugins, loadAgentUISourceRegistry } from "../source-catalog/index.js";
 
 import { parseAppUIModel, type AppUIModel } from "../framework/contracts/app-ui-model";
 import { writeGeneratedPluginRegistry } from "../generate-plugin-registry";
@@ -47,6 +47,11 @@ export function createAgentUIInitializationHost() {
       }
       const registry = await loadAgentUISourceRegistry();
       const items = resolveAgentUISourceItems(registry, itemIds);
+      const applicationPaths = officialPackagePlugins.filter(plugin => plugin.application.enabled).flatMap(plugin => ["application.json","manifest.json","index.tsx","definition.ts"].map(file => projectRelativePath(projectRoot,path.join(paths.pluginsRoot,plugin.pluginId,file))));
+      for(const file of applicationPaths){
+        await assertNoSymbolicLinkTraversal(projectRoot,file);
+        if(await exists(path.join(projectRoot,file))) throw new AgentUIInitializationError("AGENT_UI_PROJECT_INVALID_STATE","Existing Plugin application files must be preserved.");
+      }
       const packageInspection = await inspectAgentUIPackages(projectRoot, items);
       if (packageInspection.issues.length > 0) {
         throw new AgentUIInitializationError(
@@ -57,6 +62,7 @@ export function createAgentUIInitializationHost() {
       }
       return {
         plannedPaths: [
+          ...applicationPaths,
           MANAGED_OPERATOR_ENTRY,
           DEVELOPMENT_ENV_PATH,
           ...items.flatMap((item) => item.loadedFiles.map((file) =>
@@ -99,7 +105,7 @@ export function createAgentUIInitializationHost() {
     async rollbackCreatedPaths(projectRoot, createdPaths, projectConfig, plannedPaths, sourceRootWasMissing) {
       const { config, paths } = context(projectRoot, projectConfig);
       await recoverPendingAgentUISourceTransaction(projectRoot, config);
-      for (const relativePath of [...new Set(createdPaths)].sort((left, right) => right.localeCompare(left))) {
+      for (const relativePath of [...new Set([...createdPaths, ...plannedPaths.filter(file=>/\/plugins\/[^/]+\/(?:application\.json|manifest\.json|index\.tsx|definition\.ts)$/u.test(file))])].sort((left, right) => right.localeCompare(left))) {
         await assertNoSymbolicLinkTraversal(projectRoot, relativePath);
         await unlink(path.join(projectRoot, relativePath)).catch((error: NodeJS.ErrnoException) => {
           if (error.code !== "ENOENT") throw error;

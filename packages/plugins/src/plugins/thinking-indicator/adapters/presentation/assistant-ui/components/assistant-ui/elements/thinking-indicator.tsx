@@ -1,0 +1,46 @@
+"use client";
+
+import type { ComponentProps } from "react";
+import { cn } from "../../../../../vendor-generated/assistant-ui/lib/utils.js";
+import { mono, ShimmerLabel } from "../../../../../vendor-generated/assistant-ui/components/assistant-ui/elements/surfaces.js";
+
+export function ThinkingIndicator({
+  label,
+  elapsed,
+  className,
+  ...props
+}: Omit<ComponentProps<"div">, "children" | "label" | "elapsed"> & {
+  label: string;
+  elapsed?: string;
+}) {
+  return (
+    <div data-agent-ui-owned=""
+      data-slot="thinking-indicator"
+      className={cn(
+        "text-muted-foreground flex items-center gap-2.5 text-sm",
+        className,
+      )}
+
+      {...props}
+    >
+      <span
+        data-slot="agent-ui-thinking-dot"
+        aria-hidden
+        className="size-1.5 shrink-0 animate-pulse rounded-full bg-blue-500 motion-reduce:animate-none dark:bg-blue-400"
+      />
+      <ShimmerLabel data-agent-ui-owned=""
+        key={label}
+        className="fade-in slide-in-from-bottom-1 animate-in relative inline-block min-w-0 truncate leading-tight duration-300"
+      >
+        {label}
+      </ShimmerLabel>
+      {elapsed !== undefined && (
+        <span data-agent-ui-owned=""
+          className={cn(mono, "text-muted-foreground shrink-0 tabular-nums")}
+        >
+          {elapsed}
+        </span>
+      )}
+    </div>
+  );
+}

@@ -1,5 +1,25 @@
 export const enUS = {
-  auth: {"title": "Sign in to your Agent", "checking": "Checking your session…", "account": "Account", "password": "Password", "signIn": "Sign in", "signOut": "Sign out", "working": "Please wait…", "signInFailed": "Sign-in failed. Check your credentials and try again.", "signOutFailed": "You are signed out locally. Remote sign-out failed.", "accountMenu": "Account menu"},
+  theme: {
+    settings: "Theme settings",
+    light: "Light",
+    dark: "Dark",
+    violet: "Violet",
+  },
+  conversationTriggers: {
+    suggestions: "Input suggestions",
+    back: "Back",
+    empty: "No matching items",
+    loading: "Loading…",
+    searchFailed: "Could not load suggestions",
+    retry: "Retry",
+    commandFailed: "Could not execute command",
+    invalidItem: "This item cannot be inserted",
+    newConversation: "New conversation",
+  },
+  agentIdentity: { name: "Agent" },
+  conversationQuote: { quote: "Quote", dismiss: "Dismiss quote" },
+  transientMessages: { systemMessage: "System message", userMessage: "User message", assistantMessage: "Assistant message", errorMessage: "Error message" },
+  auth: {"title": "Sign in to your Agent", "checking": "Checking your session…", "account": "Account", "password": "Password", "signIn": "Sign in", "signOut": "Sign out", "working": "Please wait…", "signInFailed": "Sign-in failed. Check your credentials and try again.", "signOutFailed": "You are signed out locally. Remote sign-out failed.", "notSignedIn": "Not signed in", "accountMenu": "Account menu"},
 
   "thinkingIndicator": {
     "thinking": "Thinking...",
@@ -37,6 +57,7 @@ export const enUS = {
     "retry": "Retry"
   },
   "composer": {
+    "awaitingReply": "The current task is waiting for your reply. Please answer the question above before sending a new message.",
     "placeholder": "Send a message...",
     "input": "Message input",
     "addAttachment": "Add Attachment",
@@ -50,6 +71,7 @@ export const enUS = {
     "queued": "Pending",
     "removeQueued": "Remove queued message"
   },
+  "conversationFeedback": { "helpful": "Helpful", "notHelpful": "Not helpful" },
   "conversation": {
     "generationStopped": "Generation stopped",
     "editInput": "Edit message",
@@ -57,11 +79,14 @@ export const enUS = {
     "scrollToBottom": "Scroll to bottom",
     "welcome": "How can I help you today?",
     "working": "Assistant is working",
+    "moreActions": "More actions",
     "exportMarkdown": "Export as Markdown",
     "reasoning": "Reasoning",
     "reasoningDuration": " ({seconds}s)"
   },
   "threadList": {
+    historyTitle: "Conversation history",
+    retry: "Retry",
     "newChat": "New Chat",
     "moreOptions": "More options",
     "running": "Running",
@@ -80,6 +105,12 @@ export const enUS = {
     "earlier": "Earlier"
   },
   "attachments": {
+    "previewNamed": "Preview {name}",
+    "removeNamed": "Remove {name}",
+    "tileNamed": "{type} attachment {name}",
+    "named": "{label}",
+    "namedUploading": "{label}, uploading",
+    "namedFailed": "{label}, upload failed",
     "preview": "Attachment preview",
     "imagePreview": "Image Attachment Preview",
     "uploadFailed": "Upload failed",
@@ -156,6 +187,14 @@ export const enUS = {
     "chineseName": "简体中文",
     "englishName": "English"
   },
+  "searchTools": {
+    "searching": "Searching",
+    "sources": "Read {count} sources",
+    "retrieving": "Retrieving",
+    "passages": "{count} passages retrieved",
+    "relevance": "{source} relevance score",
+    "score": "{score} of 1.00"
+  },
   "search": {
     "searching": "Searching",
     "readSources": "Read 3 sources",
@@ -166,6 +205,25 @@ export const enUS = {
     "manyFiles": "{count} files found — {files}"
   },
   "examples": {
+    "hostAnalyzeButton": "Analyze with assistant",
+    "hostAnalyzePrompt": "Please review this presentation page and suggest improvements.",
+    "hostCloseAssistant": "Close assistant",
+    "hostOpenAssistant": "Open assistant",
+    "hostSendFailed": "The assistant request failed. Please try again.",
+
+    "presentationEditor": "Presentation editor",
+    "presentationDocument": "Presentation",
+    "canvasSelect": "Select",
+    "canvasText": "Edit title",
+    "canvasBold": "Bold title",
+    "canvasAlign": "Center title",
+    "canvasGrid": "Canvas grid",
+    "canvasSlide": "Slide",
+    "canvasHint": "Click the title to edit",
+    "canvasSubtitle": "A clearer workspace for every idea",
+    "canvasPillarOne": "Connect context",
+    "canvasPillarTwo": "Shape ideas",
+    "canvasPillarThree": "Move work forward",
     "durableRun": "Durable run",
     "agentPlanActivityRefreshRecovery": "AgentPlan Activity refresh recovery",
     "productionBindingRefreshRecovery": "Production binding refresh recovery",
@@ -320,6 +378,8 @@ export const enUS = {
     "count": "{count} of {max}"
   },
   "toolPresentation": {
+    "replyQueued": "Reply queued, not sent yet",
+    "alternativeAnswerPlaceholder": "Or type an answer",
     "request": "Request:",
     "running": "Running tool",
     "waiting": "Waiting on tool",

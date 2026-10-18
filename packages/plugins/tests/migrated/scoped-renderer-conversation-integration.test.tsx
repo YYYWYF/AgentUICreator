@@ -14,22 +14,22 @@ import {
 } from "@assistant-ui/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ConversationAdapter } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter";
-import { createConversationToolkit } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
+import { ConversationAdapter } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter";
+import { createConversationToolkit } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
 import {
   parseAppUIRuntimeModel,
   type AppUIRuntimeModel,
 } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
 import type { UIPluginComponentProps, UIPluginDefinition, UIPluginRenderScope } from "../../../operator/src/framework/contracts/ui-plugin";
-import { AssistantUiReasoningPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-reasoning/files/plugins/assistant-ui-reasoning/index";
-import { AssistantUiToolFallbackPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-tool-fallback/files/plugins/assistant-ui-tool-fallback/index";
-import { AssistantUiToolGroupPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-tool-group/files/plugins/assistant-ui-tool-group/index";
-import { TaskGroupPlugin } from "../../../source-registry/registry/items/plugin-task-group/files/plugins/task-group/index";
+import { ConversationReasoningPlugin } from "../../resources/registry/items/plugin-reasoning/files/plugins/reasoning/index";
+import { ConversationToolFallbackPlugin } from "../../resources/registry/items/plugin-tool-fallback/files/plugins/tool-fallback/index";
+import { ConversationToolGroupPlugin } from "../../resources/registry/items/plugin-tool-group/files/plugins/tool-group/index";
+import { TaskGroupPlugin } from "../../resources/registry/items/plugin-task-group/files/plugins/task-group/index";
 import {
   createPluginRegistry,
   type RuntimeDiagnostic,
   usePluginRenderScope,
-} from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
 import { PluginRuntimeFixture } from "../../../operator/tests/support/agent-runtime-fixture";
 
 const roots: Root[] = [];
@@ -77,9 +77,9 @@ async function openToolGroups(container: HTMLElement) {
   if (trigger) await act(async () => trigger.click());
 }
 
-import { useConversationRendererSlots } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/useConversationRendererSlots";
-import { AssistantUiToolTimelinePlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-tool-timeline/files/plugins/assistant-ui-tool-timeline/index";
-import { AssistantUiThinkingIndicatorPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-thinking-indicator/files/plugins/assistant-ui-thinking-indicator/index";
+import { useConversationRendererSlots } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/useConversationRendererSlots";
+import { ConversationToolTimelinePlugin } from "../../resources/registry/items/plugin-tool-timeline/files/plugins/tool-timeline/index";
+import { ConversationThinkingIndicatorPlugin } from "../../resources/registry/items/plugin-thinking-indicator/files/plugins/thinking-indicator/index";
 
 function Host({ renderScopedSlot }: UIPluginComponentProps) {
   useEffect(() => { hostMounts += 1; }, []);
@@ -88,8 +88,8 @@ function Host({ renderScopedSlot }: UIPluginComponentProps) {
 }
 
 const definitions: UIPluginDefinition[] = [
-  { manifest: { id: "timeline-test", name: "Timeline", description: "Timeline", version: "1.0.0", capabilities: ["conversation-tool-timeline-renderer"], requiresRenderScope: true }, Component: AssistantUiToolTimelinePlugin },
-  { manifest: { id: "thinking-test", name: "Thinking", description: "Thinking", version: "1.0.0", capabilities: ["conversation-thinking-indicator-renderer"], requiresRenderScope: true }, Component: AssistantUiThinkingIndicatorPlugin },
+  { manifest: { id: "timeline-test", name: "Timeline", description: "Timeline", version: "1.0.0", capabilities: ["conversation-tool-timeline-renderer"], requiresRenderScope: true }, Component: ConversationToolTimelinePlugin },
+  { manifest: { id: "thinking-test", name: "Thinking", description: "Thinking", version: "1.0.0", capabilities: ["conversation-thinking-indicator-renderer"], requiresRenderScope: true }, Component: ConversationThinkingIndicatorPlugin },
   {
     manifest: {
       id: "conversation-test-host", name: "Conversation test host", description: "Conversation integration host", version: "1.0.0",
@@ -117,20 +117,20 @@ const definitions: UIPluginDefinition[] = [
     Component: (props) => {
       const scope = usePluginRenderScope<{ group: { indices: readonly number[]; status: { type: string } }; children: unknown }>();
       reasoningScopes(scope);
-      return <AssistantUiReasoningPlugin {...props} />;
+      return <ConversationReasoningPlugin {...props} />;
     },
   },
   {
     manifest: { id: "tool-group-test", name: "Tool group", description: "Tool group renderer", version: "1.0.0",
       capabilities: ["conversation-tool-group-renderer"], requiresRenderScope: true },
-    Component: AssistantUiToolGroupPlugin,
+    Component: ConversationToolGroupPlugin,
   },
   {
     manifest: { id: "tool-fallback-test", name: "Tool fallback", description: "Tool fallback renderer", version: "1.0.0",
       capabilities: ["conversation-tool-fallback-renderer"], requiresRenderScope: true },
     Component: (props) => {
       fallbackInvocations();
-      return <AssistantUiToolFallbackPlugin {...props} />;
+      return <ConversationToolFallbackPlugin {...props} />;
     },
   },
   {

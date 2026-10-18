@@ -101,7 +101,7 @@ def test_selector_question_interrupt_answer_and_real_host_removal(tmp_path, monk
     lock_file = tmp_path / ".agent-ui/source-lock.json"
     original_composition = composition_file.read_bytes()
     original_lock = lock_file.read_bytes()
-    plugin_root = tmp_path / "agent-ui/plugins/assistant-ui-slash-command-trigger"
+    plugin_root = tmp_path / "agent-ui/plugins/slash-command-trigger"
     original_source = {file: file.read_bytes() for file in plugin_root.rglob("*") if file.is_file()}
     question = {"steps": [{
         "id": "plugin-removal", "question": "隐藏还是彻底删除？", "selectionMode": "single",
@@ -112,11 +112,11 @@ def test_selector_question_interrupt_answer_and_real_host_removal(tmp_path, monk
                  call("ask_user_question", question, "question"), call("inspect_app_ui_model", {}, "inspect-model")]
     if choice == "hide":
         responses.append(call("mutate_app_ui_model", {"appUIModelHash": model_before["hash"], "operations": [
-            {"type": "set_plugin_enabled", "instanceId": "assistant-ui-slash-command-trigger-main", "enabled": False},
+            {"type": "set_plugin_enabled", "instanceId": "slash-command-trigger-main", "enabled": False},
         ]}, "hide"))
     else:
         responses.extend([call("inspect_agent_ui_sources", {}, "inspect-sources"), call("purge_ui_plugin", {
-            "pluginId": "assistant-ui-slash-command-trigger", "appUIModelHash": model_before["hash"],
+            "pluginId": "slash-command-trigger", "appUIModelHash": model_before["hash"],
             "sourceStateHash": sources_before["stateHash"],
         }, "purge")])
     responses.append(AIMessage(content="已完成。"))
@@ -165,7 +165,7 @@ def test_selector_question_interrupt_answer_and_real_host_removal(tmp_path, monk
         disabled_instances = []
         def disable_target(value):
             if isinstance(value, dict):
-                if value.get("id") == "assistant-ui-slash-command-trigger-main":
+                if value.get("id") == "slash-command-trigger-main":
                     value["enabled"] = False
                     disabled_instances.append(value["id"])
                 for child in value.values():
@@ -174,15 +174,15 @@ def test_selector_question_interrupt_answer_and_real_host_removal(tmp_path, monk
                 for child in value:
                     disable_target(child)
         disable_target(expected_model)
-        assert disabled_instances == ["assistant-ui-slash-command-trigger-main"]
+        assert disabled_instances == ["slash-command-trigger-main"]
         assert json.loads(composition_file.read_text()) == expected_model
         assert lock_file.read_bytes() == original_lock
         for file, content in original_source.items():
             assert file.read_bytes() == content
     else:
         assert not plugin_root.exists()
-        assert "plugin/assistant-ui-slash-command-trigger" not in json.loads(lock_file.read_text())["items"]
-        assert "assistant-ui-slash-command-trigger" not in composition_file.read_text()
+        assert "plugin/slash-command-trigger" not in json.loads(lock_file.read_text())["items"]
+        assert "slash-command-trigger" not in composition_file.read_text()
     assert "removal-thread" not in app.state.pending_creator_questions
     assert app.state.pending_creator_clarifications.peek("removal-thread") is None
     assert model.response_index == len(responses)

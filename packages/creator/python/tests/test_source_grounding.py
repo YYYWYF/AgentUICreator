@@ -84,6 +84,36 @@ def test_cross_layer_tool_exits_source_lane_after_normal_execution(tmp_path):
     assert grounding.metrics.sourceFastPathExitTool == "inspect_ui_services"
 
 
+def test_source_owner_lane_exposes_native_takeover_then_expands(tmp_path):
+    _backend, grounding, _path, _virtual = _grounding(tmp_path)
+    tools = [SimpleNamespace(name=name) for name in (
+        "read_file", "takeover_plugin_source", "create_ui_plugin",
+    )]
+    request = SimpleNamespace(messages=[], tools=tools,
+                              override=lambda **kwargs: SimpleNamespace(**kwargs))
+    assert [item.name for item in grounding._request(request).tools] == ["read_file", "takeover_plugin_source"]
+    grounding.wrap_tool_call(
+        SimpleNamespace(tool_call={"name": "takeover_plugin_source", "args": {"pluginId": "composer"}}),
+        lambda _: ToolMessage(content='{"ownership":"project_source"}', tool_call_id="takeover", status="success"),
+    )
+    assert grounding.metrics.sourceFastPathExited is True
+    assert grounding.metrics.sourceFastPathExitTool == "takeover_plugin_source"
+    assert grounding._request(request) is request
+
+
+def test_source_owner_lane_keeps_runtime_verification_available(tmp_path):
+    _backend, grounding, _path, _virtual = _grounding(tmp_path)
+    tool = SimpleNamespace(name="inspect_runtime_errors")
+    request = SimpleNamespace(messages=[], tools=[tool], override=lambda **kwargs: SimpleNamespace(**kwargs))
+    assert grounding._request(request).tools == [tool]
+    grounding.wrap_tool_call(
+        SimpleNamespace(tool_call={"name": "inspect_runtime_errors", "args": {}}),
+        lambda _: ToolMessage(content='{"runtimeStatus":"passed"}', tool_call_id="runtime", status="success"),
+    )
+    assert grounding.metrics.sourceFastPathExited is True
+    assert grounding._request(request) is request
+
+
 def test_missing_handoff_file_leaves_search_and_expansion_available(tmp_path):
     backend, grounding, path, virtual = _grounding(tmp_path)
     path.unlink()
@@ -108,7 +138,7 @@ def test_first_source_read_does_not_claim_grounding_is_sufficient(tmp_path):
     next_request = grounding._request(request)
 
     assert [item.name for item in next_request.tools] == [item.name for item in tools]
-    control = next_request.messages[-1].content
+    control = " ".join(next_request.messages[-1].content.split())
     assert "Once the files and dependencies actually required" in control
     assert "Fresh source evidence is available" not in control
     assert "Prefer the mutation now" not in control

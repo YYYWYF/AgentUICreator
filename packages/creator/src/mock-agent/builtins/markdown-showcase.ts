@@ -69,7 +69,7 @@ export const markdownShowcaseScenario = defineScenario({
     audience: "backend",
     protocol: "AG-UI",
     pattern: "Markdown Text Streaming",
-    presentation: "assistant-ui Markdown Message",
+    presentation: "Agent UI Markdown Message",
     eventFlow: ["TEXT_MESSAGE_START/CONTENT/END"],
   },
   steps: [

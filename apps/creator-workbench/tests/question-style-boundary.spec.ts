@@ -17,7 +17,7 @@ test.beforeAll(async () => {
   await writeFile(path.join(fixture, 'fixture.tsx'), `
 import {useState} from 'react';import {createRoot} from 'react-dom/client';
 import {AgentUIRoot,AgentUILocaleProvider,ConversationQuestionFlow,ConversationOptionList,Collapsible,CollapsibleTrigger,CollapsibleContent,AgentPlan,SubagentList,Badge,Skeleton,Input,ConversationSource} from '@za38.03/agent-ui-plugins';
-import {OptionList as Before} from '${path.join(repo, 'packages/plugins/dist/internal/vendor/assistant-ui/components/assistant-ui/elements/option-list.js').replaceAll('\\', '/')}';
+import {OptionList as Before} from '${path.join(repo, 'packages/plugins/dist/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/option-list.js').replaceAll('\\', '/')}';
 import './style.css';
 const params=new URLSearchParams(location.search),locale=params.get('locale')||'zh-CN',theme=params.get('theme')||'light',zh=locale==='zh-CN';
 const options=[{id:'dashboard',label:'Dashboard',description:zh?'适合信息密度较高的首页':'For a dense home page'},{id:'sidebar',label:'Sidebar',description:zh?'适合有持续导航的首页':'For persistent navigation'},{id:'disabled',label:zh?'不可用':'Unavailable',disabled:true}];

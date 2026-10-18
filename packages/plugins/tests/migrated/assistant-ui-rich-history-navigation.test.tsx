@@ -16,14 +16,14 @@ import {
 import {
   createConversationServiceThreadBinding,
   type ConversationServiceThreadBinding,
-} from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
+} from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
 import { createMockConversationApiHandler } from "../../../creator/src/mock-agent/conversations/handler";
-import { ConversationSurface } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface";
+import { ConversationSurface } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface";
 import {
   createConversationService,
   createHttpConversationDataSource,
   type ConversationService,
-} from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations";
+} from "../../resources/registry/items/foundation-core-application/files/services/conversations";
 
 const mountedRoots: Root[] = [];
 const mountedFixtures: Array<{

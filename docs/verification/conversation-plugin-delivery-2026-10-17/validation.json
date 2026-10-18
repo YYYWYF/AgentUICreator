@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-17",
+  "branch": "dev",
+  "head": "e497b343fed37a67c5625bb0539dbeada0fc0737",
+  "newPlugins": [
+    "conversation-thread-list",
+    "conversation-history",
+    "conversation-new",
+    "conversation-quote"
+  ],
+  "packageVersion": "0.0.1 (unpublished)",
+  "validation": {
+    "pluginsBuild": "passed",
+    "pluginsTypecheck": "passed",
+    "operatorBuild": "passed",
+    "operatorTypecheck": "passed",
+    "pluginsFocusedTests": {
+      "files": 11,
+      "passed": 80,
+      "note": "78 initial plus two added native cancellation cases; final new-entry npm/portable and quote 30 cases reran successfully"
+    },
+    "operatorFocusedTests": {
+      "files": 6,
+      "passed": 132,
+      "note": "121 entire focused run + 11 metadata/directory; final four IDs 15 cases reran successfully, not counted twice"
+    },
+    "creatorPythonFocusedTests": {
+      "files": 4,
+      "passed": 145
+    },
+    "uniqueVitestAndPythonTestsPassed": 357,
+    "extraNodePackageBoundaryTests": {
+      "passed": 1,
+      "failed": 1,
+      "failure": "chart-message entered bundle graph; reproduced after virtually stripping all four new public exports; not repaired"
+    },
+    "publicDeclarations": 173,
+    "upstreamGuard": "passed",
+    "i18n": "passed; failures=[]",
+    "sourceDistribution": "450 canonical snapshots; 29 portable closures; 329 portable/runtime digests",
+    "tarball": "exports, declarations, CSS, snapshot/runtime hashes passed",
+    "gitDiffCheck": "passed",
+    "generatedHostBrowser": "passed; initialized assistant Host, four thin apps, local HTTP AG-UI run, source-owned DOM, preserved props/application/model and RailAction; pageerror=[]"
+  },
+  "limitations": [
+    "No full suite or repairs of old fixtures",
+    "No external-model Creator conversation; actual LangGraph confirmation is tested separately",
+    "No native Windows acceptance; focused platform/path/package validations only",
+    "Synthetic 0.0.2 update; no real upstream upgrade or npm publication",
+    "One existing Composer package graph assertion remains failing",
+    "16 modern plugin resources remain pending; 19 legacy IDs preserved"
+  ]
+}

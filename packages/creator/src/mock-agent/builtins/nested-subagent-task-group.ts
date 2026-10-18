@@ -2,7 +2,7 @@ import { defineScenario } from "../scenario.js";
 
 /**
  * Three sibling nested Subagents intentionally run sequentially here. The
- * fixture demonstrates assistant-ui TaskGroup grouping without introducing a
+ * fixture demonstrates Agent UI TaskGroup grouping without introducing a
  * second mock runner or a parallel SUBAGENT_* scheduling path.
  */
 export const nestedSubagentTaskGroupScenario = defineScenario({
@@ -16,7 +16,7 @@ export const nestedSubagentTaskGroupScenario = defineScenario({
     audience: "frontend",
     protocol: "AG-UI",
     pattern: "Sibling nested Subagents / Task Group",
-    presentation: "assistant-ui TaskGroup",
+    presentation: "Agent UI TaskGroup",
     level: "advanced",
     eventFlow: [
       "Parent TOOL_CALL_* + SUBAGENT_STARTED",
@@ -27,7 +27,7 @@ export const nestedSubagentTaskGroupScenario = defineScenario({
     notes: [
       "Each sibling keeps its own parentToolCallId and subagentRunId relation.",
       "The runner executes siblings sequentially; grouping is the presentation contract.",
-      "assistant-ui TaskGroup groups sibling parent tools without custom Subagent UI.",
+      "Agent UI TaskGroup groups sibling parent tools without custom Subagent UI.",
     ],
   },
   steps: [

@@ -1,16 +1,16 @@
-import { createConversationService } from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations";
+import { createConversationService } from "../../resources/registry/items/foundation-core-application/files/services/conversations";
 import type { ThreadMessage } from "@assistant-ui/react";
 import { describe, expect, it, vi } from "vitest";
 
 import {
   ConversationThreadSelectionDisabledError,
   createConversationServiceThreadBinding,
-} from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
+} from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
 import type {
   ConversationService,
   ConversationDetail,
   ConversationSnapshot,
-} from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations";
+} from "../../resources/registry/items/foundation-core-application/files/services/conversations";
 
 function threadMessage(id: string, role: "user" | "assistant"): ThreadMessage {
   if (role === "user") {

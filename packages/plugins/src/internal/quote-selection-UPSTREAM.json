@@ -1,12 +1,12 @@
 {
-  "revision": "3542d602272a62eddeb8989befc910841c267022",
+  "revision": "a46d6634e7a75eddd85d51415b1a615886d4ad0e",
   "license": "MIT",
   "files": [
     {
       "upstreamPath": "packages/react/src/primitives/selectionToolbar/SelectionToolbarRoot.tsx",
       "localPath": "quote-selection-root.tsx",
-      "upstreamSha256": "8f82f5616cceb210fc96dec420d6303e8203d98ec8ec6a3214f47c4bef359b9f",
-      "installedSha256": "45824fac7da9c0aa3fd98ca45f4d4bda4b109388e2edaf9f34d8bdba9264b259"
+      "upstreamSha256": "14cb0f49f64be6e69a907e1b058893d7c95460006e83ef0883cbe197439e09a9",
+      "installedSha256": "cc532497efe027cce68b4fca4b22c2febb485b4d26c9be203f2caf559cbfb06c"
     },
     {
       "upstreamPath": "packages/react/src/primitives/selectionToolbar/SelectionToolbarQuote.tsx",
@@ -17,8 +17,8 @@
     {
       "upstreamPath": "packages/react/src/utils/getSelectionMessageId.ts",
       "localPath": "quote-selection-message-id.ts",
-      "upstreamSha256": "a4f52c760356d34f5b62a8b2d1b019a8f98c2dd36f9967f2ab26c6239a49915a",
-      "installedSha256": "a4f52c760356d34f5b62a8b2d1b019a8f98c2dd36f9967f2ab26c6239a49915a"
+      "upstreamSha256": "348ec4093077b0ebb612dee03cd792767b9ac33a372afa055a1c6b6e1438de8f",
+      "installedSha256": "348ec4093077b0ebb612dee03cd792767b9ac33a372afa055a1c6b6e1438de8f"
     }
   ],
   "adaptations": [

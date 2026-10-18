@@ -6,7 +6,9 @@ it("regenerates all repeated presentation seams and preserves protocol results",
   const first = await prepareProductAdapters();
   const second = await prepareProductAdapters();
   expect(second).toEqual(first);
-  const fallback = first.files.find(file => file.localPath.endsWith("/tool-fallback.aui.tsx")).source;
+  const bridge = first.files.find(file => file.localPath.endsWith("/tool-fallback.aui.tsx")).source;
+  expect(bridge).toContain("plugins/tool-fallback/adapters/presentation/tool-fallback.js");
+  const fallback = await readFile(new URL("../src/plugins/tool-fallback/adapters/presentation/tool-fallback.tsx", import.meta.url), "utf8");
   expect(fallback).toContain('const APPROVED_RESULT = "Approved by user"');
   expect(fallback).toContain('const DENIED_RESULT = "User denied tool execution"');
   expect(fallback).toContain('respondToApproval({ approved, ...typedNote() })');
@@ -17,7 +19,7 @@ it("regenerates all repeated presentation seams and preserves protocol results",
 
 it("rejects a changed upstream localization anchor instead of silently skipping it", async () => {
   const path = "components/assistant-ui/elements/tool-group.aui.tsx";
-  const clean = await readFile(new URL(`../src/internal/vendor/assistant-ui/${path}`, import.meta.url), "utf8");
+  const clean = await readFile(new URL(`../src/internal/vendor-generated/assistant-ui/${path}`, import.meta.url), "utf8");
   expect(() => applyProductLocalization(clean.replace('`${count} tool ${count === 1 ? "call" : "calls"}`', '"new upstream label"'), path)).toThrow("Product localization anchor changed");
 });
 
@@ -40,7 +42,7 @@ it("preserves JSX elements, icons, slots and styles when localizing generated ad
     visit(ast); return nodes;
   };
   for (const file of Object.keys(recipes)) {
-    const vendor = await readFile(new URL(`../src/internal/vendor/assistant-ui/${file}`, import.meta.url), "utf8");
+    const vendor = await readFile(new URL(`../src/internal/vendor-generated/assistant-ui/${file}`, import.meta.url), "utf8");
     const adapted = applyProductAdaptations(vendor, file);
     const localized = applyProductLocalization(adapted, file);
     expect(shape(localized), file).toEqual(shape(adapted));
@@ -50,7 +52,7 @@ it("preserves JSX elements, icons, slots and styles when localizing generated ad
 it("adapts Thread List identity before applying presentation-only localization", async () => {
   const { applyProductAdaptations, THREAD_LIST_GROUP_IDENTITY_SEAM_ID } = await import("../scripts/sync-product-adapters.mjs");
   const path = "components/assistant-ui/elements/thread-list.aui.tsx";
-  const vendor = await readFile(new URL(`../src/internal/vendor/assistant-ui/${path}`, import.meta.url), "utf8");
+  const vendor = await readFile(new URL(`../src/internal/vendor-generated/assistant-ui/${path}`, import.meta.url), "utf8");
   const adapted = applyProductAdaptations(vendor, path);
   expect(adapted).toContain("id: string; label: string");
   expect(adapted).toContain("const label = id;");

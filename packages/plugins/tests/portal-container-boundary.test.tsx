@@ -4,8 +4,8 @@ import { expect, it } from "vitest";
 
 import { AgentUIDialog } from "../src/internal/style-boundary/AgentUIDialog";
 import { AgentUIRoot } from "../src/internal/style-boundary/AgentUIRoot";
-import { Dialog, DialogPortal } from "../src/internal/adapters/assistant-ui/components/ui/dialog";
-import { Sheet, SheetContent } from "../src/internal/adapters/assistant-ui/components/ui/sheet";
+import { Dialog, DialogPortal } from "../src/internal/adapters-generated/assistant-ui/components/ui/dialog";
+import { Sheet, SheetContent } from "../src/internal/adapters-generated/assistant-ui/components/ui/sheet";
 
 it("keeps public Dialog and vendored Dialog/Sheet Portals inside AgentUIRoot when given a body container", async () => {
   const host = document.createElement("div");
@@ -45,8 +45,8 @@ it("preserves the Base UI default Portal destination without AgentUIRoot", async
 });
 
 it("keeps Tooltip, Popover and response More menus inside the same theme boundary", async () => {
-  const { Popover, PopoverContent } = await import("../src/internal/adapters/assistant-ui/components/ui/popover");
-  const { Tooltip, TooltipTrigger, TooltipContent } = await import("../src/internal/adapters/assistant-ui/components/ui/tooltip");
+  const { Popover, PopoverContent } = await import("../src/internal/adapters-generated/assistant-ui/components/ui/popover");
+  const { Tooltip, TooltipTrigger, TooltipContent } = await import("../src/internal/adapters-generated/assistant-ui/components/ui/tooltip");
   const { ConversationActionMoreMenu } = await import("../src/internal/style-boundary/ConversationActionMoreMenu");
   const { ActionBarMorePrimitive } = await import("@assistant-ui/react");
   const host = document.createElement("div");

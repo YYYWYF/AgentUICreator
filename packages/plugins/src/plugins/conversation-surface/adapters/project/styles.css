@@ -1,0 +1,94 @@
+.conversation-surface-plugin {
+  position: relative;
+  container-type: inline-size;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.conversation-surface-header-actions {
+  position: absolute;
+  inset-block-start: 0.75rem;
+  inset-inline-end: 0.75rem;
+  z-index: 10;
+  display: flex;
+  max-width: calc(100% - 1.5rem);
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.conversation-surface-header-actions:not(:has(.app-ui-plugin-instance)) {
+  display: none;
+}
+
+/* Compact assistant and embedded surfaces use a compact, top-aligned empty state and a
+ * bottom-anchored Composer. These are product styles, outside vendor code. */
+.conversation-surface-plugin:where(:is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) *) {
+  border-top: 1px solid var(--border);
+}
+
+.conversation-surface-plugin[data-ui-plugin="conversation-surface"]:where(:is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) *) .agent-ui-conversation [data-slot="agent-ui-thread-content"] {
+  justify-content: flex-start;
+  padding-inline: 16px;
+}
+
+.conversation-surface-plugin:where(:is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) *) .aui-thread-viewport-footer {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.conversation-surface-plugin:where(:is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) *) .conversation-empty-state-welcome .aui-thread-welcome-root {
+  align-items: flex-start;
+  padding: 8px 0 0;
+  margin-bottom: 1rem;
+  text-align: start;
+}
+
+.conversation-surface-plugin:where(:is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) *) .conversation-empty-state-welcome h1 {
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+
+.conversation-surface-plugin:where(:is(.agent-ui-assistant-panel, .agent-ui-embedded-shell) *) .conversation-suggestions-plugin {
+  padding-inline: 0;
+}
+
+.conversation-surface-header-actions > .app-ui-plugin-slot-width-probe,
+.conversation-surface-header-actions .app-ui-plugin-slot-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  pointer-events: auto;
+}
+
+@container (max-width: 44rem) {
+  .conversation-surface-plugin > .agent-ui-conversation {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .conversation-surface-header-actions {
+    position: relative;
+    inset: auto;
+    z-index: auto;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    max-width: none;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem 0;
+  }
+
+  .conversation-surface-header-actions > .app-ui-plugin-slot-width-probe,
+  .conversation-surface-header-actions .app-ui-plugin-slot-content {
+    flex-wrap: wrap;
+  }
+}

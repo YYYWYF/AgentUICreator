@@ -36,13 +36,13 @@ async function readSetupInput(request: IncomingMessage): Promise<CreatorWorkspac
     throw new CreatorWorkspaceError("CREATOR_WORKSPACE_INPUT_INVALID", "Setup requires mode and sourceRoot.");
   }
   const fields = body as Record<string, unknown>;
-  if (Object.keys(fields).sort().join(",") !== "mode,sourceRoot" ||
+  if (Object.keys(fields).some(key => !["mode", "sourceRoot", "planId"].includes(key)) || (fields.planId !== undefined && typeof fields.planId !== "string") ||
       typeof fields.mode !== "string" ||
       !(CREATOR_PROJECT_MODES as readonly string[]).includes(fields.mode) ||
       typeof fields.sourceRoot !== "string" || fields.sourceRoot.trim() === "") {
     throw new CreatorWorkspaceError("CREATOR_WORKSPACE_INPUT_INVALID", "Setup requires a supported mode and nonempty sourceRoot.");
   }
-  return { mode: fields.mode as CreatorWorkspaceInitializeInput["mode"], sourceRoot: fields.sourceRoot };
+  return { mode: fields.mode as CreatorWorkspaceInitializeInput["mode"], sourceRoot: fields.sourceRoot, ...(typeof fields.planId === "string" ? { planId: fields.planId } : {}) };
 }
 
 function publicDetails(details: unknown, projectRoot: string | undefined): readonly { code: string; message: string }[] | undefined {
@@ -69,9 +69,11 @@ export async function handleCreatorWorkspaceRequest(
       return;
     }
     if (request.method === "GET" && route === "/setup") {
+      const state = manager.getState();
       sendJson(response, 200, {
         suggestedSourceRoot: await manager.suggestSourceRoot(),
         modes: SETUP_MODES,
+        ...(state.status !== "none" && state.workspace.hostFramework === "vue" ? { hostFramework: "vue" as const } : {}),
       } satisfies CreatorWorkspaceSetupInfo);
       return;
     }
@@ -107,6 +109,9 @@ export async function handleCreatorWorkspaceRequest(
     if (route === "/setup/validate") {
       sendJson(response, 200, await manager.validateSetup(await readSetupInput(request)));
       return;
+    }
+    if (route === "/integration/build") {
+      sendJson(response, 200, await manager.buildCompatibility()); return;
     }
     if (route === "/initialize") {
       sendJson(response, 200, publicWorkspaceState(await manager.initializeProject(await readSetupInput(request))));

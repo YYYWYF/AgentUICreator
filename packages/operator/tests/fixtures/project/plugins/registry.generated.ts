@@ -9,7 +9,7 @@ export const capabilityCatalogRevision = "328ac39e600767885333c9f0e5f76056015f92
 export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
   {
     manifest: {
-      "id": "assistant-ui-add-attachment-action",
+      "id": "add-attachment-action",
       "name": "Assistant UI Add Attachment Action",
       "description": "Adds assistant-ui's attachment picker to the conversation composer.",
       "version": "1.0.0",
@@ -23,7 +23,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
         "visualRole": "conversation composer attachment action",
         "defaultPlacement": {
           "type": "plugin_slot",
-          "parentPluginId": "assistant-ui-composer",
+          "parentPluginId": "composer",
           "slot": "leadingActions"
         }
       }
@@ -32,13 +32,13 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     inject: [],
     optionalInject: [],
     loadDefinition: () =>
-      import("./assistant-ui-add-attachment-action/definition").then(
+      import("./add-attachment-action/definition").then(
         ({ default: definition }) => definition,
       ),
   },
   {
     manifest: {
-      "id": "assistant-ui-composer",
+      "id": "composer",
       "name": "Assistant UI Composer",
       "description": "Renders the canonical assistant-ui conversation composer with composable action Slots.",
       "version": "1.0.0",
@@ -106,13 +106,13 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     inject: [],
     optionalInject: [],
     loadDefinition: () =>
-      import("./assistant-ui-composer/definition").then(
+      import("./composer/definition").then(
         ({ default: definition }) => definition,
       ),
   },
   {
     manifest: {
-      "id": "assistant-ui-copy-action",
+      "id": "copy-action",
       "name": "Assistant UI Copy Action",
       "description": "Copies text from the complete assistant response.",
       "version": "1.0.0",
@@ -127,7 +127,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
         "visualRole": "assistant response copy action",
         "defaultPlacement": {
           "type": "plugin_slot",
-          "parentPluginId": "assistant-ui-response-footer",
+          "parentPluginId": "response-footer",
           "slot": "actions"
         }
       }
@@ -136,13 +136,13 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     inject: [],
     optionalInject: [],
     loadDefinition: () =>
-      import("./assistant-ui-copy-action/definition").then(
+      import("./copy-action/definition").then(
         ({ default: definition }) => definition,
       ),
   },
   {
     manifest: {
-      "id": "assistant-ui-dictation-action",
+      "id": "dictation-action",
       "name": "Assistant UI Dictation Action",
       "description": "Adds assistant-ui dictation controls to the conversation composer.",
       "version": "1.0.0",
@@ -156,7 +156,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
         "visualRole": "conversation composer dictation action",
         "defaultPlacement": {
           "type": "plugin_slot",
-          "parentPluginId": "assistant-ui-composer",
+          "parentPluginId": "composer",
           "slot": "trailingActions"
         }
       }
@@ -165,13 +165,13 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     inject: [],
     optionalInject: [],
     loadDefinition: () =>
-      import("./assistant-ui-dictation-action/definition").then(
+      import("./dictation-action/definition").then(
         ({ default: definition }) => definition,
       ),
   },
   {
     manifest: {
-      "id": "assistant-ui-export-markdown-action",
+      "id": "export-markdown-action",
       "name": "Assistant UI Export Markdown Action",
       "description": "Exports the complete assistant response as Markdown.",
       "version": "1.0.0",
@@ -186,7 +186,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
         "visualRole": "assistant response Markdown export action",
         "defaultPlacement": {
           "type": "plugin_slot",
-          "parentPluginId": "assistant-ui-response-footer",
+          "parentPluginId": "response-footer",
           "slot": "actions"
         }
       }
@@ -195,18 +195,18 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     inject: [],
     optionalInject: [],
     loadDefinition: () =>
-      import("./assistant-ui-export-markdown-action/definition").then(
+      import("./export-markdown-action/definition").then(
         ({ default: definition }) => definition,
       ),
   },
   {
     manifest: {
-      "id": "assistant-ui-message-footer",
+      "id": "response-footer",
       "name": "Assistant UI Message Footer",
       "description": "Deprecated compatibility wrapper for the canonical turn footer.",
       "version": "1.0.0",
       "capabilities": [
-        "conversation-assistant-message-footer-renderer"
+        "conversation-assistant-response-footer-renderer"
       ],
       "requiresRenderScope": true,
       "authoring": {
@@ -218,7 +218,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
         "defaultPlacement": {
           "type": "plugin_slot",
           "parentPluginId": "conversation-surface",
-          "slot": "assistantMessageFooter"
+          "slot": "assistantResponseFooter"
         }
       },
       "slots": {
@@ -240,13 +240,13 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     inject: [],
     optionalInject: [],
     loadDefinition: () =>
-      import("./assistant-ui-message-footer/definition").then(
+      import("./response-footer/definition").then(
         ({ default: definition }) => definition,
       ),
   },
   {
     manifest: {
-      "id": "assistant-ui-reasoning",
+      "id": "reasoning",
       "name": "Assistant UI Reasoning Renderer",
       "description": "Displays one assistant-ui reasoning group with canonical presentation.",
       "version": "1.0.0",
@@ -272,13 +272,13 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     inject: [],
     optionalInject: [],
     loadDefinition: () =>
-      import("./assistant-ui-reasoning/definition").then(
+      import("./reasoning/definition").then(
         ({ default: definition }) => definition,
       ),
   },
   {
     manifest: {
-      "id": "assistant-ui-reload-action",
+      "id": "reload-action",
       "name": "Assistant UI Reload Action",
       "description": "Regenerates the current assistant response through assistant-ui.",
       "version": "1.0.0",
@@ -293,7 +293,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
         "visualRole": "assistant response reload action",
         "defaultPlacement": {
           "type": "plugin_slot",
-          "parentPluginId": "assistant-ui-response-footer",
+          "parentPluginId": "response-footer",
           "slot": "actions"
         }
       }
@@ -302,13 +302,13 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     inject: [],
     optionalInject: [],
     loadDefinition: () =>
-      import("./assistant-ui-reload-action/definition").then(
+      import("./reload-action/definition").then(
         ({ default: definition }) => definition,
       ),
   },
   {
     manifest: {
-      "id": "assistant-ui-response-footer",
+      "id": "response-footer",
       "name": "Assistant UI Response Footer",
       "description": "Renders the canonical assistant response footer and its composable actions.",
       "version": "1.0.0",
@@ -347,13 +347,13 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     inject: [],
     optionalInject: [],
     loadDefinition: () =>
-      import("./assistant-ui-response-footer/definition").then(
+      import("./response-footer/definition").then(
         ({ default: definition }) => definition,
       ),
   },
   {
     manifest: {
-      "id": "assistant-ui-submit-action",
+      "id": "submit-action",
       "name": "Assistant UI Submit Action",
       "description": "Adds assistant-ui send and stop controls to the conversation composer.",
       "version": "1.0.0",
@@ -367,7 +367,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
         "visualRole": "conversation composer submit action",
         "defaultPlacement": {
           "type": "plugin_slot",
-          "parentPluginId": "assistant-ui-composer",
+          "parentPluginId": "composer",
           "slot": "submitAction"
         }
       }
@@ -376,13 +376,13 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     inject: [],
     optionalInject: [],
     loadDefinition: () =>
-      import("./assistant-ui-submit-action/definition").then(
+      import("./submit-action/definition").then(
         ({ default: definition }) => definition,
       ),
   },
   {
     manifest: {
-      "id": "assistant-ui-tool-fallback",
+      "id": "tool-fallback",
       "name": "Assistant UI Tool Fallback Renderer",
       "description": "Displays an unregistered tool call with canonical assistant-ui presentation.",
       "version": "1.0.0",
@@ -407,13 +407,13 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     inject: [],
     optionalInject: [],
     loadDefinition: () =>
-      import("./assistant-ui-tool-fallback/definition").then(
+      import("./tool-fallback/definition").then(
         ({ default: definition }) => definition,
       ),
   },
   {
     manifest: {
-      "id": "assistant-ui-tool-group",
+      "id": "tool-group",
       "name": "Assistant UI Tool Group Renderer",
       "description": "Displays one assistant-ui tool group with canonical presentation.",
       "version": "1.0.0",
@@ -438,7 +438,7 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
     inject: [],
     optionalInject: [],
     loadDefinition: () =>
-      import("./assistant-ui-tool-group/definition").then(
+      import("./tool-group/definition").then(
         ({ default: definition }) => definition,
       ),
   },
@@ -652,14 +652,14 @@ export const pluginCapabilityCatalog = createPluginCapabilityCatalog([
               ]
             }
           },
-          "assistantMessageFooter": {
+          "assistantResponseFooter": {
             "description": "Deprecated compatibility renderer for the turn footer. Use assistantResponseFooter.",
             "cardinality": "one",
             "mode": "renderer",
             "optional": true,
             "accepts": {
               "anyOfCapabilities": [
-                "conversation-assistant-message-footer-renderer"
+                "conversation-assistant-response-footer-renderer"
               ]
             }
           }

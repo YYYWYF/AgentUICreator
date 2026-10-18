@@ -11,7 +11,7 @@ export const reasoningChatScenario = defineScenario({
     audience: "backend",
     protocol: "AG-UI",
     pattern: "Reasoning → Answer",
-    presentation: "assistant-ui Reasoning + Message",
+    presentation: "Agent UI Reasoning + Message",
     eventFlow: ["REASONING_*", "TEXT_MESSAGE_*"],
   },
   steps: [

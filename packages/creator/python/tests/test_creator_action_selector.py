@@ -571,7 +571,7 @@ def test_reasoning_renderer_restore_selects_the_plugin_slot_add_action():
         "label": "Add Assistant UI Reasoning Renderer",
         "description": "Add the Assistant UI Reasoning Renderer to the Conversation Surface.reasoningGroup Slot.",
         "target": {
-            "pluginId": "assistant-ui-reasoning",
+            "pluginId": "reasoning",
             "pluginName": "Assistant UI Reasoning Renderer",
         },
         "effect": {"type": "add_default", "placementDomain": "plugin_slot"},
@@ -580,7 +580,7 @@ def test_reasoning_renderer_restore_selects_the_plugin_slot_add_action():
         catalogRevision="c" * 64,
         actions=[reasoning_action],
         pluginSemantics=[{
-            "pluginId": "assistant-ui-reasoning",
+            "pluginId": "reasoning",
             "name": "Assistant UI Reasoning Renderer",
             "description": "Displays assistant reasoning content.",
             "capabilities": ["conversation-reasoning-renderer"],

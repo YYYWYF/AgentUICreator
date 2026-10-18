@@ -1,0 +1,10 @@
+{
+  "hostManifestUnchanged": true,
+  "hostLockUnchanged": true,
+  "hostEntryUnchanged": true,
+  "producerHasNoCreatorOrOperator": true,
+  "sourceBaseUnchanged": true,
+  "producerPackageNotSymlink": true,
+  "hostPackageNotSymlink": true,
+  "bundleHasNoToolNames": true
+}

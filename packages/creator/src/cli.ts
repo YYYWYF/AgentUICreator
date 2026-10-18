@@ -12,6 +12,8 @@ const { values } = parseArgs({
     project: { type: "string", short: "p" },
     "config-root": { type: "string", short: "c" },
     message: { type: "string", short: "m" },
+    port: { type: "string" },
+    "no-open": { type: "boolean" },
     help: { type: "boolean", short: "h" },
   }, strict: true,
 });
@@ -27,7 +29,8 @@ if (values.help) {
       finally { await creator.dispose(); }
     } else {
       const { startCreatorWorkbench } = await import("./standaloneServer.js");
-      const port = process.env.CREATOR_PORT === undefined ? undefined : Number(process.env.CREATOR_PORT);
+      const portValue = values.port ?? process.env.CREATOR_PORT;
+      const port = portValue === undefined ? undefined : Number(portValue);
       if (port !== undefined && (!Number.isInteger(port) || port < 0 || port > 65535)) throw new Error(messages.invalidPort);
       const app = await startCreatorWorkbench({
         configRoot,
@@ -46,7 +49,7 @@ if (values.help) {
       process.on("SIGTERM", stop);
       // A Node parent can disconnect IPC to stop cleanly on Windows as well.
       if (process.connected) process.on("disconnect", stop);
-      if (process.env.CREATOR_OPEN_BROWSER !== "0") {
+      if (!values["no-open"] && process.env.CREATOR_OPEN_BROWSER !== "0") {
         try { await openCreatorBrowser(app.url); }
         catch { process.stderr.write(`${messages.browserUnavailable}\n`); }
       }

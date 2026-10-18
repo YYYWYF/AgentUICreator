@@ -1,3 +1,5 @@
+import { deliveries } from "./plugin-source-recipes.mjs";
+import { capturePresentationSources } from "./materialize-plugin-sources.mjs";
 import { readFile, writeFile, mkdir, readdir, rm } from "node:fs/promises";
 import path from "node:path";
 import ts from "typescript-ui-audit";
@@ -181,7 +183,7 @@ export function applyProductAdaptations(source, localPath) {
     for (const [before, after] of [
       ['type IconComponent = FC<{ className?: string }>;', 'type IconComponent = FC<{ className?: string; "data-slot"?: string }>;'],
       ['              categoryId={cat.id}', '              categoryId={cat.id}\n              data-slot="composer-trigger-popover-category-item"'],
-      ['<ComposerPrimitive.Unstable_TriggerPopoverBack className=', '<ComposerPrimitive.Unstable_TriggerPopoverBack data-slot="composer-trigger-popover-back" className='],
+      ['<ComposerPrimitive.TriggerPopoverBack className=', '<ComposerPrimitive.TriggerPopoverBack data-slot="composer-trigger-popover-back" className='],
       ['                  item={item}', '                  data-slot="composer-trigger-popover-item"\n                  item={item}'],
       ['<div className="py-1">', '<div data-slot="composer-trigger-popover-item-list" className="py-1">'],
       ['<Icon className="text-muted-foreground size-4" />', '<Icon data-slot="composer-trigger-popover-icon" className="text-muted-foreground size-4" />'],
@@ -192,7 +194,7 @@ export function applyProductAdaptations(source, localPath) {
     installed = installed.replaceAll(emptyNode, '<div data-slot="composer-trigger-popover-empty" className="text-muted-foreground px-3 py-2 text-sm">');
   }
   if (localPath === "components/assistant-ui/elements/reasoning.aui.tsx") {
-    installed = replaceExactlyOnce(installed, '  onAnimationStart,\n  ...props', '  onAnimationStart,\n  streaming,\n  ...props', localPath);
+    installed = replaceExactlyOnce(installed, 'function ReasoningRoot({ onAnimationStart, ...props }, ref)', 'function ReasoningRoot({ onAnimationStart, streaming, ...props }, ref)', localPath);
     installed = replaceExactlyOnce(installed, '      {...props}\n    />', '      {...props}\n      {...(streaming === undefined ? {} : { streaming })}\n      data-agent-state={streaming ? "running" : "idle"}\n    />', localPath);
   }
   return applySearchPresentationLabels(installed, localPath);
@@ -225,8 +227,8 @@ export function applyProductStyleOwnership(installed) {
 
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const defaultVendorRoot = path.join(packageRoot, "src/internal/vendor/assistant-ui");
-const adapterRoot = path.join(packageRoot, "src/internal/adapters/assistant-ui");
+const defaultVendorRoot = path.join(packageRoot, "src/internal/vendor-generated/assistant-ui");
+const adapterRoot = path.join(packageRoot, "src/internal/adapters-generated/assistant-ui");
 const hash = value => createHash("sha256").update(value).digest("hex");
 const seeded = new Set(["components/ui/badge.tsx", "components/assistant-ui/elements/follow-up-suggestions.aui.tsx", "components/ui/button.tsx", "components/ui/collapsible.tsx", "components/ui/input.tsx", "components/ui/skeleton.tsx", "components/assistant-ui/elements/agent-plan.tsx", "components/assistant-ui/elements/subagent-list.tsx", "components/assistant-ui/elements/tool-timeline.tsx", ...PORTAL_BRIDGE_FILES, ...SEARCH_LABELS_SEAM_FILES, ...Object.keys(localizationRecipes),
   "components/assistant-ui/elements/thinking-indicator.tsx", "components/assistant-ui/elements/agent-status.tsx", "components/assistant-ui/elements/job-progress.tsx",
@@ -236,6 +238,17 @@ function dependency(importPath, filename, files) {
   const candidate = path.posix.normalize(path.posix.join(path.posix.dirname(filename), importPath.replace(/\.js$/u, "")));
   return [candidate, `${candidate}.tsx`, `${candidate}.ts`].find(value => files.has(value));
 }
+export function applyPluginPresentationBridge(installed, filename) {
+  const delivery = deliveries.find(delivery => delivery.upstreamBridge?.localPath === filename);
+  if (!delivery) return installed;
+  // A changed upstream/recipe must be reviewed against the maintained Plugin
+  // composition before adopting a new BASE. Regeneration only writes a bridge.
+  if (hash(installed) !== delivery.upstreamBridge.reviewedAdaptedSha256) {
+    throw new Error(`Plugin presentation upstream changed: ${delivery.id}. Review and merge the Plugin owner before updating its bridge baseline.`);
+  }
+  return `export * from "../../../../../../plugins/${delivery.presentationOwner}/adapters/presentation/${delivery.implementationModule}.js";\n`;
+}
+
 export async function prepareProductAdapters(vendorDirectory = defaultVendorRoot) {
   const provenance = JSON.parse(await readFile(path.join(vendorDirectory, "UPSTREAM.json"), "utf8"));
   const sources = new Map(await Promise.all(provenance.files.map(async entry => [entry.localPath, await readFile(path.join(vendorDirectory, entry.localPath), "utf8")])));
@@ -259,10 +272,11 @@ export async function prepareProductAdapters(vendorDirectory = defaultVendorRoot
     installed = installed.replace(/((?:from\s+|import\s+))["']([^"']+)["']/gu, (match, prefix, specifier) => {
       const target = dependency(specifier, filename, sources);
       if (!target || selected.has(target)) return match;
-      const relative = path.posix.relative(path.posix.dirname(filename), `../../vendor/assistant-ui/${target}`).replace(/\.tsx?$/u, ".js");
+      const relative = path.posix.relative(path.posix.dirname(filename), `../../vendor-generated/assistant-ui/${target}`).replace(/\.tsx?$/u, ".js");
       return `${prefix}"${relative.startsWith(".") ? relative : `./${relative}`}"`;
     });
     installed = applyProductStyleOwnership(applyProductLocalization(installed, filename));
+    installed = applyPluginPresentationBridge(installed, filename);
     files.push({ localPath: filename, upstreamInstalledSha256: hash(clean), installedSha256: hash(installed), source: installed });
   }
   return { revision: provenance.revision, files };
@@ -298,4 +312,4 @@ export async function checkProductAdapters(vendorDirectory = defaultVendorRoot) 
     if (actual !== file.source) throw new Error(`Product adapter drift: ${file.localPath}. Regenerate with sync-product-adapters.mjs.`);
   }
 }
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await syncProductAdapters();
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) { await syncProductAdapters(); await capturePresentationSources(); }

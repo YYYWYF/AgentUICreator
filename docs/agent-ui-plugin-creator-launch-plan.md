@@ -201,6 +201,14 @@ Capability Catalog revision 与 Active Registry 选择结果
 
 摘要只负责导航，不代替真实项目文件。Creator 需要精确信息时，通过 `inspect_app_ui_model`、`inspect_ui_plugin`、`inspect_runtime_errors` 等工具渐进查询，不把整个项目或全部插件源码重复注入上下文。
 
+能力发现使用 `inspect_ui_capabilities` 同时查询工程插件和 Plugins 包内官方目录（原 Source Registry 职责，合包待实现）。
+在 `inspect_read_only` 请求中，完整 `inspect_ui_project` 和 `list_ui_plugins` 也附带官方 Source Item 清单，
+不依赖模型记住补查另一个工具。结果中的 `capabilityEvidence` 分别声明工程和官方库清单的完整性及
+Source stateHash；官方库查询失败时保留工程事实并标记清单不完整，不将失败转换为空清单。
+只有读取同一 Snapshot 的全部分页，且两部分清单完整后，才具备判断该范围内不存在匹配项的清单依据；
+是否匹配仍需结合能力声明，不能只按名称判断。此证据标记不证明模型自然语言结论的语义正确性，
+也不代表全网插件目录或其他版本的官方库。查询不授权或执行安装。
+
 纯 Composition 请求使用 `inspect_ui_project({"view":"composition"})`。该
 Snapshot 只包含 AppUIModel hash、紧凑 Layout refs/sizes、Slots、当前 Plugin
 instances/placement/enabled、可用 capability summaries、Active Composition、
@@ -333,7 +341,9 @@ AppUIRuntimeModel
 Runtime / SlotRegistry / PluginServiceRuntime
 ```
 
-`AppUIModel` 是唯一可编辑、可持久化、Creator 可见的 Source of Truth：
+`AppUIModel` 是布局、插件实例身份/启停和语义组合的可持久化 Source of Truth；不是所有前端代码或组件参数的唯一事实源。组件 props、子组件组合与 renderer 由用户工程的薄应用层代码拥有，Creator 可直接修改该代码，不要求接管实现源码。现有实例字段保持兼容，本决策不在文档同步时迁移 JSON Schema。
+
+作者模型结构：
 
 ```ts
 interface AppUIModel {
@@ -686,6 +696,10 @@ Canonical Runtime 为这种 renderer 提供 `resumeInterrupt(payload)`，移除 
 可选 `ask-user-question-demo` 与 `human-form-demo` 使用普通 Human Tool 流程：Backend 发出 Tool Call 后以 `success` 收尾，前端等待用户提交，通过 `addResult` 生成 ToolMessage，并由 canonical Runtime 发起 continuation。它们不声明 `interaction.type = "interrupt"`，不提交 `resume[]`。`ask-user-question-demo` 沿用 `humanQuestion` locale namespace，支持 `single`、`multiple` 和 `text` 问题（文本最长 4000 字符），统一回答为 `{ answers: Record<stepId, string[]> }`。现有已生成项目需要更新对应资源；历史 release fixture 保持不变。审批示例保留后端 structured interrupt/resume 流程，Creator 自身的 question interrupt/resume 通道不受影响。
 
 不要过早加入大量 Runtime API。
+
+### 宿主公共 Provider
+
+宿主通过生成工程公共入口导入 `AgentUIProvider`、`Agent`、`useAgentUI`、`useAgentUIState` 和 `useAgentUIEvent`。公共 Host 接口实现归 `@za38.03/agent-ui-runtime`；生成层只负责项目组合绑定。Provider 不属于 UI Plugin，不进入 AppUIModel。Provider 生命周期承载共享会话，Agent 是可隐藏/卸载的展示区域；宿主组件通过同一上下文发起动作并读取 canonical Runtime 状态。直接使用 Agent 仍自动创建相同环境。详见 `docs/architecture/npm-default-plugin-source-ownership.md` 的共享底座与 Host Provider 边界。
 
 ## 8.1 Plugin Services
 
@@ -1202,17 +1216,19 @@ workspace/
 Creator 通过显式 `projectRoot` 操作目标前端；目标前端不依赖 Creator package。CLI、Vite 适配器与 Creator UI 复用同一 Creator Core，但都不进入目标前端的生产 Bundle。
 
 对外 npm 包使用 `@za38.03/agent-ui-*`，按职责独立发行和版本管理，不提供绑定所有模块的统一安装包。
-`packages/source-registry` 独立持有源码资源、元数据与 Source Release；
+
+用户侧采用同一个 [统一更新中心](architecture/unified-update-center.md)：官方兼容版本清单给出经过验证的跨包组合，默认展示当前到目标的累计变更并允许展开逐版本记录；用户确认具体计划后，由 Creator/Operator 在正确安装位置更新依赖、实际安装、更新锁文件和验证。统一入口不改变包的独立版本，也不把 Creator/Operator 装入应用生产依赖。2026-10-18 已实现真实版本来源、配置式只读在线发现与变更展示；npm 产物核验、安装/恢复及工具升级仍待实现。
+目标将 `packages/source-registry` 的资源、目录和源码快照合入 `packages/plugins`，不再独立发包；独立目录/发布项已移除，通用接管另行实现；
 `packages/operator` 以 `@za38.03/agent-ui-operator` 独立发行，包含 Bootstrap（`/bootstrap` 子路径），负责项目初始化、安装、检查和升级；
 `packages/creator` 包含 Mock Agent（`/mock-agent` 子路径），负责 Creator CLI、工作台和开发模拟服务。
-其他生产包（Runtime、React、Plugins、Web Component）保留各自职责。
+Core、Renderer、Runtime 保持生产 npm 底座职责，Plugins 是默认官方插件实现的统一 npm 包；用户明确同意后可按插件接管完整源码。Plugins 包内目录提供匹配版本的源码快照，Web Component 保持兼容宿主职责；以文末当前交付边界为准。
 
-只修改 Bootstrap 时只发布 Operator，Source Registry 无需版本递增或重新发布。
-Operator 通过已安装的 Source Registry 依赖加载资源，不打包或复制 Registry 与测试 fixtures。
+只修改 Bootstrap 编排时只发布 Operator，无需更新 Plugins 的资源版本。
+目标中 Operator 读取 Plugins 包的公开目录/源码资产，不另分发一份资源，也不从 React 根入口加载 Node 读取器；独立 Source Registry 依赖在调用方与历史迁移验证完成后移除。Plugins 的运行产物、目录与源码快照同包发布，不存在独立 Registry 升级。
 第一方依赖由各包独立声明，发行时固定到各自依赖版本，不使用统一版本替换。
 只有接口、契约或资源兼容要求发生变化时，才更新关联依赖版本。
 
-生成项目只安装和导入需要的生产包，不能在生产模块图中导入 Creator、Operator 或 Source Registry。
+生成项目只安装和导入需要的生产包。Plugins 是生产 npm 依赖，但其源码快照/目录读取器与 Creator、Operator 均不得进入浏览器运行模块图；资产在 tarball 内不等于应由前端打包。
 Mock 的服务端入口在 Creator 下；示例使用的纯浏览器附件适配器位于 React 的 `/demo-attachments` 独立入口。
 生成前端仍可独立构建部署。发行验证覆盖每个包的实际 tarball、类型、CLI、Registry、初始化和生产 bundle。
 
@@ -1819,6 +1835,16 @@ Creator 控制面的最终原则：
 
 ## 当前源码交付与插件升级边界
 
-以 [包内上游实现与按插件更新](architecture/package-owned-upstream-and-plugin-updates.md) 为准：assistant-ui 实现与默认 A2UI/Generative UI 组件封装于包内部；用户工程仅接收必要适配层和可定制插件源码。保留组件扩展能力，源码插件按选择及必要依赖升级，不把所有插件绑定为统一版本。旧文中的项目内 vendor 路径仅描述历史迁移状态。
+2026-10-17 当前决策以 [统一 Plugins 包、内置源码目录与按需源码托管](architecture/npm-default-plugin-source-ownership.md) 为准。Source Registry 合并到 `packages/plugins`，不再独立 npm 发布。一个 `@za38.03/agent-ui-plugins` 包同时交付运行插件、精确源码快照及版本/来源目录；Registry 仅是包内逻辑能力，不是另一份实现或第二个安装包。
 
-A2UI 当前暂缓推出：不出现在官方资源和 Mock 示例中，不允许安装或自动启用；底层实验代码保留。普通 JSON Generative UI 不受影响。恢复条件见上述边界文档。
+官方实现按 `src/plugins/<id>/` 的平级插件目录组织；每个插件内区分 `upstream/`、`adapters/`、产品样式/locale/资源、定义、插件版本、上游来源和 changelog。共享展示资源单一所有者；同一源码生成 `dist/plugins/`、`dist/sources/` 和 `dist/catalog.json`，生成物不手工维护。原模板/Demo 迁入包内资源，Node 文件/历史/安装/合并工具归 Operator，不进入浏览器运行入口。
+
+默认在用户工程保留很薄的插件应用层：Registry 解析本地定义，应用层直接引用 npm 公开组件。AppUIModel 只负责布局、实例身份/启停和语义组合；React props、子组件组合与 renderer 在应用层代码里调整，不映射为 JSON 配置。创建或修改应用层不算源码接管。Creator 优先使用这些公开 API；只有无法满足、必须改实现时才准备计划并询问用户。明确同意后提取工程实际安装版本到独立实现子树、记录 BASE，并只切换应用层的实现 import，保留其 props/组合、Plugin ID、实例配置和语义 Slot，不重复注册。接管后仍先改应用层，再改实现适配层；vendor 保持原样与来源可追踪。
+
+升级包同时取得新版运行实现和目录材料，但不覆盖用户应用层或本地托管源码、不切回包引用或推进 BASE。用户要求同步时仅在实现受管范围内以精确 BASE/LOCAL/TARGET 合并和验证；应用层不纳入合并、删除或模板重生成，API 不兼容单独报告和适配；仅移植特性不冒充完整升级。共享依赖仍须兼容检查，Core、Renderer、canonical Runtime 继续 npm 交付。旧 Registry Release/锁需保留来源，不能当作同号 Plugins 包版本。
+
+合包与基础源码目录已实现，独立 Source Registry 已从 workspace/发布清单移除，资源和目录随 Plugins 交付；旧历史合同与更新路径保留。44 个现代官方插件已接入薄应用层、props/组合、确认接管和独立源码同步机制，另保留历史兼容 ID；这不等于全库上游公共 API 已完成逐项审计。Composer 的真实 Creator/模型完整旅程已验证，但不是全部插件逐一真实模型验收。Creator、Operator 和目录/快照读取工具不进入生产浏览器模块图，旧工程自动分层迁移仍未完成。A2UI 暂缓状态不变。详见主架构文档的阶段状态和验证记录。
+
+统一更新中心接续以上机制：后台发现只读；官方清单决定最新兼容组合，不由模型猜版本。项目 Agent UI 与 Creator 工具在同一页面分区处理，工具升级必要时受控重启/重连。用户确认 npm 升级后才安装和验证，成功后可另行选择同步已托管源码；源码 TARGET 必须是工程实际安装的 Plugins 快照，应用层与本地定制受保护，模型不能自行推进 BASE。npm 安装、验证、恢复和源码合并采用分阶段表达，不把其中一步成功当成全流程完成。该方案取代此前要求用户手动升级 npm 的阶段决定，具体改动位置、版本展示与验收见 [统一更新中心设计](architecture/unified-update-center.md)。
+
+Agent UI 和 Creator 生成/修改的插件代码始终为 React。Vue/HTML 等宿主仅通过 Web Component 嵌入，并提供嵌入与 Creator 启动接入说明；不提供原生 Vue 组件生成、Vue 业务工程改造或第二套 Runtime。深度定制和更新指向 React 生产工程，消费者使用其构建产物。

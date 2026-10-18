@@ -20,6 +20,12 @@ from langchain.agents.middleware import AgentMiddleware
 from langchain_core.language_models import BaseChatModel
 
 
+# The pinned LangGraph requires a positive numeric recursion_limit; omitting it
+# restores its finite default. Infinity disables the step comparison rather than
+# substituting another large budget. This is execution config, not Agent state.
+UNLIMITED_GRAPH_STEPS = float("inf")
+
+
 def create_creator_filesystem_middleware(
     *, backend: BackendProtocol, tools: Sequence[str],
 ) -> FilesystemMiddleware:
@@ -54,7 +60,7 @@ def create_creator_deep_agent(
         name=name,
         state_schema=DeepAgentState,
     ).with_config({
-        "recursion_limit": 9_999,
+        "recursion_limit": UNLIMITED_GRAPH_STEPS,
         "metadata": {
             "ls_integration": "deepagents",
             "lc_versions": {"deepagents": __version__},

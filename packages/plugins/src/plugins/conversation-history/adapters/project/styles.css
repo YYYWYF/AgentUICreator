@@ -1,0 +1,13 @@
+/* Account for the button's 8px padding and the icon's inset inside its viewBox. */
+.conversation-history-plugin { display: flex; height: 100%; align-items: center; padding-inline-end: 6px; }
+.agent-ui-root .conversation-history-button { display: inline-flex; width: 36px; height: 36px; padding: 8px; align-items: center; justify-content: center; border: 0; border-radius: 8px; color: var(--muted-foreground); background: transparent; cursor: pointer; }
+.agent-ui-root .conversation-history-button:hover, .agent-ui-root .conversation-history-button[aria-expanded="true"] { color: var(--foreground); background: var(--muted); }
+.agent-ui-root .conversation-history-button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.conversation-history-button svg { width: 20px; height: 20px; }
+.agent-ui-root .agent-ui-assistant-shell .conversation-history-button { border: 0; background: transparent; box-shadow: none; }
+.agent-ui-root > .agent-ui-portal-root:has(.conversation-history-popover) { z-index: 1100; }
+.agent-ui-root .conversation-history-popover { display: flex; flex-direction: column; width: min(20rem, calc(100vw - 5rem)); max-height: min(24rem, calc(100dvh - 10rem)); padding: 12px; gap: 12px; }
+.conversation-history-popover h2 { margin: 0; font-size: 14px; font-weight: 600; }
+.conversation-history-popover > .app-ui-plugin-slot-width-probe { min-height: 0; overflow: auto; }
+.conversation-history-popover .conversation-thread-list-plugin { height: auto; padding: 0; background: transparent; }
+.conversation-history-popover [data-slot="aui_thread-list-new"] { display: none; }

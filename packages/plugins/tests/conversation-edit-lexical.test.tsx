@@ -16,20 +16,20 @@ import { compileAppUIModel } from "../../operator/src/framework/contracts/app-ui
 import { applyAppUIOperations, type AppUIOperation } from "../../operator/src/project/app-ui-operations";
 import { parseUIPluginManifest, type UIPluginDefinition } from "../../operator/src/framework/contracts/ui-plugin";
 import { PluginRuntimeFixture } from "../../operator/tests/support/agent-runtime-fixture";
-import { createPluginRegistry, createPluginCompositionCatalog, usePluginRenderScope } from "../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
-import { ConversationAdapter } from "../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter";
-import { AGENT_UI_LOCALES } from "../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/locale-registry";
-import surfaceManifest from "../../source-registry/registry/items/plugin-conversation-surface/files/plugins/conversation-surface/manifest.json";
-import { assistantUiLexicalEditComposerPlugin } from "../../source-registry/registry/items/plugin-assistant-ui-lexical-edit-composer/files/plugins/assistant-ui-lexical-edit-composer/definition";
-import { assistantUiComposerPlugin } from "../../source-registry/registry/items/plugin-assistant-ui-composer/files/plugins/assistant-ui-composer/definition";
-import { assistantUiLexicalComposerInputPlugin } from "../../source-registry/registry/items/plugin-assistant-ui-lexical-composer-input/files/plugins/assistant-ui-lexical-composer-input/definition";
+import { createPluginRegistry, createPluginCompositionCatalog, usePluginRenderScope } from "../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+import { ConversationAdapter } from "../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter";
+import { AGENT_UI_LOCALES } from "../resources/registry/items/foundation-core-adapters/files/agent-ui/i18n/locale-registry";
+import surfaceManifest from "../resources/registry/items/plugin-conversation-surface/files/plugins/conversation-surface/manifest.json";
+import { conversationLexicalEditComposerPlugin } from "../resources/registry/items/plugin-lexical-edit-composer/files/plugins/lexical-edit-composer/definition";
+import { conversationComposerPlugin } from "../resources/registry/items/plugin-composer/files/plugins/composer/definition";
+import { conversationLexicalComposerInputPlugin } from "../resources/registry/items/plugin-lexical-composer-input/files/plugins/lexical-composer-input/definition";
 import { resolveDirectiveContexts } from "../../creator/src/mock-agent/context/directive-context.js";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const directive = ":user[张三]{name=employee_84721}";
 const draft = directive + " 是谁？";
-const editId = "assistant-ui-lexical-edit-composer-main";
-const mainId = "assistant-ui-lexical-composer-input-main";
+const editId = "lexical-edit-composer-main";
+const mainId = "lexical-composer-input-main";
 const roots: Root[] = [];
 afterEach(async () => {
   await act(async () => { for (const root of roots.splice(0)) root.unmount(); });
@@ -90,7 +90,7 @@ async function mount({ preset = "assistant", text = draft, disabled = false, hol
     Component: ({ renderScopedSlot, renderSlot }) => <ConversationAdapter labels={AGENT_UI_LOCALES["zh-CN"].conversation}
       renderScopedSlot={renderScopedSlot} composer={renderSlot("composer", null)} />,
   };
-  const registry = createPluginRegistry([hostDefinition, { ...assistantUiLexicalEditComposerPlugin, Component: ScopedProbe }, assistantUiComposerPlugin, assistantUiLexicalComposerInputPlugin]);
+  const registry = createPluginRegistry([hostDefinition, { ...conversationLexicalEditComposerPlugin, Component: ScopedProbe }, conversationComposerPlugin, conversationLexicalComposerInputPlugin]);
   const catalog = createPluginCompositionCatalog(registry);
   function Capture() { runtime = useAui().threads.__internal_getAssistantRuntime!(); return null; }
   function CustomEdit() { return <div data-testid="custom-edit"><ConversationCanonicalUserEditComposer /></div>; }
@@ -169,7 +169,7 @@ it.each([":legacy[ABC]{name=123}", ":unknown[X]"])("keeps unknown directives ver
   const f = await mount({ text }); await f.begin();
   expect(f.textarea()!.value).toBe(text); expect(f.textbox()).toBeNull();
   await f.button("更新"); await until(() => f.requests.length === 1);
-  expect(f.requests[0]!.messages.find(message => message.role === "user")!.content).toBe(text);
+  expect(f.requests[0]!.messages.find(message => message.role === "user")!.content).toBe(`> 原引用\n\n${text}`);
 });
 
 it("edits ordinary text, sends canonical AG-UI text and resolves the same employee on the new branch", async () => {
@@ -187,7 +187,7 @@ it("edits ordinary text, sends canonical AG-UI text and resolves the same employ
   await until(() => f.runtime.thread.getMessageById("user").composer.getState().text === expected);
   await f.button("更新"); await until(() => f.requests.length === 1 && !f.runtime.thread.getState().isRunning);
   const input = f.requests[0]!;
-  expect(input.messages.find(message => message.role === "user")!.content).toBe(expected);
+  expect(input.messages.find(message => message.role === "user")!.content).toBe(`> 原引用\n\n${expected}`);
   expect(JSON.stringify(input)).not.toContain("directive-node"); expect(JSON.stringify(input)).not.toContain('"editorState"');
   const resolver = vi.fn(async (reference: { id: string }) => ({ description: "employee", value: reference.id }));
   await resolveDirectiveContexts(input, { user: resolver }, { signal: new AbortController().signal });

@@ -1,4 +1,11 @@
 import type { ConversationFeedbackAdapter } from "./feedback.js";
+export {
+  AgentUIProvider, AgentUIRuntimeBinding, AgentUIConnectionState, AgentUIOutlet,
+  AgentUIHostUserProvider, useAgentUIUser, useAgentUI, useOptionalAgentUI,
+  useAgentUIState, useAgentUIEvent, useAgentUISurfaceTarget, AgentUIHostError,
+} from "./host/AgentUIProvider.js";
+export type { AgentUIUser, AgentUIHost, AgentUIHostSnapshot, AgentUIEventMap, AgentUIConnectionStatus } from "./host/AgentUIProvider.js";
+export { AgentUIConversationBinding } from "./host/AgentUIConversationBinding.js";
 import type {
   AgentApplicationEvent,
   AgentApplicationEventListener,
@@ -28,7 +35,7 @@ import type {
   ConversationThreadListItem,
   ConversationThreadListSnapshot,
 } from "./threads/types.js";
-import type { ConversationToolkit } from "@za38.03/agent-ui-plugins";
+import type { ConversationToolkit, ConversationTransientMessageService } from "@za38.03/agent-ui-plugins";
 import type { ReactNode } from "react";
 import type { ConversationStarterSuggestion } from "./conversation-types.js";
 
@@ -44,6 +51,8 @@ export type ConversationAgentFactory = (
 ) => AbstractAgent;
 
 export interface ConversationRuntimeProviderProps<TState = unknown> {
+  /** Page-memory presentation service; never enters Agent messages or persistence. */
+  transientMessages?: ConversationTransientMessageService | undefined;
   endpoint: string;
   threadBinding: ConversationThreadBinding<TState>;
   frontendTools?: AgentFrontendToolSource | undefined;

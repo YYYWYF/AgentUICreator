@@ -436,6 +436,19 @@ class CreatorDevelopmentCompletionGate:
                 self.run_control.render_blocker_response(),
             )
         receipt = self.activity.snapshot()
+        host = getattr(self.activity, "bound_host_integration", None)
+        commissioned = self.plugin_development_authority is not None and self.plugin_development_authority.intent in {"explicit", "conditional"}
+        if isinstance(host, dict) and not receipt["files"] and not commissioned and host.get("projectRevision") == self.activity.revision:
+            checks = host.get("checks", [])
+            verified = host.get("phase") in {"apply", "verify"} and host.get("status") == "passed" and bool(checks) and all(check.get("passed") is True for check in checks)
+            if verified:
+                self.activity.record_verification({
+                    "status": "changed-and-statically-verified" if host.get("changedPaths") else "no-project-change",
+                    "verificationMode": "static_only", "runtimeStatus": "not-run", "projectRevision": self.activity.revision,
+                    "auditAttempts": self.repair_state.repair_rounds,
+                    "checks": [self._check("bound-host-integration", True, str(host.get("recipeId", "")))],
+                })
+                return CompletionDecision(True, candidate, completion="success" if host.get("changedPaths") else "already_satisfied", reason="bound_host_integration_verified")
         if not receipt["files"]:
             development = (
                 self.plugin_development_authority.active

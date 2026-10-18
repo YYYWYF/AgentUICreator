@@ -68,6 +68,9 @@ When changing protocol fields or the response envelope, update the canonical con
 
 `@za38.03/agent-ui-operator/bootstrap` exports the initialization transaction,
 Mode, Preset and source-root validation. Presets ship with Operator.
-Changing initialization does not require a Source Registry release.
-Registry loading and resource release metadata come from the installed
-`@za38.03/agent-ui-source-registry` dependency; resources and fixtures are not copied into this package.
+Changing initialization orchestration does not require a Plugins resource change.
+`@za38.03/agent-ui-operator/source-registry` exports development-only loading and
+update APIs. Catalog contracts and resource assets come from the single
+`@za38.03/agent-ui-plugins` dependency; no standalone Source Registry package or
+second resource distribution is required. Test history fixtures remain in the
+workspace, while production historical releases must be supplied explicitly.

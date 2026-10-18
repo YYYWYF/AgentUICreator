@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from ..plugin_delivery import official_package_plugin_ids, is_legacy_project_plugin
+
 import json
 import hashlib
 import re
@@ -66,6 +68,38 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
     Source installation remains on its existing installer path. This middleware
     never treats an installed Source Item as an authored new Plugin identity.
     """
+
+    def _source_owned(self, plugin_id: str) -> bool:
+        try:
+            metadata = self.authority.project_root / ".agent-ui" / "plugin-ownership.json"
+            if metadata.is_symlink():
+                return False
+            record = json.loads(metadata.read_text(encoding="utf-8"))
+            owner = record.get("plugins", {}).get(plugin_id, {})
+            return (record.get("schemaVersion") == 1 and owner.get("pluginId") == plugin_id
+                    and owner.get("directory") == plugin_id and bool(owner.get("base")))
+        except (OSError, ValueError, TypeError, AttributeError):
+            return False
+
+    def _application_edit_allowed(self, plugin_id: str, relative: str) -> bool:
+        # A wrapper is ordinary application code, not authorization to write source/.
+        parts = relative.split("/")
+        if ("\\" in relative or any(part in {"", ".", ".."} for part in parts)
+                or parts[0] in {"source", "upstream", "vendor", "vendors"}):
+            return False
+        if relative in {"application.json", "manifest.json"}:
+            return False
+        directory = self.authority.project_root / agent_ui_source_path(
+            self.authority.project_root, f"plugins/{plugin_id}"
+        ).lstrip("/")
+        marker = directory / "application.json"
+        try:
+            if marker.is_symlink() or directory.is_symlink():
+                return False
+            value = json.loads(marker.read_text(encoding="utf-8"))
+            return value.get("schemaVersion") == 1 and value.get("pluginId") == plugin_id
+        except (OSError, ValueError, TypeError, AttributeError):
+            return False
 
     def __init__(self, authority: PluginDevelopmentAuthority, *, official_reference_plugin_id: str | None = None) -> None:
         self.authority = authority
@@ -440,7 +474,7 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
             if not isinstance(plugin_id, str):
                 raise PluginDevelopmentError("创建目标 Plugin ID 无效。")
             official_derivation = (name == "create_custom_plugin"
-                and self.official_reference_plugin_id == "assistant-ui-composer"
+                and self.official_reference_plugin_id in official_package_plugin_ids(self.authority.project_root)
                 and args.get("basedOn") == self.official_reference_plugin_id
                 and (args.get("replaceInstanceId") or args.get("placement")))
             # A Host-resolved official customization target already authorizes
@@ -470,8 +504,10 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
                         raise PluginDevelopmentError("源码写入超出了已批准的 Plugin 目标。")
                 parts = logical.strip("/").split("/")
                 if len(parts) >= 3 and parts[0] == "plugins":
-                    if parts[1] == "assistant-ui-composer":
-                        raise PluginDevelopmentError("PLUGIN_ID_RESERVED_BY_OFFICIAL: use create_custom_plugin with a new ID.")
+                    if ((parts[1] in official_package_plugin_ids(self.authority.project_root) or self._application_edit_allowed(parts[1], "index.tsx")) and not self._source_owned(parts[1])
+                            and not is_legacy_project_plugin(self.authority.project_root, parts[1])
+                            and not self._application_edit_allowed(parts[1], "/".join(parts[2:]))):
+                        raise PluginDevelopmentError("PLUGIN_ID_RESERVED_BY_OFFICIAL: request takeover_plugin_source confirmation first.")
                     self._require_customized_source_decision(parts[1], logical)
                 new_id = self._new_plugin_identity(path)
                 if new_id is not None:
@@ -479,10 +515,19 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
                     raise PluginDevelopmentError(
                         "新 Plugin 身份必须通过 create_ui_plugin 原子创建。"
                     )
-                elif self.authority.intent in {"needs_decision", "explicit", "conditional"} and active is None:
+                elif (self.authority.intent in {"needs_decision", "explicit", "conditional"} and active is None
+                      and not (len(parts) >= 3 and parts[0] == "plugins"
+                               and (self._source_owned(parts[1]) or is_legacy_project_plugin(self.authority.project_root, parts[1]) or self._application_edit_allowed(
+                                   parts[1], "/".join(parts[2:]))))):
                     raise PluginDevelopmentError("新增能力的源码写入前需要完成开发方案和授权。")
-        if name == "mutate_ui_plugin_source" and args.get("pluginId") == "assistant-ui-composer":
-            raise PluginDevelopmentError("PLUGIN_ID_RESERVED_BY_OFFICIAL: use create_custom_plugin with a new ID.")
+        if (name == "mutate_ui_plugin_source" and (args.get("pluginId") in official_package_plugin_ids(self.authority.project_root) or isinstance(args.get("pluginId"), str) and self._application_edit_allowed(args["pluginId"], "index.tsx"))
+                and not self._source_owned(args["pluginId"])
+                and not is_legacy_project_plugin(self.authority.project_root, args["pluginId"])
+                and not (isinstance(args.get("changes"), list) and args["changes"]
+                         and all(isinstance(change, Mapping) and isinstance(change.get("relativePath"), str)
+                                 and self._application_edit_allowed(args["pluginId"], change["relativePath"])
+                                 for change in args["changes"]))):
+            raise PluginDevelopmentError("PLUGIN_ID_RESERVED_BY_OFFICIAL: request takeover_plugin_source confirmation first.")
         if name == "mutate_ui_plugin_source":
             plugin_id = args.get("pluginId")
             if isinstance(plugin_id, str):
@@ -490,7 +535,17 @@ class PluginDevelopmentAdmissionMiddleware(AgentMiddleware):
             if active is not None and active.status == "authorized":
                 if args.get("pluginId") != active.target_plugin_id:
                     raise PluginDevelopmentError("源码修改超出了已批准的 Plugin 目标。")
-            elif self.authority.intent in {"needs_decision", "explicit", "conditional"}:
+            # Existing application code and explicitly taken-over implementations
+            # do not create a new Plugin identity. Pending/authorized development
+            # plans and the source/path protections above still take precedence.
+            elif (self.authority.intent in {"needs_decision", "explicit", "conditional"}
+                  and not (isinstance(plugin_id, str) and (
+                      self._source_owned(plugin_id)
+                      or is_legacy_project_plugin(self.authority.project_root, plugin_id)
+                      or (isinstance(args.get("changes"), list) and args["changes"]
+                          and all(isinstance(change, Mapping) and isinstance(change.get("relativePath"), str)
+                                  and self._application_edit_allowed(plugin_id, change["relativePath"])
+                                  for change in args["changes"]))))):
                 raise PluginDevelopmentError("新增能力的源码写入前需要完成开发方案和授权。")
 
     @staticmethod

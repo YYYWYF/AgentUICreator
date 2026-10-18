@@ -1,0 +1,56 @@
+
+> @za38.03/agent-ui-core@0.0.1 build /Users/yifei/Coding/AgentUICreator/packages/core
+> tsc -p tsconfig.build.json
+
+
+> @za38.03/agent-ui-renderer@0.0.1 build /Users/yifei/Coding/AgentUICreator/packages/renderer
+> tsc -p tsconfig.build.json && node scripts/copy-assets.mjs
+
+
+> @za38.03/agent-ui-plugins@0.0.1 build /Users/yifei/Coding/AgentUICreator/packages/plugins
+> node scripts/clean-dist.mjs && node scripts/materialize-plugin-sources.mjs && tsc -p tsconfig.build.json && node scripts/build-optional-facades.mjs && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-lexical-boundary.mjs && node scripts/prepare-source-distribution.mjs && node scripts/build-package-plugins.mjs && node scripts/check-public-boundary.mjs
+
+@za38.03/agent-ui-plugins public declaration boundary: OK (77 declarations)
+Lexical optional facade and Source Plugin boundaries: OK
+Prepared 78 publishable resources; A2UI and development fixtures excluded.
+Official package service metadata verified against reference definitions.
+@za38.03/agent-ui-plugins public declaration boundary: OK (301 declarations)
+
+> @za38.03/agent-ui-runtime@0.0.1 build /Users/yifei/Coding/AgentUICreator/packages/runtime
+> tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-consumer-types.mjs
+
+@za38.03/agent-ui-runtime public declaration boundary: OK (11 reachable declarations)
+/Users/yifei/Coding/AgentUICreator/packages/runtime:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @za38.03/agent-ui-runtime@0.0.1 build: `tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-consumer-types.mjs`
+Exit status 1
+
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.onlyBuiltDependencies", "pnpm.overrides", "pnpm.peerDependencyRules". See https://pnpm.io/settings for the new home of each setting.
+file:///Users/yifei/Coding/AgentUICreator/packages/runtime/scripts/check-consumer-types.mjs:30
+  if (exitCode !== 0) throw new Error(output.trim() || `${command} exited with code ${exitCode}`);
+                            ^
+
+Error: node_modules/.pnpm/@radix-ui+primitive@1.2.0/node_modules/@radix-ui/primitive/dist/index.d.mts(18,36): error TS2304: Cannot find name 'setImmediate'.
+node_modules/.pnpm/file+archives+plugins+za38.03-agent-ui-plugins-0.0.1.tgz_@assistant-ui+tap@0.9.23_@types+reac_3bu3hnmaihwjtsrt3pisp42rxm/node_modules/@za38.03/agent-ui-plugins/dist/plugin-support.d.ts(2,15): error TS2395: Individual declarations in merged declaration 'Collapsible' must be all exported or all local.
+node_modules/.pnpm/file+archives+plugins+za38.03-agent-ui-plugins-0.0.1.tgz_@assistant-ui+tap@0.9.23_@types+reac_3bu3hnmaihwjtsrt3pisp42rxm/node_modules/@za38.03/agent-ui-plugins/dist/plugin-support.d.ts(2,15): error TS2440: Import declaration conflicts with local declaration of 'Collapsible'.
+node_modules/.pnpm/file+archives+plugins+za38.03-agent-ui-plugins-0.0.1.tgz_@assistant-ui+tap@0.9.23_@types+reac_3bu3hnmaihwjtsrt3pisp42rxm/node_modules/@za38.03/agent-ui-plugins/dist/plugin-support.d.ts(25,14): error TS2395: Individual declarations in merged declaration 'Collapsible' must be all exported or all local.
+node_modules/.pnpm/file+archives+plugins+za38.03-agent-ui-plugins-0.0.1.tgz_@assistant-ui+tap@0.9.23_@types+reac_3bu3hnmaihwjtsrt3pisp42rxm/node_modules/@za38.03/agent-ui-plugins/dist/plugins/auth-gate/adapters/presentation/auth-gate.d.ts(3,42): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean './auth-contract.js'?
+node_modules/.pnpm/file+archives+plugins+za38.03-agent-ui-plugins-0.0.1.tgz_@assistant-ui+tap@0.9.23_@types+reac_3bu3hnmaihwjtsrt3pisp42rxm/node_modules/@za38.03/agent-ui-plugins/dist/plugins/auth-gate/adapters/presentation/session.d.ts(1,54): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean './auth-contract.js'?
+node_modules/.pnpm/file+archives+plugins+za38.03-agent-ui-plugins-0.0.1.tgz_@assistant-ui+tap@0.9.23_@types+reac_3bu3hnmaihwjtsrt3pisp42rxm/node_modules/@za38.03/agent-ui-plugins/dist/public.d.ts(43,90): error TS7016: Could not find a declaration file for module './internal/style-boundary/ConversationActionMoreMenu.js'. '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/runtime-consumer-XFnbLm/node_modules/.pnpm/file+archives+plugins+za38.03-agent-ui-plugins-0.0.1.tgz_@assistant-ui+tap@0.9.23_@types+reac_3bu3hnmaihwjtsrt3pisp42rxm/node_modules/@za38.03/agent-ui-plugins/dist/internal/style-boundary/ConversationActionMoreMenu.js' implicitly has an 'any' type.
+node_modules/.pnpm/file+archives+plugins+za38.03-agent-ui-plugins-0.0.1.tgz_@assistant-ui+tap@0.9.23_@types+reac_3bu3hnmaihwjtsrt3pisp42rxm/node_modules/@za38.03/agent-ui-plugins/dist/public.d.ts(109,64): error TS7016: Could not find a declaration file for module './internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js'. '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/runtime-consumer-XFnbLm/node_modules/.pnpm/file+archives+plugins+za38.03-agent-ui-plugins-0.0.1.tgz_@assistant-ui+tap@0.9.23_@types+reac_3bu3hnmaihwjtsrt3pisp42rxm/node_modules/@za38.03/agent-ui-plugins/dist/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js' implicitly has an 'any' type.
+    at run (file:///Users/yifei/Coding/AgentUICreator/packages/runtime/scripts/check-consumer-types.mjs:30:29)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async file:///Users/yifei/Coding/AgentUICreator/packages/runtime/scripts/check-consumer-types.mjs:170:3
+
+Node.js v24.20.0
+file:///Users/yifei/Coding/AgentUICreator/scripts/build-public-packages.mjs:10
+    if (result.status !== 0) throw new Error(`Public package build failed: ${name}`);
+                                   ^
+
+Error: Public package build failed: runtime
+    at buildPublicPackages (file:///Users/yifei/Coding/AgentUICreator/scripts/build-public-packages.mjs:10:36)
+    at file:///Users/yifei/Coding/AgentUICreator/scripts/build-public-packages.mjs:13:57
+    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)
+    at async node:internal/modules/esm/loader:647:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.20.0

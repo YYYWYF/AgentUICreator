@@ -4,8 +4,8 @@ import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../locale.js";
 import { ThreadListItemMorePrimitive, ThreadListItemPrimitive, useAui, useAuiState } from "@assistant-ui/react";
 import { ArchiveIcon, Loader2Icon, MoreHorizontalIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Button } from "./adapters/assistant-ui/components/ui/button.js";
-import { Input } from "./adapters/assistant-ui/components/ui/input.js";
+import { Button } from "./adapters-generated/assistant-ui/components/ui/button.js";
+import { Input } from "./adapters-generated/assistant-ui/components/ui/input.js";
 import { useAgentUIPortalContainer } from "./style-boundary/AgentUIRoot.js";
 
 export interface ConversationThreadListItemActions {

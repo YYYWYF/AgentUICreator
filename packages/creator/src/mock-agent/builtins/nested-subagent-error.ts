@@ -11,7 +11,7 @@ export const nestedSubagentErrorScenario = defineScenario({
     audience: "frontend",
     protocol: "AG-UI",
     pattern: "Nested Subagent Error",
-    presentation: "assistant-ui TaskCard with nested error",
+    presentation: "Agent UI TaskCard with nested error",
     level: "edge",
     eventFlow: [
       "TOOL_CALL_*",

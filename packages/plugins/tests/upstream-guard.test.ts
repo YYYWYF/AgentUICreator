@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it, afterEach } from "vitest";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const vendorRoot = path.join(packageRoot, "src/internal/vendor/assistant-ui");
+const vendorRoot = path.join(packageRoot, "src/internal/vendor-generated/assistant-ui");
 const guardScript = path.join(packageRoot, "scripts/check-assistant-ui-upstream.mjs");
 const execFileAsync = promisify(execFile);
 const temporaryRoots: string[] = [];
@@ -16,7 +16,7 @@ async function copyGuardFixture(prefix: string): Promise<string> {
   const root = await mkdtemp(path.join(packageRoot, prefix));
   temporaryRoots.push(root);
   const internalRoot = path.join(root, "internal");
-  const fixtureVendorRoot = path.join(internalRoot, "vendor/assistant-ui");
+  const fixtureVendorRoot = path.join(internalRoot, "vendor-generated/assistant-ui");
   await mkdir(path.dirname(fixtureVendorRoot), { recursive: true });
   await cp(vendorRoot, fixtureVendorRoot, { recursive: true });
   for (const file of ["quote-selection-UPSTREAM.json", "quote-selection-root.tsx",

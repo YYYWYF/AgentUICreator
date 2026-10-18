@@ -32,6 +32,19 @@ describe("host bridge lifecycle", () => {
     expect(preRegistered.config.endpoint).toBe("/pre-registered");
     expect(preRegistered.shadowRoot?.querySelector("[data-shell]")).not.toBeNull();
   });
+  it("initializes border and ring properties even with project-supplied styles", async () => {
+    const { createAgentUIElement } = await import("../src/host");
+    const Element = createAgentUIElement({ Root: () => null, styles: ".custom { color: red; }" });
+    customElements.define("agent-ui-custom-styles", Element);
+    const element = new Element();
+    const css = element.shadowRoot!.querySelector("style")!.textContent!;
+    expect(css).toContain("@layer properties");
+    expect(css).toContain("--tw-border-style: solid");
+    expect(css).toContain("--tw-ring-offset-shadow: 0 0 #0000");
+    expect(css).toContain(".agent-ui-bridge-mount *::before");
+    expect(css).toContain(".custom { color: red; }");
+    expect(document.head.textContent).not.toContain("--tw-border-style");
+  });
   it("isolates mounts, coalesces configuration and reconnects after unmount", async () => {
     const element = await mount();
     const other = await mount({ endpoint: "/other" });
@@ -89,4 +102,21 @@ it("property config takes precedence over attributes and rejects invalid values"
   const attrs = { endpoint: "/attribute", locale: "zh-CN", theme: "dark", "thread-id": null };
   expect(resolveConfig({ endpoint: "/property", theme: "light" }, attrs)).toMatchObject({ endpoint: "/property", locale: "zh-CN", theme: "light" });
   expect(() => resolveConfig({}, { ...attrs, theme: "invalid" })).toThrow();
+});
+
+it("uses the producer defaults without overriding explicit Host presentation", async () => {
+  const { createAgentUIElement } = await import("../src/host");
+  const received: AgentUIConfig[] = [];
+  const Element = createAgentUIElement({ Root: ({ config }) => { received.push(config); return null; }, styles: "",
+    defaults: { locale: "en-US", theme: "dark" } });
+  customElements.define("agent-ui-producer-defaults", Element);
+  const element = new Element();
+  await act(async () => { document.body.append(element); });
+  expect(received.at(-1)).toMatchObject({ locale: "en-US", theme: "dark" });
+  await act(async () => { element.setAttribute("locale", "zh-CN"); element.config = { theme: "light" }; });
+  expect(received.at(-1)).toMatchObject({ locale: "zh-CN", theme: "light" });
+});
+
+it("shares the native application's unconfigured locale and theme", () => {
+  expect(resolveConfig({}, { endpoint: null, locale: null, theme: null, "thread-id": null })).toMatchObject({ locale: "zh-CN", theme: "violet" });
 });

@@ -1,0 +1,26 @@
+{
+  "id": "plugin/reasoning",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-reasoning source",
+  "files": [
+    {
+      "source": "files/plugins/reasoning/definition.ts",
+      "target": "plugins/reasoning/definition.ts"
+    },
+    {
+      "source": "files/plugins/reasoning/index.tsx",
+      "target": "plugins/reasoning/index.tsx"
+    },
+    {
+      "source": "files/plugins/reasoning/manifest.json",
+      "target": "plugins/reasoning/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "19.1.1",
+    "lucide-react": "1.41.0"
+  }
+}

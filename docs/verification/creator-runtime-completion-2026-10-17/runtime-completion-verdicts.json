@@ -1,0 +1,95 @@
+[
+  {
+    "phase": "props",
+    "verification": {
+      "status": "changed-and-verified",
+      "verificationMode": "static_and_runtime",
+      "projectRevision": 1,
+      "auditAttempts": 0,
+      "checks": [
+        {
+          "id": "net-project-change",
+          "status": "passed",
+          "evidence": "1 net changed file(s)."
+        },
+        {
+          "id": "pnpm verify:ui",
+          "status": "passed",
+          "evidence": "revision=1; source=executed; exitCode=0"
+        },
+        {
+          "id": "pnpm typecheck",
+          "status": "passed",
+          "evidence": "revision=1; source=executed; exitCode=0"
+        },
+        {
+          "id": "runtime-verification",
+          "status": "passed",
+          "evidence": "与当前 AppUIModel 哈希对应的最新运行时证据中没有未解决错误。"
+        }
+      ]
+    }
+  },
+  {
+    "phase": "takeover",
+    "verification": {
+      "status": "changed-and-verified",
+      "verificationMode": "static_and_runtime",
+      "projectRevision": 1,
+      "auditAttempts": 0,
+      "checks": [
+        {
+          "id": "net-project-change",
+          "status": "passed",
+          "evidence": "1 net changed file(s)."
+        },
+        {
+          "id": "pnpm verify:ui",
+          "status": "passed",
+          "evidence": "revision=1; source=executed; exitCode=0"
+        },
+        {
+          "id": "pnpm typecheck",
+          "status": "passed",
+          "evidence": "revision=1; source=executed; exitCode=0"
+        },
+        {
+          "id": "runtime-verification",
+          "status": "passed",
+          "evidence": "与当前 AppUIModel 哈希对应的最新运行时证据中没有未解决错误。"
+        }
+      ]
+    }
+  },
+  {
+    "phase": "source-merge",
+    "verification": {
+      "status": "changed-and-verified",
+      "verificationMode": "static_and_runtime",
+      "projectRevision": 3,
+      "auditAttempts": 0,
+      "checks": [
+        {
+          "id": "net-project-change",
+          "status": "passed",
+          "evidence": "3 net changed file(s)."
+        },
+        {
+          "id": "pnpm verify:ui",
+          "status": "passed",
+          "evidence": "revision=3; source=executed; exitCode=0"
+        },
+        {
+          "id": "pnpm typecheck",
+          "status": "passed",
+          "evidence": "revision=3; source=executed; exitCode=0"
+        },
+        {
+          "id": "runtime-verification",
+          "status": "passed",
+          "evidence": "与当前 AppUIModel 哈希对应的最新运行时证据中没有未解决错误。"
+        }
+      ]
+    }
+  }
+]

@@ -27,7 +27,7 @@ test.beforeAll(async () => {
     import {AgentUIRoot,AgentUISidebarFrame,AgentUILocaleProvider,ConversationThreadListItem,ConversationThreadListRoot,ConversationThreadListSearch,ConversationThreadListNew,ConversationToolCall} from '@za38.03/agent-ui-plugins';
     import {AgentUISidebarFrame as BaselineSidebar} from './sidebar-before';
     import {ConversationThreadListItemComposition as BaselineThreadListItem} from './thread-list-before';
-    import {ToolCall as BaselineToolCall} from '${path.resolve('../../packages/plugins/dist/internal/vendor/assistant-ui/components/assistant-ui/elements/tool-call.js')}';
+    import {ToolCall as BaselineToolCall} from '${path.resolve('../../packages/plugins/dist/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/tool-call.js')}';
     import {ConfigProvider,Input,Button,Card,Modal,theme as antTheme} from 'antd';
     import './style.css';
     const theme = new URLSearchParams(location.search).get('theme') || 'light';

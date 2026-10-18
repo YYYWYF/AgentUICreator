@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
+import deliveries from "../src/catalog/plugin-delivery.json";
+
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 describe("@za38.03/agent-ui-plugins public API", () => {
@@ -14,8 +16,8 @@ describe("@za38.03/agent-ui-plugins public API", () => {
     const indexSource = await readFile(path.join(packageRoot, "src/index.ts"), "utf8");
 
     expect(indexSource.trim()).toBe('export * from "./public.js";');
-    expect(Object.keys(packageJson.exports ?? {}).sort()).toEqual([".", "./assistant-ui-composer", "./demo-attachments", "./generative-ui", "./generative-ui.css", "./lexical", "./styles.css", "./theme"]);
-    expect(Object.keys(packageJson.exports ?? {}).some((key) => key.includes("*") || key.includes("internal"))).toBe(false);
+    expect(Object.keys(packageJson.exports ?? {}).sort()).toEqual([".", "./demo-attachments", "./generative-ui", "./generative-ui.css", "./lexical", "./styles.css", "./theme", "./catalog", "./catalog.json", "./compatibility.json", "./composer-support", "./plugin-support", "./form-tools", "./source-registry/registry.json", "./sources/*", ...deliveries.map(plugin => `./${plugin.id}`)].sort());
+    expect(Object.keys(packageJson.exports ?? {}).some((key) => (key.includes("*") && key !== "./sources/*") || key.includes("internal"))).toBe(false);
   });
 
   it("keeps the required generic Conversation and UI facade", async () => {
@@ -62,13 +64,13 @@ describe("@za38.03/agent-ui-plugins public API", () => {
       "useConversationState",
       "Button",
     ]) {
-      expect(source, publicName).toMatch(new RegExp(`export (?:function|interface|type) ${publicName}\\b`, "u"));
+      expect(source, publicName).toMatch(new RegExp(`export\\s+(?:const|function|interface|type) ${publicName}\\b|export\\s*\\{[^}]*\\b${publicName}\\b`, "u"));
     }
     for (const name of [
       "ConversationResponseActionBarRoot", "ConversationResponseBranchPicker",
       "ConversationCanonicalResponseCopyAction", "ConversationCanonicalResponseReloadAction",
       "ConversationCanonicalResponseExportMarkdownAction", "useConversationResponseRuntime",
-    ]) expect(source).toMatch(new RegExp(`export const ${name}\\b`, "u"));
+    ]) expect(source).toMatch(new RegExp(`export\\s+(?:const|function) ${name}\\b|export\\s*\\{[^}]*\\b${name}\\b`, "u"));
     for (const forbiddenName of [
       "SourceMessagePart",
       "ThreadPrimitive",

@@ -1,8 +1,11 @@
-# 包内上游实现与按插件更新
+# 历史：包内上游实现与按插件更新
+
+> 2026-10-17：本文保留旧实现/迁移记录。当前边界见 [统一 Plugins 包、内置源码目录与按需源码托管](npm-default-plugin-source-ownership.md)：默认统一 npm 包、用户同意后按插件接管源码；原 Source Registry 合入 Plugins 的目录和快照资产，不再独立发布。本文中的绝对 vendor 安装禁令、只能另建 Plugin ID 和 Registry 参考源码权威等旧规定不覆盖新决策；完整接管机制尚未实现。
+
 
 > A2UI 当前暂缓推出；本文 A2UI 扩展和迁移部分是保留的实验设计，不代表现阶段可用。详见末尾发行状态。
 
-此文档是当前交付边界；覆盖 P3R 历史文档中把 vendor 源码写入生成项目的约定。
+以下为此前包内交付设计的历史正文；其自称的“当前”状态和安装限制已由页首链接的新决策取代，仅保留用于核对旧实现。
 
 ## 源码所有权
 
@@ -10,13 +13,25 @@ assistant-ui 上游实现、默认 Generative UI vocabulary、样式和来源记
 
 `@za38.03/agent-ui-plugins/generative-ui` 提供可选能力入口，`@za38.03/agent-ui-plugins/generative-ui.css` 提供样式。上游依赖版本由 Plugins 包固定。来源记录在 Plugins 包的 `internal/vendor/assistant-ui/generative-ui/UPSTREAM.json`，与实现共同交付。Source Registry 只安装薄的项目集成、配置和可定制插件源码；release gate 禁止新资源向 `vendor` / `vendors` 目标写入文件。
 
+## 宿主 Provider 接入
+
+`@za38.03/agent-ui-runtime` 拥有公共 Host Provider、用户展示上下文、宿主动作、状态订阅和事件订阅实现。生成工程的 `AgentUIProvider` 只绑定 AppUIModel、项目插件注册表、Frontend Tools 和会话持久化配置，再从工程公共入口统一导出 Provider、Agent 和 Hooks。宿主不导入 assistant-ui 或生成工程内部目录。
+
+Provider 的运行环境独立于可见的 `<Agent />`。项目集成层以保留 React Context 的 portal 将 Surface 挂载到宿主选定的展示区域；宿主组件始终留在同一个 Host Provider 下，初始化、登录门禁和会话切换不卸载宿主业务树。插件服务与历史绑定在非可视环境中保持连接。每个 Provider 对应一个 Runtime 和最多一个展示区域；单独的 `<Agent />` 自动组合相同 Provider，兼容旧入口。
+
+Host API 只委托现有 Conversation Runtime，不复制消息、执行队列、AG-UI 状态映射或中断恢复。`run-end` 是执行结束通知，包含等待输入、取消与错误；快照才是当前状态来源。Host 生命周期事件与 Backend-originated Custom Event Protocol 分开。用户资料仅用于前端展示，用户切换导致的会话清理由宿主显式管理。
+
 ## React 组件与官方插件的统一交付
 
 `@za38.03/agent-ui-plugins` 统一拥有 React 组件、主题、国际化、可选扩展和官方 Composer 插件，源码位于 `packages/plugins`。不再独立发行 `agent-ui-react`。
 
 - 主入口：会话与通用 UI 组件、主题和国际化 API。
-- `/assistant-ui-composer`：符合 UI Plugin 契约的完整 Composer；通过子 Slot 组合输入、触发器和操作插件。
+- `/composer`：符合 UI Plugin 契约的完整 Composer；通过子 Slot 组合输入、触发器和操作插件。
 - `/styles.css`、`/theme`、`/lexical`、`/generative-ui`、`/generative-ui.css`、`/demo-attachments`：保留各自的可选能力入口。
+
+面向用户的命名由 Agent UI 产品层拥有：新模板、AppUIModel、插件源码目录、官方资源和 Composer 入口使用 `composer`、`reasoning`、`tool-group` 等直接的组件名称，不使用上游品牌。旧插件资源保留作为已有工程的源码升级基线，旧 Composer 子路径保留原始 Plugin ID；仅当工程引用旧 Composer 时才将其加入可用包插件。Creator 的回复、问题、执行详情和更新展示使用产品名称，执行参数、历史记录和源码仍保留真实标识，不通过展示替换修改工程。上游依赖、vendor 和来源记录继续保留在包内部。
+
+可选 Lexical 与表单描述适配器在 Plugins 包构建时封装到 `/lexical` 和 `/form-tools` 入口。生成工程仅依赖产品入口；Lexical 本体与编辑器 peers 仍由目标工程按需安装。上游适配器不进入根组件入口。
 
 组件主入口不反向导入 Composer 插件；插件通过包的公共组件 API 复用实现。上游源码和来源记录留在包内。该包不创建 Agent Runtime，AG-UI 接入继续由 `@za38.03/agent-ui-runtime` 负责，布局解释继续由 Renderer 负责。Core 和 Renderer 是基础依赖。
 

@@ -80,9 +80,9 @@ describe("canonical assistant-ui attachment UI", () => {
       this.dispatchEvent(new Event("change", { bubbles: true }));
     });
     await act(async () => { button("Add Attachment").click(); await until(() => runtime.thread.composer.getState().attachments.length === 1); });
-    expect(container.querySelector('[role="button"][aria-label="Image attachment"]')).not.toBeNull();
-    await act(async () => { button("Remove file").click(); await until(() => runtime.thread.composer.getState().attachments.length === 0); });
-    expect(container.querySelector('[role="button"][aria-label="Image attachment"]')).toBeNull();
+    expect(container.querySelector('[role="button"][aria-label="Preview demo.png"]')).not.toBeNull();
+    await act(async () => { button("Remove demo.png").click(); await until(() => runtime.thread.composer.getState().attachments.length === 0); });
+    expect(container.querySelector('[role="button"][aria-label="Preview demo.png"]')).toBeNull();
     await act(async () => { button("Add Attachment").click(); await until(() => runtime.thread.composer.getState().attachments.length === 1); });
     await act(async () => {
       runtime.thread.composer.setText("Describe this image");
@@ -95,8 +95,8 @@ describe("canonical assistant-ui attachment UI", () => {
     });
     expect(runtime.thread.composer.getState().attachments).toHaveLength(0);
     expect(container.textContent).toContain("Describe this image");
-    expect(container.querySelector('[role="button"][aria-label="Image attachment"]')).not.toBeNull();
-    expect(findButton("Remove file")).toBeUndefined();
+    expect(container.querySelector('[role="button"][aria-label="Preview demo.png"]')).not.toBeNull();
+    expect(findButton("Remove demo.png")).toBeUndefined();
   });
 
   it.each(["drop", "paste"])("keeps upstream %s ingestion", async kind => {
@@ -109,6 +109,6 @@ describe("canonical assistant-ui attachment UI", () => {
       await until(() => runtime.thread.composer.getState().attachments.length === 1);
     });
     expect(event.defaultPrevented).toBe(true);
-    expect(container.querySelector('[role="button"][aria-label="Image attachment"]')).not.toBeNull();
+    expect(container.querySelector('[role="button"][aria-label="Preview demo.png"]')).not.toBeNull();
   });
 });

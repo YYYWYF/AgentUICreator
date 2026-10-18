@@ -85,11 +85,11 @@ describe("Sidebar contract and deterministic operations", () => {
   });
   it("requires Sidebar-capable package versions in Source Registry", () => {
     for (const [item, name, oldVersion, version] of [
-      ["foundation-core", "@za38.03/agent-ui-plugins", "0.1.5", "0.1.6"],
-      ["foundation-core-runtime", "@za38.03/agent-ui-plugins", "0.1.5", "0.1.6"],
-      ["foundation-core-contracts", "@za38.03/agent-ui-renderer", "0.1.2", "0.1.3"],
+      ["foundation-core", "@za38.03/agent-ui-plugins", "0.0.0", "0.0.1"],
+      ["foundation-core-runtime", "@za38.03/agent-ui-plugins", "0.0.0", "0.0.1"],
+      ["foundation-core-contracts", "@za38.03/agent-ui-renderer", "0.0.0", "0.0.1"],
     ]) {
-      const descriptor = JSON.parse(readFileSync(new URL(`../../source-registry/registry/items/${item}/item.json`, import.meta.url), "utf8"));
+      const descriptor = JSON.parse(readFileSync(new URL(`../resources/registry/items/${item}/item.json`, import.meta.url), "utf8"));
       expect(satisfiesAgentUIPackageRange(oldVersion, descriptor.packages[name!])).toBe(false);
       expect(satisfiesAgentUIPackageRange(version, descriptor.packages[name!])).toBe(true);
     }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveConversationDataEndpoint } from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations/endpoint";
+import { resolveConversationDataEndpoint } from "../../resources/registry/items/foundation-core-application/files/services/conversations/endpoint";
 
 describe("resolveConversationDataEndpoint", () => {
   it("trims a configured application API", () => {

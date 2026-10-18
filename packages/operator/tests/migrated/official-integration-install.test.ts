@@ -3,7 +3,7 @@ import path from "node:path";
 import { tmpdir } from "node:os";
 import { minVersion } from "semver";
 import { afterEach, expect, it } from "vitest";
-import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure } from "@za38.03/agent-ui-source-registry";
+import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure } from "@za38.03/agent-ui-operator/source-registry";
 import { applyAgentUISourceItem, inspectAgentUISources, removeAgentUISourceItems } from "../../src/project/source-registry/index";
 import { uiOperatorConfig } from "../../src/project/project-config";
 

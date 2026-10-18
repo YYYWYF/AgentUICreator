@@ -11,7 +11,7 @@ export const parallelToolsScenario = defineScenario({
     audience: "backend",
     protocol: "AG-UI",
     pattern: "Parallel Tool Calls",
-    presentation: "assistant-ui ToolCall",
+    presentation: "Agent UI ToolCall",
     eventFlow: [
       "TOOL_CALL_START/ARGS/END (each tool)",
       "TOOL_CALL_RESULT (each tool)",
@@ -24,8 +24,8 @@ export const parallelToolsScenario = defineScenario({
         {
           id: "parallel-search-files",
           name: "search_files",
-          args: { query: "assistant-ui" },
-          result: { matches: ["MessageList.tsx", "assistant-ui-toolkit.tsx"] },
+          args: { query: "Agent UI" },
+          result: { matches: ["MessageList.tsx", "conversation-toolkit.tsx"] },
           startDelayMs: 0,
           prepareDurationMs: 400,
           durationMs: 2_400,

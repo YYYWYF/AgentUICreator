@@ -4,6 +4,9 @@ import json
 from collections.abc import AsyncIterable, Mapping
 from typing import Any
 
+from langchain_core.callbacks import BaseCallbackHandler
+from langgraph.errors import GraphInterrupt
+
 from ..model_protocol.errors import ModelToolProtocolError
 from .runtime_events import (
     CreatorEventSink,
@@ -24,12 +27,22 @@ def _bounded(value: Any, limit: int = 4096) -> str:
     return text if len(text) <= limit else text[:limit] + "…"
 
 
-class DeepAgentToolStreamAdapter:
+class DeepAgentToolStreamAdapter(BaseCallbackHandler):
     """Project official LangGraph v3 tool handles into Creator events."""
 
+    # Record typed control-flow exceptions before the v3 projection reduces
+    # on_tool_error to a string. Inline callbacks keep this ahead of consumption.
+    run_inline = True
+
     def __init__(self, event_sink: CreatorEventSink | None) -> None:
+        super().__init__()
         self.event_sink = event_sink
         self._seen_call_ids: set[str] = set()
+        self._interrupted_call_ids: set[str] = set()
+
+    def on_tool_error(self, error: BaseException, *, run_id: Any, **kwargs: Any) -> None:
+        if isinstance(error, GraphInterrupt):
+            self._interrupted_call_ids.add(kwargs.get("tool_call_id") or str(run_id))
 
     async def consume_all(self, tool_calls: AsyncIterable[Any]) -> None:
         async for call in tool_calls:
@@ -68,10 +81,14 @@ class DeepAgentToolStreamAdapter:
 
         if duplicate:
             return
+        if call_id in self._interrupted_call_ids:
+            # GraphInterrupt pauses a checkpointed call; only its resumed
+            # execution can publish a result. It is neither success nor failure.
+            return
         if not bool(getattr(call, "completed", False)):
             # A Human Tool deliberately ends this wire run while its LangGraph
             # tool call stays open in the checkpoint. Its result arrives on resume.
-            if getattr(call, "tool_name", None) == "ask_user_question":
+            if getattr(call, "tool_name", None) in {"ask_user_question", "takeover_plugin_source"}:
                 return
             raise RuntimeError(
                 f"DeepAgents tool stream closed before {call_id!r} completed."

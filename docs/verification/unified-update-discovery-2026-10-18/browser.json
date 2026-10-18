@@ -1,0 +1,519 @@
+{
+  "realCreatorUI": true,
+  "localHTTPPublisher": true,
+  "realExternalPublisher": false,
+  "modelRequests": 0,
+  "sourceFilesAndPackageStateUnchanged": true,
+  "hashBefore": "92647edce59a65c9acc4798256063cc3ffe4c5afbf136152ea098dc409fc7ddf",
+  "hashAfter": "92647edce59a65c9acc4798256063cc3ffe4c5afbf136152ea098dc409fc7ddf",
+  "requests": 3,
+  "browserErrors": [],
+  "onlineAndCacheShown": true,
+  "apiResponses": [
+    {
+      "releaseVersion": "0.0.1",
+      "compatibility": "compatible",
+      "plugins": [],
+      "fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855:64b3230724c07ef01ff4305c74d863790c2bb5dea89ccf48ca243ded85f2a9f4",
+      "packageUpdates": {
+        "status": "online",
+        "checkedAt": "2026-10-17T16:27:59.183Z",
+        "fetchedAt": "2026-10-17T16:27:59.183Z",
+        "digest": "70fbacc6f7624fc971865a68378980597ef8681b6c6d1636b6479664336ee11a",
+        "packages": [
+          {
+            "name": "@za38.03/agent-ui-core",
+            "scope": "project",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "declared": "workspace:*",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          },
+          {
+            "name": "@za38.03/agent-ui-renderer",
+            "scope": "project",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "declared": "workspace:*",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          },
+          {
+            "name": "@za38.03/agent-ui-runtime",
+            "scope": "project",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "declared": "workspace:*",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          },
+          {
+            "name": "@za38.03/agent-ui-plugins",
+            "scope": "project",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.8",
+            "declared": "workspace:*",
+            "updateAvailable": true,
+            "historyIncomplete": false,
+            "summary": [
+              {
+                "id": "counter",
+                "summary": "输入统计与草稿显示",
+                "kind": "feature",
+                "pluginId": "composer",
+                "versions": [
+                  "0.0.8",
+                  "0.0.2"
+                ]
+              },
+              {
+                "id": "history",
+                "summary": "会话历史显示修复",
+                "kind": "fix",
+                "pluginId": "conversation-history",
+                "versions": [
+                  "0.0.5"
+                ]
+              }
+            ],
+            "history": [
+              {
+                "id": "counter",
+                "version": "0.0.8",
+                "summary": "输入统计与草稿显示",
+                "kind": "feature",
+                "pluginId": "composer"
+              },
+              {
+                "id": "history",
+                "version": "0.0.5",
+                "summary": "会话历史显示修复",
+                "kind": "fix",
+                "pluginId": "conversation-history"
+              },
+              {
+                "id": "counter",
+                "version": "0.0.2",
+                "summary": "输入统计与草稿显示",
+                "kind": "feature",
+                "pluginId": "composer"
+              }
+            ]
+          },
+          {
+            "name": "@za38.03/agent-ui-creator",
+            "scope": "tools",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          },
+          {
+            "name": "@za38.03/agent-ui-operator",
+            "scope": "tools",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "declared": "workspace:*",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          }
+        ],
+        "blockedReleases": [],
+        "installationSupported": false,
+        "fingerprint": "64b3230724c07ef01ff4305c74d863790c2bb5dea89ccf48ca243ded85f2a9f4",
+        "latestReleaseId": "acceptance-compatible-008",
+        "recommendedReleaseId": "acceptance-compatible-008"
+      }
+    },
+    {
+      "releaseVersion": "0.0.1",
+      "compatibility": "compatible",
+      "plugins": [],
+      "fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855:64b3230724c07ef01ff4305c74d863790c2bb5dea89ccf48ca243ded85f2a9f4",
+      "packageUpdates": {
+        "status": "online",
+        "checkedAt": "2026-10-17T16:28:00.433Z",
+        "fetchedAt": "2026-10-17T16:28:00.433Z",
+        "digest": "70fbacc6f7624fc971865a68378980597ef8681b6c6d1636b6479664336ee11a",
+        "packages": [
+          {
+            "name": "@za38.03/agent-ui-core",
+            "scope": "project",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "declared": "workspace:*",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          },
+          {
+            "name": "@za38.03/agent-ui-renderer",
+            "scope": "project",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "declared": "workspace:*",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          },
+          {
+            "name": "@za38.03/agent-ui-runtime",
+            "scope": "project",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "declared": "workspace:*",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          },
+          {
+            "name": "@za38.03/agent-ui-plugins",
+            "scope": "project",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.8",
+            "declared": "workspace:*",
+            "updateAvailable": true,
+            "historyIncomplete": false,
+            "summary": [
+              {
+                "id": "counter",
+                "summary": "输入统计与草稿显示",
+                "kind": "feature",
+                "pluginId": "composer",
+                "versions": [
+                  "0.0.8",
+                  "0.0.2"
+                ]
+              },
+              {
+                "id": "history",
+                "summary": "会话历史显示修复",
+                "kind": "fix",
+                "pluginId": "conversation-history",
+                "versions": [
+                  "0.0.5"
+                ]
+              }
+            ],
+            "history": [
+              {
+                "id": "counter",
+                "version": "0.0.8",
+                "summary": "输入统计与草稿显示",
+                "kind": "feature",
+                "pluginId": "composer"
+              },
+              {
+                "id": "history",
+                "version": "0.0.5",
+                "summary": "会话历史显示修复",
+                "kind": "fix",
+                "pluginId": "conversation-history"
+              },
+              {
+                "id": "counter",
+                "version": "0.0.2",
+                "summary": "输入统计与草稿显示",
+                "kind": "feature",
+                "pluginId": "composer"
+              }
+            ]
+          },
+          {
+            "name": "@za38.03/agent-ui-creator",
+            "scope": "tools",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          },
+          {
+            "name": "@za38.03/agent-ui-operator",
+            "scope": "tools",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "declared": "workspace:*",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          }
+        ],
+        "blockedReleases": [],
+        "installationSupported": false,
+        "fingerprint": "64b3230724c07ef01ff4305c74d863790c2bb5dea89ccf48ca243ded85f2a9f4",
+        "latestReleaseId": "acceptance-compatible-008",
+        "recommendedReleaseId": "acceptance-compatible-008"
+      }
+    },
+    {
+      "releaseVersion": "0.0.1",
+      "compatibility": "compatible",
+      "plugins": [],
+      "fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855:64b3230724c07ef01ff4305c74d863790c2bb5dea89ccf48ca243ded85f2a9f4",
+      "packageUpdates": {
+        "status": "online",
+        "checkedAt": "2026-10-17T16:28:00.634Z",
+        "fetchedAt": "2026-10-17T16:28:00.433Z",
+        "digest": "70fbacc6f7624fc971865a68378980597ef8681b6c6d1636b6479664336ee11a",
+        "packages": [
+          {
+            "name": "@za38.03/agent-ui-core",
+            "scope": "project",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "declared": "workspace:*",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          },
+          {
+            "name": "@za38.03/agent-ui-renderer",
+            "scope": "project",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "declared": "workspace:*",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          },
+          {
+            "name": "@za38.03/agent-ui-runtime",
+            "scope": "project",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "declared": "workspace:*",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          },
+          {
+            "name": "@za38.03/agent-ui-plugins",
+            "scope": "project",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.8",
+            "declared": "workspace:*",
+            "updateAvailable": true,
+            "historyIncomplete": false,
+            "summary": [
+              {
+                "id": "counter",
+                "summary": "输入统计与草稿显示",
+                "kind": "feature",
+                "pluginId": "composer",
+                "versions": [
+                  "0.0.8",
+                  "0.0.2"
+                ]
+              },
+              {
+                "id": "history",
+                "summary": "会话历史显示修复",
+                "kind": "fix",
+                "pluginId": "conversation-history",
+                "versions": [
+                  "0.0.5"
+                ]
+              }
+            ],
+            "history": [
+              {
+                "id": "counter",
+                "version": "0.0.8",
+                "summary": "输入统计与草稿显示",
+                "kind": "feature",
+                "pluginId": "composer"
+              },
+              {
+                "id": "history",
+                "version": "0.0.5",
+                "summary": "会话历史显示修复",
+                "kind": "fix",
+                "pluginId": "conversation-history"
+              },
+              {
+                "id": "counter",
+                "version": "0.0.2",
+                "summary": "输入统计与草稿显示",
+                "kind": "feature",
+                "pluginId": "composer"
+              }
+            ]
+          },
+          {
+            "name": "@za38.03/agent-ui-creator",
+            "scope": "tools",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          },
+          {
+            "name": "@za38.03/agent-ui-operator",
+            "scope": "tools",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "declared": "workspace:*",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          }
+        ],
+        "blockedReleases": [],
+        "installationSupported": false,
+        "fingerprint": "64b3230724c07ef01ff4305c74d863790c2bb5dea89ccf48ca243ded85f2a9f4",
+        "latestReleaseId": "acceptance-compatible-008",
+        "recommendedReleaseId": "acceptance-compatible-008"
+      }
+    },
+    {
+      "releaseVersion": "0.0.1",
+      "compatibility": "compatible",
+      "plugins": [],
+      "fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855:64b3230724c07ef01ff4305c74d863790c2bb5dea89ccf48ca243ded85f2a9f4",
+      "packageUpdates": {
+        "status": "cached",
+        "checkedAt": "2026-10-17T16:28:01.366Z",
+        "fetchedAt": "2026-10-17T16:28:00.433Z",
+        "digest": "70fbacc6f7624fc971865a68378980597ef8681b6c6d1636b6479664336ee11a",
+        "issue": "UPDATE_SOURCE_UNAVAILABLE",
+        "packages": [
+          {
+            "name": "@za38.03/agent-ui-core",
+            "scope": "project",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "declared": "workspace:*",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          },
+          {
+            "name": "@za38.03/agent-ui-renderer",
+            "scope": "project",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "declared": "workspace:*",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          },
+          {
+            "name": "@za38.03/agent-ui-runtime",
+            "scope": "project",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "declared": "workspace:*",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          },
+          {
+            "name": "@za38.03/agent-ui-plugins",
+            "scope": "project",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.8",
+            "declared": "workspace:*",
+            "updateAvailable": true,
+            "historyIncomplete": false,
+            "summary": [
+              {
+                "id": "counter",
+                "summary": "输入统计与草稿显示",
+                "kind": "feature",
+                "pluginId": "composer",
+                "versions": [
+                  "0.0.8",
+                  "0.0.2"
+                ]
+              },
+              {
+                "id": "history",
+                "summary": "会话历史显示修复",
+                "kind": "fix",
+                "pluginId": "conversation-history",
+                "versions": [
+                  "0.0.5"
+                ]
+              }
+            ],
+            "history": [
+              {
+                "id": "counter",
+                "version": "0.0.8",
+                "summary": "输入统计与草稿显示",
+                "kind": "feature",
+                "pluginId": "composer"
+              },
+              {
+                "id": "history",
+                "version": "0.0.5",
+                "summary": "会话历史显示修复",
+                "kind": "fix",
+                "pluginId": "conversation-history"
+              },
+              {
+                "id": "counter",
+                "version": "0.0.2",
+                "summary": "输入统计与草稿显示",
+                "kind": "feature",
+                "pluginId": "composer"
+              }
+            ]
+          },
+          {
+            "name": "@za38.03/agent-ui-creator",
+            "scope": "tools",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          },
+          {
+            "name": "@za38.03/agent-ui-operator",
+            "scope": "tools",
+            "currentVersion": "0.0.1",
+            "targetVersion": "0.0.1",
+            "declared": "workspace:*",
+            "updateAvailable": false,
+            "historyIncomplete": false,
+            "summary": [],
+            "history": []
+          }
+        ],
+        "blockedReleases": [],
+        "installationSupported": false,
+        "fingerprint": "64b3230724c07ef01ff4305c74d863790c2bb5dea89ccf48ca243ded85f2a9f4",
+        "latestReleaseId": "acceptance-compatible-008",
+        "recommendedReleaseId": "acceptance-compatible-008"
+      }
+    }
+  ]
+}

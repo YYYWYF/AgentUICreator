@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { expect, it } from "vitest";
-import { loadAgentUISourceRegistry } from "@za38.03/agent-ui-source-registry";
+import { loadAgentUISourceRegistry } from "@za38.03/agent-ui-operator/source-registry";
 it("keeps active Form fixtures byte-identical to installable Registry source", async () => {
   const registry = await loadAgentUISourceRegistry();
   const hash = (content: Buffer) => createHash("sha256").update(content).digest("hex");

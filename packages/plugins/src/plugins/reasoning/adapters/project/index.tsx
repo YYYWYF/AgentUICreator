@@ -1,0 +1,14 @@
+import {
+  ConversationCanonicalReasoningGroup,
+  type ConversationReasoningGroupRenderScope,
+  type ConversationCanonicalReasoningGroupProps,
+} from "@za38.03/agent-ui-plugins";
+import type { UIPluginComponentProps } from "../../framework/contracts/ui-plugin";
+import { usePluginRenderScope } from "../../runtime/plugins";
+
+export function ConversationReasoningPlugin(props: UIPluginComponentProps & Partial<ConversationCanonicalReasoningGroupProps>) {
+  const scope = usePluginRenderScope<ConversationReasoningGroupRenderScope>();
+  if (scope?.kind !== "conversation.reasoning-group") return null;
+  const { group, children } = scope.value;
+  return <ConversationCanonicalReasoningGroup {...props} group={group}>{props.children ?? children}</ConversationCanonicalReasoningGroup>;
+}

@@ -8,7 +8,6 @@ import httpx
 import openai
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, HumanMessage
-from langgraph.errors import GraphRecursionError
 from langgraph.types import Command
 
 from ..activity import CreatorActivityRecorder
@@ -221,7 +220,7 @@ class CreatorDomainReadAgent:
             return await DeepAgentV3Runner().run_result(
                 graph=self.graph,
                 input=input_messages if isinstance(input_messages, Command) else {"messages": input_messages},
-                config={"recursion_limit": 60, **({"configurable": {"thread_id": self.thread_id}} if self.thread_id else {})},
+                config={"configurable": {"thread_id": self.thread_id}} if self.thread_id else {},
                 event_sink=self.runtime.event_sink,
             )
 
@@ -252,6 +251,7 @@ class CreatorDomainReadAgent:
                     None,
                 )
                 candidate = "" if final is None else _message_text(final).strip()
+                await self._refresh_completion_runtime_evidence()
                 completion_decision = self.completion_gate.review(candidate)
                 if completion_decision.accepted or completion_decision.feedback is None:
                     break
@@ -270,11 +270,6 @@ class CreatorDomainReadAgent:
                 await self._run_composition_verification_tail()
         except TerminalBlockerStop:
             terminal_blocked = True
-        except GraphRecursionError as error:
-            self.protocol.metrics.repeatedToolLoops += int(self.runtime.no_progress)
-            raise AgentNoProgressError(
-                "Creator Agent 的调用次数已达到上限，请缩小请求范围后重试。"
-            ) from error
         except AgentNoProgressError:
             self.protocol.metrics.repeatedToolLoops += 1
             completed = await self._complete_after_composition_budget()
@@ -309,6 +304,7 @@ class CreatorDomainReadAgent:
         text = "" if final is None else _message_text(final).strip()
         if self.completion_gate is not None:
             if completion_decision is None or not completion_decision.accepted:
+                await self._refresh_completion_runtime_evidence()
                 completion_decision = self.completion_gate.review(text)
             text = completion_decision.text
         completion: CompletionStatus = (
@@ -365,6 +361,19 @@ class CreatorDomainReadAgent:
             )
         return result_type(**values)
 
+    async def _refresh_completion_runtime_evidence(self) -> None:
+        gate = self.completion_gate
+        if gate is None or gate.verification_mode != "static_and_runtime":
+            return
+        validation = gate.validation.current_result()
+        if (validation is None or validation.status != "passed"
+                or validation.revision != self.activity.revision
+                or not self.activity.snapshot()["files"]):
+            return
+        refresh = getattr(gate.runtime, "refresh_for_completion", None)
+        if refresh is not None:
+            await refresh()
+
     async def _run_composition_verification_tail(self) -> None:
         recovery = getattr(self.completion_gate, "recovery", None)
         if recovery is not None and recovery.is_recovery_only():
@@ -402,6 +411,7 @@ class CreatorDomainReadAgent:
         if validation.status != "passed" or validation.revision != self.activity.revision:
             return None
         self.runtime.raise_terminal_error()
+        await self._refresh_completion_runtime_evidence()
         decision = self.completion_gate.review(
             "已按授权完成插件源码、组合及当前修订版的静态验证。"
         )
@@ -546,6 +556,7 @@ def create_domain_read_creator_agent(
             client,
             observations=observations,
             activity=backend.activity,
+            include_official_inventory=permission_scope == "inspect_read_only",
         ),
         ask_user_question,
     )
@@ -863,7 +874,6 @@ def create_domain_write_creator_agent(
     domain_tools.append(create_edit_file_from_read_tool(backend, source_grounding))
     protocol = ToolProtocolMiddleware(
         metrics=metrics,
-        max_model_calls=24,
         raw_trace=raw_trace,
         provider_trace_collector=provider_trace_collector,
         run_control=run_control,

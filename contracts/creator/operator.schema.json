@@ -244,11 +244,21 @@
             "column",
             "panel",
             "stack",
-            "slot"
+            "slot",
+            "sidebar"
           ]
         },
         "rect": {
           "$ref": "#/$defs/runtimeRect"
+        },
+        "trackWidths": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000
+          }
         }
       }
     },
@@ -773,6 +783,38 @@
             "operation",
             "input"
           ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "const": "plan_plugin_source_takeover"
+            },
+            "input": {
+              "$ref": "#/$defs/planPluginSourceInput"
+            }
+          },
+          "required": [
+            "operation",
+            "input"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "const": "takeover_plugin_source"
+            },
+            "input": {
+              "$ref": "#/$defs/takeoverPluginSourceInput"
+            }
+          },
+          "required": [
+            "operation",
+            "input"
+          ],
+          "additionalProperties": false
         }
       ]
     },
@@ -859,6 +901,12 @@
                 },
                 {
                   "$ref": "#/$defs/migrateOfficialPackagePluginResult"
+                },
+                {
+                  "$ref": "#/$defs/planPluginSourceResult"
+                },
+                {
+                  "$ref": "#/$defs/takeoverPluginSourceResult"
                 }
               ]
             }
@@ -3400,7 +3448,7 @@
           "pattern": "^[a-z0-9][a-z0-9-]{0,99}$"
         },
         "basedOn": {
-          "const": "assistant-ui-composer"
+          "const": "composer"
         },
         "replaceInstanceId": {
           "$ref": "#/$defs/nonBlankString"
@@ -3499,7 +3547,7 @@
       "additionalProperties": false,
       "properties": {
         "pluginId": {
-          "const": "assistant-ui-composer"
+          "const": "composer"
         }
       },
       "required": [
@@ -3572,6 +3620,177 @@
           }
         }
       }
+    },
+    "planPluginSourceInput": {
+      "type": "object",
+      "properties": {
+        "pluginId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,99}$"
+        }
+      },
+      "required": [
+        "pluginId"
+      ],
+      "additionalProperties": false
+    },
+    "takeoverPluginSourceInput": {
+      "type": "object",
+      "properties": {
+        "pluginId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,99}$"
+        },
+        "planHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "cancelMarker": {
+          "type": "string",
+          "pattern": "^\\.agentuicreator/control/cancel-[a-f0-9-]{36}$"
+        }
+      },
+      "required": [
+        "pluginId",
+        "planHash"
+      ],
+      "additionalProperties": false
+    },
+    "planPluginSourceResult": {
+      "type": "object",
+      "properties": {
+        "pluginId": {
+          "type": "string"
+        },
+        "package": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "version"
+          ],
+          "additionalProperties": false
+        },
+        "pluginVersion": {
+          "type": "string"
+        },
+        "catalogHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "stateHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "planHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "instances": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sharedDependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependencyChanges": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "compatibility": {
+          "type": "object",
+          "properties": {
+            "composerSupport": {
+              "const": 1
+            }
+          },
+          "required": [
+            "composerSupport"
+          ],
+          "additionalProperties": false
+        },
+        "origins": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "applicationChanges": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "pluginId",
+        "package",
+        "pluginVersion",
+        "catalogHash",
+        "stateHash",
+        "planHash",
+        "files",
+        "instances",
+        "sharedDependencies",
+        "dependencyChanges",
+        "compatibility",
+        "origins"
+      ],
+      "additionalProperties": false
+    },
+    "takeoverPluginSourceResult": {
+      "type": "object",
+      "properties": {
+        "pluginId": {
+          "type": "string"
+        },
+        "ownership": {
+          "const": "project_source"
+        },
+        "packageVersion": {
+          "type": "string"
+        },
+        "changedPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "pluginId",
+        "ownership",
+        "packageVersion",
+        "changedPaths",
+        "checks"
+      ],
+      "additionalProperties": false
     }
   },
   "oneOf": [

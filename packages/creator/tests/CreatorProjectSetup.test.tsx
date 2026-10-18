@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import path from "node:path";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -58,16 +59,16 @@ describe("CreatorProjectSetup", () => {
     const { container, root, props } = await renderSetup({ draft: {
       ...createEmptyCreatorSetupDraft(), sourceRoot: "src/agent-ui",
     } });
-    expect(button(container, "Assistant")).toBeTruthy();
-    expect(button(container, "Embedded")).toBeTruthy();
-    expect(button(container, "Platform")).toBeTruthy();
+    expect(button(container, "助手")).toBeTruthy();
+    expect(button(container, "嵌入式")).toBeTruthy();
+    expect(button(container, "工作台")).toBeTruthy();
     expect((container.querySelector("input") as HTMLInputElement).value).toBe("src/agent-ui");
     expect(button(container, "初始化 Agent UI").disabled).toBe(true);
-    await act(async () => button(container, "Assistant").click());
+    await act(async () => button(container, "助手").click());
     expect(props.onModeChange).toHaveBeenCalledWith("assistant");
-    expect(button(container, "Assistant").getAttribute("aria-pressed")).toBe("false");
+    expect(button(container, "助手").getAttribute("aria-pressed")).toBe("false");
     await act(async () => root.render(<CreatorProjectSetup {...props} draft={{ ...props.draft, mode: "assistant" }} />));
-    expect(button(container, "Assistant").getAttribute("aria-pressed")).toBe("true");
+    expect(button(container, "助手").getAttribute("aria-pressed")).toBe("true");
   });
 
   it("describes usable missing and empty roots and enables Initialize", async () => {
@@ -94,15 +95,28 @@ describe("CreatorProjectSetup", () => {
     } } });
     expect(container.textContent).toContain("缺少或不兼容的 Agent UI 依赖");
     expect(container.textContent).toContain("Missing @assistant-ui/react");
-    expect(button(container, "Assistant").getAttribute("aria-pressed")).toBe("true");
+    expect(button(container, "助手").getAttribute("aria-pressed")).toBe("true");
     expect((container.querySelector("input") as HTMLInputElement).value).toBe("src/agent-ui");
   });
 
   it("disables editing during initialization", async () => {
     const { container } = await renderSetup({ draft: { ...draft(), initializing: true }, canInitialize: false });
-    expect(button(container, "Assistant").disabled).toBe(true);
+    expect(button(container, "助手").disabled).toBe(true);
     expect((container.querySelector("input") as HTMLInputElement).disabled).toBe(true);
     expect(button(container, "正在初始化…").disabled).toBe(true);
     expect(container.querySelector('[role="status"]')?.textContent).toContain("正在创建 Agent UI 源码");
   });
+});
+
+it.each([
+  path.posix.resolve("/Users/example/My Project", "src/agent-ui"),
+  path.win32.resolve("C:\\Users\\example\\我的项目", "src/agent-ui"),
+  path.win32.resolve("\\\\server\\share\\My Project", "src/agent-ui"),
+])("shows the server-resolved absolute target unchanged: %s", async (absolutePath) => {
+  const setupDraft = draft();
+  if (setupDraft.validation.status !== "valid") throw new Error("Invalid fixture");
+  setupDraft.validation.result = { ...setupDraft.validation.result,
+    sourceRoot: { ...setupDraft.validation.result.sourceRoot, absolutePath } };
+  const { container } = await renderSetup({ draft: setupDraft, canInitialize: true });
+  expect(container.querySelector(".creator-setup-target-path")?.textContent).toBe(absolutePath);
 });

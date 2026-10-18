@@ -3,10 +3,12 @@ import { useAui, ComposerPrimitive, type AssistantRuntime } from "@assistant-ui/
 import type { RunAgentInput } from "@ag-ui/client";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ConversationRuntimeProvider, type ConversationAgentFactoryConfig, type ConversationThreadBinding, type ConversationMessage } from "@za38.03/agent-ui-runtime";
 import { CancellationAwareHttpAgent } from "../../runtime/src/compatibility/cancellation-aware-http-agent.js";
 import { AgentUIRoot, ConversationThread, ConversationCanonicalComposer, ConversationComposerQuotePreview, ConversationQuoteSelectionToolbar, useConversationQuoteLifecycle } from "../src/index.js";
+import { ConversationQuotePlugin as NpmQuote } from "../dist/conversation-quote/index.js";
+import { ConversationQuotePlugin as SourceQuote } from "../dist/sources/takeover/conversation-quote/index";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 let root: Root | undefined;
 afterEach(async () => { await act(async () => root?.unmount()); root = undefined; document.body.replaceChildren(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
@@ -14,10 +16,11 @@ async function until(predicate: () => boolean) {
   for (let i = 0; i < 100; i++) { if (predicate()) return; await new Promise(resolve => setTimeout(resolve, 5)); }
   throw new Error("Timed out waiting for quote UI");
 }
-function Feature() {
+function PrimitiveFeature() {
   useConversationQuoteLifecycle();
   return <><ConversationComposerQuotePreview dismissLabel="Dismiss quote" /><ConversationQuoteSelectionToolbar quoteLabel="Quote" /></>;
 }
+describe.each([{name:"primitive",Feature:PrimitiveFeature},{name:"npm",Feature:NpmQuote},{name:"portable",Feature:SourceQuote}])("$name quote lifecycle", ({Feature}) => {
 async function mount(disabled = false, history: readonly ConversationMessage[] = []) {
   vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
   Object.defineProperty(HTMLElement.prototype, "scrollTo", { configurable: true, value() {} });
@@ -163,4 +166,6 @@ it("seeds outbound quote context from structured loaded history after removing c
   expect(requests[0]!.messages.filter(message => message.role === "user").at(-1)!.content).toBe("Continue");
   expect(runtime.thread.getState().messages.find(message => message.id === historicalUser.id)!.content)
     .toEqual(historicalUser.content);
+});
+
 });

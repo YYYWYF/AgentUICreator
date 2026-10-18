@@ -1,3 +1,4 @@
+import { creatorDisplayText } from "../product-presentation.js";
 import { createContext, createElement, useContext, useMemo, useState, type ReactNode } from "react";
 import { enUS } from "./en-US.js";
 import { zhCN } from "./zh-CN.js";
@@ -44,7 +45,7 @@ export function useAgentUILocale(namespace?: keyof CreatorLocaleMessages) {
 }
 export function useCreatorLocaleState() { return useContext(LocaleContext); }
 export function formatLocaleMessage(template: string, ...values: unknown[]): string {
-  return template.replace(/\{(\d+)\}/g, (match, index: string) => Number(index) < values.length ? String(values[Number(index)]) : match);
+  return creatorDisplayText(template.replace(/\{(\d+)\}/g, (match, index: string) => Number(index) < values.length ? String(values[Number(index)]) : match));
 }
 
 const displayCopyPatterns = Object.values(CREATOR_LOCALES).flatMap(catalog =>
@@ -70,17 +71,17 @@ export function localizeCreatorPresentation(text: string | null | undefined, mes
   const exact = exactDisplayCopy.get(text);
   if (exact) {
     const group = messages[exact.namespace as keyof CreatorLocaleMessages] as Record<string, string>;
-    return group[exact.key] ?? text;
+    return creatorDisplayText(group[exact.key] ?? text);
   }
   for (const entry of templatedDisplayCopy) {
     const match = entry.pattern.exec(text);
     if (!match) continue;
     const group = messages[entry.namespace as keyof CreatorLocaleMessages] as Record<string, string>;
     const template = group[entry.key];
-    if (!template) return text;
+    if (!template) return creatorDisplayText(text);
     const values: unknown[] = [];
     entry.indices.forEach((index, capture) => { values[index] = match[capture + 1]; });
-    return formatLocaleMessage(template, ...values);
+    return creatorDisplayText(formatLocaleMessage(template, ...values));
   }
-  return text;
+  return creatorDisplayText(text);
 }

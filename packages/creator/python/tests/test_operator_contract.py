@@ -71,7 +71,7 @@ def test_invalid_host_result_becomes_protocol_error_before_business_consumption(
 def test_purge_contract_accepts_only_plugin_identity_and_fresh_hashes():
     client = OperatorClient(project_root=ROOT)
     request = {"operation": "purge_ui_plugin", "input": {
-        "pluginId": "assistant-ui-slash-command-trigger",
+        "pluginId": "slash-command-trigger",
         "appUIModelHash": "a" * 64, "sourceStateHash": "b" * 64,
     }}
     client._validate_protocol(request, request=True)

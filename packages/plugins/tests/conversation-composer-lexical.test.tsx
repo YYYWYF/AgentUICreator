@@ -4,11 +4,13 @@ import type { RunAgentInput } from "@ag-ui/client";
 import { $getRoot, getNearestEditorFromDOMNode, KEY_BACKSPACE_COMMAND, KEY_DELETE_COMMAND, KEY_ENTER_COMMAND, UNDO_COMMAND } from "lexical";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { CancellationAwareHttpAgent } from "../../runtime/src/compatibility/cancellation-aware-http-agent.js";
 import { AgentUIRoot, ConversationThread, ConversationCanonicalComposer, ConversationComposerTextareaInput, ConversationComposerMentionTrigger, ConversationComposerCommandTrigger, type ConversationTriggerLabels } from "../src/index.js";
-import { ConversationComposerLexicalInput } from "../src/lexical.js";
+import { ConversationComposerLexicalInput as NativeFeature } from "../src/lexical.js";
+import { ConversationLexicalComposerInput as NpmFeature } from "../dist/lexical-composer-input/index.js";
+import { ConversationLexicalComposerInput as SourceFeature } from "../dist/sources/takeover/lexical-composer-input/index";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const labels: ConversationTriggerLabels = { suggestions: "Suggestions", back: "Back", empty: "No matches", loading: "Loading", searchFailed: "Search failed", retry: "Retry", commandFailed: "Command failed", invalidItem: "Invalid item" };
@@ -28,6 +30,7 @@ async function until(predicate: () => boolean) {
   }
   throw new Error("Timed out waiting for Lexical Composer");
 }
+describe.each([{name:"native",Feature:NativeFeature},{name:"npm",Feature:NpmFeature},{name:"portable",Feature:SourceFeature}])("$name", ({Feature:ConversationComposerLexicalInput}) => {
 async function mount(disabled = false, queue = false) {
   vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
   Object.defineProperty(HTMLElement.prototype, "scrollTo", { configurable: true, value() {} });
@@ -213,4 +216,6 @@ it("queues a Lexical Mention through Enter without changing its stable ID", asyn
   expect(requests[1]!.messages.at(-1)?.content).toBe(queuedText);
   await act(async () => finishes[1]!());
   await until(() => !runtime.thread.getState().isRunning);
+});
+
 });

@@ -143,7 +143,7 @@ describe("createScenarioRegistry", () => {
     expect(canonical?.reference).toMatchObject({
       protocol: "AG-UI",
       pattern: "Agents as Tools / Nested Subagent",
-      presentation: "assistant-ui TaskCard",
+      presentation: "Agent UI TaskCard",
       level: "recommended",
     });
     expect(canonical?.reference?.eventFlow?.some((step) =>
@@ -267,7 +267,7 @@ describe("createScenarioRegistry", () => {
       scenarios: [invalid],
       defaultScenarioId: invalid.id,
     })).toThrow(
-      "Nested subagent interrupts are not supported by the current AG-UI 0.0.59 + assistant-ui reference profile.",
+      "Nested subagent interrupts are not supported by the current AG-UI 0.0.59 + Agent UI reference profile.",
     );
   });
 

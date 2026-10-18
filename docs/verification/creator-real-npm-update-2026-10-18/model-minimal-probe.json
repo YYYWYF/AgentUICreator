@@ -1,0 +1,12 @@
+{
+  "test": "single-minimal-request",
+  "model": "mimo-v2.6-flash",
+  "baseURL": "https://opencode.ai/zen/go/v1",
+  "sessionHeader": true,
+  "credentialsPrinted": false,
+  "success": false,
+  "errorType": "AuthenticationError",
+  "status": 401,
+  "code": "api_key_expired",
+  "message": "This API key has expired. Create a new API key in OpenCode Console and replace it in your client or secret store. Signing in again will not renew this key."
+}

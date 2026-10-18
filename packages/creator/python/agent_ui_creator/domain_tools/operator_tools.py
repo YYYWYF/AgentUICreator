@@ -9,8 +9,11 @@ from typing import Any, Literal
 
 from langchain_core.tools import BaseTool, tool
 from pydantic import Json
+from langgraph.types import interrupt
+from ..human_input.models import QuestionRequest, QuestionAnswers
+from ..human_input.plugin_source_messages import MESSAGES as SOURCE_OWNERSHIP_MESSAGES
 
-from .capabilities import capability_navigation
+from .capabilities import capability_evidence, capability_navigation
 from ..responsive_repair import build_repair_plan, responsive_risks
 from ..files import read_creator_file_state
 from ..activity import CreatorActivityRecorder
@@ -291,8 +294,40 @@ def create_operator_tools(
     observations: DomainObservationContext | None = None,
     activity: CreatorActivityRecorder | None = None,
     removal_intent: RemovalIntent = "none",
+    include_official_inventory: bool = False,
 ) -> tuple[BaseTool, ...]:
     paging_states: dict[str, _ProjectInspectionPages] = {}
+    integration_recipes: dict[str, dict[str, Any]] = {}
+
+    def integration_recipe(value: dict[str, Any]) -> dict[str, Any]:
+        if set(value) != {"id"}:
+            return value  # Full recipes still undergo Host validation unchanged.
+        cached = integration_recipes.get(value.get("id"))
+        if cached is None:
+            raise OperatorError("INTEGRATION_RECIPE_REFERENCE_MISSING", "Call plan_agent_ui_integration again, then pass its recipeReference unchanged.")
+        return json.loads(json.dumps(cached))
+
+    def integration_activity():
+        # Host recipe receipts describe consumer edits. Do not record them as
+        # producer-relative source edits or offer an undo against the wrong root.
+        project = getattr(client, "project_root", None)
+        if project is not None and (project / ".agent-ui" / "consumer.json").exists():
+            return None
+        return activity
+
+    async def source_inventory() -> dict[str, Any]:
+        try:
+            return _source_inventory(await client.inspect_agent_ui_sources())
+        except OperatorError as error:
+            # A failed registry lookup is unknown, never an empty official library.
+            return {"inventoryComplete": False, "error": {
+                "code": error.code, "message": str(error),
+            }}
+
+    async def with_official_inventory(result: dict[str, Any]) -> dict[str, Any]:
+        sources = await source_inventory()
+        return {**result, "sources": sources,
+                "capabilityEvidence": capability_evidence(result, sources)}
 
     def invalid_model_error(error: OperatorError | DomainObservationError) -> str:
         if error.code == "APP_UI_MODEL_INVALID":
@@ -366,7 +401,7 @@ def create_operator_tools(
         """Discover installed Plugins, formal Source Items, project component paths, UI stack and legal authoring targets together. This live navigation index is not source truth. Read every page before concluding absence; then inspect only the selected implementation. It never grants development permission."""
         try:
             project = await client.inspect_ui_project()
-            sources = _source_inventory(await client.inspect_agent_ui_sources())
+            sources = await source_inventory()
             result = capability_navigation(project, sources, activity.project_root if activity else None)
             rendered, complete, state = _render_project_inspection(
                 result, cursor, state=paging_states.get("capabilities"),
@@ -406,6 +441,8 @@ def create_operator_tools(
                 if view == "composition"
                 else _project_navigation(result)
             )
+            if include_official_inventory and view is None:
+                result = await with_official_inventory(result)
             current_revision = activity.revision if activity is not None else 0
             current_hash = (
                 observations.current_hash(current_revision=current_revision)
@@ -490,20 +527,31 @@ def create_operator_tools(
             return _render_error(error)
 
     @tool("list_ui_plugins")
-    async def list_ui_plugins() -> str:
-        """Discover the current project's available UI Plugin assets and declarations, including identity, description, capabilities, and declared child Slots. Use this to find which Plugin provides a requested capability; do not call it to learn general composition rules."""
+    async def list_ui_plugins(cursor: str | None = None) -> str:
+        """Discover project UI Plugin assets and declarations. In read-only inspection, also return available official Source Items and capability evidence. Read every page before concluding absence. Use inspect_ui_capabilities for unified capability discovery, not general composition rules."""
         covered = already_covered((
             "composition.model",
             "composition.instances",
             "capability.inventory",
             "capability.composition-summary",
         ))
-        if covered is not None:
+        if covered is not None and not include_official_inventory:
             return covered
         try:
             result = await client.list_ui_plugins()
             if result.get("recoveryOnly") is not True:
                 observe(result.get("appUIModelHash"), "list_ui_plugins")
+            if include_official_inventory:
+                result = await with_official_inventory(result)
+                rendered, _, state = _render_project_inspection(
+                    result, cursor, state=paging_states.get("plugins"),
+                    revision=activity.revision if activity else 0,
+                )
+                if state is None:
+                    paging_states.pop("plugins", None)
+                else:
+                    paging_states["plugins"] = state
+                return rendered
             return _render_result(result)
         except OperatorError as error:
             return _render_error(error)
@@ -633,48 +681,66 @@ def create_operator_tools(
     async def plan_agent_ui_integration(options: dict[str, Any] | Json[dict[str, Any]] | None = None) -> str:
         """Inspect Host and return its canonical integration recipe without changing files. Pass options as a JSON object, for example {"targetFile":"src/App.vue"}, never a JSON-encoded string. Ask the user to select a target from candidates when target-required. Display edits.after verbatim for guides; never invent framework integration code."""
         try:
-            return _render_result(await client.plan_agent_ui_integration(options or {}))
+            result = await client.plan_agent_ui_integration(options or {})
+            recipe = result.get("integrationRecipe")
+            if result.get("status") == "planned" and isinstance(recipe, dict) and isinstance(recipe.get("id"), str):
+                integration_recipes[recipe["id"]] = json.loads(json.dumps(recipe))
+                result = {**result, "recipeReference": {"id": recipe["id"]}}
+            return _render_result(result)
         except OperatorError as error:
             return _render_error(error)
 
     @tool("apply_agent_ui_integration")
     async def apply_agent_ui_integration(recipe: dict[str, Any] | Json[dict[str, Any]]) -> str:
-        """Apply the exact Host recipe JSON object (never a JSON-encoded string) after the user authorizes its displayed plan. Host prepares the official compiled Bridge when needed. Never install React build dependencies into a Vue consumer."""
+        """After the user authorizes a displayed Host plan, pass recipeReference as recipe, e.g. {"id":"the-id-from-plan"}. Call plan first in this run. This forwards the cached exact recipe without reconstructing its code. Full recipe objects remain supported and must be exact. Host prepares the official compiled Bridge when needed. Never install React build dependencies into a Vue consumer."""
         try:
-            if activity is not None:
+            recipe = integration_recipe(recipe)
+            recorder = integration_activity()
+            if recorder is not None:
                 if recipe.get("integration", {}).get("moduleSpecifier") == "/agent-ui.js" and recipe.get("host", {}).get("framework") == "vue":
-                    activity.capture_before("public/agent-ui.js")
+                    recorder.capture_before("public/agent-ui.js")
                 for edit in recipe.get("edits", []):
-                    activity.capture_before(edit["file"])
+                    recorder.capture_before(edit["file"])
             result = await client.apply_agent_ui_integration(recipe)
-            if activity is not None:
+            if activity is not None and recorder is None:
+                activity.record_bound_host_integration(result, phase="apply")
+            if recorder is not None:
                 for changed_path in result.get("changedPaths", []):
-                    activity.file_observations.observe(changed_path)
-                    activity.touch(changed_path)
+                    recorder.file_observations.observe(changed_path)
+                    recorder.touch(changed_path)
             return _render_result(result)
         except OperatorError as error:
             return _render_error(error)
 
     @tool("prepare_agent_ui_integration_asset")
     async def prepare_agent_ui_integration_asset(recipe: dict[str, Any] | Json[dict[str, Any]]) -> str:
-        """Only prepare the official compiled public/agent-ui.js from the original Host recipe after user authorization. Never edits Vue code, package.json or entry files; never completes full integration. Use this when the user wants only the resource file prepared and will edit code manually. Never output bundle contents or locate node_modules paths yourself."""
+        """Only prepare public/agent-ui.js after authorization. Prefer recipeReference from a plan retrieved in this run, e.g. {"id":"the-id-from-plan"}; full original recipes remain supported. Never edits Vue code, package.json or entry files; never completes full integration. Use this when the user wants only the resource file prepared and will edit code manually. Never output bundle contents or locate node_modules paths yourself."""
         try:
-            if activity is not None:
-                activity.capture_before("public/agent-ui.js")
+            recipe = integration_recipe(recipe)
+            recorder = integration_activity()
+            if recorder is not None:
+                recorder.capture_before("public/agent-ui.js")
             result = await client.prepare_agent_ui_integration_asset(recipe)
-            if activity is not None:
+            if activity is not None and recorder is None:
+                activity.record_bound_host_integration(result, phase="asset")
+            if recorder is not None:
                 for changed_path in result.get("changedPaths", []):
-                    activity.file_observations.observe(changed_path)
-                    activity.touch(changed_path)
+                    recorder.file_observations.observe(changed_path)
+                    recorder.touch(changed_path)
             return _render_result(result)
         except OperatorError as error:
             return _render_error(error)
 
     @tool("verify_agent_ui_integration")
     async def verify_agent_ui_integration(recipe: dict[str, Any] | Json[dict[str, Any]]) -> str:
-        """Statically verify the same recipe JSON object (never a JSON-encoded string) after Host apply or manual edits; checks files, configuration, resolvable compiled module, and consumer dependency boundary. Does not perform browser acceptance."""
+        """Statically verify after Host apply or manual edits. Prefer the current plan recipeReference, e.g. {"id":"the-id-from-plan"}; full original recipes remain supported; checks files, configuration, resolvable compiled module, and consumer dependency boundary. Does not perform browser acceptance."""
         try:
-            return _render_result(await client.verify_agent_ui_integration(recipe))
+            recipe = integration_recipe(recipe)
+            recorder = integration_activity()
+            result = await client.verify_agent_ui_integration(recipe)
+            if activity is not None and recorder is None:
+                activity.record_bound_host_integration(result, phase="verify")
+            return _render_result(result)
         except OperatorError as error:
             return _render_error(error)
 
@@ -752,6 +818,38 @@ def create_operator_tools(
         except OperatorError as error:
             return _render_error(error)
 
+    @tool("takeover_plugin_source")
+    async def takeover_plugin_source(pluginId: str, locale: Literal["en-US", "zh-CN"] = "zh-CN") -> str:
+        """Request project ownership of an npm Plugin when public configuration/Slots cannot meet the request. This tool prepares an exact installed-version plan and ALWAYS interrupts for explicit user consent before extracting source and switching the registry. IDs/config/Slots are preserved. No approval argument exists. Run alone; after success prioritize local adapters and never edit upstream or shared Runtime. Already source-owned Plugins can be edited without another takeover."""
+        try:
+            plan = await client.plan_plugin_source_takeover(pluginId)
+            messages = SOURCE_OWNERSHIP_MESSAGES[locale]
+            # Graph replay re-plans read-only. If state changed, the old answer's
+            # step ID cannot validate against this new hash; no mutation follows.
+            step_id = "plugin-source-" + plan["planHash"]
+            request = QuestionRequest.model_validate({"steps": [{
+                "id": step_id,
+                "question": messages["question"].format(plugin_id=pluginId),
+                "description": messages["description"],
+                "options": [{"id": "approve", "label": messages["approve"]},
+                            {"id": "decline", "label": messages["decline"]}],
+                "selectionMode": "single", "minSelections": 1, "maxSelections": 1,
+            }]})
+            resumed = interrupt({"kind": "ask_user_question", **request.model_dump(mode="json", exclude_none=True)})
+            answers = QuestionAnswers.model_validate(resumed).validate_for(request)
+            if answers.answers[step_id] != ["approve"]:
+                return _render_result({"pluginId": pluginId, "status": "declined", "changedPaths": []})
+            result = await client.takeover_plugin_source(pluginId, plan["planHash"])
+            if activity is not None:
+                for changed_path in result.get("changedPaths", []):
+                    activity.file_observations.observe(changed_path)
+                    activity.touch(changed_path)
+            if observations is not None:
+                observations.invalidate_app_ui_model(reason="plugin_source_taken_over")
+            return _render_result(result)
+        except OperatorError as error:
+            return _render_error(error)
+
     @tool("create_custom_plugin")
     async def create_custom_plugin(pluginId: str, basedOn: str | None = None,
                                    capabilities: list[str] | None = None,
@@ -812,4 +910,5 @@ def create_operator_tools(
         apply_agent_ui_source_item,
         purge_ui_plugin,
         create_custom_plugin,
+        takeover_plugin_source,
     )

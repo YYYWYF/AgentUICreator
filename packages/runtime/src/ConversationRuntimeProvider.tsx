@@ -1,7 +1,7 @@
 import type { ConversationFeedbackAdapter } from "./feedback.js";
 import { installConversationQuoteContext } from "./compatibility/conversation-quote-context-agent.js";
 import type { AbstractAgent } from "@ag-ui/client";
-import { ConversationQuoteLifecycleProvider, type ConversationToolkit } from "@za38.03/agent-ui-plugins";
+import { ConversationQuoteLifecycleProvider, ConversationComposerGuardProvider, ConversationTransientMessageProvider, createConversationTransientMessageService, type ConversationTransientMessageService, type ConversationToolkit } from "@za38.03/agent-ui-plugins";
 import type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
 import {
   AuiConfig,
@@ -64,6 +64,7 @@ export type ConversationAgentFactory = (
 ) => AbstractAgent;
 
 export interface ConversationRuntimeProviderProps<TState = unknown> {
+  transientMessages?: ConversationTransientMessageService | undefined;
   endpoint: string;
   threadBinding: ConversationThreadBinding<TState>;
   frontendTools?: AgentFrontendToolSource | undefined;
@@ -91,6 +92,7 @@ const defaultAgentFactory: ConversationAgentFactory = ({ endpoint, threadId }) =
   });
 
 export function ConversationRuntimeProvider<TState = unknown>({
+  transientMessages,
   endpoint,
   threadBinding,
   frontendTools,
@@ -105,6 +107,8 @@ export function ConversationRuntimeProvider<TState = unknown>({
   onError,
   unstable_agentFactory = defaultAgentFactory,
 }: Readonly<ConversationRuntimeProviderProps<TState>>) {
+  const [defaultTransientMessages] = useState(createConversationTransientMessageService);
+  const transientMessageService = transientMessages ?? defaultTransientMessages;
   const toolRevision = useSyncExternalStore(
     useCallback(listener => frontendTools?.subscribe(listener) ?? (() => {}), [frontendTools]),
     () => frontendTools?.getRevision() ?? 0,
@@ -283,7 +287,7 @@ export function ConversationRuntimeProvider<TState = unknown>({
   }, [assistantRuntime, threadBinding]);
   return (
     <AssistantRuntimeProvider runtime={assistantRuntime} {...(config === undefined ? {} : { config })}>
-      <CurrentConversationBridge sessions={sessions} persistence={persistence} threadBinding={threadBinding}>
+      <CurrentConversationBridge sessions={sessions} persistence={persistence} threadBinding={threadBinding} transientMessages={transientMessageService}>
         {children}
       </CurrentConversationBridge>
     </AssistantRuntimeProvider>
@@ -316,7 +320,8 @@ class ConversationThreadSessions<TState> {
   }
 }
 
-function CurrentConversationBridge<TState>({ sessions, persistence, threadBinding, children }: {
+function CurrentConversationBridge<TState>({ sessions, persistence, threadBinding, transientMessages, children }: {
+  transientMessages: ConversationTransientMessageService;
   sessions: ConversationThreadSessions<TState>;
   persistence: ReturnType<typeof createConversationRemoteThreadListAdapter<TState>>;
   threadBinding: ConversationThreadBinding<TState>;
@@ -337,8 +342,19 @@ function CurrentConversationBridge<TState>({ sessions, persistence, threadBindin
   const currentBridge = bridge ?? previousBridge.current;
   if (currentBridge === undefined) return null;
   return <ConversationRuntimeBridgeProvider bridge={currentBridge}>
-    <ConversationQuoteLifecycleProvider clearPendingQuote={currentBridge.clearPendingQuote}>
-      {children}
-    </ConversationQuoteLifecycleProvider>
+    <ConversationComposerGuard bridge={currentBridge} transientMessages={transientMessages}>
+      <ConversationQuoteLifecycleProvider clearPendingQuote={currentBridge.clearPendingQuote}>
+        {children}
+      </ConversationQuoteLifecycleProvider>
+    </ConversationComposerGuard>
   </ConversationRuntimeBridgeProvider>;
+}
+
+function ConversationComposerGuard({ bridge, transientMessages, children }: { bridge: ConversationRuntimeBridge; transientMessages: ConversationTransientMessageService; children: ReactNode }) {
+  const snapshot = useSyncExternalStore(bridge.agentRuntime.subscribe, bridge.agentRuntime.getSnapshot, bridge.agentRuntime.getSnapshot);
+  return <ConversationTransientMessageProvider service={transientMessages} conversationId={snapshot.conversation.id}>
+    <ConversationComposerGuardProvider awaitingReply={snapshot.interrupts.length > 0} interruptKey={JSON.stringify(snapshot.interrupts.map(interrupt => interrupt.id).sort())}>
+      {children}
+    </ConversationComposerGuardProvider>
+  </ConversationTransientMessageProvider>;
 }

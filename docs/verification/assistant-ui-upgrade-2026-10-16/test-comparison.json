@@ -1,0 +1,69 @@
+{
+  "baseline": {
+    "passed": 689,
+    "failed": 22,
+    "skipped": 9,
+    "failedChecks": [
+      " tests/assistant-ui-integration-boundary.test.ts > keeps the canonical theme and Preflight scoped to AgentUIRoot",
+      " tests/assistant-ui-integration-boundary.test.ts > keeps vendor product patches empty and product overlay integration separate",
+      " tests/assistant-ui-upgrade-drill.test.mjs > assistant-ui upgrade drill > upgrades Generative UI 0.0.21 to 0.0.22 through one update and rejects a stale Resource pin",
+      " tests/composer-package-boundary.test.mjs [ tests/composer-package-boundary.test.mjs ]",
+      " tests/conversation-edit-lexical.test.tsx > edits ordinary text, sends canonical AG-UI text and resolves the same employee on the new branch",
+      " tests/conversation-edit-lexical.test.tsx > keeps unknown directives verbatim in the textarea: :legacy[ABC]{name=123}",
+      " tests/conversation-edit-lexical.test.tsx > keeps unknown directives verbatim in the textarea: :unknown[X]",
+      " tests/migrated/ag-ui-boundary.test.ts > generated app AG-UI dependency boundary > enforces package dependency ownership and direction",
+      " tests/migrated/assistant-ui-conversation-visual-contract.test.ts > assistant-ui conversation visual contract > keeps AppUIModel as layout owner and ThreadList as navigation presentation owner",
+      " tests/migrated/assistant-ui-default-composition.test.ts > assistant-ui default composition > keeps the shell and host App free of legacy branding and Ant shell ownership",
+      " tests/migrated/assistant-ui-suggestions-boundary.test.tsx > Conversation Suggestions boundary > renders the assistant-ui runtime suggestion scope through the public facade",
+      " tests/migrated/assistant-ui-theme-bridge.test.tsx > assistant-ui theme bridge > updates the theme without remounting its conversation consumer",
+      " tests/migrated/frontend-tool-form-lifecycle.test.tsx > React Hook Form native frontend tools and replay safety > fills both fields once and preserves a manual edit across conversation replay",
+      " tests/migrated/frontend-tool-form-lifecycle.test.tsx > React Hook Form native frontend tools and replay safety > historical submit/reset receipts never invoke the form controller",
+      " tests/migrated/plugin-cleanup-boundary.test.ts > canonical Conversation plugin cleanup boundary > keeps supported Plugin manifests in the generated catalog",
+      " tests/migrated/plugin-identity.test.ts > UI plugin identity > keeps the generated capability catalog on the canonical plugin set",
+      " tests/migrated/plugin-identity.test.ts > UI plugin identity > requires default placement and matching semantics for official Creator-addable visual Plugins",
+      " tests/migrated/theme-plugin-boundary.test.ts > theme plugin boundary > keeps the provider headless and the switch independent from Ant Design",
+      " tests/migrated/theme-switch.test.tsx > theme-switch plugin > renders a preset picker in the production Conversation header Slot",
+      " tests/migrated/theme-switch.test.tsx > theme-switch plugin > selects all presets through the shared theme service with localized labels",
+      " tests/product-style-ownership.test.mjs > keeps generated ownership reproducible, including official ToolTimeline controls",
+      " tests/upstream-guard.test.ts > assistant-ui upstream ownership guard > configures the official Base UI Registry and protects the declared set",
+      " tests/violet-surface-overrides.test.tsx > Phase 4A Violet surfaces > adds stable Popover hooks without relying on icon classes or text"
+    ]
+  },
+  "upgraded": {
+    "passed": 696,
+    "failed": 17,
+    "skipped": 9,
+    "failedChecks": [
+      " tests/assistant-ui-integration-boundary.test.ts > keeps the canonical theme and Preflight scoped to AgentUIRoot",
+      " tests/composer-package-boundary.test.mjs [ tests/composer-package-boundary.test.mjs ]",
+      " tests/conversation-edit-lexical.test.tsx > edits ordinary text, sends canonical AG-UI text and resolves the same employee on the new branch",
+      " tests/conversation-edit-lexical.test.tsx > keeps unknown directives verbatim in the textarea: :legacy[ABC]{name=123}",
+      " tests/conversation-edit-lexical.test.tsx > keeps unknown directives verbatim in the textarea: :unknown[X]",
+      " tests/migrated/ag-ui-boundary.test.ts > generated app AG-UI dependency boundary > enforces package dependency ownership and direction",
+      " tests/migrated/assistant-ui-conversation-visual-contract.test.ts > assistant-ui conversation visual contract > keeps AppUIModel as layout owner and ThreadList as navigation presentation owner",
+      " tests/migrated/assistant-ui-default-composition.test.ts > assistant-ui default composition > keeps the shell and host App free of legacy branding and Ant shell ownership",
+      " tests/migrated/assistant-ui-suggestions-boundary.test.tsx > Conversation Suggestions boundary > renders the assistant-ui runtime suggestion scope through the public facade",
+      " tests/migrated/assistant-ui-theme-bridge.test.tsx > assistant-ui theme bridge > updates the theme without remounting its conversation consumer",
+      " tests/migrated/frontend-tool-form-lifecycle.test.tsx > React Hook Form native frontend tools and replay safety > fills both fields once and preserves a manual edit across conversation replay",
+      " tests/migrated/frontend-tool-form-lifecycle.test.tsx > React Hook Form native frontend tools and replay safety > historical submit/reset receipts never invoke the form controller",
+      " tests/migrated/plugin-cleanup-boundary.test.ts > canonical Conversation plugin cleanup boundary > keeps supported Plugin manifests in the generated catalog",
+      " tests/migrated/plugin-identity.test.ts > UI plugin identity > keeps the generated capability catalog on the canonical plugin set",
+      " tests/migrated/plugin-identity.test.ts > UI plugin identity > requires default placement and matching semantics for official Creator-addable visual Plugins",
+      " tests/migrated/theme-plugin-boundary.test.ts > theme plugin boundary > keeps the provider headless and the switch independent from Ant Design",
+      " tests/migrated/theme-switch.test.tsx > theme-switch plugin > renders a preset picker in the production Conversation header Slot",
+      " tests/migrated/theme-switch.test.tsx > theme-switch plugin > selects all presets through the shared theme service with localized labels"
+    ]
+  },
+  "newFailedChecks": [],
+  "runtime": {
+    "passed": 131,
+    "failed": 1,
+    "expectedFail": 1,
+    "baselineConfirmed": "thread-list-binding.test.tsx: fake agent lacks use()"
+  },
+  "browser": {
+    "passed": 4,
+    "failed": 2,
+    "baselineConfirmed": "narrow Surface fixture header boundingBox is null at both widths"
+  }
+}

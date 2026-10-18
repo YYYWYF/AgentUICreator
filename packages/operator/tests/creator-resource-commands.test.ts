@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { minVersion } from "semver";
 import { afterEach, expect, it, vi } from "vitest";
 import { initializeAgentUIProject, createDefaultAgentUIPresetRegistry } from "@za38.03/agent-ui-operator/bootstrap";
-import { loadAgentUISourceRegistry, officialResourceRegistry, resolveAgentUISourceItemClosure } from "@za38.03/agent-ui-source-registry";
+import { loadAgentUISourceRegistry, officialResourceRegistry, resolveAgentUISourceItemClosure } from "@za38.03/agent-ui-operator/source-registry";
 import { createAgentUIInitializationHost } from "../src/project/bootstrap-host";
 import { installOfficialAgentUIResource } from "../src/project/install-official-agent-ui-resource";
 import { inspectOfficialAgentUIResourceCatalog } from "../src/project/official-resource-inspection";
@@ -26,6 +26,10 @@ async function project() {
   for (const [name, required] of Object.entries(dependencies)) {
     const directory = path.join(root, "node_modules", name); await mkdir(directory, { recursive: true });
     await writeFile(path.join(directory, "package.json"), JSON.stringify({ name, version: minVersion(required)!.version }));
+    if (name === "@za38.03/agent-ui-plugins") {
+      await writeFile(path.join(directory, "package.json"), JSON.stringify({ name, version: minVersion(required)!.version, exports: { "./composer": "./composer.js" } }));
+      await writeFile(path.join(directory, "composer.js"), "export default {};\n");
+    }
   }
   await writeFile(path.join(root, "tsconfig.json"), JSON.stringify({ compilerOptions: { target: "ES2022", module: "ESNext", moduleResolution: "Bundler", jsx: "react-jsx", resolveJsonModule: true }, include: ["custom-ui"] }));
   await initializeAgentUIProject({ projectRoot: root, mode: "platform", sourceRoot: "custom-ui" }, createAgentUIInitializationHost());
@@ -89,13 +93,13 @@ it("sync handles fresh, stale and missing registry and touches no other generate
 
 it("preserves customized provided Plugin source when re-enabling Reasoning", async () => {
   const root = await project();
-  const definition = path.join(root, "custom-ui/plugins/assistant-ui-reasoning/definition.ts");
+  const definition = path.join(root, "custom-ui/plugins/reasoning/definition.ts");
   const customized = (await readFile(definition, "utf8")) + "\n// User-owned reasoning customization.\n";
   await writeFile(definition, customized);
   const model = parseAppUIModelJson(await readFile(modelPath(root), "utf8"));
-  collectAppUIPluginLocations(model).find(item => item.plugin.pluginId === "assistant-ui-reasoning")!.plugin.enabled = false;
+  collectAppUIPluginLocations(model).find(item => item.plugin.pluginId === "reasoning")!.plugin.enabled = false;
   await writeFile(modelPath(root), JSON.stringify(model));
-  expect((await inspectScenarioResources(root)).items.find(item => item.id === "plugin/assistant-ui-reasoning")?.status).toBe("customized");
+  expect((await inspectScenarioResources(root)).items.find(item => item.id === "plugin/reasoning")?.status).toBe("customized");
   expect(await installOfficialAgentUIResource(root, "reasoning")).toMatchObject({ changed: true, reenabled: true, verification: { status: "passed" } });
   expect(await readFile(definition, "utf8")).toBe(customized);
   expect((await inspectOfficialAgentUIResourceCatalog(root)).find(item => item.id === "reasoning")).toMatchObject({ status: "ready", installable: false });

@@ -1,0 +1,71 @@
+Creator
+更新中心
+处理源码更新
+
+有 2 项更新
+
+暂不提醒
+
+已在线检查官方版本
+
+上次检查：2026-10-17T17:32:18.201Z
+
+刷新官方版本
+确认升级依赖
+
+npm · package-lock.json
+
+@za38.03/agent-ui-core · 0.0.1 → 0.0.1
+@za38.03/agent-ui-renderer · 0.0.1 → 0.0.1
+@za38.03/agent-ui-runtime · 0.0.1 → 0.0.2
+@za38.03/agent-ui-plugins · 0.0.1 → 0.0.2
+
+将更新依赖和锁文件，保留应用层、已托管源码及 BASE。源码同步需要另行选择。
+
+安装时禁用依赖生命周期脚本，随后运行工程已有的类型检查和构建。共享 workspace 锁文件及工具自升级需要单独规划。
+
+工程验证：typecheck, build
+
+暂不更新 / 取消确认升级依赖
+
+推荐兼容组合：acceptance-real-npm-composer-counter
+
+项目 Agent UI
+@za38.03/agent-ui-core
+
+0.0.1 → 0.0.1
+
+依赖声明：0.0.1
+
+@za38.03/agent-ui-renderer
+
+0.0.1 → 0.0.1
+
+依赖声明：0.0.1
+
+@za38.03/agent-ui-runtime
+
+0.0.1 → 0.0.2
+
+依赖声明：0.0.1
+
+该版本区间的变更记录可能不完整。
+
+@za38.03/agent-ui-plugins
+
+0.0.1 → 0.0.2
+
+依赖声明：0.0.1
+
+composer · Composer 新增实时输入字数统计
+查看逐版本变更
+Creator 开发工具
+@za38.03/agent-ui-creator
+
+0.0.1 → 0.0.1
+
+@za38.03/agent-ui-operator
+
+0.0.1 → 0.0.1
+
+依赖声明：workspace:*

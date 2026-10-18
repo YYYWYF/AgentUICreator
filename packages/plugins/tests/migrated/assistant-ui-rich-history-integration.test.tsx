@@ -12,9 +12,9 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createConversationSemanticThreadComponents } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/index";
-import { ConversationSurface } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface";
-import { createConversationToolkit } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
+import { createConversationSemanticThreadComponents } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/index";
+import { ConversationSurface } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface";
+import { createConversationToolkit } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
 import { mockConversationFixtures } from "../../../creator/src/mock-agent/conversations/fixtures";
 
 const chatModel: ChatModelAdapter = { run: async () => ({ content: [] }) };

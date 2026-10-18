@@ -11,8 +11,8 @@ import {
   PluginDiagnosticProvider,
   useOptionalPluginDiagnosticContext,
   type RuntimeRect,
-} from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/diagnostics/index";
-import { createPluginRegistry } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/diagnostics/index";
+import { createPluginRegistry } from "../../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
 
 function stubRect(element: Element, rect: RuntimeRect): void {
   Object.defineProperty(element, "getBoundingClientRect", {

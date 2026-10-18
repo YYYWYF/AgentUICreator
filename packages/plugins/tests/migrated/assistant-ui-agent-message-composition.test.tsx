@@ -10,7 +10,7 @@ const projectRoot = await generatedProjectFixture();
 describe("assistant-ui message composition", () => {
   it("uses the upstream Thread message and part composition", async () => {
     const thread = await readFile(
-      path.join(repositoryRoot, "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"),
+      path.join(repositoryRoot, "packages/plugins/src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"),
       "utf8",
     );
 

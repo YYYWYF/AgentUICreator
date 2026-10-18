@@ -9,7 +9,8 @@ const manifest = (range = "^0.52.0") => ({
 
 it("keeps the optional upstream integration in the frozen upgrade target", async () => {
   const target = JSON.parse(await readFile(new URL("../../../assistant-ui-upgrade-target.json", import.meta.url), "utf8"));
-  expect(target.packages["@assistant-ui/react-lexical"]).toBe("0.2.15");
+  const installed = JSON.parse(await readFile(new URL("../node_modules/@assistant-ui/react-lexical/package.json", import.meta.url), "utf8"));
+  expect(target.packages["@assistant-ui/react-lexical"]).toBe(installed.version);
   expect(target.packageRevisions["@assistant-ui/react-lexical"]).toMatch(/^[a-f0-9]{40}$/);
   const boundary = await readFile(new URL("../scripts/check-lexical-boundary.mjs", import.meta.url), "utf8");
   expect(boundary).not.toMatch(/0\.2\.15|0\.51\.0/);

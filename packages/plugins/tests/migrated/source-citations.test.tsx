@@ -5,9 +5,9 @@ import { act, type ReactElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
 import { ConversationSource, ConversationThread, TooltipProvider, type ConversationSourcePart, type ConversationToolCallProps } from "../../src/index.js";
-import plugin from "../../../source-registry/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/definition";
-import { SearchSourcesToolUI } from "../../../source-registry/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/index";
-import { projectSourceCitationsResult } from "../../../source-registry/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/source-citations-result";
+import plugin from "../../resources/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/definition";
+import { SearchSourcesToolUI } from "../../resources/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/index";
+import { projectSourceCitationsResult } from "../../resources/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/source-citations-result";
 
 const url = { sourceType: "url", id: "react-19", url: "https://react.dev/blog/2024/12/05/react-19", title: "React 19" } as const;
 const documentSource = { sourceType: "document", id: "migration-guide", title: "Internal migration guide", mediaType: "application/pdf", filename: "migration-guide.pdf" } as const;

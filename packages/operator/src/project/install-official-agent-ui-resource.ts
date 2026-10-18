@@ -1,4 +1,5 @@
-import { officialPackagePlugin, loadAgentUISourceRegistry, resolveAgentUISourceItemClosure, resolveOfficialResource, OfficialResourceError } from "@za38.03/agent-ui-source-registry";
+import { ensurePluginApplication } from "./plugin-application";
+import { officialPackagePlugin, loadAgentUISourceRegistry, resolveAgentUISourceItemClosure, resolveOfficialResource, OfficialResourceError } from "../source-catalog/index.js";
 import { migrateOfficialPackagePlugin } from "./migrate-official-package-plugin";
 import { realpath } from "node:fs/promises";
 import { ensureResourcePackages, type ResourcePackageRunner } from "./ensure-resource-packages";
@@ -18,6 +19,7 @@ async function install(projectRoot: string, resourceId: string, runPackages?: Re
     const registry = await loadAgentUISourceRegistry();
     await ensureResourcePackages(projectRoot, resolveAgentUISourceItemClosure(registry, `plugin/${resource.implementation.pluginId}`), runPackages);
     await migrateOfficialPackagePlugin(projectRoot, resource.implementation.pluginId);
+    await ensurePluginApplication(projectRoot, resource.implementation.pluginId);
   }
   const sourcesBefore = await inspectScenarioResources(projectRoot);
   const before = inspectOfficialResourceImplementation(resource, await inspectUIComposition(projectRoot), sourcesBefore);

@@ -5,7 +5,7 @@ import {
   resolveAgentUISourceItemClosure,
   type LoadedAgentUISourceItem,
   type LoadedAgentUISourceRegistry,
-} from "@za38.03/agent-ui-source-registry";
+} from "../../source-catalog/index.js";
 
 import { uiOperatorConfig } from "../project-config";
 import type { UIOperatorConfig } from "../types";
@@ -152,7 +152,7 @@ export async function preflightAgentUISourceApply(
   registry?: LoadedAgentUISourceRegistry,
 ) {
   const loadedRegistry = registry ?? await loadAgentUISourceRegistry();
-  if (input.itemId === "plugin/assistant-ui-composer") throw new AgentUISourceError("PLUGIN_ID_RESERVED_BY_OFFICIAL", "Install the official package or create a project-owned custom plugin; reference source is read-only.");
+  if (input.itemId.startsWith("plugin/") && officialPackagePlugin(input.itemId.slice(7))) throw new AgentUISourceError("PLUGIN_ID_RESERVED_BY_OFFICIAL", "Install the official package or create a project-owned custom plugin; reference source is read-only.");
   const closure = resolveAgentUISourceItems(loadedRegistry, [input.itemId]).filter(item => item.loadedFiles.length > 0);
   const before = await inspectAgentUISources(projectRoot, config, loadedRegistry);
   if (before.stateHash !== input.expectedStateHash) {

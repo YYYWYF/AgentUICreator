@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -803,6 +803,50 @@ describe("ui-operator", () => {
       },
     });
     expect(JSON.stringify(response)).not.toContain("slotId");
+  });
+
+  it("defers uninstantiated renderer scopes while checking visible renderers and ordinary content", async () => {
+    const model: AppUIModel = {root:{type:"slot",plugins:[{
+      id:"sample-main",pluginId:"sample",enabled:true,slots:{
+        content:[{id:"content-main",pluginId:"sample",enabled:true}],
+        render:[{id:"renderer-main",pluginId:"sample",enabled:true,slots:{
+          content:[{id:"renderer-child",pluginId:"sample",enabled:true}],
+        }}],
+      },
+    }]}};
+    const {projectRoot,appUIModelSource,capabilityCatalogRevision}=await createProject(undefined,{
+      slots:{children:{
+        content:{description:"Content",cardinality:"many",optional:true},
+        render:{description:"Message renderer",cardinality:"one",optional:true,mode:"renderer"},
+      }},
+    },model);
+    // This legacy helper lays out files at the project root. The current Host
+    // boundary requires explicit metadata and a dedicated generated source root.
+    await mkdir(path.join(projectRoot,"source"));
+    await rename(path.join(projectRoot,"plugins"),path.join(projectRoot,"source/plugins"));
+    await rename(path.join(projectRoot,"app-ui"),path.join(projectRoot,"source/app-ui"));
+    await mkdir(path.join(projectRoot,".agent-ui"));
+    await writeFile(path.join(projectRoot,".agent-ui/project.json"),JSON.stringify({mode:"platform",sourceRoot:"source"}));
+    const appUIModelHash=createHash("sha256").update(appUIModelSource).digest("hex");
+    const root={instanceId:"sample-main",pluginId:"sample",slotId:resolveRuntimeLayoutSlotId("root")};
+    const content={instanceId:"content-main",pluginId:"sample",slotId:resolveRuntimePluginSlotId("sample-main","content")};
+    const renderer={instanceId:"renderer-main",pluginId:"sample",slotId:resolveRuntimePluginSlotId("sample-main","render")};
+    const request=(instances:unknown[])=>handleUIOperatorRequest({operation:"verify_runtime_composition",input:{appUIModelHash,composition:{
+      appUIModelHash,compositionRevision:`manual:${appUIModelHash}:${capabilityCatalogRevision}`,capabilityCatalogRevision,
+      publishedAt:"2026-10-17T00:00:00Z",observedAt:"2026-10-17T00:00:00Z",instances,slots:[],
+    }}},projectRoot);
+    expect(await request([root,content])).toMatchObject({ok:true,result:{verified:true,checks:[
+      {instanceId:"sample-main",status:"passed"},{instanceId:"content-main",status:"passed"},
+    ]}});
+    expect(await request([root])).toMatchObject({ok:true,result:{verified:false,checks:expect.arrayContaining([
+      expect.objectContaining({instanceId:"content-main",status:"missing"}),
+    ])}});
+    expect(await request([root,content,{...renderer,pluginId:"wrong"}])).toMatchObject({ok:true,result:{verified:false,checks:expect.arrayContaining([
+      expect.objectContaining({instanceId:"renderer-main",status:"plugin-mismatch"}),
+    ])}});
+    expect(await request([root,content,renderer])).toMatchObject({ok:true,result:{verified:false,checks:expect.arrayContaining([
+      expect.objectContaining({instanceId:"renderer-child",status:"missing"}),
+    ])}});
   });
 
   it("rejects stale AppUIModel hashes before Runtime comparison", async () => {

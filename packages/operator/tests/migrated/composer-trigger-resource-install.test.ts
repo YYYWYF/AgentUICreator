@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { minVersion } from "semver";
 import { afterEach, expect, it } from "vitest";
 import { initializeAgentUIProject, createDefaultAgentUIPresetRegistry } from "@za38.03/agent-ui-operator/bootstrap";
-import { loadAgentUISourceRegistry } from "@za38.03/agent-ui-source-registry";
+import { loadAgentUISourceRegistry } from "@za38.03/agent-ui-operator/source-registry";
 import { createAgentUIInitializationHost } from "../../src/project/bootstrap-host";
 import { installOfficialAgentUIResource } from "../../src/project/install-official-agent-ui-resource";
 import { inspectScenarioResources } from "../../src/project/install-scenario-resources";
@@ -43,12 +43,12 @@ it.each(["platform", "assistant", "embedded"] as const)("installs independent tr
   await installOfficialAgentUIResource(root, "composer-trigger-demo");
   expect(await readFile(modelPath, "utf8")).toBe(installed);
   const locations = collectAppUIPluginLocations(parseAppUIModelJson(installed));
-  const composer = locations.find(entry => entry.plugin.pluginId === "assistant-ui-composer")!;
-  for (const pluginId of ["assistant-ui-mention-trigger", "assistant-ui-slash-command-trigger"]) {
+  const composer = locations.find(entry => entry.plugin.pluginId === "composer")!;
+  for (const pluginId of ["mention-trigger", "slash-command-trigger"]) {
     expect(locations.filter(entry => entry.plugin.pluginId === pluginId)).toHaveLength(1);
     expect(locations.find(entry => entry.plugin.pluginId === pluginId)!.target).toEqual({ type: "plugin_slot", parentInstanceId: composer.plugin.id, slot: "triggers" });
   }
-  expect(locations.find(entry => entry.plugin.pluginId === "assistant-ui-lexical-composer-input")!.target).toEqual({ type: "plugin_slot", parentInstanceId: composer.plugin.id, slot: "input" });
+  expect(locations.find(entry => entry.plugin.pluginId === "lexical-composer-input")!.target).toEqual({ type: "plugin_slot", parentInstanceId: composer.plugin.id, slot: "input" });
   expect(locations.find(entry => entry.plugin.pluginId === "composer-trigger-demo")!.target).toEqual({ type: "application" });
   expect((await verifyUIProject(root)).status).toBe("passed");
   expect((await inspectScenarioResources(root)).items.find(item => item.id === "demo/composer-triggers")!.status).toBe("managed");

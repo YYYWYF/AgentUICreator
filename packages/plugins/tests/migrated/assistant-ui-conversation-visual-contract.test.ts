@@ -12,8 +12,8 @@ const surfaceDefinitionUrl = new URL("plugins/conversation-surface/definition.ts
 const appUIUrl = new URL("app-ui/app-ui.json", `file://${await generatedProjectFixture()}/`);
 const threadListPluginUrl = new URL("plugins/conversation-thread-list/index.tsx", `file://${await generatedProjectFixture()}/`);
 const threadListStylesUrl = new URL("plugins/conversation-thread-list/styles.css", `file://${await generatedProjectFixture()}/`);
-const vendorThreadListUrl = new URL("../../../../packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx", import.meta.url);
-const threadUrl = new URL("../../../../packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx", import.meta.url);
+const vendorThreadListUrl = new URL("../../../../packages/plugins/src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx", import.meta.url);
+const threadUrl = new URL("../../../../packages/plugins/src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/thread.aui.tsx", import.meta.url);
 const composableThreadUrl = new URL("../../../../packages/plugins/src/internal/composable-thread.tsx", import.meta.url);
 const publicUrl = new URL("../../../../packages/plugins/src/public.tsx", import.meta.url);
 

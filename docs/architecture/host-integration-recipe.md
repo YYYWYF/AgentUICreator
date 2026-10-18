@@ -25,6 +25,22 @@ producer it retains the existing official resource installer.
 
 ## Producer and consumer
 
+Native React and compatibility mounts share the producer's presentation settings.
+The bridge registration passes `agentUILocaleConfig.defaultLocale` and
+`agentUIThemeConfig.theme` to the Web Component Host factory. Integration recipes
+leave locale/theme unset unless the user explicitly supplies them, so editing
+those project settings affects both outputs after rebuilding. Explicit element
+properties/attributes retain precedence. Existing wrappers that hard-code these
+options retain their explicit settings until separately edited.
+
+The common Host factory owns the Shadow mount's typography and sizing defaults:
+it inherits the same Host typography captured by native React, preserves the
+official presentation boundary, and fills the viewport (`100dvh`) by default.
+Hosts embedding a smaller region set the element's CSS height. The shared
+`--agent-ui-height` property also supports explicit sizing in both integrations.
+The generated producer preview removes the browser's default body margin and
+fills the viewport; business Host page margins/layout remain Host-owned.
+
 React consumers share their host's React instance. Public React peers accept
 `>=18 <20`, including the Conversation Runtime and the optional Creator UI peers.
 Workspace development dependencies and overrides stay pinned to React 19.1.1;
@@ -44,7 +60,7 @@ React producer. Its build emits a compiled ESM bundle containing that project's
 AppUIModel and React Plugins. Do not install this producer's dependency closure
 into a Vue consumer: it includes React/Vite/Tailwind build dependencies.
 
-Vue compatibility defaults to the public compiled distribution `/agent-ui.js`.
+Unbound compatibility consumers retain the public compiled distribution `/agent-ui.js` path.
 Planning checks whether `public/agent-ui.js` exists or the development Host can
 resolve its installed official Web Component distribution. Planning writes no
 files. After approval, apply exclusively copies the official compiled ESM bundle
@@ -183,3 +199,36 @@ and zero-write verification after canonical manual edits using the original
 recipe. The integration recipe suite has 11 passing tests and the tool forwarding/
 read-only policy suite has three passing tests. No additional model/browser or
 final acceptance was run for this follow-up.
+
+## Creator-managed Vue producer (2026-10-18)
+
+Standalone npm/pnpm Vue hosts now take a separate initialization path. Setup plans
+an independent React producer directory (default `agent-ui/`) using the installed
+catalog preset and bridge requirements, shows the dependency plan, and requires
+its current plan ID before installing. Host package/lockfile content and registry
+configuration contribute to that ID. Shared workspaces and other package managers
+are rejected before creation; interrupted or failed installations remain available
+for inspection and are not advertised as a completed rollback.
+
+Initialization reuses the canonical bootstrap and incremental integration resource
+installer. It does not reinstall or overwrite already managed foundations. The
+producer owns its dependencies and independent scripts; the generated build script
+uses Node process arguments without shell-specific environment assignment. Registry
+credentials are read from the Host configuration, not copied into generated source.
+
+The Host stores `.agent-ui/producer.json` with a relative producer directory and
+published bundle hash. The producer stores a reciprocal `.agent-ui/consumer.json`
+link. Creator retains the Host workspace identity for the dock while targeting the
+producer for editing, npm updates, source ownership, and Python tooling. Integration
+recipe operations resolve that reciprocal binding back to the Vue consumer; their
+existing result/protocol schemas and explicit plan approval remain unchanged.
+
+The explicit **Build and update host** action builds the producer and publishes
+`dist/agent-ui-web-component/agent-ui.js` to the bound Host's `public/agent-ui.js`.
+It hashes source/config/lock inputs before and after building, checks the previous
+Host asset hash before replacement, and records the published source/bundle hashes.
+Bound recipe planning rejects missing, stale, or changed output instead of falling
+back to the official default distribution. Ordinary customizations do not change
+implementation BASE or take over any npm Plugin source. Production Vue builds pick
+up the published asset through their normal public asset pipeline; neither Creator
+nor Operator is part of the generated frontend bundle.

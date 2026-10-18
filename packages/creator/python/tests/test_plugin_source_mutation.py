@@ -44,8 +44,17 @@ def make_plugin(root: Path) -> None:
     )
 
 
+def configure_project(root: Path) -> None:
+    metadata = root / ".agent-ui"
+    metadata.mkdir(exist_ok=True)
+    (metadata / "project.json").write_text(
+        json.dumps({"mode": "assistant", "sourceRoot": "src/ui"}), encoding="utf-8"
+    )
+
+
 def make_service(root: Path, run_id: str = "plugin-mutation"):
-    make_plugin(root)
+    configure_project(root)
+    make_plugin(root / "src/ui")
     activity = CreatorActivityRecorder(root)
     activity.begin(run_id)
     return (
@@ -85,7 +94,7 @@ def create(relative_path: str, content: str = "export {};\n"):
 def observe(activity: CreatorActivityRecorder, *relative_paths: str) -> None:
     for relative_path in relative_paths:
         activity.file_observations.observe(
-            f"/plugins/task-status/{relative_path}"
+            f"/src/ui/plugins/task-status/{relative_path}"
         )
 
 
@@ -108,12 +117,12 @@ def test_mutates_two_existing_files_atomically_and_records_receipt(tmp_path):
         "pluginId": "task-status",
         "changed": True,
         "changedPaths": [
-            "plugins/task-status/index.tsx",
-            "plugins/task-status/styles.css",
+            "src/ui/plugins/task-status/index.tsx",
+            "src/ui/plugins/task-status/styles.css",
         ],
         "modifiedPaths": [
-            "plugins/task-status/index.tsx",
-            "plugins/task-status/styles.css",
+            "src/ui/plugins/task-status/index.tsx",
+            "src/ui/plugins/task-status/styles.css",
         ],
         "createdPaths": [],
         "mutationRevision": 2,
@@ -162,25 +171,25 @@ def test_mutates_existing_file_and_creates_nested_file_with_undo(tmp_path):
     )
     activity.finish()
 
-    assert result.modified_paths == ("plugins/task-status/index.tsx",)
+    assert result.modified_paths == ("src/ui/plugins/task-status/index.tsx",)
     assert result.created_paths == (
-        "plugins/task-status/components/details/StatusBadge.tsx",
+        "src/ui/plugins/task-status/components/details/StatusBadge.tsx",
     )
     assert activity.transactions.load("plugin-mutation").created_directories == (
-        "plugins/task-status/components",
-        "plugins/task-status/components/details",
+        "src/ui/plugins/task-status/components",
+        "src/ui/plugins/task-status/components/details",
     )
 
     activity.transactions.undo("plugin-mutation")
 
-    assert "Ready" in (tmp_path / "plugins/task-status/index.tsx").read_text()
-    assert not (tmp_path / "plugins/task-status/components").exists()
+    assert "Ready" in (tmp_path / "src/ui/plugins/task-status/index.tsx").read_text()
+    assert not (tmp_path / "src/ui/plugins/task-status/components").exists()
 
 
 def test_stale_one_file_rejects_entire_mutation_without_writes(tmp_path):
     service, activity = make_service(tmp_path)
     observe(activity, "index.tsx", "styles.css")
-    (tmp_path / "plugins/task-status/styles.css").write_text(
+    (tmp_path / "src/ui/plugins/task-status/styles.css").write_text(
         ".status { padding: 10px; }\n", encoding="utf-8"
     )
 
@@ -196,8 +205,8 @@ def test_stale_one_file_rejects_entire_mutation_without_writes(tmp_path):
         )
 
     assert captured.value.code == "PLUGIN_SOURCE_STALE_VERSION"
-    assert "Ready" in (tmp_path / "plugins/task-status/index.tsx").read_text()
-    assert "10px" in (tmp_path / "plugins/task-status/styles.css").read_text()
+    assert "Ready" in (tmp_path / "src/ui/plugins/task-status/index.tsx").read_text()
+    assert "10px" in (tmp_path / "src/ui/plugins/task-status/styles.css").read_text()
     assert activity.revision == 0
 
 
@@ -217,7 +226,7 @@ def test_unread_existing_file_rejects_entire_mutation(tmp_path):
         )
 
     assert captured.value.code == "PLUGIN_SOURCE_OBSERVATION_REQUIRED"
-    assert "Ready" in (tmp_path / "plugins/task-status/index.tsx").read_text()
+    assert "Ready" in (tmp_path / "src/ui/plugins/task-status/index.tsx").read_text()
     assert activity.revision == 0
 
 
@@ -231,7 +240,7 @@ def test_plugin_must_exist_before_mutation(tmp_path):
         asyncio.run(service.mutate(missing.pluginId, missing.changes))
 
     assert captured.value.code == "PLUGIN_NOT_FOUND"
-    assert not (tmp_path / "plugins/missing-plugin").exists()
+    assert not (tmp_path / "src/ui/plugins/missing-plugin").exists()
     assert activity.revision == 0
 
 
@@ -291,7 +300,7 @@ def test_exact_replacement_failure_has_zero_writes(
     tmp_path, content, old, expected_code
 ):
     service, activity = make_service(tmp_path)
-    target = tmp_path / "plugins/task-status/index.tsx"
+    target = tmp_path / "src/ui/plugins/task-status/index.tsx"
     target.write_text(content, encoding="utf-8")
     observe(activity, "index.tsx")
 
@@ -309,7 +318,7 @@ def test_exact_replacement_failure_has_zero_writes(
 
 def test_replace_all_is_explicit(tmp_path):
     service, activity = make_service(tmp_path)
-    target = tmp_path / "plugins/task-status/index.tsx"
+    target = tmp_path / "src/ui/plugins/task-status/index.tsx"
     target.write_text("Ready Ready\n", encoding="utf-8")
     observe(activity, "index.tsx")
 
@@ -340,9 +349,9 @@ def test_manifest_id_change_rejects_all_files(tmp_path):
 
     assert captured.value.code == "PLUGIN_SOURCE_MANIFEST_ID_MISMATCH"
     assert json.loads(
-        (tmp_path / "plugins/task-status/manifest.json").read_text()
+        (tmp_path / "src/ui/plugins/task-status/manifest.json").read_text()
     )["id"] == "task-status"
-    assert "Ready" in (tmp_path / "plugins/task-status/index.tsx").read_text()
+    assert "Ready" in (tmp_path / "src/ui/plugins/task-status/index.tsx").read_text()
     assert activity.revision == 0
 
 
@@ -358,7 +367,7 @@ def test_invalid_manifest_rejects_mutation_before_any_write(tmp_path, manifest):
                 changes(
                     edit(
                         "manifest.json",
-                        (tmp_path / "plugins/task-status/manifest.json").read_text(),
+                        (tmp_path / "src/ui/plugins/task-status/manifest.json").read_text(),
                         manifest,
                     ),
                     edit("index.tsx", "Ready", "Current Task"),
@@ -367,13 +376,13 @@ def test_invalid_manifest_rejects_mutation_before_any_write(tmp_path, manifest):
         )
 
     assert captured.value.code == "PLUGIN_SOURCE_MANIFEST_INVALID"
-    assert "Ready" in (tmp_path / "plugins/task-status/index.tsx").read_text()
+    assert "Ready" in (tmp_path / "src/ui/plugins/task-status/index.tsx").read_text()
     assert activity.revision == 0
 
 
 def test_existing_create_target_rejects_all_files(tmp_path):
     service, activity = make_service(tmp_path)
-    existing = tmp_path / "plugins/task-status/components/X.tsx"
+    existing = tmp_path / "src/ui/plugins/task-status/components/X.tsx"
     existing.parent.mkdir()
     existing.write_text("user file\n", encoding="utf-8")
     observe(activity, "index.tsx")
@@ -390,7 +399,7 @@ def test_existing_create_target_rejects_all_files(tmp_path):
         )
 
     assert captured.value.code == "PLUGIN_SOURCE_FILE_ALREADY_EXISTS"
-    assert "Ready" in (tmp_path / "plugins/task-status/index.tsx").read_text()
+    assert "Ready" in (tmp_path / "src/ui/plugins/task-status/index.tsx").read_text()
     assert existing.read_text() == "user file\n"
     assert activity.revision == 0
 
@@ -424,8 +433,8 @@ def test_commit_failure_rolls_back_every_applied_file(tmp_path, monkeypatch):
         )
 
     assert captured.value.code == "PLUGIN_SOURCE_MUTATION_FAILED"
-    assert "Ready" in (tmp_path / "plugins/task-status/index.tsx").read_text()
-    assert "8px" in (tmp_path / "plugins/task-status/styles.css").read_text()
+    assert "Ready" in (tmp_path / "src/ui/plugins/task-status/index.tsx").read_text()
+    assert "8px" in (tmp_path / "src/ui/plugins/task-status/styles.css").read_text()
     assert activity.revision == 0
 
 
@@ -459,14 +468,14 @@ def test_incomplete_rollback_reconciles_real_residual_for_undo(tmp_path, monkeyp
         )
 
     assert captured.value.code == "PLUGIN_SOURCE_MUTATION_ROLLBACK_FAILED"
-    assert "Current Task" in (tmp_path / "plugins/task-status/index.tsx").read_text()
+    assert "Current Task" in (tmp_path / "src/ui/plugins/task-status/index.tsx").read_text()
     assert activity.revision == 1
     receipt = activity.finish()
     assert [file["path"] for file in receipt["files"]] == [
-        "plugins/task-status/index.tsx"
+        "src/ui/plugins/task-status/index.tsx"
     ]
     activity.transactions.undo("plugin-mutation")
-    assert "Ready" in (tmp_path / "plugins/task-status/index.tsx").read_text()
+    assert "Ready" in (tmp_path / "src/ui/plugins/task-status/index.tsx").read_text()
 
 
 def test_undo_preserves_user_file_added_to_created_directory(tmp_path):
@@ -478,12 +487,12 @@ def test_undo_preserves_user_file_added_to_created_directory(tmp_path):
         )
     )
     activity.finish()
-    user_file = tmp_path / "plugins/task-status/components/user-note.txt"
+    user_file = tmp_path / "src/ui/plugins/task-status/components/user-note.txt"
     user_file.write_text("keep me\n", encoding="utf-8")
 
     activity.transactions.undo("plugin-mutation")
 
-    assert not (tmp_path / "plugins/task-status/components/Generated.tsx").exists()
+    assert not (tmp_path / "src/ui/plugins/task-status/components/Generated.tsx").exists()
     assert user_file.read_text() == "keep me\n"
     assert user_file.parent.is_dir()
 
@@ -508,7 +517,7 @@ def test_source_noop_does_not_advance_or_record_semantic_noop(tmp_path):
     "relative_path",
     [
         "../other/index.tsx",
-        "/plugins/task-status/index.tsx",
+        "/src/ui/plugins/task-status/index.tsx",
         "C:/plugins/task-status/index.tsx",
         "components\\X.tsx",
         "",
@@ -544,6 +553,7 @@ def call(name, arguments, call_id):
 
 
 def test_domain_write_exposes_mutation_as_side_effect_exclusive(tmp_path):
+    configure_project(tmp_path)
     model = CapturingModel(responses=[AIMessage(content="No change needed.")])
     agent = create_domain_write_creator_agent(
         model=model,
@@ -552,7 +562,10 @@ def test_domain_write_exposes_mutation_as_side_effect_exclusive(tmp_path):
     )
     asyncio.run(agent.run("Inspect whether a change is needed."))
 
-    assert set(model.bound_tool_names) == set(ALLOWED_DOMAIN_WRITE_TOOLS)
+    assert set(model.bound_tool_names).issubset(ALLOWED_DOMAIN_WRITE_TOOLS)
+    # This fixture has no live Runtime or Plugin-development authority.
+    assert "inspect_runtime_errors" not in model.bound_tool_names
+    assert "create_ui_plugin" not in model.bound_tool_names
     assert "mutate_ui_plugin_source" in model.bound_tool_names
 
     mutation = call(
@@ -563,7 +576,7 @@ def test_domain_write_exposes_mutation_as_side_effect_exclusive(tmp_path):
         },
         "mutate",
     )
-    read = call("read_file", {"file_path": "/plugins/task-status/index.tsx"}, "read")
+    read = call("read_file", {"file_path": "/src/ui/plugins/task-status/index.tsx"}, "read")
     assert is_valid_domain_tool_batch(ModelResponse(result=[mutation]))
     assert not is_valid_domain_tool_batch(
         ModelResponse(

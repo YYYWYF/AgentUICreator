@@ -20,14 +20,14 @@ export const nestedSubagentConversationScenario = defineScenario({
   id: "nested-subagent-conversation",
   resources: ["reasoning", "tool-group", "tool-approval", "task-group"],
   title: "AG-UI Subagent → Task Card",
-  description: "标准 AG-UI Subagent 参考案例：父 ToolCall 启动 Researcher，SUBAGENT_* 事件由 react-ag-ui 投影为 nested messages，最终由 assistant-ui TaskCard 展示。",
+  description: "标准 AG-UI Subagent 参考案例：父 ToolCall 启动 Researcher，SUBAGENT_* 事件由 react-ag-ui 投影为 nested messages，最终由 Agent UI TaskCard 展示。",
   category: "multi-agent",
   capabilities: ["reasoning", "tool", "subagent"],
   reference: {
     audience: "backend",
     protocol: "AG-UI",
     pattern: "Agents as Tools / Nested Subagent",
-    presentation: "assistant-ui TaskCard",
+    presentation: "Agent UI TaskCard",
     level: "recommended",
     eventFlow: [
       "TOOL_CALL_START",
@@ -76,7 +76,7 @@ export const nestedSubagentConversationScenario = defineScenario({
           },
           {
             type: "message",
-            text: "检查完成：Conversation Runtime 负责 assistant-ui Runtime 集成，AgentUICreator 通过 facade 和 Plugin seam 提供产品扩展。",
+            text: "检查完成：Conversation Runtime 负责 Agent UI Runtime 集成，AgentUICreator 通过 facade 和 Plugin seam 提供产品扩展。",
             intervalMs: 25,
           },
         ],

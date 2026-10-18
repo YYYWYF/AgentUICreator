@@ -6,7 +6,7 @@ import {
   resolveAgentUISourceItemClosure,
   type LoadedAgentUISourceItem,
   type LoadedAgentUISourceRegistry,
-} from "@za38.03/agent-ui-source-registry";
+} from "../../source-catalog/index.js";
 import { satisfies as satisfiesSemver } from "semver";
 
 import { uiOperatorConfig } from "../project-config";
@@ -207,6 +207,7 @@ export async function inspectAgentUISources(
   for (const item of loadedRegistry.items) {
     const locked = lock.items[item.id];
     const provided = config.agentUI.providedSourceItems?.includes(item.id) ?? false;
+    if (item.id.startsWith("plugin/assistant-ui-") && !locked && !provided) continue;
     const targets = new Set([
       ...item.files.map((file) => file.target),
       ...Object.keys(locked?.files ?? {}),

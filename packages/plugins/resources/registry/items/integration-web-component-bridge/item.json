@@ -1,0 +1,28 @@
+{
+  "id": "integration/web-component-bridge",
+  "kind": "integration",
+  "description": "Web Component compatibility host; canonical React composition and Plugins only",
+  "requires": [
+    "foundation/core"
+  ],
+  "files": [
+    {
+      "source": "files/integrations/web-component-bridge/register.tsx",
+      "target": "integrations/web-component-bridge/register.tsx"
+    },
+    {
+      "source": "files/integrations/web-component-bridge/styles.css",
+      "target": "integrations/web-component-bridge/styles.css"
+    },
+    {
+      "source": "files/integrations/web-component-bridge/vite.config.ts",
+      "target": "integrations/web-component-bridge/vite.config.ts"
+    }
+  ],
+  "packages": {
+    "@za38.03/agent-ui-web-component": "0.0.1",
+    "vite": "8.3.0",
+    "@vitejs/plugin-react": "6.0.2",
+    "@tailwindcss/vite": "4.3.3"
+  }
+}

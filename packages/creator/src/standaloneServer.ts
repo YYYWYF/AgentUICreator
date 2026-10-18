@@ -16,6 +16,7 @@ import type { MockProjectInspector } from "./mock/demo-compatibility.js";
 function defaultService(configRoot: string) {
   const initializationHost = createAgentUIInitializationHost();
   const workspaceManager = new CreatorWorkspaceManager({
+    compatibility: true,
     inspectProject: inspectCreatorProject,
     initializeProject: input => initializeAgentUIProject(input, initializationHost),
     validateProjectSetup: validateAgentUIProjectSetup,

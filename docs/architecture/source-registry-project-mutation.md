@@ -1,5 +1,7 @@
 # Source Registry storage and Host project mutation
 
+> 2026-10-17：当前目标见 [统一 Plugins 包、内置源码目录与按需源码托管](npm-default-plugin-source-ownership.md)。本文描述现有源码事务。新增用户授权后的包→源码接管需覆盖 ownership、完整文件提取和唯一注册引用切换；原独立 Source Registry 目标合入 Plugins 的 catalog/源码资产，默认运行入口不读取这些资产；本文的 Source Registry 名称指旧实现，不代表继续独立发包。现有事务尚不覆盖完整接管、依赖安装和跨包兼容检查。
+
 Source capability existence and AppUIModel composition are separate decisions.
 Installing or deleting Source items never inserts, enables, disables, or removes
 AppUIModel Plugin instances.

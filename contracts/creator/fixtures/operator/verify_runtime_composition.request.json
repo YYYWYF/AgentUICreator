@@ -9,7 +9,33 @@
       "publishedAt": "2026-09-27T00:00:00Z",
       "observedAt": "2026-09-27T00:00:00Z",
       "instances": [],
-      "slots": []
+      "slots": [],
+      "layoutNodes": [
+        {
+          "nodeId": "sidebar",
+          "type": "sidebar",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 240,
+            "height": 800
+          }
+        },
+        {
+          "nodeId": "content",
+          "type": "row",
+          "rect": {
+            "x": 240,
+            "y": 0,
+            "width": 800,
+            "height": 800
+          },
+          "trackWidths": [
+            300,
+            500
+          ]
+        }
+      ]
     }
   }
 }

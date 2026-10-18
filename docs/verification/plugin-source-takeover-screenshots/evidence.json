@@ -1,0 +1,58 @@
+{
+  "mode": "deterministic-real-tool-and-CreatorQuestionCard-no-LLM",
+  "before": {
+    "pluginId": "composer",
+    "packageVersion": "0.0.1",
+    "ownership": "official_package",
+    "baseVersion": null,
+    "files": [],
+    "registry": "      import(\"@za38.03/agent-ui-plugins/composer\").then(",
+    "modelUnchanged": true,
+    "sourceHash": null,
+    "baseHash": null,
+    "sourcePreserved": null,
+    "basePreserved": null
+  },
+  "adopted": {
+    "pluginId": "composer",
+    "packageVersion": "0.0.1",
+    "ownership": "project_source",
+    "baseVersion": "0.0.1",
+    "files": [
+      "THIRD_PARTY_NOTICES.md",
+      "adapters/composer.tsx",
+      "adapters/textarea.tsx",
+      "definition.ts",
+      "index.tsx",
+      "manifest.json"
+    ],
+    "registry": "      import(\"./composer/definition\").then(",
+    "modelUnchanged": true,
+    "sourceHash": "17f7fa10d44d5fed5351243d23681ae649639149ce366605e295b43116b10edd",
+    "baseHash": "2ec4ddd9fcc5041dbab66b98dd2f8a2a8fd078beba4f58bd98b5c05fb44ca0e6",
+    "sourcePreserved": null,
+    "basePreserved": null
+  },
+  "upgraded": {
+    "pluginId": "composer",
+    "packageVersion": "99.0.0",
+    "ownership": "project_source",
+    "baseVersion": "0.0.1",
+    "files": [
+      "THIRD_PARTY_NOTICES.md",
+      "adapters/composer.tsx",
+      "adapters/textarea.tsx",
+      "definition.ts",
+      "index.tsx",
+      "manifest.json"
+    ],
+    "registry": "      import(\"./composer/definition\").then(",
+    "modelUnchanged": true,
+    "sourceHash": "17f7fa10d44d5fed5351243d23681ae649639149ce366605e295b43116b10edd",
+    "baseHash": "2ec4ddd9fcc5041dbab66b98dd2f8a2a8fd078beba4f58bd98b5c05fb44ca0e6",
+    "sourcePreserved": true,
+    "basePreserved": true
+  },
+  "browserErrors": [],
+  "projectWasTemporary": true
+}

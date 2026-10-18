@@ -103,7 +103,13 @@ module.exports = { hooks: { readPackage(pkg) {
   await writeFile(path.join(consumerRoot, "index.ts"), `import {
   AgentUiRuntimeBusyError, ConversationRuntimeProvider, UnsupportedAgentInputError,
   createEphemeralConversationThreadBinding, type ConversationRuntimeProviderProps,
+  AgentUIProvider, useAgentUI, useAgentUIState, useAgentUIEvent,
+  type AgentUIUser, type AgentUIHost,
 } from "@za38.03/agent-ui-runtime";
+
+const optionalUser: AgentUIUser = {};
+const hostHook: () => AgentUIHost = useAgentUI;
+void [AgentUIProvider, hostHook, useAgentUIState, useAgentUIEvent, optionalUser];
 
 ${checkReactCompatibility ? `import { createElement } from "react";
 import { Button } from "@za38.03/agent-ui-plugins";

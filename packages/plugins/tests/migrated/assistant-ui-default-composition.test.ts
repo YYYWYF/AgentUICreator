@@ -6,9 +6,9 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import appUIJson from "../../../operator/tests/fixtures/project/app-ui/app-ui.json";
-import { conversationPresentationConfig } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/index";
+import { conversationPresentationConfig } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/index";
 import { collectAppUIPluginLocations, parseAppUIModel } from "../../../operator/src/framework/contracts/app-ui-model";
-import { pluginCapabilityCatalog } from "../../../source-registry/registry/items/foundation-core/files/plugins/index";
+import { pluginCapabilityCatalog } from "../../resources/registry/items/foundation-core/files/plugins/index";
 
 const projectRoot = await generatedProjectFixture();
 
@@ -36,19 +36,19 @@ describe("assistant-ui default composition", () => {
       },
     });
     const locations = collectAppUIPluginLocations(parseAppUIModel(appUIJson));
-    expect(locations.find(({ plugin }) => plugin.id === "assistant-ui-reasoning-main")?.target)
+    expect(locations.find(({ plugin }) => plugin.id === "reasoning-main")?.target)
       .toMatchObject({ type: "plugin_slot", parentInstanceId: "agent-conversation-surface-main", slot: "reasoningGroup" });
-    expect(locations.find(({ plugin }) => plugin.id === "assistant-ui-composer-main")?.target)
+    expect(locations.find(({ plugin }) => plugin.id === "composer-main")?.target)
       .toMatchObject({ type: "plugin_slot", parentInstanceId: "agent-conversation-surface-main", slot: "composer" });
-    expect(locations.find(({ plugin }) => plugin.id === "assistant-ui-add-attachment-action-main")?.target)
-      .toMatchObject({ type: "plugin_slot", parentInstanceId: "assistant-ui-composer-main", slot: "leadingActions" });
-    expect(locations.find(({ plugin }) => plugin.id === "assistant-ui-dictation-action-main")?.target)
-      .toMatchObject({ type: "plugin_slot", parentInstanceId: "assistant-ui-composer-main", slot: "trailingActions" });
-    expect(locations.find(({ plugin }) => plugin.id === "assistant-ui-submit-action-main")?.target)
-      .toMatchObject({ type: "plugin_slot", parentInstanceId: "assistant-ui-composer-main", slot: "submitAction" });
+    expect(locations.find(({ plugin }) => plugin.id === "add-attachment-action-main")?.target)
+      .toMatchObject({ type: "plugin_slot", parentInstanceId: "composer-main", slot: "leadingActions" });
+    expect(locations.find(({ plugin }) => plugin.id === "dictation-action-main")?.target)
+      .toMatchObject({ type: "plugin_slot", parentInstanceId: "composer-main", slot: "trailingActions" });
+    expect(locations.find(({ plugin }) => plugin.id === "submit-action-main")?.target)
+      .toMatchObject({ type: "plugin_slot", parentInstanceId: "composer-main", slot: "submitAction" });
   });
   it("projects canonical authoring placement for default renderer assets", () => {
-    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-reasoning")?.manifest.authoring).toEqual({
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "reasoning")?.manifest.authoring).toEqual({
       intents: [
         "show the reasoning process",
         "restore reasoning presentation",
@@ -61,12 +61,12 @@ describe("assistant-ui default composition", () => {
         slot: "reasoningGroup",
       },
     });
-    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-tool-group")?.manifest.authoring?.defaultPlacement).toEqual({
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "tool-group")?.manifest.authoring?.defaultPlacement).toEqual({
       type: "plugin_slot",
       parentPluginId: "conversation-surface",
       slot: "toolGroup",
     });
-    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-tool-fallback")?.manifest.authoring?.defaultPlacement).toEqual({
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "tool-fallback")?.manifest.authoring?.defaultPlacement).toEqual({
       type: "plugin_slot",
       parentPluginId: "conversation-surface",
       slot: "toolFallback",
@@ -76,29 +76,29 @@ describe("assistant-ui default composition", () => {
       parentPluginId: "conversation-surface",
       slot: "taskGroup",
     });
-    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-response-footer")?.manifest.authoring?.defaultPlacement).toEqual({
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "response-footer")?.manifest.authoring?.defaultPlacement).toEqual({
       type: "plugin_slot",
       parentPluginId: "conversation-surface",
       slot: "assistantResponseFooter",
     });
-    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-composer")?.manifest.authoring?.defaultPlacement).toEqual({
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "composer")?.manifest.authoring?.defaultPlacement).toEqual({
       type: "plugin_slot",
       parentPluginId: "conversation-surface",
       slot: "composer",
     });
-    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-add-attachment-action")?.manifest.authoring?.defaultPlacement).toEqual({
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "add-attachment-action")?.manifest.authoring?.defaultPlacement).toEqual({
       type: "plugin_slot",
-      parentPluginId: "assistant-ui-composer",
+      parentPluginId: "composer",
       slot: "leadingActions",
     });
-    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-dictation-action")?.manifest.authoring?.defaultPlacement).toEqual({
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "dictation-action")?.manifest.authoring?.defaultPlacement).toEqual({
       type: "plugin_slot",
-      parentPluginId: "assistant-ui-composer",
+      parentPluginId: "composer",
       slot: "trailingActions",
     });
-    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "assistant-ui-submit-action")?.manifest.authoring?.defaultPlacement).toEqual({
+    expect(pluginCapabilityCatalog.list().find(({ manifest }) => manifest.id === "submit-action")?.manifest.authoring?.defaultPlacement).toEqual({
       type: "plugin_slot",
-      parentPluginId: "assistant-ui-composer",
+      parentPluginId: "composer",
       slot: "submitAction",
     });
   });
@@ -113,22 +113,22 @@ describe("assistant-ui default composition", () => {
       "conversation-thread-list-main",
       "agent-conversation-surface-main",
       "conversation-suggestions-main",
-      "assistant-ui-composer-main",
-      "assistant-ui-add-attachment-action-main",
-      "assistant-ui-dictation-action-main",
-      "assistant-ui-submit-action-main",
+      "composer-main",
+      "add-attachment-action-main",
+      "dictation-action-main",
+      "submit-action-main",
       "conversation-quote-main",
-      "assistant-ui-mention-trigger-main",
-      "assistant-ui-slash-command-trigger-main",
-      "assistant-ui-reasoning-main",
-      "assistant-ui-tool-group-main",
-      "assistant-ui-tool-fallback-main",
+      "mention-trigger-main",
+      "slash-command-trigger-main",
+      "reasoning-main",
+      "tool-group-main",
+      "tool-fallback-main",
       "task-group-main",
-      "assistant-ui-response-footer-main",
-      "assistant-ui-copy-action-main",
-      "assistant-ui-reload-action-main",
-      "assistant-ui-feedback-actions-main",
-      "assistant-ui-export-markdown-action-main",
+      "response-footer-main",
+      "copy-action-main",
+      "reload-action-main",
+      "feedback-actions-main",
+      "export-markdown-action-main",
 ]);
     expect(locations.map(({ plugin }) => plugin.id)).toEqual([
       "agent-conversation-data-main",
@@ -139,22 +139,22 @@ describe("assistant-ui default composition", () => {
       "conversation-thread-list-main",
       "agent-conversation-surface-main",
       "conversation-suggestions-main",
-      "assistant-ui-composer-main",
-      "assistant-ui-add-attachment-action-main",
-      "assistant-ui-dictation-action-main",
-      "assistant-ui-submit-action-main",
+      "composer-main",
+      "add-attachment-action-main",
+      "dictation-action-main",
+      "submit-action-main",
       "conversation-quote-main",
-      "assistant-ui-mention-trigger-main",
-      "assistant-ui-slash-command-trigger-main",
-      "assistant-ui-reasoning-main",
-      "assistant-ui-tool-group-main",
-      "assistant-ui-tool-fallback-main",
+      "mention-trigger-main",
+      "slash-command-trigger-main",
+      "reasoning-main",
+      "tool-group-main",
+      "tool-fallback-main",
       "task-group-main",
-      "assistant-ui-response-footer-main",
-      "assistant-ui-copy-action-main",
-      "assistant-ui-reload-action-main",
-      "assistant-ui-feedback-actions-main",
-      "assistant-ui-export-markdown-action-main",
+      "response-footer-main",
+      "copy-action-main",
+      "reload-action-main",
+      "feedback-actions-main",
+      "export-markdown-action-main",
 ]);
     expect(locations.filter(({ plugin, target }) => plugin.enabled && target.type === "application").map(({ plugin }) => plugin.id)).toEqual([
       "agent-conversation-data-main",
@@ -209,7 +209,7 @@ describe("assistant-ui default composition", () => {
     const threadList = await readFile(path.join(projectRoot, "plugins/conversation-thread-list/index.tsx"), "utf8");
 
     expect(app).not.toMatch(/XProvider|antdTheme|agentFrontendThemes|sharedThemeTokens/u);
-    expect(app).toContain("<UIPluginRuntime");
+    expect(app).toContain("<RuntimeAgentUIProvider");
     expect(shell).not.toMatch(/radial-gradient|ui-grid-color|ui-shell-shadow|purple|teal/u);
     expect(threadList).toContain("useAgentUITheme");
     expect(threadList).not.toContain('data-theme="dark"');
@@ -232,8 +232,8 @@ describe("assistant-ui default composition", () => {
   });
 
   it("retains upstream ThreadList and conversation data Slot surfaces", async () => {
-    const threadList = await readFile(path.join(repositoryRoot, "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx"), "utf8");
-    const thread = await readFile(path.join(repositoryRoot, "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"), "utf8");
+    const threadList = await readFile(path.join(repositoryRoot, "packages/plugins/src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx"), "utf8");
+    const thread = await readFile(path.join(repositoryRoot, "packages/plugins/src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"), "utf8");
     const conversationAdapter = await readFile(path.join(projectRoot, "agent-ui/conversation/ConversationAdapter.tsx"), "utf8");
 
     for (const slot of [

@@ -22,16 +22,16 @@ SOURCE_LANE_TOOLS = frozenset({
     *DEBUGGING_SELECTION_TOOL_NAMES, "inspect_static_diagnostics",
     "read_file", "ls", "grep", "glob", "edit_file_from_read", "edit_file",
     "ask_user_question", "validate_creator_changes",
-    "inspect_ui_project", "inspect_ui_services", "inspect_runtime_layout",
+    "inspect_ui_project", "inspect_ui_services", "inspect_runtime_layout", "inspect_runtime_errors",
     "inspect_agent_ui_sources", "inspect_ui_capabilities",
     "prepare_ui_plugin_development", "prepare_plugin_responsive_repair", "inspect_ui_plugin",
-    "inspect_ui_plugin_source_references", "mutate_ui_plugin_source",
+    "inspect_ui_plugin_source_references", "mutate_ui_plugin_source", "takeover_plugin_source",
 }) | frozenset((*RECOVERY_READ_TOOL_NAMES, *RECOVERY_WRITE_TOOL_NAMES))
 SOURCE_EXPANSION_TOOLS = frozenset({
-    "inspect_ui_project", "inspect_ui_services", "inspect_runtime_layout",
+    "inspect_ui_project", "inspect_ui_services", "inspect_runtime_layout", "inspect_runtime_errors",
     "inspect_agent_ui_sources", "inspect_ui_capabilities",
     "prepare_ui_plugin_development", "prepare_plugin_responsive_repair", "inspect_ui_plugin",
-    "inspect_ui_plugin_source_references",
+    "inspect_ui_plugin_source_references", "takeover_plugin_source",
 }) | frozenset((*RECOVERY_READ_TOOL_NAMES, *RECOVERY_WRITE_TOOL_NAMES))
 SOURCE_CONTROL = """The Host has resolved the source owner. Read its supplied source
 directly; do not rediscover the target through Composition or capability catalogs.

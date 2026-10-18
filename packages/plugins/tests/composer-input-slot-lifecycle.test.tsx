@@ -11,19 +11,19 @@ import { compileAppUIModel } from "../../operator/src/framework/contracts/app-ui
 import { applyAppUIOperations, type AppUIOperation } from "../../operator/src/project/app-ui-operations";
 import type { UIPluginDefinition } from "../../operator/src/framework/contracts/ui-plugin";
 import { PluginRuntimeFixture } from "../../operator/tests/support/agent-runtime-fixture";
-import { createPluginRegistry, createPluginCompositionCatalog } from "../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
-import { CONVERSATION_MENTION_SOURCE, CONVERSATION_COMMAND_SOURCE, createConversationCommandRegistry } from "../../source-registry/registry/items/foundation-core-application/files/services/composer-triggers";
-import { assistantUiComposerPlugin } from "../../source-registry/registry/items/plugin-assistant-ui-composer/files/plugins/assistant-ui-composer/definition";
-import { assistantUiLexicalComposerInputPlugin } from "../../source-registry/registry/items/plugin-assistant-ui-lexical-composer-input/files/plugins/assistant-ui-lexical-composer-input/definition";
-import { assistantUiMentionTriggerPlugin } from "../../source-registry/registry/items/plugin-assistant-ui-mention-trigger/files/plugins/assistant-ui-mention-trigger/definition";
-import { assistantUiSlashCommandTriggerPlugin } from "../../source-registry/registry/items/plugin-assistant-ui-slash-command-trigger/files/plugins/assistant-ui-slash-command-trigger/definition";
-import { conversationQuotePlugin } from "../../source-registry/registry/items/plugin-conversation-quote/files/plugins/conversation-quote/definition";
-import { assistantUiAddAttachmentActionPlugin } from "../../source-registry/registry/items/plugin-assistant-ui-add-attachment-action/files/plugins/assistant-ui-add-attachment-action/definition";
-import { assistantUiDictationActionPlugin } from "../../source-registry/registry/items/plugin-assistant-ui-dictation-action/files/plugins/assistant-ui-dictation-action/definition";
-import { assistantUiSubmitActionPlugin } from "../../source-registry/registry/items/plugin-assistant-ui-submit-action/files/plugins/assistant-ui-submit-action/definition";
+import { createPluginRegistry, createPluginCompositionCatalog } from "../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+import { CONVERSATION_MENTION_SOURCE, CONVERSATION_COMMAND_SOURCE, createConversationCommandRegistry } from "../resources/registry/items/foundation-core-application/files/services/composer-triggers";
+import { conversationComposerPlugin } from "../resources/registry/items/plugin-composer/files/plugins/composer/definition";
+import { conversationLexicalComposerInputPlugin } from "../resources/registry/items/plugin-lexical-composer-input/files/plugins/lexical-composer-input/definition";
+import { conversationMentionTriggerPlugin } from "../resources/registry/items/plugin-mention-trigger/files/plugins/mention-trigger/definition";
+import { conversationSlashCommandTriggerPlugin } from "../resources/registry/items/plugin-slash-command-trigger/files/plugins/slash-command-trigger/definition";
+import { conversationQuotePlugin } from "../resources/registry/items/plugin-conversation-quote/files/plugins/conversation-quote/definition";
+import { conversationAddAttachmentActionPlugin } from "../resources/registry/items/plugin-add-attachment-action/files/plugins/add-attachment-action/definition";
+import { conversationDictationActionPlugin } from "../resources/registry/items/plugin-dictation-action/files/plugins/dictation-action/definition";
+import { conversationSubmitActionPlugin } from "../resources/registry/items/plugin-submit-action/files/plugins/submit-action/definition";
 
-const inputId = "assistant-ui-lexical-composer-input-main";
-const composerId = "assistant-ui-composer-main";
+const inputId = "lexical-composer-input-main";
+const composerId = "composer-main";
 const draft = ":user[张三]{name=employee_84721} 负责什么？";
 let root: Root | undefined;
 afterEach(async () => {
@@ -70,9 +70,9 @@ it.each(["disable", "remove"] as const)("reconciles a preset input %s and restor
   const localized = (definition: UIPluginDefinition): UIPluginDefinition => ({
     ...definition, optionalInject: [...new Set([...(definition.optionalInject ?? []), "agent-ui.locale"])],
   });
-  const registry = createPluginRegistry([hostPlugin, sourcePlugin, assistantUiComposerPlugin, assistantUiLexicalComposerInputPlugin,
-    localized(assistantUiMentionTriggerPlugin), localized(assistantUiSlashCommandTriggerPlugin), localized(conversationQuotePlugin),
-    assistantUiAddAttachmentActionPlugin, assistantUiDictationActionPlugin, assistantUiSubmitActionPlugin]);
+  const registry = createPluginRegistry([hostPlugin, sourcePlugin, conversationComposerPlugin, conversationLexicalComposerInputPlugin,
+    localized(conversationMentionTriggerPlugin), localized(conversationSlashCommandTriggerPlugin), localized(conversationQuotePlugin),
+    conversationAddAttachmentActionPlugin, conversationDictationActionPlugin, conversationSubmitActionPlugin]);
   const catalog = createPluginCompositionCatalog(registry);
   let model: AppUIModel = parseAppUIModel({
     applicationPlugins: [{ id: "test-source", pluginId: sourcePlugin.manifest.id, enabled: true }],
@@ -125,7 +125,7 @@ it.each(["disable", "remove"] as const)("reconciles a preset input %s and restor
   expect(composerRuntime.getState().text).toBe(draft);
   expect(quote()!.textContent).toContain("原引用");
   const locations = collectAppUIPluginLocations(model);
-  for (const id of ["assistant-ui-mention-trigger-main", "assistant-ui-slash-command-trigger-main", "conversation-quote-main"]) {
+  for (const id of ["mention-trigger-main", "slash-command-trigger-main", "conversation-quote-main"]) {
     expect(locations.find(entry => entry.plugin.id === id)?.plugin.enabled).toBe(true);
   }
 

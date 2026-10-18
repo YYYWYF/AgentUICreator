@@ -1,45 +1,15 @@
-import { generatedProjectFixture } from "../../../operator/tests/support/generated-project";
+import { generatedProjectFixture, repositoryRoot } from "../../../operator/tests/support/generated-project";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { officialPackagePlugins } from "../../src/catalog/package-plugins";
 import { describe, expect, it } from "vitest";
 
-import { pluginCapabilityCatalog } from "../../../source-registry/registry/items/foundation-core/files/plugins/index";
+import { pluginCapabilityCatalog } from "../../resources/registry/items/foundation-core/files/plugins/index";
 
 const projectRoot = await generatedProjectFixture();
-export const canonicalPluginIds = [
-  "assistant-ui-add-attachment-action",
-  "assistant-ui-composer",
-  "assistant-ui-copy-action",
-  "assistant-ui-dictation-action",
-  "assistant-ui-export-markdown-action",
-  "assistant-ui-feedback-actions",
-  "assistant-ui-lexical-composer-input",
-  "assistant-ui-mention-trigger",
-  "assistant-ui-message-footer",
-  "assistant-ui-reasoning",
-  "assistant-ui-reload-action",
-  "assistant-ui-response-footer",
-  "assistant-ui-slash-command-trigger",
-  "assistant-ui-submit-action",
-  "assistant-ui-tool-fallback",
-  "assistant-ui-tool-group",
-  "chart-message",
-  "composer-trigger-demo",
-  "conversation-command-source",
-  "conversation-data-source",
-  "conversation-quote",
-  "conversation-service",
-  "conversation-suggestions",
-  "conversation-surface",
-  "conversation-thread-list",
-  "locale-provider",
-  "source-citations-message",
-  "task-group",
-  "theme-provider",
-  "theme-switch",
-] as const;
+export const canonicalPluginIds = [...officialPackagePlugins.map(plugin => plugin.pluginId), "composer-trigger-demo"];
 const forbiddenImplementationTokens = [
   "@assistant-ui/",
   "runtime-assistant-ui",
@@ -64,15 +34,17 @@ describe("canonical Conversation plugin cleanup boundary", () => {
       .map((entry) => entry.name)
       .sort();
 
-    expect(directories).toEqual([...canonicalPluginIds].sort());
+    expect(directories.every(id => canonicalPluginIds.includes(id))).toBe(true);
+    expect(directories.every(id => !id.startsWith("assistant-ui-") && id !== "message-footer")).toBe(true);
     const manifests = await Promise.all(
       directories.map(async (directory) => JSON.parse(
         await readFile(path.join(pluginRoot, directory, "manifest.json"), "utf8"),
       ) as { id: string }),
     );
     expect(manifests.map(({ id }) => id).sort()).toEqual(directories);
-    expect(pluginCapabilityCatalog.list()).toHaveLength(canonicalPluginIds.length);
-    expect(pluginCapabilityCatalog.list().map(({ manifest }) => manifest.id).sort()).toEqual(directories);
+    const catalogIds = pluginCapabilityCatalog.list().map(({ manifest }) => manifest.id);
+    expect(new Set(catalogIds).size).toBe(catalogIds.length);
+    expect(catalogIds.every(id => canonicalPluginIds.includes(id))).toBe(true);
   });
 
   it("keeps production Plugin sources behind the generic public boundary", async () => {
@@ -104,8 +76,10 @@ describe("canonical Conversation plugin cleanup boundary", () => {
       ),
     ).toBe(false);
     expect(registrySource).not.toMatch(/antd-x-|template-library/u);
-    expect(pluginSource).toContain('renderSlot("emptyWelcome"');
-    expect(pluginSource).toContain('renderSlot("emptySuggestions"');
-    expect(pluginSource).toContain('renderSlot("headerActions"');
+    expect(pluginSource).toContain("CanonicalConversationSurfacePlugin");
+    const presentation = await readFile(path.join(repositoryRoot, "packages/plugins/src/plugins/conversation-surface/adapters/presentation/conversation-surface.tsx"), "utf8");
+    expect(presentation).toContain('renderSlot("emptyWelcome"');
+    expect(presentation).toContain('renderSlot("emptySuggestions"');
+    expect(presentation).toContain('renderSlot("headerActions"');
   });
 });

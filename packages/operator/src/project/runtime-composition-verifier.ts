@@ -62,6 +62,7 @@ const runtimeLayoutNodeSchema = z.strictObject({
   nodeId: runtimeIdentifierSchema,
   type: z.enum(["row", "column", "panel", "stack", "slot", "sidebar"]),
   rect: runtimeRectSchema,
+  trackWidths: z.array(z.number().finite().min(0).max(1_000_000)).max(200).optional(),
 });
 
 export const runtimeCompositionSnapshotSchema = z.strictObject({
@@ -255,15 +256,32 @@ export async function verifyRuntimeComposition(
   const actualById = new Map(
     input.composition.instances.map((instance) => [instance.instanceId, instance]),
   );
+  const locations = collectAppUIPluginLocations(model);
+  const locationsById = new Map(locations.map(location => [location.plugin.id, location]));
+  function awaitsRenderScope(location: AppUIPluginLocation): boolean {
+    let current: AppUIPluginLocation | undefined = location;
+    while (current?.target.type === "plugin_slot") {
+      const parent = locationsById.get(current.target.parentInstanceId);
+      if (parent === undefined) return false;
+      const slot = registry.activeComposition.compositionCatalog[parent.plugin.pluginId]?.childSlots?.[current.target.slot];
+      // A renderer factory and its descendants have no DOM instance until a
+      // matching message/tool scope exists. Ordinary content remains required;
+      // any observed renderer must still match its declared plugin and Slot.
+      if (slot?.mode === "renderer" && !actualById.has(current.plugin.id)) return true;
+      current = parent;
+    }
+    return false;
+  }
   const checks: RuntimeCompositionVerificationResult["checks"] = [];
 
-  for (const location of collectAppUIPluginLocations(model)) {
+  for (const location of locations) {
     if (!location.plugin.enabled || location.target.type === "application") {
       continue;
     }
     const expectedRuntimeInstance = runtimeModel.pluginInstances[location.plugin.id];
     const expectedTarget = authoringTarget(location, layoutRefs);
     const actual = actualById.get(location.plugin.id);
+    if (actual === undefined && awaitsRenderScope(location)) continue;
     let status: "passed" | "missing" | "plugin-mismatch" | "slot-mismatch" =
       "passed";
     if (actual === undefined) {

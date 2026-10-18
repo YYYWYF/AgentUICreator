@@ -2,7 +2,7 @@
 
 import { useAuiState } from "@assistant-ui/react";
 import { CanonicalUserEditComposer } from "./internal/composable-thread.js";
-import { useContext } from "react";
+import { useContext, type ComponentProps, type FC, type ReactNode } from "react";
 import { LexicalComposerInput } from "@assistant-ui/react-lexical";
 import { ComposerInputHostContext } from "./internal/composer-input-host-context.js";
 import { agentUIDirectiveFormatter, hasUnsupportedConversationDirective, conversationDirectiveDisplayLabel } from "./internal/directive-formatter.js";
@@ -26,7 +26,16 @@ export function ConversationComposerDirectiveChip({
 }
 
 /** Optional editor presentation. Upstream owns sync, selection and atomic editing. */
-export function ConversationComposerLexicalInput() {
+export interface ConversationLexicalTriggerItem { readonly id:string;readonly type:string;readonly label:string;readonly description?:string|undefined;readonly metadata?:import("assistant-stream/utils").ReadonlyJSONObject|undefined; }
+export type ConversationLexicalSegment={readonly kind:"text";readonly text:string}|{readonly kind:"mention";readonly type:string;readonly label:string;readonly id:string};
+export type ConversationLexicalInputProps = Omit<ComponentProps<"div">,"autoFocus"|"children"> & {
+  submitMode?:"enter"|"ctrlEnter"|"none"|undefined;cancelOnEscape?:boolean|undefined;placeholder?:string|undefined;autoFocus?:boolean|undefined;
+  directivePluginProps?:{onDirectiveSelect?:((item:ConversationLexicalTriggerItem)=>void)|undefined}|undefined;
+  directiveChip?:FC<ConversationComposerDirectiveChipProps>|undefined;
+  formatter?:{serialize(item:ConversationLexicalTriggerItem):string;parse(text:string):readonly ConversationLexicalSegment[]}|undefined;
+  children?:ReactNode|undefined;
+};
+export function ConversationComposerLexicalInput(props: ConversationLexicalInputProps = {}) {
   const host = useContext(ComposerInputHostContext);
   if (!host) throw new Error("ConversationComposerLexicalInput requires a canonical Composer input host.");
   return (
@@ -37,13 +46,21 @@ export function ConversationComposerLexicalInput() {
       autoFocus={host.autoFocus}
       formatter={agentUIDirectiveFormatter}
       directiveChip={ConversationComposerDirectiveChip}
+      {...props}
     />
   );
 }
 
 /** Rich presentation only; assistant-ui initializes, cancels and sends the edit draft. */
-export function ConversationUserEditLexicalComposer() {
+export interface ConversationUserEditLexicalProps {input?:ReactNode;inputProps?:ConversationLexicalInputProps;}
+export function ConversationUserEditLexicalComposer({inputProps, input, ...props}: ConversationUserEditLexicalProps = {}) {
   const text = useAuiState(s => s.composer.text);
-  return <CanonicalUserEditComposer input={hasUnsupportedConversationDirective(text)
-    ? undefined : <ConversationComposerLexicalInput />} />;
+  return <CanonicalUserEditComposer {...props} input={input ?? (hasUnsupportedConversationDirective(text)
+    ? undefined : <ConversationComposerLexicalInput {...inputProps}/>)} />;
 }
+
+export { CanonicalConversationLexicalComposerInput } from "./plugins/lexical-composer-input/adapters/presentation/lexical-composer-input.js";
+export type { ConversationLexicalComposerInputProps } from "./plugins/lexical-composer-input/adapters/presentation/lexical-composer-input.js";
+
+export { CanonicalConversationLexicalEditComposer } from "./plugins/lexical-edit-composer/adapters/presentation/lexical-edit-composer.js";
+export type { ConversationLexicalEditComposerProps } from "./plugins/lexical-edit-composer/adapters/presentation/lexical-edit-composer.js";

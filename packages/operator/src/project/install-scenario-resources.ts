@@ -1,4 +1,4 @@
-import { officialResourceRegistry, type OfficialAgentUIResource } from "@za38.03/agent-ui-source-registry";
+import { officialResourceRegistry, type OfficialAgentUIResource } from "../source-catalog/index.js";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { buildLayoutRefIndex, collectAppUIPluginLocations, parseAppUIModelJson } from "../framework/contracts/app-ui-model";

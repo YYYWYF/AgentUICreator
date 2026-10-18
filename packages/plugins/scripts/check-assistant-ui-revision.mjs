@@ -9,7 +9,7 @@ import { generativeUiReleaseRevision } from "../../../scripts/update-assistant-u
 const execFile = promisify(execFileCallback);
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const repoRoot = path.resolve(packageRoot, "../..");
-const vendorRoot = path.join(packageRoot, "src/internal/vendor/assistant-ui");
+const vendorRoot = path.join(packageRoot, "src/internal/vendor-generated/assistant-ui");
 const UPSTREAM_REPOSITORY = "https://github.com/assistant-ui/assistant-ui.git";
 const UPSTREAM_REF = "refs/heads/main";
 const target = JSON.parse(await readFile(path.join(repoRoot, "assistant-ui-upgrade-target.json"), "utf8"));

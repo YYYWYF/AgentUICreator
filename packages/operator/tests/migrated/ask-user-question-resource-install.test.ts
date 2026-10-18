@@ -2,7 +2,7 @@ import { cp, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, expect, it } from "vitest";
-import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure, resolveOfficialResource } from "@za38.03/agent-ui-source-registry";
+import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure, resolveOfficialResource } from "@za38.03/agent-ui-operator/source-registry";
 import { generatedProjectFixture } from "../support/generated-project";
 import { installOfficialAgentUIResource } from "../../src/project/install-official-agent-ui-resource";
 import { inspectScenarioResources } from "../../src/project/install-scenario-resources";

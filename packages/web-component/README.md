@@ -27,7 +27,11 @@ For a plain HTML host, serve `dist/agent-ui.js` and load it with a classic scrip
 The ESM entry is `dist/agent-ui.es.js`; declarations start at `dist/types.d.ts`.
 All CSS, including imported Plugin CSS, is inside the scripts and is inserted
 only into the element's open Shadow Root. No global stylesheet is required.
-Set the element's height in the Host; its default height is 600px.
+The element fills the viewport by default (`100dvh`). Set its height in the Host
+when embedding it in a smaller region, for example `agent-ui { height: 420px; }`.
+The shared `--agent-ui-height` CSS property also sizes native React roots and Web
+Components. Typography inherits from the Host mount in both integrations; the
+official presentation keeps the canonical Agent UI typography boundary.
 
 ## Host contract
 
@@ -38,8 +42,10 @@ Removing an attribute restores its default. Properties assigned before bundle
 registration are upgraded when the element connects. Registration is idempotent.
 
 - `endpoint`: existing AG-UI API, default `/agent`.
-- `locale`: `en-US` (default) or `zh-CN`, through the existing locale layer.
-- `theme`: `violet` (default), `light` or `dark`, through the existing theme service.
+- `locale`: `en-US` or `zh-CN`, through the existing locale layer. When omitted,
+  use the producer project's `agentUILocaleConfig.defaultLocale` (official default `zh-CN`).
+- `theme`: `violet`, `light` or `dark`, through the existing theme service. When
+  omitted, use the producer project's `agentUIThemeConfig.theme` (official default `violet`).
 - `threadId`: persisted conversation to reopen, through the existing thread binding.
 - `conversationDataEndpoint`: existing history API base, e.g. `/api`. Uses the same
   `GET/DELETE {base}/conversations` and `{base}/conversations/{id}` implementation.

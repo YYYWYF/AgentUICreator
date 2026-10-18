@@ -1,4 +1,43 @@
+import type { ConversationComposerInputProps, ConversationComposerRootProps, ConversationComposerDropzoneProps } from "./composer-support.js";
+export type { ConversationComposerInputProps, ConversationComposerRootProps, ConversationComposerDropzoneProps } from "./composer-support.js";
 import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "./locale.js";
+import { createConversationTransientMessageService as createInternalTransientMessageService } from "./conversation-transient-message-service.js";
+import { ConversationTransientMessageProvider as InternalTransientMessageProvider, ConversationTransientMessages as InternalTransientMessages, useConversationTransientMessages as useInternalTransientMessages } from "./internal/conversation-transient-messages.js";
+export interface TransientMessage {
+  readonly id: string;
+  readonly conversationId: string;
+  readonly role: "user" | "assistant" | "system";
+  readonly type: "normal" | "error";
+  readonly text: string;
+  readonly afterMessageId: string | null;
+  readonly afterMessageIndex: number;
+}
+export interface ConversationTransientMessageService {
+  addMessage(input: { role: "user" | "assistant" | "system"; type?: "normal" | "error"; text: string }): string;
+  getSnapshot(conversationId: string): readonly TransientMessage[];
+  subscribe(listener: () => void): () => void;
+  /** Runtime composition seam. Application code normally uses addMessage. */
+  bindTarget(getTarget: () => { conversationId: string; messageIds: readonly string[] }): () => void;
+}
+export function createConversationTransientMessageService(): ConversationTransientMessageService {
+  return createInternalTransientMessageService();
+}
+export interface ConversationTransientMessagesRenderScope { afterMessageId: string | null; }
+export type { ConversationTransientMessagesProps } from "./plugins/transient-assistant-messages/adapters/presentation/transient-assistant-messages.js";
+export function ConversationTransientMessages(props: import("./plugins/transient-assistant-messages/adapters/presentation/transient-assistant-messages.js").ConversationTransientMessagesProps): ReactElement {
+  return <InternalTransientMessages {...props} />;
+}
+export function useConversationTransientMessages(): Pick<ConversationTransientMessageService, "addMessage"> {
+  return useInternalTransientMessages();
+}
+export function ConversationTransientMessageProvider(props: { service: ConversationTransientMessageService; conversationId: string; children: ReactNode }): ReactElement {
+  return <InternalTransientMessageProvider {...props} />;
+}
+import { useConversationComposerSendGuard } from "./internal/conversation-composer-guard.js";
+import { ConversationComposerGuardProvider as InternalComposerGuardProvider } from "./internal/conversation-composer-guard.js";
+export function ConversationComposerGuardProvider(props: { awaitingReply: boolean; interruptKey?: string | undefined; children: ReactNode }): ReactElement {
+  return <InternalComposerGuardProvider {...props} />;
+}
 import { ConversationActionMoreMenu as InternalConversationActionMoreMenu, ConversationActionMoreMenuItem as InternalConversationActionMoreMenuItem } from "./internal/style-boundary/ConversationActionMoreMenu.js";
 import { ComposerTextareaInput as InternalComposerTextareaInput } from "./internal/composer-input-host-context.js";
 import type { AgentUITheme } from "./theme/theme-contract.js";
@@ -59,9 +98,9 @@ export function useConversationCanAnswerToolCall(): boolean {
 }
 import { AgentUIRoot as InternalAgentUIRoot, useAgentUIPortalContainer as useInternalAgentUIPortalContainer } from "./internal/style-boundary/AgentUIRoot.js";
 import { AgentUIDialog as InternalAgentUIDialog } from "./internal/style-boundary/AgentUIDialog.js";
-import { DialogContent as InternalAgentUIDialogContent } from "./internal/adapters/assistant-ui/components/ui/dialog.js";
-import { Tooltip as InternalAgentUITooltip, TooltipTrigger as InternalAgentUITooltipTrigger, TooltipContent as InternalAgentUITooltipContent, TooltipProvider as InternalAgentUITooltipProvider } from "./internal/adapters/assistant-ui/components/ui/tooltip.js";
-import { Popover as InternalAgentUIPopover, PopoverTrigger as InternalAgentUIPopoverTrigger, PopoverContent as InternalAgentUIPopoverContent } from "./internal/adapters/assistant-ui/components/ui/popover.js";
+import { DialogContent as InternalAgentUIDialogContent } from "./internal/adapters-generated/assistant-ui/components/ui/dialog.js";
+import { Tooltip as InternalAgentUITooltip, TooltipTrigger as InternalAgentUITooltipTrigger, TooltipContent as InternalAgentUITooltipContent, TooltipProvider as InternalAgentUITooltipProvider } from "./internal/adapters-generated/assistant-ui/components/ui/tooltip.js";
+import { Popover as InternalAgentUIPopover, PopoverTrigger as InternalAgentUIPopoverTrigger, PopoverContent as InternalAgentUIPopoverContent } from "./internal/adapters-generated/assistant-ui/components/ui/popover.js";
 import type { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import type { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import type { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
@@ -89,45 +128,38 @@ export interface ConversationThreadListItemProps {
 import {
   CanonicalUserEditComposer as InternalCanonicalUserEditComposer,
   CanonicalComposer as InternalConversationCanonicalComposer,
-  ComposerAddAttachmentAction as InternalConversationComposerAddAttachment,
-  ComposerCancelAction as InternalConversationComposerCancel,
-  ComposerDictateAction as InternalConversationComposerDictate,
   ComposerQueue as InternalConversationComposerQueue,
-  ComposerSendAction as InternalConversationComposerSend,
-  ComposerStopDictationAction as InternalConversationComposerStopDictation,
   ComposableThread as InternalConversationThread,
   type ThreadComponents as InternalThreadComponents,
 } from "./internal/composable-thread.js";
-import { Sources as InternalSources } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/sources.aui.js";
-import { File as InternalFile } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/file.js";
-import { Image as InternalImage } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/image.js";
-import { ToolCall as InternalToolCall } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/tool-call.js";
-import { ToolFallback as InternalToolFallback } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
-import { MarkdownText as InternalMarkdownText } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/markdown-text.js";
-import { InternalConversationToolTimeline } from "./internal/conversation-tool-timeline.js";
-import { InternalConversationThinkingIndicator } from "./internal/conversation-thinking-indicator.js";
-import { Reasoning as InternalReasoning } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
+import { Sources as InternalSources } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/sources.aui.js";
+import { File as InternalFile } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/file.js";
+import { Image as InternalImage } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image.js";
+import { ToolCall as InternalToolCall } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-call.js";
+
+import { MarkdownText as InternalMarkdownText } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/markdown-text.js";
+import { Reasoning as InternalReasoning } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
 import {
   ReasoningRoot as InternalReasoningRoot,
   ReasoningTrigger as InternalReasoningTrigger,
   ReasoningContent as InternalReasoningContent,
   ReasoningText as InternalReasoningText,
-} from "./internal/adapters/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
+} from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
 import {
   ToolGroupRoot as InternalToolGroupRoot,
   ToolGroupTrigger as InternalToolGroupTrigger,
   ToolGroupContent as InternalToolGroupContent,
-} from "./internal/adapters/assistant-ui/components/assistant-ui/elements/tool-group.aui.js";
+} from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-group.aui.js";
 import {
   Collapsible as InternalCollapsible,
   CollapsibleContent as InternalCollapsibleContent,
   CollapsibleTrigger as InternalCollapsibleTrigger,
-} from "./internal/adapters/assistant-ui/components/ui/collapsible.js";
-import { Button as InternalButton } from "./internal/adapters/assistant-ui/components/ui/button.js";
+} from "./internal/adapters-generated/assistant-ui/components/ui/collapsible.js";
+import { Button as InternalButton } from "./internal/adapters-generated/assistant-ui/components/ui/button.js";
 import {
   TooltipIconButton as InternalTooltipIconButton,
-} from "./internal/adapters/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
-import { TooltipProvider as InternalTooltipProvider } from "./internal/adapters/assistant-ui/components/ui/tooltip.js";
+} from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
+import { TooltipProvider as InternalTooltipProvider } from "./internal/adapters-generated/assistant-ui/components/ui/tooltip.js";
 import {
   ActionBarPrimitive,
   AuiIf as InternalConversationIf,
@@ -146,19 +178,19 @@ import {
   ThreadListRoot as InternalConversationThreadListRoot,
   ThreadListSearch as InternalConversationThreadListSearch,
   useThreadListGroups as useInternalConversationThreadListGroups,
-} from "./internal/adapters/assistant-ui/components/assistant-ui/elements/thread-list.aui.js";
-import { AgentPlan as InternalAgentPlan } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/agent-plan.js";
-import { AgentStatus as InternalAgentStatus } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.js";
+} from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/thread-list.aui.js";
+import { AgentPlan as InternalAgentPlan } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/agent-plan.js";
+import { AgentStatus as InternalAgentStatus } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/agent-status.js";
 import {
   AgentStatus as InternalTaskAgentStatus,
   TaskTray as InternalTaskTray,
-} from "./internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.aui.js";
-import { SubagentList as InternalSubagentList } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/subagent-list.js";
-import { JobProgress as InternalJobProgress } from "./internal/adapters/assistant-ui/components/assistant-ui/elements/job-progress.js";
+} from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/agent-status.aui.js";
+import { SubagentList as InternalSubagentList } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/subagent-list.js";
+import { JobProgress as InternalJobProgress } from "./internal/adapters-generated/assistant-ui/components/assistant-ui/elements/job-progress.js";
 import { ConversationTaskGroupComposition as InternalTaskGroup } from "./internal/conversation-task-group.js";
-import { Badge as InternalBadge } from "./internal/adapters/assistant-ui/components/ui/badge.js";
-import { Input as InternalInput } from "./internal/adapters/assistant-ui/components/ui/input.js";
-import { Skeleton as InternalSkeleton } from "./internal/adapters/assistant-ui/components/ui/skeleton.js";
+import { Badge as InternalBadge } from "./internal/adapters-generated/assistant-ui/components/ui/badge.js";
+import { Input as InternalInput } from "./internal/adapters-generated/assistant-ui/components/ui/input.js";
+import { Skeleton as InternalSkeleton } from "./internal/adapters-generated/assistant-ui/components/ui/skeleton.js";
 import type {
   ComponentProps,
   ComponentType,
@@ -199,7 +231,7 @@ import {
   RefreshCwIcon,
   PlusIcon,
 } from "lucide-react";
-import { cn } from "./internal/vendor/assistant-ui/lib/utils.js";
+import { cn } from "./internal/vendor-generated/assistant-ui/lib/utils.js";
 import {
   DataMessageUIRegistration as InternalDataMessageUIRegistration,
   defineDataMessageUI as internalDefineDataMessageUI,
@@ -258,11 +290,10 @@ export function ConversationIf({
 }
 
 export type ConversationThreadComponents = {
+  TransientMessages?: ComponentType<ConversationTransientMessagesRenderScope> | undefined;
   UserEditComposer?: ComponentType | undefined;
   AssistantMessage?: ComponentType | undefined;
   AssistantResponseFooter?: ComponentType | undefined;
-  /** @deprecated Use AssistantResponseFooter. */
-  AssistantMessageFooter?: ComponentType | undefined;
   Welcome?: ComponentType | undefined;
   ToolFallback?: ComponentType<ConversationToolCallProps> | undefined;
   ThinkingIndicator?: ComponentType<ConversationThinkingIndicatorRenderScope> | undefined;
@@ -308,8 +339,6 @@ export function ConversationCanonicalUserEditComposer({ input }: Readonly<{ inpu
 
 /** The footer keeps its scope intentionally data-free; actions read Response Context. */
 export type ConversationAssistantResponseFooterRenderScope = Record<string, never>;
-/** @deprecated Use ConversationAssistantResponseFooterRenderScope. */
-export type ConversationAssistantMessageFooterRenderScope = ConversationAssistantResponseFooterRenderScope;
 
 export function toConversationMessagePartGroup(group: unknown): ConversationMessagePartGroup {
   const source = group as { type: ConversationMessagePartGroup["type"]; indices: readonly number[]; status: { type: string } };
@@ -355,6 +384,9 @@ export function ConversationComposerQueue(props: Readonly<ConversationComposerQu
 }
 
 export interface ConversationCanonicalComposerProps {
+  inputProps?: ConversationComposerInputProps;
+  rootProps?: ConversationComposerRootProps;
+  dropzoneProps?: ConversationComposerDropzoneProps;
   queueLabels?: ConversationComposerQueueLabels | undefined;
   autoFocus?: boolean | undefined;
   triggers?: ReactNode;
@@ -392,8 +424,8 @@ export function ConversationCanonicalComposer({
 }
 
 /** Canonical textarea fallback for optional Composer input Slots. */
-export function ConversationComposerTextareaInput() {
-  return <InternalComposerTextareaInput />;
+export function ConversationComposerTextareaInput(props: ConversationComposerInputProps = {}) {
+  return <InternalComposerTextareaInput {...props} />;
 }
 
 export interface ConversationComposerAttachment {
@@ -420,6 +452,7 @@ export interface ConversationComposerController {
 
 /** Connect a custom Composer UI to the existing assistant-ui Thread Composer. */
 export function useConversationComposer(): ConversationComposerController {
+  const guardSend = useConversationComposerSendGuard();
   const runtime = useAui();
   const text = useInternalConversationState((state) => state.composer.text);
   const sourceAttachments = useInternalConversationState((state) => state.composer.attachments);
@@ -439,83 +472,20 @@ export function useConversationComposer(): ConversationComposerController {
   );
   const actions = useMemo(() => ({
     setText: (value: string) => runtime.composer.setText(value),
-    send: () => runtime.composer.send(),
+    send: () => { if (!guardSend()) runtime.composer.send(); },
     cancel: () => runtime.composer.cancel(),
     addAttachment: (file: File) => runtime.composer.addAttachment(file),
     removeAttachment: (id: string) => runtime.composer.attachment({ id }).remove(),
-  }), [runtime]);
+  }), [runtime, guardSend]);
   return {
     text, attachments, attachmentAccept, attachmentsEnabled,
     isRunning, disabled, canSend, canCancel, ...actions,
   };
 }
 
-export function ConversationComposerAddAttachment({ label }: Readonly<{ label?: string }> = {}) {
-  const localeMessages = useAgentUILocale();
-  label ??= localeMessages.composer.addAttachment;
-  return <InternalConversationComposerAddAttachment label={label} />;
-}
-
-export interface ConversationComposerDictateProps {
-  tooltip?: string | undefined;
-  ariaLabel?: string | undefined;
-  /**
-   * Backward-compatible shorthand. Prefer tooltip + ariaLabel for exact
-   * presentation control.
-   */
-  label?: string | undefined;
-}
-
-export function ConversationComposerDictate({
-  tooltip,
-  ariaLabel,
-  label,
-}: Readonly<ConversationComposerDictateProps> = {}) {
-  const localeMessages = useAgentUILocale();
-  return (
-    <InternalConversationComposerDictate
-      tooltip={tooltip ?? label ?? localeMessages.composer.voiceInput}
-      ariaLabel={ariaLabel ?? label ?? localeMessages.composer.startVoice}
-    />
-  );
-}
-
-export interface ConversationComposerStopDictationProps {
-  tooltip?: string | undefined;
-  ariaLabel?: string | undefined;
-  /**
-   * Backward-compatible shorthand. Prefer tooltip + ariaLabel for exact
-   * presentation control.
-   */
-  label?: string | undefined;
-}
-
-export function ConversationComposerStopDictation({
-  tooltip,
-  ariaLabel,
-  label,
-}: Readonly<ConversationComposerStopDictationProps> = {}) {
-  const localeMessages = useAgentUILocale();
-  return (
-    <InternalConversationComposerStopDictation
-      tooltip={tooltip ?? label ?? localeMessages.composer.stopDictation}
-      ariaLabel={ariaLabel ?? label ?? localeMessages.composer.stopVoice}
-    />
-  );
-}
-
-export function ConversationComposerSend({ label, queueLabel }: Readonly<{ label?: string; queueLabel?: string }> = {}) {
-  const localeMessages = useAgentUILocale();
-  label ??= localeMessages.composer.send;
-  queueLabel ??= localeMessages.composer.queueSend;
-  return <InternalConversationComposerSend label={label} queueLabel={queueLabel} />;
-}
-
-export function ConversationComposerCancel({ label }: Readonly<{ label?: string }> = {}) {
-  const localeMessages = useAgentUILocale();
-  label ??= localeMessages.composer.stop;
-  return <InternalConversationComposerCancel label={label} />;
-}
+export { ConversationComposerAddAttachment, type ConversationComposerAddAttachmentProps } from "./plugins/add-attachment-action/adapters/presentation/add-attachment-action.js";
+export { ConversationComposerDictate, ConversationComposerStopDictation, type ConversationComposerDictateProps, type ConversationComposerStopDictationProps } from "./plugins/dictation-action/adapters/presentation/dictation-action.js";
+export { ConversationComposerSend, ConversationComposerCancel, type ConversationComposerSendProps, type ConversationComposerCancelProps } from "./plugins/submit-action/adapters/presentation/submit-action.js";
 
 export interface ConversationSuggestionProps
   extends Omit<ComponentProps<"button">, "children"> {
@@ -662,11 +632,7 @@ export function ConversationToolCall(
   return <InternalToolCall {...(props as ComponentProps<typeof InternalToolCall>)} />;
 }
 
-export function ConversationToolFallback(
-  props: Readonly<ConversationToolCallProps>,
-) {
-  return <InternalToolFallback {...(props as ComponentProps<typeof InternalToolFallback>)} />;
-}
+export { ConversationToolFallback, type ConversationToolFallbackProps, type ToolFallbackPresentationProps } from "./plugins/tool-fallback/adapters/presentation/tool-fallback.js";
 
 /** Product source presentation contract; not an AG-UI wire event. */
 export type ConversationSourcePart =
@@ -760,13 +726,13 @@ export function ConversationCanonicalCopyAction() {
       <ConversationTooltipIconButton tooltip={localeMessages.common.copy}>
         <ConversationIf condition={(state) => state.message.isCopied}>
           <CheckIcon
-            data-slot="assistant-ui-copy-action-copied"
+            data-slot="copy-action-copied"
             className="animate-in zoom-in-50 fade-in duration-200 ease-out"
           />
         </ConversationIf>
         <ConversationIf condition={(state) => !state.message.isCopied}>
           <CopyIcon
-            data-slot="assistant-ui-copy-action-idle"
+            data-slot="copy-action-idle"
             className="animate-in zoom-in-75 fade-in duration-150"
           />
         </ConversationIf>
@@ -859,32 +825,8 @@ export function ConversationReasoning() {
   return <InternalReasoning {...({} as ComponentProps<typeof InternalReasoning>)} />;
 }
 
-export function ConversationCanonicalReasoningGroup({ group, children }: {
-  group: ConversationMessagePartGroup;
-  children: ReactNode;
-}) {
-  const running = group.status.type === "running";
-  return (
-    <InternalReasoningRoot className="mb-0" streaming={running}>
-      <InternalReasoningTrigger active={running} />
-      <InternalReasoningContent aria-busy={running}>
-        <InternalReasoningText>{children}</InternalReasoningText>
-      </InternalReasoningContent>
-    </InternalReasoningRoot>
-  );
-}
-
-export function ConversationCanonicalToolGroup({ group, children }: {
-  group: ConversationMessagePartGroup;
-  children: ReactNode;
-}) {
-  return (
-    <InternalToolGroupRoot variant="ghost" data-agent-state={group.status.type === "running" ? "running" : "idle"}>
-      <InternalToolGroupTrigger count={group.indices.length} active={group.status.type === "running"} />
-      <InternalToolGroupContent>{children}</InternalToolGroupContent>
-    </InternalToolGroupRoot>
-  );
-}
+export { ConversationCanonicalReasoningGroup, type ConversationCanonicalReasoningGroupProps } from "./plugins/reasoning/adapters/presentation/reasoning.js";
+export { ConversationCanonicalToolGroup, type ConversationCanonicalToolGroupProps } from "./plugins/tool-group/adapters/presentation/tool-group.js";
 
 export interface ConversationThreadListGroup {
   /** Stable upstream date bucket; presentation locale does not change its identity. */
@@ -1241,12 +1183,22 @@ import {
 } from "./internal/composable-thread.js";
 import { useAssistantResponseRuntime } from "./internal/assistant-response-runtime.js";
 export const ConversationCanonicalAssistantResponseFooter: ComponentType = CanonicalAssistantResponseFooter;
-export const ConversationResponseActionBarRoot: ComponentType<{ children?: ReactNode }> = ResponseActionBarRoot;
-export const ConversationResponseBranchPicker: ComponentType = ResponseBranchPicker;
-export const ConversationCanonicalResponseFeedbackActions: ComponentType<{ helpful: string; notHelpful: string }> = CanonicalResponseFeedbackActions;
-export const ConversationCanonicalResponseCopyAction: ComponentType = CanonicalResponseCopyAction;
-export const ConversationCanonicalResponseReloadAction: ComponentType = CanonicalResponseReloadAction;
-export const ConversationCanonicalResponseExportMarkdownAction: ComponentType<{ menuLabel?: string }> = CanonicalResponseExportMarkdownAction;
+export type ConversationResponseActionBarProps = ComponentProps<"div"> & {
+  asChild?: boolean; render?: ReactElement; hideWhenRunning?: boolean;
+  autohide?: "always" | "not-last" | "never";
+  autohideFloat?: "always" | "single-branch" | "never";
+};
+export type ConversationResponseBranchPickerProps = ComponentProps<"div"> & {
+  hideWhenSingleBranch?: boolean;
+  previousProps?: Partial<ConversationTooltipIconButtonProps>;
+  nextProps?: Partial<ConversationTooltipIconButtonProps>;
+};
+export const ConversationResponseActionBarRoot: ComponentType<ConversationResponseActionBarProps> = ResponseActionBarRoot;
+export const ConversationResponseBranchPicker: ComponentType<ConversationResponseBranchPickerProps> = ResponseBranchPicker;
+export const ConversationCanonicalResponseFeedbackActions: ComponentType<{ helpful: string; notHelpful: string; positiveProps?: Partial<ConversationTooltipIconButtonProps>; negativeProps?: Partial<ConversationTooltipIconButtonProps> }> = CanonicalResponseFeedbackActions;
+export const ConversationCanonicalResponseCopyAction = CanonicalResponseCopyAction;
+export const ConversationCanonicalResponseReloadAction = CanonicalResponseReloadAction;
+export const ConversationCanonicalResponseExportMarkdownAction: ComponentType<{ menuLabel?: string; buttonProps?: Partial<ConversationTooltipIconButtonProps>; menuItemProps?: Partial<ConversationActionMoreMenuItemProps> }> = CanonicalResponseExportMarkdownAction;
 export interface ConversationTurnGroup {
   turnId: string;
   requestMessageId: string | null;
@@ -1350,7 +1302,9 @@ export function ConversationComposerCommandTrigger(props: ConversationCommandTri
 
 import { WebSearch as InternalWebSearch, RetrievalChunks as InternalRetrievalChunks } from "./internal/search-elements.js";
 export interface WebSearchResult { title: string; domain: string }
-export interface WebSearchProps {
+export interface WebSearchProps extends Omit<React.ComponentProps<"div">, "children" | "query" | "results" | "searching" | "labels" | "visibleResults" | "cycle"> {
+  visibleResults?: number | undefined;
+  cycle?: number | undefined;
   query: string;
   results: readonly WebSearchResult[];
   searching: boolean;
@@ -1360,7 +1314,8 @@ export function WebSearch(props: WebSearchProps): ReactElement {
   return <InternalWebSearch {...props} />;
 }
 export interface RetrievalChunk { id: string; source: string; locator: string; score: number; text: string }
-export interface RetrievalChunksProps {
+export interface RetrievalChunksProps extends Omit<React.ComponentProps<"div">, "children" | "query" | "chunks" | "searching" | "labels" | "visibleCount"> {
+  visibleCount?: number | undefined;
   query: string;
   chunks: readonly RetrievalChunk[];
   searching: boolean;
@@ -1385,9 +1340,10 @@ export function ConversationActionMoreMenu(props: { label: string; children: Rea
   return <InternalConversationActionMoreMenu {...props} />;
 }
 
-export function ConversationActionMoreMenuItem(props: {
-  children: ReactNode; disabled?: boolean; onSelect?: (event: Event) => void;
-}): ReactElement {
+export type ConversationActionMoreMenuItemProps = Omit<React.ComponentProps<"div">, "onSelect"> & {
+  children: ReactNode; disabled?: boolean; asChild?: boolean; onSelect?: (event: Event) => void;
+};
+export function ConversationActionMoreMenuItem(props: ConversationActionMoreMenuItemProps): ReactElement {
   return <InternalConversationActionMoreMenuItem {...props} />;
 }
 
@@ -1401,7 +1357,7 @@ export function AgentUISidebarFrame(props: { items: readonly AgentUISidebarItem[
 export function useAgentUISidebarNavigation(): () => void { return internalSidebarNavigation(); }
 
 // Product facade reuses the same Sidebar context and upstream-derived primitives.
-import { SidebarHeader as InternalSidebarHeader, SidebarMenu as InternalSidebarMenu, SidebarMenuItem as InternalSidebarMenuItem, SidebarMenuButton as InternalSidebarMenuButton } from "./internal/adapters/assistant-ui/components/ui/sidebar.js";
+import { SidebarHeader as InternalSidebarHeader, SidebarMenu as InternalSidebarMenu, SidebarMenuItem as InternalSidebarMenuItem, SidebarMenuButton as InternalSidebarMenuButton } from "./internal/adapters-generated/assistant-ui/components/ui/sidebar.js";
 export const AgentUISidebarHeader: ComponentType<React.HTMLAttributes<HTMLDivElement>> = InternalSidebarHeader;
 export const AgentUISidebarMenu: ComponentType<React.HTMLAttributes<HTMLUListElement>> = InternalSidebarMenu;
 export const AgentUISidebarMenuItem: ComponentType<React.HTMLAttributes<HTMLLIElement>> = InternalSidebarMenuItem;
@@ -1409,14 +1365,89 @@ export const AgentUISidebarMenuButton: ComponentType<React.ButtonHTMLAttributes<
 
 /** One scoped timeline per assistant message; children reuse existing tool detail renderers. */
 export interface ConversationToolTimelineRenderScope { readonly children?: ReactNode; }
-export function ConversationToolTimeline({ children }: { children?: ReactNode }) {
-  return <InternalConversationToolTimeline>{children}</InternalConversationToolTimeline>;
-}
+export { ConversationToolTimeline, type ConversationToolTimelineProps } from "./plugins/tool-timeline/adapters/presentation/tool-timeline.js";
 
 export interface ConversationThinkingIndicatorRenderScope {
   readonly reasoningVisible: boolean;
   readonly timelineVisible: boolean;
 }
-export function ConversationThinkingIndicator(props: ConversationThinkingIndicatorRenderScope) {
-  return <InternalConversationThinkingIndicator {...props} />;
-}
+export { ConversationThinkingIndicator, type ConversationThinkingIndicatorProps } from "./plugins/thinking-indicator/adapters/presentation/thinking-indicator.js";
+
+export { ConversationCanonicalResponseFooter, type ConversationCanonicalResponseFooterProps } from "./plugins/response-footer/adapters/presentation/response-footer.js";
+export { ConversationCanonicalSuggestions, type ConversationCanonicalSuggestionsProps } from "./plugins/conversation-suggestions/adapters/presentation/conversation-suggestions.js";
+
+export { CanonicalAgentStatusMessage, type AgentStatusMessageProps } from "./plugins/agent-status-message/adapters/presentation/agent-status-message.js";
+
+export { CanonicalAgentPlanMessage, type AgentPlanMessageProps } from "./plugins/agent-plan-message/adapters/presentation/agent-plan-message.js";
+
+export { CanonicalJobProgressMessage, type JobProgressMessageProps } from "./plugins/job-progress-message/adapters/presentation/job-progress-message.js";
+
+export { CanonicalGeneratedFileMessage, type GeneratedFileMessageProps } from "./plugins/generated-file-message/adapters/presentation/generated-file-message.js";
+
+export { CanonicalChartMessage, type ChartMessageProps, type ChartMessageData, type ChartMessageItem } from "./plugins/chart-message/adapters/presentation/chart-message.js";
+
+export { CanonicalSourceCitationsMessage, type SourceCitationsMessageProps } from "./plugins/source-citations-message/adapters/presentation/source-citations-message.js";
+
+export { CanonicalRetrievalChunks, type RetrievalChunksPluginProps } from "./plugins/retrieval-chunks/adapters/presentation/retrieval-chunks.js";
+
+export { CanonicalWebSearch, type WebSearchPluginProps } from "./plugins/web-search/adapters/presentation/web-search.js";
+
+export { CanonicalConversationThreadList, CanonicalConversationThreadListRailAction } from "./plugins/conversation-thread-list/adapters/presentation/conversation-thread-list.js";
+export type { ConversationThreadListPluginProps, ConversationThreadListRailActionProps } from "./plugins/conversation-thread-list/adapters/presentation/conversation-thread-list.js";
+
+export { CanonicalConversationHistory } from "./plugins/conversation-history/adapters/presentation/conversation-history.js";
+export type { ConversationHistoryPluginProps } from "./plugins/conversation-history/adapters/presentation/conversation-history.js";
+
+export { CanonicalConversationNew } from "./plugins/conversation-new/adapters/presentation/conversation-new.js";
+export type { ConversationNewPluginProps } from "./plugins/conversation-new/adapters/presentation/conversation-new.js";
+
+export { CanonicalConversationQuote } from "./plugins/conversation-quote/adapters/presentation/conversation-quote.js";
+export type { ConversationQuotePluginProps } from "./plugins/conversation-quote/adapters/presentation/conversation-quote.js";
+
+export { PolicyThreadList as ConversationPolicyThreadList } from "./plugins/conversation-thread-list/adapters/presentation/PolicyThreadList.js";
+
+export { CanonicalAgentIdentityPlugin } from "./plugins/agent-identity/adapters/presentation/agent-identity.js";
+export type { AgentIdentityPluginProps } from "./plugins/agent-identity/adapters/presentation/agent-identity.js";
+
+export { CanonicalAuthAccountPlugin } from "./plugins/auth-account/adapters/presentation/auth-account.js";
+export type { AuthAccountPluginProps } from "./plugins/auth-account/adapters/presentation/auth-account.js";
+
+export { CanonicalAuthGatePlugin } from "./plugins/auth-gate/adapters/presentation/auth-gate.js";
+export type { AuthGatePluginProps } from "./plugins/auth-gate/adapters/presentation/auth-gate.js";
+
+export { CanonicalConversationCommandSourcePlugin } from "./plugins/conversation-command-source/adapters/presentation/conversation-command-source.js";
+export type { ConversationCommandSourcePluginProps } from "./plugins/conversation-command-source/adapters/presentation/conversation-command-source.js";
+
+export { CanonicalConversationDataSourcePlugin } from "./plugins/conversation-data-source/adapters/presentation/conversation-data-source.js";
+export type { ConversationDataSourcePluginProps } from "./plugins/conversation-data-source/adapters/presentation/conversation-data-source.js";
+
+export { CanonicalConversationServicePlugin } from "./plugins/conversation-service/adapters/presentation/conversation-service.js";
+export type { ConversationServicePluginProps } from "./plugins/conversation-service/adapters/presentation/conversation-service.js";
+
+export { CanonicalConversationSurfacePlugin } from "./plugins/conversation-surface/adapters/presentation/conversation-surface.js";
+export type { ConversationSurfacePluginProps } from "./plugins/conversation-surface/adapters/presentation/conversation-surface.js";
+
+export { CanonicalLocaleProviderPlugin } from "./plugins/locale-provider/adapters/presentation/locale-provider.js";
+export type { LocaleProviderPluginProps } from "./plugins/locale-provider/adapters/presentation/locale-provider.js";
+
+export { CanonicalConversationMentionTrigger } from "./plugins/mention-trigger/adapters/presentation/mention-trigger.js";
+export type { ConversationMentionTriggerPluginProps } from "./plugins/mention-trigger/adapters/presentation/mention-trigger.js";
+
+
+export { CanonicalConversationSlashCommandTrigger } from "./plugins/slash-command-trigger/adapters/presentation/slash-command-trigger.js";
+export type { ConversationSlashCommandTriggerProps } from "./plugins/slash-command-trigger/adapters/presentation/slash-command-trigger.js";
+
+export { CanonicalTaskGroupPlugin } from "./plugins/task-group/adapters/presentation/task-group.js";
+export type { TaskGroupPluginProps } from "./plugins/task-group/adapters/presentation/task-group.js";
+
+export { CanonicalThemeProviderPlugin } from "./plugins/theme-provider/adapters/presentation/theme-provider.js";
+export type { ThemeProviderPluginProps } from "./plugins/theme-provider/adapters/presentation/theme-provider.js";
+
+export { CanonicalThemeSwitchPlugin } from "./plugins/theme-switch/adapters/presentation/theme-switch.js";
+export type { ThemeSwitchPluginProps } from "./plugins/theme-switch/adapters/presentation/theme-switch.js";
+
+export { createAgentUIThemeService, readAgentUITheme } from "./plugins/theme-provider/adapters/presentation/theme-service.js";
+
+export { createAgentUILocaleService } from "./plugins/locale-provider/adapters/presentation/locale-service.js";
+
+export { createAuthSession } from "./plugins/auth-gate/adapters/presentation/session.js";

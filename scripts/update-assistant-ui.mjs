@@ -255,7 +255,7 @@ export async function main({
   }
 
   const targetPath = path.join(repoRoot, "assistant-ui-upgrade-target.json");
-  const provenancePath = path.join(repoRoot, "packages/plugins/src/internal/vendor/assistant-ui/UPSTREAM.json");
+  const provenancePath = path.join(repoRoot, "packages/plugins/src/internal/vendor-generated/assistant-ui/UPSTREAM.json");
   const sessionPath = path.join(repoRoot, SESSION_FILE);
 
   try {
@@ -404,7 +404,7 @@ export async function main({
       stdio: "inherit",
     });
     if (generativeUiRevision) {
-      await commandRunner("pnpm", ["--filter", "@za38.03/agent-ui-source-registry", "sync:generative-ui-upstream", "--", "--revision", generativeUiRevision, "--repo", repo], {
+      await commandRunner("pnpm", ["--filter", "@za38.03/agent-ui-plugins", "sync:generative-ui-upstream", "--", "--revision", generativeUiRevision, "--repo", repo], {
         cwd: repoRoot,
         stdio: "inherit",
       });

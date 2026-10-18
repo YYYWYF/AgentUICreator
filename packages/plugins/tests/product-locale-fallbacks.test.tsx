@@ -5,10 +5,10 @@ import { AssistantRuntimeProvider, useLocalRuntime, ThreadPrimitive, type Thread
 import { afterEach, expect, it, vi } from "vitest";
 import { AgentUILocaleProvider, AGENT_UI_PRESENTATION_LOCALES, formatPresentationMessage, type AgentUILocaleCode } from "../src/locale";
 import { ConversationThreadListNew, ConversationThreadListSearch, ConversationTaskGroup } from "../src/public";
-import { ToolFallback } from "../src/internal/adapters/assistant-ui/components/assistant-ui/elements/tool-fallback.aui";
-import { ReasoningRoot, ReasoningTrigger } from "../src/internal/adapters/assistant-ui/components/assistant-ui/elements/reasoning";
-import { ToolGroupRoot, ToolGroupTrigger } from "../src/internal/adapters/assistant-ui/components/assistant-ui/elements/tool-group.aui";
-import { summaryLabel, type TaskSummary } from "../src/internal/adapters/assistant-ui/components/assistant-ui/elements/agent-status.aui";
+import { ToolFallback } from "../src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-fallback.aui";
+import { ReasoningRoot, ReasoningTrigger } from "../src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/reasoning";
+import { ToolGroupRoot, ToolGroupTrigger } from "../src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-group.aui";
+import { summaryLabel, type TaskSummary } from "../src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/agent-status.aui";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 let root: Root | undefined;
 afterEach(async () => { await act(async () => root?.unmount()); root = undefined; document.body.replaceChildren(); });

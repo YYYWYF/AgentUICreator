@@ -1,0 +1,980 @@
+..F..............F......FFFFFFFF..FFFF                                   [100%]
+=================================== FAILURES ===================================
+_____ test_progressing_task_exceeds_both_old_model_and_graph_limits[write] _____
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_progressing_task_exceeds_2')
+scope = 'write'
+
+    @pytest.mark.parametrize("scope", ["minimal", "inspect", "write"])
+    def test_progressing_task_exceeds_both_old_model_and_graph_limits(tmp_path, scope):
+        agent = progressing_agent(tmp_path, scope)
+        result = asyncio.run(agent.run("Read each part and report completion."))
+>       assert result.text == "Inspection complete."
+E       AssertionError: assert '无法确认请求已经完成：本...结果结束；否则请继续实现。' == 'Inspection complete.'
+E         
+E         - Inspection complete.
+E         + 无法确认请求已经完成：本次运行没有产生项目文件修改。如果请求本来只需要读取或说明，请明确按只读结果结束；否则请继续实现。
+
+tests/test_unlimited_creator_execution.py:46: AssertionError
+________ test_side_effect_classification_and_round_trip_prompt_contract ________
+
+    def test_side_effect_classification_and_round_trip_prompt_contract():
+>       assert SIDE_EFFECT_TOOL_NAMES == {
+            "edit_file",
+            "create_ui_plugin",
+            "mutate_ui_plugin_source",
+            "prepare_ui_service_contract_change",
+            "create_ui_service_contract",
+            "mutate_ui_service_contract",
+            "mutate_app_ui_model",
+        }
+E       AssertionError: assert frozenset({'a...t_file', ...}) == {'create_ui_p...ontract', ...}
+E         
+E         Extra items in the left set:
+E         'apply_agent_ui_integration'
+E         'undo_creator_run'
+E         'prepare_agent_ui_integration_asset'
+E         'prepare_ui_plugin_development'
+E         'purge_ui_plugin'...
+E         
+E         ...Full output truncated (7 lines hidden), use '-vv' to show
+
+tests/test_domain_tool_batch_policy.py:170: AssertionError
+_______ test_deepagent_parallel_read_batch_preserves_guards_and_activity _______
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_deepagent_parallel_read_b0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_deepagent_parallel_read_b0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_deepagent_parallel_read_b0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_deepagent_parallel_read_b0')
+
+    def test_deepagent_parallel_read_batch_preserves_guards_and_activity(tmp_path):
+        client = BatchClient(tmp_path, barrier_size=3)
+        names = ["inspect_ui_project", "inspect_app_ui_model", "list_ui_plugins"]
+>       agent, model = make_agent(client, [
+            batch(*(call(name, {}, f"read-{index}") for index, name in enumerate(names))),
+            AIMessage(content="Inspection complete."),
+        ])
+
+tests/test_domain_tool_batch_policy.py:232: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_domain_tool_batch_policy.py:156: in make_agent
+    agent = create_domain_write_creator_agent(
+agent_ui_creator/domain_agent/agent.py:695: in create_domain_write_creator_agent
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+agent_ui_creator/minimal_agent/path_policy.py:169: in __init__
+    source_root = agent_ui_source_root(root_dir) if policy.mode == "development" else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_deepagent_parallel_read_b0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+agent_ui_creator/project_paths.py:27: ValueError
+_ test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_model_call[read-write] _
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep0')
+invalid = AIMessage(content='', additional_kwargs={}, response_metadata={}, tool_calls=[{'name': 'inspect_app_ui_model', 'args':...pe': 'layout_slot', 'slotNodeId': 'sidebar-right'}}]}, 'id': 'bad-write', 'type': 'tool_call'}], invalid_tool_calls=[])
+
+    @pytest.mark.parametrize("invalid", INVALID_BATCHES, ids=["read-write", "two-writes", "edit-mutation", "duplicate", "five-reads"])
+    def test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_model_call(tmp_path, invalid):
+        client = BatchClient(tmp_path)
+        before = project_files(tmp_path)
+    
+        def assert_not_dispatched(index, messages):
+            if index == 1:
+                assert client.reads == client.mutations == []
+                assert agent.runtime.activities == []
+                assert agent.activity.revision == 0
+                assert project_files(tmp_path) == before
+                assert isinstance(messages[-1], HumanMessage)
+                assert messages[-1].content == BATCH_POLICY_REPAIR_PROMPT
+                assert not any(isinstance(item, AIMessage) and item.tool_calls for item in messages)
+    
+>       agent, model = make_agent(client, [
+            invalid,
+            call("inspect_app_ui_model", {}, "safe-read"),
+            mutation("safe-mutation"),
+            AIMessage(content="Static composition committed."),
+        ], before_response=assert_not_dispatched)
+
+tests/test_domain_tool_batch_policy.py:286: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_domain_tool_batch_policy.py:156: in make_agent
+    agent = create_domain_write_creator_agent(
+agent_ui_creator/domain_agent/agent.py:695: in create_domain_write_creator_agent
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+agent_ui_creator/minimal_agent/path_policy.py:169: in __init__
+    source_root = agent_ui_source_root(root_dir) if policy.mode == "development" else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+agent_ui_creator/project_paths.py:27: ValueError
+_ test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_model_call[two-writes] _
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep1')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep1/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep1/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep1')
+invalid = AIMessage(content='', additional_kwargs={}, response_metadata={}, tool_calls=[{'name': 'mutate_app_ui_model', 'args': ...': 'layout_slot', 'slotNodeId': 'sidebar-right'}}]}, 'id': 'bad-write-2', 'type': 'tool_call'}], invalid_tool_calls=[])
+
+    @pytest.mark.parametrize("invalid", INVALID_BATCHES, ids=["read-write", "two-writes", "edit-mutation", "duplicate", "five-reads"])
+    def test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_model_call(tmp_path, invalid):
+        client = BatchClient(tmp_path)
+        before = project_files(tmp_path)
+    
+        def assert_not_dispatched(index, messages):
+            if index == 1:
+                assert client.reads == client.mutations == []
+                assert agent.runtime.activities == []
+                assert agent.activity.revision == 0
+                assert project_files(tmp_path) == before
+                assert isinstance(messages[-1], HumanMessage)
+                assert messages[-1].content == BATCH_POLICY_REPAIR_PROMPT
+                assert not any(isinstance(item, AIMessage) and item.tool_calls for item in messages)
+    
+>       agent, model = make_agent(client, [
+            invalid,
+            call("inspect_app_ui_model", {}, "safe-read"),
+            mutation("safe-mutation"),
+            AIMessage(content="Static composition committed."),
+        ], before_response=assert_not_dispatched)
+
+tests/test_domain_tool_batch_policy.py:286: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_domain_tool_batch_policy.py:156: in make_agent
+    agent = create_domain_write_creator_agent(
+agent_ui_creator/domain_agent/agent.py:695: in create_domain_write_creator_agent
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+agent_ui_creator/minimal_agent/path_policy.py:169: in __init__
+    source_root = agent_ui_source_root(root_dir) if policy.mode == "development" else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep1')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+agent_ui_creator/project_paths.py:27: ValueError
+_ test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_model_call[edit-mutation] _
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep2')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep2/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep2/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep2')
+invalid = AIMessage(content='', additional_kwargs={}, response_metadata={}, tool_calls=[{'name': 'edit_file', 'args': {'file_pat...: 'layout_slot', 'slotNodeId': 'sidebar-right'}}]}, 'id': 'bad-mutation', 'type': 'tool_call'}], invalid_tool_calls=[])
+
+    @pytest.mark.parametrize("invalid", INVALID_BATCHES, ids=["read-write", "two-writes", "edit-mutation", "duplicate", "five-reads"])
+    def test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_model_call(tmp_path, invalid):
+        client = BatchClient(tmp_path)
+        before = project_files(tmp_path)
+    
+        def assert_not_dispatched(index, messages):
+            if index == 1:
+                assert client.reads == client.mutations == []
+                assert agent.runtime.activities == []
+                assert agent.activity.revision == 0
+                assert project_files(tmp_path) == before
+                assert isinstance(messages[-1], HumanMessage)
+                assert messages[-1].content == BATCH_POLICY_REPAIR_PROMPT
+                assert not any(isinstance(item, AIMessage) and item.tool_calls for item in messages)
+    
+>       agent, model = make_agent(client, [
+            invalid,
+            call("inspect_app_ui_model", {}, "safe-read"),
+            mutation("safe-mutation"),
+            AIMessage(content="Static composition committed."),
+        ], before_response=assert_not_dispatched)
+
+tests/test_domain_tool_batch_policy.py:286: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_domain_tool_batch_policy.py:156: in make_agent
+    agent = create_domain_write_creator_agent(
+agent_ui_creator/domain_agent/agent.py:695: in create_domain_write_creator_agent
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+agent_ui_creator/minimal_agent/path_policy.py:169: in __init__
+    source_root = agent_ui_source_root(root_dir) if policy.mode == "development" else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep2')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+agent_ui_creator/project_paths.py:27: ValueError
+_ test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_model_call[duplicate] _
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep3')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep3/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep3/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep3')
+invalid = AIMessage(content='', additional_kwargs={}, response_metadata={}, tool_calls=[{'name': 'inspect_ui_project', 'args': {...l_call'}, {'name': 'inspect_ui_project', 'args': {}, 'id': 'duplicate-2', 'type': 'tool_call'}], invalid_tool_calls=[])
+
+    @pytest.mark.parametrize("invalid", INVALID_BATCHES, ids=["read-write", "two-writes", "edit-mutation", "duplicate", "five-reads"])
+    def test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_model_call(tmp_path, invalid):
+        client = BatchClient(tmp_path)
+        before = project_files(tmp_path)
+    
+        def assert_not_dispatched(index, messages):
+            if index == 1:
+                assert client.reads == client.mutations == []
+                assert agent.runtime.activities == []
+                assert agent.activity.revision == 0
+                assert project_files(tmp_path) == before
+                assert isinstance(messages[-1], HumanMessage)
+                assert messages[-1].content == BATCH_POLICY_REPAIR_PROMPT
+                assert not any(isinstance(item, AIMessage) and item.tool_calls for item in messages)
+    
+>       agent, model = make_agent(client, [
+            invalid,
+            call("inspect_app_ui_model", {}, "safe-read"),
+            mutation("safe-mutation"),
+            AIMessage(content="Static composition committed."),
+        ], before_response=assert_not_dispatched)
+
+tests/test_domain_tool_batch_policy.py:286: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_domain_tool_batch_policy.py:156: in make_agent
+    agent = create_domain_write_creator_agent(
+agent_ui_creator/domain_agent/agent.py:695: in create_domain_write_creator_agent
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+agent_ui_creator/minimal_agent/path_policy.py:169: in __init__
+    source_root = agent_ui_source_root(root_dir) if policy.mode == "development" else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep3')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+agent_ui_creator/project_paths.py:27: ValueError
+_ test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_model_call[five-reads] _
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep4')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep4/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep4/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep4')
+invalid = AIMessage(content='', additional_kwargs={}, response_metadata={}, tool_calls=[{'name': 'inspect_ui_project', 'args': {...call'}, {'name': 'inspect_ui_services', 'args': {}, 'id': 'over-limit-4', 'type': 'tool_call'}], invalid_tool_calls=[])
+
+    @pytest.mark.parametrize("invalid", INVALID_BATCHES, ids=["read-write", "two-writes", "edit-mutation", "duplicate", "five-reads"])
+    def test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_model_call(tmp_path, invalid):
+        client = BatchClient(tmp_path)
+        before = project_files(tmp_path)
+    
+        def assert_not_dispatched(index, messages):
+            if index == 1:
+                assert client.reads == client.mutations == []
+                assert agent.runtime.activities == []
+                assert agent.activity.revision == 0
+                assert project_files(tmp_path) == before
+                assert isinstance(messages[-1], HumanMessage)
+                assert messages[-1].content == BATCH_POLICY_REPAIR_PROMPT
+                assert not any(isinstance(item, AIMessage) and item.tool_calls for item in messages)
+    
+>       agent, model = make_agent(client, [
+            invalid,
+            call("inspect_app_ui_model", {}, "safe-read"),
+            mutation("safe-mutation"),
+            AIMessage(content="Static composition committed."),
+        ], before_response=assert_not_dispatched)
+
+tests/test_domain_tool_batch_policy.py:286: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_domain_tool_batch_policy.py:156: in make_agent
+    agent = create_domain_write_creator_agent(
+agent_ui_creator/domain_agent/agent.py:695: in create_domain_write_creator_agent
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+agent_ui_creator/minimal_agent/path_policy.py:169: in __init__
+    source_root = agent_ui_source_root(root_dir) if policy.mode == "development" else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_real_middleware_stack_rep4')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+agent_ui_creator/project_paths.py:27: ValueError
+_ test_second_invalid_batch_fails_without_dispatch_or_protocol_metric_pollution _
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_second_invalid_batch_fail0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_second_invalid_batch_fail0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_second_invalid_batch_fail0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_second_invalid_batch_fail0')
+
+    def test_second_invalid_batch_fails_without_dispatch_or_protocol_metric_pollution(tmp_path):
+        client = BatchClient(tmp_path)
+        invalid = INVALID_BATCHES[0]
+>       agent, model = make_agent(client, [invalid, invalid])
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_domain_tool_batch_policy.py:311: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_domain_tool_batch_policy.py:156: in make_agent
+    agent = create_domain_write_creator_agent(
+agent_ui_creator/domain_agent/agent.py:695: in create_domain_write_creator_agent
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+agent_ui_creator/minimal_agent/path_policy.py:169: in __init__
+    source_root = agent_ui_source_root(root_dir) if policy.mode == "development" else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_second_invalid_batch_fail0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+agent_ui_creator/project_paths.py:27: ValueError
+___________ test_batch_policy_also_checks_a_protocol_repair_response ___________
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_batch_policy_also_checks_0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_batch_policy_also_checks_0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_batch_policy_also_checks_0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_batch_policy_also_checks_0')
+
+    def test_batch_policy_also_checks_a_protocol_repair_response(tmp_path):
+        client = BatchClient(tmp_path)
+>       agent, model = make_agent(client, [
+            AIMessage(content='inspect_app_ui_model({})'),
+            INVALID_BATCHES[0],
+            call("inspect_app_ui_model", {}, "safe-read"),
+            AIMessage(content="Inspection complete."),
+        ])
+
+tests/test_domain_tool_batch_policy.py:326: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_domain_tool_batch_policy.py:156: in make_agent
+    agent = create_domain_write_creator_agent(
+agent_ui_creator/domain_agent/agent.py:695: in create_domain_write_creator_agent
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+agent_ui_creator/minimal_agent/path_policy.py:169: in __init__
+    source_root = agent_ui_source_root(root_dir) if policy.mode == "development" else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_batch_policy_also_checks_0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+agent_ui_creator/project_paths.py:27: ValueError
+_ test_restore_round_trip_budget_one_atomic_mutation_without_confirmation_reads _
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_restore_round_trip_budget0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_restore_round_trip_budget0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_restore_round_trip_budget0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_restore_round_trip_budget0')
+
+    def test_restore_round_trip_budget_one_atomic_mutation_without_confirmation_reads(tmp_path):
+        client = BatchClient(tmp_path, barrier_size=2)
+>       agent, model = make_agent(client, [
+            batch(
+                call("inspect_ui_plugin", {"pluginId": "session-manager"}, "plugin"),
+                call("inspect_ui_slots", {}, "slots"),
+            ),
+            mutation(),
+            AIMessage(content="已恢复到右侧栏；未进行运行时验证。"),
+        ])
+
+tests/test_domain_tool_batch_policy.py:373: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_domain_tool_batch_policy.py:156: in make_agent
+    agent = create_domain_write_creator_agent(
+agent_ui_creator/domain_agent/agent.py:695: in create_domain_write_creator_agent
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+agent_ui_creator/minimal_agent/path_policy.py:169: in __init__
+    source_root = agent_ui_source_root(root_dir) if policy.mode == "development" else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_restore_round_trip_budget0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+agent_ui_creator/project_paths.py:27: ValueError
+______________ test_dependent_plugin_discovery_remains_sequential ______________
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_dependent_plugin_discover0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_dependent_plugin_discover0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_dependent_plugin_discover0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_dependent_plugin_discover0')
+
+    def test_dependent_plugin_discovery_remains_sequential(tmp_path):
+        client = BatchClient(tmp_path)
+    
+        def discovery_is_available(index, messages):
+            if index == 1:
+                assert client.reads == [("list_ui_plugins", {})]
+                result = next(item for item in messages if isinstance(item, ToolMessage))
+                assert json.loads(result.content)["result"]["pluginAssets"][0]["pluginId"] == "session-manager"
+    
+>       agent, model = make_agent(client, [
+            call("list_ui_plugins", {}, "discover"),
+            call("inspect_ui_plugin", {"pluginId": "session-manager"}, "resolved"),
+            AIMessage(content="Found the existing session plugin."),
+        ], before_response=discovery_is_available)
+
+tests/test_domain_tool_batch_policy.py:418: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_domain_tool_batch_policy.py:156: in make_agent
+    agent = create_domain_write_creator_agent(
+agent_ui_creator/domain_agent/agent.py:695: in create_domain_write_creator_agent
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+agent_ui_creator/minimal_agent/path_policy.py:169: in __init__
+    source_root = agent_ui_source_root(root_dir) if policy.mode == "development" else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_dependent_plugin_discover0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+agent_ui_creator/project_paths.py:27: ValueError
+__________ test_conflict_allows_fresh_inspection_and_second_mutation ___________
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_conflict_allows_fresh_ins0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+>           config = json.loads(config_path.read_text(encoding="utf-8"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+agent_ui_creator/project_paths.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_conflict_allows_fresh_ins0/.agent-ui/project.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_conflict_allows_fresh_ins0/.agent-ui/project.json'
+
+/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_conflict_allows_fresh_ins0')
+
+    def test_conflict_allows_fresh_inspection_and_second_mutation(tmp_path):
+        client = BatchClient(tmp_path, conflict_once=True)
+    
+        def external_change_before_refresh(index, messages):
+            if index == 2:
+                conflict = next(item for item in messages if isinstance(item, ToolMessage) and item.tool_call_id == "conflict")
+                assert json.loads(conflict.content)["error"]["code"] == "APP_UI_MODEL_HASH_CONFLICT"
+                path = tmp_path / APP_UI_MODEL_PATH
+                path.write_text(path.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+    
+>       agent, model = make_agent(client, [
+            call("inspect_app_ui_model", {}, "initial"),
+            mutation("conflict"),
+            call("inspect_app_ui_model", {}, "fresh"),
+            mutation("retry"),
+            AIMessage(content="Composition committed after refreshing stale state."),
+        ], before_response=external_change_before_refresh)
+
+tests/test_domain_tool_batch_policy.py:440: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_domain_tool_batch_policy.py:156: in make_agent
+    agent = create_domain_write_creator_agent(
+agent_ui_creator/domain_agent/agent.py:695: in create_domain_write_creator_agent
+    backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+agent_ui_creator/minimal_agent/path_policy.py:169: in __init__
+    source_root = agent_ui_source_root(root_dir) if policy.mode == "development" else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+project_root = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_conflict_allows_fresh_ins0')
+
+    def agent_ui_source_root(project_root: str | Path) -> str:
+        root = Path(project_root).resolve()
+        config_path = root / ".agent-ui" / "project.json"
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as error:
+>           raise ValueError("Invalid Agent UI project configuration.") from error
+E           ValueError: Invalid Agent UI project configuration.
+
+agent_ui_creator/project_paths.py:27: ValueError
+___________ test_creator_endpoint_preserves_parallel_tool_lifecycles ___________
+
+tmp_path = PosixPath('/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-744/test_creator_endpoint_preserve0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x116bde780>
+
+    def test_creator_endpoint_preserves_parallel_tool_lifecycles(tmp_path, monkeypatch):
+        client = BatchClient(tmp_path, barrier_size=2)
+        model = BatchScriptModel(responses=[
+            batch(call("inspect_app_ui_model", {}, "model-read"), call("list_ui_plugins", {}, "plugins-read")),
+            AIMessage(content="Inspection complete."),
+        ])
+        monkeypatch.setenv("CREATOR_PYTHON_AGENT_MODE", "domain-write")
+        monkeypatch.setattr(
+            "agent_ui_creator.server.CreatorModelSettings.from_environment",
+            classmethod(lambda cls, **kwargs: CreatorModelSettings(
+                model_name="scripted-batch", base_url="http://unused.invalid/v1", api_key="unused-test-key"
+            )),
+        )
+        monkeypatch.setattr("agent_ui_creator.model_factory.create_creator_chat_model", lambda *args, **kwargs: model)
+        monkeypatch.setattr("agent_ui_creator.domain_agent.agent.OperatorClient", lambda **kwargs: client)
+        settings = CreatorServerSettings(project_root=tmp_path, skills_root=tmp_path, auth_token="x" * 32)
+        with TestClient(create_app(settings), headers={"Authorization": f"Bearer {settings.auth_token}"}) as http:
+            response = http.post("/creator", json={
+                "threadId": "batch-thread", "runId": "batch-run",
+                "messages": [{"role": "user", "content": "Inspect current model and registered plugins."}],
+            })
+    
+        assert response.status_code == 200
+        events = [json.loads(line.removeprefix("data:")) for line in response.text.splitlines() if line.startswith("data:")]
+        assert events[0]["type"] == "RUN_STARTED"
+>       assert events[-1]["type"] == "RUN_FINISHED"
+E       AssertionError: assert 'RUN_ERROR' == 'RUN_FINISHED'
+E         
+E         - RUN_FINISHED
+E         + RUN_ERROR
+
+tests/test_domain_tool_batch_policy.py:482: AssertionError
+=============================== warnings summary ===============================
+tests/test_unlimited_creator_execution.py::test_progressing_task_exceeds_both_old_model_and_graph_limits[minimal]
+  /Users/yifei/Coding/AgentUICreator/packages/creator/python/agent_ui_creator/streaming/deepagent_v3_runner.py:68: LangChainBetaWarning: The v3 streaming protocol on Pregel is experimental.
+    stream = await graph.astream_events(
+
+tests/test_unlimited_creator_execution.py::test_progressing_task_exceeds_both_old_model_and_graph_limits[minimal]
+  /Users/yifei/Coding/AgentUICreator/packages/creator/python/.venv/lib/python3.14/site-packages/langgraph/pregel/main.py:3612: LangChainBetaWarning: The v3 streaming protocol on Pregel is experimental.
+    return AsyncGraphRunStream(graph_aiter, mux)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_unlimited_creator_execution.py::test_progressing_task_exceeds_both_old_model_and_graph_limits[write]
+FAILED tests/test_domain_tool_batch_policy.py::test_side_effect_classification_and_round_trip_prompt_contract
+FAILED tests/test_domain_tool_batch_policy.py::test_deepagent_parallel_read_batch_preserves_guards_and_activity
+FAILED tests/test_domain_tool_batch_policy.py::test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_model_call[read-write]
+FAILED tests/test_domain_tool_batch_policy.py::test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_model_call[two-writes]
+FAILED tests/test_domain_tool_batch_policy.py::test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_model_call[edit-mutation]
+FAILED tests/test_domain_tool_batch_policy.py::test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_model_call[duplicate]
+FAILED tests/test_domain_tool_batch_policy.py::test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_model_call[five-reads]
+FAILED tests/test_domain_tool_batch_policy.py::test_second_invalid_batch_fails_without_dispatch_or_protocol_metric_pollution
+FAILED tests/test_domain_tool_batch_policy.py::test_batch_policy_also_checks_a_protocol_repair_response
+FAILED tests/test_domain_tool_batch_policy.py::test_restore_round_trip_budget_one_atomic_mutation_without_confirmation_reads
+FAILED tests/test_domain_tool_batch_policy.py::test_dependent_plugin_discovery_remains_sequential
+FAILED tests/test_domain_tool_batch_policy.py::test_conflict_allows_fresh_inspection_and_second_mutation
+FAILED tests/test_domain_tool_batch_policy.py::test_creator_endpoint_preserves_parallel_tool_lifecycles
+14 failed, 24 passed, 2 warnings in 3.52s

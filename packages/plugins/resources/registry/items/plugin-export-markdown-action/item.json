@@ -1,0 +1,26 @@
+{
+  "id": "plugin/export-markdown-action",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-export-markdown-action source",
+  "files": [
+    {
+      "source": "files/plugins/export-markdown-action/definition.ts",
+      "target": "plugins/export-markdown-action/definition.ts"
+    },
+    {
+      "source": "files/plugins/export-markdown-action/index.tsx",
+      "target": "plugins/export-markdown-action/index.tsx"
+    },
+    {
+      "source": "files/plugins/export-markdown-action/manifest.json",
+      "target": "plugins/export-markdown-action/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core",
+    "plugin/response-footer"
+  ],
+  "packages": {
+    "react": "19.1.1"
+  }
+}

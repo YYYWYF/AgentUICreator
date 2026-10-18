@@ -1,0 +1,95 @@
+{
+  "date": "2026-10-16",
+  "scope": "Product-owned naming in new templates, generated project source, Creator UI, Agent guidance and rendered tool activity.",
+  "implementation": [
+    "19 short product plugin resources (composer, reasoning, tool-group, etc.) replace upstream-branded IDs in new templates; legacy resources remain for compatibility.",
+    "Public /composer entry and legacy /assistant-ui-composer entry preserve their respective plugin IDs.",
+    "Creator projection changes rendered text only; stored history, execution inputs, action IDs and user-authored messages remain authoritative.",
+    "Optional editor and form-description adapter code stays inside Plugins; generated projects import product facades.",
+    "Existing customized project source is not automatically renamed or overwritten."
+  ],
+  "passed": [
+    "Source Registry build and all 31 tests.",
+    "Creator, Operator and Plugins typechecks.",
+    "Creator, Operator, Plugins builds.",
+    "Creator presentation, question, restored-history and locale tests: 21 tests.",
+    "Operator initialization, package plugin, registry, resource commands, Windows process and update tests: 45 tests; subsequent package compatibility and path suite: 43 tests (overlap).",
+    "Composer Vite bundle boundary and legacy bundle identity: 2 tests.",
+    "Python source layout and official package pilot: 6 tests.",
+    "check:i18n, Source Release metadata verification, package ownership/portable exports checks, git diff --check.",
+    "Eight real tarballs in an isolated directory with spaces and Chinese characters: initialized source and lock contain no upstream brand, strict consumer types, optional facades without downstream upstream-adapter installs, production build after physically removing Creator/Operator/Source Registry."
+  ],
+  "broader_regression_failures": [
+    {
+      "suite": "packages/operator/tests/bootstrap/timeline-thinking-defaults.test.ts",
+      "result": "1 assertion expects Embedded to omit Timeline/Thinking although the existing template includes them; this task changes naming, not that selection."
+    },
+    {
+      "suite": "packages/creator/tests/mock-agent/scenario-registry.test.ts",
+      "result": "1 fixed-count assertion expects 18 frontend scenarios; current catalog has 16."
+    },
+    {
+      "suite": "packages/creator/python/tests/test_plugin_development_authority.py",
+      "result": "28 failures from fixtures without required .agent-ui/project.json (Invalid Agent UI project configuration); 14 tests in that file passed. These fixture/authority semantics were not changed by this task."
+    }
+  ],
+  "not_validated": [
+    "Real Windows execution",
+    "Live Creator model calls",
+    "Full browser visual acceptance"
+  ],
+  "release": "Local changes and local package builds only; no npm publication, commit or push.",
+  "upgrade_followup": {
+    "fixed": "Generative UI synchronization, validation and upgrade report now include the canonical product resource alongside the legacy resource. Upgrade fixtures cover canonical revision staleness and renamed Lexical resource version propagation.",
+    "passed": [
+      "35 upgrade-contract, upgrade-drill and product-localization-generation tests.",
+      "assistant-ui upstream-owned Elements integrity check.",
+      "Generative UI resource verification: no errors.",
+      "git diff --check."
+    ],
+    "limitation": "No live switch to a different upstream version was performed; legacy/product resource definitions remain separate maintenance surfaces."
+  },
+  "short_names_followup": {
+    "mapping": {
+      "conversation-copy-action": "copy-action",
+      "conversation-tool-fallback": "tool-fallback",
+      "conversation-add-attachment-action": "add-attachment-action",
+      "conversation-reasoning": "reasoning",
+      "conversation-thinking-indicator": "thinking-indicator",
+      "conversation-lexical-edit-composer": "lexical-edit-composer",
+      "conversation-lexical-composer-input": "lexical-composer-input",
+      "conversation-composer": "composer",
+      "conversation-message-footer": "message-footer",
+      "conversation-response-footer": "response-footer",
+      "conversation-export-markdown-action": "export-markdown-action",
+      "conversation-reload-action": "reload-action",
+      "conversation-feedback-actions": "feedback-actions",
+      "conversation-slash-command-trigger": "slash-command-trigger",
+      "conversation-tool-timeline": "tool-timeline",
+      "conversation-tool-group": "tool-group",
+      "conversation-mention-trigger": "mention-trigger",
+      "conversation-submit-action": "submit-action",
+      "conversation-dictation-action": "dictation-action"
+    },
+    "optional_resource": "agent-component/generative-ui",
+    "unchanged": "Capability vocabulary, semantic Slot contracts, business names such as conversation-service, upstream dependencies and vendor implementation.",
+    "compatibility": "Original assistant-ui-* resources/Composer entry remain available. The prior conversation-composer official resource ID resolves to the composer resource without appearing in discovery. Unpublished intermediate conversation-* resource copies are replaced, not retained as another compatibility set.",
+    "passed": [
+      "Source Registry: 32 tests and Source Release metadata verification.",
+      "Operator initialization, legacy Composer, resource commands, Windows invocation/path checks: 58 tests.",
+      "Creator presentation, locale, question and history: 21 tests.",
+      "Upgrade and localization generation checks: 35 tests.",
+      "Python source-layout and official package checks: 6 tests.",
+      "Composer bundle and package ownership checks: 5 tests.",
+      "Creator/Operator/Plugins typechecks and builds; Source Registry build.",
+      "check:i18n, upstream-owned Elements integrity, Generative UI resource verification, git diff --check.",
+      "Eight isolated real tarballs: strict consumer typechecking and independent production build without development packages or downstream upstream-adapter installs."
+    ],
+    "not_validated": [
+      "Real Windows execution",
+      "Live Creator model invocation",
+      "Browser visual acceptance"
+    ],
+    "release": "Local only; no npm publication, commit or push."
+  }
+}

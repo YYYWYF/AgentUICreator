@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from types import SimpleNamespace
 
 import pytest
@@ -29,6 +30,13 @@ from agent_ui_creator.run_control import CreatorRunControlState
 from langchain_core.messages import AIMessage
 
 
+@pytest.fixture(autouse=True)
+def configured_project(tmp_path):
+    metadata = tmp_path / ".agent-ui"
+    metadata.mkdir(exist_ok=True)
+    (metadata / "project.json").write_text(json.dumps({"mode": "assistant", "sourceRoot": "src/ui"}), encoding="utf-8")
+
+
 class FakeValidation:
     def __init__(self):
         self.result = None
@@ -41,6 +49,7 @@ class FakeValidation:
             checks=[
                 SimpleNamespace(
                     command="pnpm verify:ui",
+                    check_id="pnpm verify:ui",
                     status="passed",
                     revision=1,
                     source="executed",
@@ -48,6 +57,7 @@ class FakeValidation:
                 ),
                 SimpleNamespace(
                     command="pnpm typecheck",
+                    check_id="pnpm typecheck",
                     status="passed",
                     revision=1,
                     source="executed",
@@ -74,6 +84,9 @@ class FakeRuntime:
 
     async def inspect_layout(self, *, instance_ids):
         assert instance_ids == ["thread-list-main", "surface-main"]
+        return self.layout
+
+    def current_layout(self):
         return self.layout
 
     def publish_host_verification(self, verification_tail, *, runtime_result=None):
@@ -151,20 +164,20 @@ def test_static_only_tail_records_not_run_without_runtime_observation(tmp_path):
 def activity_for_revision(tmp_path):
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("verification-tail")
-    activity.capture_before_content("app-ui/app-ui.json", "{}\n")
-    activity.touch("app-ui/app-ui.json")
+    activity.capture_before_content("src/ui/app-ui/app-ui.json", "{}\n")
+    activity.touch("src/ui/app-ui/app-ui.json")
     return activity
 
 
 def mutated_activity_for_revision(tmp_path):
-    app_ui_path = tmp_path / "app-ui" / "app-ui.json"
-    app_ui_path.parent.mkdir()
+    app_ui_path = tmp_path / "src/ui/app-ui" / "app-ui.json"
+    app_ui_path.parent.mkdir(parents=True)
     app_ui_path.write_text("{}\n", encoding="utf-8")
     activity = CreatorActivityRecorder(tmp_path)
     activity.begin("verification-tail-agent-lifecycle")
-    activity.capture_before("app-ui/app-ui.json")
+    activity.capture_before("src/ui/app-ui/app-ui.json")
     app_ui_path.write_text('{"changed": true}\n', encoding="utf-8")
-    activity.touch("app-ui/app-ui.json")
+    activity.touch("src/ui/app-ui/app-ui.json")
     return activity
 
 
@@ -381,7 +394,8 @@ async def test_agent_lifecycle_accepts_stale_then_fresh_without_second_graph_inv
             ],
         },
     )
-    metrics = CompositionFastPathMetrics()
+    observations = DomainObservationContext()
+    metrics = observations.composition_fast_path_metrics
     tail = CompositionVerificationTail(
         activity=activity,
         validation=validation,
@@ -413,11 +427,11 @@ async def test_agent_lifecycle_accepts_stale_then_fresh_without_second_graph_inv
     agent_runtime = SimpleNamespace(
         backend=SimpleNamespace(activity=activity),
         activities=[],
+        event_sink=None,
         raise_terminal_error=lambda: None,
     )
     operator = SimpleNamespace(metrics=OperatorMetrics())
     repeated_read_guard = SimpleNamespace(repeated_reads=0)
-    observations = DomainObservationContext()
     protocol = SimpleNamespace(metrics=ToolProtocolMetrics())
     completion_gate = CreatorDevelopmentCompletionGate(
         activity=activity,
@@ -531,9 +545,9 @@ def test_model_budget_after_source_uses_authorized_default_transaction(tmp_path,
 
     async def mutate(*, app_ui_model_hash, operations):
         writes.append((app_ui_model_hash, operations))
-        path = tmp_path / "app-ui/app-ui.json"
+        path = tmp_path / "src/ui/app-ui/app-ui.json"
         path.write_text('{"composed":true}\n', encoding="utf-8")
-        activity.touch("app-ui/app-ui.json")
+        activity.touch("src/ui/app-ui/app-ui.json")
         mutation_service.last_result = AppUIModelMutationResult(
             {"changed": True, "semanticComposition": {"operation": "insert_plugin_default"}},
             mutation_revision=activity.revision,

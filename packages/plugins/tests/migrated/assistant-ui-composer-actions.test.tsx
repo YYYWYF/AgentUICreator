@@ -12,7 +12,7 @@ import {
 } from "@assistant-ui/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ConversationSurface } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface";
+import { ConversationSurface } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface";
 import type {
   UIPluginComponentProps,
   UIPluginDefinition,
@@ -23,17 +23,17 @@ import {
   type AppUIRuntimePluginInstance,
 } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
 import { resolveRuntimePluginSlotId } from "../../../operator/src/framework/contracts/app-ui-composition";
-import { assistantUiAddAttachmentActionPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-add-attachment-action/files/plugins/assistant-ui-add-attachment-action/definition";
-import { assistantUiComposerPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-composer/files/plugins/assistant-ui-composer/definition";
-import { assistantUiDictationActionPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-dictation-action/files/plugins/assistant-ui-dictation-action/definition";
-import { assistantUiSubmitActionPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-submit-action/files/plugins/assistant-ui-submit-action/definition";
-import { createPluginRegistry } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+import { conversationAddAttachmentActionPlugin } from "../../resources/registry/items/plugin-add-attachment-action/files/plugins/add-attachment-action/definition";
+import { conversationComposerPlugin } from "../../resources/registry/items/plugin-composer/files/plugins/composer/definition";
+import { conversationDictationActionPlugin } from "../../resources/registry/items/plugin-dictation-action/files/plugins/dictation-action/definition";
+import { conversationSubmitActionPlugin } from "../../resources/registry/items/plugin-submit-action/files/plugins/submit-action/definition";
+import { createPluginRegistry } from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
 import { PluginRuntimeFixture } from "../../../operator/tests/support/agent-runtime-fixture";
 
 const assistantConfig = AuiConfig({});
 const roots: Root[] = [];
 const appUIModelHash = "c".repeat(64);
-const rootSlotId = "assistant-ui-composer-test-root";
+const rootSlotId = "composer-test-root";
 const ComposerAutoFocusContext = createContext(false);
 
 (
@@ -58,7 +58,7 @@ function ComposerHost({ renderSlot }: UIPluginComponentProps) {
 
 const composerHostPlugin: UIPluginDefinition = {
   manifest: {
-    id: "assistant-ui-composer-test-host",
+    id: "composer-test-host",
     name: "Assistant UI Composer Test Host",
     description: "Provides the conversation surface for composer integration tests.",
     version: "1.0.0",
@@ -79,10 +79,10 @@ const composerHostPlugin: UIPluginDefinition = {
 
 const registry = createPluginRegistry([
   composerHostPlugin,
-  assistantUiComposerPlugin,
-  assistantUiAddAttachmentActionPlugin,
-  assistantUiDictationActionPlugin,
-  assistantUiSubmitActionPlugin,
+  conversationComposerPlugin,
+  conversationAddAttachmentActionPlugin,
+  conversationDictationActionPlugin,
+  conversationSubmitActionPlugin,
 ]);
 
 const pluginActions = {
@@ -110,7 +110,7 @@ function createCompositionModel({
   const pluginInstances: Record<string, AppUIRuntimePluginInstance> = {
     host: {
       id: "host",
-      pluginId: "assistant-ui-composer-test-host",
+      pluginId: "composer-test-host",
       enabled: true,
       mount: { slotId: rootSlotId },
     },
@@ -119,7 +119,7 @@ function createCompositionModel({
   if (composer) {
     pluginInstances.composer = {
       id: "composer",
-      pluginId: "assistant-ui-composer",
+      pluginId: "composer",
       enabled: true,
       mount: {
         slotId: resolveRuntimePluginSlotId("host", "composer"),
@@ -129,7 +129,7 @@ function createCompositionModel({
   if (composer && attachment) {
     pluginInstances.attachment = {
       id: "attachment",
-      pluginId: "assistant-ui-add-attachment-action",
+      pluginId: "add-attachment-action",
       enabled: true,
       mount: {
         slotId: resolveRuntimePluginSlotId("composer", "leadingActions"),
@@ -139,7 +139,7 @@ function createCompositionModel({
   if (composer && dictation) {
     pluginInstances.dictation = {
       id: "dictation",
-      pluginId: "assistant-ui-dictation-action",
+      pluginId: "dictation-action",
       enabled: true,
       mount: {
         slotId: resolveRuntimePluginSlotId("composer", "trailingActions"),
@@ -149,7 +149,7 @@ function createCompositionModel({
   if (composer && submit) {
     pluginInstances.submit = {
       id: "submit",
-      pluginId: "assistant-ui-submit-action",
+      pluginId: "submit-action",
       enabled: true,
       mount: {
         slotId: resolveRuntimePluginSlotId("composer", "submitAction"),
@@ -160,7 +160,7 @@ function createCompositionModel({
   return parseAppUIRuntimeModel({
     root: {
       type: "slot",
-      id: "assistant-ui-composer-test-root-node",
+      id: "composer-test-root-node",
       slotId: rootSlotId,
     },
     pluginInstances,
@@ -191,7 +191,7 @@ function RuntimeFixture({
         <PluginRuntimeFixture
           actions={pluginActions}
           appUIModelHash={appUIModelHash}
-          conversation={{ id: "assistant-ui-composer-test" }}
+          conversation={{ id: "composer-test" }}
           executions={[]}
           interrupts={[]}
           messages={[]}
@@ -305,7 +305,7 @@ describe("assistant-ui Composer action Plugins", () => {
       await Promise.resolve();
     });
     await act(async () => {
-      findActionButton(container, "assistant-ui-submit-action", ".aui-composer-send").click();
+      findActionButton(container, "submit-action", ".aui-composer-send").click();
       await Promise.resolve();
       await Promise.resolve();
     });
@@ -332,7 +332,7 @@ describe("assistant-ui Composer action Plugins", () => {
     await act(async () => {
       setComposerText(input, "hello");
       await Promise.resolve();
-      findActionButton(container, "assistant-ui-submit-action", ".aui-composer-send").click();
+      findActionButton(container, "submit-action", ".aui-composer-send").click();
       await Promise.resolve();
       await Promise.resolve();
     });
@@ -340,12 +340,12 @@ describe("assistant-ui Composer action Plugins", () => {
     expect(run).toHaveBeenCalledTimes(1);
     expect(
       container.querySelector(
-        '[data-plugin-id="assistant-ui-submit-action"] .aui-composer-send',
+        '[data-plugin-id="submit-action"] .aui-composer-send',
       ),
     ).toBeNull();
     const cancel = findActionButton(
       container,
-      "assistant-ui-submit-action",
+      "submit-action",
       ".aui-composer-cancel",
     );
     await act(async () => {
@@ -362,13 +362,13 @@ describe("assistant-ui Composer action Plugins", () => {
     const { container } = await mount({ run }, { attachment: false });
 
     expect(
-      container.querySelector('[data-plugin-id="assistant-ui-add-attachment-action"]'),
+      container.querySelector('[data-plugin-id="add-attachment-action"]'),
     ).toBeNull();
     const input = findComposerInput(container);
     await act(async () => {
       setComposerText(input, "hello");
       await Promise.resolve();
-      findActionButton(container, "assistant-ui-submit-action", ".aui-composer-send").click();
+      findActionButton(container, "submit-action", ".aui-composer-send").click();
       await Promise.resolve();
     });
     expect(run).toHaveBeenCalledTimes(1);
@@ -379,11 +379,11 @@ describe("assistant-ui Composer action Plugins", () => {
     const { container } = await mount({ run }, { dictation: false });
 
     expect(
-      container.querySelector('[data-plugin-id="assistant-ui-dictation-action"]'),
+      container.querySelector('[data-plugin-id="dictation-action"]'),
     ).toBeNull();
     expect(findComposerInput(container)).toBeInstanceOf(HTMLTextAreaElement);
     expect(
-      findActionButton(container, "assistant-ui-submit-action", ".aui-composer-send"),
+      findActionButton(container, "submit-action", ".aui-composer-send"),
     ).toBeInstanceOf(HTMLButtonElement);
   });
 

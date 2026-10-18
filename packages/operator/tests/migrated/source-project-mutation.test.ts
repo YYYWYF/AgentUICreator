@@ -4,13 +4,13 @@ import { randomUUID } from "node:crypto";
 import { fork, spawn, type ChildProcess } from "node:child_process";
 import { once } from "node:events";
 import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { minVersion } from "semver";
 import { afterEach, expect, it, vi } from "vitest";
-import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure } from "@za38.03/agent-ui-source-registry";
+import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure } from "@za38.03/agent-ui-operator/source-registry";
 import { applyAgentUISourceProjectMutation, removeAgentUISourceProjectMutation, recoverPendingAgentUISourceProjectMutation } from "../../src/project/source-registry/project-mutation";
 import { applyAgentUISourceItem } from "../../src/project/source-registry/installer";
 import { inspectAgentUISources } from "../../src/project/source-registry/inspector";
@@ -91,7 +91,7 @@ afterEach(async () => {
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })));
 });
 const generated = ["plugins/registry.generated.ts", "agent-contract/frontend-tools.generated.ts", "agent-ui/conversation/frontend-tool-uis.generated.ts", "agent-ui/conversation/integrations.generated.tsx"];
-async function fixture(itemId = "integration/a2ui") {
+async function fixture(itemId = "integration/generative-ui") {
   const root = await mkdtemp(path.join(tmpdir(), "source-project-")); roots.push(root);
   const sourceRoot = path.join(root, "custom-ui");
   await mkdir(path.join(root, ".agent-ui"));
@@ -152,7 +152,7 @@ async function childMessage(child: ChildProcess, message: Record<string, unknown
 async function processControl(f: Fixture, operation: string, input: Record<string, unknown> = {}) {
   const child = fork(fileURLToPath(new URL("../fixtures/source-project-mutation/control.mts", import.meta.url)), [], {
     execArgv: ["--import", require.resolve("tsx")],
-    env: { ...process.env, TSX_TSCONFIG_PATH: fileURLToPath(new URL("tsconfig.json", `file://${await generatedProjectFixture()}/`)) },
+    env: { ...process.env, TSX_TSCONFIG_PATH: fileURLToPath(pathToFileURL(path.join(await generatedProjectFixture(), "tsconfig.json"))) },
     stdio: ["ignore", "ignore", "inherit", "ipc"],
   });
   children.push(child);
@@ -166,25 +166,25 @@ it("Mock and Operator install byte-identical source and registries", async () =>
   expect(await snapshot(a)).toEqual(await snapshot(b));
   expect((await verifyUIProject(b.root)).status).toBe("passed");
 });
-it("installs A2UI and repairs stale generated output without changing composition", async () => {
-  const f = await fixture("integration/a2ui"); const model = await readFile(f.modelPath);
+it("installs Generative UI and repairs stale generated output without changing composition", async () => {
+  const f = await fixture("integration/generative-ui"); const model = await readFile(f.modelPath);
   const result = await apply(f);
   expect(result.changedPaths).toEqual([...new Set([...result.sourceChangedPaths, ...result.generatedChangedPaths])].sort());
   const sources = await inspectAgentUISources(f.root, f.config);
-  for (const id of ["integration/a2ui", "integration/generative-ui", "agent-component/assistant-ui-generative-ui"]) expect(sources.items.find(item => item.id === id)).toMatchObject({ status: "managed", dependencyIssues: [] });
+  for (const id of ["integration/generative-ui", "agent-component/generative-ui"]) expect(sources.items.find(item => item.id === id)).toMatchObject({ status: "managed", dependencyIssues: [] });
   const filename = path.join(f.sourceRoot, generated[3]!);
-  expect(await readFile(filename, "utf8")).toContain('./integrations/a2ui');
+  expect(await readFile(filename, "utf8")).not.toContain('./integrations/a2ui');
   await writeFile(filename, "// stale\n");
   expect(await apply(f)).toMatchObject({ changed: true, sourceChangedPaths: [], generatedChangedPaths: [path.relative(f.root, filename)] });
   expect(await apply(f)).toMatchObject({ changed: false, changedPaths: [] });
   expect(await readFile(f.modelPath)).toEqual(model);
 });
-it.each(["integration/a2ui", "demo/frontend-tool-form"])("removes %s and its generated imports", async itemId => {
+it.each(["integration/generative-ui", "demo/frontend-tool-form"])("removes %s and its generated imports", async itemId => {
   const f = await fixture(itemId); await apply(f);
   await remove(f);
   const inspected = await inspectAgentUISources(f.root, f.config);
   expect(inspected.items.find(item => item.id === itemId)?.status).toBe("not-installed");
-  if (itemId === "integration/a2ui") expect(await readFile(path.join(f.sourceRoot, generated[3]!), "utf8")).not.toContain('./integrations/a2ui');
+  if (itemId === "integration/generative-ui") expect(await readFile(path.join(f.sourceRoot, generated[3]!), "utf8")).not.toContain('./integrations/a2ui');
   else for (const relative of generated.slice(1, 3)) expect(await readFile(path.join(f.sourceRoot, relative), "utf8")).not.toContain("demo-form-tools");
   expect((await verifyUIProject(f.root)).status).toBe("passed");
 });
@@ -214,7 +214,7 @@ it("rejects removal while a disabled AppUIModel instance still references an own
 });
 it("rejects removal of a dependency before any project write", async () => {
   const f = await fixture(); await apply(f); const before = await snapshot(f);
-  await expect(remove(f, ["integration/generative-ui"])).rejects.toMatchObject({ code: "AGENT_UI_SOURCE_DEPENDENCY_IN_USE" });
+  await expect(remove(f, ["agent-component/generative-ui"])).rejects.toMatchObject({ code: "AGENT_UI_SOURCE_DEPENDENCY_IN_USE" });
   expect(await snapshot(f)).toEqual(before);
 });
 it.each(["source", "plugin", "tools", "integrations", "verify"])("rolls back source and all generated writes after %s failure", async stage => {

@@ -13,3 +13,6 @@ export function handleUIOperatorRequest(request: unknown, projectRoot: string): 
   | { ok: true; result: unknown }
   | { ok: false; error: { code: string; message: string } }
 >;
+export { inspectIntegrationHost } from "./project/integration-recipe.js";
+export { readCompatibilityBinding } from "./project/compatibility-binding.js";
+export { planCompatibilityProject, initializeCompatibilityProject, buildCompatibilityProject } from "./project/compatibility-project.js";

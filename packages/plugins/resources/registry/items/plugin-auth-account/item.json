@@ -1,0 +1,30 @@
+{
+  "id": "plugin/auth-account",
+  "kind": "agent-component",
+  "description": "Account",
+  "files": [
+    {
+      "source": "files/plugins/auth-account/definition.ts",
+      "target": "plugins/auth-account/definition.ts"
+    },
+    {
+      "source": "files/plugins/auth-account/index.tsx",
+      "target": "plugins/auth-account/index.tsx"
+    },
+    {
+      "source": "files/plugins/auth-account/manifest.json",
+      "target": "plugins/auth-account/manifest.json"
+    },
+    {
+      "source": "files/plugins/auth-account/styles.css",
+      "target": "plugins/auth-account/styles.css"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "19.1.1",
+    "lucide-react": "1.41.0"
+  }
+}

@@ -31,7 +31,7 @@ from agent_ui_creator.streaming.deepagent_v3_runner import DeepAgentInterrupted
 
 ROOT = Path(__file__).resolve().parents[5]
 PROMPT = "把输入框改成我们自己的，发送按钮旁边加一个业务按钮。"
-OFFICIAL_ID = "assistant-ui-composer"
+OFFICIAL_ID = "composer"
 pytestmark = [pytest.mark.live_model, pytest.mark.skipif(
     os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1", reason="Explicit live-model acceptance only.")]
 
@@ -123,7 +123,7 @@ def test_real_creator_customizes_official_composer_without_source_mutation(tmp_p
     async def scenario():
         project = fresh_host(tmp_path)
         source = project / "src/agent-ui"
-        reference = ROOT / "packages/source-registry/registry/items/plugin-assistant-ui-composer"
+        reference = ROOT / "packages/plugins/resources/registry/items/plugin-composer"
         package = ROOT / "packages/plugins"
         official_before = (hashes(reference), hashes(package))
         assert not (source / "plugins" / OFFICIAL_ID).exists()
@@ -178,7 +178,7 @@ def test_real_creator_customizes_official_composer_without_source_mutation(tmp_p
             public_checks = logger.tools[inspect_at + 1:create_at]
             assert any(tool["name"] in {"inspect_ui_slots", "inspect_ui_plugin_source_references"} or
                        (tool["name"] == "read_file" and any(part in tool["arguments"].get("file_path", "")
-                        for part in ("framework/", "conversation/", "@za38.03/agent-ui-plugins", "assistant-ui-composer")))
+                        for part in ("framework/", "conversation/", "@za38.03/agent-ui-plugins", "composer")))
                        for tool in public_checks), public_checks
             assert any(calls[i].get("result", {}).get("ownership") == "project_source" and
                        "build" in calls[i]["result"].get("checks", []) for i in creations), calls

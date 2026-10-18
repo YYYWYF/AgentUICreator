@@ -5,7 +5,7 @@ import path from "node:path";
 import { minVersion } from "semver";
 import { afterEach, describe, expect, it } from "vitest";
 import { createDefaultAgentUIPresetRegistry, initializeAgentUIProject } from "@za38.03/agent-ui-operator/bootstrap";
-import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure } from "@za38.03/agent-ui-source-registry";
+import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure } from "@za38.03/agent-ui-operator/source-registry";
 import { collectAppUIPluginLocations, parseAppUIModel, parseAppUIModelJson } from "../../src/framework/contracts/app-ui-model";
 import { compileAppUIModel } from "../../src/framework/contracts/app-ui-compiler";
 import { mutateAppUIModel } from "../../src/project/app-ui-transaction";
@@ -19,10 +19,10 @@ import { commitPluginPurge, recoverPendingPluginPurge, PURGE_JOURNAL } from "../
 import { readOptionalBuffer } from "../../src/project/source-registry/lock";
 const roots: string[] = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
-const slash = "assistant-ui-slash-command-trigger-main";
+const slash = "slash-command-trigger-main";
 const commands = "conversation-command-source-main";
-const mention = "assistant-ui-mention-trigger-main";
-const preserved = ["assistant-ui-composer-main", mention, "conversation-quote-main"];
+const mention = "mention-trigger-main";
+const preserved = ["composer-main", mention, "conversation-quote-main"];
 const hash = (source: string | Buffer) => createHash("sha256").update(source).digest("hex");
 
 async function project(mode: "assistant" | "embedded" | "platform", sourceRoot = "custom-ui") {
@@ -70,7 +70,7 @@ async function healthy(f: Fixture) {
 }
 async function sourceHashes(f: Fixture) {
   const result = new Map<string, string>();
-  for (const id of ["plugin/assistant-ui-slash-command-trigger", "plugin/conversation-command-source"]) {
+  for (const id of ["plugin/slash-command-trigger", "plugin/conversation-command-source"]) {
     for (const file of f.registry.byId.get(id)!.loadedFiles) {
       const target = path.join(f.paths.sourceRoot, file.target);
       result.set(target, hash(await readFile(target)));
@@ -85,7 +85,7 @@ async function unchanged(files: Map<string, string>) {
 }
 
 
-async function input(f: Fixture, pluginId = "assistant-ui-slash-command-trigger") {
+async function input(f: Fixture, pluginId = "slash-command-trigger") {
   return { pluginId, appUIModelHash: hash(await readFile(f.paths.appUIModelPath)), sourceStateHash: (await inspectAgentUISources(f.root, f.config)).stateHash };
 }
 async function exists(target: string) { return access(target).then(() => true, () => false); }
@@ -106,15 +106,15 @@ describe("Host Plugin purge", () => {
     const plan = await planPluginPurge(f.root, request);
     await unchanged(before);
     expect(plan.cleanupProviders).toContain(commands);
-    expect(plan.managedItems).toEqual(expect.arrayContaining(["plugin/assistant-ui-slash-command-trigger", "plugin/conversation-command-source"]));
+    expect(plan.managedItems).toEqual(expect.arrayContaining(["plugin/slash-command-trigger", "plugin/conversation-command-source"]));
     const result = await purgeUIPlugin(f.root, request);
     expect(result.verification).toBe("passed");
     expect(await ids(f)).not.toContain(slash);
     expect(await ids(f)).not.toContain(commands);
-    expect(await exists(path.join(f.paths.pluginsRoot, "assistant-ui-slash-command-trigger"))).toBe(false);
+    expect(await exists(path.join(f.paths.pluginsRoot, "slash-command-trigger"))).toBe(false);
     expect(await exists(path.join(f.paths.pluginsRoot, "conversation-command-source"))).toBe(false);
     const lock = JSON.parse(await readFile(f.paths.sourceLockPath, "utf8"));
-    expect(lock.items["plugin/assistant-ui-slash-command-trigger"]).toBeUndefined();
+    expect(lock.items["plugin/slash-command-trigger"]).toBeUndefined();
     expect(await exists(path.join(f.root, PURGE_JOURNAL))).toBe(false);
     expect(result.sourceStateHash).toBe((await inspectAgentUISources(f.root, f.config)).stateHash);
     await healthy(f);
@@ -154,10 +154,10 @@ export default { manifest, Component: () => null, optionalInject: [CONVERSATION_
   });
   it("allows customized managed files but refuses unowned additions", async () => {
     const f = await project("assistant");
-    const directory = path.join(f.paths.pluginsRoot, "assistant-ui-slash-command-trigger");
+    const directory = path.join(f.paths.pluginsRoot, "slash-command-trigger");
     const definition = path.join(directory, "definition.ts");
     await writeFile(definition, (await readFile(definition, "utf8")) + "\n// project customization\n");
-    expect((await planPluginPurge(f.root, await input(f))).managedItems).toContain("plugin/assistant-ui-slash-command-trigger");
+    expect((await planPluginPurge(f.root, await input(f))).managedItems).toContain("plugin/slash-command-trigger");
     await writeFile(path.join(directory, "unowned.ts"), "export const extra = true;");
     const before = await sourceHashes(f);
     await expect(purgeUIPlugin(f.root, await input(f))).rejects.toMatchObject({ code: "PLUGIN_PURGE_UNSAFE" });
@@ -168,7 +168,7 @@ export default { manifest, Component: () => null, optionalInject: [CONVERSATION_
     const lock = JSON.parse(await readFile(f.paths.sourceLockPath, "utf8"));
     const shared = "services/composer-triggers.ts";
     const content = await readFile(path.join(f.paths.sourceRoot, shared));
-    lock.items["plugin/assistant-ui-slash-command-trigger"].files[shared] = { sha256: hash(content) };
+    lock.items["plugin/slash-command-trigger"].files[shared] = { sha256: hash(content) };
     await writeFile(f.paths.sourceLockPath, JSON.stringify(lock));
     await purgeUIPlugin(f.root, await input(f));
     expect(await readFile(path.join(f.paths.sourceRoot, shared))).toEqual(content);
@@ -213,7 +213,7 @@ export default { manifest, Component: () => null, optionalInject: [CONVERSATION_
   it("refuses symlink traversal before any live mutation", async () => {
     const f = await project("assistant");
     const before = await sourceHashes(f);
-    await (await import("node:fs/promises")).symlink(f.paths.appUIModelPath, path.join(f.paths.pluginsRoot, "assistant-ui-slash-command-trigger", "unsafe-link.ts"));
+    await (await import("node:fs/promises")).symlink(f.paths.appUIModelPath, path.join(f.paths.pluginsRoot, "slash-command-trigger", "unsafe-link.ts"));
     await expect(purgeUIPlugin(f.root, await input(f))).rejects.toMatchObject({ code: "AGENT_UI_SOURCE_PATH_CONFLICT" });
     await unchanged(before);
   });

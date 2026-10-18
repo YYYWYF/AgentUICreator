@@ -8,7 +8,7 @@ export const quoteReplyScenario = defineScenario({
     audience: "frontend",
     protocol: "AG-UI normal text streaming",
     pattern: "User text selection → composer quote",
-    presentation: "assistant-ui Quote",
+    presentation: "Agent UI Quote",
     eventFlow: ["TEXT_MESSAGE_START/CONTENT/END"],
     notes: ["Quote is not an AG-UI event.", "Select a passage, quote it, and send a follow-up question."],
   },

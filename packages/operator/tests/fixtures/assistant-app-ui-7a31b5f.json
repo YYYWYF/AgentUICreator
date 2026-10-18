@@ -43,28 +43,28 @@
                 ],
                 "composer": [
                   {
-                    "id": "assistant-ui-composer-main",
-                    "pluginId": "assistant-ui-composer",
+                    "id": "composer-main",
+                    "pluginId": "composer",
                     "enabled": true,
                     "slots": {
                       "leadingActions": [
                         {
-                          "id": "assistant-ui-add-attachment-action-main",
-                          "pluginId": "assistant-ui-add-attachment-action",
+                          "id": "add-attachment-action-main",
+                          "pluginId": "add-attachment-action",
                           "enabled": true
                         }
                       ],
                       "trailingActions": [
                         {
-                          "id": "assistant-ui-dictation-action-main",
-                          "pluginId": "assistant-ui-dictation-action",
+                          "id": "dictation-action-main",
+                          "pluginId": "dictation-action",
                           "enabled": true
                         }
                       ],
                       "submitAction": [
                         {
-                          "id": "assistant-ui-submit-action-main",
-                          "pluginId": "assistant-ui-submit-action",
+                          "id": "submit-action-main",
+                          "pluginId": "submit-action",
                           "enabled": true
                         }
                       ]
@@ -73,22 +73,22 @@
                 ],
                 "reasoningGroup": [
                   {
-                    "id": "assistant-ui-reasoning-main",
-                    "pluginId": "assistant-ui-reasoning",
+                    "id": "reasoning-main",
+                    "pluginId": "reasoning",
                     "enabled": true
                   }
                 ],
                 "toolGroup": [
                   {
-                    "id": "assistant-ui-tool-group-main",
-                    "pluginId": "assistant-ui-tool-group",
+                    "id": "tool-group-main",
+                    "pluginId": "tool-group",
                     "enabled": true
                   }
                 ],
                 "toolFallback": [
                   {
-                    "id": "assistant-ui-tool-fallback-main",
-                    "pluginId": "assistant-ui-tool-fallback",
+                    "id": "tool-fallback-main",
+                    "pluginId": "tool-fallback",
                     "enabled": true
                   }
                 ],
@@ -99,26 +99,26 @@
                     "enabled": true
                   }
                 ],
-                "assistantMessageFooter": [
+                "assistantResponseFooter": [
                   {
-                    "id": "assistant-ui-message-footer-main",
-                    "pluginId": "assistant-ui-message-footer",
+                    "id": "message-footer-main",
+                    "pluginId": "response-footer",
                     "enabled": true,
                     "slots": {
                       "actions": [
                         {
-                          "id": "assistant-ui-copy-action-main",
-                          "pluginId": "assistant-ui-copy-action",
+                          "id": "copy-action-main",
+                          "pluginId": "copy-action",
                           "enabled": true
                         },
                         {
-                          "id": "assistant-ui-reload-action-main",
-                          "pluginId": "assistant-ui-reload-action",
+                          "id": "reload-action-main",
+                          "pluginId": "reload-action",
                           "enabled": true
                         },
                         {
-                          "id": "assistant-ui-export-markdown-action-main",
-                          "pluginId": "assistant-ui-export-markdown-action",
+                          "id": "export-markdown-action-main",
+                          "pluginId": "export-markdown-action",
                           "enabled": true
                         }
                       ]

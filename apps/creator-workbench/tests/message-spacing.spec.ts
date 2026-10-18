@@ -49,8 +49,8 @@ return <AgentUILocaleProvider locale="zh-CN"><AgentUIRoot theme={params.get('the
       'zustand': path.join(repo,'packages/plugins/node_modules/zustand'),
       '@za38.03/agent-ui-plugins/styles.css': path.join(repo,'packages/plugins/dist/styles.css'),
       '@za38.03/agent-ui-plugins': path.join(repo,'packages/plugins/dist/index.js'),
-      'chart-plugin': path.join(repo,'packages/source-registry/registry/items/plugin-chart-message/files/plugins/chart-message/index.tsx'),
-      'standalone-reasoning': path.join(repo,'packages/plugins/dist/internal/adapters/assistant-ui/components/assistant-ui/elements/reasoning.js'),
+      'chart-plugin': path.join(repo,'packages/plugins/resources/registry/items/plugin-chart-message/files/plugins/chart-message/index.tsx'),
+      'standalone-reasoning': path.join(repo,'packages/plugins/dist/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/reasoning.js'),
     } }, server: { host: '127.0.0.1', port: 0, hmr: false, fs: { allow: [repo] } } });
   await server.listen(); url = server.resolvedUrls!.local[0]!;
 });

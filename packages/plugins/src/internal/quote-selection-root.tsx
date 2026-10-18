@@ -163,12 +163,16 @@ export const SelectionToolbarPrimitiveRoot = forwardRef<
       isMouseDragging = false;
     };
 
+    const handleWindowBlur = () => {
+      if (isMouseDragging) handleMouseUp();
+    };
+
     document.addEventListener("mousedown", handleMouseDown, true);
     document.addEventListener("mouseup", handleMouseUp, true);
     document.addEventListener("dragend", handleMouseUp, true);
     // A context menu can consume the mouseup of the press that opened it.
     document.addEventListener("contextmenu", handleMouseCancel, true);
-    window.addEventListener("blur", handleMouseCancel);
+    window.addEventListener("blur", handleWindowBlur);
     document.addEventListener("selectionchange", handleSelectionChange);
     document.addEventListener("scroll", handleScroll, true);
     // Shadow DOM scroll events do not cross their root boundary.
@@ -182,7 +186,7 @@ export const SelectionToolbarPrimitiveRoot = forwardRef<
       document.removeEventListener("mouseup", handleMouseUp, true);
       document.removeEventListener("dragend", handleMouseUp, true);
       document.removeEventListener("contextmenu", handleMouseCancel, true);
-      window.removeEventListener("blur", handleMouseCancel);
+      window.removeEventListener("blur", handleWindowBlur);
       document.removeEventListener("selectionchange", handleSelectionChange);
       document.removeEventListener("scroll", handleScroll, true);
       shadowRoot?.removeEventListener("scroll", handleScroll, true);

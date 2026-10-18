@@ -14,7 +14,7 @@ describe("assistant-ui scoped Tailwind source coverage", () => {
     ]);
 
     expect(packageStyles).toContain(
-      '@import "tailwindcss/utilities.css" layer(utilities) source("./internal/vendor/assistant-ui");',
+      '@import "tailwindcss/utilities.css" layer(utilities) source("./internal/vendor-generated/assistant-ui");',
     );
     expect(projectStyles).toContain('@import "@za38.03/agent-ui-plugins/styles.css";');
     expect(projectStyles).toContain('@source ".";');

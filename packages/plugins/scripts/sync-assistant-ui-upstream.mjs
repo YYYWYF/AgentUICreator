@@ -1,3 +1,4 @@
+import { capturePresentationSources } from "./materialize-plugin-sources.mjs";
 import { syncProductAdapters } from "./sync-product-adapters.mjs";
 import { createHash } from "node:crypto";
 import { execFile as execFileCallback } from "node:child_process";
@@ -9,7 +10,7 @@ import { promisify } from "node:util";
 const execFile = promisify(execFileCallback);
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const repoRoot = path.resolve(packageRoot, "../..");
-const vendorRoot = path.join(packageRoot, "src/internal/vendor/assistant-ui");
+const vendorRoot = path.join(packageRoot, "src/internal/vendor-generated/assistant-ui");
 const targetPath = path.join(repoRoot, "assistant-ui-upgrade-target.json");
 const manifestPath = path.join(vendorRoot, "upstream-elements.json");
 const provenancePath = path.join(vendorRoot, "UPSTREAM.json");
@@ -22,8 +23,8 @@ const UPSTREAM_REPOSITORY = "https://github.com/assistant-ui/assistant-ui.git";
 const UPSTREAM_ELEMENT_ROOT = "packages/ui/src/components/react/assistant-ui/elements";
 const ELEMENT_PREFIX = "components/assistant-ui/elements/";
 const SOURCE_EXTENSIONS = [".tsx", ".ts", ".jsx", ".js", ".mjs", ".cjs"];
-const ELEMENT_FILE_PATTERN = /\.(?:tsx)$/u;
-const TEST_FILE_PATTERN = /\.(?:test|spec)\.tsx$/u;
+const ELEMENT_FILE_PATTERN = /\.tsx?$/u;
+const TEST_FILE_PATTERN = /\.(?:test|spec)\.tsx?$/u;
 const UNADOPTED_ELEMENT_RATIONALE =
   "Not adopted into the tracked vendor set; adoption requires an explicit ownership decision and product contract review.";
 
@@ -228,7 +229,7 @@ function isElementPath(localPath) {
   return localPath.startsWith(ELEMENT_PREFIX);
 }
 
-function isElementSource(upstreamPath) {
+export function isElementSource(upstreamPath) {
   return ELEMENT_FILE_PATTERN.test(upstreamPath) && !TEST_FILE_PATTERN.test(upstreamPath);
 }
 
@@ -600,6 +601,7 @@ async function main() {
   await writeFile(provenancePath, `${JSON.stringify(nextProvenance, null, 2)}\n`, "utf8");
   await writeFile(lockPath, `${JSON.stringify(nextLock, null, 2)}\n`, "utf8");
   await syncProductAdapters(vendorRoot);
+  await capturePresentationSources();
   await writeFile(
     path.join(vendorRoot, "UPSTREAM.md"),
     upstreamMarkdown({

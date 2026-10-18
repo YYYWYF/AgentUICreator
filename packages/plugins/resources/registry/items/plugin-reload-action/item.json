@@ -1,0 +1,26 @@
+{
+  "id": "plugin/reload-action",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-reload-action source",
+  "files": [
+    {
+      "source": "files/plugins/reload-action/definition.ts",
+      "target": "plugins/reload-action/definition.ts"
+    },
+    {
+      "source": "files/plugins/reload-action/index.tsx",
+      "target": "plugins/reload-action/index.tsx"
+    },
+    {
+      "source": "files/plugins/reload-action/manifest.json",
+      "target": "plugins/reload-action/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core",
+    "plugin/response-footer"
+  ],
+  "packages": {
+    "react": "19.1.1"
+  }
+}

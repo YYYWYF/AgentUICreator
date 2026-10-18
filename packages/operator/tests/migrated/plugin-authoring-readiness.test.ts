@@ -87,14 +87,14 @@ function readiness(result: ReturnType<typeof analyze>, pluginId: string) {
 
 describe("Plugin Creator Authoring Readiness", () => {
   it("keeps an official package's unavailable parent as an authoring warning", () => {
-    const composer = asset("assistant-ui-composer", { authoring: {
+    const composer = asset("composer", { authoring: {
       intents: ["compose"], defaultPlacement: { type: "plugin_slot", parentPluginId: "conversation-surface", slot: "composer" },
     } });
     composer.ownership = "official_package";
     const result = analyze([composer]);
     expect(result.errors).toEqual([]);
     expect(result.warnings).toEqual(expect.arrayContaining([expect.objectContaining({ code: "CREATOR_DEFAULT_PLACEMENT_PARENT_NOT_FOUND" })]));
-    expect(readiness(result, "assistant-ui-composer")?.addRestore).toBe("unavailable");
+    expect(readiness(result, "composer")?.addRestore).toBe("unavailable");
   });
   it("classifies a visual Plugin without authoring as manual-only", () => {
     const result = analyze([asset("manual-plugin", { capabilities: ["visual"] })]);
@@ -286,7 +286,7 @@ describe("Plugin Creator Authoring Readiness", () => {
           reasoning: slot({ mode: "renderer", accepts: ["reasoning"] }),
         },
       }),
-      asset("assistant-ui-reasoning", {
+      asset("reasoning", {
         capabilities: ["reasoning"],
         requiresRenderScope: true,
         authoring: {
@@ -300,7 +300,7 @@ describe("Plugin Creator Authoring Readiness", () => {
       }),
     ]);
 
-    expect(readiness(result, "assistant-ui-reasoning")).toMatchObject({
+    expect(readiness(result, "reasoning")).toMatchObject({
       status: "ready",
       addRestore: "ready",
     });
@@ -379,7 +379,7 @@ describe("Plugin Creator Authoring Readiness", () => {
           toolFallback: slot({ mode: "renderer", accepts: ["tool-fallback"] }),
         },
       }),
-      asset("assistant-ui-reasoning", {
+      asset("reasoning", {
         capabilities: ["reasoning"],
         requiresRenderScope: true,
         authoring: {
@@ -391,7 +391,7 @@ describe("Plugin Creator Authoring Readiness", () => {
           },
         },
       }),
-      asset("assistant-ui-tool-group", {
+      asset("tool-group", {
         capabilities: ["tool-group"],
         requiresRenderScope: true,
         authoring: {
@@ -403,7 +403,7 @@ describe("Plugin Creator Authoring Readiness", () => {
           },
         },
       }),
-      asset("assistant-ui-tool-fallback", {
+      asset("tool-fallback", {
         capabilities: ["tool-fallback"],
         requiresRenderScope: true,
         authoring: {
@@ -430,9 +430,9 @@ describe("Plugin Creator Authoring Readiness", () => {
     ]);
 
     for (const pluginId of [
-      "assistant-ui-reasoning",
-      "assistant-ui-tool-group",
-      "assistant-ui-tool-fallback",
+      "reasoning",
+      "tool-group",
+      "tool-fallback",
       "conversation-thread-list",
     ]) {
       expect(readiness(result, pluginId)).toMatchObject({

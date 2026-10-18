@@ -14,11 +14,11 @@ describe("source-citations protocol reference", () => {
     expect(sourceCitationsScenario.reference).toMatchObject({
       protocol: "AG-UI Tool Call",
       pattern: "Application-defined Tool Result → Sources",
-      presentation: "assistant-ui Sources",
+      presentation: "Agent UI Sources",
       notes: expect.arrayContaining([
         "AG-UI does not define a citation/source event.",
         "The sources schema belongs to search_sources Tool Result.",
-        "assistant-ui SourceMessagePart is a frontend/runtime presentation contract.",
+        "Agent UI SourceMessagePart is a frontend/runtime presentation contract.",
       ]),
     });
   });

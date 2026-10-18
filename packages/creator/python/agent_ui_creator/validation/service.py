@@ -190,7 +190,25 @@ class CreatorValidationService:
             for diagnostic in diagnostics[:MAX_DIAGNOSTIC_SAMPLE_COUNT]
         ]
 
+    def _bound_ui_verifier(self, command: CreatorValidationCommand) -> bool:
+        if command != "pnpm verify:ui" or self.operator is None or not (self.project_root / ".agent-ui" / "consumer.json").is_file():
+            return False
+        try:
+            manifest = json.loads((self.project_root / "package.json").read_text(encoding="utf-8"))
+            return not manifest.get("scripts", {}).get("verify:ui")
+        except (OSError, ValueError, AttributeError):
+            return False
+
+    async def _execute_validation(self, command: CreatorValidationCommand) -> CommandExecutionResult:
+        if self._bound_ui_verifier(command):
+            result = await self.operator.verify_ui_project()
+            output = json.dumps(result, ensure_ascii=False)
+            return CommandExecutionResult(output[:100_000], 0 if result.get("status") == "passed" else 1, len(output) > 100_000)
+        return await self.runner.execute_known_command(command)
+
     def _command_label(self, command: CreatorValidationCommand) -> str:
+        if self._bound_ui_verifier(command):
+            return "Operator verify_ui_project"
         resolver = getattr(self.runner, "command_label", None)
         return resolver(command) if resolver is not None else command
 
@@ -476,7 +494,7 @@ class CreatorValidationService:
                     )
                 )
                 continue
-            result = await self.runner.execute_known_command(command)
+            result = await self._execute_validation(command)
             if command == "pnpm verify:ui":
                 self.responsive_risks.observe(result.output, truncated=result.truncated)
             status = "passed" if result.exit_code == 0 else "failed"

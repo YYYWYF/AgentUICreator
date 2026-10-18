@@ -1,6 +1,6 @@
 import { createAgentUIInitializationHost } from "../../src/project/bootstrap-host";
 import { generatedProjectFixture } from "../support/generated-project";
-import { lstat, mkdtemp, mkdir, readFile, symlink, writeFile } from "node:fs/promises";
+import { lstat, mkdtemp, mkdir, readFile, readdir, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -93,6 +93,19 @@ describe("deterministic Agent UI initializer", () => {
     const root = await hostProject(parent);
     const result = await initializeAgentUIProject({ projectRoot: root, mode, sourceRoot }, initializationHost);
     expect(result.projectConfig).toEqual({ mode, sourceRoot });
+    // Inspect the actual delivered source and lock, including generated imports.
+    async function assertProductNames(directory: string): Promise<void> {
+      for (const entry of await readdir(directory, { withFileTypes: true })) {
+        const file = path.join(directory, entry.name);
+        expect(entry.name).not.toMatch(/assistant[ _-]?ui/i);
+        if (entry.isDirectory()) await assertProductNames(file);
+        else expect(await readFile(file, "utf8"), file).not.toMatch(/assistant[ _-]?ui/i);
+      }
+    }
+    await assertProductNames(path.join(root, sourceRoot));
+    expect(await readFile(path.join(root, ".agent-ui/source-lock.json"), "utf8")).not.toContain("assistant-ui");
+    expect(await readFile(path.join(root, "package.json"), "utf8")).not.toContain("@assistant-ui/");
+
     expect(result.createdPaths).toContain(".env.development.local");
     expect(await readFile(path.join(root, ".env.development.local"), "utf8"))
       .toContain("VITE_AGENT_ENDPOINT=http://127.0.0.1:47831/agent");
@@ -110,11 +123,24 @@ describe("deterministic Agent UI initializer", () => {
     const registry = await readFile(path.join(root, sourceRoot, "plugins/registry.generated.ts"), "utf8");
     expect(registry).toContain('provides: ["agent-ui.conversation-data-source"]');
     expect(registry).toContain('inject: ["agent-ui.conversation-data-source"]');
+    if (mode === "assistant" || mode === "embedded") {
+      expect(result.installedSourceItems).toContain("plugin/conversation-new");
+      expect(result.installedSourceItems).toContain("plugin/conversation-history");
+      expect(result.installedSourceItems).toContain("plugin/conversation-thread-list");
+      const model = JSON.parse(await readFile(path.join(root, sourceRoot, "app-ui/app-ui.json"), "utf8"));
+      expect(model.root.type).toBe("column");
+      expect(model.root.children[0].type).toBe("row");
+      expect(model.root.children[0].children[1].plugins[0].pluginId).toBe("conversation-new");
+      expect(model.root.children[0].children[2].plugins[0]).toMatchObject({
+        pluginId: "conversation-history", slots: { content: [{ pluginId: "conversation-thread-list" }] },
+      });
+    }
     if (mode === "platform") {
       const model = JSON.parse(await readFile(path.join(root, sourceRoot, "app-ui/app-ui.json"), "utf8")) as {
-        root: { children: Array<{ child: { plugins: Array<{ pluginId: string }> } }> };
+        root: { type: string; items: Array<{ child: { plugins: Array<{ pluginId: string }> } }> };
       };
-      expect(model.root.children[0]?.child.plugins[0]?.pluginId).toBe("conversation-thread-list");
+      expect(model.root.type).toBe("sidebar");
+      expect(model.root.items[0]?.child.plugins[0]?.pluginId).toBe("conversation-thread-list");
     }
   });
 

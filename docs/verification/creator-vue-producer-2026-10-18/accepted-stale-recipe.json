@@ -1,0 +1,15 @@
+{
+  "status": "module-required",
+  "host": {
+    "framework": "vue",
+    "frameworkVersion": "3.5.42",
+    "toolchain": "vite",
+    "packageJson": "package.json",
+    "entryFile": "src/main.ts",
+    "candidates": [
+      "src/App.vue"
+    ],
+    "targetRequired": true,
+    "recommendedResource": "web-component-bridge"
+  }
+}

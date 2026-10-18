@@ -1,4 +1,4 @@
-import { loadAgentUISourceRegistry, isAgentUISourceItemAvailable, isOptionalAgentUISourceItem, officialResourceRegistry } from "@za38.03/agent-ui-source-registry";
+import { loadAgentUISourceRegistry, isAgentUISourceItemAvailable, isOptionalAgentUISourceItem, officialResourceRegistry } from "../source-catalog/index.js";
 import { inspectAgentUISources } from "./source-registry/index";
 import { applyAgentUISourceProjectMutation, recoverPendingAgentUISourceProjectMutation } from "./source-registry/project-mutation";
 import { AgentUISourceError } from "./source-registry/path-policy";

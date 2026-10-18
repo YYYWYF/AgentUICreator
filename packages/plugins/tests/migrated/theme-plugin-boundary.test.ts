@@ -10,7 +10,7 @@ import { collectAppUIPluginLocations } from "../../../operator/src/framework/con
 describe("theme plugin boundary", () => {
   it("keeps public component implementation dependencies out of the picker item", async () => {
     const item = JSON.parse(await readFile(new URL(
-      "../../../source-registry/registry/items/plugin-theme-switch/item.json", import.meta.url,
+      "../../resources/registry/items/plugin-theme-switch/item.json", import.meta.url,
     ), "utf8")) as { packages: Record<string, string> };
     expect(item.packages).toHaveProperty("react");
     expect(item.packages).not.toHaveProperty("lucide-react");

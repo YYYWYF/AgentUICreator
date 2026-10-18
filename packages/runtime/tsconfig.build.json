@@ -8,7 +8,11 @@
     "outDir": "dist",
     "rootDir": "src",
     "sourceMap": true,
-    "paths": {}
+    "paths": {
+      "@za38.03/agent-ui-plugins/catalog": [
+        "../../packages/plugins/src/catalog/index.ts"
+      ]
+    }
   },
   "include": [
     "src/**/*.ts",

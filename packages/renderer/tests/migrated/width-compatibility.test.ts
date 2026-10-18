@@ -4,7 +4,7 @@ import {
   WIDE_WIDTH_THRESHOLD,
   classifyContainerWidth,
   isPluginWidthCompatible,
-} from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/diagnostics/width-compatibility";
+} from "../../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/diagnostics/width-compatibility";
 
 describe("Plugin width compatibility", () => {
   it("classifies actual container width at one centralized threshold", () => {

@@ -1,6 +1,6 @@
 {
   "name": "@za38.03/agent-ui-creator-assistant-host",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "private": true,
   "type": "module",
   "engines": {
@@ -32,12 +32,11 @@
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "zod": "4.5.4",
-    "@assistant-ui/react-lexical": "0.2.15",
-    "@lexical/history": "0.51.0",
-    "@lexical/plain-text": "0.51.0",
-    "@lexical/react": "0.51.0",
-    "@lexical/utils": "0.51.0",
-    "lexical": "0.51.0"
+    "@lexical/history": "0.52.0",
+    "@lexical/plain-text": "0.52.0",
+    "@lexical/react": "0.52.0",
+    "@lexical/utils": "0.52.0",
+    "lexical": "0.52.0"
   },
   "devDependencies": {
     "@types/node": "26.6.2",

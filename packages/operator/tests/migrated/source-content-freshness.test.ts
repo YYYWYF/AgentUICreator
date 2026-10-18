@@ -6,7 +6,7 @@ import {
   loadAgentUISourceRegistry,
   type LoadedAgentUISourceItem,
   type LoadedAgentUISourceRegistry,
-} from "@za38.03/agent-ui-source-registry";
+} from "@za38.03/agent-ui-operator/source-registry";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { applyAgentUISourceItem, inspectAgentUISources } from "../../src/project/source-registry/index";

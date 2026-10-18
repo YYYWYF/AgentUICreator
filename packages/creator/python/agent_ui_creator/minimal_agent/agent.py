@@ -14,7 +14,6 @@ from deepagents import (
 from langchain.agents.middleware import AgentMiddleware
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage
-from langgraph.errors import GraphRecursionError
 
 from ..activity import CreatorActivityRecorder
 from ..deepagents_compat import (
@@ -79,14 +78,9 @@ class CreatorMinimalAgent:
             state = await DeepAgentV3Runner().run(
                 graph=self.graph,
                 input={"messages": [{"role": "user", "content": prompt}]},
-                config={"recursion_limit": 30},
+                config={},
                 event_sink=self.runtime.event_sink,
             )
-        except GraphRecursionError as error:
-            self.protocol.metrics.repeatedToolLoops += int(self.runtime.no_progress)
-            raise AgentNoProgressError(
-                "Creator Agent 的调用次数已达到上限，请缩小请求范围后重试。"
-            ) from error
         except AgentNoProgressError:
             self.protocol.metrics.repeatedToolLoops += 1
             raise

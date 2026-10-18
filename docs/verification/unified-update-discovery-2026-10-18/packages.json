@@ -1,0 +1,20 @@
+[
+  {
+    "name": "@za38.03/agent-ui-operator",
+    "version": "0.0.1",
+    "sha256": "de0f625e44697b8ca3bdbf6974e1682f45ac8693125741bce811604483219257",
+    "exportsVerified": true
+  },
+  {
+    "name": "@za38.03/agent-ui-plugins",
+    "version": "0.0.1",
+    "sha256": "d44c7a28ae49eee7b37ab0d12623249214e447cc4052cfd8de0ba34d5c48d2d5",
+    "exportsVerified": true
+  },
+  {
+    "name": "@za38.03/agent-ui-creator",
+    "version": "0.0.1",
+    "sha256": "ae024bedc118c69aa0eb435c76ff6a2e6b3d8dd213f727fc5e3879a6857f5c9c",
+    "exportsVerified": true
+  }
+]

@@ -1,8 +1,8 @@
 // Development-only fixture. Imports real public surfaces; no component/CSS replicas.
 // Load foundation styles before real Plugin CSS, matching the host style boundary.
 import "@za38.03/agent-ui-plugins/styles.css";
-import { ImageRoot, ImageGenerating, ImageContentFilterError } from "../../../../packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/image";
-import { TaskCard } from "../../../../packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/task-card";
+import { ImageRoot, ImageGenerating, ImageContentFilterError } from "../../../../packages/plugins/src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image";
+import { TaskCard } from "../../../../packages/plugins/src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/task-card";
 import { DemoAttachmentAdapter } from "@za38.03/agent-ui-plugins/demo-attachments";
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -18,7 +18,7 @@ import {
   type AgentUITheme,
 } from "@za38.03/agent-ui-plugins";
 import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@za38.03/agent-ui-runtime";
-import { chartMessageUI } from "../../../../packages/source-registry/registry/items/plugin-chart-message/files/plugins/chart-message/index";
+import { chartMessageUI } from "../../../../packages/plugins/resources/registry/items/plugin-chart-message/files/plugins/chart-message/index";
 import { themeShowcaseLocale as copy } from "../../src/theme-showcase.locale";
 const params = new URLSearchParams(location.search);
 const theme = (params.get("theme") || "light") as AgentUITheme;

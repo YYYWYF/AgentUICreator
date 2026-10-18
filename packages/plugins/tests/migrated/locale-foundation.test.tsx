@@ -3,33 +3,33 @@
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { assistantUiFeedbackActionsPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-feedback-actions/files/plugins/assistant-ui-feedback-actions/definition";
+import { conversationFeedbackActionsPlugin } from "../../resources/registry/items/plugin-feedback-actions/files/plugins/feedback-actions/definition";
 import appUIJson from "../../../operator/tests/fixtures/project/app-ui/app-ui.json";
-import { agentUILocaleConfig } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/locale-config";
-import { AGENT_UI_LOCALES, AGENT_UI_LOCALE_METADATA } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/locale-registry";
-import type { AgentUILocaleMessages } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/locale-types";
-import { useAgentUILocale } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/useAgentUILocale";
+import { agentUILocaleConfig } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/i18n/locale-config";
+import { AGENT_UI_LOCALES, AGENT_UI_LOCALE_METADATA } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/i18n/locale-registry";
+import type { AgentUILocaleMessages } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/i18n/locale-types";
+import { useAgentUILocale } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/i18n/useAgentUILocale";
 import { parseAppUIModel } from "../../../operator/src/framework/contracts/app-ui-model";
 import { parseAppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
 import type { UIPluginDefinition } from "../../../operator/src/framework/contracts/ui-plugin";
-import { conversationServicePlugin } from "../../../source-registry/registry/items/plugin-conversation-service/files/plugins/conversation-service/definition";
-import { localeProviderPlugin } from "../../../source-registry/registry/items/plugin-locale-provider/files/plugins/locale-provider/definition";
-import { createAgentUILocaleService } from "../../../source-registry/registry/items/plugin-locale-provider/files/plugins/locale-provider/locale-service";
+import { conversationServicePlugin } from "../../resources/registry/items/plugin-conversation-service/files/plugins/conversation-service/definition";
+import { localeProviderPlugin } from "../../resources/registry/items/plugin-locale-provider/files/plugins/locale-provider/definition";
+import { createAgentUILocaleService } from "../../resources/registry/items/plugin-locale-provider/files/plugins/locale-provider/locale-service";
 import {
   createPluginRegistry,
   PluginServiceConsumerContext,
   PluginServiceRuntime,
   PluginServiceRuntimeContext,
-} from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
 import {
   AGENT_UI_LOCALE_SERVICE,
   type AgentUILocaleService,
-} from "../../../source-registry/registry/items/foundation-core-application/files/services/agent-ui-locale";
+} from "../../resources/registry/items/foundation-core-application/files/services/agent-ui-locale";
 import {
   AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
   AGENT_UI_CONVERSATION_SERVICE,
   type ConversationService,
-} from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations";
+} from "../../resources/registry/items/foundation-core-application/files/services/conversations";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
   .IS_REACT_ACT_ENVIRONMENT = true;
@@ -116,10 +116,10 @@ describe("Agent UI locale foundation", () => {
     act(() => { renderer = create(
       <PluginServiceRuntimeContext.Provider value={runtime}>
         <PluginServiceConsumerContext.Provider value={{
-          pluginId: assistantUiFeedbackActionsPlugin.manifest.id, instanceId: "feedback-locale",
-          provides: assistantUiFeedbackActionsPlugin.provides ?? [],
-          inject: assistantUiFeedbackActionsPlugin.inject ?? [],
-          optionalInject: assistantUiFeedbackActionsPlugin.optionalInject ?? [],
+          pluginId: conversationFeedbackActionsPlugin.manifest.id, instanceId: "feedback-locale",
+          provides: conversationFeedbackActionsPlugin.provides ?? [],
+          inject: conversationFeedbackActionsPlugin.inject ?? [],
+          optionalInject: conversationFeedbackActionsPlugin.optionalInject ?? [],
         }}><FeedbackLabelsProbe /></PluginServiceConsumerContext.Provider>
       </PluginServiceRuntimeContext.Provider>,
     ); });

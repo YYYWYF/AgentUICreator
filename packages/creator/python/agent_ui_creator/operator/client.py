@@ -164,6 +164,12 @@ class OperatorClient:
             {"itemId": item_id, "expectedStateHash": expected_state_hash},
         )
 
+    async def plan_plugin_source_takeover(self, plugin_id: str) -> dict[str, Any]:
+        return await self._request("plan_plugin_source_takeover", {"pluginId": plugin_id})
+
+    async def takeover_plugin_source(self, plugin_id: str, plan_hash: str) -> dict[str, Any]:
+        return await self._request("takeover_plugin_source", {"pluginId": plugin_id, "planHash": plan_hash})
+
     async def create_custom_plugin(self, **input: Any) -> dict[str, Any]:
         return await self._request("create_custom_plugin", input)
 
@@ -208,7 +214,7 @@ class OperatorClient:
         try:
             self._ensure_fixed_runtime()
             if operation in {"apply_agent_ui_integration", "prepare_agent_ui_integration_asset", "repair_app_ui_model", "mutate_app_ui_model", "apply_agent_ui_source_item",
-                             "remove_agent_ui_source_items", "synchronize_plugin_registry", "purge_ui_plugin", "create_custom_plugin", "migrate_official_package_plugin"}:
+                             "remove_agent_ui_source_items", "synchronize_plugin_registry", "purge_ui_plugin", "create_custom_plugin", "takeover_plugin_source", "migrate_official_package_plugin"}:
                 assert_current_removal_mutation(operation, input)
                 assert_run_writable()
                 marker = current_cancel_marker(self.project_root)
@@ -354,7 +360,7 @@ class OperatorClient:
             process.stdin.close()
             await process.stdin.wait_closed()
             stdout, stderr, exit_code = await asyncio.wait_for(
-                asyncio.gather(*tasks), timeout=max(self.timeout_seconds, 300) if json.loads(payload).get("operation") == "create_custom_plugin" else self.timeout_seconds
+                asyncio.gather(*tasks), timeout=max(self.timeout_seconds, 300) if json.loads(payload).get("operation") in {"create_custom_plugin", "takeover_plugin_source"} else self.timeout_seconds
             )
             return stdout, stderr, int(exit_code)
         except _OutputLimitExceeded as error:

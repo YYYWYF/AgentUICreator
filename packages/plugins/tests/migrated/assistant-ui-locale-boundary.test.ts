@@ -1,23 +1,23 @@
-import { generatedProjectFixture } from "../../../operator/tests/support/generated-project";
+import { generatedProjectFixture, repositoryRoot } from "../../../operator/tests/support/generated-project";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { pluginCapabilityCatalog } from "../../../source-registry/registry/items/foundation-core/files/plugins/index";
+import { pluginCapabilityCatalog } from "../../resources/registry/items/foundation-core/files/plugins/index";
 
 const projectRoot = await generatedProjectFixture();
-const productLocalePlugins = new Set(["assistant-ui-export-markdown-action", "assistant-ui-composer", "assistant-ui-submit-action"]);
+const productLocalePlugins = new Set(["export-markdown-action", "composer", "submit-action"]);
 const canonicalPluginIds = [
-  "assistant-ui-copy-action",
-  "assistant-ui-reload-action",
-  "assistant-ui-export-markdown-action",
-  "assistant-ui-response-footer",
-  "assistant-ui-composer",
-  "assistant-ui-add-attachment-action",
-  "assistant-ui-dictation-action",
-  "assistant-ui-submit-action",
+  "copy-action",
+  "reload-action",
+  "export-markdown-action",
+  "response-footer",
+  "composer",
+  "add-attachment-action",
+  "dictation-action",
+  "submit-action",
 ] as const;
 
 describe("assistant-ui canonical localization boundary", () => {
@@ -26,7 +26,11 @@ describe("assistant-ui canonical localization boundary", () => {
       const [definition, component] = await Promise.all([readFile(path.join(projectRoot, "plugins", pluginId, "definition.ts"), "utf8"), readFile(path.join(projectRoot, "plugins", pluginId, "index.tsx"), "utf8")]);
       if (productLocalePlugins.has(pluginId)) {
         expect(definition).toContain("optionalInject: [AGENT_UI_LOCALE_SERVICE]");
-        expect(component).toContain("useAgentUILocale");
+        if (pluginId === "submit-action") {
+          const presentation = await readFile(path.join(repositoryRoot, "packages/plugins/src/plugins/submit-action/adapters/presentation/submit-action.tsx"), "utf8");
+          expect(component).toContain("ConversationComposerSend");
+          expect(presentation).toContain('useAgentUILocale("composer")');
+        } else expect(component).toContain("useAgentUILocale");
       } else {
         expect(definition + component).not.toContain("useAgentUILocale");
         expect(definition + component).not.toContain("AGENT_UI_LOCALE_SERVICE");

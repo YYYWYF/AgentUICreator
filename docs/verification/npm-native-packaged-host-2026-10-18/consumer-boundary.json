@@ -1,0 +1,16 @@
+{
+  "root": "/Users/yifei/Coding/agentui_test/npm-release-host",
+  "configurationKeys": [
+    "MODEL_PROVIDER",
+    "MODEL_BASE_URL",
+    "MODEL_API_KEY",
+    "MODEL_NAME",
+    "CREATOR_MODEL_OPENCODE_SESSION_HEADER"
+  ],
+  "injectedUpdateManifest": false,
+  "injectedPythonPath": false,
+  "injectedPythonEndpoint": false,
+  "overrideFilesAbsent": true,
+  "creatorEntry": "npm run creator",
+  "buildEntry": "npm run build"
+}

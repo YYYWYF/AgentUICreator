@@ -1,0 +1,135 @@
+{
+  "releaseVersion": "0.0.1",
+  "contractVersion": 1,
+  "plugins": {
+    "conversation-command-source": {
+      "version": "0.0.1"
+    },
+    "copy-action": {
+      "version": "0.0.1"
+    },
+    "tool-fallback": {
+      "version": "0.0.1"
+    },
+    "agent-status-message": {
+      "version": "0.0.1"
+    },
+    "add-attachment-action": {
+      "version": "0.0.1"
+    },
+    "reasoning": {
+      "version": "0.0.1"
+    },
+    "conversation-quote": {
+      "version": "0.0.1"
+    },
+    "conversation-service": {
+      "version": "0.0.1"
+    },
+    "chart-message": {
+      "version": "0.0.1"
+    },
+    "theme-provider": {
+      "version": "0.0.1"
+    },
+    "conversation-thread-list": {
+      "version": "0.0.1"
+    },
+    "composer": {
+      "version": "0.0.1"
+    },
+    "generated-file-message": {
+      "version": "0.0.1"
+    },
+    "response-footer": {
+      "version": "0.0.1"
+    },
+    "job-progress-message": {
+      "version": "0.0.1"
+    },
+    "conversation-suggestions": {
+      "version": "0.0.1"
+    },
+    "web-search": {
+      "version": "0.0.1"
+    },
+    "export-markdown-action": {
+      "version": "0.0.1"
+    },
+    "reload-action": {
+      "version": "0.0.1"
+    },
+    "locale-provider": {
+      "version": "0.0.1"
+    },
+    "theme-switch": {
+      "version": "0.0.1"
+    },
+    "slash-command-trigger": {
+      "version": "0.0.1"
+    },
+    "tool-group": {
+      "version": "0.0.1"
+    },
+    "mention-trigger": {
+      "version": "0.0.1"
+    },
+    "task-group": {
+      "version": "0.0.1"
+    },
+    "submit-action": {
+      "version": "0.0.1"
+    },
+    "dictation-action": {
+      "version": "0.0.1"
+    },
+    "retrieval-chunks": {
+      "version": "0.0.1"
+    },
+    "source-citations-message": {
+      "version": "0.0.1"
+    },
+    "conversation-data-source": {
+      "version": "0.0.1"
+    },
+    "conversation-surface": {
+      "version": "0.0.1"
+    },
+    "agent-plan-message": {
+      "version": "0.0.1"
+    },
+    "lexical-composer-input": {
+      "version": "0.0.1"
+    },
+    "lexical-edit-composer": {
+      "version": "0.0.1"
+    },
+    "feedback-actions": {
+      "version": "0.0.1"
+    },
+    "agent-identity": {
+      "version": "0.0.1"
+    },
+    "tool-timeline": {
+      "version": "0.0.1"
+    },
+    "thinking-indicator": {
+      "version": "0.0.1"
+    },
+    "auth-gate": {
+      "version": "0.0.1"
+    },
+    "auth-account": {
+      "version": "0.0.1"
+    },
+    "conversation-new": {
+      "version": "0.0.1"
+    },
+    "conversation-history": {
+      "version": "0.0.1"
+    },
+    "transient-assistant-messages": {
+      "version": "0.0.1"
+    }
+  }
+}

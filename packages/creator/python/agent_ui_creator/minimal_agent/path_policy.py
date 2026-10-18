@@ -98,6 +98,8 @@ class MinimalAgentPathPolicy:
             raise PathPolicyViolation(
                 "TOOL_PERMISSION_DENIED: this Creator inspection cannot modify project files."
             )
+        if self.mode == "development" and any(part in {"upstream", "vendor", "vendors"} for part in PurePosixPath(normalized).parts):
+            raise PathPolicyViolation("TOOL_PERMISSION_DENIED: upstream source is read-only; edit Plugin adapters.")
         if self.mode == "development":
             if normalized == "/.agent-ui" or normalized.startswith("/.agent-ui/"):
                 raise PathPolicyViolation(

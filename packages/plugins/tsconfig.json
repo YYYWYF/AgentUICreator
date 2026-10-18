@@ -23,14 +23,20 @@
     "paths": {
       "@za38.03/agent-ui-runtime": [
         "../runtime/src/index.ts"
+      ],
+      "@za38.03/agent-ui-plugins/catalog": [
+        "../../packages/plugins/src/catalog/index.ts"
       ]
-    }
+    },
+    "resolveJsonModule": true
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx"
   ],
   "exclude": [
-    "tests"
+    "tests",
+    "src/plugins/**",
+    "src/shared/**"
   ]
 }

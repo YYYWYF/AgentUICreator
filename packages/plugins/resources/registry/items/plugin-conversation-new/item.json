@@ -1,0 +1,30 @@
+{
+  "id": "plugin/conversation-new",
+  "kind": "agent-component",
+  "description": "Starts a new conversation independently of history management.",
+  "files": [
+    {
+      "source": "files/plugins/conversation-new/definition.ts",
+      "target": "plugins/conversation-new/definition.ts"
+    },
+    {
+      "source": "files/plugins/conversation-new/index.tsx",
+      "target": "plugins/conversation-new/index.tsx"
+    },
+    {
+      "source": "files/plugins/conversation-new/manifest.json",
+      "target": "plugins/conversation-new/manifest.json"
+    },
+    {
+      "source": "files/plugins/conversation-new/styles.css",
+      "target": "plugins/conversation-new/styles.css"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "19.1.1",
+    "lucide-react": "1.41.0"
+  }
+}

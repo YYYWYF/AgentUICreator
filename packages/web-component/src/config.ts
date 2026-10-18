@@ -2,15 +2,19 @@ export type { AgentUICompatibilityConfig as AgentUIConfig } from "../.generated/
 import type { AgentUICompatibilityConfig as AgentUIConfig } from "../.generated/src/agent-ui/application/compatibility-config";
 export type { ResolvedAgentUICompatibilityConfig as ResolvedAgentUIConfig } from "../.generated/src/agent-ui/application/compatibility-config";
 import type { ResolvedAgentUICompatibilityConfig as ResolvedAgentUIConfig } from "../.generated/src/agent-ui/application/compatibility-config";
+import { agentUILocaleConfig } from "../.generated/src/agent-ui/agent-ui/i18n/locale-config";
+import { agentUIThemeConfig } from "../.generated/src/agent-ui/agent-ui/theme/theme-config";
 export const configAttributes = ["endpoint", "locale", "theme", "thread-id"] as const;
+export interface AgentUIPresentationDefaults { locale: ResolvedAgentUIConfig["locale"]; theme: ResolvedAgentUIConfig["theme"] }
+const projectDefaults: AgentUIPresentationDefaults = { locale: agentUILocaleConfig.defaultLocale, theme: agentUIThemeConfig.theme };
 
-export function resolveConfig(config: AgentUIConfig, attributes: Record<string, string | null>): ResolvedAgentUIConfig {
+export function resolveConfig(config: AgentUIConfig, attributes: Record<string, string | null>, defaults: AgentUIPresentationDefaults = projectDefaults): ResolvedAgentUIConfig {
   // Properties are authoritative. Attributes are sugar only when a property is absent.
   const resolved = {
     ...config,
     endpoint: config.endpoint ?? attributes.endpoint ?? "/agent",
-    locale: config.locale ?? attributes.locale ?? "en-US",
-    theme: config.theme ?? attributes.theme ?? "violet",
+    locale: config.locale ?? attributes.locale ?? defaults.locale,
+    theme: config.theme ?? attributes.theme ?? defaults.theme,
     ...(config.threadId !== undefined || attributes["thread-id"] !== null
       ? { threadId: config.threadId ?? attributes["thread-id"] ?? undefined } : {}),
   };

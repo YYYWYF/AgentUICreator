@@ -10,8 +10,8 @@ export const retrievalChunksScenario = defineScenario({
   reference: {
     audience: "backend",
     protocol: "AG-UI",
-    pattern: "Tool call → result → assistant-ui Toolkit renderer",
-    presentation: "assistant-ui RetrievalChunks",
+    pattern: "Tool call → result → Agent UI Toolkit renderer",
+    presentation: "Agent UI RetrievalChunks",
     eventFlow: ["TOOL_CALL_START", "TOOL_CALL_ARGS", "TOOL_CALL_END", "TOOL_CALL_RESULT"],
     notes: ["Install retrieval-chunks explicitly; removing it restores ToolFallback without changing this scenario."],
   },

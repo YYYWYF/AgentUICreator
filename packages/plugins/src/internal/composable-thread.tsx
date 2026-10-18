@@ -1,7 +1,8 @@
 "use client";
 
 import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../locale.js";
-import { ComposerInputHostContext, ComposerTextareaInput } from "./composer-input-host-context.js";
+import { useTransientMessages, type ConversationTransientMessagesRenderScope } from "./conversation-transient-messages.js";
+import { ComposerHostConfigContext, ComposerInputHostContext, ComposerTextareaInput } from "./composer-input-host-context.js";
 
 import { ConversationUserDirectiveText } from "./conversation-directive-text.js";
 import { ConversationActionMoreMenuItem } from "./style-boundary/ConversationActionMoreMenu.js";
@@ -9,39 +10,37 @@ import { QuoteThreadRootContext } from "./quote-thread-root.js";
 import { QuoteSelectableText } from "./quote-selectable-text.js";
 import { InternalConversationQuoteBlock } from "./conversation-quote.js";
 import {
-  ComposerAddAttachment as UpstreamComposerAddAttachment,
   ComposerAttachments,
   UserMessageAttachments,
-} from "./adapters/assistant-ui/components/assistant-ui/elements/attachment.aui.js";
-import { Sources } from "./adapters/assistant-ui/components/assistant-ui/elements/sources.aui.js";
-import { File } from "./adapters/assistant-ui/components/assistant-ui/elements/file.js";
-import { ThreadFollowupSuggestions } from "./adapters/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.js";
-import { Image } from "./adapters/assistant-ui/components/assistant-ui/elements/image.js";
+} from "./adapters-generated/assistant-ui/components/assistant-ui/elements/attachment.aui.js";
+import { Sources } from "./adapters-generated/assistant-ui/components/assistant-ui/elements/sources.aui.js";
+import { File } from "./adapters-generated/assistant-ui/components/assistant-ui/elements/file.js";
+import { ThreadFollowupSuggestions } from "./adapters-generated/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.js";
+import { Image } from "./adapters-generated/assistant-ui/components/assistant-ui/elements/image.js";
 import {
   Reasoning,
   ReasoningContent,
   ReasoningRoot,
   ReasoningText,
   ReasoningTrigger,
-} from "./adapters/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
-import { ToolFallback } from "./adapters/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
-import { isTaskPart } from "./adapters/assistant-ui/components/assistant-ui/elements/task-card.aui.js";
+} from "./adapters-generated/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
+import { ToolFallback } from "./adapters-generated/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
+import { isTaskPart } from "./adapters-generated/assistant-ui/components/assistant-ui/elements/task-card.aui.js";
 import {
   ToolGroupContent,
   ToolGroupRoot,
   ToolGroupTrigger,
-} from "./adapters/assistant-ui/components/assistant-ui/elements/tool-group.aui.js";
-import { TooltipIconButton } from "./adapters/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
-import { Button } from "./adapters/assistant-ui/components/ui/button.js";
-import { Skeleton } from "./adapters/assistant-ui/components/ui/skeleton.js";
-import { cn } from "./vendor/assistant-ui/lib/utils.js";
+} from "./adapters-generated/assistant-ui/components/assistant-ui/elements/tool-group.aui.js";
+import { TooltipIconButton } from "./adapters-generated/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
+import { Button } from "./adapters-generated/assistant-ui/components/ui/button.js";
+import { Skeleton } from "./adapters-generated/assistant-ui/components/ui/skeleton.js";
+import { cn } from "./vendor-generated/assistant-ui/lib/utils.js";
 import {
   ActionBarPrimitive,
   AuiIf,
   type AssistantState,
   BranchPickerPrimitive,
   ComposerPrimitive,
-  QueueItemPrimitive,
   ErrorPrimitive,
   groupPartByType,
   MessagePrimitive,
@@ -67,7 +66,6 @@ import {
   SquareIcon,
   ThumbsUpIcon,
   ThumbsDownIcon,
-  XIcon,
 } from "lucide-react";
 import {
   createContext,
@@ -97,11 +95,10 @@ export type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
  * `ToolFallback`.
  */
 export type ThreadComponents = {
+  TransientMessages?: ComponentType<ConversationTransientMessagesRenderScope> | undefined;
   UserEditComposer?: ComponentType | undefined;
   AssistantMessage?: ComponentType | undefined;
   AssistantResponseFooter?: ComponentType | undefined;
-  /** @deprecated Use AssistantResponseFooter. */
-  AssistantMessageFooter?: ComponentType | undefined;
   Welcome?: ComponentType | undefined;
   ToolFallback?: ToolCallMessagePartComponent | undefined;
   ThinkingIndicator?: ComponentType<{ reasoningVisible: boolean; timelineVisible: boolean }> | undefined;
@@ -164,14 +161,6 @@ const ThreadComponentsContext =
 const DEFAULT_THREAD_LABELS = { generationStopped: DEFAULT_AGENT_UI_MESSAGES.conversation.generationStopped, editCancel: DEFAULT_AGENT_UI_MESSAGES.common.cancel, editUpdate: DEFAULT_AGENT_UI_MESSAGES.common.update, editInput: DEFAULT_AGENT_UI_MESSAGES.conversation.editInput };
 const ThreadLabelsContext = createContext(DEFAULT_THREAD_LABELS);
 
-interface ComposerHostConfig {
-  autoFocus: boolean;
-}
-
-const ComposerHostConfigContext = createContext<ComposerHostConfig>({
-  autoFocus: false,
-});
-
 // Startup exposes a loading placeholder thread; treat it as a new chat so
 // the composer mounts centered. Loads after startup keep the docked layout.
 const isNewChatView = (s: AssistantState) =>
@@ -217,7 +206,8 @@ export const ComposableThread: FC<ThreadProps> = ({
 }) => {
   const localeMessages = useAgentUILocale();
   const defaultLabels = { generationStopped: localeMessages.conversation.generationStopped, editCancel: localeMessages.common.cancel, editUpdate: localeMessages.common.update, editInput: localeMessages.conversation.editInput };
-  const isEmpty = useAuiState(isNewChatView);
+  const transientMessages = useTransientMessages();
+  const isEmpty = useAuiState(isNewChatView) && !(components.TransientMessages && transientMessages.length > 0);
   const threadId = useAuiState(s => s.threads.mainThreadId);
 
   return (
@@ -241,7 +231,7 @@ const ThreadRoot: FC<{
   composer,
 }) => {
   const quoteRootRef = useRef<HTMLDivElement | null>(null);
-  const { Welcome = ThreadWelcome } = useContext(ThreadComponentsContext);
+  const { Welcome = ThreadWelcome, TransientMessages } = useContext(ThreadComponentsContext);
 
   return (
     <QuoteThreadRootContext.Provider value={quoteRootRef}>
@@ -267,7 +257,7 @@ const ThreadRoot: FC<{
             isEmpty && "justify-center",
           )}
         >
-          <AuiIf condition={isNewChatView}>
+          <AuiIf condition={state => isEmpty && isNewChatView(state)}>
             <Welcome />
           </AuiIf>
           <AuiIf condition={isHistoryLoadingView}>
@@ -279,8 +269,9 @@ const ThreadRoot: FC<{
             data-agent-ui-message-spacing="turn"
             className="mb-14 flex flex-col gap-y-6 empty:hidden"
           >
+            {TransientMessages && <TransientMessages afterMessageId={null} />}
             <ThreadPrimitive.Messages>
-              {() => <ThreadMessage />}
+              {({ message }) => <><ThreadMessage />{TransientMessages && <TransientMessages afterMessageId={message.id} />}</>}
             </ThreadPrimitive.Messages>
           </div>
 
@@ -294,7 +285,7 @@ const ThreadRoot: FC<{
             <ThreadScrollToBottom />
             <ThreadFollowupSuggestions />
             {composer}
-            <AuiIf condition={(s) => isNewChatView(s) && s.composer.isEmpty}>
+            <AuiIf condition={(s) => isEmpty && isNewChatView(s) && s.composer.isEmpty}>
               <ThreadSuggestions />
             </AuiIf>
           </ThreadPrimitive.ViewportFooter>
@@ -370,217 +361,12 @@ const ThreadSuggestionItem: FC = () => {
   );
 };
 
-export interface ComposerQueueLabels {
-  queued: string;
-  removeQueued: string;
-}
+export { CanonicalComposer, ComposerQueue, type ComposerQueueLabels, type CanonicalComposerProps } from "../plugins/composer/adapters/presentation/composer.js";
+import { CanonicalComposer } from "../plugins/composer/adapters/presentation/composer.js";
 
-export const ComposerQueue: FC<ComposerQueueLabels> = ({ queued, removeQueued }) => (
-  <AuiIf condition={(s) => s.thread.capabilities.queue && s.composer.queue.length > 0}>
-    <div data-agent-ui-owned="" data-slot="aui_composer-queue" className="border-primary/20 bg-primary/5 flex flex-col gap-1 rounded-lg border p-2">
-      <span data-agent-ui-owned="" className="text-muted-foreground text-xs">{queued}</span>
-      <ComposerPrimitive.Queue>
-        {() => (
-          <div data-agent-ui-owned="" data-slot="aui_composer-queue-item" className="flex items-center gap-2 rounded-md bg-background/60 px-2 py-1 text-sm">
-            <div data-agent-ui-owned="" className="min-w-0 flex-1 break-words"><QueueItemPrimitive.Text /></div>
-            <QueueItemPrimitive.Remove asChild>
-              <TooltipIconButton tooltip={removeQueued} aria-label={removeQueued} type="button" className="size-6 shrink-0">
-                <XIcon className="size-3.5" />
-              </TooltipIconButton>
-            </QueueItemPrimitive.Remove>
-          </div>
-        )}
-      </ComposerPrimitive.Queue>
-    </div>
-  </AuiIf>
-);
-
-export interface CanonicalComposerProps {
-  autoFocus?: boolean | undefined;
-  placeholder: string;
-  inputAriaLabel: string;
-  queueLabels: ComposerQueueLabels;
-  triggers?: ReactNode;
-  beforeInput?: ReactNode;
-  input?: ReactNode;
-  leadingActions?: ReactNode;
-  trailingActions?: ReactNode;
-  submitAction?: ReactNode;
-}
-
-export const CanonicalComposer: FC<CanonicalComposerProps> = ({
-  autoFocus,
-  placeholder,
-  inputAriaLabel,
-  queueLabels,
-  triggers,
-  beforeInput,
-  input,
-  leadingActions,
-  trailingActions,
-  submitAction,
-}) => {
-  const inheritedHostConfig = useContext(ComposerHostConfigContext);
-  const resolvedAutoFocus = autoFocus ?? inheritedHostConfig.autoFocus;
-
-  return (
-    <ComposerPrimitive.Unstable_TriggerPopoverRoot>
-    <ComposerPrimitive.Root className="aui-composer-root relative flex w-full flex-col">
-      {triggers}
-      <ComposerPrimitive.AttachmentDropzone asChild>
-        <div data-agent-ui-owned=""
-          data-slot="aui_composer-shell"
-          className="border-border/60 data-[dragging=true]:border-ring focus-within:border-border dark:border-muted-foreground/15 dark:focus-within:border-muted-foreground/30 flex w-full cursor-text flex-col gap-2 rounded-(--composer-radius) border bg-(--composer-bg) p-(--composer-padding) transition-[border-color] data-[dragging=true]:border-dashed data-[dragging=true]:bg-[color-mix(in_oklab,var(--color-accent)_50%,var(--color-background))]"
-        >
-          <ComposerAttachments />
-          {beforeInput === undefined || beforeInput === null ? null : (
-            <div data-agent-ui-owned="" data-slot="aui_composer-before-input">{beforeInput}</div>
-          )}
-          <ComposerQueue {...queueLabels} />
-          <ComposerInputHostContext.Provider value={{ variant: "primary", placeholder, inputAriaLabel, autoFocus: resolvedAutoFocus }}>
-            {input ?? <ComposerTextareaInput />}
-          </ComposerInputHostContext.Provider>
-          <div data-slot="aui_composer-actions" className="aui-composer-action-wrapper relative flex items-center justify-between">
-            <div data-agent-ui-owned=""
-              data-slot="aui_composer-leading-actions"
-              className="flex items-center gap-1.5"
-            >
-              {leadingActions}
-            </div>
-            <div data-agent-ui-owned=""
-              data-slot="aui_composer-trailing-actions"
-              className="flex items-center gap-1.5"
-            >
-              {trailingActions}
-              {submitAction}
-            </div>
-          </div>
-        </div>
-      </ComposerPrimitive.AttachmentDropzone>
-    </ComposerPrimitive.Root>
-    </ComposerPrimitive.Unstable_TriggerPopoverRoot>
-  );
-};
-
-const ComposerAddAttachmentOverride: FC<{ label: string }> = ({ label }) => {
-  return (
-    <ComposerPrimitive.AddAttachment
-      render={
-        <TooltipIconButton
-          tooltip={label}
-          side="bottom"
-          variant="ghost"
-          size="icon"
-          data-slot="agent-ui-composer-tool"
-          className="aui-composer-add-attachment text-muted-foreground hover:text-foreground hover:bg-muted-foreground/15 dark:border-muted-foreground/15 dark:hover:bg-muted-foreground/30 size-7 rounded-full active:scale-[0.96] motion-reduce:transition-none"
-          aria-label={label}
-        />
-      }
-    >
-      <PlusIcon data-slot="agent-ui-composer-tool-icon" className="aui-attachment-add-icon size-4" />
-    </ComposerPrimitive.AddAttachment>
-  );
-};
-
-export const ComposerAddAttachmentAction: FC<{ label?: string }> = ({ label }) => {
-  if (label === undefined) {
-    return <UpstreamComposerAddAttachment />;
-  }
-
-  return <ComposerAddAttachmentOverride label={label} />;
-};
-
-interface ComposerDictateActionProps {
-  tooltip: string;
-  ariaLabel: string;
-}
-
-export const ComposerDictateAction: FC<ComposerDictateActionProps> = ({
-  tooltip,
-  ariaLabel,
-}) => (
-  <AuiIf condition={(s) => s.thread.capabilities.dictation && s.composer.dictation == null}>
-    <ComposerPrimitive.Dictate asChild>
-      <TooltipIconButton
-        tooltip={tooltip}
-        side="bottom"
-        type="button"
-        variant="ghost"
-        size="icon"
-        data-slot="agent-ui-composer-tool"
-        className="aui-composer-dictate text-muted-foreground hover:text-foreground size-7 rounded-full"
-        aria-label={ariaLabel}
-      >
-        <MicIcon data-slot="agent-ui-composer-tool-icon" className="aui-composer-dictate-icon size-4" />
-      </TooltipIconButton>
-    </ComposerPrimitive.Dictate>
-  </AuiIf>
-);
-
-interface ComposerStopDictationActionProps {
-  tooltip: string;
-  ariaLabel: string;
-}
-
-export const ComposerStopDictationAction: FC<ComposerStopDictationActionProps> = ({
-  tooltip,
-  ariaLabel,
-}) => (
-  <AuiIf condition={(s) => s.thread.capabilities.dictation && s.composer.dictation != null}>
-    <ComposerPrimitive.StopDictation asChild>
-      <TooltipIconButton
-        tooltip={tooltip}
-        side="bottom"
-        type="button"
-        variant="ghost"
-        size="icon"
-        data-slot="agent-ui-composer-recording-stop"
-        className="aui-composer-stop-dictation text-destructive size-7 rounded-full"
-        aria-label={ariaLabel}
-      >
-        <SquareIcon data-slot="agent-ui-composer-recording-stop-icon" className="aui-composer-stop-dictation-icon size-3.5 animate-pulse fill-current" />
-      </TooltipIconButton>
-    </ComposerPrimitive.StopDictation>
-  </AuiIf>
-);
-
-export const ComposerSendAction: FC<{ label: string; queueLabel: string }> = ({ label, queueLabel }) => {
-  const isRunning = useAuiState((s) => s.thread.isRunning);
-  const actionLabel = isRunning ? queueLabel : label;
-  return (
-    <AuiIf condition={(s) => !s.thread.isRunning || s.thread.capabilities.queue}>
-      <ComposerPrimitive.Send asChild>
-        <TooltipIconButton
-          tooltip={actionLabel}
-          side="bottom"
-          type="button"
-          variant="default"
-          size="icon"
-          className="aui-composer-send size-7 rounded-full"
-          aria-label={actionLabel}
-        >
-          <ArrowUpIcon className="aui-composer-send-icon size-4" />
-        </TooltipIconButton>
-      </ComposerPrimitive.Send>
-    </AuiIf>
-  );
-};
-
-export const ComposerCancelAction: FC<{ label: string }> = ({ label }) => (
-  <AuiIf condition={(s) => s.thread.isRunning}>
-    <ComposerPrimitive.Cancel asChild>
-      <Button
-        type="button"
-        variant="default"
-        size="icon"
-        className="aui-composer-cancel size-7 rounded-full"
-        aria-label={label}
-      >
-        <SquareIcon className="aui-composer-cancel-icon size-2.5 fill-current" />
-      </Button>
-    </ComposerPrimitive.Cancel>
-  </AuiIf>
-);
+export { ComposerAddAttachmentAction } from "../plugins/add-attachment-action/adapters/presentation/add-attachment-action.js";
+export { ComposerDictateAction, ComposerStopDictationAction } from "../plugins/dictation-action/adapters/presentation/dictation-action.js";
+export { ComposerSendAction, ComposerCancelAction } from "../plugins/submit-action/adapters/presentation/submit-action.js";
 
 const MessageError: FC = () => {
   return (
@@ -630,9 +416,8 @@ const AssistantMessage: FC = () => {
     ReasoningGroup,
     TaskGroup: TaskGroupComponent,
     AssistantResponseFooter,
-    AssistantMessageFooter,
   } = useContext(ThreadComponentsContext);
-  const AssistantResponseFooterComponent = AssistantResponseFooter ?? AssistantMessageFooter;
+  const AssistantResponseFooterComponent = AssistantResponseFooter;
   const isRunning = useAuiState((s) => s.thread.isRunning);
   const labels = useContext(ThreadLabelsContext);
   // Presentation only: response actions and persistence still read real content.
@@ -793,125 +578,41 @@ const AssistantMessage: FC = () => {
   );
 };
 
-export const ResponseActionBarRoot: FC<PropsWithChildren> = ({ children }) => (
+export const ResponseActionBarRoot: FC<import("../public.js").ConversationResponseActionBarProps> = ({ children, ...props }) => (
   <ActionBarPrimitive.Root
     hideWhenRunning
     autohide="not-last"
     className="aui-assistant-action-bar-root text-muted-foreground animate-in fade-in col-start-3 row-start-2 -ms-1 flex gap-1 duration-200"
+    {...props}
   >
     {children}
   </ActionBarPrimitive.Root>
 );
 
-export const CanonicalResponseCopyAction: FC = () => {
+import { CanonicalResponseCopyAction } from "../plugins/copy-action/adapters/presentation/copy-action.js";
+export { CanonicalResponseCopyAction };
+import { CanonicalResponseFeedbackActions } from "../plugins/feedback-actions/adapters/presentation/feedback-actions.js";
+export { CanonicalResponseFeedbackActions };
+import { CanonicalResponseReloadAction } from "../plugins/reload-action/adapters/presentation/reload-action.js";
+export { CanonicalResponseReloadAction };
+import { CanonicalResponseExportMarkdownAction } from "../plugins/export-markdown-action/adapters/presentation/export-markdown-action.js";
+export { CanonicalResponseExportMarkdownAction };
+
+export const ResponseBranchPicker: FC<import("../public.js").ConversationResponseBranchPickerProps> = ({hideWhenSingleBranch = true, previousProps, nextProps, children, ...props}) => {
   const localeMessages = useAgentUILocale();
   const response = useAssistantResponseRuntime();
-  const [copied, setCopied] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const generation = useRef(0);
-  useEffect(() => {
-    setCopied(false);
-    generation.current++;
-    return () => {
-      generation.current++;
-      clearTimeout(timer.current);
-    };
-  }, [response.group.headAssistantMessageId, response.text]);
-  const disabled = response.isRunning || !response.text;
+  if (hideWhenSingleBranch && (response.branchCount <= 1 || !response.canSwitchBranch)) return null;
   return (
-    <TooltipIconButton
-      tooltip={localeMessages.common.copy}
-      type="button"
-      disabled={disabled}
-      {...(copied ? { "data-copied": "true" } : {})}
-      onClick={async () => {
-        if (disabled) return;
-        const current = generation.current;
-        try {
-          await navigator.clipboard.writeText(response.text);
-          if (current !== generation.current) return;
-          clearTimeout(timer.current);
-          setCopied(true);
-          timer.current = setTimeout(() => setCopied(false), 3000);
-        } catch (error) {
-          console.error("[agent-ui] response copy failed:", error);
-        }
-      }}
-    >
-      {copied ? (
-        <CheckIcon data-slot="assistant-ui-copy-action-copied" className="animate-in zoom-in-50 fade-in duration-200 ease-out" />
-      ) : (
-        <CopyIcon data-slot="assistant-ui-copy-action-idle" className="animate-in zoom-in-75 fade-in duration-150" />
-      )}
-    </TooltipIconButton>
-  );
-};
-
-export const CanonicalResponseFeedbackActions: FC<{ helpful: string; notHelpful: string }> = ({ helpful, notHelpful }) => (
-  <AuiIf condition={(s) => s.thread.capabilities.feedback}>
-    <ActionBarPrimitive.FeedbackPositive asChild>
-      <TooltipIconButton tooltip={helpful} aria-label={helpful} type="button" className="data-[submitted]:text-primary">
-        <ThumbsUpIcon />
-      </TooltipIconButton>
-    </ActionBarPrimitive.FeedbackPositive>
-    <ActionBarPrimitive.FeedbackNegative asChild>
-      <TooltipIconButton tooltip={notHelpful} aria-label={notHelpful} type="button" className="data-[submitted]:text-primary">
-        <ThumbsDownIcon />
-      </TooltipIconButton>
-    </ActionBarPrimitive.FeedbackNegative>
-  </AuiIf>
-);
-
-export const CanonicalResponseReloadAction: FC = () => {
-  const localeMessages = useAgentUILocale();
-  const response = useAssistantResponseRuntime();
-  return (
-    <TooltipIconButton tooltip={localeMessages.common.refresh} type="button" disabled={!response.canReload} onClick={response.reload}>
-      <RefreshCwIcon />
-    </TooltipIconButton>
-  );
-};
-
-export const CanonicalResponseExportMarkdownAction: FC<{ menuLabel?: string }> = ({ menuLabel }) => {
-  const localeMessages = useAgentUILocale();
-  const response = useAssistantResponseRuntime();
-  const disabled = response.isRunning || !response.text;
-  const exportMarkdown = () => {
-    if (disabled) return;
-    const blob = new Blob([response.text], { type: "text/markdown" });
-    const url = URL.createObjectURL(blob);
-    try {
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `response-${Date.now()}.md`;
-      anchor.click();
-    } finally {
-      setTimeout(() => URL.revokeObjectURL(url), 40_000);
-    }
-  };
-  if (menuLabel !== undefined) {
-    return <ConversationActionMoreMenuItem disabled={disabled} onSelect={exportMarkdown}>
-      <DownloadIcon className="size-4" />{menuLabel}
-    </ConversationActionMoreMenuItem>;
-  }
-  return <TooltipIconButton tooltip={localeMessages.conversation.exportMarkdown} type="button" disabled={disabled} onClick={exportMarkdown}>
-    <DownloadIcon />
-  </TooltipIconButton>;
-};
-
-export const ResponseBranchPicker: FC = () => {
-  const localeMessages = useAgentUILocale();
-  const response = useAssistantResponseRuntime();
-  if (response.branchCount <= 1 || !response.canSwitchBranch) return null;
-  return (
-    <div className="aui-branch-picker-root text-muted-foreground -ms-2 me-2 inline-flex items-center text-xs">
-      <TooltipIconButton tooltip={localeMessages.common.previous} type="button" disabled={response.branchNumber <= 1} onClick={response.switchToPreviousBranch}>
+    <div className="aui-branch-picker-root text-muted-foreground -ms-2 me-2 inline-flex items-center text-xs" {...props}>
+      {children ?? <>
+      <TooltipIconButton tooltip={localeMessages.common.previous} type="button" {...previousProps} disabled={!response.canSwitchBranch || response.branchNumber <= 1 || previousProps?.disabled} onClick={event=>{previousProps?.onClick?.(event);if(!event.defaultPrevented && response.canSwitchBranch) response.switchToPreviousBranch();}}>
         <ChevronLeftIcon />
       </TooltipIconButton>
       <span className="aui-branch-picker-state font-medium">{response.branchNumber} / {response.branchCount}</span>
-      <TooltipIconButton tooltip={localeMessages.common.next} type="button" disabled={response.branchNumber >= response.branchCount} onClick={response.switchToNextBranch}>
+      <TooltipIconButton tooltip={localeMessages.common.next} type="button" {...nextProps} disabled={!response.canSwitchBranch || response.branchNumber >= response.branchCount || nextProps?.disabled} onClick={event=>{nextProps?.onClick?.(event);if(!event.defaultPrevented && response.canSwitchBranch) response.switchToNextBranch();}}>
         <ChevronRightIcon />
       </TooltipIconButton>
+      </>}
     </div>
   );
 };

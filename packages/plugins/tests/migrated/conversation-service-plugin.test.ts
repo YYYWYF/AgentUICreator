@@ -2,14 +2,14 @@ import { describe, expect, it, vi } from "vitest";
 
 import { parseAppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
 import type { UIPluginDefinition } from "../../../operator/src/framework/contracts/ui-plugin";
-import { conversationServicePlugin } from "../../../source-registry/registry/items/plugin-conversation-service/files/plugins/conversation-service/definition";
+import { conversationServicePlugin } from "../../resources/registry/items/plugin-conversation-service/files/plugins/conversation-service/definition";
 import {
   AGENT_UI_CONVERSATION_DATA_SOURCE_SERVICE,
   AGENT_UI_CONVERSATION_SERVICE,
   type ConversationService,
   type ConversationDataSource,
-} from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations";
-import { createPluginRegistry, PluginServiceRuntime } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../resources/registry/items/foundation-core-application/files/services/conversations";
+import { createPluginRegistry, PluginServiceRuntime } from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
 
 function dataSourcePlugin(dataSource: ConversationDataSource): UIPluginDefinition {
   return {

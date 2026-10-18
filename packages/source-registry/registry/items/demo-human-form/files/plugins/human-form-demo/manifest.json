@@ -1,7 +1,0 @@
-{
-  "id": "human-form-demo",
-  "name": "Conversation Form Demo",
-  "description": "Optional Human Tool for collecting multiple fields in a conversation",
-  "version": "1.0.0",
-  "capabilities": ["human-input", "headless"]
-}

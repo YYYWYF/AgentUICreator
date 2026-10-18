@@ -87,8 +87,10 @@ async function main() {
     return;
   }
   if (command === "ensure" && await access(path.join(projectRoot, ".agent-ui/project.json")).then(() => true, () => false)) {
-    const migration = await handleUIOperatorRequest({ operation: "migrate_official_package_plugin", input: { pluginId: "assistant-ui-composer" } }, projectRoot);
-    if (!migration.ok) throw new Error(`${migration.error.code}: ${migration.error.message}`);
+    for (const pluginId of ["composer"] as const) {
+      const migration = await handleUIOperatorRequest({ operation: "migrate_official_package_plugin", input: { pluginId } }, projectRoot);
+      if (!migration.ok) throw new Error(`${migration.error.code}: ${migration.error.message}`);
+    }
   }
   const before = await inspectCreatorProject(projectRoot);
   if (command === "ensure" && before.status === "ready") {

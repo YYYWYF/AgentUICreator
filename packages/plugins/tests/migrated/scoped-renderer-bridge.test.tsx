@@ -8,12 +8,12 @@ import {
   ScopedTaskGroup,
   ScopedToolFallback,
   ScopedToolGroup,
-} from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ScopedRendererBridge";
+} from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/ScopedRendererBridge";
 import type { UIPluginRenderScope } from "../../../operator/src/framework/contracts/ui-plugin";
 import {
   PluginRenderScopeProvider,
   usePluginRenderScope,
-} from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
 
 function ScopeReader() {
   const scope = usePluginRenderScope<string>();

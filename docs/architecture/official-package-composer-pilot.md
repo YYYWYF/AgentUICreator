@@ -1,4 +1,7 @@
-# Official package ownership: Composer pilot
+# Historical: official package ownership — Composer pilot
+
+> 2026-10-17：本文保留旧实现/迁移记录。当前边界见 [统一 Plugins 包、内置源码目录与按需源码托管](npm-default-plugin-source-ownership.md)：默认统一 npm 包、用户同意后按插件接管源码；原 Source Registry 合入 Plugins 的目录和快照资产，不再独立发布。本文中的绝对 vendor 安装禁令、只能另建 Plugin ID 和 Registry 参考源码权威等旧规定不覆盖新决策；完整接管机制尚未实现。
+
 
 Phase 1 adds dependency ownership to the existing Plugin System. It does not change
 Plugin Contract, AppUIModel, SlotRegistry or conversation runtime ownership.

@@ -14,11 +14,11 @@ import {
   PluginServiceRuntime,
   UIPluginRuntime,
   usePluginService,
-} from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
 import type {
   PluginDiagnosticContextValue,
   RuntimeDiagnosticEvent,
-} from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/diagnostics/index";
+} from "../../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/diagnostics/index";
 
 const runtimeActions = {
   sendMessage: vi.fn(async () => undefined),

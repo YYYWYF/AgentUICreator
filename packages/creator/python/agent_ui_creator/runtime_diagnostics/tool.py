@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 from copy import deepcopy
@@ -30,9 +31,9 @@ RuntimeLayoutFilterId = Annotated[
     ),
 ]
 RuntimeLayoutFilterInput = Annotated[
-    list[RuntimeLayoutFilterId] | RuntimeLayoutFilterId | None,
+    list[RuntimeLayoutFilterId],
     Field(max_length=MAX_RUNTIME_LAYOUT_FILTER_IDS),
-]
+] | RuntimeLayoutFilterId | None
 
 RUNTIME_LAYOUT_NODE_PREFIX = "layout-node:"
 
@@ -293,6 +294,25 @@ class RuntimeDiagnosticInspectionService:
 
     def current_layout(self) -> dict[str, Any] | None:
         return self.latest_layout if self.layout_revision == self.activity.revision and self.layout_run_id == self.activity.run_id else None
+
+    async def refresh_for_completion(self) -> dict[str, Any] | None:
+        """Read real current-revision diagnostics even when the model only read layout.
+
+        Keep current_result's invalidation rules: fresh errors, new snapshots and
+        source edits must never inherit an earlier successful verdict.
+        """
+        for attempt in range(3):
+            current = self.current_result()
+            if current is not None and current.get("runtimeStatus") in {"passed", "failed"}:
+                return current
+            if attempt:
+                await asyncio.sleep(0.15)
+            try:
+                await self.inspect()
+            except OperatorError:
+                # A busy/disconnected Host is unavailable, never a successful check.
+                continue
+        return self.current_result()
 
     def current_result(self) -> dict[str, Any] | None:
         result = self.latest_result

@@ -1000,6 +1000,20 @@ DOMAIN_WRITE_AGENT_PROMPT += PLUGIN_DELIVERY_GUIDANCE
 
 
 HOST_INTEGRATION_RECIPE_RULES = """
+For a Creator-managed Vue integration, the editable workspace is the associated
+React producer, not the Vue consumer. Integration tools resolve its reciprocal
+Host binding and plan/apply only the selected Vue embedding recipe. UI/plugin
+customizations belong in this producer's application layer. Do not edit Vue
+business files through generic file tools. After customization, tell the user to
+use "Build and update host" in the integration guide to publish the current
+producer output. A module-required result on a bound project means its current
+output is missing/stale: use that build action; never replace it with the tool's
+official default bundle, invent another producer, or install React dependencies
+into the Vue consumer.
+Always retrieve the plan in the current run before apply/prepare/verify. Pass its
+recipeReference as recipe (an object containing only the plan id); the tool forwards
+the exact cached canonical recipe. Do not copy or regenerate long edits.after code
+into mutation arguments. A missing reference means re-plan, not reconstruct it.
 When users ask how to integrate, install, or enable Agent UI in an existing Host,
 call plan_agent_ui_integration first. /install web-component-bridge and natural
 language integration use this same Host-owned resource recipe. A guide is read-only:
@@ -1038,19 +1052,41 @@ DOMAIN_ANSWER_AGENT_PROMPT += HOST_INTEGRATION_RECIPE_RULES
 DOMAIN_INSPECT_AGENT_PROMPT += HOST_INTEGRATION_RECIPE_RULES
 
 OFFICIAL_PLUGIN_OWNERSHIP_RULES = """
-Official plugins are dependency-owned. Custom plugins are project-owned.
-For official_plugin_reference, inspect_ui_plugin reads Source Registry reference
-source; there is no writable plugin_source. Never edit node_modules or write a
-local plugin with an official ID. First inspect configuration, semantic Slots,
-extension points and public @za38.03/agent-ui-plugins Composer APIs. Prefer a thin custom
-Slot extension. For full replacement use create_custom_plugin with a new ID,
-basedOn and replaceInstanceId; implement CustomPlugin against public contracts.
-Reference implementation, do not fork implementation by default. If public APIs
-are insufficient, report a contract gap instead of copying private implementation.
-To add new official capabilities to a custom plugin, read the custom source and
-latest reference, then semantically port the capability using public APIs. Never
-automatically overwrite custom source or merge the whole official implementation.
+Official plugins default to npm behind a thin project-owned application layer.
+Discover supported entries from the target's installed catalog. Preserve existing
+legacy project source; do not automatically re-layer it or manufacture ownership.
+AppUIModel controls layout and semantic composition, not React component props.
+For component changes first edit the local application entry using public props,
+children/subcomponents, renderers and extension APIs. Such edits do not require
+source takeover consent. Never demand takeover for an upstream API omitted by our
+wrapper. Only when these APIs cannot satisfy the request and implementation edits
+are actually necessary,
+call takeover_plugin_source alone. It presents the exact installed-version plan
+and asks for consent before writing. Do not ask a preliminary ask_user_question
+for the same takeover decision: the tool owns that question and its concise
+responsibility/upgrade notice. Do not enumerate internal paths in takeover copy.
+Never replace this with model-supplied
+approval or create same-ID files manually. A decline keeps the npm reference.
+After successful takeover the local definition/manifest are authoritative; preserve
+Plugin/instance IDs, configuration and Slots. Preserve application props and composition when switching
+only its implementation import. After takeover still try application APIs first,
+then implementation adapters. Keep upstream
+unmodified and never copy Runtime or Context. Ordinary subsequent edits to that
+source-owned Plugin do not need takeover again. npm upgrades must preserve local
+source, application files and its BASE. Source sync merges only the implementation
+subtree, never application files. Source sync is a separate explicit request, never an implicit
+part of package upgrades. Shared API/theme/runtime compatibility still matters.
+create_custom_plugin remains available for genuinely new Plugin identities.
+
 """
 
 DOMAIN_WRITE_AGENT_PROMPT += OFFICIAL_PLUGIN_OWNERSHIP_RULES
 DOMAIN_READ_AGENT_PROMPT += OFFICIAL_PLUGIN_OWNERSHIP_RULES
+
+
+from ..product_prompt import PRODUCT_NAMING_RULES
+
+DOMAIN_WRITE_AGENT_PROMPT += PRODUCT_NAMING_RULES
+DOMAIN_READ_AGENT_PROMPT += PRODUCT_NAMING_RULES
+DOMAIN_INSPECT_AGENT_PROMPT += PRODUCT_NAMING_RULES
+DOMAIN_ANSWER_AGENT_PROMPT += PRODUCT_NAMING_RULES

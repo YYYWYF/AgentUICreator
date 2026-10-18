@@ -56,7 +56,7 @@ it("sync replays the Quote Element import adaptation and fails on upstream drift
   const upstreamPath = `packages/ui/src/components/react/assistant-ui/elements/quote.aui.tsx`;
   const source = upstream(upstreamPath);
   const entry = installedVendorEntry({ source, localPath, upstreamPath });
-  expect(entry.installed).toBe(readFileSync(new URL(`vendor/assistant-ui/${localPath}`, internal), "utf8"));
+  expect(entry.installed).toBe(readFileSync(new URL(`vendor-generated/assistant-ui/${localPath}`, internal), "utf8"));
   expect(applyProductAdaptations(entry.installed, localPath)).toContain('import { SelectionToolbarPrimitive } from "../../../../../quote-selection-adapter.js";');
   expect(entry.provenance.adaptations).not.toContain("agent-ui-quote-selection-portal-bridge");
   expect(() => applyProductAdaptations(source + "\n  SelectionToolbarPrimitive,\n", localPath)).toThrow();
@@ -72,7 +72,7 @@ it("guards installed Quote sources, exact mappings and current vendor revision",
       await copyFile(new URL(entry.localPath, internal), path.join(root, entry.localPath));
     }
     await writeFile(provenancePath, JSON.stringify(record));
-    const vendor = JSON.parse(readFileSync(new URL("vendor/assistant-ui/UPSTREAM.json", internal), "utf8"));
+    const vendor = JSON.parse(readFileSync(new URL("vendor-generated/assistant-ui/UPSTREAM.json", internal), "utf8"));
     expect(await collectQuoteSelectionErrors(root, vendor.revision)).toEqual([]);
     expect(await collectQuoteSelectionErrors(root, "0".repeat(40)))
       .toContain("quote-selection-UPSTREAM.json.revision must match UPSTREAM.json.revision.");

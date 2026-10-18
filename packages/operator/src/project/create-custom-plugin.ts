@@ -2,7 +2,7 @@ import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/pr
 import path from "node:path";
 import { tmpdir } from "node:os";
 import { z } from "zod";
-import { officialPackagePlugin } from "@za38.03/agent-ui-source-registry";
+import { officialPackagePlugin } from "../source-catalog/index.js";
 import { collectAppUIPluginLocations, parseAppUIModelJson } from "../framework/contracts/app-ui-model";
 import { parseUIPluginManifest } from "../framework/contracts/ui-plugin";
 import { assertCreatorCommitAllowed, creatorCancelMarkerSchemaPattern } from "./creator-cancel-marker";
@@ -16,7 +16,7 @@ import { detectResourcePackageManager, runResourcePackageCommand, type ResourceP
 export const createCustomPluginInputSchema = z.strictObject({
   pluginId: z.string().regex(/^[a-z0-9][a-z0-9-]{0,99}$/u),
   capabilities: z.array(z.string().min(1).max(200)).max(20).optional(),
-  basedOn: z.literal("assistant-ui-composer").optional(),
+  basedOn: z.literal("composer").optional(),
   replaceInstanceId: z.string().min(1).max(200).optional(),
   placement: z.union([z.strictObject({ type: z.literal("application") }), z.strictObject({
     type: z.literal("plugin_slot"), parentInstanceId: z.string().min(1), slot: z.string().min(1),
@@ -45,7 +45,7 @@ export async function createCustomPlugin(projectRoot: string, raw: CreateCustomP
   const basis = input.basedOn ? officialPackagePlugin(input.basedOn) : undefined;
   const manifest = parseUIPluginManifest({ ...(basis?.manifest ?? {}), id: input.pluginId,
     name: input.pluginId, description: "Project-owned UI Plugin", version: "0.0.1",
-    capabilities: input.capabilities ?? basis?.manifest.capabilities ?? [],
+    capabilities: input.capabilities ?? (basis && "capabilities" in basis.manifest ? basis.manifest.capabilities : []),
     ...(input.capabilities && !input.capabilities.includes("conversation-composer") ? {
       slots: undefined, authoring: { intents: [`compose ${input.pluginId}`] },
     } : {}),

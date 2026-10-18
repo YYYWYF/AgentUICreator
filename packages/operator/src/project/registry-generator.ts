@@ -1,4 +1,4 @@
-import { officialPackagePlugin } from "@za38.03/agent-ui-source-registry";
+import { officialPackagePlugin } from "../source-catalog/index.js";
 import { createRequire } from "node:module";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";

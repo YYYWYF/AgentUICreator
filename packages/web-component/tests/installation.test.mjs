@@ -23,7 +23,7 @@ try {
   }
   await mkdir(path.join(root, 'node_modules/@za38.03'), { recursive: true });
   await symlink(packageRoot, path.join(root, 'node_modules/@za38.03/agent-ui-web-component'), 'junction');
-  await writeFile(path.join(root, 'package.json'), JSON.stringify({ name: 'bridge-install-fixture', private: true, type: 'module', dependencies: { ...manifest.dependencies, ...manifest.devDependencies, '@za38.03/agent-ui-web-component': '^0.1.0' } }));
+  await writeFile(path.join(root, 'package.json'), JSON.stringify({ name: 'bridge-install-fixture', private: true, type: 'module', dependencies: { ...manifest.dependencies, ...manifest.devDependencies, '@za38.03/agent-ui-web-component': '^0.0.1' } }));
   await writeFile(path.join(root, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'react-jsx', strict: true, skipLibCheck: true, types: ['vite/client', 'node'] }, include: ['src'] }));
   const host = createAgentUIInitializationHost();
   await initializeAgentUIProject({ projectRoot: root, mode: 'embedded', sourceRoot: 'src/agent-ui' }, { ...host, installOperatorEntry: async () => [], installDevelopmentDefaults: async () => [] });
@@ -35,7 +35,7 @@ try {
   assert.equal((await installOfficialAgentUIResource(root, 'web-component-bridge')).changed, false);
   // The producer's edited React Plugin must enter its own bundle, rather than
   // silently loading the bridge package's default preset.
-  const plugin = path.join(root, 'src/agent-ui/plugins/assistant-ui-slash-command-trigger/index.tsx');
+  const plugin = path.join(root, 'src/agent-ui/plugins/slash-command-trigger/index.tsx');
   const source = await readFile(plugin, 'utf8');
   await writeFile(plugin, source.replace('return <ConversationComposerCommandTrigger source={source} labels={labels} />;', 'return <div data-compatibility-fixture="local-plugin"><ConversationComposerCommandTrigger source={source} labels={labels} /></div>;'));
   const build = spawnSync(process.execPath, [path.join(packageRoot, 'node_modules/vite/bin/vite.js'), 'build', '--config', 'src/agent-ui/integrations/web-component-bridge/vite.config.ts'], { cwd: root, encoding: 'utf8' });

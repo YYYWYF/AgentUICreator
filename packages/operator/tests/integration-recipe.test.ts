@@ -32,6 +32,10 @@ test("guide is read-only, exposes facts and requires an explicit target", async 
 });
 test("guide, apply, repeated apply and manual verification consume identical edits", async () => {
   const root = await fixture(); const planned = await recipe(root);
+  expect(planned.options.locale).toBeUndefined();
+  expect(planned.options.theme).toBeUndefined();
+  const explicit = await planIntegrationRecipe(root, { targetFile: "src/App.vue", locale: "en-US", theme: "dark" });
+  expect(explicit).toMatchObject({ status: "planned", integrationRecipe: { options: { locale: "en-US", theme: "dark" } } });
   expect((await verifyIntegrationRecipe(root, planned)).status).toBe("failed");
   expect(await applyIntegrationRecipe(root, planned)).toMatchObject({ status: "passed", changedPaths: ["src/components/AgentUIBridge.vue", "src/App.vue"] });
   expect(await applyIntegrationRecipe(root, planned)).toMatchObject({ status: "passed", changedPaths: [] });

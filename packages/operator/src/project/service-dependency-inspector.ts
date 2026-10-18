@@ -1,4 +1,4 @@
-import { officialPackagePlugin } from "@za38.03/agent-ui-source-registry";
+import { officialPackagePlugin } from "../source-catalog/index.js";
 import { existsSync, realpathSync } from "node:fs";
 import path from "node:path";
 
@@ -52,8 +52,8 @@ function projectPath(projectRoot: string, filePath: string): string {
     .join("/");
 }
 
-function propertyName(node: Node): string | undefined {
-  return isIdentifier(node) || isStringLiteralLikeNode(node)
+function propertyName(node: Node | undefined): string | undefined {
+  return node !== undefined && (isIdentifier(node) || isStringLiteralLikeNode(node))
     ? node.text
     : undefined;
 }

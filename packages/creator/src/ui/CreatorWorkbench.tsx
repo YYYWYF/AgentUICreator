@@ -1,6 +1,7 @@
+import { creatorDisplayValue } from "./product-presentation.js";
 import { parseCreatorCommand } from "../commands/parser.js";
 import type { CreatorCommandActivity } from "../commands/types.js";
-import { executeCreatorCommand } from "./workspaceClient.js";
+import { buildCompatibilityProjectRequest, executeCreatorCommand } from "./workspaceClient.js";
 import { useCreatorCommandState } from "./commands/useCreatorCommandState.js";
 import { CreatorCommandMenu } from "./commands/CreatorCommandMenu.js";
 import { useRef as useLocaleMessagesRef } from "react";
@@ -185,7 +186,11 @@ interface CreatorToolGroup {
 
 function presentConversationItems(items: CreatorConversationItem[], debug: boolean): (Exclude<CreatorConversationItem, CreatorToolActivity> | CreatorToolGroup)[] {
   const presented: (Exclude<CreatorConversationItem, CreatorToolActivity> | CreatorToolGroup)[] = [];
-  for (const item of items) {
+  for (const original of items) {
+    // Questions retain action IDs and submitted values; their labels are projected in the card.
+    // User text and stored/model context are preserved verbatim.
+    const item = original.kind === "question" || (original.kind === "message" && original.role === "user")
+      ? original : creatorDisplayValue(original);
     if (item.kind === "stage" && !shouldPresentStage(item, debug)) continue;
     if (item.kind !== "tool") {
       presented.push(item);
@@ -1935,6 +1940,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
       const result = await initializeWorkspaceProjectRequest({
         mode: setupDraft.mode,
         sourceRoot: setupDraft.sourceRoot,
+        ...(setupDraft.validation.status === "valid" && setupDraft.validation.result.compatibilityPlan ? { planId: setupDraft.validation.result.compatibilityPlan.id } : {}),
       }, localeMessages);
       if (workspaceIdRef.current === workspaceId) {
         installWorkspace(result);
@@ -2207,7 +2213,10 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
             ) : <div className="creator-panel-messages" ref={messageList} style={updatePageOpen ? { display: "none" } : undefined}>
               {workspaceState?.status === "ready" ? (
                 <CreatorProjectIntegrationGuide key={workspaceState.workspace.id} mode={workspaceState.project.mode}
-                  sourceRoot={workspaceState.project.sourceRoot} />
+                  sourceRoot={workspaceState.project.sourceRoot}
+                  hostFramework={workspaceState.workspace.hostFramework}
+                  onBuild={workspaceState.workspace.hostFramework === "vue" ? () => buildCompatibilityProjectRequest(localeMessages) : undefined}
+                  buildDisabled={isRunning || commandBusy || workspaceBusy} />
               ) : null}
               {workspaceState?.status === "broken" ? (
                 <div className="creator-panel-empty creator-panel-empty--error"><AlertCircle aria-hidden="true" /><strong>{workspaceState.issues.some(issue => issue.code.startsWith("CREATOR_")) ? localeMessages.creatorWorkbench.creatorServiceTemporarilyUnavailable : localeMessages.creatorWorkbench.projectConfigurationNeedsRepair}</strong><p>{workspaceState.issues.some(issue => issue.code === "CREATOR_OPERATOR_RESTART_REQUIRED") ? localeMessages.creatorWorkbench.operatorRestartRequired : localeMessages.creatorWorkbench.projectInspectionFailedAdvice}</p>
@@ -2291,7 +2300,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
             </div>}
           </div>
 
-          <div className="creator-panel-footer">
+          {workspaceState?.status === "ready" && !updatePageOpen ? <div className="creator-panel-footer">
             {workspaceState?.status === "ready" ? <form className="creator-panel-composer" style={updatePageOpen ? { display: "none" } : undefined} onSubmit={submit}>
               <label htmlFor="creator-request">{localeMessages.creatorWorkbench.tellCreator}</label>
               {commandState.open && !commandBusy && !isRunning && !questionPending ? <CreatorCommandMenu key={commandState.menuKey} optionDomId={commandState.optionDomId} items={commandState.items} active={commandState.active} title={commandState.title} notice={commandState.notice} onPick={pickCommand} onSelect={commandState.select} /> : null}
@@ -2330,7 +2339,7 @@ function CreatorWorkbenchContent({ children, previewWorkspaceId, layout = "workb
                 )}
               </div>
             </form> : null}
-          </div>
+          </div> : null}
         </aside>
       ) : (
         <Button size="sm" variant="outline"

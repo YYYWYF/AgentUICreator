@@ -1,0 +1,78 @@
+{
+  "counts": [
+    146,
+    146
+  ],
+  "differences": [
+    {
+      "i": 25,
+      "slot": "tooltip-trigger",
+      "tag": "BUTTON",
+      "structure": true,
+      "geometry": true,
+      "props": [
+        [
+          "background-position",
+          "0% 0%",
+          "0px 0px"
+        ]
+      ]
+    },
+    {
+      "i": 34,
+      "slot": "popover-trigger",
+      "tag": "BUTTON",
+      "structure": true,
+      "geometry": true,
+      "props": [
+        [
+          "background-position",
+          "0% 0%",
+          "0px 0px"
+        ]
+      ]
+    },
+    {
+      "i": 94,
+      "slot": "aui_composer-shell",
+      "tag": "DIV",
+      "structure": true,
+      "geometry": true,
+      "props": [
+        [
+          "box-shadow",
+          "color(srgb 0.458783 0.341211 0.909859 / 0.07) 0px 8px 26px 0px",
+          "color(srgb 0.458784 0.341211 0.909858 / 0.07) 0px 8px 26px 0px"
+        ]
+      ]
+    },
+    {
+      "i": 104,
+      "slot": null,
+      "tag": "DIV",
+      "structure": true,
+      "geometry": true,
+      "props": [
+        [
+          "background-position",
+          "0% 0%",
+          "0px 0px"
+        ]
+      ]
+    },
+    {
+      "i": 115,
+      "slot": "agent-ui-composer-tool",
+      "tag": "BUTTON",
+      "structure": true,
+      "geometry": true,
+      "props": [
+        [
+          "background-position",
+          "0% 0%",
+          "0px 0px"
+        ]
+      ]
+    }
+  ]
+}

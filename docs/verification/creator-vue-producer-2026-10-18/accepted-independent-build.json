@@ -1,0 +1,41 @@
+[
+  {
+    "directory": "agent-ui",
+    "command": [
+      "npm",
+      "run",
+      "typecheck"
+    ],
+    "exitCode": 0,
+    "output": "\n> typecheck\n> tsc --noEmit\n\n"
+  },
+  {
+    "directory": "agent-ui",
+    "command": [
+      "npm",
+      "test"
+    ],
+    "exitCode": 0,
+    "output": "\n> test\n> tsc --noEmit\n\n"
+  },
+  {
+    "directory": "agent-ui",
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "exitCode": 0,
+    "output": "\n> build\n> node scripts/build.mjs\n\nvite v8.3.0 building client environment for production...\ntransforming...\n\u2713 3959 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/agent-ui-web-component/agent-ui-frontend.css     16.95 kB \u2502 gzip:   3.56 kB\ndist/agent-ui-web-component/agent-ui.js            3,350.38 kB \u2502 gzip: 787.02 kB\n\n\u2713 built in 424ms\n"
+  },
+  {
+    "directory": ".",
+    "command": [
+      "npm",
+      "run",
+      "build"
+    ],
+    "exitCode": 0,
+    "output": "\n> @agent-ui/clean-vue-vite-host@0.0.1 build\n> vue-tsc --noEmit && vite build\n\nvite v8.3.0 building client environment for production...\ntransforming...\n\u2713 13 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                 0.17 kB \u2502 gzip:  0.15 kB\ndist/assets/index-CE7R6xjb.js  62.41 kB \u2502 gzip: 24.57 kB\n\n\u2713 built in 40ms\n"
+  }
+]

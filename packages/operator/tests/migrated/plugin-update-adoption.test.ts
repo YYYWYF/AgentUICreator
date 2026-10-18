@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, expect, it, vi } from "vitest";
 import { minVersion } from "semver";
-import { MockUpdateSourceProvider, resolveAgentUISourceItemClosure } from "@za38.03/agent-ui-source-registry";
+import { MockUpdateSourceProvider, resolveAgentUISourceItemClosure } from "@za38.03/agent-ui-operator/source-registry";
 import { AgentUIUpdateService } from "../../src/project/source-registry/updates";
 import { installAgentUISourceItems } from "../../src/project/source-registry/installer";
 import { readAgentUIProjectConfig } from "../../src/project/project-mode";

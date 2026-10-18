@@ -1,11 +1,13 @@
+import { PackageUpdatesOverview } from "./PackageUpdatesOverview.js";
+import { creatorDisplayText } from "./product-presentation.js";
 import { localizeCreatorPresentation, useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowLeft, ArrowUpCircle, RefreshCw } from "lucide-react";
+import { ArrowLeft, ArrowUpCircle, RefreshCw, GitMerge, ShieldCheck } from "lucide-react";
 import { Button } from "./components/button.js";
 import { Alert, AlertDescription } from "./components/alert.js";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/card.js";
-import type { UpdateInspection, UpgradePlan } from "@za38.03/agent-ui-operator/updates";
+import type { UpdateInspection, UpgradePlan, PackageUpgradePlan, PackageUpgradeResult } from "@za38.03/agent-ui-operator/updates";
 import { useCreatorRefresh } from "./creatorRefresh.js";
 
 export interface UpdateNotificationStateStore { isDismissed(projectId: string, fingerprint: string): boolean; dismiss(projectId: string, fingerprint: string): void }
@@ -16,14 +18,50 @@ export class LocalUpdateNotificationStateStore implements UpdateNotificationStat
 function getUpdateStatusLabels(localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): Record<string, string> { return { managed: localeMessages.pluginUpdates.readyToUpdate, customized: localeMessages.pluginUpdates.locallyModified, missing: localeMessages.pluginUpdates.notInstalled, conflict: localeMessages.pluginUpdates.conflictResolutionNeeded, unknown: localeMessages.pluginUpdates.reviewNeeded }; }
 const updateStatusLabel = (status: string, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES) => getUpdateStatusLabels(localeMessages)[status] ?? localeMessages.pluginUpdates.reviewNeeded;
 const store = new LocalUpdateNotificationStateStore();
+const availableCount = (result: UpdateInspection) => result.plugins.filter(plugin=>plugin.updateAvailable).length + (result.packageUpdates?.packages.filter(pkg=>pkg.updateAvailable).length ?? 0) + (result.packageUpdates?.recovery ? 1 : 0);
 async function updateRequest<T>(workspaceId: string, route: string, body: Record<string, unknown> = {}, localeMessages: CreatorLocaleMessages = DEFAULT_CREATOR_MESSAGES): Promise<T> {
   const response = await fetch(`/__creator/updates/${route}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ workspaceId, ...body }) });
   const result = await response.json();
-  if (!response.ok) throw new Error(result.error ?? localeMessages.pluginUpdates.pluginUpdateFailed);
+  if (!response.ok) {
+    const errors: Record<string,string> = {
+      PACKAGE_PLAN_STALE: localeMessages.pluginUpdates.planExpired,
+      PACKAGE_RECOVERY_REQUIRED: localeMessages.pluginUpdates.packagesRecoveryRequired,
+      PACKAGE_SOURCE_RECOVERY_REQUIRED: localeMessages.pluginUpdates.sourceRecoveryRequired,
+      PACKAGE_OPERATION_ACTIVE: localeMessages.pluginUpdates.packageOperationBusy,
+      PACKAGE_ONLINE_METADATA_REQUIRED: localeMessages.pluginUpdates.metadataUnavailable,
+      PACKAGE_COMPATIBILITY_BLOCKED: localeMessages.pluginUpdates.compatibilityBlocked,
+      PACKAGE_WORKSPACE_REQUIRES_SEPARATE_PLAN: localeMessages.pluginUpdates.packageSeparatePlan,
+      PACKAGE_OVERRIDE_REQUIRES_SEPARATE_PLAN: localeMessages.pluginUpdates.packageSeparatePlan,
+      PACKAGE_MANAGER_UNSUPPORTED: localeMessages.pluginUpdates.packageSeparatePlan,
+      PACKAGE_EXISTING_LOCK_REQUIRED: localeMessages.pluginUpdates.packageSeparatePlan,
+      PACKAGE_MULTIPLE_LOCKS: localeMessages.pluginUpdates.packageSeparatePlan,
+      PACKAGE_DUPLICATE_DECLARATION: localeMessages.pluginUpdates.packageSeparatePlan,
+      PACKAGE_LINKED_DECLARATION: localeMessages.pluginUpdates.packageSeparatePlan,
+      PACKAGE_LINKED_INSTALLATION: localeMessages.pluginUpdates.packageSeparatePlan,
+      PACKAGE_APPLICATION_MIGRATION_REQUIRED: localeMessages.pluginUpdates.packageMigrationRequired,
+      PACKAGE_SHARED_API_MIGRATION_REQUIRED: localeMessages.pluginUpdates.packageMigrationRequired,
+      PACKAGE_PEER_MIGRATION_REQUIRED: localeMessages.pluginUpdates.packageMigrationRequired,
+      PACKAGE_DEPENDENCY_MIGRATION_REQUIRED: localeMessages.pluginUpdates.packageMigrationRequired,
+      PACKAGE_NODE_INCOMPATIBLE: localeMessages.pluginUpdates.packageMigrationRequired,
+      PACKAGE_ARTIFACT_INVALID: localeMessages.pluginUpdates.packageArtifactRejected,
+      PACKAGE_ARTIFACT_IDENTITY: localeMessages.pluginUpdates.packageArtifactRejected,
+      PACKAGE_ARTIFACT_INTEGRITY: localeMessages.pluginUpdates.packageArtifactRejected,
+      PACKAGE_ARTIFACT_REQUIREMENTS: localeMessages.pluginUpdates.packageArtifactRejected,
+      PACKAGE_CATALOG_IDENTITY: localeMessages.pluginUpdates.packageArtifactRejected,
+      AGENT_UI_UPDATE_RECOVERY_REQUIRED: localeMessages.pluginUpdates.sourceRecoveryRequired,
+      PLUGIN_SOURCE_PROTECTED_FILES_CHANGED: localeMessages.pluginUpdates.protectedFilesChanged,
+      PLUGIN_SOURCE_MERGE_UNRESOLVED: localeMessages.pluginUpdates.mergeUnresolved,
+      PLUGIN_SOURCE_PLAN_STALE: localeMessages.pluginUpdates.planExpired,
+      PLUGIN_SOURCE_TARGET_CHANGED: localeMessages.pluginUpdates.planExpired,
+      PLUGIN_SOURCE_PLAN_EXPIRED: localeMessages.pluginUpdates.planExpired,
+    };
+    throw new Error(errors[result.error] ?? (typeof result.error === "string" && result.error.startsWith("PACKAGE_") ? localeMessages.pluginUpdates.packageOperationBlocked : result.error) ?? localeMessages.pluginUpdates.pluginUpdateFailed);
+  }
   return result;
 }
 export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkRequest, notificationTarget, pageOpen: controlledPageOpen, onPageChange, onModelMerge }: { workspaceId: string; busy: boolean; modelReady: boolean; checkRequest: number; notificationTarget?: HTMLElement | null; pageOpen?: boolean; onPageChange: (open: boolean) => void; onModelMerge: (prompt: string) => void }) {
   const localeMessages = useAgentUILocale();
+  const [packagePlan, setPackagePlan] = useState<PackageUpgradePlan | null>(null);
   const [inspection, setInspection] = useState<UpdateInspection | null>(null);
   const [localPageOpen, setLocalPageOpen] = useState(false);
   const pageOpen = controlledPageOpen ?? localPageOpen;
@@ -35,7 +73,7 @@ export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkReque
   const [planTarget, setPlanTarget] = useState<string | null>(null);
   const planRegion = useRef<HTMLElement>(null);
   const [merging, setMerging] = useState(false);
-  const [mergeFiles, setMergeFiles] = useState<{ path: string; base?: string | null; target?: string | null }[]>([]);
+  const [mergeFiles, setMergeFiles] = useState<{ path: string; base?: string | null; local?: string | null; target?: string | null }[]>([]);
   const generation = useRef(0);
   const active = useRef(true);
   const lastCheckRequest = useRef(checkRequest);
@@ -43,24 +81,26 @@ export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkReque
     if (data.projectId !== workspaceId || !data.updates || working) return;
     generation.current++;
     setInspection(data.updates);
-    setBanner(data.updates.plugins.some(plugin => plugin.updateAvailable) && !store.isDismissed(workspaceId, data.updates.fingerprint));
+    setBanner(availableCount(data.updates) > 0 && !store.isDismissed(workspaceId, data.updates.fingerprint));
   });
   const check = async (manual: boolean) => {
     const requestGeneration = ++generation.current;
     if (manual) { setWorking(true); setMessage(""); }
     try {
-      const result = await updateRequest<UpdateInspection>(workspaceId, "check", undefined, localeMessages);
+      const result = await updateRequest<UpdateInspection>(workspaceId, "check", { refresh: manual }, localeMessages);
       if (generation.current !== requestGeneration) return;
       setInspection(result);
-      const count = result.plugins.filter(plugin => plugin.updateAvailable).length;
-      if (manual) { if (count) setPageOpen(true); else setMessage(localeMessages.pluginUpdates.alreadyUpToDate); }
+      const count = availableCount(result);
+      if (manual) { if (count) setPageOpen(true); else setMessage(result.packageUpdates && result.packageUpdates.status !== "online" ? localeMessages.pluginUpdates.metadataUnavailable : result.packageUpdates?.blockedReleases.length ? localeMessages.pluginUpdates.compatibilityBlocked : localeMessages.pluginUpdates.alreadyUpToDate); }
       setBanner(count > 0 && !store.isDismissed(workspaceId, result.fingerprint));
     } catch (error) { if (manual && generation.current === requestGeneration) setMessage(formatLocaleMessage(localeMessages.pluginUpdates.couldNotCheckUpdates, error instanceof Error ? error.message : String(error))); }
     finally { if (generation.current === requestGeneration) setWorking(false); }
   };
-  useEffect(() => { active.current = true; void check(false); return () => { active.current = false; generation.current++; }; }, [workspaceId]);
+  useEffect(() => { active.current = true; setPackagePlan(null); void check(false); return () => { active.current = false; generation.current++; }; }, [workspaceId]);
   useEffect(() => { if (checkRequest !== lastCheckRequest.current) { lastCheckRequest.current = checkRequest; void check(true); } }, [checkRequest]);
   useEffect(() => () => onPageChange(false), [onPageChange]);
+  useEffect(() => { if (pageOpen) void check(false); }, [pageOpen]);
+  const totalUpdates = inspection ? availableCount(inspection) : 0;
   const updates = inspection?.plugins.filter(plugin => plugin.updateAvailable) ?? [];
   const operation = async (run: () => Promise<void>) => {
     if (!active.current || working || busy) return;
@@ -84,18 +124,18 @@ export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkReque
     planRegion.current?.focus({ preventScroll: true });
   }, [plan, pageOpen]);
   const planContent = plan ? <section className="creator-upgrade-plan" ref={planRegion} tabIndex={-1} role="region" aria-label={localeMessages.pluginUpdates.updatePlan}>
-        <h3 className="cui:text-sm cui:font-semibold">{localeMessages.pluginUpdates.confirmTheseUpdates}</h3>
+        <h3 className="creator-source-plan-title"><GitMerge aria-hidden="true" />{merging ? localeMessages.pluginUpdates.reviewSourceMerge : plan.requiresMerge ? localeMessages.pluginUpdates.mergeSourceTitle : localeMessages.pluginUpdates.confirmTheseUpdates}</h3>
         <div className="cui:flex cui:flex-col cui:gap-3 cui:text-xs">
-          <ul className="cui:list-disc cui:space-y-1 cui:pl-4">{plan.items.map(item => <li key={item.itemId}>{item.itemId}{item.targetVersion ? formatLocaleMessage(localeMessages.pluginUpdates.message, item.currentVersion ?? localeMessages.pluginUpdates.notInstalledUntracked, item.targetVersion) : localeMessages.pluginUpdates.foundationDependency} · {updateStatusLabel(item.status, localeMessages)}{item.changed ? "" : localeMessages.pluginUpdates.keepCurrentSource}{item.reason === "dependency" && item.requiredBy?.length ? <span className="cui:block cui:text-muted-foreground">{formatLocaleMessage(localeMessages.pluginUpdates.requiredByPlugins, item.requiredBy.join(", "))}</span> : null}</li>)}</ul>
-          <p className="cui:text-muted-foreground">{localeMessages.pluginUpdates.expectedChanges} {plan.fileCount} {localeMessages.pluginUpdates.sourceFilesPlusSourceLockAndRequiredGenerated}</p>
+          {plan.kind !== "owned-source" && plan.items.length ? <details className="creator-update-details"><summary>{localeMessages.pluginUpdates.sourceAffectedComponents}</summary><ul className="cui:list-disc cui:space-y-1 cui:pl-4">{plan.items.map(item => <li key={creatorDisplayText(item.itemId)}>{creatorDisplayText(item.itemId)}{item.targetVersion ? formatLocaleMessage(localeMessages.pluginUpdates.message, item.currentVersion ?? localeMessages.pluginUpdates.notInstalledUntracked, item.targetVersion) : null}</li>)}</ul></details> : null}
+          <div className="creator-update-callout"><ShieldCheck aria-hidden="true"/><p>{plan.requiresMerge ? localeMessages.pluginUpdates.sourceMergePreservation : localeMessages.pluginUpdates.sourceSyncPreservation}</p></div>
           {plan.compatibility !== "compatible" ? <Alert variant="destructive"><AlertDescription>{localeMessages.pluginUpdates.upgradeCreatorFirst}</AlertDescription></Alert> : null}
-          {plan.issues.map((issue, index) => <Alert key={index} variant="destructive"><AlertDescription>{issue}</AlertDescription></Alert>)}
-          {plan.requiresMerge ? <p>{localeMessages.pluginUpdates.thisPlanIncludesLocalChangesMergeAndValidate}</p> : null}
-          <div className="cui:flex cui:flex-wrap cui:gap-2">
-            <Button size="sm" variant="outline" disabled={working} onClick={() => { setPlan(null); setPlanTarget(null); setMerging(false); }}>{localeMessages.pluginUpdates.skipUpdateCancel}</Button>
+          {plan.issues.map((issue, index) => <Alert key={index} variant="destructive"><AlertDescription>{creatorDisplayText(issue)}</AlertDescription></Alert>)}
+          {!merging ? <p>{plan.requiresMerge ? localeMessages.pluginUpdates.sourceMergeConfirmation : localeMessages.pluginUpdates.sourceSyncConfirmation}</p> : null}
+          <div className="creator-update-actions" hidden={merging}>
+            <Button size="sm" variant="outline" disabled={working || busy} onClick={() => { setPlan(null); setPlanTarget(null); setMerging(false); }}>{localeMessages.pluginUpdates.sourceNotNow}</Button>
             {!plan.blocked && !merging && !plan.requiresMerge ? <Button size="sm" disabled={working || busy} onClick={() => void operation(() => finish("execute"))}>{localeMessages.pluginUpdates.confirmUpdate}</Button> : null}
             {!plan.blocked && !merging && plan.requiresMerge ? <>
-              <Button size="sm" disabled={working || busy || !modelReady} onClick={() => void operation(async () => { const result = await updateRequest<{ prompt: string; files: typeof mergeFiles }>(workspaceId, "merge", { planId: plan.id, confirmed: true }, localeMessages); if (!active.current) return; setMerging(true); setMergeFiles(result.files); onModelMerge(result.prompt); })}>{localeMessages.pluginUpdates.mergeWithModel}</Button>
+              <Button size="sm" disabled={working || busy || !modelReady} onClick={() => void operation(async () => { const result = await updateRequest<{ prompt: string; files: typeof mergeFiles }>(workspaceId, "merge", { planId: plan.id, confirmed: true }, localeMessages); if (!active.current) return; setMerging(true); setMergeFiles(result.files); setPageOpen(false); onModelMerge(result.prompt); })}>{localeMessages.pluginUpdates.mergeWithModel}</Button>
               <Button size="sm" variant="outline" disabled={working || busy} onClick={() => void operation(async () => {
                 try { const result = await updateRequest<{ files: typeof mergeFiles }>(workspaceId, "merge", { planId: plan.id, confirmed: true }, localeMessages); setMergeFiles(result.files); }
                 catch { const result = await updateRequest<{ files: string[] }>(workspaceId, "manual", { planId: plan.id, confirmed: true }, localeMessages); setMergeFiles(result.files.map(path => ({ path }))); }
@@ -103,9 +143,11 @@ export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkReque
               })}>{localeMessages.pluginUpdates.mergeManually}</Button>
             </> : null}
           </div>
-          {merging ? <div className="cui:flex cui:flex-col cui:gap-3"><p>{localeMessages.pluginUpdates.waitingForMergeFinishEditingTheseFilesIn}</p>
-            {mergeFiles.map(file => <details key={file.path} className="cui:rounded-md cui:border cui:p-2"><summary className="cui:cursor-pointer cui:break-all">{file.path}</summary>{file.base !== undefined ? <><h4>BASE</h4><pre>{file.base ?? localeMessages.pluginUpdates.fileDoesNotExist}</pre></> : null}{file.target !== undefined ? <><h4>TARGET</h4><pre>{file.target ?? localeMessages.pluginUpdates.fileDoesNotExist}</pre></> : <p>{localeMessages.pluginUpdates.historicalReleaseUnavailableUseTheChangelogAboveTo}</p>}</details>)}
-            <div className="cui:flex cui:flex-wrap cui:gap-2">
+          {merging ? <div className="cui:flex cui:flex-col cui:gap-3"><p>{localeMessages.pluginUpdates.sourceReviewConfirmation}</p>
+            <details className="creator-update-details creator-source-diff"><summary>{formatLocaleMessage(localeMessages.pluginUpdates.sourceCodeComparison, mergeFiles.length)}</summary>
+            {mergeFiles.map(file => <details key={creatorDisplayText(file.path)} className="creator-source-diff-file"><summary>{creatorDisplayText(file.path)}</summary>{file.base !== undefined ? <><h4>{localeMessages.pluginUpdates.sourceOriginal}</h4><pre>{creatorDisplayText(file.base ?? localeMessages.pluginUpdates.fileDoesNotExist)}</pre></> : null}{file.local !== undefined ? <><h4>{localeMessages.pluginUpdates.sourceLocal}</h4><pre>{creatorDisplayText(file.local ?? localeMessages.pluginUpdates.fileDoesNotExist)}</pre></> : null}{file.target !== undefined ? <><h4>{localeMessages.pluginUpdates.sourceNew}</h4><pre>{creatorDisplayText(file.target ?? localeMessages.pluginUpdates.fileDoesNotExist)}</pre></> : <p>{localeMessages.pluginUpdates.historicalReleaseUnavailableUseTheChangelogAboveTo}</p>}</details>)}
+            </details>
+            <div className="creator-update-actions">
               <Button size="sm" variant="outline" disabled={working || busy} onClick={() => void check(true)}>{localeMessages.pluginUpdates.recheck}</Button>
               <Button size="sm" disabled={working || busy} onClick={() => void operation(() => finish("adopt"))}>{localeMessages.pluginUpdates.mergeCompleteValidateAndAdvanceBaseline}</Button>
             </div>
@@ -117,10 +159,10 @@ export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkReque
     {message ? <Alert role="status"><AlertDescription>{localizeCreatorPresentation(message, localeMessages)}</AlertDescription></Alert> : null}
   </>;
   const notification = banner && !pageOpen ? <div className="creator-update-banner" role="status">
-    <Button size="sm" variant="ghost" className="creator-update-entry" aria-label={localeMessages.pluginUpdates.viewUpdates} title={formatLocaleMessage(localeMessages.pluginUpdates.pluginsCanBeUpdated, updates.length)} onClick={() => setPageOpen(true)}>
+    <Button size="sm" variant="ghost" className="creator-update-entry" aria-label={localeMessages.pluginUpdates.viewUpdates} title={formatLocaleMessage(inspection?.packageUpdates ? localeMessages.pluginUpdates.availableUpdates : localeMessages.pluginUpdates.pluginsCanBeUpdated, totalUpdates)} onClick={() => setPageOpen(true)}>
       <ArrowUpCircle aria-hidden="true" />
-      <span aria-hidden="true">{updates.length}</span>
-      <span className="cui:sr-only">{localeMessages.pluginUpdates.thereAre} {updates.length} {localeMessages.pluginUpdates.pluginsWithUpdates}</span>
+      <span aria-hidden="true">{totalUpdates}</span>
+      <span className="cui:sr-only">{inspection?.packageUpdates ? formatLocaleMessage(localeMessages.pluginUpdates.availableUpdates,totalUpdates) : `${localeMessages.pluginUpdates.thereAre} ${updates.length} ${localeMessages.pluginUpdates.pluginsWithUpdates}`}</span>
     </Button>
   </div> : null;
   return <section className="creator-plugin-updates creator-ui-scope" aria-label={localeMessages.pluginUpdates.pluginUpdates} aria-busy={working}>
@@ -128,27 +170,34 @@ export function CreatorPluginUpdates({ workspaceId, busy, modelReady, checkReque
     {working && !pageOpen ? <p className="cui:flex cui:items-center cui:gap-2 cui:py-2 cui:text-xs cui:text-muted-foreground" role="status"><RefreshCw aria-hidden="true" className="cui:size-3.5 cui:animate-spin" />{localeMessages.pluginUpdates.checkingUpdates}</p> : null}
     {message && (planTarget === null || !pageOpen) ? <Alert className="cui:my-2" role="status"><AlertDescription>{localizeCreatorPresentation(message, localeMessages)}</AlertDescription></Alert> : null}
     {pageOpen ? <div className="creator-update-page cui:space-y-3" aria-busy={working}>
-      <header className="cui:flex cui:items-center cui:gap-2">
+      <header className="creator-update-page-heading">
         <Button size="icon-sm" variant="ghost" aria-label={localeMessages.pluginUpdates.back} onClick={() => setPageOpen(false)}><ArrowLeft aria-hidden="true" /></Button>
-        <h2 className="cui:flex-1 cui:text-sm cui:font-semibold">{localeMessages.pluginUpdates.pluginUpdates}</h2>
-        <Button size="sm" disabled={working || busy || !updates.length || !!plan} onClick={() => void createPlan(updates.map(plugin => plugin.pluginId), "all")}>{localeMessages.pluginUpdates.updateAll}</Button>
+        <div><h2>{inspection?.packageUpdates ? localeMessages.pluginUpdates.updateCenter : localeMessages.pluginUpdates.pluginUpdates}</h2><p>{localeMessages.pluginUpdates.updateCenterDescription}</p></div>
+
       </header>
-      <div className="cui:flex cui:items-center cui:justify-between cui:gap-2">
-        <p className="cui:text-xs cui:text-muted-foreground">{updates.length} {localeMessages.pluginUpdates.pluginsWithUpdates}</p>
+      <div className="creator-update-page-meta">
+        <p className="cui:text-xs cui:text-muted-foreground">{inspection?.packageUpdates ? formatLocaleMessage(localeMessages.pluginUpdates.availableUpdates,totalUpdates) : `${updates.length} ${localeMessages.pluginUpdates.pluginsWithUpdates}`}</p>
         {banner ? <Button size="xs" variant="ghost" aria-label={localeMessages.pluginUpdates.closePluginUpdateNotice} onClick={() => { store.dismiss(workspaceId, inspection!.fingerprint); setBanner(false); setPageOpen(false); }}>{localeMessages.pluginUpdates.dismissForNow}</Button> : null}
       </div>
+      {inspection?.packageUpdates ? <PackageUpdatesOverview overview={inspection.packageUpdates} working={working || busy} refresh={()=>void check(true)} plan={packagePlan}
+        onPlan={()=>void operation(async()=>{setPackagePlan(await updateRequest<PackageUpgradePlan>(workspaceId,"packages/plan",{},localeMessages));})}
+        onCancel={()=>setPackagePlan(null)}
+        onExecute={()=>void operation(async()=>{const result=await updateRequest<PackageUpgradeResult>(workspaceId,"packages/execute",{planId:packagePlan!.id,confirmed:true},localeMessages);setPackagePlan(null);await check(false);setMessage(localeMessages.pluginUpdates[result.status === "installed" ? "packagesInstalled" : result.status === "restored" ? "packagesRestored" : "packagesRecoveryRequired"]);})}
+        onRecover={()=>void operation(async()=>{const result=await updateRequest<PackageUpgradeResult>(workspaceId,"packages/recover",{planId:inspection.packageUpdates!.recovery!.id,confirmed:true},localeMessages);await check(false);setMessage(localeMessages.pluginUpdates[result.status==="restored"?"packagesRestored":"packagesRecoveryRequired"]);})} /> : null}
       {inspection?.compatibility !== "compatible" ? <Alert variant="destructive"><AlertDescription>{localeMessages.pluginUpdates.thisCreatorVersionCannotInstallTheUpdateUpgrade}</AlertDescription></Alert> : null}
       {planTarget === "all" ? <>{planFeedback}{planContent}</> : null}
+      {updates.length ? <div className="creator-update-source-heading"><div><h3><GitMerge aria-hidden="true"/>{localeMessages.pluginUpdates.sourceSection}</h3><p>{localeMessages.pluginUpdates.sourceSectionDescription}</p></div>{updates.length > 1 && !updates.some(plugin=>plugin.delivery === "source-owned") ? <Button size="sm" variant="outline" disabled={working || busy || !!plan} onClick={() => void createPlan(updates.map(plugin => plugin.pluginId), "all")}>{localeMessages.pluginUpdates.updateAll}</Button> : null}</div> : null}
       {updates.map(plugin => <Card key={plugin.pluginId} className="creator-update-plugin-card cui:gap-3 cui:py-4">
         <CardHeader className="creator-update-plugin-heading cui:gap-1 cui:px-4">
-          <CardTitle className="cui:text-sm">{plugin.name}</CardTitle>
+          <CardTitle className="cui:text-sm">{creatorDisplayText(plugin.name)}</CardTitle>
+          {plugin.delivery === "source-owned" ? <p className="creator-source-origin">{localeMessages.pluginUpdates.sourceOwned}</p> : null}
           <CardDescription className="cui:text-xs">{plugin.currentVersion ?? localeMessages.pluginUpdates.versionUntracked} → {plugin.targetVersion}</CardDescription>
           <span className="creator-update-plugin-status" data-customized={plugin.status === "customized"}>{updateStatusLabel(plugin.status, localeMessages)}</span>
         </CardHeader>
         <CardContent className="cui:flex cui:flex-col cui:gap-3 cui:px-4 cui:text-xs">
-          {plugin.changelog.map(({ version, entry }) => <div key={version}><strong>{version} · {entry.summary}</strong><ul className="cui:my-2 cui:list-disc cui:space-y-1 cui:pl-4 cui:text-muted-foreground">{entry.changes.map((change, index) => <li key={index}>{change}</li>)}</ul></div>)}
-          {plugin.status === "customized" ? <p className="cui:text-amber-700">{localeMessages.pluginUpdates.localSourceChangesDetectedTheyCannotBeSafely}</p> : null}
-          <Button size="sm" variant="outline" className="creator-update-plan-entry" disabled={working || busy || !!plan} onClick={() => void createPlan([plugin.pluginId], plugin.pluginId)}>{localeMessages.pluginUpdates.viewUpdateContents}</Button>
+          {plugin.changelog.map(({ version, entry }) => <div key={version}><strong>{version} · {creatorDisplayText(entry.summary)}</strong><ul className="cui:my-2 cui:list-disc cui:space-y-1 cui:pl-4 cui:text-muted-foreground">{entry.changes.map((change, index) => <li key={index}>{creatorDisplayText(change)}</li>)}</ul></div>)}
+          {plugin.status === "customized" && planTarget !== plugin.pluginId ? <p className="creator-update-local-notice">{localeMessages.pluginUpdates.localSourceChangesDetectedTheyCannotBeSafely}</p> : null}
+          <Button hidden={planTarget === plugin.pluginId} size="sm" variant="outline" className="creator-update-plan-entry" disabled={working || busy || !!plan} onClick={() => void createPlan([plugin.pluginId], plugin.pluginId)}>{plugin.delivery === "source-owned" ? localeMessages.pluginUpdates.syncImplementation : localeMessages.pluginUpdates.viewUpdateContents}</Button>
           {planTarget === plugin.pluginId ? <>{planFeedback}{planContent}</> : null}
         </CardContent>
       </Card>)}

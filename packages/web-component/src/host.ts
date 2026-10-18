@@ -1,15 +1,17 @@
 import { createRoot, type Root } from "react-dom/client";
 import { createElement, type ComponentType } from "react";
-import { configAttributes, resolveConfig, type AgentUIConfig } from "./config";
+import { configAttributes, resolveConfig, type AgentUIConfig, type AgentUIPresentationDefaults } from "./config";
 import { dispatchAgentUIEvent, type AgentUIEmit } from "./events";
+import { shadowPropertyDefaults, shadowMountStyles } from "./shadow-properties";
 
 export interface AgentUIHostElement extends HTMLElement { config: AgentUIConfig; connectedCallback(): void; disconnectedCallback(): void; attributeChangedCallback(): void }
 export interface AgentUIElementConstructor { new(): AgentUIHostElement; readonly observedAttributes: string[] }
 
-export function createAgentUIElement({ Root, styles, pluginStyles = "" }: {
+export function createAgentUIElement({ Root, styles, pluginStyles = "", defaults }: {
   Root: ComponentType<{ config: ReturnType<typeof resolveConfig>; emit: AgentUIEmit }>;
   styles: string;
   pluginStyles?: string;
+  defaults?: AgentUIPresentationDefaults;
 }): AgentUIElementConstructor {
   return class AgentUIElement extends HTMLElement {
     static observedAttributes = [...configAttributes];
@@ -21,7 +23,7 @@ export function createAgentUIElement({ Root, styles, pluginStyles = "" }: {
       super();
       const shadow = this.attachShadow({ mode: "open" });
       const style = document.createElement("style");
-      style.textContent = styles;
+      style.textContent = shadowPropertyDefaults + shadowMountStyles + styles;
       const pluginStyle = document.createElement("style");
       pluginStyle.textContent = pluginStyles;
       this.#mount = document.createElement("div");
@@ -64,7 +66,7 @@ export function createAgentUIElement({ Root, styles, pluginStyles = "" }: {
       queueMicrotask(() => {
         if (!this.isConnected || revision !== this.#revision) return;
         try {
-          const config = resolveConfig(this.#config, Object.fromEntries(configAttributes.map(name => [name, this.getAttribute(name)])));
+          const config = resolveConfig(this.#config, Object.fromEntries(configAttributes.map(name => [name, this.getAttribute(name)])), defaults);
           this.#root ??= createRoot(this.#mount, {
             onUncaughtError: error => this.#emit("agent-error", { code: "AGENT_UI_RUNTIME_ERROR", error: error instanceof Error ? error : new Error(String(error)) }),
           });

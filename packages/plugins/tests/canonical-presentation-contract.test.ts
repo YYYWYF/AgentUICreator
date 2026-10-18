@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const composableThreadPath = path.join(packageRoot, "src/internal/composable-thread.tsx");
 const publicFacadePath = path.join(packageRoot, "src/public.tsx");
-const upstreamRoot = path.join(packageRoot, "src/internal/vendor/assistant-ui");
+const upstreamRoot = path.join(packageRoot, "src/internal/vendor-generated/assistant-ui");
 const upstreamThreadPath = path.join(
   upstreamRoot,
   "components/assistant-ui/elements/thread.aui.tsx",
@@ -107,7 +107,7 @@ describe("assistant-ui canonical presentation contract", () => {
       "export function ConversationCanonicalCopyAction",
       "export function ConversationCanonicalReloadAction",
     );
-    expect(copyAction).toContain('data-slot="assistant-ui-copy-action-copied"');
+    expect(copyAction).toContain('data-slot="copy-action-copied"');
     expect(copyAction).not.toContain('aria-label="Copied"');
 
     const reloadAction = section(

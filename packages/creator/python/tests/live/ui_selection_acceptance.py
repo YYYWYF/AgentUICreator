@@ -195,8 +195,7 @@ async def run(name):
                    'maxRetries': settings.max_retries, 'apiProtocol': 'responses' if model.use_responses_api else 'chat-completions', 'temperature': model.temperature, 'configuredTemperature': settings.temperature, 'rawTraceEnabled': settings.raw_trace,
                    'commit': subprocess.check_output(['git','rev-parse','HEAD'], cwd=ROOT, text=True).strip(),
                    'scenario': name, 'host': 'React + Ant Design 5' if name == 'B' else name,
-                   'skillsRoot': str(ROOT/'packages/creator/skills'),
-                   'modelCallBudget': creator.protocol.max_model_calls}
+                   'skillsRoot': str(ROOT/'packages/creator/skills')}
     try:
         result=await asyncio.wait_for(creator.run_messages([{'role':'user','content':prompt}]),timeout=ACCEPTANCE_TIMEOUT_SECONDS)
         outcome.update({'interrupted':isinstance(result,DeepAgentInterrupted),

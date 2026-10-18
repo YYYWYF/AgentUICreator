@@ -15,7 +15,7 @@ contracts. Plugins cannot self-register tools or own another Agent Runtime.
 ```text
 Plugin -> Service capability
 Application agent-tools -> allowed operation + schema + handler
-Runtime adapter -> assistant-ui native frontend execute
+Runtime adapter -> Agent UI native frontend execute
 ```
 
 Schemas use the project's Zod strict-object contract. Handlers resolve Services
@@ -27,7 +27,7 @@ requests and produce a clean failure if removal precedes execution.
 
 Use standard AG-UI tools, TOOL_CALL frames, ToolMessage results and continuation.
 Do not implement a second executor, fork upstream Runtime, invent a CUSTOM tool
-protocol, or send a synthetic UserMessage to report a result. assistant-ui owns
+protocol, or send a synthetic UserMessage to report a result. Agent UI owns
 invocation identity, single-fire execution, status, result injection, cancellation
 and continuation. Keep upstream types inside the integration adapter.
 
@@ -73,8 +73,8 @@ must not infer success from a tool-specific receipt field such as opened.
 
 ## Framework integrations
 
-When assistant-ui offers a specialized integration (for example
-`@assistant-ui/react-hook-form`), first inspect its canonical product/tool semantics
+When Agent UI offers a specialized integration (for example
+`@za38.03/agent-ui-plugins/form-tools`), first inspect its canonical product/tool semantics
 at the project's pinned upstream revision. Reuse `set_form_field`, `submit_form`
 and `reset_form` semantics and React Hook Form, while preserving application-owned
 permission and activation-scoped Service capability boundaries. Do not ignore the

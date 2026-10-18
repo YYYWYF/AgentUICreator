@@ -4,8 +4,8 @@ export { creatorDockMessages } from "./messages.js";
 export const CREATOR_DOCK_ID = "agent-ui-creator-dock";
 
 /** Development-only entry. The iframe owns the UI; Shadow DOM isolates the tab. */
-export function installCreatorDock({ creatorUrl, workspaceId, messages }: {
-  creatorUrl: string; workspaceId?: string | undefined; messages: CreatorDockMessages;
+export function installCreatorDock({ creatorUrl, workspaceId, messages, initiallyOpen = false }: {
+  creatorUrl: string; workspaceId?: string | undefined; messages: CreatorDockMessages; initiallyOpen?: boolean;
 }): () => void {
   const dockId = CREATOR_DOCK_ID;
   if (new URLSearchParams(location.search).has("creator-preview") || document.getElementById(dockId)) return () => {};
@@ -114,6 +114,7 @@ export function installCreatorDock({ creatorUrl, workspaceId, messages }: {
     const saved = localStorage.getItem(positionKey);
     if (saved !== null && Number.isFinite(Number(saved))) positionDock(Number(saved));
   } catch { /* Keep the default position when storage is unavailable. */ }
+  if (initiallyOpen) toggle.click();
   return () => {
     window.removeEventListener("resize", resize);
     host.remove();

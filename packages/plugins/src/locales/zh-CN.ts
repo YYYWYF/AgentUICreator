@@ -1,5 +1,25 @@
 export const zhCN = {
-  auth: {"title": "登录你的 Agent", "checking": "正在检查登录状态…", "account": "账号", "password": "密码", "signIn": "登录", "signOut": "退出登录", "working": "请稍候…", "signInFailed": "登录失败，请检查账号和密码后重试。", "signOutFailed": "已退出本地会话，远程退出失败。", "accountMenu": "账户菜单"},
+  theme: {
+    settings: "主题设置",
+    light: "浅色",
+    dark: "深色",
+    violet: "紫色",
+  },
+  conversationTriggers: {
+    suggestions: "输入建议",
+    back: "返回",
+    empty: "没有匹配项",
+    loading: "加载中…",
+    searchFailed: "无法加载候选项",
+    retry: "重试",
+    commandFailed: "命令执行失败",
+    invalidItem: "无法插入此候选项",
+    newConversation: "新建会话",
+  },
+  agentIdentity: { name: "智能助手" },
+  conversationQuote: { quote: "引用", dismiss: "取消引用" },
+  transientMessages: { systemMessage: "系统消息", userMessage: "用户消息", assistantMessage: "助理消息", errorMessage: "错误消息" },
+  auth: {"title": "登录你的 Agent", "checking": "正在检查登录状态…", "account": "账号", "password": "密码", "signIn": "登录", "signOut": "退出登录", "working": "请稍候…", "signInFailed": "登录失败，请检查账号和密码后重试。", "signOutFailed": "已退出本地会话，远程退出失败。", "notSignedIn": "未登录", "accountMenu": "账户菜单"},
 
   "thinkingIndicator": {
     "thinking": "正在思考...",
@@ -37,6 +57,7 @@ export const zhCN = {
     "retry": "重试"
   },
   "composer": {
+    "awaitingReply": "当前任务正在等待你的回复，请先回答上方的问题，再发送新消息。",
     "placeholder": "发送消息…",
     "input": "消息输入框",
     "addAttachment": "添加附件",
@@ -50,6 +71,7 @@ export const zhCN = {
     "queued": "待发送",
     "removeQueued": "移除待发送消息"
   },
+  "conversationFeedback": { "helpful": "有帮助", "notHelpful": "没有帮助" },
   "conversation": {
     "generationStopped": "生成已停止",
     "editInput": "编辑消息",
@@ -57,11 +79,14 @@ export const zhCN = {
     "scrollToBottom": "滚动到底部",
     "welcome": "今天有什么可以帮你？",
     "working": "助手正在处理",
+    "moreActions": "更多操作",
     "exportMarkdown": "导出 Markdown",
     "reasoning": "思考",
     "reasoningDuration": "（{seconds}秒）"
   },
   "threadList": {
+    historyTitle: "历史会话",
+    retry: "重试",
     "newChat": "新会话",
     "moreOptions": "更多选项",
     "running": "运行中",
@@ -80,6 +105,12 @@ export const zhCN = {
     "earlier": "更早"
   },
   "attachments": {
+    "previewNamed": "预览 {name}",
+    "removeNamed": "移除 {name}",
+    "tileNamed": "{type}附件 {name}",
+    "named": "{label}",
+    "namedUploading": "{label}，上传中",
+    "namedFailed": "{label}，上传失败",
     "preview": "附件预览",
     "imagePreview": "图片附件预览",
     "uploadFailed": "上传失败",
@@ -156,6 +187,14 @@ export const zhCN = {
     "chineseName": "简体中文",
     "englishName": "English"
   },
+  "searchTools": {
+    "searching": "正在搜索",
+    "sources": "已读取 {count} 个来源",
+    "retrieving": "正在检索",
+    "passages": "已检索 {count} 个片段",
+    "relevance": "{source} 相关度",
+    "score": "{score}，满分 1.00"
+  },
   "search": {
     "searching": "正在搜索",
     "readSources": "已读取 3 个来源",
@@ -166,6 +205,25 @@ export const zhCN = {
     "manyFiles": "找到 {count} 个文件 — {files}"
   },
   "examples": {
+    "hostAnalyzeButton": "让助理分析",
+    "hostAnalyzePrompt": "请检查当前演示页面并提出改进建议。",
+    "hostCloseAssistant": "关闭助理",
+    "hostOpenAssistant": "打开助理",
+    "hostSendFailed": "助理请求失败，请重试。",
+
+    "presentationEditor": "演示文稿编辑区",
+    "presentationDocument": "演示文稿",
+    "canvasSelect": "选择",
+    "canvasText": "编辑标题",
+    "canvasBold": "标题加粗",
+    "canvasAlign": "标题居中",
+    "canvasGrid": "画布网格",
+    "canvasSlide": "幻灯片",
+    "canvasHint": "点击标题即可编辑",
+    "canvasSubtitle": "让每一个想法，都有清晰的表达",
+    "canvasPillarOne": "连接上下文",
+    "canvasPillarTwo": "梳理想法",
+    "canvasPillarThree": "推动下一步",
     "durableRun": "持久化运行",
     "agentPlanActivityRefreshRecovery": "执行计划刷新恢复",
     "productionBindingRefreshRecovery": "生产绑定刷新恢复",
@@ -320,6 +378,8 @@ export const zhCN = {
     "count": "已选 {count} / {max}"
   },
   "toolPresentation": {
+    "replyQueued": "回复已排队，尚未发送",
+    "alternativeAnswerPlaceholder": "或输入回答",
     "request": "请求：",
     "running": "正在调用工具",
     "waiting": "等待工具操作",

@@ -7,7 +7,8 @@
     "noEmit": false,
     "outDir": "dist",
     "rootDir": "src",
-    "sourceMap": true
+    "sourceMap": true,
+    "resolveJsonModule": true
   },
   "include": [
     "src/**/*.ts",
@@ -15,6 +16,8 @@
   ],
   "exclude": [
     "tests",
-    "src/experimental/**"
+    "src/experimental/**",
+    "src/plugins/**",
+    "src/shared/**"
   ]
 }

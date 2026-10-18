@@ -1,6 +1,6 @@
 # Pinned upstream localization gaps
 
-Revision: `3542d602272a62eddeb8989befc910841c267022` in the local assistant-ui
+Revision: `a46d6634e7a75eddd85d51415b1a615886d4ad0e` in the local assistant-ui
 checkout. Clean installed vendor has no product localization edits.
 
 | Surface | Default upstream copy | Missing seam / disposition |
@@ -31,3 +31,13 @@ product-owned TaskGroup summaries. The canonical TaskGroup composition imports
 localized TaskCard and ToolFallback adapters; direct vendor presentation imports
 must not bypass these seams. Backend error details and attachment names remain
 data and are not translated.
+
+2026-10-16 upgrade review: named attachment previews/removal and upload states,
+approval question input placeholders/Send/Dismiss, and stable TriggerPopover
+primitives are handled by regenerated product recipes. Date group labels are
+localized after upstream grouping so translated strings never control grouping.
+The product keeps its existing localized unnamed-file fallback. The upstream
+Thread's new LoadEarlier copy is not used by the canonical product Thread
+composition; direct vendor consumers retain upstream defaults and require a
+localized composition before adopting that control. Generative UI stays at
+0.0.22 / 3542d602; its separate 0.1.x migration is outside this upgrade.

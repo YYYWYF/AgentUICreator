@@ -1,0 +1,13 @@
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.onlyBuiltDependencies", "pnpm.overrides", "pnpm.peerDependencyRules". See https://pnpm.io/settings for the new home of each setting.
+
+ RUN  v4.1.8 /Users/yifei/Coding/AgentUICreator/packages/operator
+
+context canceled
+context canceled
+context canceled
+
+ Test Files  7 passed (7)
+      Tests  199 passed (199)
+   Start at  00:14:59
+   Duration  295.22s (transform 487ms, setup 28ms, import 1.18s, tests 317.60s, environment 1.09s)
+

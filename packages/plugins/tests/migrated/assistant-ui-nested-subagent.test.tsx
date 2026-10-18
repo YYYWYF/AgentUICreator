@@ -7,7 +7,7 @@ import {
 } from "@ag-ui/client";
 import { Observable } from "rxjs";
 import { readFile } from "node:fs/promises";
-import { TaskGroup as PinnedTaskGroup } from "../../src/internal/vendor/assistant-ui/components/assistant-ui/elements/task-card.aui";
+import { TaskGroup as PinnedTaskGroup } from "../../src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/task-card.aui";
 import {
   AssistantRuntimeProvider,
   AuiConfig,
@@ -31,23 +31,23 @@ import {
   type MockScenario,
 } from "@za38.03/agent-ui-creator/mock-agent";
 import { runMockScenario } from "@za38.03/agent-ui-creator/mock-agent";
-import { ConversationAdapter } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter";
-import { createConversationToolkit } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
-import { AssistantUiResponseFooterPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-response-footer/files/plugins/assistant-ui-response-footer/index";
-import { TaskGroupPlugin } from "../../../source-registry/registry/items/plugin-task-group/files/plugins/task-group/index";
+import { ConversationAdapter } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter";
+import { createConversationToolkit } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
+import { ConversationResponseFooterPlugin } from "../../resources/registry/items/plugin-response-footer/files/plugins/response-footer/index";
+import { TaskGroupPlugin } from "../../resources/registry/items/plugin-task-group/files/plugins/task-group/index";
 import type { UIPluginRenderScope } from "../../../operator/src/framework/contracts/ui-plugin";
 import {
   PluginRenderScopeProvider,
   PluginServiceRuntime,
   PluginServiceRuntimeContext,
-} from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
 
 // Native TaskCard has no nested transcript override at this fixed revision.
 // When upstream renders reasoning/errors, these gap tests must fail: remove the
 // product composition once positive acceptance works through native TaskCard.
-const PINNED_TASK_CARD_REVISION = "3542d602272a62eddeb8989befc910841c267022";
+const PINNED_TASK_CARD_REVISION = "a46d6634e7a75eddd85d51415b1a615886d4ad0e";
 async function expectPinnedTaskCardRevision() {
-  const lockPath = "../../src/internal/vendor/assistant-ui/assistant-ui-upstream.lock.json";
+  const lockPath = "../../src/internal/vendor-generated/assistant-ui/assistant-ui-upstream.lock.json";
   const lock = JSON.parse(await readFile(new URL(lockPath, import.meta.url), "utf8"));
   expect(lock.revision).toBe(PINNED_TASK_CARD_REVISION);
 }
@@ -244,7 +244,7 @@ function renderConversationScopedSlot(
 ) {
   if (slotName === "assistantResponseFooter") {
     return (
-      <AssistantUiResponseFooterPlugin
+      <ConversationResponseFooterPlugin
         renderSlot={() => null}
         renderScopedSlot={() => null}
       />
@@ -671,7 +671,7 @@ describe("Subagent Streaming Contract Tests and product acceptance", () => {
       .map(({ text }) => text)
       .join("");
     expect(nestedText).toContain(
-      "检查完成：Conversation Runtime 负责 assistant-ui Runtime 集成",
+      "检查完成：Conversation Runtime 负责 Agent UI Runtime 集成",
     );
 
     const nestedMessage = parentTool.messages?.find(
@@ -882,7 +882,7 @@ describe("Upstream Presentation Gap Tests", () => {
     expect(partText(canonicalMessage, "reasoning")).toContain("我先检查 Conversation Runtime 和 Conversation Adapter");
     expect(nested?.textContent).not.toContain("我先检查 Conversation Runtime 和 Conversation Adapter");
     expect(nested?.textContent).toContain("Searched files");
-    expect(nested?.textContent).toContain("检查完成：Conversation Runtime 负责 assistant-ui Runtime 集成");
+    expect(nested?.textContent).toContain("检查完成：Conversation Runtime 负责 Agent UI Runtime 集成");
     expect(runtimeFixture.container.textContent).toContain(
       "Conversation Runtime inspection complete",
     );

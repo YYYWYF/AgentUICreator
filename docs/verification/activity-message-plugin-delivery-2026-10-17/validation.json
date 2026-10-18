@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-17",
+  "branch": "dev",
+  "head": "e497b343fed37a67c5625bb0539dbeada0fc0737",
+  "newPlugins": [
+    "agent-status-message",
+    "agent-plan-message",
+    "job-progress-message",
+    "generated-file-message"
+  ],
+  "validation": {
+    "pluginsBuild": "passed",
+    "pluginsTypecheck": "passed",
+    "operatorBuild": "passed",
+    "operatorTypecheck": "passed",
+    "pluginsFocusedTests": {
+      "files": 8,
+      "passed": 45
+    },
+    "operatorFocusedTests": {
+      "files": 7,
+      "passed": 102,
+      "note": "101 passed together; historical ownership compatibility added and passed separately; metadata authority 7 reran after final legacy forwarding change"
+    },
+    "creatorPythonFocusedTests": {
+      "files": 4,
+      "passed": 121
+    },
+    "nodePackageBoundaryTests": {
+      "passed": 2
+    },
+    "uniqueFocusedTestsPassed": 270,
+    "publicDeclarations": 122,
+    "sourceDistribution": "417 canonical snapshots; 21 closures; 227 portable/runtime digest records",
+    "upstreamGuard": "passed",
+    "i18n": "passed; failures=[]",
+    "tarball": "all exports and snapshot/runtime hashes verified",
+    "gitDiffCheck": "passed"
+  },
+  "preservationChecks": [
+    "headless instances stay in applicationPlugins; toolkit/data-message names remain unchanged",
+    "application props/comments/CRLF retained except static implementation imports",
+    "exact installed-version source and projection files typecheck and build",
+    "npm replacement preserves application, source and ownership baseline",
+    "explicit source-only conflict merge retains local presentation/projection customizations and target changes",
+    "single registration, plugin IDs, instance IDs and AppUIModel bytes retained",
+    "legacy customized directories preserved with and without source locks; no fake takeover/BASE",
+    "native data messages invoke customized application renderer once",
+    "npm and portable progress subscribe to existing Host state and use existing abort",
+    "routing/scope/Runtime bridge API changes reject source adoption without overwriting application",
+    "historical ordinary UI ownership without applicationContractHash remains syncable"
+  ],
+  "limitations": [
+    "No full old fixture suite or unrelated fixture repairs",
+    "No live Creator UI/external model/screenshots this round",
+    "No native Windows run; drive/UNC/path.win32 and native-path generated project checks ran",
+    "Synthetic 0.0.2 target verifies compatible package/source upgrade; no real upstream upgrade or npm publication",
+    "Incompatible application-contract changes require separate migration; no automatic migration API",
+    "24 modern plugin resources remain pending; 19 legacy resource IDs preserved"
+  ],
+  "packageVersion": "0.0.1 (unpublished)"
+}

@@ -1,0 +1,695 @@
+"use client";
+
+import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES } from "../../../../../../locale.js";
+
+import {
+  memo,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  type PropsWithChildren,
+} from "react";
+import { createPortal } from "react-dom";
+import { cva, type VariantProps } from "class-variance-authority";
+import {
+  CopyIcon,
+  DownloadIcon,
+  ImageIcon,
+  ImageOffIcon,
+  Loader2Icon,
+  RefreshCwIcon,
+  ShieldAlertIcon,
+  XIcon,
+} from "lucide-react";
+import type {
+  ImageMessagePart,
+  ImageMessagePartComponent,
+} from "@assistant-ui/react";
+import { cn } from "../../../../../vendor-generated/assistant-ui/lib/utils.js";
+import { useAgentUIPortalContainer } from "../../../../../style-boundary/AgentUIRoot";
+import { hostOf, safeHref } from "../../../../../vendor-generated/assistant-ui/components/assistant-ui/utils/href.js";
+
+const extensionForMimeType = (mimeType?: string): string => {
+  switch (mimeType) {
+    case "image/png":
+      return "png";
+    case "image/jpeg":
+    case "image/jpg":
+      return "jpg";
+    case "image/webp":
+      return "webp";
+    case "image/gif":
+      return "gif";
+    case "image/svg+xml":
+      return "svg";
+    default:
+      return "png";
+  }
+};
+
+const dataUriToBlob = (dataUri: string): Blob | null => {
+  const commaIndex = dataUri.indexOf(",");
+  const meta = commaIndex >= 0 ? dataUri.slice(0, commaIndex) : dataUri;
+  const data = commaIndex >= 0 ? dataUri.slice(commaIndex + 1) : "";
+  const mime =
+    meta.match(/data:([^;]+)/i)?.[1]?.toLowerCase() ??
+    "application/octet-stream";
+  if (!/;base64/i.test(meta)) {
+    const parts: BlobPart[] = [];
+    let last = 0;
+    for (const match of data.matchAll(/(?:%[\da-f]{2})+/gi)) {
+      if (match.index > last) parts.push(data.slice(last, match.index));
+      const run = match[0];
+      const escaped = new Uint8Array(run.length / 3);
+      for (let index = 0; index < escaped.length; index++) {
+        escaped[index] = Number.parseInt(
+          run.slice(index * 3 + 1, index * 3 + 3),
+          16,
+        );
+      }
+      parts.push(escaped);
+      last = match.index + run.length;
+    }
+    parts.push(data.slice(last));
+    return new Blob(parts, { type: mime });
+  }
+  let bytes: string;
+  try {
+    const base64 = data.replace(/%([\da-f]{2})/gi, (_match, hex: string) =>
+      String.fromCharCode(Number.parseInt(hex, 16)),
+    );
+    bytes = atob(base64);
+  } catch {
+    return null;
+  }
+  const arr = new Uint8Array(bytes.length);
+  for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+};
+
+const mimeFromImage = (image: string): string | undefined =>
+  image.match(/^data:([^;,]+)/i)?.[1]?.toLowerCase();
+
+const defaultFilenameFromImage = (image: string): string => {
+  const mime = mimeFromImage(image);
+  if (mime) return `image.${extensionForMimeType(mime)}`;
+  try {
+    const path = new URL(image, document.baseURI).pathname;
+    const encodedBasename = path.split("/").pop() ?? "";
+    let basename = encodedBasename;
+    try {
+      basename = decodeURIComponent(encodedBasename);
+    } catch {}
+    if (/\.(png|jpe?g|webp|gif|svg)$/i.test(basename)) return basename;
+  } catch {}
+  return "image.png";
+};
+
+const safeImageDownloadHref = (image: string): string | null => {
+  try {
+    const url = new URL(image, document.baseURI);
+    return url.protocol === "http:" ||
+      url.protocol === "https:" ||
+      url.protocol === "blob:"
+      ? image
+      : null;
+  } catch {
+    return null;
+  }
+};
+
+const downloadImagePart = (
+  part: Pick<ImageMessagePart, "image" | "filename">,
+): void => {
+  if (typeof document === "undefined") return;
+  const filename = part.filename ?? defaultFilenameFromImage(part.image);
+  const isDataUri = /^data:/i.test(part.image);
+  const blob = isDataUri ? dataUriToBlob(part.image) : null;
+  if (isDataUri && !blob) return;
+  const objectUrl = blob ? URL.createObjectURL(blob) : null;
+  const href = objectUrl ?? safeImageDownloadHref(part.image);
+  if (!href) return;
+  const a = document.createElement("a");
+  a.href = href;
+  a.download = filename;
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  if (objectUrl) setTimeout(() => URL.revokeObjectURL(objectUrl), 40_000);
+};
+
+const copyImagePart = async (
+  part: Pick<ImageMessagePart, "image">,
+): Promise<void> => {
+  if (
+    typeof navigator === "undefined" ||
+    !navigator.clipboard ||
+    typeof ClipboardItem === "undefined"
+  ) {
+    throw new Error("Clipboard API is not available in this environment.");
+  }
+  const blob = /^data:/i.test(part.image)
+    ? dataUriToBlob(part.image)
+    : await fetch(part.image).then((r) => r.blob());
+  if (!blob) return;
+  const mime = mimeFromImage(part.image) ?? blob.type ?? "image/png";
+  await navigator.clipboard.write([new ClipboardItem({ [mime]: blob })]);
+};
+
+const imageVariants = cva(
+  "aui-image-root relative overflow-hidden rounded-lg",
+  {
+    variants: {
+      variant: {
+        outline: "border-border border",
+        ghost: "",
+        muted: "bg-muted/50",
+      },
+      size: {
+        sm: "max-w-64",
+        default: "max-w-96",
+        lg: "max-w-[512px]",
+        full: "w-full",
+      },
+    },
+    defaultVariants: {
+      variant: "outline",
+      size: "default",
+    },
+  },
+);
+
+export type ImageRootProps = React.ComponentProps<"div"> &
+  VariantProps<typeof imageVariants>;
+
+function ImageRoot({
+  className,
+  variant,
+  size,
+  children,
+  ...props
+}: ImageRootProps) {
+  return (
+    <div data-agent-ui-owned=""
+      data-slot="image-root"
+      data-variant={variant}
+      data-size={size}
+      className={cn(imageVariants({ variant, size, className }))}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}
+
+type ImagePreviewProps = Omit<React.ComponentProps<"img">, "children"> & {
+  containerClassName?: string | undefined;
+  ratio?: "auto" | "1:1" | "4:3" | "16:9" | "9:16" | undefined;
+  fit?: "cover" | "contain" | undefined;
+};
+
+function ImagePreview({
+  className,
+  containerClassName,
+  ratio = "auto",
+  fit = "contain",
+  onLoad,
+  onError,
+  alt,
+  src,
+  ...props
+}: ImagePreviewProps) {
+  const localeMessages = useAgentUILocale();
+  alt ??= localeMessages.images.content;
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [loadedSrc, setLoadedSrc] = useState<string | undefined>(undefined);
+  const [errorSrc, setErrorSrc] = useState<string | undefined>(undefined);
+
+  const loaded = loadedSrc === src;
+  const error = errorSrc === src;
+  const fixedRatio = ratio !== "auto";
+  const ratioClassName =
+    ratio === "1:1"
+      ? "aspect-square"
+      : ratio === "4:3"
+        ? "aspect-[4/3]"
+        : ratio === "16:9"
+          ? "aspect-video"
+          : ratio === "9:16"
+            ? "aspect-[9/16]"
+            : undefined;
+
+  useEffect(() => {
+    const image = imgRef.current;
+    if (typeof src !== "string" || !image?.complete) return;
+    if (image.naturalWidth > 0) setLoadedSrc(src);
+    else setErrorSrc(src);
+  }, [src]);
+
+  return (
+    <div data-agent-ui-owned=""
+      data-slot="image-preview"
+      className={cn(
+        "relative",
+        fixedRatio ? ratioClassName : "min-h-32",
+        containerClassName,
+      )}
+    >
+      {!loaded && !error && (
+        <div data-agent-ui-owned=""
+          data-slot="image-preview-loading"
+          className="bg-muted/50 absolute inset-0 flex items-center justify-center"
+        >
+          <ImageIcon className="text-muted-foreground size-8 animate-pulse" />
+        </div>
+      )}
+      {error ? (
+        <div data-agent-ui-owned=""
+          data-slot="image-preview-error"
+          className={cn(
+            "bg-muted/50 flex min-h-32 items-center justify-center p-4",
+            fixedRatio && "absolute inset-0",
+          )}
+        >
+          <ImageOffIcon className="text-muted-foreground size-8" />
+        </div>
+      ) : (
+        <img data-agent-ui-owned=""
+          ref={imgRef}
+          src={src}
+          alt={alt}
+          className={cn(
+            fixedRatio
+              ? cn("block h-full w-full", {
+                  "object-cover": fit === "cover",
+                  "object-contain": fit === "contain",
+                })
+              : "block h-auto w-full object-contain",
+            !loaded && "invisible",
+            className,
+          )}
+          onLoad={(e) => {
+            if (typeof src === "string") setLoadedSrc(src);
+            onLoad?.(e);
+          }}
+          onError={(e) => {
+            if (typeof src === "string") setErrorSrc(src);
+            onError?.(e);
+          }}
+          {...props}
+        />
+      )}
+    </div>
+  );
+}
+
+export type ImageSourceProps = {
+  label?: string | undefined;
+  url?: string | undefined;
+  iconUrl?: string | undefined;
+} & React.ComponentProps<"div">;
+
+function ImageSource({
+  className,
+  label,
+  url,
+  iconUrl,
+  ...props
+}: ImageSourceProps) {
+  const localeMessages = useAgentUILocale();
+  const href = safeHref(url);
+  const host = hostOf(url);
+  const displayLabel = label || host;
+  const [failedIconUrl, setFailedIconUrl] = useState<string | undefined>();
+
+  if (!displayLabel) return null;
+
+  const showIcon = iconUrl !== undefined && failedIconUrl !== iconUrl;
+
+  return (
+    <div data-agent-ui-owned=""
+      data-slot="image-source"
+      className={cn(
+        "text-muted-foreground flex items-center gap-2 border-t px-2 py-1.5 text-xs",
+        className,
+      )}
+      {...props}
+    >
+      {showIcon ? (
+        <img data-agent-ui-owned=""
+          data-slot="image-source-icon"
+          src={iconUrl}
+          alt=""
+          className="size-4 shrink-0 rounded-sm"
+          onError={() => setFailedIconUrl(iconUrl)}
+        />
+      ) : (
+        <span data-agent-ui-owned=""
+          data-slot="image-source-icon-fallback"
+          aria-hidden="true"
+          className="bg-muted flex size-4 shrink-0 items-center justify-center rounded-sm text-[10px] font-medium"
+        >
+          {displayLabel.charAt(0).toUpperCase()}
+        </span>
+      )}
+      {href ? (
+        <a data-agent-ui-owned=""
+          data-slot="image-source-label"
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-foreground truncate"
+        >
+          {displayLabel}
+          <span data-agent-ui-owned="" className="sr-only">  {localeMessages.images.newTab}</span>
+        </a>
+      ) : (
+        <span data-agent-ui-owned="" data-slot="image-source-label" className="truncate">
+          {displayLabel}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function ImageFilename({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<"span">) {
+  if (!children) return null;
+
+  return (
+    <span data-agent-ui-owned=""
+      data-slot="image-filename"
+      className={cn(
+        "text-muted-foreground block truncate px-2 py-1.5 text-xs",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </span>
+  );
+}
+
+type ImageZoomProps = PropsWithChildren<{
+  src: string;
+  alt?: string;
+}>;
+
+function ImageZoom({ src, alt, children }: ImageZoomProps) {
+  const localeMessages = useAgentUILocale();
+  alt ??= localeMessages.images.preview;
+  const [isOpen, setIsOpen] = useState(false);
+  const portalContainer = useAgentUIPortalContainer();
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  const handleOpen = useCallback(() => setIsOpen(true), []);
+  const handleClose = useCallback(() => {
+    setIsOpen(false);
+    triggerRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        handleClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const focusables = overlayRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      const first = focusables?.[0];
+      const last = focusables?.[focusables.length - 1];
+      if (!first || !last) return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, handleClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen) closeRef.current?.focus();
+  }, [isOpen]);
+
+  return (
+    <>
+      <div
+        ref={triggerRef}
+        onClick={handleOpen}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            e.currentTarget.click();
+          } else if (e.key === " ") {
+            e.preventDefault();
+          }
+        }}
+        onKeyUp={(e) => {
+          if (e.key === " ") e.currentTarget.click();
+        }}
+        role="button"
+        tabIndex={0}
+        className="aui-image-zoom-trigger cursor-zoom-in"
+        aria-label={localeMessages.images.zoom}
+      >
+        {children}
+      </div>
+      {isOpen && portalContainer !== null &&
+        createPortal(
+          <div
+            ref={overlayRef}
+            data-slot="image-zoom-overlay"
+            role="dialog"
+            aria-modal="true"
+            className="aui-image-zoom-overlay fade-in animate-in fixed inset-0 z-50 flex items-center justify-center bg-black/80 duration-200"
+            onClick={handleClose}
+            aria-label={localeMessages.images.zoomed}
+          >
+            <img
+              data-slot="image-zoom-content"
+              src={src}
+              alt={alt}
+              className="aui-image-zoom-content fade-in zoom-in-95 animate-in max-h-[90%] max-w-[90%] cursor-zoom-out object-contain duration-200"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleClose();
+              }}
+            />
+            <button data-agent-ui-owned=""
+              ref={closeRef}
+              type="button"
+              aria-label={localeMessages.images.closeZoom}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleClose();
+              }}
+              className="text-muted-foreground hover:text-foreground bg-background/80 absolute end-4 top-4 cursor-pointer rounded-md p-2"
+            >
+              <XIcon className="size-5" />
+            </button>
+          </div>,
+          portalContainer ?? document.body,
+        )}
+    </>
+  );
+}
+
+function ImageGenerating({ className }: { className?: string }) {
+  const localeMessages = useAgentUILocale();
+  return (
+    <div data-agent-ui-owned=""
+      data-slot="image-generating"
+      className={cn(
+        "bg-muted/50 flex min-h-32 items-center justify-center p-4",
+        className,
+      )}
+    >
+      <Loader2Icon className="text-muted-foreground size-8 animate-spin" />
+      <span data-agent-ui-owned="" className="sr-only">{localeMessages.images.generating}</span>
+    </div>
+  );
+}
+
+function ImageContentFilterError({
+  className,
+  reason,
+}: {
+  className?: string;
+  reason?: string;
+}) {
+  const localeMessages = useAgentUILocale();
+  return (
+    <div data-agent-ui-owned=""
+      data-slot="image-content-filter-error"
+      className={cn(
+        "bg-muted/50 flex min-h-32 flex-col items-center justify-center gap-2 p-4 text-center",
+        className,
+      )}
+    >
+      <ShieldAlertIcon className="text-muted-foreground size-8" />
+      <p data-agent-ui-owned="" className="text-sm font-medium">{localeMessages.images.generationFailed}</p>
+      {reason && <p data-agent-ui-owned="" className="text-muted-foreground text-xs">{reason}</p>}
+    </div>
+  );
+}
+
+export type ImageActionsProps = {
+  part: ImageMessagePart;
+  /**
+   * Wire to your own generation call to show a regenerate button. The button
+   * renders only when this is set and the part carries a `prompt`.
+   */
+  onRegenerate?: () => void | Promise<void>;
+  className?: string;
+};
+
+function RegenerateButton({
+  onRegenerate,
+}: {
+  onRegenerate: () => void | Promise<void>;
+}) {
+  const localeMessages = useAgentUILocale();
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  return (
+    <button data-agent-ui-owned=""
+      type="button"
+      onClick={async () => {
+        setIsRegenerating(true);
+        try {
+          await onRegenerate();
+        } catch {
+        } finally {
+          setIsRegenerating(false);
+        }
+      }}
+      disabled={isRegenerating}
+      data-slot="image-regenerate"
+      aria-label={localeMessages.images.regenerate}
+      className="hover:bg-muted inline-flex size-7 items-center justify-center rounded disabled:opacity-50"
+    >
+      <RefreshCwIcon
+        className={cn("size-4", isRegenerating && "animate-spin")}
+      />
+    </button>
+  );
+}
+
+function ImageActions({ part, onRegenerate, className }: ImageActionsProps) {
+  const localeMessages = useAgentUILocale();
+  return (
+    <div data-agent-ui-owned=""
+      data-slot="image-actions"
+      className={cn("flex items-center gap-1 p-1", className)}
+    >
+      <button data-agent-ui-owned=""
+        type="button"
+        onClick={() => downloadImagePart(part)}
+        data-slot="image-download"
+        aria-label={localeMessages.images.download}
+        className="hover:bg-muted inline-flex size-7 items-center justify-center rounded"
+      >
+        <DownloadIcon className="size-4" />
+      </button>
+      <button data-agent-ui-owned=""
+        type="button"
+        onClick={() => {
+          copyImagePart(part).catch(() => {});
+        }}
+        data-slot="image-copy"
+        aria-label={localeMessages.images.copy}
+        className="hover:bg-muted inline-flex size-7 items-center justify-center rounded"
+      >
+        <CopyIcon className="size-4" />
+      </button>
+      {onRegenerate && <RegenerateButton onRegenerate={onRegenerate} />}
+    </div>
+  );
+}
+
+const ImageImpl: ImageMessagePartComponent = (props) => {
+  const localeMessages = useAgentUILocale();
+  const { image, filename, status } = props;
+
+  if (status?.type === "running") {
+    return (
+      <ImageRoot>
+        <ImageGenerating />
+        <ImageFilename>{filename}</ImageFilename>
+      </ImageRoot>
+    );
+  }
+
+  if (status?.type === "incomplete" && status.reason === "content-filter") {
+    return (
+      <ImageRoot>
+        <ImageContentFilterError reason={localeMessages.images.blocked} />
+      </ImageRoot>
+    );
+  }
+
+  return (
+    <ImageRoot>
+      <ImageZoom src={image} alt={filename || localeMessages.images.content}>
+        <ImagePreview src={image} alt={filename || localeMessages.images.content} />
+      </ImageZoom>
+      <ImageFilename>{filename}</ImageFilename>
+    </ImageRoot>
+  );
+};
+
+const Image = memo(ImageImpl) as unknown as ImageMessagePartComponent & {
+  Root: typeof ImageRoot;
+  Preview: typeof ImagePreview;
+  Source: typeof ImageSource;
+  Filename: typeof ImageFilename;
+  Zoom: typeof ImageZoom;
+  Actions: typeof ImageActions;
+  Generating: typeof ImageGenerating;
+  ContentFilterError: typeof ImageContentFilterError;
+};
+
+Image.displayName = "Image";
+Image.Root = ImageRoot;
+Image.Preview = ImagePreview;
+Image.Source = ImageSource;
+Image.Filename = ImageFilename;
+Image.Zoom = ImageZoom;
+Image.Actions = ImageActions;
+Image.Generating = ImageGenerating;
+Image.ContentFilterError = ImageContentFilterError;
+
+export {
+  Image,
+  ImageRoot,
+  ImagePreview,
+  ImageSource,
+  ImageFilename,
+  ImageZoom,
+  ImageActions,
+  ImageGenerating,
+  ImageContentFilterError,
+  imageVariants,
+};

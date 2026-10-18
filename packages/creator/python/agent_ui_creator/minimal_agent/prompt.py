@@ -33,3 +33,8 @@ Do not output tool calls as prose.
 When you need a tool, use the structured tool-call interface.
 
 Do not create plans, todos, subagents, or workflows."""
+
+
+from ..product_prompt import PRODUCT_NAMING_RULES
+
+MINIMAL_AGENT_PROMPT += PRODUCT_NAMING_RULES

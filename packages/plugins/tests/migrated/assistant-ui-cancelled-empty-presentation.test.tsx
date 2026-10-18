@@ -19,7 +19,7 @@ import {
   useConversationResponseRuntime,
   type ConversationThreadLabels,
 } from "../../src/index";
-import { AGENT_UI_LOCALES } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/locale-registry";
+import { AGENT_UI_LOCALES } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/i18n/locale-registry";
 
 const roots: Root[] = [];
 const adapter: ChatModelAdapter = { run: async () => ({ content: [] }) };

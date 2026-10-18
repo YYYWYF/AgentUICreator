@@ -1,128 +1,55 @@
-# Host-owned plugin updates (Mock releases)
+# 统一 Plugins 包更新与本地源码同步
 
-Creator checks installed Source-lock plugins asynchronously after a ready project
-opens. The development Host uses `UpdateSourceProvider`; its default
-`MockUpdateSourceProvider` retains immutable local Registry snapshots at
-`packages/source-registry/fixtures/releases`. The current Registry baseline is
-Release `0.1.0`; the default Mock latest is `0.1.1`, advancing Conversation Surface
-and Web Search from Plugin `0.0.1` to `0.0.2`. The new fixture also changes the
-Conversation Surface manifest and definition to exercise derived registry sync.
-Historical `0.0.1` / `0.0.2` fixtures remain available for existing unit coverage. Mock descriptions deliberately describe development fixtures, rather
-than claiming production fixes. No remote Registry is contacted.
+> 2026-10-17：插件所有权见 [统一 Plugins 包、内置源码目录与按需源码托管](npm-default-plugin-source-ownership.md)，跨包升级见 [统一更新中心与兼容版本清单](unified-update-center.md)。Source Registry 已合入 Plugins；44 个现代插件已接入薄应用层、确认接管及源码同步机制。2026-10-18 已接入兼容清单、配置式只读在线发现和累计/逐版本展示；npm 产物核验和用户确认后的统一安装仍待实现，不能与现有源码同步验收混同。
 
-Four independent identities remain: package release version, Plugin manifest
-version, official source hashes, and the sorted plugin/version notification
-fingerprint. Source Item IDs still have no version. Every official Plugin starts
-at `0.0.1`. `registry/release.json` declares release metadata, while each Plugin
-item owns its authored `changelog.json`.
+## 一个包的实现、目录和源码
 
-## Release preparation
+Plugins 在 `src/plugins/<id>/` 维护完整官方实现：`upstream/` 与 `adapters/` 分开，产品样式/locale/资源独立，单一插件元数据记录版本、来源和变更。同一输入生成 `dist/plugins/` 运行产物、`dist/sources/` 可接管快照及 `dist/catalog.json`；生成物不独立修改。
 
-Run `pnpm --filter @agent-ui/source-registry release:prepare -- <target-root>
-<previous-official-root>` to bump changed plugins by one patch when their version
-has not advanced. The release owner must supply the new changelog entry and set
-the package release metadata; preparation never generates release descriptions.
-Missing descriptions fail verification even after a bump. Run `release:verify`
-with the same paths to check without writes. The default baseline is the initial
-fixture. For subsequent official releases, pass the actual previous official
-release. `prepublishOnly` requires `AGENT_UI_PREVIOUS_RELEASE_ROOT` for the
-actual previous official release, or `AGENT_UI_INITIAL_RELEASE=1` for a first
-release, and checks package/release version agreement. Historical changelog entries must be
-retained. The future production Provider must retrieve every referenced historical
-release by exact version; no latest lookup may replace a missing BASE.
+Source Registry 只作为包内目录/快照能力保留，不再是另一项可安装、可独立升级的 npm 包。原非插件模板/Demo 迁到包内资源资产；文件读取、历史 Provider、安装和合并仍由 Operator 开发工具负责。浏览器运行入口不导入 Node 工具、catalog 读取器或源码快照。
 
-## Control boundary
+用户查看整个 `@za38.03/agent-ui-plugins` 包的更新。默认包引用插件随包升级；本地托管插件保持源码、来源和官方 BASE，并显示可选同步。包更新同时提供新目录，但不会自动合并本地源码。同包插件子路径不能各自选择不同 npm 安装版本。
 
-`AgentUIUpdateService`, exported via `@za38.03/agent-ui-operator/updates`, owns
-inspection, dependency planning, compatibility admission, project-bound expiring
-plan IDs, and execution. Creator's Vite Host exposes these operations under
-`/__creator/updates`. `updateSourceProvider` is an injectable Host option. No
-update logic or Creator dependency enters the generated production frontend.
+## 统一更新中心的新增边界
 
-A plan lists the complete dependency closure, package conflicts, source statuses,
-changed file count and compatibility. It never writes. Only an explicitly
-confirmed plan is executable. Host rechecks the source state and lock provenance
-before using the existing Source storage transaction inside the Host journal.
-All requested managed plugins and dependencies commit together. Generated
-registries and project verification run before releasing the journal; failures
-restore the previous files and lock. The journal retains update target paths so
-crash rollback can also remove files absent from the Host's installed Registry.
-Host-provided foundations cannot be overwritten by this flow.
+- 项目 Agent UI 与 Creator 工具共用更新入口，分别作用于 React 生产工程和工具实际安装位置。七个包仍独立发行，不新增统一安装包或独立 Registry 包，不要求版本号相同。
+- 官方兼容版本清单决定精确推荐组合和依赖/peer 要求；读取工程/工具实际安装版本，不能以模型推测、工具依赖或固定版本常量代替。后台发现只读，离线/缓存与最新状态区分。
+- 默认展示当前到目标区间的累计功能变化、破坏性要求和依赖联动，逐版本历史可展开。默认 npm 插件和已托管插件均进入总览，不要求每个中间版本分别确认。
+- 用户确认具体计划后，由 Operator 使用工程现有包管理器更新批准范围的声明、实际安装和锁文件，再验证真实版本与工程。单改 package.json 不算完成；计划过期、安装/验证/恢复失败和工具重启分别表达。
+- 安装成功后才按实际已安装包生成可选托管源码同步。npm 升级不覆盖用户应用层、已托管源码或 BASE，也不自动授权源码接管/合并；后者继续经过用户选择、三方合并和明确验证采用。
 
-Contract incompatibility yields `creator-upgrade-required` or `unsupported`,
-blocks mutation, and stays visible in inspection. Partial sources, occupied paths,
-missing packages, and changed Host-provided foundations also block a plan.
-Customized sources are never available through a force-overwrite action. A target
-package release older than any installed Plugin baseline in the dependency
-closure blocks the plan with `AGENT_UI_UPDATE_RELEASE_REGRESSION`, independently
-of Plugin version comparisons.
+上述方案取代此前“用户手动升级 npm，Creator 仅同步源码”的阶段决定。实现位置与验收以统一更新中心文档为准；此前文档轮未修改运行代码；当前阶段只实现版本发现与展示，仍不修旧 fixture。
 
-## Creator UI and merge authorization
+## 首次接管与来源
 
-The right-hand Settings menu checks updates manually. Automatic failures stay
-quiet; manual failures are explicit. Notifications remember the project and update
-fingerprint through `UpdateNotificationStateStore`, currently backed by local
-browser storage. Manual checks ignore dismissal. The internal update page hides
-conversation presentation without unmounting or resetting the Creator session.
-It shows all intervening changelogs and a concrete plan before confirmation.
+Creator 先用 AppUIModel、公开参数/Slot/组合接口。必须改实现时，准备指定插件、已装包版本、文件/依赖闭包、受影响实例和切换计划，询问用户是否同意源码托管。普通定制请求不视为该同意；未同意不写源码、不切引用。
 
-For a customized closure, the user chooses model merge or manual merge. Host
-resolves historical BASE using lock provenance, reads LOCAL and resolves TARGET.
-The model receives these file contents through the existing Creator request and
-edits source with existing tools. The user can inspect BASE/TARGET and edit in an
-IDE instead. Completing a merge is a separate explicit action: Host verifies
-unchanged lock provenance, opens the existing owner journal and snapshots Source,
-lock and derived outputs, regenerates Plugin / frontend tool / conversation
-integration registries with the canonical generators, then verifies the current
-project and target file existence/removals. Only after successful verification
-does it commit official hashes and the Plugin/release baseline. Generation or
-verification failure restores the entire before-state and keeps the plan retryable.
-User Source bytes are untouched by successful adoption; generated artifacts may
-change. Host checks that non-generated snapshot bytes stayed unchanged, while
-allowing expected inspection fingerprint changes caused by generation. Retained local changes therefore remain
-customized against the new official baseline. Verification failure does not
-advance the baseline. If merged bytes exactly match official bytes, hash inspection
-truthfully reports managed.
+Operator 读取目标工程实际解析的 Plugins 包，不默认使用工具自己的新版包。校验包身份、完整性、内置 catalog、插件版本和源码快照，从 `dist/sources/` 提取完整插件目录及必要共享闭包；记录 BASE 和 ownership 后，同一 Plugin ID 全部实例改用本地定义，不能同时注册包实现。AppUIModel 保持布局和实例配置职责。
 
-Legacy locks remain readable. They do not invent Plugin versions or historical
-BASE releases: the page reports an unrecorded version, safe managed sources can be
-upgraded, and customized sources without recoverable provenance require manual
-merge. Restarting the Host invalidates pending merge plan IDs; source edits remain
-and a fresh plan is required. Manual completion asserts semantic completion;
-structural verification cannot prove that every intended upstream behavior was
-merged.
+本地 manifest、服务声明和配置合同也从本地定义读取。升级大包不得把本地同 ID 合同替换成新包元数据。共享依赖/CSS/Runtime 仍可能变化，包升级计划必须检查兼容，不能承诺所有运行效果冻结。
 
-All-updates calculates one merged closure and refuses direct execution when any
-changed member needs merge. Individual plans let users first update independent
-safe plugins. No channels, periodic checks, remote authentication, forced overwrite,
-new merge engine, or conflict editor is included.
+## 版本、旧历史与现有机制
 
-## Validation
+新目标使用 npm 包版本、内部插件版本、catalog Schema/快照摘要和工程 BASE，不再维护独立 Registry npm 版本。插件的版本/changelog 是源码变化身份，不是单独 npm 安装版本；catalog 自动汇总，不能另维护第二份可编辑清单。
 
-Focused unit coverage exercises exact historical resolution, release checks,
-notification dismissal and manual checks, confirmation before mutation, stale
-plans, source/lock rollback on verification failure, customized baseline adoption,
-next-merge BASE selection, dependency upgrades, and compatibility refusal.
-UI/model behavioral acceptance is deliberately outside this implementation run.
+独立 Registry 包已移除，但为兼容旧更新机制仍保留资源 `release.json`、manifest/changelog 和 `sourceRelease`。`AgentUIUpdateService` 已有选择性源码计划、BASE/LOCAL/TARGET 与采用验证；`InstalledUpdateSourceProvider` 通过 Operator 读取 Plugins 中的兼容资源目录，历史需显式 `historyRoot`。现代插件另复用已有确认接管与 source-only 同步服务；这些能力不等于从线上发现兼容发行组合或执行 npm 安装。
 
-Builds of Source Registry, Operator and Creator passed. Source Registry
-passed 21 unit tests, the focused update/source suites passed 22 tests, and the
-existing Source mutation suite passed 40 tests. The new UI unit suite passed
-2 tests. The broader checks still expose pre-existing Workbench receipt
-expectation failures (reproduced with HEAD code), a Source architecture guard
-violation in unchanged `plugin-purge.ts`, and Creator test-fixture type errors
-about missing `owned` fields. These do not constitute behavioral acceptance.
+纯目录合同和资源资产已并入 Plugins，fs/path/crypto 和历史 Provider 已迁入 Operator；正式历史获取、旧工程自动迁移和新统一更新中心仍待完成。保留旧 source-lock 和历史来源解析：旧 Registry Release 与同号 Plugins 版本不是同一来源，不能重解释或仅按版本数字比较。新接管必须保存可恢复 BASE，不能只留 hash 或依赖会被 npm 升级替换的 node_modules；旧 Plugins 包归档/缓存可以辅助恢复，获取方式仍待实现。
 
-## Follow-up repairs
+当前正式历史下载没有默认服务；Mock Provider 仅测试使用。旧 `release:prepare`/`release:verify` 和包/Release 同号门禁需要随合包改造，不能继续要求独立 Registry 发布。旧测试 fixtures 不能冒充正式 BASE。
 
-The default Mock package timeline is now `0.1.0 → 0.1.1`. Focused unit tests start
-from the current Registry rather than only a historical fixture, reject package
-release regression, and exercise manual adoption with real generators and the
-real project verifier. An injected verification failure occurs after generated
-Plugin metadata changes, proving artifact/lock rollback and preservation of
-merged Source. Exact target bytes naturally report managed; retained user edits
-report customized. No browser or real-model acceptance is performed.
+## 完整同步与特性移植
 
-TODO before the first real release: production Hosts must explicitly configure
-`UpdateSourceProvider`; an absent provider must not silently select Mock. This
-production policy is deferred and does not block the current development flow.
+用户要求同步本地插件后，Host 读取 BASE（上次采用的官方快照）、LOCAL（当前工程文件）和 TARGET（选定新 Plugins 包内的匹配快照）。历史缺失/不一致时阻止自动合并；不猜 BASE，不将用户定制回写成官方实现。
+
+计划列出必要变化依赖、文件新增/删除、归属、兼容阻塞及冲突，绑定工程状态与授权范围。共享展示资源一个所有者，未知占用/vendor 定制和过期计划不强制覆盖。Creator 优先改 adapters，原始上游不因接管就变成默认可编辑区域。
+
+用户审查合并后，Host 生成注册表并验证工程，才采用新官方基线；本地定制可以保留。只移植某项特性时保留旧整体 BASE，不能声称完整升级到了 TARGET。结构验证不证明全部功能已合入。
+
+现有手动/模型编辑先于采用事务。采用失败恢复事务前源码、锁和派生产物，保留此前合并编辑供重试；不是回到编辑前状态。新增接管事务须覆盖文件、ownership 和引用切换；依赖安装若涉及 package.json/锁文件，需要另补恢复，现有源码事务不代表已经覆盖。
+
+## 实施与验收
+
+既有合包、现代插件接管与同步阶段的证据见主所有权文档；npm 发布仍未执行。下一阶段先修真实版本来源、定义兼容清单和只读发现，再实现用户确认后的依赖安装/恢复、工具重启及安装后的源码同步衔接。不能用此前 tarball 目录替换或 Composer 源码合并测试冒充真实包管理器统一升级验收。
+
+验收包括单 tarball 运行与源码一致、无独立 Registry 安装、浏览器图无工具代码/快照、旧历史可恢复、无授权零接管写入、准确已装版本、同 ID 单注册、多实例配置不变、共享兼容、特性移植不误推进版本、事务失败恢复、单 Runtime 和独立生产构建。Windows 路径/大小写/CRLF/打开文件替换恢复须单独验证；本轮无运行或真实 Windows 验收。

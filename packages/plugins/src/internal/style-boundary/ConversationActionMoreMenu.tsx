@@ -1,7 +1,8 @@
 import { ActionBarMorePrimitive } from "@assistant-ui/react";
 import { MoreHorizontalIcon } from "lucide-react";
 import type { ReactElement, ReactNode } from "react";
-import { TooltipIconButton } from "../adapters/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
+import type { ConversationActionMoreMenuItemProps } from "../../public.js";
+import { TooltipIconButton } from "../adapters-generated/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.js";
 import { useAgentUIPortalContainer } from "./AgentUIRoot.js";
 
 /** Compose inside the existing response Footer; the Plugin supplies locale copy. */
@@ -24,13 +25,9 @@ export function ConversationActionMoreMenu({ label, children }: {
   </ActionBarMorePrimitive.Root>;
 }
 
-export function ConversationActionMoreMenuItem({ children, disabled = false, onSelect }: {
-  children: ReactNode;
-  disabled?: boolean;
-  onSelect?: (event: Event) => void;
-}): ReactElement {
-  return <ActionBarMorePrimitive.Item data-agent-ui-owned="" disabled={disabled} {...(onSelect === undefined ? {} : { onSelect })}
-    className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm outline-none select-none">
+export function ConversationActionMoreMenuItem({ children, disabled = false, onSelect, className, ...props }: ConversationActionMoreMenuItemProps): ReactElement {
+  return <ActionBarMorePrimitive.Item {...props} data-agent-ui-owned="" disabled={disabled} {...(onSelect === undefined ? {} : { onSelect })}
+    className={`hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm outline-none select-none ${className ?? ""}`}>
     {children}
   </ActionBarMorePrimitive.Item>;
 }

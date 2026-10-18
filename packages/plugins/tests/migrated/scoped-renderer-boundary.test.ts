@@ -8,7 +8,7 @@ const root = await generatedProjectFixture();
 
 describe("scoped renderer upstream boundary", () => {
   it("keeps named Tool UI resolution and text rendering in the canonical Thread", async () => {
-    const thread = await readFile(path.join(repositoryRoot, "packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"), "utf8");
+    const thread = await readFile(path.join(repositoryRoot, "packages/plugins/src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/thread.aui.tsx"), "utf8");
     expect(thread).toContain('case "text":');
     expect(thread).toContain("return <MarkdownText />;");
     expect(thread).toContain("part.toolUI ?? <ToolFallbackComponent {...part} />");
@@ -17,9 +17,9 @@ describe("scoped renderer upstream boundary", () => {
   it("keeps product renderer code behind the public facade", async () => {
     for (const relativePath of [
       "agent-ui/conversation/ScopedRendererBridge.tsx",
-      "plugins/assistant-ui-reasoning/index.tsx",
-      "plugins/assistant-ui-tool-group/index.tsx",
-      "plugins/assistant-ui-tool-fallback/index.tsx",
+      "plugins/reasoning/index.tsx",
+      "plugins/tool-group/index.tsx",
+      "plugins/tool-fallback/index.tsx",
       "runtime/plugins/UIPluginRuntime.tsx",
     ]) {
       const source = await readFile(path.join(root, relativePath), "utf8");

@@ -6,7 +6,7 @@ import test from "node:test";
 import { publicModules } from "./build-public-packages.mjs";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const manifest = async name => JSON.parse(await readFile(path.join(root, "packages", name, "package.json"), "utf8"));
-test("eight independently versioned public packages own Bootstrap and Mock subpaths", async () => {
+test("seven independently versioned public packages own Bootstrap and Mock subpaths", async () => {
   const published = [];
   for (const name of await readdir(path.join(root, "packages"))) {
     let pkg;
@@ -18,7 +18,7 @@ test("eight independently versioned public packages own Bootstrap and Mock subpa
   assert(control.exports["./bootstrap"]);
   assert(creator.exports["./mock-agent"]);
   const plugins = await manifest("plugins");
-  for (const entry of [".", "./assistant-ui-composer", "./styles.css", "./theme", "./lexical", "./generative-ui"]) assert(plugins.exports[entry], entry);
+  for (const entry of [".", "./composer", "./styles.css", "./theme", "./lexical", "./generative-ui"]) assert(plugins.exports[entry], entry);
   for (const name of publicModules) {
     const pkg = await manifest(name);
     assert.equal(pkg.name, `@za38.03/agent-ui-${name}`);
@@ -30,21 +30,22 @@ test("eight independently versioned public packages own Bootstrap and Mock subpa
     }
     for (const target of Object.values(pkg.exports)) for (const file of typeof target === "string" ? [target] : Object.values(target)) {
       assert(!file.includes("\\"), file);
-      await access(path.join(root, "packages", name, file));
+      await access(path.join(root, "packages", name, file.includes("*") ? file.slice(0, file.indexOf("*")) : file));
     }
   }
 });
-test("Source Registry stays an external dependency with its own source release", async () => {
-  const registry = await manifest("source-registry");
-  const release = JSON.parse(await readFile(path.join(root, "packages/source-registry/registry/release.json"), "utf8"));
-  assert.equal(registry.version, release.releaseVersion);
-  assert(!(registry.dependencies ?? {})["@za38.03/agent-ui-operator"]);
-  assert(!(registry.dependencies ?? {})["@za38.03/agent-ui-creator"]);
-  const control = await manifest("operator");
-  assert.equal(control.dependencies[registry.name], "workspace:*");
+test("Plugins owns source assets; Operator owns Node loading without another registry package", async () => {
+  const plugins = await manifest("plugins"), control = await manifest("operator");
+  assert(plugins.exports["./catalog.json"]);
+  assert(plugins.exports["./catalog"]);
+  assert(control.exports["./source-registry"]);
+  assert.equal(control.dependencies[plugins.name], "workspace:*");
+  assert(!Object.keys(control.dependencies).some(name => name.endsWith("agent-ui-source-registry")));
+  const catalog = JSON.parse(await readFile(path.join(root, "packages/plugins/dist/catalog.json"), "utf8"));
+  assert.deepEqual(catalog.package, { name: plugins.name, version: plugins.version });
+  assert(catalog.plugins.length > 0);
   const bundle = await readFile(path.join(root, "packages/operator/dist/runtime/operator-runtime.mjs"), "utf8");
-  assert(bundle.includes(registry.name));
-  assert(!bundle.includes("async function loadAgentUISourceRegistry"));
+  assert(bundle.includes("@za38.03/agent-ui-plugins/catalog"));
   for (const folder of ["registry", "fixtures"]) await assert.rejects(access(path.join(root, "packages/operator/dist", folder)), { code: "ENOENT" });
 });
 test("logical export paths stay portable and bootstrap presets use native file URLs", async () => {

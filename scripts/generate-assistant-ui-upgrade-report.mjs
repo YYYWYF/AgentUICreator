@@ -17,7 +17,7 @@ const CANCELLATION_UPSTREAM_PATTERNS = [
   /(^|\/)(?:run[-/]?http[-/]?request|transform[-/]?http|httpagent|cancell?ation)/iu,
 ];
 const QUOTE_SELECTION_SEAM_FILES = [
-  "packages/plugins/src/internal/adapters/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
+  "packages/plugins/src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
   "packages/plugins/src/internal/quote-selection-root.tsx",
   "packages/plugins/src/internal/quote-selection-action.tsx",
   "packages/plugins/src/internal/quote-selection-message-id.ts",
@@ -43,7 +43,7 @@ export function quoteSelectionIntegrationReport(files, upstreamChangedFiles) {
   };
 }
 
-const PRODUCT_ADAPTER_ROOT = "packages/plugins/src/internal/adapters/assistant-ui";
+const PRODUCT_ADAPTER_ROOT = "packages/plugins/src/internal/adapters-generated/assistant-ui";
 const STYLE_BOUNDARY_ROOT = "packages/plugins/src/internal/style-boundary";
 const PRODUCT_ADAPTER_GENERATOR = "packages/plugins/scripts/sync-product-adapters.mjs";
 const THREAD_LIST_PORTAL_SEAM = "packages/plugins/src/internal/conversation-thread-list-item.tsx";
@@ -87,7 +87,7 @@ async function auditProductIntegration(repoRoot, baseGitSha, vendorProvenance) {
     }
     const integrated = new Set(record.files.map(file => file.localPath));
     audit.upstreamPaths = vendorProvenance.files.filter(file => integrated.has(file.localPath)).map(file => file.upstreamPath);
-    const expected = await prepareProductAdapters(path.join(repoRoot, "packages/plugins/src/internal/vendor/assistant-ui"));
+    const expected = await prepareProductAdapters(path.join(repoRoot, "packages/plugins/src/internal/vendor-generated/assistant-ui"));
     if (record.revision !== expected.revision ||
       JSON.stringify(record.files) !== JSON.stringify(expected.files.map(({source, ...file}) => file))) {
       throw new Error("Product adapter provenance differs from the current clean vendor / generator");
@@ -147,7 +147,7 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
   }
 
   const target = JSON.parse(await readFile(path.join(repoRoot, "assistant-ui-upgrade-target.json"), "utf8"));
-  const provenance = JSON.parse(await readFile(path.join(repoRoot, "packages/plugins/src/internal/vendor/assistant-ui/UPSTREAM.json"), "utf8"));
+  const provenance = JSON.parse(await readFile(path.join(repoRoot, "packages/plugins/src/internal/vendor-generated/assistant-ui/UPSTREAM.json"), "utf8"));
   const prior = JSON.parse(await readFile(reportPath, "utf8"));
   const generatedUntrackedArtifacts = Array.isArray(session?.generatedUntrackedArtifacts)
     ? session.generatedUntrackedArtifacts
@@ -294,14 +294,14 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     status: langGraphStatus,
   };
   const capabilityAudit = [
-    { capability: "ThreadComponents.TaskGroup", status: "NEW UPSTREAM CAPABILITY" },
-    { capability: "thread.tasks", status: "NEW UPSTREAM CAPABILITY" },
-    { capability: "TaskCard / TaskGroup", status: "NEW UPSTREAM CAPABILITY" },
-    { capability: "AgentStatus / TaskTray", status: "NEW UPSTREAM CAPABILITY" },
-    { capability: "ReasoningGroup / ToolGroup / ToolFallback", status: "UNCHANGED" },
-    { capability: "Composer / Message Footer / Thread List / Attachments / Suggestions", status: "UNCHANGED" },
+    { capability: "ThreadComponents.TaskGroup", status: "REVIEW REQUIRED: inspect upstream diff and validate behavior" },
+    { capability: "thread.tasks", status: "REVIEW REQUIRED: inspect upstream diff and validate behavior" },
+    { capability: "TaskCard / TaskGroup", status: "REVIEW REQUIRED: inspect upstream diff and validate behavior" },
+    { capability: "AgentStatus / TaskTray", status: "REVIEW REQUIRED: inspect upstream diff and validate behavior" },
+    { capability: "ReasoningGroup / ToolGroup / ToolFallback", status: "REVIEW REQUIRED: report does not validate behavior" },
+    { capability: "Composer / Message Footer / Thread List / Attachments / Suggestions", status: "REVIEW REQUIRED: report does not validate behavior" },
     { capability: "LangChain / LangGraph persisted message conversion", status: langGraphStatus },
-    { capability: "ConversationSubagentTool compatibility presentation", status: "LOCAL COMPATIBILITY NO LONGER NEEDED" },
+    { capability: "ConversationSubagentTool compatibility presentation", status: "PRODUCT COMPOSITION: validate nested transcript compatibility" },
     { capability: "CancellationAwareHttpAgent / AG-UI transport", status: cancellationStatus },
   ];
   const current = {
@@ -312,9 +312,10 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     localFacadeFilesChanged: select((file) => file.startsWith("packages/plugins/src/") && !file.startsWith("packages/plugins/src/internal/vendor/")),
     runtimeAdapterFilesChanged: select((file) => file.startsWith("packages/runtime/")),
     sourceRegistryAssistantUiFilesChanged: select((file) => [
-      "packages/source-registry/registry/items/agent-component-assistant-ui-generative-ui/",
-      "packages/source-registry/registry/items/integration-generative-ui/",
-      "packages/source-registry/registry/items/integration-a2ui/",
+      "packages/plugins/resources/registry/items/agent-component-assistant-ui-generative-ui/",
+      "packages/plugins/resources/registry/items/agent-component-generative-ui/",
+      "packages/plugins/resources/registry/items/integration-generative-ui/",
+      "packages/plugins/resources/registry/items/integration-a2ui/",
     ].some((prefix) => file.startsWith(prefix))),
     pluginFilesChanged: select((file) => file.startsWith("examples/creator-host-sandbox/plugins/")),
     appUIModelFilesChanged: select((file) => file.startsWith("examples/creator-host-sandbox/app-ui/")),

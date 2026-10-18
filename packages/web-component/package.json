@@ -1,6 +1,6 @@
 {
   "name": "@za38.03/agent-ui-web-component",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Standalone Web Component compatibility host for the React Agent UI",
   "type": "module",
   "files": [
@@ -23,16 +23,18 @@
     "./host": {
       "types": "./dist/types/src/host.d.ts",
       "import": "./dist/host.js"
-    }
+    },
+    "./compatibility.json": "./dist/compatibility.json"
   },
   "sideEffects": true,
   "scripts": {
     "prepare:shell": "node scripts/prepare-shell.mjs",
-    "build": "pnpm prepare:shell && tsc --noEmit && node scripts/build-register.mjs && vite build --config vite.host.config.ts && tsc -p tsconfig.types.json && node scripts/finish-build.mjs",
+    "build": "node ../../scripts/sync-package-release-metadata.mjs web-component && pnpm prepare:shell && tsc --noEmit && node scripts/build-register.mjs && vite build --config vite.host.config.ts && tsc -p tsconfig.types.json && node scripts/finish-build.mjs && node ../../scripts/sync-package-release-metadata.mjs web-component",
     "typecheck": "pnpm prepare:shell && tsc --noEmit",
     "test": "vitest run",
     "test:distribution": "node tests/distribution.test.mjs",
-    "test:installation": "node tests/installation.test.mjs"
+    "test:installation": "node tests/installation.test.mjs",
+    "prepack": "node ../../scripts/sync-package-release-metadata.mjs web-component"
   },
   "dependencies": {
     "@za38.03/agent-ui-plugins": "workspace:*",
@@ -43,12 +45,12 @@
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "zod": "4.5.4",
-    "@assistant-ui/react-lexical": "0.2.15",
-    "@lexical/history": "0.51.0",
-    "@lexical/plain-text": "0.51.0",
-    "@lexical/react": "0.51.0",
-    "@lexical/utils": "0.51.0",
-    "lexical": "0.51.0"
+    "@assistant-ui/react-lexical": "0.2.18",
+    "@lexical/history": "0.52.0",
+    "@lexical/plain-text": "0.52.0",
+    "@lexical/react": "0.52.0",
+    "@lexical/utils": "0.52.0",
+    "lexical": "0.52.0"
   },
   "devDependencies": {
     "@types/node": "26.6.2",
@@ -75,5 +77,88 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "agentUI": {
+    "schemaVersion": 1,
+    "compatibility": {
+      "schemaVersion": 1,
+      "releases": [
+        {
+          "id": "agent-ui-initial-0.0.1",
+          "publishedAt": "2026-10-18T00:00:00Z",
+          "channel": "stable",
+          "node": "^20.19.0 || >=22.12.0",
+          "react": ">=18 <20",
+          "packages": [
+            {
+              "name": "@za38.03/agent-ui-core",
+              "version": "0.0.1",
+              "requires": {},
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-renderer",
+              "version": "0.0.1",
+              "requires": {},
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-runtime",
+              "version": "0.0.1",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.1",
+                "@za38.03/agent-ui-plugins": "0.0.1"
+              },
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-plugins",
+              "version": "0.0.1",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.1",
+                "@za38.03/agent-ui-renderer": "0.0.1"
+              },
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-web-component",
+              "version": "0.0.1",
+              "requires": {
+                "@za38.03/agent-ui-plugins": "0.0.1",
+                "@za38.03/agent-ui-runtime": "0.0.1",
+                "@za38.03/agent-ui-core": "0.0.1",
+                "@za38.03/agent-ui-renderer": "0.0.1"
+              },
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-creator",
+              "version": "0.0.1",
+              "requires": {
+                "@za38.03/agent-ui-operator": "0.0.1",
+                "@za38.03/agent-ui-core": "0.0.1"
+              },
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-operator",
+              "version": "0.0.1",
+              "requires": {
+                "@za38.03/agent-ui-web-component": "0.0.1",
+                "@za38.03/agent-ui-plugins": "0.0.1"
+              },
+              "historyFrom": "0.0.1",
+              "changes": []
+            }
+          ]
+        }
+      ]
+    }
   }
 }

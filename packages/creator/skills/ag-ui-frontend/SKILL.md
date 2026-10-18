@@ -64,20 +64,20 @@ For capability or renderer integration details, read the packaged
 5. History restoration must never execute Frontend Tools. An execute on history
    load is a Runtime bug; do not patch it with renderer `isHistory` workarounds.
 6. Keep `Plugin -> Service`, `Application agent-tools -> allowed operation`,
-   `Runtime adapter -> assistant-ui native frontend execute`. Plugins never
+   `Runtime adapter -> Agent UI native frontend execute`. Plugins never
    register Tools. Preserve root-only execution scope until subagent attribution
    has its own contract. Do not add another TOOL_CALL executor or CUSTOM protocol.
 
 ## Official integrations
 
-When assistant-ui provides a specialized integration:
+When Agent UI provides a specialized integration:
 
 1. Inspect the official integration at the project's pinned upstream revision first.
 2. Reuse its public semantic contracts where possible.
 3. Do not bypass AgentUICreator application permission.
 4. Model reusable adaptation as an Integration, not as a Demo Plugin.
 
-React Hook Form: reuse `@assistant-ui/react-hook-form.formTools` through
+React Hook Form: reuse `@za38.03/agent-ui-plugins/form-tools.formTools` through
 `integration/react-hook-form`. Use ordinary RHF `useForm()` plus an application
 Service and `createReactHookFormFrontendTools({ serviceName, fields, expose })`.
 `expose` is mandatory and has no default. Do not call `useAssistantForm()` or
@@ -89,22 +89,22 @@ frontend-tool modules included in the generated allowlist expose operations.
 Integrations can be pluginless and tool-less. Demo consumers own UI, field names,
 Service lifecycle and replayable receipts; the Integration owns reusable contracts.
 
-## assistant-ui Generative UI
+## Agent UI Generative UI
 
-`@assistant-ui/react-generative-ui` is the canonical component vocabulary and
+`@za38.03/agent-ui-plugins/generative-ui` is the canonical component vocabulary and
 renderer. Prefer official vocabulary before creating custom components. Inspect
 the project's installed version: do not infer capabilities from unreleased
 source or from the presence of related CSS selectors.
 
 - Install optional `integration/generative-ui` for the shared factory, official
   styled vocabulary and Action Registry. It requires the Registry-managed
-  `agent-component/assistant-ui-generative-ui`; neither is a default Foundation.
+  `agent-component/generative-ui`; neither is a default Foundation.
 - `createAgentUIGenerativeUI` exposes `present()` and `promptUser()` capabilities.
   Capability availability does not grant Agent permission. Do not automatically
   mount or advertise `present` / `prompt_user`; explicit Tool authorization requires a separate product decision.
 - Use the pinned package types and official Form `$input` collection; do not infer availability from CSS selectors.
 - Keep optional source provenance and official styles under Source Registry;
-  regenerate from the pinned local assistant-ui source. CSS permits only
+  regenerate from the pinned package-owned upstream source. CSS permits only
   mechanical `.agent-ui-conversation` selector scoping, with no visual redesign.
 
 ## Localization ownership

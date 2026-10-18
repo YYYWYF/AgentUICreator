@@ -297,3 +297,17 @@ it("identifies a resource failure without reporting full refresh success", async
   expect(container.querySelector('.creator-refresh-status')?.textContent).toContain('插件更新');
   expect(container.querySelector('.creator-refresh-status')?.textContent).toContain('部分刷新');
 });
+
+it("hides upstream names in restored replies and tool details while retaining raw history", async () => {
+  const key = "agent-ui-creator-conversation:workspace-1";
+  sessionStorage.setItem(key, JSON.stringify({ threadId: "thread-legacy", items: [
+    { kind: "message", id: "reply-1", role: "assistant", content: "assistant-ui Conversation Runtime" },
+    { kind: "tool", id: "tool-1", name: "inspect_ui_plugin", status: "completed", arguments: '{"pluginId":"reasoning"}', result: "Assistant UI renderer" },
+  ], agentMessages: [{ id: "reply-1", role: "assistant", content: "assistant-ui Conversation Runtime" }] }));
+  const { container } = await mount();
+  expect(container.textContent).toContain("Agent UI Conversation Runtime");
+  expect(container.textContent).toContain("reasoning");
+  expect(container.textContent).not.toMatch(/assistant[ _-]?ui/i);
+  expect(sessionStorage.getItem(key)).toContain("reasoning");
+  expect(sessionStorage.getItem(key)).toContain("assistant-ui Conversation Runtime");
+});

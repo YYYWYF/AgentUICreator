@@ -1,0 +1,1465 @@
+[
+  {
+    "id": "composer",
+    "component": "ConversationComposerPlugin",
+    "symbol": "conversationComposerPlugin",
+    "support": "composerSupport",
+    "presentation": [
+      "composer.tsx",
+      "textarea.tsx"
+    ],
+    "implementationExports": [
+      "ConversationCanonicalComposer",
+      "ConversationCanonicalComposerProps",
+      "ConversationComposerTextareaInput"
+    ],
+    "supportEntry": "composer-support",
+    "presentationOwner": "composer",
+    "implementationModule": "composer",
+    "applicationAlias": "Composer",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": [
+        "agent-ui.locale"
+      ]
+    }
+  },
+  {
+    "id": "copy-action",
+    "component": "ConversationCopyActionPlugin",
+    "symbol": "conversationCopyActionPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "copy-action.tsx"
+    ],
+    "implementationExports": [
+      "ConversationCanonicalResponseCopyAction"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "copy-action",
+    "implementationModule": "copy-action",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true
+  },
+  {
+    "id": "reload-action",
+    "component": "ConversationReloadActionPlugin",
+    "symbol": "conversationReloadActionPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "reload-action.tsx"
+    ],
+    "implementationExports": [
+      "ConversationCanonicalResponseReloadAction"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "reload-action",
+    "implementationModule": "reload-action",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true
+  },
+  {
+    "id": "feedback-actions",
+    "component": "ConversationFeedbackActionsPlugin",
+    "symbol": "conversationFeedbackActionsPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "feedback-actions.tsx"
+    ],
+    "implementationExports": [
+      "ConversationCanonicalResponseFeedbackActions"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "feedback-actions",
+    "implementationModule": "feedback-actions",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": [
+        "agent-ui.locale"
+      ]
+    },
+    "publicPresentationTypes": true
+  },
+  {
+    "id": "export-markdown-action",
+    "component": "ConversationExportMarkdownActionPlugin",
+    "symbol": "conversationExportMarkdownActionPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "export-markdown-action.tsx"
+    ],
+    "implementationExports": [
+      "ConversationCanonicalResponseExportMarkdownAction"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "export-markdown-action",
+    "implementationModule": "export-markdown-action",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": [
+        "agent-ui.locale"
+      ]
+    },
+    "publicPresentationTypes": true
+  },
+  {
+    "id": "reasoning",
+    "component": "ConversationReasoningPlugin",
+    "symbol": "conversationReasoningPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "reasoning.tsx"
+    ],
+    "scopeKind": "conversation.reasoning-group",
+    "componentSource": "adapters/component.tsx",
+    "implementationExports": [
+      "ConversationCanonicalReasoningGroup",
+      "ConversationCanonicalReasoningGroupProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "reasoning",
+    "implementationModule": "reasoning",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true
+  },
+  {
+    "id": "tool-group",
+    "component": "ConversationToolGroupPlugin",
+    "symbol": "conversationToolGroupPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "tool-group.tsx"
+    ],
+    "scopeKind": "conversation.tool-group",
+    "componentSource": "adapters/component.tsx",
+    "implementationExports": [
+      "ConversationCanonicalToolGroup",
+      "ConversationCanonicalToolGroupProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "tool-group",
+    "implementationModule": "tool-group",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true
+  },
+  {
+    "id": "add-attachment-action",
+    "component": "ConversationAddAttachmentActionPlugin",
+    "symbol": "conversationAddAttachmentActionPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "add-attachment-action.tsx"
+    ],
+    "implementationExports": [
+      "ConversationComposerAddAttachment"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "add-attachment-action",
+    "implementationModule": "add-attachment-action",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true
+  },
+  {
+    "id": "dictation-action",
+    "component": "ConversationDictationActionPlugin",
+    "symbol": "conversationDictationActionPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "dictation-action.tsx"
+    ],
+    "implementationExports": [
+      "ConversationComposerDictate",
+      "ConversationComposerStopDictation"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "dictation-action",
+    "implementationModule": "dictation-action",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true
+  },
+  {
+    "id": "submit-action",
+    "component": "ConversationSubmitActionPlugin",
+    "symbol": "conversationSubmitActionPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "submit-action.tsx"
+    ],
+    "implementationExports": [
+      "ConversationComposerSend",
+      "ConversationComposerCancel"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "submit-action",
+    "implementationModule": "submit-action",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": [
+        "agent-ui.locale"
+      ]
+    },
+    "publicPresentationTypes": true
+  },
+  {
+    "id": "response-footer",
+    "component": "ConversationResponseFooterPlugin",
+    "symbol": "conversationResponseFooterPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "response-footer.tsx"
+    ],
+    "implementationExports": [
+      "ConversationCanonicalResponseFooter"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "response-footer",
+    "implementationModule": "response-footer",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true
+  },
+  {
+    "id": "conversation-suggestions",
+    "component": "ConversationSuggestionsPlugin",
+    "symbol": "conversationSuggestionsPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "conversation-suggestions.tsx"
+    ],
+    "implementationExports": [
+      "ConversationCanonicalSuggestions"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "conversation-suggestions",
+    "implementationModule": "conversation-suggestions",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "projectFiles": [
+      "styles.css",
+      "styles.css.d.ts"
+    ]
+  },
+  {
+    "id": "thinking-indicator",
+    "component": "ConversationThinkingIndicatorPlugin",
+    "symbol": "conversationThinkingIndicatorPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "thinking-indicator.tsx",
+      "policy.ts"
+    ],
+    "implementationExports": [
+      "ConversationThinkingIndicator"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "thinking-indicator",
+    "implementationModule": "thinking-indicator",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "scopeKind": "conversation.thinking-indicator",
+    "componentSource": "adapters/component.tsx"
+  },
+  {
+    "id": "tool-timeline",
+    "component": "ConversationToolTimelinePlugin",
+    "symbol": "conversationToolTimelinePlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "tool-timeline.tsx"
+    ],
+    "implementationExports": [
+      "ConversationToolTimeline"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "tool-timeline",
+    "implementationModule": "tool-timeline",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "scopeKind": "conversation.tool-timeline",
+    "componentSource": "adapters/component.tsx"
+  },
+  {
+    "id": "tool-fallback",
+    "component": "ConversationToolFallbackPlugin",
+    "symbol": "conversationToolFallbackPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "tool-fallback.tsx"
+    ],
+    "implementationExports": [
+      "ConversationToolFallback",
+      "ConversationToolFallbackProps",
+      "ToolFallbackPresentationProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "tool-fallback",
+    "implementationModule": "tool-fallback",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "scopeKind": "conversation.tool-fallback",
+    "componentSource": "adapters/component.tsx",
+    "upstreamBridge": {
+      "localPath": "components/assistant-ui/elements/tool-fallback.aui.tsx",
+      "reviewedAdaptedSha256": "e376fb611a6069efe14ddc4a7465b464dd4066f16a09fb1d1a1095cb74692400"
+    }
+  },
+  {
+    "id": "transient-assistant-messages",
+    "component": "TransientAssistantMessagesPlugin",
+    "symbol": "transientAssistantMessagesPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "transient-assistant-messages.tsx"
+    ],
+    "implementationExports": [
+      "ConversationTransientMessages",
+      "ConversationTransientMessagesProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "transient-assistant-messages",
+    "implementationModule": "transient-assistant-messages",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "scopeKind": "conversation.transient-messages",
+    "componentSource": "adapters/component.tsx"
+  },
+  {
+    "id": "agent-status-message",
+    "component": "AgentStatusMessagePlugin",
+    "symbol": "agentStatusMessagePlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "agent-status-message.tsx",
+      "projection.ts"
+    ],
+    "implementationExports": [
+      "CanonicalAgentStatusMessage",
+      "AgentStatusMessageProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "agent-status-message",
+    "implementationModule": "agent-status-message",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "registration": {
+      "kind": "tool",
+      "name": "mock_agent_status"
+    }
+  },
+  {
+    "id": "agent-plan-message",
+    "component": "AgentPlanMessagePlugin",
+    "symbol": "agentPlanMessagePlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "agent-plan-message.tsx",
+      "projection.ts"
+    ],
+    "implementationExports": [
+      "CanonicalAgentPlanMessage",
+      "AgentPlanMessageProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "agent-plan-message",
+    "implementationModule": "agent-plan-message",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "registration": {
+      "kind": "data",
+      "name": "agui-activity/agent-plan"
+    }
+  },
+  {
+    "id": "job-progress-message",
+    "component": "JobProgressMessagePlugin",
+    "symbol": "jobProgressMessagePlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "job-progress-message.tsx",
+      "projection.ts"
+    ],
+    "implementationExports": [
+      "CanonicalJobProgressMessage",
+      "JobProgressMessageProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "job-progress-message",
+    "implementationModule": "job-progress-message",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "registration": {
+      "kind": "tool",
+      "name": "run_ci_job"
+    },
+    "runtimeContext": true
+  },
+  {
+    "id": "generated-file-message",
+    "component": "GeneratedFileMessagePlugin",
+    "symbol": "generatedFileMessagePlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "generated-file-message.tsx",
+      "projection.ts"
+    ],
+    "implementationExports": [
+      "CanonicalGeneratedFileMessage",
+      "GeneratedFileMessageProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "generated-file-message",
+    "implementationModule": "generated-file-message",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "registration": {
+      "kind": "tool",
+      "name": "generate_file"
+    }
+  },
+  {
+    "id": "chart-message",
+    "component": "ChartMessagePlugin",
+    "symbol": "chartMessagePlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "chart-message.tsx",
+      "projection.ts"
+    ],
+    "implementationExports": [
+      "CanonicalChartMessage",
+      "ChartMessageProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "chart-message",
+    "implementationModule": "chart-message",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "registration": {
+      "kind": "data",
+      "name": "chart"
+    },
+    "projectFiles": [
+      "style.css",
+      "style.css.d.ts"
+    ]
+  },
+  {
+    "id": "source-citations-message",
+    "component": "SourceCitationsMessagePlugin",
+    "symbol": "sourceCitationsMessagePlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "source-citations-message.tsx",
+      "projection.ts"
+    ],
+    "implementationExports": [
+      "CanonicalSourceCitationsMessage",
+      "SourceCitationsMessageProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "source-citations-message",
+    "implementationModule": "source-citations-message",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "registration": {
+      "kind": "tool",
+      "name": "search_sources"
+    }
+  },
+  {
+    "id": "retrieval-chunks",
+    "component": "RetrievalChunksPlugin",
+    "symbol": "retrievalChunksPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "retrieval-chunks.tsx",
+      "projection.ts"
+    ],
+    "implementationExports": [
+      "CanonicalRetrievalChunks",
+      "RetrievalChunksPluginProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "retrieval-chunks",
+    "implementationModule": "retrieval-chunks",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "registration": {
+      "kind": "tool",
+      "name": "search_docs"
+    }
+  },
+  {
+    "id": "web-search",
+    "component": "WebSearchPlugin",
+    "symbol": "webSearchPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "web-search.tsx",
+      "projection.ts"
+    ],
+    "implementationExports": [
+      "CanonicalWebSearch",
+      "WebSearchPluginProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "web-search",
+    "implementationModule": "web-search",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "registration": {
+      "kind": "tool",
+      "name": "web_search"
+    }
+  },
+  {
+    "id": "conversation-thread-list",
+    "component": "ConversationThreadListPlugin",
+    "symbol": "conversationThreadListPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "conversation-thread-list.tsx",
+      "PolicyThreadList.tsx"
+    ],
+    "implementationExports": [
+      "CanonicalConversationThreadList",
+      "ConversationThreadListPluginProps",
+      "CanonicalConversationThreadListRailAction",
+      "ConversationThreadListRailActionProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "conversation-thread-list",
+    "implementationModule": "conversation-thread-list",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [
+        "agent-ui.conversations"
+      ],
+      "optionalInject": [
+        "agent-ui.theme",
+        "agent-ui.locale"
+      ]
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "projectFiles": [
+      "styles.css",
+      "styles.css.d.ts"
+    ],
+    "hostBindings": [
+      "conversation-list",
+      "theme",
+      "run"
+    ],
+    "railAction": "ConversationThreadListRailAction"
+  },
+  {
+    "id": "conversation-history",
+    "component": "ConversationHistoryPlugin",
+    "symbol": "conversationHistoryPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "conversation-history.tsx"
+    ],
+    "implementationExports": [
+      "CanonicalConversationHistory",
+      "ConversationHistoryPluginProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "conversation-history",
+    "implementationModule": "conversation-history",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [
+        "agent-ui.conversations"
+      ],
+      "optionalInject": [
+        "agent-ui.locale"
+      ]
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "projectFiles": [
+      "styles.css",
+      "styles.css.d.ts"
+    ],
+    "hostBindings": [
+      "conversation-selection"
+    ]
+  },
+  {
+    "id": "conversation-new",
+    "component": "ConversationNewPlugin",
+    "symbol": "conversationNewPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "conversation-new.tsx"
+    ],
+    "implementationExports": [
+      "CanonicalConversationNew",
+      "ConversationNewPluginProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "conversation-new",
+    "implementationModule": "conversation-new",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "projectFiles": [
+      "styles.css",
+      "styles.css.d.ts"
+    ]
+  },
+  {
+    "id": "conversation-quote",
+    "component": "ConversationQuotePlugin",
+    "symbol": "conversationQuotePlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "conversation-quote.tsx"
+    ],
+    "implementationExports": [
+      "CanonicalConversationQuote",
+      "ConversationQuotePluginProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "conversation-quote",
+    "implementationModule": "conversation-quote",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": [
+        "agent-ui.locale"
+      ]
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts"
+  },
+  {
+    "id": "agent-identity",
+    "component": "AgentIdentityPlugin",
+    "symbol": "agentIdentityPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "agent-identity.tsx"
+    ],
+    "implementationExports": [
+      "CanonicalAgentIdentityPlugin",
+      "AgentIdentityPluginProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "agent-identity",
+    "implementationModule": "agent-identity",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": [
+        "agent-ui.locale"
+      ]
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ],
+      [
+        "config.ts",
+        "adapters/project/config.ts"
+      ]
+    ],
+    "projectFiles": [
+      "styles.css",
+      "styles.css.d.ts"
+    ]
+  },
+  {
+    "id": "auth-account",
+    "component": "AuthAccountPlugin",
+    "symbol": "authAccountPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "auth-account.tsx"
+    ],
+    "implementationExports": [
+      "CanonicalAuthAccountPlugin",
+      "AuthAccountPluginProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "auth-account",
+    "implementationModule": "auth-account",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": [
+        "auth.session",
+        "agent-ui.locale"
+      ]
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ],
+    "projectFiles": [
+      "styles.css",
+      "styles.css.d.ts"
+    ],
+    "applicationSharedFiles": [
+      [
+        "services/auth/session.ts",
+        "src/plugins/auth-gate/adapters/project-support/services/auth/session.ts"
+      ]
+    ]
+  },
+  {
+    "id": "auth-gate",
+    "component": "AuthGatePlugin",
+    "symbol": "authGatePlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "auth-gate.tsx",
+      "session.ts",
+      "auth-contract.ts"
+    ],
+    "implementationExports": [
+      "CanonicalAuthGatePlugin",
+      "AuthGatePluginProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "auth-gate",
+    "implementationModule": "auth-gate",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [
+        "auth.gate",
+        "auth.session"
+      ],
+      "inject": [],
+      "optionalInject": [
+        "agent-ui.locale"
+      ]
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ],
+      [
+        "host-auth-adapter.ts",
+        "adapters/host-auth-adapter.ts"
+      ]
+    ],
+    "projectFiles": [
+      "styles.css",
+      "styles.css.d.ts"
+    ],
+    "definitionExports": [
+      "bindSetup",
+      "createAuthSession",
+      "AuthAdapter",
+      "AuthSessionService",
+      "AuthSessionSnapshot",
+      "AuthUser"
+    ],
+    "applicationSharedFiles": [
+      [
+        "services/auth/session.ts",
+        "src/plugins/auth-gate/adapters/project-support/services/auth/session.ts"
+      ]
+    ]
+  },
+  {
+    "id": "conversation-command-source",
+    "component": "ConversationCommandSourcePlugin",
+    "symbol": "conversationCommandSourcePlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "conversation-command-source.tsx"
+    ],
+    "implementationExports": [
+      "CanonicalConversationCommandSourcePlugin",
+      "ConversationCommandSourcePluginProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "conversation-command-source",
+    "implementationModule": "conversation-command-source",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [
+        "conversation.slash-command-source"
+      ],
+      "inject": [],
+      "optionalInject": [
+        "agent-ui.locale"
+      ]
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ],
+    "definitionExports": [
+      "bindSetup"
+    ]
+  },
+  {
+    "id": "conversation-data-source",
+    "component": "ConversationDataSourcePlugin",
+    "symbol": "conversationDataSourcePlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "conversation-data-source.tsx"
+    ],
+    "implementationExports": [
+      "CanonicalConversationDataSourcePlugin",
+      "ConversationDataSourcePluginProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "conversation-data-source",
+    "implementationModule": "conversation-data-source",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [
+        "agent-ui.conversation-data-source"
+      ],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ],
+    "definitionExports": [
+      "bindSetup"
+    ]
+  },
+  {
+    "id": "conversation-service",
+    "component": "ConversationServicePlugin",
+    "symbol": "conversationServicePlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "conversation-service.tsx"
+    ],
+    "implementationExports": [
+      "CanonicalConversationServicePlugin",
+      "ConversationServicePluginProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "conversation-service",
+    "implementationModule": "conversation-service",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [
+        "agent-ui.conversations"
+      ],
+      "inject": [
+        "agent-ui.conversation-data-source"
+      ],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ],
+    "definitionExports": [
+      "bindSetup"
+    ]
+  },
+  {
+    "id": "conversation-surface",
+    "component": "ConversationSurfacePlugin",
+    "symbol": "conversationSurfacePlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "conversation-surface.tsx"
+    ],
+    "implementationExports": [
+      "CanonicalConversationSurfacePlugin",
+      "ConversationSurfacePluginProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "conversation-surface",
+    "implementationModule": "conversation-surface",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [
+        "agent-ui.conversations"
+      ],
+      "optionalInject": [
+        "agent-ui.theme",
+        "agent-ui.locale"
+      ]
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ],
+    "projectFiles": [
+      "styles.css",
+      "styles.css.d.ts"
+    ]
+  },
+  {
+    "id": "lexical-composer-input",
+    "component": "ConversationLexicalComposerInput",
+    "symbol": "conversationLexicalComposerInputPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "lexical-composer-input.tsx"
+    ],
+    "implementationExports": [
+      "CanonicalConversationLexicalComposerInput",
+      "ConversationLexicalComposerInputProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "lexical-composer-input",
+    "implementationModule": "lexical-composer-input",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ],
+    "implementationImport": "@za38.03/agent-ui-plugins/lexical"
+  },
+  {
+    "id": "lexical-edit-composer",
+    "component": "ConversationLexicalEditComposer",
+    "symbol": "conversationLexicalEditComposerPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "lexical-edit-composer.tsx"
+    ],
+    "implementationExports": [
+      "CanonicalConversationLexicalEditComposer",
+      "ConversationLexicalEditComposerProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "lexical-edit-composer",
+    "implementationModule": "lexical-edit-composer",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ],
+    "implementationImport": "@za38.03/agent-ui-plugins/lexical"
+  },
+  {
+    "id": "locale-provider",
+    "component": "LocaleProviderPlugin",
+    "symbol": "localeProviderPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "locale-provider.tsx",
+      "locale-service.ts"
+    ],
+    "implementationExports": [
+      "CanonicalLocaleProviderPlugin",
+      "LocaleProviderPluginProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "locale-provider",
+    "implementationModule": "locale-provider",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [
+        "agent-ui.locale"
+      ],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ],
+    "definitionExports": [
+      "bindSetup",
+      "createAgentUILocaleService"
+    ]
+  },
+  {
+    "id": "mention-trigger",
+    "component": "ConversationMentionTrigger",
+    "symbol": "conversationMentionTriggerPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "mention-trigger.tsx"
+    ],
+    "implementationExports": [
+      "CanonicalConversationMentionTrigger",
+      "ConversationMentionTriggerPluginProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "mention-trigger",
+    "implementationModule": "mention-trigger",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": [
+        "agent-ui.locale",
+        "conversation.mention-source"
+      ]
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ]
+  },
+  {
+    "id": "slash-command-trigger",
+    "component": "ConversationSlashCommandTrigger",
+    "symbol": "conversationSlashCommandTriggerPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "slash-command-trigger.tsx"
+    ],
+    "implementationExports": [
+      "CanonicalConversationSlashCommandTrigger",
+      "ConversationSlashCommandTriggerProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "slash-command-trigger",
+    "implementationModule": "slash-command-trigger",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": [
+        "agent-ui.locale",
+        "conversation.slash-command-source"
+      ]
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ]
+  },
+  {
+    "id": "task-group",
+    "component": "TaskGroupPlugin",
+    "symbol": "taskGroupPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "task-group.tsx"
+    ],
+    "implementationExports": [
+      "CanonicalTaskGroupPlugin",
+      "TaskGroupPluginProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "task-group",
+    "implementationModule": "task-group",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ],
+    "scopeKind": "conversation.task-group"
+  },
+  {
+    "id": "theme-provider",
+    "component": "ThemeProviderPlugin",
+    "symbol": "themeProviderPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "theme-provider.tsx",
+      "theme-service.ts"
+    ],
+    "implementationExports": [
+      "CanonicalThemeProviderPlugin",
+      "ThemeProviderPluginProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "theme-provider",
+    "implementationModule": "theme-provider",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [
+        "agent-ui.theme"
+      ],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ],
+    "definitionExports": [
+      "bindSetup",
+      "createAgentUIThemeService"
+    ]
+  },
+  {
+    "id": "theme-switch",
+    "component": "ThemeSwitchPlugin",
+    "symbol": "themeSwitchPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "theme-switch.tsx"
+    ],
+    "implementationExports": [
+      "CanonicalThemeSwitchPlugin",
+      "ThemeSwitchPluginProps"
+    ],
+    "preserveLegacySource": true,
+    "supportEntry": "plugin-support",
+    "presentationOwner": "theme-switch",
+    "implementationModule": "theme-switch",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [
+        "agent-ui.theme"
+      ],
+      "optionalInject": [
+        "agent-ui.locale"
+      ]
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ],
+    "projectFiles": [
+      "styles.css",
+      "styles.css.d.ts"
+    ]
+  }
+]

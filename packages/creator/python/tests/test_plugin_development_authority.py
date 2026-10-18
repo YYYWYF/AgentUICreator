@@ -350,9 +350,9 @@ def test_pending_blocks_every_target_write_but_ordinary_edit_stays_available(tmp
 
 def test_existing_plugin_placeholder_copy_requires_locale_value(tmp_path):
     state = authority(tmp_path)
-    (tmp_path / "plugins" / "assistant-ui-composer").mkdir(parents=True)
+    (tmp_path / "plugins" / "composer").mkdir(parents=True)
     middleware = PluginDevelopmentAdmissionMiddleware(state)
-    path = "/plugins/assistant-ui-composer/index.tsx"
+    path = "/plugins/composer/index.tsx"
     blocked = _call(middleware, "edit_file", {
         "file_path": path,
         "old_string": "<ConversationCanonicalComposer",

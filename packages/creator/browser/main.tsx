@@ -11,4 +11,4 @@ if (root) {
   hint.textContent = messages.hint;
   root.append(heading, hint);
 }
-installCreatorDock({ creatorUrl: location.origin, messages });
+installCreatorDock({ creatorUrl: location.origin, messages, initiallyOpen: true });

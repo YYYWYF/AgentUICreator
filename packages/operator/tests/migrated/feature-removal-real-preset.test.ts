@@ -5,7 +5,7 @@ import path from "node:path";
 import { minVersion } from "semver";
 import { afterEach, describe, expect, it } from "vitest";
 import { createDefaultAgentUIPresetRegistry, initializeAgentUIProject } from "@za38.03/agent-ui-operator/bootstrap";
-import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure } from "@za38.03/agent-ui-source-registry";
+import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure } from "@za38.03/agent-ui-operator/source-registry";
 import { collectAppUIPluginLocations, parseAppUIModel, parseAppUIModelJson } from "../../src/framework/contracts/app-ui-model";
 import { compileAppUIModel } from "../../src/framework/contracts/app-ui-compiler";
 import { mutateAppUIModel } from "../../src/project/app-ui-transaction";
@@ -18,10 +18,10 @@ import { verifyUIProject } from "../../src/verify-ui";
 const roots: string[] = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
 const sourceRoot = "custom-ui";
-const slash = "assistant-ui-slash-command-trigger-main";
+const slash = "slash-command-trigger-main";
 const commands = "conversation-command-source-main";
-const mention = "assistant-ui-mention-trigger-main";
-const preserved = ["assistant-ui-composer-main", mention, "conversation-quote-main"];
+const mention = "mention-trigger-main";
+const preserved = ["composer-main", mention, "conversation-quote-main"];
 const hash = (source: string | Buffer) => createHash("sha256").update(source).digest("hex");
 
 async function project(mode: "assistant" | "embedded" | "platform") {
@@ -69,7 +69,7 @@ async function healthy(f: Fixture) {
 }
 async function sourceHashes(f: Fixture) {
   const result = new Map<string, string>();
-  for (const id of ["plugin/assistant-ui-slash-command-trigger", "plugin/conversation-command-source"]) {
+  for (const id of ["plugin/slash-command-trigger", "plugin/conversation-command-source"]) {
     for (const file of f.registry.byId.get(id)!.loadedFiles) {
       const target = path.join(f.paths.sourceRoot, file.target);
       result.set(target, hash(await readFile(target)));
@@ -108,7 +108,7 @@ describe("real default preset Feature Removal", () => {
     expect(await model(f)).toEqual(f.preset.createAppUIModel());
     expect(await ids(f)).toEqual(expect.arrayContaining([slash, commands, ...preserved]));
     const initial = await healthy(f);
-    expect(initial.serviceDependencies.plugins.find(item => item.pluginId === "assistant-ui-slash-command-trigger"))
+    expect(initial.serviceDependencies.plugins.find(item => item.pluginId === "slash-command-trigger"))
       .toMatchObject({ optionalInject: ["conversation.slash-command-source"] });
     expect(initial.serviceDependencies.plugins.find(item => item.pluginId === "conversation-command-source"))
       .toMatchObject({ provides: ["conversation.slash-command-source"] });
@@ -135,11 +135,11 @@ describe("real default preset Feature Removal", () => {
     for (const instanceId of [slash, commands, ...preserved]) {
       expect(locations.filter(entry => entry.plugin.id === instanceId)).toHaveLength(1);
     }
-    for (const pluginId of ["conversation-command-source", "assistant-ui-slash-command-trigger"]) {
+    for (const pluginId of ["conversation-command-source", "slash-command-trigger"]) {
       expect(locations.filter(entry => entry.plugin.pluginId === pluginId)).toHaveLength(1);
     }
     expect(locations.find(entry => entry.plugin.id === commands)!.target).toEqual({ type: "application" });
-    expect(locations.find(entry => entry.plugin.id === slash)!.target).toEqual({ type: "plugin_slot", parentInstanceId: "assistant-ui-composer-main", slot: "triggers" });
+    expect(locations.find(entry => entry.plugin.id === slash)!.target).toEqual({ type: "plugin_slot", parentInstanceId: "composer-main", slot: "triggers" });
     await unchanged(sources);
     await healthy(f);
   }, 60_000);
@@ -160,11 +160,11 @@ describe("real default preset Feature Removal", () => {
     await addBusinessPlugin(f, "business-mention-source", "provides", "CONVERSATION_MENTION_SOURCE");
     const initial = await healthy(f);
     expect(initial.assets.find(item => item.pluginId === "business-mention-source")!.authoring?.cleanup?.removeWhenUnused).not.toBe(true);
-    expect(initial.serviceDependencies.plugins.find(item => item.pluginId === "assistant-ui-mention-trigger"))
+    expect(initial.serviceDependencies.plugins.find(item => item.pluginId === "mention-trigger"))
       .toMatchObject({ optionalInject: ["conversation.mention-source"] });
     const result = await remove(f, mention);
     expect(result.diff.plugins.removed).toEqual([mention]);
-    expect(await ids(f)).toEqual(expect.arrayContaining(["business-mention-source-main", slash, commands, "assistant-ui-composer-main", "conversation-quote-main"]));
+    expect(await ids(f)).toEqual(expect.arrayContaining(["business-mention-source-main", slash, commands, "composer-main", "conversation-quote-main"]));
     await healthy(f);
   }, 60_000);
 });

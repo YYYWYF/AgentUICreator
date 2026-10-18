@@ -37,6 +37,27 @@ def component_navigation(root: Path, *, limit: int = 200) -> tuple[list[dict[str
     return entries, True
 
 
+def capability_evidence(project: dict, sources: dict) -> dict:
+    assets = project.get("pluginAssets")
+    installed_complete = isinstance(assets, list) and all(
+        isinstance(asset, dict) and isinstance(asset.get("pluginId"), str) for asset in assets
+    )
+    sources_complete = sources.get("inventoryComplete") is True
+    return {
+        "installedProjectPluginsComplete": installed_complete,
+        "officialSourceItemsComplete": sources_complete,
+        "officialSourceStateHash": sources.get("stateHash"),
+        "inventoryScope": "current-project-and-configured-official-registry",
+        "absenceConclusionAllowed": installed_complete and sources_complete,
+        "conclusionBoundary": (
+            "Read every page, then assess capability matches from declarations; names alone do not prove absence. "
+            "Absence is limited to this project and this registry version, not every possible implementation."
+            if installed_complete and sources_complete else
+            "Inventory is incomplete. Do not conclude that the requested capability is absent from the official library."
+        ),
+    }
+
+
 def capability_navigation(project: dict, sources: dict, root: Path | None) -> dict:
     components, complete = component_navigation(root) if root is not None else ([], False)
     plugins = project.get("pluginAssets", [])
@@ -50,6 +71,7 @@ def capability_navigation(project: dict, sources: dict, root: Path | None) -> di
         "sourceStateHash": sources.get("stateHash"),
         "plugins": summaries,
         "sources": sources,
+        "capabilityEvidence": capability_evidence(project, sources),
         "components": components,
         "componentInventoryComplete": complete,
         "pluginInventoryComplete": isinstance(project.get("pluginAssets"), list) and len(plugin_ids) == len(plugins),

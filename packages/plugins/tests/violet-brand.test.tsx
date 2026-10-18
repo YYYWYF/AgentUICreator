@@ -5,7 +5,7 @@ import { readFile } from "node:fs/promises";
 import { JSDOM } from "jsdom";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { AgentPlan } from "../src/internal/vendor/assistant-ui/components/assistant-ui/elements/agent-plan";
+import { AgentPlan } from "../src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/agent-plan";
 
 const read = (relative: string) => readFile(path.resolve(path.dirname(fileURLToPath(import.meta.url)), relative), "utf8");
 const brandPath = "../src/theme/agent-ui-violet-theme.css";
@@ -67,7 +67,7 @@ describe("Adaptable Violet brand boundary", () => {
     expect(focus[2]).toContain("border-color: var(--agent-composer-focus-border);");
     expect(focus[2]).toContain("box-shadow: 0 0 0 1px var(--agent-composer-focus-ring), var(--agent-composer-shadow);");
     expect(css).not.toContain("color-mix(");
-    for (const path of ["../src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx", "../src/internal/composable-thread.tsx"]) {
+    for (const path of ["../src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/thread.aui.tsx", "../src/internal/composable-thread.tsx"]) {
       expect(await read(path)).toContain('data-slot="aui_composer-shell"');
     }
     expect(css).not.toContain("gradient");
@@ -76,7 +76,7 @@ describe("Adaptable Violet brand boundary", () => {
   it("keeps Thread selection token-driven without markers or brittle selectors", async () => {
     const css = await read(overridesPath);
     expect(css).not.toMatch(/:nth-|:first-child|:last-child|::before|::after|\.bg-|\.text-|\bsvg\b/u);
-    const thread = await read("../src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx");
+    const thread = await read("../src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx");
     expect(thread).toContain('data-slot="aui_thread-list-item"');
     expect(thread).toContain("data-active:bg-muted");
     expect(await read(brandPath)).toContain("--muted: oklch(0.97 0 0);");

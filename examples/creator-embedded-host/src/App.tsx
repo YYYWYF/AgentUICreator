@@ -1,29 +1,80 @@
+import { useRef, useState } from "react";
+import { AlignCenter, Bold, Grid2X2, MousePointer2, Presentation, Type } from "lucide-react";
 import { useAgentUILocale } from "@za38.03/agent-ui-plugins";
-import { AgentMount } from "./AgentMount";
+import { AgentMount, AgentHostProvider } from "./AgentMount";
+import { useAgentUI, useAgentUIState } from "./agent-ui";
 
+export function App() { return <AgentHostProvider><EmbeddedWorkspace /></AgentHostProvider>; }
 
-
-export function App() {
-  const localeMessages = useAgentUILocale();
-  const milestones = [
-  { name: localeMessages.examples.userInterviews, date: localeMessages.examples.september12, progress: localeMessages.examples.completed, done: true },
-  { name: localeMessages.examples.interactivePrototype, date: localeMessages.examples.september19, progress: localeMessages.examples.inProgress, done: false },
-  { name: localeMessages.examples.developmentHandoff, date: localeMessages.examples.october3, progress: localeMessages.examples.notStarted, done: false },
-];
+function EmbeddedWorkspace() {
+  const { examples: copy } = useAgentUILocale();
+  const agent = useAgentUI();
+  const ready = useAgentUIState(s => s.status === "ready");
+  const busy = useAgentUIState(s => s.runtime?.run.status === "running" || s.runtime?.run.status === "awaiting-input");
+  const [assistantOpen, setAssistantOpen] = useState(true);
+  const [sendFailed, setSendFailed] = useState(false);
+  async function analyzePage() {
+    setAssistantOpen(true);
+    setSendFailed(false);
+    try { await agent.sendMessage(copy.hostAnalyzePrompt); }
+    catch { setSendFailed(true); }
+  }
+  const [title, setTitle] = useState<string | undefined>();
+  const [bold, setBold] = useState(true);
+  const [centered, setCentered] = useState(false);
+  const [grid, setGrid] = useState(true);
+  const titleInput = useRef<HTMLTextAreaElement>(null);
+  const slideTitle = title ?? copy.nextGenerationWorkbench;
   return (
-    <div className="split-workspace">
-      <main className="document-pane">
-        <header className="app-bar"><div className="app-brand"><span className="app-brand-icon">A</span> atlas <span className="app-brand-divider">/</span>  {localeMessages.examples.projectSpace}</div><div className="app-user">{localeMessages.examples.jiayiLin} <span>{localeMessages.examples.lin}</span></div></header>
-        <div className="document-scroll">
-          <div className="breadcrumbs">{localeMessages.examples.projects} <span>/</span>  {localeMessages.examples.productDesign} <span>/</span>  {localeMessages.examples.documents}</div>
-          <div className="document-heading"><div><span className="document-tag">{localeMessages.examples.projectDocument}</span><h1>{localeMessages.examples.nextGenerationWorkbench}</h1><p>{localeMessages.examples.aClearerSmootherCollaborationExperienceForYour}</p></div><button type="button">{localeMessages.examples.shareDocument}</button></div>
-          <div className="document-meta"><span className="meta-avatar">{localeMessages.examples.lin}</span><span>{localeMessages.examples.jiayiLin}</span><span>·</span><span>{localeMessages.examples.updatedSeptember24}</span><span className="meta-status">{localeMessages.examples.editing}</span></div>
-          <article className="document-card"><div className="section-number">{localeMessages.examples.section01ProjectOverview}</div><h2>{localeMessages.examples.whatProblemAreWeSolving}</h2><p>{localeMessages.examples.teamInformationIsSpreadAcrossToolsPeople}</p><div className="callout"><span>✦</span><p>{localeMessages.examples.designPrincipleShowImportantInformationWhenIt}</p></div></article>
-          <article className="document-card"><div className="section-number">{localeMessages.examples.section02DeliveryPlan}</div><h2>{localeMessages.examples.upcomingMilestones}</h2><div className="milestones">{milestones.map((item) => <div className="milestone" key={item.name}><span className={item.done ? "milestone-dot done" : "milestone-dot"} /><strong>{item.name}</strong><span>{item.date}</span><small>{item.progress}</small></div>)}</div></article>
-          <article className="document-card"><div className="section-number">{localeMessages.examples.section03Notes}</div><h2>{localeMessages.examples.questionsToDiscuss}</h2><p>{localeMessages.examples.howCanTheAssistantHelpUsersExplore}</p></article>
+    <div className="embedded-host-page">
+      <header className="app-bar">
+        <div className="app-brand"><span className="app-brand-icon">A</span> atlas <span className="app-brand-divider">/</span>{copy.presentationDocument}</div>
+        <div className="app-user">{copy.jiayiLin}<span>{copy.lin}</span></div>
+      </header>
+      <main className="embedded-host-content">
+        <div className="document-heading">
+          <div><div className="breadcrumbs">{copy.projects}<span>/</span>{copy.presentationDocument}</div><h1>{copy.nextGenerationWorkbench}</h1></div>
+          <div className="host-assistant-actions">
+            <span className="document-editing"><span aria-hidden="true" />{copy.editing}</span>
+            <button type="button" disabled={!ready || busy} onClick={() => void analyzePage()}>{copy.hostAnalyzeButton}</button>
+            <button type="button" aria-expanded={assistantOpen} onClick={() => setAssistantOpen(value => !value)}>{assistantOpen ? copy.hostCloseAssistant : copy.hostOpenAssistant}</button>
+          </div>
+        </div>
+        {sendFailed && <p role="alert">{copy.hostSendFailed}</p>}
+        <div className="split-workspace" data-assistant-open={assistantOpen}>
+          <section className="presentation-editor" aria-label={copy.presentationEditor}>
+            <div className="canvas-toolbar" role="toolbar" aria-label={copy.presentationEditor}>
+              <button type="button" className="canvas-tool canvas-tool-selected" aria-label={copy.canvasSelect} title={copy.canvasSelect} onClick={() => titleInput.current?.blur()}><MousePointer2 aria-hidden="true" /></button>
+              <button type="button" className="canvas-tool" aria-label={copy.canvasText} title={copy.canvasText} onClick={() => titleInput.current?.focus()}><Type aria-hidden="true" /></button>
+              <span className="canvas-toolbar-divider" />
+              <button type="button" className="canvas-tool" aria-label={copy.canvasBold} title={copy.canvasBold} aria-pressed={bold} onClick={() => setBold(value => !value)}><Bold aria-hidden="true" /></button>
+              <button type="button" className="canvas-tool" aria-label={copy.canvasAlign} title={copy.canvasAlign} aria-pressed={centered} onClick={() => setCentered(value => !value)}><AlignCenter aria-hidden="true" /></button>
+              <span className="canvas-toolbar-divider" />
+              <button type="button" className="canvas-tool" aria-label={copy.canvasGrid} title={copy.canvasGrid} aria-pressed={grid} onClick={() => setGrid(value => !value)}><Grid2X2 aria-hidden="true" /></button>
+              <span className="canvas-format">16:9</span>
+            </div>
+            <div className="canvas-workarea">
+              <nav className="slide-strip" aria-label={copy.canvasSlide}>
+                <span className="slide-number">01</span>
+                <div className="slide-thumbnail" aria-current="page"><Presentation aria-hidden="true" /><span>{slideTitle}</span></div>
+              </nav>
+              <div className="canvas-stage" data-grid={grid}>
+                <div className="presentation-slide" data-centered={centered}>
+                  <div className="slide-accent" />
+                  <div className="slide-kicker">{copy.projectSpace}</div>
+                  <textarea ref={titleInput} className="slide-title" aria-label={copy.canvasText} rows={2} value={slideTitle} onChange={event => setTitle(event.target.value)} style={{ fontWeight: bold ? 750 : 400 }} />
+                  <p className="slide-subtitle">{copy.canvasSubtitle}</p>
+                  <div className="slide-pillars">{[copy.canvasPillarOne, copy.canvasPillarTwo, copy.canvasPillarThree].map((label, index) => <div key={label}><span>0{index + 1}</span><strong>{label}</strong></div>)}</div>
+                  <div className="slide-footer"><span>atlas</span><span>01</span></div>
+                </div>
+                <span className="canvas-edit-hint">{copy.canvasHint}</span>
+              </div>
+            </div>
+            <footer className="canvas-status"><span>{copy.canvasSlide} 1 / 1</span><span>16:9</span></footer>
+          </section>
+          <aside className="agent-pane" hidden={!assistantOpen} aria-label={copy.embeddedAssistant}><AgentMount /></aside>
         </div>
       </main>
-      <aside className="agent-pane" aria-label={localeMessages.examples.embeddedAssistant}><AgentMount /></aside>
     </div>
   );
 }

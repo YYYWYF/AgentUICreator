@@ -1,0 +1,26 @@
+{
+  "id": "plugin/copy-action",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-copy-action source",
+  "files": [
+    {
+      "source": "files/plugins/copy-action/definition.ts",
+      "target": "plugins/copy-action/definition.ts"
+    },
+    {
+      "source": "files/plugins/copy-action/index.tsx",
+      "target": "plugins/copy-action/index.tsx"
+    },
+    {
+      "source": "files/plugins/copy-action/manifest.json",
+      "target": "plugins/copy-action/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core",
+    "plugin/response-footer"
+  ],
+  "packages": {
+    "react": "19.1.1"
+  }
+}

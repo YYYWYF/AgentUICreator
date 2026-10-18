@@ -11,18 +11,19 @@ import {
   type ReasoningMessagePartComponent,
   type ToolCallMessagePartComponent,
 } from "@assistant-ui/react";
-import { createContext, useContext, useState, type ComponentType } from "react";
-import { TaskCard as TaskCardShell } from "./adapters/assistant-ui/components/assistant-ui/elements/task-card.js";
-import { isTaskPart, type TaskPart } from "./adapters/assistant-ui/components/assistant-ui/elements/task-card.aui.js";
+import equal from "fast-deep-equal/es6/index.js";
+import { createContext, useContext, useState, useRef, type ComponentType } from "react";
+import { TaskCard as TaskCardShell } from "./adapters-generated/assistant-ui/components/assistant-ui/elements/task-card.js";
+import { isTaskPart, type TaskPart } from "./adapters-generated/assistant-ui/components/assistant-ui/elements/task-card.aui.js";
 import {
   ToolFallback, ToolFallbackApproval, ToolFallbackError,
   formatUnknownValue, offersInterruptAction,
-} from "./adapters/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
+} from "./adapters-generated/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.js";
 import {
   TASK_PAGE_SIZE, formatElapsed, taskLabel, taskMeta, taskStateOf, useTaskElapsed,
-} from "./vendor/assistant-ui/components/assistant-ui/utils/task.js";
-import { cn } from "./vendor/assistant-ui/lib/utils.js";
-import { mono } from "./vendor/assistant-ui/components/assistant-ui/elements/surfaces.js";
+} from "./vendor-generated/assistant-ui/components/assistant-ui/utils/task.js";
+import { cn } from "./vendor-generated/assistant-ui/lib/utils.js";
+import { mono } from "./vendor-generated/assistant-ui/components/assistant-ui/elements/surfaces.js";
 import { resolveConversationTurnGroup } from "./conversation-turn.js";
 import { TaskDisclosureScopeContext, useTaskDisclosure } from "./task-disclosure-context.js";
 
@@ -76,6 +77,12 @@ function NestedMessage() {
 
 function TaskCardComposition({ part }: { part: TaskPart }) {
   const labels = useAgentUILocale("tasks");
+  // Upstream can recreate equivalent nested snapshots on parent notifications.
+  // Keep the readonly provider input stable to avoid a notification/render loop;
+  // changed content, status and metadata still flow through immediately.
+  const messagesRef = useRef(part.messages);
+  if (!equal(messagesRef.current, part.messages)) messagesRef.current = part.messages;
+
   const childFailed = part.messages?.some(message => message.role === "assistant" &&
     message.status.type === "incomplete" && message.status.reason === "error") === true;
   const disclosure = useTaskDisclosure(part.toolCallId);
@@ -115,7 +122,7 @@ function TaskCardComposition({ part }: { part: TaskPart }) {
     >
       {part.messages?.length ? (
         <TaskDisclosureScopeContext.Provider value={disclosure.scope}>
-          <ReadonlyThreadProvider messages={part.messages}>
+          <ReadonlyThreadProvider messages={messagesRef.current!}>
             <ThreadPrimitive.Messages>{() => <NestedMessage />}</ThreadPrimitive.Messages>
           </ReadonlyThreadProvider>
         </TaskDisclosureScopeContext.Provider>

@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { writeGeneratedPluginRegistry } from "../../src/generate-plugin-registry";
-import { loadAgentUISourceRegistry, officialPackagePlugin } from "@za38.03/agent-ui-source-registry";
+import { loadAgentUISourceRegistry, officialPackagePlugin } from "@za38.03/agent-ui-operator/source-registry";
 import { sourceItemLock } from "../../src/project/source-registry/installer";
 import { existsSync } from "node:fs";
 const supportRoot = path.dirname(fileURLToPath(import.meta.url));
@@ -30,17 +30,24 @@ export function generatedProjectFixture(): Promise<string> {
       });
     }
     await mkdir(path.join(root, "src"), { recursive: true });
-    const registry = await loadAgentUISourceRegistry();
+    const registry = await loadAgentUISourceRegistry(path.join(repositoryRoot, "packages/plugins/resources/registry"));
     for (const item of registry.items.filter(item => item.kind === "foundation")) {
       for (const file of item.loadedFiles) {
         await mkdir(path.dirname(path.join(root, "agent-ui", file.target)), { recursive: true });
         await writeFile(path.join(root, "agent-ui", file.target), file.content);
+        // Refresh the public composition entry and fill new legacy dependencies,
+        // while preserving intentionally authored fixture settings (theme, tools, etc.).
+        if (item.id === "foundation/core" || !existsSync(path.join(root, file.target))) {
+          await mkdir(path.dirname(path.join(root, file.target)), { recursive: true });
+          await writeFile(path.join(root, file.target), file.content);
+        }
       }
     }
     await cp(path.join(root, "agent-ui/application/Agent.tsx"), path.join(root, "src/App.tsx"));
     await cp(path.join(repositoryRoot, "examples/creator-host-sandbox/src/host.css"), path.join(root, "src/preview-shell.css"));
     await cp(path.join(repositoryRoot, "packages/operator/presets"), path.join(root, "presets"), { recursive: true });
     await writeFile(path.join(root, "agent-ui/application/runtime-config.generated.ts"), 'export const agentUIRuntimeConfig = { mode: "platform" } as const;\n');
+    await writeFile(path.join(root, "application/runtime-config.generated.ts"), 'export const agentUIRuntimeConfig = { mode: "platform" } as const;\n');
     await mkdir(path.join(root, "node_modules"), { recursive: true });
     const pkg = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
     pkg.dependencies["@za38.03/agent-ui-plugins"] = "workspace:*";
@@ -54,7 +61,7 @@ export function generatedProjectFixture(): Promise<string> {
       const source = candidates.find(existsSync);
       if (source) await symlink(source, link, "dir");
     }
-    await rm(path.join(root, "agent-ui/plugins/assistant-ui-composer"), { recursive: true, force: true });
+    await rm(path.join(root, "agent-ui/plugins/composer"), { recursive: true, force: true });
     await mkdir(path.join(root, "node_modules/@za38.03"), { recursive: true });
     await symlink(path.join(repositoryRoot, "packages/plugins"), path.join(root, "node_modules/@za38.03/agent-ui-plugins"), "dir");
     const managed = registry.items.filter(item => item.loadedFiles.length > 0 &&

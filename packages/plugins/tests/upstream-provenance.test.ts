@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const vendorRoot = path.join(packageRoot, "src/internal/vendor/assistant-ui");
+const vendorRoot = path.join(packageRoot, "src/internal/vendor-generated/assistant-ui");
 
 describe("assistant-ui upstream provenance", () => {
   it("records the pinned assistant-ui release revision and runtime package versions", async () => {
@@ -18,11 +18,11 @@ describe("assistant-ui upstream provenance", () => {
     expect(provenance).toContain("Repository: https://github.com/assistant-ui/assistant-ui");
     expect(provenance).toContain("Source policy: fixed published release");
     expect(provenance).toMatch(/Commit: `[0-9a-f]{40}`/u);
-    expect(provenance).toContain("@assistant-ui/react` = `0.15.23");
-    expect(provenance).toContain("@assistant-ui/react-ag-ui` = `0.0.63");
-    expect(provenance).toContain("@assistant-ui/react-markdown` = `0.14.16");
+    expect(provenance).toContain("@assistant-ui/react` = `0.15.29");
+    expect(provenance).toContain("@assistant-ui/react-ag-ui` = `0.0.70");
+    expect(provenance).toContain("@assistant-ui/react-markdown` = `0.14.23");
     expect(provenance).toContain("@ag-ui/client` = `0.0.59");
-    expect(metadata.revision).toBe("3542d602272a62eddeb8989befc910841c267022");
+    expect(metadata.revision).toBe("a46d6634e7a75eddd85d51415b1a615886d4ad0e");
     expect(provenance).toContain(metadata.revision);
   });
 

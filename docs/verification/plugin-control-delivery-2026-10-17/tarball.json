@@ -1,0 +1,27 @@
+{
+  "archive": "za38.03-agent-ui-plugins-0.0.1.tgz",
+  "sha256": "38be977087b29e0f1e75f146f1511753ca169c6b5617f3a76644eb44a9dd909d",
+  "modernPluginEntries": [
+    "composer",
+    "copy-action",
+    "reload-action",
+    "feedback-actions",
+    "export-markdown-action",
+    "reasoning",
+    "tool-group",
+    "add-attachment-action",
+    "dictation-action",
+    "submit-action",
+    "response-footer",
+    "conversation-suggestions",
+    "thinking-indicator",
+    "tool-timeline"
+  ],
+  "portableEntries": 15,
+  "verifiedPortableAndRuntimeRecords": 159,
+  "suggestionCssImportedAndPortable": true,
+  "suggestionCssDeclarationPreserved": true,
+  "thinkingPolicyPortable": true,
+  "themeDeclarationPreserved": true,
+  "published": false
+}

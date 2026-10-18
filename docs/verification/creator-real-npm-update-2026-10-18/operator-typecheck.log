@@ -1,0 +1,5 @@
+
+> @za38.03/agent-ui-operator@0.0.1 typecheck /Users/yifei/Coding/AgentUICreator/packages/operator
+> node ../plugins/scripts/materialize-plugin-sources.mjs && tsc --noEmit && tsc -p tsconfig.tests.json
+
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.onlyBuiltDependencies", "pnpm.overrides", "pnpm.peerDependencyRules". See https://pnpm.io/settings for the new home of each setting.

@@ -1,0 +1,15 @@
+{
+  "operatorTests": 15,
+  "creatorTests": 26,
+  "pythonTests": 7,
+  "creatorTypecheck": "passed",
+  "localeParity": "passed",
+  "diffCheck": "passed",
+  "realModelHostIntegration": "passed",
+  "realModelApplicationCustomization": "passed",
+  "UIBuildPublish": "passed",
+  "VueProductionChat": "passed-local-AGUI-SSE",
+  "independentBuildWithoutDevTools": "passed",
+  "WindowsRealRun": "not-run",
+  "extendedRecoveryFixtureFailures": 2
+}

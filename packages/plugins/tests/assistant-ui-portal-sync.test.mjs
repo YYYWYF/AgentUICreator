@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { installedVendorEntry } from "../scripts/sync-assistant-ui-upstream.mjs";
+import { installedVendorEntry, isElementSource } from "../scripts/sync-assistant-ui-upstream.mjs";
 import { applyProductAdaptations } from "../scripts/sync-product-adapters.mjs";
 const localPath = "components/ui/dialog.tsx";
 const source = 'import { cn } from "../../lib/utils";\nfunction DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {\n  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />;\n}\n';
@@ -21,7 +21,7 @@ it("rejects an upstream integration shape change instead of silently patching ve
 it("reports product integration changes and generator drift without treating vendor as a bridge", async () => {
   const { productIntegrationReport } = await import("../../../scripts/generate-assistant-ui-upgrade-report.mjs");
   const audit = { upstreamPaths: [], provenance: { changed: false }, generatorDrift: { status: "PASS" } };
-  const adapter = "packages/plugins/src/internal/adapters/assistant-ui/components/ui/tooltip.tsx";
+  const adapter = "packages/plugins/src/internal/adapters-generated/assistant-ui/components/ui/tooltip.tsx";
   const threadList = "packages/plugins/src/internal/conversation-thread-list-item.tsx";
   expect(productIntegrationReport([threadList], [], audit)).toMatchObject({
     status: "REVIEW REQUIRED: product adapter / Portal integration", changedFiles: [threadList],
@@ -31,11 +31,18 @@ it("reports product integration changes and generator drift without treating ven
   expect(productIntegrationReport([adapter, boundary], [], audit)).toMatchObject({
     status: "REVIEW REQUIRED: product adapter / Portal integration", changedFiles: [adapter, boundary],
   });
-  expect(productIntegrationReport(["packages/plugins/src/internal/vendor/assistant-ui/components/ui/tooltip.tsx"], [], audit))
+  expect(productIntegrationReport(["packages/plugins/src/internal/vendor-generated/assistant-ui/components/ui/tooltip.tsx"], [], audit))
     .toMatchObject({ status: "UNCHANGED", changedFiles: [] });
   expect(productIntegrationReport([], [], { ...audit, generatorDrift: { status: "REVIEW REQUIRED" } }).status)
     .toContain("REVIEW REQUIRED");
   expect(productIntegrationReport([], [], { ...audit, provenance: { changed: true } }).status)
     .toContain("REVIEW REQUIRED");
   expect(productIntegrationReport([], undefined, audit).status).toContain("REVIEW REQUIRED");
+});
+
+it("recognizes TypeScript element helpers without adopting their tests", () => {
+  expect(isElementSource("elements/receipt-focus.ts")).toBe(true);
+  expect(isElementSource("elements/thread.aui.tsx")).toBe(true);
+  expect(isElementSource("elements/receipt-focus.test.ts")).toBe(false);
+  expect(isElementSource("elements/thread.spec.tsx")).toBe(false);
 });

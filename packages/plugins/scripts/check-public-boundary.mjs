@@ -43,8 +43,8 @@ if (declarationFiles.length === 0) {
 
 const violations = [];
 for (const filePath of declarationFiles.sort()) {
-  // Opt-in attachment and Generative UI entries expose their upstream contracts; the UI root stays neutral.
-  if (path.relative(declarationRoot, filePath).replaceAll("\\", "/") === "demo-attachments.d.ts" || path.relative(declarationRoot, filePath).replaceAll("\\", "/") === "generative-ui.d.ts") continue;
+  // Opt-in Composer source support, attachments and Generative UI expose upstream contracts; the UI root stays neutral.
+  if (path.relative(declarationRoot, filePath).replaceAll("\\", "/") === "composer-support.d.ts" || path.relative(declarationRoot, filePath).replaceAll("\\", "/") === "plugin-support.d.ts" || path.relative(declarationRoot, filePath).replaceAll("\\", "/") === "demo-attachments.d.ts" || path.relative(declarationRoot, filePath).replaceAll("\\", "/") === "generative-ui.d.ts") continue;
   const source = await readFile(filePath, "utf8");
   for (const token of forbiddenTokens) {
     if (source.includes(token)) {

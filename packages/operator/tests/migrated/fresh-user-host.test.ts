@@ -1,5 +1,4 @@
 // @vitest-environment node
-import { ensureManagedHostPlugins } from "../../../../scripts/host-examples/ensure-managed-plugins";
 import { handleUIOperatorRequest } from "../../src/handler";
 import { createAgentUIInitializationHost } from "../../src/project/bootstrap-host";
 import { generatedProjectFixture } from "../support/generated-project";
@@ -9,7 +8,6 @@ import tailwindcss from "@tailwindcss/vite";
 import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { initializeAgentUIProject } from "@za38.03/agent-ui-operator/bootstrap";
 import { inspectCreatorProject } from "../../src/project/creator-project-inspector";
@@ -22,8 +20,6 @@ import { resolveAgentUIProjectPaths, operatorConfigForPaths } from "../../src/pr
 import { inspectMockDemoCompatibility } from "../../../creator/src/mock/demo-compatibility";
 import { installDemoPlugin } from "../../src/project/install-demo-plugin";
 import { verifyUIProject } from "../../src/verify-ui";
-import { loadAgentUISourceRegistry } from "@za38.03/agent-ui-source-registry";
-import { readAgentUISourceLock, serializeAgentUISourceLock, sha256 } from "../../src/project/source-registry/lock";
 
 const initializationHost = createAgentUIInitializationHost();
 
@@ -144,101 +140,4 @@ describe("fresh user Host architecture regression", () => {
       }
     }
   }, 120_000);
-});
-
-it("upgrades authentic managed Footer 0.1.0 without migrating the 7a31b5f AppUIModel", async () => {
-  const root = await freshUserHost("src/agent-ui");
-  await initializeAgentUIProject({ projectRoot: root, mode: "assistant", sourceRoot: "src/agent-ui" }, initializationHost);
-  const paths = resolveAgentUIProjectPaths(root, { mode: "assistant", sourceRoot: "src/agent-ui" });
-  const config = operatorConfigForPaths(paths);
-  const { inspectAgentUISources } = await import("../../src/project/source-registry/inspector");
-  const registry = await loadAgentUISourceRegistry();
-  const footerId = "plugin/assistant-ui-message-footer";
-  const responseId = "plugin/assistant-ui-response-footer";
-  const { lock, path: lockPath } = await readAgentUISourceLock(root, config);
-  // Initialization installs the current preset. Restore historical managed bytes
-  // and remove the new dependency so apply must resolve its installation.
-  const response = registry.byId.get(responseId)!;
-  for (const file of response.files) await rm(path.join(paths.sourceRoot, file.target), { force: true });
-  delete lock.items[responseId];
-  const oldFiles: Record<string, { sha256: string }> = {};
-  for (const file of registry.byId.get(footerId)!.files) {
-    const content = await readFile(new URL(`../../../operator/tests/fixtures/legacy-footer-0.1.0/${file.target}`, import.meta.url));
-    const target = path.join(paths.sourceRoot, file.target);
-    await mkdir(path.dirname(target), { recursive: true });
-    await writeFile(target, content);
-    oldFiles[file.target] = { sha256: sha256(content) };
-  }
-  lock.items[footerId] = { files: oldFiles };
-  const surfaceId = "plugin/conversation-surface";
-  const surfaceFiles: Record<string, { sha256: string }> = {};
-  for (const file of registry.byId.get(surfaceId)!.files) {
-    const content = await readFile(new URL(`../fixtures/legacy-conversation-surface-0.1.0/${file.target}`, import.meta.url));
-    await writeFile(path.join(paths.sourceRoot, file.target), content);
-    surfaceFiles[file.target] = { sha256: sha256(content) };
-  }
-  lock.items[surfaceId] = { files: surfaceFiles };
-  await writeFile(lockPath, serializeAgentUISourceLock(lock));
-  const source = await readFile(new URL("../../../operator/tests/fixtures/assistant-app-ui-7a31b5f.json", import.meta.url), "utf8");
-  await writeFile(paths.appUIModelPath, source);
-  const beforeAppUIModel = await readFile(paths.appUIModelPath, "utf8");
-  const before = await inspectAgentUISources(root, config);
-  expect(before.items.find(item => item.id === footerId)).toMatchObject({
-    owned: true, updateAvailable: true, status: "managed",
-  });
-  expect(before.items.find(item => item.id === responseId)).toMatchObject({ status: "not-installed" });
-  const surfaceEntry = path.join(paths.sourceRoot, "plugins/conversation-surface/index.tsx");
-  const originalSurface = await readFile(surfaceEntry, "utf8");
-  const customizedSurface = `${originalSurface}\n// Host customization must survive an automatic upgrade.\n`;
-  await writeFile(surfaceEntry, customizedSurface);
-  await expect(ensureManagedHostPlugins(request => handleUIOperatorRequest({
-    ...request,
-  } as Parameters<typeof handleUIOperatorRequest>[0], root))).rejects.toThrow("AGENT_UI_SOURCE_CUSTOMIZED_DEPENDENCY");
-  await expect(ensureManagedHostPlugins(request => handleUIOperatorRequest({
-    ...request,
-  } as Parameters<typeof handleUIOperatorRequest>[0], root), { preserveCustomized: true })).resolves.toEqual([]);
-  expect(await readFile(surfaceEntry, "utf8")).toBe(customizedSurface);
-  expect(await readAgentUISourceLock(root, config)).toMatchObject({ lock });
-  await writeFile(surfaceEntry, originalSurface);
-  const updated = await ensureManagedHostPlugins(request => handleUIOperatorRequest({
-    ...request,
-  } as Parameters<typeof handleUIOperatorRequest>[0], root));
-  expect(updated).toEqual(expect.arrayContaining([footerId, surfaceId]));
-  expect(await ensureManagedHostPlugins(request => handleUIOperatorRequest({
-    ...request,
-  } as Parameters<typeof handleUIOperatorRequest>[0], root))).toEqual([]);
-  const { lock: upgradedLock } = await readAgentUISourceLock(root, config);
-  expect(upgradedLock.items[footerId]).not.toHaveProperty("version");
-  expect(upgradedLock.items[responseId]).not.toHaveProperty("version");
-  for (const id of [footerId, responseId, surfaceId]) {
-    for (const file of registry.byId.get(id)!.loadedFiles) {
-      expect(upgradedLock.items[id]?.files[file.target]?.sha256).toBe(sha256(file.content));
-      expect(await readFile(path.join(paths.sourceRoot, file.target))).toEqual(file.content);
-    }
-  }
-  const after = await inspectAgentUISources(root, config);
-  expect(after.items.find(item => item.id === footerId)).toMatchObject({
-    owned: true, updateAvailable: false, status: "managed",
-  });
-  expect(after.items.find(item => item.id === responseId)?.status).toBe("managed");
-  expect(await readFile(paths.appUIModelPath, "utf8")).toBe(beforeAppUIModel);
-  const { writeGeneratedPluginRegistry } = await import("../../src/generate-plugin-registry");
-  await writeGeneratedPluginRegistry(root);
-  expect((await inspectCreatorProject(root)).status).toBe("ready");
-  expect((await verifyUIProject(root)).status).toBe("passed");
-  const model = parseAppUIModelJson(source);
-  const generation = await generatePluginRegistry(root, model, { config, paths });
-  const runtime = compileAppUIModel(model, generation.activeComposition.compositionCatalog);
-  expect(runtime.pluginInstances["assistant-ui-message-footer-main"]?.mount?.slotId)
-    .toBe("plugin:agent-conversation-surface-main:assistantMessageFooter");
-  expect(await readFile(paths.appUIModelPath, "utf8")).toBe(source);
-  const duplicate = structuredClone(runtime);
-  duplicate.pluginInstances["duplicate-footer"] = {
-    id: "duplicate-footer", pluginId: "assistant-ui-response-footer", enabled: true,
-    mount: { slotId: "plugin:agent-conversation-surface-main:assistantResponseFooter" },
-  };
-  const { resolveAppUIComposition } = await import("../../src/framework/contracts/app-ui-composition");
-  expect(resolveAppUIComposition(duplicate, generation.activeComposition.compositionCatalog).issues)
-    .toEqual(expect.arrayContaining([expect.objectContaining({ code: "conversation-footer-slot-conflict" })]));
-
 });

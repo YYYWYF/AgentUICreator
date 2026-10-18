@@ -115,6 +115,10 @@
     {
       "file": "invalid-repair-patch.request.json",
       "valid": false
+    },
+    {
+      "file": "verify_runtime_composition.invalid-tracks.request.json",
+      "valid": false
     }
   ],
   "results": [

@@ -1,3 +1,4 @@
+import { creatorDisplayText } from "../product-presentation.js";
 import type { CreatorCommandMenuItem } from "./creator-command-types.js";
 export function CreatorCommandMenu({ items, active, title, notice, optionDomId, onPick, onSelect }: {
   items: CreatorCommandMenuItem[]; active: number; title: string; notice?: string | undefined;
@@ -20,7 +21,7 @@ export function CreatorCommandMenu({ items, active, title, notice, optionDomId, 
           // Physical pointer activation is already handled by pointerdown.
           if (event.detail === 0) onPick(item.id);
         }}>
-        <span>{item.current ? "✓ " : ""}{item.label}</span>{item.description ? <small>{item.description}</small> : null}
+        <span>{item.current ? "✓ " : ""}{creatorDisplayText(item.label)}</span>{item.description ? <small>{creatorDisplayText(item.description)}</small> : null}
       </button>)}
     </div>
   </div>;

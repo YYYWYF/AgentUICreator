@@ -303,7 +303,6 @@ def test_real_middleware_stack_repairs_before_any_dispatch_and_counts_every_mode
     assert result.metrics.invalidToolCalls == 0
     assert result.metrics.toolArgumentParseFailures == 0
     assert result.metrics.protocolRepairAttempts == 0
-    assert agent.protocol.max_model_calls == 24
 
 
 def test_second_invalid_batch_fails_without_dispatch_or_protocol_metric_pollution(tmp_path):

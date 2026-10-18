@@ -1,6 +1,6 @@
 {
   "name": "@za38.03/agent-ui-operator",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "type": "module",
   "description": "Development-only project management, Bootstrap and managed Agent UI control plane",
   "engines": {
@@ -35,7 +35,12 @@
     "./bootstrap": {
       "types": "./dist/types/bootstrap/index.d.ts",
       "import": "./dist/bootstrap/index.js"
-    }
+    },
+    "./source-registry": {
+      "types": "./dist/types/source-catalog/index.d.ts",
+      "import": "./dist/source-catalog/index.js"
+    },
+    "./compatibility.json": "./dist/compatibility.json"
   },
   "files": [
     "dist",
@@ -44,16 +49,18 @@
     "presets"
   ],
   "scripts": {
-    "build": "node scripts/build.mjs",
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit && tsc -p tsconfig.tests.json"
+    "build": "node ../../scripts/sync-package-release-metadata.mjs operator && node scripts/build.mjs && node ../../scripts/sync-package-release-metadata.mjs operator",
+    "test": "node ../plugins/scripts/materialize-plugin-sources.mjs && vitest run",
+    "typecheck": "node ../plugins/scripts/materialize-plugin-sources.mjs && tsc --noEmit && tsc -p tsconfig.tests.json",
+    "prepack": "node ../../scripts/sync-package-release-metadata.mjs operator"
   },
   "dependencies": {
     "@za38.03/agent-ui-web-component": "workspace:*",
     "typescript": "7.0.2",
-    "@za38.03/agent-ui-source-registry": "workspace:*",
     "postcss": "8.5.28",
-    "zod": "4.5.4"
+    "zod": "4.5.4",
+    "@za38.03/agent-ui-plugins": "workspace:*",
+    "semver": "7.8.5"
   },
   "devDependencies": {
     "esbuild": "0.25.12",
@@ -69,7 +76,6 @@
     "jsdom": "27.4.0",
     "react-test-renderer": "19.1.1",
     "@types/react-test-renderer": "19.1.0",
-    "semver": "7.8.5",
     "@types/semver": "7.7.1",
     "@tailwindcss/vite": "4.3.3",
     "@vitejs/plugin-react": "6.0.2",
@@ -85,5 +91,88 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "agentUI": {
+    "schemaVersion": 1,
+    "compatibility": {
+      "schemaVersion": 1,
+      "releases": [
+        {
+          "id": "agent-ui-initial-0.0.1",
+          "publishedAt": "2026-10-18T00:00:00Z",
+          "channel": "stable",
+          "node": "^20.19.0 || >=22.12.0",
+          "react": ">=18 <20",
+          "packages": [
+            {
+              "name": "@za38.03/agent-ui-core",
+              "version": "0.0.1",
+              "requires": {},
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-renderer",
+              "version": "0.0.1",
+              "requires": {},
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-runtime",
+              "version": "0.0.1",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.1",
+                "@za38.03/agent-ui-plugins": "0.0.1"
+              },
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-plugins",
+              "version": "0.0.1",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.1",
+                "@za38.03/agent-ui-renderer": "0.0.1"
+              },
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-web-component",
+              "version": "0.0.1",
+              "requires": {
+                "@za38.03/agent-ui-plugins": "0.0.1",
+                "@za38.03/agent-ui-runtime": "0.0.1",
+                "@za38.03/agent-ui-core": "0.0.1",
+                "@za38.03/agent-ui-renderer": "0.0.1"
+              },
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-creator",
+              "version": "0.0.1",
+              "requires": {
+                "@za38.03/agent-ui-operator": "0.0.1",
+                "@za38.03/agent-ui-core": "0.0.1"
+              },
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-operator",
+              "version": "0.0.1",
+              "requires": {
+                "@za38.03/agent-ui-web-component": "0.0.1",
+                "@za38.03/agent-ui-plugins": "0.0.1"
+              },
+              "historyFrom": "0.0.1",
+              "changes": []
+            }
+          ]
+        }
+      ]
+    }
   }
 }

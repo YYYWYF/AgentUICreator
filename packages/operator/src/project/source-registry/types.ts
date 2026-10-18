@@ -26,6 +26,7 @@ export interface AgentUISourceTransactionOriginalEntry {
 
 export interface AgentUISourceTransactionJournal {
 
+  ownershipContentBase64?: string | null;
   itemId: string;
   originals: AgentUISourceTransactionOriginalEntry[];
   lockContentBase64: string | null;

@@ -1,6 +1,6 @@
 import { agentUIDirectiveFormatter, hasUnsupportedConversationDirective, conversationDirectiveDisplayLabel } from "./directive-formatter.js";
 import { type TextMessagePartComponent } from "@assistant-ui/react";
-import { createDirectiveText } from "./adapters/assistant-ui/components/assistant-ui/elements/directive-text.aui.js";
+import { createDirectiveText } from "./adapters-generated/assistant-ui/components/assistant-ui/elements/directive-text.aui.js";
 const DirectiveText = createDirectiveText({
   ...agentUIDirectiveFormatter,
   parse(text) {

@@ -1,5 +1,6 @@
+import { PLUGIN_OWNERSHIP_FILE } from "../plugin-source-ownership";
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rmdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import type { UIOperatorConfig } from "../types";
@@ -23,7 +24,9 @@ export interface AgentUISourceFileMutation {
 }
 
 export interface AgentUISourceTransactionTestOptions {
+  nextOwnership?: Buffer;
   simulateCrashAfterMutation?: number;
+  simulateCrashAfterOwnership?: boolean;
   cancelMarker?: string | undefined;
 }
 
@@ -54,13 +57,14 @@ function parseJournal(value: unknown): AgentUISourceTransactionJournal {
   }
   const record = value as Record<string, unknown>;
   if (
-    Object.keys(record).filter(key => key !== "targetVersion").sort().join(",") !== "itemId,lockContentBase64,originals" ||
+    Object.keys(record).filter(key => key !== "targetVersion" && key !== "ownershipContentBase64").sort().join(",") !== "itemId,lockContentBase64,originals" ||
     typeof record.itemId !== "string" ||
     !Array.isArray(record.originals) ||
     !(typeof record.lockContentBase64 === "string" || record.lockContentBase64 === null)
   ) {
     throw new Error("Journal shape is invalid.");
   }
+  if (record.ownershipContentBase64 !== undefined && record.ownershipContentBase64 !== null && typeof record.ownershipContentBase64 !== "string") throw new Error("Ownership journal invalid.");
   const originals = record.originals.map((entry) => {
     if (typeof entry !== "object" || entry === null || Array.isArray(entry)) {
       throw new Error("Journal original is invalid.");
@@ -79,6 +83,7 @@ function parseJournal(value: unknown): AgentUISourceTransactionJournal {
     throw new Error("Journal contains duplicate paths.");
   }
   return {
+    ...(record.ownershipContentBase64 === undefined ? {} : { ownershipContentBase64: record.ownershipContentBase64 as string | null }),
     itemId: record.itemId,
     originals,
     lockContentBase64: record.lockContentBase64,
@@ -113,6 +118,22 @@ export async function recoverPendingAgentUISourceTransaction(
       } else {
         await atomicWrite(targetPath, Buffer.from(original.contentBase64, "base64"));
       }
+    }
+    if (journal.itemId === "takeover_plugin_source") {
+      for (const original of journal.originals.filter(entry => entry.contentBase64 === null && /^plugins\/[^/]+\//u.test(entry.path))) {
+        let directory = path.posix.dirname(original.path);
+        while (directory.split("/").length >= 2) {
+          await assertNoSymbolicLinkTraversal(sourceRoot, directory);
+          await rmdir(path.join(sourceRoot, ...directory.split("/"))).catch((error: NodeJS.ErrnoException) => { if (error.code !== "ENOENT" && error.code !== "ENOTEMPTY" && error.code !== "EEXIST") throw error; });
+          directory = path.posix.dirname(directory);
+        }
+      }
+    }
+    if (journal.ownershipContentBase64 !== undefined) {
+      await assertNoSymbolicLinkTraversal(metadataRoot, PLUGIN_OWNERSHIP_FILE);
+      const ownershipPath = path.join(metadataRoot, PLUGIN_OWNERSHIP_FILE);
+      if (journal.ownershipContentBase64 === null) await removeOptional(ownershipPath);
+      else await atomicWrite(ownershipPath, Buffer.from(journal.ownershipContentBase64, "base64"));
     }
     const lockPath = path.join(metadataRoot, AGENT_UI_SOURCE_LOCK_FILE);
     if (journal.lockContentBase64 === null) {
@@ -161,7 +182,9 @@ export async function commitAgentUISourceTransaction(
     });
   }
   const previousLock = await readOptionalBuffer(path.join(metadataRoot, AGENT_UI_SOURCE_LOCK_FILE));
+  await assertNoSymbolicLinkTraversal(metadataRoot, PLUGIN_OWNERSHIP_FILE);
   const journal: AgentUISourceTransactionJournal = {
+    ...(options.nextOwnership === undefined ? {} : { ownershipContentBase64: (await readOptionalBuffer(path.join(metadataRoot, PLUGIN_OWNERSHIP_FILE)))?.toString("base64") ?? null }),
     itemId,
     originals,
     lockContentBase64: previousLock?.toString("base64") ?? null,
@@ -182,6 +205,9 @@ export async function commitAgentUISourceTransaction(
     }
     const lockPath = path.join(metadataRoot, AGENT_UI_SOURCE_LOCK_FILE);
     await atomicWrite(lockPath, nextLock);
+    if (options.nextOwnership !== undefined) await atomicWrite(path.join(metadataRoot, PLUGIN_OWNERSHIP_FILE), options.nextOwnership);
+    if (options.simulateCrashAfterOwnership) throw new SimulatedAgentUISourceCrash("Simulated Agent UI ownership transaction crash.");
+    if (options.nextOwnership !== undefined && !(await readFile(path.join(metadataRoot, PLUGIN_OWNERSHIP_FILE))).equals(options.nextOwnership)) throw new AgentUISourceError("PLUGIN_OWNERSHIP_VERIFY_FAILED", "Source ownership write failed verification.");
     for (const mutation of mutations) {
       const actual = await readOptionalBuffer(path.join(sourceRoot, mutation.target));
       if (

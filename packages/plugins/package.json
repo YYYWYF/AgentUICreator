@@ -1,6 +1,6 @@
 {
   "name": "@za38.03/agent-ui-plugins",
-  "version": "0.1.6",
+  "version": "0.0.1",
   "description": "Agent UI React components and official UI plugins",
   "type": "module",
   "engines": {
@@ -28,34 +28,273 @@
       "types": "./dist/generative-ui.d.ts",
       "import": "./dist/generative-ui.js"
     },
-    "./generative-ui.css": "./dist/internal/vendor/assistant-ui/generative-ui/generative-ui.css",
-    "./assistant-ui-composer": {
-      "types": "./dist/assistant-ui-composer/index.d.ts",
-      "import": "./dist/assistant-ui-composer/index.js",
-      "default": "./dist/assistant-ui-composer/index.js"
-    }
+    "./generative-ui.css": "./dist/internal/vendor-generated/assistant-ui/generative-ui/generative-ui.css",
+    "./composer": {
+      "types": "./dist/composer/index.d.ts",
+      "import": "./dist/composer/index.js",
+      "default": "./dist/composer/index.js"
+    },
+    "./form-tools": {
+      "types": "./dist/form-tools.d.ts",
+      "import": "./dist/form-tools.js"
+    },
+    "./catalog": {
+      "types": "./dist/catalog/index.d.ts",
+      "import": "./dist/catalog/index.js"
+    },
+    "./catalog.json": "./dist/catalog.json",
+    "./sources/*": "./dist/sources/*",
+    "./source-registry/registry.json": "./dist/resources/registry/registry.json",
+    "./composer-support": {
+      "types": "./dist/composer-support.d.ts",
+      "import": "./dist/composer-support.js",
+      "default": "./dist/composer-support.js"
+    },
+    "./copy-action": {
+      "types": "./dist/copy-action/index.d.ts",
+      "import": "./dist/copy-action/index.js",
+      "default": "./dist/copy-action/index.js"
+    },
+    "./reload-action": {
+      "types": "./dist/reload-action/index.d.ts",
+      "import": "./dist/reload-action/index.js",
+      "default": "./dist/reload-action/index.js"
+    },
+    "./feedback-actions": {
+      "types": "./dist/feedback-actions/index.d.ts",
+      "import": "./dist/feedback-actions/index.js",
+      "default": "./dist/feedback-actions/index.js"
+    },
+    "./export-markdown-action": {
+      "types": "./dist/export-markdown-action/index.d.ts",
+      "import": "./dist/export-markdown-action/index.js",
+      "default": "./dist/export-markdown-action/index.js"
+    },
+    "./reasoning": {
+      "types": "./dist/reasoning/index.d.ts",
+      "import": "./dist/reasoning/index.js",
+      "default": "./dist/reasoning/index.js"
+    },
+    "./tool-group": {
+      "types": "./dist/tool-group/index.d.ts",
+      "import": "./dist/tool-group/index.js",
+      "default": "./dist/tool-group/index.js"
+    },
+    "./plugin-support": {
+      "types": "./dist/plugin-support.d.ts",
+      "import": "./dist/plugin-support.js",
+      "default": "./dist/plugin-support.js"
+    },
+    "./add-attachment-action": {
+      "types": "./dist/add-attachment-action/index.d.ts",
+      "import": "./dist/add-attachment-action/index.js",
+      "default": "./dist/add-attachment-action/index.js"
+    },
+    "./dictation-action": {
+      "types": "./dist/dictation-action/index.d.ts",
+      "import": "./dist/dictation-action/index.js",
+      "default": "./dist/dictation-action/index.js"
+    },
+    "./submit-action": {
+      "types": "./dist/submit-action/index.d.ts",
+      "import": "./dist/submit-action/index.js",
+      "default": "./dist/submit-action/index.js"
+    },
+    "./response-footer": {
+      "types": "./dist/response-footer/index.d.ts",
+      "import": "./dist/response-footer/index.js",
+      "default": "./dist/response-footer/index.js"
+    },
+    "./conversation-suggestions": {
+      "types": "./dist/conversation-suggestions/index.d.ts",
+      "import": "./dist/conversation-suggestions/index.js",
+      "default": "./dist/conversation-suggestions/index.js"
+    },
+    "./thinking-indicator": {
+      "types": "./dist/thinking-indicator/index.d.ts",
+      "import": "./dist/thinking-indicator/index.js",
+      "default": "./dist/thinking-indicator/index.js"
+    },
+    "./tool-timeline": {
+      "types": "./dist/tool-timeline/index.d.ts",
+      "import": "./dist/tool-timeline/index.js",
+      "default": "./dist/tool-timeline/index.js"
+    },
+    "./tool-fallback": {
+      "types": "./dist/tool-fallback/index.d.ts",
+      "import": "./dist/tool-fallback/index.js",
+      "default": "./dist/tool-fallback/index.js"
+    },
+    "./transient-assistant-messages": {
+      "types": "./dist/transient-assistant-messages/index.d.ts",
+      "import": "./dist/transient-assistant-messages/index.js",
+      "default": "./dist/transient-assistant-messages/index.js"
+    },
+    "./agent-status-message": {
+      "types": "./dist/agent-status-message/index.d.ts",
+      "import": "./dist/agent-status-message/index.js",
+      "default": "./dist/agent-status-message/index.js"
+    },
+    "./agent-plan-message": {
+      "types": "./dist/agent-plan-message/index.d.ts",
+      "import": "./dist/agent-plan-message/index.js",
+      "default": "./dist/agent-plan-message/index.js"
+    },
+    "./job-progress-message": {
+      "types": "./dist/job-progress-message/index.d.ts",
+      "import": "./dist/job-progress-message/index.js",
+      "default": "./dist/job-progress-message/index.js"
+    },
+    "./generated-file-message": {
+      "types": "./dist/generated-file-message/index.d.ts",
+      "import": "./dist/generated-file-message/index.js",
+      "default": "./dist/generated-file-message/index.js"
+    },
+    "./chart-message": {
+      "types": "./dist/chart-message/index.d.ts",
+      "import": "./dist/chart-message/index.js",
+      "default": "./dist/chart-message/index.js"
+    },
+    "./source-citations-message": {
+      "types": "./dist/source-citations-message/index.d.ts",
+      "import": "./dist/source-citations-message/index.js",
+      "default": "./dist/source-citations-message/index.js"
+    },
+    "./retrieval-chunks": {
+      "types": "./dist/retrieval-chunks/index.d.ts",
+      "import": "./dist/retrieval-chunks/index.js",
+      "default": "./dist/retrieval-chunks/index.js"
+    },
+    "./web-search": {
+      "types": "./dist/web-search/index.d.ts",
+      "import": "./dist/web-search/index.js",
+      "default": "./dist/web-search/index.js"
+    },
+    "./conversation-thread-list": {
+      "types": "./dist/conversation-thread-list/index.d.ts",
+      "import": "./dist/conversation-thread-list/index.js",
+      "default": "./dist/conversation-thread-list/index.js"
+    },
+    "./conversation-history": {
+      "types": "./dist/conversation-history/index.d.ts",
+      "import": "./dist/conversation-history/index.js",
+      "default": "./dist/conversation-history/index.js"
+    },
+    "./conversation-new": {
+      "types": "./dist/conversation-new/index.d.ts",
+      "import": "./dist/conversation-new/index.js",
+      "default": "./dist/conversation-new/index.js"
+    },
+    "./conversation-quote": {
+      "types": "./dist/conversation-quote/index.d.ts",
+      "import": "./dist/conversation-quote/index.js",
+      "default": "./dist/conversation-quote/index.js"
+    },
+    "./agent-identity": {
+      "types": "./dist/agent-identity/index.d.ts",
+      "import": "./dist/agent-identity/index.js",
+      "default": "./dist/agent-identity/index.js"
+    },
+    "./auth-account": {
+      "types": "./dist/auth-account/index.d.ts",
+      "import": "./dist/auth-account/index.js",
+      "default": "./dist/auth-account/index.js"
+    },
+    "./auth-gate": {
+      "types": "./dist/auth-gate/index.d.ts",
+      "import": "./dist/auth-gate/index.js",
+      "default": "./dist/auth-gate/index.js"
+    },
+    "./conversation-command-source": {
+      "types": "./dist/conversation-command-source/index.d.ts",
+      "import": "./dist/conversation-command-source/index.js",
+      "default": "./dist/conversation-command-source/index.js"
+    },
+    "./conversation-data-source": {
+      "types": "./dist/conversation-data-source/index.d.ts",
+      "import": "./dist/conversation-data-source/index.js",
+      "default": "./dist/conversation-data-source/index.js"
+    },
+    "./conversation-service": {
+      "types": "./dist/conversation-service/index.d.ts",
+      "import": "./dist/conversation-service/index.js",
+      "default": "./dist/conversation-service/index.js"
+    },
+    "./conversation-surface": {
+      "types": "./dist/conversation-surface/index.d.ts",
+      "import": "./dist/conversation-surface/index.js",
+      "default": "./dist/conversation-surface/index.js"
+    },
+    "./lexical-composer-input": {
+      "types": "./dist/lexical-composer-input/index.d.ts",
+      "import": "./dist/lexical-composer-input/index.js",
+      "default": "./dist/lexical-composer-input/index.js"
+    },
+    "./lexical-edit-composer": {
+      "types": "./dist/lexical-edit-composer/index.d.ts",
+      "import": "./dist/lexical-edit-composer/index.js",
+      "default": "./dist/lexical-edit-composer/index.js"
+    },
+    "./locale-provider": {
+      "types": "./dist/locale-provider/index.d.ts",
+      "import": "./dist/locale-provider/index.js",
+      "default": "./dist/locale-provider/index.js"
+    },
+    "./mention-trigger": {
+      "types": "./dist/mention-trigger/index.d.ts",
+      "import": "./dist/mention-trigger/index.js",
+      "default": "./dist/mention-trigger/index.js"
+    },
+    "./slash-command-trigger": {
+      "types": "./dist/slash-command-trigger/index.d.ts",
+      "import": "./dist/slash-command-trigger/index.js",
+      "default": "./dist/slash-command-trigger/index.js"
+    },
+    "./task-group": {
+      "types": "./dist/task-group/index.d.ts",
+      "import": "./dist/task-group/index.js",
+      "default": "./dist/task-group/index.js"
+    },
+    "./theme-provider": {
+      "types": "./dist/theme-provider/index.d.ts",
+      "import": "./dist/theme-provider/index.js",
+      "default": "./dist/theme-provider/index.js"
+    },
+    "./theme-switch": {
+      "types": "./dist/theme-switch/index.d.ts",
+      "import": "./dist/theme-switch/index.js",
+      "default": "./dist/theme-switch/index.js"
+    },
+    "./compatibility.json": "./dist/compatibility.json"
   },
   "files": [
     "dist",
-    "THIRD_PARTY_NOTICES.md"
+    "THIRD_PARTY_NOTICES.md",
+    "resources/SOURCE_THIRD_PARTY_NOTICES.md"
   ],
   "sideEffects": [
     "**/*.css"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-lexical-boundary.mjs && node scripts/build-composer.mjs && node scripts/check-public-boundary.mjs",
+    "build": "node ../../scripts/sync-package-release-metadata.mjs plugins && node scripts/clean-dist.mjs && node scripts/materialize-plugin-sources.mjs && tsc -p tsconfig.build.json && node scripts/build-optional-facades.mjs && node scripts/copy-assets.mjs && node scripts/check-public-boundary.mjs && node scripts/check-lexical-boundary.mjs && node scripts/prepare-source-distribution.mjs && node scripts/build-package-plugins.mjs && node scripts/check-public-boundary.mjs && node ../../scripts/sync-package-release-metadata.mjs plugins",
     "check:public-boundary": "node scripts/check-public-boundary.mjs",
-    "check:assistant-ui-upstream": "node scripts/check-assistant-ui-upstream.mjs",
-    "check:assistant-ui-latest": "node scripts/check-assistant-ui-latest.mjs",
-    "check:assistant-ui-revision": "node scripts/check-assistant-ui-revision.mjs",
-    "sync:assistant-ui-upstream": "node scripts/sync-assistant-ui-upstream.mjs",
-    "typecheck": "tsc --noEmit && tsc -p tsconfig.tests.json",
-    "test": "vitest run",
-    "check:lexical-boundary": "node scripts/check-lexical-boundary.mjs"
+    "check:assistant-ui-upstream": "node scripts/materialize-plugin-sources.mjs && node scripts/check-assistant-ui-upstream.mjs",
+    "check:assistant-ui-latest": "node scripts/materialize-plugin-sources.mjs && node scripts/check-assistant-ui-latest.mjs",
+    "check:assistant-ui-revision": "node scripts/materialize-plugin-sources.mjs && node scripts/check-assistant-ui-revision.mjs",
+    "sync:assistant-ui-upstream": "node scripts/materialize-plugin-sources.mjs && node scripts/sync-assistant-ui-upstream.mjs",
+    "typecheck": "node scripts/materialize-plugin-sources.mjs && tsc --noEmit && tsc -p tsconfig.tests.json",
+    "test": "node scripts/materialize-plugin-sources.mjs && vitest run",
+    "check:lexical-boundary": "node scripts/check-lexical-boundary.mjs",
+    "release:verify": "node scripts/materialize-plugin-sources.mjs && node --import tsx ../operator/scripts/source-catalog/prepare-release.mjs --verify",
+    "release:prepare": "node scripts/materialize-plugin-sources.mjs && node --import tsx ../operator/scripts/source-catalog/prepare-release.mjs",
+    "sync:generative-ui-upstream": "node scripts/materialize-plugin-sources.mjs && node ../operator/scripts/source-catalog/sync-generative-ui-upstream.mjs",
+    "verify:sources": "node scripts/verify-source-distribution.mjs",
+    "prepublishOnly": "node scripts/verify-source-distribution.mjs && node --import tsx ../operator/scripts/source-catalog/prepare-release.mjs --verify --publish",
+    "prepack": "node ../../scripts/sync-package-release-metadata.mjs plugins"
   },
   "dependencies": {
-    "@assistant-ui/react": "0.15.23",
-    "@assistant-ui/react-markdown": "0.14.16",
+    "@assistant-ui/react": "0.15.29",
+    "@assistant-ui/react-markdown": "0.14.23",
     "@base-ui/react": "1.8.0",
     "class-variance-authority": "0.7.1",
     "cn": "0.2.6",
@@ -66,22 +305,26 @@
     "@za38.03/agent-ui-core": "workspace:*",
     "@assistant-ui/react-generative-ui": "0.0.22",
     "react-markdown": "10.1.0",
-    "zod": "4.5.4"
+    "zod": "4.5.4",
+    "@assistant-ui/core": "0.3.29",
+    "assistant-stream": "0.3.52",
+    "fast-deep-equal": "3.1.3",
+    "@assistant-ui/store": "0.3.21",
+    "@types/node": "26.6.2"
   },
   "peerDependencies": {
     "react": ">=18 <20",
     "react-dom": ">=18 <20",
-    "@assistant-ui/react-lexical": "0.2.15",
-    "lexical": "0.51.0",
-    "@lexical/react": "0.51.0",
-    "@lexical/utils": "0.51.0",
-    "@lexical/history": "0.51.0",
-    "@lexical/plain-text": "0.51.0",
-    "@za38.03/agent-ui-core": "0.1.0",
-    "@za38.03/agent-ui-renderer": "0.1.3"
+    "@assistant-ui/react-lexical": "0.2.18",
+    "lexical": "0.52.0",
+    "@lexical/react": "0.52.0",
+    "@lexical/utils": "0.52.0",
+    "@lexical/history": "0.52.0",
+    "@lexical/plain-text": "0.52.0",
+    "@za38.03/agent-ui-core": "0.0.1",
+    "@za38.03/agent-ui-renderer": "0.0.1"
   },
   "devDependencies": {
-    "@types/node": "26.6.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "react": "19.1.1",
@@ -103,12 +346,12 @@
     "rxjs": "7.8.1",
     "react-hook-form": "7.88.0",
     "@assistant-ui/react-hook-form": "0.12.34",
-    "@assistant-ui/react-lexical": "0.2.15",
-    "lexical": "0.51.0",
-    "@lexical/react": "0.51.0",
-    "@lexical/utils": "0.51.0",
-    "@lexical/history": "0.51.0",
-    "@lexical/plain-text": "0.51.0",
+    "@assistant-ui/react-lexical": "0.2.18",
+    "lexical": "0.52.0",
+    "@lexical/react": "0.52.0",
+    "@lexical/utils": "0.52.0",
+    "@lexical/history": "0.52.0",
+    "@lexical/plain-text": "0.52.0",
     "@types/jsdom": "28.0.3",
     "@za38.03/agent-ui-core": "workspace:*",
     "esbuild": "0.25.12",
@@ -136,5 +379,88 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "agentUI": {
+    "schemaVersion": 1,
+    "compatibility": {
+      "schemaVersion": 1,
+      "releases": [
+        {
+          "id": "agent-ui-initial-0.0.1",
+          "publishedAt": "2026-10-18T00:00:00Z",
+          "channel": "stable",
+          "node": "^20.19.0 || >=22.12.0",
+          "react": ">=18 <20",
+          "packages": [
+            {
+              "name": "@za38.03/agent-ui-core",
+              "version": "0.0.1",
+              "requires": {},
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-renderer",
+              "version": "0.0.1",
+              "requires": {},
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-runtime",
+              "version": "0.0.1",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.1",
+                "@za38.03/agent-ui-plugins": "0.0.1"
+              },
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-plugins",
+              "version": "0.0.1",
+              "requires": {
+                "@za38.03/agent-ui-core": "0.0.1",
+                "@za38.03/agent-ui-renderer": "0.0.1"
+              },
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-web-component",
+              "version": "0.0.1",
+              "requires": {
+                "@za38.03/agent-ui-plugins": "0.0.1",
+                "@za38.03/agent-ui-runtime": "0.0.1",
+                "@za38.03/agent-ui-core": "0.0.1",
+                "@za38.03/agent-ui-renderer": "0.0.1"
+              },
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-creator",
+              "version": "0.0.1",
+              "requires": {
+                "@za38.03/agent-ui-operator": "0.0.1",
+                "@za38.03/agent-ui-core": "0.0.1"
+              },
+              "historyFrom": "0.0.1",
+              "changes": []
+            },
+            {
+              "name": "@za38.03/agent-ui-operator",
+              "version": "0.0.1",
+              "requires": {
+                "@za38.03/agent-ui-web-component": "0.0.1",
+                "@za38.03/agent-ui-plugins": "0.0.1"
+              },
+              "historyFrom": "0.0.1",
+              "changes": []
+            }
+          ]
+        }
+      ]
+    }
   }
 }

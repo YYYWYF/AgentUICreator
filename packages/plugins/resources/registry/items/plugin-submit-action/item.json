@@ -1,0 +1,25 @@
+{
+  "id": "plugin/submit-action",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-submit-action source",
+  "files": [
+    {
+      "source": "files/plugins/submit-action/definition.ts",
+      "target": "plugins/submit-action/definition.ts"
+    },
+    {
+      "source": "files/plugins/submit-action/index.tsx",
+      "target": "plugins/submit-action/index.tsx"
+    },
+    {
+      "source": "files/plugins/submit-action/manifest.json",
+      "target": "plugins/submit-action/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "19.1.1"
+  }
+}

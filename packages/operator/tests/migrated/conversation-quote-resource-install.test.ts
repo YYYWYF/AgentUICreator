@@ -14,7 +14,7 @@ async function project() {
   await cp(await generatedProjectFixture(), root, { recursive: true });
   // This suite starts without Quote; the shared fixture already includes it.
   const model = parseAppUIModelJson(await readFile(modelPath(root), "utf8"));
-  const composer = collectAppUIPluginLocations(model).find(entry => entry.plugin.pluginId === "assistant-ui-composer")!;
+  const composer = collectAppUIPluginLocations(model).find(entry => entry.plugin.pluginId === "composer")!;
   composer.plugin.slots!.beforeInput = [];
   await writeFile(modelPath(root), JSON.stringify(model));
   await rm(path.join(root, "agent-ui/plugins/conversation-quote"), { recursive: true, force: true });
@@ -31,8 +31,8 @@ async function locations(root: string) {
 async function expectComposerPlacement(root: string) {
   const entries = await locations(root);
   const quotes = entries.filter(({ plugin }) => plugin.pluginId === "conversation-quote");
-  const composer = entries.find(({ plugin }) => plugin.pluginId === "assistant-ui-composer")!;
-  expect(composer.plugin.id).toBe("assistant-ui-composer-main");
+  const composer = entries.find(({ plugin }) => plugin.pluginId === "composer")!;
+  expect(composer.plugin.id).toBe("composer-main");
   expect(quotes).toHaveLength(1);
   expect(quotes[0]!.target).toEqual({ type: "plugin_slot", parentInstanceId: composer.plugin.id, slot: "beforeInput" });
   expect(quotes[0]!.plugin.enabled).toBe(true);

@@ -1,0 +1,1719 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    {
+      "view": "resources/registry/items/plugin-agent-identity/files/plugins/agent-identity/config.ts",
+      "source": "src/plugins/agent-identity/adapters/project/config.ts",
+      "kind": "project",
+      "pluginId": "agent-identity"
+    },
+    {
+      "view": "resources/registry/items/plugin-agent-identity/files/plugins/agent-identity/definition.ts",
+      "source": "src/plugins/agent-identity/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "agent-identity"
+    },
+    {
+      "view": "resources/registry/items/plugin-agent-identity/files/plugins/agent-identity/index.tsx",
+      "source": "src/plugins/agent-identity/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "agent-identity"
+    },
+    {
+      "view": "resources/registry/items/plugin-agent-identity/files/plugins/agent-identity/manifest.json",
+      "source": "src/plugins/agent-identity/plugin.json",
+      "kind": "project",
+      "pluginId": "agent-identity"
+    },
+    {
+      "view": "resources/registry/items/plugin-agent-identity/files/plugins/agent-identity/styles.css",
+      "source": "src/plugins/agent-identity/adapters/project/styles.css",
+      "kind": "project",
+      "pluginId": "agent-identity"
+    },
+    {
+      "view": "resources/registry/items/plugin-agent-identity/changelog.json",
+      "source": "src/plugins/agent-identity/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "agent-identity"
+    },
+    {
+      "view": "resources/registry/items/plugin-agent-plan-message/files/plugins/agent-plan-message/definition.ts",
+      "source": "src/plugins/agent-plan-message/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "agent-plan-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-agent-plan-message/files/plugins/agent-plan-message/index.tsx",
+      "source": "src/plugins/agent-plan-message/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "agent-plan-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-agent-plan-message/files/plugins/agent-plan-message/manifest.json",
+      "source": "src/plugins/agent-plan-message/plugin.json",
+      "kind": "project",
+      "pluginId": "agent-plan-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-agent-plan-message/changelog.json",
+      "source": "src/plugins/agent-plan-message/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "agent-plan-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-agent-status-message/files/plugins/agent-status-message/definition.ts",
+      "source": "src/plugins/agent-status-message/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "agent-status-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-agent-status-message/files/plugins/agent-status-message/index.tsx",
+      "source": "src/plugins/agent-status-message/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "agent-status-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-agent-status-message/files/plugins/agent-status-message/manifest.json",
+      "source": "src/plugins/agent-status-message/plugin.json",
+      "kind": "project",
+      "pluginId": "agent-status-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-agent-status-message/changelog.json",
+      "source": "src/plugins/agent-status-message/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "agent-status-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-chart-message/files/plugins/chart-message/definition.ts",
+      "source": "src/plugins/chart-message/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "chart-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-chart-message/files/plugins/chart-message/index.tsx",
+      "source": "src/plugins/chart-message/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "chart-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-chart-message/files/plugins/chart-message/manifest.json",
+      "source": "src/plugins/chart-message/plugin.json",
+      "kind": "project",
+      "pluginId": "chart-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-chart-message/files/plugins/chart-message/style.css",
+      "source": "src/plugins/chart-message/adapters/project/style.css",
+      "kind": "project",
+      "pluginId": "chart-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-chart-message/changelog.json",
+      "source": "src/plugins/chart-message/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "chart-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-data-source/files/plugins/conversation-data-source/definition.ts",
+      "source": "src/plugins/conversation-data-source/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "conversation-data-source"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-data-source/files/plugins/conversation-data-source/index.tsx",
+      "source": "src/plugins/conversation-data-source/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "conversation-data-source"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-data-source/files/plugins/conversation-data-source/manifest.json",
+      "source": "src/plugins/conversation-data-source/plugin.json",
+      "kind": "project",
+      "pluginId": "conversation-data-source"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-data-source/changelog.json",
+      "source": "src/plugins/conversation-data-source/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "conversation-data-source"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-service/files/plugins/conversation-service/definition.ts",
+      "source": "src/plugins/conversation-service/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "conversation-service"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-service/files/plugins/conversation-service/index.tsx",
+      "source": "src/plugins/conversation-service/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "conversation-service"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-service/files/plugins/conversation-service/manifest.json",
+      "source": "src/plugins/conversation-service/plugin.json",
+      "kind": "project",
+      "pluginId": "conversation-service"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-service/changelog.json",
+      "source": "src/plugins/conversation-service/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "conversation-service"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-suggestions/files/plugins/conversation-suggestions/definition.ts",
+      "source": "src/plugins/conversation-suggestions/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "conversation-suggestions"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-suggestions/files/plugins/conversation-suggestions/index.tsx",
+      "source": "src/plugins/conversation-suggestions/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "conversation-suggestions"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-suggestions/files/plugins/conversation-suggestions/manifest.json",
+      "source": "src/plugins/conversation-suggestions/plugin.json",
+      "kind": "project",
+      "pluginId": "conversation-suggestions"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-suggestions/files/plugins/conversation-suggestions/styles.css",
+      "source": "src/plugins/conversation-suggestions/adapters/project/styles.css",
+      "kind": "project",
+      "pluginId": "conversation-suggestions"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-suggestions/changelog.json",
+      "source": "src/plugins/conversation-suggestions/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "conversation-suggestions"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-surface/files/plugins/conversation-surface/definition.ts",
+      "source": "src/plugins/conversation-surface/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "conversation-surface"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-surface/files/plugins/conversation-surface/index.tsx",
+      "source": "src/plugins/conversation-surface/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "conversation-surface"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-surface/files/plugins/conversation-surface/manifest.json",
+      "source": "src/plugins/conversation-surface/plugin.json",
+      "kind": "project",
+      "pluginId": "conversation-surface"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-surface/files/plugins/conversation-surface/styles.css",
+      "source": "src/plugins/conversation-surface/adapters/project/styles.css",
+      "kind": "project",
+      "pluginId": "conversation-surface"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-surface/changelog.json",
+      "source": "src/plugins/conversation-surface/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "conversation-surface"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/PolicyThreadList.tsx",
+      "source": "src/plugins/conversation-thread-list/adapters/project/PolicyThreadList.tsx",
+      "kind": "project",
+      "pluginId": "conversation-thread-list"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/definition.ts",
+      "source": "src/plugins/conversation-thread-list/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "conversation-thread-list"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/index.tsx",
+      "source": "src/plugins/conversation-thread-list/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "conversation-thread-list"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/manifest.json",
+      "source": "src/plugins/conversation-thread-list/plugin.json",
+      "kind": "project",
+      "pluginId": "conversation-thread-list"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-thread-list/files/plugins/conversation-thread-list/styles.css",
+      "source": "src/plugins/conversation-thread-list/adapters/project/styles.css",
+      "kind": "project",
+      "pluginId": "conversation-thread-list"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-thread-list/changelog.json",
+      "source": "src/plugins/conversation-thread-list/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "conversation-thread-list"
+    },
+    {
+      "view": "resources/registry/items/plugin-job-progress-message/files/plugins/job-progress-message/definition.ts",
+      "source": "src/plugins/job-progress-message/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "job-progress-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-job-progress-message/files/plugins/job-progress-message/index.tsx",
+      "source": "src/plugins/job-progress-message/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "job-progress-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-job-progress-message/files/plugins/job-progress-message/manifest.json",
+      "source": "src/plugins/job-progress-message/plugin.json",
+      "kind": "project",
+      "pluginId": "job-progress-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-job-progress-message/changelog.json",
+      "source": "src/plugins/job-progress-message/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "job-progress-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-generated-file-message/files/plugins/generated-file-message/definition.ts",
+      "source": "src/plugins/generated-file-message/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "generated-file-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-generated-file-message/files/plugins/generated-file-message/generated-file-result.ts",
+      "source": "src/plugins/generated-file-message/adapters/project/generated-file-result.ts",
+      "kind": "project",
+      "pluginId": "generated-file-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-generated-file-message/files/plugins/generated-file-message/index.tsx",
+      "source": "src/plugins/generated-file-message/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "generated-file-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-generated-file-message/files/plugins/generated-file-message/manifest.json",
+      "source": "src/plugins/generated-file-message/plugin.json",
+      "kind": "project",
+      "pluginId": "generated-file-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-generated-file-message/changelog.json",
+      "source": "src/plugins/generated-file-message/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "generated-file-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-locale-provider/files/plugins/locale-provider/definition.ts",
+      "source": "src/plugins/locale-provider/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "locale-provider"
+    },
+    {
+      "view": "resources/registry/items/plugin-locale-provider/files/plugins/locale-provider/index.tsx",
+      "source": "src/plugins/locale-provider/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "locale-provider"
+    },
+    {
+      "view": "resources/registry/items/plugin-locale-provider/files/plugins/locale-provider/locale-service.ts",
+      "source": "src/plugins/locale-provider/adapters/project/locale-service.ts",
+      "kind": "project",
+      "pluginId": "locale-provider"
+    },
+    {
+      "view": "resources/registry/items/plugin-locale-provider/files/plugins/locale-provider/manifest.json",
+      "source": "src/plugins/locale-provider/plugin.json",
+      "kind": "project",
+      "pluginId": "locale-provider"
+    },
+    {
+      "view": "resources/registry/items/plugin-locale-provider/changelog.json",
+      "source": "src/plugins/locale-provider/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "locale-provider"
+    },
+    {
+      "view": "resources/registry/items/plugin-task-group/files/plugins/task-group/definition.ts",
+      "source": "src/plugins/task-group/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "task-group"
+    },
+    {
+      "view": "resources/registry/items/plugin-task-group/files/plugins/task-group/index.tsx",
+      "source": "src/plugins/task-group/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "task-group"
+    },
+    {
+      "view": "resources/registry/items/plugin-task-group/files/plugins/task-group/manifest.json",
+      "source": "src/plugins/task-group/plugin.json",
+      "kind": "project",
+      "pluginId": "task-group"
+    },
+    {
+      "view": "resources/registry/items/plugin-task-group/changelog.json",
+      "source": "src/plugins/task-group/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "task-group"
+    },
+    {
+      "view": "resources/registry/items/plugin-theme-provider/files/plugins/theme-provider/definition.ts",
+      "source": "src/plugins/theme-provider/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "theme-provider"
+    },
+    {
+      "view": "resources/registry/items/plugin-theme-provider/files/plugins/theme-provider/index.tsx",
+      "source": "src/plugins/theme-provider/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "theme-provider"
+    },
+    {
+      "view": "resources/registry/items/plugin-theme-provider/files/plugins/theme-provider/manifest.json",
+      "source": "src/plugins/theme-provider/plugin.json",
+      "kind": "project",
+      "pluginId": "theme-provider"
+    },
+    {
+      "view": "resources/registry/items/plugin-theme-provider/files/plugins/theme-provider/theme-service.ts",
+      "source": "src/plugins/theme-provider/adapters/project/theme-service.ts",
+      "kind": "project",
+      "pluginId": "theme-provider"
+    },
+    {
+      "view": "resources/registry/items/plugin-theme-provider/changelog.json",
+      "source": "src/plugins/theme-provider/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "theme-provider"
+    },
+    {
+      "view": "resources/registry/items/plugin-theme-switch/files/plugins/theme-switch/definition.ts",
+      "source": "src/plugins/theme-switch/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "theme-switch"
+    },
+    {
+      "view": "resources/registry/items/plugin-theme-switch/files/plugins/theme-switch/index.tsx",
+      "source": "src/plugins/theme-switch/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "theme-switch"
+    },
+    {
+      "view": "resources/registry/items/plugin-theme-switch/files/plugins/theme-switch/manifest.json",
+      "source": "src/plugins/theme-switch/plugin.json",
+      "kind": "project",
+      "pluginId": "theme-switch"
+    },
+    {
+      "view": "resources/registry/items/plugin-theme-switch/files/plugins/theme-switch/styles.css",
+      "source": "src/plugins/theme-switch/adapters/project/styles.css",
+      "kind": "project",
+      "pluginId": "theme-switch"
+    },
+    {
+      "view": "resources/registry/items/plugin-theme-switch/changelog.json",
+      "source": "src/plugins/theme-switch/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "theme-switch"
+    },
+    {
+      "view": "resources/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/definition.ts",
+      "source": "src/plugins/source-citations-message/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "source-citations-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/index.tsx",
+      "source": "src/plugins/source-citations-message/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "source-citations-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/manifest.json",
+      "source": "src/plugins/source-citations-message/plugin.json",
+      "kind": "project",
+      "pluginId": "source-citations-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/source-citations-result.ts",
+      "source": "src/plugins/source-citations-message/adapters/project/source-citations-result.ts",
+      "kind": "project",
+      "pluginId": "source-citations-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-source-citations-message/changelog.json",
+      "source": "src/plugins/source-citations-message/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "source-citations-message"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-quote/files/plugins/conversation-quote/definition.ts",
+      "source": "src/plugins/conversation-quote/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "conversation-quote"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-quote/files/plugins/conversation-quote/index.tsx",
+      "source": "src/plugins/conversation-quote/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "conversation-quote"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-quote/files/plugins/conversation-quote/manifest.json",
+      "source": "src/plugins/conversation-quote/plugin.json",
+      "kind": "project",
+      "pluginId": "conversation-quote"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-quote/changelog.json",
+      "source": "src/plugins/conversation-quote/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "conversation-quote"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-command-source/files/plugins/conversation-command-source/definition.ts",
+      "source": "src/plugins/conversation-command-source/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "conversation-command-source"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-command-source/files/plugins/conversation-command-source/index.tsx",
+      "source": "src/plugins/conversation-command-source/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "conversation-command-source"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-command-source/files/plugins/conversation-command-source/manifest.json",
+      "source": "src/plugins/conversation-command-source/plugin.json",
+      "kind": "project",
+      "pluginId": "conversation-command-source"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-command-source/changelog.json",
+      "source": "src/plugins/conversation-command-source/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "conversation-command-source"
+    },
+    {
+      "view": "resources/registry/items/plugin-web-search/files/plugins/web-search/definition.ts",
+      "source": "src/plugins/web-search/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "web-search"
+    },
+    {
+      "view": "resources/registry/items/plugin-web-search/files/plugins/web-search/index.tsx",
+      "source": "src/plugins/web-search/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "web-search"
+    },
+    {
+      "view": "resources/registry/items/plugin-web-search/files/plugins/web-search/manifest.json",
+      "source": "src/plugins/web-search/plugin.json",
+      "kind": "project",
+      "pluginId": "web-search"
+    },
+    {
+      "view": "resources/registry/items/plugin-web-search/changelog.json",
+      "source": "src/plugins/web-search/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "web-search"
+    },
+    {
+      "view": "resources/registry/items/plugin-retrieval-chunks/files/plugins/retrieval-chunks/definition.ts",
+      "source": "src/plugins/retrieval-chunks/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "retrieval-chunks"
+    },
+    {
+      "view": "resources/registry/items/plugin-retrieval-chunks/files/plugins/retrieval-chunks/index.tsx",
+      "source": "src/plugins/retrieval-chunks/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "retrieval-chunks"
+    },
+    {
+      "view": "resources/registry/items/plugin-retrieval-chunks/files/plugins/retrieval-chunks/manifest.json",
+      "source": "src/plugins/retrieval-chunks/plugin.json",
+      "kind": "project",
+      "pluginId": "retrieval-chunks"
+    },
+    {
+      "view": "resources/registry/items/plugin-retrieval-chunks/changelog.json",
+      "source": "src/plugins/retrieval-chunks/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "retrieval-chunks"
+    },
+    {
+      "view": "resources/registry/items/plugin-auth-gate/files/plugins/auth-gate/definition.ts",
+      "source": "src/plugins/auth-gate/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "auth-gate"
+    },
+    {
+      "view": "resources/registry/items/plugin-auth-gate/files/plugins/auth-gate/index.tsx",
+      "source": "src/plugins/auth-gate/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "auth-gate"
+    },
+    {
+      "view": "resources/registry/items/plugin-auth-gate/files/plugins/auth-gate/manifest.json",
+      "source": "src/plugins/auth-gate/plugin.json",
+      "kind": "project",
+      "pluginId": "auth-gate"
+    },
+    {
+      "view": "resources/registry/items/plugin-auth-gate/files/plugins/auth-gate/session.ts",
+      "source": "src/plugins/auth-gate/adapters/project/session.ts",
+      "kind": "project",
+      "pluginId": "auth-gate"
+    },
+    {
+      "view": "resources/registry/items/plugin-auth-gate/files/plugins/auth-gate/styles.css",
+      "source": "src/plugins/auth-gate/adapters/project/styles.css",
+      "kind": "project",
+      "pluginId": "auth-gate"
+    },
+    {
+      "view": "resources/registry/items/plugin-auth-gate/changelog.json",
+      "source": "src/plugins/auth-gate/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "auth-gate"
+    },
+    {
+      "view": "resources/registry/items/plugin-auth-account/files/plugins/auth-account/definition.ts",
+      "source": "src/plugins/auth-account/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "auth-account"
+    },
+    {
+      "view": "resources/registry/items/plugin-auth-account/files/plugins/auth-account/index.tsx",
+      "source": "src/plugins/auth-account/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "auth-account"
+    },
+    {
+      "view": "resources/registry/items/plugin-auth-account/files/plugins/auth-account/manifest.json",
+      "source": "src/plugins/auth-account/plugin.json",
+      "kind": "project",
+      "pluginId": "auth-account"
+    },
+    {
+      "view": "resources/registry/items/plugin-auth-account/files/plugins/auth-account/styles.css",
+      "source": "src/plugins/auth-account/adapters/project/styles.css",
+      "kind": "project",
+      "pluginId": "auth-account"
+    },
+    {
+      "view": "resources/registry/items/plugin-auth-account/changelog.json",
+      "source": "src/plugins/auth-account/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "auth-account"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-new/files/plugins/conversation-new/definition.ts",
+      "source": "src/plugins/conversation-new/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "conversation-new"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-new/files/plugins/conversation-new/index.tsx",
+      "source": "src/plugins/conversation-new/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "conversation-new"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-new/files/plugins/conversation-new/manifest.json",
+      "source": "src/plugins/conversation-new/plugin.json",
+      "kind": "project",
+      "pluginId": "conversation-new"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-new/files/plugins/conversation-new/styles.css",
+      "source": "src/plugins/conversation-new/adapters/project/styles.css",
+      "kind": "project",
+      "pluginId": "conversation-new"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-new/changelog.json",
+      "source": "src/plugins/conversation-new/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "conversation-new"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-history/files/plugins/conversation-history/definition.ts",
+      "source": "src/plugins/conversation-history/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "conversation-history"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-history/files/plugins/conversation-history/index.tsx",
+      "source": "src/plugins/conversation-history/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "conversation-history"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-history/files/plugins/conversation-history/manifest.json",
+      "source": "src/plugins/conversation-history/plugin.json",
+      "kind": "project",
+      "pluginId": "conversation-history"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-history/files/plugins/conversation-history/styles.css",
+      "source": "src/plugins/conversation-history/adapters/project/styles.css",
+      "kind": "project",
+      "pluginId": "conversation-history"
+    },
+    {
+      "view": "resources/registry/items/plugin-conversation-history/changelog.json",
+      "source": "src/plugins/conversation-history/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "conversation-history"
+    },
+    {
+      "view": "resources/registry/items/plugin-add-attachment-action/files/plugins/add-attachment-action/definition.ts",
+      "source": "src/plugins/add-attachment-action/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "add-attachment-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-add-attachment-action/files/plugins/add-attachment-action/index.tsx",
+      "source": "src/plugins/add-attachment-action/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "add-attachment-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-add-attachment-action/files/plugins/add-attachment-action/manifest.json",
+      "source": "src/plugins/add-attachment-action/plugin.json",
+      "kind": "project",
+      "pluginId": "add-attachment-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-add-attachment-action/changelog.json",
+      "source": "src/plugins/add-attachment-action/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "add-attachment-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-composer/files/plugins/composer/definition.ts",
+      "source": "src/plugins/composer/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "composer"
+    },
+    {
+      "view": "resources/registry/items/plugin-composer/files/plugins/composer/index.tsx",
+      "source": "src/plugins/composer/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "composer"
+    },
+    {
+      "view": "resources/registry/items/plugin-composer/files/plugins/composer/manifest.json",
+      "source": "src/plugins/composer/plugin.json",
+      "kind": "project",
+      "pluginId": "composer"
+    },
+    {
+      "view": "resources/registry/items/plugin-composer/changelog.json",
+      "source": "src/plugins/composer/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "composer"
+    },
+    {
+      "view": "resources/registry/items/plugin-copy-action/files/plugins/copy-action/definition.ts",
+      "source": "src/plugins/copy-action/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "copy-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-copy-action/files/plugins/copy-action/index.tsx",
+      "source": "src/plugins/copy-action/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "copy-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-copy-action/files/plugins/copy-action/manifest.json",
+      "source": "src/plugins/copy-action/plugin.json",
+      "kind": "project",
+      "pluginId": "copy-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-copy-action/changelog.json",
+      "source": "src/plugins/copy-action/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "copy-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-dictation-action/files/plugins/dictation-action/definition.ts",
+      "source": "src/plugins/dictation-action/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "dictation-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-dictation-action/files/plugins/dictation-action/index.tsx",
+      "source": "src/plugins/dictation-action/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "dictation-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-dictation-action/files/plugins/dictation-action/manifest.json",
+      "source": "src/plugins/dictation-action/plugin.json",
+      "kind": "project",
+      "pluginId": "dictation-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-dictation-action/changelog.json",
+      "source": "src/plugins/dictation-action/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "dictation-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-export-markdown-action/files/plugins/export-markdown-action/definition.ts",
+      "source": "src/plugins/export-markdown-action/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "export-markdown-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-export-markdown-action/files/plugins/export-markdown-action/index.tsx",
+      "source": "src/plugins/export-markdown-action/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "export-markdown-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-export-markdown-action/files/plugins/export-markdown-action/manifest.json",
+      "source": "src/plugins/export-markdown-action/plugin.json",
+      "kind": "project",
+      "pluginId": "export-markdown-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-export-markdown-action/changelog.json",
+      "source": "src/plugins/export-markdown-action/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "export-markdown-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-response-footer/files/plugins/response-footer/definition.ts",
+      "source": "src/plugins/response-footer/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "response-footer"
+    },
+    {
+      "view": "resources/registry/items/plugin-response-footer/files/plugins/response-footer/index.tsx",
+      "source": "src/plugins/response-footer/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "response-footer"
+    },
+    {
+      "view": "resources/registry/items/plugin-response-footer/files/plugins/response-footer/manifest.json",
+      "source": "src/plugins/response-footer/plugin.json",
+      "kind": "project",
+      "pluginId": "response-footer"
+    },
+    {
+      "view": "resources/registry/items/plugin-response-footer/changelog.json",
+      "source": "src/plugins/response-footer/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "response-footer"
+    },
+    {
+      "view": "resources/registry/items/plugin-reasoning/files/plugins/reasoning/definition.ts",
+      "source": "src/plugins/reasoning/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "reasoning"
+    },
+    {
+      "view": "resources/registry/items/plugin-reasoning/files/plugins/reasoning/index.tsx",
+      "source": "src/plugins/reasoning/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "reasoning"
+    },
+    {
+      "view": "resources/registry/items/plugin-reasoning/files/plugins/reasoning/manifest.json",
+      "source": "src/plugins/reasoning/plugin.json",
+      "kind": "project",
+      "pluginId": "reasoning"
+    },
+    {
+      "view": "resources/registry/items/plugin-reasoning/changelog.json",
+      "source": "src/plugins/reasoning/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "reasoning"
+    },
+    {
+      "view": "resources/registry/items/plugin-reload-action/files/plugins/reload-action/definition.ts",
+      "source": "src/plugins/reload-action/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "reload-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-reload-action/files/plugins/reload-action/index.tsx",
+      "source": "src/plugins/reload-action/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "reload-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-reload-action/files/plugins/reload-action/manifest.json",
+      "source": "src/plugins/reload-action/plugin.json",
+      "kind": "project",
+      "pluginId": "reload-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-reload-action/changelog.json",
+      "source": "src/plugins/reload-action/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "reload-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-submit-action/files/plugins/submit-action/definition.ts",
+      "source": "src/plugins/submit-action/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "submit-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-submit-action/files/plugins/submit-action/index.tsx",
+      "source": "src/plugins/submit-action/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "submit-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-submit-action/files/plugins/submit-action/manifest.json",
+      "source": "src/plugins/submit-action/plugin.json",
+      "kind": "project",
+      "pluginId": "submit-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-submit-action/changelog.json",
+      "source": "src/plugins/submit-action/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "submit-action"
+    },
+    {
+      "view": "resources/registry/items/plugin-tool-fallback/files/plugins/tool-fallback/definition.ts",
+      "source": "src/plugins/tool-fallback/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "tool-fallback"
+    },
+    {
+      "view": "resources/registry/items/plugin-tool-fallback/files/plugins/tool-fallback/index.tsx",
+      "source": "src/plugins/tool-fallback/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "tool-fallback"
+    },
+    {
+      "view": "resources/registry/items/plugin-tool-fallback/files/plugins/tool-fallback/manifest.json",
+      "source": "src/plugins/tool-fallback/plugin.json",
+      "kind": "project",
+      "pluginId": "tool-fallback"
+    },
+    {
+      "view": "resources/registry/items/plugin-tool-fallback/changelog.json",
+      "source": "src/plugins/tool-fallback/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "tool-fallback"
+    },
+    {
+      "view": "resources/registry/items/plugin-tool-group/files/plugins/tool-group/definition.ts",
+      "source": "src/plugins/tool-group/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "tool-group"
+    },
+    {
+      "view": "resources/registry/items/plugin-tool-group/files/plugins/tool-group/index.tsx",
+      "source": "src/plugins/tool-group/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "tool-group"
+    },
+    {
+      "view": "resources/registry/items/plugin-tool-group/files/plugins/tool-group/manifest.json",
+      "source": "src/plugins/tool-group/plugin.json",
+      "kind": "project",
+      "pluginId": "tool-group"
+    },
+    {
+      "view": "resources/registry/items/plugin-tool-group/changelog.json",
+      "source": "src/plugins/tool-group/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "tool-group"
+    },
+    {
+      "view": "resources/registry/items/plugin-mention-trigger/files/plugins/mention-trigger/definition.ts",
+      "source": "src/plugins/mention-trigger/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "mention-trigger"
+    },
+    {
+      "view": "resources/registry/items/plugin-mention-trigger/files/plugins/mention-trigger/index.tsx",
+      "source": "src/plugins/mention-trigger/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "mention-trigger"
+    },
+    {
+      "view": "resources/registry/items/plugin-mention-trigger/files/plugins/mention-trigger/manifest.json",
+      "source": "src/plugins/mention-trigger/plugin.json",
+      "kind": "project",
+      "pluginId": "mention-trigger"
+    },
+    {
+      "view": "resources/registry/items/plugin-mention-trigger/changelog.json",
+      "source": "src/plugins/mention-trigger/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "mention-trigger"
+    },
+    {
+      "view": "resources/registry/items/plugin-slash-command-trigger/files/plugins/slash-command-trigger/definition.ts",
+      "source": "src/plugins/slash-command-trigger/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "slash-command-trigger"
+    },
+    {
+      "view": "resources/registry/items/plugin-slash-command-trigger/files/plugins/slash-command-trigger/index.tsx",
+      "source": "src/plugins/slash-command-trigger/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "slash-command-trigger"
+    },
+    {
+      "view": "resources/registry/items/plugin-slash-command-trigger/files/plugins/slash-command-trigger/manifest.json",
+      "source": "src/plugins/slash-command-trigger/plugin.json",
+      "kind": "project",
+      "pluginId": "slash-command-trigger"
+    },
+    {
+      "view": "resources/registry/items/plugin-slash-command-trigger/changelog.json",
+      "source": "src/plugins/slash-command-trigger/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "slash-command-trigger"
+    },
+    {
+      "view": "resources/registry/items/plugin-lexical-composer-input/files/plugins/lexical-composer-input/definition.ts",
+      "source": "src/plugins/lexical-composer-input/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "lexical-composer-input"
+    },
+    {
+      "view": "resources/registry/items/plugin-lexical-composer-input/files/plugins/lexical-composer-input/index.tsx",
+      "source": "src/plugins/lexical-composer-input/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "lexical-composer-input"
+    },
+    {
+      "view": "resources/registry/items/plugin-lexical-composer-input/files/plugins/lexical-composer-input/manifest.json",
+      "source": "src/plugins/lexical-composer-input/plugin.json",
+      "kind": "project",
+      "pluginId": "lexical-composer-input"
+    },
+    {
+      "view": "resources/registry/items/plugin-lexical-composer-input/changelog.json",
+      "source": "src/plugins/lexical-composer-input/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "lexical-composer-input"
+    },
+    {
+      "view": "resources/registry/items/plugin-lexical-edit-composer/files/plugins/lexical-edit-composer/definition.ts",
+      "source": "src/plugins/lexical-edit-composer/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "lexical-edit-composer"
+    },
+    {
+      "view": "resources/registry/items/plugin-lexical-edit-composer/files/plugins/lexical-edit-composer/index.tsx",
+      "source": "src/plugins/lexical-edit-composer/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "lexical-edit-composer"
+    },
+    {
+      "view": "resources/registry/items/plugin-lexical-edit-composer/files/plugins/lexical-edit-composer/manifest.json",
+      "source": "src/plugins/lexical-edit-composer/plugin.json",
+      "kind": "project",
+      "pluginId": "lexical-edit-composer"
+    },
+    {
+      "view": "resources/registry/items/plugin-lexical-edit-composer/changelog.json",
+      "source": "src/plugins/lexical-edit-composer/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "lexical-edit-composer"
+    },
+    {
+      "view": "resources/registry/items/plugin-feedback-actions/files/plugins/feedback-actions/definition.ts",
+      "source": "src/plugins/feedback-actions/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "feedback-actions"
+    },
+    {
+      "view": "resources/registry/items/plugin-feedback-actions/files/plugins/feedback-actions/index.tsx",
+      "source": "src/plugins/feedback-actions/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "feedback-actions"
+    },
+    {
+      "view": "resources/registry/items/plugin-feedback-actions/files/plugins/feedback-actions/manifest.json",
+      "source": "src/plugins/feedback-actions/plugin.json",
+      "kind": "project",
+      "pluginId": "feedback-actions"
+    },
+    {
+      "view": "resources/registry/items/plugin-feedback-actions/changelog.json",
+      "source": "src/plugins/feedback-actions/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "feedback-actions"
+    },
+    {
+      "view": "resources/registry/items/plugin-tool-timeline/files/plugins/tool-timeline/definition.ts",
+      "source": "src/plugins/tool-timeline/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "tool-timeline"
+    },
+    {
+      "view": "resources/registry/items/plugin-tool-timeline/files/plugins/tool-timeline/index.tsx",
+      "source": "src/plugins/tool-timeline/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "tool-timeline"
+    },
+    {
+      "view": "resources/registry/items/plugin-tool-timeline/files/plugins/tool-timeline/manifest.json",
+      "source": "src/plugins/tool-timeline/plugin.json",
+      "kind": "project",
+      "pluginId": "tool-timeline"
+    },
+    {
+      "view": "resources/registry/items/plugin-tool-timeline/changelog.json",
+      "source": "src/plugins/tool-timeline/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "tool-timeline"
+    },
+    {
+      "view": "resources/registry/items/plugin-thinking-indicator/files/plugins/thinking-indicator/definition.ts",
+      "source": "src/plugins/thinking-indicator/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "thinking-indicator"
+    },
+    {
+      "view": "resources/registry/items/plugin-thinking-indicator/files/plugins/thinking-indicator/index.tsx",
+      "source": "src/plugins/thinking-indicator/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "thinking-indicator"
+    },
+    {
+      "view": "resources/registry/items/plugin-thinking-indicator/files/plugins/thinking-indicator/manifest.json",
+      "source": "src/plugins/thinking-indicator/plugin.json",
+      "kind": "project",
+      "pluginId": "thinking-indicator"
+    },
+    {
+      "view": "resources/registry/items/plugin-thinking-indicator/changelog.json",
+      "source": "src/plugins/thinking-indicator/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "thinking-indicator"
+    },
+    {
+      "view": "resources/registry/items/plugin-transient-assistant-messages/files/plugins/transient-assistant-messages/definition.ts",
+      "source": "src/plugins/transient-assistant-messages/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "transient-assistant-messages"
+    },
+    {
+      "view": "resources/registry/items/plugin-transient-assistant-messages/files/plugins/transient-assistant-messages/index.tsx",
+      "source": "src/plugins/transient-assistant-messages/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "transient-assistant-messages"
+    },
+    {
+      "view": "resources/registry/items/plugin-transient-assistant-messages/files/plugins/transient-assistant-messages/manifest.json",
+      "source": "src/plugins/transient-assistant-messages/plugin.json",
+      "kind": "project",
+      "pluginId": "transient-assistant-messages"
+    },
+    {
+      "view": "resources/registry/items/plugin-transient-assistant-messages/changelog.json",
+      "source": "src/plugins/transient-assistant-messages/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "transient-assistant-messages"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/UPSTREAM.json",
+      "source": "src/shared/upstream/assistant-ui/UPSTREAM.json",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/UPSTREAM.md",
+      "source": "src/shared/upstream/assistant-ui/UPSTREAM.md",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/assistant-ui-upstream.lock.json",
+      "source": "src/shared/upstream/assistant-ui/assistant-ui-upstream.lock.json",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/agent-plan.tsx",
+      "source": "src/plugins/agent-plan-message/upstream/assistant-ui/components/assistant-ui/elements/agent-plan.tsx",
+      "kind": "upstream",
+      "pluginId": "agent-plan-message"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/agent-status.aui.tsx",
+      "source": "src/plugins/agent-status-message/upstream/assistant-ui/components/assistant-ui/elements/agent-status.aui.tsx",
+      "kind": "upstream",
+      "pluginId": "agent-status-message"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/agent-status.tsx",
+      "source": "src/plugins/agent-status-message/upstream/assistant-ui/components/assistant-ui/elements/agent-status.tsx",
+      "kind": "upstream",
+      "pluginId": "agent-status-message"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "source": "src/plugins/add-attachment-action/upstream/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "kind": "upstream",
+      "pluginId": "add-attachment-action"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/collapsible-root.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/assistant-ui/elements/collapsible-root.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "source": "src/plugins/composer/upstream/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "kind": "upstream",
+      "pluginId": "composer"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/directive-text.aui.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/assistant-ui/elements/directive-text.aui.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/directive-text.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/assistant-ui/elements/directive-text.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/file.tsx",
+      "source": "src/plugins/generated-file-message/upstream/assistant-ui/components/assistant-ui/elements/file.tsx",
+      "kind": "upstream",
+      "pluginId": "generated-file-message"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
+      "source": "src/plugins/conversation-suggestions/upstream/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
+      "kind": "upstream",
+      "pluginId": "conversation-suggestions"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+      "source": "src/plugins/job-progress-message/upstream/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+      "kind": "upstream",
+      "pluginId": "job-progress-message"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/markdown-text.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/assistant-ui/elements/markdown-text.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/media-player.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/assistant-ui/elements/media-player.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/option-list.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/assistant-ui/elements/option-list.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/reasoning.aui.tsx",
+      "source": "src/plugins/reasoning/upstream/assistant-ui/components/assistant-ui/elements/reasoning.aui.tsx",
+      "kind": "upstream",
+      "pluginId": "reasoning"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/reasoning.tsx",
+      "source": "src/plugins/reasoning/upstream/assistant-ui/components/assistant-ui/elements/reasoning.tsx",
+      "kind": "upstream",
+      "pluginId": "reasoning"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/receipt-focus.ts",
+      "source": "src/shared/upstream/assistant-ui/components/assistant-ui/elements/receipt-focus.ts",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/retrieval-chunks.tsx",
+      "source": "src/plugins/retrieval-chunks/upstream/assistant-ui/components/assistant-ui/elements/retrieval-chunks.tsx",
+      "kind": "upstream",
+      "pluginId": "retrieval-chunks"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
+      "source": "src/plugins/source-citations-message/upstream/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
+      "kind": "upstream",
+      "pluginId": "source-citations-message"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/subagent-list.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/assistant-ui/elements/subagent-list.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/surfaces.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/assistant-ui/elements/surfaces.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/task-card.aui.tsx",
+      "source": "src/plugins/task-group/upstream/assistant-ui/components/assistant-ui/elements/task-card.aui.tsx",
+      "kind": "upstream",
+      "pluginId": "task-group"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/task-card.tsx",
+      "source": "src/plugins/task-group/upstream/assistant-ui/components/assistant-ui/elements/task-card.tsx",
+      "kind": "upstream",
+      "pluginId": "task-group"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/thinking-indicator.tsx",
+      "source": "src/plugins/thinking-indicator/upstream/assistant-ui/components/assistant-ui/elements/thinking-indicator.tsx",
+      "kind": "upstream",
+      "pluginId": "thinking-indicator"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx",
+      "source": "src/plugins/conversation-thread-list/upstream/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx",
+      "kind": "upstream",
+      "pluginId": "conversation-thread-list"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/tool-call.tsx",
+      "source": "src/plugins/tool-fallback/upstream/assistant-ui/components/assistant-ui/elements/tool-call.tsx",
+      "kind": "upstream",
+      "pluginId": "tool-fallback"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx",
+      "source": "src/plugins/tool-fallback/upstream/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx",
+      "kind": "upstream",
+      "pluginId": "tool-fallback"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/tool-group.aui.tsx",
+      "source": "src/plugins/tool-group/upstream/assistant-ui/components/assistant-ui/elements/tool-group.aui.tsx",
+      "kind": "upstream",
+      "pluginId": "tool-group"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/tool-timeline.tsx",
+      "source": "src/plugins/tool-timeline/upstream/assistant-ui/components/assistant-ui/elements/tool-timeline.tsx",
+      "kind": "upstream",
+      "pluginId": "tool-timeline"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/web-search.tsx",
+      "source": "src/plugins/web-search/upstream/assistant-ui/components/assistant-ui/elements/web-search.tsx",
+      "kind": "upstream",
+      "pluginId": "web-search"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/utils/href.ts",
+      "source": "src/shared/upstream/assistant-ui/components/assistant-ui/utils/href.ts",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/utils/range.ts",
+      "source": "src/shared/upstream/assistant-ui/components/assistant-ui/utils/range.ts",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/utils/task.ts",
+      "source": "src/shared/upstream/assistant-ui/components/assistant-ui/utils/task.ts",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/assistant-ui/utils/useIsomorphicLayoutEffect.ts",
+      "source": "src/shared/upstream/assistant-ui/components/assistant-ui/utils/useIsomorphicLayoutEffect.ts",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/ui/avatar.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/ui/avatar.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/ui/badge.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/ui/badge.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/ui/button.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/ui/button.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/ui/collapsible.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/ui/collapsible.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/ui/dialog.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/ui/dialog.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/ui/input.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/ui/input.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/ui/popover.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/ui/popover.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/ui/separator.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/ui/separator.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/ui/sheet.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/ui/sheet.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/ui/sidebar.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/ui/sidebar.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/ui/skeleton.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/ui/skeleton.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/ui/textarea.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/ui/textarea.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/components/ui/tooltip.tsx",
+      "source": "src/shared/upstream/assistant-ui/components/ui/tooltip.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/generative-ui/UPSTREAM.json",
+      "source": "src/shared/upstream/assistant-ui/generative-ui/UPSTREAM.json",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/generative-ui/generative-ui.css",
+      "source": "src/shared/upstream/assistant-ui/generative-ui/generative-ui.css",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/generative-ui/styled-generative-ui.tsx",
+      "source": "src/shared/upstream/assistant-ui/generative-ui/styled-generative-ui.tsx",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/hooks/use-attachment-src.ts",
+      "source": "src/shared/upstream/assistant-ui/hooks/use-attachment-src.ts",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/hooks/use-copy-to-clipboard.ts",
+      "source": "src/shared/upstream/assistant-ui/hooks/use-copy-to-clipboard.ts",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/hooks/use-mobile.ts",
+      "source": "src/shared/upstream/assistant-ui/hooks/use-mobile.ts",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/lib/utils.ts",
+      "source": "src/shared/upstream/assistant-ui/lib/utils.ts",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/vendor-generated/assistant-ui/upstream-elements.json",
+      "source": "src/shared/upstream/assistant-ui/upstream-elements.json",
+      "kind": "upstream"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/README.md",
+      "source": "src/shared/adapters/presentation/assistant-ui/README.md",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/UPSTREAM.json",
+      "source": "src/shared/adapters/presentation/assistant-ui/UPSTREAM.json",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/agent-plan.tsx",
+      "source": "src/plugins/agent-plan-message/adapters/presentation/assistant-ui/components/assistant-ui/elements/agent-plan.tsx",
+      "kind": "presentation",
+      "pluginId": "agent-plan-message"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/agent-status.aui.tsx",
+      "source": "src/plugins/agent-status-message/adapters/presentation/assistant-ui/components/assistant-ui/elements/agent-status.aui.tsx",
+      "kind": "presentation",
+      "pluginId": "agent-status-message"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/agent-status.tsx",
+      "source": "src/plugins/agent-status-message/adapters/presentation/assistant-ui/components/assistant-ui/elements/agent-status.tsx",
+      "kind": "presentation",
+      "pluginId": "agent-status-message"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "source": "src/plugins/add-attachment-action/adapters/presentation/assistant-ui/components/assistant-ui/elements/attachment.aui.tsx",
+      "kind": "presentation",
+      "pluginId": "add-attachment-action"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "source": "src/plugins/composer/adapters/presentation/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx",
+      "kind": "presentation",
+      "pluginId": "composer"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/directive-text.aui.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/directive-text.aui.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/directive-text.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/directive-text.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/file.tsx",
+      "source": "src/plugins/generated-file-message/adapters/presentation/assistant-ui/components/assistant-ui/elements/file.tsx",
+      "kind": "presentation",
+      "pluginId": "generated-file-message"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
+      "source": "src/plugins/conversation-suggestions/adapters/presentation/assistant-ui/components/assistant-ui/elements/follow-up-suggestions.aui.tsx",
+      "kind": "presentation",
+      "pluginId": "conversation-suggestions"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/image.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+      "source": "src/plugins/job-progress-message/adapters/presentation/assistant-ui/components/assistant-ui/elements/job-progress.tsx",
+      "kind": "presentation",
+      "pluginId": "job-progress-message"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/markdown-text.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/markdown-text.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/media-player.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/media-player.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/option-list.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/option-list.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/quote.aui.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/reasoning.aui.tsx",
+      "source": "src/plugins/reasoning/adapters/presentation/assistant-ui/components/assistant-ui/elements/reasoning.aui.tsx",
+      "kind": "presentation",
+      "pluginId": "reasoning"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/reasoning.tsx",
+      "source": "src/plugins/reasoning/adapters/presentation/assistant-ui/components/assistant-ui/elements/reasoning.tsx",
+      "kind": "presentation",
+      "pluginId": "reasoning"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/retrieval-chunks.tsx",
+      "source": "src/plugins/retrieval-chunks/adapters/presentation/assistant-ui/components/assistant-ui/elements/retrieval-chunks.tsx",
+      "kind": "presentation",
+      "pluginId": "retrieval-chunks"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
+      "source": "src/plugins/source-citations-message/adapters/presentation/assistant-ui/components/assistant-ui/elements/sources.aui.tsx",
+      "kind": "presentation",
+      "pluginId": "source-citations-message"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/subagent-list.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/subagent-list.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/task-card.aui.tsx",
+      "source": "src/plugins/task-group/adapters/presentation/assistant-ui/components/assistant-ui/elements/task-card.aui.tsx",
+      "kind": "presentation",
+      "pluginId": "task-group"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/task-card.tsx",
+      "source": "src/plugins/task-group/adapters/presentation/assistant-ui/components/assistant-ui/elements/task-card.tsx",
+      "kind": "presentation",
+      "pluginId": "task-group"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/thinking-indicator.tsx",
+      "source": "src/plugins/thinking-indicator/adapters/presentation/assistant-ui/components/assistant-ui/elements/thinking-indicator.tsx",
+      "kind": "presentation",
+      "pluginId": "thinking-indicator"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx",
+      "source": "src/plugins/conversation-thread-list/adapters/presentation/assistant-ui/components/assistant-ui/elements/thread-list.aui.tsx",
+      "kind": "presentation",
+      "pluginId": "conversation-thread-list"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-call.tsx",
+      "source": "src/plugins/tool-fallback/adapters/presentation/assistant-ui/components/assistant-ui/elements/tool-call.tsx",
+      "kind": "presentation",
+      "pluginId": "tool-fallback"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx",
+      "source": "src/plugins/tool-fallback/adapters/presentation/assistant-ui/components/assistant-ui/elements/tool-fallback.aui.tsx",
+      "kind": "presentation",
+      "pluginId": "tool-fallback"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-group.aui.tsx",
+      "source": "src/plugins/tool-group/adapters/presentation/assistant-ui/components/assistant-ui/elements/tool-group.aui.tsx",
+      "kind": "presentation",
+      "pluginId": "tool-group"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tool-timeline.tsx",
+      "source": "src/plugins/tool-timeline/adapters/presentation/assistant-ui/components/assistant-ui/elements/tool-timeline.tsx",
+      "kind": "presentation",
+      "pluginId": "tool-timeline"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/assistant-ui/elements/tooltip-icon-button.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/web-search.tsx",
+      "source": "src/plugins/web-search/adapters/presentation/assistant-ui/components/assistant-ui/elements/web-search.tsx",
+      "kind": "presentation",
+      "pluginId": "web-search"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/ui/badge.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/ui/badge.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/ui/button.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/ui/button.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/ui/collapsible.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/ui/collapsible.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/ui/dialog.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/ui/dialog.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/ui/input.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/ui/input.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/ui/popover.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/ui/popover.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/ui/sheet.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/ui/sheet.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/ui/sidebar.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/ui/sidebar.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/ui/skeleton.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/ui/skeleton.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "src/internal/adapters-generated/assistant-ui/components/ui/tooltip.tsx",
+      "source": "src/shared/adapters/presentation/assistant-ui/components/ui/tooltip.tsx",
+      "kind": "presentation"
+    },
+    {
+      "view": "resources/registry/items/plugin-auth-gate/files/services/auth/adapter.ts",
+      "source": "src/plugins/auth-gate/adapters/project-support/services/auth/adapter.ts",
+      "kind": "project",
+      "pluginId": "auth-gate"
+    },
+    {
+      "view": "resources/registry/items/plugin-auth-gate/files/services/auth/mock-adapter.ts",
+      "source": "src/plugins/auth-gate/adapters/project-support/services/auth/mock-adapter.ts",
+      "kind": "project",
+      "pluginId": "auth-gate"
+    },
+    {
+      "view": "resources/registry/items/plugin-auth-gate/files/services/auth/session.ts",
+      "source": "src/plugins/auth-gate/adapters/project-support/services/auth/session.ts",
+      "kind": "project",
+      "pluginId": "auth-gate"
+    }
+  ]
+}

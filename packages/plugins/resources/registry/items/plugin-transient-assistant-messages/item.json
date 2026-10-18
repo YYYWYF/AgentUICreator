@@ -1,0 +1,27 @@
+{
+  "id": "plugin/transient-assistant-messages",
+  "kind": "agent-component",
+  "description": "Temporary user and assistant messages retained in page memory per conversation.",
+  "files": [
+    {
+      "source": "files/plugins/transient-assistant-messages/definition.ts",
+      "target": "plugins/transient-assistant-messages/definition.ts"
+    },
+    {
+      "source": "files/plugins/transient-assistant-messages/index.tsx",
+      "target": "plugins/transient-assistant-messages/index.tsx"
+    },
+    {
+      "source": "files/plugins/transient-assistant-messages/manifest.json",
+      "target": "plugins/transient-assistant-messages/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core",
+    "plugin/conversation-surface"
+  ],
+  "packages": {
+    "react": "19.1.1",
+    "@za38.03/agent-ui-plugins": "0.0.1"
+  }
+}

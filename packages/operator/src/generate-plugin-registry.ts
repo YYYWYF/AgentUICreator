@@ -1,3 +1,6 @@
+import { officialPackagePlugins } from "./source-catalog/index.js";
+import { ensurePluginApplication, installedPackagePluginIds } from "./project/plugin-application";
+import { collectAppUIPluginLocations } from "./framework/contracts/app-ui-model";
 import { randomUUID } from "node:crypto";
 import { readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -27,7 +30,7 @@ async function readOptional(filePath: string): Promise<string | undefined> {
 
 export async function writeGeneratedPluginRegistry(
   projectRoot: string,
-  options: { projectConfigOverride?: AgentUIProjectConfig; cancelMarker?: string | undefined } = {},
+  options: { projectConfigOverride?: AgentUIProjectConfig; cancelMarker?: string | undefined; initializeApplications?: boolean } = {},
 ): Promise<{
   changed: boolean;
   path: string;
@@ -38,6 +41,10 @@ export async function writeGeneratedPluginRegistry(
   const model = parseAppUIModelJson(
     await readFile(paths.appUIModelPath, "utf8"),
   );
+  if (options.initializeApplications !== false) {
+    const installed = await installedPackagePluginIds(projectRoot);
+    for (const id of new Set([...officialPackagePlugins.filter(plugin => plugin.application.enabled && (!installed || installed.has(plugin.pluginId))).map(plugin => plugin.pluginId), ...collectAppUIPluginLocations(model).map(location => location.plugin.pluginId)])) await ensurePluginApplication(projectRoot, id, {paths,config:operatorConfigForPaths(paths)});
+  }
   const generation = await generatePluginRegistry(projectRoot, model, {
     config: operatorConfigForPaths(paths), paths,
   });

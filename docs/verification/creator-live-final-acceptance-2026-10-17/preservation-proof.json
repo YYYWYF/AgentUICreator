@@ -1,0 +1,48 @@
+{
+  "propsOnlyBeforeTakeover": true,
+  "takeoverChangesOnlyImplementationImport": true,
+  "applicationBytesUnchangedAfterUpgradeAndMerge": true,
+  "applicationSha256": "ef43eb6a1a24c7e930edd4f2e64c8b6dca26927222431f35562e7a293dcd212b",
+  "threeDistinctMergeInputs": {
+    "base": "8d850fabf8e29e337e441a9712645167b3829484faa8968bd59e4ef140ae4edb",
+    "local": "c1807ae8636f9924a89380258f017d51324ba256d10a7d9df887a8c68670f742",
+    "target": "ad7d3b8930798d4bde8bd99fd97008ffbd44d6fe986c0e67b3bc1b1fa005f54f"
+  },
+  "adoptedBaseEqualsOfficialTarget": true,
+  "localImplementationStillDiffersFromOfficialTarget": true,
+  "baselineContainsOnlyImplementation": true,
+  "finalUpdateEntry": {
+    "pluginId": "composer",
+    "name": "Conversation Composer",
+    "currentVersion": "0.0.2",
+    "targetVersion": "0.0.2",
+    "sourceRelease": null,
+    "status": "customized",
+    "updateAvailable": false,
+    "delivery": "source-owned",
+    "packageVersion": "0.0.2",
+    "changelog": []
+  },
+  "runtimeVerdicts": [
+    {
+      "phase": "props",
+      "status": "changed-and-verified",
+      "runtime": "passed"
+    },
+    {
+      "phase": "takeover",
+      "status": "changed-and-verified",
+      "runtime": "passed"
+    },
+    {
+      "phase": "source-merge",
+      "status": "changed-and-verified",
+      "runtime": "passed"
+    }
+  ],
+  "finalJSXToolbarPrecedesInput": true,
+  "finalJSXPositions": {
+    "actions": 4132,
+    "input": 4895
+  }
+}

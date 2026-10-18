@@ -6,6 +6,9 @@ export const CREATOR_WORKSPACE_ID_HEADER = "x-agent-ui-workspace-id";
 export interface CreatorWorkspaceDescriptor {
   readonly id: string;
   readonly projectRoot: string;
+  readonly hostProjectRoot?: string;
+  readonly hostFramework?: "vue";
+  readonly producerRoot?: string;
   readonly name: string;
   readonly displayPath: string;
 }
@@ -22,12 +25,15 @@ export type CreatorProjectMode = (typeof CREATOR_PROJECT_MODES)[number];
 export interface CreatorWorkspaceInitializeInput {
   readonly mode: CreatorProjectMode;
   readonly sourceRoot: string;
+  readonly planId?: string;
 }
 
 export interface CreatorProjectSetupValidation {
+  readonly compatibilityPlan?: { readonly id: string; readonly manager: "npm" | "pnpm"; readonly producerRoot: string; readonly dependencies: Record<string,string>; readonly devDependencies: Record<string,string> } | undefined;
   readonly valid: boolean;
   readonly sourceRoot: {
     readonly normalized: string;
+    readonly absolutePath?: string;
     readonly parentExists: boolean;
     readonly targetState: "missing" | "empty" | "managed" | "occupied";
   };
@@ -35,6 +41,7 @@ export interface CreatorProjectSetupValidation {
 }
 
 export interface CreatorWorkspaceSetupInfo {
+  readonly hostFramework?: "vue";
   readonly suggestedSourceRoot: string;
   readonly modes: readonly { readonly id: CreatorProjectMode; readonly title: string; readonly description: string }[];
 }

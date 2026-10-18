@@ -5,6 +5,9 @@ from dataclasses import dataclass
 from typing import Any
 from uuid import uuid4
 
+from langchain_core.runnables.config import merge_configs
+
+from ..deepagents_compat import UNLIMITED_GRAPH_STEPS
 from ..model_protocol.errors import DeepAgentEventStreamUnavailableError
 from .deepagent_tool_stream import DeepAgentToolStreamAdapter
 from .runtime_events import AssistantTextStarted, AssistantTextDelta, AssistantTextFinished, CreatorEventSink
@@ -58,12 +61,16 @@ class DeepAgentV3Runner:
         config: dict[str, Any],
         event_sink: CreatorEventSink | None,
     ) -> dict[str, Any] | None:
+        adapter = DeepAgentToolStreamAdapter(event_sink)
         try:
             # DeepAgents registers tool-call projections on the compiled graph.
             # Call-site transformers are additive and must not register them again.
             stream = await graph.astream_events(
                 input,
-                config=config,
+                config=merge_configs(config, {
+                    "recursion_limit": UNLIMITED_GRAPH_STEPS,
+                    "callbacks": [adapter],
+                }),
                 version="v3",
             )
         except (AttributeError, TypeError) as error:
@@ -79,7 +86,6 @@ class DeepAgentV3Runner:
                 "DeepAgents v3 event stream is missing required projections."
             )
 
-        adapter = DeepAgentToolStreamAdapter(event_sink)
         # StreamChannel drops local projection items until it has a subscriber.
         # Acquire the official cursor before the output projection starts pumping.
         tool_cursor = stream.tool_calls.__aiter__()

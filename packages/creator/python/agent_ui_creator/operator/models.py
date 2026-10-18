@@ -8,6 +8,7 @@ OPERATOR_TIMEOUT_SECONDS = 15.0
 MAX_OPERATOR_OUTPUT_BYTES = 1_000_000
 
 ReadOperatorOperation: TypeAlias = Literal[
+    "plan_plugin_source_takeover",
     "plan_agent_ui_integration",
     "verify_agent_ui_integration",
     "inspect_ui_project",
@@ -23,6 +24,7 @@ ReadOperatorOperation: TypeAlias = Literal[
 ]
 
 MutationOperatorOperation: TypeAlias = Literal[
+    "takeover_plugin_source",
     "apply_agent_ui_integration",
     "prepare_agent_ui_integration_asset",
     "mutate_app_ui_model",

@@ -13,7 +13,7 @@ export const approvalResumeScenario = defineScenario({
     audience: "backend",
     protocol: "AG-UI 0.0.59",
     pattern: "Interrupt → Resume",
-    presentation: "assistant-ui approval resume",
+    presentation: "Agent UI approval resume",
     eventFlow: [
       "TOOL_CALL_START/ARGS/END",
       "RUN_FINISHED(outcome: interrupt)",

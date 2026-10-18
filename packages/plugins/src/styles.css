@@ -2,17 +2,20 @@
 
 @import "tailwindcss/theme.css" layer(theme);
 @import "./preflight.scoped.css" layer(base);
-@import "tailwindcss/utilities.css" layer(utilities) source("./internal/vendor/assistant-ui");
+@import "tailwindcss/utilities.css" layer(utilities) source("./internal/vendor-generated/assistant-ui");
 
 @source "./internal/conversation-thread-list-item.tsx";
 @source "./internal/primitives";
 @source "./internal/composable-thread.tsx";
+@source "./plugins/composer/adapters/presentation/composer.tsx";
+@source "./plugins/composer/adapters/presentation/textarea.tsx";
+@source "./internal/conversation-transient-messages.tsx";
 @source "./internal/conversation-question-flow.tsx";
 @source "./internal/conversation-composer-triggers.tsx";
 @source "./internal/conversation-quote.tsx";
 @source "./internal/composer-input-host-context.tsx";
 @source "./internal/style-boundary";
-@source "./internal/adapters/assistant-ui";
+@source "./internal/adapters-generated/assistant-ui";
 @source "./public.tsx";
 
 @import "tw-animate-css";
@@ -117,7 +120,7 @@
 .agent-ui-root {
   color: var(--foreground);
   width: 100%;
-  height: 100%;
+  height: var(--agent-ui-height, 100%);
   min-width: 0;
   min-height: 0;
   position: relative;
@@ -293,7 +296,7 @@
 @layer utilities {
   .agent-ui-root .agent-ui-sidebar-frame[data-sidebar-presentation="single"] .agent-ui-sidebar-container > [data-slot="sidebar-inner"],
   .agent-ui-root .agent-ui-sidebar-frame[data-sidebar-presentation="multiple"] .agent-ui-sidebar-container > [data-slot="sidebar-inner"] { display: grid; grid-template-columns: 48px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
-  .agent-ui-root .agent-ui-sidebar-frame[data-sidebar-presentation="single"] .agent-ui-sidebar-container > [data-slot="sidebar-inner"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); }
+  .agent-ui-root .agent-ui-sidebar-frame[data-sidebar-presentation="single"] .agent-ui-sidebar-container > [data-slot="sidebar-inner"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); border-inline-end: 1px solid var(--border); }
   .agent-ui-root .agent-ui-sidebar-brand { position: relative; grid-column: 1 / -1; width: 100%; min-width: 0; }
   .agent-ui-root .agent-ui-sidebar-brand [data-layout-type="slot"] { width: 100%; min-width: 0; }
   .agent-ui-root .agent-ui-sidebar-frame[data-sidebar-presentation="single"] .agent-ui-sidebar-rail { width: 100%; border: 0; }
@@ -310,5 +313,7 @@
 @layer utilities {
   .agent-ui-root .agent-ui-sidebar-footer { flex: 0 0 auto; min-width: 0; padding: 8px; border-top: 1px solid var(--border); }
   .agent-ui-root .agent-ui-sidebar-footer[data-collapsed="true"] { padding: 4px; }
+  .agent-ui-root .agent-ui-sidebar-frame[data-sidebar-presentation="single"][data-sidebar-active=""] .agent-ui-sidebar-rail { grid-row: 2 / -1; }
+  .agent-ui-root .agent-ui-sidebar-rail > .agent-ui-sidebar-footer { margin-block-start: auto; }
   .agent-ui-root .agent-ui-sidebar-footer > [data-layout-type="slot"] { width: 100%; min-width: 0; }
 }

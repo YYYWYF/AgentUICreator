@@ -3,3 +3,7 @@ body { font-family: system-ui, sans-serif; background: #f8fafc; color: #344054; 
 #root { min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; box-sizing: border-box; text-align: center; }
 h1 { font-size: 20px; font-weight: 600; }
 p { font-size: 14px; line-height: 1.6; }
+
+@media (min-width: 900px) {
+  #root { width: calc(100% - 28rem); }
+}

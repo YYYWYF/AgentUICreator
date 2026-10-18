@@ -25,7 +25,7 @@ it("requires explicit review when upstream label anchors change or become ambigu
   expect(applySearchPresentationLabels("unrelated", "components/other.tsx")).toBe("unrelated");
 });
 it("tracks only the approved Element files and removes implicit tree contracts", async () => {
-  const vendor = new URL("../src/internal/vendor/assistant-ui/", import.meta.url);
+  const vendor = new URL("../src/internal/vendor-generated/assistant-ui/", import.meta.url);
   const provenance = JSON.parse(await readFile(new URL("UPSTREAM.json", vendor), "utf8"));
   expect(provenance.patches).toEqual([]);
   const facade = await readFile(new URL("../src/internal/search-elements.tsx", import.meta.url), "utf8");

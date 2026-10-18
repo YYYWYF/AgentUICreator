@@ -1,0 +1,29 @@
+{
+  "status": "changed-unverified",
+  "verificationMode": "static_and_runtime",
+  "projectRevision": 5,
+  "auditAttempts": 0,
+  "checks": [
+    {
+      "id": "net-project-change",
+      "status": "passed",
+      "evidence": "3 net changed file(s)."
+    },
+    {
+      "id": "pnpm verify:ui",
+      "status": "passed",
+      "evidence": "revision=5; source=executed; exitCode=0"
+    },
+    {
+      "id": "pnpm typecheck",
+      "status": "passed",
+      "evidence": "revision=5; source=executed; exitCode=0"
+    },
+    {
+      "id": "runtime-verification",
+      "status": "unavailable",
+      "evidence": "运行时状态=unavailable；目前没有最新证据表明存在矛盾。"
+    }
+  ],
+  "runtimeStatus": "unavailable"
+}

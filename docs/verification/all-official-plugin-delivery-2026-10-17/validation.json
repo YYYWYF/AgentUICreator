@@ -1,0 +1,95 @@
+{
+  "date": "2026-10-17",
+  "packageVersion": "0.0.1",
+  "published": false,
+  "modernOfficialPlugins": 44,
+  "modernPluginsAdded": 16,
+  "pendingModernPlugins": [],
+  "tests": {
+    "plugins": {
+      "passed": 165,
+      "files": [
+        "packaged-foundation-delivery.test.tsx",
+        "packaged-lexical-edit.test.tsx",
+        "conversation-composer-lexical.test.tsx",
+        "conversation-composer-triggers.test.tsx",
+        "packaged-conversation-delivery.test.tsx",
+        "conversation-quote.test.tsx",
+        "packaged-control-props.test.tsx",
+        "packaged-message-props.test.tsx",
+        "packaged-activity-delivery.test.tsx",
+        "packaged-search-delivery.test.tsx",
+        "packaged-plugin-props.test.tsx"
+      ],
+      "command": "pnpm --filter @za38.03/agent-ui-plugins exec vitest run <files>"
+    },
+    "operator": {
+      "passed": 189,
+      "files": [
+        "general-plugin-delivery.test.ts",
+        "plugin-source-takeover.test.ts",
+        "official-package-pilot.test.ts",
+        "windows-package-invocation.test.ts",
+        "source-catalog/official-resource-registry.test.ts",
+        "source-catalog/package-metadata-authority.test.mjs"
+      ],
+      "command": "pnpm --filter @za38.03/agent-ui-operator exec vitest run <files>",
+      "lifecycleNonComposerModernPlugins": 43,
+      "syntheticUpgradeTarget": "0.0.2"
+    },
+    "creatorPython": {
+      "passed": 193,
+      "warnings": 2,
+      "files": [
+        "test_plugin_source_takeover.py",
+        "test_plugin_source_mutation.py",
+        "test_completion_runtime_refresh.py",
+        "test_source_grounding.py"
+      ],
+      "realLangGraphConfirmation": true,
+      "externalModel": false
+    },
+    "totalPassed": 547
+  },
+  "checks": {
+    "pluginsBuild": "passed",
+    "pluginsTypecheckIncludingTests": "passed",
+    "operatorBuild": "passed",
+    "operatorTypecheckIncludingTests": "passed",
+    "finalTestTypechecks": "passed after final test edits",
+    "i18n": {
+      "command": "node scripts/audit-ui-copy.mjs",
+      "failures": []
+    },
+    "upstream": {
+      "command": "node packages/plugins/scripts/check-assistant-ui-upstream.mjs",
+      "result": "passed with current materialized pinned sources"
+    },
+    "distribution": {
+      "command": "node packages/plugins/scripts/verify-source-distribution.mjs",
+      "result": "passed",
+      "canonicalSnapshots": 540,
+      "portableClosures": 45
+    },
+    "publicDeclarationBoundary": {
+      "result": "passed",
+      "declarations": 301
+    },
+    "tarball": "tarball.json",
+    "browser": "browser.json",
+    "diffCheck": "passed"
+  },
+  "windows": {
+    "nativeRun": false,
+    "checks": "Focused logical POSIX/win32 drive/UNC/Unicode-space paths and cross-platform pnpm invocation tests; tarball contains theme/theme-contract.d.ts"
+  },
+  "limitations": [
+    "No real external-model Creator run in this batch; native confirmation covered with actual LangGraph interruption/resume tests.",
+    "Browser uses real initialized generated Host with local HTTP AG-UI data, direct Operator takeover, and current local build.",
+    "Upgrade target is synthetic 0.0.2, not a newly published upstream release.",
+    "Old fixtures/migrated suites not repaired or run as a whole.",
+    "Previous Composer Node package-boundary chart-message graph failure remains unresolved; not rerun this batch.",
+    "No npm publication, commit, push, or native Windows acceptance.",
+    "Complete upstream public API audit and automatic legacy application-layer migration remain pending."
+  ]
+}

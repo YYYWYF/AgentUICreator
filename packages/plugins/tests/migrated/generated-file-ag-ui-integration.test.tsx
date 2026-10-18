@@ -8,7 +8,7 @@ import { expect, it } from "vitest";
 import { fileOutputScenario, runMockScenario } from "@za38.03/agent-ui-creator/mock-agent";
 import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { ConversationToolFallback } from "../../src/index.js";
-import plugin from "../../../source-registry/registry/items/plugin-generated-file-message/files/plugins/generated-file-message/definition";
+import plugin from "../../resources/registry/items/plugin-generated-file-message/files/plugins/generated-file-message/definition";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 

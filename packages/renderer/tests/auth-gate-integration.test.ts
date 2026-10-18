@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { createAuthSession } from "../../source-registry/registry/items/plugin-auth-gate/files/plugins/auth-gate/session";
-import { createDemoAuthAdapter } from "../../source-registry/registry/items/plugin-auth-gate/files/services/auth/mock-adapter";
-import { createPluginRegistry, PluginServiceRuntime } from "../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins";
+import { createAuthSession } from "../../plugins/resources/registry/items/plugin-auth-gate/files/plugins/auth-gate/session";
+import { createDemoAuthAdapter } from "../../plugins/resources/registry/items/plugin-auth-gate/files/services/auth/mock-adapter";
+import { createPluginRegistry, PluginServiceRuntime } from "../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/plugins";
 import { parseAppUIRuntimeModel } from "../../operator/src/framework/contracts/app-ui-runtime-model";
 import { parseUIPluginManifest } from "../../operator/src/framework/contracts/ui-plugin";
-import gateManifest from "../../source-registry/registry/items/plugin-auth-gate/files/plugins/auth-gate/manifest.json";
-import accountManifest from "../../source-registry/registry/items/plugin-auth-account/files/plugins/auth-account/manifest.json";
+import gateManifest from "../../plugins/resources/registry/items/plugin-auth-gate/files/plugins/auth-gate/manifest.json";
+import accountManifest from "../../plugins/resources/registry/items/plugin-auth-account/files/plugins/auth-account/manifest.json";
 const actions = { sendMessage: async () => {}, resumeInterrupts: async () => {}, startNewConversation: async () => {}, abortRun() {} };
 function model(account = true) {
   return parseAppUIRuntimeModel({ root: { type: "slot", id: "main", slotId: "main" }, pluginInstances: {

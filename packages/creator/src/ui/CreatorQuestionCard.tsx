@@ -1,3 +1,4 @@
+import { creatorDisplayText } from "./product-presentation.js";
 import { useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages, formatLocaleMessage } from "./i18n/locale.js";
 import { useState } from "react";
 import type { CreatorQuestionActivity } from "../agent/creatorInterruptTypes.js";
@@ -20,8 +21,8 @@ export function CreatorQuestionCard({ activity, onAnswer, onAbandon }: {
   return <article className="creator-question-card creator-ui-scope" aria-label={localeMessages.creatorQuestion.creatorQuestion} data-status={activity.status}>
     <header className="creator-question-header"><CircleHelp aria-hidden="true" /><span>{activity.status === "resolved" ? localeMessages.creatorQuestion.selectionConfirmed : activity.status === "stale" ? localeMessages.creatorQuestion.thisQuestionHasExpired : localeMessages.creatorQuestion.yourSelectionIsNeeded}</span></header>
     {activity.steps.map(step => <fieldset key={step.id} disabled={inactive}>
-      <legend>{step.question}</legend>
-      {step.description ? <p>{step.description}</p> : null}
+      <legend>{creatorDisplayText(step.question)}</legend>
+      {step.description ? <p>{creatorDisplayText(step.description)}</p> : null}
       {activity.status === "pending" ? <small className="creator-question-selection-hint">{step.selectionMode === "single" ? localeMessages.creatorQuestion.chooseOne : formatLocaleMessage(localeMessages.creatorQuestion.chooseItems, step.minSelections, step.maxSelections)}</small> : null}
       {step.options.map(option => {
         const checked = (answers[step.id] ?? []).includes(option.id);
@@ -39,7 +40,7 @@ export function CreatorQuestionCard({ activity, onAnswer, onAbandon }: {
               return { ...current, [step.id]: selected };
             })}
           />}
-          <span><strong>{option.label}</strong>{option.description ? <small>{option.description}</small> : null}</span>
+          <span><strong>{creatorDisplayText(option.label)}</strong>{option.description ? <small>{creatorDisplayText(option.description)}</small> : null}</span>
         </label>;
       })}
     </fieldset>)}

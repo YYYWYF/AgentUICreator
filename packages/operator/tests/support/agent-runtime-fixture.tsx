@@ -5,11 +5,11 @@ import type {
   AgentRuntimeSnapshot,
 } from "@za38.03/agent-ui-core";
 
-import { AgentRuntimeProvider } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/context/index";
+import { AgentRuntimeProvider } from "../../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/context/index";
 import {
   UIPluginRuntime,
   type UIPluginRuntimeProps,
-} from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
 
 export type PluginRuntimeFixtureProps<TState = unknown> =
   UIPluginRuntimeProps<TState> & AgentRuntimeSnapshot<TState>;

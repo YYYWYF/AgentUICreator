@@ -21,7 +21,7 @@ test.beforeAll(async()=>{
  await writeFile(path.join(fixture,'fixture.tsx'),`
  import {useState} from 'react';import{createRoot}from'react-dom/client';
  import{AgentUIRoot,AgentUILocaleProvider,AgentUISidebarFrame}from'@za38.03/agent-ui-plugins';
- import{Dialog,DialogContent,DialogTitle,DialogTrigger}from'${repo}/packages/plugins/dist/internal/adapters/assistant-ui/components/ui/dialog.js';
+ import{Dialog,DialogContent,DialogTitle,DialogTrigger}from'${repo}/packages/plugins/dist/internal/adapters-generated/assistant-ui/components/ui/dialog.js';
  import{ConfigProvider,Input,Button,Card,List,Modal,theme as antTheme}from'antd';import'./style.css';
  const params=new URLSearchParams(location.search),scene=params.get('scene')||'B',theme=params.get('theme')||'light',locale=params.get('locale')||'zh-CN';
  const copy=locale==='zh-CN'?{button:'说明',title:'业务说明',close:'关闭',label:'备注',list:'备注内容'}:{button:'Help',title:'Business help',close:'Close',label:'Note',list:'Note content'};

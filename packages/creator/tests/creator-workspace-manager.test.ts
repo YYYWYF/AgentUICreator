@@ -1,4 +1,4 @@
-import { mkdtemp, realpath, rm } from "node:fs/promises";
+import { mkdtemp, realpath, rm, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -156,7 +156,7 @@ describe("CreatorWorkspaceManager", () => {
     });
     const selected = await manager.selectProject(projectRoot);
     expect(await manager.suggestSourceRoot()).toBe("agent-ui");
-    expect(await manager.validateSetup({ mode: "assistant", sourceRoot: "agent-ui" })).toMatchObject({ valid: true });
+    expect(await manager.validateSetup({ mode: "assistant", sourceRoot: "agent-ui" })).toMatchObject({ valid: true, sourceRoot: { absolutePath: path.resolve(projectRoot, "agent-ui") } });
     const ready = await manager.initializeProject({ mode: "assistant", sourceRoot: "agent-ui" });
     expect(setup.initializeProject).toHaveBeenCalledWith({ projectRoot, mode: "assistant", sourceRoot: "agent-ui" });
     expect(ready).toMatchObject({ status: "ready", workspace: { id: selected.status === "none" ? "" : selected.workspace.id }, runtime: { status: "ready" } });
@@ -298,4 +298,22 @@ it("does not install a control plane when selecting or refreshing an uninitializ
   expect(await manager.selectProject(await root())).toMatchObject({ status: 'uninitialized' });
   expect(await manager.refresh()).toMatchObject({ status: 'uninitialized' });
   expect(ensureOperator).not.toHaveBeenCalled();
+});
+
+it("routes a bound Vue workspace to its producer while retaining the host identity", async () => {
+  const host = await root(); const producer = path.join(host, "agent-ui");
+  await mkdir(path.join(host, ".agent-ui")); await mkdir(producer);
+  await writeFile(path.join(host, "package.json"), JSON.stringify({ dependencies: { vue: "3.5.42" } }));
+  await writeFile(path.join(host, ".agent-ui/producer.json"), JSON.stringify({ schemaVersion: 1, producerRoot: "agent-ui" }));
+  const createPythonManager = vi.fn(() => ({ ensureStarted: async () => {}, dispose: async () => {} }) as unknown as PythonCreatorProcessManager);
+  const manager = new CreatorWorkspaceManager({ ...setupDependencies(), compatibility: true, createPythonManager, ensureOperator: vi.fn(async () => []),
+    inspectProject: async () => ({ status: "ready", projectConfig: { mode: "embedded", sourceRoot: "src/agent-ui" }, paths: { sourceRoot: "src/agent-ui" } }),
+  });
+  const state = await manager.selectProject(host);
+  expect(state).toMatchObject({ status: "ready", workspace: { projectRoot: producer, hostProjectRoot: host, hostFramework: "vue", displayPath: host } });
+  expect(createPythonManager).toHaveBeenCalledWith(producer);
+  if (state.status !== "ready") throw new Error("not ready");
+  expect(await manager.runProjectOperation(state.workspace.id, async target => target)).toBe(producer);
+  expect((await manager.selectProject(host))).toBe(state);
+  await manager.clear();
 });

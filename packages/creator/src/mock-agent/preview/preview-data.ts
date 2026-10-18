@@ -63,14 +63,14 @@ export const previewAgentState = {
   sources: [
     {
       key: "overview",
-      title: "assistant-ui Conversation Domain",
-      url: "https://www.assistant-ui.com/",
+      title: "Agent UI Conversation Domain",
+      url: "https://docs.ag-ui.com/",
       description: "Canonical conversation components and runtime surfaces",
     },
     {
       key: "thought-chain",
-      title: "assistant-ui Agent Elements",
-      url: "https://www.assistant-ui.com/docs/agentic-ui/overview",
+      title: "Agent UI Agent Elements",
+      url: "https://docs.ag-ui.com/concepts/events",
       description: "Agent actions, tools, sources, and reasoning presentation",
     },
   ],
@@ -79,7 +79,7 @@ export const previewAgentState = {
       key: "runtime-flow",
       title: "Agent 前端数据流",
       content:
-        "flowchart TD\n  Runtime[Agent Runtime] --> AGUI[AG-UI]\n  AGUI --> State[Frontend State]\n  State --> Plugin[UI Plugin]\n  Plugin --> UI[assistant-ui]",
+        "flowchart TD\n  Runtime[Agent Runtime] --> AGUI[AG-UI]\n  AGUI --> State[Frontend State]\n  State --> Plugin[UI Plugin]\n  Plugin --> UI[Agent UI]",
     },
   ],
 };

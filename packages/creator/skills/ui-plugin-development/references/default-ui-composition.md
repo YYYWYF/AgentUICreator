@@ -60,17 +60,17 @@ Project-owned custom Plugins may import Host business components. Official Plugi
 
 ## Thinking and tool execution presentation
 
-Use Source Registry `plugin/assistant-ui-tool-timeline` in the optional message-level
+Use Source Registry `plugin/tool-timeline` in the optional message-level
 `conversation-surface.toolTimeline` renderer Slot (not `toolGroup`). It summarizes
 ordinary tools once per message and reuses the installed ToolFallback for original
 details. Keep `toolGroup`, `toolFallback`, TaskGroup and dedicated tool UIs installed.
 Approval, waiting input and failures stay visible outside collapsed summaries.
 
-Use `plugin/assistant-ui-thinking-indicator` in
+Use `plugin/thinking-indicator` in
 `conversation-surface.thinkingIndicator`. For “只显示正在思考，不展示具体内容” /
 “only show thinking”, enable ThinkingIndicator and disable the Reasoning **display
 instance**. Never remove reasoning data from the Runtime. For detailed reasoning,
-enable `assistant-ui-reasoning`. For an initial placeholder followed by detailed
+enable `reasoning`. For an initial placeholder followed by detailed
 reasoning, enable both. Answer text, approval and active tool timeline take priority
 over the placeholder. Keep optional renderer placement and Add/Restore deterministic;
 validate after removing or disabling any one of these independent plugins.

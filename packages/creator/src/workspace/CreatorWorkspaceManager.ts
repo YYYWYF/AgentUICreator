@@ -1,3 +1,4 @@
+import { inspectIntegrationHost, readCompatibilityBinding, planCompatibilityProject, initializeCompatibilityProject, buildCompatibilityProject } from "@za38.03/agent-ui-operator/host";
 import { ensureManagedOperator } from "@za38.03/agent-ui-operator";
 import { createHash } from "node:crypto";
 import { realpath, stat } from "node:fs/promises";
@@ -21,6 +22,7 @@ export class CreatorWorkspaceError extends Error {
 }
 
 export class CreatorWorkspaceManager {
+  readonly #compatibility: boolean;
   readonly #ensureOperator: typeof ensureManagedOperator;
   readonly #inspect: (projectRoot: string) => Promise<CreatorProjectInspection>;
   readonly #initialize: (input: CreatorWorkspaceInitializeInput & { projectRoot: string }) => Promise<unknown>;
@@ -40,7 +42,9 @@ export class CreatorWorkspaceManager {
     suggestSourceRoot: (projectRoot: string) => Promise<string>;
     createPythonManager: CreatorPythonManagerFactory;
     ensureOperator?: typeof ensureManagedOperator;
+    compatibility?: boolean;
   }) {
+    this.#compatibility = options.compatibility ?? false;
     this.#ensureOperator = options.ensureOperator ?? ensureManagedOperator;
     this.#inspect = options.inspectProject;
     this.#initialize = options.initializeProject;
@@ -136,17 +140,32 @@ export class CreatorWorkspaceManager {
   }
 
   suggestSourceRoot(): Promise<string> {
-    return this.#exclusive(() => this.#suggestSourceRoot(this.#requireUninitialized().projectRoot));
+    return this.#exclusive(() => { const workspace = this.#requireUninitialized(); return workspace.hostFramework === "vue" ? Promise.resolve("agent-ui") : this.#suggestSourceRoot(workspace.projectRoot); });
   }
 
   validateSetup(input: CreatorWorkspaceInitializeInput): Promise<CreatorProjectSetupValidation> {
-    return this.#exclusive(() => this.#validateSetup({ ...input, projectRoot: this.#requireUninitialized().projectRoot }));
+    return this.#exclusive(async () => {
+      const projectRoot = this.#requireUninitialized().projectRoot;
+      const result = this.#state.status !== "none" && this.#state.workspace.hostFramework === "vue"
+        ? await planCompatibilityProject({ ...input, projectRoot }) : await this.#validateSetup({ ...input, projectRoot });
+      return result.valid ? {
+        ...result,
+        sourceRoot: { ...result.sourceRoot, absolutePath: path.resolve(projectRoot, result.sourceRoot.normalized) },
+      } : result;
+    });
   }
 
   initializeProject(input: CreatorWorkspaceInitializeInput): Promise<CreatorWorkspaceState> {
     return this.#exclusive(async () => {
-      const workspace = this.#requireUninitialized();
-      try { await this.#initialize({ ...input, projectRoot: workspace.projectRoot }); }
+      let workspace = this.#requireUninitialized();
+      try {
+        if (workspace.hostFramework === "vue") {
+          const result = await initializeCompatibilityProject({ ...input, projectRoot: workspace.hostProjectRoot ?? workspace.projectRoot });
+          workspace = { ...workspace, projectRoot: result.projectRoot, producerRoot: result.producerRoot };
+          this.#state = { status: "uninitialized", workspace };
+          await buildCompatibilityProject(result.projectRoot);
+        } else await this.#initialize({ ...input, projectRoot: workspace.projectRoot });
+      }
       catch (error) {
         if (typeof error === "object" && error !== null && "code" in error &&
             error.code === "AGENT_UI_INITIALIZATION_POSTCONDITION_FAILED") {
@@ -181,9 +200,10 @@ export class CreatorWorkspaceManager {
         throw new CreatorWorkspaceError("CREATOR_WORKSPACE_NOT_DIRECTORY", "Project Root must be a directory.");
       }
       if ((this.#state.status === "ready") &&
-          this.#state.runtime.status === "ready" && this.#state.workspace.projectRoot === canonicalRoot) {
+          this.#state.runtime.status === "ready" && (this.#state.workspace.hostProjectRoot ?? this.#state.workspace.projectRoot) === canonicalRoot &&
+          (!this.#state.workspace.hostFramework || (await readCompatibilityBinding(canonicalRoot))?.projectRoot === this.#state.workspace.projectRoot)) {
         try {
-          await this.#ensureOperator(canonicalRoot);
+          await this.#ensureOperator(this.#state.workspace.projectRoot);
           return this.#state;
         } catch (error) {
           const previous = this.#state;
@@ -197,20 +217,35 @@ export class CreatorWorkspaceManager {
       }
       await this.#stopCurrent();
       this.#state = { status: "none" };
-      const workspace: CreatorWorkspaceDescriptor = {
+      let workspace: CreatorWorkspaceDescriptor = {
         id: createHash("sha256").update(canonicalRoot).digest("hex"),
         projectRoot: canonicalRoot,
         name: path.basename(canonicalRoot),
         displayPath: canonicalRoot,
       };
+      if (this.#compatibility && (await inspectIntegrationHost(canonicalRoot)).framework === "vue") {
+        const binding = await readCompatibilityBinding(canonicalRoot);
+        workspace = { ...workspace, hostProjectRoot: canonicalRoot, hostFramework: "vue",
+          ...(binding ? { projectRoot: binding.projectRoot, producerRoot: binding.producerRoot } : {}) };
+      }
       return this.#inspectCurrent(workspace);
     });
+  }
+
+  buildCompatibility(): Promise<unknown> {
+    const state = this.#state;
+    if (state.status !== "ready" || state.workspace.hostFramework !== "vue") return Promise.reject(new CreatorWorkspaceError("AGENT_UI_COMPATIBILITY_BINDING_INVALID", "AGENT_UI_COMPATIBILITY_BINDING_INVALID"));
+    return this.runProjectOperation(state.workspace.id, root => buildCompatibilityProject(root), { mutation: true });
   }
 
   refresh(): Promise<CreatorWorkspaceState> {
     return this.#exclusive(async () => {
       if (this.#state.status === "none") return this.#state;
-      const workspace = this.#state.workspace;
+      let workspace = this.#state.workspace;
+      if (workspace.hostProjectRoot) {
+        const binding = await readCompatibilityBinding(workspace.hostProjectRoot);
+        if (binding) workspace = { ...workspace, projectRoot: binding.projectRoot, producerRoot: binding.producerRoot };
+      }
       await this.#stopCurrent();
       return this.#inspectCurrent(workspace);
     });

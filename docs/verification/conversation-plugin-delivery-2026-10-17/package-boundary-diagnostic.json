@@ -1,0 +1,13 @@
+{
+  "command": "node --test packages/plugins/tests/composer-package-boundary.test.mjs",
+  "passed": 1,
+  "failed": 1,
+  "failingTest": "Composer subpath imports independently and Vite graph contains no other official plugins",
+  "assertion": "chart-message entered bundle graph",
+  "isolation": "Temporary Vite transform removed every new conversation-thread-list/history/new/quote presentation export from dist/public.js; canonical files and tests were not modified.",
+  "chartModulesStillInGraph": [
+    "dist/plugins/chart-message/adapters/presentation/chart-message.js",
+    "dist/plugins/chart-message/adapters/presentation/projection.js"
+  ],
+  "status": "unresolved; outside this batch; no old fixture repairs"
+}

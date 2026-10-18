@@ -1,0 +1,17 @@
+{
+  "mode": "real-initialized-assistant-host-local-HTTP-AGUI-no-external-model",
+  "modernThinApplications": 44,
+  "allApplicationMarkersValidated": true,
+  "sourceOwnedPlugins": [
+    "agent-identity",
+    "conversation-surface",
+    "theme-provider"
+  ],
+  "applicationAndConfigPreserved": true,
+  "modelPreserved": true,
+  "sourceOwnedIdentityAndSurfaceDOM": true,
+  "providerLifecycleStillRuns": true,
+  "runCount": 2,
+  "padding": "8px",
+  "browserErrors": []
+}

@@ -1,0 +1,25 @@
+{
+  "id": "plugin/dictation-action",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-dictation-action source",
+  "files": [
+    {
+      "source": "files/plugins/dictation-action/definition.ts",
+      "target": "plugins/dictation-action/definition.ts"
+    },
+    {
+      "source": "files/plugins/dictation-action/index.tsx",
+      "target": "plugins/dictation-action/index.tsx"
+    },
+    {
+      "source": "files/plugins/dictation-action/manifest.json",
+      "target": "plugins/dictation-action/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "19.1.1"
+  }
+}

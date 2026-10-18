@@ -1,0 +1,25 @@
+{
+  "id": "plugin/tool-group",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-tool-group source",
+  "files": [
+    {
+      "source": "files/plugins/tool-group/definition.ts",
+      "target": "plugins/tool-group/definition.ts"
+    },
+    {
+      "source": "files/plugins/tool-group/index.tsx",
+      "target": "plugins/tool-group/index.tsx"
+    },
+    {
+      "source": "files/plugins/tool-group/manifest.json",
+      "target": "plugins/tool-group/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "19.1.1"
+  }
+}

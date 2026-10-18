@@ -2,7 +2,7 @@
 name: ui-plugin-development
 description: Inspect or customize UI Plugins; implement a new Plugin or new behavior only after a direct user commission, satisfied conditional commission, or approval of a bound development proposal.
 compatibility: Agent UI Plugin Creator Phase 8 permits writes under project plugins and AppUIModel composition.
-allowed-tools: prepare_plugin_responsive_repair ask_user_question read_file ls glob grep edit_file prepare_ui_plugin_development create_ui_plugin mutate_ui_plugin_source prepare_ui_service_contract_change create_ui_service_contract mutate_ui_service_contract inspect_ui_capabilities inspect_ui_plugin_delivery inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin preflight_ui_plugin_placement inspect_ui_services inspect_ui_plugin_source_references inspect_agent_ui_sources apply_agent_ui_source_item mutate_app_ui_model validate_creator_changes
+allowed-tools: takeover_plugin_source prepare_plugin_responsive_repair ask_user_question read_file ls glob grep edit_file prepare_ui_plugin_development create_ui_plugin mutate_ui_plugin_source prepare_ui_service_contract_change create_ui_service_contract mutate_ui_service_contract inspect_ui_capabilities inspect_ui_plugin_delivery inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin preflight_ui_plugin_placement inspect_ui_services inspect_ui_plugin_source_references inspect_agent_ui_sources apply_agent_ui_source_item mutate_app_ui_model validate_creator_changes
 ---
 
 # UI Plugin Development
@@ -400,7 +400,7 @@ For requests such as “不登录不能进入应用”, “打开应用必须先
 
 When adding, removing, or renaming a child `renderSlot(...)` outlet in a container Plugin, update `manifest.json` `slots.children` in the same task. Each local Slot name maps to a required `description`, `cardinality: "one" | "many"`, and optional `optional` flag. Names must be static string literals; do not create dynamic `renderSlot(slot)` outlets or global Runtime slot ids. Host verification treats the Plugin source and manifest child Slot sets as an exact contract.
 
-For a runtime entity renderer, declare `mode: "renderer"`, `cardinality: "one"`, and `accepts.anyOfCapabilities`, then call `renderScopedSlot("localName", scope)`. Renderer Slots have no presentation fallback: an empty, disabled, unavailable, inactive, or capability-mismatched occupant renders nothing. Omitted `mode` means ordinary content. The renderer Plugin reads `usePluginRenderScope()` and checks its `kind`; a Plugin that requires scope declares `requiresRenderScope: true` and returns `null` without the expected scope. Prefer changing the renderer Plugin instance in AppUIModel when changing Reasoning, Tool Group, or Tool Fallback presentation. Keep assistant-ui grouping, part order, named Tool UI selection, and message lifecycle in the canonical Thread.
+For a runtime entity renderer, declare `mode: "renderer"`, `cardinality: "one"`, and `accepts.anyOfCapabilities`, then call `renderScopedSlot("localName", scope)`. Renderer Slots have no presentation fallback: an empty, disabled, unavailable, inactive, or capability-mismatched occupant renders nothing. Omitted `mode` means ordinary content. The renderer Plugin reads `usePluginRenderScope()` and checks its `kind`; a Plugin that requires scope declares `requiresRenderScope: true` and returns `null` without the expected scope. Prefer changing the renderer Plugin instance in AppUIModel when changing Reasoning, Tool Group, or Tool Fallback presentation. Keep Agent UI grouping, part order, named Tool UI selection, and message lifecycle in the canonical Thread.
 
 - Read Agent data through the domain hooks exported by `/runtime/context`: `useAgentConversation`, `useAgentMessages`, `useAgentState`, `useAgentRun`, `useAgentExecutions`, and `useAgentInterrupts`. Use `useAgentRuntimeSnapshot` only when the component genuinely needs the complete snapshot.
 - Read the current instance scope through `usePluginInstance`, `usePluginActions`, and `usePluginEvents`. Never recreate a combined context prop or pass Runtime snapshot fields through component props.
@@ -497,7 +497,7 @@ Include `pnpm check:i18n` where available and check new copy during upgrades.
 
 ## Non-React Hosts
 
-For Vue, HTML and legacy Hosts, discover/install the `web-component-bridge` compatibility resource through the existing resource protocol. React remains the canonical Plugin implementation. Never generate Vue Plugins, assistant-ui Vue components or a second AG-UI client. Edit the generated project's AppUIModel and React Plugins, then rebuild its compatibility bundle with `vite build --config <sourceRoot>/integrations/web-component-bridge/vite.config.ts`. The consumer loads the compiled bundle and uses `<agent-ui>`; it does not configure React, JSX, Tailwind or TSX. The build configuration belongs to the Agent UI producer project, not the Vue consumer.
+For Vue, HTML and legacy Hosts, discover/install the `web-component-bridge` compatibility resource through the existing resource protocol. React remains the canonical Plugin implementation. Never generate Vue Plugins, Agent UI Vue components or a second AG-UI client. Edit the generated project's AppUIModel and React Plugins, then rebuild its compatibility bundle with `vite build --config <sourceRoot>/integrations/web-component-bridge/vite.config.ts`. The consumer loads the compiled bundle and uses `<agent-ui>`; it does not configure React, JSX, Tailwind or TSX. The build configuration belongs to the Agent UI producer project, not the Vue consumer.
 
 
 For Host integration requests, consume `plan_agent_ui_integration` before editing.
@@ -510,20 +510,52 @@ prompt, or install the React producer build closure into the Vue consumer. React
 uses its canonical Source Item path; Nuxt is unsupported. See
 `docs/architecture/host-integration-recipe.md` for the Host contract.
 
-## Official package ownership (Composer pilot)
+## Official package ownership
 
-Official plugins are dependency-owned; custom plugins are project-owned.
-For `official_plugin_reference`, read reference with `inspect_ui_plugin`, inspect
-configuration and public semantic Slots first. Use `@za38.03/agent-ui-plugins` public Composer
-components/controller for custom implementations; do not copy private or whole
-official implementation. Create with `create_custom_plugin` under a new ID and
-replace the intended instance in AppUIModel. Host validates the manifest, generates
-the selected registry and runs project checks before committing. Never edit
-`node_modules` or shadow `assistant-ui-composer` with project source.
+Official Plugins default to npm through the project application layer. Use
+AppUIModel for layout and semantic placement; edit application props/composition
+first for component customization. If implementation changes are necessary,
+call `takeover_plugin_source` alone. The tool prepares the exact installed package
+snapshot, asks the user and applies only after approval; never substitute a model
+approval flag or manually create same-ID files. Declining makes no source changes.
+After success, still prefer application props/composition, then implementation
+adapters; preserve Plugin ID, instance
+IDs/configuration/Slots, and keep upstream unmodified. The ownership metadata and
+BASE are managed by Operator, outside AppUIModel. Ordinary edits to an already
+source-owned Plugin need no repeat takeover. npm upgrades preserve its files and
+BASE; explicit source sync is a separate operation. Shared APIs/theme/runtime may
+still change and need compatibility validation. Never copy shared Runtime/Context.
+`create_custom_plugin` remains for new Plugin identities, not same-ID takeover.
 
-To port a new official feature, read current custom source and latest Source
-Registry reference, then implement the behavior using public contracts. Report
-missing public extension contracts instead of bypassing them through private copies.
-Modified legacy official source must be preserved until its behavior has been
-ported to a new project-owned ID. Only an unchanged installed baseline may migrate
-automatically. Other official plugins retain legacy delivery in this phase.
+
+Use the target project's installed catalog and existing application files to
+discover supported entries; do not infer support from Composer or from a newer
+workspace package. Preserve valid pre-migration local source and its existing
+customizations. Do not automatically wrap it, migrate its source ownership, or
+manufacture a takeover baseline.
+
+### Thin application layer
+
+Packaged Plugins can have `plugins/<id>/application.json` and a thin local
+`index.tsx` importing their typed component from the public npm subpath. Composer
+is one example; the same rules apply to packaged actions and scoped renderers.
+This application code is project-owned even before source takeover. First edit
+its props, children/composition or public renderers; do not move React props into
+AppUIModel or require takeover for ordinary wrapper edits. AppUIModel controls
+layout and semantic placement. Composer's public `inputProps`, `rootProps` and
+`dropzoneProps` configure the corresponding Composer primitives; use Slots for
+semantic child Plugin composition, not visual micro-slots.
+Action components expose their declared button/menu props and events. Scoped
+reasoning/tool-group applications bridge the existing Host scope into group and
+children props; preserve that bridge when adding root/trigger/content props.
+Never copy the scope Context into extracted Plugin source.
+
+When public APIs cannot satisfy the request, use the existing explicit takeover
+question. For a thin application, the Host extracts the installed implementation
+into `source/` and only switches parsed implementation imports; existing JSX,
+props and composition remain. After takeover still prefer application changes,
+then `source/adapters/`; upstream remains read-only. Source sync excludes the
+application layer from BASE/LOCAL/TARGET. Creator Updates routes source-owned
+Plugins to the Operator implementation-only sync API. Resolve implementation
+conflicts, validate, and explicitly adopt the new baseline through that service;
+never use legacy resource apply operations to overwrite application files.

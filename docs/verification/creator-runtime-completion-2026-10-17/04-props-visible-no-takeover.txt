@@ -1,0 +1,74 @@
+Creator
+Agent UI 已创建
+接下来把它引入你自己的应用。
+查看接入方法
+用户
+
+请实际修改主 Composer：仅在用户本地的薄应用层 plugins/composer/index.tsx，通过公开组件的 rootProps.style 设置 padding:12、borderRadius:20、backgroundColor:'#f3e8ff'。保留其他 props 和全部插槽。不要改 AppUIModel、不要改 npm 包实现、不要接管源码。这些是公开属性支持的普通应用层定制。请验证实际预览生效。
+
+✓
+已识别意图
+修改 Conversation Composer Plugin implementation
+工具调用 · 6 次
+已完成
+Creator
+
+已完成。仅在薄应用层 src/agent-ui/plugins/composer/index.tsx 通过公开组件的 rootProps.style 注入了样式，未触碰 AppUIModel、npm 包实现，也未接管源码。
+
+修改内容
+export function ConversationComposerPlugin(props: ComponentProps<typeof Composer>) {
+  return (
+    <Composer
+      {...props}
+      rootProps={{
+        ...props.rootProps,
+        style: {
+          ...props.rootProps?.style,
+          padding: 12,
+          borderRadius: 20,
+          backgroundColor: "#f3e8ff",
+        },
+      }}
+    />
+  );
+}
+
+保留了全部 {...props} 和所有插槽（leadingActions/trailingActions/submitAction/beforeInput/triggers/input 等均未改动）。
+通过展开 props.rootProps 保留上游已有的 root 属性，仅覆盖 style。
+验证结果
+静态：typecheck、build、verify:ui 全部通过，0 新增诊断。typecheck 通过本身也证明 rootProps 是该公开组件受支持的合法属性。
+Runtime：runtimeStatus=passed，无当前错误；composer-main 实例挂载（compositionVerified=true），证据为当前哈希的新鲜数据。
+关于"预览视觉生效"的诚实说明
+
+可用的 Runtime 工具只返回几何矩形，不暴露计算后的样式（背景色/圆角/padding 的像素值），因此我无法用工具对"紫色背景 #f3e8ff 已渲染"做像素级截图验证。我能确认的是:该样式已通过公开 rootProps.style 正确接线、类型检查与构建通过、插件在当前预览中正常挂载且无运行时错误。最终的视觉外观需你在预览界面肉眼确认。
+
+修改回执
+1 个文件 · 3 项验证
+修改操作
+当前可撤销
+撤销执行时会再次检查所有文件；后续人工修改不会被覆盖。
+撤销本次修改
+完成验证
+修改已验证 · Revision 1 · 复核 0 次
+通过
+net-project-change
+通过
+pnpm verify:ui
+通过
+pnpm typecheck
+通过
+runtime-verification
+文件修改
+已修改
+src/agent-ui/plugins/composer/index.tsx
+验证结果
+通过
+pnpm run verify:ui
+通过
+pnpm run typecheck
+通过
+pnpm run build
+告诉 Creator
+清空会话
+Enter 发送 · Shift+Enter 换行
+发送

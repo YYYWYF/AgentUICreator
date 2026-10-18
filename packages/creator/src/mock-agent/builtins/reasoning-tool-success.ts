@@ -11,7 +11,7 @@ export const reasoningToolSuccessScenario = defineScenario({
     audience: "backend",
     protocol: "AG-UI",
     pattern: "Reasoning → Tool → Reasoning → Answer",
-    presentation: "assistant-ui Reasoning + ToolCall + Message",
+    presentation: "Agent UI Reasoning + ToolCall + Message",
     level: "recommended",
     eventFlow: [
       "REASONING_*",

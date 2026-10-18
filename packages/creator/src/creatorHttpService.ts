@@ -127,7 +127,7 @@ export function createCreatorHttpService({
       middlewares.use((request, response, next) => { return connectionHandler(request, response, next); });
 
       middlewares.use(CREATOR_COMMANDS_API_PATH, createCreatorCommandHandler(workspaceManager, projectRoot, legacyPythonManager));
-      middlewares.use(CREATOR_UPDATES_API_PATH, createCreatorUpdateHandler(workspaceManager, projectRoot, updateSourceProvider));
+      middlewares.use(CREATOR_UPDATES_API_PATH, createCreatorUpdateHandler(workspaceManager, projectRoot, updateSourceProvider, { configRoot, environment }));
       middlewares.use(CREATOR_MOCK_API_PATH, (request, response) => {
         return handleCreatorMockRequest(request, response, mockService, () => {
           if (workspaceManager !== undefined) {

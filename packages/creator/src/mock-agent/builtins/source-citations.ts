@@ -11,7 +11,7 @@ export const sourceCitationsScenario = defineScenario({
     audience: "backend",
     protocol: "AG-UI Tool Call",
     pattern: "Application-defined Tool Result → Sources",
-    presentation: "assistant-ui Sources",
+    presentation: "Agent UI Sources",
     level: "recommended",
     eventFlow: [
       "TOOL_CALL_START (search_sources)",
@@ -24,7 +24,7 @@ export const sourceCitationsScenario = defineScenario({
     notes: [
       "AG-UI does not define a citation/source event.",
       "The sources schema belongs to search_sources Tool Result.",
-      "assistant-ui SourceMessagePart is a frontend/runtime presentation contract.",
+      "Agent UI SourceMessagePart is a frontend/runtime presentation contract.",
       "AG-UI document.source describes attachment URL/data origin, not answer citations.",
       "This backend renderer does not advertise search_sources in RunAgentInput.tools.",
       "No CUSTOM or SOURCE_* event is used. This demo performs no RAG search or source persistence.",

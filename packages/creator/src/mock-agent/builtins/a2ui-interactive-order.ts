@@ -1,6 +1,6 @@
 import { defineScenario, type MockScenarioStep } from "../scenario.js";
 
-// Standard v0.9 operations, matching the pinned assistant-ui A2UI documentation.
+// Standard v0.9 operations, matching the pinned Agent UI A2UI documentation.
 // Every snapshot is self-contained because replace:true rebuilds its message state.
 export function a2uiOrderSnapshot(status: "review" | "confirmed" | "cancelled" = "review"): MockScenarioStep {
   const interactive = status === "review";

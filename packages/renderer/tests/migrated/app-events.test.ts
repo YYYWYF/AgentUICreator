@@ -8,11 +8,11 @@ import type { UIPluginDefinition } from "../../../operator/src/framework/contrac
 import {
   AppEventRegistry,
   AppEventRuntime,
-} from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/events/index";
+} from "../../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/events/index";
 import {
   createPluginRegistry,
   PluginServiceRuntime,
-} from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
 
 const eventSchemas = {
   "workspace.patch.applied": z.strictObject({

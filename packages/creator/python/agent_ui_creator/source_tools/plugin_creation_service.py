@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from ..plugin_delivery import official_package_plugin_ids
+
 import json
 import re
 from pathlib import Path, PurePosixPath
@@ -93,8 +95,8 @@ class UIPluginCreationService:
                 {"pluginId": plugin_id},
             )
 
-        if plugin_id == "assistant-ui-composer":
-            raise SourceCreationError("PLUGIN_ID_RESERVED_BY_OFFICIAL", "Official Composer is dependency-owned; choose a new project-owned ID.")
+        if plugin_id in official_package_plugin_ids(self.project_root):
+            raise SourceCreationError("PLUGIN_ID_RESERVED_BY_OFFICIAL", "Official Plugin is dependency-owned; choose a new project-owned ID.")
         plugin_directory = f"/plugins/{plugin_id}"
         if resolve_creator_project_file(
             self.project_root, agent_ui_source_path(self.project_root, plugin_directory[1:])

@@ -1,11 +1,64 @@
 # Optional authentication plugins
 
 `plugin/auth-gate` owns `auth.gate` and `auth.session`. `plugin/auth-account`
-requires the gate source and consumes the session; it owns no authentication
-state. Neither plugin is included in any default preset. Installing source is
+can display a Host-owned `user` directly, or consume the optional session; it
+owns no authentication state and does not require the gate source. Neither plugin
+is included in any default preset. Installing source is
 separate from adding instances to AppUIModel.
 
-## Creator installation recipe
+## Existing Host login: profile presentation only
+
+Install `plugin/auth-account` and mount an instance in an ordinary layout Slot
+through AppUIModel. Do not install `plugin/auth-gate` for this mode. No auth adapter
+is generated or configured. The generated React entry accepts an optional public profile. With a shared
+`AgentUIProvider`, pass `user` on that Provider and render `<Agent />` inside it;
+all account consumers use the same package-owned context. All profile fields
+are optional: `userId?: string`, `userName?: string`, `avatar?: string`. Missing or
+blank names display localized “Not signed in”; missing or blank avatars use the
+default account icon; missing or blank user IDs omit the secondary line.
+`<Agent />`, `<Agent user={null} />`, and `<Agent user={{}} />` all work.
+
+For example:
+
+```tsx
+import { Agent, type AgentUser } from "./agent-ui";
+
+export function AgentPage() {
+  const currentUser = useCurrentUser(); // The Host's existing reactive auth state.
+  const user: AgentUser | null = currentUser ? {
+    userId: currentUser.userId,
+    userName: currentUser.userName,
+    ...(currentUser.avatar ? { avatar: currentUser.avatar } : {}),
+  } : null;
+  return <Agent user={user} />;
+}
+```
+
+Replace `useCurrentUser` and the import path with the Host's existing hook and
+Agent UI installation path. Profile changes update the account display on the
+next React render. Each Agent instance has its own profile context. Only
+`userId`, `userName`, and optional `avatar` are projected into that context.
+
+- A supplied user displays the avatar, userName and userId without a login or
+  logout action; the Host owns authentication and its UI.
+- `user={null}` shows a default avatar and localized “Not signed in”, even if
+  an optional auth session exists. The enabled account plugin remains visible;
+  only layout/plugin enablement controls its presence.
+- Omitting `user` preserves the plugin-owned `auth.session` display and logout.
+  Without a session user, the account also shows the signed-out default.
+- `user` is presentation only: it is not sent to AG-UI, persisted, or used as an
+  authorization/session gate. The Host owns access control and conversation
+  lifecycle on logout/user switching (for example, unmount Agent, or key it by
+  userId and supply only that user's initialThreadId).
+- An explicitly installed auth gate remains active and still requires its
+  adapter; supplying user does not bypass it. Use account-only composition for
+  an existing Host login.
+
+Existing generated projects need the updated foundation entry and account source
+before using the new prop. Source installation does not overwrite existing files
+or silently remove an installed gate.
+
+## Creator installation recipe (plugin-managed login)
 
 1. Inspect the project, existing authentication, services, selected UI stack,
    application plugins, Sidebar Header/items/content and occupied Footer.
@@ -13,9 +66,10 @@ separate from adding instances to AppUIModel.
    `auth-account` Footer. Get one confirmation covering that scope. Honor explicit
    authorization already given by the user. Use the existing Host service-contract
    authorization when creating or changing a public service contract.
-3. Use `apply_agent_ui_source_item` for `plugin/auth-account` (full mode) or
-   `plugin/auth-gate` (login only). The source dependency closure prepares the owner
-   but does not install an application instance. Existing files are protected by
+3. Use `apply_agent_ui_source_item` for `plugin/auth-gate` and optionally
+   `plugin/auth-account`. Both must be installed explicitly for full login mode;
+   source installation does not install an application instance. Existing files
+   are protected by
    the Source Registry's conflict handling; never overwrite existing auth code.
 4. Configure `services/auth/adapter.ts` against the Host's real auth client. The
    shipped template fails closed. The first version uses typed account/password
@@ -57,7 +111,7 @@ ordinary plugin operations without removing the application gate.
 ## Host adapter contract
 
 Implement `restore`, `signIn`, `signOut`, and preferably `subscribe` in
-`services/auth/adapter.ts`. Return only `{ id, displayName, email?, avatarUrl? }`.
+`services/auth/adapter.ts`. Return only `{ userId, userName, avatar? }`.
 The service projects these fields and discards extra properties. Passwords are
 submitted directly to the Host adapter and cleared from the form after submit.
 Tokens and cookies remain in the Host client; they never enter AppUIModel,

@@ -1,16 +1,21 @@
 {
   "schemaVersion": 1,
   "project": "assistant-ui/assistant-ui",
-  "source": "https://github.com/assistant-ui/assistant-ui.git#3542d602272a62eddeb8989befc910841c267022",
-  "revision": "3542d602272a62eddeb8989befc910841c267022",
+  "source": "https://github.com/assistant-ui/assistant-ui.git#a46d6634e7a75eddd85d51415b1a615886d4ad0e",
+  "revision": "a46d6634e7a75eddd85d51415b1a615886d4ad0e",
   "generativeUiReleaseRevision": "3542d602272a62eddeb8989befc910841c267022",
   "packages": {
-    "@assistant-ui/react": "0.15.23",
-    "@assistant-ui/react-ag-ui": "0.0.63",
-    "@assistant-ui/react-langgraph": "0.14.29",
-    "@assistant-ui/react-markdown": "0.14.6",
+    "@assistant-ui/react": "0.15.29",
+    "@assistant-ui/react-ag-ui": "0.0.70",
+    "@assistant-ui/react-langgraph": "0.14.36",
+    "@assistant-ui/react-markdown": "0.14.23",
     "@assistant-ui/react-generative-ui": "0.0.22",
-    "@assistant-ui/react-lexical": "0.2.15"
+    "@assistant-ui/react-lexical": "0.2.18",
+    "@assistant-ui/core": "0.3.29",
+    "@assistant-ui/store": "0.3.21",
+    "@assistant-ui/tap": "0.9.23",
+    "assistant-stream": "0.3.52",
+    "assistant-cloud": "0.2.7"
   },
   "agUi": {
     "@ag-ui/core": "0.0.59",
@@ -18,9 +23,16 @@
   },
   "releasePinned": true,
   "packageRevisions": {
-    "@assistant-ui/react": "3542d602272a62eddeb8989befc910841c267022",
-    "@assistant-ui/react-ag-ui": "3542d602272a62eddeb8989befc910841c267022",
+    "@assistant-ui/react": "a46d6634e7a75eddd85d51415b1a615886d4ad0e",
+    "@assistant-ui/react-ag-ui": "a46d6634e7a75eddd85d51415b1a615886d4ad0e",
+    "@assistant-ui/react-langgraph": "a46d6634e7a75eddd85d51415b1a615886d4ad0e",
+    "@assistant-ui/react-markdown": "a46d6634e7a75eddd85d51415b1a615886d4ad0e",
     "@assistant-ui/react-generative-ui": "3542d602272a62eddeb8989befc910841c267022",
-    "@assistant-ui/react-lexical": "f008537f39f0936992b0f6d2433c092935df5faf"
+    "@assistant-ui/react-lexical": "a46d6634e7a75eddd85d51415b1a615886d4ad0e",
+    "@assistant-ui/core": "a46d6634e7a75eddd85d51415b1a615886d4ad0e",
+    "@assistant-ui/store": "a46d6634e7a75eddd85d51415b1a615886d4ad0e",
+    "@assistant-ui/tap": "9e2e69dba3352cf9ce8c399ebdf6387692df19f5",
+    "assistant-stream": "a46d6634e7a75eddd85d51415b1a615886d4ad0e",
+    "assistant-cloud": "feef5f30aad9c96c1ab1f7f12722e2be17ac9978"
   }
 }

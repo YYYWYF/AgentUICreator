@@ -1,0 +1,14 @@
+{
+  "command": ".venv/bin/python -m pytest tests/test_completion_runtime_refresh.py tests/test_composition_verification_tail.py tests/test_debugging_completion.py tests/test_runtime_diagnostic_store.py tests/test_runtime_layout_observation.py tests/test_plugin_source_mutation.py tests/test_plugin_source_takeover.py -q --tb=short",
+  "cwd": "packages/creator/python",
+  "passed": 130,
+  "failed": 0,
+  "pluginSourceMutationSuite": {
+    "passed": 27,
+    "failed": 0
+  },
+  "warnings": [
+    "LangChain v3 streaming beta warning"
+  ],
+  "nativeWindowsRun": false
+}

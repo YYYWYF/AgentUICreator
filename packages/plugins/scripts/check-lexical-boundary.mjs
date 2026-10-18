@@ -38,7 +38,7 @@ async function visit(file) {
   }
 }
 await visit(path.join(reactRoot, "index.ts"));
-const itemsRoot = path.join(root, "packages/source-registry/registry/items");
+const itemsRoot = path.join(root, "packages/plugins/resources/registry/items");
 for (const file of await files(itemsRoot)) {
   if (!/[/\\]plugins[/\\].*\.[jt]sx?$/u.test(file)) continue;
   if (upstream.test(await readFile(file, "utf8"))) errors.push(`${path.relative(root, file)}: Source Plugins must use @za38.03/agent-ui-plugins/lexical`);
@@ -46,8 +46,8 @@ for (const file of await files(itemsRoot)) {
 // Optional peers never make the main facade install the editor. The Source Item
 // and workspace lock must resolve exactly one Lexical release family.
 const facade = JSON.parse(await readFile(path.join(root, "packages/plugins/package.json"), "utf8"));
-const sourceItem = JSON.parse(await readFile(path.join(itemsRoot, "plugin-assistant-ui-lexical-composer-input/item.json"), "utf8"));
-const editItem = JSON.parse(await readFile(path.join(itemsRoot, "plugin-assistant-ui-lexical-edit-composer/item.json"), "utf8"));
+const sourceItem = JSON.parse(await readFile(path.join(itemsRoot, "plugin-lexical-composer-input/item.json"), "utf8"));
+const editItem = JSON.parse(await readFile(path.join(itemsRoot, "plugin-lexical-edit-composer/item.json"), "utf8"));
 const target = JSON.parse(await readFile(path.join(root, "assistant-ui-upgrade-target.json"), "utf8"));
 const manifest = JSON.parse(await readFile(path.join(root, "packages/plugins/node_modules", REACT_LEXICAL, "package.json"), "utf8"));
 const expectedIntegration = target.packages[REACT_LEXICAL];

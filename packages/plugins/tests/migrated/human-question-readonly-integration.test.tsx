@@ -4,10 +4,10 @@ import { createRoot, type Root } from "react-dom/client";
 import { ReadonlyThreadProvider } from "@assistant-ui/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { useConversationCanAnswerToolCall } from "../../src/index";
-import { AskUserQuestionToolUI } from "../../../source-registry/registry/items/demo-ask-user-question/files/agent-ui/conversation/human-tool-uis/ask-user-question";
+import { AskUserQuestionToolUI } from "../../resources/registry/items/demo-ask-user-question/files/agent-ui/conversation/human-tool-uis/ask-user-question";
 
 const labels = { back: "Back", next: "Next", submit: "Submit", submitting: "Submitting", answered: "Selected", noneSelected: "No selection", unavailable: "Unavailable" };
-vi.mock("../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/i18n/useAgentUILocale", () => ({
+vi.mock("../../resources/registry/items/foundation-core-adapters/files/agent-ui/i18n/useAgentUILocale", () => ({
   useAgentUILocale: () => labels,
 }));
 

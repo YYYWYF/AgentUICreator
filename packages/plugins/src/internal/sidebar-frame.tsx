@@ -3,8 +3,8 @@
 import { createContext, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { MessagesSquare, Folder, FolderOpen, Files, Search, Settings, Database, ChartNoAxesCombined, List, Bot, BookOpen, Star, CircleHelp } from "lucide-react";
 import { useAgentUILocale } from "../locale.js";
-import { SidebarProvider, Sidebar, SidebarHeader, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarFooter } from "./adapters/assistant-ui/components/ui/sidebar.js";
-import { Sheet, SheetContent, SheetTitle } from "./adapters/assistant-ui/components/ui/sheet.js";
+import { SidebarProvider, Sidebar, SidebarHeader, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarFooter } from "./adapters-generated/assistant-ui/components/ui/sidebar.js";
+import { Sheet, SheetContent, SheetTitle } from "./adapters-generated/assistant-ui/components/ui/sheet.js";
 import { AgentUIPortalContainerProvider } from "./style-boundary/AgentUIRoot.js";
 
 const icons = { "messages-square": MessagesSquare, folder: Folder, "folder-open": FolderOpen, files: Files, search: Search, settings: Settings, database: Database, "chart-no-axes-combined": ChartNoAxesCombined, list: List, bot: Bot, "book-open": BookOpen, star: Star, "circle-help": CircleHelp };

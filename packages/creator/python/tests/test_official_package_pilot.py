@@ -15,10 +15,10 @@ from test_creator_action_selector import StaticChatModel
 
 def test_natural_language_custom_composer_routes_to_reference_without_write_binding():
     target = CreatorAuthoringTargetCandidate(
-        targetId="official-plugin-reference:assistant-ui-composer",
+        targetId="official-plugin-reference:composer",
         kind="official_plugin_reference", name="Official Composer",
         description="Dependency-owned; inspect Slots and public APIs, then create_custom_plugin.",
-        intents=["customize composer"], relatedPluginIds=["assistant-ui-composer"],
+        intents=["customize composer"], relatedPluginIds=["composer"],
     )
     snapshot = CreatorDomainSnapshot(raw={}, app_ui_model_hash="a" * 64,
         capability_catalog_revision="b" * 64, observation_coverage=(),
@@ -26,8 +26,8 @@ def test_natural_language_custom_composer_routes_to_reference_without_write_bind
         action_catalog=CreatorActionCatalogSnapshot(revision="c" * 64, candidates=[]),
         authoring_target_catalog=CreatorAuthoringTargetCatalogSnapshot(revision="d" * 64,
             candidates=[target], bindings=[CreatorAuthoringTargetBinding(
-                targetId=target.targetId, kind=target.kind, pluginId="assistant-ui-composer",
-                relatedPluginIds=["assistant-ui-composer"],
+                targetId=target.targetId, kind=target.kind, pluginId="composer",
+                relatedPluginIds=["composer"],
             )]),
     )
     selector = CreatorActionSelector(model=StaticChatModel(["MODIFY SELECT A1"]))
@@ -44,13 +44,13 @@ def test_natural_language_custom_composer_routes_to_reference_without_write_bind
 def test_custom_creation_tool_forwards_semantic_input_and_classifies_mutation():
     class Client:
         async def create_custom_plugin(self, **input):
-            assert input == {"pluginId": "company-composer", "basedOn": "assistant-ui-composer",
+            assert input == {"pluginId": "company-composer", "basedOn": "composer",
                 "replaceInstanceId": "composer-main"}
             return {"pluginId": "company-composer", "ownership": "project_source",
                 "checks": ["build"], "changedPaths": []}
     tool = next(tool for tool in create_operator_tools(Client()) if tool.name == "create_custom_plugin")
     result = json.loads(asyncio.run(tool.ainvoke({"pluginId": "company-composer",
-        "basedOn": "assistant-ui-composer", "replaceInstanceId": "composer-main"})))
+        "basedOn": "composer", "replaceInstanceId": "composer-main"})))
     assert result["ok"] and result["result"]["ownership"] == "project_source"
     assert tool.name in SIDE_EFFECT_TOOL_NAMES
 
@@ -60,10 +60,10 @@ def test_host_resolved_official_customization_authorizes_derivation_without_new_
     from agent_ui_creator.plugin_development.authority import PluginDevelopmentAuthority, PluginDevelopmentError
     from agent_ui_creator.plugin_development.admission_middleware import PluginDevelopmentAdmissionMiddleware
     authority = PluginDevelopmentAuthority(tmp_path, thread_id="pilot")
-    args = {"pluginId": "company-composer", "basedOn": "assistant-ui-composer", "replaceInstanceId": "composer-main"}
+    args = {"pluginId": "company-composer", "basedOn": "composer", "replaceInstanceId": "composer-main"}
     with pytest.raises(PluginDevelopmentError):
         PluginDevelopmentAdmissionMiddleware(authority)._admit("create_custom_plugin", args)
-    middleware = PluginDevelopmentAdmissionMiddleware(authority, official_reference_plugin_id="assistant-ui-composer")
+    middleware = PluginDevelopmentAdmissionMiddleware(authority, official_reference_plugin_id="composer")
     middleware._admit("create_custom_plugin", args)
     with pytest.raises(PluginDevelopmentError):
-        middleware._admit("mutate_ui_plugin_source", {"pluginId": "assistant-ui-composer"})
+        middleware._admit("mutate_ui_plugin_source", {"pluginId": "composer"})

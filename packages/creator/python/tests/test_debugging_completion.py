@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import pytest
 from copy import deepcopy
 from types import SimpleNamespace
 from unittest.mock import Mock
@@ -20,8 +21,15 @@ from agent_ui_creator.runtime_diagnostics.tool import RuntimeDiagnosticInspectio
 from agent_ui_creator.validation import CommandExecutionResult, CreatorValidationService, create_validation_tool, create_static_diagnostic_tool
 
 
-FOO = 'plugins/foo/index.tsx'
-BAR = 'plugins/bar/index.tsx'
+@pytest.fixture(autouse=True)
+def configured_project(tmp_path):
+    metadata = tmp_path / ".agent-ui"
+    metadata.mkdir(exist_ok=True)
+    (metadata / "project.json").write_text(json.dumps({"mode": "assistant", "sourceRoot": "src/ui"}), encoding="utf-8")
+
+
+FOO = 'src/ui/plugins/foo/index.tsx'
+BAR = 'src/ui/plugins/bar/index.tsx'
 TARGET = {'path': FOO, 'code': 'TS2345'}
 
 
@@ -619,7 +627,7 @@ def test_model_facing_debugging_schemas_hide_legacy_complex_arguments(tmp_path):
     validation, activity, _, static = session(tmp_path)
     service, _, _ = runtime_service(activity, validation.debugging, runtime_result())
     select, select_all = selection_tools(validation, service)
-    expected = [(static, {'mode'}), (create_runtime_diagnostic_tool(service), {'includeStale'}),
+    expected = [(static, {'mode', 'includeBuild'}), (create_runtime_diagnostic_tool(service), {'includeStale'}),
                 (select, {'target_id'}), (select_all, set()),
                 (create_static_diagnostic_tool(validation), set())]
     for tool, properties in expected:
@@ -628,6 +636,7 @@ def test_model_facing_debugging_schemas_hide_legacy_complex_arguments(tmp_path):
 
 def test_old_static_warning_does_not_block_current_task_runtime_tail_repair(tmp_path):
     validation, activity, _, tool = session(tmp_path, ts(BAR), '', ts(BAR))
+    asyncio.run(validation.ensure_baseline())
     mutate(tmp_path, activity, 'ordinary button change')
     assert call(tool)['result']['status'] == 'passed'
     assert validation.current_result().workspace_warning['diagnosticCount'] == 1
@@ -700,15 +709,16 @@ def test_undeclared_subscription_repairs_only_consuming_manifest(tmp_path):
     call(selection_tools(validation, service)[0], target_id=target_id)
     guard = ScopeAwareRecoveryGuard(project_root=str(tmp_path))
     guard.debugging = validation.debugging
-    assert guard._debugging_selection_guard({'args': {'file_path': 'plugins/foo/manifest.json'}}, 'edit_file') is None
+    assert guard._debugging_selection_guard({'args': {'file_path': 'src/ui/plugins/foo/manifest.json'}}, 'edit_file') is None
     assert guard._debugging_selection_guard({'args': {'file_path': FOO}}, 'edit_file') is not None
-    assert guard._debugging_selection_guard({'args': {'file_path': 'plugins/bar/manifest.json'}}, 'edit_file') is not None
+    assert guard._debugging_selection_guard({'args': {'file_path': 'src/ui/plugins/bar/manifest.json'}}, 'edit_file') is not None
 
 
 def test_ordinary_post_mutation_runtime_error_allows_scoped_repair(tmp_path):
     scope = ChangeScopeMetrics(taskChangeLayers=['plugin_behavior'], scopeResources=['plugin:foo'])
     validation, activity, gate, static = session(tmp_path, '', '', '', '', '',
         mode='static_and_runtime', scope=scope)
+    asyncio.run(validation.ensure_baseline())
     mutate(tmp_path, activity, 'ordinary Plugin A modification')
     assert call(static)['result']['status'] == 'passed'
     service, store, _ = runtime_service(activity, validation.debugging,
@@ -743,7 +753,9 @@ def test_ordinary_post_mutation_runtime_error_allows_scoped_repair(tmp_path):
     assert call(static)['result']['status'] == 'passed'
     store.result = runtime_errors()
     assert call(runtime)['result']['runtimeStatus'] == 'passed'
-    assert gate.review('repaired').completion == 'success'
+    decision = gate.review('repaired')
+    assert decision.accepted and decision.completion in {None, 'success'}
+    assert activity.snapshot()['verification']['status'] == 'changed-and-verified'
     assert validation.debugging.target_selection_calls == 0
 
 

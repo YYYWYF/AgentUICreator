@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "releases": [
+    {
+      "id": "example-2026-10-18-1",
+      "publishedAt": "2026-10-18T00:00:00Z",
+      "channel": "stable",
+      "node": ">=22.12.0",
+      "react": ">=18 <20",
+      "packages": [
+        {
+          "name": "@za38.03/agent-ui-plugins",
+          "version": "1.0.8",
+          "requires": {},
+          "historyFrom": "1.0.0",
+          "changes": [
+            {
+              "id": "composer-character-count",
+              "version": "1.0.8",
+              "summary": "输入框新增实时字数统计",
+              "kind": "feature",
+              "pluginId": "composer"
+            }
+          ]
+        },
+        {
+          "name": "@za38.03/agent-ui-runtime",
+          "version": "1.0.3",
+          "requires": {
+            "@za38.03/agent-ui-plugins": "^1.0.8"
+          },
+          "historyFrom": "1.0.0",
+          "changes": [
+            {
+              "id": "runtime-stability",
+              "version": "1.0.3",
+              "summary": "改善会话状态同步稳定性",
+              "kind": "fix"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

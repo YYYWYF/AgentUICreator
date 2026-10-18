@@ -56,16 +56,16 @@ describe("public Conversation Source Registry install", () => {
       private: true,
       type: "module",
       dependencies: {
-        "@za38.03/agent-ui-plugins": "^0.1.0",
-        "@za38.03/agent-ui-runtime": "^0.1.0",
+        "@za38.03/agent-ui-plugins": "^0.0.1",
+        "@za38.03/agent-ui-runtime": "^0.0.1",
       },
     };
     await writeFile(
       path.join(projectRoot, "package.json"),
       `${JSON.stringify(packageJson, null, 2)}\n`,
     );
-    await writeInstalledPackage(projectRoot, "@za38.03/agent-ui-plugins", "0.1.0");
-    await writeInstalledPackage(projectRoot, "@za38.03/agent-ui-runtime", "0.1.0");
+    await writeInstalledPackage(projectRoot, "@za38.03/agent-ui-plugins", "0.0.1");
+    await writeInstalledPackage(projectRoot, "@za38.03/agent-ui-runtime", "0.0.1");
 
     const inspection = await inspectAgentUISources(projectRoot);
     const result = await applyAgentUISourceItem(projectRoot, {

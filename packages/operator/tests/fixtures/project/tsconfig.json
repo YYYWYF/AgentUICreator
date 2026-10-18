@@ -38,8 +38,8 @@
       "@za38.03/agent-ui-creator/mock-agent": [
         "../../packages/creator/src/mock-agent/index.ts"
       ],
-      "@za38.03/agent-ui-source-registry": [
-        "../../packages/source-registry/src/index.ts"
+      "@za38.03/agent-ui-operator/source-registry": [
+        "../../packages/operator/src/source-catalog/index.ts"
       ],
       "@za38.03/agent-ui-plugins": [
         "../../packages/plugins/src/index.ts"
@@ -74,13 +74,12 @@
     },
     "rootDirs": [
       ".",
-      "../../packages/source-registry/registry/items/integration-a2ui/files",
-      "../../packages/source-registry/registry/items/integration-generative-ui/files",
-      "../../packages/source-registry/registry/items/agent-component-assistant-ui-generative-ui/files"
+      "../../../../plugins/resources/registry/items/integration-a2ui/files",
+      "../../../../plugins/resources/registry/items/integration-generative-ui/files",
+      "../../../../plugins/resources/registry/items/agent-component-assistant-ui-generative-ui/files"
     ]
   },
   "exclude": [
-    "tests/fixtures/legacy-footer-0.1.0"
   ],
   "include": [
     "agent-ui/**/*.ts",

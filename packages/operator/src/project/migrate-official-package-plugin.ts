@@ -1,6 +1,8 @@
+import { isPluginApplication } from "./plugin-application";
+import { readPluginSourceOwnership } from "./plugin-source-ownership";
 import { lstat, readdir, readFile, rmdir } from "node:fs/promises";
 import path from "node:path";
-import { officialPackagePlugin } from "@za38.03/agent-ui-source-registry";
+import { officialPackagePlugin } from "../source-catalog/index.js";
 import { resourcePaths } from "./optional-resource-paths";
 import { readAgentUISourceLock, serializeAgentUISourceLock, sha256 } from "./source-registry/lock";
 import { AgentUISourceError, assertNoSymbolicLinkTraversal } from "./source-registry/path-policy";
@@ -10,12 +12,14 @@ import { generatePluginRegistry } from "./registry-generator";
 import { parseAppUIModelJson } from "../framework/contracts/app-ui-model";
 
 /** Only a complete, unchanged installed baseline may be removed automatically. */
-export async function migrateOfficialPackagePlugin(projectRoot: string, pluginId = "assistant-ui-composer") {
+export async function migrateOfficialPackagePlugin(projectRoot: string, pluginId = "composer") {
   const official = officialPackagePlugin(pluginId);
   if (!official) throw new AgentUISourceError("OFFICIAL_PACKAGE_PLUGIN_UNKNOWN", "No package delivery exists for this Plugin.");
   const { paths, config } = await resourcePaths(projectRoot);
   await recoverPendingAgentUISourceTransaction(projectRoot, config);
+  if ((await readPluginSourceOwnership(paths.metadataRoot)).plugins[pluginId]) return { changed: false };
   const directory = path.join(paths.pluginsRoot, pluginId);
+  if (await isPluginApplication(directory, pluginId)) return { changed: false };
   await assertNoSymbolicLinkTraversal(paths.sourceRoot, `plugins/${pluginId}`);
   const files: string[] = [];
   async function walk(root: string): Promise<void> {
@@ -40,7 +44,9 @@ export async function migrateOfficialPackagePlugin(projectRoot: string, pluginId
   const nextLock = structuredClone(lock);
   delete nextLock.items[official.referenceSourceItemId];
   const model = parseAppUIModelJson(await readFile(paths.appUIModelPath, "utf8"));
-  const generation = await generatePluginRegistry(projectRoot, model, { paths, config });
+  const generation = await generatePluginRegistry(projectRoot, model, { paths, config: {
+    ...config, nonPluginDirectories: [...(config.nonPluginDirectories ?? []), path.relative(projectRoot, directory).split(path.sep).join("/")],
+  } });
   const errors = generation.errors.filter(issue => issue.code !== "PLUGIN_ID_RESERVED_BY_OFFICIAL" || issue.pluginId !== pluginId);
   if (errors.length) throw new AgentUISourceError("OFFICIAL_PLUGIN_MIGRATION_INVALID", "Migration composition is invalid.", errors);
   await commitAgentUISourceTransaction(projectRoot, config, "migrate_official_package_plugin", [

@@ -7,7 +7,7 @@ import { expect, it } from "vitest";
 
 const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
 const reactSource = path.join(repositoryRoot, "packages/plugins/src");
-const vendorRoot = path.join(reactSource, "internal/vendor/assistant-ui");
+const vendorRoot = path.join(reactSource, "internal/vendor-generated/assistant-ui");
 const portalFiles = ["components/assistant-ui/elements/image.tsx", ...["dialog", "popover", "sheet", "tooltip"]
   .map((name) => `components/ui/${name}.tsx`)];
 
@@ -25,7 +25,7 @@ it("keeps the canonical theme and Preflight scoped to AgentUIRoot", async () => 
   const [styles, preflight, agent] = await Promise.all([
     readFile(path.join(reactSource, "theme/shadcn-theme-presets.css"), "utf8"),
     readFile(path.join(reactSource, "preflight.scoped.css"), "utf8"),
-    readFile(path.join(repositoryRoot, "packages/source-registry/registry/items/foundation-core/files/application/Agent.tsx"), "utf8"),
+    readFile(path.join(repositoryRoot, "packages/plugins/resources/registry/items/foundation-core/files/application/Agent.tsx"), "utf8"),
   ]);
   expect(styles).toContain(':is(.agent-ui-root, .agent-ui-conversation)[data-theme="light"]');
   expect(styles).toContain(':is(.agent-ui-root, .agent-ui-conversation)[data-theme="dark"]');
@@ -46,7 +46,7 @@ it("keeps vendor product patches empty and product overlay integration separate"
 });
 
 it("keeps product Plugin and application code off Base UI Portal imports", async () => {
-  const items = path.join(repositoryRoot, "packages/source-registry/registry/items");
+  const items = path.join(repositoryRoot, "packages/plugins/resources/registry/items");
   for (const filePath of await sourceFiles(items)) {
     const relativePath = path.relative(items, filePath);
     if (!/(?:^|\/)(?:plugins|application)\//u.test(relativePath)) continue;
@@ -56,7 +56,7 @@ it("keeps product Plugin and application code off Base UI Portal imports", async
 });
 
 it("keeps Generative UI vocabulary under its independent scoped source contract", async () => {
-  const directory = path.join(repositoryRoot, "packages/plugins/src/internal/vendor/assistant-ui/generative-ui");
+  const directory = path.join(repositoryRoot, "packages/plugins/src/internal/vendor-generated/assistant-ui/generative-ui");
   const record = JSON.parse(await readFile(path.join(directory, "UPSTREAM.json"), "utf8"));
   for (const entry of record.files) {
     const source = await readFile(path.join(directory, entry.localPath));

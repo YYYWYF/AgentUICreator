@@ -1,10 +1,13 @@
+import { OwnedPluginUpdateService } from "../owned-plugin-updates";
+import { isPluginApplication } from "../plugin-application";
+import { readPluginSourceOwnership } from "../plugin-source-ownership";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { comparePluginVersions, isAgentUISourceItemAvailable, InstalledUpdateSourceProvider, resolveAgentUISourceItemClosure, type UpdateSourceProvider, type ResolvedSourceRelease } from "@za38.03/agent-ui-source-registry";
+import { comparePluginVersions, isAgentUISourceItemAvailable, InstalledUpdateSourceProvider, resolveAgentUISourceItemClosure, type UpdateSourceProvider, type ResolvedSourceRelease } from "../../source-catalog/index.js";
 import { readAgentUIProjectConfig } from "../project-mode";
 import { resolveAgentUIProjectPaths, operatorConfigForPaths } from "../agent-ui-project-paths";
 import { inspectAgentUISources } from "./inspector";
-import { readAgentUISourceLock, serializeAgentUISourceLock, sha256, readOptionalBuffer } from "./lock";
+import { readAgentUISourceLock, serializeAgentUISourceLock, sha256, readOptionalBuffer, AGENT_UI_SOURCE_TRANSACTION_FILE } from "./lock";
 import { commitAgentUISourceUpgrade, recoverPendingAgentUISourceProjectMutation } from "./project-mutation";
 import { assertNoSymbolicLinkTraversal, resolveAgentUISourceRoots } from "./path-policy";
 
@@ -14,28 +17,39 @@ interface StoredPlan { projectRoot: string; release: ResolvedSourceRelease; stat
 
 /** Development Host owns provider, admission, authorization tokens and exact historical releases. */
 export class AgentUIUpdateService {
+  private readonly owned = new OwnedPluginUpdateService();
   private readonly plans = new Map<string, StoredPlan>();
-  constructor(readonly provider: UpdateSourceProvider = new InstalledUpdateSourceProvider(), readonly creatorVersion = "0.1.0", readonly supportedContractVersion = 1) {}
+  constructor(readonly provider: UpdateSourceProvider = new InstalledUpdateSourceProvider(), readonly creatorVersion?: string, readonly supportedContractVersion = 1) {}
   private compatibility(release: ResolvedSourceRelease): UpdateCompatibility {
-    if (release.descriptor.contractVersion > this.supportedContractVersion || (release.descriptor.minimumCreatorVersion && comparePluginVersions(this.creatorVersion, release.descriptor.minimumCreatorVersion) < 0)) return "creator-upgrade-required";
+    if (release.descriptor.contractVersion > this.supportedContractVersion || (release.descriptor.minimumCreatorVersion && (!this.creatorVersion || comparePluginVersions(this.creatorVersion, release.descriptor.minimumCreatorVersion) < 0))) return "creator-upgrade-required";
     if (release.descriptor.contractVersion !== this.supportedContractVersion) return "unsupported";
     return "compatible";
   }
-  private async context(projectRoot: string, release: ResolvedSourceRelease) {
+  private async context(projectRoot: string, release: ResolvedSourceRelease, readOnly = false) {
     const project = await readAgentUIProjectConfig(projectRoot);
     const config = operatorConfigForPaths(resolveAgentUIProjectPaths(projectRoot, project.config));
-    await recoverPendingAgentUISourceProjectMutation(projectRoot, config);
+    if (readOnly) {
+      const paths = resolveAgentUIProjectPaths(projectRoot, project.config);
+      for (const file of ["source-project-transaction.json", AGENT_UI_SOURCE_TRANSACTION_FILE]) {
+        if (await readOptionalBuffer(path.join(paths.metadataRoot, file))) throw new Error("AGENT_UI_UPDATE_RECOVERY_REQUIRED");
+      }
+    } else await recoverPendingAgentUISourceProjectMutation(projectRoot, config);
     const inspection = await inspectAgentUISources(projectRoot, config, release.registry);
     const { lock } = await readAgentUISourceLock(projectRoot, config);
     const lockHash = sha256(serializeAgentUISourceLock(lock));
     return { config, inspection, lock, lockHash, stateHash: sha256(inspection.stateHash + serializeAgentUISourceLock(lock).toString()) };
   }
-  async inspect(projectRoot: string): Promise<UpdateInspection> {
+  async inspect(projectRoot: string, options?: { readOnly?: boolean }): Promise<UpdateInspection> {
     const latest = await this.provider.getLatestRelease();
     const release = await this.provider.resolveRelease(latest.releaseVersion);
-    const { lock, inspection } = await this.context(projectRoot, release);
-    const plugins: PluginUpdate[] = [];
+    const { lock, inspection } = await this.context(projectRoot, release, options?.readOnly === true);
+    const ownedPlugins = await this.owned.inspect(projectRoot);
+    const ownedIds = new Set(ownedPlugins.map(plugin=>plugin.pluginId));
+    const plugins: PluginUpdate[] = [...ownedPlugins];
+const projectPaths = await resolveAgentUISourceRoots(projectRoot, operatorConfigForPaths(resolveAgentUIProjectPaths(projectRoot, (await readAgentUIProjectConfig(projectRoot)).config)));
     for (const [id, target] of Object.entries(release.descriptor.plugins).sort()) {
+      if (ownedIds.has(id)) continue;
+      if (await isPluginApplication(path.join(projectPaths.sourceRoot,"plugins",id),id)) continue;
       const locked = lock.items[`plugin/${id}`];
       if (!locked) continue;
       const currentVersion = locked.pluginVersion ?? null;
@@ -48,12 +62,22 @@ export class AgentUIUpdateService {
           .sort(([a], [b]) => comparePluginVersions(a, b)).map(([version, entry]) => ({ version, entry })) });
     }
     return { releaseVersion: latest.releaseVersion, compatibility: this.compatibility(release), plugins,
-      fingerprint: sha256(plugins.filter(plugin => plugin.updateAvailable).map(plugin => `${plugin.pluginId}@${plugin.targetVersion}`).sort().join("\n")) };
+      fingerprint: sha256(plugins.filter(plugin => plugin.updateAvailable).map(plugin => `${plugin.pluginId}@${plugin.targetVersion}:${plugin.packageVersion ?? ""}`).sort().join("\n")) };
   }
   async plan(projectRoot: string, pluginIds: string[], releaseVersion: string): Promise<UpgradePlan> {
     if (!pluginIds.length || new Set(pluginIds).size !== pluginIds.length) throw new Error("请选择要更新的插件。");
+    const project = await readAgentUIProjectConfig(projectRoot);
+    const owner = await readPluginSourceOwnership(resolveAgentUIProjectPaths(projectRoot,project.config).metadataRoot);
+    if (pluginIds.some(id=>owner.plugins[id]?.implementationRoot === "source")) {
+      if(pluginIds.length!==1) throw new Error("PLUGIN_SOURCE_SYNC_ONE_AT_A_TIME");
+      return this.owned.plan(projectRoot,pluginIds[0]!,releaseVersion);
+    }
     const release = await this.provider.resolveRelease(releaseVersion);
     const ctx = await this.context(projectRoot, release);
+    const ownership = await readPluginSourceOwnership((await resolveAgentUISourceRoots(projectRoot, ctx.config)).metadataRoot);
+    const sourcePaths = await resolveAgentUISourceRoots(projectRoot, ctx.config);
+    for (const id of pluginIds) if (await isPluginApplication(path.join(sourcePaths.sourceRoot, "plugins", id), id)) throw new Error("PLUGIN_APPLICATION_USE_PACKAGE_OR_EXPLICIT_SYNC");
+    if (pluginIds.some(id => ownership.plugins[id])) throw new Error("SOURCE_OWNED_PLUGIN_USE_EXPLICIT_SYNC: use the implementation-only source sync plan.");
     const closure = new Map(pluginIds.flatMap(id => {
       const locked = ctx.lock.items[`plugin/${id}`];
       const target = release.descriptor.plugins[id];
@@ -95,6 +119,7 @@ export class AgentUIUpdateService {
     return stored;
   }
   async execute(projectRoot: string, planId: string) {
+    if(this.owned.has(planId)) return this.owned.execute(projectRoot,planId);
     const stored = this.stored(projectRoot, planId);
     if (stored.plan.requiresMerge) throw new Error("此升级需要合并本地修改，禁止直接覆盖。");
     const result = await commitAgentUISourceUpgrade(projectRoot, { registry: stored.release.registry, itemIds: stored.plan.items.filter(item => item.changed && !item.provided).map(item => item.itemId), expectedStateHash: stored.stateHash });
@@ -102,6 +127,7 @@ export class AgentUIUpdateService {
     return result;
   }
   async merge(projectRoot: string, planId: string) {
+    if(this.owned.has(planId)) return this.owned.merge(projectRoot,planId);
     const stored = this.stored(projectRoot, planId);
     const ctx = await this.context(projectRoot, stored.release);
     if (ctx.stateHash !== stored.stateHash) throw new Error("源码已改变，请重新生成升级计划。");
@@ -125,6 +151,7 @@ export class AgentUIUpdateService {
     return { planId, files, prompt: `用户已选择模型合并插件升级至 Source Release ${stored.plan.releaseVersion}。下面是 Host 解析的 BASE / LOCAL / TARGET。保留 LOCAL 用户改动并吸收 TARGET 更新；null 表示文件不存在。只编辑所列源码，禁止修改 source-lock 或自行推进基线。完成后运行 validate_creator_changes，并说明结果。基线由用户在更新页确认后交给 Host 验证和推进。\n${JSON.stringify(files)}` };
   }
   async startManualMerge(projectRoot: string, planId: string) {
+    if(this.owned.has(planId)) { const result=await this.owned.merge(projectRoot,planId); return {planId,files:result.files.map(file=>file.path)}; }
     const stored = this.stored(projectRoot, planId);
     const ctx = await this.context(projectRoot, stored.release);
     if (ctx.stateHash !== stored.stateHash) throw new Error("源码已改变，请重新生成计划。");
@@ -132,6 +159,7 @@ export class AgentUIUpdateService {
     return { planId, files: stored.plan.items.flatMap(item => item.paths) };
   }
   async adopt(projectRoot: string, planId: string) {
+    if(this.owned.has(planId)) return this.owned.adopt(projectRoot,planId);
     const stored = this.stored(projectRoot, planId);
     if (!stored.mergeStarted) throw new Error("请先选择并完成合并。");
     const ctx = await this.context(projectRoot, stored.release);

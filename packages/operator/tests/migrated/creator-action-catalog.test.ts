@@ -563,8 +563,8 @@ describe("Creator Action Catalog", () => {
       enabled: true,
       slots: {
         reasoningGroup: [{
-          id: "assistant-ui-reasoning-main",
-          pluginId: "assistant-ui-reasoning",
+          id: "reasoning-main",
+          pluginId: "reasoning",
           enabled: true,
         }],
       },
@@ -586,7 +586,7 @@ describe("Creator Action Catalog", () => {
           },
         },
       }],
-      ["assistant-ui-reasoning", {
+      ["reasoning", {
         name: "Assistant UI Reasoning Renderer",
         capabilities: ["conversation-reasoning-renderer"],
         requiresRenderScope: true,
@@ -609,7 +609,7 @@ describe("Creator Action Catalog", () => {
     const before = await buildCatalog(projectRoot, model);
     const remove = before.catalog.candidates.find((candidate) =>
       candidate.kind === "remove_plugin" &&
-      candidate.target.pluginId === "assistant-ui-reasoning" &&
+      candidate.target.pluginId === "reasoning" &&
       candidate.status === "ready",
     );
     if (remove === undefined) throw new Error("Expected Reasoning Renderer Remove Action");
@@ -622,19 +622,19 @@ describe("Creator Action Catalog", () => {
       await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
     ) as AppUIModel;
     expect(collectAppUIPluginLocations(absentModel).some(
-      ({ plugin }) => plugin.pluginId === "assistant-ui-reasoning",
+      ({ plugin }) => plugin.pluginId === "reasoning",
     )).toBe(false);
 
     const afterRemove = await buildCatalog(projectRoot, absentModel);
     const add = afterRemove.catalog.candidates.find((candidate) =>
       candidate.kind === "add_existing_plugin" &&
-      candidate.target.pluginId === "assistant-ui-reasoning" &&
+      candidate.target.pluginId === "reasoning" &&
       candidate.status === "ready",
     );
     expect(add).toMatchObject({
       kind: "add_existing_plugin",
       status: "ready",
-      target: { pluginId: "assistant-ui-reasoning" },
+      target: { pluginId: "reasoning" },
       effect: { type: "add_default", placementDomain: "plugin_slot" },
     });
     if (add === undefined) throw new Error("Expected Reasoning Renderer Add Action");
@@ -651,8 +651,8 @@ describe("Creator Action Catalog", () => {
     expect(plan.operations).toEqual([{
       type: "insert_plugin",
       plugin: {
-        id: "assistant-ui-reasoning-main",
-        pluginId: "assistant-ui-reasoning",
+        id: "reasoning-main",
+        pluginId: "reasoning",
         enabled: true,
       },
       target: {
@@ -663,7 +663,7 @@ describe("Creator Action Catalog", () => {
     }]);
     expect(plan.expectedPlacement).toEqual({
       type: "plugin_slot",
-      instanceId: "assistant-ui-reasoning-main",
+      instanceId: "reasoning-main",
       parentInstanceId: "agent-conversation-surface-main",
       slot: "reasoningGroup",
     });
@@ -677,10 +677,10 @@ describe("Creator Action Catalog", () => {
       await readFile(path.join(projectRoot, "app-ui", "app-ui.json"), "utf8"),
     ) as AppUIModel;
     expect(collectAppUIPluginLocations(restoredModel).find(
-      ({ plugin }) => plugin.pluginId === "assistant-ui-reasoning",
+      ({ plugin }) => plugin.pluginId === "reasoning",
     )?.plugin).toEqual({
-      id: "assistant-ui-reasoning-main",
-      pluginId: "assistant-ui-reasoning",
+      id: "reasoning-main",
+      pluginId: "reasoning",
       enabled: true,
     });
     const finalCatalog = await buildCatalog(projectRoot, restoredModel);

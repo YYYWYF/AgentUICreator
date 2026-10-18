@@ -1,5 +1,6 @@
+import { ensurePluginApplication } from "./plugin-application";
 import { createHash } from "node:crypto";
-import { officialPackagePlugin, officialResourceRegistry } from "@za38.03/agent-ui-source-registry";
+import { officialPackagePlugin, officialResourceRegistry } from "../source-catalog/index.js";
 import { readFile } from "node:fs/promises";
 import { collectPluginAssets } from "./plugin-assets";
 import { collectAppUIPluginLocations, parseAppUIModelJson } from "../framework/contracts/app-ui-model";
@@ -29,6 +30,7 @@ export async function installDemoPlugin(projectRoot: string, pluginId: string): 
       itemId: item.id, expectedStateHash: sources.stateHash,
     }, { config });
   }
+  await ensurePluginApplication(projectRoot, pluginId);
   const source = await readFile(paths.appUIModelPath, "utf8");
   const model = parseAppUIModelJson(source);
   const locations = collectAppUIPluginLocations(model);

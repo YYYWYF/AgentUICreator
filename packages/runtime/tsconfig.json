@@ -22,6 +22,9 @@
     "paths": {
       "@za38.03/agent-ui-plugins": [
         "../plugins/src/index.ts"
+      ],
+      "@za38.03/agent-ui-plugins/catalog": [
+        "../../packages/plugins/src/catalog/index.ts"
       ]
     }
   },

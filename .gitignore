@@ -21,3 +21,9 @@ examples/creator-embedded-host/.agent-ui/
 examples/creator-embedded-host/src/agent-ui/
 apps/creator-workbench/test-results/
 apps/creator-workbench/playwright-report/
+
+# Generated logical views; edit src/plugins and src/shared instead.
+packages/plugins/src/internal/vendor-generated/assistant-ui/
+packages/plugins/src/internal/adapters-generated/assistant-ui/
+packages/plugins/resources/registry/items/plugin-*/files/
+packages/plugins/resources/registry/items/plugin-*/changelog.json

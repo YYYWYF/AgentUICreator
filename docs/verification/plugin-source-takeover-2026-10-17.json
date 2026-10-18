@@ -1,0 +1,114 @@
+{
+  "date": "2026-10-17",
+  "phase": "npm-default-plugin-source-takeover",
+  "status": "implemented-for-extractable-catalog-entries",
+  "supportedPluginIds": [
+    "composer",
+    "assistant-ui-composer"
+  ],
+  "behavior": {
+    "confirmation": "Creator tool invokes a real LangGraph human-input interrupt; no model-facing approval or planHash parameter. Decline/unanswered never invokes apply. The question step binds the exact plan hash.",
+    "installedVersion": "Node createRequire resolves catalog from target project; catalog/package identity, snapshot hashes, runtime hashes and source manifest ID/version are verified.",
+    "planInvalidation": "Project source, metadata, model, package manifest, install lockfiles and exact source catalog identity are included. Apply re-plans before staging and immediately before commit.",
+    "extraction": "Six portable files per supported ID, including local Composer/queue/textarea presentation, definition, manifest, project glue and notices. Mechanical import transformations retain canonical origin mapping.",
+    "registry": "Only an explicit ownership record allows same-ID local source; package registration is excluded, all instances retain IDs and the AppUIModel bytes stay unchanged. Local manifest and service declarations are authoritative, including Creator inspect_ui_plugin.",
+    "baseline": "metadataRoot/plugin-ownership.json persists exact package/plugin versions, catalog and approved-plan hashes, origin mapping, shared dependencies and original BASE bytes/hashes independently of node_modules.",
+    "transactions": "Validate in a disposable Host with its typecheck/build/test scripts; build is mandatory. Journal commits source, registry, source-lock and ownership together. Failed validation is not committed; crash recovery restores metadata/files and prunes newly created empty takeover directories.",
+    "upgrade": "Independent tarball consumer simulates installed package replacement with version 99.0.0 and a deliberately unusable package Composer. Local customization, BASE, IDs/configuration and local registry remain selected through legacy migration and registry regeneration.",
+    "sharedRuntime": "Core/Renderer/Runtime and React Context stay shared npm dependencies. Composer support API contract version 1 exposes shared state primitives, contexts, guards and shared attachment/tooltip presentation; package themes/styles/locales remain shared. Optional Lexical facade now externalizes product modules instead of bundling private Context copies."
+  },
+  "checks": [
+    {
+      "command": "node scripts/build-public-packages.mjs",
+      "status": "passed",
+      "scope": "All seven public packages; subsequently rebuilt affected Plugins, Operator and Creator after relevant changes."
+    },
+    {
+      "command": "pnpm --filter @za38.03/agent-ui-plugins typecheck",
+      "status": "passed",
+      "scope": "Source and tests, including new published Context test and modern preset fixture rootDirs."
+    },
+    {
+      "command": "pnpm --filter @za38.03/agent-ui-operator typecheck",
+      "status": "passed",
+      "scope": "Source and tests."
+    },
+    {
+      "command": "pnpm --filter @za38.03/agent-ui-operator exec vitest run tests/plugin-source-takeover.test.ts tests/official-package-pilot.test.ts tests/migrated/source-project-mutation.test.ts",
+      "status": "passed",
+      "tests": 58
+    },
+    {
+      "command": "pnpm --filter @za38.03/agent-ui-plugins exec vitest run tests/packaged-composer-context.test.tsx tests/composer-interrupt-guard.test.tsx tests/source-package-layout.test.mjs tests/conversation-composer-lexical.test.tsx tests/composer-input-slot-lifecycle.test.tsx",
+      "status": "passed",
+      "tests": 17,
+      "notes": "Modernized stale preset test IDs/resources; source layout test rerun after canonical snapshot indexing was extended."
+    },
+    {
+      "command": "node --test packages/plugins/tests/composer-package-boundary.test.mjs",
+      "status": "passed",
+      "tests": 2
+    },
+    {
+      "cwd": "packages/creator/python",
+      "command": ".venv/bin/python -m pytest tests/test_plugin_source_takeover.py tests/test_operator_contract.py tests/test_domain_tool_policy.py tests/test_minimal_tool_policy.py tests/test_operator_client.py tests/test_deepagent_tool_stream.py -q",
+      "status": "passed",
+      "tests": 66,
+      "notes": "Includes real StateGraph and DeepAgent v3 interruption/resume, approve/decline/stale/invalid replies, read-only policy, writable local adapters and metadata/upstream protection."
+    },
+    {
+      "command": "node scripts/verify-public-packages.mjs --takeover --strict-types",
+      "status": "passed",
+      "scope": "Seven independently unpacked tarballs; public Operator plan/apply and local source inspection; actual Host typecheck/build; synthetic npm version replacement; deployment graph after removing Creator/Operator and metadata; strict consumer declarations (skipLibCheck=false). Browser graph selects local Composer and exactly one shared Composer Context module."
+    },
+    {
+      "command": "node packages/plugins/scripts/verify-source-distribution.mjs",
+      "status": "passed",
+      "canonicalSnapshots": 378,
+      "scope": "Canonical source bytes, portable closure import transformations and matching runtime artifacts."
+    },
+    {
+      "command": "pnpm --filter @za38.03/agent-ui-plugins check:assistant-ui-upstream",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm check:i18n",
+      "status": "passed",
+      "notes": "No audit failures; new Creator question namespace en-US/zh-CN parity also unit-tested."
+    },
+    {
+      "command": "node scripts/check-operator-contract.mjs",
+      "status": "passed"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    }
+  ],
+  "expandedRegressionFailures": {
+    "command": "cd packages/creator/python && .venv/bin/python -m pytest tests/test_plugin_development_authority.py tests/test_domain_tool_policy.py tests/test_minimal_tool_policy.py tests/test_operator_client.py -q",
+    "passed": 58,
+    "failed": 28,
+    "cause": "Existing authority fixtures lack .agent-ui/project.json and fail in the unchanged project_paths/authority configuration reads before the new takeover chain. The expanded suite was not claimed green; these fixtures were not redesigned in this phase."
+  },
+  "windows": {
+    "consideredBeforeEditing": true,
+    "covered": [
+      "Native filesystem APIs vs normalized POSIX logical paths",
+      "Space/Unicode temporary project roots",
+      "Conditional Windows junction for dependency staging",
+      "Drive-relative/absolute/backslash/traversal and case-colliding snapshot rejection",
+      "path.win32 fixture normalization",
+      "Existing cross-platform package command runner"
+    ],
+    "realWindowsRun": false
+  },
+  "limitations": [
+    "Only catalog entries with a complete portable takeover closure are supported; currently Composer and its legacy ID. Other official plugins are not newly npm-packaged by this phase.",
+    "Explicit BASE/LOCAL/TARGET source synchronization for the new ownership format remains future work. No package upgrade advances BASE automatically.",
+    "Shared package APIs, themes, styles, localization and Runtime can still affect behavior; source ownership does not freeze every dependency.",
+    "The upgrade test is a synthetic installed-package replacement after real tarball extraction, not a new published npm release.",
+    "No live model/browser visual acceptance or native Windows run; no full-repository green-suite claim.",
+    "No commit, push or npm publication performed."
+  ]
+}

@@ -1,3 +1,5 @@
+import { resolveCompatibilityConsumer, readCompatibilityBinding } from "./compatibility-binding";
+import { compatibilityArtifactReady } from "./compatibility-project";
 import { assertCreatorCommitAllowed } from "./creator-cancel-marker";
 import { createHash } from "node:crypto";
 import { constants } from "node:fs";
@@ -5,15 +7,15 @@ import { readFile, readdir, realpath, mkdir, writeFile, rename, unlink, lstat, s
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
-import { resolveOfficialResource } from "@za38.03/agent-ui-source-registry";
+import { resolveOfficialResource } from "../source-catalog/index.js";
 import { acquireOperatorLock } from "./operator-lock";
 
 export const integrationOptionsSchema = z.strictObject({
   targetFile: z.string().min(1).max(200).optional(),
   moduleSpecifier: z.string().min(1).max(200).default("/agent-ui.js"),
   endpoint: z.string().min(1).max(200).default("/agent"),
-  locale: z.enum(["en-US", "zh-CN"]).default("en-US"),
-  theme: z.enum(["light", "dark", "violet"]).default("violet"),
+  locale: z.enum(["en-US", "zh-CN"]).optional(),
+  theme: z.enum(["light", "dark", "violet"]).optional(),
 });
 export type IntegrationOptions = z.input<typeof integrationOptionsSchema>;
 export const integrationEditSchema = z.strictObject({
@@ -32,7 +34,7 @@ export const integrationRecipeSchema = z.strictObject({
   })).optional(),
 });
 export type IntegrationRecipe = z.infer<typeof integrationRecipeSchema>;
-const literal = (value: unknown) => JSON.stringify(value).replace(/</gu, "\\u003c");
+const literal = (value: unknown) => value === undefined ? "undefined" : JSON.stringify(value).replace(/</gu, "\\u003c");
 const hash = (value: string) => createHash("sha256").update(value).digest("hex");
 function fail(code: string): never { throw Object.assign(new Error(code), { code }); }
 async function safePath(root: string, file: string) {
@@ -53,7 +55,7 @@ export async function inspectIntegrationHost(projectRoot: string) {
   const source = await read(root, "package.json");
   const manifest = source === null ? {} : JSON.parse(source);
   const deps = { ...manifest.dependencies, ...manifest.devDependencies } as Record<string, string>;
-  const framework = deps.nuxt || deps["nuxt-edge"] ? "nuxt" : deps.react ? "react" : deps.vue ? "vue" : source === null ? "html" : "legacy";
+  const framework = deps.nuxt || deps["nuxt-edge"] ? "nuxt" : deps.vue ? "vue" : deps.react ? "react" : source === null ? "html" : "legacy";
   const configFiles = await readdir(root);
   const toolchain = deps.vite || deps["@vitejs/plugin-vue"] || configFiles.some(file => /^vite.config\.[cm]?[jt]s$/u.test(file)) ? "vite" : deps["@vue/cli-service"] || configFiles.some(file => /^vue.config\.[cm]?[jt]s$/u.test(file)) ? "vue-cli" : "other";
   const entries = [];
@@ -99,14 +101,24 @@ function mountVue(before: string, target: string, major: 2 | 3) {
   return after.replace(/(<\/[A-Za-z][\w-]*>\s*<\/template>)/u, "  <AgentUIBridge />\n$1");
 }
 
+async function integrationRoot(projectRoot: string) {
+  return (await resolveCompatibilityConsumer(projectRoot))?.hostRoot ?? await realpath(projectRoot);
+}
+async function integrationCommitAllowed(root: string, marker?: string) {
+  await assertCreatorCommitAllowed(root, marker);
+  const binding = await readCompatibilityBinding(root);
+  if (binding) await assertCreatorCommitAllowed(binding.projectRoot, marker);
+}
+
 export async function planIntegrationRecipe(projectRoot: string, input: IntegrationOptions = {}, originals?: Map<string, string | null>) {
-  const root = await realpath(projectRoot);
+  const root = await integrationRoot(projectRoot);
   const options = integrationOptionsSchema.parse(input);
   // Resolve the same official resource used by /install; never add a Vue installer.
   resolveOfficialResource("web-component-bridge");
   const host = await inspectIntegrationHost(root);
   if (host.framework === "react" || host.framework === "nuxt") return { status: host.framework === "react" ? "canonical-react" : "unsupported", host } as const;
   if (host.framework !== "vue" && host.toolchain !== "vite" && !input.moduleSpecifier) return { status: "module-required", host } as const;
+  if (await compatibilityArtifactReady(root) === false) return { status: "module-required", host } as const;
   if (!options.targetFile) return { status: "target-required", host } as const;
   if (!host.candidates.includes(options.targetFile)) fail("INTEGRATION_TARGET_NOT_DISCOVERED");
   if (!/^(?:@za38\.03\/agent-ui-web-component\/register|\.{1,2}\/[^\s'"<>]+\.m?js|\/[^\s'"<>]+\.m?js)$/u.test(options.moduleSpecifier)) fail("INTEGRATION_MODULE_INVALID");
@@ -192,19 +204,21 @@ async function existingAsset(root: string, file: string) {
 async function prepareIntegrationAsset(root: string, recipe: IntegrationRecipe, cancelMarker?: string) {
   if (recipe.host.framework !== "vue" || recipe.integration.moduleSpecifier !== "/agent-ui.js") fail("INTEGRATION_ASSET_NOT_PREPARABLE");
   const target = "public/agent-ui.js";
+  const ready = await compatibilityArtifactReady(root);
+  if (ready === false) fail("INTEGRATION_COMPILED_MODULE_REQUIRED");
   if (await existingAsset(root, target)) return false;
   const source = await officialBridgeAsset();
   if (!source) fail("INTEGRATION_COMPILED_MODULE_REQUIRED");
   const file = await safePath(root, target);
-  await assertCreatorCommitAllowed(root, cancelMarker);
+  await integrationCommitAllowed(root, cancelMarker);
   await mkdir(path.dirname(file), { recursive: true });
-  await assertCreatorCommitAllowed(root, cancelMarker);
+  await integrationCommitAllowed(root, cancelMarker);
   // Exclusive copy preserves an existing or concurrently supplied distribution.
   await copyFile(source, file, constants.COPYFILE_EXCL);
   return true;
 }
 export async function prepareIntegrationRecipeAsset(projectRoot: string, input: IntegrationRecipe, locked = false, cancelMarker?: string) {
-  const root = await realpath(projectRoot);
+  const root = await integrationRoot(projectRoot);
   const release = locked ? undefined : await acquireOperatorLock(root);
   try {
     const recipe = await validateRecipe(root, input);
@@ -234,7 +248,7 @@ async function moduleResolvable(root: string, recipe: IntegrationRecipe) {
   catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") return false; throw error; }
 }
 export async function verifyIntegrationRecipe(projectRoot: string, input: IntegrationRecipe) {
-  const root = await realpath(projectRoot);
+  const root = await integrationRoot(projectRoot);
   const recipe = await validateRecipe(root, input);
   const checks = [];
   for (const edit of recipe.edits) checks.push({ id: `file:${edit.file}`, passed: await read(root, edit.file) === edit.after });
@@ -245,7 +259,7 @@ export async function verifyIntegrationRecipe(projectRoot: string, input: Integr
   return { status: checks.every(check => check.passed) ? "passed" : "failed", recipeId: recipe.id, checks, changedPaths: [] as string[] };
 }
 export async function applyIntegrationRecipe(projectRoot: string, input: IntegrationRecipe, locked = false, cancelMarker?: string) {
-  const root = await realpath(projectRoot);
+  const root = await integrationRoot(projectRoot);
   const release = locked ? undefined : await acquireOperatorLock(root);
   try {
     const recipe = await validateRecipe(root, input);
@@ -262,7 +276,7 @@ export async function applyIntegrationRecipe(projectRoot: string, input: Integra
     const prepareAsset = recipe.host.framework === "vue" && recipe.integration.moduleSpecifier === "/agent-ui.js" && !await moduleResolvable(root, recipe);
     const assetSource = prepareAsset ? await officialBridgeAsset() : undefined;
     if (!await moduleResolvable(root, recipe) && !assetSource) fail("INTEGRATION_COMPILED_MODULE_REQUIRED");
-    await assertCreatorCommitAllowed(root, cancelMarker);
+    await integrationCommitAllowed(root, cancelMarker);
     const committed: IntegrationRecipe["edits"] = [];
     let assetCreated = false;
     const assetFile = await safePath(root, "public/agent-ui.js");
@@ -271,7 +285,7 @@ export async function applyIntegrationRecipe(projectRoot: string, input: Integra
         assetCreated = await prepareIntegrationAsset(root, recipe, cancelMarker);
       }
       for (const edit of pending) {
-        await assertCreatorCommitAllowed(root, cancelMarker);
+        await integrationCommitAllowed(root, cancelMarker);
         const file = await safePath(root, edit.file);
         if (await read(root, edit.file) !== edit.before) fail("INTEGRATION_FILE_CONFLICT");
         await mkdir(path.dirname(file), { recursive: true });

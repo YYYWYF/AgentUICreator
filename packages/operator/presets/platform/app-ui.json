@@ -72,28 +72,28 @@
                   ],
                   "composer": [
                     {
-                      "id": "assistant-ui-composer-main",
-                      "pluginId": "assistant-ui-composer",
+                      "id": "composer-main",
+                      "pluginId": "composer",
                       "enabled": true,
                       "slots": {
                         "leadingActions": [
                           {
-                            "id": "assistant-ui-add-attachment-action-main",
-                            "pluginId": "assistant-ui-add-attachment-action",
+                            "id": "add-attachment-action-main",
+                            "pluginId": "add-attachment-action",
                             "enabled": true
                           }
                         ],
                         "trailingActions": [
                           {
-                            "id": "assistant-ui-dictation-action-main",
-                            "pluginId": "assistant-ui-dictation-action",
+                            "id": "dictation-action-main",
+                            "pluginId": "dictation-action",
                             "enabled": true
                           }
                         ],
                         "submitAction": [
                           {
-                            "id": "assistant-ui-submit-action-main",
-                            "pluginId": "assistant-ui-submit-action",
+                            "id": "submit-action-main",
+                            "pluginId": "submit-action",
                             "enabled": true
                           }
                         ],
@@ -106,20 +106,20 @@
                         ],
                         "triggers": [
                           {
-                            "id": "assistant-ui-mention-trigger-main",
-                            "pluginId": "assistant-ui-mention-trigger",
+                            "id": "mention-trigger-main",
+                            "pluginId": "mention-trigger",
                             "enabled": true
                           },
                           {
-                            "id": "assistant-ui-slash-command-trigger-main",
-                            "pluginId": "assistant-ui-slash-command-trigger",
+                            "id": "slash-command-trigger-main",
+                            "pluginId": "slash-command-trigger",
                             "enabled": true
                           }
                         ],
                         "input": [
                           {
-                            "id": "assistant-ui-lexical-composer-input-main",
-                            "pluginId": "assistant-ui-lexical-composer-input",
+                            "id": "lexical-composer-input-main",
+                            "pluginId": "lexical-composer-input",
                             "enabled": true
                           }
                         ]
@@ -128,22 +128,22 @@
                   ],
                   "reasoningGroup": [
                     {
-                      "id": "assistant-ui-reasoning-main",
-                      "pluginId": "assistant-ui-reasoning",
+                      "id": "reasoning-main",
+                      "pluginId": "reasoning",
                       "enabled": true
                     }
                   ],
                   "toolGroup": [
                     {
-                      "id": "assistant-ui-tool-group-main",
-                      "pluginId": "assistant-ui-tool-group",
+                      "id": "tool-group-main",
+                      "pluginId": "tool-group",
                       "enabled": true
                     }
                   ],
                   "toolFallback": [
                     {
-                      "id": "assistant-ui-tool-fallback-main",
-                      "pluginId": "assistant-ui-tool-fallback",
+                      "id": "tool-fallback-main",
+                      "pluginId": "tool-fallback",
                       "enabled": true
                     }
                   ],
@@ -156,29 +156,29 @@
                   ],
                   "assistantResponseFooter": [
                     {
-                      "id": "assistant-ui-response-footer-main",
-                      "pluginId": "assistant-ui-response-footer",
+                      "id": "response-footer-main",
+                      "pluginId": "response-footer",
                       "enabled": true,
                       "slots": {
                         "actions": [
                           {
-                            "id": "assistant-ui-copy-action-main",
-                            "pluginId": "assistant-ui-copy-action",
+                            "id": "copy-action-main",
+                            "pluginId": "copy-action",
                             "enabled": true
                           },
                           {
-                            "id": "assistant-ui-reload-action-main",
-                            "pluginId": "assistant-ui-reload-action",
+                            "id": "reload-action-main",
+                            "pluginId": "reload-action",
                             "enabled": true
                           },
                           {
-                            "id": "assistant-ui-feedback-actions-main",
-                            "pluginId": "assistant-ui-feedback-actions",
+                            "id": "feedback-actions-main",
+                            "pluginId": "feedback-actions",
                             "enabled": true
                           },
                           {
-                            "id": "assistant-ui-export-markdown-action-main",
-                            "pluginId": "assistant-ui-export-markdown-action",
+                            "id": "export-markdown-action-main",
+                            "pluginId": "export-markdown-action",
                             "enabled": true
                           }
                         ]
@@ -187,22 +187,29 @@
                   ],
                   "userEditComposer": [
                     {
-                      "id": "assistant-ui-lexical-edit-composer-main",
-                      "pluginId": "assistant-ui-lexical-edit-composer",
+                      "id": "lexical-edit-composer-main",
+                      "pluginId": "lexical-edit-composer",
                       "enabled": true
                     }
                   ],
                   "toolTimeline": [
                     {
-                      "id": "assistant-ui-tool-timeline-main",
-                      "pluginId": "assistant-ui-tool-timeline",
+                      "id": "tool-timeline-main",
+                      "pluginId": "tool-timeline",
                       "enabled": true
                     }
                   ],
                   "thinkingIndicator": [
                     {
-                      "id": "assistant-ui-thinking-indicator-main",
-                      "pluginId": "assistant-ui-thinking-indicator",
+                      "id": "thinking-indicator-main",
+                      "pluginId": "thinking-indicator",
+                      "enabled": true
+                    }
+                  ],
+                  "transientMessages": [
+                    {
+                      "id": "transient-assistant-messages-main",
+                      "pluginId": "transient-assistant-messages",
                       "enabled": true
                     }
                   ]

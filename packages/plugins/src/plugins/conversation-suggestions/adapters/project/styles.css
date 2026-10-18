@@ -1,0 +1,64 @@
+.conversation-suggestions-plugin {
+  box-sizing: border-box;
+  container: conversation-suggestions / inline-size;
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0 1rem;
+}
+
+.conversation-suggestion {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.375rem;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  color: var(--foreground);
+  background: var(--background);
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  padding: 0.375rem 0.875rem;
+  text-align: left;
+  white-space: normal;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.conversation-suggestion:hover {
+  background: var(--muted);
+}
+
+.conversation-suggestion:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.conversation-suggestion-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.conversation-suggestion-label {
+  color: var(--muted-foreground);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Assistant panels can be narrow inside a wide host viewport. */
+@container conversation-suggestions (max-width: 34rem) {
+  .conversation-suggestion {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    padding: 0.625rem 0.875rem;
+    border-radius: 0.875rem;
+  }
+}

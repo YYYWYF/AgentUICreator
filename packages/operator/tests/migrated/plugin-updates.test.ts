@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, expect, it, vi } from "vitest";
 import { minVersion } from "semver";
-import { InstalledUpdateSourceProvider, MockUpdateSourceProvider, resolveAgentUISourceItemClosure, resolveSourceRelease, DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT } from "@za38.03/agent-ui-source-registry";
+import { InstalledUpdateSourceProvider, MockUpdateSourceProvider, resolveAgentUISourceItemClosure, resolveSourceRelease, DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT } from "@za38.03/agent-ui-operator/source-registry";
 import { AgentUIUpdateService } from "../../src/project/source-registry/updates";
 import { installAgentUISourceItems } from "../../src/project/source-registry/installer";
 import { readAgentUIProjectConfig } from "../../src/project/project-mode";
@@ -17,12 +17,12 @@ vi.mock("../../src/generate-frontend-tool-registry", () => ({ writeGeneratedFron
 vi.mock("../../src/generate-conversation-integration-registry", () => ({ writeGeneratedConversationIntegrationRegistry: vi.fn(async () => ({ changedPaths: [] })) }));
 const roots: string[] = [];
 afterEach(async () => { verification.status = "passed"; await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true }))); });
-async function fixture(currentRegistry = false) {
+async function fixture(currentRegistry = false, historicalVersion = "0.0.1") {
   const root = await mkdtemp(path.join(tmpdir(), "plugin-updates-")); roots.push(root);
   await mkdir(path.join(root, ".agent-ui"));
   await writeFile(path.join(root, ".agent-ui/project.json"), JSON.stringify({ mode: "platform", sourceRoot: "agent-ui" }));
   const provider = new MockUpdateSourceProvider();
-  const release = currentRegistry ? await resolveSourceRelease(DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT) : await provider.resolveRelease("0.0.1");
+  const release = currentRegistry ? await resolveSourceRelease(DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT) : await provider.resolveRelease(historicalVersion);
   const items = resolveAgentUISourceItemClosure(release.registry, "plugin/conversation-surface");
   const packages = Object.assign({}, ...items.map(item => item.packages));
   await writeFile(path.join(root, "package.json"), JSON.stringify({ dependencies: packages }));
@@ -115,8 +115,8 @@ it("uses the installed real release by default instead of advertising mock updat
   expect(inspection.releaseVersion).toBe(release.releaseVersion);
   expect(inspection.plugins.every(plugin => !plugin.updateAvailable)).toBe(true);
 });
-it("refuses to downgrade a plugin from the current release to an older fixture", async () => {
-  const f = await fixture(true);
+it("refuses to downgrade a plugin from a newer historical release", async () => {
+  const f = await fixture(false, "0.1.1");
   const before = (await readAgentUISourceLock(f.root, f.config)).source;
   await expect(f.service.plan(f.root, ["conversation-surface"], "0.0.2")).rejects.toThrow("插件没有可用升级");
   expect((await readAgentUISourceLock(f.root, f.config)).source).toEqual(before);

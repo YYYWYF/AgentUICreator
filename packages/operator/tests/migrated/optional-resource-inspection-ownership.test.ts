@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { isOptionalAgentUISourceItem } from "@za38.03/agent-ui-source-registry";
+import { isOptionalAgentUISourceItem } from "@za38.03/agent-ui-operator/source-registry";
 import { mergeOptionalResourceInspection } from "../../src/project/optional-resource-paths";
 import type { AgentUISourceInspection, AgentUISourceItemInspection } from "../../src/project/types";
 

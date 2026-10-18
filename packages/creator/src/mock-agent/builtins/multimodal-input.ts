@@ -9,7 +9,7 @@ export const multimodalInputScenario = defineScenario({
     audience: "backend",
     protocol: "AG-UI",
     pattern: "UserMessage multimodal input",
-    presentation: "assistant-ui Attachments",
+    presentation: "Agent UI Attachments",
     eventFlow: ["TEXT_MESSAGE_START/CONTENT/END"],
   },
   steps: [{

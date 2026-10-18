@@ -108,7 +108,7 @@ def test_model_factory_owns_explicit_chat_completions_configuration():
     assert model.model_name == "mimo-v2.5-pro"
     assert model.openai_api_base == "https://model.example/v1"
     assert model.temperature == 0.2
-    assert model.max_tokens == 2048
+    assert model.max_tokens == 8192
     assert model.streaming is True
     assert model.use_responses_api is False
     assert model.max_retries == 0
@@ -124,6 +124,7 @@ def test_model_settings_defaults_to_agent_owned_retry_budget():
     )
 
     assert settings.max_retries == 2
+    assert settings.max_tokens == 8192
 
 
 def test_model_settings_priority_and_compatibility(tmp_path):
@@ -159,7 +160,9 @@ def test_opencode_session_header_setting_is_opt_in(tmp_path):
         "CREATOR_MODEL_OPENCODE_SESSION_HEADER=1\n",
         encoding="utf-8",
     )
-    assert CreatorModelSettings.from_environment(config_root=tmp_path, environment={}).opencode_session_header is True
+    settings = CreatorModelSettings.from_environment(config_root=tmp_path, environment={})
+    assert settings.opencode_session_header is True
+    assert settings.max_tokens == 8192
     (tmp_path / ".env.creator.local").write_text(
         "MODEL_BASE_URL=https://model.example/v1\nMODEL_API_KEY=test-key\n",
         encoding="utf-8",
@@ -182,7 +185,7 @@ def test_selector_settings_are_independent_of_general_model_settings(tmp_path):
 
     assert selector.max_tokens == 256
     assert selector.reasoning_effort == "high"
-    assert general.max_tokens == 2048
+    assert general.max_tokens == 8192
     assert general.temperature == 0.2
 
 
@@ -274,7 +277,7 @@ def test_general_route_creates_a_fresh_model_with_original_settings(tmp_path, mo
     assert general_model is created[1]
     assert general_model is not created[0]
     assert general_model.effective == {
-        "max_tokens": 2048,
+        "max_tokens": 8192,
         "temperature": 0.2,
         "streaming": True,
         "reasoning_effort": None,

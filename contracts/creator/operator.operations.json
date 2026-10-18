@@ -167,6 +167,20 @@
       "inputDef": "migrateOfficialPackagePluginInput",
       "resultDef": "migrateOfficialPackagePluginResult",
       "agentExposed": false
+    },
+    {
+      "name": "plan_plugin_source_takeover",
+      "kind": "read",
+      "inputDef": "planPluginSourceInput",
+      "resultDef": "planPluginSourceResult",
+      "agentExposed": false
+    },
+    {
+      "name": "takeover_plugin_source",
+      "kind": "mutation",
+      "inputDef": "takeoverPluginSourceInput",
+      "resultDef": "takeoverPluginSourceResult",
+      "agentExposed": true
     }
   ]
 }

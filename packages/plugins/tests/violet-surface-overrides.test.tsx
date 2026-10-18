@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { JSDOM } from "jsdom";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
-import { ReasoningRoot } from "../src/internal/adapters/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
+import { ReasoningRoot } from "../src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/reasoning.aui.js";
 import { ConversationComposerDirectiveChip } from "../src/lexical.js";
 
 vi.mock("@assistant-ui/react", async (importOriginal) => ({
@@ -53,12 +53,12 @@ describe("Phase 4A Violet surfaces", () => {
   });
 
   it("adds stable Popover hooks without relying on icon classes or text", async () => {
-    const source = await read("../src/internal/adapters/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx");
+    const source = await read("../src/internal/adapters-generated/assistant-ui/components/assistant-ui/elements/composer-trigger-popover.aui.tsx");
     for (const hook of ["category-item", "item", "item-list", "back", "empty", "icon"]) {
       expect(source).toContain(`data-slot="composer-trigger-popover-${hook}"`);
     }
     expect(source).toContain("data-[highlighted]:bg-accent");
-    expect(source).toContain('<div data-slot="composer-trigger-popover-item-list" className="py-1">');
+    expect(source).toContain('<div data-agent-ui-owned="" data-slot="composer-trigger-popover-item-list" className="py-1">');
     const rules = await surfaceRules();
     const list = rules.find(rule => rule.selector.includes('data-slot="composer-trigger-popover-item-list"'))!;
     expect(list.body).toContain("padding-block: 0");

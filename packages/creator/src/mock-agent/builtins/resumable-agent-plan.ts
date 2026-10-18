@@ -13,7 +13,7 @@ export const resumableAgentPlanScenario = defineScenario({
     audience: "frontend",
     protocol: "AG-UI ACTIVITY_SNAPSHOT / ACTIVITY_DELTA",
     pattern: "Resume the existing AgentPlan Activity",
-    presentation: "assistant-ui AgentPlan",
+    presentation: "Agent UI AgentPlan",
     eventFlow: [
       "RUN_STARTED",
       "ACTIVITY_SNAPSHOT (activeIndex: 0)",

@@ -1,0 +1,5 @@
+{
+  "error": "TimeoutError: locator.waitFor: Timeout 120000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: '同步实现源码', exact: true }) to be visible\u001b[22m\n",
+  "errors": [],
+  "hostRoot": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-connection-host-C7IvMD/host"
+}

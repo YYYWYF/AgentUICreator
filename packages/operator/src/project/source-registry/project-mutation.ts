@@ -1,7 +1,9 @@
+import { isPluginApplication } from "../plugin-application";
+import { readPluginSourceOwnership } from "../plugin-source-ownership";
 import { randomUUID } from "node:crypto";
 import { link, mkdir, rename, unlink, writeFile, readFile, rmdir } from "node:fs/promises";
 import path from "node:path";
-import { loadAgentUISourceRegistry, isAgentUISourceItemAvailable, resolveAgentUISourceItemClosure, type LoadedAgentUISourceRegistry } from "@za38.03/agent-ui-source-registry";
+import { loadAgentUISourceRegistry, isAgentUISourceItemAvailable, resolveAgentUISourceItemClosure, type LoadedAgentUISourceRegistry } from "../../source-catalog/index.js";
 import { collectAppUIPluginLocations, parseAppUIModelJson } from "../../framework/contracts/app-ui-model";
 import { writeGeneratedPluginRegistry } from "../../generate-plugin-registry";
 import { writeGeneratedFrontendToolRegistries } from "../../generate-frontend-tool-registry";
@@ -240,7 +242,7 @@ async function mutateAttempt(projectRoot: string, operation: "apply" | "remove",
       ? await applyAgentUISourceItem(projectRoot, input as ApplyAgentUISourceItemInput, ctx.config, registry, { cancelMarker: options.cancelMarker })
       : await removeAgentUISourceItems(projectRoot, input as RemoveAgentUISourceItemsInput, ctx.config, registry, { cancelMarker: options.cancelMarker });
     if (operation === "remove") await pruneEmptySourceDirectories(projectRoot, ctx.sourceRoot, result.changedPaths);
-    const plugin = await writeGeneratedPluginRegistry(projectRoot);
+    const plugin = await writeGeneratedPluginRegistry(projectRoot, { initializeApplications: false });
     const tools = await writeGeneratedFrontendToolRegistries(projectRoot);
     const integrations = await writeGeneratedConversationIntegrationRegistry(projectRoot);
     const after = await inspectAgentUISources(projectRoot, ctx.config, registry);
@@ -276,6 +278,11 @@ export async function commitAgentUISourceUpgrade(projectRoot: string, input: {
   return exclusive(projectRoot, async () => {
     const ctx = await context(projectRoot);
     await recover(projectRoot, ctx);
+    const ownership = await readPluginSourceOwnership(ctx.paths.metadataRoot);
+    for (const itemId of input.itemIds) {
+      const id = itemId.startsWith("plugin/") ? itemId.slice(7) : undefined;
+      if (id && (ownership.plugins[id] || await isPluginApplication(path.join(ctx.paths.pluginsRoot, id), id))) throw new AgentUISourceError("PLUGIN_APPLICATION_USE_EXPLICIT_SYNC", "Legacy source updates cannot replace the application layer; use npm upgrades or implementation-only sync.");
+    }
     const before = await inspectAgentUISources(projectRoot, ctx.config, input.registry);
     const { lock } = await readAgentUISourceLock(projectRoot, ctx.config);
     if (sha256(before.stateHash + serializeAgentUISourceLock(lock).toString()) !== input.expectedStateHash) throw new Error("升级计划已过期，请重新检查。");
@@ -316,7 +323,7 @@ export async function commitAgentUISourceUpgrade(projectRoot: string, input: {
     try {
       await recoverPendingAgentUISourceTransaction(projectRoot, ctx.config);
       const regenerate = async () => {
-        await writeGeneratedPluginRegistry(projectRoot);
+        await writeGeneratedPluginRegistry(projectRoot, { initializeApplications: false });
         await writeGeneratedFrontendToolRegistries(projectRoot);
         await writeGeneratedConversationIntegrationRegistry(projectRoot);
       };

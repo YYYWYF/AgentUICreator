@@ -4,7 +4,7 @@ import {
   createConversationService,
   type ConversationDataSource,
   type ConversationDetail,
-} from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations";
+} from "../../resources/registry/items/foundation-core-application/files/services/conversations";
 
 function deferred<T>() {
   let resolve!: (value: T) => void;

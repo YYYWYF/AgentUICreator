@@ -1,0 +1,15 @@
+{
+  "id": "foundation/conversation",
+  "kind": "foundation",
+  "description": "Generic Conversation bridge sources backed by the public Agent UI packages",
+  "packages": {
+    "@za38.03/agent-ui-plugins": "0.0.1",
+    "@za38.03/agent-ui-runtime": "0.0.1"
+  },
+  "files": [
+    {
+      "source": "files/conversation/index.ts",
+      "target": "conversation/conversation-bridge.ts"
+    }
+  ]
+}

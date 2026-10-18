@@ -37,8 +37,8 @@
       "@za38.03/agent-ui-renderer": [
         "../../packages/renderer/src/index.ts"
       ],
-      "@za38.03/agent-ui-source-registry": [
-        "../../packages/source-registry/src/index.ts"
+      "@za38.03/agent-ui-operator/source-registry": [
+        "../../packages/operator/src/source-catalog/index.ts"
       ]
     }
   },

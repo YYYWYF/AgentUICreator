@@ -54,6 +54,7 @@ _OPERATOR_READ_OPERATIONS = frozenset(
 _STATIC_SIDE_EFFECT_LAYERS: dict[str, ChangeLayer] = {
     "mutate_app_ui_model": "composition",
     "create_ui_plugin": "plugin_behavior",
+    "takeover_plugin_source": "plugin_behavior",
     "mutate_ui_plugin_source": "plugin_behavior",
     "apply_agent_ui_source_item": "plugin_behavior",
     "prepare_ui_service_contract_change": "runtime_capability",
@@ -65,6 +66,7 @@ _RESOURCE_RESULT_SIDE_EFFECT_TOOLS = frozenset(
     {
         "mutate_app_ui_model",
         "create_ui_plugin",
+        "takeover_plugin_source",
         "mutate_ui_plugin_source",
         "apply_agent_ui_source_item",
         "prepare_ui_service_contract_change",
@@ -230,7 +232,7 @@ def resource_keys_for_tool_call(
         return _resource_keys_for_app_ui_operations(arguments.get("operations"))
 
     resources: list[ResourceKey] = []
-    if name in {"create_ui_plugin", "mutate_ui_plugin_source"}:
+    if name in {"create_ui_plugin", "mutate_ui_plugin_source", "takeover_plugin_source"}:
         _append_resource(resources, _resource_key("plugin", arguments.get("pluginId")))
     elif name == "apply_agent_ui_source_item":
         _append_resource(resources, _resource_key("source-item", arguments.get("itemId")))

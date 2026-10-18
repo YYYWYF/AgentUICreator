@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ConversationToolkit } from "@za38.03/agent-ui-plugins";
 import type { UIPluginDefinition } from "../../../operator/src/framework/contracts/ui-plugin";
-import { createPluginCapabilityCatalog, createRuntimeCompositionStore, type RuntimeCompositionStore } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/composition/index";
+import { createPluginCapabilityCatalog, createRuntimeCompositionStore, type RuntimeCompositionStore } from "../../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/composition/index";
 
 const base: ConversationToolkit = {
   search_files: { type: "backend", display: "standalone", render: () => null },

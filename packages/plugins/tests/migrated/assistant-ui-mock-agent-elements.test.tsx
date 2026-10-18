@@ -5,12 +5,12 @@ import { createRoot, type Root } from "react-dom/client";
 import type { ToolCallMessagePartProps } from "@assistant-ui/react";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { MockAgentStatusToolUI } from "../../../source-registry/registry/items/plugin-agent-status-message/files/plugins/agent-status-message/index";
-import { MockRunCiJobToolUI } from "../../../source-registry/registry/items/plugin-job-progress-message/files/plugins/job-progress-message/index";
-import agentStatusMessagePlugin from "../../../source-registry/registry/items/plugin-agent-status-message/files/plugins/agent-status-message/definition";
-import jobProgressMessagePlugin from "../../../source-registry/registry/items/plugin-job-progress-message/files/plugins/job-progress-message/definition";
-import { createConversationToolkit } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
-import { AgentRuntimeProvider } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/context/AgentRuntimeProvider";
+import { MockAgentStatusToolUI } from "../../resources/registry/items/plugin-agent-status-message/files/plugins/agent-status-message/index";
+import { MockRunCiJobToolUI } from "../../resources/registry/items/plugin-job-progress-message/files/plugins/job-progress-message/index";
+import agentStatusMessagePlugin from "../../resources/registry/items/plugin-agent-status-message/files/plugins/agent-status-message/definition";
+import jobProgressMessagePlugin from "../../resources/registry/items/plugin-job-progress-message/files/plugins/job-progress-message/definition";
+import { createConversationToolkit } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
+import { AgentRuntimeProvider } from "../../resources/registry/items/foundation-core-runtime/files/runtime/context/AgentRuntimeProvider";
 
 type MockToolProps = ToolCallMessagePartProps<Record<string, unknown>, unknown>;
 const mountedRoots: Root[] = [];
@@ -106,7 +106,7 @@ describe("Mock Agent official element renderers", () => {
   });
 
   it("registers AgentPlan as Activity Data Message UI, not a named Tool", async () => {
-    const { default: agentPlanMessagePlugin } = await import("../../../source-registry/registry/items/plugin-agent-plan-message/files/plugins/agent-plan-message/definition");
+    const { default: agentPlanMessagePlugin } = await import("../../resources/registry/items/plugin-agent-plan-message/files/plugins/agent-plan-message/definition");
     expect(agentPlanMessagePlugin.toolkit).toBeUndefined();
     expect(agentPlanMessagePlugin.dataMessageUIs?.map(({ name }) => name))
       .toEqual(["agui-activity/agent-plan"]);

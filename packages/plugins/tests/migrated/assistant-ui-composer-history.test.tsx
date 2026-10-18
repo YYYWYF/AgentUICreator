@@ -15,19 +15,19 @@ import {
   type AppUIRuntimeModel,
 } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
 import { resolveRuntimePluginSlotId } from "../../../operator/src/framework/contracts/app-ui-composition";
-import { ConversationSurface } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface";
-import { createConversationServiceThreadBinding } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
+import { ConversationSurface } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface";
+import { createConversationServiceThreadBinding } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
 import {
   createConversationService,
   type ConversationDataSource,
-} from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations";
-import { assistantUiComposerPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-composer/files/plugins/assistant-ui-composer/definition";
-import { assistantUiSubmitActionPlugin } from "../../../source-registry/registry/items/plugin-assistant-ui-submit-action/files/plugins/assistant-ui-submit-action/definition";
-import { createPluginRegistry } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../resources/registry/items/foundation-core-application/files/services/conversations";
+import { conversationComposerPlugin } from "../../resources/registry/items/plugin-composer/files/plugins/composer/definition";
+import { conversationSubmitActionPlugin } from "../../resources/registry/items/plugin-submit-action/files/plugins/submit-action/definition";
+import { createPluginRegistry } from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
 import { PluginRuntimeFixture } from "../../../operator/tests/support/agent-runtime-fixture";
 
 const roots: Root[] = [];
-const rootSlotId = "assistant-ui-composer-history-test-root";
+const rootSlotId = "composer-history-test-root";
 const appUIModelHash = "d".repeat(64);
 
 (
@@ -51,7 +51,7 @@ function ComposerHost({ renderSlot }: UIPluginComponentProps) {
 
 const composerHostPlugin: UIPluginDefinition = {
   manifest: {
-    id: "assistant-ui-composer-history-test-host",
+    id: "composer-history-test-host",
     name: "Assistant UI Composer History Test Host",
     description: "Provides the conversation surface for history composer tests.",
     version: "1.0.0",
@@ -72,8 +72,8 @@ const composerHostPlugin: UIPluginDefinition = {
 
 const registry = createPluginRegistry([
   composerHostPlugin,
-  assistantUiComposerPlugin,
-  assistantUiSubmitActionPlugin,
+  conversationComposerPlugin,
+  conversationSubmitActionPlugin,
 ]);
 
 const pluginActions = {
@@ -87,19 +87,19 @@ function createCompositionModel(): AppUIRuntimeModel {
   return parseAppUIRuntimeModel({
     root: {
       type: "slot",
-      id: "assistant-ui-composer-history-test-root-node",
+      id: "composer-history-test-root-node",
       slotId: rootSlotId,
     },
     pluginInstances: {
       host: {
         id: "host",
-        pluginId: "assistant-ui-composer-history-test-host",
+        pluginId: "composer-history-test-host",
         enabled: true,
         mount: { slotId: rootSlotId },
       },
       composer: {
         id: "composer",
-        pluginId: "assistant-ui-composer",
+        pluginId: "composer",
         enabled: true,
         mount: {
           slotId: resolveRuntimePluginSlotId("host", "composer"),
@@ -107,7 +107,7 @@ function createCompositionModel(): AppUIRuntimeModel {
       },
       submit: {
         id: "submit",
-        pluginId: "assistant-ui-submit-action",
+        pluginId: "submit-action",
         enabled: true,
         mount: {
           slotId: resolveRuntimePluginSlotId("composer", "submitAction"),
@@ -191,7 +191,7 @@ function findComposerInput(container: HTMLDivElement): HTMLTextAreaElement {
 
 function findSendButton(container: HTMLDivElement): HTMLButtonElement {
   const button = container.querySelector(
-    '[data-plugin-id="assistant-ui-submit-action"] .aui-composer-send',
+    '[data-plugin-id="submit-action"] .aui-composer-send',
   );
   if (!(button instanceof HTMLButtonElement)) {
     throw new Error("Composer send action is missing");

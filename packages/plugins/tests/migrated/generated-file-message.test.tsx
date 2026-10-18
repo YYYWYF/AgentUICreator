@@ -5,9 +5,9 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
 import { AssistantRuntimeProvider, MessagePrimitive, ThreadPrimitive, useLocalRuntime, type ChatModelAdapter } from "@assistant-ui/react";
 import { ConversationFile, type ConversationToolCallProps } from "../../src/index.js";
-import plugin from "../../../source-registry/registry/items/plugin-generated-file-message/files/plugins/generated-file-message/definition";
-import { GenerateFileToolUI } from "../../../source-registry/registry/items/plugin-generated-file-message/files/plugins/generated-file-message/index";
-import { projectGeneratedFileResult } from "../../../source-registry/registry/items/plugin-generated-file-message/files/plugins/generated-file-message/generated-file-result";
+import plugin from "../../resources/registry/items/plugin-generated-file-message/files/plugins/generated-file-message/definition";
+import { GenerateFileToolUI } from "../../resources/registry/items/plugin-generated-file-message/files/plugins/generated-file-message/index";
+import { projectGeneratedFileResult } from "../../resources/registry/items/plugin-generated-file-message/files/plugins/generated-file-message/generated-file-result";
 
 const file = { filename: "quarterly-report.pdf", mimeType: "application/pdf", url: "https://example.com/generated/quarterly-report.pdf" };
 const roots: Root[] = [];

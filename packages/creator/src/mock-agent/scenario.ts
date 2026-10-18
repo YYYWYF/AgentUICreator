@@ -255,7 +255,7 @@ function validateSteps(
       throw new Error(
         `Scenario "${scenarioId}" contains an interrupt inside a subagent.\n` +
         "Nested subagent interrupts are not supported by the current " +
-        "AG-UI 0.0.59 + assistant-ui reference profile.",
+        "AG-UI 0.0.59 + Agent UI reference profile.",
       );
     }
 

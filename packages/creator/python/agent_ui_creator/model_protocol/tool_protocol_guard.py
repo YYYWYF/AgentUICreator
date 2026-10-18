@@ -16,7 +16,6 @@ from pydantic import ValidationError as PydanticValidationError
 
 from ..run_control import CreatorRunControlState
 from .errors import (
-    AgentNoProgressError,
     ModelResponseTruncatedError,
     ModelToolProtocolError,
     ToolPermissionDeniedError,
@@ -749,7 +748,6 @@ class ToolProtocolMiddleware(AgentMiddleware):
         self,
         *,
         metrics: ToolProtocolMetrics | None = None,
-        max_model_calls: int = 12,
         raw_trace: bool = False,
         provider_trace_collector: ProviderResponseTraceCollector | None = None,
         run_control: CreatorRunControlState | None = None,
@@ -757,7 +755,6 @@ class ToolProtocolMiddleware(AgentMiddleware):
     ) -> None:
         self.metrics = metrics or ToolProtocolMetrics()
         self.guard = ToolProtocolGuard(self.metrics)
-        self.max_model_calls = max_model_calls
         self.raw_trace = raw_trace
         self.provider_trace_collector = provider_trace_collector
         self.run_control = run_control
@@ -766,10 +763,6 @@ class ToolProtocolMiddleware(AgentMiddleware):
     def _before_call(self) -> None:
         if self.run_control is not None:
             self.run_control.assert_runnable()
-        if self.metrics.modelCalls >= self.max_model_calls:
-            raise AgentNoProgressError(
-                f"Minimal agent exceeded {self.max_model_calls} model calls."
-            )
 
     def _observe_protocol_counts(self) -> None:
         if self.run_control is not None:

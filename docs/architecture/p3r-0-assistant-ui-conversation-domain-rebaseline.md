@@ -1,6 +1,6 @@
 # P3R-0: assistant-ui Conversation Domain Architecture Rebaseline
 
-> 当前源码交付边界见 [包内上游实现与按插件更新](package-owned-upstream-and-plugin-updates.md)。本文中的生成项目 vendor 路径属于历史状态，禁止继续向用户工程安装上游源码。
+> 当前插件交付边界见 [统一 Plugins 包、内置源码目录与按需源码托管](npm-default-plugin-source-ownership.md)（2026-10-17 Accepted，完整机制待实现）。官方插件默认由统一 Plugins npm 包提供，原 Source Registry 合入该包的目录与快照；用户明确同意后才接管对应版本源码。Core、Renderer、canonical Runtime 保持 npm 交付。本文旧 vendor 路径与包名仅为历史记录；Conversation Domain 的单 Runtime 所有权仍有效。
 
 > Historical migration baseline. Its descriptions of `runtime-agui`, the A/B
 > period, and package deletion gates record the P3R-0 state. The current

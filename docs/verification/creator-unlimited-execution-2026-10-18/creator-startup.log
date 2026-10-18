@@ -1,0 +1,12 @@
+
+> creator
+> agent-ui-creator --project . --port 4198 --no-open
+
+[Creator] runtime=python agentMode=domain-write
+[agent-ui-creator-python] python runtime: source=packaged_venv executable=/Users/yifei/Library/Caches/agent-ui-creator/python/0.0.1/py3.14-darwin-arm64/71eea0a7855f170c6507399bccab5b1d03e84c07216ac7f2ed730cc42744c342/venv/bin/python
+[agent-ui-creator-python] INFO:     Started server process [52599]
+[agent-ui-creator-python] INFO:     Waiting for application startup.
+[agent-ui-creator-python] INFO:     Application startup complete.
+[agent-ui-creator-python] python sidecar ready pid=52599 port=49766 pythonSource=packaged_venv agentMode=domain-write
+Creator 已启动：http://127.0.0.1:4198/
+按 Ctrl+C 停止。工程和能力请在 Creator 界面中选择。

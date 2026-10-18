@@ -23,7 +23,7 @@ describe("formal assistant-ui adapter style isolation", () => {
       '@import "./preflight.scoped.css" layer(base);',
     );
     expect(globals).toContain(
-      '@import "tailwindcss/utilities.css" layer(utilities) source("./internal/vendor/assistant-ui");',
+      '@import "tailwindcss/utilities.css" layer(utilities) source("./internal/vendor-generated/assistant-ui");',
     );
     expect(globals).not.toMatch(/@import\s+["']tailwindcss["']/u);
     expect(globals).not.toMatch(

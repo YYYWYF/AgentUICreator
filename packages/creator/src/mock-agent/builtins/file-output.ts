@@ -11,7 +11,7 @@ export const fileOutputScenario = defineScenario({
     audience: "frontend",
     protocol: "AG-UI",
     pattern: "Backend Tool Result",
-    presentation: "assistant-ui Tool UI + File",
+    presentation: "Agent UI Tool UI + File",
     level: "recommended",
     eventFlow: [
       "TOOL_CALL_START (generate_file)",

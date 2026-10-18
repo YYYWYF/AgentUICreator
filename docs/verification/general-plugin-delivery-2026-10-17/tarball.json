@@ -1,0 +1,27 @@
+{
+  "archive": "za38.03-agent-ui-plugins-0.0.1.tgz",
+  "sha256": "fa19738aab3d4df1337c1105cb4e9df3e96eadfd2cb030e843c35710ba57ea46",
+  "modernPluginEntries": [
+    "composer",
+    "copy-action",
+    "reload-action",
+    "feedback-actions",
+    "export-markdown-action",
+    "reasoning",
+    "tool-group"
+  ],
+  "portableEntries": [
+    "assistant-ui-composer",
+    "composer",
+    "copy-action",
+    "export-markdown-action",
+    "reasoning",
+    "reload-action",
+    "tool-group",
+    "feedback-actions"
+  ],
+  "verifiedPortableAndRuntimeRecords": 84,
+  "themeDeclarationPreserved": true,
+  "bundledNodeModulesOrTests": false,
+  "published": false
+}

@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import { intersects, validRange, Range } from "semver";
-import { OfficialResourceError, type LoadedAgentUISourceItem } from "@za38.03/agent-ui-source-registry";
+import { OfficialResourceError, type LoadedAgentUISourceItem } from "../source-catalog/index.js";
 import { inspectAgentUIPackages } from "./source-registry/inspector";
 
 import type { ResourcePackageRequirement, ResourcePackageRunner } from "../resources.mjs";
@@ -53,10 +53,11 @@ async function packageManagerAt(projectRoot: string, inherited = false): Promise
 /** Package managers are .cmd shims on Windows; prefer their inherited JS entry. */
 export function resourcePackageInvocation(command: string, args: readonly string[], platform = process.platform, environment = process.env) {
   const entry = environment.npm_execpath;
-  if (entry && new RegExp(`^${command}(?:-cli)?\\.(?:c?js)$`, "iu").test(path.basename(entry))) {
+  const executableName = (file: string) => platform === "win32" ? path.win32.basename(file) : path.basename(file);
+  if (entry && new RegExp(`^${command}(?:-cli)?\\.(?:c?js)$`, "iu").test(executableName(entry))) {
     return { command: process.execPath, args: [entry, ...args], shell: false };
   }
-  if (platform === "win32" && entry && path.basename(entry).toLowerCase() === `${command}.exe`) {
+  if (platform === "win32" && entry && executableName(entry).toLowerCase() === `${command}.exe`) {
     return { command: entry, args: [...args], shell: false };
   }
   if (platform !== "win32" || command === "bun") return { command, args: [...args], shell: false };

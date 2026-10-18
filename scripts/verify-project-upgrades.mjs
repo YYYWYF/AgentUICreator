@@ -5,10 +5,11 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { initializeAgentUIProject } from "../packages/operator/dist/bootstrap/index.js";
 import { createAgentUIInitializationHost, installOfficialAgentUIResource, AgentUIUpdateService } from "../packages/operator/dist/runtime/operator-runtime.mjs";
-import { loadAgentUISourceRegistry, InstalledUpdateSourceProvider, DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT } from "../packages/source-registry/dist/index.js";
+import { loadAgentUISourceRegistry, InstalledUpdateSourceProvider, DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT } from "../packages/operator/dist/source-catalog/index.js";
 
 const repo = fileURLToPath(new URL("..", import.meta.url));
 const registry = await loadAgentUISourceRegistry();
+const baselineVersion = JSON.parse(await readFile(path.join(DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT, "release.json"), "utf8")).releaseVersion;
 const base = await mkdtemp(path.join(tmpdir(), "agent-ui upgrades 中文 "));
 const dirs = await readdir(path.join(repo, "packages"));
 const dependencies = Object.assign({}, ...registry.items.map(item => item.packages));
@@ -59,7 +60,7 @@ try {
   // Publish-shaped local release: real immutable directories, real project verification,
   // no MockUpdateSourceProvider and no mocked verification/generators.
   const history = path.join(base, "releases");
-  await cp(DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT, path.join(history, "0.1.0"), { recursive: true });
+  await cp(DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT, path.join(history, baselineVersion), { recursive: true });
   const targetRoot = path.join(history, "0.1.1");
   await cp(DEFAULT_AGENT_UI_SOURCE_REGISTRY_ROOT, targetRoot, { recursive: true });
   const currentLock = JSON.parse(await readFile(lockPath, "utf8"));
@@ -127,7 +128,7 @@ try {
   assert.equal(JSON.parse(await readFile(lockPath, "utf8")).items[`plugin/${selected}`].pluginVersion, manifest.version);
   console.log("Real three-way merge and verified baseline adoption preserve user customization.");
   // Missing history must be explicit rather than silently using the current release as BASE.
-  await assert.rejects(new InstalledUpdateSourceProvider(targetRoot).resolveRelease("0.1.0"), /Historical Source Release/);
+  await assert.rejects(new InstalledUpdateSourceProvider(targetRoot).resolveRelease(baselineVersion), /Historical Source Release/);
   console.log(`Real selective upgrade ${selected}: passed; ${unselected} bytes and version unchanged; missing historical BASE rejected.`);
   if (process.argv.includes("--keep")) console.log(`Kept validation project: ${root}`);
 } finally {

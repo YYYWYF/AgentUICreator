@@ -1,0 +1,31 @@
+{
+  "id": "1d694a45-1394-4ead-8a37-b6c0d11675e2",
+  "kind": "owned-source",
+  "releaseVersion": "0.0.1",
+  "compatibility": "compatible",
+  "requestedPlugins": [
+    "composer"
+  ],
+  "items": [
+    {
+      "itemId": "plugin/composer",
+      "reason": "requested",
+      "requiredBy": [
+        "composer"
+      ],
+      "status": "customized",
+      "changed": true,
+      "provided": false,
+      "currentVersion": "0.0.1",
+      "targetVersion": "0.0.2",
+      "paths": [
+        "plugins/composer/source/adapters/composer.tsx",
+        "plugins/composer/source/manifest.json"
+      ]
+    }
+  ],
+  "fileCount": 2,
+  "requiresMerge": true,
+  "blocked": false,
+  "issues": []
+}

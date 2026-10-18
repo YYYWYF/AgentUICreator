@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { minVersion } from "semver";
 import { afterEach, expect, it, vi } from "vitest";
 import { installOptionalAgentUIResource } from "../../src/project/install-optional-agent-ui-resource";
-import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure } from "@za38.03/agent-ui-source-registry";
+import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure } from "@za38.03/agent-ui-operator/source-registry";
 import { installOfficialAgentUIResource } from "../../src/project/install-official-agent-ui-resource";
 import { commitAgentUISourceTransaction } from "../../src/project/source-registry/transaction";
 import { resourcePaths } from "../../src/project/optional-resource-paths";
@@ -34,7 +34,7 @@ it.skip("installs a pluginless/tool-less A2UI resource without changing AppUIMod
   await installMockResource(f.root, "integration/a2ui");
   expect(await readFile(f.modelPath, "utf8")).toBe(model);
   const inspection = await inspectScenarioResources(f.root);
-  for (const id of ["agent-component/assistant-ui-generative-ui", "integration/generative-ui", "integration/a2ui"]) {
+  for (const id of ["agent-component/generative-ui", "integration/generative-ui", "integration/a2ui"]) {
     expect(inspection.items.find(item => item.id === id)).toMatchObject({ status: "managed", dependencyIssues: [] });
   }
   expect(inspection.items.find(item => item.id === "integration/a2ui")).toMatchObject({ status: "managed", dependencyIssues: [] });
@@ -59,7 +59,7 @@ it("installs Generative UI alone without changing layout or mounting Tool permis
   await installMockResource(f.root, "integration/generative-ui");
   expect(await readFile(f.modelPath, "utf8")).toBe(model);
   const inspection = await inspectScenarioResources(f.root);
-  for (const id of ["agent-component/assistant-ui-generative-ui", "integration/generative-ui"]) {
+  for (const id of ["agent-component/generative-ui", "integration/generative-ui"]) {
     expect(inspection.items.find(item => item.id === id)).toMatchObject({ status: "managed", dependencyIssues: [] });
   }
   expect(inspection.items.find(item => item.id === "integration/a2ui")?.status).not.toBe("managed");
@@ -80,11 +80,11 @@ it.skip("installs the Official A2UI Resource and supplements missing dependencie
   await rm(path.join(f.root, "node_modules/@za38.03/agent-ui-plugins"), { recursive: true });
   const model = await readFile(f.modelPath, "utf8");
   const runPackages = vi.fn(async (_root: string, command: { command: string; args: string[] }) => {
-    expect(command).toEqual({ command: "npm", args: ["install", "--save", "--save-exact", "@za38.03/agent-ui-plugins@0.1.6"] });
-    manifest.dependencies["@za38.03/agent-ui-plugins"] = "0.1.6";
+    expect(command).toEqual({ command: "npm", args: ["install", "--save", "--save-exact", "@za38.03/agent-ui-plugins@0.0.1"] });
+    manifest.dependencies["@za38.03/agent-ui-plugins"] = "0.0.1";
     await writeFile(manifestPath, JSON.stringify(manifest));
     const directory = path.join(f.root, "node_modules/@za38.03/agent-ui-plugins"); await mkdir(directory, { recursive: true });
-    await writeFile(path.join(directory, "package.json"), JSON.stringify({ name: "@za38.03/agent-ui-plugins", version: "0.1.6" }));
+    await writeFile(path.join(directory, "package.json"), JSON.stringify({ name: "@za38.03/agent-ui-plugins", version: "0.0.1" }));
   });
   await installOfficialAgentUIResource(f.root, "a2ui", { runPackages });
   expect(runPackages).toHaveBeenCalledTimes(1);
@@ -106,10 +106,10 @@ it.skip("does not install Source or report readiness after package installation 
   await expect(installOfficialAgentUIResource(f.root, "a2ui", { runPackages: async () => { throw new Error("package manager failed"); } })).rejects.toMatchObject({ code: "RESOURCE_INSTALL_FAILED", technicalDetails: { message: "package manager failed" } });
   await expect(readFile(path.join(f.sourceRoot, "integrations/a2ui/index.ts"))).rejects.toMatchObject({ code: "ENOENT" });
   expect((await inspectScenarioResources(f.root)).items.find(item => item.id === "integration/a2ui")?.status).toBe("not-installed");
-  manifest.dependencies["@za38.03/agent-ui-plugins"] = "0.1.6";
+  manifest.dependencies["@za38.03/agent-ui-plugins"] = "0.0.1";
   await writeFile(manifestPath, JSON.stringify(manifest));
   const directory = path.join(f.root, "node_modules/@za38.03/agent-ui-plugins"); await mkdir(directory, { recursive: true });
-  await writeFile(path.join(directory, "package.json"), JSON.stringify({ name: "@za38.03/agent-ui-plugins", version: "0.1.6" }));
+  await writeFile(path.join(directory, "package.json"), JSON.stringify({ name: "@za38.03/agent-ui-plugins", version: "0.0.1" }));
   await installOfficialAgentUIResource(f.root, "a2ui");
   expect((await inspectScenarioResources(f.root)).integrationRegistryReady).toBe(true);
 });

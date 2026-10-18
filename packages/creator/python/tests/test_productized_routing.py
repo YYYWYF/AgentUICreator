@@ -449,7 +449,7 @@ def test_reasoning_renderer_restore_uses_productized_route_with_static_selector(
         label="Add Assistant UI Reasoning Renderer",
         description="Add the Assistant UI Reasoning Renderer to the Conversation Surface.reasoningGroup Slot.",
         target=CreatorActionTarget(
-            pluginId="assistant-ui-reasoning",
+            pluginId="reasoning",
             pluginName="Assistant UI Reasoning Renderer",
         ),
         effect=AddDefaultActionEffect(type="add_default", placementDomain="plugin_slot"),

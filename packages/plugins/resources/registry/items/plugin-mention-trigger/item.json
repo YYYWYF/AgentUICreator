@@ -1,0 +1,26 @@
+{
+  "id": "plugin/mention-trigger",
+  "kind": "agent-component",
+  "description": "Optional independent composer trigger",
+  "requires": [
+    "foundation/core",
+    "plugin/composer"
+  ],
+  "files": [
+    {
+      "source": "files/plugins/mention-trigger/definition.ts",
+      "target": "plugins/mention-trigger/definition.ts"
+    },
+    {
+      "source": "files/plugins/mention-trigger/index.tsx",
+      "target": "plugins/mention-trigger/index.tsx"
+    },
+    {
+      "source": "files/plugins/mention-trigger/manifest.json",
+      "target": "plugins/mention-trigger/manifest.json"
+    }
+  ],
+  "packages": {
+    "react": "19.1.1"
+  }
+}

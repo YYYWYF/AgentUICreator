@@ -1,5 +1,5 @@
 {
-  "revision": "3542d602272a62eddeb8989befc910841c267022",
+  "revision": "a46d6634e7a75eddd85d51415b1a615886d4ad0e",
   "license": "MIT",
   "upstreamPath": "packages/react/src/primitives/composer/trigger/detectTrigger.ts",
   "localPath": "trigger-matcher.ts",

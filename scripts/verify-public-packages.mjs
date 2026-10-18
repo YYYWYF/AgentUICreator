@@ -93,15 +93,17 @@ import { createPythonCreatorClient } from "@za38.03/agent-ui-creator";
 import { createMockAgentHttpHandler } from "@za38.03/agent-ui-creator/mock-agent";
 import { createDefaultAgentUIPresetRegistry, initializeAgentUIProject } from "@za38.03/agent-ui-operator/bootstrap";
 import { handleUIOperatorRequest } from "@za38.03/agent-ui-operator/dev";
-import { loadAgentUISourceRegistry } from "@za38.03/agent-ui-source-registry";
-import composer from "@za38.03/agent-ui-plugins/assistant-ui-composer";
-void [createAgentUIGenerativeUI, Button, DemoAttachmentAdapter, LayoutRenderer, useConversationRuntimeBridge, createPythonCreatorClient, createMockAgentHttpHandler, createDefaultAgentUIPresetRegistry, initializeAgentUIProject, handleUIOperatorRequest, loadAgentUISourceRegistry, composer];
+import { loadAgentUISourceRegistry } from "@za38.03/agent-ui-operator/source-registry";
+import composer from "@za38.03/agent-ui-plugins/composer";
+import { formTools } from "@za38.03/agent-ui-plugins/form-tools";
+void [createAgentUIGenerativeUI, Button, DemoAttachmentAdapter, LayoutRenderer, useConversationRuntimeBridge, createPythonCreatorClient, createMockAgentHttpHandler, createDefaultAgentUIPresetRegistry, initializeAgentUIProject, handleUIOperatorRequest, loadAgentUISourceRegistry, composer, formTools];
 let theme: AgentUITheme | undefined; void theme;
 `);
  await writeFile(path.join(consumer, "smoke.mjs"), `
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
-import { loadAgentUISourceRegistry, officialPackagePlugin } from "@za38.03/agent-ui-source-registry";
+import { readFile, readdir } from "node:fs/promises";
+import path from "node:path";
+import { loadAgentUISourceRegistry, officialPackagePlugin } from "@za38.03/agent-ui-operator/source-registry";
 import { initializeAgentUIProject } from "@za38.03/agent-ui-operator/bootstrap";
 import { createAgentUIInitializationHost, inspectCreatorProject } from "@za38.03/agent-ui-operator/host";
 import { createMockAgentHttpHandler, builtinMockScenarios } from "@za38.03/agent-ui-creator/mock-agent";
@@ -113,21 +115,90 @@ assert(!(await readFile("node_modules/@za38.03/agent-ui-runtime/dist/public.d.ts
 assert(builtinMockScenarios.length > 0);
 assert.equal(typeof createMockAgentHttpHandler, "function");
 for (const item of registry.items) for (const name of Object.keys(item.packages ?? {})) assert(!name.includes("/bootstrap") && !name.includes("/mock-agent"), name);
-assert.equal(officialPackagePlugin("assistant-ui-composer").runtime.package, "@za38.03/agent-ui-plugins");
+assert.equal(officialPackagePlugin("composer").runtime.package, "@za38.03/agent-ui-plugins");
 await initializeAgentUIProject({ projectRoot: process.cwd(), mode: "assistant", sourceRoot: "src/agent-ui" }, createAgentUIInitializationHost());
 assert.equal((await inspectCreatorProject(process.cwd())).status, "ready");
+async function assertProductSource(directory) {
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const file = path.join(directory, entry.name);
+    assert(!/assistant[ _-]?ui/i.test(entry.name), file);
+    if (entry.isDirectory()) await assertProductSource(file);
+    else assert(!/assistant[ _-]?ui/i.test(await readFile(file, "utf8")), file);
+  }
+}
+await assertProductSource("src/agent-ui");
+assert(!(await readFile(".agent-ui/source-lock.json", "utf8")).includes("assistant-ui"));
 `);
  run(["smoke.mjs"]);
+ // Product facades must work without downstream installs of upstream adapters.
+ for (const name of ["@assistant-ui/react-lexical", "@assistant-ui/react-hook-form"]) {
+  await rm(path.join(consumer, "node_modules", name), { recursive: true, force: true });
+ }
  run([path.join(consumer, "node_modules/@za38.03/agent-ui-creator/dist/cli.js"), "--help"]);
- await writeFile(path.join(consumer, "app.tsx"), 'export { Agent } from "./src/agent-ui/application/Agent";\n');
+ await writeFile(path.join(consumer, "app.tsx"), 'export { Agent } from "./src/agent-ui/application/Agent";\nexport { formTools } from "@za38.03/agent-ui-plugins/form-tools";\n');
  await writeFile(path.join(consumer, "tsconfig.json"), JSON.stringify({ compilerOptions: { target: "ES2022", module: "ESNext", moduleResolution: "Bundler", jsx: "react-jsx", strict: true, skipLibCheck: !process.argv.includes("--strict-types"), noEmit: true, esModuleInterop: true, resolveJsonModule: true, types: ["node", "react", "vite/client"], lib: ["DOM", "ES2022"] }, include: ["consumer.tsx", "app.tsx", "src"] }));
  run([path.join(consumer, "node_modules/typescript/bin/tsc"), "--noEmit"]);
+ if (process.argv.includes("--takeover")) {
+  // Exercise the public packaged Operator against the independently unpacked
+  // target package, then ship the resulting frontend with no development tools.
+  const hostPackagePath = path.join(consumer, "package.json");
+  const hostPackage = JSON.parse(await readFile(hostPackagePath, "utf8"));
+  hostPackage.scripts = { typecheck: "node node_modules/typescript/bin/tsc --noEmit", build: "node validate-takeover.mjs" };
+  await writeFile(hostPackagePath, JSON.stringify(hostPackage));
+  await writeFile(path.join(consumer, "validate-takeover.mjs"), `
+import { build } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwind from "@tailwindcss/vite";
+await build({ configFile: false, logLevel: "error", plugins: [react(), tailwind()], resolve: { dedupe: ["react", "react-dom"] }, build: { write: false, lib: { entry: "app.tsx", formats: ["es"] } } });
+`);
+  await writeFile(path.join(consumer, "takeover-check.mjs"), `
+import assert from "node:assert/strict";
+import { readFile, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { handleUIOperatorRequest } from "@za38.03/agent-ui-operator/dev";
+const request = async (operation, input) => {
+ const result = await handleUIOperatorRequest({ operation, input }, process.cwd());
+ assert(result.ok, JSON.stringify(result)); return result.result;
+};
+const modelBefore = await readFile("src/agent-ui/app-ui/app-ui.json");
+const plan = await request("plan_plugin_source_takeover", { pluginId: "composer" });
+const installed = JSON.parse(await readFile("node_modules/@za38.03/agent-ui-plugins/package.json", "utf8"));
+assert.equal(plan.package.version, installed.version);
+await request("takeover_plugin_source", { pluginId: "composer", planHash: plan.planHash });
+assert((await readFile("src/agent-ui/app-ui/app-ui.json")).equals(modelBefore));
+const inspected = await request("inspect_ui_plugin", { pluginId: "composer" });
+assert.equal(inspected.asset.ownership, "project_source");
+assert(inspected.files.some(file => file.path === "src/agent-ui/plugins/composer/adapters"));
+assert(!inspected.files.some(file => file.path.startsWith("source-registry/")));
+
+const sourcePath = "src/agent-ui/plugins/composer/adapters/composer.tsx";
+await writeFile(sourcePath, (await readFile(sourcePath, "utf8")) + "\\n// Project customization preserved across npm replacement.\\n");
+const customized = await readFile(sourcePath);
+const ownership = await readFile(".agent-ui/plugin-ownership.json");
+// Replace installed npm assets with a synthetic newer release. Its packaged
+// Composer deliberately cannot run, proving the local registry stays selected.
+installed.version = "99.0.0";
+await writeFile("node_modules/@za38.03/agent-ui-plugins/package.json", JSON.stringify(installed));
+const catalogPath = "node_modules/@za38.03/agent-ui-plugins/dist/catalog.json";
+const catalog = JSON.parse(await readFile(catalogPath, "utf8")); catalog.package.version = "99.0.0";
+catalog.plugins.find(plugin => plugin.id === "composer").version = "99.0.0";
+await writeFile(catalogPath, JSON.stringify(catalog));
+await writeFile("node_modules/@za38.03/agent-ui-plugins/dist/composer/index.js", 'throw new Error("New package Composer must not replace local source");');
+await request("migrate_official_package_plugin", { pluginId: "composer" });
+await request("synchronize_plugin_registry", { expectedSourceHash: createHash("sha256").update(await readFile("src/agent-ui/plugins/registry.generated.ts")).digest("hex") });
+assert((await readFile(sourcePath)).equals(customized));
+assert((await readFile(".agent-ui/plugin-ownership.json")).equals(ownership));
+assert((await readFile("src/agent-ui/plugins/registry.generated.ts", "utf8")).includes("./composer/definition"));
+console.log("Packaged takeover: exact installed source, Host typecheck/build, stable model and source preserved after synthetic npm upgrade.");
+`);
+  run(["takeover-check.mjs"]);
+ }
  // Deployment consumer physically excludes every development package and control entry.
- for (const name of ["creator", "operator", "source-registry"]) {
+ for (const name of ["creator", "operator"]) {
   await rm(path.join(consumer, "node_modules", manifests[name].name), { recursive: true });
  }
  await rm(path.join(consumer, ".agent-ui"), { recursive: true, force: true });
- const frontendModules = publicModules.filter(name => !["creator", "operator", "source-registry"].includes(name));
+ const frontendModules = publicModules.filter(name => !["creator", "operator"].includes(name));
  await writeFile(path.join(consumer, "package.json"), JSON.stringify({ name: "independent-frontend-consumer", private: true, type: "module", dependencies: Object.fromEntries(frontendModules.map(name => [manifests[name].name, manifests[name].version])) }));
  const configFile = path.join(consumer, "tsconfig.json");
  const config = JSON.parse(await readFile(configFile, "utf8"));
@@ -141,9 +212,16 @@ import react from "@vitejs/plugin-react";
 import tailwind from "@tailwindcss/vite";
 const inputs = new Set();
 await build({ configFile: false, plugins: [react(), tailwind(), { name: "production-boundary", generateBundle(_, bundle) { for (const chunk of Object.values(bundle)) if (chunk.type === "chunk") for (const file of Object.keys(chunk.modules)) inputs.add(file); } }], resolve: { dedupe: ["react", "react-dom"] }, build: { lib: { entry: "app.tsx", formats: ["es"], fileName: () => "app.js" } } });
-assert(![...inputs].some(file => ["creator", "operator", "source-registry"].some(name => file.replaceAll(String.fromCharCode(92), "/").includes("/agent-ui-" + name + "/"))), "Production imported development packages");
-console.log("Production module graph excludes Creator, Operator and Source Registry.");
+assert(![...inputs].some(file => file.replaceAll(String.fromCharCode(92), "/").includes("/dist/catalog/") || file.replaceAll(String.fromCharCode(92), "/").includes("/dist/sources/")), "Production imported source tooling assets");
+assert(![...inputs].some(file => ["creator", "operator"].some(name => file.replaceAll(String.fromCharCode(92), "/").includes("/agent-ui-" + name + "/"))), "Production imported development packages");
+if (${process.argv.includes("--takeover")}) {
+ const normalized = [...inputs].map(file => file.replaceAll(String.fromCharCode(92), "/"));
+ assert(normalized.some(file => file.includes("/src/agent-ui/plugins/composer/adapters/composer.tsx")), "Production must include local Composer");
+ assert(!normalized.some(file => file.includes("/agent-ui-plugins/dist/composer/index.js")), "Production must not select npm Composer");
+ assert.equal(normalized.filter(file => file.endsWith("/internal/composer-input-host-context.js")).length, 1, "Exactly one shared Composer context module");
+}
+console.log("Production module graph excludes development tooling.");
 `);
  run(["bundle.mjs"]);
- console.log("8 independent tarballs: exact dependency versions, merged subpaths, Registry, initialization, consumer types and independent production build passed.");
+ console.log("7 independent tarballs: exact dependency versions, merged subpaths, Registry, initialization, consumer types and independent production build passed.");
 } finally { await rm(consumer, { recursive: true, force: true }); }

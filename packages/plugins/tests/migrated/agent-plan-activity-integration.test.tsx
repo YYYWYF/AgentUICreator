@@ -8,7 +8,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DataMessageUIRegistration } from "@za38.03/agent-ui-plugins";
-import { agentPlanActivityMessageUI } from "../../../source-registry/registry/items/plugin-agent-plan-message/files/plugins/agent-plan-message/index";
+import { agentPlanActivityMessageUI } from "../../resources/registry/items/plugin-agent-plan-message/files/plugins/agent-plan-message/index";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 

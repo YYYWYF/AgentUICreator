@@ -85,4 +85,15 @@ SOFTWARE.
 
 ## assistant-ui Generative UI
 
-The unmodified styled Generative UI component and mechanically scoped vocabulary CSS are pinned to `3542d602272a62eddeb8989befc910841c267022` (MIT, AgentbaseAI Inc.). Exact source paths, hashes and mechanical CSS scoping are recorded in `internal/vendor/assistant-ui/generative-ui/UPSTREAM.json`. The opt-in facade uses `@assistant-ui/react-generative-ui` 0.0.22. Project integration is owned outside vendor.
+The unmodified styled Generative UI component and mechanically scoped vocabulary CSS are pinned to `3542d602272a62eddeb8989befc910841c267022` (MIT, AgentbaseAI Inc.). Exact source paths, hashes and mechanical CSS scoping are recorded in `internal/vendor-generated/assistant-ui/generative-ui/UPSTREAM.json`. The opt-in facade uses `@assistant-ui/react-generative-ui` 0.0.22. Project integration is owned outside vendor.
+
+
+## Bundled optional assistant-ui adapters
+
+The optional `/lexical` and `/form-tools` product entry points bundle unmodified
+implementation from `@assistant-ui/react-lexical` and
+`@assistant-ui/react-hook-form`, respectively. These packages are MIT licensed
+parts of the assistant-ui project linked above. Bundling resolves modules and
+removes unused exports; it does not change upstream presentation or localization.
+The installed package versions and bundled input paths are recorded in
+`dist/optional-adapters-provenance.json`. Lexical and React remain external peers.

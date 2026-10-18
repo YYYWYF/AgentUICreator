@@ -198,33 +198,23 @@
     "importText": "import { useAgentUILocale, DEFAULT_AGENT_UI_MESSAGES, formatPresentationMessage } from \"../../../../../../locale.js\";\n",
     "replacements": [
       {
-        "before": "const AttachmentPreview: FC<AttachmentPreviewProps> = ({ src }) => {\n",
-        "after": "const AttachmentPreview: FC<AttachmentPreviewProps> = ({ src }) => {\n  const localeMessages = useAgentUILocale();\n",
+        "before": "const AttachmentPreview: FC<AttachmentPreviewProps> = ({ src, name }) => {\n",
+        "after": "const AttachmentPreview: FC<AttachmentPreviewProps> = ({ src, name }) => {\n  const localeMessages = useAgentUILocale();\n",
         "expectedCount": 1
       },
       {
-        "before": "      src={src}\n      alt=\"Attachment preview\"\n",
-        "after": "      src={src}\n      alt={localeMessages.attachments.preview}\n",
+        "before": "      src={src}\n      alt={`Preview of ${name}`}\n",
+        "after": "      src={src}\n      alt={formatPresentationMessage(localeMessages.attachments.previewNamed, { name })}\n",
         "expectedCount": 1
       },
       {
-        "before": "const AttachmentPreviewDialog: FC<PropsWithChildren> = ({ children }) => {\n",
-        "after": "const AttachmentPreviewDialog: FC<PropsWithChildren> = ({ children }) => {\n  const localeMessages = useAgentUILocale();\n",
+        "before": "const AttachmentPreviewDialog: FC<AttachmentPreviewDialogProps> = ({\n  children,\n  src,\n  name,\n}) => {\n",
+        "after": "const AttachmentPreviewDialog: FC<AttachmentPreviewDialogProps> = ({\n  children,\n  src,\n  name,\n}) => {\n  const localeMessages = useAgentUILocale();\n",
         "expectedCount": 1
       },
       {
-        "before": "          Image Attachment Preview\n        </DialogTitle>\n",
-        "after": "\n          {localeMessages.attachments.imagePreview}\n        </DialogTitle>\n",
-        "expectedCount": 1
-      },
-      {
-        "before": "const AttachmentThumb: FC = () => {\n",
-        "after": "const AttachmentThumb: FC = () => {\n  const localeMessages = useAgentUILocale();\n",
-        "expectedCount": 1
-      },
-      {
-        "before": "        alt=\"Attachment preview\"\n",
-        "after": "        alt={localeMessages.attachments.preview}\n",
+        "before": "          Preview {name}\n        </DialogTitle>\n",
+        "after": "          {formatPresentationMessage(localeMessages.attachments.previewNamed, { name })}\n        </DialogTitle>\n",
         "expectedCount": 1
       },
       {
@@ -238,13 +228,13 @@
         "expectedCount": 1
       },
       {
-        "before": "const AttachmentRemove: FC = () => {\n",
-        "after": "const AttachmentRemove: FC = () => {\n  const localeMessages = useAgentUILocale();\n",
+        "before": "const AttachmentRemove: FC<{ name: string }> = ({ name }) => {\n",
+        "after": "const AttachmentRemove: FC<{ name: string }> = ({ name }) => {\n  const localeMessages = useAgentUILocale();\n",
         "expectedCount": 1
       },
       {
-        "before": "          tooltip=\"Remove file\"\n",
-        "after": "          tooltip={localeMessages.attachments.remove}\n",
+        "before": "          tooltip={`Remove ${name}`}\n",
+        "after": "          tooltip={formatPresentationMessage(localeMessages.attachments.removeNamed, { name })}\n",
         "expectedCount": 1
       },
       {
@@ -268,8 +258,8 @@
         "expectedCount": 1
       },
       {
-        "before": "aria-label={`${typeLabel} attachment${\n                    isError\n                      ? \", upload failed\"\n                      : isUploading\n                        ? \", uploading\"\n                        : \"\"\n                  }`}",
-        "after": "aria-label={formatPresentationMessage(isError ? localeMessages.attachments.tileFailed : isUploading ? localeMessages.attachments.tileUploading : localeMessages.attachments.tile, { type: typeLabel })}",
+        "before": "aria-label={`${src ? `Preview ${name}` : `${typeLabel} attachment ${name}`}${\n                    isError\n                      ? \", upload failed\"\n                      : isUploading\n                        ? \", uploading\"\n                        : \"\"\n                  }`}",
+        "after": "aria-label={formatPresentationMessage(isError ? localeMessages.attachments.namedFailed : isUploading ? localeMessages.attachments.namedUploading : localeMessages.attachments.named, { label: formatPresentationMessage(src ? localeMessages.attachments.previewNamed : localeMessages.attachments.tileNamed, { type: typeLabel, name }) })}",
         "expectedCount": 1
       }
     ]
@@ -363,13 +353,13 @@
         "expectedCount": 1
       },
       {
-        "before": "  const { isLoading } = unstable_useTriggerPopoverScopeContext();",
-        "after": "  const messages = useAgentUILocale(\"triggers\");\n  const { isLoading } = unstable_useTriggerPopoverScopeContext();",
+        "before": "  isLoading,\n}) => {\n",
+        "after": "  isLoading,\n}) => {\n  const messages = useAgentUILocale(\"triggers\");\n",
         "expectedCount": 1
       },
       {
-        "before": "<ComposerPrimitive.Unstable_TriggerPopoverItems>",
-        "after": "<ComposerPrimitive.Unstable_TriggerPopoverItems aria-label={messages.items}>",
+        "before": "<ComposerPrimitive.TriggerPopoverItems>",
+        "after": "<ComposerPrimitive.TriggerPopoverItems aria-label={messages.items}>",
         "expectedCount": 1
       }
     ]
@@ -641,6 +631,31 @@
         "before": "\n          Deny\n",
         "after": "\n          {messages.deny}\n",
         "expectedCount": 1
+      },
+      {
+        "before": "  const [selected, setSelected] = useState<",
+        "after": "  const messages = useAgentUILocale(\"toolPresentation\");\n  const [selected, setSelected] = useState<",
+        "expectedCount": 1
+      },
+      {
+        "before": "\"Or type an answer\"",
+        "after": "messages.alternativeAnswerPlaceholder",
+        "expectedCount": 1
+      },
+      {
+        "before": "                    : \"Type your answer\"",
+        "after": "                    : messages.answerPlaceholder",
+        "expectedCount": 1
+      },
+      {
+        "before": "\n          Send\n",
+        "after": "\n          {messages.send}\n",
+        "expectedCount": 1
+      },
+      {
+        "before": "\n            Dismiss\n",
+        "after": "\n            {messages.dismiss}\n",
+        "expectedCount": 1
       }
     ]
   },
@@ -658,8 +673,8 @@
         "expectedCount": 1
       },
       {
-        "before": "        const label = id;",
-        "after": "        const label = ({ Today: messages.today, Yesterday: messages.yesterday, Earlier: messages.earlier } as Record<string, string>)[id] ?? id;",
+        "before": "    return { threadIds, filteredIndices, groups: result };",
+        "after": "    return { threadIds, filteredIndices, groups: result.map(group => ({ ...group, label: ({ Today: messages.today, Yesterday: messages.yesterday, Earlier: messages.earlier } as Record<string, string>)[group.label] ?? group.label })) };",
         "expectedCount": 1
       },
       {
@@ -755,6 +770,11 @@
       {
         "before": "aria-label={!children ? `Download ${filename || \"file\"}` : undefined}",
         "after": "aria-label={!children ? formatPresentationMessage(messages.download, { filename: filename || messages.unnamed }) : undefined}",
+        "expectedCount": 1
+      },
+      {
+        "before": "<FileName>{filename || getFileLabel(mimeType)}</FileName>",
+        "after": "<FileName>{filename}</FileName>",
         "expectedCount": 1
       }
     ]

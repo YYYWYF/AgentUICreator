@@ -11,7 +11,7 @@ export const toolErrorScenario = defineScenario({
     audience: "backend",
     protocol: "AG-UI",
     pattern: "Tool Call → RUN_ERROR",
-    presentation: "assistant-ui ToolCall error",
+    presentation: "Agent UI ToolCall error",
     eventFlow: ["TOOL_CALL_START/ARGS/END", "RUN_ERROR"],
     notes: ["RUN_ERROR is run-scoped and never carries subagentRunId."],
   },

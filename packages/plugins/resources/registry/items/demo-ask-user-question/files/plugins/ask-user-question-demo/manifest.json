@@ -1,0 +1,10 @@
+{
+  "id": "ask-user-question-demo",
+  "name": "Ask User Question Demo",
+  "description": "Optional Agent UI Human Tool question flow",
+  "version": "0.0.1",
+  "capabilities": [
+    "human-input",
+    "headless"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "beforeGeometry": {
+    "actions": {
+      "x": 391,
+      "y": 852,
+      "width": 646,
+      "height": 36
+    },
+    "input": {
+      "x": 391,
+      "y": 804,
+      "width": 646,
+      "height": 40
+    }
+  },
+  "afterGeometry": {
+    "actions": {
+      "x": 391,
+      "y": 804,
+      "width": 646,
+      "height": 36
+    },
+    "input": {
+      "x": 391,
+      "y": 848,
+      "width": 646,
+      "height": 40
+    }
+  },
+  "previewNavigations": [
+    "http://127.0.0.1:62973/?creator-preview",
+    "http://127.0.0.1:62973/?creator-preview",
+    "http://127.0.0.1:62973/?creator-preview",
+    "http://127.0.0.1:62973/?creator-preview"
+  ],
+  "manualRefresh": false
+}

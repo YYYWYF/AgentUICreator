@@ -283,18 +283,6 @@ export function resolveAppUIComposition(
     .filter((instance) => instance.mount !== undefined)
     .sort((left, right) => left.id.localeCompare(right.id));
 
-  for (const instance of Object.values(model.pluginInstances)) {
-    if (instance.pluginId !== "conversation-surface") continue;
-    const occupied = ["assistantResponseFooter", "assistantMessageFooter"].filter((slot) =>
-      mountedInstances.some((child) => child.enabled && child.mount?.slotId === resolveRuntimePluginSlotId(instance.id, slot)),
-    );
-    if (occupied.length > 1) issues.push({
-      code: "conversation-footer-slot-conflict", instanceId: instance.id,
-      slotId: resolveRuntimePluginSlotId(instance.id, occupied[0]!),
-      message: "assistantResponseFooter and assistantMessageFooter cannot both be occupied.",
-    });
-  }
-
   let madeProgress = true;
   while (madeProgress) {
     madeProgress = false;

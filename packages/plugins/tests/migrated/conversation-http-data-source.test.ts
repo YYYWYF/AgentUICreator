@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createHttpConversationDataSource } from "../../../source-registry/registry/items/foundation-core-application/files/services/conversations";
+import { createHttpConversationDataSource } from "../../resources/registry/items/foundation-core-application/files/services/conversations";
 
 describe("HttpConversationDataSource", () => {
   it("loads and validates the full conversation list", async () => {

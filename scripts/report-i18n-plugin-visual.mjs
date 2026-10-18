@@ -7,16 +7,16 @@ const manifestPath = path.join(repository, "apps/creator-workbench/tests/support
 const requiredProjects = ["zh-CN-desktop", "zh-CN-narrow", "en-US-desktop", "en-US-narrow"];
 const gaps = {
   "conversation-suggestions": "All stock suggestions captured; custom Host suggestions remain data.",
-  "assistant-ui-dictation-action": "Deterministic Host adapter; real microphone/browser permission behavior not tested.",
-  "assistant-ui-copy-action": "Visible idle control; clipboard success/error not exercised.",
-  "assistant-ui-reload-action": "Visible control; regeneration/branch persistence not exercised.",
-  "assistant-ui-export-markdown-action": "Localized menu and viewport/theme boundary tested; downloaded file content not checked.",
-  "assistant-ui-feedback-actions": "Host adapter makes controls available; persistence success/error not exercised.",
+  "dictation-action": "Deterministic Host adapter; real microphone/browser permission behavior not tested.",
+  "copy-action": "Visible idle control; clipboard success/error not exercised.",
+  "reload-action": "Visible control; regeneration/branch persistence not exercised.",
+  "export-markdown-action": "Localized menu and viewport/theme boundary tested; downloaded file content not checked.",
+  "feedback-actions": "Host adapter makes controls available; persistence success/error not exercised.",
   "web-search": "Successful structured result captured; invalid-result and loading transitions not separately exercised.",
   "generated-file-message": "URL file card captured; encoded/media variants and downloads not tested.",
   "conversation-command-source": "Source/locale identities and command popover tested; executing /new not checked.",
-  "assistant-ui-reasoning": "Known upstream localization seams are recorded in docs/i18n/upstream-localization-gaps.md; vendor remains unchanged.",
-  "assistant-ui-tool-group": "Known upstream localization seams are recorded in docs/i18n/upstream-localization-gaps.md; vendor remains unchanged.",
+  "reasoning": "Known upstream localization seams are recorded in docs/i18n/upstream-localization-gaps.md; vendor remains unchanged.",
+  "tool-group": "Known upstream localization seams are recorded in docs/i18n/upstream-localization-gaps.md; vendor remains unchanged.",
 };
 function flatten(suites) {
   return suites.flatMap(suite => [...(suite.specs ?? []).flatMap(spec => spec.tests.map(test => ({ title: spec.title, project: test.projectName, status: test.status, results: test.results }))), ...flatten(suite.suites ?? [])]);
@@ -35,7 +35,7 @@ export async function writeI18nVisualReport({ output, resultsDirectory = path.jo
   const tests = flatten(result.suites);
   const projects = requiredProjects;
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-  const release = JSON.parse(await readFile(path.join(repository, "packages/source-registry/registry/release.json"), "utf8"));
+  const release = JSON.parse(await readFile(path.join(repository, "packages/plugins/resources/registry/release.json"), "utf8"));
   const ids = Object.keys(release.plugins).sort();
   const missing = ids.filter(id => !Object.hasOwn(manifest, id));
   const unknown = Object.keys(manifest).filter(id => !ids.includes(id));

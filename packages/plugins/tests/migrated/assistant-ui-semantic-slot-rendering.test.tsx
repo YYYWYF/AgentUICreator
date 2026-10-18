@@ -46,7 +46,7 @@ describe("assistant-ui semantic Slot rendering", () => {
   it("routes starter suggestions through the canonical child Slot", async () => {
     const app = await read("src/App.tsx");
     const thread = await read(
-      "../../packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
+      "../../packages/plugins/src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
     );
     const globals = await read("../../packages/plugins/src/styles.css");
     expect(app).toContain("suggestions={suggestions}");
@@ -59,7 +59,7 @@ describe("assistant-ui semantic Slot rendering", () => {
 
   it("keeps message auxiliary presentation in the upstream Thread", async () => {
     const thread = await read(
-      "../../packages/plugins/src/internal/vendor/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
+      "../../packages/plugins/src/internal/vendor-generated/assistant-ui/components/assistant-ui/elements/thread.aui.tsx",
     );
     expect(thread).toContain("<UserMessageAttachments />");
     expect(thread).not.toContain("MessageFooter");

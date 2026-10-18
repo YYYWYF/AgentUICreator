@@ -10,11 +10,11 @@ import { runMockScenario } from "@za38.03/agent-ui-creator/mock-agent";
 import { frontendToolFillFormScenario } from "@za38.03/agent-ui-creator/mock-agent";
 import { frontendTools as appFrontendTools } from "../../../operator/tests/fixtures/official-form/agent-contract/frontend-tools/demo-form-tools";
 import { frontendToolUIs } from "../../../operator/tests/fixtures/official-form/agent-ui/conversation/frontend-tool-uis/demo-form-tools";
-import { ConversationSurface } from "../../../source-registry/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface";
+import { ConversationSurface } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface";
 import { parseAppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
 import frontendToolFormDemoPlugin from "../../../operator/tests/fixtures/official-form/plugins/frontend-tool-form-demo/definition";
-import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/tools/index";
-import { PluginServiceRuntime, PluginServiceRuntimeContext, createPluginRegistry, UIPluginRuntime } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../../resources/registry/items/foundation-core-runtime/files/runtime/tools/index";
+import { PluginServiceRuntime, PluginServiceRuntimeContext, createPluginRegistry, UIPluginRuntime } from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
 import { DEMO_FORM_SERVICE, type DemoFormService } from "../../../operator/tests/fixtures/official-form/services/demo-form";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;

@@ -1,0 +1,22 @@
+{
+  "archive": "/tmp/agent-ui-activity-package/za38.03-agent-ui-plugins-0.0.1.tgz",
+  "sha256": "f7363f29c860579ee98a5ac69907b6f380b98361d8c7e0fa19acc16926c33850",
+  "modernEntries": 20,
+  "portableClosures": 21,
+  "canonicalSnapshots": 417,
+  "portableAndRuntimeDigests": 227,
+  "allExportTargetsPresent": true,
+  "allDigestsVerified": true,
+  "noTestsOrNodeModules": true,
+  "requiredEntries": [
+    "dist/theme/theme-contract.d.ts",
+    "dist/agent-status-message/index.js",
+    "dist/agent-plan-message/index.js",
+    "dist/job-progress-message/index.js",
+    "dist/generated-file-message/index.js",
+    "dist/sources/takeover/agent-status-message/adapters/projection.ts",
+    "dist/sources/takeover/agent-plan-message/adapters/projection.ts",
+    "dist/sources/takeover/job-progress-message/adapters/projection.ts",
+    "dist/sources/takeover/generated-file-message/adapters/projection.ts"
+  ]
+}

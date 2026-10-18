@@ -1,21 +1,30 @@
 .creator-project-setup {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-width: 0;
   min-height: 0;
-  padding: 24px 20px;
-  overflow: auto;
+  overflow: hidden;
   color: #475569;
   font-size: 13px;
   line-height: 1.7;
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
 }
+.creator-project-setup-content {
+  flex: 1;
+  min-height: 0;
+  padding: 12px 20px;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
 .creator-setup-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
 .creator-setup-heading > svg { width: 20px; height: 20px; color: #2563eb; }
 .creator-project-setup h2 { margin: 0; color: #1e293b; font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
-.creator-project-setup-modes { min-width: 0; margin: 0 0 24px; padding: 0; border: 0; }
+.creator-project-setup-modes { min-width: 0; margin: 0 0 16px; padding: 0; border: 0; }
 .creator-project-setup-modes legend { margin-bottom: 12px; color: #334155; font-size: 12px; font-weight: 500; }
-.creator-project-setup-mode-grid { display: grid; gap: 10px; }
+.creator-project-setup-mode-grid { display: grid; gap: 8px; }
 .creator-project-mode-card {
   position: relative;
   display: grid;
@@ -26,7 +35,7 @@
   justify-items: start;
   width: 100%;
   height: auto;
-  padding: 14px;
+  padding: 10px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   color: #475569;
@@ -53,9 +62,11 @@
 .creator-project-setup-error { margin: 14px 0; padding: 14px; border: 1px solid #fecaca; border-radius: 10px; color: #b91c1c; background: #fff7f7; font-size: 12px; line-height: 1.7; }
 .creator-project-setup-error p { margin: 0 0 10px; }
 .creator-project-setup-error code { display: block; margin-top: 6px; font-size: 12px; }
-.creator-project-setup-actions { margin-top: 20px; }
+.creator-project-setup-actions { flex-shrink: 0; padding: 12px 20px 20px; background: #fff; }
 .creator-project-setup-actions button { width: 100%; height: 36px; }
 
 .creator-setup-heading { margin-bottom: 8px; }
-.creator-project-setup .creator-setup-description { margin: 0 0 20px; font-size: 12px; color: #64748b; }
+.creator-project-setup .creator-setup-description { margin: 0 0 14px; font-size: 12px; color: #64748b; }
 .creator-project-setup-field small { line-height: 1.6; }
+
+.creator-setup-target-path { display: block; overflow-wrap: anywhere; }

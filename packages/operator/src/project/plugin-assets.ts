@@ -1,4 +1,8 @@
-import { officialPackagePlugins, officialPackagePlugin } from "@za38.03/agent-ui-source-registry";
+import { readAgentUISourceLock } from "./source-registry/lock";
+import { isPluginApplication, readApplicationPackageManifest, installedPackagePluginIds } from "./plugin-application";
+import { createRequire } from "node:module";
+import { readPluginSourceOwnership } from "./plugin-source-ownership";
+import { officialPackagePlugins, officialPackagePlugin } from "../source-catalog/index.js";
 import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 
@@ -37,12 +41,25 @@ export async function collectPluginAssets(
   config: UIOperatorConfig,
 ): Promise<PluginAssetInventory> {
   const pluginsRoot = paths.pluginsRoot;
+  const ownership = await readPluginSourceOwnership(paths.metadataRoot);
+  const { lock: sourceLock } = await readAgentUISourceLock(projectRoot, config);
   const excludedPaths = new Set([
     ...config.catalogs,
     ...(config.nonPluginDirectories ?? []),
   ]);
   const assets: PluginAsset[] = [];
   const errors: ProjectIssue[] = [];
+  if (Object.keys(ownership.plugins).length) {
+    try {
+      const installedCatalog = createRequire(path.join(projectRoot, "package.json")).resolve("@za38.03/agent-ui-plugins/catalog.json");
+      const catalog = JSON.parse(await readFile(installedCatalog, "utf8"));
+      for (const record of Object.values(ownership.plugins)) for (const [api, version] of Object.entries(record.compatibility)) {
+        if (catalog.sharedApis?.[api] !== version) throw new Error(`Unsupported shared Plugin API: ${api}`);
+      }
+    } catch (error) {
+      errors.push({ code: "SOURCE_OWNED_PLUGIN_INCOMPATIBLE", message: `Source-owned Plugin shared dependencies require validation: ${issueMessage(error)}` });
+    }
+  }
   const entries = await readdir(pluginsRoot, { withFileTypes: true }).catch(error => { if (error.code === "ENOENT") return []; throw error; });
 
   for (const entry of entries.sort((left, right) =>
@@ -58,10 +75,12 @@ export async function collectPluginAssets(
       continue;
     }
 
-    const manifestPath = path.join(directoryPath, "manifest.json");
+    const application = await isPluginApplication(directoryPath, entry.name);
+    const sourceOwned = ownership.plugins[entry.name];
+    const manifestPath = path.join(directoryPath, application && sourceOwned?.implementationRoot === "source" ? "source/manifest.json" : "manifest.json");
     let source: string;
     try {
-      source = await readFile(manifestPath, "utf8");
+      source = application && !sourceOwned ? await readApplicationPackageManifest(projectRoot, entry.name) : await readFile(manifestPath, "utf8");
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === "ENOENT") {
         errors.push({
@@ -81,10 +100,12 @@ export async function collectPluginAssets(
 
     try {
       const manifest = parseUIPluginManifest(JSON.parse(source) as unknown);
-      if (officialPackagePlugin(manifest.id)) {
+      if (officialPackagePlugin(manifest.id) && ownership.plugins[manifest.id]?.directory !== entry.name && !application
+          && !Object.keys(sourceLock.items[`plugin/${manifest.id}`]?.files ?? {}).length
+          && !officialPackagePlugin(manifest.id)?.application.preserveLegacySource) {
         errors.push({ code: "PLUGIN_ID_RESERVED_BY_OFFICIAL", pluginId: manifest.id,
           path: projectPath(projectRoot, manifestPath),
-          message: `Plugin ${manifest.id} is dependency-owned. Migrate unchanged legacy source or port custom behavior to a new project-owned ID.` });
+          message: `Plugin ${manifest.id} is dependency-owned. Use the explicit source takeover confirmation for absent local source, or preserve and migrate an existing legacy customization.` });
         continue;
       }
       assets.push({
@@ -129,7 +150,14 @@ export async function collectPluginAssets(
     }
   }
 
-  for (const official of officialPackagePlugins) {
+  const installed = await installedPackagePluginIds(projectRoot);
+  const packagePlugins = officialPackagePlugins
+    .filter(plugin => !installed || installed.has(plugin.pluginId));
+  for (const [id, record] of Object.entries(ownership.plugins)) {
+    if (!assets.some(asset => asset.pluginId === id && asset.directory === record.directory)) errors.push({ code: "SOURCE_OWNED_PLUGIN_MISSING", pluginId: id, message: "Source-owned Plugin is missing or invalid; refusing package fallback." });
+  }
+  for (const official of packagePlugins) {
+    if (ownership.plugins[official.pluginId] || assets.some(asset => asset.pluginId === official.pluginId)) continue;
     const manifest = parseUIPluginManifest(official.manifest);
     const runtimeImport = official.runtime.package + official.runtime.subpath.slice(1);
     assets.push({ ownership: "official_package", pluginId: official.pluginId, manifest,

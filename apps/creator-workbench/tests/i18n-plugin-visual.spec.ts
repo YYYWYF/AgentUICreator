@@ -189,18 +189,6 @@ test("mention empty popover, attachments, dictation, edit and export menu", asyn
   await page.screenshot({path:info.outputPath('lexical-edit.png'),fullPage:true,animations:"disabled"});
 });
 
-test("compatibility message footer renders canonical actions", async ({page},info) => {
-  await host.setLegacyFooter(true);
-  try {
-    await page.goto(`${host.url}?locale=${info.project.metadata.locale}`);
-    const input = page.locator('[contenteditable="true"]').first(); await expect(input).toBeVisible();
-    await input.fill('Compatibility footer'); await input.press('Enter');
-    await expect(page.locator('[data-slot="aui_assistant-message-content"]').first()).toContainText('你好，这是一个纯文本流式回复。');
-    await expect(page.locator('.aui-composer-send')).toBeVisible({timeout:30_000});
-    await expect(page.locator('[data-slot="aui_assistant-response-footer-plugin"]')).toBeVisible();
-    await page.screenshot({path:info.outputPath('legacy-footer.png'),fullPage:true,animations:"disabled"});
-  } finally { await host.setLegacyFooter(false); }
-});
 
 test("quote selection and preview", async ({page}, info) => {
   await page.goto(`${host.url}?locale=${info.project.metadata.locale}`);

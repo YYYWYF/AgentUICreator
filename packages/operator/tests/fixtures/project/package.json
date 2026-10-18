@@ -7,12 +7,11 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@assistant-ui/react-lexical": "0.2.15",
-    "@lexical/history": "0.51.0",
-    "@lexical/plain-text": "0.51.0",
-    "@lexical/react": "0.51.0",
-    "@lexical/utils": "0.51.0",
-    "lexical": "0.51.0",
+    "@lexical/history": "0.52.0",
+    "@lexical/plain-text": "0.52.0",
+    "@lexical/react": "0.52.0",
+    "@lexical/utils": "0.52.0",
+    "lexical": "0.52.0",
     "@za38.03/agent-ui-plugins": "workspace:*",
     "@za38.03/agent-ui-runtime": "workspace:*",
     "@za38.03/agent-ui-core": "workspace:*",
@@ -30,7 +29,6 @@
   "devDependencies": {
     "@ag-ui/client": "0.0.59",
     "@ag-ui/core": "0.0.59",
-    "@za38.03/agent-ui-source-registry": "workspace:*",
     "@types/node": "20.19.43",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",

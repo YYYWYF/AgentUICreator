@@ -1,0 +1,80 @@
+vite v8.3.0 building client environment for production...
+transforming...
+✓ 4186 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                            2.21 kB │ gzip:   0.65 kB
+dist/assets/definition-Bllbch4D.css                        0.69 kB │ gzip:   0.31 kB
+dist/assets/textarea-CcdakA0V.css                          0.96 kB │ gzip:   0.33 kB
+dist/assets/definition--B75ck9M.css                        1.10 kB │ gzip:   0.48 kB
+dist/assets/definition-CPkg5Vii.css                        1.35 kB │ gzip:   0.54 kB
+dist/assets/definition-q-PYjzUs.css                        1.40 kB │ gzip:   0.54 kB
+dist/assets/definition-Z4lhdSEi.css                        1.92 kB │ gzip:   0.53 kB
+dist/assets/definition-DUok2zoQ.css                        2.20 kB │ gzip:   0.66 kB
+dist/assets/plugins-rPzCi-Bb.css                           5.80 kB │ gzip:   1.50 kB
+dist/assets/index-b91UO37r.css                           171.01 kB │ gzip:  24.79 kB
+dist/assets/agent-ui-locale-DiJqumUk.js                    0.03 kB │ gzip:   0.05 kB
+dist/assets/locale-config-B6apNNuE.js                      0.04 kB │ gzip:   0.06 kB
+dist/assets/theme-config-DxQybds_.js                       0.05 kB │ gzip:   0.07 kB
+dist/assets/square-3dQnY7UV.js                             0.14 kB │ gzip:   0.15 kB
+dist/assets/AuiIf-Dy6UH6h4.js                              0.15 kB │ gzip:   0.15 kB
+dist/assets/plus-kZ5PrsNt.js                               0.15 kB │ gzip:   0.15 kB
+dist/assets/theme-contract-B_bDciBf.js                     0.20 kB │ gzip:   0.15 kB
+dist/assets/data-source-BjGsISWZ.js                        0.28 kB │ gzip:   0.17 kB
+dist/assets/locale-registry-ZDbFBxjo.js                    0.29 kB │ gzip:   0.22 kB
+dist/assets/bot-B3zYSTTm.js                                0.32 kB │ gzip:   0.23 kB
+dist/assets/composer-triggers-D0gt51Pq.js                  0.45 kB │ gzip:   0.30 kB
+dist/assets/conversation-transient-messages-DbxwYY_8.js    0.77 kB │ gzip:   0.44 kB
+dist/assets/createLucideIcon-ggATOBkE.js                   1.40 kB │ gzip:   0.79 kB
+dist/assets/conversation-composer-guard-DvPmbXM1.js        1.65 kB │ gzip:   0.82 kB
+dist/assets/definition-BeCy8pEm.js                         4.92 kB │ gzip:   1.90 kB
+dist/assets/definition-BQPM3HBo.js                         4.94 kB │ gzip:   1.90 kB
+dist/assets/definition-CBviVKfA.js                         4.99 kB │ gzip:   1.91 kB
+dist/assets/definition-teRxhAGt.js                         5.07 kB │ gzip:   1.96 kB
+dist/assets/definition-DbHk26O6.js                         5.08 kB │ gzip:   1.93 kB
+dist/assets/definition-D17azhcc.js                         5.09 kB │ gzip:   1.97 kB
+dist/assets/definition-BbxjsWdL.js                         5.18 kB │ gzip:   1.99 kB
+dist/assets/definition-mFW3Nz2J.js                         5.19 kB │ gzip:   1.99 kB
+dist/assets/definition-D1xkN705.js                         5.23 kB │ gzip:   2.12 kB
+dist/assets/definition-zZNeIJjt.js                         5.27 kB │ gzip:   2.08 kB
+dist/assets/definition-DTM4mc1p.js                         5.33 kB │ gzip:   2.10 kB
+dist/assets/definition-BN-GtBZq.js                         5.34 kB │ gzip:   2.11 kB
+dist/assets/definition-CDwVPTDk.js                         5.34 kB │ gzip:   2.11 kB
+dist/assets/definition-z14ZHgrh.js                         5.36 kB │ gzip:   2.10 kB
+dist/assets/definition-C5TkNqsN.js                         5.38 kB │ gzip:   2.10 kB
+dist/assets/definition-Bi5rJzkh.js                         5.39 kB │ gzip:   2.11 kB
+dist/assets/definition-AMozk4zx.js                         5.41 kB │ gzip:   2.12 kB
+dist/assets/definition-Dct25SGb.js                         5.45 kB │ gzip:   2.19 kB
+dist/assets/definition-DqRrRS07.js                         5.55 kB │ gzip:   2.08 kB
+dist/assets/definition-cCeM-Nuw.js                         5.59 kB │ gzip:   2.23 kB
+dist/assets/definition-C4PdOiic.js                         5.64 kB │ gzip:   2.25 kB
+dist/assets/definition-FaiyPYk_.js                         5.65 kB │ gzip:   2.15 kB
+dist/assets/definition-X4fQWXki.js                         5.69 kB │ gzip:   2.21 kB
+dist/assets/definition-C0IikDfH.js                         6.03 kB │ gzip:   2.36 kB
+dist/assets/zh-CN-CnfIe3uR.js                              6.21 kB │ gzip:   2.70 kB
+dist/assets/definition-BCxJ_txz.js                         6.48 kB │ gzip:   2.49 kB
+dist/assets/definition-zD5KIa8z.js                         6.61 kB │ gzip:   2.59 kB
+dist/assets/definition-CH12bC1g.js                         6.64 kB │ gzip:   2.32 kB
+dist/assets/definition-CEZMguSc.js                         6.71 kB │ gzip:   2.48 kB
+dist/assets/definition-Drct0IcV.js                         7.03 kB │ gzip:   2.89 kB
+dist/assets/react-BNg4zM-c.js                              7.55 kB │ gzip:   2.87 kB
+dist/assets/definition-BolCuTxI.js                        10.20 kB │ gzip:   3.73 kB
+dist/assets/definition-Cv0a_JYd.js                        10.61 kB │ gzip:   4.00 kB
+dist/assets/definition-Dfh-_Yvz.js                        13.64 kB │ gzip:   4.37 kB
+dist/assets/locale-B80IZgpk.js                            25.93 kB │ gzip:  10.13 kB
+dist/assets/suggestion-DY8YB1K5.js                        48.34 kB │ gzip:  15.83 kB
+dist/assets/ThreadRootElementContext-DDJ7hfkK.js          53.92 kB │ gzip:  19.28 kB
+dist/assets/plugins-BiU0Jewt.js                           57.47 kB │ gzip:  15.97 kB
+dist/assets/schemas-DXen-lEq.js                           93.02 kB │ gzip:  25.76 kB
+dist/assets/public-CJiZ5DBD.js                           112.91 kB │ gzip:  35.82 kB
+dist/assets/tooltip-icon-button-CmWfjSPw.js              168.78 kB │ gzip:  59.14 kB
+dist/assets/lexical-eUAmReJz.js                          234.23 kB │ gzip:  74.71 kB
+dist/assets/textarea-nPMKiRgE.js                         505.17 kB │ gzip: 147.06 kB
+dist/assets/index-CTz9gakW.js                            854.75 kB │ gzip: 227.06 kB
+
+✓ built in 355ms
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.

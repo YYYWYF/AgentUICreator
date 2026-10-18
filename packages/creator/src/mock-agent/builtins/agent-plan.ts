@@ -11,7 +11,7 @@ export const agentPlanScenario = defineScenario({
     audience: "frontend",
     protocol: "AG-UI ACTIVITY_SNAPSHOT / ACTIVITY_DELTA",
     pattern: "Authoritative Agent Plan Activity",
-    presentation: "assistant-ui AgentPlan",
+    presentation: "Agent UI AgentPlan",
     eventFlow: [
       "RUN_STARTED",
       "ACTIVITY_SNAPSHOT (agent-plan)",

@@ -1,0 +1,26 @@
+{
+  "id": "plugin/response-footer",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-response-footer source",
+  "files": [
+    {
+      "source": "files/plugins/response-footer/definition.ts",
+      "target": "plugins/response-footer/definition.ts"
+    },
+    {
+      "source": "files/plugins/response-footer/index.tsx",
+      "target": "plugins/response-footer/index.tsx"
+    },
+    {
+      "source": "files/plugins/response-footer/manifest.json",
+      "target": "plugins/response-footer/manifest.json"
+    }
+  ],
+  "requires": [
+    "foundation/core",
+    "plugin/conversation-surface"
+  ],
+  "packages": {
+    "react": "19.1.1"
+  }
+}

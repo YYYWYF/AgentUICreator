@@ -1,0 +1,125 @@
+{
+  "date": "2026-10-17",
+  "scope": "generic plugin delivery plus six additional official UI plugins",
+  "modernPlugins": [
+    "composer",
+    "copy-action",
+    "reload-action",
+    "feedback-actions",
+    "export-markdown-action",
+    "reasoning",
+    "tool-group"
+  ],
+  "legacyCompatibility": [
+    "assistant-ui-composer"
+  ],
+  "checks": [
+    {
+      "name": "plugins build/typecheck",
+      "status": "passed"
+    },
+    {
+      "name": "operator build/typecheck",
+      "status": "passed"
+    },
+    {
+      "name": "portable snapshots and runtime integrity",
+      "status": "passed",
+      "canonicalSnapshotCount": 386
+    },
+    {
+      "name": "plugins focused vitest",
+      "status": "passed",
+      "tests": 21,
+      "files": [
+        "packaged-plugin-props",
+        "packaged-composer-context",
+        "assistant-response",
+        "assistant-response-ownership",
+        "source-package-layout"
+      ]
+    },
+    {
+      "name": "operator focused vitest",
+      "status": "passed",
+      "tests": 46,
+      "files": [
+        "general-plugin-delivery",
+        "official-package-pilot",
+        "plugin-source-takeover",
+        "package-metadata-authority",
+        "product-plugin-names",
+        "official-resource-registry",
+        "windows-package-invocation"
+      ]
+    },
+    {
+      "name": "creator Python focused pytest",
+      "status": "passed",
+      "tests": 82,
+      "files": [
+        "test_plugin_source_takeover",
+        "test_plugin_source_mutation",
+        "test_completion_runtime_refresh",
+        "test_source_grounding"
+      ]
+    },
+    {
+      "name": "Composer node:test bundle boundary",
+      "status": "passed",
+      "tests": 2
+    },
+    {
+      "name": "locale parity",
+      "status": "passed"
+    },
+    {
+      "name": "git diff --check",
+      "status": "passed"
+    },
+    {
+      "name": "tarball",
+      "status": "passed",
+      "record": "tarball.json"
+    },
+    {
+      "name": "generated Host browser",
+      "status": "passed",
+      "record": "browser.json",
+      "liveModel": false,
+      "sourceOwnedDOM": true
+    },
+    {
+      "name": "three example Host entry/support aliases",
+      "status": "passed"
+    },
+    {
+      "name": "workbench preview-tests typecheck",
+      "status": "passed"
+    }
+  ],
+  "expandedRunsBeforeFinalFollowups": [
+    {
+      "name": "plugins full Vitest",
+      "passed": 681,
+      "failed": 44,
+      "skipped": 9,
+      "failedFiles": 19,
+      "nodeTestCollectedWithoutSuite": 1
+    },
+    {
+      "name": "operator expanded selection",
+      "passed": 116,
+      "failed": 20,
+      "failedFiles": 3
+    }
+  ],
+  "limitations": [
+    "Expanded fixture suites remain failing; no claim all failures were proven pre-existing. User requested not to expand fixture repairs.",
+    "No live model run in this round.",
+    "No native Windows run.",
+    "Candidate source upgrades used temporary installed package fixtures, not a new upstream release.",
+    "Other official plugins and automatic legacy source layering remain pending.",
+    "No npm publication or git commit/push."
+  ]
+}

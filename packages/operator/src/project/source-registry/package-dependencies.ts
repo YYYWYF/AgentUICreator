@@ -1,4 +1,4 @@
-import { officialPackagePlugin, type LoadedAgentUISourceItem } from "@za38.03/agent-ui-source-registry";
+import { officialPackagePlugin, type LoadedAgentUISourceItem } from "../../source-catalog/index.js";
 
 export function packageSourceDependency(id: string) {
   return id.startsWith("plugin/") ? officialPackagePlugin(id.slice(7)) : undefined;

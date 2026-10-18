@@ -7,7 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { createServer } from "vite";
 import { generatedProjectFixture, repositoryRoot } from "../../../../packages/operator/tests/support/generated-project";
 import { writeGeneratedPluginRegistry } from "../../../../packages/operator/src/generate-plugin-registry";
-import { loadAgentUISourceRegistry } from "../../../../packages/source-registry/src/loader";
+import { loadAgentUISourceRegistry } from "../../../../packages/operator/src/source-catalog/loader";
 import { builtinMockScenarios, createMockAgentVitePlugin, createMockConversationApiVitePlugin } from "@za38.03/agent-ui-creator/mock-agent";
 
 export async function createI18nPluginHost(releaseIds: readonly string[]) {
@@ -23,7 +23,7 @@ export async function createI18nPluginHost(releaseIds: readonly string[]) {
     }
   }
   // Composer is dependency-owned; the source-registry legacy copy is not installed.
-  await rm(path.join(root, "agent-ui/plugins/assistant-ui-composer"), { recursive: true, force: true });
+  await rm(path.join(root, "agent-ui/plugins/composer"), { recursive: true, force: true });
   // Prefer current workspace releases to stale installed fixture tarballs.
   for (const name of ["react", "core", "renderer", "runtime"]) {
     const target = path.join(root, "node_modules/@za38.03", `agent-ui-${name}`);
@@ -37,11 +37,11 @@ export async function createI18nPluginHost(releaseIds: readonly string[]) {
   }
   const model = JSON.parse(await readFile(path.join(root, "agent-ui/app-ui/app-ui.json"), "utf8"));
   const surface = model.root.children[1].child.plugins[0];
-  surface.slots.toolTimeline = [{ id: "timeline-main", pluginId: "assistant-ui-tool-timeline", enabled: true }];
-  surface.slots.thinkingIndicator = [{ id: "thinking-main", pluginId: "assistant-ui-thinking-indicator", enabled: true }];
+  surface.slots.toolTimeline = [{ id: "timeline-main", pluginId: "tool-timeline", enabled: true }];
+  surface.slots.thinkingIndicator = [{ id: "thinking-main", pluginId: "thinking-indicator", enabled: true }];
   surface.slots.headerActions = [{ id: "theme-switch-main", pluginId: "theme-switch", enabled: true }];
-  surface.slots.userEditComposer = [{ id: "lexical-edit-main", pluginId: "assistant-ui-lexical-edit-composer", enabled: true }];
-  surface.slots.composer[0].slots.input = [{ id: "lexical-input-main", pluginId: "assistant-ui-lexical-composer-input", enabled: true }];
+  surface.slots.userEditComposer = [{ id: "lexical-edit-main", pluginId: "lexical-edit-composer", enabled: true }];
+  surface.slots.composer[0].slots.input = [{ id: "lexical-input-main", pluginId: "lexical-composer-input", enabled: true }];
   for (const item of plugins) {
     const manifest = JSON.parse(item.loadedFiles.find(file => file.target === `plugins/${item.id.slice(7)}/manifest.json`)!.content.toString());
     if (((manifest.capabilities ?? []).includes("headless") || manifest.data?.messageUI) && !model.applicationPlugins.some((p: {pluginId: string}) => p.pluginId === manifest.id)) {
@@ -94,14 +94,6 @@ export async function createI18nPluginHost(releaseIds: readonly string[]) {
     surface.slots.toolTimeline[0].enabled = options.timeline;
     surface.slots.thinkingIndicator[0].enabled = options.thinking;
     surface.slots.reasoningGroup[0].enabled = options.reasoning;
-    await writeFile(path.join(root, "agent-ui/app-ui/app-ui.json"), JSON.stringify(model));
-    await writeGeneratedPluginRegistry(root);
-    server.moduleGraph.invalidateAll();
-  }, setLegacyFooter: async (legacy: boolean) => {
-    const footer = surface.slots.assistantResponseFooter ?? surface.slots.assistantMessageFooter;
-    delete surface.slots.assistantResponseFooter; delete surface.slots.assistantMessageFooter;
-    footer[0].pluginId = legacy ? "assistant-ui-message-footer" : "assistant-ui-response-footer";
-    surface.slots[legacy ? "assistantMessageFooter" : "assistantResponseFooter"] = footer;
     await writeFile(path.join(root, "agent-ui/app-ui/app-ui.json"), JSON.stringify(model));
     await writeGeneratedPluginRegistry(root);
     server.moduleGraph.invalidateAll();

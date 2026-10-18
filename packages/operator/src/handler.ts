@@ -1,8 +1,10 @@
+import { resolveCompatibilityConsumer } from "./project/compatibility-binding";
+import { planPluginSourceTakeover, takeoverPluginSource, recoverPluginSourceTakeover, planPluginSourceInputSchema, takeoverPluginSourceInputSchema } from "./project/takeover-plugin-source";
 import { assertRuntimeBuildCurrent } from "./runtime-integrity.mjs";
 declare const __OPERATOR_BUILD_ID__: string;
 import { createCustomPlugin, createCustomPluginInputSchema } from "./project/create-custom-plugin";
 import { migrateOfficialPackagePlugin } from "./project/migrate-official-package-plugin";
-import { officialPackagePlugin, loadAgentUISourceRegistry } from "@za38.03/agent-ui-source-registry";
+import { officialPackagePlugin, loadAgentUISourceRegistry } from "./source-catalog/index.js";
 import { integrationOptionsSchema, integrationRecipeSchema, planIntegrationRecipe, applyIntegrationRecipe, prepareIntegrationRecipeAsset, verifyIntegrationRecipe } from "./project/integration-recipe";
 import { appUIRepairInputSchema, inspectAppUIModelSource, repairAppUIModel } from "./project/app-ui-recovery";
 import { acquireOperatorLock } from "./project/operator-lock";
@@ -75,8 +77,10 @@ const inspectUISlotsInputSchema = z.union([
   }),
 ]);
 export const requestSchema = z.discriminatedUnion("operation", [
+  z.strictObject({ operation: z.literal("plan_plugin_source_takeover"), input: planPluginSourceInputSchema }),
+  z.strictObject({ operation: z.literal("takeover_plugin_source"), input: takeoverPluginSourceInputSchema }),
   z.strictObject({ operation: z.literal("create_custom_plugin"), input: createCustomPluginInputSchema }),
-  z.strictObject({ operation: z.literal("migrate_official_package_plugin"), input: z.strictObject({ pluginId: z.literal("assistant-ui-composer") }) }),
+  z.strictObject({ operation: z.literal("migrate_official_package_plugin"), input: z.strictObject({ pluginId: z.string().regex(/^[a-z0-9][a-z0-9-]{0,99}$/u) }) }),
   z.strictObject({ operation: z.literal("plan_agent_ui_integration"), input: integrationOptionsSchema }),
   z.strictObject({ operation: z.literal("apply_agent_ui_integration"), input: z.strictObject({ recipe: integrationRecipeSchema, cancelMarker: z.string().regex(creatorCancelMarkerSchemaPattern).optional() }) }),
   z.strictObject({ operation: z.literal("prepare_agent_ui_integration_asset"), input: z.strictObject({ recipe: integrationRecipeSchema, cancelMarker: z.string().regex(creatorCancelMarkerSchemaPattern).optional() }) }),
@@ -321,7 +325,7 @@ async function inspectUIPlugin(
     );
   }
   const official = officialPackagePlugin(pluginId);
-  if (official) {
+  if (official && asset.ownership === "official_package") {
     const registry = await loadAgentUISourceRegistry();
     const item = registry.byId.get(official.referenceSourceItemId)!;
     return { appUIModelHash: inspection.appUIModel.hash, asset, selected: asset.selected,
@@ -496,6 +500,8 @@ async function executeRequest(
       const result = await verifyUIProject(projectRoot);
       return { status: result.status, errors: result.errors, warnings: result.warnings, responsiveRiskCount: result.responsiveRiskCount };
     }
+    case "plan_plugin_source_takeover": return planPluginSourceTakeover(projectRoot, request.input);
+    case "takeover_plugin_source": return takeoverPluginSource(projectRoot, request.input);
     case "create_custom_plugin": return createCustomPlugin(projectRoot, request.input);
     case "migrate_official_package_plugin": return migrateOfficialPackagePlugin(projectRoot, request.input.pluginId);
     case "purge_ui_plugin":
@@ -576,7 +582,7 @@ export async function handleUIOperatorRequest(
     assertRuntimeBuildCurrent(typeof __OPERATOR_BUILD_ID__ === "undefined" ? undefined : __OPERATOR_BUILD_ID__);
     const parsed = requestSchema.parse(input);
     if (["plan_agent_ui_integration", "apply_agent_ui_integration", "prepare_agent_ui_integration_asset", "verify_agent_ui_integration"].includes(parsed.operation)) {
-      if (parsed.operation === "apply_agent_ui_integration" || parsed.operation === "prepare_agent_ui_integration_asset") release = await acquireOperatorLock(projectRoot);
+      if (parsed.operation === "apply_agent_ui_integration" || parsed.operation === "prepare_agent_ui_integration_asset") release = await acquireOperatorLock((await resolveCompatibilityConsumer(projectRoot))?.hostRoot ?? projectRoot);
       const result = await executeRequest(parsed, projectRoot);
       validateOperatorResult(parsed.operation, result);
       return { ok: true, result };
@@ -592,6 +598,7 @@ export async function handleUIOperatorRequest(
       projectRoot,
       effectiveConfig,
     );
+    await recoverPluginSourceTakeover(projectRoot);
     const request = requestSchema.parse(input);
     const result = await executeRequest(request, projectRoot);
     try {

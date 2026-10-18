@@ -158,7 +158,7 @@ describe("Mock conversation deletion", () => {
 
 
 it("keeps Mock payloads compatible with the generated frontend conversation contract", async () => {
-  const { conversationListResponseSchema, conversationDetailResponseSchema } = await import("../../../../source-registry/registry/items/foundation-core-application/files/services/conversations/contract");
+  const { conversationListResponseSchema, conversationDetailResponseSchema } = await import("../../../../plugins/resources/registry/items/foundation-core-application/files/services/conversations/contract");
   const { mockConversationList, mockConversationDetails } = await import("../../../src/mock-agent/conversations/fixtures");
   expect(conversationListResponseSchema.parse(mockConversationList)).toEqual(mockConversationList);
   for (const detail of mockConversationDetails) {

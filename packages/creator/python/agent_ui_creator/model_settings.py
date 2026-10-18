@@ -101,7 +101,7 @@ class CreatorModelSettings:
     base_url: str
     api_key: str
     temperature: float = 0.2
-    max_tokens: int = 2048
+    max_tokens: int = 8192
     timeout_seconds: float = 120.0
     max_retries: int = DEFAULT_CREATOR_MODEL_MAX_RETRIES
     raw_trace: bool = False
@@ -156,7 +156,7 @@ class CreatorModelSettings:
         )
         max_tokens = _number(
             _first_value(environment, file_values, "CREATOR_MODEL_MAX_TOKENS"),
-            default=2048,
+            default=8192,
             name="CREATOR_MODEL_MAX_TOKENS",
             cast=int,
         )

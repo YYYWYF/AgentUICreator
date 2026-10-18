@@ -9,7 +9,7 @@ export const simpleChatScenario = defineScenario({
     audience: "backend",
     protocol: "AG-UI",
     pattern: "Text Message Streaming",
-    presentation: "assistant-ui Message",
+    presentation: "Agent UI Message",
     eventFlow: ["TEXT_MESSAGE_START/CONTENT/END"],
   },
   steps: [

@@ -1,4 +1,4 @@
-import { officialPackagePlugin, officialResourceRegistry, type OfficialAgentUIResource } from "@za38.03/agent-ui-source-registry";
+import { officialPackagePlugin, officialResourceRegistry, type OfficialAgentUIResource } from "../source-catalog/index.js";
 import { resourcePackageConflicts } from "./ensure-resource-packages";
 import { packageSourceDependency } from "./source-registry/package-dependencies";
 import type { ResourceCompositionInspection, ResourceSourceInspection, ResourceImplementationInspection } from "../resources.mjs";

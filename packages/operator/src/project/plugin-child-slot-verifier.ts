@@ -1,3 +1,5 @@
+import { isPluginApplication } from "./plugin-application";
+import { officialPackagePlugin } from "../source-catalog/index.js";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 
@@ -7,6 +9,7 @@ import {
   isIdentifier,
   isPropertyAccessExpression,
   isStringLiteral,
+  isVariableDeclaration, isObjectBindingPattern, isImportDeclaration, isNamedImports, isJsxSelfClosingElement, isJsxOpeningElement, isJsxSpreadAttribute, isJsxAttribute, isJsxExpression, isFunctionDeclaration, isArrowFunction, isFunctionExpression,
 } from "typescript/unstable/ast/is";
 import { API } from "typescript/unstable/sync";
 
@@ -105,6 +108,8 @@ function sourceLocation(sourceFile: SourceFile, node: Node): {
 function inspectRenderedChildSlots(
   projectRoot: string,
   sourceFile: SourceFile,
+  delegatedSlots: PluginAsset["childSlots"] = {},
+  delegation?: { entry: string; component: string },
 ): {
   rendered: RenderedChildSlot[];
   dynamic: DynamicRenderedChildSlot[];
@@ -112,7 +117,56 @@ function inspectRenderedChildSlots(
   const rendered: RenderedChildSlot[] = [];
   const dynamic: DynamicRenderedChildSlot[] = [];
   const relativePath = projectPath(projectRoot, sourceFile.fileName);
+  const componentNames = new Set<string>();
+  for (const statement of sourceFile.statements) if (delegation && isImportDeclaration(statement) && isStringLiteral(statement.moduleSpecifier) && statement.moduleSpecifier.text === delegation.entry) {
+    const bindings=statement.importClause?.namedBindings;
+    if(bindings&&isNamedImports(bindings)) for(const entry of bindings.elements) if((entry.propertyName?.text??entry.name.text)===delegation.component) componentNames.add(entry.name.text);
+  }
+  const forwarded = (node: Node, callbackName: "renderSlot" | "renderScopedSlot"): boolean => {
+    if(!isJsxSelfClosingElement(node)&&!isJsxOpeningElement(node))return false;
+    if(!isIdentifier(node.tagName)||!componentNames.has(node.tagName.text))return false;
+    const explicitSlot = [...node.attributes.properties].reverse().find(attribute => isJsxAttribute(attribute) && attribute.name.getText() === callbackName);
+    if (explicitSlot && isJsxAttribute(explicitSlot)) {
+      const expression = explicitSlot.initializer && isJsxExpression(explicitSlot.initializer) ? explicitSlot.initializer.expression : undefined;
+      return !!expression && (isIdentifier(expression) && expression.text === callbackName || isPropertyAccessExpression(expression) && expression.name.text === callbackName);
+    }
+    return node.attributes.properties.some(attribute=>{
+      if(isJsxAttribute(attribute)&&attribute.name.getText()===callbackName&&attribute.initializer&&isJsxExpression(attribute.initializer)) {
+        const expression=attribute.initializer.expression;
+        return !!expression&&(isIdentifier(expression)&&expression.text===callbackName||isPropertyAccessExpression(expression)&&expression.name.text===callbackName);
+      }
+      if(!isJsxSpreadAttribute(attribute)||!isIdentifier(attribute.expression))return false;
+      const name=attribute.expression.text;
+      let parent=node.parent;
+      while(parent){
+        if (isFunctionDeclaration(parent) || isArrowFunction(parent) || isFunctionExpression(parent)) {
+          const parameterNames = new Set(parent.parameters.flatMap(parameter => isIdentifier(parameter.name) ? [parameter.name.text] : []));
+          if (parameterNames.has(name)) return true;
+          if (parent.parameters.some(parameter => {
+            if (!isObjectBindingPattern(parameter.name)) return false;
+            const removesSlot = parameter.name.elements.some(element => !element.dotDotDotToken && (element.propertyName?.getText() ?? element.name?.getText()) === callbackName);
+            return !removesSlot && parameter.name.elements.some(element => element.dotDotDotToken && element.name && isIdentifier(element.name) && element.name.text === name);
+          })) return true;
+          // A rest object still forwards renderSlot unless that property was removed.
+          let restForwards = false;
+          const inspectBinding = (binding: Node): void => {
+            if (isVariableDeclaration(binding) && isObjectBindingPattern(binding.name) && binding.initializer && isIdentifier(binding.initializer) && parameterNames.has(binding.initializer.text)) {
+              const removesSlot = binding.name.elements.some(element => !element.dotDotDotToken && (element.propertyName?.getText() ?? element.name?.getText()) === callbackName);
+              if (!removesSlot && binding.name.elements.some(element => element.dotDotDotToken && element.name && isIdentifier(element.name) && element.name.text === name)) restForwards = true;
+            }
+            binding.forEachChild(inspectBinding);
+          };
+          if (parent.body) inspectBinding(parent.body);
+          return restForwards;
+        }
+        parent=parent.parent;
+      }
+      return false;
+    });
+  };
+
   const visit = (node: Node): void => {
+    for (const [slotId,slot] of Object.entries(delegatedSlots??{})) if (forwarded(node, slot.mode === "renderer" ? "renderScopedSlot" : "renderSlot")) rendered.push({slotId,mode:slot.mode??"content",path:relativePath,...sourceLocation(sourceFile,node)});
     const mode = renderedSlotMode(node);
     if (mode !== null && isCallExpression(node)) {
       const argument = node.arguments[0];
@@ -144,6 +198,7 @@ export async function verifyPluginChildSlots(
   const sourcesByPlugin = await Promise.all(
     assets.map(async (asset) => ({
       asset,
+      application: await isPluginApplication(path.join(resolvedProjectRoot,path.dirname(asset.definitionPath)),asset.pluginId),
       files: await collectPluginSourceFiles(
         path.join(resolvedProjectRoot, path.dirname(asset.manifestPath)),
       ),
@@ -160,7 +215,8 @@ export async function verifyPluginChildSlots(
     try {
       const snapshot = api.updateSnapshot({ openFiles: sourceFiles });
       try {
-        for (const { asset, files } of sourcesByPlugin) {
+        for (const { asset, files, application } of sourcesByPlugin) {
+          const official = application ? officialPackagePlugin(asset.pluginId) : undefined;
           const rendered: RenderedChildSlot[] = [];
           const dynamic: DynamicRenderedChildSlot[] = [];
           for (const filePath of files) {
@@ -172,6 +228,8 @@ export async function verifyPluginChildSlots(
             const result = inspectRenderedChildSlots(
               resolvedProjectRoot,
               sourceFile,
+              official ? asset.childSlots : {},
+              official ? { entry: official.runtime.package + official.runtime.subpath.slice(1), component: official.application.component } : undefined,
             );
             rendered.push(...result.rendered);
             dynamic.push(...result.dynamic);

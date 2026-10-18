@@ -99,7 +99,7 @@ Composition revision; it does not need a separate Service scan.
   current runtime entity through local scoped context. Change its occupant in
   AppUIModel to change presentation. An empty Renderer Slot renders nothing;
   disabling or removing its occupant does not reveal an implicit host or
-  assistant-ui fallback. Omitted `mode` remains ordinary content; do not place
+  Agent UI fallback. Omitted `mode` remains ordinary content; do not place
   a `requiresRenderScope` Plugin in a Layout or content Slot.
 - Layout Slot nodes do not gain descriptions, hints, roles, or accepts lists.
 
@@ -314,18 +314,18 @@ the project to preflight checks listed in hostGuarantees.
 ```text
 User request: I don't want to show the reasoning process.
 Current composition: conversation-surface.reasoningGroup contains the selected
-assistant-ui-reasoning Renderer Plugin.
+reasoning Renderer Plugin.
 Desired state: reasoning presentation absent while conversation text remains.
 Owning layer: Composition.
 Semantic delta: disable the reasoningGroup occupant.
-Correct tool: set_plugin_enabled(assistant-ui-reasoning-main, false).
+Correct tool: set_plugin_enabled(reasoning-main, false).
 Result: reasoningGroup renders nothing; the Host does not reveal a
-hidden canonical fallback or modify the assistant-ui Thread.
-Incorrect: edit ConversationAdapter, edit assistant-ui Thread/grouping, create
+hidden canonical fallback or modify the Agent UI Thread.
+Incorrect: edit ConversationAdapter, edit Agent UI Thread/grouping, create
 a hidden Renderer Plugin, or modify reasoning Runtime state.
 
 User request: Restore the reasoning process.
-Semantic delta: enable the existing assistant-ui-reasoning instance.
+Semantic delta: enable the existing reasoning instance.
 Correct tool: insert the existing Plugin instance through Composition.
 ```
 
@@ -387,11 +387,19 @@ insert/remove/move/enable/disable/replace operations. Preserve existing Header,
 items, content and application plugins when adding it. Never replace an occupied
 Footer silently. Footer is not a child slot of the Header or a special auth node.
 
-For an explicitly requested login feature, follow
+For an existing Host login that only needs profile display, install account source
+alone and pass `<Agent user={{ userId, userName, avatar }} />` (or `user={null}`
+to show the signed-out default). For Host business interaction, use the generated
+public `AgentUIProvider` and Hooks; put user/connection options on the Provider
+and render `<Agent />` inside it. The Provider is framework integration, not an
+AppUIModel plugin. Do not add a gate or request adapter edits for display-only mode.
+
+For an explicitly requested plugin-managed login feature, follow
 `docs/implementation/authentication/README.md`: prepare `plugin/auth-gate` source
 and put its unique owner in `applicationPlugins`; optionally prepare
-`plugin/auth-account` and mount it in Footer. Account source requires gate source,
-but source installation never installs model instances automatically. Hiding the
+`plugin/auth-account` and mount it in Footer. Install the gate source explicitly
+for plugin-managed login; source installation never installs model instances
+automatically. Hiding the
 account leaves authentication enabled. Configure the Host adapter explicitly;
 never enable the demo by default or overwrite existing authentication. Confirm
 owner, adapter and layout scope once, honoring authorization already supplied.

@@ -1,0 +1,30 @@
+[
+  {
+    "archive": "za38.03-agent-ui-core-0.0.1.tgz",
+    "sha256": "11b498c4d1a987534d091c056600f14036c84a6c613e29979eb2f655593f012a"
+  },
+  {
+    "archive": "za38.03-agent-ui-creator-0.0.1.tgz",
+    "sha256": "47d3ac7133dce06fd2ddb1215c2c3c8c05124b853e28d370b5adc0c339190be3"
+  },
+  {
+    "archive": "za38.03-agent-ui-operator-0.0.1.tgz",
+    "sha256": "0766c40c33e8e5ca0f869de7f86f5ddeaaded36be12650c807a87465795e624b"
+  },
+  {
+    "archive": "za38.03-agent-ui-plugins-0.0.1.tgz",
+    "sha256": "31998b7b1ca76757703b40bb4f4de0d6c33800c51f88406861e97a6855d2e8b2"
+  },
+  {
+    "archive": "za38.03-agent-ui-renderer-0.0.1.tgz",
+    "sha256": "0d77c5c750294200a8c42c45d781fa587787d450598fdd7e5b17a109d29fe5b4"
+  },
+  {
+    "archive": "za38.03-agent-ui-runtime-0.0.1.tgz",
+    "sha256": "1290abc68eb3fc82e3ec7aac20b3f8cd0422b109e4915c743cc54057d648b8d8"
+  },
+  {
+    "archive": "za38.03-agent-ui-web-component-0.0.1.tgz",
+    "sha256": "17f008cce85f47ac754f60a5664c7eb40cf43a2deb427561c167f7764c8f668d"
+  }
+]

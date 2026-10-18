@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ModeShell } from "../../../source-registry/registry/items/foundation-core-runtime/files/runtime/mode-shell/index";
+import { ModeShell } from "../../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/mode-shell/index";
 
 describe("ModeShell", () => {
   beforeEach(() => {

@@ -26,6 +26,7 @@ const workspaceRoot = path.resolve(
 const hostProjectRoot = path.join(workspaceRoot, "examples/creator-host-sandbox");
 const initializationHost = createAgentUIInitializationHost();
 const workspaceManager = new CreatorWorkspaceManager({
+    compatibility: true,
   inspectProject: inspectCreatorProject,
   initializeProject: input => initializeAgentUIProject(input, initializationHost),
   validateProjectSetup: validateAgentUIProjectSetup,
@@ -74,8 +75,10 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@za38.03/agent-ui-plugins/assistant-ui-composer": path.join(workspaceRoot, "packages/plugins/dist/assistant-ui-composer/index.js"),
-      "@za38.03/agent-ui-plugins/generative-ui.css": path.join(workspaceRoot, "packages/plugins/src/internal/vendor/assistant-ui/generative-ui/generative-ui.css"),
+      "@za38.03/agent-ui-plugins/composer-support": path.join(workspaceRoot, "packages/plugins/src/composer-support.ts"),
+      "@za38.03/agent-ui-plugins/composer": path.join(workspaceRoot, "packages/plugins/dist/composer/index.js"),
+      "@za38.03/agent-ui-plugins/form-tools": path.join(workspaceRoot, "packages/plugins/src/form-tools.ts"),
+      "@za38.03/agent-ui-plugins/generative-ui.css": path.join(workspaceRoot, "packages/plugins/src/internal/vendor-generated/assistant-ui/generative-ui/generative-ui.css"),
       "@za38.03/agent-ui-plugins/generative-ui": path.join(workspaceRoot, "packages/plugins/src/generative-ui.ts"),
       "@za38.03/agent-ui-plugins/theme": path.join(workspaceRoot, "packages/plugins/src/theme/theme-contract.ts"),
       "@za38.03/agent-ui-plugins/demo-attachments": path.join(workspaceRoot, "packages/plugins/src/demo-attachments.ts"),

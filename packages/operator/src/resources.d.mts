@@ -1,5 +1,5 @@
-import type { OfficialAgentUIResource } from "@za38.03/agent-ui-source-registry";
-export { officialResourceRegistry, resolveOfficialResource, OfficialResourceError } from "@za38.03/agent-ui-source-registry";
+import type { OfficialAgentUIResource } from "./source-catalog/index.js";
+export { officialResourceRegistry, resolveOfficialResource, OfficialResourceError } from "./source-catalog/index.js";
 
 /** Node-compatible development API; implementation details stay out of UI DTOs. */
 export interface ResourcePackageRequirement {
@@ -50,4 +50,4 @@ export function inspectOfficialAgentUIResourceCatalog(root: string): Promise<Off
 export { inspectIntegrationHost, planIntegrationRecipe, applyIntegrationRecipe, prepareIntegrationRecipeAsset, verifyIntegrationRecipe } from "./project/integration-recipe";
 export type { IntegrationRecipe, IntegrationOptions } from "./project/integration-recipe";
 
-export function migrateOfficialPackagePlugin(projectRoot: string, pluginId?: "assistant-ui-composer"): Promise<{ changed: boolean }>;
+export function migrateOfficialPackagePlugin(projectRoot: string, pluginId?: string): Promise<{ changed: boolean }>;

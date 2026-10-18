@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 
 const defaultRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const packageName = "@assistant-ui/react-generative-ui";
-const itemIds = ["agent-component-assistant-ui-generative-ui", "integration-generative-ui"];
-const vendorDirectory = "packages/plugins/src/internal/vendor/assistant-ui/generative-ui";
+const itemIds = ["agent-component-assistant-ui-generative-ui", "agent-component-generative-ui", "integration-generative-ui"];
+const vendorDirectory = "packages/plugins/src/internal/vendor-generated/assistant-ui/generative-ui";
 
 export async function checkGenerativeUiResource({ repoRoot = defaultRoot, target } = {}) {
   target ??= JSON.parse(await readFile(path.join(repoRoot, "assistant-ui-upgrade-target.json"), "utf8"));
@@ -37,7 +37,7 @@ export async function checkGenerativeUiResource({ repoRoot = defaultRoot, target
   }
   for (const missing of expectedFiles) errors.push(`Generative UI UPSTREAM.json is missing ${missing}`);
   for (const id of itemIds) {
-    const relativePath = `packages/source-registry/registry/items/${id}/item.json`;
+    const relativePath = `packages/plugins/resources/registry/items/${id}/item.json`;
     const item = JSON.parse(await readFile(path.join(repoRoot, relativePath), "utf8"));
     if (item.packages?.[packageName]) errors.push(`${id} must use the package facade instead of depending directly on upstream`);
     if (item.files.some(file => /(^|\/)vendors?\//u.test(file.target))) errors.push(`${id} installs vendor source`);

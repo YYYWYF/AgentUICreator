@@ -15,10 +15,18 @@ server 仍只消费内部 EventBus 并映射为官方 AG-UI 事件。
 
 此包是开发时依赖，不进入生成的 Agent Frontend。
 
+Creator 不设置累计模型调用次数或执行图步数上限。调用次数仍记录为指标，不能据此终止正常任务。锁定版本的 LangGraph 在省略 `recursion_limit` 时恢复有限默认值，因此工厂与统一 streaming runner 显式传入正无穷；不使用另一个较大的整数预算。升级执行库时须重跑长任务、checkpoint/恢复及取消测试。用户停止、单次模型请求超时、无进展重复检测、权限和修改确认保持有效；8192 单次输出额度不变。
+
 ## 测试门禁
 
 仓库使用锁定的 `requirements.lock` 自动维护
 `packages/creator/python/.venv`，不需要开发者手工创建或激活虚拟环境。
+
+Python 运行依赖及间接依赖均使用精确版本锁定；Creator 自动安装和测试环境读取
+`requirements.lock`，单独安装 Python wheel 时也通过 `pyproject.toml` 的精确依赖
+使用同一组版本，不自动跟随最新版。pytest 等测试专用依赖保留在 `test` extra。
+修改版本时必须同步两份声明并重新验证；变更 Agent 依赖后重跑真实 MiMo conformance。
+
 
 ```bash
 # Python unit + contract tests

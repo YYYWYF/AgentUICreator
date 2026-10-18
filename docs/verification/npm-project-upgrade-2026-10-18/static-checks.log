@@ -1,0 +1,42 @@
+
+> @za38.03/agent-ui-operator@0.0.1 typecheck /Users/yifei/Coding/AgentUICreator/packages/operator
+> node ../plugins/scripts/materialize-plugin-sources.mjs && tsc --noEmit && tsc -p tsconfig.tests.json
+
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.onlyBuiltDependencies", "pnpm.overrides", "pnpm.peerDependencyRules". See https://pnpm.io/settings for the new home of each setting.
+
+> agent-ui-creator-workspace@0.0.1 check:i18n /Users/yifei/Coding/AgentUICreator
+> node scripts/audit-ui-copy.mjs
+
+{
+  "parity": [
+    {
+      "owner": "creator",
+      "locales": [
+        "en-US",
+        "zh-CN"
+      ],
+      "keys": 753
+    },
+    {
+      "owner": "presentation",
+      "locales": [
+        "en-US",
+        "zh-CN"
+      ],
+      "keys": 379
+    },
+    {
+      "owner": "generated",
+      "locales": [
+        "en-US",
+        "zh-CN"
+      ],
+      "keys": 430
+    }
+  ],
+  "copyCandidates": 225,
+  "duplicateValues": 15,
+  "unusedCandidates": 128,
+  "failures": []
+}
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.onlyBuiltDependencies", "pnpm.overrides", "pnpm.peerDependencyRules". See https://pnpm.io/settings for the new home of each setting.

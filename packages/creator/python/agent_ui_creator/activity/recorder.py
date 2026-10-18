@@ -37,6 +37,7 @@ class CreatorActivityRecorder:
     def __init__(
         self, project_root: str | Path, *, logger: CreatorRunLogger | None = None
     ) -> None:
+        self.bound_host_integration: dict[str, Any] | None = None
         self.plugin_delivery_provider: Callable[[], list[dict[str, Any]]] | None = None
         self.project_root = Path(project_root).resolve()
         self.logger = logger
@@ -67,6 +68,7 @@ class CreatorActivityRecorder:
         }
 
     def begin(self, run_id: str | None = None) -> None:
+        self.bound_host_integration = None
         self._before_by_path.clear()
         self._touched_paths.clear()
         self._mutation_paths.clear()
@@ -230,6 +232,13 @@ class CreatorActivityRecorder:
 
     def current_plugin_behavior(self) -> dict[str, Any] | None:
         return copy.deepcopy(self._plugin_behavior)
+
+    def record_bound_host_integration(self, result: dict[str, Any], *, phase: str) -> None:
+        previous = self.bound_host_integration or {}
+        self.bound_host_integration = {
+            **copy.deepcopy(result), "phase": phase, "projectRevision": self.revision,
+            "changedPaths": list(dict.fromkeys([*previous.get("changedPaths", []), *result.get("changedPaths", [])])),
+        }
 
     def record_verification(self, verification: dict[str, Any]) -> None:
         self._verification = copy.deepcopy(verification)

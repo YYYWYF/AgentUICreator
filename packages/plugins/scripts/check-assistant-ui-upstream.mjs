@@ -14,7 +14,7 @@ const defaultVendorRoot = path.join(
   "..",
   "src",
   "internal",
-  "vendor",
+  "vendor-generated",
   "assistant-ui",
 );
 const MANIFEST_FILE = "upstream-elements.json";

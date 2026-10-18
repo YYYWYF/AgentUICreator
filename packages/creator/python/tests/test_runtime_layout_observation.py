@@ -375,7 +375,7 @@ def test_layout_tool_keeps_arrays_and_delimiters_as_single_filter_values(tmp_pat
         tool.ainvoke(
             {
                 "instanceIds": "sidebar-main,surface-main",
-                "nodeRefs": ["l0", "l3"],
+                "nodeRefs": ["l0", "l1"],
             }
         )
     )
@@ -384,7 +384,7 @@ def test_layout_tool_keeps_arrays_and_delimiters_as_single_filter_values(tmp_pat
     assert payload["ok"] is True
     assert [item["nodeRef"] for item in payload["result"]["layoutNodes"]] == [
         "l0",
-        "l3",
+        "l1",
     ]
     assert store.received_instance_ids == ["sidebar-main,surface-main"]
     assert store.received_layout_node_ids is None
@@ -409,7 +409,8 @@ def test_layout_tool_rejects_unbounded_filters(tmp_path):
     )
     tool = create_runtime_layout_tool(service)
     schema = tool.args_schema.model_json_schema()
-    assert schema["properties"]["instanceIds"]["anyOf"][0]["maxItems"] == 200
+    instance_array = next(branch for branch in schema["properties"]["instanceIds"]["anyOf"] if branch.get("type") == "array")
+    assert instance_array["maxItems"] == 200
     assert any(
         branch.get("type") == "string"
         and branch.get("minLength") == 1
@@ -417,7 +418,7 @@ def test_layout_tool_rejects_unbounded_filters(tmp_path):
         for branch in schema["properties"]["instanceIds"]["anyOf"]
     )
     assert (
-        schema["properties"]["nodeRefs"]["anyOf"][0]["items"]["maxLength"]
+        next(branch for branch in schema["properties"]["nodeRefs"]["anyOf"] if branch.get("type") == "array")["items"]["maxLength"]
         == 200
     )
     assert "layoutNodeIds" not in schema["properties"]

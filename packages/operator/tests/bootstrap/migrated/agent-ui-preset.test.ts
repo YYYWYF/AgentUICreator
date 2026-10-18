@@ -19,7 +19,7 @@ import { agentUIModeRegistry } from "../../../src/framework/modes/index";
 import { generatePluginRegistry } from "../../../src/project/registry-generator";
 import { uiOperatorConfig } from "../../../src/project/project-config";
 import { resolveAgentUIProjectPaths } from "../../../src/project/agent-ui-project-paths";
-import { loadAgentUISourceRegistry } from "../../../../source-registry/src/loader";
+import { loadAgentUISourceRegistry } from "../../../src/source-catalog/loader";
 import { projectWorkspaceTopology } from "../../../src/project/workspace-topology";
 
 function collectLayoutPluginIds(
@@ -48,9 +48,9 @@ describe("Agent UI Preset", () => {
       expect(preset.id).toBe(agentUIModeRegistry.get(mode).defaultPresetId);
       expect(preset.sourceItems).toContain("foundation/conversation");
       expect(preset.sourceItems).toContain("plugin/conversation-quote");
-      expect(preset.sourceItems).toContain("plugin/assistant-ui-lexical-composer-input");
-      expect(preset.sourceItems).toContain("plugin/assistant-ui-lexical-edit-composer");
-      expect(preset.sourceItems).toContain("plugin/assistant-ui-dictation-action");
+      expect(preset.sourceItems).toContain("plugin/lexical-composer-input");
+      expect(preset.sourceItems).toContain("plugin/lexical-edit-composer");
+      expect(preset.sourceItems).toContain("plugin/dictation-action");
     }
   });
 
@@ -59,23 +59,23 @@ describe("Agent UI Preset", () => {
     (mode) => {
       const model = agentUIPresetRegistry.getDefaultForMode(mode, agentUIModeRegistry).createAppUIModel();
       const locations = collectAppUIPluginLocations(model);
-      expect(locations.find(({ plugin }) => plugin.pluginId === "assistant-ui-lexical-edit-composer"))?.toMatchObject({
-        plugin: { id: "assistant-ui-lexical-edit-composer-main", enabled: true },
+      expect(locations.find(({ plugin }) => plugin.pluginId === "lexical-edit-composer"))?.toMatchObject({
+        plugin: { id: "lexical-edit-composer-main", enabled: true },
         target: { type: "plugin_slot", parentInstanceId: "agent-conversation-surface-main", slot: "userEditComposer" },
       });
-      expect(locations.find(({ plugin }) => plugin.pluginId === "assistant-ui-lexical-composer-input"))?.toMatchObject({
+      expect(locations.find(({ plugin }) => plugin.pluginId === "lexical-composer-input"))?.toMatchObject({
         plugin: { enabled: true },
-        target: { type: "plugin_slot", parentInstanceId: "assistant-ui-composer-main", slot: "input" },
+        target: { type: "plugin_slot", parentInstanceId: "composer-main", slot: "input" },
       });
       expect(locations.find(({ plugin }) => plugin.pluginId === "conversation-quote"))?.toMatchObject({
-        target: { type: "plugin_slot", parentInstanceId: "assistant-ui-composer-main", slot: "beforeInput" },
+        target: { type: "plugin_slot", parentInstanceId: "composer-main", slot: "beforeInput" },
       });
-      expect(locations.find(({ plugin }) => plugin.pluginId === "assistant-ui-dictation-action"))
+      expect(locations.find(({ plugin }) => plugin.pluginId === "dictation-action"))
         ?.toMatchObject({
           plugin: { enabled: true },
-          target: { type: "plugin_slot", parentInstanceId: "assistant-ui-composer-main", slot: "trailingActions" },
+          target: { type: "plugin_slot", parentInstanceId: "composer-main", slot: "trailingActions" },
         });
-      expect(locations.find(({ plugin }) => plugin.pluginId === "assistant-ui-composer"))
+      expect(locations.find(({ plugin }) => plugin.pluginId === "composer"))
         ?.toMatchObject({ target: { type: "plugin_slot", parentInstanceId: "agent-conversation-surface-main", slot: "composer" } });
     },
   );
@@ -101,7 +101,7 @@ describe("Agent UI Preset", () => {
     const projectRoot = await generatedProjectFixture();
 
     const registry = await loadAgentUISourceRegistry();
-    const editComposer = registry.byId.get("plugin/assistant-ui-lexical-edit-composer")!;
+    const editComposer = registry.byId.get("plugin/lexical-edit-composer")!;
     for (const file of [...editComposer.loadedFiles, ...registry.byId.get("plugin/agent-identity")!.loadedFiles]) {
       const destination = path.join(projectRoot, "agent-ui", file.target);
       await mkdir(path.dirname(destination), { recursive: true });
@@ -148,8 +148,8 @@ describe("Agent UI Preset", () => {
       expect(applicationPluginIds).toContain("conversation-service");
       expect(applicationPluginIds).toContain("conversation-command-source");
       const nestedPluginIds = collectAppUIPluginLocations(model).map(entry => entry.plugin.pluginId);
-      expect(nestedPluginIds).toContain("assistant-ui-mention-trigger");
-      expect(nestedPluginIds).toContain("assistant-ui-slash-command-trigger");
+      expect(nestedPluginIds).toContain("mention-trigger");
+      expect(nestedPluginIds).toContain("slash-command-trigger");
       expect(applicationPluginIds).not.toContain("composer-trigger-demo");
 
       const topology = projectWorkspaceTopology(

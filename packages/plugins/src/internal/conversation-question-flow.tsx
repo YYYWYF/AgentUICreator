@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { useAuiState } from "@assistant-ui/react";
-import { OptionList } from "./adapters/assistant-ui/components/assistant-ui/elements/option-list.js";
+import { OptionList } from "./adapters-generated/assistant-ui/components/assistant-ui/elements/option-list.js";
 
 export interface ConversationOption {
   id: string;

@@ -1,0 +1,14 @@
+Creator
+2
+有 2 项更新
+Agent UI 已创建
+接下来把它引入你自己的应用。
+查看接入方法
+告诉 Creator 你想了解、检查或修改什么。
+
+可以分析当前 Agent UI、设计修改方案，或直接描述你想要的效果。
+
+告诉 Creator
+清空会话
+Enter 发送 · Shift+Enter 换行
+发送

@@ -1,0 +1,22 @@
+{
+  "react": {
+    "background": "oklch(1 0 0)",
+    "border": "1px solid oklch(0.922 0 0)",
+    "height": "114px",
+    "padding": "10px 12px",
+    "radius": "18px",
+    "shadow": "color(srgb 0.458783 0.341211 0.909859 / 0.07) 0px 8px 26px 0px",
+    "width": "672px"
+  },
+  "vue": {
+    "background": "oklch(1 0 0)",
+    "border": "1px solid oklch(0.922 0 0)",
+    "height": "114px",
+    "padding": "10px 12px",
+    "purpleTestContainers": 0,
+    "radius": "18px",
+    "shadow": "color(srgb 0.458784 0.341211 0.909858 / 0.07) 0px 8px 26px 0px",
+    "twBorder": "solid",
+    "width": "672px"
+  }
+}

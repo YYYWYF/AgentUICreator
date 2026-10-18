@@ -3,10 +3,14 @@ import { useAui, type AssistantRuntime } from "@assistant-ui/react";
 import type { RunAgentInput } from "@ag-ui/client";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { CancellationAwareHttpAgent } from "../../runtime/src/compatibility/cancellation-aware-http-agent.js";
-import { AgentUIRoot, ConversationThread, ConversationCanonicalComposer, ConversationComposerMentionTrigger, ConversationComposerCommandTrigger, type ConversationMentionSource, type ConversationSlashCommand, type ConversationTriggerLabels } from "../src/index.js";
+import { AgentUIRoot, ConversationThread, ConversationCanonicalComposer, ConversationComposerMentionTrigger as NativeMention, ConversationComposerCommandTrigger as NativeCommand, type ConversationMentionSource, type ConversationSlashCommand, type ConversationTriggerLabels } from "../src/index.js";
+import {ConversationMentionTrigger as NpmMention} from "../dist/mention-trigger/index.js";
+import {ConversationSlashCommandTrigger as NpmCommand} from "../dist/slash-command-trigger/index.js";
+import {ConversationMentionTrigger as SourceMention} from "../dist/sources/takeover/mention-trigger/index";
+import {ConversationSlashCommandTrigger as SourceCommand} from "../dist/sources/takeover/slash-command-trigger/index";
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const labels: ConversationTriggerLabels = { suggestions: "Suggestions", back: "Back", empty: "No matches", loading: "Loading", searchFailed: "Search failed", retry: "Retry", commandFailed: "Command failed", invalidItem: "Invalid item" };
 let root: Root | undefined;
@@ -15,6 +19,7 @@ async function until(predicate: () => boolean) {
   for (let i = 0; i < 100; i++) { if (predicate()) return; await act(async () => { await new Promise(resolve => setTimeout(resolve, 5)); }); }
   throw new Error("Timed out waiting for Composer trigger UI");
 }
+describe.each([{name:"native",Mention:NativeMention,Command:NativeCommand},{name:"npm",Mention:NpmMention,Command:NpmCommand},{name:"portable",Mention:SourceMention,Command:SourceCommand}])("$name", ({Mention:ConversationComposerMentionTrigger,Command:ConversationComposerCommandTrigger}) => {
 async function mount(source?: ConversationMentionSource, commands: readonly ConversationSlashCommand[] = [], disabled = false) {
   vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
   Object.defineProperty(HTMLElement.prototype, "scrollTo", { configurable: true, value() {} });
@@ -188,4 +193,6 @@ it("preserves ordinary user text whitespace through the dormant directive render
   const rendered = host.querySelector('[data-role="user"] .whitespace-pre-wrap')!;
   expect(rendered.textContent).toBe(text);
   expect(requests[0]!.messages.find(message => message.role === "user")!.content).toBe(text);
+});
+
 });

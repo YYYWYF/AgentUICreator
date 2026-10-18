@@ -1,0 +1,22 @@
+{
+  "archive": "/tmp/agent-ui-search-package/za38.03-agent-ui-plugins-0.0.1.tgz",
+  "sha256": "118a6e52653c908fb098e524923e96e65e4d37d2eb8d7f1c7f23873137d73a69",
+  "modernEntries": 24,
+  "portableClosures": 25,
+  "canonicalSnapshots": 434,
+  "portableAndRuntimeDigests": 278,
+  "allExportTargetsPresent": true,
+  "allDigestsVerified": true,
+  "noTestsOrNodeModules": true,
+  "requiredEntries": [
+    "dist/theme/theme-contract.d.ts",
+    "dist/chart-message/index.css",
+    "dist/types/plugins/chart-message/style.css.d.ts",
+    "dist/sources/takeover/chart-message/style.css",
+    "dist/sources/takeover/chart-message/style.css.d.ts",
+    "dist/chart-message/index.js",
+    "dist/source-citations-message/index.js",
+    "dist/retrieval-chunks/index.js",
+    "dist/web-search/index.js"
+  ]
+}
