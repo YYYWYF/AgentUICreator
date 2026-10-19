@@ -97,6 +97,9 @@ importers:
 
   examples/creator-assistant-host:
     dependencies:
+      '@assistant-ui/react-lexical':
+        specifier: 0.2.18
+        version: 0.2.18(@assistant-ui/core@0.3.29)(@assistant-ui/react@0.15.29)(@assistant-ui/store@0.3.21)(@lexical/history@0.52.0)(@lexical/plain-text@0.52.0)(@lexical/react@0.52.0)(@lexical/utils@0.52.0)(@types/react@19.3.0)(lexical@0.52.0)(react-dom@19.1.1)(react@19.1.1)
       '@lexical/history':
         specifier: 0.52.0
         version: 0.52.0(typescript@7.0.2)
@@ -173,6 +176,9 @@ importers:
 
   examples/creator-embedded-host:
     dependencies:
+      '@assistant-ui/react-lexical':
+        specifier: 0.2.18
+        version: 0.2.18(@assistant-ui/core@0.3.29)(@assistant-ui/react@0.15.29)(@assistant-ui/store@0.3.21)(@lexical/history@0.52.0)(@lexical/plain-text@0.52.0)(@lexical/react@0.52.0)(@lexical/utils@0.52.0)(@types/react@19.3.0)(lexical@0.52.0)(react-dom@19.1.1)(react@19.1.1)
       '@lexical/history':
         specifier: 0.52.0
         version: 0.52.0(typescript@7.0.2)
@@ -255,6 +261,9 @@ importers:
       '@assistant-ui/react-hook-form':
         specifier: 0.12.34
         version: 0.12.34(@assistant-ui/tap@0.9.23)(@types/react@19.3.0)(react-hook-form@7.88.0)(react@19.1.1)
+      '@assistant-ui/react-lexical':
+        specifier: 0.2.18
+        version: 0.2.18(@assistant-ui/core@0.3.29)(@assistant-ui/react@0.15.29)(@assistant-ui/store@0.3.21)(@lexical/history@0.52.0)(@lexical/plain-text@0.52.0)(@lexical/react@0.52.0)(@lexical/utils@0.52.0)(@types/react@19.3.0)(lexical@0.52.0)(react-dom@19.1.1)(react@19.1.1)
       '@base-ui/react':
         specifier: 1.8.0
         version: 1.8.0(@types/react@19.3.0)(react-dom@19.1.1)(react@19.1.1)

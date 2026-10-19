@@ -29,6 +29,7 @@
     "test": "node --import tsx ../../scripts/host-examples/test-host-example.ts platform creator-host-sandbox"
   },
   "dependencies": {
+    "@assistant-ui/react-lexical": "0.2.18",
     "@za38.03/agent-ui-plugins": "workspace:*",
     "@za38.03/agent-ui-runtime": "workspace:*",
     "@za38.03/agent-ui-core": "workspace:*",
