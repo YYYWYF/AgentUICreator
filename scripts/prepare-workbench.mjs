@@ -14,6 +14,10 @@ export function prepareWorkbench() {
   });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error("Workbench package preparation failed: Creator");
-  process.env.AGENT_UI_WORKBENCH_PREPARED = preparationState([...hostPackages, "creator"]);
+  const prepared = preparationState([...hostPackages, "creator"]);
+  process.env.AGENT_UI_WORKBENCH_PREPARED = prepared;
+  // Host predev includes Creator's mock entry. Both children must inherit the
+  // complete receipt so it cannot rebuild shared packages beside a running Vite.
+  process.env.AGENT_UI_HOST_PACKAGES_PREPARED = prepared;
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) prepareWorkbench();
