@@ -30,7 +30,10 @@ export async function ensureManagedHostPlugins(
       itemId: item.id, expectedStateHash: inspection.stateHash,
     } });
     if (!result.ok) {
-      if (preserveCustomized && result.error.code === "AGENT_UI_SOURCE_CUSTOMIZED_DEPENDENCY") {
+      // Legacy source may now have an npm delivery entry. Startup must preserve
+      // that implementation until an explicit migration, rather than reinstall it.
+      if (preserveCustomized && (result.error.code === "AGENT_UI_SOURCE_CUSTOMIZED_DEPENDENCY" ||
+          result.error.code === "PLUGIN_ID_RESERVED_BY_OFFICIAL")) {
         preserved.add(item.id);
         console.warn(`Preserving ${item.id}: ${result.error.message}`);
         continue;

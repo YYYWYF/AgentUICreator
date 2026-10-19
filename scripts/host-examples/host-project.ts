@@ -119,7 +119,7 @@ async function main() {
     return;
   }
   if (before.status !== "uninitialized") {
-    throw new Error(`Project status is ${before.status}. Run this Host project's reset script before initializing again.`);
+    throw new Error(`Host preparation failed: ${JSON.stringify(describeState(before), null, 2)}\nRepair the reported issues and retry. The Host reset script deletes generated UI source and metadata; use it only when you intend to discard them.`);
   }
 
   await initializeAgentUIProject({ projectRoot, mode, sourceRoot }, initializationHost);
