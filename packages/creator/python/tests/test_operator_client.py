@@ -344,7 +344,7 @@ def test_cancelled_child_tickets_are_released_without_touching_other_owners(tmp_
     source = '''import json, os, pathlib, sys, time
 sys.stdin.read()
 pid = os.getpid()
-directory = pathlib.Path('.agentuicreator/control/operator-locks')
+directory = pathlib.Path('.agent-ui/creator/control/operator-locks')
 directory.mkdir(parents=True, exist_ok=True)
 token = '00000000-0000-0000-0000-000000000000'
 (directory / f'{pid}.{token}.json').write_text(json.dumps({'pid':pid,'token':token,'number':1}))
@@ -352,7 +352,7 @@ pathlib.Path('ready').write_text(str(pid))
 time.sleep(60)
 '''
     root, client = _operator_project(tmp_path, source)
-    directory = root / '.agentuicreator/control/operator-locks'
+    directory = root / '.agent-ui/creator/control/operator-locks'
     directory.mkdir(parents=True)
     other = directory / '999.keep.json'
     other.write_text('{}')

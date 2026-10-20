@@ -2,6 +2,7 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import type { AgentConnectionState } from "./types.js";
+import { migrateLegacyAgentUIMetadata } from "../project/legacy-agent-ui-metadata.js";
 export function validateConnection(value: unknown): Pick<AgentConnectionState, "activeSource" | "endpoint" | "connectionMode"> {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid Agent connection.");
   const fields = value as Record<string, unknown>;
@@ -21,8 +22,9 @@ export function validateConnection(value: unknown): Pick<AgentConnectionState, "
 }
 export class ConnectionStore {
   readonly file: string;
-  constructor(projectRoot: string) { this.file = path.join(projectRoot, ".agentui/connection.local.json"); }
+  constructor(readonly projectRoot: string) { this.file = path.join(projectRoot, ".agent-ui/connection.local.json"); }
   async read(): Promise<AgentConnectionState> {
+    await migrateLegacyAgentUIMetadata(this.projectRoot);
     try {
       const saved = validateConnection(JSON.parse(await readFile(this.file, "utf8")));
       return { ...saved, configured: true, running: false };
@@ -33,6 +35,7 @@ export class ConnectionStore {
   }
   async save(value: unknown): Promise<AgentConnectionState> {
     const saved = validateConnection(value);
+    await migrateLegacyAgentUIMetadata(this.projectRoot);
     await mkdir(path.dirname(this.file), { recursive: true });
     // Ignore only the local connection, retaining shareable mock recordings.
     const ignoreFile = path.join(path.dirname(this.file), ".gitignore");

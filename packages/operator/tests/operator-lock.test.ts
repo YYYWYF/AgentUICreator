@@ -29,6 +29,24 @@ it("bounds waiting and preserves fail-fast callers", async () => {
   } finally { await release(); }
 });
 
+it.each([
+  ".agent-ui/creator/control/operator.lock",
+  ".agentuicreator/control/operator.lock",
+])("honors a PID lock left at %s", async relativePath => {
+  const { mkdir, writeFile, readFile, unlink } = await import("node:fs/promises");
+  const root = await project();
+  const legacyLock = path.join(root, relativePath);
+  await mkdir(path.dirname(legacyLock), { recursive: true });
+  await writeFile(legacyLock, String(process.pid));
+
+  await expect(acquireOperatorLock(root, { waitMs: 30 })).rejects.toMatchObject({ code: "OPERATOR_BUSY" });
+  expect(await readFile(legacyLock, "utf8")).toBe(String(process.pid));
+
+  await unlink(legacyLock);
+  const release = await acquireOperatorLock(root);
+  await release();
+});
+
 it("serializes several contenders and supports repeated release", async () => {
   const root = await project();
   let inside = 0;
@@ -45,7 +63,7 @@ it("serializes several contenders and supports repeated release", async () => {
 it("concurrent stale recovery never removes a successor's ticket", async () => {
   const {mkdir, writeFile, readdir} = await import("node:fs/promises");
   const root = await project();
-  const directory = path.join(root, ".agentuicreator", "control", "operator-locks");
+  const directory = path.join(root, ".agent-ui", "creator", "control", "operator-locks");
   await mkdir(directory, {recursive:true});
   // An exited child supplies a real dead PID on both Windows and Unix.
   const {spawn} = await import("node:child_process");

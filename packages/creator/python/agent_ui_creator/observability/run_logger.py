@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
 
+from ..project_metadata import migrate_legacy_creator_metadata
+
 
 _SECRET_KEY = re.compile(
     r"(?:^(?:authorization|cookie|password|secret|token)$|(?:^|[_-])(?:api[_-]?key|access[_-]?token|refresh[_-]?token|password|secret)$)",
@@ -348,7 +350,8 @@ class CreatorRunLogger:
         self.sequence = 0
         self._finished = False
         try:
-            directory = self.project_root / ".agentuicreator" / "logs"
+            migrate_legacy_creator_metadata(self.project_root)
+            directory = self.project_root / ".agent-ui" / "creator" / "logs"
             resolved_directory = directory.resolve(strict=False)
             resolved_directory.relative_to(self.project_root.resolve(strict=True))
             directory.mkdir(parents=True, exist_ok=True)

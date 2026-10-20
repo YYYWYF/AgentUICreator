@@ -3048,7 +3048,7 @@
     {
       "file": "packages/creator/src/ui/MockServicePanel.tsx",
       "line": 333,
-      "value": ".agentui/mocks",
+      "value": ".agent-ui/mocks",
       "category": "user-facing UI"
     },
     {
@@ -3066,7 +3066,7 @@
     {
       "file": "packages/creator/src/ui/MockServicePanel.tsx",
       "line": 334,
-      "value": "/.agentui/mocks",
+      "value": "/.agent-ui/mocks",
       "category": "user-facing UI"
     },
     {

@@ -287,13 +287,13 @@ interface CreatorTransactionRecord {
 存放位置：
 
 ```text
-.agentuicreator/transactions/<runId>.json
+.agent-ui/creator/transactions/<runId>.json
 ```
 
 安全约束：
 
 - 仅记录本 run 实际修改且位于授权范围内的文件；
-- `.agentuicreator` 保持本地 ignore，不上传；
+- `.agent-ui/creator` 保持本地 ignore，不上传；
 - undo 在写入前逐个验证当前文件等于 after 状态；
 - 任意目标冲突则整体拒绝，不做部分撤销；
 - 撤销本身形成一个新 run 和新 transaction，可再次审计；

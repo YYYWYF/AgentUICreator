@@ -140,7 +140,7 @@ class CreatorRecoveryQueries:
                 self.store.project_root, self.store._undo_marker_path(run_id)
             ).hash))
         if "transactions" in result:
-            directory = self.store.project_root / ".agentuicreator/transactions"
+            directory = self.store.project_root / ".agent-ui" / "creator" / "transactions"
             tokens.append(tuple(sorted((path.name, path.stat().st_mtime_ns, path.stat().st_size)
                                        for path in directory.glob("*.json"))))
         return tuple(tokens)
@@ -221,7 +221,7 @@ class CreatorRecoveryQueries:
             return {"status": "query_error", "error": error.code}
 
     def _list(self) -> dict[str, object]:
-        directory = self.store.project_root / ".agentuicreator/transactions"
+            directory = self.store.project_root / ".agent-ui" / "creator" / "transactions"
         if not directory.exists():
             return {"status": "evidence_missing", "transactions": [],
                     "association": "unavailable"}

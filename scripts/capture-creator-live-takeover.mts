@@ -112,12 +112,12 @@ try {
  await writeFile(path.join(output,"final-ui.txt"),await page.locator("body").innerText());
  await writeFile(path.join(output,"final-proof.json"),JSON.stringify({...final,creatorOrigin:host.creatorOrigin,hostOrigin:host.hostOrigin,projectRoot:host.hostRoot,browserErrors,underlyingTestAgentRuns:host.runCount(),realModel:true,requestCount:runs.length},null,2));
  await cp(path.join(host.hostRoot,"src/agent-ui/plugins/composer"),path.join(output,"adopted-composer"),{recursive:true});
- if(await readdir(path.join(host.hostRoot,".agentuicreator")).catch(()=>null))await cp(path.join(host.hostRoot,".agentuicreator"),path.join(output,"creator-evidence"),{recursive:true,filter:source=>!path.relative(path.join(host.hostRoot,".agentuicreator"),source).split(path.sep).some(part=>part==="control"||part==="cache")});
+ if(await readdir(path.join(host.hostRoot,".agent-ui/creator")).catch(()=>null))await cp(path.join(host.hostRoot,".agent-ui/creator"),path.join(output,"creator-evidence"),{recursive:true,filter:source=>!path.relative(path.join(host.hostRoot,".agent-ui/creator"),source).split(path.sep).some(part=>part==="control"||part==="cache")});
  await verifyRecordedFlow();
  console.log("LIVE_FLOW_COMPLETE",output);
 } catch(error){
  await page?.screenshot({path:path.join(output,"99-failed-state.png"),fullPage:true}).catch(()=>undefined);
- await cp(path.join(host.hostRoot,".agentuicreator/logs"),path.join(output,"creator-evidence/logs"),{recursive:true}).catch(()=>undefined);
+ await cp(path.join(host.hostRoot,".agent-ui/creator/logs"),path.join(output,"creator-evidence/logs"),{recursive:true}).catch(()=>undefined);
  await cp(path.join(host.hostRoot,"src/agent-ui/plugins/composer"),path.join(output,"adopted-composer"),{recursive:true}).catch(()=>undefined);
  console.error("LIVE_FLOW_FAILED",String(error));throw error;
 }

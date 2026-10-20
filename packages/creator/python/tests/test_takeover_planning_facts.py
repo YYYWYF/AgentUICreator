@@ -23,7 +23,7 @@ def selected(tools,name):
 
 def snapshot(root):
     return {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*')
-        if p.is_file() and not any(s in {'node_modules','.agentuicreator','dist'} for s in p.relative_to(root).parts)}
+        if p.is_file() and not any(s in {'node_modules','.agent-ui','dist'} for s in p.relative_to(root).parts)}
 
 
 @pytest.fixture(scope='module')

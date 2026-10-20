@@ -361,8 +361,8 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
           <label className="creator-mock-search">{localeMessages.mock.searchMocks}<Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={localeMessages.mock.nameEventCapabilityOrScenarioID} /></label>
           <section className="creator-mock-local-recordings" aria-label={localeMessages.mock.localMock}>
             <h3>{localeMessages.mock.localMock}</h3>
-            <p>{localeMessages.mock.placeJSONLFilesInThisDirectoryInYour} <code>.agentui/mocks</code>{localeMessages.mock.thenSelectARecordingAndSendAMessage}</p>
-            {projectPath ? <details className="creator-mock-file-location"><summary>{localeMessages.mock.viewRecordingDirectory}</summary><code>{projectPath.replace(/[\\/]$/, "")}/.agentui/mocks</code></details> : null}
+            <p>{localeMessages.mock.placeJSONLFilesInThisDirectoryInYour} <code>.agent-ui/mocks</code>{localeMessages.mock.thenSelectARecordingAndSendAMessage}</p>
+            {projectPath ? <details className="creator-mock-file-location"><summary>{localeMessages.mock.viewRecordingDirectory}</summary><code>{projectPath.replace(/[\\/]$/, "")}/.agent-ui/mocks</code></details> : null}
             {state.recordingsError ? <p role="alert">{localeMessages.mock.couldNotReadLocalMock}{state.recordingsError}</p> : null}
             <div className="creator-mock-scenarios">
             {(state.recordings ?? []).filter(item => `${item.title} ${item.fileName} ${item.id}`.toLocaleLowerCase().includes(search)).map(recording => <div key={recording.id} className="creator-mock-scenario" data-selected={localSelected && state.selection.id === recording.id}>

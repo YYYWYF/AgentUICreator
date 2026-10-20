@@ -196,7 +196,7 @@ it("installs Tool resources without inserting a Demo Plugin instance", async () 
 });
 it("leaves source files untouched when a Creator stop marker precedes commit", async () => {
   const f = await fixture("demo/frontend-tool-form");
-  const marker = ".agentuicreator/control/cancel-11111111-1111-4111-8111-111111111111";
+  const marker = ".agent-ui/creator/control/cancel-11111111-1111-4111-8111-111111111111";
   await mkdir(path.dirname(path.join(f.root, marker)), { recursive: true });
   await writeFile(path.join(f.root, marker), "stop\n");
   const before = await snapshot(f);

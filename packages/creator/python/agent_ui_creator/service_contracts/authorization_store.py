@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
+from ..project_metadata import migrate_legacy_creator_metadata
 from .models import (
     AuthorizationStatus,
     CurrentUserAuthorizationContext,
@@ -29,8 +30,9 @@ class ServiceContractAuthorizationStore:
 
     def __init__(self, project_root: str | Path, *, thread_id: str | None = None) -> None:
         self.project_root = Path(project_root).resolve()
+        migrate_legacy_creator_metadata(self.project_root)
         self.thread_id = thread_id or "local"
-        self.root = self.project_root / ".agentuicreator" / "service-authorizations"
+        self.root = self.project_root / ".agent-ui" / "creator" / "service-authorizations"
         self._context: CurrentUserAuthorizationContext | None = None
 
     @property

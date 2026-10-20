@@ -453,7 +453,7 @@ class OperatorClient:
                 self._release_child_tickets(process.pid)
 
     def _release_child_tickets(self, pid: int) -> None:
-        directory = self.project_root / ".agentuicreator" / "control" / "operator-locks"
+        directory = self.project_root / ".agent-ui" / "creator" / "control" / "operator-locks"
         if directory.is_symlink() or not directory.is_dir():
             return
         if not directory.resolve().is_relative_to(self.project_root):

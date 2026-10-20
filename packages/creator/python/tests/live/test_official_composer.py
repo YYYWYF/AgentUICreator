@@ -94,7 +94,7 @@ def fresh_host(tmp_path):
     project = tmp_path / "composer-host"
 
     def ignore(directory, names):
-        ignored = {name for name in names if name in {"node_modules", "dist", ".agent-ui", ".agentuicreator"}}
+        ignored = {name for name in names if name in {"node_modules", "dist", ".agent-ui"}}
         if Path(directory) == template / "src":
             ignored.add("agent-ui")
         return ignored

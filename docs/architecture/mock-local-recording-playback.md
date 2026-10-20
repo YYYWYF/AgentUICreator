@@ -1,6 +1,6 @@
 # Local Mock Recording Playback
 
-Creator can replay user-provided `.agentui/mocks/*.jsonl` recordings alongside
+Creator can replay user-provided `.agent-ui/mocks/*.jsonl` recordings alongside
 Builtin Demos. This is a development-only Mock Source; it does not change the
 production Agent connection or Conversation Runtime and does not record real
 requests.

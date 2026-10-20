@@ -10,6 +10,15 @@ from agent_ui_creator.minimal_agent.path_policy import (
 )
 
 
+def write_project_config(tmp_path, source_root="src/agent-ui"):
+    metadata = tmp_path / ".agent-ui"
+    metadata.mkdir(exist_ok=True)
+    (metadata / "project.json").write_text(
+        json.dumps({"mode": "assistant", "sourceRoot": source_root}),
+        encoding="utf-8",
+    )
+
+
 @pytest.mark.parametrize("path", ["/Users/dev/workspace-missing/src/a.ts", "/home/dev/workspace-missing/src/a.ts"])
 def test_missing_host_path_returns_virtual_root_guidance(tmp_path, path):
     (tmp_path / ".agent-ui").mkdir()
@@ -116,11 +125,12 @@ def test_domain_edit_file_can_still_modify_plugin_source(tmp_path):
 
 
 def test_domain_edit_file_allows_agent_ui_source_but_denies_metadata(tmp_path):
+    write_project_config(tmp_path, "agent-ui")
     source = tmp_path / "agent-ui" / "primitives" / "button.css"
     source.parent.mkdir(parents=True)
     source.write_text("before\n", encoding="utf-8")
     metadata = tmp_path / ".agent-ui" / "source-lock.json"
-    metadata.parent.mkdir()
+    metadata.parent.mkdir(exist_ok=True)
     metadata.write_text("{}\n", encoding="utf-8")
     backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
 
@@ -158,17 +168,19 @@ def test_path_policy_rejects_escape_and_sensitive_paths(tmp_path):
 
 
 def test_creator_authorization_metadata_is_not_model_readable(tmp_path):
-    target = tmp_path / ".agentuicreator/service-authorizations/authorization.json"
+    write_project_config(tmp_path)
+    target = tmp_path / ".agent-ui/creator/service-authorizations/authorization.json"
     target.parent.mkdir(parents=True)
     target.write_text("{}\n", encoding="utf-8")
     backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.development())
 
     result = backend.read(
-        "/.agentuicreator/service-authorizations/authorization.json"
+        "/.agent-ui/creator/service-authorizations/authorization.json"
     )
 
     assert result.error is not None
     assert "TOOL_PERMISSION_DENIED" in result.error
+    assert backend.read("/.agent-ui/project.json").error is None
 
 
 def test_conformance_policy_allows_fixture_edits_outside_plugins(tmp_path):

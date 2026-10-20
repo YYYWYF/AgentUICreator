@@ -65,7 +65,7 @@ import { assertCreatorCommitAllowed, creatorCancelMarkerSchemaPattern } from "./
 
 export const COMPOSITION_REVISION_PATH =
   "app-ui/composition-revision.generated.json";
-const TRANSACTION_DIRECTORY_PATH = ".agentuicreator/control";
+const TRANSACTION_DIRECTORY_PATH = ".agent-ui/creator/control";
 const TRANSACTION_JOURNAL_PATH = `${TRANSACTION_DIRECTORY_PATH}/pending-app-ui-transaction.json`;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 
@@ -376,7 +376,7 @@ async function restoreBeforeIfOwned(
 }
 
 async function ensureOperatorDirectory(projectRoot: string): Promise<void> {
-  const creatorDirectory = path.join(projectRoot, ".agentuicreator");
+  const creatorDirectory = path.join(projectRoot, ".agent-ui", "creator");
   await mkdir(path.join(projectRoot, TRANSACTION_DIRECTORY_PATH), {
     recursive: true,
   });

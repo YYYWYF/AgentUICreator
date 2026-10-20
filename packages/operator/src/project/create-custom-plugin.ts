@@ -6,6 +6,7 @@ import { officialPackagePlugin } from "../source-catalog/index.js";
 import { collectAppUIPluginLocations, parseAppUIModelJson } from "../framework/contracts/app-ui-model";
 import { parseUIPluginManifest } from "../framework/contracts/ui-plugin";
 import { assertCreatorCommitAllowed, creatorCancelMarkerSchemaPattern } from "./creator-cancel-marker";
+import { isCreatorMetadataPath } from "./creator-metadata-path";
 import { resourcePaths } from "./optional-resource-paths";
 import { generatePluginRegistry } from "./registry-generator";
 import { AgentUISourceError, assertNoSymbolicLinkTraversal } from "./source-registry/path-policy";
@@ -82,7 +83,7 @@ export async function createCustomPlugin(projectRoot: string, raw: CreateCustomP
   files.set(modelTarget, Buffer.from(JSON.stringify(model, null, 2) + "\n"));
   const staged = await mkdtemp(path.join(tmpdir(), "agent-ui-custom-plugin-"));
   try {
-    await cp(projectRoot, staged, { recursive: true, filter: source => !["node_modules", ".git", "dist", ".agentuicreator"].includes(path.relative(projectRoot, source).split(path.sep)[0]!) });
+    await cp(projectRoot, staged, { recursive: true, filter: source => !["node_modules", ".git", "dist"].includes(path.relative(projectRoot, source).split(path.sep)[0]!) && !isCreatorMetadataPath(projectRoot, source) });
     await symlink(path.join(projectRoot, "node_modules"), path.join(staged, "node_modules"), "dir");
     const stagedContext = await resourcePaths(staged);
     for (const [file, content] of files) {

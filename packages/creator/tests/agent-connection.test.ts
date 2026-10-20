@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { createServer, type Server } from "node:http";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { lstat, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { createCreatorHostPreviewPlugin } from "../src/host-preview/vite.js";
@@ -37,13 +37,38 @@ async function setup(upstream: Server) {
   return { creator, origin, store, headers: { [CREATOR_WORKSPACE_ID_HEADER]: selected.id } };
 }
 describe("workspace Agent connection", () => {
+  it("migrates legacy connection and Mock data into .agent-ui without replacing project metadata", async () => {
+    const projectRoot = await mkdtemp(path.join(tmpdir(), "agent-ui-migration-工程 with spaces-"));
+    directories.push(projectRoot);
+    const legacy = path.join(projectRoot, ".agentui");
+    const legacyCreator = path.join(projectRoot, ".agentuicreator");
+    await mkdir(path.join(legacy, "mocks"), { recursive: true });
+    await mkdir(path.join(legacyCreator, "logs"), { recursive: true });
+    await mkdir(path.join(projectRoot, ".agent-ui"), { recursive: true });
+    await writeFile(path.join(projectRoot, ".agent-ui", "project.json"), "{\"mode\":\"platform\"}\n");
+    await writeFile(path.join(legacy, "connection.local.json"), JSON.stringify({ activeSource: "connected", endpoint: "http://localhost:8000/agent" }));
+    await writeFile(path.join(legacy, ".gitignore"), "/connection.local.json\n");
+    await writeFile(path.join(legacy, "mocks", "saved.jsonl"), "mock-data\n");
+    await writeFile(path.join(legacyCreator, ".gitignore"), "*\n");
+    await writeFile(path.join(legacyCreator, "logs", "run.jsonl"), "creator-log\n");
+
+    const connection = await new ConnectionStore(projectRoot).read();
+    expect(connection).toMatchObject({ configured: true, activeSource: "connected", endpoint: "http://localhost:8000/agent" });
+    expect(await readFile(path.join(projectRoot, ".agent-ui", "project.json"), "utf8")).toBe("{\"mode\":\"platform\"}\n");
+    expect(await readFile(path.join(projectRoot, ".agent-ui", "mocks", "saved.jsonl"), "utf8")).toBe("mock-data\n");
+    expect(await readFile(path.join(projectRoot, ".agent-ui", ".gitignore"), "utf8")).toBe("/connection.local.json\n");
+    expect(await readFile(path.join(projectRoot, ".agent-ui", "creator", "logs", "run.jsonl"), "utf8")).toBe("creator-log\n");
+    await expect(lstat(legacy)).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(lstat(legacyCreator)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("retains a local endpoint across Mock selection and restart, ignoring only connection state", async () => {
     const selected = await workspace();
     const store = new ConnectionStore(selected.projectRoot);
     expect((await store.read()).configured).toBe(false);
     await store.save({ activeSource: "mock", endpoint: "http://localhost:8000/agent" });
     expect(await new ConnectionStore(selected.projectRoot).read()).toMatchObject({ configured: true, activeSource: "mock", endpoint: "http://localhost:8000/agent" });
-    expect(await readFile(path.join(selected.projectRoot, ".agentui/.gitignore"), "utf8")).toBe("/connection.local.json\n");
+    expect(await readFile(path.join(selected.projectRoot, ".agent-ui/.gitignore"), "utf8")).toBe("/connection.local.json\n");
     expect((await new ConnectionStore((await workspace()).projectRoot).read()).configured).toBe(false);
   });
   it.each(["file:///tmp/agent", "ftp://localhost/agent", "javascript:alert(1)", "http://user:secret@localhost/agent"])('rejects endpoint %s', endpoint => {

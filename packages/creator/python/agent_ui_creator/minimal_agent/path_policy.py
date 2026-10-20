@@ -86,12 +86,16 @@ class MinimalAgentPathPolicy:
 
     def assert_read(self, path: str) -> str:
         normalized = self.normalize(path)
-        parts = PurePosixPath(normalized).parts[1:]
-        if any(part in _DENIED_DIRECTORY_NAMES for part in parts):
+        lowered_parts = tuple(part.lower() for part in PurePosixPath(normalized).parts[1:])
+        denied_creator_metadata = any(
+            lowered_parts[index:index + 2] == (".agent-ui", "creator")
+            for index in range(len(lowered_parts) - 1)
+        )
+        if denied_creator_metadata or any(part in _DENIED_DIRECTORY_NAMES for part in lowered_parts):
             raise PathPolicyViolation(
                 f"TOOL_PERMISSION_DENIED: read access is denied for {normalized}."
             )
-        if any(part == ".env" or part.startswith(".env.") for part in parts):
+        if any(part == ".env" or part.startswith(".env.") for part in lowered_parts):
             raise PathPolicyViolation(
                 f"TOOL_PERMISSION_DENIED: read access is denied for {normalized}."
             )

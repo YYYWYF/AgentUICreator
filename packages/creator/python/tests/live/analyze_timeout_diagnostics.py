@@ -41,7 +41,7 @@ def correlation(rows, key='requestMessageChars'):
 
 
 def read_events(root):
-    paths = sorted(root.glob('.agentuicreator/logs/*.jsonl'))
+    paths = sorted(root.glob('.agent-ui/creator/logs/*.jsonl'))
     return [[json.loads(line) for line in p.read_text().splitlines()] for p in paths]
 
 

@@ -21,6 +21,7 @@ import { readAgentUISourceLock, readOptionalBuffer, sha256 } from "./source-regi
 import { removeAgentUISourceItems } from "./source-registry/installer";
 import { assertNoSymbolicLinkTraversal, AgentUISourceError } from "./source-registry/path-policy";
 import { creatorCancelMarkerSchemaPattern, assertCreatorCommitAllowed } from "./creator-cancel-marker";
+import { isCreatorMetadataPath } from "./creator-metadata-path";
 import { commitPluginPurge, type PurgeFile } from "./plugin-purge-transaction";
 
 export const pluginPurgeInputSchema = z.strictObject({
@@ -31,14 +32,14 @@ export const pluginPurgeInputSchema = z.strictObject({
 });
 export type PluginPurgeInput = z.infer<typeof pluginPurgeInputSchema>;
 const fail = (message: string): never => { throw new AgentUISourceError("PLUGIN_PURGE_UNSAFE", message); };
-const excluded = new Set(["node_modules", ".git", ".agentuicreator", "dist", "build"]);
+const excluded = new Set(["node_modules", ".git", "dist", "build"]);
 async function tree(root: string, directory: string, files = new Map<string, string>(), directories: string[] = []) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const relativeDirectory = projectRelativePath(root, directory);
     const insidePlugin = relativeDirectory.split("/").includes("plugins");
-    if (excluded.has(entry.name) && !insidePlugin) continue;
     const absolute = path.join(directory, entry.name);
     const relative = projectRelativePath(root, absolute);
+    if ((excluded.has(entry.name) || isCreatorMetadataPath(root, absolute)) && !insidePlugin) continue;
     await assertNoSymbolicLinkTraversal(root, relative);
     if (entry.isDirectory()) { directories.push(relative); await tree(root, absolute, files, directories); }
     else if (entry.isFile()) files.set(relative, (await readFile(absolute)).toString("base64"));
@@ -75,7 +76,10 @@ export async function planPluginPurge(root: string, input: PluginPurgeInput) {
   if (originalLock) snapshot.files.set(lockRelative, originalLock.toString("base64"));
   const temporary = await mkdtemp(path.join(tmpdir(), "agent-ui-purge-"));
   try {
-    await cp(root, temporary, { recursive: true, dereference: false, filter: source => !excluded.has(path.basename(source)) || path.resolve(source).startsWith(`${ctx.paths.pluginsRoot}${path.sep}`) });
+    await cp(root, temporary, { recursive: true, dereference: false, filter: source => {
+      const insidePlugin = path.resolve(source).startsWith(`${ctx.paths.pluginsRoot}${path.sep}`);
+      return insidePlugin || (!excluded.has(path.basename(source)) && !isCreatorMetadataPath(root, source));
+    } });
     const dependencies = path.join(root, "node_modules");
     if (await stat(dependencies).then(() => true, error => { if (error.code === "ENOENT") return false; throw error; }))
       await symlink(dependencies, path.join(temporary, "node_modules"), "dir");

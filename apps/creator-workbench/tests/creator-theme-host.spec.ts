@@ -34,7 +34,7 @@ test("real command persists Violet, verifies published files, refreshes Preview 
   const canonical = path.join(preview.hostRoot, "src/agent-ui/agent-ui/theme/theme-config.ts");
   expect(await readFile(canonical, "utf8")).toContain('theme: "violet"');
   await expect(app).toHaveAttribute("data-theme", "violet", { timeout: 15000 });
-  const transaction = JSON.parse(await readFile(path.join(preview.hostRoot, ".agentuicreator/transactions", `${createHash("sha256").update(body.receipt.transaction.runId).digest("hex")}.json`), "utf8"));
+  const transaction = JSON.parse(await readFile(path.join(preview.hostRoot, ".agent-ui/creator/transactions", `${createHash("sha256").update(body.receipt.transaction.runId).digest("hex")}.json`), "utf8"));
   expect(transaction.validationRevision).toBe(1);
   expect(transaction.files[0].after.content).toContain('theme: "violet"');
   await page.reload();

@@ -30,7 +30,7 @@ CASES={
 
 def file_snapshot(root):
     return {p.relative_to(root).as_posix():p.read_bytes() for p in root.rglob('*')
-            if p.is_file() and not any(part in {'node_modules','.agentuicreator','.git','dist'} for part in p.relative_to(root).parts)}
+            if p.is_file() and not any(part in {'node_modules','.agent-ui','.git','dist'} for part in p.relative_to(root).parts)}
 
 
 def forwards_composer_props(content):
@@ -108,7 +108,7 @@ def test_real_creator_task(live_seed,tmp_path,case):
     passed=expected and not errors and exception is None and (case=='takeover_question' or completion in {'success','already_satisfied'})
     protected=[p for p in changed if p.startswith(('src/agent-ui/runtime/','src/agent-ui/framework/')) or p in {'package.json','tsconfig.json'}]
     passed=passed and not protected
-    logs=sorted((root/'.agentuicreator/logs').glob('*.jsonl'))
+    logs=sorted((root/'.agent-ui/creator/logs').glob('*.jsonl'))
     log_events=[json.loads(line) for p in logs for line in p.read_text().splitlines()]
     finished=next((e['data'] for e in reversed(log_events) if e['type']=='run_finished'),{})
     record={'case':case,'prompt':CASES[case],'projectRoot':str(root),'durationSeconds':elapsed,'passed':passed,

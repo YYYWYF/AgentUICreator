@@ -10,7 +10,7 @@ import type { MockProjectTarget } from "../src/mock/demo-compatibility.js";
 const roots: string[] = [];
 const controlServers: Server[] = [];
 const services: CreatorMockService[] = [];
-async function project() { const root = await mkdtemp(path.join(os.tmpdir(), "local-recording-")); roots.push(root); await mkdir(path.join(root, ".agentui/mocks"), { recursive: true }); return root; }
+async function project() { const root = await mkdtemp(path.join(os.tmpdir(), "local-recording-")); roots.push(root); await mkdir(path.join(root, ".agent-ui/mocks"), { recursive: true }); return root; }
 const data = (text = "hello", delay = 0) => [
   { atMs: 0, event: { type: "RUN_STARTED", threadId: "old", runId: "old" } },
   { atMs: delay, event: { type: "TEXT_MESSAGE_START", messageId: "old-message", role: "assistant" } },
@@ -23,7 +23,7 @@ afterEach(async () => { vi.restoreAllMocks(); for (const server of controlServer
 
 describe("current-project local recordings", () => {
   it("lists invalid files, caches unchanged data and refreshes edited/deleted files", async () => {
-    const root = await project(); const directory = path.join(root, ".agentui/mocks");
+    const root = await project(); const directory = path.join(root, ".agent-ui/mocks");
     await writeFile(path.join(directory, "good.jsonl"), data());
     await writeFile(path.join(directory, "broken.jsonl"), "{\n");
     const store = new LocalMockRecordingStore();
@@ -38,16 +38,16 @@ describe("current-project local recordings", () => {
   });
   it("rejects symlink files and directories outside the selected project", async () => {
     const root = await project(); const other = await project();
-    await writeFile(path.join(other, ".agentui/mocks/external.jsonl"), data());
-    await symlink(path.join(other, ".agentui/mocks/external.jsonl"), path.join(root, ".agentui/mocks/link.jsonl"));
+    await writeFile(path.join(other, ".agent-ui/mocks/external.jsonl"), data());
+    await symlink(path.join(other, ".agent-ui/mocks/external.jsonl"), path.join(root, ".agent-ui/mocks/link.jsonl"));
     const store = new LocalMockRecordingStore();
     expect((await store.list(root))[0]?.status).toBe("invalid");
-    await rm(path.join(root, ".agentui/mocks"), { recursive: true });
-    await symlink(path.join(other, ".agentui/mocks"), path.join(root, ".agentui/mocks"));
+    await rm(path.join(root, ".agent-ui/mocks"), { recursive: true });
+    await symlink(path.join(other, ".agent-ui/mocks"), path.join(root, ".agent-ui/mocks"));
     await expect(store.list(root)).rejects.toThrow("current project");
   });
   it.each(["standalone", "preview"])("replays through the %s SSE endpoint and resets selection on project switch", async mode => {
-    const root = await project(); await writeFile(path.join(root, ".agentui/mocks/chat.jsonl"), data());
+    const root = await project(); await writeFile(path.join(root, ".agent-ui/mocks/chat.jsonl"), data());
     let current: MockProjectTarget | undefined = { id: "A", projectRoot: root };
     const service = new CreatorMockService({ port: 0 }); services.push(service); service.setProjectResolver(() => current);
     expect((await service.refreshState()).recordings[0]?.status).toBe("ready");
@@ -74,7 +74,7 @@ describe("current-project local recordings", () => {
     await expect(service.selectRecording("local:chat.jsonl", 0, "A")).rejects.toThrow("切换");
   });
   it("exposes recording state and selection through the control API", async () => {
-    const root = await project(); await writeFile(path.join(root, ".agentui/mocks/chat.jsonl"), data());
+    const root = await project(); await writeFile(path.join(root, ".agent-ui/mocks/chat.jsonl"), data());
     const service = new CreatorMockService({ port: 0 }); services.push(service);
     const server = createServer((request, response) => { void handleCreatorMockRequest(request, response, service, () => ({ id: "A", projectRoot: root })); });
     controlServers.push(server);
@@ -88,7 +88,7 @@ describe("current-project local recordings", () => {
     expect(await (await select({ selection: { type: "builtin", id: "simple-chat" }, speed: 0 })).json()).toMatchObject({ selection: { type: "builtin", id: "simple-chat" } });
   });
   it("fails if the selected project changes while resolving a recording", async () => {
-    const root = await project(); await writeFile(path.join(root, ".agentui/mocks/chat.jsonl"), data());
+    const root = await project(); await writeFile(path.join(root, ".agent-ui/mocks/chat.jsonl"), data());
     let current: MockProjectTarget | undefined = { id: "A", projectRoot: root };
     const service = new CreatorMockService({ port: 0 }); services.push(service); service.setProjectResolver(() => current);
     await service.selectRecording("local:chat.jsonl", 0, "A");
@@ -103,7 +103,7 @@ describe("current-project local recordings", () => {
     expect(service.getState().selection.type).toBe("builtin");
   });
   it("reports deleted selected files before opening SSE", async () => {
-    const root = await project(); const file = path.join(root, ".agentui/mocks/chat.jsonl"); await writeFile(file, data());
+    const root = await project(); const file = path.join(root, ".agent-ui/mocks/chat.jsonl"); await writeFile(file, data());
     const service = new CreatorMockService({ port: 0 }); services.push(service); service.setProjectResolver(() => ({ id: "A", projectRoot: root }));
     await service.selectRecording("local:chat.jsonl", 0, "A"); await rm(file);
     const { endpoint } = await service.start();

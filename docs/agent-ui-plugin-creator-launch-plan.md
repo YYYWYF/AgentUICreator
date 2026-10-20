@@ -1605,7 +1605,7 @@ Creator 在这一阶段同时具备项目快照和 AppUIModel 事务工具。Plu
 
 如果当前 revision 未产生真实文件变化、验证失败、验证后又发生写入，或者复核未通过，Harness 必须拒绝候选答复并允许 Creator 继续修复。候选成功文本在完成门禁通过前不得进入 AG-UI 对话历史。
 
-Creator Harness 必须把每次 run 的诊断链路以 JSONL 保存在目标项目本地的 `.agentuicreator/logs/`。日志至少包含用户请求、每次模型请求与原始返回、结构化工具调用及结果、Completion Gate 反馈、最终回执和异常；日志只用于开发诊断，不进入生成应用的生产 Bundle，也不得自动上传。`.agentuicreator` 内部应默认由本地 ignore 文件排除，避免把包含项目内容的诊断数据提交到版本库。
+Creator Harness 必须把每次 run 的诊断链路以 JSONL 保存在目标项目本地的 `.agent-ui/creator/logs/`。日志至少包含用户请求、每次模型请求与原始返回、结构化工具调用及结果、Completion Gate 反馈、最终回执和异常；日志只用于开发诊断，不进入生成应用的生产 Bundle，也不得自动上传。`.agent-ui/creator` 内部应默认由本地 ignore 文件排除，避免把包含项目内容的诊断数据提交到版本库。
 
 ---
 

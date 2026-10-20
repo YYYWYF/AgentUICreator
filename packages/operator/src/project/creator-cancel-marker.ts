@@ -2,7 +2,7 @@ import { access } from "node:fs/promises";
 import path from "node:path";
 
 /** Transient Creator control marker. The generated application never consumes it. */
-export const creatorCancelMarkerSchemaPattern = /^\.agentuicreator\/control\/cancel-[a-f0-9-]{36}$/;
+export const creatorCancelMarkerSchemaPattern = /^\.agent-ui\/creator\/control\/cancel-[a-f0-9-]{36}$/;
 
 export async function assertCreatorCommitAllowed(projectRoot: string, marker?: string): Promise<void> {
   if (marker === undefined) return;

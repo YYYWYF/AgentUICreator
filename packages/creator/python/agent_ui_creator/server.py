@@ -1369,7 +1369,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                 event_bus,
                                 telemetry,
                             )
-                        cancel_marker = settings.project_root.resolve() / ".agentuicreator" / "control" / f"cancel-{uuid4()}"
+                        cancel_marker = settings.project_root.resolve() / ".agent-ui" / "creator" / "control" / f"cancel-{uuid4()}"
                         with bind_run_cancellation(lambda: event_bus.cancel_requested, cancel_marker):
                             agent_task = asyncio.create_task(
                                 _execute_agent_run(

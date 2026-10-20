@@ -49,7 +49,7 @@ def test_command_uses_existing_undo_reapply_store(tmp_path):
 def test_noop_and_conflicts_leave_files_unchanged(tmp_path):
     _, client, file, change = setup(tmp_path)
     assert client.post("/creator-command-commit", json={**change, "after": change["before"]}).json()["verification"]["status"] == "passed"
-    assert not (tmp_path / ".agentuicreator/transactions").exists()
+    assert not (tmp_path / ".agent-ui/creator/transactions").exists()
     assert client.post("/creator-command-commit", json={**change, "before": "stale"}).status_code == 409
     assert client.post("/creator-command-commit", json={**change, "path": "../outside.ts"}).status_code == 409
     assert file.read_text() == change["before"]
@@ -78,7 +78,7 @@ def test_verifier_reads_violet_and_failure_restores_original_bytes(tmp_path, mon
     async def fail_after_publication(root, _runtime):
         assert file.read_text() == change["after"]
         store = CreatorTransactionStore(root)
-        records = list((root / ".agentuicreator/transactions").glob("*.json"))
+        records = list((root / ".agent-ui/creator/transactions").glob("*.json"))
         assert any(json.loads(record.read_text()).get("validationRevision") is None for record in records)
         return {"status": "failed", "errors": [{"code": "test", "message": "violet rejected"}], "warnings": []}
     monkeypatch.setattr("agent_ui_creator.theme_command_transaction.verify_published_theme", fail_after_publication)
@@ -86,7 +86,7 @@ def test_verifier_reads_violet_and_failure_restores_original_bytes(tmp_path, mon
     assert response.status_code == 409, response.text
     assert "THEME_STATIC_VALIDATION_FAILED" in response.json()["error"]
     assert file.read_text() == change["before"]
-    assert not (tmp_path / ".agentuicreator/control/pending-theme-command.json").exists()
+    assert not (tmp_path / ".agent-ui/creator/control/pending-theme-command.json").exists()
 
 
 def test_verifier_exception_also_rolls_back(tmp_path, monkeypatch):

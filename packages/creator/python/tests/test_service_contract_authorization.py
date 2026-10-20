@@ -82,7 +82,7 @@ def test_explicit_current_user_evidence_authorizes_without_confirmation(tmp_path
     assert store.get_authorization(result["authorizationId"]).spec.owner_plugin_id == (
         "conversation-history"
     )
-    assert not list((tmp_path / ".agentuicreator").rglob("*.txt"))
+    assert not list((tmp_path / ".agent-ui/creator").rglob("*.txt"))
 
 
 def test_inferred_owner_requires_confirmation_then_accepts_current_reply(tmp_path):

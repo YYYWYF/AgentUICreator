@@ -15,7 +15,7 @@ def recover_registry_evidence(activity) -> tuple[str, ...]:
     thread_id = getattr(activity.logger, "thread_id", None)
     if not thread_id:
         return ()
-    directory = activity.project_root / ".agentuicreator" / "logs"
+    directory = activity.project_root / ".agent-ui/creator" / "logs"
     # Refuse redirected tooling history. File-state readers also check each
     # referenced receipt and source path against the native project boundary.
     if directory.is_symlink() or directory.parent.is_symlink() or not directory.is_dir():

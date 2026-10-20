@@ -171,4 +171,4 @@ try{
  await cp(composerRoot,path.join(output,"final-composer"),{recursive:true});
  console.log("LIVE_FLOW_COMPLETE",output);
 }catch(error){await page?.screenshot({path:path.join(output,"99-failed-state.png"),fullPage:true}).catch(()=>{});await savedJson("failure.json",{error:String(error),errors,hostRoot:host.hostRoot});await cp(composerRoot,path.join(output,"failed-composer"),{recursive:true}).catch(()=>{});console.log("LIVE_REVIEW_REQUIRED",String(error),browserServer?.wsEndpoint());await new Promise(()=>{});throw error;}
-finally{await cp(path.join(host.hostRoot,".agentuicreator/logs"),path.join(output,"creator-logs"),{recursive:true}).catch(()=>{});await browser?.close();await browserServer?.close();await host.close();await registry.close();}
+finally{await cp(path.join(host.hostRoot,".agent-ui/creator/logs"),path.join(output,"creator-logs"),{recursive:true}).catch(()=>{});await browser?.close();await browserServer?.close();await host.close();await registry.close();}

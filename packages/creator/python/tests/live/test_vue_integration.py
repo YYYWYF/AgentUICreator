@@ -40,12 +40,12 @@ class ObservedHost(OperatorClient):
 def snapshot(project):
     return {str(file.relative_to(project)): hashlib.sha256(file.read_bytes()).hexdigest()
             for file in project.rglob("*") if file.is_file()
-            and not set(file.relative_to(project).parts) & {"node_modules", ".agentuicreator", ".agent-ui", "dist"}}
+            and not set(file.relative_to(project).parts) & {"node_modules", ".agent-ui", "dist"}}
 
 
 def fresh(tmp_path):
     project = tmp_path / "clean-vue-vite-host"
-    shutil.copytree(FIXTURE, project, ignore=shutil.ignore_patterns("node_modules", "dist", ".agent-ui", ".agentuicreator"))
+            shutil.copytree(FIXTURE, project, ignore=shutil.ignore_patterns("node_modules", "dist", ".agent-ui"))
     # Development tooling is installed by Host before the user request.
     subprocess.run(["node", "--input-type=module", "-e",
                     'import { installManagedOperator } from "./packages/operator/src/install.mjs"; await installManagedOperator(process.argv[1]);', str(project)], cwd=ROOT, check=True)
@@ -216,5 +216,5 @@ def test_live_apply_and_manual_verify(tmp_path):
         browser_check(project)
         # Leave the applied temporary project available to an optional browser run.
         if destination := os.environ.get("CREATOR_VUE_VERIFICATION_OUTPUT"):
-            shutil.copytree(project, destination, dirs_exist_ok=True, ignore=shutil.ignore_patterns("node_modules", "dist", ".agent-ui", ".agentuicreator"))
+            shutil.copytree(project, destination, dirs_exist_ok=True, ignore=shutil.ignore_patterns("node_modules", "dist", ".agent-ui"))
     asyncio.run(scenario())

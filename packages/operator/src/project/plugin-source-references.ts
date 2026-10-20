@@ -62,7 +62,7 @@ function sourceScope(projectRoot: string, targetPluginRoot: string, filePath: st
   const resolved = path.resolve(filePath);
   if (!isWithin(projectRoot, resolved) || isWithin(targetPluginRoot, resolved)) return false;
   const parts = path.relative(projectRoot, resolved).split(path.sep);
-  return !parts.some(part => ["node_modules", "dist", "build", ".git", ".agentuicreator"].includes(part));
+  return !parts.some(part => ["node_modules", "dist", "build", ".git"].includes(part.toLowerCase()) || part.toLowerCase() === ".agent-ui");
 }
 
 function moduleReference(node: StringLiteralLikeNode): boolean {
@@ -110,7 +110,7 @@ async function collectFiles(
   }
   const files: string[] = [];
   for (const entry of entries) {
-    if (["node_modules", "dist", "build", ".git", ".agentuicreator"].includes(entry.name)) {
+    if (["node_modules", "dist", "build", ".git", ".agent-ui"].includes(entry.name.toLowerCase())) {
       continue;
     }
     const entryPath = path.join(directoryPath, entry.name);

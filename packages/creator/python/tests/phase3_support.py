@@ -18,7 +18,7 @@ def prepare_host(root: Path) -> Path:
 
 
 def clone_host(source: Path, target: Path) -> Path:
-    shutil.copytree(source, target, ignore=shutil.ignore_patterns('node_modules', '.agentuicreator', 'dist'))
+    shutil.copytree(source, target, ignore=shutil.ignore_patterns('node_modules', '.agent-ui', 'dist'))
     # Native junction on Windows avoids requiring symlink privileges.
     subprocess.run(['node', '--input-type=module', '-e',
                     'import {symlink} from "node:fs/promises"; await symlink(process.argv[1],process.argv[2],process.platform==="win32"?"junction":"dir");',

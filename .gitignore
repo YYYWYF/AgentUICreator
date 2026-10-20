@@ -13,7 +13,11 @@ __pycache__/
 .pytest_cache/
 .venv/
 *.pyc
-examples/creator-host-sandbox/.agent-ui/
+examples/creator-host-sandbox/.agent-ui/*
+!examples/creator-host-sandbox/.agent-ui/.gitignore
+!examples/creator-host-sandbox/.agent-ui/mocks/
+examples/creator-host-sandbox/.agent-ui/mocks/*
+!examples/creator-host-sandbox/.agent-ui/mocks/*.jsonl
 examples/creator-host-sandbox/src/agent-ui/
 examples/creator-assistant-host/.agent-ui/
 examples/creator-assistant-host/src/agent-ui/

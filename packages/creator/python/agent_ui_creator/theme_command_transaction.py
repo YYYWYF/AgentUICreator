@@ -11,7 +11,7 @@ from uuid import uuid4
 from .files import read_creator_file_state, replace_creator_file_atomically, remove_creator_file
 from .transactions import CreatorTransactionStore, CreatorTransactionFileInput
 
-JOURNAL = ".agentuicreator/control/pending-theme-command.json"
+JOURNAL = ".agent-ui/creator/control/pending-theme-command.json"
 
 
 async def verify_published_theme(root: Path, runtime: str) -> dict:

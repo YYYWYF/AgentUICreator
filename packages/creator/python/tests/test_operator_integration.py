@@ -75,7 +75,7 @@ def _copy_target(tmp_path: Path, name: str) -> Path:
     shutil.copytree(
         TARGET_PROJECT,
         project_root,
-        ignore=shutil.ignore_patterns("node_modules", "dist", ".agentuicreator"),
+        ignore=shutil.ignore_patterns("node_modules", "dist", ".agent-ui"),
     )
     os.symlink(TARGET_PROJECT / "node_modules", project_root / "node_modules")
     return project_root

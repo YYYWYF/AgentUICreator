@@ -31,7 +31,7 @@ async function protectedHash(root:string){
   async function walk(directory:string,relative=""):Promise<void>{
     for(const entry of (await readdir(directory,{withFileTypes:true})).sort((a,b)=>a.name.localeCompare(b.name))){
       const logical=relative?`${relative}/${entry.name}`:entry.name;
-      if(logical===".agentuicreator/control/operator.lock")continue;
+      if(logical===".agent-ui/creator/control/operator.lock")continue;
       if(entry.name==="node_modules"||entry.name===".git"||(!relative&&[journalName,journalName+".tmp","package.json","package-lock.json","pnpm-lock.yaml"].includes(entry.name) || (!relative&&entry.name!==sourceTop&&["dist","build","coverage"].includes(entry.name))))continue;
       if(++count>50000)throw new Error("PACKAGE_PROJECT_TOO_LARGE");
       const file=path.join(directory,entry.name);
@@ -79,7 +79,7 @@ export class PackageUpgradeService {
   async plan(projectRoot:string):Promise<PackageUpgradePlan>{
     const root=await realpath(projectRoot);await standalone(root);
     if(await this.recovery(root))throw new Error("PACKAGE_RECOVERY_REQUIRED");
-    if(await optional(path.join(root,".agentuicreator/control/operator.lock")))throw new Error("PACKAGE_OPERATION_ACTIVE");
+    if(await optional(path.join(root,".agent-ui","creator","control","operator.lock")))throw new Error("PACKAGE_OPERATION_ACTIVE");
     if(await optional(path.join(root,".agent-ui/project.json"))){
       const {paths}=await resourcePaths(root);
       for(const file of ["source-project-transaction.json","source-transaction.json"])if(await optional(path.join(paths.metadataRoot,file)))throw new Error("PACKAGE_SOURCE_RECOVERY_REQUIRED");

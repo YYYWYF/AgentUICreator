@@ -1,12 +1,19 @@
 # Agent Connection and Preview Source
 
 Creator owns one workspace-local development connection in
-`.agentui/connection.local.json`. It contains `activeSource` (`mock` or
+`.agent-ui/connection.local.json`. It contains `activeSource` (`mock` or
 `connected`) and an optional HTTP(S) AG-UI `endpoint`. A missing file triggers
 first-choice onboarding. Settings → Agent preserves the connected endpoint
 when selecting Mock. The store writes an exact `/connection.local.json` entry
-to `.agentui/.gitignore`; recordings remain shareable. Credentials in URL userinfo
+to `.agent-ui/.gitignore`; recordings remain shareable. Credentials in URL userinfo
 are rejected. Authentication secrets are not part of this contract.
+
+Creator's private execution state lives under `.agent-ui/creator/`. Existing
+`.agentui` connection and Mock data migrates into `.agent-ui`; existing
+`.agentuicreator` logs, transaction records and control files migrate into
+`.agent-ui/creator` on first Creator access. Migration preserves existing files
+and stops with a conflict if the old and new locations contain different data
+at the same path.
 
 The selected Source configures the existing Conversation Runtime. It does not
 create a second runtime or alter AG-UI ownership. A changed source identity

@@ -1482,7 +1482,7 @@ describe("AppUIModel transaction", () => {
 
   it("rejects cancellation at the transaction commit boundary without changing the model", async () => {
     const { projectRoot, source } = await createProject();
-    const marker = ".agentuicreator/control/cancel-11111111-1111-4111-8111-111111111111";
+    const marker = ".agent-ui/creator/control/cancel-11111111-1111-4111-8111-111111111111";
     let release!: () => void;
     let reached!: () => void;
     const gate = new Promise<void>((resolve) => { release = resolve; });
@@ -1500,7 +1500,7 @@ describe("AppUIModel transaction", () => {
 
   it("finishes an atomic transaction after cancellation arrives past the commit point", async () => {
     const { projectRoot, source } = await createProject();
-    const marker = ".agentuicreator/control/cancel-22222222-2222-4222-8222-222222222222";
+    const marker = ".agent-ui/creator/control/cancel-22222222-2222-4222-8222-222222222222";
     await writeFile(path.join(projectRoot, GENERATED_PLUGIN_REGISTRY_PATH), "// stale generated registry\n");
     let release!: () => void;
     let reached!: () => void;

@@ -25,7 +25,7 @@ test("presents answers, inspection, mutation, no-op, and validation by run facts
       validations: turnIndex === 4
         ? [{ command: "pnpm typecheck", status: "passed", exitCode: 0, output: "", truncated: false }] : [],
       ...(turnIndex === 2 ? { transaction: { runId: "presentation-run", undoable: true } } : {}),
-      diagnosticLog: { format: "jsonl", path: ".agentuicreator/logs/run.jsonl" },
+      diagnosticLog: { format: "jsonl", path: ".agent-ui/creator/logs/run.jsonl" },
       verification: { status: turnIndex === 2 ? "changed-and-statically-verified" : "no-project-change",
         projectRevision: turnIndex === 2 ? 1 : 0, auditAttempts: 0, checks: [] } };
     const messageId = `assistant-${turn}`;

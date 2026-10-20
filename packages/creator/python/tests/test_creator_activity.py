@@ -28,7 +28,7 @@ def test_generic_edit_rechecks_stop_before_commit(tmp_path):
     target.write_text("old\n", encoding="utf-8")
     activity, backend = backend_for(tmp_path)
     backend.read("/plugins/foo.ts")
-    with bind_run_cancellation(lambda: True, tmp_path / ".agentuicreator/control/cancel-test"):
+    with bind_run_cancellation(lambda: True, tmp_path / ".agent-ui/creator/control/cancel-test"):
         with pytest.raises(asyncio.CancelledError):
             backend.edit("/plugins/foo.ts", "old", "new")
     assert target.read_text(encoding="utf-8") == "old\n"

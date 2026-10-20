@@ -2,6 +2,7 @@ import { constants } from "node:fs";
 import { open, readdir, realpath } from "node:fs/promises";
 import path from "node:path";
 import { MAX_MOCK_RECORDING_BYTES, parseMockRecording, type MockRecording } from "../mock-agent/index.js";
+import { migrateLegacyAgentUIMetadata } from "../project/legacy-agent-ui-metadata.js";
 
 export interface LocalMockRecordingSummary {
   id: string; title: string; fileName: string;
@@ -18,8 +19,9 @@ export class LocalMockRecordingStore {
   private readonly cache = new Map<string, { key: string; bytes: number; entry: Entry }>();
   private async directory(projectRoot: string): Promise<string | undefined> {
     try {
+      await migrateLegacyAgentUIMetadata(projectRoot);
       const root = await realpath(projectRoot);
-      const directory = await realpath(path.join(root, ".agentui/mocks"));
+      const directory = await realpath(path.join(root, ".agent-ui/mocks"));
       if (!inside(root, directory)) throw new Error("Local Mock directory must stay within the current project.");
       return directory;
     } catch (error) { if (missing(error)) return undefined; throw error; }

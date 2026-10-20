@@ -31,9 +31,10 @@ from .models import (
     CreatorTransactionStatus,
     CreatorUndoResult,
 )
+from ..project_metadata import migrate_legacy_creator_metadata
 
 
-CREATOR_TRANSACTION_DIRECTORY = ".agentuicreator/transactions"
+CREATOR_TRANSACTION_DIRECTORY = ".agent-ui/creator/transactions"
 MAX_CREATOR_TRANSACTION_BYTES = 5_000_000
 MAX_CREATOR_TRANSACTION_FILES = 500
 TRANSACTION_CONTENT_RESERVE_BYTES = 128_000
@@ -204,6 +205,7 @@ class CreatorTransactionStore:
         self, project_root: str | Path, *, event_sink: EventSink | None = None
     ) -> None:
         self.project_root = Path(project_root).resolve()
+        migrate_legacy_creator_metadata(self.project_root)
         self.event_sink = event_sink
 
     def _record(self, event: str, data: Mapping[str, object]) -> None:
@@ -644,7 +646,7 @@ class CreatorTransactionStore:
     def _ensure_directory(self) -> None:
         try:
             create_creator_file_atomically(
-                self.project_root, ".agentuicreator/.gitignore", "*\n"
+                self.project_root, ".agent-ui/creator/.gitignore", "*\n!.gitignore\n"
             )
         except CreatorFileStateConflictError:
             pass

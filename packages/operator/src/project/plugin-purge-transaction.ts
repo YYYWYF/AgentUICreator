@@ -7,7 +7,7 @@ import { assertNoSymbolicLinkTraversal, assertSafeProjectRelativePath, AgentUISo
 import { readAgentUIProjectConfig } from "./project-mode";
 import { resolveAgentUIProjectPaths, projectRelativePath } from "./agent-ui-project-paths";
 
-export const PURGE_JOURNAL = ".agentuicreator/control/pending-plugin-purge-transaction.json";
+export const PURGE_JOURNAL = ".agent-ui/creator/control/pending-plugin-purge-transaction.json";
 export interface PurgeFile { path: string; before: string | null; after: string | null }
 interface Journal { ownerPid: number; files: PurgeFile[]; directories: string[] }
 export async function atomicPurgeWrite(destination: string, content: Buffer, createOnly = false) {

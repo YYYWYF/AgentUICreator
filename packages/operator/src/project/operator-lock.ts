@@ -6,7 +6,11 @@ import { atomicPurgeWrite } from "./plugin-purge-transaction";
 import { readOptionalBuffer } from "./source-registry/lock";
 import { AgentUISourceError, assertNoSymbolicLinkTraversal } from "./source-registry/path-policy";
 
-const DIRECTORY = ".agentuicreator/control/operator-locks";
+const DIRECTORY = ".agent-ui/creator/control/operator-locks";
+const PID_LOCK_PATHS = [
+  ".agent-ui/creator/control/operator.lock",
+  ".agentuicreator/control/operator.lock",
+] as const;
 interface Ticket { pid: number; token: string; number: number | null }
 function alive(pid: number): boolean {
   try { process.kill(pid, 0); return true; }
@@ -59,11 +63,15 @@ export async function acquireOperatorLock(root: string, { waitMs = 0 }: { waitMs
     for (;;) {
       // An older running Operator uses the former PID lock. Fail closed while
       // it is live. Dead legacy files are ignored, never reused or unlinked.
-      await assertNoSymbolicLinkTraversal(root, ".agentuicreator/control/operator.lock");
-      const legacy = await readOptionalBuffer(path.join(root, ".agentuicreator/control/operator.lock"));
-      const legacyPid = legacy ? Number(legacy.toString()) : null;
-      if (legacyPid !== null && (!Number.isSafeInteger(legacyPid) || legacyPid <= 0)) throw new Error("Invalid Operator lock.");
-      const blocked = (legacyPid !== null && alive(legacyPid)) || (await tickets(root)).some(value =>
+      let blockedByPidLock = false;
+      for (const relativePath of PID_LOCK_PATHS) {
+        await assertNoSymbolicLinkTraversal(root, relativePath);
+        const legacy = await readOptionalBuffer(path.join(root, relativePath));
+        const legacyPid = legacy ? Number(legacy.toString()) : null;
+        if (legacyPid !== null && (!Number.isSafeInteger(legacyPid) || legacyPid <= 0)) throw new Error("Invalid Operator lock.");
+        if (legacyPid !== null && alive(legacyPid)) blockedByPidLock = true;
+      }
+      const blocked = blockedByPidLock || (await tickets(root)).some(value =>
         value.token !== own.token && (value.number === null || value.number < own.number! ||
           (value.number === own.number && value.token < own.token)));
       if (!blocked) return release;

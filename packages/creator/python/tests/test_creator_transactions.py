@@ -93,7 +93,7 @@ def test_transaction_schema_rejects_file_count_and_json_byte_overflow(tmp_path):
     assert file_error.value.code == "CREATOR_TRANSACTION_TOO_LARGE"
 
     store = CreatorTransactionStore(tmp_path)
-    directory = tmp_path / ".agentuicreator" / "transactions"
+    directory = tmp_path / ".agent-ui/creator" / "transactions"
     directory.mkdir(parents=True)
     transaction_path = directory / store._file_name("oversized")
     transaction_path.write_bytes(b" " * (MAX_CREATOR_TRANSACTION_BYTES + 1))
@@ -238,7 +238,7 @@ def test_legacy_transaction_can_undo_but_cannot_reapply(tmp_path):
     target = plugins / "foo.ts"
     target.write_text("new", encoding="utf-8")
     store = CreatorTransactionStore(tmp_path)
-    record_path = tmp_path / ".agentuicreator" / "transactions" / store._file_name("run-1")
+    record_path = tmp_path / ".agent-ui/creator" / "transactions" / store._file_name("run-1")
     record_path.parent.mkdir(parents=True)
     record_path.write_text(json.dumps(valid_record()), encoding="utf-8")
     assert not store.load("run-1").reapplyable
@@ -350,7 +350,7 @@ def test_undo_rollback_failure_has_both_causes(tmp_path, monkeypatch):
 
 def test_load_rejects_noncanonical_transaction_path(tmp_path):
     store = CreatorTransactionStore(tmp_path)
-    transaction_directory = tmp_path / ".agentuicreator" / "transactions"
+    transaction_directory = tmp_path / ".agent-ui/creator" / "transactions"
     transaction_directory.mkdir(parents=True)
     value = valid_record()
     value["files"][0]["path"] = "../outside.ts"

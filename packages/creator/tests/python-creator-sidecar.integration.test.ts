@@ -336,7 +336,7 @@ async function copyTargetProject(label: string): Promise<string> {
   await cp(projectRoot, root, {
     recursive: true,
     filter: (entry) =>
-      !["node_modules", "dist", ".agentuicreator"].includes(
+      !["node_modules", "dist", ".agent-ui"].includes(
         path.basename(entry),
       ),
   });

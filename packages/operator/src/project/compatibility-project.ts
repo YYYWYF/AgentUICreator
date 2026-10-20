@@ -21,7 +21,7 @@ export async function planCompatibilityProject(input: { projectRoot: string; sou
     if (directory === path.dirname(directory)) break;
   }
   const validation = await validateAgentUIProjectSetup(input);
-  if (["src", "public", "node_modules", ".agent-ui", ".agentuicreator", ".git", "dist", "build"].includes(input.sourceRoot.split("/")[0] ?? "")) {
+  if (["src", "public", "node_modules", ".agent-ui", ".git", "dist", "build"].includes((input.sourceRoot.split("/")[0] ?? "").toLowerCase())) {
     return { ...validation, valid: false, issues: [...validation.issues, { code: "AGENT_UI_COMPATIBILITY_DIRECTORY_INVALID", message: "AGENT_UI_COMPATIBILITY_DIRECTORY_INVALID" }], compatibilityPlan: undefined };
   }
   if (!validation.valid) return { ...validation, compatibilityPlan: undefined };

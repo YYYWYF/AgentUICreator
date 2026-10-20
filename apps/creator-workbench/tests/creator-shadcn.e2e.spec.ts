@@ -143,7 +143,7 @@ test("overall refresh discovers a local recording and preserves the draft", asyn
   await expect(page.getByRole("radio", { name: /我的回放示例/ })).not.toBeChecked();
   await expect(page.locator(".creator-refresh-status")).toContainText("已刷新项目状态");
   await page.getByText("查看文件读取位置", { exact: true }).click();
-  await expect(page.locator(".creator-mock-file-location")).toContainText("/project/.agentui/mocks");
+  await expect(page.locator(".creator-mock-file-location")).toContainText("/project/.agent-ui/mocks");
   await page.screenshot({ path: info.outputPath("creator-refresh-recording.png") });
   await page.getByRole("button", { name: "返回对话", exact: true }).click();
   await expect(page.locator("#creator-request")).toHaveValue("保留草稿");
