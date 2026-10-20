@@ -32,12 +32,12 @@ export const nestedSubagentErrorScenario = defineScenario({
       type: "subagent-tool",
       toolCallId: "error-parent-tool",
       toolName: "delegate_specialist",
-      args: { task: "Inspect the failing architecture branch" },
+      args: { task: "检查出现故障的架构分支" },
       prepareDurationMs: 300,
       subagent: {
         id: "subagent-error",
-        name: "Failing Researcher",
-        description: "Produces attributed content before failing",
+        name: "研究员",
+        description: "在发生错误前生成带有来源归属的内容",
         steps: [
           {
             type: "message",
@@ -47,7 +47,7 @@ export const nestedSubagentErrorScenario = defineScenario({
         ],
         outcome: {
           type: "error",
-          message: "Researcher failed during runtime inspection",
+          message: "研究员检查 Runtime 时发生错误",
           code: "SUBAGENT_RESEARCH_FAILED",
         },
       },

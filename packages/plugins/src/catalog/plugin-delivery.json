@@ -1478,5 +1478,41 @@
       "styles.css",
       "styles.css.d.ts"
     ]
+  },
+  {
+    "id": "context-retrieval-message",
+    "component": "ContextRetrievalMessagePlugin",
+    "symbol": "contextRetrievalMessagePlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "context-retrieval-message.tsx",
+      "projection.ts"
+    ],
+    "implementationExports": [
+      "CanonicalContextRetrievalMessage",
+      "ContextRetrievalMessageProps",
+      "ContextRetrievalData",
+      "ContextRetrievalGroup"
+    ],
+    "supportEntry": "plugin-support",
+    "presentationOwner": "context-retrieval-message",
+    "implementationModule": "context-retrieval-message",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "registration": {
+      "kind": "data",
+      "name": "CONTEXT_CONTENT"
+    },
+    "projectFiles": [
+      "style.css",
+      "style.css.d.ts"
+    ]
   }
 ]

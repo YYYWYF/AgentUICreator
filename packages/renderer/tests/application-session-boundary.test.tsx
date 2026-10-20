@@ -2,12 +2,12 @@ import { useEffect } from "react";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, it, vi } from "vitest";
-import { ApplicationSessionBoundary, useApplicationSessionConnection } from "../../plugins/resources/registry/items/foundation-core/files/application/ApplicationSessionBoundary";
-import { createAuthSession } from "../../plugins/resources/registry/items/plugin-auth-gate/files/plugins/auth-gate/session";
-import { createDemoAuthAdapter } from "../../plugins/resources/registry/items/plugin-auth-gate/files/services/auth/mock-adapter";
-import { createPluginRegistry } from "../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/plugins";
-import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/tools";
-import gateManifest from "../../plugins/resources/registry/items/plugin-auth-gate/files/plugins/auth-gate/manifest.json";
+import { ApplicationSessionBoundary, useApplicationSessionConnection } from "../../plugins/resources/registry/items/foundation/core/files/application/ApplicationSessionBoundary";
+import { createAuthSession } from "../../plugins/resources/registry/items/plugin/auth-gate/files/plugins/auth-gate/session";
+import { createDemoAuthAdapter } from "../../plugins/resources/registry/items/plugin/auth-gate/files/services/auth/mock-adapter";
+import { createPluginRegistry } from "../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/plugins";
+import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/tools";
+import gateManifest from "../../plugins/resources/registry/items/plugin/auth-gate/files/plugins/auth-gate/manifest.json";
 import { parseUIPluginManifest } from "../../operator/src/framework/contracts/ui-plugin";
 
 it("starts no conversation subtree while blocked and disposes it across logout and identity changes", async () => {

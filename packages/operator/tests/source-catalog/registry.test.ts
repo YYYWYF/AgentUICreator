@@ -27,7 +27,7 @@ describe("Agent UI Source Registry public conversation contract", () => {
     expect(registry.byId.get("foundation/conversation")?.kind).toBe("foundation");
     expect(registry.items.filter((entry) => entry.kind === "primitive")).toHaveLength(0);
     expect(registry.items.filter((entry) => entry.kind === "agent-component").map(entry => entry.id)).toEqual(expect.arrayContaining([
-      "agent-component/generative-ui", "plugin/conversation-surface",
+      "plugin/conversation-surface",
       "plugin/response-footer", "plugin/response-footer",
     ]));
     expect(registry.byId.get("plugin/response-footer")?.requires).toContain("plugin/conversation-surface");
@@ -80,13 +80,13 @@ describe("Agent UI Source Registry public conversation contract", () => {
     ) as { items: Array<{ id: string }> };
 
     expect(manifest.items).toEqual(expect.arrayContaining([{
-      id: "foundation/conversation", path: "items/foundation-conversation/item.json",
+      id: "foundation/conversation", path: "items/foundation/conversation/item.json",
     }, {
-      id: "demo/frontend-tool-dialog", path: "items/demo-frontend-tool-dialog/item.json",
+      id: "demo/frontend-tool-dialog", path: "items/demo/frontend-tool-dialog/item.json",
     }, {
-      id: "demo/frontend-tool-form", path: "items/demo-frontend-tool-form/item.json",
+      id: "demo/frontend-tool-form", path: "items/demo/frontend-tool-form/item.json",
     }, {
-      id: "demo/ask-user-question", path: "items/demo-ask-user-question/item.json",
+      id: "demo/ask-user-question", path: "items/demo/ask-user-question/item.json",
     }]));
     expect(parseSourceItem({
       id: "foundation/conversation",

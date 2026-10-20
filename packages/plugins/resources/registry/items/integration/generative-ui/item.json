@@ -1,0 +1,33 @@
+{
+  "id": "integration/generative-ui",
+  "kind": "integration",
+  "description": "Official Agent UI Generative UI vocabulary, renderer and action capabilities; no automatic Tool permission",
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "@za38.03/agent-ui-plugins": "0.0.1"
+  },
+  "upstream": {
+    "project": "assistant-ui/assistant-ui",
+    "component": "styledGenerativeUILibrary, generativeUiVocabularyCss, JSONGenerativeUI and official vocabulary",
+    "implementation": "package-backed public renderer, Action Registry factories, styled element and scoped vocabulary CSS",
+    "revision": "3542d602272a62eddeb8989befc910841c267022",
+    "mode": "adapted",
+    "license": "MIT"
+  },
+  "files": [
+    {
+      "source": "files/agent-ui/conversation/generative-ui.ts",
+      "target": "agent-ui/conversation/generative-ui.ts"
+    },
+    {
+      "source": "files/integrations/generative-ui/index.ts",
+      "target": "integrations/generative-ui/index.ts"
+    },
+    {
+      "source": "files/integrations/generative-ui/create-generative-ui.ts",
+      "target": "integrations/generative-ui/create-generative-ui.ts"
+    }
+  ]
+}

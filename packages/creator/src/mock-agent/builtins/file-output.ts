@@ -32,9 +32,9 @@ export const fileOutputScenario = defineScenario({
     {
       type: "tool",
       name: "generate_file",
-      args: { filename: "quarterly-report.pdf", format: "pdf" },
+      args: { filename: "季度报告.pdf", format: "pdf" },
       result: {
-        filename: "quarterly-report.pdf",
+        filename: "季度报告.pdf",
         mimeType: "application/pdf",
         url: "https://example.com/generated/quarterly-report.pdf",
       },

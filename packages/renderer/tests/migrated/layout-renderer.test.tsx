@@ -4,7 +4,7 @@ import { LayoutRenderer } from "@za38.03/agent-ui-renderer";
 
 import type { AppUIModel } from "../../../operator/src/framework/contracts/app-ui-model";
 import { compileAppUIModel } from "../../../operator/src/framework/contracts/app-ui-compiler";
-import { pluginCapabilityCatalog } from "../../../plugins/resources/registry/items/foundation-core/files/plugins/index";
+import { pluginCapabilityCatalog } from "../../../plugins/resources/registry/items/foundation/core/files/plugins/index";
 import appUIJson from "../../../operator/tests/fixtures/project/app-ui/app-ui.json";
 import {
   parseAppUIRuntimeModel,

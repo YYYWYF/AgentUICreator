@@ -24,7 +24,7 @@ import {
   usePluginEvents,
   usePluginInstance,
   type AgentRuntimeActions,
-} from "../../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/context/index";
+} from "../../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/context/index";
 
 function snapshot(
   overrides: Partial<AgentRuntimeSnapshot<{ value: number }>> = {},

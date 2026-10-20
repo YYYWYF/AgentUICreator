@@ -25,7 +25,7 @@ export const toolErrorScenario = defineScenario({
       durationMs: 900,
       error: {
         type: "error",
-        message: "workspace-index is unavailable",
+        message: "workspace-index 服务当前不可用。",
         code: "MOCK_SERVICE_UNAVAILABLE",
       },
     },

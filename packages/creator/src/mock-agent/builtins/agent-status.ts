@@ -30,7 +30,7 @@ export const agentStatusScenario = defineScenario({
     {
       type: "tool",
       name: "mock_agent_status",
-      args: { label: "Analyzing workspace", elapsed: "0:12" },
+      args: { label: "正在分析工作区", elapsed: "0:12" },
       result: { applied: true },
       prepareDurationMs: 250,
       durationMs: 1_800,

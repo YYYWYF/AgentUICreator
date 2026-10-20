@@ -121,6 +121,15 @@ compatibility bridge therefore rejects responses containing metadata with
 dropping the field. Full metadata parity is deferred until the public upstream
 assistant-ui API can represent it.
 
+Legacy `CUSTOM name = "ON_INTERRUPT"` command decisions remain a separate
+compatibility path. The Runtime projects `action_requests` and backend-provided
+`review_configs[].allowed_decisions` onto uniquely matched unresolved Tool Calls.
+The shared Tool renderer submits the selected decision as a user message and
+uses one-shot AG-UI middleware to add
+`forwardedProps.command.decisions: [{ type }]` to that request. It does not
+fabricate an assistant-ui structured interrupt or route this response through
+`unstable_submitInterruptResponses`.
+
 ## Frontend Tool seam
 
 `AssistantUiFrontendToolPort` accepts the existing protocol-independent

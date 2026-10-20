@@ -1,9 +1,0 @@
-{
-  "style": {
-    "padding": "12px",
-    "background": "rgb(243, 232, 255)",
-    "radius": "20px"
-  },
-  "application": "import { ConversationComposerPlugin as Composer } from \"@za38.03/agent-ui-plugins/composer\";\nimport type { ComponentProps } from \"react\";\n\nexport function ConversationComposerPlugin({ rootProps, ...rest }: ComponentProps<typeof Composer>) {\n  return (\n    <Composer\n      {...rest}\n      rootProps={{\n        ...rootProps,\n        style: {\n          ...rootProps?.style,\n          padding: 12,\n          borderRadius: 20,\n          backgroundColor: \"#f3e8ff\",\n        },\n      }}\n    />\n  );\n}\n",
-  "ownershipAbsent": true
-}

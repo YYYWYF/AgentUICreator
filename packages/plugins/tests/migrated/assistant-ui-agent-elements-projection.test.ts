@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { projectAgentPlanActivity } from "../../resources/registry/items/foundation-core-application/files/agent-contract/agent-plan-activity";
-import { projectAgentStatus } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/agents/index";
+import { projectAgentPlanActivity } from "../../resources/registry/items/foundation/core-application/files/agent-contract/agent-plan-activity";
+import { projectAgentStatus } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/agents/index";
 
 describe("assistant-ui AgentPlan and AgentStatus projections", () => {
   it("projects only complete Agent Plan activity without filling missing data", () => {

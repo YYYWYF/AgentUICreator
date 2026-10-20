@@ -4,7 +4,7 @@ import {
   projectJobProgressState,
   projectRunCiJobResult,
   projectRunCiJobArgs,
-} from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/state/job-progress-projection";
+} from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/state/job-progress-projection";
 
 const validArgs = {
   target: "Verify the current change on CI",

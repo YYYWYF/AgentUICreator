@@ -24,6 +24,11 @@
       "id": "conversation-command-source-main",
       "pluginId": "conversation-command-source",
       "enabled": true
+    },
+    {
+      "id": "context-retrieval-message-main",
+      "pluginId": "context-retrieval-message",
+      "enabled": true
     }
   ],
   "root": {

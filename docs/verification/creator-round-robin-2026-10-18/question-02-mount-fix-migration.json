@@ -1,6 +1,0 @@
-{
-  "purpose": "Explicit framework diagnostics lifecycle repair for B, not a Plugin takeover or BASE adoption. Temporary observation logging removed before model run. Width reset from diagnostic 562 to original 416 for comparison.",
-  "path": "src/agent-ui/runtime/diagnostics/PluginDiagnosticContext.tsx",
-  "before": "4ffae9acb53804d9e6944b7ceaa1e9a952bf8e24cb07c57df79ed41e5dc7c333",
-  "after": "1dc5a73f901877204c3e97794948d219ba6065796000b80023388e09b803954a"
-}

@@ -40,6 +40,7 @@ import {
 } from "../../../../plugin-support.js";
 import { Button } from "../../../../plugin-support.js";
 import { Textarea } from "../../../../plugin-support.js";
+import type { ConversationCommandDecisionRequest, ConversationToolCallProps } from "../../../../public.js";
 
 const ANIMATION_DURATION = 200;
 
@@ -706,7 +707,9 @@ const offersInterruptAction = (
   status: ToolCallMessagePartStatus | undefined,
   approval: ToolCallMessagePart["approval"],
   interrupt: ToolCallMessagePart["interrupt"],
+  decisionRequest?: ConversationCommandDecisionRequest,
 ) =>
+  decisionRequest !== undefined ||
   status?.type !== "requires-action" ||
   status.reason !== "interrupt" ||
   approval != null ||
@@ -721,6 +724,8 @@ type ToolFallbackApprovalProps = React.ComponentPropsWithoutRef<"div"> &
   > & {
     interrupt?: ToolCallMessagePart["interrupt"];
     approval?: ToolCallMessagePart["approval"];
+    decisionRequest?: ConversationCommandDecisionRequest | undefined;
+    submitDecision?: ConversationToolCallProps["submitDecision"] | undefined;
   };
 
 const ToolFallbackApproval: React.ForwardRefExoticComponent<ToolFallbackApprovalProps & React.RefAttributes<HTMLDivElement>> = forwardRef<
@@ -747,6 +752,8 @@ function ToolFallbackApprovalImpl({
   interrupt,
   approval,
   respondToApproval,
+  decisionRequest,
+  submitDecision,
   status,
   ...props
 }: Omit<ToolFallbackApprovalProps, "ref"> & {
@@ -837,13 +844,17 @@ function ToolFallbackApprovalImpl({
 
   if (
     hidePendingApproval ||
-    !offersInterruptAction(status, approval, interrupt)
+    !offersInterruptAction(status, approval, interrupt, decisionRequest)
   )
     return null;
 
   const promptText = approval?.prompt ? (
     <p className="aui-tool-fallback-approval-prompt text-foreground whitespace-pre-line">
       {approval.prompt}
+    </p>
+  ) : decisionRequest?.description ? (
+    <p className="aui-tool-fallback-approval-prompt text-foreground whitespace-pre-line">
+      {decisionRequest.description}
     </p>
   ) : null;
 
@@ -981,6 +992,39 @@ function ToolFallbackApprovalImpl({
       {error}
     </p>
   ) : null;
+
+  if (decisionRequest !== undefined) {
+    return (
+      <div
+        data-slot="tool-fallback-approval"
+        data-interaction="command"
+        tabIndex={-1}
+        className={cn(
+          "aui-tool-fallback-approval flex flex-col gap-2 pt-1",
+          className,
+        )}
+        {...props}
+        ref={setPendingGroup}
+      >
+        {promptText}
+        <div data-agent-ui-owned="" className="flex flex-wrap items-center gap-2">
+          {decisionRequest.allowedDecisions.map((decisionType, index) => (
+            <Button
+              key={`${decisionType}:${index}`}
+              size="sm"
+              variant="outline"
+              className={pressable}
+              onClick={() => submit(() => submitDecision?.(decisionType))}
+              disabled={locked || submitDecision === undefined}
+            >
+              {decisionType}
+            </Button>
+          ))}
+        </div>
+        {errorText}
+      </div>
+    );
+  }
 
   const answerField = acceptsText ? (
     <div className="aui-tool-fallback-approval-answer flex flex-col items-start gap-2">
@@ -1218,7 +1262,11 @@ export interface ToolFallbackPresentationProps {
   approvalProps?: Omit<React.ComponentPropsWithoutRef<"div">, "children">;
   children?: React.ReactNode;
 }
-const ToolFallbackImpl: React.FC<React.ComponentProps<ToolCallMessagePartComponent> & ToolFallbackPresentationProps> = ({
+type ToolFallbackProps = React.ComponentProps<ToolCallMessagePartComponent> &
+  Pick<ConversationToolCallProps, "decisionRequest" | "submitDecision"> &
+  ToolFallbackPresentationProps;
+
+const ToolFallbackImpl: React.FC<ToolFallbackProps> = ({
   toolName,
   argsText,
   result,
@@ -1229,6 +1277,8 @@ const ToolFallbackImpl: React.FC<React.ComponentProps<ToolCallMessagePartCompone
   interrupt,
   approval,
   respondToApproval,
+  decisionRequest,
+  submitDecision,
   rootProps, triggerProps, contentProps, argsProps, resultProps, errorProps, approvalProps, children,
 }) => {
   const isCancelled =
@@ -1236,7 +1286,8 @@ const ToolFallbackImpl: React.FC<React.ComponentProps<ToolCallMessagePartCompone
   const isRequiresAction = status?.type === "requires-action";
   const shouldRenderApproval =
     approval != null ||
-    (isRequiresAction && offersInterruptAction(status, approval, interrupt));
+    decisionRequest != null ||
+    (isRequiresAction && offersInterruptAction(status, approval, interrupt, decisionRequest));
 
   const [open, setOpen] = useState(rootProps?.defaultOpen ?? isRequiresAction);
   const [prevRequiresAction, setPrevRequiresAction] =
@@ -1295,6 +1346,8 @@ const ToolFallbackImpl: React.FC<React.ComponentProps<ToolCallMessagePartCompone
             interrupt={interrupt}
             approval={approval}
             respondToApproval={respondToApproval}
+            decisionRequest={decisionRequest}
+            submitDecision={submitDecision}
             status={status}
             {...approvalProps}
             onFocusCapture={(event) => {
@@ -1332,7 +1385,7 @@ const ToolFallbackImpl: React.FC<React.ComponentProps<ToolCallMessagePartCompone
 
 const ToolFallback = memo(
   ToolFallbackImpl,
-) as unknown as React.FC<React.ComponentProps<ToolCallMessagePartComponent> & ToolFallbackPresentationProps> & {
+) as unknown as React.FC<ToolFallbackProps> & {
   Root: typeof ToolFallbackRoot;
   Trigger: typeof ToolFallbackTrigger;
   Content: typeof ToolFallbackContent;
@@ -1364,7 +1417,6 @@ export {
   ToolFallbackApproval,
 };
 
-import type { ConversationToolCallProps } from "../../../../public.js";
 export type ConversationToolFallbackProps = Readonly<ConversationToolCallProps> & ToolFallbackPresentationProps & Partial<Pick<ToolCallMessagePartProps, "approval" | "respondToApproval" | "interrupt" | "resume" | "responseDeliveryStatus">>;
 export const ConversationToolFallback: React.FC<ConversationToolFallbackProps> & Pick<typeof ToolFallback, "Root" | "Trigger" | "Content" | "Args" | "Result" | "Error" | "Approval"> = Object.assign(function ConversationToolFallback(props: ConversationToolFallbackProps) {
   return <ToolFallback {...(props as unknown as React.ComponentProps<typeof ToolFallback>)} />;

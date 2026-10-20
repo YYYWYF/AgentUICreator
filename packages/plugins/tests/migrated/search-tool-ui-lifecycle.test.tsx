@@ -11,12 +11,12 @@ import { runMockScenario } from "../../../creator/src/mock-agent/scenario-runner
 import { webSearchScenario } from "../../../creator/src/mock-agent/builtins/web-search";
 import { retrievalChunksScenario } from "../../../creator/src/mock-agent/builtins/retrieval-chunks";
 import type { MockScenario } from "../../../creator/src/mock-agent/scenario";
-import webSearchPlugin from "../../resources/registry/items/plugin-web-search/files/plugins/web-search/definition";
-import retrievalPlugin from "../../resources/registry/items/plugin-retrieval-chunks/files/plugins/retrieval-chunks/definition";
-import { ConversationSurface } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface";
-import { buildRuntimeComposition } from "../../resources/registry/items/foundation-core-runtime/files/runtime/composition/RuntimeCompositionBuilder";
-import { createPluginCapabilityCatalog } from "../../resources/registry/items/foundation-core-runtime/files/runtime/composition/PluginCapabilityCatalog";
-import { PluginServiceRuntime, PluginServiceRuntimeContext } from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+import webSearchPlugin from "../../resources/registry/items/plugin/web-search/files/plugins/web-search/definition";
+import retrievalPlugin from "../../resources/registry/items/plugin/retrieval-chunks/files/plugins/retrieval-chunks/definition";
+import { ConversationSurface } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/ConversationSurface";
+import { buildRuntimeComposition } from "../../resources/registry/items/foundation/core-runtime/files/runtime/composition/RuntimeCompositionBuilder";
+import { createPluginCapabilityCatalog } from "../../resources/registry/items/foundation/core-runtime/files/runtime/composition/PluginCapabilityCatalog";
+import { PluginServiceRuntime, PluginServiceRuntimeContext } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
 
 const plugins = [webSearchPlugin, retrievalPlugin];
 const catalog = createPluginCapabilityCatalog(plugins.map(p => ({

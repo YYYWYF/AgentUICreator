@@ -21,8 +21,8 @@ export const retrievalChunksScenario = defineScenario({
     args: { query: "退款政策是什么？" },
     result: { chunks: [{
       id: "chunk-1",
-      source: "policy.pdf",
-      locator: "p.14",
+      source: "退款政策.pdf",
+      locator: "第 14 页",
       score: 0.91,
       text: "退款申请需在30天内提交。",
     }] },

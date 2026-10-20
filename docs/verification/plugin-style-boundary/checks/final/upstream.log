@@ -1,3 +1,0 @@
-$ pnpm --filter @agent-ui/react check:assistant-ui-upstream
-$ node scripts/check-assistant-ui-upstream.mjs
-assistant-ui upstream-owned Elements: OK

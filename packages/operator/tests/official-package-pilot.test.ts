@@ -21,7 +21,7 @@ async function fixture() {
   await writeFile(path.join(root, "package.json"), JSON.stringify({ type: "module", scripts: { build: "vite build" } }));
   await symlink(path.join(repositoryRoot, "packages/plugins"), path.join(root, "node_modules/@za38.03/agent-ui-plugins"));
   await symlink(path.join(repositoryRoot, "packages/operator/node_modules/react"), path.join(root, "node_modules/react"));
-  await cp(path.join(repositoryRoot, "packages/plugins/resources/registry/items/foundation-core-contracts/files/framework"), path.join(root, "src/agent-ui/framework"), { recursive: true });
+  await cp(path.join(repositoryRoot, "packages/plugins/resources/registry/items/foundation/core-contracts/files/framework"), path.join(root, "src/agent-ui/framework"), { recursive: true });
   await writeFile(path.join(root, "src/agent-ui/runtime/composition.ts"), 'export const createPluginCapabilityCatalog = (entries: unknown[]) => entries;\n');
   await writeFile(path.join(root, "src/agent-ui/app-ui/app-ui.json"), JSON.stringify({ root: { type: "slot", plugins: [{ id: "composer-main", pluginId: "composer", enabled: true }] } }));
   return root;

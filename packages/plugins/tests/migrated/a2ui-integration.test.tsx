@@ -7,9 +7,9 @@ import type { RunAgentInput } from "@ag-ui/core";
 import { ConversationRuntimeProvider, type ConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { JSONGenerativeUI, defaultGenerativeUILibrary, createActionRegistry } from "@assistant-ui/react-generative-ui";
 import { afterEach, describe, expect, it } from "vitest";
-import { A2uiConversationIntegration } from "../../resources/registry/items/integration-a2ui/files/integrations/a2ui/A2uiConversationIntegration";
-import { createA2uiConversationToolkit } from "../../resources/registry/items/integration-a2ui/files/integrations/a2ui/create-a2ui-toolkit";
-import { createAgentUIGenerativeUI } from "../../resources/registry/items/integration-generative-ui/files/integrations/generative-ui/index";
+import { A2uiConversationIntegration } from "../../resources/registry/items/integration/a2ui/files/integrations/a2ui/A2uiConversationIntegration";
+import { createA2uiConversationToolkit } from "../../resources/registry/items/integration/a2ui/files/integrations/a2ui/create-a2ui-toolkit";
+import { createAgentUIGenerativeUI } from "../../resources/registry/items/integration/generative-ui/files/integrations/generative-ui/index";
 import { a2uiFormControlsSnapshot } from "../../../creator/src/mock-agent/builtins/a2ui-form-controls";
 import { a2uiOrderSnapshot } from "../../../creator/src/mock-agent/builtins/a2ui-interactive-order";
 

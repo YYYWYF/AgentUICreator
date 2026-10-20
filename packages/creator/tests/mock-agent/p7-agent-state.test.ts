@@ -87,7 +87,7 @@ describe("AG-UI State → Job Progress showcase", () => {
         "ci-job-1": {
           stageIndex: 0,
           stageProgress: 0.1,
-          eta: "about 4 min",
+          eta: "约 4 分钟",
         },
       },
     });
@@ -110,12 +110,12 @@ describe("AG-UI State → Job Progress showcase", () => {
       toolCallName: "run_ci_job",
     });
     expect(JSON.parse(String((events[toolArgsIndex] as { delta: string }).delta))).toEqual({
-      target: "Verify the current change on CI",
+      target: "在 CI 上验证当前更改",
       stages: [
-        { name: "clone", weight: 1 },
-        { name: "install", weight: 3 },
-        { name: "build", weight: 3 },
-        { name: "test", weight: 3 },
+        { name: "拉取代码", weight: 1 },
+        { name: "安装依赖", weight: 3 },
+        { name: "构建", weight: 3 },
+        { name: "测试", weight: 3 },
       ],
     });
     expect(events[toolEndIndex]).toMatchObject({ toolCallId: "ci-job-1" });
@@ -123,7 +123,7 @@ describe("AG-UI State → Job Progress showcase", () => {
       toolCallId: "ci-job-1",
       content: JSON.stringify({
         success: true,
-        summary: "All CI stages passed",
+        summary: "CI 的所有阶段均已通过",
       }),
     });
 
@@ -137,23 +137,23 @@ describe("AG-UI State → Job Progress showcase", () => {
         {
           op: "replace",
           path: "/jobs/ci-job-1/eta",
-          value: "about 3 min",
+          value: "约 3 分钟",
         },
       ],
       [
         { op: "replace", path: "/jobs/ci-job-1/stageIndex", value: 1 },
         { op: "replace", path: "/jobs/ci-job-1/stageProgress", value: 0.3 },
-        { op: "replace", path: "/jobs/ci-job-1/eta", value: "about 3 min" },
+        { op: "replace", path: "/jobs/ci-job-1/eta", value: "约 3 分钟" },
       ],
       [
         { op: "replace", path: "/jobs/ci-job-1/stageIndex", value: 2 },
         { op: "replace", path: "/jobs/ci-job-1/stageProgress", value: 0.55 },
-        { op: "replace", path: "/jobs/ci-job-1/eta", value: "about 2 min" },
+        { op: "replace", path: "/jobs/ci-job-1/eta", value: "约 2 分钟" },
       ],
       [
         { op: "replace", path: "/jobs/ci-job-1/stageIndex", value: 3 },
         { op: "replace", path: "/jobs/ci-job-1/stageProgress", value: 0.75 },
-        { op: "replace", path: "/jobs/ci-job-1/eta", value: "less than 1 min" },
+        { op: "replace", path: "/jobs/ci-job-1/eta", value: "不足 1 分钟" },
       ],
       [
         { op: "replace", path: "/jobs/ci-job-1/stageIndex", value: 4 },

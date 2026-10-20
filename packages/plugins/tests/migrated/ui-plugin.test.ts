@@ -19,7 +19,7 @@ import {
   useAgentRun,
   useAgentState,
   usePluginEvents,
-} from "../../resources/registry/items/foundation-core-runtime/files/runtime/context/index";
+} from "../../resources/registry/items/foundation/core-runtime/files/runtime/context/index";
 
 describe("UIPluginManifest", () => {
   it("parses renderer Slots while leaving legacy child Slots in content mode", () => {

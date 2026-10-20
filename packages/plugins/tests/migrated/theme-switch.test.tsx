@@ -18,27 +18,27 @@ import { parseAppUIRuntimeModel } from "../../../operator/src/framework/contract
 import {
   capabilityCatalogRevision,
   pluginCapabilityCatalog,
-} from "../../resources/registry/items/foundation-core/files/plugins/index";
-import { createConversationServiceThreadBinding } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
+} from "../../resources/registry/items/foundation/core/files/plugins/index";
+import { createConversationServiceThreadBinding } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
 import {
   AgentRuntimeProvider,
   PluginInstanceProvider,
-} from "../../resources/registry/items/foundation-core-runtime/files/runtime/context/index";
-import { buildRuntimeComposition } from "../../resources/registry/items/foundation-core-runtime/files/runtime/composition/index";
-import { createInstanceActions } from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/PluginServiceRuntime";
+} from "../../resources/registry/items/foundation/core-runtime/files/runtime/context/index";
+import { buildRuntimeComposition } from "../../resources/registry/items/foundation/core-runtime/files/runtime/composition/index";
+import { createInstanceActions } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/PluginServiceRuntime";
 import {
   createPluginRegistry,
   PluginServiceRuntime,
   PluginServiceRuntimeContext,
   UIPluginRuntime,
   type UIPluginRuntimeActions,
-} from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
 import { createStaticAgentRuntime } from "../../../operator/tests/support/agent-runtime-fixture";
-import { ThemeSwitchPlugin } from "../../resources/registry/items/plugin-theme-switch/files/plugins/theme-switch/index";
-import { themeProviderPlugin } from "../../resources/registry/items/plugin-theme-provider/files/plugins/theme-provider/definition";
-import { localeProviderPlugin } from "../../resources/registry/items/plugin-locale-provider/files/plugins/locale-provider/definition";
-import { AGENT_UI_LOCALE_SERVICE, type AgentUILocaleService } from "../../resources/registry/items/foundation-core-application/files/services/agent-ui-locale";
-import { themeSwitchPlugin } from "../../resources/registry/items/plugin-theme-switch/files/plugins/theme-switch/definition";
+import { ThemeSwitchPlugin } from "../../resources/registry/items/plugin/theme-switch/files/plugins/theme-switch/index";
+import { themeProviderPlugin } from "../../resources/registry/items/plugin/theme-provider/files/plugins/theme-provider/definition";
+import { localeProviderPlugin } from "../../resources/registry/items/plugin/locale-provider/files/plugins/locale-provider/definition";
+import { AGENT_UI_LOCALE_SERVICE, type AgentUILocaleService } from "../../resources/registry/items/foundation/core-application/files/services/agent-ui-locale";
+import { themeSwitchPlugin } from "../../resources/registry/items/plugin/theme-switch/files/plugins/theme-switch/definition";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
   .IS_REACT_ACT_ENVIRONMENT = true;

@@ -167,9 +167,14 @@ export async function loadAgentUISourceRegistry(
     sourceRelease = release.releaseVersion;
   } catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; }
   const byId = new Map(items.map(item => [item.id, item]));
-  const generativeUI = byId.get("agent-component/generative-ui");
-  if (generativeUI && !byId.has("agent-component/assistant-ui-generative-ui")) {
-    byId.set("agent-component/assistant-ui-generative-ui", generativeUI);
+  const componentResource = byId.get("agent-component/generative-ui");
+  const integrationResource = byId.get("integration/generative-ui");
+  if (componentResource && !byId.has("agent-component/assistant-ui-generative-ui")) {
+    byId.set("agent-component/assistant-ui-generative-ui", componentResource);
+  } else if (integrationResource && !componentResource) {
+    for (const alias of ["agent-component/generative-ui", "agent-component/assistant-ui-generative-ui"]) {
+      if (!byId.has(alias)) byId.set(alias, integrationResource);
+    }
   }
   return { root, items, byId, ...(sourceRelease ? { sourceRelease } : {}) };
 }

@@ -32,7 +32,7 @@ async function fixture(id = "composer", ownPackage = false) {
   if (ownPackage) await cp(path.join(repositoryRoot,"packages/plugins"),pkg,{recursive:true,filter: source => !["node_modules", ".generated"].includes(path.relative(path.join(repositoryRoot,"packages/plugins"),source).split(path.sep)[0]!)});
   else await symlink(path.join(repositoryRoot,"packages/plugins"),pkg,process.platform === "win32" ? "junction":"dir");
   await symlink(path.join(repositoryRoot,"packages/operator/node_modules/react"),path.join(root,"node_modules/react"),process.platform === "win32" ? "junction":"dir");
-  await cp(path.join(repositoryRoot,"packages/plugins/resources/registry/items/foundation-core-contracts/files/framework"),path.join(root,"src/ui/framework"),{recursive:true});
+  await cp(path.join(repositoryRoot,"packages/plugins/resources/registry/items/foundation/core-contracts/files/framework"),path.join(root,"src/ui/framework"),{recursive:true});
   await mkdir(path.join(root,"src/ui/services"));
   await mkdir(path.join(root,"src/ui/agent-ui/i18n"),{recursive:true});
   await writeFile(path.join(root,"src/ui/services/agent-ui-locale.ts"),'export const AGENT_UI_LOCALE_SERVICE = "agent-ui.locale";\n');

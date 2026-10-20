@@ -17,8 +17,8 @@ import type {
 import {
   createAgentUIThemeService,
   readAgentUITheme,
-} from "../../../plugins/resources/registry/items/plugin-theme-provider/files/plugins/theme-provider/theme-service";
-import { themeProviderPlugin } from "../../../plugins/resources/registry/items/plugin-theme-provider/files/plugins/theme-provider/definition";
+} from "../../../plugins/resources/registry/items/plugin/theme-provider/files/plugins/theme-provider/theme-service";
+import { themeProviderPlugin } from "../../../plugins/resources/registry/items/plugin/theme-provider/files/plugins/theme-provider/definition";
 import {
   createPluginRegistry,
   PluginServiceConsumerContext,
@@ -27,11 +27,11 @@ import {
   SlotRegistry,
   usePluginService,
   usePluginServiceSnapshot,
-} from "../../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
 import {
   AGENT_UI_THEME_SERVICE,
   type AgentUIThemeService,
-} from "../../../plugins/resources/registry/items/foundation-core-application/files/services/agent-ui-theme";
+} from "../../../plugins/resources/registry/items/foundation/core-application/files/services/agent-ui-theme";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean })
   .IS_REACT_ACT_ENVIRONMENT = true;

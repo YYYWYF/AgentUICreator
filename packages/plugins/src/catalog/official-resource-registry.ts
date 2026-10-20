@@ -68,6 +68,7 @@ const productResourceRegistry = createOfficialResourceRegistry([
   { id: "tool-group", discoverable: true, label: "工具分组", implementation: { type: "plugin", pluginId: "tool-group", slot: "toolGroup" } },
   { id: "tool-approval", discoverable: true, label: "工具调用与审批", implementation: { type: "plugin", pluginId: "tool-fallback", slot: "toolFallback" } },
   { id: "chart-message", discoverable: true, label: "图表", implementation: { type: "plugin", pluginId: "chart-message", dataMessageUIName: "chart" } },
+  { id: "context-retrieval-message", discoverable: true, label: "上下文检索展示", implementation: { type: "plugin", pluginId: "context-retrieval-message", dataMessageUIName: "CONTEXT_CONTENT" } },
   { id: "job-progress-message", discoverable: true, label: "进度展示", implementation: { type: "plugin", pluginId: "job-progress-message" } },
   { id: "agent-plan-message", discoverable: true, label: "计划展示", implementation: { type: "plugin", pluginId: "agent-plan-message" } },
   { id: "agent-status-message", discoverable: true, label: "状态展示", implementation: { type: "plugin", pluginId: "agent-status-message" } },

@@ -65,7 +65,7 @@ export const approvalResumeScenario = defineScenario({
       {
         type: "tool-result",
         toolCallId: approvalToolCallId,
-        result: { skipped: true, reason: "denied by user" },
+        result: { skipped: true, reason: "用户已拒绝" },
         durationMs: 500,
       },
       { type: "message", text: "操作已取消，未删除任何文件。", intervalMs: 35 },

@@ -30,17 +30,17 @@ export const subagentLifecycleScenario = defineScenario({
     {
       type: "subagent",
       id: "lifecycle-completed",
-      name: "Completing Worker",
+      name: "执行完成的工作进程",
       durationMs: 0,
       outcome: { type: "completed", result: { verified: true } },
     },
     {
       type: "subagent",
       id: "lifecycle-error",
-      name: "Failing Worker",
+      name: "执行失败的工作进程",
       durationMs: 0,
-      outcome: { type: "error", message: "Worker failed", code: "WORKER_FAILED" },
+      outcome: { type: "error", message: "工作进程执行失败", code: "WORKER_FAILED" },
     },
-    { type: "message", text: "Subagent lifecycle checked.", intervalMs: 0 },
+    { type: "message", text: "子智能体生命周期检查完成。", intervalMs: 0 },
   ],
 });

@@ -7,7 +7,7 @@ import {
   createPluginCapabilityCatalog,
   createRuntimeCompositionStore,
   type RuntimeCompositionStore,
-} from "../../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/composition/index";
+} from "../../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/composition/index";
 
 function definition(pluginId: string): UIPluginDefinition {
   return {

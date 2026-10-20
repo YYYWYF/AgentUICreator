@@ -4,10 +4,10 @@ import { describe, expect, it, vi } from "vitest";
 import { AppUICompilerError, compileAppUIModel } from "../../../operator/src/framework/contracts/app-ui-compiler";
 import { parseAppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
 import type { UIPluginDefinition } from "../../../operator/src/framework/contracts/ui-plugin";
-import { buildRuntimeComposition, createPluginCapabilityCatalog } from "../../resources/registry/items/foundation-core-runtime/files/runtime/composition/index";
-import { createPluginCompositionCatalog, createPluginRegistry } from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/PluginRegistry";
-import { PluginServiceRuntime } from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/PluginServiceRuntime";
-import { resolveDataMessageUIRegistrations } from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/data-message-ui-registrations";
+import { buildRuntimeComposition, createPluginCapabilityCatalog } from "../../resources/registry/items/foundation/core-runtime/files/runtime/composition/index";
+import { createPluginCompositionCatalog, createPluginRegistry } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/PluginRegistry";
+import { PluginServiceRuntime } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/PluginServiceRuntime";
+import { resolveDataMessageUIRegistrations } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/data-message-ui-registrations";
 
 const actions = {
   sendMessage: vi.fn(async () => undefined),

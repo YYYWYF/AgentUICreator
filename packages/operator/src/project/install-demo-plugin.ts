@@ -1,6 +1,6 @@
 import { ensurePluginApplication } from "./plugin-application";
 import { createHash } from "node:crypto";
-import { officialPackagePlugin, officialResourceRegistry } from "../source-catalog/index.js";
+import { OfficialResourceError, officialPackagePlugin, officialResourceRegistry } from "../source-catalog/index.js";
 import { readFile } from "node:fs/promises";
 import { collectPluginAssets } from "./plugin-assets";
 import { collectAppUIPluginLocations, parseAppUIModelJson } from "../framework/contracts/app-ui-model";
@@ -46,6 +46,16 @@ export async function installDemoPlugin(projectRoot: string, pluginId: string): 
     const parents = locations.filter(entry => entry.plugin.pluginId === placement.parentPluginId);
     if (parents.length !== 1) throw new Error("无法唯一确定会话展示位置，请先恢复会话区域。");
     const target = { type: "plugin_slot" as const, parentInstanceId: parents[0]!.plugin.id, slot: placement.slot };
+    const occupant = locations.find(entry => entry.target.type === "plugin_slot" &&
+      entry.target.parentInstanceId === target.parentInstanceId && entry.target.slot === target.slot &&
+      entry.plugin.pluginId !== pluginId);
+    if (occupant) {
+      throw new OfficialResourceError("RESOURCE_CONFLICT", "The default Plugin slot is already occupied.", {
+        code: "PLUGIN_SLOT_OCCUPIED", pluginId, slot: target.slot,
+        parentInstanceId: target.parentInstanceId, occupantPluginId: occupant.plugin.pluginId,
+        occupantInstanceId: occupant.plugin.id,
+      });
+    }
     const current = matches[0]?.target;
     if (current && (current.type !== "plugin_slot" || current.parentInstanceId !== target.parentInstanceId || current.slot !== slot)) {
       operations.push({ type: "move_plugin_to", instanceId: matches[0]!.plugin.id, placement: target });

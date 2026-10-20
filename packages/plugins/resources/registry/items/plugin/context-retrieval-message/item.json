@@ -1,0 +1,30 @@
+{
+  "id": "plugin/context-retrieval-message",
+  "kind": "agent-component",
+  "description": "Context retrieval Data Message UI for assistant messages",
+  "files": [
+    {
+      "source": "files/plugins/context-retrieval-message/definition.ts",
+      "target": "plugins/context-retrieval-message/definition.ts"
+    },
+    {
+      "source": "files/plugins/context-retrieval-message/index.tsx",
+      "target": "plugins/context-retrieval-message/index.tsx"
+    },
+    {
+      "source": "files/plugins/context-retrieval-message/manifest.json",
+      "target": "plugins/context-retrieval-message/manifest.json"
+    },
+    {
+      "source": "files/plugins/context-retrieval-message/style.css",
+      "target": "plugins/context-retrieval-message/style.css"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "19.1.1",
+    "@za38.03/agent-ui-plugins": "0.0.1"
+  }
+}

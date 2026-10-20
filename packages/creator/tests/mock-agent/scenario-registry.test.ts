@@ -33,7 +33,7 @@ describe("createScenarioRegistry", () => {
     expect(backendReferenceMockScenarios.every(({ reference }) =>
       reference?.audience === "backend",
     )).toBe(true);
-    expect(frontendPresentationMockScenarios).toHaveLength(18);
+    expect(frontendPresentationMockScenarios).toHaveLength(19);
     for (const id of ["quote-reply", "composer-mention", "composer-slash"]) {
       expect(showcaseMockScenarios.map(scenario => scenario.id)).not.toContain(id);
       expect(builtinMockScenarios.map(scenario => scenario.id)).not.toContain(id);
@@ -70,6 +70,7 @@ describe("createScenarioRegistry", () => {
       "ask-user-question",
       "multi-message-response",
       "data-message-chart",
+      "context-retrieval",
       "nested-subagent-task-group",
       "agent-plan",
       "agent-status",

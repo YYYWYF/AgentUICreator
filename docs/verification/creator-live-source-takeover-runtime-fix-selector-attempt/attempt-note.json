@@ -1,3 +1,0 @@
-{
-  "reason": "Configured real model selector exhausted its 512-token output budget before any takeover. Next verification host uses 2048 selector tokens; model and provider unchanged."
-}

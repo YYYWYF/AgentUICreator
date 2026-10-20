@@ -31,16 +31,16 @@ import {
   type MockScenario,
 } from "@za38.03/agent-ui-creator/mock-agent";
 import { runMockScenario } from "@za38.03/agent-ui-creator/mock-agent";
-import { ConversationAdapter } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter";
-import { createConversationToolkit } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
-import { ConversationResponseFooterPlugin } from "../../resources/registry/items/plugin-response-footer/files/plugins/response-footer/index";
-import { TaskGroupPlugin } from "../../resources/registry/items/plugin-task-group/files/plugins/task-group/index";
+import { ConversationAdapter } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/ConversationAdapter";
+import { createConversationToolkit } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/toolkit/index";
+import { ConversationResponseFooterPlugin } from "../../resources/registry/items/plugin/response-footer/files/plugins/response-footer/index";
+import { TaskGroupPlugin } from "../../resources/registry/items/plugin/task-group/files/plugins/task-group/index";
 import type { UIPluginRenderScope } from "../../../operator/src/framework/contracts/ui-plugin";
 import {
   PluginRenderScopeProvider,
   PluginServiceRuntime,
   PluginServiceRuntimeContext,
-} from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
 
 // Native TaskCard has no nested transcript override at this fixed revision.
 // When upstream renders reasoning/errors, these gap tests must fail: remove the

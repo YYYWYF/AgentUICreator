@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { parseAppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
 import type { UIPluginComponentProps, UIPluginDefinition } from "../../../operator/src/framework/contracts/ui-plugin";
-import { createPluginRegistry, usePluginRenderScope } from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+import { createPluginRegistry, usePluginRenderScope } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
 import { PluginRuntimeFixture } from "../../../operator/tests/support/agent-runtime-fixture";
 
 const actions = {

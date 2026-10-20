@@ -34,7 +34,7 @@ it.skip("installs a pluginless/tool-less A2UI resource without changing AppUIMod
   await installMockResource(f.root, "integration/a2ui");
   expect(await readFile(f.modelPath, "utf8")).toBe(model);
   const inspection = await inspectScenarioResources(f.root);
-  for (const id of ["agent-component/generative-ui", "integration/generative-ui", "integration/a2ui"]) {
+  for (const id of ["integration/generative-ui", "integration/a2ui"]) {
     expect(inspection.items.find(item => item.id === id)).toMatchObject({ status: "managed", dependencyIssues: [] });
   }
   expect(inspection.items.find(item => item.id === "integration/a2ui")).toMatchObject({ status: "managed", dependencyIssues: [] });
@@ -53,15 +53,14 @@ it.skip("reports incompatible optional dependencies before writing source", asyn
   await expect(readFile(path.join(f.sourceRoot, "integrations/a2ui/index.ts"))).rejects.toMatchObject({ code: "ENOENT" });
 });
 
-it("installs Generative UI alone without changing layout or mounting Tool permission", async () => {
-  const f = await fixture("integration/generative-ui");
+it.each(["integration/generative-ui", "agent-component/generative-ui"])("installs Generative UI through %s without changing layout or mounting Tool permission", async itemId => {
+  const f = await fixture(itemId);
   const model = await readFile(f.modelPath, "utf8");
-  await installMockResource(f.root, "integration/generative-ui");
+  await installMockResource(f.root, itemId);
   expect(await readFile(f.modelPath, "utf8")).toBe(model);
   const inspection = await inspectScenarioResources(f.root);
-  for (const id of ["agent-component/generative-ui", "integration/generative-ui"]) {
-    expect(inspection.items.find(item => item.id === id)).toMatchObject({ status: "managed", dependencyIssues: [] });
-  }
+  expect(inspection.items.find(item => item.id === "integration/generative-ui")).toMatchObject({ status: "managed", dependencyIssues: [] });
+  expect(await readFile(path.join(f.sourceRoot, "agent-ui/conversation/generative-ui.ts"), "utf8")).toContain("createAgentUIGenerativeUI");
   expect(inspection.items.find(item => item.id === "integration/a2ui")?.status).not.toBe("managed");
   const tools = await readFile(path.join(f.sourceRoot, "agent-contract/frontend-tools.generated.ts"), "utf8");
   expect(tools).not.toContain("present"); expect(tools).not.toContain("prompt_user");

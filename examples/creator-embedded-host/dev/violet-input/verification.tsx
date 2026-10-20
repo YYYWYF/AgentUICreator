@@ -1,5 +1,5 @@
-import { createConversationService, createHttpConversationDataSource } from "../../../../packages/plugins/resources/registry/items/foundation-core-application/files/services/conversations";
-import { createConversationServiceThreadBinding } from "../../../../packages/plugins/resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
+import { createConversationService, createHttpConversationDataSource } from "../../../../packages/plugins/resources/registry/items/foundation/core-application/files/services/conversations";
+import { createConversationServiceThreadBinding } from "../../../../packages/plugins/resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
 // Development-only fixture. Imports real public surfaces; no component/CSS replicas.
 // Load foundation styles before real Plugin CSS, matching the host style boundary.
 import "@za38.03/agent-ui-plugins/styles.css";
@@ -22,7 +22,7 @@ import {
   type AgentUITheme,
 } from "@za38.03/agent-ui-plugins";
 import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@za38.03/agent-ui-runtime";
-import { chartMessageUI } from "../../../../packages/plugins/resources/registry/items/plugin-chart-message/files/plugins/chart-message/index";
+import { chartMessageUI } from "../../../../packages/plugins/resources/registry/items/plugin/chart-message/files/plugins/chart-message/index";
 import { themeShowcaseLocale as copy } from "../../src/theme-showcase.locale";
 const params = new URLSearchParams(location.search);
 const theme = (params.get("theme") || "light") as AgentUITheme;

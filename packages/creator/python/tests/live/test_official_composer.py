@@ -123,7 +123,7 @@ def test_real_creator_customizes_official_composer_without_source_mutation(tmp_p
     async def scenario():
         project = fresh_host(tmp_path)
         source = project / "src/agent-ui"
-        reference = ROOT / "packages/plugins/resources/registry/items/plugin-composer"
+        reference = ROOT / "packages/plugins/resources/registry/items/plugin/composer"
         package = ROOT / "packages/plugins"
         official_before = (hashes(reference), hashes(package))
         assert not (source / "plugins" / OFFICIAL_ID).exists()

@@ -662,7 +662,7 @@ export async function* runMockScenario(
     const label = typeof lastUser?.content === "string" && lastUser.content.trim() === "BBB" ? "B" : "A";
     scenario = { ...scenario, initialState: { owner: input.threadId, label }, steps: [
       { type: "custom", name: "concurrent-thread", value: { threadId: input.threadId, runId: input.runId, label } },
-      { type: "message", text: `${label}-1\n${label}-2\n${label}-3\n`, intervalMs: 750 },
+      { type: "message", text: `会话 ${label}：第 1 条消息\n会话 ${label}：第 2 条消息\n会话 ${label}：第 3 条消息\n`, intervalMs: 750 },
     ] };
   }
   validateMockScenario(scenario);
@@ -689,7 +689,7 @@ export async function* runMockScenario(
       validateMockScenario(scenario);
     } catch {
       if (preparationSignal.aborted) return;
-      yield { type: EventType.RUN_ERROR, message: "Mock backend preparation failed.", code: "MOCK_PREPARE_RUN_FAILED" };
+      yield { type: EventType.RUN_ERROR, message: "模拟后端准备运行场景时失败。", code: "MOCK_PREPARE_RUN_FAILED" };
       return;
     }
   }
@@ -705,7 +705,7 @@ export async function* runMockScenario(
   let steps: readonly MockScenarioStep[];
   try { steps = selectSteps(input, scenario); }
   catch {
-    yield { type: EventType.RUN_ERROR, message: "Invalid Mock continuation input.", code: "MOCK_CONTINUATION_INVALID" };
+    yield { type: EventType.RUN_ERROR, message: "模拟续接输入无效。", code: "MOCK_CONTINUATION_INVALID" };
     return;
   }
   for await (const event of runSteps(

@@ -5,7 +5,7 @@ import { officialPackagePlugins, loadAgentUISourceRegistry, resolveOfficialResou
 it("exposes one product identity per official plugin in npm and source delivery", async () => {
   const registry = await loadAgentUISourceRegistry();
   const ids = officialPackagePlugins.map(plugin => plugin.pluginId);
-  expect(ids).toHaveLength(43);
+  expect(ids).toHaveLength(44);
   expect(new Set(ids).size).toBe(ids.length);
   expect(ids.every(id => !id.startsWith("assistant-ui-") && id !== "message-footer")).toBe(true);
   const sourceIds = registry.items.filter(item => item.id.startsWith("plugin/")).map(item => item.id.slice(7));

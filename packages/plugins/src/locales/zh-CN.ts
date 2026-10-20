@@ -194,7 +194,12 @@ export const zhCN = {
     "retrieving": "正在检索",
     "passages": "已检索 {count} 个片段",
     "relevance": "{source} 相关度",
-    "score": "{score}，满分 1.00"
+    "score": "{score}，满分 1.00",
+    "contextKnowledgeBase": "知识库信息检索",
+    "contextLongTermMemory": "长期记忆检索",
+    "contextCount": "{count} 条上下文",
+    "contextQuery": "检索词",
+    "contextEmpty": "没有检索到上下文"
   },
   "search": {
     "searching": "正在搜索",

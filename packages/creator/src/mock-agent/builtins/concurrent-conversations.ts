@@ -9,5 +9,5 @@ export const concurrentConversationsScenario = defineScenario({
     audience: "backend", protocol: "AG-UI", pattern: "Concurrent thread streams",
     eventFlow: ["RUN_STARTED", "TEXT_MESSAGE_CONTENT", "RUN_FINISHED"],
   },
-  steps: [{ type: "message", text: "A-1\nA-2\nA-3\n", intervalMs: 750 }],
+  steps: [{ type: "message", text: "会话 A：第 1 条消息\n会话 A：第 2 条消息\n会话 A：第 3 条消息\n", intervalMs: 750 }],
 });

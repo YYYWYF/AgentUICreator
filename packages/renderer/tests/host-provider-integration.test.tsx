@@ -32,8 +32,8 @@ vi.mock("@za38.03/agent-ui-runtime", async importOriginal => {
     <actual.ConversationRuntimeProvider {...props} unstable_agentFactory={factory} /> };
 });
 
-import { Agent, AgentUIProvider, useAgentUI, useAgentUIState, useAgentUIEvent } from "../../plugins/resources/registry/items/foundation-core/files";
-import { agentCompositionStore } from "../../plugins/resources/registry/items/foundation-core/files/application/composition-store";
+import { Agent, AgentUIProvider, useAgentUI, useAgentUIState, useAgentUIEvent } from "../../plugins/resources/registry/items/foundation/core/files";
+import { agentCompositionStore } from "../../plugins/resources/registry/items/foundation/core/files/application/composition-store";
 
 async function until(predicate: () => boolean) {
   for (let i = 0; i < 150; i++) {

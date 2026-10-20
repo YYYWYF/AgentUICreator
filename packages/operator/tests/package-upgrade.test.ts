@@ -101,7 +101,7 @@ it("real npm upgrade preserves Composer application/BASE and permits subsequent 
  const {root,service}=await setup("npm",true);const repo=path.resolve(import.meta.dirname,"../../..");
  for(const directory of [".agent-ui","src/ui/app-ui","src/ui/plugins","src/ui/runtime","src/ui/services","src/ui/agent-ui/i18n"])await mkdir(path.join(root,directory),{recursive:true});
  await writeFile(path.join(root,".agent-ui/project.json"),JSON.stringify({mode:"assistant",sourceRoot:"src/ui"}));
- await cp(path.join(repo,"packages/plugins/resources/registry/items/foundation-core-contracts/files/framework"),path.join(root,"src/ui/framework"),{recursive:true});
+ await cp(path.join(repo,"packages/plugins/resources/registry/items/foundation/core-contracts/files/framework"),path.join(root,"src/ui/framework"),{recursive:true});
  await writeFile(path.join(root,"src/ui/services/agent-ui-locale.ts"),'export const AGENT_UI_LOCALE_SERVICE = "agent-ui.locale";');
  await writeFile(path.join(root,"src/ui/agent-ui/i18n/useAgentUILocale.ts"),'export {useAgentUILocale} from "@za38.03/agent-ui-plugins";');
  await writeFile(path.join(root,"src/ui/runtime/composition.ts"),'export const createPluginCapabilityCatalog = (entries:unknown[]) => entries;');

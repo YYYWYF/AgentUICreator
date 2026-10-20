@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const defaultRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const packageName = "@assistant-ui/react-generative-ui";
-const itemIds = ["agent-component-assistant-ui-generative-ui", "agent-component-generative-ui", "integration-generative-ui"];
+const itemIds = ["integration/generative-ui"];
 const vendorDirectory = "packages/plugins/src/internal/vendor-generated/assistant-ui/generative-ui";
 
 export async function checkGenerativeUiResource({ repoRoot = defaultRoot, target } = {}) {
@@ -36,9 +36,12 @@ export async function checkGenerativeUiResource({ repoRoot = defaultRoot, target
     if (!/^[a-f0-9]{64}$/u.test(file.upstreamSha256 ?? "")) errors.push(`${file.localPath} has invalid upstreamSha256`);
   }
   for (const missing of expectedFiles) errors.push(`Generative UI UPSTREAM.json is missing ${missing}`);
+  const registryRoot = path.join(repoRoot, "packages/plugins/resources/registry");
+  const registry = JSON.parse(await readFile(path.join(registryRoot, "registry.json"), "utf8"));
+  const pathsById = new Map(registry.items.map(entry => [entry.id, entry.path]));
   for (const id of itemIds) {
-    const relativePath = `packages/plugins/resources/registry/items/${id}/item.json`;
-    const item = JSON.parse(await readFile(path.join(repoRoot, relativePath), "utf8"));
+    const relativePath = pathsById.get(id) ?? `items/${id}/item.json`;
+    const item = JSON.parse(await readFile(path.join(registryRoot, ...relativePath.split("/")), "utf8"));
     if (item.packages?.[packageName]) errors.push(`${id} must use the package facade instead of depending directly on upstream`);
     if (item.files.some(file => /(^|\/)vendors?\//u.test(file.target))) errors.push(`${id} installs vendor source`);
     if (item.upstream?.revision !== revision) errors.push(`${id}/item.json upstream.revision is ${item.upstream?.revision}; expected ${revision}`);

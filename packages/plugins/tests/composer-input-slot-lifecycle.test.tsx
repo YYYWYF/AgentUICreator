@@ -11,16 +11,16 @@ import { compileAppUIModel } from "../../operator/src/framework/contracts/app-ui
 import { applyAppUIOperations, type AppUIOperation } from "../../operator/src/project/app-ui-operations";
 import type { UIPluginDefinition } from "../../operator/src/framework/contracts/ui-plugin";
 import { PluginRuntimeFixture } from "../../operator/tests/support/agent-runtime-fixture";
-import { createPluginRegistry, createPluginCompositionCatalog } from "../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
-import { CONVERSATION_MENTION_SOURCE, CONVERSATION_COMMAND_SOURCE, createConversationCommandRegistry } from "../resources/registry/items/foundation-core-application/files/services/composer-triggers";
-import { conversationComposerPlugin } from "../resources/registry/items/plugin-composer/files/plugins/composer/definition";
-import { conversationLexicalComposerInputPlugin } from "../resources/registry/items/plugin-lexical-composer-input/files/plugins/lexical-composer-input/definition";
-import { conversationMentionTriggerPlugin } from "../resources/registry/items/plugin-mention-trigger/files/plugins/mention-trigger/definition";
-import { conversationSlashCommandTriggerPlugin } from "../resources/registry/items/plugin-slash-command-trigger/files/plugins/slash-command-trigger/definition";
-import { conversationQuotePlugin } from "../resources/registry/items/plugin-conversation-quote/files/plugins/conversation-quote/definition";
-import { conversationAddAttachmentActionPlugin } from "../resources/registry/items/plugin-add-attachment-action/files/plugins/add-attachment-action/definition";
-import { conversationDictationActionPlugin } from "../resources/registry/items/plugin-dictation-action/files/plugins/dictation-action/definition";
-import { conversationSubmitActionPlugin } from "../resources/registry/items/plugin-submit-action/files/plugins/submit-action/definition";
+import { createPluginRegistry, createPluginCompositionCatalog } from "../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
+import { CONVERSATION_MENTION_SOURCE, CONVERSATION_COMMAND_SOURCE, createConversationCommandRegistry } from "../resources/registry/items/foundation/core-application/files/services/composer-triggers";
+import { conversationComposerPlugin } from "../resources/registry/items/plugin/composer/files/plugins/composer/definition";
+import { conversationLexicalComposerInputPlugin } from "../resources/registry/items/plugin/lexical-composer-input/files/plugins/lexical-composer-input/definition";
+import { conversationMentionTriggerPlugin } from "../resources/registry/items/plugin/mention-trigger/files/plugins/mention-trigger/definition";
+import { conversationSlashCommandTriggerPlugin } from "../resources/registry/items/plugin/slash-command-trigger/files/plugins/slash-command-trigger/definition";
+import { conversationQuotePlugin } from "../resources/registry/items/plugin/conversation-quote/files/plugins/conversation-quote/definition";
+import { conversationAddAttachmentActionPlugin } from "../resources/registry/items/plugin/add-attachment-action/files/plugins/add-attachment-action/definition";
+import { conversationDictationActionPlugin } from "../resources/registry/items/plugin/dictation-action/files/plugins/dictation-action/definition";
+import { conversationSubmitActionPlugin } from "../resources/registry/items/plugin/submit-action/files/plugins/submit-action/definition";
 
 const inputId = "lexical-composer-input-main";
 const composerId = "composer-main";

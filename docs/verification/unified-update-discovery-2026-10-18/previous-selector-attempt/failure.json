@@ -1,4 +1,0 @@
-{
-  "error": "TimeoutError: locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('输入统计与草稿显示', { exact: true }).first() to be visible\u001b[22m\n",
-  "body": "Creator\n更新中心\n处理源码更新\n\n0 个插件可以更新\n\n暂不提醒\n\n已在线检查官方版本\n\n上次检查：2026-10-17T16:18:03.825Z\n\n刷新官方版本\n\n推荐兼容组合：acceptance-compatible-008\n\n项目 Agent UI\n@za38.03/agent-ui-core\n\n0.0.1 → 0.0.1\n\n依赖声明：workspace:*\n\n@za38.03/agent-ui-renderer\n\n0.0.1 → 0.0.1\n\n依赖声明：workspace:*\n\n@za38.03/agent-ui-runtime\n\n0.0.1 → 0.0.1\n\n依赖声明：workspace:*\n\n@za38.03/agent-ui-plugins\n\n0.0.1 → 0.0.8\n\n依赖声明：workspace:*\n\ncomposer · 输入统计与草稿显示\nconversation-history · 会话历史显示修复\n查看逐版本变更\n\n当前阶段暂不执行 npm 安装；版本检查不会修改工程文件。\n\nCreator 开发工具\n@za38.03/agent-ui-creator\n\n0.0.1 → 0.0.1\n\n@za38.03/agent-ui-operator\n\n0.0.1 → 0.0.1\n\n依赖声明：workspace:*"
-}

@@ -16,22 +16,22 @@ import {
   type ConversationAgentFactory,
 } from "@za38.03/agent-ui-runtime";
 import type { AppUIModel } from "../../../operator/src/framework/contracts/app-ui-model";
-import { ConversationSuggestionsPlugin } from "../../resources/registry/items/plugin-conversation-suggestions/files/plugins/conversation-suggestions/index";
+import { ConversationSuggestionsPlugin } from "../../resources/registry/items/plugin/conversation-suggestions/files/plugins/conversation-suggestions/index";
 import {
   capabilityCatalogRevision,
   pluginCapabilityCatalog,
-} from "../../resources/registry/items/foundation-core/files/plugins/index";
-import { createConversationServiceThreadBinding } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
+} from "../../resources/registry/items/foundation/core/files/plugins/index";
+import { createConversationServiceThreadBinding } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
 import { platformMode } from "../../../operator/src/framework/modes/platform";
-import { AgentRuntimeProvider } from "../../resources/registry/items/foundation-core-runtime/files/runtime/context/index";
+import { AgentRuntimeProvider } from "../../resources/registry/items/foundation/core-runtime/files/runtime/context/index";
 import {
   buildRuntimeComposition,
   type RuntimeCompositionBuildResult,
-} from "../../resources/registry/items/foundation-core-runtime/files/runtime/composition/index";
+} from "../../resources/registry/items/foundation/core-runtime/files/runtime/composition/index";
 import {
   UIPluginRuntime,
   type UIPluginRuntimeActions,
-} from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
 import { createStaticAgentRuntime } from "../../../operator/tests/support/agent-runtime-fixture";
 import { mutateAppUIModel } from "../../../operator/src/project/app-ui-transaction";
 import {

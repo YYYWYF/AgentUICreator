@@ -1,12 +1,25 @@
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { readdirSync, realpathSync } from "node:fs";
+import { existsSync, readdirSync, realpathSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { generatedProjectFixture } from "../packages/operator/tests/support/generated-project";
 import pluginDeliveries from "../packages/plugins/src/catalog/plugin-delivery.json";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const itemsRoot = path.join(root, "packages/plugins/resources/registry/items");
-const filesRoots = readdirSync(itemsRoot).map(item => path.join(itemsRoot, item, "files"));
+function collectFilesRoots(directory: string): string[] {
+  const entries = readdirSync(directory, { withFileTypes: true });
+  if (entries.some(entry => entry.isFile() && entry.name === "item.json")) {
+    const files = path.join(directory, "files");
+    return existsSync(files) ? [files] : [];
+  }
+  return entries.filter(entry => entry.isDirectory()).flatMap(entry => collectFilesRoots(path.join(directory, entry.name)));
+}
+const filesRoots = collectFilesRoots(itemsRoot);
+const asPosixPath = (value: string) => value.replaceAll("\\", "/");
+function pathIsWithin(directory: string, candidate: string): boolean {
+  const relative = path.relative(directory, candidate.split("?", 1)[0]!);
+  return relative !== "" && relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
+}
 /** Source Registry files are templates sharing a logical generated-project root. */
 export function generatedSourceTestConfig(packageRoot: string) {
   return {
@@ -62,19 +75,19 @@ export function generatedSourceTestConfig(packageRoot: string) {
         // requiring UI dependencies on the Source Registry package itself.
         if (importer.includes("/dist/sources/takeover/") && source === "../../framework/contracts/ui-plugin") return path.join(root,"packages/operator/src/framework/contracts/ui-plugin.ts");
         if (!source.startsWith(".")) {
-          if (!importer.includes("/registry/items/")) return;
+          if (!asPosixPath(importer).includes("/registry/items/")) return;
           return await this.resolve(source, path.join(packageRoot, "package.json"), { skipSelf: true })
             ?? await this.resolve(source, path.join(root, "packages/plugins/package.json"), { skipSelf: true });
         }
-        if (source.endsWith("/foundation-core/files/plugins/index") || source.endsWith("/foundation-core/files/plugins/registry.generated")) {
+        if (source.endsWith("/foundation/core/files/plugins/index") || source.endsWith("/foundation/core/files/plugins/registry.generated")) {
           const fixture = await generatedProjectFixture();
           return path.join(fixture, "plugins", source.endsWith("/index") ? "index.ts" : "registry.generated.ts");
         }
-        if (importer.endsWith("/foundation-core/files/plugins/index.ts") && source === "./registry.generated") {
+        if (asPosixPath(importer).endsWith("/foundation/core/files/plugins/index.ts") && source === "./registry.generated") {
           return path.join(await generatedProjectFixture(), "plugins/registry.generated.ts");
         }
-        if (!importer.includes("/registry/items/")) return;
-        const rootOfImporter = filesRoots.find(files => importer.startsWith(files + path.sep));
+        if (!asPosixPath(importer).includes("/registry/items/")) return;
+        const rootOfImporter = filesRoots.find(files => pathIsWithin(files, importer));
         if (!rootOfImporter) return;
         const logical = path.relative(rootOfImporter, path.resolve(path.dirname(importer), source));
         const fixture = await generatedProjectFixture();

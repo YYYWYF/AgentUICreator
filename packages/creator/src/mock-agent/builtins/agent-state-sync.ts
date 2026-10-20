@@ -9,7 +9,7 @@ const cloneDelta: MockStateDelta = [
   {
     op: "replace",
     path: "/jobs/ci-job-1/eta",
-    value: "about 3 min",
+    value: "约 3 分钟",
   },
 ];
 
@@ -27,7 +27,7 @@ const installDelta: MockStateDelta = [
   {
     op: "replace",
     path: "/jobs/ci-job-1/eta",
-    value: "about 3 min",
+    value: "约 3 分钟",
   },
 ];
 
@@ -45,7 +45,7 @@ const buildDelta: MockStateDelta = [
   {
     op: "replace",
     path: "/jobs/ci-job-1/eta",
-    value: "about 2 min",
+    value: "约 2 分钟",
   },
 ];
 
@@ -63,7 +63,7 @@ const testDelta: MockStateDelta = [
   {
     op: "replace",
     path: "/jobs/ci-job-1/eta",
-    value: "less than 1 min",
+    value: "不足 1 分钟",
   },
 ];
 
@@ -81,12 +81,12 @@ const completeDelta: MockStateDelta = [
 ];
 
 const runCiJobArgs = {
-  target: "Verify the current change on CI",
+  target: "在 CI 上验证当前更改",
   stages: [
-    { name: "clone", weight: 1 },
-    { name: "install", weight: 3 },
-    { name: "build", weight: 3 },
-    { name: "test", weight: 3 },
+    { name: "拉取代码", weight: 1 },
+    { name: "安装依赖", weight: 3 },
+    { name: "构建", weight: 3 },
+    { name: "测试", weight: 3 },
   ],
 };
 
@@ -140,7 +140,7 @@ export const agentStateSyncScenario = defineScenario({
       "ci-job-1": {
         stageIndex: 0,
         stageProgress: 0.1,
-        eta: "about 4 min",
+        eta: "约 4 分钟",
       },
     },
   },
@@ -161,7 +161,7 @@ export const agentStateSyncScenario = defineScenario({
       ],
       result: {
         success: true,
-        summary: "All CI stages passed",
+        summary: "CI 的所有阶段均已通过",
       },
     },
     {

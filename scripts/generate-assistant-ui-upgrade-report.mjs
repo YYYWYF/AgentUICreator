@@ -312,10 +312,8 @@ export async function main({ repoRoot = defaultRepoRoot, args = process.argv.sli
     localFacadeFilesChanged: select((file) => file.startsWith("packages/plugins/src/") && !file.startsWith("packages/plugins/src/internal/vendor/")),
     runtimeAdapterFilesChanged: select((file) => file.startsWith("packages/runtime/")),
     sourceRegistryAssistantUiFilesChanged: select((file) => [
-      "packages/plugins/resources/registry/items/agent-component-assistant-ui-generative-ui/",
-      "packages/plugins/resources/registry/items/agent-component-generative-ui/",
-      "packages/plugins/resources/registry/items/integration-generative-ui/",
-      "packages/plugins/resources/registry/items/integration-a2ui/",
+      "packages/plugins/resources/registry/items/integration/generative-ui/",
+      "packages/plugins/resources/registry/items/integration/a2ui/",
     ].some((prefix) => file.startsWith(prefix))),
     pluginFilesChanged: select((file) => file.startsWith("examples/creator-host-sandbox/plugins/")),
     appUIModelFilesChanged: select((file) => file.startsWith("examples/creator-host-sandbox/app-ui/")),

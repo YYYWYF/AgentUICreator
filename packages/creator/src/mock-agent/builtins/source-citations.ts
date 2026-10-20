@@ -34,11 +34,11 @@ export const sourceCitationsScenario = defineScenario({
     {
       type: "tool",
       name: "search_sources",
-      args: { query: "React 19 migration" },
+      args: { query: "React 19 迁移" },
       result: {
         sources: [
           { sourceType: "url", id: "react-19", url: "https://react.dev/blog/2024/12/05/react-19", title: "React 19" },
-          { sourceType: "document", id: "migration-guide", title: "Internal migration guide", mediaType: "application/pdf", filename: "migration-guide.pdf" },
+          { sourceType: "document", id: "migration-guide", title: "内部迁移指南", mediaType: "application/pdf", filename: "迁移指南.pdf" },
         ],
       },
       prepareDurationMs: 250,

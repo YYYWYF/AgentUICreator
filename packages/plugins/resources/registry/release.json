@@ -92,6 +92,9 @@
     "conversation-data-source": {
       "version": "0.0.1"
     },
+    "context-retrieval-message": {
+      "version": "0.0.1"
+    },
     "conversation-surface": {
       "version": "0.0.1"
     },

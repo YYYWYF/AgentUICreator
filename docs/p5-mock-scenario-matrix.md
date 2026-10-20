@@ -61,6 +61,7 @@ correlate resume entries by `interruptId`, not by array position.
 | Presentation | `agent-plan` | `ACTIVITY_SNAPSHOT / ACTIVITY_DELTA` → AgentPlan | Frontend Presentation | |
 | Advanced | `resumable-agent-plan` | Run Resume + Activity Snapshot → AgentPlan | Frontend Presentation | Advanced |
 | Presentation | `agent-status` | Application-defined Tool Args → AgentStatus | Frontend Presentation | |
+| Presentation | `context-retrieval` | `CUSTOM CONTEXT_*` → collapsed context retrieval Data Message UI | Frontend Presentation | Recommended |
 | Presentation | `file-output` | Backend Tool Result → named Tool UI → File / Download | Frontend Presentation | Recommended |
 | Advanced | `nested-subagent-recursive` | Recursive Subagent | Frontend Presentation | Advanced |
 | Advanced | `nested-subagent-error` | Nested Subagent Error | Frontend Presentation | Edge case |
@@ -120,6 +121,11 @@ TOOL_CALL_START
 from the frontend `ConversationToolCallProps.status` (`running` → `working`,
 `requires-action` → `waiting`, `complete` → `done`). It may therefore render
 while the Tool Call is still running.
+
+`context-retrieval` replays the legacy `CONTEXT_STARTED → CONTEXT_CONTENT →
+CONTEXT_FINISHED` custom-event sequence. Only `CONTEXT_CONTENT` carries display
+data and maps to the `CONTEXT_CONTENT` Data Message UI; the start and finish
+markers remain protocol lifecycle events without separate cards.
 
 The AgentPlan event flow is `RUN_STARTED → ACTIVITY_SNAPSHOT → ACTIVITY_DELTA* →
 TEXT_MESSAGE_* → RUN_FINISHED`. Refresh recovery replays the latest complete

@@ -13,7 +13,7 @@ const repo=fileURLToPath(new URL("..",import.meta.url));const output=path.join(r
 const require=createRequire(path.join(repo,"apps/creator-workbench/package.json"));const {chromium}=require("@playwright/test");const {build}=await import(pathToFileURL(require.resolve("vite")).href);
 const fixture=await createConnectionHostFixture({mode:"assistant",liveModel:false});let browser;let page;const errors:string[]=[];
 try{
- fixture.enableCors();const plugins=deliveries.map(item=>item.id);assert.equal(plugins.length,43);
+ fixture.enableCors();const plugins=deliveries.map(item=>item.id);assert.equal(plugins.length,44);
  for(const id of plugins){await ensurePluginApplication(fixture.hostRoot,id);assert.equal(JSON.parse(await readFile(path.join(fixture.hostRoot,"src/agent-ui/plugins",id,"application.json"),"utf8")).pluginId,id);}
  await writeGeneratedPluginRegistry(fixture.hostRoot);
  const identity=path.join(fixture.hostRoot,"src/agent-ui/plugins/agent-identity/index.tsx");const original=await readFile(identity,"utf8");const custom=original.replace("config={agentIdentityConfig}",'config={{...agentIdentityConfig,name:"工程定制助手"}}').replace("{...props} />",'{...props} rootProps={{"aria-label":"thin-identity",style:{padding:8,border:"2px solid rgb(139, 92, 246)",background:"rgb(245,243,255)"}}} />');assert.notEqual(custom,original);await writeFile(identity,custom);await ensurePluginApplication(fixture.hostRoot,"agent-identity");assert.equal(await readFile(identity,"utf8"),custom);

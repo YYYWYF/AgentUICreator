@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildRuntimeComposition, createPluginCapabilityCatalog } from "../../resources/registry/items/foundation-core-runtime/files/runtime/composition/index";
+import { buildRuntimeComposition, createPluginCapabilityCatalog } from "../../resources/registry/items/foundation/core-runtime/files/runtime/composition/index";
 
 describe("optional renderer composition", () => {
   const fixture = (occupants: unknown[]) => {

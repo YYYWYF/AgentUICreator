@@ -1,6 +1,0 @@
-The following is a diff from the previous accessibility tree for Window: "127.0.0.1:56315" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
-~										386 container
-~											387 开合三角标记 工具结果
-+												388 文本 工具结果
-+											389 文本 {"ok":true,"result":{"available":true,"currentHash":"4414cac8742ffc3b42ab0e5b95fe18593c784a0522144168c3625dfece626d3c","runtimeObserved":true,"runtimeStatus":"failed","diagnosticFresh":false,"compositionFresh":true,"application":{"phase":"ready"},"latestCompositionObservedAt":"2026-10-18T05:59:07.305000Z","latestCompositionReceivedAt":"2026-10-18T05:59:07.307751Z","latestRuntimeObservedAt":"2026-10-18T05:59:07.305000Z","latestRuntimeReceivedAt":"2026-10-18T05:59:07.307751Z","lastMutationAt":"2026-10-18T05:5
-The focused UI element is 387 开合三角标记 工具结果

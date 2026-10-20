@@ -1,7 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { formTools } from "@assistant-ui/react-hook-form";
 import { createReactHookFormFrontendTools, reactHookFormToolContracts } from "../../../operator/tests/fixtures/official-form/integrations/react-hook-form/index";
-import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../../resources/registry/items/foundation-core-runtime/files/runtime/tools/index";
+import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../../resources/registry/items/foundation/core-runtime/files/runtime/tools/index";
 
 it("uses public upstream semantics for all three tool descriptions", () => {
   for (const name of ["set_form_field", "submit_form", "reset_form"] as const) {

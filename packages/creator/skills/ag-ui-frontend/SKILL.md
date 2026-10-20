@@ -97,8 +97,8 @@ the project's installed version: do not infer capabilities from unreleased
 source or from the presence of related CSS selectors.
 
 - Install optional `integration/generative-ui` for the shared factory, official
-  styled vocabulary and Action Registry. It requires the Registry-managed
-  `agent-component/generative-ui`; neither is a default Foundation.
+  styled vocabulary, Action Registry and public component export. These files
+  are managed together as one optional Integration, not a default Foundation.
 - `createAgentUIGenerativeUI` exposes `present()` and `promptUser()` capabilities.
   Capability availability does not grant Agent permission. Do not automatically
   mount or advertise `present` / `prompt_user`; explicit Tool authorization requires a separate product decision.

@@ -800,11 +800,11 @@ exit 99
       ["packages/plugins/package.json", { peerDependencies: { lexical: "0.51.0", "@assistant-ui/react-lexical": "0.2.15" }, devDependencies: { lexical: "0.51.0", "@assistant-ui/react-lexical": "0.2.15" } }],
       ["examples/creator-host-sandbox/package.json", { dependencies: { lexical: "0.51.0", "@assistant-ui/react-lexical": "0.2.15" } }],
       ...["composer-input", "edit-composer"].map(suffix => [
-        `packages/plugins/resources/registry/items/plugin-assistant-ui-lexical-${suffix}/item.json`,
+        `packages/plugins/resources/registry/items/plugin/assistant-ui-lexical-${suffix}/item.json`,
         { packages: { lexical: "0.51.0", "@assistant-ui/react-lexical": "0.2.15" } },
       ]),
       ...["composer-input", "edit-composer"].map(suffix => [
-        `packages/plugins/resources/registry/items/plugin-lexical-${suffix}/item.json`,
+        `packages/plugins/resources/registry/items/plugin/lexical-${suffix}/item.json`,
         { packages: { lexical: "0.51.0" } },
       ]),
     ];
@@ -1088,25 +1088,22 @@ exit 99
       peerDependencies: { "@assistant-ui/react-generative-ui": "^0.0.21" },
       devDependencies: { "@assistant-ui/react-generative-ui": "0.0.21" },
     }, null, 2));
-    await writeFixtureFile(root, "packages/plugins/resources/registry/items/agent-component-assistant-ui-generative-ui/item.json", JSON.stringify({
+    await writeFixtureFile(root, "packages/plugins/resources/registry/items/integration/generative-ui/item.json", JSON.stringify({
       files: [], upstream: { revision: oldRevision },
     }, null, 2));
-    await writeFixtureFile(root, "packages/plugins/resources/registry/items/agent-component-generative-ui/item.json", JSON.stringify({
-      files: [], upstream: { revision: oldRevision },
-    }, null, 2));
-    await writeFixtureFile(root, "packages/plugins/resources/registry/items/integration-generative-ui/item.json", JSON.stringify({
-      files: [], upstream: { revision: oldRevision },
-    }, null, 2));
-    await writeFixtureFile(root, "packages/plugins/resources/registry/items/integration-a2ui/item.json", JSON.stringify({
+    await writeFixtureFile(root, "packages/plugins/resources/registry/registry.json", JSON.stringify({ items: [
+      { id: "integration/generative-ui", path: "items/integration/generative-ui/item.json" },
+    ] }, null, 2));
+    await writeFixtureFile(root, "packages/plugins/resources/registry/items/integration/a2ui/item.json", JSON.stringify({
       upstream: { revision: oldRevision },
     }, null, 2));
     await writeFixtureFile(root, "pnpm-workspace.yaml", "minimumReleaseAgeExclude:\n  - '@assistant-ui/react-generative-ui@0.0.21'\n");
     await writeFixtureFile(root, "packages/plugins/source-layout.json", JSON.stringify({ schemaVersion: 1, files: [] }));
     await mkdir(path.join(root, "packages/plugins/src/internal/adapters-generated/assistant-ui"), { recursive: true });
     await syncGenerativeUi({ root, repo: upstream, revision: oldRevision });
-    const componentItemPath = path.join(root, "packages/plugins/resources/registry/items/agent-component-assistant-ui-generative-ui/item.json");
-    const initialComponent = JSON.parse(await readFile(componentItemPath, "utf8"));
-    await writeFile(componentItemPath, `${JSON.stringify(initialComponent, null, 2)}\n`);
+    const integrationItemPath = path.join(root, "packages/plugins/resources/registry/items/integration/generative-ui/item.json");
+    const initialIntegration = JSON.parse(await readFile(integrationItemPath, "utf8"));
+    await writeFile(integrationItemPath, `${JSON.stringify(initialIntegration, null, 2)}\n`);
     const provenancePath = path.join(root, "packages/plugins/src/internal/vendor-generated/assistant-ui/generative-ui/UPSTREAM.json");
     const before = JSON.parse(await readFile(provenancePath, "utf8"));
     await git(root, ["add", "."]);
@@ -1153,50 +1150,44 @@ exit 99
     expect(await readFile(path.join(root, "packages/creator/package.json"), "utf8")).toContain('"@assistant-ui/react-generative-ui": "^0.0.22"');
     expect(await checkGenerativeUiResource({ repoRoot: root, target: upgradedTarget })).toEqual([]);
     expect(await checkGenerativeUiResource({ repoRoot: root, target: upgradedTarget, baseGitSha })).toEqual([]);
-    expect(JSON.parse(await readFile(componentItemPath, "utf8"))).not.toHaveProperty("version");
-    const productItemPath = path.join(root, "packages/plugins/resources/registry/items/agent-component-generative-ui/item.json");
-    expect(JSON.parse(await readFile(productItemPath, "utf8")).upstream.revision).toBe(nextRevision);
-    const integrationItemPath = path.join(root, "packages/plugins/resources/registry/items/integration-generative-ui/item.json");
     expect(JSON.parse(await readFile(integrationItemPath, "utf8"))).not.toHaveProperty("version");
     expect(after.revision).toBe(nextRevision);
     expect(after.packages["@assistant-ui/react-generative-ui"]).toBe("0.0.22");
     expect(after.files[0].installedSha256).not.toBe(before.files[0].installedSha256);
     expect(report.sourceRegistryAssistantUiFilesChanged).toEqual(expect.arrayContaining([
-      "packages/plugins/resources/registry/items/agent-component-assistant-ui-generative-ui/item.json",
-      "packages/plugins/resources/registry/items/agent-component-generative-ui/item.json",
-      "packages/plugins/resources/registry/items/integration-generative-ui/item.json",
+      "packages/plugins/resources/registry/items/integration/generative-ui/item.json",
     ]));
     expect(commands.some(({ args }) => args.includes("sync:generative-ui-upstream"))).toBe(true);
     expect(await readFile(path.join(root, "assistant-ui-upgrade-impact.md"), "utf8")).toContain("## Source Registry assistant-ui Resources");
     expect(await readFile(path.join(root, "assistant-ui-upgrade-impact.md"), "utf8")).toContain("High");
-    const a2ui = JSON.parse(await readFile(path.join(root, "packages/plugins/resources/registry/items/integration-a2ui/item.json"), "utf8"));
+    const a2ui = JSON.parse(await readFile(path.join(root, "packages/plugins/resources/registry/items/integration/a2ui/item.json"), "utf8"));
     expect(a2ui).not.toHaveProperty("version");
     expect(a2ui.upstream.revision).toBe(oldRevision);
 
-    const itemBeforeRepeat = await Promise.all([componentItemPath, integrationItemPath, productItemPath].map(file => readFile(file, "utf8")));
+    const itemBeforeRepeat = await readFile(integrationItemPath, "utf8");
     await syncGenerativeUi({ root, repo: upstream, revision: nextRevision });
-    expect(await Promise.all([componentItemPath, integrationItemPath, productItemPath].map(file => readFile(file, "utf8")))).toEqual(itemBeforeRepeat);
+    expect(await readFile(integrationItemPath, "utf8")).toBe(itemBeforeRepeat);
 
-    const staleProduct = JSON.parse(await readFile(productItemPath, "utf8"));
-    staleProduct.upstream.revision = oldRevision;
-    await writeFile(productItemPath, JSON.stringify(staleProduct));
+    const staleIntegration = JSON.parse(await readFile(integrationItemPath, "utf8"));
+    staleIntegration.upstream.revision = oldRevision;
+    await writeFile(integrationItemPath, JSON.stringify(staleIntegration));
     expect(await checkGenerativeUiResource({ repoRoot: root, target: upgradedTarget }))
-      .toContain(`agent-component-generative-ui/item.json upstream.revision is ${oldRevision}; expected ${nextRevision}`);
-    await writeFile(productItemPath, itemBeforeRepeat[2]);
+      .toContain(`integration/generative-ui/item.json upstream.revision is ${oldRevision}; expected ${nextRevision}`);
+    await writeFile(integrationItemPath, itemBeforeRepeat);
 
     const staleVersion = JSON.parse(await readFile(integrationItemPath, "utf8"));
     staleVersion.version = "0.2.0";
     await writeFile(integrationItemPath, `${JSON.stringify(staleVersion, null, 2)}\n`);
     expect(await checkGenerativeUiResource({ repoRoot: root, target: upgradedTarget, baseGitSha }))
-      .toContain("integration-generative-ui/item.json must not declare a Source Item version");
-    await writeFile(integrationItemPath, itemBeforeRepeat[1]);
+      .toContain("integration/generative-ui/item.json must not declare a Source Item version");
+    await writeFile(integrationItemPath, itemBeforeRepeat);
 
-    const staleItemPath = path.join(root, "packages/plugins/resources/registry/items/integration-generative-ui/item.json");
+    const staleItemPath = path.join(root, "packages/plugins/resources/registry/items/integration/generative-ui/item.json");
     const staleItem = JSON.parse(await readFile(staleItemPath, "utf8"));
     staleItem.packages = { "@assistant-ui/react-generative-ui": "0.0.21" };
     await writeFile(staleItemPath, `${JSON.stringify(staleItem, null, 2)}\n`);
     expect(await checkGenerativeUiResource({ repoRoot: root, target: upgradedTarget }))
-      .toContain("integration-generative-ui must use the package facade instead of depending directly on upstream");
+      .toContain("integration/generative-ui must use the package facade instead of depending directly on upstream");
   });
 });
 

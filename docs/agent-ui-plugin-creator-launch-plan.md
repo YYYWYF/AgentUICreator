@@ -707,9 +707,11 @@ interface UIPluginActions {
 
 标准 HITL 通过 `RUN_FINISHED` 的 structured interrupt outcome 映射为应用可消费的中断状态，并通过 Conversation Runtime 的恢复动作发起新 Run。Plugin 必须一次覆盖全部 pending interrupt，可通过 `producer` 关联 Root/Subagent、通过 `toolExecutionId` 关联 Tool，但不得直接消费 AG-UI 类型、SDK pending object、CUSTOM/RAW event，也不得把响应伪装成普通 UserMessage。AG-UI 的 `threadId`、`runId`、`subagentRunId`、`Interrupt`、`ResumeEntry` 和 Event 类型由 `@za38.03/agent-ui-runtime` 的集成边界处理；Plugin 不直接订阅底层 Run Event。
 
-`ConversationToolkitEntry.interaction.type = "interrupt"` 将 Human Tool 的提交通道声明为 lifecycle resume；省略或 `normal` 保留已有 `addResult` continuation。此声明是前端集成策略，不扩展 AG-UI wire Tool schema，也不在前端合成服务端 checkpoint。Backend 必须发出 `TOOL_CALL_START/ARGS/END`，随后以 `RUN_FINISHED.outcome = { type: "interrupt", interrupts: [...] }` 暂停，并使用 `toolCallId` 关联问题。问题内容沿用已完成参数流中的 args；通用非 Tool 中断的数据可放在现有 metadata 中。
+`ConversationToolkitEntry.interaction.type = "interrupt"` 将 Human Tool 的提交通道声明为 lifecycle resume，`"command"` 声明旧版 ON_INTERRUPT command 决策通道；省略或 `normal` 保留已有 `addResult` continuation。此声明是前端集成策略，不扩展 AG-UI wire Tool schema，也不在前端合成服务端 checkpoint。标准 interrupt Backend 必须发出 `TOOL_CALL_START/ARGS/END`，随后以 `RUN_FINISHED.outcome = { type: "interrupt", interrupts: [...] }` 暂停，并使用 `toolCallId` 关联问题。问题内容沿用已完成参数流中的 args；通用非 Tool 中断的数据可放在现有 metadata 中。
 
 Canonical Runtime 为这种 renderer 提供 `resumeInterrupt(payload)`，移除 `addResult`，并且只允许当前可回答会话中的 pending Tool Call 提交。单卡回答仍经过完整 pending response-set 校验；有多个中断时，应用必须通过现有 `resumeInterrupts` 一次提交全部响应。回答不会追加 UserMessage 或客户端 ToolMessage；服务端恢复后才能返回对应 `TOOL_CALL_RESULT`。插件不持有独立 Agent Client 或中断生命周期状态。
+
+兼容旧版 `CUSTOM name = "ON_INTERRUPT"` 时，Runtime 将 `action_requests` 与未完成的 Tool Call 按工具名和参数关联，并从对应 `review_configs[].allowed_decisions` 提供动态决策项。该路径不合成为 assistant-ui structured interrupt：同一 Tool renderer 可以用统一的决策回调展示两种 HITL，Runtime 根据实际 pending 交互选择 structured `resume[]`，或将选中的类型同时作为 UserMessage 文本和 `forwardedProps.command.decisions: [{ type }]` 发起下一次请求。缺少唯一 Tool Call 匹配时不猜测目标；Plugin 不直接读取 AG-UI `CUSTOM`。
 
 可选 `ask-user-question-demo` 与 `human-form-demo` 使用普通 Human Tool 流程：Backend 发出 Tool Call 后以 `success` 收尾，前端等待用户提交，通过 `addResult` 生成 ToolMessage，并由 canonical Runtime 发起 continuation。它们不声明 `interaction.type = "interrupt"`，不提交 `resume[]`。`ask-user-question-demo` 沿用 `humanQuestion` locale namespace，支持 `single`、`multiple` 和 `text` 问题（文本最长 4000 字符），统一回答为 `{ answers: Record<stepId, string[]> }`。现有已生成项目需要更新对应资源；历史 release fixture 保持不变。审批示例保留后端 structured interrupt/resume 流程，Creator 自身的 question interrupt/resume 通道不受影响。
 

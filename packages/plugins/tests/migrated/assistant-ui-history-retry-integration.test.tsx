@@ -15,14 +15,14 @@ import {
 import {
   createConversationServiceThreadBinding,
   type ConversationServiceThreadBinding,
-} from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
+} from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
 import {
   createConversationService,
   type ConversationService,
   type ConversationDetail,
   type ConversationDataSource,
   type ConversationSnapshot,
-} from "../../resources/registry/items/foundation-core-application/files/services/conversations";
+} from "../../resources/registry/items/foundation/core-application/files/services/conversations";
 
 function threadMessage(id: string, role: "user" | "assistant"): ThreadMessage {
   if (role === "user") {

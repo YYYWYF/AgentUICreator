@@ -573,6 +573,12 @@ export type ConversationToolCallStatus =
   | { type: "incomplete"; reason?: string; error?: unknown }
   | { type: "requires-action"; reason?: string };
 
+export interface ConversationCommandDecisionRequest {
+  description?: string | undefined;
+  /** Decision types are supplied by the backend's review configuration. */
+  allowedDecisions: readonly string[];
+}
+
 export interface ConversationToolCallProps {
   type?: "tool-call" | undefined;
   toolCallId: string;
@@ -586,6 +592,10 @@ export interface ConversationToolCallProps {
   addResult?: ((result: unknown) => void) | undefined;
   /** Resume the pending lifecycle interrupt; never writes a client ToolMessage. */
   resumeInterrupt?: ((payload: unknown) => Promise<void>) | undefined;
+  /** Legacy ON_INTERRUPT decision data projected by the Agent UI Runtime. */
+  decisionRequest?: ConversationCommandDecisionRequest | undefined;
+  /** Submit a selected backend-provided decision using the interaction's transport. */
+  submitDecision?: ((decisionType: string) => Promise<void>) | undefined;
   /** Preserve assistant-ui extension fields and callbacks at the facade seam. */
   readonly [key: string]: unknown;
 }
@@ -593,8 +603,8 @@ export interface ConversationToolCallProps {
 export type ConversationToolCallComponent = ComponentType<ConversationToolCallProps>;
 
 export interface ConversationToolkitEntry {
-  /** Omitted/normal preserves existing Human Tool result continuation. */
-  interaction?: { type: "normal" | "interrupt" } | undefined;
+  /** Interrupt resumes a structured lifecycle; command handles legacy ON_INTERRUPT decisions. */
+  interaction?: { type: "normal" | "interrupt" | "command" } | undefined;
   type: "backend" | "human";
   display: "standalone";
   render: ComponentType<any>;
@@ -1389,6 +1399,8 @@ export { CanonicalJobProgressMessage, type JobProgressMessageProps } from "./plu
 export { CanonicalGeneratedFileMessage, type GeneratedFileMessageProps } from "./plugins/generated-file-message/adapters/presentation/generated-file-message.js";
 
 export { CanonicalChartMessage, type ChartMessageProps, type ChartMessageData, type ChartMessageItem } from "./plugins/chart-message/adapters/presentation/chart-message.js";
+
+export { CanonicalContextRetrievalMessage, type ContextRetrievalMessageProps, type ContextRetrievalData, type ContextRetrievalGroup } from "./plugins/context-retrieval-message/adapters/presentation/context-retrieval-message.js";
 
 export { CanonicalSourceCitationsMessage, type SourceCitationsMessageProps } from "./plugins/source-citations-message/adapters/presentation/source-citations-message.js";
 

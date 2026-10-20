@@ -531,10 +531,17 @@ const require = createRequire(path.join(repository, 'examples/creator-host-sandb
 const { minVersion } = require('semver');
 const registry = path.join(repository, 'packages/plugins/resources/registry/items');
 const byId = new Map();
-for (const directory of await readdir(registry)) {
-  const item = JSON.parse(await readFile(path.join(registry, directory, 'item.json'), 'utf8'));
-  byId.set(item.id, item);
+async function collectItems(directory) {
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const itemPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) await collectItems(itemPath);
+    else if (entry.isFile() && entry.name === 'item.json') {
+      const item = JSON.parse(await readFile(itemPath, 'utf8'));
+      byId.set(item.id, item);
+    }
+  }
 }
+await collectItems(registry);
 const closure = new Map();
 function visit(id) {
   if (closure.has(id)) return;

@@ -6,7 +6,7 @@ import {
   AppFrontendToolRegistry,
   AppFrontendToolRuntime,
   defineFrontendTool,
-} from "../../resources/registry/items/foundation-core-runtime/files/runtime/tools/index";
+} from "../../resources/registry/items/foundation/core-runtime/files/runtime/tools/index";
 
 function createServices(values: Map<string, unknown>): UIPluginServices {
   return {

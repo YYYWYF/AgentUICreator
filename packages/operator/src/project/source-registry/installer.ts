@@ -283,7 +283,7 @@ export async function preflightAgentUISourceRemove(
   }
 
   const { lock } = await readAgentUISourceLock(projectRoot, config);
-  const removeIds = [...new Set(input.itemIds)].sort();
+  const removeIds = [...new Set(input.itemIds.map(itemId => loadedRegistry.byId.get(itemId)?.id ?? itemId))].sort();
   for (const remainingId of Object.keys(lock.items).filter(id => !removeIds.includes(id))) {
     if (!loadedRegistry.byId.has(remainingId)) throw new AgentUISourceError("AGENT_UI_SOURCE_ITEM_UNAVAILABLE", `Cannot determine dependencies of installed item ${remainingId}.`);
     const dependency = resolveAgentUISourceItemClosure(loadedRegistry, remainingId).find(item => removeIds.includes(item.id));

@@ -1,2 +1,0 @@
-[WARN] Your node_modules are out of sync with your lockfile. Cannot check whether dependencies are outdated
-$ tsc --noEmit

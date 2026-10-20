@@ -75,9 +75,8 @@
     },
     "rootDirs": [
       ".",
-      "../plugins/resources/registry/items/integration-a2ui/files",
-      "../plugins/resources/registry/items/integration-generative-ui/files",
-      "../plugins/resources/registry/items/agent-component-assistant-ui-generative-ui/files"
+      "../plugins/resources/registry/items/integration/a2ui/files",
+      "../plugins/resources/registry/items/integration/generative-ui/files"
     ]
   },
   "exclude": [

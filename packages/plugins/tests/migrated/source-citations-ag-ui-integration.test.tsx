@@ -8,7 +8,7 @@ import { expect, it } from "vitest";
 import { sourceCitationsScenario, runMockScenario } from "@za38.03/agent-ui-creator/mock-agent";
 import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@za38.03/agent-ui-runtime";
 import { ConversationThread, TooltipProvider } from "../../src/index.js";
-import plugin from "../../resources/registry/items/plugin-source-citations-message/files/plugins/source-citations-message/definition";
+import plugin from "../../resources/registry/items/plugin/source-citations-message/files/plugins/source-citations-message/definition";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 

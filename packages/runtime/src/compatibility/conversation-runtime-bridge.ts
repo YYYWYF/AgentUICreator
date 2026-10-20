@@ -5,6 +5,7 @@ import type {
   AgentRuntimeSnapshot,
   AgentUserInput,
 } from "@za38.03/agent-ui-core";
+import type { ConversationCommandDecisionRequest } from "@za38.03/agent-ui-plugins";
 import type { AgUiAssistantRuntime } from "@assistant-ui/react-ag-ui";
 
 import type { ConversationApplicationEventSource } from "../events/conversation-application-event-source.js";
@@ -16,6 +17,12 @@ import { ConversationObservationSourceImpl } from "../observation/conversation-o
 import type { ConversationObservationSource } from "../observation/types.js";
 import type { ConversationThreadBinding } from "../threads/types.js";
 import { projectConversationExecutions } from "./conversation-execution-projector.js";
+import {
+  matchOnInterruptToolCall,
+  parseOnInterruptCommandRequests,
+  type OnInterruptCommandRequest,
+} from "./command-decision.js";
+import type { ConversationCommandForwarder } from "./conversation-command-forwarding-agent.js";
 import {
   mapConversationInterrupt,
   mapConversationInterruptResponse,
@@ -78,6 +85,7 @@ export interface ConversationAgentRuntimeBridgeOptions<TState> {
   runtime: AgUiAssistantRuntime;
   threadBinding: ConversationThreadBinding<TState>;
   applicationEvents: ConversationApplicationEventSource;
+  commandForwarder?: ConversationCommandForwarder | undefined;
   switchToNewThread?: (() => Promise<void>) | undefined;
 }
 
@@ -91,6 +99,8 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
   private readonly unsubscribers: Array<() => void> = [];
   private readonly observationSource: ConversationObservationSourceImpl;
   private snapshot: AgentRuntimeSnapshot<TState>;
+  private pendingOnInterruptRequests: OnInterruptCommandRequest[] = [];
+  private readonly commandDecisionRequests = new Map<string, ConversationCommandDecisionRequest>();
   private pendingSend: PendingSend | undefined;
   private actionInFlight = false;
   private projectionSuspended = false;
@@ -114,6 +124,12 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
       this.options.runtime.thread.subscribe(() => this.sync()),
       this.options.runtime.threads.subscribe(() => this.sync()),
       this.options.threadBinding.subscribe(() => this.sync()),
+      this.options.applicationEvents.subscribe((event) => {
+        if (event.name !== "ON_INTERRUPT") return;
+        this.pendingOnInterruptRequests = parseOnInterruptCommandRequests(event.payload) ?? [];
+        this.commandDecisionRequests.clear();
+        this.sync();
+      }),
     );
     this.sync();
   }
@@ -131,7 +147,7 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
 
   async sendMessage(input: string | AgentUserInput): Promise<void> {
     this.assertAvailable();
-    if (this.snapshot.interrupts.length > 0) {
+    if (this.snapshot.interrupts.length > 0 || this.commandDecisionRequests.size > 0) {
       throw new Error("当前会话正在等待用户响应，请先处理 pending interrupts。");
     }
     const text = mapTextInput(input);
@@ -149,6 +165,42 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
       });
       this.sync();
     } catch (error) {
+      this.finishPending(toError(error));
+    }
+    return settled;
+  }
+
+  getCommandDecisionRequest(toolCallId: string): ConversationCommandDecisionRequest | undefined {
+    return this.commandDecisionRequests.get(toolCallId);
+  }
+
+  async submitCommandDecision(toolCallId: string, decisionType: string): Promise<void> {
+    this.assertAvailable();
+    const decisionRequest = this.commandDecisionRequests.get(toolCallId);
+    if (decisionRequest === undefined) throw new Error(`No pending command decision for tool call "${toolCallId}"`);
+    if (!decisionRequest.allowedDecisions.includes(decisionType)) {
+      throw new Error(`Unsupported command decision "${decisionType}" for tool call "${toolCallId}"`);
+    }
+    const commandForwarder = this.options.commandForwarder;
+    if (commandForwarder === undefined) throw new Error("Command decision forwarding is unavailable");
+
+    commandForwarder.setNextCommand({ decisions: [{ type: decisionType }] });
+    this.commandDecisionRequests.delete(toolCallId);
+    this.actionInFlight = true;
+    this.runtimeError = undefined;
+    const settled = new Promise<void>((resolve, reject) => {
+      this.pendingSend = { sawRunning: false, resolve, reject };
+    });
+    try {
+      this.options.runtime.thread.append({
+        role: "user",
+        content: [{ type: "text", text: decisionType }],
+        startRun: true,
+      });
+      this.sync();
+    } catch (error) {
+      commandForwarder.clearNextCommand();
+      this.commandDecisionRequests.set(toolCallId, decisionRequest);
       this.finishPending(toError(error));
     }
     return settled;
@@ -182,6 +234,7 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
 
   async startNewConversation(): Promise<void> {
     if (this.disposed) throw new Error("The conversation runtime was disposed");
+    this.clearCommandDecisionRequests();
     await (this.options.switchToNewThread?.() ?? this.options.runtime.threads.switchToNewThread());
   }
 
@@ -193,12 +246,14 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
 
   recordError(value: unknown): void {
     const error = toError(value);
+    this.options.commandForwarder?.clearNextCommand();
     this.runtimeError = error;
     if (this.pendingSend !== undefined) this.finishPending(error);
     else this.sync();
   }
 
   recordCancellation(): void {
+    this.options.commandForwarder?.clearNextCommand();
     this.runtimeError = undefined;
     this.finishPending();
     this.sync();
@@ -215,6 +270,7 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
     for (const unsubscribe of this.unsubscribers) unsubscribe();
     this.unsubscribers.length = 0;
     this.observationSource.stop();
+    this.clearCommandDecisionRequests();
     this.runtimeError = undefined;
     this.finishPending();
   }
@@ -238,6 +294,7 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
   private sync(): void {
     if (this.disposed || this.projectionSuspended) return;
     this.observationSource.sync();
+    this.projectCommandDecisionRequests();
     this.snapshot = this.projectSnapshot();
     const pending = this.pendingSend;
     if (pending !== undefined) {
@@ -251,9 +308,10 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
     const thread = this.options.runtime.thread.getState();
     const interrupts = this.options.runtime.unstable_getPendingInterrupts()
       .map(mapConversationInterrupt);
+    const awaitingCommandDecision = this.commandDecisionRequests.size > 0;
     const run = this.runtimeError === undefined
       ? {
-          status: interrupts.length > 0
+          status: interrupts.length > 0 || awaitingCommandDecision
             ? "awaiting-input" as const
             : thread.isRunning ? "running" as const : "idle" as const,
         }
@@ -269,6 +327,39 @@ export class ConversationAgentRuntimeBridge<TState = unknown>
       executions: projectConversationExecutions(thread.messages),
       interrupts,
     };
+  }
+
+  private projectCommandDecisionRequests(): void {
+    const executions = projectConversationExecutions(
+      this.options.runtime.thread.getState().messages,
+    );
+    const pendingToolCallIds = new Set(
+      executions
+        .filter(execution => execution.type === "tool" && execution.status === "awaiting-result")
+        .map(execution => execution.id),
+    );
+    for (const toolCallId of this.commandDecisionRequests.keys()) {
+      if (!pendingToolCallIds.has(toolCallId)) this.commandDecisionRequests.delete(toolCallId);
+    }
+
+    const excluded = new Set(this.commandDecisionRequests.keys());
+    const remaining: OnInterruptCommandRequest[] = [];
+    for (const request of this.pendingOnInterruptRequests) {
+      const toolCallId = matchOnInterruptToolCall(request, executions, excluded);
+      if (toolCallId === undefined) {
+        remaining.push(request);
+        continue;
+      }
+      this.commandDecisionRequests.set(toolCallId, request.decisionRequest);
+      excluded.add(toolCallId);
+    }
+    this.pendingOnInterruptRequests = remaining;
+  }
+
+  private clearCommandDecisionRequests(): void {
+    this.pendingOnInterruptRequests = [];
+    this.commandDecisionRequests.clear();
+    this.options.commandForwarder?.clearNextCommand();
   }
 }
 

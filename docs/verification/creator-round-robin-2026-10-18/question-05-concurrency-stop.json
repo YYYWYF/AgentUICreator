@@ -1,9 +1,0 @@
-{
-  "runId": "4920dafd-1285-44d1-8043-d14e4e69d41f",
-  "method": "Creator UI Stop execution button",
-  "observedToolCallsWhenDecidedToStop": 17,
-  "completedBeforeStopObservedInLogs": 19,
-  "reason": "Repeated reads/searches after source and public contracts obtained; zero edit attempts. Stop requested once through UI; no Q6.",
-  "notedAt": "2026-10-18T10:10:14.038512+00:00",
-  "timingBoundary": "notedAt is the later evidence capture time, not an exact HTTP dispatch timestamp."
-}

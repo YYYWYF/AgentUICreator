@@ -17,6 +17,7 @@ import { cancelBeforeFirstOutputScenario } from "./cancel-before-first-output.js
 import { agentPlanScenario } from "./agent-plan.js";
 import { agentStatusScenario } from "./agent-status.js";
 import { dataMessageChartScenario } from "./data-message-chart.js";
+import { contextRetrievalScenario } from "./context-retrieval.js";
 import { agentStateSyncScenario } from "./agent-state-sync.js";
 import { approvalResumeScenario } from "./approval-resume.js";
 import { multiToolScenario } from "./multi-tool.js";
@@ -57,6 +58,7 @@ export {
   agentPlanScenario,
   agentStatusScenario,
   dataMessageChartScenario,
+  contextRetrievalScenario,
   agentStateSyncScenario,
   approvalResumeScenario,
   multiToolScenario,
@@ -106,6 +108,7 @@ export const frontendPresentationMockScenarios: MockScenario[] = [
   askUserQuestionScenario,
   multiMessageResponseScenario,
   dataMessageChartScenario,
+  contextRetrievalScenario,
   nestedSubagentTaskGroupScenario,
   agentPlanScenario,
   agentStatusScenario,

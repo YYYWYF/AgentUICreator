@@ -163,16 +163,16 @@ export function createMockAgentHttpHandler({
     const resume = input.resume ?? [];
     let rejection: { code: string; message: string } | undefined;
     if (pending) {
-      if (!resume.length) rejection = { code: "MOCK_INTERRUPT_PENDING", message: "Resolve or cancel all pending interrupts before sending new input." };
-      else if (pending.scenarioId !== selectedScenarioId) rejection = { code: "MOCK_INTERRUPT_CONTEXT_INVALID", message: "Resume must use the interrupted scenario." };
+      if (!resume.length) rejection = { code: "MOCK_INTERRUPT_PENDING", message: "发送新输入前，请先处理或取消所有待处理的中断。" };
+      else if (pending.scenarioId !== selectedScenarioId) rejection = { code: "MOCK_INTERRUPT_CONTEXT_INVALID", message: "恢复运行必须使用产生该中断的场景。" };
       else if (resume.length !== pending.interrupts.length || new Set(resume.map(entry => entry.interruptId)).size !== resume.length ||
         pending.interrupts.some(interrupt => !resume.some(entry => entry.interruptId === interrupt.id))) {
-        rejection = { code: "MOCK_INTERRUPT_RESUME_INVALID", message: "Resume must address every pending interrupt exactly once." };
+        rejection = { code: "MOCK_INTERRUPT_RESUME_INVALID", message: "恢复请求必须且只能处理每个待处理中断一次。" };
       } else if (pending.interrupts.some(interrupt => interrupt.expiresAt !== undefined && Date.parse(interrupt.expiresAt) <= Date.now())) {
-        rejection = { code: "MOCK_INTERRUPT_EXPIRED", message: "The pending interrupt has expired." };
+        rejection = { code: "MOCK_INTERRUPT_EXPIRED", message: "待处理中断已过期。" };
       }
     } else if (resume.length) {
-      rejection = { code: "MOCK_INTERRUPT_NOT_FOUND", message: "There is no pending interrupt on this thread." };
+      rejection = { code: "MOCK_INTERRUPT_NOT_FOUND", message: "当前会话没有待处理的中断。" };
     }
 
     if (!rejection && resolveRun === undefined && scenario?.durableRun) {

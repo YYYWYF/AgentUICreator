@@ -102,7 +102,7 @@ test("mounts Tooltip, Popover and Dialog within the themed Portal boundary", asy
 for (const viewportWidth of [390, 1440]) {
   test(`narrow Surface reserves flowing header space in a ${viewportWidth}px Host`, async ({ page }) => {
     await page.setViewportSize({ width: viewportWidth, height: 844 });
-    const css = readFileSync(new URL("../../../packages/plugins/resources/registry/items/plugin-conversation-surface/files/plugins/conversation-surface/styles.css", import.meta.url), "utf8");
+    const css = readFileSync(new URL("../../../packages/plugins/resources/registry/items/plugin/conversation-surface/files/plugins/conversation-surface/styles.css", import.meta.url), "utf8");
     await page.setContent(`<style>
       * { box-sizing: border-box; }
       .agent-ui-conversation { height: 100%; display: flex; flex-direction: column; }

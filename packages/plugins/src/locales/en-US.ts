@@ -194,7 +194,12 @@ export const enUS = {
     "retrieving": "Retrieving",
     "passages": "{count} passages retrieved",
     "relevance": "{source} relevance score",
-    "score": "{score} of 1.00"
+    "score": "{score} of 1.00",
+    "contextKnowledgeBase": "Knowledge base search",
+    "contextLongTermMemory": "Long-term memory search",
+    "contextCount": "{count} contexts",
+    "contextQuery": "Query",
+    "contextEmpty": "No context returned"
   },
   "search": {
     "searching": "Searching",

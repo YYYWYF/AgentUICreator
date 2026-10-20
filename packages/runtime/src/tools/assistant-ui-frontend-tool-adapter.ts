@@ -12,8 +12,9 @@ export function createAssistantUiFrontendToolkit(
 ): Toolkit {
   const toolkit: Toolkit = Object.assign(Object.create(null), backend);
   for (const [name, entry] of Object.entries(backend)) {
-    if (entry.interaction?.type !== "interrupt") continue;
-    if (entry.type !== "human") throw new Error(`Interrupt tool must be human: "${name}"`);
+    const interactionType = entry.interaction?.type;
+    if (interactionType !== "interrupt" && interactionType !== "command") continue;
+    if (entry.type !== "human") throw new Error(`Interactive tool must be human: "${name}"`);
     toolkit[name] = { ...entry, render: createInterruptToolRenderer(entry.render) } as never;
   }
   for (const name of Object.keys(frontendUIs)) {

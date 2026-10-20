@@ -295,3 +295,31 @@ it("synchronizes changed dependency content without changing stable IDs", async 
   expect(await lockedFiles(root, "foundation/dependency")).toEqual({ "dependency.ts": { sha256: sha256("new") } });
   expect((await apply(root, current, consumer.id)).changed).toBe(false);
 });
+
+it("folds legacy Generative UI component lock IDs into the Integration resource", async () => {
+  const root = await projectRoot();
+  const lockPath = path.join(root, uiOperatorConfig.agentUI.metadataRoot, "source-lock.json");
+  await mkdir(path.dirname(lockPath), { recursive: true });
+  const componentTarget = "agent-ui/conversation/generative-ui.ts";
+  const integrationTarget = "integrations/generative-ui/index.ts";
+  const componentHash = sha256("component bridge");
+  const integrationHash = sha256("integration bridge");
+  await writeFile(lockPath, JSON.stringify({
+    sourceRoot: uiOperatorConfig.agentUI.sourceRoot,
+    items: {
+      "agent-component/assistant-ui-generative-ui": { files: { [componentTarget]: { sha256: componentHash } } },
+      "agent-component/generative-ui": { files: { [componentTarget]: { sha256: componentHash } } },
+      "integration/generative-ui": { files: { [integrationTarget]: { sha256: integrationHash } } },
+    },
+  }));
+
+  const { lock, source } = await readAgentUISourceLock(root, uiOperatorConfig);
+
+  expect(Object.keys(lock.items)).toEqual(["integration/generative-ui"]);
+  expect(lock.items["integration/generative-ui"]?.files).toEqual({
+    [componentTarget]: { sha256: componentHash },
+    [integrationTarget]: { sha256: integrationHash },
+  });
+  expect(source?.toString("utf8")).toContain("agent-component/assistant-ui-generative-ui");
+  expect(await readFile(lockPath, "utf8")).toContain("agent-component/assistant-ui-generative-ui");
+});

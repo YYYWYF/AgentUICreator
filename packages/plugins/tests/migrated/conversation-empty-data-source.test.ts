@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createEmptyConversationDataSource } from "../../resources/registry/items/foundation-core-application/files/services/conversations";
+import { createEmptyConversationDataSource } from "../../resources/registry/items/foundation/core-application/files/services/conversations";
 
 describe("EmptyConversationDataSource", () => {
   it("treats an unconfigured history backend as a normal empty list", async () => {

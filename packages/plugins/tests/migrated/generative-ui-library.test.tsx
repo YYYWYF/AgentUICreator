@@ -3,7 +3,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import type { ToolCallMessagePartProps } from "@assistant-ui/react";
 import { afterEach, expect, it, vi } from "vitest";
-import { createAgentUIGenerativeUI, createAgentUIGenerativeActions } from "../../resources/registry/items/integration-generative-ui/files/integrations/generative-ui/index";
+import { createAgentUIGenerativeUI, createAgentUIGenerativeActions } from "../../resources/registry/items/integration/generative-ui/files/integrations/generative-ui/index";
 import { styledGenerativeUILibrary } from "../../src/internal/vendor-generated/assistant-ui/generative-ui/styled-generative-ui";
 import { generativeUIGallery } from "../../../operator/tests/fixtures/generative-ui-gallery";
 

@@ -15,23 +15,23 @@ import { projectLangChainHistory } from "@za38.03/agent-ui-runtime";
 import { AgentUILocaleProvider, useAgentUILocale, useConversationState } from "@za38.03/agent-ui-plugins";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ConversationAdapter } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter";
+import { ConversationAdapter } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/ConversationAdapter";
 import type {
   UIPluginComponentProps,
   UIPluginDefinition,
 } from "../../../operator/src/framework/contracts/ui-plugin";
-import { conversationCopyActionPlugin } from "../../resources/registry/items/plugin-copy-action/files/plugins/copy-action/definition";
-import { conversationExportMarkdownActionPlugin } from "../../resources/registry/items/plugin-export-markdown-action/files/plugins/export-markdown-action/definition";
-import { conversationSurfacePlugin } from "../../resources/registry/items/plugin-conversation-surface/files/plugins/conversation-surface/definition";
-import { conversationResponseFooterPlugin } from "../../resources/registry/items/plugin-response-footer/files/plugins/response-footer/definition";
-import { conversationReloadActionPlugin } from "../../resources/registry/items/plugin-reload-action/files/plugins/reload-action/definition";
-import { AGENT_UI_THEME_SERVICE } from "../../resources/registry/items/foundation-core-application/files/services/agent-ui-theme";
+import { conversationCopyActionPlugin } from "../../resources/registry/items/plugin/copy-action/files/plugins/copy-action/definition";
+import { conversationExportMarkdownActionPlugin } from "../../resources/registry/items/plugin/export-markdown-action/files/plugins/export-markdown-action/definition";
+import { conversationSurfacePlugin } from "../../resources/registry/items/plugin/conversation-surface/files/plugins/conversation-surface/definition";
+import { conversationResponseFooterPlugin } from "../../resources/registry/items/plugin/response-footer/files/plugins/response-footer/definition";
+import { conversationReloadActionPlugin } from "../../resources/registry/items/plugin/reload-action/files/plugins/reload-action/definition";
+import { AGENT_UI_THEME_SERVICE } from "../../resources/registry/items/foundation/core-application/files/services/agent-ui-theme";
 import {
   parseAppUIRuntimeModel,
   type AppUIRuntimeModel,
 } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
 import { resolveRuntimePluginSlotId } from "../../../operator/src/framework/contracts/app-ui-composition";
-import { createPluginRegistry } from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+import { createPluginRegistry } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
 import { PluginRuntimeFixture } from "../../../operator/tests/support/agent-runtime-fixture";
 
 const assistantConfig = AuiConfig({});
@@ -92,7 +92,7 @@ const conversationActionHostPlugin: UIPluginDefinition = {
   Component: ConversationActionHost,
 };
 
-import { AGENT_UI_CONVERSATION_SERVICE, createConversationService } from "../../resources/registry/items/foundation-core-application/files/services/conversations";
+import { AGENT_UI_CONVERSATION_SERVICE, createConversationService } from "../../resources/registry/items/foundation/core-application/files/services/conversations";
 const conversationFixtureProvider: UIPluginDefinition = {
   manifest: { id: "test-conversation-service", name: "Fixture", description: "Fixture", version: "1.0.0", capabilities: ["headless"] },
   provides: [AGENT_UI_CONVERSATION_SERVICE],

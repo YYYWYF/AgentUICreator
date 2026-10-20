@@ -16,13 +16,13 @@ import { compileAppUIModel } from "../../operator/src/framework/contracts/app-ui
 import { applyAppUIOperations, type AppUIOperation } from "../../operator/src/project/app-ui-operations";
 import { parseUIPluginManifest, type UIPluginDefinition } from "../../operator/src/framework/contracts/ui-plugin";
 import { PluginRuntimeFixture } from "../../operator/tests/support/agent-runtime-fixture";
-import { createPluginRegistry, createPluginCompositionCatalog, usePluginRenderScope } from "../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
-import { ConversationAdapter } from "../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter";
-import { AGENT_UI_LOCALES } from "../resources/registry/items/foundation-core-adapters/files/agent-ui/i18n/locale-registry";
-import surfaceManifest from "../resources/registry/items/plugin-conversation-surface/files/plugins/conversation-surface/manifest.json";
-import { conversationLexicalEditComposerPlugin } from "../resources/registry/items/plugin-lexical-edit-composer/files/plugins/lexical-edit-composer/definition";
-import { conversationComposerPlugin } from "../resources/registry/items/plugin-composer/files/plugins/composer/definition";
-import { conversationLexicalComposerInputPlugin } from "../resources/registry/items/plugin-lexical-composer-input/files/plugins/lexical-composer-input/definition";
+import { createPluginRegistry, createPluginCompositionCatalog, usePluginRenderScope } from "../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
+import { ConversationAdapter } from "../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/ConversationAdapter";
+import { AGENT_UI_LOCALES } from "../resources/registry/items/foundation/core-adapters/files/agent-ui/i18n/locale-registry";
+import surfaceManifest from "../resources/registry/items/plugin/conversation-surface/files/plugins/conversation-surface/manifest.json";
+import { conversationLexicalEditComposerPlugin } from "../resources/registry/items/plugin/lexical-edit-composer/files/plugins/lexical-edit-composer/definition";
+import { conversationComposerPlugin } from "../resources/registry/items/plugin/composer/files/plugins/composer/definition";
+import { conversationLexicalComposerInputPlugin } from "../resources/registry/items/plugin/lexical-composer-input/files/plugins/lexical-composer-input/definition";
 import { resolveDirectiveContexts } from "../../creator/src/mock-agent/context/directive-context.js";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;

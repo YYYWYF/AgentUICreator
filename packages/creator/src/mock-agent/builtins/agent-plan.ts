@@ -35,12 +35,12 @@ export const agentPlanScenario = defineScenario({
       activityType: "agent-plan",
       replace: true,
       content: {
-        title: "Workspace update",
+        title: "工作区更新",
         steps: [
-          { id: "inspect", label: "Inspect current implementation", description: "Trace the active data path." },
-          { id: "compare", label: "Compare AG-UI runtime", description: "Check the pinned runtime contract." },
-          { id: "update", label: "Update UI composition", description: "Render the authoritative plan activity." },
-          { id: "regression", label: "Run regression checks", description: "Cover updates, invalid payloads and resume." },
+          { id: "inspect", label: "检查当前实现", description: "追踪当前数据流。" },
+          { id: "compare", label: "核对 AG-UI Runtime", description: "检查固定版本的 Runtime 契约。" },
+          { id: "update", label: "更新 UI 组合", description: "渲染权威计划事件。" },
+          { id: "regression", label: "执行回归检查", description: "覆盖更新、无效数据和恢复场景。" },
         ],
         activeIndex: 0,
       },

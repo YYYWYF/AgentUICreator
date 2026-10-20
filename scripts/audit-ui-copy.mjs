@@ -41,7 +41,7 @@ function flatten(value, prefix = "") {
 const dictionaries = [
   ["creator", "packages/creator/src/ui/i18n"],
   ["presentation", "packages/plugins/src/locales"],
-  ["generated", "packages/plugins/resources/registry/items/foundation-core-adapters/files/agent-ui/i18n/locales"],
+  ["generated", "packages/plugins/resources/registry/items/foundation/core-adapters/files/agent-ui/i18n/locales"],
 ];
 const failures = [], parity = [], duplicates = [], unusedCandidates = [];
 const files = (await Promise.all(scopes.map(collect))).flat().sort();

@@ -1,22 +1,22 @@
 // @vitest-environment jsdom
 
 import { AgentUIRoot, type AgentUIThemeConfig } from "@za38.03/agent-ui-plugins";
-import { agentUIThemeConfig } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/theme/theme-config";
+import { agentUIThemeConfig } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/theme/theme-config";
 import { useEffect } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { useAgentUITheme } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/theme/useAgentUITheme";
-import { themeProviderPlugin } from "../../resources/registry/items/plugin-theme-provider/files/plugins/theme-provider/definition";
+import { useAgentUITheme } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/theme/useAgentUITheme";
+import { themeProviderPlugin } from "../../resources/registry/items/plugin/theme-provider/files/plugins/theme-provider/definition";
 import {
   createPluginRegistry,
   PluginServiceRuntime,
   PluginServiceRuntimeContext,
-} from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
 import {
   AGENT_UI_THEME_SERVICE,
   type AgentUIThemeService,
-} from "../../resources/registry/items/foundation-core-application/files/services/agent-ui-theme";
+} from "../../resources/registry/items/foundation/core-application/files/services/agent-ui-theme";
 import type { AppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
 
 const runtimeActions = {

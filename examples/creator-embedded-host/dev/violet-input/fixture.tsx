@@ -16,7 +16,7 @@ import {
   type AgentUITheme,
 } from "@za38.03/agent-ui-plugins";
 import { ConversationRuntimeProvider, createEphemeralConversationThreadBinding } from "@za38.03/agent-ui-runtime";
-import { chartMessageUI } from "../../../../packages/plugins/resources/registry/items/plugin-chart-message/files/plugins/chart-message/index";
+import { chartMessageUI } from "../../../../packages/plugins/resources/registry/items/plugin/chart-message/files/plugins/chart-message/index";
 import { themeShowcaseLocale as copy } from "../../src/theme-showcase.locale";
 const params = new URLSearchParams(location.search);
 const theme = (params.get("theme") || "light") as AgentUITheme;

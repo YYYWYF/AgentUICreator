@@ -171,7 +171,7 @@ it("installs Generative UI and repairs stale generated output without changing c
   const result = await apply(f);
   expect(result.changedPaths).toEqual([...new Set([...result.sourceChangedPaths, ...result.generatedChangedPaths])].sort());
   const sources = await inspectAgentUISources(f.root, f.config);
-  for (const id of ["integration/generative-ui", "agent-component/generative-ui"]) expect(sources.items.find(item => item.id === id)).toMatchObject({ status: "managed", dependencyIssues: [] });
+  expect(sources.items.find(item => item.id === "integration/generative-ui")).toMatchObject({ status: "managed", dependencyIssues: [] });
   const filename = path.join(f.sourceRoot, generated[3]!);
   expect(await readFile(filename, "utf8")).not.toContain('./integrations/a2ui');
   await writeFile(filename, "// stale\n");
@@ -212,10 +212,12 @@ it("rejects removal while a disabled AppUIModel instance still references an own
   await expect(remove(f)).rejects.toMatchObject({ code: "AGENT_UI_SOURCE_COMPOSITION_IN_USE", details: { pluginIds: ["frontend-tool-form-demo"], instanceIds: ["form-instance"] } });
   expect(await snapshot(f)).toEqual(before);
 });
-it("rejects removal of a dependency before any project write", async () => {
-  const f = await fixture(); await apply(f); const before = await snapshot(f);
-  await expect(remove(f, ["agent-component/generative-ui"])).rejects.toMatchObject({ code: "AGENT_UI_SOURCE_DEPENDENCY_IN_USE" });
-  expect(await snapshot(f)).toEqual(before);
+it("accepts the legacy component item ID as an alias when removing Generative UI", async () => {
+  const f = await fixture("integration/generative-ui"); await apply(f);
+  await remove(f, ["agent-component/generative-ui"]);
+  const inspected = await inspectAgentUISources(f.root, f.config);
+  expect(inspected.items.find(item => item.id === "integration/generative-ui")?.status).toBe("not-installed");
+  await expect(readFile(path.join(f.sourceRoot, "agent-ui/conversation/generative-ui.ts"))).rejects.toMatchObject({ code: "ENOENT" });
 });
 it.each(["source", "plugin", "tools", "integrations", "verify"])("rolls back source and all generated writes after %s failure", async stage => {
   const f = await fixture(); const before = await snapshot(f); failure.stage = stage;

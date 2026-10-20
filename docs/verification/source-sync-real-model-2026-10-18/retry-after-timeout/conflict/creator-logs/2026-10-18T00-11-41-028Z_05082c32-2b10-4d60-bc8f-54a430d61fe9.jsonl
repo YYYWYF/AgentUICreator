@@ -1,1 +1,0 @@
-{"sequence":1,"timestamp":"2026-10-18T00:11:41.028Z","type":"run_started","runId":"05082c32-2b10-4d60-bc8f-54a430d61fe9","threadId":"c092a7ca-5d9f-4078-9389-53a8bd019c4f","data":{"runtime":"python","agentMode":"domain-write","verificationMode":"static_and_runtime"}}

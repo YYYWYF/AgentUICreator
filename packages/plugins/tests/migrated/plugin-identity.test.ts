@@ -2,7 +2,7 @@ import { parseUIPluginManifest } from "../../../operator/src/framework/contracts
 import { describe, expect, it } from "vitest";
 import { officialPackagePlugins } from "../../src/catalog/package-plugins";
 
-import { pluginCapabilityCatalog } from "../../resources/registry/items/foundation-core/files/plugins/index";
+import { pluginCapabilityCatalog } from "../../resources/registry/items/foundation/core/files/plugins/index";
 
 describe("UI plugin identity", () => {
   it("requires default placement and matching semantics for official Creator-addable visual Plugins", () => {

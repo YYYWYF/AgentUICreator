@@ -2,8 +2,8 @@
 
 `integration/a2ui` is an optional, pluginless, tool-less Official Integration.
 Installing it does not mutate AppUIModel or grant an Agent Frontend Tool permission.
-It requires `integration/generative-ui`; dependency closure installs the shared
-Integration and `agent-component/assistant-ui-generative-ui`. A2UI does not own
+It requires `integration/generative-ui`; that single resource owns the shared
+component export and Generative UI Integration. A2UI does not own
 the component library, package requirement or styles. See
 [Generative UI Integration](./generative-ui-integration.md) for capability and
 permission ownership. The source pin is
@@ -54,7 +54,7 @@ through explicit read-only path mappings, never adopted into the optional lock.
 Foundations provide a pass-through Host before any optional installation.
 
 Legacy v1 uses a separate `.agent-ui/scenario-resources/source-lock.json` for the
-entire optional closure, including `agent-component/assistant-ui-generative-ui`.
+entire optional closure, including `integration/generative-ui`.
 Workbench adopts resource inspection for items with `owned: true` (locked
 or provided ownership), not by Source kind or status. This prevents normal
 inspection's unowned-file conflicts from hiding installed transitive dependencies.

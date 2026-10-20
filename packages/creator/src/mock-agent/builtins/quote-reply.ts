@@ -12,5 +12,5 @@ export const quoteReplyScenario = defineScenario({
     eventFlow: ["TEXT_MESSAGE_START/CONTENT/END"],
     notes: ["Quote is not an AG-UI event.", "Select a passage, quote it, and send a follow-up question."],
   },
-  steps: [{ type: "message", text: "React 19 introduces Actions to simplify asynchronous state changes. Actions coordinate pending states, optimistic updates, and error handling while an operation completes.\n\nA quote lets you ask about one specific passage without repeating the entire answer. Select part of this response, choose Quote, and ask why that detail matters.", intervalMs: 25 }],
+  steps: [{ type: "message", text: "React 19 引入了 Actions，用于简化异步状态变更。操作执行期间，Actions 会统一处理等待状态、乐观更新和错误处理。\n\n引用功能可以让你针对某一段内容提问，而不必重复整段回答。选中这条回复中的一段，点击“引用”，再询问这部分内容的含义。", intervalMs: 25 }],
 });

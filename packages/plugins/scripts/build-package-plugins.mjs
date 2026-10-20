@@ -7,6 +7,14 @@ import { build } from "esbuild";
 import { createHash } from "node:crypto";
 const root = fileURLToPath(new URL("../", import.meta.url));
 const registry = fileURLToPath(new URL("../resources/registry/items", import.meta.url));
+const registryRoot = path.dirname(registry);
+const registryManifest = JSON.parse(await readFile(path.join(registryRoot, "registry.json"), "utf8"));
+const sourceItems = new Map(registryManifest.items.map(entry => [entry.id, entry]));
+function sourceItemRoot(id) {
+  const entry = sourceItems.get(id);
+  if (!entry) throw new Error(`Missing source item ${id}`);
+  return path.join(registryRoot, ...path.posix.dirname(entry.path).split("/"));
+}
 const verification = spawnPnpmSync(["exec", "node", "--import", "tsx", "../operator/scripts/source-catalog/verify-package-services.mjs"], { cwd: root, stdio: "inherit" });
 if (verification.error) throw verification.error;
 if (verification.status !== 0) throw new Error("OFFICIAL_PACKAGE_SERVICE_METADATA_DRIFT: reference validation failed");
@@ -16,13 +24,13 @@ await rm(path.join(root, "dist/types"), { recursive: true, force: true });
 // Remove the unpublished intermediate product entry when rebuilding an existing checkout.
 await rm(path.join(root, "dist/conversation-composer"), { recursive: true, force: true });
 await mkdir(generated, { recursive: true });
-await cp(path.join(registry, "foundation-core-contracts/files/framework"), path.join(generated, "framework"), { recursive: true });
+await cp(path.join(sourceItemRoot("foundation/core-contracts"), "files/framework"), path.join(generated, "framework"), { recursive: true });
 // Each official plugin has one product entry point.
 const plugins = deliveries;
 for (const delivery of plugins) {
   const { id, component } = delivery;
   await rm(path.join(root, "dist", id), { recursive: true, force: true });
-  await cp(path.join(registry, `plugin-${id}/files/plugins`), path.join(generated, "plugins"), { recursive: true });
+  await cp(path.join(sourceItemRoot(`plugin/${id}`), "files/plugins"), path.join(generated, "plugins"), { recursive: true });
   if (delivery.componentSource) {
     const directory = path.join(generated, "plugins", id);
     await rm(directory, {recursive:true,force:true});

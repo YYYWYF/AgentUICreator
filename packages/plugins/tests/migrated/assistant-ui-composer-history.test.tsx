@@ -15,15 +15,15 @@ import {
   type AppUIRuntimeModel,
 } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
 import { resolveRuntimePluginSlotId } from "../../../operator/src/framework/contracts/app-ui-composition";
-import { ConversationSurface } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface";
-import { createConversationServiceThreadBinding } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
+import { ConversationSurface } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/ConversationSurface";
+import { createConversationServiceThreadBinding } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
 import {
   createConversationService,
   type ConversationDataSource,
-} from "../../resources/registry/items/foundation-core-application/files/services/conversations";
-import { conversationComposerPlugin } from "../../resources/registry/items/plugin-composer/files/plugins/composer/definition";
-import { conversationSubmitActionPlugin } from "../../resources/registry/items/plugin-submit-action/files/plugins/submit-action/definition";
-import { createPluginRegistry } from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../resources/registry/items/foundation/core-application/files/services/conversations";
+import { conversationComposerPlugin } from "../../resources/registry/items/plugin/composer/files/plugins/composer/definition";
+import { conversationSubmitActionPlugin } from "../../resources/registry/items/plugin/submit-action/files/plugins/submit-action/definition";
+import { createPluginRegistry } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
 import { PluginRuntimeFixture } from "../../../operator/tests/support/agent-runtime-fixture";
 
 const roots: Root[] = [];

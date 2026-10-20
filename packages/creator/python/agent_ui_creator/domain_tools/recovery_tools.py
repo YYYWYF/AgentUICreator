@@ -221,7 +221,7 @@ class CreatorRecoveryQueries:
             return {"status": "query_error", "error": error.code}
 
     def _list(self) -> dict[str, object]:
-            directory = self.store.project_root / ".agent-ui" / "creator" / "transactions"
+        directory = self.store.project_root / ".agent-ui" / "creator" / "transactions"
         if not directory.exists():
             return {"status": "evidence_missing", "transactions": [],
                     "association": "unavailable"}

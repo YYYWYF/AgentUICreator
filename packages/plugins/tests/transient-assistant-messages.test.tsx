@@ -9,8 +9,8 @@ import { resolveTransientMessageAnchor } from "../src/conversation-transient-mes
 import { ConversationRuntimeProvider } from "../../runtime/src/ConversationRuntimeProvider.js";
 import { useConversationRuntimeBridge, type ConversationRuntimeBridge } from "../../runtime/src/ConversationRuntimeBridgeContext.js";
 import type { ConversationThreadBinding, ConversationMessage } from "../../runtime/src/threads/types.js";
-import { PluginRenderScopeProvider } from "../resources/registry/items/foundation-core-runtime/files/runtime/plugins/PluginRenderScope";
-import { TransientAssistantMessagesPlugin } from "../resources/registry/items/plugin-transient-assistant-messages/files/plugins/transient-assistant-messages/index";
+import { PluginRenderScopeProvider } from "../resources/registry/items/foundation/core-runtime/files/runtime/plugins/PluginRenderScope";
+import { TransientAssistantMessagesPlugin } from "../resources/registry/items/plugin/transient-assistant-messages/files/plugins/transient-assistant-messages/index";
 
 function SourceDisplay(value: { afterMessageId: string | null }) {
   return <PluginRenderScopeProvider scope={{ kind: "conversation.transient-messages", value }}><TransientAssistantMessagesPlugin /></PluginRenderScopeProvider>;

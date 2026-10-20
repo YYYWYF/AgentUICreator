@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   conversationPresentationConfig,
   conversationWelcomeConfig,
-} from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/index";
+} from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/config/index";
 
 describe("assistant-ui application presentation config", () => {
   it("lets locale defaults own Welcome copy while preserving explicit application overrides", () => {

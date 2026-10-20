@@ -14,22 +14,22 @@ import {
 } from "@assistant-ui/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ConversationAdapter } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationAdapter";
-import { createConversationToolkit } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/toolkit/index";
+import { ConversationAdapter } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/ConversationAdapter";
+import { createConversationToolkit } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/toolkit/index";
 import {
   parseAppUIRuntimeModel,
   type AppUIRuntimeModel,
 } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
 import type { UIPluginComponentProps, UIPluginDefinition, UIPluginRenderScope } from "../../../operator/src/framework/contracts/ui-plugin";
-import { ConversationReasoningPlugin } from "../../resources/registry/items/plugin-reasoning/files/plugins/reasoning/index";
-import { ConversationToolFallbackPlugin } from "../../resources/registry/items/plugin-tool-fallback/files/plugins/tool-fallback/index";
-import { ConversationToolGroupPlugin } from "../../resources/registry/items/plugin-tool-group/files/plugins/tool-group/index";
-import { TaskGroupPlugin } from "../../resources/registry/items/plugin-task-group/files/plugins/task-group/index";
+import { ConversationReasoningPlugin } from "../../resources/registry/items/plugin/reasoning/files/plugins/reasoning/index";
+import { ConversationToolFallbackPlugin } from "../../resources/registry/items/plugin/tool-fallback/files/plugins/tool-fallback/index";
+import { ConversationToolGroupPlugin } from "../../resources/registry/items/plugin/tool-group/files/plugins/tool-group/index";
+import { TaskGroupPlugin } from "../../resources/registry/items/plugin/task-group/files/plugins/task-group/index";
 import {
   createPluginRegistry,
   type RuntimeDiagnostic,
   usePluginRenderScope,
-} from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
 import { PluginRuntimeFixture } from "../../../operator/tests/support/agent-runtime-fixture";
 
 const roots: Root[] = [];
@@ -77,9 +77,9 @@ async function openToolGroups(container: HTMLElement) {
   if (trigger) await act(async () => trigger.click());
 }
 
-import { useConversationRendererSlots } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/useConversationRendererSlots";
-import { ConversationToolTimelinePlugin } from "../../resources/registry/items/plugin-tool-timeline/files/plugins/tool-timeline/index";
-import { ConversationThinkingIndicatorPlugin } from "../../resources/registry/items/plugin-thinking-indicator/files/plugins/thinking-indicator/index";
+import { useConversationRendererSlots } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/useConversationRendererSlots";
+import { ConversationToolTimelinePlugin } from "../../resources/registry/items/plugin/tool-timeline/files/plugins/tool-timeline/index";
+import { ConversationThinkingIndicatorPlugin } from "../../resources/registry/items/plugin/thinking-indicator/files/plugins/thinking-indicator/index";
 
 function Host({ renderScopedSlot }: UIPluginComponentProps) {
   useEffect(() => { hostMounts += 1; }, []);

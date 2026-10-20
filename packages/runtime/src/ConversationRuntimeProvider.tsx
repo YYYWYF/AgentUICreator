@@ -1,5 +1,6 @@
 import type { ConversationFeedbackAdapter } from "./feedback.js";
 import { installConversationQuoteContext } from "./compatibility/conversation-quote-context-agent.js";
+import { installConversationCommandForwarding } from "./compatibility/conversation-command-forwarding-agent.js";
 import type { AbstractAgent } from "@ag-ui/client";
 import { ConversationQuoteLifecycleProvider, ConversationComposerGuardProvider, ConversationTransientMessageProvider, createConversationTransientMessageService, type ConversationTransientMessageService, type ConversationToolkit } from "@za38.03/agent-ui-plugins";
 import type { AgentFrontendToolSource } from "@za38.03/agent-ui-core";
@@ -149,9 +150,12 @@ export function ConversationRuntimeProvider<TState = unknown>({
     const [ownedId] = useState(() => persistence.identity(item.id, item.remoteId));
     // Observe upstream-owned user messages synchronously before transport starts.
     const quoteMessagesRef = useRef(new Map<string, ThreadMessage>());
-    const agent = useMemo(() => installConversationQuoteContext(unstable_agentFactory({ endpoint, threadId: ownedId }),
-      () => [...quoteMessagesRef.current.values()],
-    ), [endpoint, ownedId, unstable_agentFactory]);
+    const commandForwarderRef = useRef<ReturnType<typeof installConversationCommandForwarding> | undefined>(undefined);
+    const agent = useMemo(() => {
+      const created = unstable_agentFactory({ endpoint, threadId: ownedId });
+      commandForwarderRef.current = installConversationCommandForwarding(created);
+      return installConversationQuoteContext(created, () => [...quoteMessagesRef.current.values()]);
+    }, [endpoint, ownedId, unstable_agentFactory]);
     const bridgeRef = useRef<ConversationAgentRuntimeBridge<TState> | null>(null);
     const ownedBinding = useMemo<ConversationThreadBinding<TState>>(() => ({
       getThreadId: () => ownedId,
@@ -247,10 +251,11 @@ export function ConversationRuntimeProvider<TState = unknown>({
       },
     });
     const applicationEvents = useMemo(() => new ConversationApplicationEventSource(agent), [agent]);
+    const commandForwarder = commandForwarderRef.current;
     const agentRuntime = useMemo(() => createConversationAgentRuntimeBridge<TState>({
-      runtime, threadBinding: ownedBinding, applicationEvents,
+      runtime, threadBinding: ownedBinding, applicationEvents, commandForwarder,
       switchToNewThread: () => outerRuntime.current!.threads.switchToNewThread(),
-    }), [runtime, ownedBinding, applicationEvents]);
+    }), [runtime, ownedBinding, applicationEvents, commandForwarder]);
     bridgeRef.current = agentRuntime;
     const bridge = useMemo<ConversationRuntimeBridge<TState>>(() => ({
       agentRuntime, applicationEvents, observation: agentRuntime.observation, threadBinding,
@@ -352,8 +357,14 @@ function CurrentConversationBridge<TState>({ sessions, persistence, threadBindin
 
 function ConversationComposerGuard({ bridge, transientMessages, children }: { bridge: ConversationRuntimeBridge; transientMessages: ConversationTransientMessageService; children: ReactNode }) {
   const snapshot = useSyncExternalStore(bridge.agentRuntime.subscribe, bridge.agentRuntime.getSnapshot, bridge.agentRuntime.getSnapshot);
+  const pendingToolCallIds = snapshot.run.status === "awaiting-input"
+    ? snapshot.executions.filter(execution => execution.type === "tool" && execution.status === "awaiting-result").map(execution => execution.id)
+    : [];
   return <ConversationTransientMessageProvider service={transientMessages} conversationId={snapshot.conversation.id}>
-    <ConversationComposerGuardProvider awaitingReply={snapshot.interrupts.length > 0} interruptKey={JSON.stringify(snapshot.interrupts.map(interrupt => interrupt.id).sort())}>
+    <ConversationComposerGuardProvider awaitingReply={snapshot.run.status === "awaiting-input"} interruptKey={JSON.stringify([
+      ...snapshot.interrupts.map(interrupt => interrupt.id),
+      ...pendingToolCallIds,
+    ].sort())}>
       {children}
     </ConversationComposerGuardProvider>
   </ConversationTransientMessageProvider>;

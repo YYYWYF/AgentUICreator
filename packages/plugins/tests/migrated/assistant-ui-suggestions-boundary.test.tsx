@@ -5,9 +5,9 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { conversationStarterSuggestions } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/index";
-import { conversationSuggestionsPlugin } from "../../resources/registry/items/plugin-conversation-suggestions/files/plugins/conversation-suggestions/definition";
-import { ConversationSuggestionsPlugin } from "../../resources/registry/items/plugin-conversation-suggestions/files/plugins/conversation-suggestions/index";
+import { conversationStarterSuggestions } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/config/index";
+import { conversationSuggestionsPlugin } from "../../resources/registry/items/plugin/conversation-suggestions/files/plugins/conversation-suggestions/definition";
+import { ConversationSuggestionsPlugin } from "../../resources/registry/items/plugin/conversation-suggestions/files/plugins/conversation-suggestions/index";
 
 const projectRoot = await generatedProjectFixture();
 

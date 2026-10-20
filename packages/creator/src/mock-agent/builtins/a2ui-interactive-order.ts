@@ -10,16 +10,18 @@ export function a2uiOrderSnapshot(status: "review" | "confirmed" | "cancelled" =
     content: { a2ui_operations: [
       { version: "v0.9", createSurface: { surfaceId: "order" } },
       { version: "v0.9", updateComponents: { surfaceId: "order", components: [
-        { id: "root", component: "Card", title: interactive ? "Order Review" : "Order status", children: interactive ? ["summary", "actions"] : ["summary"] },
+        { id: "root", component: "Card", title: interactive ? "确认订单" : "订单状态", children: interactive ? ["summary", "actions"] : ["summary"] },
         { id: "summary", component: "Text", text: { path: "/summary" } },
         ...(interactive ? [
           { id: "actions", component: "Row", children: ["confirm", "cancel"] },
-          { id: "confirm", component: "Button", label: "Confirm", action: { name: "confirm_order" } },
-          { id: "cancel", component: "Button", label: "Cancel", action: { name: "cancel_order" } },
+          { id: "confirm", component: "Button", label: "确认", action: { name: "confirm_order" } },
+          { id: "cancel", component: "Button", label: "取消", action: { name: "cancel_order" } },
         ] : []),
       ] } },
       { version: "v0.9", updateDataModel: { surfaceId: "order", path: "/", contents: {
-        summary: interactive ? "Product: Developer Plan\n\nSeats: 5\n\nTotal: $50/month" : `Order ${status}${status === "confirmed" ? " ✓" : ""}`,
+        summary: interactive
+          ? "产品：开发者套餐\n\n席位数：5\n\n总价：每月 50 美元"
+          : status === "confirmed" ? "订单已确认 ✓" : status === "cancelled" ? "订单已取消" : "订单待确认",
       } } },
     ] },
   };
@@ -43,6 +45,6 @@ export const a2uiInteractiveOrderScenario = defineScenario({
       confirm_order: [a2uiOrderSnapshot("confirmed")],
       cancel_order: [a2uiOrderSnapshot("cancelled")],
     },
-    fallback: [{ type: "message", text: "Unknown order action." }],
+    fallback: [{ type: "message", text: "未知的订单操作。" }],
   },
 });

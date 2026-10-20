@@ -5,13 +5,17 @@ Foundation or Tool permission. It does not mutate AppUIModel or mount a
 ConversationIntegration. Default foundations never install it or A2UI.
 
 ```text
-agent-component/assistant-ui-generative-ui
-  → official styled element + scoped vocabulary CSS + UPSTREAM.json
 integration/generative-ui
-  → JSONGenerativeUI factory + official Action Registry factory
+  → public component export + JSONGenerativeUI factory + official Action Registry factory
 integration/a2ui
   → AG-UI activity protocol adapter + render-only present projection
 ```
+
+The public component export and integration factories are one Registry resource:
+the generated project receives them together under `integration/generative-ui`.
+Older source locks may still name `agent-component/generative-ui` or
+`agent-component/assistant-ui-generative-ui`; Operator resolves those IDs to the
+combined Integration and folds their lock files into its canonical lock entry.
 
 ## Release and ownership
 
@@ -49,8 +53,9 @@ const generative = createAgentUIGenerativeUI({
 ```
 
 `agentUIGenerativeUILibrary` is the official `styledGenerativeUILibrary` object.
-The styled element uses ReactMarkdown and remarkGfm. Its Source item explicitly
-requires both dependencies. Official vocabulary CSS is serialized from
+The styled element uses ReactMarkdown and remarkGfm through the package facade.
+The combined Integration Source item installs only the public package bridge.
+Official vocabulary CSS is serialized from
 `packages/ui/src/lib/generative-ui-vocabulary-css.ts`; every selector receives
 only the `.agent-ui-conversation` prefix, including media and comma-separated
 selectors. Canonical assistant-ui theme variables come from
@@ -64,7 +69,7 @@ adaptations; the styled element has no source patches. Existing vendor source
 continues through `sync:assistant-ui-upstream`. Release-pinned revision and
 package guards verify the frozen release rather than requiring remote main or
 npm latest; ordinary unpinned upgrade targets retain the previous latest checks.
-The two Generative UI Source items follow the package release revision.
+The combined Generative UI Source item follows the package release revision.
 `integration/a2ui` records the release last reviewed for its wrapper and is
 updated only after a wrapper review, even when its transitive Generative UI
 dependency is upgraded.
@@ -78,7 +83,7 @@ are installed in the frontend Tool contract or automatic conversation Host seam.
 Nothing adds `present` or `prompt_user` to `RunAgentInput.tools`.
 
 For legacy v1 projects, the separate scenario-resource lock owns every installed
-dependency, including the styled agent-component. Workbench merges resource
+dependency, including the old styled component item. Workbench merges resource
 inspection for entries with `owned: true`, representing lock-owned source
 or provided Host foundations, regardless of Source kind or inspection status.
 Unowned entries keep normal inspection. The installation root allowlist remains

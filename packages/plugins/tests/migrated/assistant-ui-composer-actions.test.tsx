@@ -12,7 +12,7 @@ import {
 } from "@assistant-ui/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ConversationSurface } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/ConversationSurface";
+import { ConversationSurface } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/ConversationSurface";
 import type {
   UIPluginComponentProps,
   UIPluginDefinition,
@@ -23,11 +23,11 @@ import {
   type AppUIRuntimePluginInstance,
 } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
 import { resolveRuntimePluginSlotId } from "../../../operator/src/framework/contracts/app-ui-composition";
-import { conversationAddAttachmentActionPlugin } from "../../resources/registry/items/plugin-add-attachment-action/files/plugins/add-attachment-action/definition";
-import { conversationComposerPlugin } from "../../resources/registry/items/plugin-composer/files/plugins/composer/definition";
-import { conversationDictationActionPlugin } from "../../resources/registry/items/plugin-dictation-action/files/plugins/dictation-action/definition";
-import { conversationSubmitActionPlugin } from "../../resources/registry/items/plugin-submit-action/files/plugins/submit-action/definition";
-import { createPluginRegistry } from "../../resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+import { conversationAddAttachmentActionPlugin } from "../../resources/registry/items/plugin/add-attachment-action/files/plugins/add-attachment-action/definition";
+import { conversationComposerPlugin } from "../../resources/registry/items/plugin/composer/files/plugins/composer/definition";
+import { conversationDictationActionPlugin } from "../../resources/registry/items/plugin/dictation-action/files/plugins/dictation-action/definition";
+import { conversationSubmitActionPlugin } from "../../resources/registry/items/plugin/submit-action/files/plugins/submit-action/definition";
+import { createPluginRegistry } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
 import { PluginRuntimeFixture } from "../../../operator/tests/support/agent-runtime-fixture";
 
 const assistantConfig = AuiConfig({});

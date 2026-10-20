@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   projectConversationDetail,
-} from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-history-projector";
-import type { ConversationDetail } from "../../resources/registry/items/foundation-core-application/files/services/conversations";
+} from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/threads/conversation-history-projector";
+import type { ConversationDetail } from "../../resources/registry/items/foundation/core-application/files/services/conversations";
 
 function detail(messages: readonly unknown[]): ConversationDetail {
   return {

@@ -10,7 +10,10 @@ import { writeGeneratedPluginRegistry } from "../../../../packages/operator/src/
 import { loadAgentUISourceRegistry } from "../../../../packages/operator/src/source-catalog/loader";
 import { builtinMockScenarios, createMockAgentVitePlugin, createMockConversationApiVitePlugin } from "@za38.03/agent-ui-creator/mock-agent";
 
-export async function createI18nPluginHost(releaseIds: readonly string[]) {
+export async function createI18nPluginHost(
+  releaseIds: readonly string[],
+  options: { commandDecisionFixture?: boolean } = {},
+) {
   const root = realpathSync(await mkdtemp(path.join(tmpdir(), "agent-ui-visual-host-")));
   await cp(await generatedProjectFixture(), root, { recursive: true });
   const registry = await loadAgentUISourceRegistry();
@@ -24,6 +27,30 @@ export async function createI18nPluginHost(releaseIds: readonly string[]) {
   }
   // Composer is dependency-owned; the source-registry legacy copy is not installed.
   await rm(path.join(root, "agent-ui/plugins/composer"), { recursive: true, force: true });
+  if (options.commandDecisionFixture) {
+    const toolkitPath = path.join(root, "agent-ui/agent-ui/conversation/toolkit/conversation-toolkit.tsx");
+    const importMarker = 'import { SearchFilesToolUI } from "./SearchFilesToolUI";';
+    const toolkitMarker = "  return createToolkit({";
+    let toolkit = await readFile(toolkitPath, "utf8");
+    if (!toolkit.includes(importMarker) || !toolkit.includes(toolkitMarker)) {
+      throw new Error("The generated conversation toolkit fixture changed unexpectedly.");
+    }
+    toolkit = toolkit.replace(importMarker, `${importMarker}\nimport { ConversationToolFallback } from "@za38.03/agent-ui-plugins";`);
+    toolkit = toolkit.replace(toolkitMarker, `${toolkitMarker}
+    confirm_take_leave_policy: {
+      type: "human",
+      interaction: { type: "command" },
+      display: "standalone",
+      description: "Mock legacy ON_INTERRUPT command decision",
+      parameters: {
+        type: "object",
+        properties: { user: { type: "string" }, leave_policy: { type: "string" } },
+        required: ["user", "leave_policy"],
+      },
+      render: ConversationToolFallback,
+    },`);
+    await writeFile(toolkitPath, toolkit);
+  }
   // Prefer current workspace releases to stale installed fixture tarballs.
   for (const name of ["react", "core", "renderer", "runtime"]) {
     const target = path.join(root, "node_modules/@za38.03", `agent-ui-${name}`);

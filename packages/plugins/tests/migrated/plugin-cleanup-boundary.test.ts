@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { officialPackagePlugins } from "../../src/catalog/package-plugins";
 import { describe, expect, it } from "vitest";
 
-import { pluginCapabilityCatalog } from "../../resources/registry/items/foundation-core/files/plugins/index";
+import { pluginCapabilityCatalog } from "../../resources/registry/items/foundation/core/files/plugins/index";
 
 const projectRoot = await generatedProjectFixture();
 export const canonicalPluginIds = [...officialPackagePlugins.map(plugin => plugin.pluginId), "composer-trigger-demo"];

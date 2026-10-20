@@ -3,7 +3,7 @@ import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AgentUILocaleProvider, useAgentUILocale, resolveAgentUILocaleMessages, AGENT_UI_PRESENTATION_LOCALES } from "../src/locale";
 import { ConversationFile } from "../src/public";
-import { getConversationStarterSuggestions } from "../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/conversation-runtime-config";
+import { getConversationStarterSuggestions } from "../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/config/conversation-runtime-config";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 let renderer: ReactTestRenderer | undefined;

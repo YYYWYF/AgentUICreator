@@ -10,6 +10,11 @@ import {
 } from "./path-policy";
 import type { AgentUISourceLock } from "./types";
 
+const LEGACY_SOURCE_ITEM_IDS: Readonly<Record<string, string>> = {
+  "agent-component/generative-ui": "integration/generative-ui",
+  "agent-component/assistant-ui-generative-ui": "integration/generative-ui",
+};
+
 export const AGENT_UI_SOURCE_LOCK_FILE = "source-lock.json";
 export const AGENT_UI_SOURCE_TRANSACTION_FILE = "source-transaction.json";
 
@@ -85,7 +90,24 @@ function parseLock(value: unknown, sourceRoot: string): AgentUISourceLock {
       }
     }
     if (!!provenance.pluginVersion !== !!provenance.sourceRelease) throw new AgentUISourceError("AGENT_UI_SOURCE_LOCK_INVALID", `Incomplete provenance for ${itemId}.`);
-    items[itemId] = { files, ...provenance };
+    const canonicalItemId = LEGACY_SOURCE_ITEM_IDS[itemId] ?? itemId;
+    const previous = items[canonicalItemId];
+    if (previous) {
+      const mergedFiles = { ...previous.files };
+      for (const [filePath, file] of Object.entries(files)) {
+        const existing = mergedFiles[filePath];
+        if (existing && existing.sha256 !== file.sha256) {
+          throw new AgentUISourceError(
+            "AGENT_UI_SOURCE_LOCK_INVALID",
+            `Conflicting legacy source hashes for ${canonicalItemId}:${filePath}.`,
+          );
+        }
+        mergedFiles[filePath] = file;
+      }
+      items[canonicalItemId] = { ...previous, ...provenance, files: mergedFiles };
+    } else {
+      items[canonicalItemId] = { files, ...provenance };
+    }
   }
   return { sourceRoot, items };
 }

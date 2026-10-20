@@ -36,12 +36,12 @@ async function fixture(id: string) {
   await symlink(path.join(repositoryRoot,"packages/plugins/node_modules"),path.join(installed,"node_modules"),junction);
   for (const dependency of ["react","@types","zod","vite","lucide-react"]) await symlink(path.join(repositoryRoot,dependency==="lucide-react"?"packages/plugins/node_modules":"packages/operator/node_modules",dependency),path.join(root,"node_modules",dependency),junction);
   for (const dependency of ["core", "renderer", "runtime"]) await symlink(path.join(repositoryRoot,"packages",dependency),path.join(root,"node_modules/@za38.03",`agent-ui-${dependency}`),junction);
-  await cp(path.join(repositoryRoot,"packages/plugins/resources/registry/items/foundation-core-contracts/files/framework"),path.join(root,"src/ui/framework"),{recursive:true});
-  await cp(path.join(repositoryRoot,"packages/plugins/resources/registry/items/foundation-core-runtime/files/runtime/context"),path.join(root,"src/ui/runtime/context"),{recursive:true});
-  await cp(path.join(repositoryRoot,"packages/plugins/resources/registry/items/foundation-core-application/files/services/conversations"),path.join(root,"src/ui/services/conversations"),{recursive:true});
-  await cp(path.join(repositoryRoot,"packages/plugins/resources/registry/items/foundation-core-application/files/services/conversations.ts"),path.join(root,"src/ui/services/conversations.ts"));
-  await cp(path.join(repositoryRoot,"packages/plugins/resources/registry/items/foundation-core-application/files/services/agent-ui-theme.ts"),path.join(root,"src/ui/services/agent-ui-theme.ts"));
-  await cp(path.join(repositoryRoot,"packages/plugins/resources/registry/items/foundation-core-adapters/files/agent-ui/theme"),path.join(root,"src/ui/agent-ui/theme"),{recursive:true});
+  await cp(path.join(repositoryRoot,"packages/plugins/resources/registry/items/foundation/core-contracts/files/framework"),path.join(root,"src/ui/framework"),{recursive:true});
+  await cp(path.join(repositoryRoot,"packages/plugins/resources/registry/items/foundation/core-runtime/files/runtime/context"),path.join(root,"src/ui/runtime/context"),{recursive:true});
+  await cp(path.join(repositoryRoot,"packages/plugins/resources/registry/items/foundation/core-application/files/services/conversations"),path.join(root,"src/ui/services/conversations"),{recursive:true});
+  await cp(path.join(repositoryRoot,"packages/plugins/resources/registry/items/foundation/core-application/files/services/conversations.ts"),path.join(root,"src/ui/services/conversations.ts"));
+  await cp(path.join(repositoryRoot,"packages/plugins/resources/registry/items/foundation/core-application/files/services/agent-ui-theme.ts"),path.join(root,"src/ui/services/agent-ui-theme.ts"));
+  await cp(path.join(repositoryRoot,"packages/plugins/resources/registry/items/foundation/core-adapters/files/agent-ui/theme"),path.join(root,"src/ui/agent-ui/theme"),{recursive:true});
   await writeFile(path.join(root,"src/ui/services/agent-ui-locale.ts"),'export const AGENT_UI_LOCALE_SERVICE = "agent-ui.locale";');
   await writeFile(path.join(root,"src/ui/agent-ui/i18n/useAgentUILocale.ts"),'export { useAgentUILocale } from "@za38.03/agent-ui-plugins";');
   await writeFile(path.join(root,"src/ui/runtime/composition.ts"),'export const createPluginCapabilityCatalog = (entries: unknown[]) => entries;');

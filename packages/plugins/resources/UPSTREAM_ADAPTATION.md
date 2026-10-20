@@ -31,7 +31,7 @@ release tag, records its commit in `assistant-ui-upgrade-target.json`, and runs
 manual regeneration, pass that exact `--revision` and optionally `--repo` to
 `pnpm --filter @za38.03/agent-ui-source-registry sync:generative-ui-upstream`.
 The sync updates the styled element, CSS, provenance, and the package/version
-metadata of the Generative UI agent-component and integration items.
+metadata on the single `integration/generative-ui` Registry item.
 The styled source is unchanged. Official vocabulary CSS declarations are unchanged;
 each selector is mechanically prefixed with `.agent-ui-conversation`, including
 comma-separated selectors and rules within media queries. No theme translation,

@@ -6,10 +6,10 @@ it("delivers a readable project theme contract matching the installed theme voca
   const plugins = new URL("../../plugins/", import.meta.url);
   const read = (relative: string) => readFile(fileURLToPath(new URL(relative, plugins)), "utf8");
   const [contract, css, itemText, stylesheet, presets] = await Promise.all([
-    read("resources/registry/items/foundation-core-adapters/files/agent-ui/theme/theme-customization.md"),
+    read("resources/registry/items/foundation/core-adapters/files/agent-ui/theme/theme-customization.md"),
     read("src/theme/agent-ui-violet-theme.css"),
-    read("resources/registry/items/foundation-core-adapters/item.json"),
-    read("resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/styles.css"),
+    read("resources/registry/items/foundation/core-adapters/item.json"),
+    read("resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/styles.css"),
     read("src/theme/theme-contract.ts"),
   ]);
   for (const token of new Set(contract.match(/--[a-z-]+/g))) {

@@ -13,7 +13,7 @@ import { defineScenario } from "../scenario.js";
  * subagent run to the spawning parent ToolCall.
  */
 const researcherResult = {
-  summary: "Conversation Runtime inspection complete",
+  summary: "Conversation Runtime 检查完成",
 };
 
 export const nestedSubagentConversationScenario = defineScenario({
@@ -49,12 +49,12 @@ export const nestedSubagentConversationScenario = defineScenario({
       type: "subagent-tool",
       toolCallId: "invoke-researcher-1",
       toolName: "delegate_specialist",
-      args: { task: "Inspect Conversation Runtime", subagent_type: "researcher" },
+      args: { task: "检查 Conversation Runtime", subagent_type: "researcher" },
       prepareDurationMs: 300,
       subagent: {
         id: "researcher-1",
-        name: "Architecture Researcher",
-        description: "Inspects the Agent UI architecture",
+        name: "架构研究员",
+        description: "检查 Agent UI 架构",
         steps: [
           {
             type: "reasoning",
@@ -86,7 +86,7 @@ export const nestedSubagentConversationScenario = defineScenario({
     },
     {
       type: "message",
-      text: "Researcher 已完成 Conversation Runtime 检查，我已经收到它的结果。",
+      text: "研究员已完成 Conversation Runtime 检查，我已经收到它的结果。",
       intervalMs: 35,
     },
   ],

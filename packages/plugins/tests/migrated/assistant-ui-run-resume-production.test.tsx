@@ -11,15 +11,15 @@ import { createRoot } from "react-dom/client";
 import { describe, expect, it, vi } from "vitest";
 import { ConversationRuntimeProvider } from "@za38.03/agent-ui-runtime";
 import { DataMessageUIRegistration } from "@za38.03/agent-ui-plugins";
-import { agentPlanActivityMessageUI } from "../../resources/registry/items/plugin-agent-plan-message/files/plugins/agent-plan-message/index";
+import { agentPlanActivityMessageUI } from "../../resources/registry/items/plugin/agent-plan-message/files/plugins/agent-plan-message/index";
 import {
   useConversationServiceThreadBinding,
   type ConversationRunResumeProvider,
   type ConversationServiceThreadBinding,
-} from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
+} from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
 import type {
   ConversationDetail, ConversationService, ConversationSnapshot,
-} from "../../resources/registry/items/foundation-core-application/files/services/conversations";
+} from "../../resources/registry/items/foundation/core-application/files/services/conversations";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 

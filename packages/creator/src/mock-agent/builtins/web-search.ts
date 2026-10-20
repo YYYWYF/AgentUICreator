@@ -18,7 +18,7 @@ export const webSearchScenario = defineScenario({
   steps: [{
     type: "tool",
     name: "web_search",
-    args: { query: "Agent UI AG-UI" },
+    args: { query: "Agent UI 的 AG-UI 实现" },
     result: { results: [
       { title: "Agent UI", domain: "docs.ag-ui.com" },
       { title: "AG-UI", domain: "docs.ag-ui.com" },

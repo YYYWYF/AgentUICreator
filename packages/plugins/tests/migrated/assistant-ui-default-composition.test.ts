@@ -6,9 +6,9 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import appUIJson from "../../../operator/tests/fixtures/project/app-ui/app-ui.json";
-import { conversationPresentationConfig } from "../../resources/registry/items/foundation-core-adapters/files/agent-ui/conversation/config/index";
+import { conversationPresentationConfig } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/config/index";
 import { collectAppUIPluginLocations, parseAppUIModel } from "../../../operator/src/framework/contracts/app-ui-model";
-import { pluginCapabilityCatalog } from "../../resources/registry/items/foundation-core/files/plugins/index";
+import { pluginCapabilityCatalog } from "../../resources/registry/items/foundation/core/files/plugins/index";
 
 const projectRoot = await generatedProjectFixture();
 

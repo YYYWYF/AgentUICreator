@@ -6,5 +6,5 @@ export const composerMentionScenario = defineScenario({
   reference: { audience: "frontend", protocol: "AG-UI user text", pattern: "Async source → directive → user message",
     presentation: "Agent UI Composer Trigger / Directive Text", eventFlow: ["TEXT_MESSAGE_START/CONTENT/END"],
     notes: ["Inspect the actual user.content for employee_84721; choosing a candidate does not send.", "Roster lookup and Agent context construction belong to the backend application."] },
-  steps: [{ type: "message", text: "输入 @张（中文）或 @Zhang（英文）搜索示例对象。选择后输入问题并发送，再点击历史消息 Edit、修改文字并 Update，检查两次请求中的 employee_84721。", intervalMs: 20 }],
+  steps: [{ type: "message", text: "输入 @张 搜索示例人员。选择后输入问题并发送，再点击历史消息中的“编辑”，修改文字后点击“更新”，检查两次请求中的 employee_84721。", intervalMs: 20 }],
 });

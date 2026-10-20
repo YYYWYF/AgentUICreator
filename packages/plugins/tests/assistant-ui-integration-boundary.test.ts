@@ -25,7 +25,7 @@ it("keeps the canonical theme and Preflight scoped to AgentUIRoot", async () => 
   const [styles, preflight, agent] = await Promise.all([
     readFile(path.join(reactSource, "theme/shadcn-theme-presets.css"), "utf8"),
     readFile(path.join(reactSource, "preflight.scoped.css"), "utf8"),
-    readFile(path.join(repositoryRoot, "packages/plugins/resources/registry/items/foundation-core/files/application/Agent.tsx"), "utf8"),
+    readFile(path.join(repositoryRoot, "packages/plugins/resources/registry/items/foundation/core/files/application/Agent.tsx"), "utf8"),
   ]);
   expect(styles).toContain(':is(.agent-ui-root, .agent-ui-conversation)[data-theme="light"]');
   expect(styles).toContain(':is(.agent-ui-root, .agent-ui-conversation)[data-theme="dark"]');

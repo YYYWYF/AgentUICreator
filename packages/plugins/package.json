@@ -155,6 +155,11 @@
       "import": "./dist/chart-message/index.js",
       "default": "./dist/chart-message/index.js"
     },
+    "./context-retrieval-message": {
+      "types": "./dist/context-retrieval-message/index.d.ts",
+      "import": "./dist/context-retrieval-message/index.js",
+      "default": "./dist/context-retrieval-message/index.js"
+    },
     "./source-citations-message": {
       "types": "./dist/source-citations-message/index.d.ts",
       "import": "./dist/source-citations-message/index.js",

@@ -1,6 +1,0 @@
-{
-  "webSocket": "ws://[::1]:58530/c3a9e93ccde98c520ac1aabbf8e94aaa",
-  "hostRoot": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/creator-connection-host-fpBhjx/host",
-  "creatorOrigin": "http://127.0.0.1:58497/",
-  "hostOrigin": "http://127.0.0.1:58498/"
-}

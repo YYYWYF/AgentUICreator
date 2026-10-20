@@ -1,6 +1,6 @@
 import { expect, it, vi } from "vitest";
-import { createConversationCommandRegistry } from "../../../plugins/resources/registry/items/foundation-core-application/files/services/composer-triggers.ts";
-import { createDemoMentionSource } from "../../../plugins/resources/registry/items/demo-composer-triggers/files/plugins/composer-trigger-demo/source.ts";
+import { createConversationCommandRegistry } from "../../../plugins/resources/registry/items/foundation/core-application/files/services/composer-triggers.ts";
+import { createDemoMentionSource } from "../../../plugins/resources/registry/items/demo/composer-triggers/files/plugins/composer-trigger-demo/source.ts";
 import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure } from "../../src/source-catalog/index.ts";
 
 it("publishes stable command snapshots and removes only each registration's own entry", () => {

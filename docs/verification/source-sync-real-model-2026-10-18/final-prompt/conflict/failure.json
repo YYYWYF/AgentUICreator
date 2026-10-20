@@ -1,5 +1,0 @@
-{
-  "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'changed-unverified'\n- 'changed-and-verified'\n           ^\n",
-  "errors": [],
-  "root": "/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/source-sync-ui-vz65yt/conflict"
-}

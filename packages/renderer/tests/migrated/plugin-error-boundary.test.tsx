@@ -14,7 +14,7 @@ import type {
 } from "../../../operator/src/framework/contracts/ui-plugin";
 import {
   createPluginRegistry,
-} from "../../../plugins/resources/registry/items/foundation-core-runtime/files/runtime/plugins/index";
+} from "../../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
 import { PluginRuntimeFixture } from "../../../operator/tests/support/agent-runtime-fixture";
 
 const runtimeActions = {

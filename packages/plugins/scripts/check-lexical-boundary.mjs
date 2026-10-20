@@ -46,8 +46,13 @@ for (const file of await files(itemsRoot)) {
 // Optional peers never make the main facade install the editor. The Source Item
 // and workspace lock must resolve exactly one Lexical release family.
 const facade = JSON.parse(await readFile(path.join(root, "packages/plugins/package.json"), "utf8"));
-const sourceItem = JSON.parse(await readFile(path.join(itemsRoot, "plugin-lexical-composer-input/item.json"), "utf8"));
-const editItem = JSON.parse(await readFile(path.join(itemsRoot, "plugin-lexical-edit-composer/item.json"), "utf8"));
+const registryRoot = path.join(root, "packages/plugins/resources/registry");
+const registry = JSON.parse(await readFile(path.join(registryRoot, "registry.json"), "utf8"));
+const itemRoots = new Map(registry.items.map(entry => [entry.id,
+  path.join(registryRoot, ...path.posix.dirname(entry.path).split("/")),
+]));
+const sourceItem = JSON.parse(await readFile(path.join(itemRoots.get("plugin/lexical-composer-input"), "item.json"), "utf8"));
+const editItem = JSON.parse(await readFile(path.join(itemRoots.get("plugin/lexical-edit-composer"), "item.json"), "utf8"));
 const target = JSON.parse(await readFile(path.join(root, "assistant-ui-upgrade-target.json"), "utf8"));
 const manifest = JSON.parse(await readFile(path.join(root, "packages/plugins/node_modules", REACT_LEXICAL, "package.json"), "utf8"));
 const expectedIntegration = target.packages[REACT_LEXICAL];

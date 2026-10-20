@@ -32,11 +32,11 @@ describe("official integration resources", () => {
   });
 });
 
-it("places official Generative UI presentation before its integration and A2UI adapter", async () => {
+it("places the shared Generative UI integration before the A2UI adapter", async () => {
   const registry = await loadAgentUISourceRegistry();
   const ids = resolveAgentUISourceItemClosure(registry, "integration/a2ui").map(item => item.id);
-  expect(ids.indexOf("agent-component/generative-ui")).toBeLessThan(ids.indexOf("integration/generative-ui"));
   expect(ids.indexOf("integration/generative-ui")).toBeLessThan(ids.indexOf("integration/a2ui"));
+  expect(ids).not.toContain("agent-component/generative-ui");
   expect(registry.byId.get("integration/a2ui")!.packages).toBeUndefined();
   expect(registry.byId.get("integration/generative-ui")!.packages).toEqual({ "@za38.03/agent-ui-plugins": "0.0.1" });
   for (const item of registry.items.filter(item => item.kind === "foundation")) {

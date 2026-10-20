@@ -12,7 +12,7 @@ export async function writeGeneratedFrontendToolRegistries(projectRoot: string):
   const sourceRoot = path.dirname(paths.pluginsRoot);
   const changedPaths: string[] = [];
   for (const [directory, output, exportName, typeName, typeImport, extension] of [
-    ["agent-contract/frontend-tools", "agent-contract/frontend-tools.generated.ts", "frontendTools", "readonly AppFrontendToolDefinition<any>[]", 'import type { AppFrontendToolDefinition } from "../runtime/tools";', ".ts"],
+    ["agent-contract/frontend-tools", "agent-contract/frontend-tools.generated.ts", "frontendTools", "", "", ".ts"],
     ["agent-ui/conversation/frontend-tool-uis", "agent-ui/conversation/frontend-tool-uis.generated.ts", "frontendToolUIs", "ConversationFrontendToolUIRegistry", 'import type { ConversationFrontendToolUIRegistry } from "@za38.03/agent-ui-runtime";', ".tsx"],
   ] as const) {
     await assertNoSymbolicLinkTraversal(sourceRoot, directory);
@@ -24,7 +24,7 @@ export async function writeGeneratedFrontendToolRegistries(projectRoot: string):
       if (!/^[a-z][a-z0-9-]*\.(ts|tsx)$/.test(file)) throw new Error(`Invalid frontend tool module: ${file}`);
     }
     const imports = modules.map((file, i) => `import { ${exportName} as resource${i} } from "./${path.basename(directory)}/${file.slice(0, -extension.length)}";`);
-    const value = exportName === "frontendTools" ? `[${modules.map((_, i) => `...resource${i}`).join(", ")}]`
+    const value = exportName === "frontendTools" ? `[${modules.map((_, i) => `...resource${i}`).join(", ")}] as const`
       : `mergeRegistries([${modules.map((_, i) => `resource${i}`).join(", ")}])`;
     const merger = exportName === "frontendToolUIs" ? `
 function mergeRegistries(resources: ConversationFrontendToolUIRegistry[]): ConversationFrontendToolUIRegistry {
@@ -36,8 +36,9 @@ function mergeRegistries(resources: ConversationFrontendToolUIRegistry[]): Conve
   return registry;
 }
 ` : "";
+    const typeAnnotation = typeName ? `: ${typeName}` : "";
     const source = ["// Generated from explicitly installed Agent UI resources.", typeImport, ...imports, merger,
-      `export const generated${exportName[0]!.toUpperCase()}${exportName.slice(1)}: ${typeName} = ${value};`, ""].join("\n");
+      `export const generated${exportName[0]!.toUpperCase()}${exportName.slice(1)}${typeAnnotation} = ${value};`, ""].join("\n");
     await assertNoSymbolicLinkTraversal(sourceRoot, output);
     const destination = path.join(sourceRoot, output);
     const old = await readFile(destination, "utf8").catch(error => { if (error.code === "ENOENT") return undefined; throw error; });

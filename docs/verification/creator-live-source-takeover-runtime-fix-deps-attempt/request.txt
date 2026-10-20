@@ -1,1 +1,0 @@
-请实际修改主 Composer 的内部布局：把操作工具栏（leadingActions、trailingActions、submitAction）移到文本输入框上方，附件和队列位置保持不变。这是一项要落地并验证的 UI 修改任务。保留 composer 插件 ID、composer-main 实例 ID、配置和 Slot 组合，保持发送、附件和 Lexical 输入功能。当前 Composer 默认来自 npm 包；若内部结构修改需要接管源码，请先在 Creator 中询问我是否同意转为工程源码托管，展示当前安装版本的计划，收到确认后再提取源码并优先修改 adapters。

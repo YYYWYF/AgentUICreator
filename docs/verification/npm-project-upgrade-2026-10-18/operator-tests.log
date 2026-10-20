@@ -1,9 +1,0 @@
-
- RUN  v4.1.8 /Users/yifei/Coding/AgentUICreator/packages/operator
-
-
- Test Files  3 passed (3)
-      Tests  33 passed (33)
-   Start at  00:47:37
-   Duration  17.99s (transform 434ms, setup 17ms, import 748ms, tests 28.33s, environment 334ms)
-

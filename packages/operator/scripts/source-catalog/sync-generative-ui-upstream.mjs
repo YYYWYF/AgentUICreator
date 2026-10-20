@@ -91,12 +91,10 @@ export async function main({
     [path.join(directory, "generative-ui.css"), css],
     [path.join(directory, "UPSTREAM.json"), provenance],
   ]);
-  for (const id of ["agent-component-assistant-ui-generative-ui", "agent-component-generative-ui", "integration-generative-ui"]) {
-    const itemPath = path.join(root, "packages/plugins/resources/registry/items", id, "item.json");
-    const item = JSON.parse(await readFile(itemPath, "utf8"));
-    item.upstream.revision = revision;
-    await writeChanged(itemPath, JSON.stringify(item, null, 2) + "\n");
-  }
+  const itemPath = path.join(root, "packages/plugins/resources/registry/items/integration/generative-ui/item.json");
+  const item = JSON.parse(await readFile(itemPath, "utf8"));
+  item.upstream.revision = revision;
+  await writeChanged(itemPath, JSON.stringify(item, null, 2) + "\n");
   for (const [filename, content] of generated) await writeChanged(filename, content);
   await capturePresentationSources(path.join(root, "packages/plugins"));
 }

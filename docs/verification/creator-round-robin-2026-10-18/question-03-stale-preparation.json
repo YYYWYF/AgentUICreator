@@ -1,8 +1,0 @@
-{
-  "path": "src/agent-ui/runtime/diagnostics/PluginDiagnosticContext.tsx",
-  "before": "1dc5a73f901877204c3e97794948d219ba6065796000b80023388e09b803954a",
-  "after": "82ae44daaac3cabc733f924c02954c3a677c4a9ebdfda9a6fe4bc5f818a09624",
-  "notes": [
-    "Migrate generic fresh observation request listener only; no palette changes or BASE adoption."
-  ]
-}

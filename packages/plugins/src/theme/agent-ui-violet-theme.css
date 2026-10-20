@@ -1,13 +1,12 @@
 /* AgentUICreator-owned Adaptable Violet. The semantic vocabulary follows
  * shadcn; palette values do not track upstream Violet.
- * User-selected Balanced Violet uses #7557E8 with #6442CC solid actions.
+ * User-selected Violet uses #866DFD for both brand and solid actions.
  * Keep general surfaces white/neutral; mix brand only for interaction states.
  * Intensity: default 0–1, hover 1, selected/focus 2, active 4, primary 5. */
 :is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] {
   --radius: 0.625rem;
-  --agent-brand: oklch(0.567945 0.208743 287.302866);
-  /* Deeper blue-violet actions provide >= 4.5:1 contrast on white. */
-  --agent-brand-solid: oklch(0.499607 0.201356 288.164255);
+  --agent-brand: #866DFD;
+  --agent-brand-solid: var(--agent-brand);
   --agent-brand-subtle: color-mix(in oklab, var(--background) 97%, var(--agent-brand));
   --agent-brand-surface: color-mix(in oklab, var(--background) 94%, var(--agent-brand));
   --agent-brand-hover: color-mix(in oklab, var(--background) 92%, var(--agent-brand));

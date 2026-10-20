@@ -19,15 +19,15 @@ export const dataMessageChartScenario = defineScenario({
       type: "custom",
       name: "chart",
       value: {
-        title: "Quarterly Sales",
+        title: "季度销售额",
         items: [
-          { label: "Q1", value: 120 },
-          { label: "Q2", value: 180 },
-          { label: "Q3", value: 160 },
-          { label: "Q4", value: 240 },
+          { label: "第一季度", value: 120 },
+          { label: "第二季度", value: 180 },
+          { label: "第三季度", value: 160 },
+          { label: "第四季度", value: 240 },
         ],
       },
     },
-    { type: "message", text: "Q4 是当前最高季度。", intervalMs: 35 },
+    { type: "message", text: "第四季度是当前销售额最高的季度。", intervalMs: 35 },
   ],
 });

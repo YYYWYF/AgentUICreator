@@ -12,7 +12,7 @@ import { AgentStatusMessagePlugin as SourceStatus } from "../dist/sources/takeov
 import { AgentPlanMessagePlugin as SourcePlan } from "../dist/sources/takeover/agent-plan-message/index";
 import { JobProgressMessagePlugin as SourceProgress } from "../dist/sources/takeover/job-progress-message/index";
 import { GeneratedFileMessagePlugin as SourceFile } from "../dist/sources/takeover/generated-file-message/index";
-import { AgentRuntimeProvider, useAgentState, useAgentRuntimeActions } from "../resources/registry/items/foundation-core-runtime/files/runtime/context";
+import { AgentRuntimeProvider, useAgentState, useAgentRuntimeActions } from "../resources/registry/items/foundation/core-runtime/files/runtime/context";
 import type { AgentRuntime } from "@za38.03/agent-ui-core";
 (globalThis as typeof globalThis & {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
 let root:Root|undefined;

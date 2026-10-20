@@ -16,11 +16,11 @@ interface AgentPlanActivity {
 }
 
 const INITIAL_AGENT_PLAN: AgentPlanActivity = {
-  title: "Workspace update",
+  title: "工作区更新",
   steps: [
-    { id: "inspect", label: "Inspect", description: "Analyze the active files." },
-    { id: "modify", label: "Modify", description: "Apply the requested changes." },
-    { id: "test", label: "Test", description: "Check the focused regressions." },
+    { id: "inspect", label: "检查", description: "分析当前文件。" },
+    { id: "modify", label: "修改", description: "应用请求的更改。" },
+    { id: "test", label: "测试", description: "检查相关回归项。" },
   ],
   activeIndex: 0,
 };
@@ -133,7 +133,7 @@ export class MockDurableRunStore {
     return [...this.runs.values()].map(run => ({
       id: run.threadId,
       title: run.scenarioId === "resumable-agent-plan"
-        ? "AgentPlan Activity：刷新后继续"
+        ? "计划活动：刷新后继续"
         : "长任务：刷新后继续",
       runCount: run.runCount,
     }));

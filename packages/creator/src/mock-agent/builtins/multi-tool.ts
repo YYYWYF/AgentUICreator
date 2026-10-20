@@ -21,7 +21,7 @@ export const multiToolScenario = defineScenario({
     {
       type: "tool",
       name: "search_files",
-      args: { keyword: "runtime" },
+      args: { keyword: "运行时" },
       prepareDurationMs: 400,
       durationMs: 1000,
       result: { files: ["runtime.ts"] },

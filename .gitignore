@@ -30,5 +30,5 @@ apps/creator-workbench/playwright-report/
 # Generated logical views; edit src/plugins and src/shared instead.
 packages/plugins/src/internal/vendor-generated/assistant-ui/
 packages/plugins/src/internal/adapters-generated/assistant-ui/
-packages/plugins/resources/registry/items/plugin-*/files/
-packages/plugins/resources/registry/items/plugin-*/changelog.json
+packages/plugins/resources/registry/items/plugin/*/files/
+packages/plugins/resources/registry/items/plugin/*/changelog.json

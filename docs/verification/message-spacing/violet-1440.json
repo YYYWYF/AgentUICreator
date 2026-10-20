@@ -1,9 +1,0 @@
-{
-  "scenario": "mixed",
-  "plugins": "on",
-  "gaps": [
-    16,
-    16,
-    16
-  ]
-}

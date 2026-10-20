@@ -1,3 +1,0 @@
-{
-  "reason": "The verification Host disabled Vite dependency discovery. A source-owned Composer introduced an unoptimized CJS dependency secure-json-parse. Stopped this verification run via the actual Creator control endpoint; no fake diagnostics were supplied."
-}
