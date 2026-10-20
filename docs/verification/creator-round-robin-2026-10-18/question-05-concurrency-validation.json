@@ -1,0 +1,26 @@
+{
+  "pythonFocusedPassed": 251,
+  "operatorFocusedPassed": 14,
+  "operatorTypecheck": "passed",
+  "operatorBuild": "passed",
+  "operatorContractInventory": "passed",
+  "diffCheck": "passed",
+  "windows": {
+    "nativeRun": false,
+    "review": "Native path APIs and logical slash paths remain separate. Process fixtures use process.execPath/spawn and native terminate APIs, including an exited child PID; Unicode/space temp paths tested. No shell or Unix-signal dependence for ticket recovery."
+  },
+  "authorization": "Original tool checks, source takeover agreement and result validation retained. No fixed action sequence introduced.",
+  "regressions": [
+    "cross-layer tool-body guard exits normally",
+    "late composition snapshot cannot reactivate exited lane; model evidence retained",
+    "same-project clients share cancellation-aware admission",
+    "other projects remain independent",
+    "queue wait excluded from execution budget",
+    "cross-process admission signal separates lock wait and execution deadline",
+    "multiple ticket contenders remain mutually exclusive",
+    "concurrent dead-ticket cleanup",
+    "release is idempotent and cannot delete successor identity",
+    "terminated child ticket recovery",
+    "cancelled child cleanup preserves other owners"
+  ]
+}

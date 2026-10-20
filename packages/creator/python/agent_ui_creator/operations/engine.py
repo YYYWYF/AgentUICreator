@@ -43,6 +43,7 @@ from .models import (
     CreatorActionSelection,
     CreatorAuthoringHandoff,
     CreatorAuthoringTargetCandidate,
+    CreatorDomainSnapshot,
     CreatorOperationExecutionResult,
     WorkspaceRegionActionEffect,
 )
@@ -211,7 +212,7 @@ def _operation_text(
 
 
 class ProductizedOperationEngine:
-    """Route productized requests through the Host-generated Action Catalog."""
+    """Route ordinary requests without a catalog; retain explicit catalog execution."""
 
     def __init__(
         self,
@@ -233,6 +234,7 @@ class ProductizedOperationEngine:
         visual_observations: VisualObservationStore | None = None,
         pending_clarifications: PendingCreatorClarificationStore | None = None,
         verification_mode: CreatorVerificationMode = DEFAULT_CREATOR_VERIFICATION_MODE,
+        catalog_selection: bool = False,
     ) -> None:
         self.project_root = Path(project_root).resolve()
         self.thread_id = thread_id
@@ -240,6 +242,7 @@ class ProductizedOperationEngine:
         self.operator = operator
         self.event_sink = event_sink
         self.verification_mode = verification_mode
+        self.catalog_selection = catalog_selection
         self.observations = DomainObservationContext()
         self.repair_state = CreatorRepairState()
         self.snapshot_provider = CreatorDomainSnapshotProvider(operator)
@@ -281,6 +284,7 @@ class ProductizedOperationEngine:
             max_retries=max_retries,
             recovery_factory=recovery_factory,
             selector_settings=selector_settings,
+            catalog_selection=catalog_selection,
             provider_trace_collector=provider_trace_collector if raw_trace else None,
             invalid_response_logger=(
                 activity.logger.record if raw_trace and activity.logger is not None else None
@@ -300,12 +304,8 @@ class ProductizedOperationEngine:
                 validation=self.validation,
             )
 
-    async def run(
-        self, messages: list[dict[str, str]], *, route_review_context: str | None = None
-    ) -> ProductizedOperationRun | CreatorResolveResult:
-        """Return a productized result or an explicit General Agent handoff."""
-
-        user_message = _latest_user_message(messages)
+    async def _ground_catalog(self) -> CreatorDomainSnapshot | None:
+        """Inspect only for an explicitly requested catalog-selection path."""
         await self._publish_step_started(
             "creator.grounding",
             {"phase": "grounding", "status": "running"},
@@ -337,11 +337,21 @@ class ProductizedOperationEngine:
                     "modelCalls": 0,
                 },
             )
-            self.observations.observe_composition_snapshot(
-                hash=snapshot.app_ui_model_hash,
-                revision=self.activity.revision,
-                coverage=snapshot.observation_coverage,
-            )
+            if snapshot is not None:
+                self.observations.observe_composition_snapshot(
+                    hash=snapshot.app_ui_model_hash,
+                    revision=self.activity.revision,
+                    coverage=snapshot.observation_coverage,
+                )
+        return snapshot
+
+    async def run(
+        self, messages: list[dict[str, str]], *, route_review_context: str | None = None
+    ) -> ProductizedOperationRun | CreatorResolveResult:
+        """Return a productized result or an explicit General Agent handoff."""
+
+        user_message = _latest_user_message(messages)
+        snapshot = await self._ground_catalog() if self.catalog_selection else None
 
         await self._publish_step_started(
             "creator.resolve",
@@ -866,9 +876,11 @@ class ProductizedOperationEngine:
     def _action_selector_metrics(self) -> dict[str, object]:
         metrics = self.selector.metrics
         result: dict[str, object] = {
-            "actionSelectorProtocol": ACTION_SELECTOR_PROTOCOL,
+            "actionSelectorProtocol": getattr(self.selector, "protocol", ACTION_SELECTOR_PROTOCOL),
             "actionSelectorModel": self.selector.requested_model,
-            "actionSelectorRequestedMaxTokens": self.selector.selector_settings.max_tokens,
+            "actionSelectorRequestedMaxTokens": getattr(self.selector, "requested_max_tokens", self.selector.selector_settings.max_tokens),
+            "actionSelectorRecoveryMaxTokens": self.selector.selector_settings.recovery_max_tokens,
+            "actionSelectorOutputBudgetRetries": metrics.outputBudgetRetries,
             "actionSelectorRequestedReasoningEffort": self.selector.selector_settings.reasoning_effort,
             "actionSelectorCalls": metrics.modelCalls,
             "actionSelectorRepairCalls": metrics.repairCalls,
@@ -902,7 +914,7 @@ class ProductizedOperationEngine:
     def _action_selector_metrics_metadata(self) -> dict[str, object]:
         metrics = self.selector.metrics
         return {
-            "actionSelectorProtocol": ACTION_SELECTOR_PROTOCOL,
+            "actionSelectorProtocol": getattr(self.selector, "protocol", ACTION_SELECTOR_PROTOCOL),
             "modelCalls": metrics.modelCalls,
             "repairCalls": metrics.repairCalls,
             "invalidResponses": metrics.invalidResponses,

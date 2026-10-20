@@ -34,7 +34,7 @@ def create_creator_filesystem_middleware(
         tool_token_limit_before_evict=None,
         human_message_token_limit_before_evict=None,
         custom_tool_descriptions={
-            "grep": "Search literal text, NOT regex. Use one keyword such as violet, theme or --primary per call. Do not combine terms with pipes or use regex character classes. Returns matching files/content according to output_mode; restrict path/glob when known. An invalid regex-like query with no literal match returns SEARCH_SYNTAX_UNSUPPORTED, not proof of absence.",
+            "grep": "Search project text. Exact literal matches take precedence; if none exist, alternation (a|b), classes and escaped regex patterns use bounded regex evaluation. Restrict path/glob when known. Invalid patterns or a search timeout report an explicit error, never proof of absence. Results are matching files/content according to output_mode.",
             "glob": "Find project files. Paths use / on every OS. ** matches zero or more directory levels; * and ? stay within one path segment. Comma brace alternatives are supported: **/*.{css,scss}. Example: src/**/*theme* finds deeply nested theme files. Paths are relative to path (default /); no parent traversal or denied directories.",
         },
     )

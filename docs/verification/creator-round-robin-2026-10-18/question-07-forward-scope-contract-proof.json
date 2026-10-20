@@ -1,0 +1,404 @@
+{
+  "ok": true,
+  "result": {
+    "appUIModelHash": "762158044fd3e1f8ffda942309a48d10bdb392ea53a8f76cfeb9f72bae385942",
+    "asset": {
+      "ownership": "project_source",
+      "application": {
+        "entryPath": "src/agent-ui/plugins/response-footer/index.tsx",
+        "implementationOwnership": "npm",
+        "implementationImport": "@za38.03/agent-ui-plugins/response-footer"
+      },
+      "pluginId": "response-footer",
+      "name": "Conversation Response Footer",
+      "description": "Renders the canonical assistant response footer and its composable actions.",
+      "directory": "response-footer",
+      "manifestPath": "src/agent-ui/plugins/response-footer/manifest.json",
+      "definitionPath": "src/agent-ui/plugins/response-footer/definition.ts",
+      "capabilities": [
+        "conversation-assistant-response-footer-renderer"
+      ],
+      "authoring": {
+        "intents": [
+          "show assistant response branch and action controls",
+          "compose assistant response footer actions"
+        ],
+        "visualRole": "assistant response footer",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "conversation-surface",
+          "slot": "assistantResponseFooter"
+        }
+      },
+      "childSlots": {
+        "actions": {
+          "description": "Actions displayed in the assistant response footer.",
+          "cardinality": "many",
+          "optional": true,
+          "accepts": {
+            "anyOfCapabilities": [
+              "conversation-assistant-response-action"
+            ]
+          }
+        }
+      },
+      "dataMessageUINames": [],
+      "selected": true
+    },
+    "application": {
+      "entryPath": "src/agent-ui/plugins/response-footer/index.tsx",
+      "implementationOwnership": "npm",
+      "implementationImport": "@za38.03/agent-ui-plugins/response-footer",
+      "sharedTypes": {
+        "status": "available",
+        "queryResolution": {
+          "status": "complete",
+          "requested": 3,
+          "resolved": 3,
+          "unresolved": 0
+        },
+        "statusMeaning": "available means the installed declaration module was inspected; queryResolution and each symbol status describe whether the requested contracts resolved.",
+        "packageVersion": "0.0.1",
+        "module": "@za38.03/agent-ui-plugins",
+        "symbols": [
+          {
+            "name": "AgentUIDialog",
+            "status": "available",
+            "type": "Readonly<{ Root: ComponentType<Props<unknown>>; Trigger: ComponentType<Props<unknown>>; Portal: ComponentType<Omit<DialogPortalProps, \"container\">>; ... 4 more ...; Close: ComponentType<...>; }>",
+            "truncated": true,
+            "parameterQueries": [
+              "AgentUIDialog.Root.$parameter0",
+              "AgentUIDialog.Trigger.$parameter0",
+              "AgentUIDialog.Portal.$parameter0",
+              "AgentUIDialog.Backdrop.$parameter0",
+              "AgentUIDialog.Popup.$parameter0",
+              "AgentUIDialog.Title.$parameter0",
+              "AgentUIDialog.Description.$parameter0",
+              "AgentUIDialog.Close.$parameter0"
+            ],
+            "nextEvidence": "Export resolved; invocation parameters are not expanded in this result. If a concrete prop or event signature is still unknown, query the relevant parameterQueries path in this same module, then an exact member if omitted. Do not search Host files or local usage merely to expand an npm declaration. No further query is needed for already answered facts; ownership, authority and validation still apply.",
+            "members": [
+              {
+                "name": "Root",
+                "type": "ComponentType<Props<unknown>>",
+                "truncated": false
+              },
+              {
+                "name": "Trigger",
+                "type": "ComponentType<Props<unknown>>",
+                "truncated": false
+              },
+              {
+                "name": "Portal",
+                "type": "ComponentType<Omit<DialogPortalProps, \"container\">>",
+                "truncated": false
+              },
+              {
+                "name": "Backdrop",
+                "type": "ComponentType<DialogBackdropProps>",
+                "truncated": false
+              },
+              {
+                "name": "Popup",
+                "type": "ComponentType<DialogPopupProps>",
+                "truncated": false
+              },
+              {
+                "name": "Title",
+                "type": "ComponentType<DialogTitleProps>",
+                "truncated": false
+              },
+              {
+                "name": "Description",
+                "type": "ComponentType<DialogDescriptionProps>",
+                "truncated": false
+              },
+              {
+                "name": "Close",
+                "type": "ComponentType<DialogCloseProps>",
+                "truncated": false
+              }
+            ],
+            "membersTruncated": false,
+            "returns": [],
+            "signaturesTruncated": false
+          },
+          {
+            "name": "AgentUIDialogContent",
+            "status": "available",
+            "type": "ComponentType<DialogPopupProps & { showCloseButton?: boolean | undefined; }>",
+            "truncated": false,
+            "parameterQueries": [
+              "AgentUIDialogContent.$parameter0"
+            ],
+            "nextEvidence": "Export resolved; invocation parameters are not expanded in this result. If a concrete prop or event signature is still unknown, query the relevant parameterQueries path in this same module, then an exact member if omitted. Do not search Host files or local usage merely to expand an npm declaration. No further query is needed for already answered facts; ownership, authority and validation still apply.",
+            "members": [
+              {
+                "name": "propTypes",
+                "type": "any",
+                "truncated": false
+              },
+              {
+                "name": "displayName",
+                "type": "string | undefined",
+                "truncated": false
+              }
+            ],
+            "membersTruncated": false,
+            "returns": [],
+            "signaturesTruncated": false
+          },
+          {
+            "name": "Button",
+            "status": "available",
+            "type": "({ variant, size, ...props }: Readonly<ClassAttributes<HTMLButtonElement> & ButtonHTMLAttributes<HTMLButtonElement> & { ...; }>) => Element",
+            "truncated": true,
+            "parameterQueries": [
+              "Button.$parameter0"
+            ],
+            "nextEvidence": "Export resolved; invocation parameters are not expanded in this result. If a concrete prop or event signature is still unknown, query the relevant parameterQueries path in this same module, then an exact member if omitted. Do not search Host files or local usage merely to expand an npm declaration. No further query is needed for already answered facts; ownership, authority and validation still apply.",
+            "members": [],
+            "membersTruncated": false,
+            "returns": [
+              {
+                "type": "Element",
+                "truncated": false
+              }
+            ],
+            "signaturesTruncated": false
+          }
+        ],
+        "interpretation": "Installed public types only, not implementation access or mutation authority. Abbreviated/unresolved types are explicit; Use dotted members, $return, $element or $parameter0 through $parameter9 for a concrete gap. Generic/opaque types are not permission to infer a renderer or change Runtime. A name absent from a project grep may be inherited from npm. Preserve original tool approval/interrupt/error renderers and canonical Runtime."
+      },
+      "entryHash": "e656382353184e2335e6f6f1379518b8e80cc2bac09acb0eeead8619f3e83636",
+      "editable": "Project application props, children, composition and renderers; no takeover consent required.",
+      "implementationBoundary": "npm implementation is read-only until explicit takeover; application metadata is not takeover authorization.",
+      "publicApi": {
+        "status": "available",
+        "component": "ConversationResponseFooterPlugin",
+        "compositionContract": {
+          "preserveSlots": [
+            {
+              "name": "actions",
+              "renderMethod": "renderSlot",
+              "layout": "inline",
+              "overrideProp": "actions"
+            }
+          ],
+          "replacementProps": [
+            "actions",
+            "children",
+            "rootProps.children",
+            "actionBarProps.children"
+          ],
+          "semantics": "The npm bridge supplies default actions from the semantic actions Slot. To append application-owned controls, preserve that Slot output alongside the new controls in actions. Setting replacement props without it replaces existing controls. Local popup state and public controls require no implementation takeover; preserve response scope and existing action behavior."
+        },
+        "publicModuleQueries": {
+          "defaultModule": "@za38.03/agent-ui-plugins/plugin-support",
+          "presentationModule": "@za38.03/agent-ui-plugins",
+          "note": "Use sharedModule with an installed declared public module and sharedSymbols for its exact export/member/parameter types. No implementation access or takeover authority."
+        },
+        "package": {
+          "name": "@za38.03/agent-ui-plugins",
+          "version": "0.0.1"
+        },
+        "source": "Current application component types resolved through the target project's installed declarations",
+        "evidenceBoundary": "Component props only. Plugin setup, registered commands and Service bindings are described by the returned definitionSource and services, not by these props. Few props do not imply missing behavior. Neither types nor enablement prove visual visibility or successful interaction.",
+        "completePropNames": true,
+        "props": [
+          {
+            "name": "renderSlot",
+            "type": "(localSlotName: string, fallback?: ReactNode, options?: UIPluginRenderSlotOptions | undefined) => ReactNode",
+            "typeTruncated": false,
+            "runtimeManaged": true
+          },
+          {
+            "name": "renderScopedSlot",
+            "type": "(localSlotName: string, scope: UIPluginRenderScope<unknown>, fallback?: ReactNode) => ReactNode",
+            "typeTruncated": false,
+            "runtimeManaged": true
+          },
+          {
+            "name": "actions",
+            "type": "ReactNode",
+            "typeTruncated": false,
+            "runtimeManaged": false,
+            "members": [
+              {
+                "name": "toString",
+                "type": "(() => string) | (() => string) | ((radix?: number | undefined) => string) | ((radix?: number | undefined) => string)",
+                "typeTruncated": false
+              },
+              {
+                "name": "valueOf",
+                "type": "(() => Object) | (() => string) | (() => boolean) | (() => number) | (() => bigint)",
+                "typeTruncated": false
+              },
+              {
+                "name": "toLocaleString",
+                "type": "(() => string) | { (locales?: string | string[] | undefined, options?: NumberFormatOptions | undefined): string; (locales?: LocalesArgument, options?: NumberFormatOptions | undefined): string; } | ((locales?: LocalesArgument, options?: BigIntToLocaleStringOptions | undefined) => string)",
+                "typeTruncated": false
+              }
+            ]
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "typeTruncated": false,
+            "runtimeManaged": false,
+            "members": [
+              {
+                "name": "toString",
+                "type": "(() => string) | (() => string) | ((radix?: number | undefined) => string) | ((radix?: number | undefined) => string)",
+                "typeTruncated": false
+              },
+              {
+                "name": "valueOf",
+                "type": "(() => Object) | (() => string) | (() => boolean) | (() => number) | (() => bigint)",
+                "typeTruncated": false
+              },
+              {
+                "name": "toLocaleString",
+                "type": "(() => string) | { (locales?: string | string[] | undefined, options?: NumberFormatOptions | undefined): string; (locales?: LocalesArgument, options?: NumberFormatOptions | undefined): string; } | ((locales?: LocalesArgument, options?: BigIntToLocaleStringOptions | undefined) => string)",
+                "typeTruncated": false
+              }
+            ]
+          },
+          {
+            "name": "rootProps",
+            "type": "DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false,
+            "memberCount": 280,
+            "membersOmitted": true
+          },
+          {
+            "name": "actionBarProps",
+            "type": "(ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & { asChild?: boolean | undefined; render?: ReactElement<...> | undefined; hideWhenRunning?: boolean | undefined; autohide?: \"always\" | ... 2 more ... | undefined; autohideFloat?: \"always\" | ... 2 more ... | undefined; }) | undefined",
+            "typeTruncated": true,
+            "runtimeManaged": false,
+            "memberCount": 285,
+            "membersOmitted": true
+          },
+          {
+            "name": "branchPickerProps",
+            "type": "(ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & { hideWhenSingleBranch?: boolean | undefined; previousProps?: Partial<...> | undefined; nextProps?: Partial<...> | undefined; }) | undefined",
+            "typeTruncated": true,
+            "runtimeManaged": false,
+            "memberCount": 283,
+            "membersOmitted": true
+          }
+        ],
+        "interpretation": "Props describe supported seams, not a guarantee that all requested behavior is implemented. Nested type text may be abbreviated. Prefer application props/composition; if a required seam is absent, explain the gap before proposing implementation takeover. Do not trace Host Runtime to infer missing public APIs."
+      }
+    },
+    "selected": true,
+    "instances": [
+      {
+        "id": "response-footer-main",
+        "pluginId": "response-footer",
+        "enabled": true,
+        "slots": {
+          "actions": [
+            {
+              "id": "copy-action-main",
+              "pluginId": "copy-action",
+              "enabled": true
+            },
+            {
+              "id": "reload-action-main",
+              "pluginId": "reload-action",
+              "enabled": true
+            },
+            {
+              "id": "feedback-actions-main",
+              "pluginId": "feedback-actions",
+              "enabled": true
+            },
+            {
+              "id": "export-markdown-action-main",
+              "pluginId": "export-markdown-action",
+              "enabled": true
+            }
+          ]
+        },
+        "target": {
+          "type": "plugin_slot",
+          "parentInstanceId": "agent-conversation-surface-main",
+          "slot": "assistantResponseFooter"
+        },
+        "index": 0,
+        "effectiveEnabled": true
+      }
+    ],
+    "manifest": {
+      "id": "response-footer",
+      "name": "Conversation Response Footer",
+      "description": "Renders the canonical assistant response footer and its composable actions.",
+      "version": "0.0.1",
+      "capabilities": [
+        "conversation-assistant-response-footer-renderer"
+      ],
+      "requiresRenderScope": true,
+      "authoring": {
+        "intents": [
+          "show assistant response branch and action controls",
+          "compose assistant response footer actions"
+        ],
+        "visualRole": "assistant response footer",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "conversation-surface",
+          "slot": "assistantResponseFooter"
+        }
+      },
+      "slots": {
+        "children": {
+          "actions": {
+            "description": "Actions displayed in the assistant response footer.",
+            "cardinality": "many",
+            "optional": true,
+            "accepts": {
+              "anyOfCapabilities": [
+                "conversation-assistant-response-action"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "definitionSource": {
+      "content": "import type { UIPluginDefinition } from \"../../framework/contracts/ui-plugin\";\nimport implementation from \"@za38.03/agent-ui-plugins/response-footer\";\nimport { ConversationResponseFooterPlugin } from \"./index\";\nconst definition: UIPluginDefinition = { manifest: implementation.manifest, provides: [], inject: [], optionalInject: [], Component: ConversationResponseFooterPlugin };\nexport default definition;\n",
+      "truncated": false,
+      "characters": 407
+    },
+    "services": {
+      "provides": [],
+      "required": [],
+      "optional": []
+    },
+    "files": [
+      {
+        "path": "src/agent-ui/plugins/response-footer/application.json",
+        "kind": "file",
+        "bytes": 58
+      },
+      {
+        "path": "src/agent-ui/plugins/response-footer/definition.ts",
+        "kind": "file",
+        "bytes": 407
+      },
+      {
+        "path": "src/agent-ui/plugins/response-footer/index.tsx",
+        "kind": "file",
+        "bytes": 297
+      },
+      {
+        "path": "src/agent-ui/plugins/response-footer/manifest.json",
+        "kind": "file",
+        "bytes": 985
+      }
+    ],
+    "filesTruncated": false
+  }
+}

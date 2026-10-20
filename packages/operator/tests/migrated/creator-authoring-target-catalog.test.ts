@@ -63,6 +63,23 @@ async function writeApplicationOwner(root: string, ownerPath = "agent-ui/test-co
 }
 
 describe("Creator Authoring Target Catalog", () => {
+  it("keeps every owner when official and project Plugin inventories exceed 64 entries", async () => {
+    const root = await createFixture();
+    const assets = await Promise.all(Array.from({ length: 70 }, async (_, index) => {
+      const id = `custom-${index}`;
+      await mkdir(path.join(root, "plugins", id), { recursive: true });
+      await writeFile(path.join(root, "plugins", id, "manifest.json"), "{}");
+      await writeFile(path.join(root, "plugins", id, "definition.ts"), "export default {};");
+      return { pluginId: id, name: id, description: id, directory: id,
+        capabilities: [], manifest: { id, name: id, description: id, version: "1.0.0" },
+        manifestPath: `plugins/${id}/manifest.json`, definitionPath: `plugins/${id}/definition.ts` } satisfies PluginAsset;
+    }));
+    const catalog = await buildCreatorAuthoringTargetCatalog({ projectRoot: root, config,
+      paths: fixtureProjectPaths(root, config), projectFacts: emptyFacts(assets), applicationTargets: [] });
+    expect(catalog.candidates).toHaveLength(70);
+    expect(catalog.bindings).toHaveLength(70);
+    expect(new Set(catalog.bindings.map(binding => binding.pluginId)).size).toBe(70);
+  });
   it("publishes application targets with source-root bindings", async () => {
     const root = await createFixture();
     for (const declaration of creatorApplicationAuthoringTargets) {

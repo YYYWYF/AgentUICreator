@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -60,6 +61,56 @@ def test_recent_conversation_keeps_two_complete_prior_turns():
         {"role": "user", "content": "把 test agent 改成 my agent"},
     ]
     assert _bounded_recent_conversation(messages) == messages[:4]
+
+
+@pytest.mark.parametrize(("response", "route", "intent", "removal", "development"), [
+    ("READ_ONLY ANSWER", "answer_only", "read_only", "none", "none"),
+    ("READ_ONLY_EXPLICIT INSPECT", "read_only_general", "read_only", "none", "none"),
+    ("MODIFY GENERAL", "unscoped_general", "modify", "none", "none"),
+    ("MODIFY GENERAL HIDE", "unscoped_general", "modify", "hide", "none"),
+    ("MODIFY GENERAL PURGE", "unscoped_general", "modify", "purge", "none"),
+    ("MODIFY GENERAL REMOVAL_UNCERTAIN", "unscoped_general", "modify", "uncertain", "none"),
+    ("MODIFY GENERAL DEVELOPMENT_EXPLICIT", "unscoped_general", "modify", "none", "explicit"),
+    ("MODIFY GENERAL DEVELOPMENT_CONDITIONAL", "unscoped_general", "modify", "none", "conditional"),
+    ("MODIFY GENERAL DEVELOPMENT_PROHIBITED", "unscoped_general", "modify", "none", "prohibited"),
+])
+def test_default_engine_routes_without_workspace_catalog(
+    tmp_path, response, route, intent, removal, development,
+):
+    from agent_ui_creator.activity import CreatorActivityRecorder
+    from agent_ui_creator.app_ui_model import ProjectMutationCoordinator
+    from agent_ui_creator.runtime_diagnostics import RuntimeDiagnosticStore
+
+    (tmp_path / ".agent-ui").mkdir()
+    (tmp_path / ".agent-ui" / "project.json").write_text(
+        '{"mode":"platform","sourceRoot":"src/agent-ui"}', encoding="utf-8",
+    )
+    activity = CreatorActivityRecorder(tmp_path)
+    telemetry = CreatorRunTelemetry()
+    engine = ProductizedOperationEngine(
+        model=_StaticChatModel(response), project_root=tmp_path, activity=activity,
+        operator=SimpleNamespace(metrics=OperatorMetrics()),
+        mutation_coordinator=ProjectMutationCoordinator(), diagnostics=RuntimeDiagnosticStore(),
+        thread_id="request-router", max_retries=0, telemetry=telemetry,
+    )
+    # Even a broken/missing workspace catalog must not block permission routing.
+    provider = _SnapshotProvider(error=AssertionError("catalog must be inspected on demand"))
+    engine.snapshot_provider = provider
+    message = ("开发一个新的独立插件" if development == "explicit"
+               else "有现成的就复用，没有就开发一个新的独立插件")
+    result = asyncio.run(engine.run([{"role": "user", "content": message}]))
+    assert isinstance(result, CreatorResolveResult)
+    assert result.route == route
+    assert result.selection.taskIntent == intent
+    assert result.selection.removalIntent == removal
+    assert result.selection.developmentIntent == development
+    assert result.selection.explicitReadOnly == response.startswith("READ_ONLY_EXPLICIT")
+    assert provider.build_calls == 0
+    assert activity.revision == 0
+    assert engine.operator.metrics.requests == 0
+    assert telemetry.action_selector["actionSelectorProtocol"] == "request-route-text-v1"
+    assert telemetry.action_selector["actionSelectorCandidateCount"] == 0
+    assert telemetry.operation_route["catalogRevision"] is None
 
 
 _OBSERVATION_COVERAGE = (
@@ -275,6 +326,11 @@ def _engine(
         _operation_result(operation="add_existing_plugin")
     )
     engine = object.__new__(ProductizedOperationEngine)
+    # These tests exercise the retained explicit catalog path. Ordinary chat
+    # uses the default request router, covered separately below.
+    engine.catalog_selection = True
+    engine.project_root = Path.cwd()
+    engine.verification_mode = "static_and_runtime"
     engine.activity = SimpleNamespace(
         revision=0,
         logger=None,
@@ -411,7 +467,7 @@ def test_productized_routing_uses_selector_and_generic_action_playbook(kind):
     assert result.metrics.toolCalls == 0
     assert result.metrics.deepAgentCalls == 0
     assert telemetry.operation_route["route"] == "productized"
-    assert result.action_selector_metrics["actionSelectorProtocol"] == "choice-text-v1"
+    assert result.action_selector_metrics["actionSelectorProtocol"] == "intent-route-text-v2"
     assert telemetry.operation_route["productized"] is True
     assert telemetry.operation_route["generalAgent"] is False
     assert telemetry.operation_route["clarification"] is False
@@ -459,7 +515,7 @@ def test_reasoning_renderer_restore_uses_productized_route_with_static_selector(
         playbook=_ActionPlaybook(_operation_result(operation="add_existing_plugin")),
         candidates=[candidate],
     )
-    engine.selector = CreatorActionSelector(model=_StaticChatModel("CONTINUE", "SELECT A1"))
+    engine.selector = CreatorActionSelector(model=_StaticChatModel("MODIFY SELECT A1"))
 
     result = asyncio.run(engine.run([{
         "role": "user",
@@ -469,6 +525,7 @@ def test_reasoning_renderer_restore_uses_productized_route_with_static_selector(
     assert isinstance(result, ProductizedOperationRun)
     assert result.selection == CreatorActionSelection(
         decision="select_action",
+        taskIntent="modify",
         actionId="act_reasoning_add_default",
     )
     assert result.selected_action is candidate
@@ -492,18 +549,19 @@ def test_operations_public_api_excludes_retired_pipeline():
         assert not hasattr(operations, name)
 
 
-def test_general_change_is_the_only_decision_that_returns_none():
+def test_general_change_returns_explicit_general_handoff():
     engine, selector, action_playbook, telemetry = _engine(
         CreatorActionSelection(decision="general_change")
     )
 
     result = asyncio.run(engine.run([{"role": "user", "content": "支持标题模糊搜索"}]))
 
-    assert result is None
+    assert isinstance(result, CreatorResolveResult)
+    assert result.route == "unscoped_general"
     assert selector.calls == 1
     assert action_playbook.calls == []
     assert engine.mutation_service.metrics.operations == 0
-    assert telemetry.operation_route["route"] == "general-agent"
+    assert telemetry.operation_route["route"] == "unscoped_general"
     assert telemetry.operation_route["generalAgent"] is True
     assert telemetry.operation_route["productized"] is False
     assert "fallback" not in telemetry.operation_route
@@ -562,10 +620,10 @@ def test_answer_only_does_not_depend_on_workspace_snapshot():
 
 
 @pytest.mark.parametrize(("message", "selection_response", "expected_route"), [
-    ("看看当前有哪些插件", "INSPECT", "read_only_general"),
-    ("先根据当前工程给方案，不修改", "INSPECT", "read_only_general"),
-    ("把会话插件移动到右侧", "SELECT A1", "productized"),
-    ("开发一个新的 xxx 插件", "GENERAL DEVELOPMENT_EXPLICIT", "unscoped_general"),
+    ("看看当前有哪些插件", "READ_ONLY INSPECT", "read_only_general"),
+    ("先根据当前工程给方案，不修改", "READ_ONLY_EXPLICIT INSPECT", "read_only_general"),
+    ("把会话插件移动到右侧", "MODIFY SELECT A1", "productized"),
+    ("开发一个新的 xxx 插件", "MODIFY GENERAL DEVELOPMENT_EXPLICIT", "unscoped_general"),
 ])
 def test_workspace_requests_continue_to_existing_selector(
     message, selection_response, expected_route,
@@ -578,7 +636,7 @@ def test_workspace_requests_continue_to_existing_selector(
         playbook=_ActionPlaybook(_operation_result(operation="move_plugin")),
     )
     engine.selector = CreatorActionSelector(
-        model=_StaticChatModel("CONTINUE", selection_response),
+        model=_StaticChatModel(selection_response),
     )
 
     result = asyncio.run(engine.run([{"role": "user", "content": message}]))
@@ -611,7 +669,8 @@ def test_repaired_general_change_preserves_selector_reason_and_model_totals():
 
     result = asyncio.run(engine.run([{"role": "user", "content": "支持标题模糊搜索"}]))
 
-    assert result is None
+    assert isinstance(result, CreatorResolveResult)
+    assert result.route == "unscoped_general"
     assert telemetry.action_selector is not None
     assert telemetry.action_selector["actionSelectorRepairReasonCode"] == (
         "unknown_action_id"
@@ -905,9 +964,11 @@ def test_engine_publishes_resolve_before_productized_execution():
     assert isinstance(resolve_finished, CreatorStepFinished)
     assert resolve_finished.metadata is not None
     assert resolve_finished.metadata["creator"] == {
+        "actionSelectorRecoveryMaxTokens": 2048,
+        "actionSelectorOutputBudgetRetries": 0,
         "phase": "understanding",
         "status": "success",
-        "actionSelectorProtocol": "choice-text-v1",
+        "actionSelectorProtocol": "intent-route-text-v2",
         "actionSelectorModel": None,
         "actionSelectorRequestedMaxTokens": 512,
         "actionSelectorRequestedReasoningEffort": None,
@@ -917,6 +978,7 @@ def test_engine_publishes_resolve_before_productized_execution():
         "targetPluginIds": ["conversation-thread-list"],
         "targetInstanceIds": ["conversation-thread-list-main"],
         "route": "productized",
+        "ownerScopedHandoff": False,
         "actionId": "act_history_remove_plugin",
         "actionKind": "remove_plugin",
         "actionStatus": "ready",

@@ -1,0 +1,161 @@
+{
+  "case": "hide",
+  "prompt": "隐藏输入框的语音输入按钮，保留插件及其源码，其他功能不变。",
+  "projectRoot": "/private/var/folders/bl/0_1mpzdj25sf3c0vh6qmc3qc0000gn/T/pytest-of-yifei/pytest-912/test_real_creator_task_hide_0/host-hide",
+  "durationSeconds": 0.938,
+  "passed": false,
+  "expectedStateMatched": false,
+  "completion": null,
+  "exception": null,
+  "errors": [
+    {
+      "metadata": {
+        "creatorRunOutcome": {
+          "status": "failed",
+          "changeStatus": "none",
+          "changedPaths": [],
+          "toolErrors": [],
+          "toolErrorCount": 0,
+          "lastToolName": null
+        }
+      },
+      "type": "RUN_ERROR",
+      "message": "Creator Agent 执行失败：Creator Action Selector model call failed.",
+      "code": "ACTION_SELECTION_FAILED"
+    }
+  ],
+  "questions": [],
+  "changedPaths": [],
+  "changedFileHashes": {},
+  "protectedChanges": [],
+  "response": "",
+  "verificationMode": "static_only",
+  "runtimeEvidence": "not collected",
+  "browserVisualEvidence": "not collected",
+  "result": {},
+  "runSummary": {
+    "runtime": "python",
+    "agentMode": "domain-write",
+    "status": "error",
+    "outcome": "error",
+    "verificationMode": "static_only",
+    "runtimeVerificationStatus": "not-run",
+    "modelToolMetrics": {
+      "actionSelectorProtocol": "request-route-text-v1",
+      "actionSelectorModel": "mimo-v2.6-flash",
+      "actionSelectorRequestedMaxTokens": 512,
+      "actionSelectorRecoveryMaxTokens": 2048,
+      "actionSelectorOutputBudgetRetries": 0,
+      "actionSelectorRequestedReasoningEffort": "low",
+      "actionSelectorCalls": 1,
+      "actionSelectorRepairCalls": 0,
+      "actionSelectorInvalidResponses": 0,
+      "actionSelectorDurationMs": 923,
+      "actionSelectorCandidateCount": 0,
+      "actionSelectorContextCharacters": 2,
+      "totalModelCalls": 1
+    },
+    "mutationRequests": 0,
+    "mutationOperations": 0,
+    "operationsPerMutation": [],
+    "multiSuccessfulMutationRun": false,
+    "mutationErrorCategories": {},
+    "semanticReplans": 0,
+    "semanticReplanLimitReached": false,
+    "mutationMetrics": {
+      "mutationRequests": 0,
+      "mutationOperations": 0,
+      "operationsPerMutation": [],
+      "multiSuccessfulMutationRun": false,
+      "mutationErrorCategories": {},
+      "semanticReplans": 0,
+      "semanticReplanLimitReached": false
+    },
+    "operatorMetrics": {
+      "requests": 0,
+      "failures": 0,
+      "durationMs": 0,
+      "queueWaitMs": 0,
+      "admissionWaitMs": 0,
+      "executionMs": 0,
+      "byOperation": {}
+    },
+    "validationMetrics": {
+      "validationBaselineCaptured": false,
+      "validationBaselineAvailable": false,
+      "baselineTypecheckDiagnostics": null,
+      "currentTypecheckDiagnostics": null,
+      "newTypecheckDiagnostics": null,
+      "unchangedTypecheckDiagnostics": null,
+      "resolvedTypecheckDiagnostics": null,
+      "validationMode": "delta",
+      "debuggingMetrics": {
+        "observedDebuggingTargets": [],
+        "selectedDebuggingTargetIds": [],
+        "diagnosticScopePending": false,
+        "targetSelectionCalls": 0,
+        "ambiguousTargetStops": 0,
+        "validationReads": 0,
+        "runtimeDiagnosticReads": 0,
+        "duplicateDiagnosticCalls": 0,
+        "implicatedPaths": [],
+        "repairAttempts": 0,
+        "revision": 0,
+        "runtimeEvidenceHash": null,
+        "targetDiagnostics": [],
+        "runtimeTargetDiagnostics": [],
+        "runtimeBaselineDiagnostics": null,
+        "runtimeDifferential": null,
+        "resolvedTargetDiagnostics": null,
+        "resolvedRuntimeTargetDiagnostics": null,
+        "finalState": null,
+        "reason": null
+      }
+    },
+    "debuggingMetrics": {
+      "observedDebuggingTargets": [],
+      "selectedDebuggingTargetIds": [],
+      "diagnosticScopePending": false,
+      "targetSelectionCalls": 0,
+      "ambiguousTargetStops": 0,
+      "validationReads": 0,
+      "runtimeDiagnosticReads": 0,
+      "duplicateDiagnosticCalls": 0,
+      "implicatedPaths": [],
+      "repairAttempts": 0,
+      "revision": 0,
+      "runtimeEvidenceHash": null,
+      "targetDiagnostics": [],
+      "runtimeTargetDiagnostics": [],
+      "runtimeBaselineDiagnostics": null,
+      "runtimeDifferential": null,
+      "resolvedTargetDiagnostics": null,
+      "resolvedRuntimeTargetDiagnostics": null,
+      "finalState": null,
+      "reason": null
+    },
+    "actionSelector": {
+      "actionSelectorProtocol": "request-route-text-v1",
+      "actionSelectorModel": "mimo-v2.6-flash",
+      "actionSelectorRequestedMaxTokens": 512,
+      "actionSelectorRecoveryMaxTokens": 2048,
+      "actionSelectorOutputBudgetRetries": 0,
+      "actionSelectorRequestedReasoningEffort": "low",
+      "actionSelectorCalls": 1,
+      "actionSelectorRepairCalls": 0,
+      "actionSelectorInvalidResponses": 0,
+      "actionSelectorDurationMs": 923,
+      "actionSelectorCandidateCount": 0,
+      "actionSelectorContextCharacters": 2
+    },
+    "error": "Creator Action Selector model call failed.",
+    "errorType": "CreatorActionSelectionError",
+    "causeType": "ModelTransportError",
+    "errorDetails": {
+      "code": "ACTION_SELECTION_FAILED",
+      "details": {
+        "cause": "Creator model transport retry exhausted after 3 attempts."
+      }
+    }
+  }
+}

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, Callable, Literal
 
@@ -98,6 +99,8 @@ from .composition_verification_tail import CompositionVerificationTail
 from .debugging_convergence import DebuggingEvidenceConvergenceMiddleware
 from .grounding_convergence import CompositionGroundingConvergenceMiddleware
 from .tool_context import ToolContextCompactionMiddleware
+from .tool_discovery import ProgressiveToolsMiddleware, create_enable_creator_tools
+from .project_context import creator_project_prompt
 from .source_grounding import (
     SourceGroundingConvergenceMiddleware, SourceGroundingMetrics,
     create_edit_file_from_read_tool,
@@ -197,6 +200,9 @@ class CreatorDomainReadAgent:
     async def run_messages(
         self, messages: list[dict[str, str]], *, resume: dict[str, Any] | None = None
     ) -> DomainReadAgentResult | DeepAgentInterrupted:
+        # LangGraph may normalize its input list to BaseMessages in place. Host
+        # route review and authorization must retain the original user transcript.
+        messages = deepcopy(messages)
         if self.plugin_development_authority is not None and self.plugin_development_authority.task_id is None:
             current_user_message = next((message["content"] for message in reversed(messages)
                                          if message.get("role") == "user"), "")
@@ -520,6 +526,7 @@ def create_domain_read_creator_agent(
     mode: Literal["development", "conformance"] = "development",
     permission_scope: Literal["legacy", "inspect_read_only"] = "legacy",
     answer_only: bool = False,
+    skills_root: str | Path | None = None,
     raw_trace: bool = False,
     provider_trace_collector: ProviderResponseTraceCollector | None = None,
     operator: OperatorClient | None = None,
@@ -542,6 +549,7 @@ def create_domain_read_creator_agent(
         else MinimalAgentPathPolicy.conformance()
     )
     backend = PolicyFilesystemBackend(workspace, policy, activity=activity)
+    skills_backend = create_domain_skills_backend(backend, skills_root or default_creator_skills_root())
     client = operator or OperatorClient(project_root=Path(workspace))
     observations = DomainObservationContext()
     runtime_inspection = RuntimeDiagnosticInspectionService(
@@ -552,6 +560,7 @@ def create_domain_read_creator_agent(
         activity=backend.activity,
     )
     domain_tools = () if answer_only else (
+        create_enable_creator_tools(observations, lambda: backend.activity.revision),
         *create_recovery_query_tools(CreatorRecoveryQueries(workspace)),
         *create_operator_tools(
             client,
@@ -613,22 +622,21 @@ def create_domain_read_creator_agent(
         ]
     )
     filesystem = create_creator_filesystem_middleware(
-        backend=backend,
+        backend=skills_backend,
         tools=filesystem_tools,
     )
+    read_prompt = (DOMAIN_ANSWER_AGENT_PROMPT if answer_only else
+                   DOMAIN_INSPECT_AGENT_PROMPT if permission_scope == "inspect_read_only" else
+                   DOMAIN_READ_AGENT_PROMPT)
     graph = create_deep_agent(
         model=model,
         tools=list(domain_tools),
         checkpointer=checkpointer,
         system_prompt=creator_verification_prompt(
-            DOMAIN_ANSWER_AGENT_PROMPT
-            if answer_only
-            else DOMAIN_INSPECT_AGENT_PROMPT
-            if permission_scope == "inspect_read_only"
-            else DOMAIN_READ_AGENT_PROMPT,
+            read_prompt if answer_only else creator_project_prompt(read_prompt, workspace),
             verification_mode,
         ),
-        backend=backend,
+        backend=skills_backend,
         skills=None,
         middleware=[
             filesystem,
@@ -640,6 +648,7 @@ def create_domain_read_creator_agent(
             repeated_read_guard,
             runtime,
             model_retry,
+            ProgressiveToolsMiddleware(observations, lambda: backend.activity.revision),
             ToolContextCompactionMiddleware(metrics),
             protocol,
             _NoSummaryMiddleware(),
@@ -833,6 +842,7 @@ def create_domain_write_creator_agent(
     )
     backend.activity.plugin_delivery_provider = completion_gate.inspect_deliveries
     domain_tools = [
+        create_enable_creator_tools(observations, lambda: backend.activity.revision),
         ask_user_question,
         *create_operator_tools(
             client,
@@ -916,7 +926,7 @@ def create_domain_write_creator_agent(
         tools=domain_tools,
         checkpointer=checkpointer,
         system_prompt=creator_verification_prompt(
-            DOMAIN_WRITE_AGENT_PROMPT, verification_mode
+            creator_project_prompt(DOMAIN_WRITE_AGENT_PROMPT, workspace), verification_mode
         ),
         backend=skills_backend,
         skills=["/skills/"],
@@ -945,6 +955,7 @@ def create_domain_write_creator_agent(
                 run_control=run_control,
             ),
             model_retry,
+            ProgressiveToolsMiddleware(observations, lambda: backend.activity.revision),
             ToolContextCompactionMiddleware(metrics),
             protocol,
             _NoSummaryMiddleware(),

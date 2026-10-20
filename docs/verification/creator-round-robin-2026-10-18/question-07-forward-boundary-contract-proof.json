@@ -1,0 +1,1426 @@
+{
+  "ok": true,
+  "result": {
+    "appUIModelHash": "762158044fd3e1f8ffda942309a48d10bdb392ea53a8f76cfeb9f72bae385942",
+    "asset": {
+      "ownership": "project_source",
+      "application": {
+        "entryPath": "src/agent-ui/plugins/copy-action/index.tsx",
+        "implementationOwnership": "npm",
+        "implementationImport": "@za38.03/agent-ui-plugins/copy-action"
+      },
+      "pluginId": "copy-action",
+      "name": "Conversation Copy Action",
+      "description": "Copies text from the complete assistant response.",
+      "directory": "copy-action",
+      "manifestPath": "src/agent-ui/plugins/copy-action/manifest.json",
+      "definitionPath": "src/agent-ui/plugins/copy-action/definition.ts",
+      "capabilities": [
+        "conversation-assistant-response-action",
+        "conversation-message-action"
+      ],
+      "authoring": {
+        "intents": [
+          "copy assistant response content"
+        ],
+        "visualRole": "assistant response copy action",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "response-footer",
+          "slot": "actions"
+        }
+      },
+      "childSlots": {},
+      "dataMessageUINames": [],
+      "selected": true
+    },
+    "compositionParents": [
+      {
+        "instanceId": "response-footer-main",
+        "slot": "actions",
+        "pluginId": "response-footer",
+        "entryPath": "src/agent-ui/plugins/response-footer/index.tsx",
+        "entryHash": "e656382353184e2335e6f6f1379518b8e80cc2bac09acb0eeead8619f3e83636",
+        "implementationOwnership": "npm",
+        "compositionContract": {
+          "preserveSlots": [
+            {
+              "name": "actions",
+              "renderMethod": "renderSlot",
+              "layout": "inline",
+              "overrideProp": "actions"
+            }
+          ],
+          "replacementProps": [
+            "actions",
+            "children",
+            "rootProps.children",
+            "actionBarProps.children"
+          ],
+          "semantics": "The npm bridge supplies default actions from the semantic actions Slot. To append application-owned controls, preserve that Slot output alongside the new controls in actions. Setting replacement props without it replaces existing controls. Local popup state and public controls require no implementation takeover; preserve response scope and existing action behavior."
+        },
+        "interpretation": "Current mounted parent boundary, not a selected mutation target or authority. A child action API does not describe append/replacement behavior in its parent. Use the parent's composition contract only if that boundary answers the requested change; preserve existing actions and permission checks."
+      }
+    ],
+    "application": {
+      "entryPath": "src/agent-ui/plugins/copy-action/index.tsx",
+      "implementationOwnership": "npm",
+      "implementationImport": "@za38.03/agent-ui-plugins/copy-action",
+      "sharedTypes": {
+        "status": "available",
+        "queryResolution": {
+          "status": "partial",
+          "requested": 7,
+          "resolved": 3,
+          "unresolved": 4
+        },
+        "statusMeaning": "available means the installed declaration module was inspected; queryResolution and each symbol status describe whether the requested contracts resolved.",
+        "packageVersion": "0.0.1",
+        "module": "@za38.03/agent-ui-plugins",
+        "symbols": [
+          {
+            "name": "AgentUIDialog",
+            "status": "available",
+            "type": "Readonly<{ Root: ComponentType<Props<unknown>>; Trigger: ComponentType<Props<unknown>>; Portal: ComponentType<Omit<DialogPortalProps, \"container\">>; ... 4 more ...; Close: ComponentType<...>; }>",
+            "truncated": true,
+            "parameterQueries": [
+              "AgentUIDialog.Root.$parameter0",
+              "AgentUIDialog.Trigger.$parameter0",
+              "AgentUIDialog.Portal.$parameter0",
+              "AgentUIDialog.Backdrop.$parameter0",
+              "AgentUIDialog.Popup.$parameter0",
+              "AgentUIDialog.Title.$parameter0",
+              "AgentUIDialog.Description.$parameter0",
+              "AgentUIDialog.Close.$parameter0"
+            ],
+            "parameterContracts": [
+              {
+                "query": "AgentUIDialog.Root.$parameter0",
+                "type": "Props<unknown>",
+                "truncated": false,
+                "propNames": [
+                  "open",
+                  "defaultOpen",
+                  "modal",
+                  "onOpenChange",
+                  "onOpenChangeComplete",
+                  "disablePointerDismissal",
+                  "actionsRef",
+                  "handle",
+                  "children",
+                  "triggerId",
+                  "defaultTriggerId"
+                ],
+                "propNamesTruncated": false,
+                "members": [
+                  {
+                    "name": "open",
+                    "type": "boolean | undefined",
+                    "truncated": false
+                  },
+                  {
+                    "name": "defaultOpen",
+                    "type": "boolean | undefined",
+                    "truncated": false
+                  },
+                  {
+                    "name": "modal",
+                    "type": "\"trap-focus\" | boolean | undefined",
+                    "truncated": false
+                  },
+                  {
+                    "name": "onOpenChange",
+                    "type": "((open: boolean, eventDetails: DialogRootChangeEventDetails) => void) | undefined",
+                    "truncated": false
+                  }
+                ],
+                "membersTruncated": true
+              }
+            ],
+            "parameterContractsTruncated": true,
+            "nextEvidence": "Export resolved; bounded invocation parameters are included in parameterContracts. Full prop names and initial member types are separate from truncated type text. Query an exact parameter/member path only for a concrete missing signature. Do not search local npm usage to expand declarations. These facts do not grant authority or replace validation.",
+            "members": [
+              {
+                "name": "Root",
+                "type": "ComponentType<Props<unknown>>",
+                "truncated": false
+              },
+              {
+                "name": "Trigger",
+                "type": "ComponentType<Props<unknown>>",
+                "truncated": false
+              },
+              {
+                "name": "Portal",
+                "type": "ComponentType<Omit<DialogPortalProps, \"container\">>",
+                "truncated": false
+              },
+              {
+                "name": "Backdrop",
+                "type": "ComponentType<DialogBackdropProps>",
+                "truncated": false
+              },
+              {
+                "name": "Popup",
+                "type": "ComponentType<DialogPopupProps>",
+                "truncated": false
+              },
+              {
+                "name": "Title",
+                "type": "ComponentType<DialogTitleProps>",
+                "truncated": false
+              },
+              {
+                "name": "Description",
+                "type": "ComponentType<DialogDescriptionProps>",
+                "truncated": false
+              },
+              {
+                "name": "Close",
+                "type": "ComponentType<DialogCloseProps>",
+                "truncated": false
+              }
+            ],
+            "membersTruncated": false,
+            "returns": [],
+            "signaturesTruncated": false
+          },
+          {
+            "name": "AgentUIDialogContent",
+            "status": "available",
+            "type": "ComponentType<DialogPopupProps & { showCloseButton?: boolean | undefined; }>",
+            "truncated": false,
+            "parameterQueries": [
+              "AgentUIDialogContent.$parameter0"
+            ],
+            "parameterContracts": [
+              {
+                "query": "AgentUIDialogContent.$parameter0",
+                "type": "DialogPopupProps & { showCloseButton?: boolean | undefined; }",
+                "truncated": false,
+                "propNames": [
+                  "className",
+                  "render",
+                  "style",
+                  "initialFocus",
+                  "finalFocus",
+                  "key",
+                  "ref",
+                  "children",
+                  "dangerouslySetInnerHTML",
+                  "onCopy",
+                  "onCopyCapture",
+                  "onCut",
+                  "onCutCapture",
+                  "onPaste",
+                  "onPasteCapture",
+                  "onCompositionEnd",
+                  "onCompositionEndCapture",
+                  "onCompositionStart",
+                  "onCompositionStartCapture",
+                  "onCompositionUpdate",
+                  "onCompositionUpdateCapture",
+                  "onFocus",
+                  "onFocusCapture",
+                  "onBlur",
+                  "onBlurCapture",
+                  "onChange",
+                  "onChangeCapture",
+                  "onBeforeInput",
+                  "onBeforeInputCapture",
+                  "onInput",
+                  "onInputCapture",
+                  "onReset",
+                  "onResetCapture",
+                  "onSubmit",
+                  "onSubmitCapture",
+                  "onInvalid",
+                  "onInvalidCapture",
+                  "onLoad",
+                  "onLoadCapture",
+                  "onError",
+                  "onErrorCapture",
+                  "onKeyDown",
+                  "onKeyDownCapture",
+                  "onKeyPress",
+                  "onKeyPressCapture",
+                  "onKeyUp",
+                  "onKeyUpCapture",
+                  "onAbort",
+                  "onAbortCapture",
+                  "onCanPlay",
+                  "onCanPlayCapture",
+                  "onCanPlayThrough",
+                  "onCanPlayThroughCapture",
+                  "onDurationChange",
+                  "onDurationChangeCapture",
+                  "onEmptied",
+                  "onEmptiedCapture",
+                  "onEncrypted",
+                  "onEncryptedCapture",
+                  "onEnded",
+                  "onEndedCapture",
+                  "onLoadedData",
+                  "onLoadedDataCapture",
+                  "onLoadedMetadata",
+                  "onLoadedMetadataCapture",
+                  "onLoadStart",
+                  "onLoadStartCapture",
+                  "onPause",
+                  "onPauseCapture",
+                  "onPlay",
+                  "onPlayCapture",
+                  "onPlaying",
+                  "onPlayingCapture",
+                  "onProgress",
+                  "onProgressCapture",
+                  "onRateChange",
+                  "onRateChangeCapture",
+                  "onSeeked",
+                  "onSeekedCapture",
+                  "onSeeking",
+                  "onSeekingCapture",
+                  "onStalled",
+                  "onStalledCapture",
+                  "onSuspend",
+                  "onSuspendCapture",
+                  "onTimeUpdate",
+                  "onTimeUpdateCapture",
+                  "onVolumeChange",
+                  "onVolumeChangeCapture",
+                  "onWaiting",
+                  "onWaitingCapture",
+                  "onAuxClick",
+                  "onAuxClickCapture",
+                  "onClick",
+                  "onClickCapture",
+                  "onContextMenu",
+                  "onContextMenuCapture",
+                  "onDoubleClick",
+                  "onDoubleClickCapture",
+                  "onDrag",
+                  "onDragCapture",
+                  "onDragEnd",
+                  "onDragEndCapture",
+                  "onDragEnter",
+                  "onDragEnterCapture",
+                  "onDragExit",
+                  "onDragExitCapture",
+                  "onDragLeave",
+                  "onDragLeaveCapture",
+                  "onDragOver",
+                  "onDragOverCapture",
+                  "onDragStart",
+                  "onDragStartCapture",
+                  "onDrop",
+                  "onDropCapture",
+                  "onMouseDown",
+                  "onMouseDownCapture",
+                  "onMouseEnter",
+                  "onMouseLeave",
+                  "onMouseMove",
+                  "onMouseMoveCapture",
+                  "onMouseOut",
+                  "onMouseOutCapture",
+                  "onMouseOver",
+                  "onMouseOverCapture",
+                  "onMouseUp",
+                  "onMouseUpCapture",
+                  "onSelect",
+                  "onSelectCapture",
+                  "onTouchCancel",
+                  "onTouchCancelCapture",
+                  "onTouchEnd",
+                  "onTouchEndCapture",
+                  "onTouchMove",
+                  "onTouchMoveCapture",
+                  "onTouchStart",
+                  "onTouchStartCapture",
+                  "onPointerDown",
+                  "onPointerDownCapture",
+                  "onPointerMove",
+                  "onPointerMoveCapture",
+                  "onPointerUp",
+                  "onPointerUpCapture",
+                  "onPointerCancel",
+                  "onPointerCancelCapture",
+                  "onPointerEnter",
+                  "onPointerLeave",
+                  "onPointerOver",
+                  "onPointerOverCapture",
+                  "onPointerOut",
+                  "onPointerOutCapture",
+                  "onGotPointerCapture",
+                  "onGotPointerCaptureCapture",
+                  "onLostPointerCapture",
+                  "onLostPointerCaptureCapture",
+                  "onScroll",
+                  "onScrollCapture",
+                  "onScrollEnd",
+                  "onScrollEndCapture",
+                  "onWheel",
+                  "onWheelCapture",
+                  "onAnimationStart",
+                  "onAnimationStartCapture",
+                  "onAnimationEnd",
+                  "onAnimationEndCapture",
+                  "onAnimationIteration",
+                  "onAnimationIterationCapture",
+                  "onToggle",
+                  "onBeforeToggle",
+                  "onTransitionCancel",
+                  "onTransitionCancelCapture",
+                  "onTransitionEnd",
+                  "onTransitionEndCapture",
+                  "onTransitionRun",
+                  "onTransitionRunCapture",
+                  "onTransitionStart",
+                  "onTransitionStartCapture",
+                  "aria-activedescendant",
+                  "aria-atomic",
+                  "aria-autocomplete",
+                  "aria-braillelabel",
+                  "aria-brailleroledescription",
+                  "aria-busy",
+                  "aria-checked",
+                  "aria-colcount",
+                  "aria-colindex",
+                  "aria-colindextext",
+                  "aria-colspan",
+                  "aria-controls",
+                  "aria-current",
+                  "aria-describedby",
+                  "aria-description",
+                  "aria-details",
+                  "aria-disabled",
+                  "aria-dropeffect",
+                  "aria-errormessage",
+                  "aria-expanded",
+                  "aria-flowto",
+                  "aria-grabbed",
+                  "aria-haspopup",
+                  "aria-hidden",
+                  "aria-invalid",
+                  "aria-keyshortcuts",
+                  "aria-label",
+                  "aria-labelledby",
+                  "aria-level",
+                  "aria-live",
+                  "aria-modal",
+                  "aria-multiline",
+                  "aria-multiselectable",
+                  "aria-orientation",
+                  "aria-owns",
+                  "aria-placeholder",
+                  "aria-posinset",
+                  "aria-pressed",
+                  "aria-readonly",
+                  "aria-relevant",
+                  "aria-required",
+                  "aria-roledescription",
+                  "aria-rowcount",
+                  "aria-rowindex",
+                  "aria-rowindextext",
+                  "aria-rowspan",
+                  "aria-selected",
+                  "aria-setsize",
+                  "aria-sort",
+                  "aria-valuemax",
+                  "aria-valuemin",
+                  "aria-valuenow",
+                  "aria-valuetext",
+                  "suppressContentEditableWarning",
+                  "suppressHydrationWarning",
+                  "accessKey",
+                  "autoCapitalize",
+                  "autoFocus",
+                  "contentEditable",
+                  "contextMenu",
+                  "dir",
+                  "draggable",
+                  "enterKeyHint",
+                  "hidden",
+                  "id",
+                  "lang",
+                  "nonce",
+                  "slot",
+                  "spellCheck",
+                  "tabIndex",
+                  "title",
+                  "translate",
+                  "radioGroup",
+                  "role",
+                  "about",
+                  "content",
+                  "datatype",
+                  "inlist",
+                  "prefix",
+                  "property",
+                  "rel",
+                  "resource",
+                  "rev",
+                  "typeof",
+                  "vocab",
+                  "autoCorrect",
+                  "autoSave",
+                  "itemProp",
+                  "itemScope",
+                  "itemType",
+                  "itemID",
+                  "itemRef",
+                  "results",
+                  "security",
+                  "unselectable",
+                  "popover",
+                  "popoverTargetAction",
+                  "popoverTarget",
+                  "inert",
+                  "inputMode",
+                  "is",
+                  "exportparts",
+                  "part",
+                  "showCloseButton"
+                ],
+                "propNamesTruncated": false,
+                "members": [
+                  {
+                    "name": "className",
+                    "type": "string | ((state: DialogPopupState) => string | undefined) | undefined",
+                    "truncated": false
+                  },
+                  {
+                    "name": "render",
+                    "type": "ComponentRenderFn<HTMLProps, DialogPopupState> | ReactElement<unknown, string | JSXElementConstructor<any>> | undefined",
+                    "truncated": false
+                  },
+                  {
+                    "name": "style",
+                    "type": "CSSProperties | ((state: DialogPopupState) => CSSProperties | undefined) | undefined",
+                    "truncated": false
+                  },
+                  {
+                    "name": "initialFocus",
+                    "type": "boolean | RefObject<HTMLElement | null> | ((openType: InteractionType) => void | boolean | HTMLElement | null) | undefined",
+                    "truncated": false
+                  }
+                ],
+                "membersTruncated": true
+              }
+            ],
+            "parameterContractsTruncated": false,
+            "nextEvidence": "Export resolved; bounded invocation parameters are included in parameterContracts. Full prop names and initial member types are separate from truncated type text. Query an exact parameter/member path only for a concrete missing signature. Do not search local npm usage to expand declarations. These facts do not grant authority or replace validation.",
+            "members": [
+              {
+                "name": "propTypes",
+                "type": "any",
+                "truncated": false
+              },
+              {
+                "name": "displayName",
+                "type": "string | undefined",
+                "truncated": false
+              }
+            ],
+            "membersTruncated": false,
+            "returns": [],
+            "signaturesTruncated": false
+          },
+          {
+            "name": "AgentUIDialogHeader",
+            "status": "unavailable",
+            "reason": "Not exported by installed module @za38.03/agent-ui-plugins",
+            "exportedNameSuggestions": [],
+            "nextEvidence": "These are actual exports in this module, not equivalent APIs. Use an exact declared name only if it answers a remaining requirement; component exports may belong to their own public subpath. A missing export does not establish a missing UI capability."
+          },
+          {
+            "name": "AgentUIDialogTitle",
+            "status": "unavailable",
+            "reason": "Not exported by installed module @za38.03/agent-ui-plugins",
+            "exportedNameSuggestions": [],
+            "nextEvidence": "These are actual exports in this module, not equivalent APIs. Use an exact declared name only if it answers a remaining requirement; component exports may belong to their own public subpath. A missing export does not establish a missing UI capability."
+          },
+          {
+            "name": "AgentUIDialogFooter",
+            "status": "unavailable",
+            "reason": "Not exported by installed module @za38.03/agent-ui-plugins",
+            "exportedNameSuggestions": [],
+            "nextEvidence": "These are actual exports in this module, not equivalent APIs. Use an exact declared name only if it answers a remaining requirement; component exports may belong to their own public subpath. A missing export does not establish a missing UI capability."
+          },
+          {
+            "name": "Button",
+            "status": "available",
+            "type": "({ variant, size, ...props }: Readonly<ClassAttributes<HTMLButtonElement> & ButtonHTMLAttributes<HTMLButtonElement> & { ...; }>) => Element",
+            "truncated": true,
+            "parameterQueries": [
+              "Button.$parameter0"
+            ],
+            "parameterContracts": [
+              {
+                "query": "Button.$parameter0",
+                "type": "Readonly<ClassAttributes<HTMLButtonElement> & ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ConversationButtonVariant | undefined; size?: ConversationButtonSize | undefined; }>",
+                "truncated": false,
+                "propNames": [
+                  "key",
+                  "ref",
+                  "children",
+                  "dangerouslySetInnerHTML",
+                  "onCopy",
+                  "onCopyCapture",
+                  "onCut",
+                  "onCutCapture",
+                  "onPaste",
+                  "onPasteCapture",
+                  "onCompositionEnd",
+                  "onCompositionEndCapture",
+                  "onCompositionStart",
+                  "onCompositionStartCapture",
+                  "onCompositionUpdate",
+                  "onCompositionUpdateCapture",
+                  "onFocus",
+                  "onFocusCapture",
+                  "onBlur",
+                  "onBlurCapture",
+                  "onChange",
+                  "onChangeCapture",
+                  "onBeforeInput",
+                  "onBeforeInputCapture",
+                  "onInput",
+                  "onInputCapture",
+                  "onReset",
+                  "onResetCapture",
+                  "onSubmit",
+                  "onSubmitCapture",
+                  "onInvalid",
+                  "onInvalidCapture",
+                  "onLoad",
+                  "onLoadCapture",
+                  "onError",
+                  "onErrorCapture",
+                  "onKeyDown",
+                  "onKeyDownCapture",
+                  "onKeyPress",
+                  "onKeyPressCapture",
+                  "onKeyUp",
+                  "onKeyUpCapture",
+                  "onAbort",
+                  "onAbortCapture",
+                  "onCanPlay",
+                  "onCanPlayCapture",
+                  "onCanPlayThrough",
+                  "onCanPlayThroughCapture",
+                  "onDurationChange",
+                  "onDurationChangeCapture",
+                  "onEmptied",
+                  "onEmptiedCapture",
+                  "onEncrypted",
+                  "onEncryptedCapture",
+                  "onEnded",
+                  "onEndedCapture",
+                  "onLoadedData",
+                  "onLoadedDataCapture",
+                  "onLoadedMetadata",
+                  "onLoadedMetadataCapture",
+                  "onLoadStart",
+                  "onLoadStartCapture",
+                  "onPause",
+                  "onPauseCapture",
+                  "onPlay",
+                  "onPlayCapture",
+                  "onPlaying",
+                  "onPlayingCapture",
+                  "onProgress",
+                  "onProgressCapture",
+                  "onRateChange",
+                  "onRateChangeCapture",
+                  "onSeeked",
+                  "onSeekedCapture",
+                  "onSeeking",
+                  "onSeekingCapture",
+                  "onStalled",
+                  "onStalledCapture",
+                  "onSuspend",
+                  "onSuspendCapture",
+                  "onTimeUpdate",
+                  "onTimeUpdateCapture",
+                  "onVolumeChange",
+                  "onVolumeChangeCapture",
+                  "onWaiting",
+                  "onWaitingCapture",
+                  "onAuxClick",
+                  "onAuxClickCapture",
+                  "onClick",
+                  "onClickCapture",
+                  "onContextMenu",
+                  "onContextMenuCapture",
+                  "onDoubleClick",
+                  "onDoubleClickCapture",
+                  "onDrag",
+                  "onDragCapture",
+                  "onDragEnd",
+                  "onDragEndCapture",
+                  "onDragEnter",
+                  "onDragEnterCapture",
+                  "onDragExit",
+                  "onDragExitCapture",
+                  "onDragLeave",
+                  "onDragLeaveCapture",
+                  "onDragOver",
+                  "onDragOverCapture",
+                  "onDragStart",
+                  "onDragStartCapture",
+                  "onDrop",
+                  "onDropCapture",
+                  "onMouseDown",
+                  "onMouseDownCapture",
+                  "onMouseEnter",
+                  "onMouseLeave",
+                  "onMouseMove",
+                  "onMouseMoveCapture",
+                  "onMouseOut",
+                  "onMouseOutCapture",
+                  "onMouseOver",
+                  "onMouseOverCapture",
+                  "onMouseUp",
+                  "onMouseUpCapture",
+                  "onSelect",
+                  "onSelectCapture",
+                  "onTouchCancel",
+                  "onTouchCancelCapture",
+                  "onTouchEnd",
+                  "onTouchEndCapture",
+                  "onTouchMove",
+                  "onTouchMoveCapture",
+                  "onTouchStart",
+                  "onTouchStartCapture",
+                  "onPointerDown",
+                  "onPointerDownCapture",
+                  "onPointerMove",
+                  "onPointerMoveCapture",
+                  "onPointerUp",
+                  "onPointerUpCapture",
+                  "onPointerCancel",
+                  "onPointerCancelCapture",
+                  "onPointerEnter",
+                  "onPointerLeave",
+                  "onPointerOver",
+                  "onPointerOverCapture",
+                  "onPointerOut",
+                  "onPointerOutCapture",
+                  "onGotPointerCapture",
+                  "onGotPointerCaptureCapture",
+                  "onLostPointerCapture",
+                  "onLostPointerCaptureCapture",
+                  "onScroll",
+                  "onScrollCapture",
+                  "onScrollEnd",
+                  "onScrollEndCapture",
+                  "onWheel",
+                  "onWheelCapture",
+                  "onAnimationStart",
+                  "onAnimationStartCapture",
+                  "onAnimationEnd",
+                  "onAnimationEndCapture",
+                  "onAnimationIteration",
+                  "onAnimationIterationCapture",
+                  "onToggle",
+                  "onBeforeToggle",
+                  "onTransitionCancel",
+                  "onTransitionCancelCapture",
+                  "onTransitionEnd",
+                  "onTransitionEndCapture",
+                  "onTransitionRun",
+                  "onTransitionRunCapture",
+                  "onTransitionStart",
+                  "onTransitionStartCapture",
+                  "aria-activedescendant",
+                  "aria-atomic",
+                  "aria-autocomplete",
+                  "aria-braillelabel",
+                  "aria-brailleroledescription",
+                  "aria-busy",
+                  "aria-checked",
+                  "aria-colcount",
+                  "aria-colindex",
+                  "aria-colindextext",
+                  "aria-colspan",
+                  "aria-controls",
+                  "aria-current",
+                  "aria-describedby",
+                  "aria-description",
+                  "aria-details",
+                  "aria-disabled",
+                  "aria-dropeffect",
+                  "aria-errormessage",
+                  "aria-expanded",
+                  "aria-flowto",
+                  "aria-grabbed",
+                  "aria-haspopup",
+                  "aria-hidden",
+                  "aria-invalid",
+                  "aria-keyshortcuts",
+                  "aria-label",
+                  "aria-labelledby",
+                  "aria-level",
+                  "aria-live",
+                  "aria-modal",
+                  "aria-multiline",
+                  "aria-multiselectable",
+                  "aria-orientation",
+                  "aria-owns",
+                  "aria-placeholder",
+                  "aria-posinset",
+                  "aria-pressed",
+                  "aria-readonly",
+                  "aria-relevant",
+                  "aria-required",
+                  "aria-roledescription",
+                  "aria-rowcount",
+                  "aria-rowindex",
+                  "aria-rowindextext",
+                  "aria-rowspan",
+                  "aria-selected",
+                  "aria-setsize",
+                  "aria-sort",
+                  "aria-valuemax",
+                  "aria-valuemin",
+                  "aria-valuenow",
+                  "aria-valuetext",
+                  "defaultChecked",
+                  "defaultValue",
+                  "suppressContentEditableWarning",
+                  "suppressHydrationWarning",
+                  "accessKey",
+                  "autoCapitalize",
+                  "autoFocus",
+                  "className",
+                  "contentEditable",
+                  "contextMenu",
+                  "dir",
+                  "draggable",
+                  "enterKeyHint",
+                  "hidden",
+                  "id",
+                  "lang",
+                  "nonce",
+                  "slot",
+                  "spellCheck",
+                  "style",
+                  "tabIndex",
+                  "title",
+                  "translate",
+                  "radioGroup",
+                  "role",
+                  "about",
+                  "content",
+                  "datatype",
+                  "inlist",
+                  "prefix",
+                  "property",
+                  "rel",
+                  "resource",
+                  "rev",
+                  "typeof",
+                  "vocab",
+                  "autoCorrect",
+                  "autoSave",
+                  "color",
+                  "itemProp",
+                  "itemScope",
+                  "itemType",
+                  "itemID",
+                  "itemRef",
+                  "results",
+                  "security",
+                  "unselectable",
+                  "popover",
+                  "popoverTargetAction",
+                  "popoverTarget",
+                  "inert",
+                  "inputMode",
+                  "is",
+                  "exportparts",
+                  "part",
+                  "disabled",
+                  "form",
+                  "formAction",
+                  "formEncType",
+                  "formMethod",
+                  "formNoValidate",
+                  "formTarget",
+                  "name",
+                  "type",
+                  "value",
+                  "variant",
+                  "size"
+                ],
+                "propNamesTruncated": false,
+                "members": [
+                  {
+                    "name": "key",
+                    "type": "Key | null | undefined",
+                    "truncated": false
+                  },
+                  {
+                    "name": "ref",
+                    "type": "Ref<HTMLButtonElement> | undefined",
+                    "truncated": false
+                  },
+                  {
+                    "name": "children",
+                    "type": "ReactNode",
+                    "truncated": false
+                  },
+                  {
+                    "name": "dangerouslySetInnerHTML",
+                    "type": "{ __html: string | TrustedHTML; } | undefined",
+                    "truncated": false
+                  }
+                ],
+                "membersTruncated": true
+              }
+            ],
+            "parameterContractsTruncated": false,
+            "nextEvidence": "Export resolved; bounded invocation parameters are included in parameterContracts. Full prop names and initial member types are separate from truncated type text. Query an exact parameter/member path only for a concrete missing signature. Do not search local npm usage to expand declarations. These facts do not grant authority or replace validation.",
+            "members": [],
+            "membersTruncated": false,
+            "returns": [
+              {
+                "type": "Element",
+                "truncated": false
+              }
+            ],
+            "signaturesTruncated": false
+          },
+          {
+            "name": "ConversationCopyAction",
+            "status": "unavailable",
+            "reason": "Not exported by installed module @za38.03/agent-ui-plugins",
+            "exportedNameSuggestions": [
+              "ConversationActionCopy",
+              "ConversationCanonicalCopyAction",
+              "ConversationCanonicalResponseCopyAction"
+            ],
+            "nextEvidence": "These are actual exports in this module, not equivalent APIs. Use an exact declared name only if it answers a remaining requirement; component exports may belong to their own public subpath. A missing export does not establish a missing UI capability."
+          }
+        ],
+        "interpretation": "Installed public types only, not implementation access or mutation authority. Abbreviated/unresolved types are explicit; Use dotted members, $return, $element or $parameter0 through $parameter9 for a concrete gap. Generic/opaque types are not permission to infer a renderer or change Runtime. A name absent from a project grep may be inherited from npm. Preserve original tool approval/interrupt/error renderers and canonical Runtime."
+      },
+      "entryHash": "192c38ca52c24cd012b8bb159f98793355d81c57c83e736539ad1347d824a2e9",
+      "editable": "Project application props, children, composition and renderers; no takeover consent required.",
+      "implementationBoundary": "npm implementation is read-only until explicit takeover; application metadata is not takeover authorization.",
+      "publicApi": {
+        "status": "available",
+        "component": "ConversationCopyActionPlugin",
+        "publicModuleQueries": {
+          "defaultModule": "@za38.03/agent-ui-plugins/plugin-support",
+          "presentationModule": "@za38.03/agent-ui-plugins",
+          "note": "Use sharedModule with an installed declared public module and sharedSymbols for its exact export/member/parameter types. No implementation access or takeover authority."
+        },
+        "package": {
+          "name": "@za38.03/agent-ui-plugins",
+          "version": "0.0.1"
+        },
+        "source": "Current application component types resolved through the target project's installed declarations",
+        "evidenceBoundary": "Component props only. Plugin setup, registered commands and Service bindings are described by the returned definitionSource and services, not by these props. Few props do not imply missing behavior. Neither types nor enablement prove visual visibility or successful interaction.",
+        "completePropNames": false,
+        "props": [
+          {
+            "name": "renderSlot",
+            "type": "(localSlotName: string, fallback?: ReactNode, options?: UIPluginRenderSlotOptions | undefined) => ReactNode",
+            "typeTruncated": false,
+            "runtimeManaged": true
+          },
+          {
+            "name": "renderScopedSlot",
+            "type": "(localSlotName: string, scope: UIPluginRenderScope<unknown>, fallback?: ReactNode) => ReactNode",
+            "typeTruncated": false,
+            "runtimeManaged": true
+          },
+          {
+            "name": "key",
+            "type": "Key | null | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false,
+            "members": [
+              {
+                "name": "toString",
+                "type": "(() => string) | ((radix?: number | undefined) => string) | ((radix?: number | undefined) => string)",
+                "typeTruncated": false
+              },
+              {
+                "name": "valueOf",
+                "type": "(() => string) | (() => number) | (() => bigint)",
+                "typeTruncated": false
+              },
+              {
+                "name": "toLocaleString",
+                "type": "(() => string) | { (locales?: string | string[] | undefined, options?: NumberFormatOptions | undefined): string; (locales?: LocalesArgument, options?: NumberFormatOptions | undefined): string; } | ((locales?: LocalesArgument, options?: BigIntToLocaleStringOptions | undefined) => string)",
+                "typeTruncated": false
+              }
+            ]
+          },
+          {
+            "name": "ref",
+            "type": "Ref<HTMLButtonElement> | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "typeTruncated": false,
+            "runtimeManaged": false,
+            "members": [
+              {
+                "name": "toString",
+                "type": "(() => string) | (() => string) | ((radix?: number | undefined) => string) | ((radix?: number | undefined) => string)",
+                "typeTruncated": false
+              },
+              {
+                "name": "valueOf",
+                "type": "(() => Object) | (() => string) | (() => boolean) | (() => number) | (() => bigint)",
+                "typeTruncated": false
+              },
+              {
+                "name": "toLocaleString",
+                "type": "(() => string) | { (locales?: string | string[] | undefined, options?: NumberFormatOptions | undefined): string; (locales?: LocalesArgument, options?: NumberFormatOptions | undefined): string; } | ((locales?: LocalesArgument, options?: BigIntToLocaleStringOptions | undefined) => string)",
+                "typeTruncated": false
+              }
+            ]
+          },
+          {
+            "name": "dangerouslySetInnerHTML",
+            "type": "{ __html: string | TrustedHTML; } | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false,
+            "members": [
+              {
+                "name": "__html",
+                "type": "string | TrustedHTML",
+                "typeTruncated": false
+              }
+            ]
+          },
+          {
+            "name": "onCopy",
+            "type": "((event: BaseUIEvent<ClipboardEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onCopyCapture",
+            "type": "((event: BaseUIEvent<ClipboardEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onCut",
+            "type": "((event: BaseUIEvent<ClipboardEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onCutCapture",
+            "type": "((event: BaseUIEvent<ClipboardEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onPaste",
+            "type": "((event: BaseUIEvent<ClipboardEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onPasteCapture",
+            "type": "((event: BaseUIEvent<ClipboardEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onCompositionEnd",
+            "type": "((event: BaseUIEvent<CompositionEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onCompositionEndCapture",
+            "type": "((event: BaseUIEvent<CompositionEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onCompositionStart",
+            "type": "((event: BaseUIEvent<CompositionEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onCompositionStartCapture",
+            "type": "((event: BaseUIEvent<CompositionEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onCompositionUpdate",
+            "type": "((event: BaseUIEvent<CompositionEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onCompositionUpdateCapture",
+            "type": "((event: BaseUIEvent<CompositionEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onFocus",
+            "type": "((event: BaseUIEvent<FocusEvent<HTMLButtonElement, Element>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onFocusCapture",
+            "type": "((event: BaseUIEvent<FocusEvent<HTMLButtonElement, Element>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onBlur",
+            "type": "((event: BaseUIEvent<FocusEvent<HTMLButtonElement, Element>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onBlurCapture",
+            "type": "((event: BaseUIEvent<FocusEvent<HTMLButtonElement, Element>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onChange",
+            "type": "((event: BaseUIEvent<ChangeEvent<HTMLButtonElement, Element>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onChangeCapture",
+            "type": "((event: BaseUIEvent<ChangeEvent<HTMLButtonElement, Element>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onBeforeInput",
+            "type": "((event: BaseUIEvent<InputEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onBeforeInputCapture",
+            "type": "((event: BaseUIEvent<InputEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onInput",
+            "type": "((event: BaseUIEvent<InputEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onInputCapture",
+            "type": "((event: BaseUIEvent<InputEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onReset",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onResetCapture",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onSubmit",
+            "type": "((event: BaseUIEvent<SubmitEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onSubmitCapture",
+            "type": "((event: BaseUIEvent<SubmitEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onInvalid",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onInvalidCapture",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onLoad",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onLoadCapture",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onError",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onErrorCapture",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onKeyDown",
+            "type": "((event: BaseUIEvent<KeyboardEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onKeyDownCapture",
+            "type": "((event: BaseUIEvent<KeyboardEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onKeyPress",
+            "type": "((event: BaseUIEvent<KeyboardEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onKeyPressCapture",
+            "type": "((event: BaseUIEvent<KeyboardEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onKeyUp",
+            "type": "((event: BaseUIEvent<KeyboardEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onKeyUpCapture",
+            "type": "((event: BaseUIEvent<KeyboardEvent<HTMLButtonElement>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onAbort",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onAbortCapture",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onCanPlay",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onCanPlayCapture",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onCanPlayThrough",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onCanPlayThroughCapture",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onDurationChange",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onDurationChangeCapture",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onEmptied",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onEmptiedCapture",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onEncrypted",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onEncryptedCapture",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onEnded",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onEndedCapture",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onLoadedData",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onLoadedDataCapture",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onLoadedMetadata",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onLoadedMetadataCapture",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onLoadStart",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          },
+          {
+            "name": "onLoadStartCapture",
+            "type": "((event: BaseUIEvent<SyntheticEvent<HTMLButtonElement, Event>>) => void) | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false
+          }
+        ],
+        "interpretation": "Props describe supported seams, not a guarantee that all requested behavior is implemented. Nested type text may be abbreviated. Prefer application props/composition; if a required seam is absent, explain the gap before proposing implementation takeover. Do not trace Host Runtime to infer missing public APIs."
+      }
+    },
+    "selected": true,
+    "instances": [
+      {
+        "id": "copy-action-main",
+        "pluginId": "copy-action",
+        "enabled": true,
+        "target": {
+          "type": "plugin_slot",
+          "parentInstanceId": "response-footer-main",
+          "slot": "actions"
+        },
+        "index": 0,
+        "effectiveEnabled": true
+      }
+    ],
+    "manifest": {
+      "id": "copy-action",
+      "name": "Conversation Copy Action",
+      "description": "Copies text from the complete assistant response.",
+      "version": "0.0.1",
+      "capabilities": [
+        "conversation-assistant-response-action",
+        "conversation-message-action"
+      ],
+      "authoring": {
+        "intents": [
+          "copy assistant response content"
+        ],
+        "visualRole": "assistant response copy action",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "response-footer",
+          "slot": "actions"
+        }
+      }
+    },
+    "definitionSource": {
+      "content": "import type { UIPluginDefinition } from \"../../framework/contracts/ui-plugin\";\nimport implementation from \"@za38.03/agent-ui-plugins/copy-action\";\nimport { ConversationCopyActionPlugin } from \"./index\";\nconst definition: UIPluginDefinition = { manifest: implementation.manifest, provides: [], inject: [], optionalInject: [], Component: ConversationCopyActionPlugin };\nexport default definition;\n",
+      "truncated": false,
+      "characters": 395
+    },
+    "services": {
+      "provides": [],
+      "required": [],
+      "optional": []
+    },
+    "files": [
+      {
+        "path": "src/agent-ui/plugins/copy-action/application.json",
+        "kind": "file",
+        "bytes": 54
+      },
+      {
+        "path": "src/agent-ui/plugins/copy-action/definition.ts",
+        "kind": "file",
+        "bytes": 395
+      },
+      {
+        "path": "src/agent-ui/plugins/copy-action/index.tsx",
+        "kind": "file",
+        "bytes": 285
+      },
+      {
+        "path": "src/agent-ui/plugins/copy-action/manifest.json",
+        "kind": "file",
+        "bytes": 527
+      }
+    ],
+    "filesTruncated": false
+  }
+}

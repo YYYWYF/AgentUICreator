@@ -1,9 +1,19 @@
 import json
+import asyncio
+from langgraph.errors import GraphInterrupt
 
 from langchain_core.messages import ToolMessage
 
 from agent_ui_creator.activity import CreatorActivityRecorder
 from agent_ui_creator.observability import CreatorRunLogger
+
+
+def test_control_flow_and_failures_have_distinct_observation_status():
+    from agent_ui_creator.observability.run_logger import _tool_result_status
+    assert _tool_result_status(error=GraphInterrupt(())) == ("interrupted", None)
+    assert _tool_result_status(error=asyncio.CancelledError()) == ("cancelled", None)
+    assert _tool_result_status(error=RuntimeError("GraphInterrupt")) == ("error", None)
+    assert _tool_result_status(error=RuntimeError("CancelledError")) == ("error", None)
 
 
 def test_lightweight_run_log_records_mutation_transaction_undo_and_metrics(tmp_path):

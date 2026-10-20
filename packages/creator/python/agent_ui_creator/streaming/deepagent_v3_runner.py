@@ -21,6 +21,7 @@ class DeepAgentCompleted:
 @dataclass(frozen=True, slots=True)
 class DeepAgentInterrupted:
     interrupts: tuple[dict[str, Any], ...]
+    source_takeover_confirmation: Any = None
 
 
 def _project_interrupt(value: Any) -> dict[str, Any]:

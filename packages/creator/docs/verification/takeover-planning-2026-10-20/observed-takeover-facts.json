@@ -1,0 +1,75 @@
+{
+  "readBackAfterRun": true,
+  "sourceFilesUnchanged": true,
+  "planHashPrefixMatchesLiveResponse": true,
+  "stateHashPrefixMatchesLiveResponse": true,
+  "facts": {
+    "status": "planned",
+    "readOnly": true,
+    "plan": {
+      "pluginId": "composer",
+      "package": {
+        "name": "@za38.03/agent-ui-plugins",
+        "version": "0.0.1"
+      },
+      "pluginVersion": "0.0.1",
+      "catalogHash": "8a107ab344e6b14ba7a921030fd7e84af6fe83454572e2108643e9dff8cc35bc",
+      "stateHash": "7c4e4436ed64cac74e77f26338c5be93fe8220947cde2c73ce7ea4253ebf2c6f",
+      "applicationChanges": [
+        "index.tsx",
+        "definition.ts"
+      ],
+      "files": [
+        "plugins/composer/source/THIRD_PARTY_NOTICES.md",
+        "plugins/composer/source/adapters/composer.tsx",
+        "plugins/composer/source/adapters/textarea.tsx",
+        "plugins/composer/source/definition.ts",
+        "plugins/composer/source/index.tsx",
+        "plugins/composer/source/manifest.json"
+      ],
+      "instances": [
+        "composer-main"
+      ],
+      "sharedDependencies": [
+        "react",
+        "@za38.03/agent-ui-core",
+        "@za38.03/agent-ui-renderer",
+        "@za38.03/agent-ui-runtime",
+        "@za38.03/agent-ui-plugins/composer-support",
+        "@za38.03/agent-ui-plugins/styles.css"
+      ],
+      "dependencyChanges": [],
+      "compatibility": {
+        "composerSupport": 1
+      },
+      "origins": {
+        "definition.ts": "src/plugins/composer/adapters/project/definition.ts",
+        "manifest.json": "src/plugins/composer/plugin.json",
+        "index.tsx": "src/plugins/composer/adapters/project/index.tsx",
+        "adapters/composer.tsx": "src/plugins/composer/adapters/presentation/composer.tsx",
+        "adapters/textarea.tsx": "src/plugins/composer/adapters/presentation/textarea.tsx",
+        "THIRD_PARTY_NOTICES.md": "THIRD_PARTY_NOTICES.md"
+      },
+      "planHash": "08287eccbbab4cb206994e7f35dc867406a5ad301981fdec2df865b1b8d0faff"
+    },
+    "applicationLayer": {
+      "deleteBeforeTakeover": false,
+      "preservePropsCompositionAndIdentity": true,
+      "operatorManagedImportChanges": [
+        "index.tsx",
+        "definition.ts"
+      ]
+    },
+    "sourceItemInstallation": {
+      "requiredBeforeTakeover": false,
+      "conflictStatusDeterminesTakeoverAvailability": false
+    },
+    "execution": {
+      "tool": "takeover_plugin_source",
+      "permission": "domain_write",
+      "freshPlanRequired": true,
+      "nativeUserConfirmationRequired": true,
+      "inspectionGrantsApproval": false
+    }
+  }
+}

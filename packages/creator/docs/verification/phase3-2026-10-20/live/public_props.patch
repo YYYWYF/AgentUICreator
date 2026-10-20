@@ -1,0 +1,17 @@
+--- a/src/agent-ui/plugins/composer/index.tsx
++++ b/src/agent-ui/plugins/composer/index.tsx
+@@ -2,5 +2,13 @@
+ import type { ComponentProps } from "react";
+ 
+ export function ConversationComposerPlugin(props: ComponentProps<typeof Composer>) {
+-  return <Composer {...props} />;
++  return (
++    <Composer
++      {...props}
++      rootProps={{
++        ...props.rootProps,
++        style: { ...props.rootProps?.style, borderRadius: "12px" },
++      }}
++    />
++  );
+ }

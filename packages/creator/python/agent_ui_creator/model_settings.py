@@ -199,6 +199,7 @@ class CreatorModelSettings:
 class CreatorSelectorModelSettings:
     max_tokens: int = 512
     reasoning_effort: str | None = None
+    recovery_max_tokens: int = 2048
 
     @classmethod
     def from_environment(
@@ -222,4 +223,13 @@ class CreatorSelectorModelSettings:
         reasoning_effort = _first_value(
             environment, file_values, "CREATOR_SELECTOR_REASONING_EFFORT"
         )
-        return cls(max_tokens=int(max_tokens), reasoning_effort=reasoning_effort)
+        recovery_max_tokens = _number(
+            _first_value(environment, file_values, "CREATOR_SELECTOR_RECOVERY_MAX_TOKENS"),
+            default=2048,
+            name="CREATOR_SELECTOR_RECOVERY_MAX_TOKENS",
+            cast=int,
+        )
+        if recovery_max_tokens == 0:
+            raise CreatorModelConfigurationError("CREATOR_SELECTOR_RECOVERY_MAX_TOKENS 必须大于 0。")
+        return cls(max_tokens=int(max_tokens), reasoning_effort=reasoning_effort,
+                   recovery_max_tokens=int(recovery_max_tokens))

@@ -1,0 +1,30 @@
+{
+  "purpose": "Install supported project-owned shell width seam before retest. Default remains 416px; no source BASE adoption.",
+  "files": [
+    {
+      "path": "agent-ui/appearance/shell-config.ts",
+      "before": null,
+      "after": "ccec818dc84c7b7266475cd341ce11027c65eb6516490557287fa45580399603"
+    },
+    {
+      "path": "application/AgentSurface.tsx",
+      "before": "78b8cc3dc7490b4c611caf677eb56f6fe8b86247d0ee1eb0b2aa5ac4778e5ffb",
+      "after": "87dafef486dc11f02f52d352a6b7b3841539a64663889b4265d33f1cb289f443"
+    },
+    {
+      "path": "runtime/mode-shell/AssistantShell.tsx",
+      "before": "8e33512f16ffb9953eddc8f42982fc9cab41471927f5ea283538a5934ff270f7",
+      "after": "2e5f617b04fe5ebb42785a841f3081a697e60f40d04f13bf7a9357e61261f56b"
+    },
+    {
+      "path": "runtime/mode-shell/ModeShell.tsx",
+      "before": "edb5cf02eea3c4f5bdde2f689f481e54bebdcf7f7c79061387e96effaa2f95c1",
+      "after": "ee0ef27c0b500681ed4cd08359d675121614c9f7d35c9884e3659872fa89d5b2"
+    },
+    {
+      "path": "runtime/mode-shell/mode-shell.css",
+      "before": "f60576263ee5f17bd938c46e5baad0b8c72ae93def914cfbed08498c2a188493",
+      "after": "65a8733c9e1337d28e8238ab25daba074335c2692d4baeb20d6f6414aaef52f3"
+    }
+  ]
+}

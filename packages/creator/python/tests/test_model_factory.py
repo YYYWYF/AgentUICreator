@@ -352,3 +352,17 @@ def test_creator_verification_mode_rejects_invalid_values():
         resolve_creator_verification_mode(
             environment={"CREATOR_VERIFICATION_MODE": "runtime"}
         )
+
+
+def test_selector_recovery_budget_is_independent_and_can_disable_growth(tmp_path):
+    settings = CreatorSelectorModelSettings.from_environment(environment={},config_root=tmp_path)
+    assert settings.max_tokens == 512
+    assert settings.recovery_max_tokens == 2048
+    settings = CreatorSelectorModelSettings.from_environment(environment={
+        'CREATOR_SELECTOR_MAX_TOKENS':'256', 'CREATOR_SELECTOR_RECOVERY_MAX_TOKENS':'256',
+    },config_root=tmp_path)
+    assert settings.max_tokens == settings.recovery_max_tokens == 256
+    with pytest.raises(CreatorModelConfigurationError):
+        CreatorSelectorModelSettings.from_environment(environment={
+            'CREATOR_SELECTOR_RECOVERY_MAX_TOKENS':'0',
+        },config_root=tmp_path)

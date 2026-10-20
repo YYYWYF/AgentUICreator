@@ -1,0 +1,17 @@
+{
+  "id": "source-citations-message",
+  "name": "Source Citations",
+  "description": "Renders validated search_sources backend results with the official Sources element.",
+  "version": "0.0.1",
+  "capabilities": [
+    "headless"
+  ],
+  "data": {
+    "messages": true
+  },
+  "authoring": {
+    "intents": [
+      "render search_sources tool results as source citations"
+    ]
+  }
+}

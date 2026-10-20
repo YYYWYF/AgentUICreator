@@ -8,7 +8,8 @@ from typing import Annotated, Any, Literal, TypeAlias
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
-MAX_PLUGIN_CAPABILITIES = 64
+# Match canonical compositionUIProjectResult.capabilitySummaries.maxItems.
+MAX_PLUGIN_CAPABILITIES = 500
 MAX_PLUGIN_INTENTS = 16
 MAX_PLUGIN_INSTANCES = 32
 MAX_TOTAL_PLUGIN_INSTANCES = 256
@@ -29,7 +30,7 @@ MAX_CHILD_SLOT_DESCRIPTION_CHARS = 300
 MAX_CHILD_SLOT_ACCEPTED_CAPABILITIES = 16
 MAX_TOTAL_PLUGIN_CHILD_SLOTS = 256
 MAX_CREATOR_ACTION_CANDIDATES = 256
-MAX_CREATOR_AUTHORING_TARGETS = 64
+MAX_CREATOR_AUTHORING_TARGETS = 512
 MAX_AUTHORING_TARGET_INTENTS = 16
 MAX_AUTHORING_TARGET_ID_CHARS = 100
 MAX_AUTHORING_TARGET_NAME_CHARS = 200
@@ -682,6 +683,7 @@ CreatorIntentSelection = CreatorActionSelection
 class CreatorActionSelectorMetrics:
     modelCalls: int = 0
     repairCalls: int = 0
+    outputBudgetRetries: int = 0
     invalidResponses: int = 0
     durationMs: int = 0
     candidateCount: int = 0
@@ -709,6 +711,8 @@ class CreatorActionSelectorMetrics:
         }
         if self.repairReasonCode is not None:
             result["repairReasonCode"] = self.repairReasonCode
+        if self.outputBudgetRetries:
+            result["outputBudgetRetries"] = self.outputBudgetRetries
         if self.repairReason is not None:
             result["repairReason"] = self.repairReason
         return result

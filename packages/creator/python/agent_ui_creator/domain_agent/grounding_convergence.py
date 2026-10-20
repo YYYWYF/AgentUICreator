@@ -29,6 +29,7 @@ from .tool_policy import READ_ONLY_TOOL_NAMES, RUNTIME_VERIFICATION_TOOL_NAMES
 
 
 COMPOSITION_PRE_MUTATION_TOOL_NAMES = (
+    "enable_creator_tools",
     *DEBUGGING_SELECTION_TOOL_NAMES,
     "inspect_static_diagnostics",
     "ask_user_question",
@@ -49,6 +50,7 @@ COMPOSITION_PRE_MUTATION_TOOL_NAMES = (
     "inspect_runtime_layout",
 )
 COMPOSITION_POST_MUTATION_TOOL_NAMES = (
+    "enable_creator_tools",
     *DEBUGGING_SELECTION_TOOL_NAMES,
     "inspect_static_diagnostics",
     "ask_user_question",
@@ -66,6 +68,7 @@ COMPOSITION_POST_MUTATION_TOOL_NAMES = (
     "verify_ui_plugin_behavior",
 )
 SOURCE_INSTALLED_TOOL_NAMES = (
+    "enable_creator_tools",
     *DEBUGGING_SELECTION_TOOL_NAMES,
     "inspect_static_diagnostics",
     "ask_user_question",
@@ -349,7 +352,10 @@ class CompositionGroundingConvergenceMiddleware(AgentMiddleware):
                 and name not in self._recovery_tools()):
             return call, name, arguments, True
         cross_layer = (is_cross_layer_read(name, arguments, project_root=str(self.backend.cwd))
-                       or name == "takeover_plugin_source")
+                       or name == "takeover_plugin_source"
+                       or (name == "enable_creator_tools" and any(
+                           group != "composition" for group in arguments.get("groups", [])
+                       )))
         if cross_layer:
             if self.observations.composition_grounding_status(current_revision=self.backend.mutation_revision) == "grounded":
                 metrics.record_cross_layer_read_attempt()

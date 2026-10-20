@@ -15,6 +15,7 @@ from ..verification_policy import (
 )
 
 ALLOWED_DOMAIN_READ_TOOLS = (
+    "enable_creator_tools",
     *ALLOWED_MINIMAL_TOOLS,
     *DOMAIN_READ_TOOL_NAMES,
     *RECOVERY_READ_TOOL_NAMES,
@@ -23,6 +24,7 @@ ALLOWED_DOMAIN_READ_TOOLS = (
 )
 _ALLOWED_DOMAIN_READ_TOOL_SET = frozenset(ALLOWED_DOMAIN_READ_TOOLS)
 DOMAIN_WRITE_TOOL_NAMES = (
+    "enable_creator_tools",
     "apply_agent_ui_integration",
     "prepare_agent_ui_integration_asset",
     *DOMAIN_READ_TOOL_NAMES,

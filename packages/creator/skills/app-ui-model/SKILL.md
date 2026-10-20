@@ -2,7 +2,7 @@
 name: app-ui-model
 description: Load for low-level AppUIModel composition changes, including custom add, remove, hide, move, resize, placement, Layout, or nested Plugin Slot changes. The Host-owned insert_plugin_default semantic fast path does not require this Skill.
 compatibility: Agent UI Plugin Creator authoring model.
-allowed-tools: read_file ls glob grep inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin inspect_agent_ui_sources mutate_app_ui_model purge_ui_plugin ask_user_question
+allowed-tools: enable_creator_tools read_file ls glob grep inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin inspect_agent_ui_sources mutate_app_ui_model purge_ui_plugin ask_user_question
 ---
 
 # AppUIModel Composition Manual

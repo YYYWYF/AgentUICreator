@@ -52,6 +52,30 @@ function model(surfaceId = "surface-main"): AppUIModel {
 }
 
 describe("compileAppUIModel", () => {
+  it("exposes typed composition issues across the Operator boundary", () => {
+    const source = model();
+    if (source.root.type !== "slot") throw new Error("Expected Slot root.");
+    source.root.plugins[0]!.slots!.undeclared = [];
+    try {
+      compileAppUIModel(source, catalog);
+      throw new Error("Expected an undeclared Slot error");
+    } catch (error) {
+      expect(error).toBeInstanceOf(AppUICompilerError);
+      expect(error).toMatchObject({
+        code: "APP_UI_MODEL_COMPOSITION_INVALID",
+        details: {
+          issues: [expect.objectContaining({
+            code: "plugin-slot-not-declared",
+            pluginId: "surface",
+            instanceId: "surface-main",
+            slot: "undeclared",
+            path: "root.plugins[0].slots.undeclared",
+          })],
+        },
+      });
+    }
+  });
+
   it("preserves Row tracks without deriving a Panel width", () => {
     const source: AppUIModel = { root: {
       type: "row", sizes: ["minmax(0, 1fr)"],

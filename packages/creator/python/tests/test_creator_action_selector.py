@@ -40,6 +40,51 @@ def test_task_intent_is_independent_of_route_and_conflicts_get_one_repair():
     assert selector.metrics.rawVisibleChoice == "MODIFY GENERAL"
 
 
+def test_request_router_does_not_send_supplied_catalog_or_plugin_semantics():
+    model = StaticChatModel(["MODIFY GENERAL"])
+    selector = CreatorActionSelector(model=model, catalog_selection=False)
+    context = _unified_context()
+    result = asyncio.run(selector.select("把会话插件移动到右侧", context))
+    assert result.decision == "general_change"
+    assert selector.metrics.candidateCount == 0
+    assert selector.metrics.contextCharacters == 2  # empty JSON object
+    payload = json.loads(model.messages[0][1].content)
+    assert payload == {"userMessage": "把会话插件移动到右侧"}
+    assert len(model.messages[0][0].content) < 4000
+    assert selector.protocol == "request-route-text-v1"
+
+
+@pytest.mark.parametrize("invalid", [
+    "MODIFY SELECT A1", "MODIFY CLARIFY 你想修改哪个插件？", "READ_ONLY GENERAL",
+    "READ_ONLY_EXPLICIT GENERAL REMOVAL_UNCERTAIN",
+])
+def test_request_router_repairs_without_offering_catalog_choices(invalid):
+    model = StaticChatModel([invalid, "READ_ONLY_EXPLICIT INSPECT"])
+    selector = CreatorActionSelector(model=model, catalog_selection=False)
+    result = asyncio.run(selector.select("先看看工程，不要修改", _unified_context(),
+        route_review_context="The execution agent suggests editing source."))
+    assert result.explicitReadOnly
+    assert result.decision == "read_only_analysis"
+    assert selector.metrics.repairCalls == 1
+    payload = json.loads(model.messages[1][1].content)
+    assert "choices" not in payload
+    assert "Valid choices" not in payload["hostValidationFeedback"]
+
+
+def test_request_router_preserves_thread_clarification_without_catalog():
+    model = StaticChatModel(["MODIFY GENERAL HIDE"])
+    selector = CreatorActionSelector(model=model, catalog_selection=False)
+    clarification = {"previousUserRequest": "去掉历史记录", "clarificationQuestion": "隐藏还是删除？"}
+    recent = [{"role": "user", "content": "保留源码"}]
+    result = asyncio.run(selector.select("隐藏就好", _unified_context(),
+        clarification_context=clarification, recent_conversation=recent))
+    assert result.removalIntent == "hide"
+    payload = json.loads(model.messages[0][1].content)
+    assert payload["recentClarification"] == clarification
+    assert payload["recentConversation"] == recent
+    assert "pluginSemantics" not in payload
+
+
 def test_read_only_intent_cannot_select_write_route():
     model = StaticChatModel(["READ_ONLY GENERAL", "READ_ONLY INSPECT"])
     selector = CreatorActionSelector(model=model)
@@ -773,7 +818,7 @@ def test_empty_length_response_fails_without_semantic_repair():
             "token_usage": {"prompt_tokens": 1500, "completion_tokens": 130, "total_tokens": 1630},
         },
     )])
-    selector = CreatorActionSelector(model=model)
+    selector = CreatorActionSelector(model=model, selector_settings=CreatorSelectorModelSettings(recovery_max_tokens=512))
 
     with pytest.raises(CreatorActionSelectionError) as raised:
         asyncio.run(selector.select("我不想要会话管理", _context()))
@@ -1086,3 +1131,64 @@ def test_selector_context_retains_all_semantics_without_wrapper_duplication():
         if candidate.description != expected.get('description'):
             assert actual['catalogDescription'] == candidate.description
     assert compact['pluginSemantics'] == [item.model_dump(mode='json', exclude_none=True) for item in context.pluginSemantics]
+
+
+@pytest.mark.parametrize('truncated', ['', 'MODIFY GEN'])
+def test_truncated_choice_uses_one_budget_retry_with_identical_prompt(truncated):
+    class BudgetModel(CopyingChatModel):
+        async def ainvoke(self, messages):
+            self.budgets = [*getattr(self, 'budgets', []), self.copy_update['max_tokens']]
+            return await super().ainvoke(messages)
+    model = BudgetModel([AIMessage(content=truncated, response_metadata={'finish_reason':'length'}), 'MODIFY GENERAL'])
+    selector = CreatorActionSelector(model=model, catalog_selection=False)
+    result = asyncio.run(selector.select('先展示接管计划，确认前不写入', _context()))
+    assert result.decision == 'general_change'
+    assert model.budgets == [512, 2048]
+    assert model.messages[0] == model.messages[1]
+    assert selector.metrics.outputBudgetRetries == 1
+    assert selector.metrics.repairCalls == 1
+    assert selector.metrics.modelCalls == 2
+
+
+@pytest.mark.parametrize('second', [
+    AIMessage(content='', response_metadata={'finish_reason':'length'}),
+    AIMessage(content='arbitrary invalid output'),
+])
+def test_budget_recovery_cannot_add_a_third_selector_call(second):
+    selector = CreatorActionSelector(model=StaticChatModel([
+        AIMessage(content='', response_metadata={'finish_reason':'length'}), second,
+    ]))
+    with pytest.raises(CreatorActionSelectionError):
+        asyncio.run(selector.select('修改布局', _context()))
+    assert selector.metrics.modelCalls == 2
+    assert selector.metrics.repairCalls == 1
+    assert selector.metrics.outputBudgetRetries == 1
+
+
+def test_semantic_repair_and_budget_recovery_share_the_existing_single_retry():
+    selector = CreatorActionSelector(model=StaticChatModel([
+        'bad', AIMessage(content='', response_metadata={'finish_reason':'length'}),
+    ]))
+    with pytest.raises(CreatorActionSelectionError):
+        asyncio.run(selector.select('修改布局', _context()))
+    assert selector.metrics.modelCalls == 2
+    assert selector.metrics.outputBudgetRetries == 0
+
+
+def test_configured_recovery_budget_is_used_after_fresh_transport_client():
+    model = CopyingChatModel(['MODIFY GENERAL'])
+    selector = CreatorActionSelector(model=model, recovery_factory=lambda:model,
+        selector_settings=CreatorSelectorModelSettings(max_tokens=256,recovery_max_tokens=1024))
+    selector.requested_max_tokens = 1024
+    asyncio.run(selector._recover_invocation_model())
+    assert model.copy_update['max_tokens'] == 1024
+
+
+def test_cancellation_during_budget_recovery_propagates_without_another_retry():
+    selector = CreatorActionSelector(model=StaticChatModel([
+        AIMessage(content='',response_metadata={'finish_reason':'length'}),asyncio.CancelledError(),
+    ]))
+    with pytest.raises(asyncio.CancelledError):
+        asyncio.run(selector.select('修改布局',_context()))
+    assert selector.metrics.modelCalls == 2
+    assert selector.metrics.outputBudgetRetries == 1

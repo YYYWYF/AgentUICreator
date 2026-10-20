@@ -1,0 +1,29 @@
+{
+  "pid": 78186,
+  "sessions": [
+    {
+      "label": "A",
+      "mode": "platform",
+      "projectRoot": "/Users/yifei/Coding/AgentUICreator/docs/verification/creator-round-robin-2026-10-18/projects/A-platform",
+      "creatorUrl": "http://127.0.0.1:56305/",
+      "hostUrl": "http://127.0.0.1:56306/",
+      "workspaceId": "697bead1ff3737c0c64cd222d454b513443176ff027566a7e188d4e0ee42b982"
+    },
+    {
+      "label": "B",
+      "mode": "assistant",
+      "projectRoot": "/Users/yifei/Coding/AgentUICreator/docs/verification/creator-round-robin-2026-10-18/projects/B-assistant",
+      "creatorUrl": "http://127.0.0.1:56315/",
+      "hostUrl": "http://127.0.0.1:56316/",
+      "workspaceId": "ed218fa3a38b341d45d4e431a4f7a2f9793a4475a9a561a1c7a09a038b8511b6"
+    },
+    {
+      "label": "C",
+      "mode": "embedded",
+      "projectRoot": "/Users/yifei/Coding/AgentUICreator/docs/verification/creator-round-robin-2026-10-18/projects/C-embedded",
+      "creatorUrl": "http://127.0.0.1:56437/",
+      "hostUrl": "http://127.0.0.1:56439/",
+      "workspaceId": "8e76a496223f66bb2458e64bd2fdf119ed19f0cbd9c7915742a4dfc97730b3f5"
+    }
+  ]
+}

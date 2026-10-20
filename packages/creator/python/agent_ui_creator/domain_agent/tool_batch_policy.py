@@ -15,7 +15,8 @@ MAX_READ_BATCH_SIZE = 4
 BATCH_POLICY_REPAIR_PROMPT = """Your previous tool batch violates the Creator domain execution policy.
 Read-only tools may be batched together, up to four independent calls with distinct
 tool name + arguments. Request only necessary reads whose arguments are already known.
-A side-effecting tool must be the only tool call in the response.
+A side-effecting tool, user question or enable_creator_tools must be the only
+tool call in the response. Expansion takes effect on the next model call.
 Re-issue only the next valid action using the structured tool interface."""
 
 
@@ -25,7 +26,7 @@ def is_valid_domain_tool_batch(response: ModelResponse) -> bool:
         None,
     )
     calls = [] if message is None else message.tool_calls
-    if any(call["name"] == "ask_user_question" for call in calls):
+    if any(call["name"] in {"ask_user_question", "enable_creator_tools"} for call in calls):
         return len(calls) == 1
     if len(calls) <= 1:
         return True
@@ -71,7 +72,9 @@ class DomainToolBatchPolicyMiddleware(AgentMiddleware):
         # and would leave unmatched tool call ids in provider history.
         message = next((item for item in reversed(rejected.result) if isinstance(item, AIMessage)), None)
         calls = message.tool_calls if message is not None else []
-        if any(call["name"] not in READ_ONLY_TOOL_NAMES for call in calls):
+        if any(call["name"] == "enable_creator_tools" for call in calls):
+            reason = "tool_discovery_requires_single_call"
+        elif any(call["name"] not in READ_ONLY_TOOL_NAMES for call in calls):
             reason = "side_effect_requires_single_call"
         elif len(calls) > MAX_READ_BATCH_SIZE:
             reason = "read_batch_too_large"

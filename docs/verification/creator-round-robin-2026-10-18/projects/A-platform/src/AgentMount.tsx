@@ -1,0 +1,1 @@
+import {Agent} from "./agent-ui"; export function AgentMount(){return <Agent locale="zh-CN"/>;}

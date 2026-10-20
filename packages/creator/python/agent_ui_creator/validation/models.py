@@ -21,6 +21,7 @@ class CommandExecutionResult:
     output: str
     exit_code: int | None
     truncated: bool
+    failure_kind: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -33,6 +34,7 @@ class CreatorValidationCheck:
     truncated: bool
     revision: int
     source: Literal["cached", "executed"]
+    failure_kind: str | None = None
 
     def to_dict(self) -> dict[str, object]:
         return {

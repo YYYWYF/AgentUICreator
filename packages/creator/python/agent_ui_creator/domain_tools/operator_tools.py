@@ -10,8 +10,8 @@ from typing import Annotated, Any, Literal
 from langchain_core.tools import BaseTool, tool
 from pydantic import Field, Json
 from langgraph.types import interrupt
-from ..human_input.models import QuestionRequest, QuestionAnswers
-from ..human_input.plugin_source_messages import MESSAGES as SOURCE_OWNERSHIP_MESSAGES
+from ..human_input.models import QuestionAnswers
+from ..human_input.source_takeover import SourceTakeoverConfirmation, takeover_question
 
 from .capabilities import capability_evidence, capability_navigation, capability_summary
 from ..responsive_repair import build_repair_plan, responsive_risks
@@ -67,7 +67,7 @@ def _inspection_navigation(result: dict[str, Any]) -> dict[str, Any]:
     return {"filesystem": {"root": "/", "sourceRoot": "/" + result.get("sourceRoot", "").strip("/")},
             "applicationOwners": owners,
             "sourceDiscovery": "inspect_agent_ui_sources",
-            "searchSyntax": "grep is literal, not regex; use one keyword. glob supports recursive ** and {css,scss} alternatives.",
+            "searchSyntax": "grep prefers literal matches, then bounded regex fallback. glob supports recursive ** and {css,scss} alternatives.",
             "coverage": "Navigation only. Read all inspection pages for complete Composition facts."}
 
 
@@ -150,9 +150,9 @@ def _compact_composition_facts(result: dict[str, Any]) -> dict[str, Any]:
 def _composition_navigation(result: dict[str, Any]) -> dict[str, Any]:
     """Keep the facts needed for a composition decision without catalog duplication.
 
-    The Selector already receives the complete Action and Authoring Target
-    catalogs from Operator. Their revision/count remain visible here;
-    exact source and service details have dedicated inspection tools.
+    The Host retains the complete catalogs. Ordinary request routing does not
+    receive them. Their revision/count remain visible here; exact source and
+    service details have dedicated inspection tools.
     """
     if not {"creatorActions", "authoringTargetCatalog", "capabilitySummaries", "observationCoverage"}.issubset(result):
         return result
@@ -171,8 +171,8 @@ def _composition_navigation(result: dict[str, Any]) -> dict[str, Any]:
             for summary in result["capabilitySummaries"]
         ],
         "catalogNavigation": {
-            "creatorActions": {"revision": actions["revision"], "count": len(actions["candidates"]), "detailsIn": "Selector"},
-            "authoringTargets": {"revision": targets["revision"], "count": len(targets["candidates"]), "detailsIn": "Selector"},
+            "creatorActions": {"revision": actions["revision"], "count": len(actions["candidates"]), "operationsVia": "mutate_app_ui_model"},
+            "authoringTargets": {"revision": targets["revision"], "count": len(targets["candidates"]), "inspectVia": "inspect_ui_plugin"},
         },
         "sourceDiscovery": {
             "availableVia": "inspect_agent_ui_sources",
@@ -193,7 +193,7 @@ def _project_navigation(result: dict[str, Any]) -> dict[str, Any]:
         "authoringTargetNavigation": {
             "revision": targets["revision"],
             "count": len(targets["candidates"]),
-            "detailsIn": "Selector",
+            "inspectVia": "inspect_ui_plugin",
         },
         "sourceDiscovery": {"availableVia": "inspect_agent_ui_sources"},
     }
@@ -207,6 +207,9 @@ def _source_inventory(result: dict[str, Any]) -> dict[str, Any]:
         **{key: value for key, value in result.items() if key != "items"},
         "sourceInstallNavigation": {
             "tool": "apply_agent_ui_source_item",
+            "statusScope": "source_item_installation_only",
+            "pathConflictAuthorizesApplicationDeletion": False,
+            "pluginTakeoverFactsVia": "inspect_ui_plugin_source_references",
             "itemIdFrom": "items[].id",
             "expectedStateHashFrom": "stateHash",
             "filesystemSourceRoot": "/" + source_root.strip("/") if isinstance(source_root, str) else None,
@@ -287,6 +290,7 @@ def _render_project_inspection(
     *,
     state: _ProjectInspectionPages | None,
     revision: int,
+    incomplete_metadata: dict[str, Any] | None = None,
 ) -> tuple[str, bool, _ProjectInspectionPages | None]:
     """Deliver only contiguous pages from one run-scoped snapshot and view."""
     complete = _render_json({"ok": True, "result": result})
@@ -332,7 +336,8 @@ def _render_project_inspection(
     assert state is not None
     end = min(offset + PROJECT_INSPECTION_PAGE_CHARS, len(complete))
     def render_page(end: int) -> str:
-        return _render_json({"ok": True, "result": {
+        return _render_json({"ok": True,
+            **((incomplete_metadata or {}) if end < len(complete) else {}), "result": {
             **({"navigation": result["navigation"]} if offset == 0 and isinstance(result, dict) and "navigation" in result else {}),
             "pageComplete": end == len(complete),
             "snapshotHash": snapshot_hash,
@@ -581,6 +586,8 @@ def create_operator_tools(
                 result, cursor,
                 state=paging_states.get(view_key),
                 revision=current_revision,
+                incomplete_metadata={"appUIModelObservation": observations.app_ui_model_readiness(
+                    current_revision=current_revision)} if observations is not None else None,
             )
             if state is None:
                 paging_states.pop(view_key, None)
@@ -738,6 +745,12 @@ def create_operator_tools(
             application = result.get("application")
             if isinstance(application, dict):
                 application = dict(application)
+                application["sourceTakeoverPlanning"] = {
+                    "tool": "inspect_ui_plugin_source_references",
+                    "arguments": {"pluginId": pluginId},
+                    "readOnly": True,
+                    "sourceItemInstallStatusDeterminesTakeoverAvailability": False,
+                }
                 for section in ("publicApi", "sharedTypes"):
                     if isinstance(application.get(section), dict):
                         application[section] = compact(application[section], section)
@@ -833,9 +846,45 @@ def create_operator_tools(
         if prohibited is not None:
             return prohibited
         try:
-            return _render_result(
-                await client.inspect_ui_plugin_source_references(pluginId)
-            )
+            result = await client.inspect_ui_plugin_source_references(pluginId)
+            planner = getattr(client, "plan_plugin_source_takeover", None)
+            if not callable(planner):
+                takeover = {"status": "not_planned", "reason": "OPERATOR_PLANNING_UNAVAILABLE"}
+            else:
+                try:
+                    plan = await planner(pluginId)
+                    if (not isinstance(plan, dict) or plan.get("pluginId") != pluginId
+                            or not isinstance(plan.get("planHash"), str)
+                            or re.fullmatch(r"[0-9a-f]{64}", plan["planHash"]) is None):
+                        raise OperatorError("OPERATOR_PROTOCOL_INCOMPATIBLE", "Invalid source takeover plan identity.")
+                    takeover = {
+                        "status": "planned", "readOnly": True, "plan": plan,
+                        "applicationLayer": {
+                            "deleteBeforeTakeover": False,
+                            "preservePropsCompositionAndIdentity": True,
+                            "operatorManagedImportChanges": plan.get("applicationChanges", []),
+                        },
+                        "sourceItemInstallation": {"requiredBeforeTakeover": False,
+                            "conflictStatusDeterminesTakeoverAvailability": False},
+                        "execution": {"tool": "takeover_plugin_source",
+                            "permission": "domain_write", "freshPlanRequired": True,
+                            "nativeUserConfirmationRequired": True,
+                            "inspectionGrantsApproval": False},
+                        "readOnlyHandoff": {"approvalExecutor": "host_scoped_plugin_transaction",
+                            "agentPermissionAfterApproval": "inspect_read_only", "routeUpgradeRequired": False,
+                            "replanAndHashCheckRequired": True},
+                        "confirmationRequest": {"tool": "ask_user_question", "arguments": takeover_question(pluginId, plan["planHash"]).model_dump(mode="json", exclude_none=True)},
+                    }
+                except OperatorError as error:
+                    takeover = {"status": "not_planned", "error": {
+                        "code": error.code, "message": str(error),
+                        **({"details": error.details} if error.details is not None else {}),
+                    }}
+            rendered = _render_result({**result, "sourceTakeover": takeover})
+            if observations is not None and takeover.get("status") == "planned" and json.loads(rendered).get("ok") is True:
+                binding = SourceTakeoverConfirmation.from_plan(takeover["plan"])
+                observations.source_takeover_confirmations[binding.plan_hash] = binding
+            return rendered
         except OperatorError as error:
             return _render_error(error)
 
@@ -985,18 +1034,8 @@ def create_operator_tools(
         """Request project ownership of an npm Plugin when public configuration/Slots cannot meet the request. This tool prepares an exact installed-version plan and ALWAYS interrupts for explicit user consent before extracting source and switching the registry. IDs/config/Slots are preserved. No approval argument exists. Run alone; after success prioritize local adapters and never edit upstream or shared Runtime. Already source-owned Plugins can be edited without another takeover."""
         try:
             plan = await client.plan_plugin_source_takeover(pluginId)
-            messages = SOURCE_OWNERSHIP_MESSAGES[locale]
-            # Graph replay re-plans read-only. If state changed, the old answer's
-            # step ID cannot validate against this new hash; no mutation follows.
             step_id = "plugin-source-" + plan["planHash"]
-            request = QuestionRequest.model_validate({"steps": [{
-                "id": step_id,
-                "question": messages["question"].format(plugin_id=pluginId),
-                "description": messages["description"],
-                "options": [{"id": "approve", "label": messages["approve"]},
-                            {"id": "decline", "label": messages["decline"]}],
-                "selectionMode": "single", "minSelections": 1, "maxSelections": 1,
-            }]})
+            request = takeover_question(pluginId, plan["planHash"], locale)
             resumed = interrupt({"kind": "ask_user_question", **request.model_dump(mode="json", exclude_none=True)})
             answers = QuestionAnswers.model_validate(resumed).validate_for(request)
             if answers.answers[step_id] != ["approve"]:

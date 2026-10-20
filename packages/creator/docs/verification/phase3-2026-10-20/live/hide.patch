@@ -1,0 +1,11 @@
+--- a/src/agent-ui/app-ui/app-ui.json
++++ b/src/agent-ui/app-ui/app-ui.json
+@@ -91,7 +91,7 @@
+                           {
+                             "id": "dictation-action-main",
+                             "pluginId": "dictation-action",
+-                            "enabled": true
++                            "enabled": false
+                           }
+                         ],
+                         "submitAction": [

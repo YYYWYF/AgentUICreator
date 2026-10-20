@@ -1,0 +1,53 @@
+{
+  "appUIModelHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "asset": {
+    "pluginId": "fixture",
+    "name": "fixture",
+    "description": "fixture",
+    "directory": "fixture",
+    "manifestPath": "fixture",
+    "definitionPath": "fixture",
+    "capabilities": [],
+    "selected": false
+  },
+  "selected": false,
+  "instances": [],
+  "manifest": {},
+  "definitionSource": {
+    "content": "fixture",
+    "truncated": false,
+    "characters": 0
+  },
+  "services": {
+    "provides": [],
+    "required": [],
+    "optional": []
+  },
+  "files": [],
+  "filesTruncated": false,
+  "application": {
+    "entryPath": "src/plugins/fixture/index.tsx",
+    "implementationOwnership": "npm",
+    "implementationImport": "@za38.03/agent-ui-plugins/fixture",
+    "entryHash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "editable": "Project-owned application",
+    "implementationBoundary": "npm implementation requires takeover consent",
+    "publicApi": {
+      "status": "unavailable",
+      "interpretation": "Missing types are not proof of missing capability",
+      "reason": "Fixture has no installed types"
+    },
+    "usageGuide": {
+      "entryPath": "src/plugins/fixture/index.tsx",
+      "implementationImport": "@za38.03/agent-ui-plugins/fixture",
+      "currentExample": {
+        "language": "tsx",
+        "source": "export const Example = () => null;",
+        "truncated": "false"
+      },
+      "interpretation": "Navigation only; read before editing",
+      "customization": "Use public application props and composition",
+      "preservation": "Preserve Runtime and semantic Slots"
+    }
+  }
+}

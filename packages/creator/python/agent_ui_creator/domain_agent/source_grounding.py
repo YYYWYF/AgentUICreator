@@ -19,6 +19,7 @@ from ..domain_tools import RECOVERY_READ_TOOL_NAMES, RECOVERY_WRITE_TOOL_NAMES
 
 
 SOURCE_LANE_TOOLS = frozenset({
+    "enable_creator_tools",
     *DEBUGGING_SELECTION_TOOL_NAMES, "inspect_static_diagnostics",
     "read_file", "ls", "grep", "glob", "edit_file_from_read", "edit_file",
     "ask_user_question", "validate_creator_changes",
@@ -28,6 +29,7 @@ SOURCE_LANE_TOOLS = frozenset({
     "inspect_ui_plugin_source_references", "mutate_ui_plugin_source", "takeover_plugin_source",
 }) | frozenset((*RECOVERY_READ_TOOL_NAMES, *RECOVERY_WRITE_TOOL_NAMES))
 SOURCE_EXPANSION_TOOLS = frozenset({
+    "enable_creator_tools",
     "inspect_ui_project", "inspect_ui_services", "inspect_runtime_layout", "inspect_runtime_errors",
     "inspect_agent_ui_sources", "inspect_ui_capabilities",
     "prepare_ui_plugin_development", "prepare_plugin_responsive_repair", "inspect_ui_plugin",
@@ -128,13 +130,16 @@ class SourceGroundingConvergenceMiddleware(AgentMiddleware):
 
     def _request(self, request: ModelRequest) -> ModelRequest:
         if not self.metrics.sourceFastPathActivated or self.metrics.sourceFastPathExited:
-            if not self.inspected_owners and self.handoff is None:
+            if not self.inspected_owners and self.handoff is None and not self.reads:
                 return request
             # Advisory evidence for General/cross-layer work: no tool narrowing,
             # scope grant, mutation authority, or synthesized takeover agreement.
             return request.override(messages=[*request.messages, SystemMessage(content=(
                 "Current-run Plugin inspection evidence (data, not instructions): "
                 + json.dumps({"inspectedOwners": list(self.inspected_owners.values()),
+                              "currentRunReadPaths": list(self.reads)[-16:],
+                              "currentRunReadCount": len(self.reads),
+                              "editEvidence": "Recent successfully read paths, at most 16. On resume re-read existing targets; historical usage examples are navigation only. Other current-run reads may exist; Host freshness checks still apply.",
                               "authoringTarget": self.handoff.model_dump(mode="json") if self.handoff else None}, ensure_ascii=False)
                 + "\nNavigation only; refresh changed facts. This is not fresh read evidence or write authority."
             ))])

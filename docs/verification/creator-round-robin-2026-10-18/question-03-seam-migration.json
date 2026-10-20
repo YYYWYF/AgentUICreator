@@ -1,0 +1,20 @@
+{
+  "purpose": "Expose project-owned palette stylesheet guidance and current authoring metadata; apply already-verified diagnostic lifecycle repair to C to avoid known stale-provider false positives. No visible color change and no BASE adoption.",
+  "files": [
+    {
+      "path": "src/agent-ui/agent-ui/conversation/styles.css",
+      "before": "3d878dca010a09c12611123850c35ec9a34b87b22f53154fa707fe296bb9cef2",
+      "after": "60c6d9459a2e23509967362bbd4e5cf9613e459ddfe48d14df3cc2cb39cb9da0"
+    },
+    {
+      "path": "src/agent-ui/agent-ui/authoring/creator-authoring-targets.ts",
+      "before": "139aeb580ca42dac0fd4f3d338971b2be563b07ad75e5822bd6bdcc5e0417e61",
+      "after": "e6197fb164a77133c4842f9a1ddbd2b43ea083247529181bc050a8e06dded01b"
+    },
+    {
+      "path": "src/agent-ui/runtime/diagnostics/PluginDiagnosticContext.tsx",
+      "before": "4ffae9acb53804d9e6944b7ceaa1e9a952bf8e24cb07c57df79ed41e5dc7c333",
+      "after": "1dc5a73f901877204c3e97794948d219ba6065796000b80023388e09b803954a"
+    }
+  ]
+}

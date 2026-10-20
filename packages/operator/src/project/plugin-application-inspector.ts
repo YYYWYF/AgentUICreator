@@ -13,10 +13,19 @@ export async function inspectPluginApplication(projectRoot: string, asset: Pick<
   const entry = path.resolve(projectRoot, asset.application.entryPath);
   await assertNoSymbolicLinkTraversal(projectRoot, asset.application.entryPath);
   const source = await readFile(entry, "utf8");
+  const exampleSource = Array.from(source).slice(0, 4000).join("");
   const navigation = {
     ...asset.application,
     ...(sharedSymbols.length ? { sharedTypes: await inspectPluginSharedTypes(projectRoot, sharedSymbols, sharedModule) } : {}),
     entryHash: createHash("sha256").update(source).digest("hex"),
+    usageGuide: {
+      entryPath: asset.application.entryPath,
+      implementationImport: asset.application.implementationImport,
+      currentExample: { language: "tsx", source: exampleSource, truncated: exampleSource.length < source.length },
+      interpretation: "Current project application usage, not an official default or proof of runtime behavior. Read the entry before editing; this excerpt does not establish Creator file-read evidence.",
+      customization: "Edit this application's props, children, composition, renderers and scoped styles first. AppUIModel only owns layout, instance identity, enablement and semantic Slots; never put component props in app-ui.json.",
+      preservation: "Keep existing scope bridges, Service bindings, semantic Slots, approval/interrupt renderers and localization. Implementation takeover needs its own installed-version plan and explicit consent; public application edits do not.",
+    },
     editable: "Project application props, children, composition and renderers; no takeover consent required.",
     implementationBoundary: asset.application.implementationOwnership === "npm"
       ? "npm implementation is read-only until explicit takeover; application metadata is not takeover authorization."
@@ -72,7 +81,14 @@ export async function inspectPluginApplication(projectRoot: string, asset: Pick<
         if (size <= remaining) { remaining -= size; return property; }
         return { name: property.name, detailsOmitted: true };
       });
-      return { ...navigation, publicApi: {
+      return { ...navigation, usageGuide: {
+        ...navigation.usageGuide,
+        package: { name: pkg.name, version: pkg.version }, component,
+        customizationProps: publicProps.filter(property => !("runtimeManaged" in property && property.runtimeManaged)).map(property => property.name),
+        runtimeManagedProps: publicProps.filter(property => "runtimeManaged" in property && property.runtimeManaged).map(property => property.name),
+        completePropNames: properties.length <= 64,
+        ...(applicationContract?.composition ? { compositionContract: applicationContract.composition } : {}),
+      }, publicApi: {
         status: "available", component, ...(applicationContract?.composition ? { compositionContract: applicationContract.composition } : {}), publicModuleQueries: { defaultModule: "@za38.03/agent-ui-plugins/plugin-support", presentationModule: "@za38.03/agent-ui-plugins", note: "Use sharedModule with an installed declared public module and sharedSymbols for its exact export/member/parameter types. No implementation access or takeover authority." }, package: { name: pkg.name, version: pkg.version },
         source: "Current application component types resolved through the target project's installed declarations",
         evidenceBoundary: "Component props only. Plugin setup, registered commands and Service bindings are described by the returned definitionSource and services, not by these props. Few props do not imply missing behavior. Neither types nor enablement prove visual visibility or successful interaction.",

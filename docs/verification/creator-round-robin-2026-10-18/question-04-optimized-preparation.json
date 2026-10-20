@@ -1,0 +1,137 @@
+{
+  "purpose": "Restore previous pre-test reasoning display, outside measured run",
+  "result": {
+    "ok": true,
+    "result": {
+      "transactionId": "4b6ad4ca-0f77-484f-8a24-ce8f1c3ca5a2",
+      "changed": true,
+      "changedPaths": [
+        "src/agent-ui/app-ui/app-ui.json"
+      ],
+      "mutationFootprint": {
+        "appUIModel": true,
+        "pluginConfig": false,
+        "generatedRegistry": true,
+        "sourceFiles": false,
+        "runtimeFiles": false,
+        "dependencies": false,
+        "workspaceInfrastructure": false
+      },
+      "appUIModel": {
+        "beforeHash": "762158044fd3e1f8ffda942309a48d10bdb392ea53a8f76cfeb9f72bae385942",
+        "afterHash": "17ee4649f8e86b2d1a806e0c4dde1208a0cc88d05e27cbef5b0c2e461b7b88bf"
+      },
+      "diff": {
+        "plugins": {
+          "added": [],
+          "removed": [],
+          "updated": [
+            "agent-conversation-surface-main",
+            "reasoning-main"
+          ]
+        },
+        "layoutNodes": {
+          "added": [],
+          "removed": [],
+          "updated": [
+            "l0",
+            "l3",
+            "l4",
+            "l5"
+          ]
+        },
+        "slots": {
+          "added": [],
+          "removed": [],
+          "updated": [
+            "l5"
+          ]
+        },
+        "capabilityCatalog": {
+          "changed": false,
+          "addedPluginIds": [],
+          "removedPluginIds": []
+        }
+      },
+      "activeComposition": {
+        "selectedPluginIds": [
+          "add-attachment-action",
+          "agent-identity",
+          "composer",
+          "conversation-command-source",
+          "conversation-data-source",
+          "conversation-quote",
+          "conversation-service",
+          "conversation-suggestions",
+          "conversation-surface",
+          "conversation-thread-list",
+          "copy-action",
+          "dictation-action",
+          "export-markdown-action",
+          "feedback-actions",
+          "lexical-composer-input",
+          "lexical-edit-composer",
+          "locale-provider",
+          "mention-trigger",
+          "reasoning",
+          "reload-action",
+          "response-footer",
+          "slash-command-trigger",
+          "submit-action",
+          "task-group",
+          "theme-provider",
+          "thinking-indicator",
+          "tool-fallback",
+          "tool-group",
+          "tool-timeline",
+          "transient-assistant-messages"
+        ],
+        "resolvedPluginIds": [
+          "add-attachment-action",
+          "agent-identity",
+          "composer",
+          "conversation-command-source",
+          "conversation-data-source",
+          "conversation-quote",
+          "conversation-service",
+          "conversation-suggestions",
+          "conversation-surface",
+          "conversation-thread-list",
+          "copy-action",
+          "dictation-action",
+          "export-markdown-action",
+          "feedback-actions",
+          "lexical-composer-input",
+          "lexical-edit-composer",
+          "locale-provider",
+          "mention-trigger",
+          "reasoning",
+          "reload-action",
+          "response-footer",
+          "slash-command-trigger",
+          "submit-action",
+          "task-group",
+          "theme-provider",
+          "thinking-indicator",
+          "tool-fallback",
+          "tool-group",
+          "tool-timeline",
+          "transient-assistant-messages"
+        ],
+        "headlessPluginIds": [
+          "conversation-command-source",
+          "conversation-data-source",
+          "conversation-service",
+          "locale-provider",
+          "theme-provider"
+        ]
+      },
+      "warnings": [],
+      "snapshotToken": {
+        "appUIModelHash": "17ee4649f8e86b2d1a806e0c4dde1208a0cc88d05e27cbef5b0c2e461b7b88bf",
+        "capabilityCatalogSourceHash": "7e171ac3bc40ee671c53ce2277b52724e259fd7e2c2b76a06c6ea61d5264dbc9",
+        "capabilityCatalogRevision": "658ae0f3b1f34d49f9583c76036c132a316a224ae320dcf6de2ca8ecb6d6a454"
+      }
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "runId": "c3a0d306-0d08-4683-95cd-01ac7d8c1395",
+  "threadId": "8f555bd8-1822-4fb6-9ac4-0f42e95bbcc9",
+  "startedAt": "2026-10-18T09:34:24.211Z",
+  "finishedAt": "2026-10-18T09:35:26.823Z",
+  "wallSeconds": 62.612,
+  "modelToolCalls": 9,
+  "successfulToolObservations": 6,
+  "modelCalls": 5,
+  "protocolDiagnostics": [
+    {
+      "kind": "tool_argument_validation_failure",
+      "modelCallSequence": 4,
+      "toolName": "inspect_ui_plugin",
+      "argumentKeys": [
+        "pluginId",
+        "sharedSymbols"
+      ],
+      "argumentTypes": {
+        "pluginId": "string",
+        "sharedSymbols": "string"
+      },
+      "errorPath": [
+        "sharedSymbols"
+      ],
+      "errorType": "list_type"
+    },
+    {
+      "kind": "tool_argument_validation_failure",
+      "modelCallSequence": 5,
+      "toolName": "inspect_ui_plugin",
+      "argumentKeys": [
+        "pluginId",
+        "sharedSymbols"
+      ],
+      "argumentTypes": {
+        "pluginId": "string",
+        "sharedSymbols": "string"
+      },
+      "errorPath": [
+        "sharedSymbols"
+      ],
+      "errorType": "list_type"
+    }
+  ],
+  "sourceGrounding": {
+    "sourceFastPathAttempted": true,
+    "sourceFastPathActivated": true,
+    "sourceFastPathExited": false,
+    "sourceFastPathExitTool": null,
+    "sourceFastPathExitReason": null,
+    "scopedAuthoringTarget": "plugin-source:tool-timeline",
+    "filesystemReadsBeforeFirstSourceWrite": 4,
+    "modelCallsBeforeFirstSourceWrite": null,
+    "directReads": 4,
+    "filesystemSearches": 1,
+    "sourceEditAttempts": 0,
+    "sourceEditSuccesses": 0,
+    "sourceEditRangeAttempts": 0,
+    "sourceEditRangeSuccesses": 0,
+    "replacementNotFoundErrors": 0,
+    "fileChangedSinceReadErrors": 0
+  },
+  "error": "MiMo returned malformed tool intent after one repair attempt.",
+  "filesChanged": [],
+  "sharedTypeQueryExecuted": false,
+  "followup": "Shared symbol list was JSON-encoded as a string twice. Added Json[list[str]] compatibility with two focused passing tests; controlled one retry planned on the same B source baseline."
+}

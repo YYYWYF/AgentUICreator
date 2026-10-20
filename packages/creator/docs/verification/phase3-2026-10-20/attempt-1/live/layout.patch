@@ -1,0 +1,12 @@
+--- a/src/agent-ui/app-ui/app-ui.json
++++ b/src/agent-ui/app-ui/app-ui.json
+@@ -220,7 +220,8 @@
+                 }
+               }
+             ]
+-          }
++          },
++          "maxWidth": 960
+         }
+       ],
+       "gap": 0,

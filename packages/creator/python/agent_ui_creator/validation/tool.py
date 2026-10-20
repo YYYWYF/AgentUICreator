@@ -7,6 +7,7 @@ from langchain_core.tools import BaseTool, tool
 
 from ..operator.errors import OperatorError
 from .service import CreatorValidationService
+from .errors import RegistryIntegrityError
 
 
 def create_validation_tool(service: CreatorValidationService) -> BaseTool:
@@ -16,23 +17,35 @@ def create_validation_tool(service: CreatorValidationService) -> BaseTool:
     async def validate_creator_changes(
         mode: Literal["delta", "clean"] = "delta",
         includeBuild: bool = False,
+        retryInfrastructure: bool = False,
     ) -> str:
-        """Validate current revision completion and regressions. includeBuild=true also runs the target build for new visual Plugins or UI dependency/style integration; a failed or unavailable build is not success. Unrelated pre-existing diagnostics remain workspace warnings. Use inspect_static_diagnostics for explicit static debugging discovery. Delta rejects introduced errors; clean requires zero TypeScript errors and is only for an explicit clean-workspace request. For an explicit existing-error repair, discover and select the requested debuggingTargetId first. Targets persist across revisions and do not authorize writes or expand scope."""
+        """Validate current revision completion and regressions. After environment recovery, retryInfrastructure=true retries transient timeout/start failures once per command/revision; deterministic errors and permission/integrity failures are not retried. includeBuild=true also runs the target build for new visual Plugins or UI dependency/style integration; a failed or unavailable build is not success. Unrelated pre-existing diagnostics remain workspace warnings. Use inspect_static_diagnostics for explicit static debugging discovery. Delta rejects introduced errors; clean requires zero TypeScript errors and is only for an explicit clean-workspace request. For an explicit existing-error repair, discover and select the requested debuggingTargetId first. Targets persist across revisions and do not authorize writes or expand scope."""
+        # retryInfrastructure bypasses both caches only for transient failures,
+        # at most once per command/revision; it never retries source errors.
         nonlocal last_key
         service._synchronize_run_state()
         service.debugging.validation_reads += 1
         previous = service.current_result()
         key = (service.activity.run_id, service.activity.revision, mode, includeBuild)
-        duplicate = previous is not None and previous.status != "stale" and key == last_key
+        eligible_retry = retryInfrastructure and previous is not None and (
+            previous.failure_semantics or {}
+        ).get("retryAllowed") is True
+        duplicate = previous is not None and previous.status != "stale" and key == last_key and not eligible_retry
         try:
             if duplicate:
                 result = previous
+            elif retryInfrastructure:
+                result = await service.validate(mode=mode, include_build=includeBuild, retry_infrastructure=True)
             elif includeBuild:
                 result = await service.validate(mode=mode, include_build=True)
             else:
                 result = await service.validate(mode=mode)
             if mode == "clean":
                 service.debugging.clean_requested = True
+        except RegistryIntegrityError as error:
+            return json.dumps({"ok": False, "error": {
+                "code": error.code, "message": str(error), "details": error.details,
+            }, "failureSemantics": error.failure_semantics}, ensure_ascii=False)
         except ValueError as error:
             return json.dumps({"ok": False, "error": {
                 "code": "DEBUGGING_TARGET_INVALID", "message": str(error),
@@ -84,6 +97,11 @@ def create_validation_tool(service: CreatorValidationService) -> BaseTool:
         ) if differential is not None and differential.current_diagnostics else (
             "Reuse current evidence; do not repeat diagnostics without a revision change."
         )
+        if isinstance(failure, dict) and failure.get("category") == "validation_infrastructure":
+            ordered["debuggingGuidance"] = (
+                "After the environment recovers, call validate_creator_changes with retryInfrastructure=true. "
+                "Only transient failures are retried, once per command/revision. Do not edit source to refresh this evidence."
+            ) if failure.get("retryAllowed") else "Stop and report the validation blocker; no further infrastructure retry is available at this revision."
         ordered.update({
             key: value for key, value in evidence.items()
             if key not in ordered and key != "checks"

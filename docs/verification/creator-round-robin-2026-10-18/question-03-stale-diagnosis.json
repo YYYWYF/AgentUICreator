@@ -1,0 +1,43 @@
+{
+  "cause": "CSS HMR changes styles without a React commit or Plugin/Slot registration change. Previously neither the dev bridge requested a new observation after HMR nor the Runtime collected a fresh snapshot in response to the existing observation request; application observability only replayed cached evidence.",
+  "classification": "Missing post-HMR collection, not a failure to apply styles; stale correctly classified the old evidence.",
+  "previousRun": "435d0a84-eae8-448c-9277-8399bfd54e77",
+  "previousEvidence": {
+    "runtimeStatus": "stale",
+    "compositionChecksPassed": 14,
+    "currentErrors": 0,
+    "cssChangedAndVisible": true,
+    "autoVerificationAttempts": 3
+  },
+  "fix": [
+    "Creator dev host bridge requests observations on vite:afterUpdate, with disposal cleanup.",
+    "Runtime listens to the existing generic Host observation-request seam and collects current registrations/geometry on the next frame. Same-frame requests coalesce; retiring Providers and unmounts remain protected.",
+    "Cached replay timestamps and Python freshness/hash/transaction checks unchanged.",
+    "Runtime verification log adds mutation/observation/receipt timestamps and compositionFresh."
+  ],
+  "focusedValidation": {
+    "rendererSnapshotTests": 8,
+    "pythonFreshnessAndCompletionTests": 26,
+    "creatorHostPreviewTests": 6,
+    "CreatorBuild": "passed",
+    "CTypecheck": "passed",
+    "packagedSourcesAndRuntimeArtifacts": "passed",
+    "gitDiffCheck": "passed",
+    "nativeWindows": "not-run"
+  },
+  "platformReview": "DOM Event/RAF/cleanup use browser APIs supported across platforms; no native path or process changes. Tests cover request coalescing, listener cleanup, retiring Provider suppression and stale cache semantics. Existing cross-platform pnpm helper used.",
+  "proof": {
+    "compositionFresh": true,
+    "lastMutationAt": "2026-10-18T07:23:04.727Z",
+    "latestCompositionObservedAt": "2026-10-18T07:23:05.037000Z",
+    "latestCompositionReceivedAt": "2026-10-18T07:23:05.069634Z"
+  },
+  "verification": {
+    "runtimeStatus": "passed",
+    "compositionChecks": {
+      "passed": 14,
+      "total": 14
+    },
+    "outcome": "success"
+  }
+}

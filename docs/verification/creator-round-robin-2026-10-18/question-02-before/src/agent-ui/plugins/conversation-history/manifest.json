@@ -1,0 +1,29 @@
+{
+  "id": "conversation-history",
+  "name": "Conversation History Entry",
+  "description": "An icon entry that opens the conversation history in a popover.",
+  "version": "0.0.1",
+  "capabilities": [
+    "conversation-history-entry"
+  ],
+  "authoring": {
+    "intents": [
+      "open conversation history from the header"
+    ],
+    "visualRole": "conversation header action"
+  },
+  "slots": {
+    "children": {
+      "content": {
+        "description": "Conversation history content displayed in the popover.",
+        "cardinality": "one",
+        "optional": true,
+        "accepts": {
+          "anyOfCapabilities": [
+            "conversation-history"
+          ]
+        }
+      }
+    }
+  }
+}

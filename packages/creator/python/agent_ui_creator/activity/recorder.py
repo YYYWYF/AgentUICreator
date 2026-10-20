@@ -52,6 +52,7 @@ class CreatorActivityRecorder:
         self.recovered_paths: tuple[str, ...] = ()
         self._created_directories: set[str] = set()
         self._validations: list[dict[str, Any]] = []
+        self._validation_failure_kinds: dict[tuple[str, int, str], str] = {}
         self._plugin_deliveries: list[dict[str, Any]] = []
         self._plugin_behavior: dict[str, Any] | None = None
         self._finishing = False
@@ -76,6 +77,7 @@ class CreatorActivityRecorder:
         self.recovered_paths = ()
         self._created_directories.clear()
         self._validations.clear()
+        self._validation_failure_kinds.clear()
         self._plugin_deliveries: list[dict[str, Any]] = []
         self._plugin_behavior: dict[str, Any] | None = None
         self._finishing = False
@@ -151,6 +153,14 @@ class CreatorActivityRecorder:
         self._mutation_paths.append(path)
         self._revision += 1
         self._last_mutation_at = datetime.now(timezone.utc)
+        if self._semantic_noop is not None:
+            previous_noop = self._semantic_noop
+            self._semantic_noop = None
+            if self.logger is not None:
+                self.logger.record(
+                    "semantic_noop_invalidated",
+                    {**previous_noop, "path": path, "mutationRevision": self._revision},
+                )
         if self.logger is not None:
             self.logger.record(
                 "file_mutation",
@@ -170,6 +180,9 @@ class CreatorActivityRecorder:
         self._created_directories.add(path)
 
     def record_semantic_noop(self, *, source: str, reason: str) -> None:
+        if self._touched_paths:
+            self._semantic_noop = None
+            return
         self._semantic_noop = {"source": source, "reason": reason}
         if self.logger is not None:
             self.logger.record("semantic_noop", self._semantic_noop)
@@ -184,6 +197,7 @@ class CreatorActivityRecorder:
         revision: int | None = None,
         status: str | None = None,
         validation_mode: str | None = None,
+        failure_kind: str | None = None,
     ) -> None:
         normalized = output.strip()
         output_truncated = truncated
@@ -209,6 +223,11 @@ class CreatorActivityRecorder:
         }
         if validation_mode in {"delta", "clean"}:
             validation["validationMode"] = validation_mode
+        failure_key = (command, validation["revision"], validation_mode or "delta")
+        if failure_kind is not None:
+            self._validation_failure_kinds[failure_key] = failure_kind
+        else:
+            self._validation_failure_kinds.pop(failure_key, None)
         self._validations.append(validation)
 
     def validation_at_revision(
@@ -223,7 +242,13 @@ class CreatorActivityRecorder:
                     or validation.get("validationMode", "delta") == validation_mode
                 )
             ):
-                return copy.deepcopy(validation)
+                result = copy.deepcopy(validation)
+                kind = self._validation_failure_kinds.get((
+                    command, revision, validation.get("validationMode", "delta"),
+                ))
+                if kind is not None:
+                    result["failureKind"] = kind
+                return result
         return None
 
     def record_plugin_deliveries(self, reports: list[dict[str, Any]]) -> None:

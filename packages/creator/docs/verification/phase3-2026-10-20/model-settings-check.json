@@ -1,0 +1,8 @@
+{
+  "matchesBaseline": true,
+  "model": "mimo-v2.6-flash",
+  "temperature": 0.2,
+  "maxTokens": 8192,
+  "requestTimeoutSeconds": 120.0,
+  "maxRetries": 2
+}

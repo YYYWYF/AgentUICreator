@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import asyncio
+from langgraph.errors import GraphInterrupt
+
 import json
 import re
 from datetime import datetime, timezone
@@ -282,6 +285,10 @@ def _tool_result_status(
     result: Any = None, error: BaseException | None = None
 ) -> tuple[str, str | None]:
     if error is not None:
+        if isinstance(error, GraphInterrupt):
+            return "interrupted", None
+        if isinstance(error, asyncio.CancelledError):
+            return "cancelled", None
         code = getattr(error, "code", None)
         return "error", code if isinstance(code, str) else None
     payload: Mapping[str, Any] | None = None

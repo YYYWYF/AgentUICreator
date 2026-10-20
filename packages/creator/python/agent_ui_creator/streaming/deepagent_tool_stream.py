@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import asyncio
 from collections.abc import AsyncIterable, Mapping
 from typing import Any
 
@@ -41,7 +42,7 @@ class DeepAgentToolStreamAdapter(BaseCallbackHandler):
         self._interrupted_call_ids: set[str] = set()
 
     def on_tool_error(self, error: BaseException, *, run_id: Any, **kwargs: Any) -> None:
-        if isinstance(error, GraphInterrupt):
+        if isinstance(error, (GraphInterrupt, asyncio.CancelledError)):
             self._interrupted_call_ids.add(kwargs.get("tool_call_id") or str(run_id))
 
     async def consume_all(self, tool_calls: AsyncIterable[Any]) -> None:

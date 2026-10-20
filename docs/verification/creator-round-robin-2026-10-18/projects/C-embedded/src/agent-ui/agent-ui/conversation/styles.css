@@ -1,0 +1,58 @@
+@import "@za38.03/agent-ui-plugins/styles.css";
+
+/* The package owns its internal presentation scan. The project owns these
+ * editable integration and Plugin sources. */
+@source ".";
+@source "../../plugins";
+
+/* Project-owned Agent UI palette and styling customization entry.
+ * Public customization contract: ../theme/theme-customization.md.
+ * Keep the npm import above. Append scoped overrides below it for
+ * .agent-ui-root[data-theme] and .agent-ui-conversation[data-theme].
+ * Brand: --agent-brand, --agent-brand-solid, --primary, --primary-foreground;
+ * surfaces/text: --background, --foreground, --card, --popover, --muted;
+ * details: --border, --ring, --radius, --agent-composer-shadow.
+ * Violet brand surface/focus tokens derive from --agent-brand. Override any
+ * additional semantic tokens needed for the requested design here, not in npm
+ * source, Host business CSS, AppUIModel, or Runtime. Theme preset selection is
+ * ../theme/theme-config.ts (light/dark/violet); blue is not a preset ID.
+ */
+
+/* Fresh green/white palette: keep the selected `violet` preset (light
+ * color scheme) and override its brand with a clean green on white
+ * surfaces. Violet-derived brand tokens recompute from these bases.
+ * Light preset only; dark mode remains untouched. */
+:is(.agent-ui-root, .agent-ui-conversation)[data-theme="violet"] {
+  /* Brand: green replaces the previous blue. */
+  --agent-brand: #16a34a;
+  --agent-brand-solid: #15803d;
+
+  /* Actions derive from the solid brand color. */
+  --primary: #15803d;
+  --primary-foreground: #ffffff;
+  --sidebar-primary: #15803d;
+  --ring: #86efac;
+
+  /* Surfaces: white canvas with quiet warm-neutral grays. */
+  --background: #ffffff;
+  --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --accent: #f5f5f5;
+  --secondary: #fafafa;
+  --sidebar: #fafafa;
+
+  /* Details: soft borders and a compact radius for a simpler look. */
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --radius: 6px;
+
+  /* Composer: flat focus treatment with a minimal shadow. */
+  --agent-composer-focus-border: #16a34a;
+  --agent-composer-focus-ring: rgba(22, 163, 74, 0.24);
+  --agent-composer-shadow: 0 1px 2px rgba(23, 23, 23, 0.06);
+}

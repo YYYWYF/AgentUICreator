@@ -137,6 +137,9 @@ def test_source_inventory_marks_current_run_for_available_install_tool(tmp_path)
     response = json.loads(asyncio.run(tool.ainvoke({})))
     assert response['ok'] is True
     assert response['result']['sourceInstallNavigation'] == {
+        "statusScope": "source_item_installation_only",
+        "pathConflictAuthorizesApplicationDeletion": False,
+        "pluginTakeoverFactsVia": "inspect_ui_plugin_source_references",
         'tool': 'apply_agent_ui_source_item',
         'itemIdFrom': 'items[].id',
         'expectedStateHashFrom': 'stateHash',
@@ -244,6 +247,11 @@ def test_project_pages_keep_captured_snapshot_until_explicit_refresh():
 
 
 def test_skipped_project_page_cannot_authorize_mutation(tmp_path):
+    from types import SimpleNamespace
+    from unittest.mock import Mock
+    from langchain.agents.middleware import ModelRequest
+    from langchain_core.messages import ToolMessage
+    from agent_ui_creator.domain_agent.tool_discovery import ProgressiveToolsMiddleware
     client = StubClient()
     snapshot = {
         "appUIModel": {"hash": "a" * 64},
@@ -266,6 +274,17 @@ def test_skipped_project_page_cannot_authorize_mutation(tmp_path):
         client, observations=observations, activity=activity,
     ), "inspect_ui_project")
     first = json.loads(asyncio.run(tool.ainvoke({"view": "composition"})))
+    middleware = ProgressiveToolsMiddleware(observations, lambda: activity.revision)
+    request = ModelRequest(model=Mock(), messages=[ToolMessage(name="inspect_ui_project",
+        tool_call_id="page", content=json.dumps(first))], tools=[
+            SimpleNamespace(name=name) for name in ["enable_creator_tools", "inspect_app_ui_model", "mutate_app_ui_model"]])
+    def offered():
+        return {item.name for item in middleware._request(request).tools}
+    assert "inspect_app_ui_model" in offered()
+    assert "mutate_app_ui_model" not in offered()
+    assert first["appUIModelObservation"] == {"ready": False, "revision": 0,
+        "reason": "APP_UI_MODEL_OBSERVATION_REQUIRED",
+        "requiredInspection": {"tool": "inspect_app_ui_model", "arguments": {}}}
     assert observations.current_hash(current_revision=0) is None
     page = first["result"]
     last_offset = int(page["nextCursor"].rsplit(":", 1)[1]) + 1
@@ -310,6 +329,7 @@ def test_skipped_project_page_cannot_authorize_mutation(tmp_path):
         assert response["ok"] is True
         cursor = response["result"]["nextCursor"]
     assert observations.current_hash(current_revision=activity.revision) == "a" * 64
+    assert "mutate_app_ui_model" in offered()
 
 
 def test_project_cursor_is_scoped_to_view_run_and_revision(tmp_path):

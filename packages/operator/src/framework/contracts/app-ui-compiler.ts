@@ -45,12 +45,15 @@ export interface AppUICompilerIssue {
 }
 
 export class AppUICompilerError extends Error {
+  readonly code = "APP_UI_MODEL_COMPOSITION_INVALID";
   readonly issues: readonly AppUICompilerIssue[];
+  readonly details: { issues: readonly AppUICompilerIssue[] };
 
   constructor(issues: readonly AppUICompilerIssue[]) {
     super(issues.map((issue) => issue.message).join("\n"));
     this.name = "AppUICompilerError";
     this.issues = Object.freeze([...issues]);
+    this.details = { issues: this.issues };
   }
 }
 

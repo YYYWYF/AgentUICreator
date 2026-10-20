@@ -1,0 +1,42 @@
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.onlyBuiltDependencies", "pnpm.overrides", "pnpm.peerDependencyRules". See https://pnpm.io/settings for the new home of each setting.
+
+> @za38.03/agent-ui-operator@0.0.1 typecheck /Users/yifei/Coding/AgentUICreator/packages/operator
+> node ../plugins/scripts/materialize-plugin-sources.mjs && tsc --noEmit && tsc -p tsconfig.tests.json
+
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.onlyBuiltDependencies", "pnpm.overrides", "pnpm.peerDependencyRules". See https://pnpm.io/settings for the new home of each setting.
+
+> @za38.03/agent-ui-operator@0.0.1 build /Users/yifei/Coding/AgentUICreator/packages/operator
+> node ../../scripts/sync-package-release-metadata.mjs operator && node scripts/build.mjs && node ../../scripts/sync-package-release-metadata.mjs operator
+
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.onlyBuiltDependencies", "pnpm.overrides", "pnpm.peerDependencyRules". See https://pnpm.io/settings for the new home of each setting.
+
+> @za38.03/agent-ui-creator@0.0.1 build /Users/yifei/Coding/AgentUICreator/packages/creator
+> node ../../scripts/sync-package-release-metadata.mjs creator && node scripts/clean-dist.mjs && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node scripts/build-browser.mjs && node ../../scripts/sync-package-release-metadata.mjs creator
+
+vite v8.3.0 building client environment for production...
+transforming...
+✓ 2485 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/browser/index.html                   0.48 kB │ gzip:   0.29 kB
+dist/browser/dock.html                    0.56 kB │ gzip:   0.34 kB
+dist/browser/assets/index-CynBKm9V.css    0.38 kB │ gzip:   0.28 kB
+dist/browser/assets/dock-xSxQE27Z.css    81.22 kB │ gzip:  14.75 kB
+dist/browser/assets/index-B5jKn6pB.js     4.13 kB │ gzip:   1.86 kB
+dist/browser/assets/zh-CN-rQk7Yils.js   102.61 kB │ gzip:  36.97 kB
+dist/browser/assets/dock-BiFyDiRb.js    820.40 kB │ gzip: 229.01 kB
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.13s
+vite v8.3.0 building client environment for production...
+transforming...
+✓ 23 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/browser/dock-client.js  126.02 kB │ gzip: 46.06 kB
+
+✓ built in 93ms

@@ -1,0 +1,14 @@
+{
+  "id": "chart-message",
+  "name": "Chart Message",
+  "description": "Renders named chart data inside assistant messages.",
+  "version": "0.0.1",
+  "data": {
+    "messageUI": true
+  },
+  "authoring": {
+    "intents": [
+      "render structured chart data in assistant messages"
+    ]
+  }
+}

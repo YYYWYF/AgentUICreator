@@ -1,0 +1,314 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../scripts/generated-source-test-config" without a file extension (vitest.config.ts:3:43). Add the file extension
+  - ESM syntax in a file loaded as CommonJS (../../scripts/generated-source-test-config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+  - import "../../src/generate-plugin-registry" without a file extension (tests/support/generated-project.ts:5:46). Add the file extension
+  - import "../../src/project/source-registry/installer" without a file extension (tests/support/generated-project.ts:7:32). Add the file extension
+  - import "./project/plugin-application" without a file extension (src/generate-plugin-registry.ts:2:68). Add the file extension
+  - import "../project-config" without a file extension (src/project/source-registry/installer.ts:10:34). Add the file extension
+  - import "./framework/contracts/app-ui-model" without a file extension (src/generate-plugin-registry.ts:3:45). Add the file extension
+  - import "./framework/contracts/app-ui-model" without a file extension (src/generate-plugin-registry.ts:9:37). Add the file extension
+  - import "../types" without a file extension (src/project/source-registry/installer.ts:11:39). Add the file extension
+  - import "./project/project-mode" without a file extension (src/generate-plugin-registry.ts:10:42). Add the file extension
+  - import "./lock" without a file extension (src/project/source-registry/installer.ts:16:8). Add the file extension
+  - import "./framework/contracts/agent-ui-project" without a file extension (src/generate-plugin-registry.ts:11:43). Add the file extension
+  - import "./inspector" without a file extension (src/project/source-registry/installer.ts:20:8). Add the file extension
+  - import "./project/agent-ui-project-paths" without a file extension (src/generate-plugin-registry.ts:12:89). Add the file extension
+  - import "./path-policy" without a file extension (src/project/source-registry/installer.ts:21:36). Add the file extension
+  - import "./project/creator-cancel-marker" without a file extension (src/generate-plugin-registry.ts:13:44). Add the file extension
+  - import "./transaction" without a file extension (src/project/source-registry/installer.ts:27:8). Add the file extension
+  - import "./project/registry-generator" without a file extension (src/generate-plugin-registry.ts:16:8). Add the file extension
+  - import "./types" without a file extension (src/project/source-registry/installer.ts:28:89). Add the file extension
+  - import "./generated-targets" without a file extension (src/project/source-registry/installer.ts:29:40). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (src/project/registry-generator.ts:18:8). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (src/project/project-mode.ts:7:8). Add the file extension
+  - import "./panel-dimension" without a file extension (src/framework/contracts/app-ui-model.ts:3:42). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/plugin-application.ts:2:42). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (src/project/agent-ui-project-paths.ts:3:43). Add the file extension
+  - import "./types" without a file extension (src/project/project-config.ts:1:39). Add the file extension
+  - import "../project-config" without a file extension (src/project/source-registry/inspector.ts:12:34). Add the file extension
+  - import "../types" without a file extension (src/project/source-registry/lock.ts:5:39). Add the file extension
+  - import "../types" without a file extension (src/project/source-registry/path-policy.ts:4:39). Add the file extension
+  - import "../plugin-source-ownership" without a file extension (src/project/source-registry/transaction.ts:1:39). Add the file extension
+  - import "../framework/contracts/app-ui-compiler" without a file extension (src/project/registry-generator.ts:19:55). Add the file extension
+  - import "./types" without a file extension (src/project/plugin-application.ts:3:39). Add the file extension
+  - import "./types" without a file extension (src/project/agent-ui-project-paths.ts:4:39). Add the file extension
+  - import "../types" without a file extension (src/project/source-registry/inspector.ts:21:8). Add the file extension
+  - import "./path-policy" without a file extension (src/project/source-registry/lock.ts:10:8). Add the file extension
+  - import "../types" without a file extension (src/project/source-registry/transaction.ts:6:39). Add the file extension
+  - import "../framework/contracts/app-ui-composition" without a file extension (src/project/registry-generator.ts:24:8). Add the file extension
+  - import "./optional-resource-paths" without a file extension (src/project/plugin-application.ts:8:31). Add the file extension
+  - import "./project-config" without a file extension (src/project/agent-ui-project-paths.ts:5:34). Add the file extension
+  - import "./lock" without a file extension (src/project/source-registry/inspector.ts:22:47). Add the file extension
+  - import "./types" without a file extension (src/project/source-registry/lock.ts:11:40). Add the file extension
+  - import "../creator-cancel-marker" without a file extension (src/project/source-registry/transaction.ts:7:44). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/registry-generator.ts:25:42). Add the file extension
+  - import "./plugin-source-ownership" without a file extension (src/project/plugin-application.ts:9:43). Add the file extension
+  - import "./generated-targets" without a file extension (src/project/source-registry/inspector.ts:23:40). Add the file extension
+  - import "./lock" without a file extension (src/project/source-registry/transaction.ts:12:8). Add the file extension
+  - import "./plugin-assets" without a file extension (src/project/registry-generator.ts:26:37). Add the file extension
+  - import "./source-registry/lock" without a file extension (src/project/plugin-application.ts:10:67). Add the file extension
+  - import "./package-dependencies" without a file extension (src/project/source-registry/inspector.ts:24:64). Add the file extension
+  - import "./path-policy" without a file extension (src/project/source-registry/transaction.ts:18:8). Add the file extension
+  - import "./agent-ui-mode" without a file extension (src/framework/contracts/agent-ui-project.ts:6:8). Add the file extension
+  - import "./data-message-ui-analyzer" without a file extension (src/project/registry-generator.ts:27:39). Add the file extension
+  - import "./source-registry/transaction" without a file extension (src/project/plugin-application.ts:11:48). Add the file extension
+  - import "./path-policy" without a file extension (src/project/source-registry/inspector.ts:29:8). Add the file extension
+  - import "./types" without a file extension (src/project/source-registry/transaction.ts:19:54). Add the file extension
+  - import "./source-registry/path-policy" without a file extension (src/project/plugin-application.ts:12:98). Add the file extension
+  - import "./service-dependency-inspector" without a file extension (src/project/registry-generator.ts:32:8). Add the file extension
+  - import "./types" without a file extension (src/project/registry-generator.ts:39:8). Add the file extension
+  - import "./agent-ui-workspace" without a file extension (src/framework/contracts/agent-ui-mode.ts:3:45). Add the file extension
+  - import "./source-registry/path-policy" without a file extension (src/project/plugin-source-ownership.ts:5:78). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/optional-resource-paths.ts:2:68). Add the file extension
+  - import "./project-mode" without a file extension (src/project/optional-resource-paths.ts:3:42). Add the file extension
+  - import "../framework/contracts/data-message-ui" without a file extension (src/project/data-message-ui-analyzer.ts:22:42). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/app-ui-composition.ts:4:8). Add the file extension
+  - import "./app-ui-model" without a file extension (src/framework/contracts/app-ui-compiler.ts:8:8). Add the file extension
+  - import "./source-registry/lock" without a file extension (src/project/plugin-assets.ts:1:39). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (src/project/service-dependency-inspector.ts:9:8). Add the file extension
+  - import "./types" without a file extension (src/project/data-message-ui-analyzer.ts:23:48). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/app-ui-compiler.ts:14:8). Add the file extension
+  - import "./plugin-application" without a file extension (src/project/plugin-assets.ts:2:96). Add the file extension
+  - import "./types" without a file extension (src/project/service-dependency-inspector.ts:26:8). Add the file extension
+  - import "./app-ui-composition" without a file extension (src/framework/contracts/app-ui-compiler.ts:23:8). Add the file extension
+  - import "./plugin-source-ownership" without a file extension (src/project/plugin-assets.ts:4:43). Add the file extension
+  - import "../framework/contracts/ui-plugin" without a file extension (src/project/plugin-assets.ts:9:39). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/plugin-assets.ts:10:42). Add the file extension
+  - import "./types" without a file extension (src/project/plugin-assets.ts:16:8). Add the file extension
+  - import "./panel-dimension" without a file extension (src/framework/contracts/app-ui-runtime-model.ts:3:42). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/ui-plugin.ts:9:49). Add the file extension
+  - import "./app-ui-model" without a file extension (src/framework/contracts/ui-plugin.ts:10:43). Add the file extension
+  - import "./app-ui-composition" without a file extension (src/framework/contracts/ui-plugin.ts:11:48). Add the file extension
+  - import "./custom-event-protocol" without a file extension (src/framework/contracts/ui-plugin.ts:12:39). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.8 /Users/yifei/Coding/AgentUICreator/packages/operator
+
+ ❯ tests/migrated/creator-mount-baseline-verify-ui.test.ts (36 tests | 14 failed) 9533ms
+     × blocks direct Portal primitive imports in a generated user Plugin and accepts the public facade 418ms
+     × blocks global Plugin CSS and accepts the same Plugin after scoping 354ms
+     × accepts an enabled Data Message UI without a mount or headless classification 215ms
+     × checks duplicate names only for enabled instances: false 366ms
+     × ignores unregistered names when checking enabled Plugin conflicts 319ms
+     × resolves an inline renderer in the default definition 374ms
+     × blocks 'DATA_MESSAGE_UI_DEFINITION_NOT_STATIC' only when its Plugin is selected 401ms
+     × blocks 'DATA_MESSAGE_UI_RENDERER_MISSING' only when its Plugin is selected 416ms
+     × blocks 'DATA_MESSAGE_UI_MANIFEST_MISSING' only when its Plugin is selected 463ms
+     × checks same-named renderers only after both Plugins are selected 304ms
+     × reports limited Creator readiness without failing verification 233ms
+     × allows an explicitly headless plugin in application scope 284ms
+     × synchronizes a changed Plugin declaration through the internal Host operation 218ms
+     × accepts matching manifest and rendered child Slots 195ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 14 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/migrated/creator-mount-baseline-verify-ui.test.ts > verifyUIProject > blocks direct Portal primitive imports in a generated user Plugin and accepts the public facade
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/creator-mount-baseline-verify-ui.test.ts:211:25
+    209|       'import { AgentUIDialog, AgentUIPopover, AgentUITooltip } from "…
+    210|     const safe = await verifyUIProject(projectRoot, fixtureConfig);
+    211|     expect(safe.status).toBe("passed");
+       |                         ^
+    212|   });
+    213|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/14]⎯
+
+ FAIL  tests/migrated/creator-mount-baseline-verify-ui.test.ts > verifyUIProject > blocks global Plugin CSS and accepts the same Plugin after scoping
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/creator-mount-baseline-verify-ui.test.ts:224:27
+    222|     await writeFile(stylesheet, ".sample button { color: var(--primary…
+    223|     const scoped = await verifyUIProject(projectRoot, fixtureConfig);
+    224|     expect(scoped.status).toBe("passed");
+       |                           ^
+    225|   });
+    226|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/14]⎯
+
+ FAIL  tests/migrated/creator-mount-baseline-verify-ui.test.ts > verifyUIProject > accepts an enabled Data Message UI without a mount or headless classification
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/creator-mount-baseline-verify-ui.test.ts:235:27
+    233|     });
+    234|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    235|     expect(result.status).toBe("passed");
+       |                           ^
+    236|     expect(result.activeComposition.headlessPluginIds).toEqual([]);
+    237|     expect(result.warnings).not.toContainEqual(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/14]⎯
+
+ FAIL  tests/migrated/creator-mount-baseline-verify-ui.test.ts > verifyUIProject > checks duplicate names only for enabled instances: false
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/creator-mount-baseline-verify-ui.test.ts:337:27
+    335|     await addSecondDataMessageUI(projectRoot, enabled);
+    336|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    337|     expect(result.status).toBe(status);
+       |                           ^
+    338|     expect(result.errors.some((issue) => issue.code === "DATA_MESSAGE_…
+    339|     if (conflict) {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/14]⎯
+
+ FAIL  tests/migrated/creator-mount-baseline-verify-ui.test.ts > verifyUIProject > ignores unregistered names when checking enabled Plugin conflicts
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/creator-mount-baseline-verify-ui.test.ts:355:27
+    353|     await addSecondDataMessageUI(projectRoot, true, "debug");
+    354|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    355|     expect(result.status).toBe("passed");
+       |                           ^
+    356|     expect(result.errors.some((issue) => issue.code === "DATA_MESSAGE_…
+    357|       .toBe(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/14]⎯
+
+ FAIL  tests/migrated/creator-mount-baseline-verify-ui.test.ts > verifyUIProject > resolves an inline renderer in the default definition
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/creator-mount-baseline-verify-ui.test.ts:383:27
+    381|     });
+    382|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    383|     expect(result.status).toBe("passed");
+       |                           ^
+    384|   });
+    385|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/14]⎯
+
+ FAIL  tests/migrated/creator-mount-baseline-verify-ui.test.ts > verifyUIProject > blocks 'DATA_MESSAGE_UI_DEFINITION_NOT_STATIC' only when its Plugin is selected
+ FAIL  tests/migrated/creator-mount-baseline-verify-ui.test.ts > verifyUIProject > blocks 'DATA_MESSAGE_UI_RENDERER_MISSING' only when its Plugin is selected
+ FAIL  tests/migrated/creator-mount-baseline-verify-ui.test.ts > verifyUIProject > blocks 'DATA_MESSAGE_UI_MANIFEST_MISSING' only when its Plugin is selected
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/creator-mount-baseline-verify-ui.test.ts:437:31
+    435|     }));
+    436|     const unselected = await verifyUIProject(projectRoot, fixtureConfi…
+    437|     expect(unselected.status).toBe("passed");
+       |                               ^
+    438|     expect(unselected.activeComposition.selectedPluginIds).toEqual(["s…
+    439|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/14]⎯
+
+ FAIL  tests/migrated/creator-mount-baseline-verify-ui.test.ts > verifyUIProject > checks same-named renderers only after both Plugins are selected
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/creator-mount-baseline-verify-ui.test.ts:474:31
+    472|     await writeModelAndRegistry(projectRoot, unselectedModel);
+    473|     const unselected = await verifyUIProject(projectRoot, fixtureConfi…
+    474|     expect(unselected.status).toBe("passed");
+       |                               ^
+    475|     expect(unselected.errors.some((issue) => issue.code === "DATA_MESS…
+    476|       .toBe(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/14]⎯
+
+ FAIL  tests/migrated/creator-mount-baseline-verify-ui.test.ts > verifyUIProject > reports limited Creator readiness without failing verification
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/creator-mount-baseline-verify-ui.test.ts:513:27
+    511|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    512|
+    513|     expect(result.status).toBe("passed");
+       |                           ^
+    514|     expect(result.creatorReadiness.plugins).toContainEqual(
+    515|       expect.objectContaining({
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/14]⎯
+
+ FAIL  tests/migrated/creator-mount-baseline-verify-ui.test.ts > verifyUIProject > allows an explicitly headless plugin in application scope
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/creator-mount-baseline-verify-ui.test.ts:581:27
+    579|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    580|
+    581|     expect(result.status).toBe("passed");
+       |                           ^
+    582|     expect(result.activeComposition.headlessPluginIds).toEqual(["sampl…
+    583|     expect(result.capabilityCatalog.generatedFileFresh).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/14]⎯
+
+ FAIL  tests/migrated/creator-mount-baseline-verify-ui.test.ts > verifyUIProject > synchronizes a changed Plugin declaration through the internal Host operation
+AssertionError: expected { ok: false, error: { …(2) } } to match object { ok: true, result: { …(2) } }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "result": {
+-     "changed": true,
+-     "path": "agent-ui/plugins/registry.generated.ts",
+-   },
++   "ok": false,
+  }
+
+ ❯ tests/migrated/creator-mount-baseline-verify-ui.test.ts:656:19
+    654|       operation: "synchronize_plugin_registry", input,
+    655|     }, projectRoot);
+    656|     expect(first).toMatchObject({ ok: true, result: { changed: true, p…
+       |                   ^
+    657|     expect((await verifyUIProject(projectRoot, fixtureConfig)).capabil…
+    658|     const second = await handleUIOperatorRequest({
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/14]⎯
+
+ FAIL  tests/migrated/creator-mount-baseline-verify-ui.test.ts > verifyUIProject > accepts matching manifest and rendered child Slots
+AssertionError: expected 'failed' to be 'passed' // Object.is equality
+
+Expected: "passed"
+Received: "failed"
+
+ ❯ tests/migrated/creator-mount-baseline-verify-ui.test.ts:704:27
+    702|     const result = await verifyUIProject(projectRoot, fixtureConfig);
+    703|
+    704|     expect(result.status).toBe("passed");
+       |                           ^
+    705|   });
+    706|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/14]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  14 failed | 22 passed (36)
+   Start at  14:23:17
+   Duration  10.39s (transform 348ms, setup 12ms, import 471ms, tests 9.53s, environment 298ms)
+

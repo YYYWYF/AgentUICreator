@@ -113,6 +113,7 @@ class DomainObservationContext:
         self.recovery_pending = False
         self.recovery_requires_composition = False
         self.source_inventory_observed = False
+        self.source_takeover_confirmations = {}
         self.metrics = DomainObservationMetrics()
         self.composition_fast_path_metrics = CompositionFastPathMetrics()
 
@@ -262,6 +263,21 @@ class DomainObservationContext:
         if observation is None or observation.revision != current_revision:
             return None
         return observation.hash
+
+    def app_ui_model_readiness(self, *, current_revision: int) -> dict[str, Any]:
+        """Observation navigation only; execution still checks permissions and disk hash."""
+        ready = not self.recovery_requires_composition and self.current_hash(current_revision=current_revision) is not None
+        if ready:
+            return {"ready": True, "revision": current_revision}
+        inspection = (
+            {"tool": "inspect_ui_project", "arguments": {"view": "composition"}}
+            if self.recovery_requires_composition else
+            {"tool": "inspect_app_ui_model_source", "arguments": {}}
+            if self.recovery_pending else
+            {"tool": "inspect_app_ui_model", "arguments": {}}
+        )
+        return {"ready": False, "revision": current_revision,
+                "reason": "APP_UI_MODEL_OBSERVATION_REQUIRED", "requiredInspection": inspection}
 
     def require_app_ui_model_hash(self, *, current_revision: int) -> str:
         observation = self._app_ui_model

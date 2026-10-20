@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 import re
 import fnmatch
+from time import monotonic
+import regex as bounded_regex
 from functools import lru_cache
 from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
@@ -373,8 +375,41 @@ class PolicyFilesystemBackend(FilesystemBackend):
                     matches.append({"path": virtual, "line": index, "text": text})
                     if max_count is not None and len(matches) >= max_count:
                         return GrepResult(matches=matches, truncated=True)
-        if not matches and re.search(r"\||\\[bBdDsSwW]|\[[^]]+\]|\{\d+(?:,\d*)?\}", pattern):
-            return GrepResult(error="SEARCH_SYNTAX_UNSUPPORTED: grep searches literal text, not regular expressions. Search one literal keyword (for example violet or theme) per call. Pipes, character classes and regex escapes are not operators.", matches=None)
+        if not matches and (any(token in pattern for token in ("|", "\\", "[", "(", "^", "$", "*", "+", "?"))
+                            or re.search(r"\{\d", pattern)):
+            # Familiar alternation/classes are useful to coding agents. Keep
+            # literal matches authoritative (e.g. CSS or code containing |),
+            # then try regex with bounded evaluation and explicit partial failure.
+            if len(pattern) > 512:
+                return GrepResult(error="SEARCH_SYNTAX_UNSUPPORTED: Regex patterns must be at most 512 characters; narrow the search.", matches=None)
+            try:
+                expression = bounded_regex.compile(pattern)
+            except bounded_regex.error:
+                return GrepResult(error="SEARCH_SYNTAX_UNSUPPORTED: Invalid regex pattern. Use valid syntax or a literal keyword.", matches=None)
+            deadline = monotonic() + 0.5
+            for candidate in [root] if root.is_file() else self._safe_files(root):
+                if monotonic() >= deadline:
+                    return GrepResult(error="SEARCH_TIMEOUT: Regex search incomplete; narrow path/glob or use a literal keyword. This is not proof of absence.", matches=None)
+                virtual = "/" + candidate.relative_to(self.cwd).as_posix()
+                relative = candidate.relative_to(root).as_posix() if root.is_dir() else candidate.name
+                if glob and not self._matches(relative, glob):
+                    continue
+                try:
+                    lines = candidate.read_text(encoding="utf-8").splitlines()
+                except (OSError, UnicodeDecodeError):
+                    continue
+                for index, text in enumerate(lines, start=1):
+                    remaining = deadline - monotonic()
+                    if remaining <= 0:
+                        return GrepResult(error="SEARCH_TIMEOUT: Regex search incomplete; narrow path/glob. This is not proof of absence.", matches=None)
+                    try:
+                        found = expression.search(text, timeout=min(0.01, remaining))
+                    except TimeoutError:
+                        return GrepResult(error="SEARCH_TIMEOUT: Regex evaluation exceeded its budget; simplify the pattern. This is not proof of absence.", matches=None)
+                    if found:
+                        matches.append({"path": virtual, "line": index, "text": text})
+                        if max_count is not None and len(matches) >= max_count:
+                            return GrepResult(matches=matches, truncated=True)
         return GrepResult(matches=matches)
 
     def glob(self, pattern: str, path: str | None = None) -> GlobResult:

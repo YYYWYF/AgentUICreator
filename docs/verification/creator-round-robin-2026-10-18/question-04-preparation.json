@@ -1,0 +1,9 @@
+{
+  "runtimeSnapshotFixSynced": true,
+  "path": "src/agent-ui/runtime/diagnostics/PluginDiagnosticContext.tsx",
+  "before": "4ffae9acb53804d9e6944b7ceaa1e9a952bf8e24cb07c57df79ed41e5dc7c333",
+  "after": "82ae44daaac3cabc733f924c02954c3a677c4a9ebdfda9a6fe4bc5f818a09624",
+  "notes": [
+    "Sync previously verified diagnostic Provider lifecycle and fresh observation-request fixes. No thinking feature preparation, no BASE adoption."
+  ]
+}

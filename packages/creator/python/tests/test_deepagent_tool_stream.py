@@ -60,6 +60,21 @@ def test_adapter_uses_authoritative_id_and_deduplicates_presentation_events():
     asyncio.run(scenario())
 
 
+def test_user_cancellation_does_not_publish_a_failed_tool_result():
+    async def scenario():
+        bus = CreatorEventBus()
+        adapter = DeepAgentToolStreamAdapter(bus)
+        call = _CompletedToolCall("cancelled")
+        call.completed = False
+        adapter.on_tool_error(asyncio.CancelledError(), run_id="runtime", tool_call_id="cancelled")
+        await adapter.consume(call)
+        bus.close()
+        events = [event async for event in bus.events()]
+        assert any(isinstance(event, ToolInvocationStarted) for event in events)
+        assert not any(isinstance(event, ToolInvocationFinished) for event in events)
+    asyncio.run(scenario())
+
+
 @pytest.mark.parametrize("name", ["ask_user_question", "inspect_ui_project"])
 @pytest.mark.parametrize("error", ["real failure", "(Interrupt(value={'kind': 'ask_user_question'}),)"])
 def test_adapter_preserves_errors_even_if_their_text_looks_like_interrupts(name, error):

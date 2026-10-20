@@ -1,0 +1,27 @@
+{
+  "systemPromptAndSkillsUnchanged": true,
+  "selectorPromptConstantsUnchanged": true,
+  "fileHashes": {
+    "packages/creator/skills/ui-plugin-development/SKILL.md": "2e1a736671e8aec4c6fb362be72d9aec60be03a6edfde06c7bcfe5ff30cdb326",
+    "packages/creator/skills/ui-layout/SKILL.md": "d2e57f304ee8dc15b3da97c9db4be34740edaf081107ef5f7bdf4d2dc44eed2d",
+    "packages/creator/skills/ag-ui-frontend/SKILL.md": "26f0e49d5192bb33cd3542d2f6ddb97e1d30827b3b1569f2b9b34f8290db799c",
+    "packages/creator/skills/ui-debugging/SKILL.md": "3c78d5c38366177ca486606327109d66b4ac8ca49ee2723817fb30f9f5569b56",
+    "packages/creator/skills/app-ui-model/SKILL.md": "6c779574fad8dbae94241b89c9e53f1200d8f44ef822642fb11f349c2ed0fd01",
+    "packages/creator/skills/task-guidance/SKILL.md": "41a2ac95b7f9d6689da8156a6a5444164b246e8eb4a08915a0fe8750e11609f9",
+    "packages/creator/skills/task-guidance/references/authoring-policy.md": "5442124c4984342e4e3951fc96f560e05b82ad0d3c13fc2bce627fd495324204",
+    "packages/creator/skills/task-guidance/references/host-integration.md": "6042a7b6f9f7320e2f1ae9a6258ddc49f5276c79a2d43482b28aff20e276b37e",
+    "packages/creator/skills/ui-debugging/references/validation-debugging.md": "4f901732a0d3a1eb1a4b5bedc82f426e9d82ab551bc353b333aa8d00cf61969e",
+    "packages/creator/skills/ui-debugging/references/runtime-debugging.md": "8e7ad6a7b0b1af358ab03d7ca25a0d619c541029fcc478262f740e3fc557f134",
+    "packages/creator/skills/ag-ui-frontend/references/frontend-tool-lifecycle.md": "7d26921a8a2ab7b5a6474269e1fff728a61504b69ec2eba9e2069f564e776c88",
+    "packages/creator/skills/ui-plugin-development/references/authoring-contracts.md": "79da56c56314f411af7c46318a7a17f8aabbcb5173e09a6fbe92769324e8005c",
+    "packages/creator/skills/ui-plugin-development/references/default-ui-composition.md": "b1cbb08593fc53c601f0dd7a5fe38c44033c3de896c0f00414960de612798968",
+    "packages/creator/python/agent_ui_creator/domain_agent/prompt.py": "ace2da07e4740dedcddd5a6f6b02898dd5be03b49a44d7cf8b97a2ceeb47f3d5"
+  },
+  "sourceAndBuildHashes": {
+    "domain_agent/agent.py": "ff8e19343c0158cccc7ae3e5af762ca5efb85fcb18e017c6148f81af30201404",
+    "operations/models.py": "0db5823d89f1d30c298d5c04b7e07ef27667a702c583bf99689692884722c01f",
+    "operations/engine.py": "62cd3cd9dccbd78ff871ed2911d14880f5d41286f4a41bb1e1275a066f698300",
+    "operations/selector.py": "719821806926cdeab8274cae9f0e6267e8c25cd438b726b365d782425f2b911d",
+    "model_settings.py": "c38c8f5a0a14ee2708932fd4647484001a053ac8cd9a69868de0cc8065319e20"
+  }
+}

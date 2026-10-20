@@ -2061,3 +2061,48 @@ def test_protocol_replan_does_not_admit_unoffered_or_forbidden_tools(async_call,
         if async_call: asyncio.run(middleware.awrap_model_call(request, async_handler))
         else: middleware.wrap_model_call(request, handler)
     assert middleware.metrics.protocolReplans == 0
+
+
+def test_union_leaf_feedback_repairs_numeric_layout_without_exposing_rejected_value():
+    tool = {'type':'function','function':{'name':'mutate_app_ui_model','parameters':APP_UI_MODEL_MUTATION_TOOL_SCHEMA}}
+    middleware = ToolProtocolMiddleware()
+    bad = {'operations':[{'type':'update_layout_node_props','nodeRef':'l4','set':{'maxWidth':'private-rejected-width'}}]}
+    good = {'operations':[{'type':'update_layout_node_props','nodeRef':'l4','set':{'maxWidth':960}}]}
+    responses = iter(ModelResponse(result=[AIMessage(content='', tool_calls=[{
+        'name':'mutate_app_ui_model','id':str(index),'args':args}])]) for index,args in enumerate([bad,good]))
+    requests = []
+    def handler(request):
+        requests.append(request)
+        return next(responses)
+    result = middleware.wrap_model_call(ModelRequest(model=object(), messages=[], tools=[tool]), handler)
+    assert result.result[0].tool_calls[0]['args'] == good
+    diagnostic = next(d for d in middleware.metrics.protocolDiagnostics if d.get('fieldErrors'))
+    assert diagnostic['fieldErrors'] == [{'path':['operations',0,'set','maxWidth'],
+        'constraint':'type','receivedType':'string','expectedType':'number'}]
+    feedback = requests[1].messages[-1].content
+    assert 'maxWidth' in feedback and 'number' in feedback
+    assert 'private-rejected-width' not in feedback
+    assert 'private-rejected-width' not in json.dumps(middleware.metrics.to_dict())
+    assert middleware.metrics.protocolRepairAttempts == 1
+    assert middleware.metrics.protocolRepairSuccesses == 1
+
+
+def test_leaf_feedback_selects_only_matching_nested_discriminator_branch_and_bounds_output():
+    from jsonschema import Draft202012Validator
+    from agent_ui_creator.model_protocol.tool_protocol_guard import _schema_field_errors, _repair_validation_hint
+    number = {'type':'object','properties':{'type':{'const':'size'}, **{f'field{i}':{'type':'number'} for i in range(20)}}}
+    other = {'type':'object','properties':{'type':{'const':'other'},'secret':{'type':'string'}}}
+    schema = {'type':'object','properties':{'operation':{'oneOf':[other, number]}}}
+    value = {'operation':{'type':'size', **{f'field{i}':'rejected-value' for i in range(20)}}}
+    error = next(Draft202012Validator(schema).iter_errors(value))
+    fields = _schema_field_errors(error)
+    assert len(fields) == 8
+    assert all(f['path'][0] == 'operation' and f['expectedType'] == 'number' for f in fields)
+    metrics = ToolProtocolMetrics()
+    metrics.protocolDiagnostics.append({'modelCallSequence':1,'toolName':'test','errorType':'oneOf','fieldErrors':fields})
+    hint = _repair_validation_hint(metrics, model_call_sequence=1, expected_tool_name='test')
+    assert len(hint) <= 512
+    assert 0 < len(json.loads(hint)['fieldErrors']) < 8
+    assert 'rejected-value' not in hint
+    value['operation']['type'] = 'unknown'
+    assert _schema_field_errors(next(Draft202012Validator(schema).iter_errors(value))) == []

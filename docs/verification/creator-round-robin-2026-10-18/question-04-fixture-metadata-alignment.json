@@ -1,0 +1,31 @@
+{
+  "changes": [
+    {
+      "project": "B-assistant",
+      "path": "src/agent-ui/plugins/thinking-indicator/manifest.json",
+      "before": "12dc5c38164bdffcf51b0ee2094c5988547412ddeda26aa4fedd9d97068314d2",
+      "after": "9b16dfb91bb34494ab2ed0c5451df8e81db92f858135e52e84d8a6e2b69f0850"
+    },
+    {
+      "project": "B-assistant",
+      "path": "src/agent-ui/plugins/reasoning/manifest.json",
+      "before": "6cf853e7d45b6c204ddd981f0f42bc45fd5c74379560c9d73ecfe81ddd74bb28",
+      "after": "5731b910826ab07270985b5eb2a75fd371252ac88213fa5b29687d0f0d0e98dd"
+    },
+    {
+      "project": "C-embedded",
+      "path": "src/agent-ui/plugins/thinking-indicator/manifest.json",
+      "before": "12dc5c38164bdffcf51b0ee2094c5988547412ddeda26aa4fedd9d97068314d2",
+      "after": "9b16dfb91bb34494ab2ed0c5451df8e81db92f858135e52e84d8a6e2b69f0850"
+    },
+    {
+      "project": "C-embedded",
+      "path": "src/agent-ui/plugins/reasoning/manifest.json",
+      "before": "6cf853e7d45b6c204ddd981f0f42bc45fd5c74379560c9d73ecfe81ddd74bb28",
+      "after": "5731b910826ab07270985b5eb2a75fd371252ac88213fa5b29687d0f0d0e98dd"
+    }
+  ],
+  "notes": [
+    "Align declarations with shared workspace npm manifest metadata, preserving all enablement/layout/source ownership. No B/C Creator test run."
+  ]
+}

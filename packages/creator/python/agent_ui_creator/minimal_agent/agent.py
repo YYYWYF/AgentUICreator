@@ -36,7 +36,7 @@ from .tool_policy import ALLOWED_MINIMAL_TOOLS, MinimalAgentToolPolicyMiddleware
 
 
 class _NoSummaryMiddleware(AgentMiddleware):
-    """Replace DeepAgents summarization with a no-op for short Phase-2 runs."""
+    """Disable library summaries; Creator projects inspection context separately."""
 
     @property
     def name(self) -> str:

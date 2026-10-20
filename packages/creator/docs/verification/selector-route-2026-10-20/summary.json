@@ -1,0 +1,98 @@
+{
+  "scope": "Selector output budget recovery and Host transcript isolation; packages/creator only",
+  "changes": {
+    "normalSelectorMaxTokensUnchanged": 512,
+    "selectorRecoveryMaxTokensDefault": 2048,
+    "recoveryEnvironment": "CREATOR_SELECTOR_RECOVERY_MAX_TOKENS",
+    "sharedRecoverySlot": 1,
+    "authorizationAndHashGatesUnchanged": true,
+    "promptsAndSkillsUnchanged": true
+  },
+  "regression": {
+    "passed": 689,
+    "strictXfailed": 3,
+    "deselectedKnownFixtureFailures": 2,
+    "durationSeconds": 46.02,
+    "fixtureBeforeAfterStatusUnchanged": true,
+    "build": "passed",
+    "typecheck": "passed",
+    "realWindowsExecuted": false
+  },
+  "live": {
+    "task": "我需要修改 Composer 的上游实现源码，而不只是 props 或 JSX 包装。请先展示该插件的具体源码接管计划，等待我确认；确认前不要写入。",
+    "passed": false,
+    "durationSeconds": 104.03,
+    "completion": "success",
+    "errors": [],
+    "changedPaths": [],
+    "protectedChanges": [],
+    "questions": [],
+    "domainCalls": 4,
+    "domainInputTokens": 57776,
+    "selector": {
+      "actionSelectorProtocol": "request-route-text-v1",
+      "actionSelectorModel": "mimo-v2.6-flash",
+      "actionSelectorRequestedMaxTokens": 512,
+      "actionSelectorRecoveryMaxTokens": 2048,
+      "actionSelectorOutputBudgetRetries": 0,
+      "actionSelectorRequestedReasoningEffort": "low",
+      "actionSelectorCalls": 1,
+      "actionSelectorRepairCalls": 0,
+      "actionSelectorInvalidResponses": 0,
+      "actionSelectorDurationMs": 5364,
+      "actionSelectorCandidateCount": 0,
+      "actionSelectorContextCharacters": 2,
+      "actionSelectorRawVisibleChoice": "READ_ONLY_EXPLICIT INSPECT",
+      "actionSelectorParsedSelection": {
+        "decision": "read_only_analysis",
+        "taskIntent": "read_only",
+        "explicitReadOnly": true,
+        "actionId": null,
+        "targetId": null,
+        "clarificationQuestion": null,
+        "removalIntent": "none",
+        "developmentIntent": "none"
+      },
+      "actionSelectorResolvedModel": "mimo-v2.6-flash",
+      "actionSelectorFinishReason": "stop",
+      "actionSelectorPromptTokens": 569,
+      "actionSelectorCompletionTokens": 121,
+      "actionSelectorTotalTokens": 690,
+      "actionSelectorReasoningTokens": 113
+    },
+    "manualReview": {
+      "passed": false,
+      "category": "takeover_planning_facts_and_formal_confirmation",
+      "finding": "Read-only route returned an unbound prose plan, no formal planHash confirmation question. It incorrectly proposes removing/migrating thin application files and using legacy source installation to clear an asset path conflict. Existing controlled takeover preserves the application layer; no actual writes happened."
+    },
+    "runtimeEvidence": "not collected",
+    "browserEvidence": "not collected",
+    "budgetRecoveryTriggeredInThisLiveRun": false,
+    "routeReviewTriggeredInThisLiveRun": false
+  },
+  "previousRuns": [
+    {
+      "report": "../phase3-2026-10-20/live/takeover_question.json",
+      "result": "ACTION_SELECTION_FAILED: output budget exhausted before domain agent",
+      "durationSeconds": 15.508,
+      "domainCalls": 0
+    },
+    {
+      "report": "../phase3-2026-10-20/attempt-1/live/takeover_question.json",
+      "result": "route review failed: HumanMessage has no get",
+      "durationSeconds": 274.099,
+      "domainCalls": 18
+    },
+    {
+      "report": "../phase3-2026-10-19/live/takeover_question.json",
+      "result": "formal takeover confirmation question, no writes",
+      "durationSeconds": 80.84,
+      "domainCalls": 4
+    }
+  ],
+  "limitations": [
+    "One live diagnostic sample; no performance gain claim.",
+    "This live run did not exercise length recovery or route review; those paths are covered by deterministic/real-Graph regression cases.",
+    "Formal takeover confirmation task remains failing; do not interpret successful transport or completion=success as task acceptance."
+  ]
+}

@@ -37,6 +37,7 @@
     "test:python:setup": "node scripts/run-python-tests.mjs --setup-only",
     "test:python": "node scripts/run-python-tests.mjs",
     "test:python-live-model": "node scripts/run-python-tests.mjs --live-model",
+    "package:repo": "node scripts/package-repository.mjs",
     "test:python-sidecar": "pnpm test:python:setup && pnpm --filter @za38.03/agent-ui-creator test:python-sidecar",
     "creator": "pnpm --filter @za38.03/agent-ui-creator build && node packages/creator/dist/cli.js --project examples/creator-host-sandbox --config-root .",
     "verify:creator:official-composer-live": "node scripts/run-python-tests.mjs --official-composer-live",

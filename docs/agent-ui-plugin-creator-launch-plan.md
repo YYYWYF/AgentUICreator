@@ -187,7 +187,17 @@ Creator 不进入生成应用的生产依赖。项目观察、语义化修改、
 
 ## 3.6 Inspect first，按需渐进展开
 
-每次 Creator run 开始时，Harness 注入一个有大小上限的项目摘要，至少包含：
+普通聊天默认使用轻量请求路由（`request-route-text-v1`），只判断回答、只读检查、修改及删除/开发授权意图。路由输入仅包含当前请求、有界的近期对话、已有澄清和必要的路由复核信息，不预先构建 Composition Snapshot，不注入 Action/Authoring Target 候选或全量 Plugin 语义。目标、所有权和具体操作由领域 Coding Agent 按需检查；未知目标不要求先选一个预设动作。只读工具权限、显式 no-edit、开发准入、源码接管确认和事务验证仍由 Host 执行。保留的 catalog selection/execution 路径须显式启用，不是普通聊天的前置步骤。
+
+领域 Agent 默认只暴露常用的文件、项目/插件检查和验证工具，其他工具通过 `enable_creator_tools` 按 composition、plugin_authoring、services、integration、debugging、history 展开。展开单独调用，只改变后续请求的 Schema 可见性，仍与当前只读/写入权限、开发准入、Recovery 和验证策略取交集。成功的展开结果保留在 checkpoint 中以支持恢复；用户文本和未执行的模型调用不是展开依据。Composition 检查自动提供其修改工具，避免额外选择轮次。跨领域展开可退出普通导航优化，但不能退出恢复或授权门禁。
+
+工程清单的传输容量与模型选项预算分开：Python capability inventory 与既有 wire contract 的 500 条容量一致，Host/Python Authoring Target 清单允许 512 条（插件加应用 owner），避免官方与项目插件合计超过旧 64 条后连单插件检查也失败。保留完整性、路径、身份与大小校验，不裁掉已有插件；普通路由仍不接收这些清单。
+
+工程导航从 `.agent-ui/project.json` 的 sourceRoot 派生虚拟路径，不预读源码或把导航当读取证据。`inspect_ui_plugin` 的 application usageGuide 提供当前工程的有界 JSX 示例、实际公开 props、scope/组合边界和已验证的安装包身份；它不安装源码，也不证明运行时行为。模板、公开 API 和当前应用代码仍是事实来源，不维护第二套人工插件清单。
+
+常驻提示词保留职责、权限、AppUIModel、所有权和完成边界；详细 authoring/Host integration 规则放在随 Creator 分发的 Skill references 中按需读取。只读 Agent 同样可读取这些只读资料。模型上下文对重复插件合同去重，并在超过软预算时省略已被较新同查询替代的旧检查；保留最新完整分页快照、源码读取、用户约束、授权、修改回执和错误。该投影不修改 checkpoint、事务或 Host 证据，不设置累计模型调用/图步数上限。
+
+执行 Agent 需要工程事实时，通过 Host 检查工具取得有大小上限的项目摘要，包含：
 
 ```text
 AppUIModel hash 与本次 mutation revision

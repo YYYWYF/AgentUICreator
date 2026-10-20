@@ -18,6 +18,7 @@ from ..responsive_repair import ResponsiveRiskTracker
 from ..service_contracts.verification import ServiceContractAuthorizationVerifier
 from . import attribution
 from .command_runner import CreatorValidationCommandRunner
+from .errors import RegistryIntegrityError
 from .diagnostics import (
     TypeScriptDiagnostic,
     TypeScriptDiagnosticParseResult,
@@ -76,12 +77,16 @@ class CreatorValidationService:
         self._registry_sync_mutation_index = 0
         self._registry_recovery_synced: tuple[str, ...] = ()
         self._baseline_run_id: str | None = None
+        self._baseline_retryable = False
+        self._baseline_retried = False
         self._baseline_capture_started = False
         self._baseline: TypeScriptDiagnosticParseResult | None = None
         self._latest_differential: TypecheckDifferential | None = None
         self._latest_mode: ValidationMode | None = None
         self._latest_revision: int | None = None
         self._build_requested = False
+        self._registry_integrity_error: RegistryIntegrityError | None = None
+        self._infrastructure_retries: set[tuple[int, str]] = set()
 
     def _synchronize_run_state(self) -> None:
         run_id = self.activity.run_id
@@ -90,6 +95,8 @@ class CreatorValidationService:
         self.debugging.ensure_run(run_id)
         self.responsive_risks = ResponsiveRiskTracker()
         self._baseline_run_id = run_id
+        self._baseline_retryable = False
+        self._baseline_retried = False
         self._baseline_capture_started = False
         self._baseline = None
         self.latest_evidence = None
@@ -98,10 +105,14 @@ class CreatorValidationService:
         self._latest_mode = None
         self._latest_revision = None
         self._build_requested = False
+        self._registry_integrity_error = None
+        self._infrastructure_retries.clear()
         self._registry_sync_mutation_index = 0
         self._registry_recovery_synced: tuple[str, ...] = ()
 
     async def _synchronize_plugin_registry(self) -> None:
+        if self._registry_integrity_error is not None:
+            raise self._registry_integrity_error
         if self.operator is None or self.mutation_coordinator is None:
             return
         recovered = recover_registry_evidence(self.activity)
@@ -117,7 +128,10 @@ class CreatorValidationService:
         registry_path = agent_ui_source_path(self.project_root, "plugins/registry.generated.ts")
         async with self.mutation_coordinator.transaction(self.project_root):
             if recovered != recover_registry_evidence(self.activity):
-                raise ValueError("Registry recovery evidence changed before synchronization.")
+                self._registry_integrity_error = RegistryIntegrityError(
+                    "Registry recovery evidence changed before synchronization.", path=registry_path,
+                )
+                raise self._registry_integrity_error
             if recovered and self.activity.logger is not None:
                 self.activity.logger.record("registry_recovery_verified", {"paths": list(recovered), "authority": "derived_registry_only"})
             before = read_creator_file_state(self.project_root, registry_path)
@@ -125,18 +139,46 @@ class CreatorValidationService:
                 self._registry_sync_mutation_index = len(self.activity.mutation_paths)
                 return
             self.activity.capture_before_content(registry_path, before.content)
-            result = await self.operator.synchronize_plugin_registry(
-                expected_source_hash=before.hash
-            )
-            after = read_creator_file_state(self.project_root, registry_path)
-            expected_path = registry_path.lstrip("/")
-            if result.get("path") != expected_path or result.get("changed") != (
-                after.hash != before.hash
-            ):
-                raise ValueError("Host Plugin Registry synchronization result disagrees with disk state.")
-            if result.get("changed") is True and after.hash != before.hash:
-                self.activity.file_observations.observe(registry_path)
+            operation_error: BaseException | None = None
+            result = None
+            try:
+                result = await self.operator.synchronize_plugin_registry(
+                    expected_source_hash=before.hash
+                )
+            except BaseException as error:
+                operation_error = error
+            try:
+                after = read_creator_file_state(self.project_root, registry_path)
+            except Exception as error:
+                self._registry_integrity_error = RegistryIntegrityError(
+                    "Cannot reconcile Plugin Registry disk state.", path=registry_path,
+                    cause=operation_error if operation_error is not None else error,
+                )
+                raise self._registry_integrity_error from error
+            changed = after.hash != before.hash
+            if changed:
+                # Record actual disk effects before interpreting the Operator response.
                 self.activity.touch(registry_path)
+            if operation_error is not None:
+                if changed:
+                    self._registry_integrity_error = RegistryIntegrityError(
+                        "Plugin Registry changed before synchronization failed.",
+                        path=registry_path, cause=operation_error,
+                    )
+                if not isinstance(operation_error, Exception):
+                    raise operation_error  # cancellation retains its control-flow semantics
+                if self._registry_integrity_error is not None:
+                    raise self._registry_integrity_error from operation_error
+                raise operation_error
+            expected_path = registry_path.lstrip("/")
+            if not isinstance(result, dict) or result.get("path") != expected_path or result.get("changed") is not changed:
+                self._registry_integrity_error = RegistryIntegrityError(
+                    "Host Plugin Registry synchronization result disagrees with disk state.",
+                    path=registry_path,
+                )
+                raise self._registry_integrity_error
+            if changed:
+                self.activity.file_observations.observe(registry_path)
         self._registry_sync_mutation_index = len(self.activity.mutation_paths)
         self._registry_recovery_synced = recovered
 
@@ -189,6 +231,7 @@ class CreatorValidationService:
                 else revision
             ),
             source="cached" if source == "cached" else "executed",
+            failure_kind=receipt.get("failureKind"),
         )
 
     @staticmethod
@@ -253,6 +296,7 @@ class CreatorValidationService:
                 exit_code=result.exit_code,
                 truncated=result.truncated,
             )
+            self._baseline_retryable = result.exit_code is None and result.failure_kind in {None, "timeout", "start_failed", "infrastructure"}
             exit_code = result.exit_code
             truncated = result.truncated
         self._baseline = parsed
@@ -449,10 +493,16 @@ class CreatorValidationService:
                 },
             )
 
-    async def validate(self, mode: ValidationMode = "delta", *, include_build: bool = False) -> CreatorValidationResult:
+    async def validate(self, mode: ValidationMode = "delta", *, include_build: bool = False, retry_infrastructure: bool = False) -> CreatorValidationResult:
         if mode not in {"delta", "clean"}:
             raise ValueError("Validation mode must be 'delta' or 'clean'.")
         self._synchronize_run_state()
+        baseline_retried_now = False
+        if retry_infrastructure and self.activity.revision == 0 and self._baseline_retryable and not self._baseline_retried:
+            self._baseline_retried = True
+            self._baseline_capture_started = False
+            self._latest_differential = None
+            baseline_retried_now = True
         await self.ensure_baseline()
         await self._synchronize_plugin_registry()
         target_revision = self.activity.revision
@@ -478,6 +528,16 @@ class CreatorValidationService:
             cached = self.activity.validation_at_revision(
                 command_label, target_revision, validation_mode=mode
             )
+            retry_key = (target_revision, command)
+            if (retry_infrastructure and cached is not None and (
+                    cached.get("failureKind") in {"timeout", "start_failed", "infrastructure"}
+                    # Differential status/output were derived from the old,
+                    # unavailable baseline; refresh them once after recovery.
+                    or (baseline_retried_now and command == "pnpm typecheck")
+                    )
+                    and retry_key not in self._infrastructure_retries):
+                self._infrastructure_retries.add(retry_key)
+                cached = None
             if cached is not None:
                 if command == "pnpm typecheck":
                     if (
@@ -528,6 +588,7 @@ class CreatorValidationService:
                 revision=target_revision,
                 status=status,
                 validation_mode=mode,
+                failure_kind=result.failure_kind or ("infrastructure" if result.exit_code is None else None),
             )
             recorded = self.activity.validation_at_revision(
                 command_label, target_revision, validation_mode=mode
@@ -585,6 +646,31 @@ class CreatorValidationService:
                 target_revision, error
             ),
         )
+        baseline_infrastructure_failed = (
+            status == "failed" and self._baseline_retryable
+            and self._baseline is not None and not self._baseline.available
+        )
+        if any(check.failure_kind is not None for check in checks) or baseline_infrastructure_failed:
+            retry_available = (
+                baseline_infrastructure_failed and target_revision == 0 and not self._baseline_retried
+            ) or any(
+                check.failure_kind in {"timeout", "start_failed", "infrastructure"}
+                and (target_revision, check.check_id) not in self._infrastructure_retries
+                for check in checks
+            )
+            failure_semantics = {
+                "category": "validation_infrastructure",
+                "failures": [
+                    *[{"command": check.command, "kind": check.failure_kind}
+                      for check in checks if check.failure_kind is not None],
+                    *([{"command": "typecheck baseline", "kind": "infrastructure"}]
+                      if baseline_infrastructure_failed else []),
+                ],
+                "automaticRepairAllowed": False,
+                "automaticCrossLayerRepairAllowed": False,
+                "retryAllowed": retry_available,
+                "recovery": "retry_infrastructure_once" if retry_available else "stop_and_report_blocker",
+            }
         validation = CreatorValidationResult(
             evidence=evidence,
             failure_semantics=failure_semantics,

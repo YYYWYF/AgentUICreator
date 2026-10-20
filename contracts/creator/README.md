@@ -40,3 +40,7 @@ TS 与 Python suite 必须和 canonical JSON Schema 同时 accept/reject。
 `pnpm check:operator-contract` 检查 operation、input/result binding、Host switch
 与声明的 Tool exposure；Python regression 额外检查实际 Tool 集合。
 字段删除、改名、类型变化或 response envelope 变化必须升级至 v4。
+
+`inspect_ui_plugin.application.usageGuide` 是可选的有界导航数据，包含当前应用
+示例、已解析的公开定制入口和实际安装包身份（可用时）。它不授予源码接管、
+写入或文件读取证据；公开类型不可用时仍可返回应用示例，不能据此推断能力缺失。

@@ -311,3 +311,22 @@ def test_snapshot_rejects_oversized_action_strings(field, limit):
         CreatorDomainSnapshotProvider._parse(result)
 
     assert raised.value.code == "DOMAIN_SNAPSHOT_TOO_LARGE"
+
+
+def test_snapshot_accepts_more_than_64_plugins_and_targets_without_truncation():
+    result = snapshot_result([])
+    template = result["capabilitySummaries"][0]
+    result["capabilitySummaries"] = [
+        {**copy.deepcopy(template), "pluginId": f"custom-{i}", "name": f"Custom {i}",
+         "selected": False, "currentInstances": []} for i in range(70)
+    ]
+    result["activeComposition"] = {"selectedPluginIds":[],"resolvedPluginIds":[],"headlessPluginIds":[]}
+    result["authoringTargetCatalog"] = {"revision":"d"*64,
+        "candidates":[{"id":f"config-{i}","kind":"application_config","name":f"Config {i}",
+            "description":"Application configuration","intents":["change config"]} for i in range(70)],
+        "bindings":[{"targetId":f"config-{i}","kind":"application_config","ownerPath":f"src/config-{i}.ts"} for i in range(70)],
+    }
+    snapshot = CreatorDomainSnapshotProvider._parse(result)
+    assert len(snapshot.plugin_index.plugins) == 70
+    assert len(snapshot.authoring_target_catalog.candidates) == 70
+    assert len(snapshot.authoring_target_catalog.bindings) == 70

@@ -9,6 +9,12 @@ Use this guide only when choosing the evidence path is material. It does not
 require a classification step for every request, prescribe a tool sequence, or
 replace the Creator Agent's judgment.
 
+Use `enable_creator_tools` to expose only needed tool groups; it never grants
+project permissions. For a concrete unresolved authoring/verification question,
+read [authoring-policy.md](references/authoring-policy.md). For an actual Host
+embedding request, read [host-integration.md](references/host-integration.md)
+and use the Host's canonical recipe; ordinary Plugin edits do not need it.
+
 ## Current State Change
 
 Use when the requested result depends on the project's current state.

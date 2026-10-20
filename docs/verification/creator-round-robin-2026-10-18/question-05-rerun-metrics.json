@@ -1,0 +1,303 @@
+{
+  "question": 5,
+  "template": "B-assistant",
+  "prompt": "AI 调用了很多工具的时候，现在的显示有点乱，能不能改成一个执行过程列表，每一步都可以展开查看？",
+  "runId": "0444655d-17e3-43d4-933e-2380b8bd40db",
+  "threadId": "65374bb9-e763-4fa3-a3f4-0131e631e3d1",
+  "startedAt": "2026-10-18T08:32:29.651Z",
+  "finishedAt": "2026-10-18T08:37:34.301Z",
+  "wallSeconds": 304.65,
+  "outcome": "interrupted",
+  "earlyStopRequested": true,
+  "earlyStopped": false,
+  "stopNote": "Native stop actions did not visibly update state. Before backend control could stop it, the run naturally finished interrupted awaiting user choice. Direct sidecar control returned 401 (no credentials supplied); authenticated workspace proxy returned 404 since no active run remained. No pending choice was selected or abandoned.",
+  "modelToolCalls": 7,
+  "successfulToolCalls": 4,
+  "rejectedToolCalls": 2,
+  "userQuestionInterrupts": 1,
+  "cancelledToolCalls": 0,
+  "rawErrorToolCalls": 1,
+  "toolsByName": {
+    "read_file": 2,
+    "inspect_ui_plugin": 1,
+    "takeover_plugin_source": 2,
+    "inspect_ui_project": 1,
+    "ask_user_question": 1
+  },
+  "toolDurationSumMs": 4982,
+  "modelCalls": 5,
+  "modelDurationMs": 287988,
+  "selectorCalls": 1,
+  "selectorDurationMs": 10122,
+  "selectorContextCharacters": 78073,
+  "selectorCandidateCount": 124,
+  "inputTokens": 182683,
+  "outputTokens": 7128,
+  "operatorMetrics": {
+    "requests": 4,
+    "failures": 2,
+    "durationMs": 4280,
+    "byOperation": {
+      "inspect_ui_plugin": 1,
+      "plan_plugin_source_takeover": 2,
+      "inspect_ui_project": 1
+    }
+  },
+  "sourceGrounding": {
+    "sourceFastPathAttempted": true,
+    "sourceFastPathActivated": true,
+    "sourceFastPathExited": true,
+    "sourceFastPathExitTool": "takeover_plugin_source",
+    "sourceFastPathExitReason": "cross_layer_dependency",
+    "scopedAuthoringTarget": "plugin-source:tool-timeline",
+    "filesystemReadsBeforeFirstSourceWrite": 2,
+    "modelCallsBeforeFirstSourceWrite": null,
+    "directReads": 2,
+    "filesystemSearches": 0,
+    "sourceEditAttempts": 0,
+    "sourceEditSuccesses": 0,
+    "sourceEditRangeAttempts": 0,
+    "sourceEditRangeSuccesses": 0,
+    "replacementNotFoundErrors": 0,
+    "fileChangedSinceReadErrors": 0
+  },
+  "toolObservations": [
+    {
+      "modelCallSequence": 1,
+      "toolName": "read_file",
+      "toolCallId": "call_2f694af98fd14d64a9c25917",
+      "startedAt": "2026-10-18T08:32:56.015857+00:00",
+      "finishedAt": "2026-10-18T08:32:56.035673+00:00",
+      "durationMs": 20,
+      "status": "success",
+      "structuredErrorCode": null,
+      "structuredErrorReason": null,
+      "phase": "before_first_mutation",
+      "arguments": {
+        "file_path": "/src/agent-ui/plugins/tool-timeline/definition.ts"
+      },
+      "result": {
+        "status": "success",
+        "code": null,
+        "factKinds": [
+          "filesystem.observation"
+        ]
+      }
+    },
+    {
+      "modelCallSequence": 1,
+      "toolName": "read_file",
+      "toolCallId": "call_2b7fed1dc6534d049a11d3b6",
+      "startedAt": "2026-10-18T08:32:56.016116+00:00",
+      "finishedAt": "2026-10-18T08:32:56.037448+00:00",
+      "durationMs": 21,
+      "status": "success",
+      "structuredErrorCode": null,
+      "structuredErrorReason": null,
+      "phase": "before_first_mutation",
+      "arguments": {
+        "file_path": "/src/agent-ui/plugins/tool-timeline/index.tsx"
+      },
+      "result": {
+        "status": "success",
+        "code": null,
+        "factKinds": [
+          "filesystem.observation"
+        ]
+      }
+    },
+    {
+      "modelCallSequence": 1,
+      "toolName": "inspect_ui_plugin",
+      "toolCallId": "call_c470d0e0fbd4433f839d78cb",
+      "startedAt": "2026-10-18T08:32:56.016143+00:00",
+      "finishedAt": "2026-10-18T08:32:58.087608+00:00",
+      "durationMs": 2071,
+      "status": "success",
+      "structuredErrorCode": null,
+      "structuredErrorReason": null,
+      "phase": "before_first_mutation",
+      "arguments": {
+        "pluginId": "tool-timeline"
+      },
+      "result": {
+        "status": "success",
+        "code": null,
+        "factKinds": [
+          "plugin.manifest"
+        ]
+      }
+    },
+    {
+      "modelCallSequence": 2,
+      "toolName": "takeover_plugin_source",
+      "toolCallId": "call_fb680ecc222947de9559c5cd",
+      "startedAt": "2026-10-18T08:33:32.191387+00:00",
+      "finishedAt": "2026-10-18T08:33:33.277277+00:00",
+      "durationMs": 1086,
+      "status": "rejected",
+      "structuredErrorCode": "OPERATOR_RESULT_CONTRACT_VIOLATION",
+      "structuredErrorReason": "Operator produced a result that does not match the current contract.",
+      "phase": "before_first_mutation",
+      "arguments": {},
+      "result": {
+        "status": "rejected",
+        "code": "OPERATOR_RESULT_CONTRACT_VIOLATION",
+        "factKinds": []
+      }
+    },
+    {
+      "modelCallSequence": 3,
+      "toolName": "inspect_ui_project",
+      "toolCallId": "call_93be2fe41aa042b08027e381",
+      "startedAt": "2026-10-18T08:34:18.328319+00:00",
+      "finishedAt": "2026-10-18T08:34:19.510273+00:00",
+      "durationMs": 1182,
+      "status": "success",
+      "structuredErrorCode": null,
+      "structuredErrorReason": null,
+      "phase": "before_first_mutation",
+      "arguments": {
+        "view": "composition"
+      },
+      "result": {
+        "status": "success",
+        "code": null,
+        "factKinds": [
+          "composition.snapshot",
+          "capability.summary",
+          "service.readiness",
+          "creator.authoring-targets"
+        ],
+        "paging": {
+          "pageOffset": 0,
+          "totalChars": 49123,
+          "pageComplete": false,
+          "snapshotHash": "a153e0459d52fe99191a4217afcde648001b50440c94e33249031a34a42b0356",
+          "nextOffset": 40907
+        }
+      }
+    },
+    {
+      "modelCallSequence": 4,
+      "toolName": "takeover_plugin_source",
+      "toolCallId": "call_f2f152f7f90a4eee9dc183e2",
+      "startedAt": "2026-10-18T08:35:21.592741+00:00",
+      "finishedAt": "2026-10-18T08:35:22.187664+00:00",
+      "durationMs": 595,
+      "status": "rejected",
+      "structuredErrorCode": "OPERATOR_RESULT_CONTRACT_VIOLATION",
+      "structuredErrorReason": "Operator produced a result that does not match the current contract.",
+      "phase": "before_first_mutation",
+      "arguments": {},
+      "result": {
+        "status": "rejected",
+        "code": "OPERATOR_RESULT_CONTRACT_VIOLATION",
+        "factKinds": []
+      }
+    },
+    {
+      "modelCallSequence": 5,
+      "toolName": "ask_user_question",
+      "toolCallId": "call_a004c3176922454fbaddbd46",
+      "startedAt": "2026-10-18T08:37:34.289321+00:00",
+      "finishedAt": "2026-10-18T08:37:34.296102+00:00",
+      "durationMs": 7,
+      "status": "error",
+      "structuredErrorCode": null,
+      "structuredErrorReason": "GraphInterrupt",
+      "phase": "before_first_mutation",
+      "arguments": {},
+      "result": {
+        "status": "error",
+        "code": null,
+        "factKinds": []
+      }
+    }
+  ],
+  "changedFilesIncludingGenerated": [],
+  "mutationRequests": 0,
+  "runtimeVerificationStatus": "not-run",
+  "validationMetrics": {
+    "validationBaselineCaptured": true,
+    "validationBaselineAvailable": true,
+    "baselineTypecheckDiagnostics": 0,
+    "currentTypecheckDiagnostics": null,
+    "newTypecheckDiagnostics": null,
+    "unchangedTypecheckDiagnostics": null,
+    "resolvedTypecheckDiagnostics": null,
+    "validationMode": "delta",
+    "debuggingMetrics": {
+      "observedDebuggingTargets": [],
+      "selectedDebuggingTargetIds": [],
+      "diagnosticScopePending": false,
+      "targetSelectionCalls": 0,
+      "ambiguousTargetStops": 0,
+      "validationReads": 0,
+      "runtimeDiagnosticReads": 0,
+      "duplicateDiagnosticCalls": 0,
+      "implicatedPaths": [],
+      "repairAttempts": 0,
+      "revision": 0,
+      "runtimeEvidenceHash": null,
+      "targetDiagnostics": [],
+      "runtimeTargetDiagnostics": [],
+      "runtimeBaselineDiagnostics": null,
+      "runtimeDifferential": null,
+      "resolvedTargetDiagnostics": null,
+      "resolvedRuntimeTargetDiagnostics": null,
+      "finalState": null,
+      "reason": null
+    }
+  },
+  "mockPreview": "Not run: interrupted before mutation; no completed feature result to verify.",
+  "browser": {
+    "name": "Google Chrome",
+    "creatorUrl": "http://127.0.0.1:56315/",
+    "evidence": [
+      "B-question-05-rerun-interrupted.png",
+      "B-question-05-rerun-interrupted-ui.txt"
+    ]
+  },
+  "nextQuestionExecuted": false,
+  "comparison": {
+    "priorWallSeconds": 149.174,
+    "currentWallSeconds": 304.65,
+    "priorModelToolCalls": 15,
+    "currentModelToolCalls": 7,
+    "toolReductionPercent": 53.33,
+    "priorSuccessfulReadFileCalls": 7,
+    "currentSuccessfulReadFileCalls": 2,
+    "priorFilesystemSearches": 5,
+    "currentFilesystemSearches": 0,
+    "warning": "Neither run completed Q5; fewer calls are not a successful feature or latency improvement. Current run was slower due model latency and error recovery."
+  },
+  "frameworkValidation": {
+    "pythonPassed": 159,
+    "operatorTestsPassed": 9,
+    "operatorTypechecks": "production and tests passed",
+    "operatorBuild": "passed",
+    "contractInventory": "passed",
+    "gitDiffCheck": "passed",
+    "existingFailure": "test_operator_operation_receipt_and_host_fixtures_match_schemas: legacy mutate receipt fixture lacks mutationFootprint; also invalid against unmodified HEAD schema. Failure retained, fixture not rewritten, isolated from focused passing run.",
+    "nativeWindowsRun": false
+  },
+  "blocker": {
+    "code": "OPERATOR_RESULT_CONTRACT_VIOLATION",
+    "operation": "plan_plugin_source_takeover",
+    "cause": "Existing plan result schema requires composerSupport and rejects actual tool-timeline pluginSupport:1.",
+    "rejectedAttempts": 2,
+    "readOnlyDiagnostic": "question-05-rerun-plan-contract-diagnostic.json",
+    "notFixedInThisRun": true
+  },
+  "notes": [
+    "Only one measured Creator run, exact original Q5, fresh Chrome session. Source baseline matches the original Q5 exactly.",
+    "No keyword workflow, automatic takeover consent, vendor modification or skipped validation added.",
+    "Same-plugin API inspection retained the source lane: trace 2 still offers 28 tools. It expanded on takeover, not on inspect_ui_plugin.",
+    "First model round read application/definition and inspected API in parallel; no filesystem searches in whole run.",
+    "Original log labels GraphInterrupt as error; normalized here as a user-question interrupt, not an extra tool failure.",
+    "Post-error composition snapshot was paged; only first page delivered. No mutation or completion coverage was authorized.",
+    "Source takeover was never authorized/executed. Creator asked a separate choice after plan failure; no answer supplied.",
+    "Preparatory API checks, typechecks/build/tests and post-run diagnostics excluded from measured run tool/time counts. Internal Operator time is nested and cannot be added to model tool/wall time."
+  ]
+}

@@ -1,0 +1,1 @@
+import {createRoot} from "react-dom/client"; import {ExampleLocaleHost} from "./ExampleLocaleHost"; import {App} from "./App"; import "./host.css"; createRoot(document.getElementById("root")!).render(<ExampleLocaleHost><App/></ExampleLocaleHost>);

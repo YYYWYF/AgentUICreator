@@ -1,0 +1,57 @@
+{
+  "question": 7,
+  "template": "A-platform",
+  "prompt": "我想在 AI 回复下面加一个‘复制全部内容’的按钮",
+  "runId": "6c16982e-d4e1-4c64-9d09-1045bfc32de9",
+  "threadId": "11abda61-59f2-49de-8a2f-e281bb3253cd",
+  "startedAt": "2026-10-18T11:19:39.753Z",
+  "finishedAt": "2026-10-18T11:20:27.783Z",
+  "wallSeconds": 48.03,
+  "modelRequestedToolCalls": 0,
+  "operatorMetrics": {
+    "requests": 0,
+    "failures": 0,
+    "durationMs": 0,
+    "queueWaitMs": 0,
+    "admissionWaitMs": 0,
+    "executionMs": 0,
+    "byOperation": {}
+  },
+  "modelCallsExcludingSelector": 2,
+  "selectorCalls": 1,
+  "selectorDurationMs": 27176,
+  "selectedIntent": "read_only",
+  "selectedRoute": "answer_only",
+  "selectorVisibleChoice": "READ_ONLY ANSWER",
+  "offeredToolCounts": [
+    0,
+    0
+  ],
+  "protocolRepairAttempts": 1,
+  "rawOutcome": "success",
+  "testOutcome": "not-completed-request-misrouted-to-answer-only",
+  "targetSourceChangedPaths": [],
+  "browser": "Original Chrome first tab reused for A at http://127.0.0.1:56305/; two tabs retained; second C tab unchanged",
+  "mockVerification": {
+    "scenario": "一次回复包含多条消息",
+    "messages": [
+      "第一段回答",
+      "第二段回答",
+      "最终总结"
+    ],
+    "messagesRendered": true,
+    "existingCopyIconPresent": true,
+    "requestedCopyAllTextButtonAdded": false,
+    "clipboardVerified": false,
+    "clipboardObservation": "Clicked existing Copy, attempted paste into unsent host draft; no text appeared. Do not claim successful copy or infer its cause without diagnosis.",
+    "copyAttemptWallSeconds": 36.238,
+    "copyAttemptStartedAt": "2026-10-18T11:20:58.746Z",
+    "copyAttemptFinishedAt": "2026-10-18T11:21:34.984Z"
+  },
+  "notes": [
+    "Creator rendered a pseudo ls tool-call text but made zero actual tool calls; tools were not offered on answer-only route.",
+    "Creator returned generic implementation guidance, mentioned Vue despite A being a React platform target, and asked the user to restate an already authorized request.",
+    "No second attempt, no fixes in this turn, no Q8.",
+    "Tool counts are Creator/backend execution metrics, excluding Codex browser and log-inspection calls."
+  ]
+}

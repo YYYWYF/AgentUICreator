@@ -15,7 +15,10 @@ import type {
 import type { AgentUIProjectPaths } from "./agent-ui-project-paths";
 import { projectRelativePath as resolvedProjectRelativePath } from "./agent-ui-project-paths";
 
-export const MAX_CREATOR_AUTHORING_TARGETS = 64;
+// Match the wire inventory capacity (500 Plugins plus application owners).
+// This is a transport safety bound, not a model option budget: ordinary requests
+// no longer send this catalog to the request router.
+export const MAX_CREATOR_AUTHORING_TARGETS = 512;
 export const MAX_AUTHORING_TARGET_INTENTS = 16;
 export const MAX_AUTHORING_TARGET_ID_CHARS = 100;
 export const MAX_AUTHORING_TARGET_NAME_CHARS = 200;

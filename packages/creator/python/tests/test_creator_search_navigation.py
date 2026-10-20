@@ -13,14 +13,34 @@ def test_searches_real_nested_theme_files_without_silent_regex_absence(tmp_path)
         target.write_text(content)
     backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.inspect_read_only())
     assert len(backend.grep("violet").matches) == 1
-    assert "SEARCH_SYNTAX_UNSUPPORTED" in backend.grep("violet|indigo").error
-    assert "SEARCH_SYNTAX_UNSUPPORTED" in backend.grep("#[0-9a-fA-F]{6}").error
+    assert len(backend.grep("violet|indigo").matches) == 1
+    assert len(backend.grep("#[0-9a-fA-F]{6}").matches) == 1
     assert len(backend.grep("#243247").matches) == 1
     assert len(backend.glob("**/*.{css,scss}").matches) == 2
     assert len(backend.glob("src/**/*theme*").matches) == 2
     assert backend.glob("src/**/node_modules/*").matches == []
     assert "TOOL_PERMISSION_DENIED" in backend.glob("../*").error
     assert "SEARCH_SYNTAX_UNSUPPORTED" in backend.glob("**/*.{css}").error
+
+
+def test_regex_fallback_preserves_literals_and_reports_invalid_or_expensive_queries(tmp_path, monkeypatch):
+    from agent_ui_creator.minimal_agent import path_policy
+    (tmp_path / ".agent-ui").mkdir()
+    (tmp_path / ".agent-ui/project.json").write_text('{"mode":"platform","sourceRoot":"src"}')
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src/code.ts").write_text("a|b\na\nb\n")
+    backend = PolicyFilesystemBackend(tmp_path, MinimalAgentPathPolicy.inspect_read_only())
+    assert len(backend.grep("a|b").matches) == 1  # Exact code beats regex interpretation.
+    assert len(backend.grep("^a$", path="/src", glob="*.ts").matches) == 1
+    assert "SEARCH_SYNTAX_UNSUPPORTED" in backend.grep("[invalid").error
+    assert backend.grep("^missing$", path="/src").matches == []
+    class Expensive:
+        def search(self, text, *, timeout):
+            assert 0 < timeout <= 0.01
+            raise TimeoutError
+    monkeypatch.setattr(path_policy.bounded_regex, "compile", lambda _pattern: Expensive())
+    result = backend.grep("(a+)+$")
+    assert "SEARCH_TIMEOUT" in result.error and result.matches is None
 
 
 @pytest.mark.parametrize("file,pattern,expected", [

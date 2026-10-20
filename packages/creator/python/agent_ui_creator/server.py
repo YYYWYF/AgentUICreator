@@ -125,6 +125,7 @@ class PendingCreatorQuestion:
     permission: CreatorExecutionPermission
     checkpoint_id: str
     run_id: str
+    source_takeover_confirmation: Any = None
     removal_intent: RemovalIntent = "none"
     authoring_handoff: CreatorAuthoringHandoff | None = None
     source_navigation: dict[str, Any] | None = None
@@ -351,6 +352,7 @@ async def _domain_read_agent_result(
         mode="development",
         permission_scope="inspect_read_only" if inspect_read_only else "legacy",
         answer_only=answer_only,
+        skills_root=settings.skills_root,
         raw_trace=model_settings.raw_trace,
         provider_trace_collector=provider_trace_collector,
         activity=activity,
@@ -363,7 +365,40 @@ async def _domain_read_agent_result(
         verification_mode=settings.verification_mode,
     )
     graph_messages = await _checkpoint_input_messages(checkpointer, thread_id, messages) if resume is None else messages
-    return await agent.run_messages(graph_messages) if resume is None else await agent.run_messages(messages, resume=resume)
+    result = await agent.run_messages(graph_messages) if resume is None else await agent.run_messages(messages, resume=resume)
+    if inspect_read_only and isinstance(result, DeepAgentInterrupted) and len(result.interrupts) == 1:
+        value = result.interrupts[0].get("value")
+        request = QuestionRequest.model_validate({key: item for key, item in value.items() if key != "kind"}) if isinstance(value, dict) and value.get("kind") == "ask_user_question" else None
+        for binding in agent.observations.source_takeover_confirmations.values():
+            if request is not None and len(request.steps) == 1 and request.steps[0].id == "plugin-source-" + binding.plan_hash:
+                # The model proposes a question, never consent. Publish Host-owned
+                # copy/options before the user answers; the paused read graph is
+                # consumed by the scoped Host transaction rather than replayed.
+                canonical = {"kind": "ask_user_question", **binding.request().model_dump(mode="json", exclude_none=True)}
+                if activity.logger is not None:
+                    activity.logger.record("creator_source_takeover_confirmation_prepared", {
+                        "pluginId": binding.plugin_id, "planHash": binding.plan_hash,
+                        "agentPermission": "inspect_read_only", "approvalGranted": False,
+                    })
+                return replace(result, interrupts=({**result.interrupts[0], "value": canonical},), source_takeover_confirmation=binding)
+    return result
+
+
+async def _resume_source_takeover(settings, pending, answers, activity, checkpointer, thread_id, telemetry):
+    from .domain_agent.agent import DomainReadAgentResult
+    from .domain_state.observation_context import DomainObservationMetrics
+    from .model_protocol.trace import ToolProtocolMetrics
+    from .operator import OperatorClient
+    client = OperatorClient(project_root=settings.project_root)
+    metrics = ToolProtocolMetrics()
+    telemetry.bind(protocol=metrics, operator=client.metrics)
+    # Consume the paused read graph. No read-agent write tools or permissions change.
+    await checkpointer.adelete_thread(thread_id)
+    result = await pending.source_takeover_confirmation.execute(client, answers, activity)
+    return DomainReadAgentResult(text=pending.source_takeover_confirmation.result_text(result), metrics=metrics,
+        operator=client.metrics, repeated_operator_reads=0, activities=(),
+        domain_observations=DomainObservationMetrics(), completion=("success" if result.get("status") == "declined" or settings.verification_mode == "static_only" else "committed_unverified"),
+        blocker=None, terminal_metrics={})
 
 
 async def _domain_write_agent_result(
@@ -1283,7 +1318,10 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                 execution_context.removal_intent = removal_intent
                                 execution_context.authoring_handoff = pending.authoring_handoff
                                 execution_context.source_navigation = pending.source_navigation
-                                if pending.permission == "inspect_read_only":
+                                if pending.source_takeover_confirmation is not None:
+                                    agent_result = _resume_source_takeover(settings, pending, resume_answers,
+                                        activity, checkpointer, run_input.threadId, telemetry)
+                                elif pending.permission == "inspect_read_only":
                                     agent_result = _domain_read_agent_result(
                                         settings, messages, activity, run_input.threadId,
                                         event_bus, telemetry, diagnostics=diagnostics,
@@ -1447,6 +1485,7 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                             permission=execution_context.permission,
                             checkpoint_id=checkpoint_id,
                             run_id=run_input.runId,
+                            source_takeover_confirmation=result.source_takeover_confirmation,
                             removal_intent=execution_context.removal_intent,
                             authoring_handoff=execution_context.authoring_handoff,
                             source_navigation=execution_context.source_navigation,
@@ -1569,6 +1608,9 @@ def create_app(settings: CreatorServerSettings) -> FastAPI:
                                     run_result["clarificationQuestion"] = (
                                         result.selection.clarificationQuestion
                                     )
+                        elif pending is not None and pending.source_takeover_confirmation is not None:
+                            run_result["phase"] = "host-source-takeover"
+                            run_result["executionPolicy"] = "confirmed-plugin-transaction"
                         elif execution_context.permission == "inspect_read_only":
                             run_result["phase"] = "domain-read-agent"
                             run_result["executionPolicy"] = "read-only"

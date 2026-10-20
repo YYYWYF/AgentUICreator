@@ -1,0 +1,2 @@
+There has been no change in the accessibility tree for Window: "127.0.0.1:56305".
+The focused UI element is 54 文本输入区 (settable) Description: 消息输入框, Placeholder: 发送消息…, Value: 

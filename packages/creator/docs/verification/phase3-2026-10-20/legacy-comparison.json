@@ -1,0 +1,16 @@
+[
+  {
+    "before": "grounding-before.xml",
+    "after": "legacy-final.xml",
+    "passed": 3,
+    "failed": 20,
+    "statusChanges": []
+  },
+  {
+    "before": "legacy-host-before.xml",
+    "after": "legacy-final.xml",
+    "passed": 7,
+    "failed": 59,
+    "statusChanges": []
+  }
+]

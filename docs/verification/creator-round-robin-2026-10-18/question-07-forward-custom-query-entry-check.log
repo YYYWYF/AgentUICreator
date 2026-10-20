@@ -1,0 +1,97 @@
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.onlyBuiltDependencies", "pnpm.overrides", "pnpm.peerDependencyRules". See https://pnpm.io/settings for the new home of each setting.
+
+> @za38.03/agent-ui-operator@0.0.1 test /Users/yifei/Coding/AgentUICreator/packages/operator
+> node ../plugins/scripts/materialize-plugin-sources.mjs && vitest run "tests/migrated/ui-operator.test.ts" "-t" "queries shared public contracts"
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../../scripts/generated-source-test-config" without a file extension (vitest.config.ts:3:43). Add the file extension
+  - ESM syntax in a file loaded as CommonJS (../../scripts/generated-source-test-config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+  - import "../../src/generate-plugin-registry" without a file extension (tests/support/generated-project.ts:5:46). Add the file extension
+  - import "../../src/project/source-registry/installer" without a file extension (tests/support/generated-project.ts:7:32). Add the file extension
+  - import "../project-config" without a file extension (src/project/source-registry/installer.ts:10:34). Add the file extension
+  - import "./project/plugin-application" without a file extension (src/generate-plugin-registry.ts:2:68). Add the file extension
+  - import "../types" without a file extension (src/project/source-registry/installer.ts:11:39). Add the file extension
+  - import "./framework/contracts/app-ui-model" without a file extension (src/generate-plugin-registry.ts:3:45). Add the file extension
+  - import "./lock" without a file extension (src/project/source-registry/installer.ts:16:8). Add the file extension
+  - import "./framework/contracts/app-ui-model" without a file extension (src/generate-plugin-registry.ts:9:37). Add the file extension
+  - import "./inspector" without a file extension (src/project/source-registry/installer.ts:20:8). Add the file extension
+  - import "./project/project-mode" without a file extension (src/generate-plugin-registry.ts:10:42). Add the file extension
+  - import "./path-policy" without a file extension (src/project/source-registry/installer.ts:21:36). Add the file extension
+  - import "./framework/contracts/agent-ui-project" without a file extension (src/generate-plugin-registry.ts:11:43). Add the file extension
+  - import "./transaction" without a file extension (src/project/source-registry/installer.ts:27:8). Add the file extension
+  - import "./project/agent-ui-project-paths" without a file extension (src/generate-plugin-registry.ts:12:89). Add the file extension
+  - import "./types" without a file extension (src/project/source-registry/installer.ts:28:89). Add the file extension
+  - import "./project/creator-cancel-marker" without a file extension (src/generate-plugin-registry.ts:13:44). Add the file extension
+  - import "./generated-targets" without a file extension (src/project/source-registry/installer.ts:29:40). Add the file extension
+  - import "./project/registry-generator" without a file extension (src/generate-plugin-registry.ts:16:8). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/plugin-application.ts:2:42). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (src/project/agent-ui-project-paths.ts:3:43). Add the file extension
+  - import "../project-config" without a file extension (src/project/source-registry/inspector.ts:12:34). Add the file extension
+  - import "../types" without a file extension (src/project/source-registry/path-policy.ts:4:39). Add the file extension
+  - import "../plugin-source-ownership" without a file extension (src/project/source-registry/transaction.ts:1:39). Add the file extension
+  - import "./panel-dimension" without a file extension (src/framework/contracts/app-ui-model.ts:3:42). Add the file extension
+  - import "../framework/contracts/agent-ui-project" without a file extension (src/project/project-mode.ts:7:8). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (src/project/registry-generator.ts:18:8). Add the file extension
+  - import "../types" without a file extension (src/project/source-registry/lock.ts:5:39). Add the file extension
+  - import "./types" without a file extension (src/project/project-config.ts:1:39). Add the file extension
+  - import "./types" without a file extension (src/project/plugin-application.ts:3:39). Add the file extension
+  - import "./types" without a file extension (src/project/agent-ui-project-paths.ts:4:39). Add the file extension
+  - import "../types" without a file extension (src/project/source-registry/inspector.ts:21:8). Add the file extension
+  - import "../types" without a file extension (src/project/source-registry/transaction.ts:6:39). Add the file extension
+  - import "../framework/contracts/app-ui-compiler" without a file extension (src/project/registry-generator.ts:19:55). Add the file extension
+  - import "./path-policy" without a file extension (src/project/source-registry/lock.ts:10:8). Add the file extension
+  - import "./optional-resource-paths" without a file extension (src/project/plugin-application.ts:8:31). Add the file extension
+  - import "./project-config" without a file extension (src/project/agent-ui-project-paths.ts:5:34). Add the file extension
+  - import "./lock" without a file extension (src/project/source-registry/inspector.ts:22:47). Add the file extension
+  - import "../creator-cancel-marker" without a file extension (src/project/source-registry/transaction.ts:7:44). Add the file extension
+  - import "../framework/contracts/app-ui-composition" without a file extension (src/project/registry-generator.ts:24:8). Add the file extension
+  - import "./types" without a file extension (src/project/source-registry/lock.ts:11:40). Add the file extension
+  - import "./agent-ui-mode" without a file extension (src/framework/contracts/agent-ui-project.ts:6:8). Add the file extension
+  - import "./plugin-source-ownership" without a file extension (src/project/plugin-application.ts:9:43). Add the file extension
+  - import "./generated-targets" without a file extension (src/project/source-registry/inspector.ts:23:40). Add the file extension
+  - import "./lock" without a file extension (src/project/source-registry/transaction.ts:12:8). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/registry-generator.ts:25:42). Add the file extension
+  - import "./source-registry/lock" without a file extension (src/project/plugin-application.ts:10:67). Add the file extension
+  - import "./package-dependencies" without a file extension (src/project/source-registry/inspector.ts:24:64). Add the file extension
+  - import "./path-policy" without a file extension (src/project/source-registry/transaction.ts:18:8). Add the file extension
+  - import "./plugin-assets" without a file extension (src/project/registry-generator.ts:26:37). Add the file extension
+  - import "./source-registry/transaction" without a file extension (src/project/plugin-application.ts:11:48). Add the file extension
+  - import "./path-policy" without a file extension (src/project/source-registry/inspector.ts:29:8). Add the file extension
+  - import "./types" without a file extension (src/project/source-registry/transaction.ts:19:54). Add the file extension
+  - import "./data-message-ui-analyzer" without a file extension (src/project/registry-generator.ts:27:39). Add the file extension
+  - import "./source-registry/path-policy" without a file extension (src/project/plugin-application.ts:12:98). Add the file extension
+  - import "./service-dependency-inspector" without a file extension (src/project/registry-generator.ts:32:8). Add the file extension
+  - import "./agent-ui-workspace" without a file extension (src/framework/contracts/agent-ui-mode.ts:3:45). Add the file extension
+  - import "./types" without a file extension (src/project/registry-generator.ts:39:8). Add the file extension
+  - import "./source-registry/path-policy" without a file extension (src/project/plugin-source-ownership.ts:5:78). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/optional-resource-paths.ts:2:68). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/app-ui-composition.ts:4:8). Add the file extension
+  - import "../framework/contracts/app-ui-model" without a file extension (src/project/service-dependency-inspector.ts:9:8). Add the file extension
+  - import "./app-ui-model" without a file extension (src/framework/contracts/app-ui-compiler.ts:8:8). Add the file extension
+  - import "./source-registry/lock" without a file extension (src/project/plugin-assets.ts:1:39). Add the file extension
+  - import "../framework/contracts/data-message-ui" without a file extension (src/project/data-message-ui-analyzer.ts:22:42). Add the file extension
+  - import "./project-mode" without a file extension (src/project/optional-resource-paths.ts:3:42). Add the file extension
+  - import "./types" without a file extension (src/project/service-dependency-inspector.ts:26:8). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/app-ui-compiler.ts:14:8). Add the file extension
+  - import "./plugin-application" without a file extension (src/project/plugin-assets.ts:2:96). Add the file extension
+  - import "./types" without a file extension (src/project/data-message-ui-analyzer.ts:23:48). Add the file extension
+  - import "./app-ui-composition" without a file extension (src/framework/contracts/app-ui-compiler.ts:23:8). Add the file extension
+  - import "./plugin-source-ownership" without a file extension (src/project/plugin-assets.ts:4:43). Add the file extension
+  - import "../framework/contracts/ui-plugin" without a file extension (src/project/plugin-assets.ts:9:39). Add the file extension
+  - import "./agent-ui-project-paths" without a file extension (src/project/plugin-assets.ts:10:42). Add the file extension
+  - import "./types" without a file extension (src/project/plugin-assets.ts:16:8). Add the file extension
+  - import "./panel-dimension" without a file extension (src/framework/contracts/app-ui-runtime-model.ts:3:42). Add the file extension
+  - import "./app-ui-runtime-model" without a file extension (src/framework/contracts/ui-plugin.ts:9:49). Add the file extension
+  - import "./app-ui-model" without a file extension (src/framework/contracts/ui-plugin.ts:10:43). Add the file extension
+  - import "./app-ui-composition" without a file extension (src/framework/contracts/ui-plugin.ts:11:48). Add the file extension
+  - import "./custom-event-protocol" without a file extension (src/framework/contracts/ui-plugin.ts:12:39). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.8 /Users/yifei/Coding/AgentUICreator/packages/operator
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 22 skipped (23)
+   Start at  21:55:32
+   Duration  6.31s (transform 3.13s, setup 27ms, import 3.90s, tests 1.49s, environment 700ms)
+

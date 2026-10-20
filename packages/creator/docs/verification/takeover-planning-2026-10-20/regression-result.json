@@ -1,0 +1,9 @@
+{
+  "passed": 702,
+  "strictXfailed": 3,
+  "deselectedKnownFixtureFailures": 2,
+  "durationSeconds": 73.37,
+  "build": "passed",
+  "typecheck": "passed",
+  "windowsExecuted": false
+}

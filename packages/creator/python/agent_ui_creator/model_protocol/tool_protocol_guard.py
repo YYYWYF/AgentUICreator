@@ -185,6 +185,60 @@ def _validation_failure(
     return diagnostic
 
 
+def _schema_field_errors(error: ValidationError) -> list[dict[str, object]]:
+    """Project bounded schema facts, never the rejected input or error.message.
+
+    For discriminated unions only the matching branch can describe the repair;
+    unrelated alternatives would tell the model to change the operation itself.
+    """
+    fields: list[dict[str, object]] = []
+
+    def visit(current: ValidationError, depth: int = 0) -> None:
+        if len(fields) >= 8 or depth >= 12:
+            return
+        if current.validator in {"oneOf", "anyOf"} and current.context:
+            variants = current.schema.get(current.validator, [])
+            discriminator = current.instance.get("type") if isinstance(current.instance, Mapping) else None
+            matches = []
+            for index, branch in enumerate(variants):
+                properties = branch.get("properties") if isinstance(branch, Mapping) else None
+                type_schema = properties.get("type") if isinstance(properties, Mapping) else None
+                if (isinstance(type_schema, Mapping) and "const" in type_schema
+                        and discriminator is not None and type_schema["const"] == discriminator):
+                    matches.append(index)
+            if len(matches) == 1:
+                for child in current.context:
+                    if child.schema_path and child.schema_path[0] == matches[0]:
+                        visit(child, depth + 1)
+            return
+        field: dict[str, object] = {
+            "path": _bounded_error_path(current.absolute_path),
+            "constraint": _trace_label(current.validator),
+            "receivedType": _json_type(current.instance),
+        }
+        if current.validator == "type":
+            types = current.validator_value
+            safe_types = [value for value in (types if isinstance(types, list) else [types])
+                          if isinstance(value, str) and value in _SAFE_JSON_TYPES]
+            if not safe_types:
+                return
+            field["expectedType"] = safe_types[0] if len(safe_types) == 1 else safe_types
+        elif current.validator in {"minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum",
+                                    "minLength", "maxLength", "minItems", "maxItems"}:
+            if type(current.validator_value) not in {int, float}:
+                return
+            field["limit"] = current.validator_value
+        elif current.validator == "required" and isinstance(current.instance, Mapping):
+            field["missingProperties"] = [_trace_label(key) for key in current.validator_value
+                                          if key not in current.instance][:8]
+        else:
+            return
+        fields.append(field)
+
+    visit(error)
+    return fields
+
+
 def _validate_arguments(
     tool: Any, arguments: Any
 ) -> tuple[bool, dict[str, object] | None]:
@@ -239,6 +293,9 @@ def _validate_arguments(
         )
         if getattr(error, "validator", None) == "maxLength" and type(error.validator_value) is int:
             diagnostic["maxLength"] = error.validator_value
+        field_errors = _schema_field_errors(error)
+        if field_errors:
+            diagnostic["fieldErrors"] = field_errors
         if (_tool_name(tool) == "mutate_app_ui_model"
                 and diagnostic["errorType"] == "oneOf"
                 and len(diagnostic["errorPath"]) == 2
@@ -339,6 +396,17 @@ def _repair_validation_hint(
     error_type = diagnostic.get("errorType")
     if not isinstance(error_type, str):
         return None
+    if diagnostic.get("fieldErrors") and error_type in {"oneOf", "anyOf", "type"}:
+        # Feed the same leaf evidence to the existing bounded repair path. The
+        # validator and the original tool/permission allowlists remain unchanged.
+        fields = []
+        for field in diagnostic["fieldErrors"]:
+            candidate = json.dumps({"fieldErrors": [*fields, field]}, ensure_ascii=False, separators=(",", ":"))
+            if len(candidate) > _MAX_PROTOCOL_REPAIR_HINT_LENGTH:
+                break
+            fields.append(field)
+        if fields:
+            return json.dumps({"fieldErrors": fields}, ensure_ascii=False, separators=(",", ":"))
     if error_type in {"missing", "required", "extra_forbidden", "additionalProperties"}:
         return _bounded_json({
             "errorType": error_type,

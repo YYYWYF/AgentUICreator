@@ -1,0 +1,91 @@
+{
+  "question": 4,
+  "template": "A-platform",
+  "prompt": "AI 回答的时候，我想看到一个正在思考的提示，不用展示具体思考内容",
+  "runId": "72bddaf4-02ca-4056-917a-6280b26b5ebc",
+  "threadId": "4a9a726e-9f1a-4dbf-9971-23a4e283a2ba",
+  "startedAt": "2026-10-18T07:28:12.087Z",
+  "finishedAt": "2026-10-18T07:28:27.973Z",
+  "wallSeconds": 15.886,
+  "loggedOutcome": "already_satisfied",
+  "modelToolCalls": 0,
+  "executionModelCalls": 0,
+  "selectorCalls": 1,
+  "totalModelCalls": 1,
+  "selectorDurationMs": 13828,
+  "selectorInputTokens": 23596,
+  "selectorOutputTokens": 45,
+  "operatorMetrics": {
+    "requests": 2,
+    "failures": 0,
+    "durationMs": 1788,
+    "byOperation": {
+      "inspect_ui_project": 1,
+      "mutate_app_ui_model": 1
+    }
+  },
+  "mutationRequests": 1,
+  "mutationOperations": 1,
+  "mutationChanged": false,
+  "changedFiles": [],
+  "productizedOperation": {
+    "operation": "add_existing_plugin",
+    "status": "already_satisfied",
+    "pluginId": "thinking-indicator",
+    "instanceId": "thinking-indicator-main",
+    "mutationChanged": false,
+    "mutationRevision": 0,
+    "postcondition": {
+      "status": "passed",
+      "kind": "instance_present",
+      "instanceId": "thinking-indicator-main",
+      "pluginId": "thinking-indicator",
+      "appUIModelHash": "17ee4649f8e86b2d1a806e0c4dde1208a0cc88d05e27cbef5b0c2e461b7b88bf",
+      "evidence": "实例 thinking-indicator-main 已存在并启用，插件为 thinking-indicator。"
+    },
+    "metrics": {
+      "operationPlaybookUsed": true,
+      "operationDurationMs": 867,
+      "executionModelCalls": 0,
+      "mutationAttempts": 1,
+      "snapshotRefreshes": 0,
+      "verificationRuntimeFreshnessAttempts": 0
+    }
+  },
+  "selectedAction": {
+    "actionId": "act_fac472dfdb46c0d1fc0a736c",
+    "kind": "add_existing_plugin",
+    "status": "already_satisfied",
+    "label": "Add Conversation Thinking Indicator",
+    "description": "Add Conversation Thinking Indicator to Conversation Surface.thinkingIndicator Slot, Message-scoped thinking placeholder.",
+    "target": {
+      "pluginId": "thinking-indicator",
+      "pluginName": "Conversation Thinking Indicator",
+      "instanceId": "thinking-indicator-main"
+    },
+    "effect": {
+      "type": "add_default",
+      "placementDomain": "plugin_slot"
+    }
+  },
+  "runtimeVerification": "not-run; existing instance presence only",
+  "previewCheck": {
+    "source": "existing mock Agent in A browser, after Creator run ended",
+    "message": "你好，简单介绍一下你能做什么。",
+    "observations": [
+      "Preview shows collapsible 思考 controls.",
+      "Clicking the first 思考 reveals mock content: 我先检查当前项目中和 AG-UI 相关的实现。",
+      "Creator did not change source or disable detailed reasoning presentation."
+    ],
+    "counting": "Post-run browser checks are not Creator model tools and excluded from run time."
+  },
+  "earlyStopped": false,
+  "nextQuestionExecuted": false,
+  "notes": [
+    "Exact original question in a fresh native Chrome window/session. No follow-up Creator prompt.",
+    "A synchronized previously verified Runtime snapshot/lifecycle fixes before baseline; preparation is separately recorded. No thinking feature was pre-edited.",
+    "Model tool calls 0 is not zero backend work: one selector call and two internal Operator requests. One mutation request was a semantic no-op.",
+    "Already-satisfied means thinking-indicator instance present/enabled. It does not establish the full request including absence of detailed reasoning.",
+    "No new validation/build was performed for this no-op Creator run. Existing mock preview only; not real Agent backend acceptance."
+  ]
+}

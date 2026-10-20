@@ -1,0 +1,267 @@
+{
+  "question": 7,
+  "variant": "forward dialog",
+  "template": "A",
+  "browser": "Original Chrome first tab http://127.0.0.1:56305/",
+  "threadId": "95ac33fc-58ba-4466-af35-1451f62f0acb",
+  "baseline": {
+    "runId": "29a7b9da-59e7-43bd-93b8-366a5c79fe70",
+    "startedAt": "2026-10-18T13:40:48.291Z",
+    "finishedAt": "2026-10-18T13:43:36.276Z",
+    "elapsedSeconds": 167.985,
+    "modelToolCalls": 17,
+    "modelCalls": 8,
+    "toolCounts": {
+      "read_file": 2,
+      "inspect_ui_plugin": 5,
+      "grep": 5,
+      "glob": 5
+    },
+    "statusCounts": {
+      "success": 14,
+      "rejected": 1,
+      "error": 2
+    },
+    "toolDurationSumMs": 8081,
+    "firstMutationSeconds": null,
+    "errors": [
+      {
+        "tool": "inspect_ui_plugin",
+        "reason": "Operator request does not match the current contract."
+      },
+      {
+        "tool": "glob",
+        "reason": "CancelledError"
+      },
+      {
+        "tool": "glob",
+        "reason": "CancelledError"
+      }
+    ],
+    "operator": {
+      "requests": 5,
+      "failures": 1,
+      "durationMs": 7443,
+      "queueWaitMs": 0,
+      "admissionWaitMs": 537,
+      "executionMs": 6858,
+      "byOperation": {
+        "inspect_ui_plugin": 5
+      }
+    },
+    "runtimeVerificationStatus": "not-run",
+    "status": "error",
+    "modelTransportRetries": 0
+  },
+  "current": {
+    "runId": "9a947579-1294-4049-872b-f097c6e1398a",
+    "startedAt": "2026-10-18T13:56:55.824Z",
+    "finishedAt": "2026-10-18T14:02:05.173Z",
+    "elapsedSeconds": 309.349,
+    "modelToolCalls": 17,
+    "modelCalls": 11,
+    "toolCounts": {
+      "read_file": 4,
+      "grep": 4,
+      "inspect_ui_plugin": 4,
+      "glob": 1,
+      "edit_file": 2,
+      "validate_creator_changes": 1,
+      "inspect_runtime_errors": 1
+    },
+    "statusCounts": {
+      "error": 1,
+      "success": 16
+    },
+    "toolDurationSumMs": 20762,
+    "firstMutationSeconds": 244.554,
+    "errors": [
+      {
+        "tool": "read_file",
+        "reason": "Error: File '/src/agent-ui/plugins/forward-action/render.tsx' not found Filesystem tools use virtual paths rooted at /. Agent UI files are under /src/agent-ui/. Do not prepend a host home directory, drive letter or guessed workspace path."
+      }
+    ],
+    "operator": {
+      "requests": 6,
+      "failures": 0,
+      "durationMs": 17765,
+      "queueWaitMs": 0,
+      "admissionWaitMs": 1105,
+      "executionMs": 16519,
+      "byOperation": {
+        "inspect_ui_plugin": 4,
+        "inspect_ui_project": 1,
+        "verify_runtime_composition": 1
+      }
+    },
+    "runtimeVerificationStatus": "passed",
+    "status": "success",
+    "modelTransportRetries": 0,
+    "runtimeEvidenceEventSequence": 26
+  },
+  "outcome": "completed_with_mock_browser_verification",
+  "changedPluginFiles": [
+    "index.tsx",
+    "styles.css"
+  ],
+  "actualToolMessageContractDeliveries": [
+    {
+      "toolCallId": "call_13305fa039a44fb182076b9c",
+      "modelCallSequence": 2,
+      "contract": {
+        "status": "available",
+        "module": "@za38.03/agent-ui-plugins",
+        "packageVersion": "0.0.1",
+        "queryResolution": {
+          "status": "complete",
+          "requested": 3,
+          "resolved": 3,
+          "unresolved": 0
+        },
+        "contractReference": "sharedTypes:d8258f307e5548c90c2acb56ae4029277316e85aab5d737ec2d663e986d47042"
+      },
+      "symbols": [
+        {
+          "name": "AgentUIDialog.Root",
+          "status": "available",
+          "hasPresentationContract": true
+        },
+        {
+          "name": "AgentUIDialog.Popup",
+          "status": "available",
+          "hasPresentationContract": false
+        },
+        {
+          "name": "AgentUIDialog.Close",
+          "status": "available",
+          "hasPresentationContract": false
+        }
+      ]
+    },
+    {
+      "toolCallId": "call_722ce5fe860743d3997e12c0",
+      "modelCallSequence": 4,
+      "contract": {
+        "status": "available",
+        "module": "@za38.03/agent-ui-plugins",
+        "packageVersion": "0.0.1",
+        "queryResolution": {
+          "status": "partial",
+          "requested": 4,
+          "resolved": 3,
+          "unresolved": 1
+        },
+        "contractReference": "sharedTypes:68df67002cde0a91ec0eb9b0e2f670a3bd65544e222bd8db66432a8ce37bc6dd"
+      },
+      "symbols": [
+        {
+          "name": "AgentUIDialog.Trigger",
+          "status": "available",
+          "hasPresentationContract": true
+        },
+        {
+          "name": "AgentUIDialog.Backdrop",
+          "status": "available",
+          "hasPresentationContract": false
+        },
+        {
+          "name": "AgentUIDialog.Portal",
+          "status": "available",
+          "hasPresentationContract": false
+        },
+        {
+          "name": "AgentUIDialog.Title",
+          "status": "unavailable",
+          "hasPresentationContract": false
+        }
+      ]
+    },
+    {
+      "toolCallId": "call_ee79542a4b6a4c8e9f085130",
+      "modelCallSequence": 5,
+      "contract": {
+        "status": "available",
+        "module": "@za38.03/agent-ui-plugins",
+        "packageVersion": "0.0.1",
+        "queryResolution": {
+          "status": "complete",
+          "requested": 1,
+          "resolved": 1,
+          "unresolved": 0
+        },
+        "contractReference": "sharedTypes:918b7df811e707cfc42d04b5d7e4549c5dd26f6267dcf8303e76cf985463487e"
+      },
+      "symbols": [
+        {
+          "name": "AgentUIDialogContent",
+          "status": "available",
+          "hasPresentationContract": true
+        }
+      ]
+    },
+    {
+      "toolCallId": "call_94622fb23530414ea025f251",
+      "modelCallSequence": 6,
+      "contract": {
+        "status": "available",
+        "module": "@za38.03/agent-ui-plugins",
+        "packageVersion": "0.0.1",
+        "queryResolution": {
+          "status": "complete",
+          "requested": 1,
+          "resolved": 1,
+          "unresolved": 0
+        },
+        "contractReference": "sharedTypes:0efc1a969dcf517eee5bfb14d2c482a7b93cb423a0da82ef06117a5dcfaf550e"
+      },
+      "symbols": [
+        {
+          "name": "Button",
+          "status": "available",
+          "hasPresentationContract": false
+        }
+      ]
+    }
+  ],
+  "mockChecks": {
+    "source": "Mock Agent seeded basic conversation",
+    "centeredInHostPreview": true,
+    "closeButton": true,
+    "escapeClose": true,
+    "focusReturnToForwardAfterBothClosePaths": true,
+    "keyboardReopenWithEnter": true,
+    "geometryEvidence": "Native Chrome screenshot; visual verification, not DOM rectangle measurement"
+  },
+  "validation": {
+    "pythonFocusedTestsPassed": 74,
+    "operatorSharedTypeTestsPassed": 9,
+    "operatorRealCustomPluginEntryRegressionPassed": 1,
+    "operatorTypecheck": "passed",
+    "operatorBuild": "passed",
+    "creatorBuild": "passed",
+    "targetVerifyUI": "passed",
+    "targetTypecheck": "passed",
+    "targetRuntime": "passed",
+    "gitDiffCheck": "passed",
+    "legacyOperatorSuite": "22 existing migrated fixture cases failed with missing/old project setup; new entry regression uses current configured source root and passed; no full-suite pass claim",
+    "nativeWindows": "not run; no platform-specific path/process change, existing Windows path fixture in shared-type tests passed"
+  },
+  "implementationBoundary": {
+    "promptOrSkillRulesAdded": false,
+    "permissionAndMutationGuardsBypassed": false,
+    "sharedQueryForCustomPlugin": "top-level sharedTypes independent of application marker; packaged application nested contract remains compatible",
+    "errorFeedback": "Model field descriptions include full module strings, plain members vs $ type operators; protocol rejection reports field/constraint; unresolved members return real member names",
+    "deliveryEvidence": "Metadata derived from actual rendered ToolMessages, not inferred from the lower-level type helper"
+  },
+  "notes": [
+    "Previous run stopped incomplete. This successful run has the same tool count but longer elapsed time, so do not claim speed improvement.",
+    "One guessed render.tsx read failed; later exact source reads and edits succeeded.",
+    "Source handoff and user request remained the same; only query implementation, schema descriptions/error feedback and delivery telemetry changed."
+  ],
+  "artifacts": {
+    "screenshot": "A-question-07-custom-query-final.png",
+    "rawLog": "question-07-forward-custom-query-run.jsonl",
+    "focusClose": "A-question-07-custom-query-focus-close.txt",
+    "focusEscape": "A-question-07-custom-query-focus-escape.txt"
+  }
+}

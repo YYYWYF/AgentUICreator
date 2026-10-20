@@ -27,6 +27,13 @@ it("resolves installed props and nested seams without extracting implementation 
   const result=await inspectPluginApplication(root,asset);
   expect(result?.entryPath).toBe("src/plugins/sample/index.tsx");
   expect(result?.publicApi).toMatchObject({status:"available",package:{version:"4.2.1"},completePropNames:true});
+  expect(result?.usageGuide).toMatchObject({
+    entryPath: asset.application.entryPath,
+    implementationImport: asset.application.implementationImport,
+    package: { version: "4.2.1" },
+    currentExample: { source: before, truncated: false },
+    customizationProps: ["defaultOpen", "options", "children"],
+  });
   const contract=JSON.stringify(result);
   expect(contract).toContain('defaultOpen');expect(contract).toContain('onChange');
   expect(contract).not.toContain('renderStep');
@@ -38,6 +45,26 @@ it("reports unresolved application contracts rather than inventing unsupported c
   const result=await inspectPluginApplication(root,asset);
   expect(result?.publicApi.status).toBe("unavailable");
   expect(result?.publicApi.interpretation).toContain("not evidence");
+  expect(result?.usageGuide.currentExample.source).toBe('export const different = 1;');
+});
+
+it("bounds current application examples and preserves local customization instead of inventing defaults",async()=>{
+  const {root,asset}=await fixture();
+  const source='// project customization\n'+' '.repeat(5000)+'export const different = 1;';
+  await writeFile(path.join(root,asset.application.entryPath),source);
+  const result=await inspectPluginApplication(root,asset);
+  expect(result?.usageGuide.currentExample).toMatchObject({source:source.slice(0,4000),truncated:true});
+  expect(result?.publicApi.status).toBe("unavailable");
+  expect(JSON.stringify(result?.usageGuide)).not.toContain('"package"');
+});
+
+it("keeps Unicode code points intact when bounding application examples",async()=>{
+  const {root,asset}=await fixture();
+  await writeFile(path.join(root,asset.application.entryPath),'//'+"🧩".repeat(4000));
+  const result=await inspectPluginApplication(root,asset);
+  expect(Array.from(result!.usageGuide.currentExample.source)).toHaveLength(4000);
+  expect(result!.usageGuide.currentExample.source.endsWith("🧩")).toBe(true);
+  expect(result!.usageGuide.currentExample.truncated).toBe(true);
 });
 
 it("queries installed shared interfaces and function return shapes without source extraction",async()=>{

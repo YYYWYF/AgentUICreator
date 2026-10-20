@@ -2,7 +2,7 @@
 name: ui-layout
 description: Use for Layout Tree decisions involving Row, Column, Stack, Panel, Slot, Sidebar, dimensions, resizing, placement, and composition of existing plugin nodes.
 compatibility: Agent UI Plugin Creator AppUIModel and deterministic compiler boundary.
-allowed-tools: read_file ls glob grep inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin mutate_app_ui_model execute
+allowed-tools: enable_creator_tools read_file ls glob grep inspect_ui_project inspect_app_ui_model inspect_ui_slots list_ui_plugins inspect_ui_plugin mutate_app_ui_model execute
 ---
 
 # UI Layout

@@ -306,6 +306,16 @@
       "file": "invalid-recovery-diagnostic-repair-hint.result.json",
       "operation": "inspect_app_ui_model_source",
       "valid": false
+    },
+    {
+      "file": "inspect_ui_plugin.application-usage.result.json",
+      "operation": "inspect_ui_plugin",
+      "valid": true
+    },
+    {
+      "file": "invalid-plugin-usage-example.result.json",
+      "operation": "inspect_ui_plugin",
+      "valid": false
     }
   ]
 }

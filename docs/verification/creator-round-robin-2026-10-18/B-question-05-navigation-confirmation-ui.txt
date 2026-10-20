@@ -1,0 +1,149 @@
+Window: "127.0.0.1:56315", App: Google Chrome.
+0 标准窗口 127.0.0.1:56315 - Google Chrome, URL: 127.0.0.1:56315/, Secondary Actions: Raise
+	1 container 127.0.0.1:56315 - Google Chrome, URL: 127.0.0.1:56315/
+		2 container
+			3 工具栏
+				4 按钮 返回
+				5 按钮 (disabled) 前进
+				6 按钮 重新加载
+				7 container
+					8 弹出式按钮 查看网站信息
+					9 文本栏 (settable) Description: 地址和搜索栏, Value: 127.0.0.1:56315, Placeholder: 在 Google 中搜索，或输入网址
+					10 按钮 为此标签页添加书签
+				11 按钮 您
+				12 弹出式按钮 有新版 Chrome 可用
+			13 container
+				14 HTML 内容 127.0.0.1:56315/
+					15 container
+						16 container 智能体前端预览
+							17 container Host Application
+								18 HTML 内容 B 路 assistant 路 Creator 瀹炴祴, URL: 127.0.0.1:56316/?creator-preview
+									19 container
+										20 弹出式按钮 Description: 语言, Value: 简体中文
+											21 (selected) 简体中文
+										22 container 工作区导航
+											23 text N northstar
+											24 文本 我的工作区
+											25 container
+												26 link Description: ⌂ 总览, Value: 127.0.0.1:56316/?creator-preview#overview
+												27 link Description: ☷ 任务, Value: 127.0.0.1:56316/?creator-preview#tasks
+												28 link Description: ◷ 动态, Value: 127.0.0.1:56316/?creator-preview#activity
+											29 text 林 林嘉怡
+											30 文本 团队工作区
+										31 container
+											32 text 工作区 / 总览 2026 年 9 月
+										33 文本 星期五 · 工作概览
+										34 标题 早上好，嘉怡 , Value: 1
+											35 text 早上好，嘉怡
+										36 文本 从这里开始今天的工作。你的项目进展都在掌握之中。
+										37 container 工作统计
+											38 container
+												39 text 进行中的项目 04 与上周持平
+											40 container
+												41 text 待完成任务 12 本周有 3 项到期
+											42 container
+												43 text 团队更新 08 今天新增 2 条
+										44 container
+											45 文本 下一步
+											46 标题 近期任务, Value: 2
+												47 文本 近期任务
+											48 link Description: 查看全部 →, Value: 127.0.0.1:56316/?creator-preview#tasks
+											49 文本 整理客户反馈
+											50 文本 产品体验
+											51 text 今天 进行中
+											52 文本 更新季度路线图
+											53 文本 规划
+											54 text 明天 待处理
+											55 文本 准备周五设计评审
+											56 文本 设计系统
+											57 text 周五 待处理
+										58 container
+											59 文本 团队提示
+											60 标题 让想法更快落地, Value: 2
+												61 文本 让想法更快落地
+											62 文本 把重复的整理工作交给助理，把时间留给真正重要的决定。
+										63 container
+											64 按钮 打开助手
+						65 container Creator
+							66 分离器 Description: 调整 Creator 面板宽度, Help: 拖动调整宽度，双击恢复默认, Value: 50
+							67 container
+								68 标题 Creator, Value: 1
+									69 文本 Creator
+								70 按钮 (disabled) Description: 当前项目：B-assistant，点击切换项目, Help: 打开或切换项目
+								71 按钮 (disabled) Description: 刷新, Help: 重新读取当前项目与面板数据
+								72 弹出式按钮 设置
+								73 按钮 关闭 Creator 面板
+							74 container
+								75 container 接入 Agent UI
+									76 container
+										77 text Agent UI 已创建 接下来把它引入你自己的应用。
+										78 按钮 查看接入方法
+								79 文本 用户
+								80 文本 AI 调用了很多工具的时候，现在的显示有点乱，能不能改成一个执行过程列表，每一步都可以展开查看？
+								81 container 已识别意图
+									82 文本 已识别意图
+									83 文本 修改 Conversation Tool Timeline Plugin application
+								84 container 工具执行详情
+									85 开合三角标记 工具调用 · 4 次 已完成
+										86 container
+											87 text 工具调用 · 4 次
+										88 文本 已完成
+								89 文本 Creator
+								90 文本 当前插件情况已确认：
+								91 内容列表
+									92 container
+										93 AXListMarker • 
+										94 text tool-timeline  插件的应用层入口很薄，只是把 npm 官方实现（ @za38.03/agent-ui-plugins/tool-timeline ）接上 Runtime 的渲染作用域。
+									95 container
+										96 AXListMarker • 
+										97 text 它的公开 API 只暴露了这些缝隙：整体时间线的开关（ defaultOpen ）、 一整块 折叠的原始工具详情区（ detailsProps  /  defaultDetailsOpen ）、以及摘要文案/统计的覆盖（ timelineProps ）。
+									98 container
+										99 AXListMarker • 
+										100 文本 没有"每一步单独展开"的公开 prop，也没有按步骤渲染详情的 child Slot；而且每一步的原始工具调用载荷（参数、结果）封装在官方实现内部，应用层入口拿不到这些数据，无法在外面自己拼一个可展开的步骤列表。
+								101 文本 所以"改成执行过程列表、每步可展开查看"需要修改插件实现本身。这需要先取得该插件的源码所有权，下面这个工具会向你展示确切的接管计划并征求你的同意：
+								102 container 工具执行详情
+									103 开合三角标记 工具调用 · 1 次 执行中
+										104 container
+											105 text 工具调用 · 1 次
+										106 文本 执行中
+								107 container Creator 问题
+									108 文本 需要你的选择
+									109 container 是否将插件 tool-timeline 的源码交给当前工程托管？
+										110 文本 是否将插件 tool-timeline 的源码交给当前工程托管？
+										111 文本 接管后，当前版本的源码会保存到你的工程中，由你维护。插件配置保持不变。 升级 npm 包不会覆盖或自动更新这份源码；需要新功能时，可以让 Creator 协助同步。 共享依赖仍通过 npm 提供，升级或同步后需要检查兼容性。
+										112 文本 选择一项
+										113 container
+											114 单选按钮 同意，转为工程源码托管, Value: 0
+											115 文本 同意，转为工程源码托管
+										116 container
+											117 单选按钮 保留 npm 包引用, Value: 0
+											118 文本 保留 npm 包引用
+									119 按钮 (disabled) 确认选择
+									120 按钮 放弃本次任务
+							121 container
+								122 文本 告诉 Creator
+								123 文本输入区 (disabled) 告诉 Creator, Placeholder: 例如：看看当前 UI，或在右侧增加工具详情面板
+								124 按钮 (disabled) 清空会话, Help: 请先回答当前问题
+								125 按钮 (disabled) 发送
+			126 弹出式按钮 标签页搜索
+			127 container
+				128 标签组
+					129 标签 (selected, settable, boolean) Description: 127.0.0.1:56315 - 内存用量 - 302 MB, Value: on
+						130 按钮 关闭
+			131 按钮 新标签页
+	132 关闭按钮
+	133 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	134 最小化按钮
+135 menu bar
+	136 Chrome
+	137 文件
+	138 编辑
+	139 显示
+	140 历史记录
+	141 书签
+	142 个人资料
+	143 标签页
+	144 窗口
+	145 帮助
+
+The focused UI element is 14 HTML 内容 127.0.0.1:56315/

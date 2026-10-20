@@ -1,0 +1,18 @@
+{
+  "id": "conversation-command-source",
+  "name": "Conversation Command Source",
+  "description": "Provides project-owned slash commands through the existing Plugin Service lifecycle.",
+  "version": "0.0.1",
+  "authoring": {
+    "intents": [
+      "Provide frontend conversation commands"
+    ],
+    "cleanup": {
+      "removeWhenUnused": true
+    }
+  },
+  "capabilities": [
+    "headless",
+    "plugin-service-provider"
+  ]
+}

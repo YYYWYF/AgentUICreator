@@ -1,0 +1,103 @@
+{
+  "scope": "Read-only takeover facts through existing inspection tools; packages/creator only",
+  "changes": {
+    "promptsSkillsAndToolDescriptionsUnchanged": true,
+    "newModelTools": 0,
+    "permissionsAndHashGatesUnchanged": true,
+    "planningWritesOrGrantsApproval": false,
+    "planCached": false
+  },
+  "regression": {
+    "passed": 702,
+    "strictXfailed": 3,
+    "deselectedKnownFixtureFailures": 2,
+    "durationSeconds": 73.37,
+    "build": "passed",
+    "typecheck": "passed",
+    "windowsExecuted": false
+  },
+  "live": {
+    "prompt": "我需要修改 Composer 的上游实现源码，而不只是 props 或 JSX 包装。请先展示该插件的具体源码接管计划，等待我确认；确认前不要写入。",
+    "originalAcceptancePassed": false,
+    "completion": "success",
+    "durationSeconds": 127.55,
+    "errors": [],
+    "questions": [],
+    "changedPaths": [],
+    "protectedChanges": [],
+    "domainCalls": 3,
+    "domainInputTokens": 31897,
+    "selector": {
+      "actionSelectorProtocol": "request-route-text-v1",
+      "actionSelectorModel": "mimo-v2.6-flash",
+      "actionSelectorRequestedMaxTokens": 2048,
+      "actionSelectorRecoveryMaxTokens": 2048,
+      "actionSelectorOutputBudgetRetries": 1,
+      "actionSelectorRequestedReasoningEffort": "low",
+      "actionSelectorCalls": 2,
+      "actionSelectorRepairCalls": 1,
+      "actionSelectorInvalidResponses": 1,
+      "actionSelectorDurationMs": 18926,
+      "actionSelectorCandidateCount": 0,
+      "actionSelectorContextCharacters": 2,
+      "actionSelectorRawVisibleChoice": "READ_ONLY_EXPLICIT INSPECT",
+      "actionSelectorParsedSelection": {
+        "decision": "read_only_analysis",
+        "taskIntent": "read_only",
+        "explicitReadOnly": true,
+        "actionId": null,
+        "targetId": null,
+        "clarificationQuestion": null,
+        "removalIntent": "none",
+        "developmentIntent": "none"
+      },
+      "actionSelectorResolvedModel": "mimo-v2.6-flash",
+      "actionSelectorFinishReason": "stop",
+      "actionSelectorPromptTokens": 569,
+      "actionSelectorCompletionTokens": 142,
+      "actionSelectorTotalTokens": 711,
+      "actionSelectorReasoningTokens": 134
+    },
+    "operator": {
+      "requests": 4,
+      "failures": 0,
+      "durationMs": 6466,
+      "queueWaitMs": 415,
+      "admissionWaitMs": 572,
+      "executionMs": 5768,
+      "byOperation": {
+        "inspect_ui_plugin": 1,
+        "inspect_agent_ui_sources": 1,
+        "inspect_ui_plugin_source_references": 1,
+        "plan_plugin_source_takeover": 1
+      }
+    },
+    "manualFactReview": {
+      "passed": true,
+      "formalPlanObserved": true,
+      "thinApplicationDeletionSuggested": false,
+      "sourceSubtreeAndOperatorManagedImportsCorrect": true,
+      "oldSourceItemInstallConflictNotTreatedAsTakeoverBlocker": true
+    },
+    "formalConfirmationAcceptance": {
+      "passed": false,
+      "reason": "Only a read-only prose plan waiting for confirmation, no native question. Original assertion retained."
+    },
+    "runtimeEvidence": "not collected",
+    "browserVisualEvidence": "not collected"
+  },
+  "comparison": {
+    "previousReport": "../selector-route-2026-10-20",
+    "previousDurationSeconds": 104.03,
+    "previousDomainCalls": 4,
+    "previousDomainInputTokens": 57776,
+    "previousPlanSuggestedThinApplicationDeletion": true,
+    "previousFormalConfirmationPassed": false
+  },
+  "limitations": [
+    "One real model sample; no blanket model-behavior or stable performance guarantee.",
+    "Native confirmation task remains failing; no acceptance assertion change.",
+    "SSE tool-result UI preview is truncated; full facts independently read back after run with unchanged files and matching hash prefixes.",
+    "Live sample exercised successful Selector 512 to 2048 budget recovery without writes or permission escalation."
+  ]
+}

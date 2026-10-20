@@ -1,0 +1,458 @@
+{
+  "ok": true,
+  "result": {
+    "appUIModelHash": "4414cac8742ffc3b42ab0e5b95fe18593c784a0522144168c3625dfece626d3c",
+    "asset": {
+      "ownership": "project_source",
+      "application": {
+        "entryPath": "src/agent-ui/plugins/tool-timeline/index.tsx",
+        "implementationOwnership": "project",
+        "implementationImport": "./source/index"
+      },
+      "pluginId": "tool-timeline",
+      "name": "Conversation Tool Timeline",
+      "description": "Message-level official tool execution summary with original tool details.",
+      "directory": "tool-timeline",
+      "manifestPath": "src/agent-ui/plugins/tool-timeline/source/manifest.json",
+      "definitionPath": "src/agent-ui/plugins/tool-timeline/definition.ts",
+      "capabilities": [
+        "conversation-tool-timeline-renderer"
+      ],
+      "authoring": {
+        "intents": [
+          "summarize tool execution",
+          "show a collapsible tool timeline",
+          "展示工具执行时间线",
+          "折叠工具执行过程"
+        ],
+        "visualRole": "assistant message tool execution summary",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "conversation-surface",
+          "slot": "toolTimeline"
+        }
+      },
+      "childSlots": {},
+      "dataMessageUINames": [],
+      "selected": true
+    },
+    "application": {
+      "entryPath": "src/agent-ui/plugins/tool-timeline/index.tsx",
+      "implementationOwnership": "project",
+      "implementationImport": "./source/index",
+      "sharedTypes": {
+        "status": "available",
+        "packageVersion": "0.0.1",
+        "module": "@za38.03/agent-ui-plugins/plugin-support",
+        "symbols": [
+          {
+            "name": "TimelineCall",
+            "status": "available",
+            "type": "TimelineCall",
+            "truncated": false,
+            "members": [
+              {
+                "name": "toolCallId",
+                "type": "string",
+                "truncated": false
+              },
+              {
+                "name": "toolName",
+                "type": "string",
+                "truncated": false
+              },
+              {
+                "name": "index",
+                "type": "number",
+                "truncated": false
+              },
+              {
+                "name": "status",
+                "type": "string",
+                "truncated": false
+              },
+              {
+                "name": "reason",
+                "type": "string | undefined",
+                "truncated": false
+              },
+              {
+                "name": "summarized",
+                "type": "boolean",
+                "truncated": false
+              },
+              {
+                "name": "protected",
+                "type": "boolean",
+                "truncated": false
+              }
+            ],
+            "membersTruncated": false,
+            "returns": [],
+            "signaturesTruncated": false
+          },
+          {
+            "name": "ToolCallMessagePart",
+            "status": "available",
+            "type": "ToolCallMessagePart<TArgs, TResult>",
+            "truncated": false,
+            "members": [
+              {
+                "name": "type",
+                "type": "\"tool-call\"",
+                "truncated": false
+              },
+              {
+                "name": "toolCallId",
+                "type": "string",
+                "truncated": false
+              },
+              {
+                "name": "toolName",
+                "type": "string",
+                "truncated": false
+              },
+              {
+                "name": "args",
+                "type": "TArgs",
+                "truncated": false
+              },
+              {
+                "name": "result",
+                "type": "TResult | undefined",
+                "truncated": false
+              },
+              {
+                "name": "responseDeliveryStatus",
+                "type": "\"queued\" | undefined",
+                "truncated": false
+              },
+              {
+                "name": "isError",
+                "type": "boolean | undefined",
+                "truncated": false
+              },
+              {
+                "name": "isPreliminary",
+                "type": "boolean | undefined",
+                "truncated": false
+              },
+              {
+                "name": "argsText",
+                "type": "string",
+                "truncated": false
+              },
+              {
+                "name": "artifact",
+                "type": "unknown",
+                "truncated": false
+              },
+              {
+                "name": "timing",
+                "type": "MessagePartTiming | undefined",
+                "truncated": false
+              },
+              {
+                "name": "mcp",
+                "type": "ToolCallMessagePartMcpMetadata | undefined",
+                "truncated": false
+              },
+              {
+                "name": "providerMetadata",
+                "type": "PartProviderMetadata | undefined",
+                "truncated": false
+              },
+              {
+                "name": "modelContent",
+                "type": "readonly ToolModelContentPart[] | undefined",
+                "truncated": false
+              },
+              {
+                "name": "interrupt",
+                "type": "{ type: \"human\"; payload: unknown; } | undefined",
+                "truncated": false
+              },
+              {
+                "name": "approval",
+                "type": "{ readonly id: string; readonly prompt?: string | undefined; readonly display?: ToolApprovalDisplay | undefined; readonly allowFreeform?: boolean | undefined; ... 9 more ...; readonly resolution?: \"cancelled\" | ... 1 more ... | undefined; } | undefined",
+                "truncated": true
+              },
+              {
+                "name": "parentId",
+                "type": "string | undefined",
+                "truncated": false
+              },
+              {
+                "name": "messages",
+                "type": "readonly ThreadMessage[] | undefined",
+                "truncated": false
+              },
+              {
+                "name": "unstable_interactions",
+                "type": "Unstable_ToolInteractionLog | undefined",
+                "truncated": false
+              }
+            ],
+            "membersTruncated": false,
+            "returns": [],
+            "signaturesTruncated": false
+          },
+          {
+            "name": "projectToolTimeline",
+            "status": "available",
+            "type": "(parts: readonly TimelinePart[], namedTools?: Readonly<Record<string, readonly unknown[] | undefined>> | undefined) => { anchorId: string | undefined; streaming: boolean; calls: TimelineCall[]; summarized: TimelineCall[]; detailIndices: number[]; }",
+            "truncated": false,
+            "members": [],
+            "membersTruncated": false,
+            "returns": [
+              {
+                "type": "{ anchorId: string | undefined; streaming: boolean; calls: TimelineCall[]; summarized: TimelineCall[]; detailIndices: number[]; }",
+                "truncated": false
+              }
+            ],
+            "signaturesTruncated": false
+          }
+        ],
+        "interpretation": "Installed public types only, not implementation access or mutation authority. Abbreviated/unresolved types are explicit; ask for a concrete referenced public symbol if needed. A name absent from a project grep may be inherited from npm. Preserve original tool approval/interrupt/error renderers and canonical Runtime."
+      },
+      "entryHash": "2cffe2a687c61b73e4909c439d470b270bb38fb824681bd54dc88badd06020da",
+      "editable": "Project application props, children, composition and renderers; no takeover consent required.",
+      "implementationBoundary": "Existing source ownership permits ordinary local implementation edits; preserve vendor, Runtime, application contract and BASE.",
+      "publicApi": {
+        "status": "available",
+        "component": "ConversationToolTimelinePlugin",
+        "package": {
+          "name": "@za38.03/agent-ui-plugins",
+          "version": "0.0.1"
+        },
+        "source": "Current application component types resolved through the target project's installed declarations",
+        "completePropNames": true,
+        "props": [
+          {
+            "name": "renderSlot",
+            "type": "(localSlotName: string, fallback?: ReactNode, options?: UIPluginRenderSlotOptions | undefined) => ReactNode",
+            "typeTruncated": false,
+            "runtimeManaged": true
+          },
+          {
+            "name": "renderScopedSlot",
+            "type": "(localSlotName: string, scope: UIPluginRenderScope<unknown>, fallback?: ReactNode) => ReactNode",
+            "typeTruncated": false,
+            "runtimeManaged": true
+          },
+          {
+            "name": "children",
+            "type": "ReactNode",
+            "typeTruncated": false,
+            "runtimeManaged": false,
+            "members": [
+              {
+                "name": "toString",
+                "type": "(() => string) | (() => string) | ((radix?: number | undefined) => string) | ((radix?: number | undefined) => string)",
+                "typeTruncated": false
+              },
+              {
+                "name": "valueOf",
+                "type": "(() => Object) | (() => string) | (() => boolean) | (() => number) | (() => bigint)",
+                "typeTruncated": false
+              },
+              {
+                "name": "toLocaleString",
+                "type": "(() => string) | { (locales?: string | string[] | undefined, options?: NumberFormatOptions | undefined): string; (locales?: LocalesArgument, options?: NumberFormatOptions | undefined): string; } | ((locales?: LocalesArgument, options?: BigIntToLocaleStringOptions | undefined) => string)",
+                "typeTruncated": false
+              }
+            ]
+          },
+          {
+            "name": "rootProps",
+            "type": "DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false,
+            "memberCount": 280,
+            "membersOmitted": true
+          },
+          {
+            "name": "timelineProps",
+            "type": "Partial<{ steps: readonly { id?: string | undefined; verb: string; chip: string; icon: LucideIcon; }[]; visibleSteps: number; streaming: boolean; open: boolean; onOpenChange: (open: boolean) => void; restingLabel: string; activeLabel: string; stats: { ...; }[]; className?: string | undefined; }> | undefined",
+            "typeTruncated": true,
+            "runtimeManaged": false,
+            "members": [
+              {
+                "name": "steps",
+                "type": "readonly { id?: string | undefined; verb: string; chip: string; icon: LucideIcon; }[] | undefined",
+                "typeTruncated": false
+              },
+              {
+                "name": "visibleSteps",
+                "type": "number | undefined",
+                "typeTruncated": false
+              },
+              {
+                "name": "streaming",
+                "type": "boolean | undefined",
+                "typeTruncated": false
+              },
+              {
+                "name": "open",
+                "type": "boolean | undefined",
+                "typeTruncated": false
+              },
+              {
+                "name": "onOpenChange",
+                "type": "((open: boolean) => void) | undefined",
+                "typeTruncated": false
+              },
+              {
+                "name": "restingLabel",
+                "type": "string | undefined",
+                "typeTruncated": false
+              },
+              {
+                "name": "activeLabel",
+                "type": "string | undefined",
+                "typeTruncated": false
+              },
+              {
+                "name": "stats",
+                "type": "{ file: string; added?: number | undefined; removed?: number | undefined; }[] | undefined",
+                "typeTruncated": false
+              },
+              {
+                "name": "className",
+                "type": "string | undefined",
+                "typeTruncated": false
+              }
+            ]
+          },
+          {
+            "name": "detailsProps",
+            "type": "CollapsibleRootProps | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false,
+            "memberCount": 282,
+            "membersOmitted": true
+          },
+          {
+            "name": "detailsTriggerProps",
+            "type": "CollapsibleTriggerProps | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false,
+            "memberCount": 289,
+            "membersOmitted": true
+          },
+          {
+            "name": "detailsContentProps",
+            "type": "CollapsiblePanelProps | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false,
+            "memberCount": 280,
+            "membersOmitted": true
+          },
+          {
+            "name": "defaultOpen",
+            "type": "boolean | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false,
+            "members": [
+              {
+                "name": "valueOf",
+                "type": "() => boolean",
+                "typeTruncated": false
+              }
+            ]
+          },
+          {
+            "name": "defaultDetailsOpen",
+            "type": "boolean | undefined",
+            "typeTruncated": false,
+            "runtimeManaged": false,
+            "members": [
+              {
+                "name": "valueOf",
+                "type": "() => boolean",
+                "typeTruncated": false
+              }
+            ]
+          }
+        ],
+        "interpretation": "Props describe supported seams, not a guarantee that all requested behavior is implemented. Nested type text may be abbreviated. Prefer application props/composition; if a required seam is absent, explain the gap before proposing implementation takeover. Do not trace Host Runtime to infer missing public APIs."
+      }
+    },
+    "selected": true,
+    "instances": [
+      {
+        "id": "tool-timeline-main",
+        "pluginId": "tool-timeline",
+        "enabled": true,
+        "target": {
+          "type": "plugin_slot",
+          "parentInstanceId": "agent-conversation-surface-main",
+          "slot": "toolTimeline"
+        },
+        "index": 0,
+        "effectiveEnabled": true
+      }
+    ],
+    "manifest": {
+      "id": "tool-timeline",
+      "name": "Conversation Tool Timeline",
+      "description": "Message-level official tool execution summary with original tool details.",
+      "version": "0.0.1",
+      "capabilities": [
+        "conversation-tool-timeline-renderer"
+      ],
+      "requiresRenderScope": true,
+      "authoring": {
+        "intents": [
+          "summarize tool execution",
+          "show a collapsible tool timeline",
+          "展示工具执行时间线",
+          "折叠工具执行过程"
+        ],
+        "visualRole": "assistant message tool execution summary",
+        "defaultPlacement": {
+          "type": "plugin_slot",
+          "parentPluginId": "conversation-surface",
+          "slot": "toolTimeline"
+        }
+      }
+    },
+    "definitionSource": {
+      "content": "import type { UIPluginDefinition } from \"../../framework/contracts/ui-plugin\";\nimport implementation from \"./source/definition\";\nimport { ConversationToolTimelinePlugin } from \"./index\";\nconst definition: UIPluginDefinition = { manifest: implementation.manifest, provides: [], inject: [], optionalInject: [], Component: ConversationToolTimelinePlugin };\nexport default definition;\n",
+      "truncated": false,
+      "characters": 381
+    },
+    "services": {
+      "provides": [],
+      "required": [],
+      "optional": []
+    },
+    "files": [
+      {
+        "path": "src/agent-ui/plugins/tool-timeline/source/adapters",
+        "kind": "directory"
+      },
+      {
+        "path": "src/agent-ui/plugins/tool-timeline/source/definition.ts",
+        "kind": "file",
+        "bytes": 417
+      },
+      {
+        "path": "src/agent-ui/plugins/tool-timeline/source/index.tsx",
+        "kind": "file",
+        "bytes": 451
+      },
+      {
+        "path": "src/agent-ui/plugins/tool-timeline/source/manifest.json",
+        "kind": "file",
+        "bytes": 674
+      },
+      {
+        "path": "src/agent-ui/plugins/tool-timeline/source/THIRD_PARTY_NOTICES.md",
+        "kind": "file",
+        "bytes": 4829
+      }
+    ],
+    "filesTruncated": false
+  }
+}

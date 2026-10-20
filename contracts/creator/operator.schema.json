@@ -4020,21 +4020,7 @@
           "maxLength": 200
         },
         "package": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "name",
-            "version"
-          ],
-          "properties": {
-            "name": {
-              "const": "@za38.03/agent-ui-plugins"
-            },
-            "version": {
-              "type": "string",
-              "maxLength": 200
-            }
-          }
+          "$ref": "#/$defs/pluginInstalledPackageIdentity"
         },
         "source": {
           "type": "string",
@@ -4080,59 +4066,7 @@
           }
         },
         "compositionContract": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "preserveSlots",
-            "replacementProps",
-            "semantics"
-          ],
-          "properties": {
-            "preserveSlots": {
-              "type": "array",
-              "maxItems": 16,
-              "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "name",
-                  "renderMethod",
-                  "layout",
-                  "overrideProp"
-                ],
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "maxLength": 200
-                  },
-                  "renderMethod": {
-                    "type": "string",
-                    "maxLength": 200
-                  },
-                  "layout": {
-                    "type": "string",
-                    "maxLength": 200
-                  },
-                  "overrideProp": {
-                    "type": "string",
-                    "maxLength": 200
-                  }
-                }
-              }
-            },
-            "replacementProps": {
-              "type": "array",
-              "maxItems": 16,
-              "items": {
-                "type": "string",
-                "maxLength": 200
-              }
-            },
-            "semantics": {
-              "type": "string",
-              "maxLength": 2000
-            }
-          }
+          "$ref": "#/$defs/pluginApplicationCompositionContract"
         }
       },
       "oneOf": [
@@ -4205,6 +4139,9 @@
         },
         "sharedTypes": {
           "$ref": "#/$defs/pluginSharedTypesInspection"
+        },
+        "usageGuide": {
+          "$ref": "#/$defs/pluginApplicationUsageGuide"
         }
       }
     },
@@ -4565,6 +4502,161 @@
           ]
         }
       ]
+    },
+    "pluginApplicationUsageGuide": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entryPath",
+        "implementationImport",
+        "currentExample",
+        "interpretation",
+        "customization",
+        "preservation"
+      ],
+      "properties": {
+        "entryPath": {
+          "$ref": "#/$defs/path"
+        },
+        "implementationImport": {
+          "type": "string",
+          "maxLength": 400
+        },
+        "currentExample": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "language",
+            "source",
+            "truncated"
+          ],
+          "properties": {
+            "language": {
+              "const": "tsx"
+            },
+            "source": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "truncated": {
+              "type": "boolean"
+            }
+          }
+        },
+        "interpretation": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "customization": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "preservation": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "package": {
+          "$ref": "#/$defs/pluginInstalledPackageIdentity"
+        },
+        "component": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "customizationProps": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "runtimeManagedProps": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "completePropNames": {
+          "type": "boolean"
+        },
+        "compositionContract": {
+          "$ref": "#/$defs/pluginApplicationCompositionContract"
+        }
+      }
+    },
+    "pluginInstalledPackageIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "const": "@za38.03/agent-ui-plugins"
+        },
+        "version": {
+          "type": "string",
+          "maxLength": 200
+        }
+      }
+    },
+    "pluginApplicationCompositionContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preserveSlots",
+        "replacementProps",
+        "semantics"
+      ],
+      "properties": {
+        "preserveSlots": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "renderMethod",
+              "layout",
+              "overrideProp"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "renderMethod": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "layout": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "overrideProp": {
+                "type": "string",
+                "maxLength": 200
+              }
+            }
+          }
+        },
+        "replacementProps": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "semantics": {
+          "type": "string",
+          "maxLength": 2000
+        }
+      }
     }
   },
   "oneOf": [

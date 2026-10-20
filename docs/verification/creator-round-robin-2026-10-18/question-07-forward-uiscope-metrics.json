@@ -1,0 +1,61 @@
+{
+  "runId": "0f08576a-e39b-4aab-b1f1-39a587edbe1e",
+  "startedAt": "2026-10-18T12:29:00.253Z",
+  "finishedAt": "2026-10-18T12:39:02.498Z",
+  "wallSeconds": 602.245,
+  "status": "interrupted",
+  "toolCalls": 27,
+  "toolSuccesses": 25,
+  "interrupts": 1,
+  "executionErrors": [
+    {
+      "toolName": "read_file",
+      "arguments": {
+        "file_path": "/framework/contracts/ui-plugin.ts",
+        "limit": 120
+      },
+      "structuredErrorReason": "Error: File '/framework/contracts/ui-plugin.ts' not found Filesystem tools use virtual paths rooted at /. Agent UI files are under /src/agent-ui/. Do not prepend a host home directory, drive letter or guessed workspace path."
+    }
+  ],
+  "invalidToolCalls": 0,
+  "protocolRepairAttempts": 0,
+  "modelTransportFailures": 1,
+  "modelTransportRetries": 1,
+  "operatorMetrics": {
+    "requests": 6,
+    "failures": 0,
+    "durationMs": 17000,
+    "queueWaitMs": 3310,
+    "admissionWaitMs": 925,
+    "executionMs": 15850,
+    "byOperation": {
+      "inspect_ui_project": 2,
+      "inspect_agent_ui_sources": 1,
+      "inspect_ui_services": 1,
+      "inspect_ui_plugin": 2
+    }
+  },
+  "changedSourcePaths": [],
+  "uiScopeOutcome": "Plan passed input validation and reached Host user decision; no string_too_long or protocol repair.",
+  "developmentIntent": "needs_decision",
+  "pendingPlan": {
+    "pluginId": "forward-action",
+    "placement": "response-footer.actions",
+    "behavior": "Localized button opens title/content placeholder dialog, user supplies later forwarding logic."
+  },
+  "baseline": {
+    "runId": "d8e4ab45-9f9f-4448-9f33-c041c6728e20",
+    "wallSeconds": 273.154,
+    "toolCalls": 20,
+    "invalidToolCalls": 2
+  },
+  "tests": {
+    "focusedPassed": 243,
+    "broaderAttempt": {
+      "passed": 256,
+      "failed": 28,
+      "failureBoundary": "Old authority fixtures missing .agent-ui/project.json or current_result on test stub; not a passing full suite."
+    },
+    "windows": "Pure schema/repair changes; no native Windows run."
+  }
+}

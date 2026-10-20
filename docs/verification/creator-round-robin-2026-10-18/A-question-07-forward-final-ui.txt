@@ -1,0 +1,116 @@
+Window: "127.0.0.1:56305", App: Google Chrome.
+0 标准窗口 127.0.0.1:56305 - Google Chrome, URL: 127.0.0.1:56305/, Secondary Actions: Raise
+	1 container 127.0.0.1:56305 - Google Chrome, URL: 127.0.0.1:56305/
+		2 container
+			3 工具栏
+				4 按钮 返回
+				5 按钮 (disabled) 前进
+				6 按钮 重新加载
+				7 container
+					8 弹出式按钮 查看网站信息
+					9 文本栏 (settable) Description: 地址和搜索栏, Value: 127.0.0.1:56305, Placeholder: 在 Google 中搜索，或输入网址
+					10 按钮 为此标签页添加书签
+				11 按钮 您
+				12 弹出式按钮 有新版 Chrome 可用
+			13 container
+				14 HTML 内容 127.0.0.1:56305/
+					15 container
+						16 container 智能体前端预览
+							17 container Host Application
+								18 HTML 内容 A 路 platform 路 Creator 瀹炴祴, URL: 127.0.0.1:56306/?creator-preview
+									19 container
+										20 container
+											21 container
+												22 container 智能助手
+													23 文本 智能助手
+												24 按钮 切换侧边栏
+												25 container 侧边栏
+												26 container 历史会话
+													27 container
+														28 按钮 新建会话
+														29 搜索文本字段 (settable) 搜索会话
+														30 按钮 历史：基础会话
+														31 弹出式按钮 更多选项
+														32 按钮 历史：已完成工具调用
+														33 弹出式按钮 更多选项
+														34 按钮 历史：推理内容
+														35 弹出式按钮 更多选项
+														36 按钮 历史：已完成前端工具
+														37 弹出式按钮 更多选项
+														38 按钮 历史：图片与文件内容
+														39 弹出式按钮 更多选项
+														40 按钮 历史：长会话
+														41 弹出式按钮 更多选项
+														42 按钮 新会话
+														43 弹出式按钮 更多选项
+											44 container
+												45 文本 第七题复测：请返回多条消息
+												46 文本 第一段回答
+												47 文本 第二段回答
+												48 文本 最终总结
+												49 按钮 复制
+												50 按钮 重试
+												51 弹出式按钮 更多
+												52 container
+													53 文本输入区 (settable) Description: 消息输入框, Placeholder: 发送消息…, Value: 
+
+													54 按钮 添加附件
+													55 按钮 (disabled) 发送
+						56 container Creator
+							57 分离器 Description: 调整 Creator 面板宽度, Help: 拖动调整宽度，双击恢复默认, Value: 50
+							58 container
+								59 标题 Creator, Value: 1
+									60 文本 Creator
+								61 按钮 Description: 当前项目：A-platform，点击切换项目, Help: 打开或切换项目
+								62 按钮 Description: 刷新, Help: 重新读取当前项目与面板数据
+								63 弹出式按钮 设置
+								64 按钮 关闭 Creator 面板
+							65 container
+								66 container 接入 Agent UI
+									67 container
+										68 text Agent UI 已创建 接下来把它引入你自己的应用。
+										69 按钮 查看接入方法
+								70 文本 用户
+								71 文本 我想在 AI 回复的消息下面加个转发按钮，点击后打开一个弹窗就行，后续逻辑我自己接。做好后告诉我在哪个文件里继续开发。
+								72 container 已识别意图
+									73 文本 已识别意图
+									74 文本 执行需要进一步实现的修改
+								75 container 工具执行详情
+									76 开合三角标记 工具调用 · 12 次 已完成
+										77 container
+											78 text 工具调用 · 12 次
+										79 文本 已完成
+								80 文本 错误
+								81 文本 本次任务已停止。
+本轮没有修改项目文件，页面保持原样。
+最后完成的步骤：grep。
+当前请求尚未完成，可根据以上原因继续定位；未自动重试。
+							82 container
+								83 文本 告诉 Creator
+								84 文本输入区 (settable) 告诉 Creator, Placeholder: 例如：看看当前 UI，或在右侧增加工具详情面板
+								85 按钮 清空会话, Help: 清空当前对话和草稿，重新开始
+								86 按钮 (disabled) 发送
+			87 弹出式按钮 标签页搜索
+			88 container
+				89 标签组
+					90 标签 (selected, settable, boolean) Description: 127.0.0.1:56305 - 内存用量 - 317 MB, Value: on
+						91 按钮 关闭
+					92 标签 (settable, boolean) Description: 127.0.0.1:56437 - 内存用量 - 366 MB, Value: off
+						93 按钮 关闭
+			94 按钮 新标签页
+	95 关闭按钮
+	96 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	97 最小化按钮
+98 menu bar
+	99 Chrome
+	100 文件
+	101 编辑
+	102 显示
+	103 历史记录
+	104 书签
+	105 个人资料
+	106 标签页
+	107 窗口
+	108 帮助
+
+The focused UI element is 14 HTML 内容 127.0.0.1:56305/

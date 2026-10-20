@@ -1,0 +1,36 @@
+{
+  "pythonFocusedUniquePassed": 224,
+  "pythonFocusedFiles": [
+    "test_source_grounding.py",
+    "test_authoring_resume_context.py",
+    "test_plugin_source_takeover.py",
+    "test_server.py",
+    "test_operator_client.py",
+    "test_creator_run_logger.py"
+  ],
+  "operatorFocusedUniquePassed": 13,
+  "operatorTests": [
+    "plugin-application-inspector.test.ts (4)",
+    "plugin-source-takeover.test.ts (9)"
+  ],
+  "checks": {
+    "operatorTypecheck": "passed",
+    "operatorTestTypecheck": "passed",
+    "operatorBuild": "passed",
+    "contractInventory": "passed",
+    "diffCheck": "passed",
+    "actualBSharedDeclarationQuery": "passed with strict Operator request/result validation"
+  },
+  "expandedLegacyDevelopmentFixtureCheck": {
+    "failed": 18,
+    "note": "Older development-server fixtures do not supply .agent-ui/project.json. Isolated existing ordinary-question fixture emits Invalid Agent UI project configuration before interrupt. Not counted as passing; no fixture repair or broader suite claim."
+  },
+  "windows": {
+    "driveAndUNCFixtures": "passed",
+    "nativeWindowsRun": false,
+    "review": "Native path.resolve/relative/realpath; logical exports reject backslashes/traversal. No new browser imports or shell/process assumptions."
+  },
+  "resumeBoundary": "Pending state is checkpoint/thread/permission bound. Restores target and expanded navigation only; fresh file read records, hashes, edits and consent are never restored as authority. Takeover native consent and installed plan validation unchanged.",
+  "trialBoundary": "Previous run was stopped; service restart clears in-memory checkpoint. Continue Q5 as a fresh Creator conversation on preserved source-owned B. No takeover reset, no new authorization, no fixed tool sequence, no Q6.",
+  "jsonArrayArgumentTestsPassed": 2
+}

@@ -1,0 +1,10 @@
+{
+  "sourceAndBuildMatch": true,
+  "sha256": {
+    "model_protocol/tool_protocol_guard.py": "323420f7c9871e522722b656eea281d8e90daa984b6dde43d1ab0c88f0bf2d0a",
+    "domain_agent/tool_discovery.py": "7a6cc596c833b19cb2eda4d631648cc678c9bcd4002c79bc13e2ad4135581a8d",
+    "domain_agent/agent.py": "c99f46f05a0da25dde7dd07bbc62202e5fe85bc9af6ddb8d25834564219c6075",
+    "domain_state/observation_context.py": "0c05a7052c9e23a7d1537f954e5ddf4f10494776ae3a8db9513cefb05ef68ea7",
+    "domain_tools/operator_tools.py": "b1f6fec247df133ddb11725f80153b2369e22e8f6ef1aeb4998e617e3fe49b26"
+  }
+}

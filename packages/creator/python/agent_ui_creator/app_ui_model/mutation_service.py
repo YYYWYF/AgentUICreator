@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+from copy import deepcopy
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -194,6 +195,9 @@ class AppUIModelMutationService:
         self._consecutive_failures = 0
         self._semantic_replan_pending = False
         self.last_result: AppUIModelMutationResult | None = None
+        self._last_successful_signature: str | None = None
+        self._last_successful_states: dict[str, CreatorFileState] | None = None
+        self._last_successful_result: dict[str, Any] | None = None
 
     async def mutate(
         self,
@@ -391,6 +395,20 @@ class AppUIModelMutationService:
                     )
                 )
                 assert_run_writable()
+                operation_signature = json.dumps(
+                    [operations, feature_removal, runtime_slot_widths],
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                    default=str,
+                )
+                cached = self._idempotent_replay(
+                    operation_signature=operation_signature,
+                    app_ui_model_hash=app_ui_model_hash,
+                    before_states=before_states,
+                )
+                if cached is not None:
+                    return cached
                 cancel_marker = current_cancel_marker(self.project_root)
                 raw_result = await self.operator.request_app_ui_model_mutation(
                     {
@@ -463,7 +481,42 @@ class AppUIModelMutationService:
                     source="mutate_app_ui_model",
                     reason="already-satisfied",
                 )
+            else:
+                self._last_successful_signature = operation_signature
+                self._last_successful_states = dict(after_states)
+                self._last_successful_result = deepcopy(raw_result)
             return AppUIModelMutationResult(raw_result, self.activity.revision)
+
+    def _idempotent_replay(
+        self,
+        *,
+        operation_signature: str,
+        app_ui_model_hash: str,
+        before_states: dict[str, CreatorFileState],
+    ) -> AppUIModelMutationResult | None:
+        cached_states = self._last_successful_states
+        cached_result = self._last_successful_result
+        if (
+            operation_signature != self._last_successful_signature
+            or cached_states is None
+            or cached_result is None
+            or before_states != cached_states
+            or before_states[self.app_ui_model_path].hash != app_ui_model_hash
+        ):
+            return None
+
+        # Reuse a validated Host commit only while the complete protected file
+        # state and the caller's fresh AppUIModel hash still match that commit.
+        target_result = deepcopy(cached_result)
+        target_result["changed"] = False
+        target_result["changedPaths"] = []
+        target_result["appUIModel"] = {
+            **target_result["appUIModel"],
+            "beforeHash": app_ui_model_hash,
+            "afterHash": app_ui_model_hash,
+        }
+        target_result["idempotentReplayOf"] = target_result.get("transactionId")
+        return AppUIModelMutationResult(target_result, self.activity.revision)
 
     def _read_mutable_states(self) -> dict[str, CreatorFileState]:
         return {
