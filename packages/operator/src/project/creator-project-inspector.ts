@@ -9,7 +9,7 @@ import {
 } from "../framework/contracts/agent-ui-project";
 import { parseAppUIModelJson } from "../framework/contracts/app-ui-model";
 import { resolveAgentUIProjectPaths, operatorConfigForPaths, projectRelativePath, type AgentUIProjectPaths } from "./agent-ui-project-paths";
-import { generatePluginRegistry, PLUGIN_REGISTRY_ENTRY_SOURCE } from "./registry-generator";
+import { generatePluginRegistry, matchesPluginRegistryEntrySource } from "./registry-generator";
 import { verifyPluginChildSlots } from "./plugin-child-slot-verifier";
 import { uiOperatorConfig } from "./project-config";
 import type { UIOperatorConfig } from "./types";
@@ -142,7 +142,7 @@ async function inspectCreatorProjectCore(
       });
     }
     const entrySource = await optionalFile(paths.pluginRegistryEntryPath);
-    if (entrySource !== PLUGIN_REGISTRY_ENTRY_SOURCE) {
+    if (!matchesPluginRegistryEntrySource(entrySource)) {
       warnings.push({
         code: "AGENT_UI_REGISTRY_ENTRY_STALE",
         message: `${projectRelativePath(projectRoot, paths.pluginRegistryEntryPath)} is missing or stale.`,

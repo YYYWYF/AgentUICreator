@@ -21,7 +21,7 @@ import { agentUIModeRegistry } from "../framework/modes/index";
 import {
   collectPluginProjectFacts,
   generatePluginRegistryFromFacts,
-  PLUGIN_REGISTRY_ENTRY_SOURCE,
+  matchesPluginRegistryEntrySource,
 } from "./registry-generator";
 import {
   agentUISourceSummary,
@@ -193,7 +193,7 @@ export async function inspectUIProject(
       generatedFileFresh:
         composition.issues.length === 0 &&
         generatedSource === composition.capabilityCatalogSource &&
-        entrySource === PLUGIN_REGISTRY_ENTRY_SOURCE,
+        matchesPluginRegistryEntrySource(entrySource),
     },
     activeComposition: composition.activeComposition,
     issues: composition.issues,

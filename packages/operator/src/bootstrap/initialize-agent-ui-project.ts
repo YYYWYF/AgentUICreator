@@ -37,7 +37,11 @@ export interface AgentUIInitializationHost<TModel> {
   }>;
   writeAppUIModel(projectRoot: string, model: TModel, config: AgentUIProjectConfig): Promise<string>;
   writeGeneratedRuntimeConfig(projectRoot: string, config: AgentUIProjectConfig): Promise<string>;
-  writeGeneratedRegistry(projectRoot: string, config: AgentUIProjectConfig): Promise<string>;
+  writeGeneratedRegistry(
+    projectRoot: string,
+    config: AgentUIProjectConfig,
+    onCreatedPaths?: (paths: readonly string[]) => void,
+  ): Promise<string>;
   verifyProject(projectRoot: string, config: AgentUIProjectConfig): Promise<{ status: "passed" | "failed"; errors: readonly { code: string; message: string }[] }>;
   rollbackCreatedPaths(projectRoot: string, paths: readonly string[], config: AgentUIProjectConfig, plannedPaths: readonly string[], sourceRootWasMissing: boolean): Promise<void>;
   /** Install the development control plane before committing project.json. */
@@ -143,7 +147,9 @@ export async function initializeAgentUIProject<TModel>(
     createdPaths.add(await host.writeAppUIModel(projectRoot, model, projectConfig));
     try {
       createdPaths.add(await host.writeGeneratedRuntimeConfig(projectRoot, projectConfig));
-      createdPaths.add(await host.writeGeneratedRegistry(projectRoot, projectConfig));
+      createdPaths.add(await host.writeGeneratedRegistry(projectRoot, projectConfig, paths => {
+        for (const createdPath of paths) createdPaths.add(createdPath);
+      }));
     } catch (error) {
       throw new AgentUIInitializationError(
         "AGENT_UI_INITIALIZATION_VERIFICATION_FAILED",

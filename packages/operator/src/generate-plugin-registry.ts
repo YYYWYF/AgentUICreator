@@ -30,7 +30,12 @@ async function readOptional(filePath: string): Promise<string | undefined> {
 
 export async function writeGeneratedPluginRegistry(
   projectRoot: string,
-  options: { projectConfigOverride?: AgentUIProjectConfig; cancelMarker?: string | undefined; initializeApplications?: boolean } = {},
+  options: {
+    projectConfigOverride?: AgentUIProjectConfig;
+    cancelMarker?: string | undefined;
+    initializeApplications?: boolean;
+    onCreatedPaths?: ((paths: readonly string[]) => void) | undefined;
+  } = {},
 ): Promise<{
   changed: boolean;
   path: string;
@@ -43,7 +48,12 @@ export async function writeGeneratedPluginRegistry(
   );
   if (options.initializeApplications !== false) {
     const installed = await installedPackagePluginIds(projectRoot);
-    for (const id of new Set([...officialPackagePlugins.filter(plugin => plugin.application.enabled && (!installed || installed.has(plugin.pluginId))).map(plugin => plugin.pluginId), ...collectAppUIPluginLocations(model).map(location => location.plugin.pluginId)])) await ensurePluginApplication(projectRoot, id, {paths,config:operatorConfigForPaths(paths)});
+    for (const id of new Set([...officialPackagePlugins.filter(plugin => plugin.application.enabled && (!installed || installed.has(plugin.pluginId))).map(plugin => plugin.pluginId), ...collectAppUIPluginLocations(model).map(location => location.plugin.pluginId)])) {
+      const application = await ensurePluginApplication(projectRoot, id, {paths,config:operatorConfigForPaths(paths)});
+      if (application.createdPaths.length > 0) {
+        options.onCreatedPaths?.(application.createdPaths);
+      }
+    }
   }
   const generation = await generatePluginRegistry(projectRoot, model, {
     config: operatorConfigForPaths(paths), paths,

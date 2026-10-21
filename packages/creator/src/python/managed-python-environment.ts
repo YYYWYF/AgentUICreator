@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { access, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
@@ -123,7 +123,14 @@ export async function ensureManagedPythonEnvironment(options: ManagedPythonEnvir
   }
   if (!bootstrap || !pythonVersion) throw new PythonCreatorRuntimeError("CREATOR_PYTHON_BOOTSTRAP_RUNTIME_MISSING", "Install Python 3.11+ or configure CREATOR_PYTHON_EXECUTABLE.");
   const pythonMinor = pythonVersion.split(".").slice(0, 2).join(".");
-  const root = path.join(creatorPythonCacheRoot(environment, platform), creatorVersion, `py${pythonMinor}-${platform}-${architecture}`, requirementsSha256);
+  // Keep the full digest while using Windows-safe path characters and fewer
+  // path components. Python's ensurepip expands several nested package paths.
+  const requirementsKey = platform === "win32"
+    // The full digest remains in the identity marker. A 128-bit directory key
+    // leaves ample collision resistance while keeping venv paths below MAX_PATH.
+    ? Buffer.from(requirementsSha256, "hex").subarray(0, 16).toString("base64url")
+    : requirementsSha256;
+  const root = path.join(creatorPythonCacheRoot(environment, platform), creatorVersion, `py${pythonMinor}-${platform}-${architecture}`, requirementsKey);
   const finalEnvironment = path.join(root, "venv");
   const executable = managedPythonExecutable(finalEnvironment, platform);
   const identity = { creatorVersion, pythonVersion, requirementsSha256, platform, architecture };
@@ -158,7 +165,8 @@ export async function ensureManagedPythonEnvironment(options: ManagedPythonEnvir
       await new Promise<void>((resolve) => setTimeout(resolve, 200));
     }
   }
-  const temporary = path.join(root, `venv.tmp-${randomUUID()}`);
+  // Keep the transient environment short enough for Windows ensurepip paths.
+  const temporary = path.join(root, `v-${randomBytes(8).toString("hex")}`);
   const commandOptions = { cwd: pythonPackageRoot, env: isolatedEnvironment(environment, pythonPackageRoot) };
   async function command(executable: string, args: string[], code: string): Promise<void> {
     try {

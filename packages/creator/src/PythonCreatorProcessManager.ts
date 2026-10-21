@@ -270,6 +270,7 @@ export class PythonCreatorProcessManager {
   readonly #hotReloadEnabled: boolean;
 
   #child: ChildProcess | undefined;
+  readonly #closedChildren = new WeakSet<ChildProcess>();
   #endpoint: PythonCreatorEndpoint | undefined;
   #starting: Promise<PythonCreatorEndpoint> | undefined;
   #hotReloadTimer: NodeJS.Timeout | undefined;
@@ -474,6 +475,9 @@ export class PythonCreatorProcessManager {
       stdio: ["ignore", "pipe", "pipe"],
     });
     this.#child = child;
+    // `exit` can precede stdio handle closure on Windows. Track `close` so
+    // callers that clean temporary packages wait until Node releases the pipes.
+    child.once("close", () => this.#closedChildren.add(child));
     let startupStderr = "";
     child.stderr?.setEncoding("utf8");
     child.stderr?.on("data", (chunk: string) => {
@@ -658,25 +662,19 @@ export class PythonCreatorProcessManager {
   }
 
   async #terminateChild(child: ChildProcess): Promise<void> {
-    if (
-      child.pid === undefined ||
-      child.exitCode !== null ||
-      child.signalCode !== null
-    ) {
-      return;
-    }
-    child.kill("SIGTERM");
-    if (await this.#waitForChildExit(child, this.#stopTimeoutMs)) {
+    if (child.pid === undefined) return;
+    if (child.exitCode === null && child.signalCode === null) child.kill("SIGTERM");
+    if (await this.#waitForChildClose(child, this.#stopTimeoutMs)) {
       return;
     }
     if (child.exitCode === null && child.signalCode === null) {
       child.kill("SIGKILL");
-      await this.#waitForChildExit(child, this.#stopTimeoutMs);
+      await this.#waitForChildClose(child, this.#stopTimeoutMs);
     }
   }
 
-  #waitForChildExit(child: ChildProcess, timeoutMs: number): Promise<boolean> {
-    if (child.exitCode !== null || child.signalCode !== null) {
+  #waitForChildClose(child: ChildProcess, timeoutMs: number): Promise<boolean> {
+    if (this.#closedChildren.has(child)) {
       return Promise.resolve(true);
     }
     return new Promise((resolve) => {
@@ -686,13 +684,18 @@ export class PythonCreatorProcessManager {
       }, timeoutMs);
       const cleanup = (): void => {
         clearTimeout(timeout);
-        child.removeListener("exit", onExit);
+        child.removeListener("close", onClose);
       };
-      const onExit = (): void => {
+      const onClose = (): void => {
+        this.#closedChildren.add(child);
         cleanup();
         resolve(true);
       };
-      child.once("exit", onExit);
+      child.once("close", onClose);
+      if (this.#closedChildren.has(child)) {
+        cleanup();
+        resolve(true);
+      }
     });
   }
 

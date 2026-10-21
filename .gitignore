@@ -10,6 +10,9 @@ coverage/
 examples/creator-host-sandbox/.env.local
 examples/creator-assistant-host/.env.local
 examples/creator-embedded-host/.env.local
+examples/creator-host-sandbox/.env.development.local
+examples/creator-assistant-host/.env.development.local
+examples/creator-embedded-host/.env.development.local
 __pycache__/
 .pytest_cache/
 .venv/

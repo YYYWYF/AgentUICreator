@@ -51,6 +51,11 @@ export const PLUGIN_REGISTRY_ENTRY_SOURCE =
     '',
   ].join("\n");
 
+/** Compare generated source independently of the checkout's Windows line endings. */
+export function matchesPluginRegistryEntrySource(source: string | undefined): boolean {
+  return source?.replace(/\r\n?/gu, "\n") === PLUGIN_REGISTRY_ENTRY_SOURCE;
+}
+
 function statementHasDefaultModifier(statement: Statement): boolean {
   if (!("modifierFlags" in statement)) {
     return false;

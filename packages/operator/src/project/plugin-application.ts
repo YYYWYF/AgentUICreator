@@ -42,16 +42,16 @@ export async function isPluginApplication(directory: string, id: string): Promis
 /** Application files are deliberately absent from source-lock and implementation BASE. */
 export async function ensurePluginApplication(root: string, id: string, context?: {paths: AgentUIProjectPaths; config: UIOperatorConfig}) {
   const official = officialPackagePlugin(id);
-  if (!official?.application.enabled) return { changed: false };
+  if (!official?.application.enabled) return { changed: false, createdPaths: [] as string[] };
   const { paths, config } = context ?? await resourcePaths(root);
-  if ((await readPluginSourceOwnership(paths.metadataRoot)).plugins[id]) return { changed: false };
+  if ((await readPluginSourceOwnership(paths.metadataRoot)).plugins[id]) return { changed: false, createdPaths: [] as string[] };
   const target = `plugins/${id}`;
   await assertNoSymbolicLinkTraversal(paths.sourceRoot, target);
   const directory = path.join(paths.pluginsRoot, id);
-  if (await isPluginApplication(directory, id)) return { changed: false };
+  if (await isPluginApplication(directory, id)) return { changed: false, createdPaths: [] as string[] };
   if (await lstat(directory).then(() => true, error => { if (error.code === "ENOENT") return false; throw error; })) {
     const { lock } = await readAgentUISourceLock(root, config);
-    if (Object.keys(lock.items[`plugin/${id}`]?.files ?? {}).length || (official.application.preserveLegacySource && await lstat(path.join(directory, "manifest.json")).then(file => file.isFile(), () => false) && await lstat(path.join(directory, "definition.ts")).then(file => file.isFile(), () => false) && JSON.parse(await readFile(path.join(directory, "manifest.json"), "utf8")).id === id)) return { changed: false };
+    if (Object.keys(lock.items[`plugin/${id}`]?.files ?? {}).length || (official.application.preserveLegacySource && await lstat(path.join(directory, "manifest.json")).then(file => file.isFile(), () => false) && await lstat(path.join(directory, "definition.ts")).then(file => file.isFile(), () => false) && JSON.parse(await readFile(path.join(directory, "manifest.json"), "utf8")).id === id)) return { changed: false, createdPaths: [] as string[] };
     throw new AgentUISourceError("PLUGIN_APPLICATION_EXISTS", "Existing Plugin code must be preserved; migrate it explicitly before creating the application layer.");
   }
   const component = official.application.component;
@@ -116,7 +116,13 @@ export async function ensurePluginApplication(root: string, id: string, context?
   }
   const { lock } = await readAgentUISourceLock(root, config);
   await commitAgentUISourceTransaction(root, config, "initialize_plugin_application", [...[...files].map(([file, content]) => ({ target: `${target}/${file}`, content: Buffer.from(content) })),...sharedEdits], serializeAgentUISourceLock(lock));
-  return { changed: true };
+  return {
+    changed: true,
+    createdPaths: [
+      ...[...files.keys()].map(file => path.relative(paths.projectRoot, path.join(directory, file)).split(path.sep).join("/")),
+      ...sharedEdits.map(file => path.relative(paths.projectRoot, path.join(paths.sourceRoot, ...file.target.split("/"))).split(path.sep).join("/")),
+    ],
+  };
 }
 
 /** Rewrite only parsed static module specifiers; preserve JSX, comments and CRLF. */

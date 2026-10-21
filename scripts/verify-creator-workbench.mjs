@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { spawnPnpm } from "./pnpm-process.mjs";
+import { publicModules, publicPackageName } from "./build-public-packages.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const temporary = await mkdtemp(path.join(tmpdir(), "creator npm demo 中文 "));
@@ -49,7 +50,7 @@ try {
     assert(archive, manifest.name);
     overrides[manifest.name] = `file:../packages/${archive}`;
   }
-  assert.equal(Object.keys(overrides).length, 9);
+  assert.deepEqual(Object.keys(overrides).sort(), publicModules.map(publicPackageName).sort());
   assert(overrides["@za38.03/agent-ui-creator"]);
   // Local tarballs substitute only their independently installable package names.
   await writeFile(path.join(consumer, "package.json"), JSON.stringify({

@@ -17,7 +17,7 @@ import { verifyPluginStyles } from "./project/plugin-style-verifier";
 import { verifyPluginPortalImports } from "./project/plugin-portal-verifier";
 import {
   generatePluginRegistry,
-  PLUGIN_REGISTRY_ENTRY_SOURCE,
+  matchesPluginRegistryEntrySource,
 } from "./project/registry-generator";
 import { inspectUIServiceDependencies } from "./project/service-dependency-inspector";
 import { analyzePluginAuthoringReadiness } from "./project/plugin-authoring-readiness";
@@ -217,7 +217,7 @@ export async function verifyUIProject(
     const entrySource = await readOptional(
       paths.pluginRegistryEntryPath,
     );
-    if (entrySource !== PLUGIN_REGISTRY_ENTRY_SOURCE) {
+    if (!matchesPluginRegistryEntrySource(entrySource)) {
       errors.push({
         code: "plugin-registry-entry",
         message: `${entryRelativePath} must only re-export the generated capability catalog.`,
@@ -226,7 +226,7 @@ export async function verifyUIProject(
     generatedFileFresh =
       registry.errors.length === 0 &&
       generatedSource === registry.capabilityCatalog.source &&
-      entrySource === PLUGIN_REGISTRY_ENTRY_SOURCE;
+      matchesPluginRegistryEntrySource(entrySource);
 
   }
 

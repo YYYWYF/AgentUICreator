@@ -94,8 +94,11 @@ export function createAgentUIInitializationHost() {
       ].join("\n"), { flag: "wx" });
       return projectRelativePath(projectRoot, paths.generatedRuntimeConfigPath);
     },
-    async writeGeneratedRegistry(projectRoot, projectConfig) {
-      const result = await writeGeneratedPluginRegistry(projectRoot, { projectConfigOverride: projectConfig });
+    async writeGeneratedRegistry(projectRoot, projectConfig, onCreatedPaths) {
+      const result = await writeGeneratedPluginRegistry(projectRoot, {
+        projectConfigOverride: projectConfig,
+        onCreatedPaths,
+      });
       return result.path;
     },
     async verifyProject(projectRoot, projectConfig) {
@@ -112,7 +115,7 @@ export function createAgentUIInitializationHost() {
         });
       }
       const directories = new Set<string>();
-      for (const relativePath of plannedPaths) {
+      for (const relativePath of [...plannedPaths, ...createdPaths]) {
         let parent = path.dirname(path.join(projectRoot, relativePath));
         let withinSourceRoot = path.relative(paths.sourceRoot, parent);
         while (withinSourceRoot !== "" && withinSourceRoot !== ".." &&

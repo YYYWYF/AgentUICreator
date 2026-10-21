@@ -52,6 +52,9 @@
       ],
       "@za38.03/agent-ui-creator/host-preview": [
         "../../packages/creator/src/host-preview/hostPreviewWorkbench.ts"
+      ],
+      "@za38.03/agent-ui-creator/host-preview/vite": [
+        "../../packages/creator/src/host-preview/vite.ts"
       ]
     }
   },
@@ -65,8 +68,6 @@
     "../../packages/creator/src/visual-observation/VisualObservationReporter.ts",
     "../../packages/creator/src/shared.ts",
     "../../packages/creator/src/mock-agent/**/*.ts",
-    "../../packages/plugins/src/**/*.ts",
-    "../../packages/plugins/src/**/*.tsx",
     "../../packages/runtime/src/**/*.ts",
     "../../packages/runtime/src/**/*.tsx",
     "../../packages/core/src/**/*.ts",

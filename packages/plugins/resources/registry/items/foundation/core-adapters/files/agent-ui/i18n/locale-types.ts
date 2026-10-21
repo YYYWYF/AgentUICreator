@@ -30,6 +30,7 @@ export interface AgentUILocaleMessages extends Omit<AgentUIPresentationMessages,
   };
   searchTools: {
     searching: string; sources: string; retrieving: string; passages: string; relevance: string; score: string;
+    contextKnowledgeBase: string; contextLongTermMemory: string; contextCount: string; contextQuery: string; contextEmpty: string;
   };
   composer: AgentUIPresentationMessages["composer"];
   conversationFeedback: { helpful: string; notHelpful: string; };
