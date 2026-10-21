@@ -37,7 +37,7 @@
 | Creator / Operator 测试、`scripts/preparation-state.test.mjs` | 覆盖准备标记、旧缓存识别、状态机、无初始化安装、broken 时停止资源请求、单资源失败、重复点击、草稿和会话保留。 |
 | `packages/operator/tests/migrated/creator-project-inspector.test.ts` | 修正非法模型测试缺失 project.json 且 sourceRoot 路径不匹配的夹具；保留未初始化项目检查与真正非法模型拒绝。 |
 | `apps/creator-workbench/playwright.refresh.config.ts`、两份 refresh spec | 真实主 Workbench + Host 顶部刷新 E2E 和刷新后真实模型对话；不使用 Workspace、资源或模型 mock。 |
-| `scripts/verify-refresh-schema.mts`、Operator 的 reproduction/test 脚本 | 可重跑的源码/编译 Schema、历史旧校验器与缓存替换验证，全部隔离测试数据。 |
+| 当时的 Schema reproduction/test 脚本 | 源码/编译 Schema、历史旧校验器与缓存替换的隔离验证；其中阶段性入口已在 scripts 清理时删除，不再作为现行命令。 |
 
 工作区原有 Creator header/CSS、React adapter 等未提交改动保留。本轮未修改 assistant-ui vendor、AG-UI 协议、登录插件或 Conversation Runtime，也没有修改 Schema / strictObject 或添加字段兼容分支。
 
