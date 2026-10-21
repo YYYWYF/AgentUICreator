@@ -1,12 +1,13 @@
 import { AssistantRuntimeProvider, type AssistantRuntime } from "@assistant-ui/react";
 import { useAgUiRuntime } from "@assistant-ui/react-ag-ui";
+import type { AgUiAssistantRuntime } from "@assistant-ui/react-ag-ui";
 import { useEffect } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { describe, expect, it } from "vitest";
 
 import { CancellationAwareHttpAgent } from "../src/compatibility/cancellation-aware-http-agent.js";
 
-function createAbortFailingAgent({ emitContent = true } = {}) {
+function createAbortFailingAgent({ emitContent = true, emitInterrupt = false } = {}) {
   let resolveContent!: () => void;
   const content = new Promise<void>((resolve) => {
     resolveContent = resolve;
@@ -42,6 +43,12 @@ function createAbortFailingAgent({ emitContent = true } = {}) {
               type: "TEXT_MESSAGE_CONTENT",
               messageId: "assistant-cancel-1",
               delta: "partial",
+            });
+          }
+          if (emitInterrupt) {
+            if (emitContent) enqueue({ type: "TEXT_MESSAGE_END", messageId: "assistant-cancel-1" });
+            enqueue({ type: "RUN_FINISHED", threadId: input.threadId, runId: input.runId,
+              outcome: { type: "interrupt", interrupts: [{ id: "confirm-1", reason: "confirmation", message: "Continue?" }] },
             });
           }
           resolveContent();
@@ -91,6 +98,29 @@ async function waitFor(condition: () => boolean): Promise<void> {
 }
 
 describe("assistant-ui cancellation boundary", () => {
+  // Known upstream 0.0.66 regression: stopping while an interrupt stream is
+  // closing removes its answerable status. Keep the intended contract visible.
+  it.fails("keeps a native interrupt answerable after Stop during stream teardown", async () => {
+    const { agent, content } = createAbortFailingAgent({ emitInterrupt: true });
+    let runtime!: AgUiAssistantRuntime;
+    let renderer!: ReactTestRenderer;
+    try {
+      await act(async () => {
+        renderer = create(<RuntimeFixture agent={agent} onRuntime={value => { runtime = value as AgUiAssistantRuntime; }} />);
+      });
+      await act(async () => {
+        runtime.thread.append({ role: "user", content: [{ type: "text", text: "Confirm action" }], startRun: true });
+        await content;
+      });
+      await waitFor(() => runtime.unstable_getPendingInterrupts().length === 1);
+      await act(async () => { runtime.thread.cancelRun(); });
+      await waitFor(() => !runtime.thread.getState().isRunning);
+      expect(runtime.unstable_getPendingInterrupts()).toMatchObject([{ id: "confirm-1" }]);
+    } finally {
+      if (renderer) await act(async () => { renderer.unmount(); });
+    }
+  });
+
   it("retains one empty cancelled assistant when stopped before any assistant event", async () => {
     const { agent, content: requestStarted } = createAbortFailingAgent({ emitContent: false });
     let runtime: AssistantRuntime | undefined;

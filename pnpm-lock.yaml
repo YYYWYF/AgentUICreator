@@ -817,8 +817,8 @@ importers:
         specifier: 0.15.29
         version: 0.15.29(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.1.1)(react@19.1.1)
       '@assistant-ui/react-ag-ui':
-        specifier: 0.0.70
-        version: 0.0.70(@assistant-ui/react@0.15.29)(@assistant-ui/tap@0.9.23)(@types/react@19.3.0)(react@19.1.1)
+        specifier: 0.0.66
+        version: 0.0.66(@assistant-ui/react@0.15.29)(@assistant-ui/tap@0.9.23)(@types/react@19.3.0)(react@19.1.1)
       '@assistant-ui/react-langgraph':
         specifier: 0.14.36
         version: 0.14.36(@assistant-ui/tap@0.9.23)(@types/react@19.3.0)(react@19.1.1)
@@ -1029,28 +1029,19 @@ packages:
       - ioredis
       - redis
 
-  /@assistant-ui/generative-ui@0.0.5(@assistant-ui/react@0.15.29)(@types/react@19.3.0)(react@19.1.1):
-    resolution: {integrity: sha512-7TeJpTfyIi71dMixLEO5LfFcN8J/lcYiNT4yxuZk90nQn5ekLLbRTtwCZ8EOxOhp7YH7k1MXYsLevlq6GodIAg==}
+  /@assistant-ui/generative-ui@0.0.1(@assistant-ui/react@0.15.29)(@types/react@19.3.0)(react@19.1.1):
+    resolution: {integrity: sha512-CqFVtFvSUNtdoZAeFIvdGqerqRFLvVkYnHCI24ZiISyikxmoKRi8thUfyyInIONUY89Sm+1w6fPMxgA1xQUV2Q==}
     peerDependencies:
       '@assistant-ui/react': ^0.15.0
       '@types/react': '*'
-      generative-frame: ^0.0.6
       react: 19.1.1
-      react-native: '*'
-      vue: 3.5.42
       zod: ^4.0.0
     peerDependenciesMeta:
       '@assistant-ui/react':
         optional: true
       '@types/react':
         optional: true
-      generative-frame:
-        optional: true
       react:
-        optional: true
-      react-native:
-        optional: true
-      vue:
         optional: true
       zod:
         optional: true
@@ -1066,8 +1057,8 @@ packages:
       - redis
     dev: false
 
-  /@assistant-ui/react-ag-ui@0.0.70(@assistant-ui/react@0.15.29)(@assistant-ui/tap@0.9.23)(@types/react@19.3.0)(react@19.1.1):
-    resolution: {integrity: sha512-mnHUavSwuihf39drjBN0/tJaTS/9pNA/Rcj4+VT1wPdWMbzaCLLh+c0kc5Kl16zkX0n72SphDFCwK70J6dOOEw==}
+  /@assistant-ui/react-ag-ui@0.0.66(@assistant-ui/react@0.15.29)(@assistant-ui/tap@0.9.23)(@types/react@19.3.0)(react@19.1.1):
+    resolution: {integrity: sha512-zRB/Xf6CW0ZqBkTpmCIW+2pL00dslQr05YX8wtD1dSk9XgVnjB+/JX96N7unsSZ2aUXzhlB0XTFGXt2IEUUMPw==}
     peerDependencies:
       '@types/react': '*'
       react: 19.1.1
@@ -1077,7 +1068,7 @@ packages:
     dependencies:
       '@ag-ui/client': 0.0.59
       '@assistant-ui/core': 0.3.29(@assistant-ui/store@0.3.21)(@assistant-ui/tap@0.9.23)(@types/react@19.3.0)(react@19.1.1)
-      '@assistant-ui/generative-ui': 0.0.5(@assistant-ui/react@0.15.29)(@types/react@19.3.0)(react@19.1.1)
+      '@assistant-ui/generative-ui': 0.0.1(@assistant-ui/react@0.15.29)(@types/react@19.3.0)(react@19.1.1)
       '@assistant-ui/store': 0.3.21(@assistant-ui/tap@0.9.23)(@types/react@19.3.0)(react@19.1.1)
       '@types/react': 19.3.0
       assistant-stream: 0.3.52
@@ -1090,11 +1081,8 @@ packages:
       - '@opentelemetry/exporter-trace-otlp-http'
       - '@opentelemetry/sdk-trace-base'
       - ai
-      - generative-frame
       - ioredis
-      - react-native
       - redis
-      - vue
       - zod
     dev: false
 
