@@ -8,12 +8,12 @@ import {
 } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
 
-import { parseAppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
+import { parseAppUIRuntimeModel } from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
 import type {
   UIPluginObservableService,
   UIPluginDefinition,
   UIPluginSetupContext,
-} from "../../../operator/src/framework/contracts/ui-plugin";
+} from "../../../creator/operator/src/framework/contracts/ui-plugin";
 import {
   createAgentUIThemeService,
   readAgentUITheme,

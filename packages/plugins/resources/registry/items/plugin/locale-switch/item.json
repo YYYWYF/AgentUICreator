@@ -1,0 +1,29 @@
+{
+  "id": "plugin/locale-switch",
+  "kind": "agent-component",
+  "description": "Managed Agent UI plugin-locale-switch source",
+  "files": [
+    {
+      "source": "files/plugins/locale-switch/definition.ts",
+      "target": "plugins/locale-switch/definition.ts"
+    },
+    {
+      "source": "files/plugins/locale-switch/index.tsx",
+      "target": "plugins/locale-switch/index.tsx"
+    },
+    {
+      "source": "files/plugins/locale-switch/manifest.json",
+      "target": "plugins/locale-switch/manifest.json"
+    },
+    {
+      "source": "files/plugins/locale-switch/styles.css",
+      "target": "plugins/locale-switch/styles.css"
+    }
+  ],
+  "requires": [
+    "foundation/core"
+  ],
+  "packages": {
+    "react": "19.1.1"
+  }
+}

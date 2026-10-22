@@ -1,11 +1,11 @@
 import { createHash } from "node:crypto";
 import { realpathSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { getAvailableAgentUIThemes, setAgentUITheme, synchronizeAgentUIPluginRegistry } from "@za38.03/agent-ui-operator/commands";
+import { getAvailableAgentUIThemes, setAgentUITheme, synchronizeAgentUIPluginRegistry } from "@za38.03/agent-ui-creator/operator/commands";
 import type { CreatorWorkspaceManager } from "../workspace/CreatorWorkspaceManager.js";
 import type { PythonCreatorProcessManager } from "../PythonCreatorProcessManager.js";
 import { CREATOR_WORKSPACE_ID_HEADER } from "../workspace/types.js";
-import { inspectOfficialAgentUIResourceCatalog, installOfficialAgentUIResource, resolveOfficialResource, inspectIntegrationHost, planIntegrationRecipe } from "@za38.03/agent-ui-operator/resources";
+import { inspectOfficialAgentUIResourceCatalog, installOfficialAgentUIResource, resolveOfficialResource, inspectIntegrationHost, planIntegrationRecipe } from "@za38.03/agent-ui-creator/operator/resources";
 import type { CreatorCommandExecuteRequest } from "./types.js";
 import { creatorCommandRegistry } from "./registry.js";
 
@@ -36,7 +36,7 @@ export function createCreatorCommandHandler(workspaces: CreatorWorkspaceManager 
         if (catalog) {
           const themes = await getAvailableAgentUIThemes(projectRoot).catch(() => undefined);
           const host = await inspectIntegrationHost(projectRoot);
-          const resources: import("@za38.03/agent-ui-operator/resources").OfficialResourceCatalogEntry[] = host.framework === "react"
+          const resources: import("@za38.03/agent-ui-creator/operator/resources").OfficialResourceCatalogEntry[] = host.framework === "react"
             ? await inspectOfficialAgentUIResourceCatalog(projectRoot)
             : [{ id: "web-component-bridge", label: "Web Component Compatibility", status: "missing", installable: host.framework !== "nuxt" }];
           return { commands: [
@@ -95,7 +95,7 @@ export function createCreatorCommandHandler(workspaces: CreatorWorkspaceManager 
           const commit = await fetch(`http://${endpoint.host}:${endpoint.port}/creator-command-commit`, {
             method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${endpoint.authToken}` }, body: JSON.stringify(change),
           });
-          const body = await commit.json() as { runId?: string; error?: string; code?: string; verification?: import("@za38.03/agent-ui-operator/commands").ThemeVerification };
+          const body = await commit.json() as { runId?: string; error?: string; code?: string; verification?: import("@za38.03/agent-ui-creator/operator/commands").ThemeVerification };
           if (!commit.ok) throw new Error(body.code === "CREATOR_COMMAND_BUSY" ? body.code : body.error ?? "CREATOR_COMMAND_COMMIT_FAILED");
           if (!body.verification) throw new Error("THEME_VERIFICATION_RESULT_INVALID");
           return { ...body, verification: body.verification };

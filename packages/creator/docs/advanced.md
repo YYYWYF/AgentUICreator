@@ -10,7 +10,7 @@ Creator 是 Agent UI 的开发助手。用户可以直接提问了解使用方�
 
 ## CLI
 
-安装到工具宿主工程的 `devDependencies`，在包含 `.env.creator.local` 的目录运行：
+安装到工具宿主工程的 `devDependencies`，在包含 `.env.agentui.local` 的目录运行：
 
 ```bash
 npm install -D @za38.03/agent-ui-creator
@@ -21,7 +21,7 @@ npx agent-ui-creator
 工程选择、安装位置、产品模式、资源安装和模型对话
 都在现有 Creator 界面中完成；不传工程参数时不会自动选择仓库示例。
 选择已有前端工程后，未初始化的工程会显示初始化界面；已初始化工程可通过 `/install`
-选择官方能力。模型配置仍从启动目录的 `.env.creator.local` 读取，与选中的目标工程分开。
+选择官方能力。模型配置仍从启动目录的 `.env.agentui.local` 读取，与选中的目标工程分开。
 
 也可以用 `--project ./my-agent-app` 预选工程，或执行单次需求：
 
@@ -110,7 +110,7 @@ export default defineConfig(async ({ command }) => {
 默认连接 `http://127.0.0.1:47832`。`--port 47832` 在端口占用时明确报错，避免自动切到
 浮层不知道的端口；如需多个工程同时运行独立 Creator，为每个工程配置不同的 `--port` 和
 `createCreatorDockVitePlugin({ creatorUrl: "http://127.0.0.1:另一个端口" })`。
-模型配置默认读取当前工程的 `.env.creator.local`；也可在脚本末尾添加 `--config-root <工具配置目录>`。
+模型配置默认读取当前工程的 `.env.agentui.local`；也可在脚本末尾添加 `--config-root <工具配置目录>`。
 脚本不依赖 Bash 或内联环境变量，Windows 使用相同命令。
 
 如果使用 Rsbuild，在开发工具宿主的配置中添加：
@@ -195,7 +195,7 @@ CLI 默认监听 `127.0.0.1:47832`，端口占用时自动选择空闲端口。
 机器仍需安装 Node.js 与 Python 3.11+，首次 Python 安装需要可用的 pip 源。
 Creator 以 `@za38.03/agent-ui-creator` 独立发行，包含开发用 Mock Agent。
 通过 `@za38.03/agent-ui-creator/mock-agent` 导入场景、HTTP handler 和 Vite Mock 集成。
-Operator（`@za38.03/agent-ui-operator`，包含 Bootstrap）与 Source Registry 独立发行，不与 Creator 共享版本。
+Operator 已合入 Creator，源码在 `packages/creator/operator`，通过 `/operator/*`、`/bootstrap` 和 `/source-registry` 公开。两者共享一个 npm 身份与版本；Plugins 的资源与 catalog 仍独立交付。
 更新 Creator 不会自动修改已经生成的项目源码。
 
 `pnpm verify:creator-workbench` 会构建、打包本仓库的 npm 包，用本地 tarball 模拟内部
@@ -272,14 +272,14 @@ system Python → 临时缓存 venv → locked dependencies → Sidecar health �
 测试不发送模型请求。Creator distribution CI 使用此门禁；独立 npm 包发行还执行 `pnpm verify:package`。
 
 可分别执行 `pnpm verify:creator-package`、`pnpm verify:creator-python-wheel` 或较重的
-`pnpm test:creator-package-runtime`。Contract 的唯一源码是 `contracts/creator`；npm
+`pnpm test:creator-package-runtime`。Contract 的唯一源码是 `packages/creator/contracts/creator`；npm
 和 wheel 都自动打包为 `agent_ui_creator/_contracts/creator`，不依赖仓库目录结构。
 
 Vite 插件会按项目惰性启动一个 Python 进程，透明代理 AG-UI 与运行时诊断流，
 并在开发服务器关闭时终止 sidecar。Python 启动或模型配置失败会明确失败；工程中
 没有其他 Creator runtime。
 
-开发时如果希望 Python 源码变化后自动重启 sidecar，可在 `.env.creator.local` 中开启：
+开发时如果希望 Python 源码变化后自动重启 sidecar，可在 `.env.agentui.local` 中开启：
 
 ```env
 CREATOR_PYTHON_HOT_RELOAD=1
@@ -290,7 +290,7 @@ CREATOR_PYTHON_HOT_RELOAD=1
 修改依赖或 `requirements.lock` 后仍需手动重新安装环境。
 
 如需让 Vite Host 连接已在本机启动的 sidecar，而不再创建和管理子进程，可在
-`.env.creator.local` 同时配置：
+`.env.agentui.local` 同时配置：
 
 ```env
 CREATOR_PYTHON_ENDPOINT=http://127.0.0.1:8010
@@ -354,3 +354,7 @@ createCreatorDockVitePlugin({ creatorUrl: "http://127.0.0.1:47833" })
 
 卸载 Creator 时，删除快速接入示例中的插件导入、插件调用和 `dev:creator` 脚本即可。
 若希望卸载后也保留原配置，请使用上文 Vite 的可选加载写法。
+
+### 统一本地配置文件
+
+本地工具配置统一为 `.env.agentui.local`（参考仓库根目录 `.env.agentui.example`）；旧 `.env.creator.local` 请手动重命名，不再读取。工具配置目录与目标项目目录可不同；目录相同时，Creator 配置和开发期 `VITE_AGENT_ENDPOINT` 可共用此文件。密钥使用 `CREATOR_MODEL_API_KEY` 等服务端字段，不使用 `VITE_` 前缀，也不导入配置文件到浏览器代码。初始化生成的独立 Vite 适配器只在开发时向前端传入 endpoint；生产构建不读取本地文件，不需要 `.env.agentui`。不要扩大 Vite 的 `envPrefix` 或将文件内容整体注入 `define`。详见 [本地 Mock 服务配置](../../../docs/creator-local-mock-service.md)。

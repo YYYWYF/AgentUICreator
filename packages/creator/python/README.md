@@ -61,14 +61,14 @@ packages/creator/python/.venv/bin/python -m agent_ui_creator.server \
 服务启动后，stdout 第一行是`creator_ready` JSON handshake；普通
 运行日志只写 stderr。
 
-如果工作区根目录已经配置了 `.env.creator.local`，也可以直接运行快捷命令启动
+如果工作区根目录已经配置了 `.env.agentui.local`，也可以直接运行快捷命令启动
 固定的 8010 外部 sidecar：
 
 ```bash
 pnpm creator:python
 ```
 
-本地开发可在 `.env.creator.local` 设置 `CREATOR_PYTHON_HOT_RELOAD=1`。此时快捷命令
+本地开发可在 `.env.agentui.local` 设置 `CREATOR_PYTHON_HOT_RELOAD=1`。此时快捷命令
 会监听 `agent_ui_creator/**/*.py`，检测到源码变化后自动重启 sidecar；依赖文件变化
 仍需手动重新安装环境。
 
@@ -89,7 +89,7 @@ CREATOR_VERIFICATION_MODE=static_only
 # CREATOR_SELECTOR_REASONING_EFFORT=low
 ```
 
-使用 OpenCode Go 时，在 `.env.creator.local` 设置
+使用 OpenCode Go 时，在 `.env.agentui.local` 设置
 `CREATOR_MODEL_OPENCODE_SESSION_HEADER=1`，Creator 才会把当前会话 ID 作为
 `x-opencode-session` 请求头发送。默认不发送，其他模型服务无需启用。
 
@@ -152,7 +152,7 @@ Operator transaction、真实磁盘 changedPaths 对账、Activity touch、recei
 `OperatorClient` 固定从目标工程的 `node_modules/.bin/tsx`（Windows 为
 `tsx.cmd`）启动该入口，`cwd` 为目标工程，环境固定 `CI=1`、`FORCE_COLOR=0`，
 超时 15 秒，stdout/stderr 合计上限 1,000,000 bytes。请求和响应均通过
-`contracts/creator/operator.schema.json` 验证。
+`packages/creator/contracts/creator/operator.schema.json` 验证。
 Client 保留 public read operation，并提供 AppUIModel 与 Agent UI Source
 domain capability 使用的 bounded mutation transport；Agent 不直接拿到 Client。
 

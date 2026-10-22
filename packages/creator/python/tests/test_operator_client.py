@@ -20,7 +20,7 @@ def _operator_project(tmp_path: Path, source: str) -> tuple[Path, OperatorClient
     return project_root, OperatorClient(project_root=project_root, node_executable=sys.executable)
 
 
-FIXTURE_ROOT = Path(__file__).resolve().parents[4] / "contracts/creator/fixtures/operator"
+FIXTURE_ROOT = Path(__file__).resolve().parents[4] / "packages/creator/contracts/creator/fixtures/operator"
 
 
 def _fixture(operation):

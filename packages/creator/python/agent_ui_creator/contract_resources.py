@@ -21,7 +21,7 @@ def creator_contract_root() -> Traversable:
         and (repository / "pnpm-workspace.yaml").is_file()
         and (repository / "packages" / "creator" / "package.json").is_file()
     ):
-        development = repository / "contracts" / "creator"
+        development = repository / "packages" / "creator" / "contracts" / "creator"
         if development.is_dir():
             return development
     raise RuntimeError("Creator contract resources are unavailable.")

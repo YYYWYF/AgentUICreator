@@ -1,6 +1,8 @@
 # Creator 开发控制面实施计划
 
-> 当前 ownership：Operator 属于 `packages/operator`，初始化 transaction 属于 `packages/bootstrap`，协议 Mock 属于 `packages/mock-agent`。下面的阶段记录保留历史设计语义，路径已按当前能力 owner 更新；Host example 只承载生成源文件与 Host Integration。
+> 2026-10-21：Operator 已作为内部模块合入 Creator 包，源码为 `packages/creator/operator`，共享协议为 `packages/creator/contracts`。Node/Python 继续共享唯一协议与 golden fixtures；同包不改变 Agent 编排与 Operator 受控执行的职责和确认边界。
+
+> 当前 ownership：Operator 属于 `packages/creator/operator`，初始化 transaction 属于 `packages/bootstrap`，协议 Mock 属于 `packages/mock-agent`。下面的阶段记录保留历史设计语义，路径已按当前能力 owner 更新；Host example 只承载生成源文件与 Host Integration。
 >
 > 状态：Approved design companion / Creator 控制面已完成 Python-only 收口；React Workbench、Vite 代理和浏览器 reporter 继续保留在 TypeScript
 >
@@ -378,15 +380,15 @@ interface AskCreatorUserInput {
 正式实现位置（2026-09-27 已归入 package）：
 
 ```text
-packages/operator/src/project/types.ts
-packages/operator/src/project/project-inspector.ts
-packages/operator/src/project/project-config.ts
-packages/operator/src/project/plugin-assets.ts
-packages/operator/src/project/registry-generator.ts
-packages/operator/src/generate-plugin-registry.ts
+packages/creator/operator/src/project/types.ts
+packages/creator/operator/src/project/project-inspector.ts
+packages/creator/operator/src/project/project-config.ts
+packages/creator/operator/src/project/plugin-assets.ts
+packages/creator/operator/src/project/registry-generator.ts
+packages/creator/operator/src/generate-plugin-registry.ts
 examples/creator-host-sandbox/src/agent-ui/plugins/registry.generated.ts
-packages/operator/tests/migrated/plugin-registry-generator.test.ts
-packages/operator/tests/migrated/project-inspector.test.ts
+packages/creator/operator/tests/migrated/plugin-registry-generator.test.ts
+packages/creator/operator/tests/migrated/project-inspector.test.ts
 ```
 
 建议修改：
@@ -394,7 +396,7 @@ packages/operator/tests/migrated/project-inspector.test.ts
 ```text
 examples/creator-host-sandbox/src/agent-ui/plugins/*/definition.ts
 examples/creator-host-sandbox/src/agent-ui/plugins/index.ts
-packages/operator/src/verify-ui.ts
+packages/creator/operator/src/verify-ui.ts
 examples/creator-host-sandbox/package.json
 ```
 
@@ -450,7 +452,7 @@ packages/creator/python/tests/test_domain_tools.py
 正式协议实现由 Operator package 持有；Host 初始化安装固定 Node JSON 控制入口：
 
 ```text
-packages/operator/src/handler.ts
+packages/creator/operator/src/handler.ts
 <Host project>/.agent-ui/operator/entry.mjs
 ```
 
@@ -497,8 +499,8 @@ packages/creator/src/PythonCreatorClient.ts
 目标项目建议新增：
 
 ```text
-packages/operator/src/project/app-ui-operations.ts
-packages/operator/src/project/app-ui-transaction.ts
+packages/creator/operator/src/project/app-ui-operations.ts
+packages/creator/operator/src/project/app-ui-transaction.ts
 examples/creator-host-sandbox/tests/app-ui-operations.test.ts
 examples/creator-host-sandbox/tests/app-ui-transaction.test.ts
 ```

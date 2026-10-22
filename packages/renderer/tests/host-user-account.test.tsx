@@ -9,7 +9,7 @@ import { PluginServiceProvider, createPluginRegistry } from "../../plugins/resou
 import { createAuthSession } from "../../plugins/resources/registry/items/plugin/auth-gate/files/plugins/auth-gate/session";
 import { createDemoAuthAdapter } from "../../plugins/resources/registry/items/plugin/auth-gate/files/services/auth/mock-adapter";
 import gateManifest from "../../plugins/resources/registry/items/plugin/auth-gate/files/plugins/auth-gate/manifest.json";
-import { parseUIPluginManifest } from "../../operator/src/framework/contracts/ui-plugin";
+import { parseUIPluginManifest } from "../../creator/operator/src/framework/contracts/ui-plugin";
 
 const actions = { sendMessage: async () => {}, resumeInterrupts: async () => {}, startNewConversation: async () => {}, abortRun() {} };
 const model = { root: { type: "slot" as const, id: "main", slotId: "main" }, pluginInstances: {} };

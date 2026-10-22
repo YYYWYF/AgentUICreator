@@ -28,7 +28,7 @@ class CreationControl:
     async def list_ui_plugins(self):
         return {
             "pluginAssets": [
-                {"pluginId": "conversation-history"},
+                {"pluginId": "history-provider"},
                 {"pluginId": "search"},
             ]
         }
@@ -45,7 +45,7 @@ def fixture(tmp_path):
             change_kind="create",
             service_name="conversation.navigation",
             contract_path="services/conversations/navigation.ts",
-            owner_plugin_id="conversation-history",
+            owner_plugin_id="history-provider",
             consumers=(("search", "required"),),
         ),
         authorized=True,

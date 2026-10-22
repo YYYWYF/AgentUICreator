@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { resolveOfficialResource } from "@za38.03/agent-ui-operator/resources";
+import { resolveOfficialResource } from "@za38.03/agent-ui-creator/operator/resources";
 import { inspectMockDemoCompatibility, inspectMockProjectCompatibility, mockDemoRequirements, type ProjectCompositionInspection } from "../src/mock/demo-compatibility.js";
 const empty: ProjectCompositionInspection = { pluginSources: [], pluginInstances: [] };
 const sources = { items: mockDemoRequirements.map(requirement => {

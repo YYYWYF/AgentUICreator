@@ -17,7 +17,7 @@ export const zhCN = {
     "hint": "请在右侧 Creator Agent 中选择工程和产品形态，初始化 Agent UI。"
 },
   "launcher": {
-    "help": "Agent UI Creator\n\n用法：\n  agent-ui-creator                 在浏览器中打开 Creator\n  agent-ui-creator --message <需求> --project <目录>\n\n可选参数：\n  -p, --project      预选工程目录\n  -c, --config-root  .env.creator.local 所在目录\n  -m, --message      在终端执行一次需求\n      --port         Creator 服务端口（占用时明确报错）\n      --no-open      不打开独立启动页\n  -h, --help         显示帮助\n",
+    "help": "Agent UI Creator\n\n用法：\n  agent-ui-creator                 在浏览器中打开 Creator\n  agent-ui-creator --message <需求> --project <目录>\n\n可选参数：\n  -p, --project      预选工程目录\n  -c, --config-root  .env.agentui.local 所在目录\n  -m, --message      在终端执行一次需求\n      --port         Creator 服务端口（占用时明确报错）\n      --no-open      不打开独立启动页\n  -h, --help         显示帮助\n",
     "started": "Creator 已启动：{0}",
     "stop": "按 Ctrl+C 停止。工程和能力请在 Creator 界面中选择。",
     "browserUnavailable": "无法自动打开浏览器，请打开上面的地址。",

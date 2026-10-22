@@ -1,5 +1,5 @@
 import { showcaseMockScenarios, type MockScenario } from "../mock-agent/index.js";
-import { resolveOfficialResource, inspectOfficialResourceImplementation, type ResourceCompositionInspection, type ResourceSourceInspection } from "@za38.03/agent-ui-operator/resources";
+import { resolveOfficialResource, inspectOfficialResourceImplementation, type ResourceCompositionInspection, type ResourceSourceInspection } from "@za38.03/agent-ui-creator/operator/resources";
 
 export interface MockProjectTarget { id: string; projectRoot: string; sourceRoot?: string }
 export interface MockDemoCompatibility {

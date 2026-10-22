@@ -1,0 +1,70 @@
+.conversation-thread-list-application {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  padding-inline-end: 6px;
+}
+
+.agent-ui-root .conversation-thread-list-popover-trigger {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  padding: 8px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  color: var(--muted-foreground);
+  background: transparent;
+  cursor: pointer;
+}
+
+.agent-ui-root .conversation-thread-list-popover-trigger:hover,
+.agent-ui-root .conversation-thread-list-popover-trigger[aria-expanded="true"] {
+  color: var(--foreground);
+  background: var(--muted);
+}
+
+.agent-ui-root .conversation-thread-list-popover-trigger:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.conversation-thread-list-popover-trigger svg {
+  width: 20px;
+  height: 20px;
+}
+
+.agent-ui-root .agent-ui-assistant-shell .conversation-thread-list-popover-trigger {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.agent-ui-root > .agent-ui-portal-root:has(.conversation-thread-list-popover) {
+  z-index: 1100;
+}
+
+.agent-ui-root .conversation-thread-list-popover {
+  display: flex;
+  width: min(20rem, calc(100vw - 5rem));
+  max-height: min(24rem, calc(100dvh - 10rem));
+  flex-direction: column;
+  padding: 12px;
+  gap: 12px;
+}
+
+.conversation-thread-list-popover h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.conversation-thread-list-popover .conversation-thread-list-plugin {
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  overflow: auto;
+  background: transparent;
+}
+

@@ -176,7 +176,7 @@ CREATOR_RUN_LIVE_MODEL=1 PYTHONPATH=packages/creator/python \
   packages/creator/python/tests/live/test_vue_integration.py
 ```
 
-The model settings come from the existing workspace `.env.creator.local`.
+The model settings come from the existing workspace `.env.agentui.local`.
 
 Focused checks on 2026-10-07 passed: eight Host recipe regressions, 19 command API
 checks, two tool argument checks, the live guide case, and the live apply/manual

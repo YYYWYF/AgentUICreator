@@ -9,7 +9,7 @@ from agent_ui_creator.domain_agent.change_scope import resource_keys_for_tool_ca
 
 
 def test_sidebar_creator_operations_and_layout_schema():
-    schema = json.loads((Path(__file__).resolve().parents[4] / "contracts/creator/app-ui-model-operation.schema.json").read_text())
+    schema = json.loads((Path(__file__).resolve().parents[4] / "packages/creator/contracts/creator/app-ui-model-operation.schema.json").read_text())
     validator = Draft202012Validator(schema)
     slot = {"type": "slot", "plugins": []}
     for operation in [
@@ -45,7 +45,7 @@ def test_sidebar_moves_keep_instance_resource_scope():
     {"type": "slot", "localRef": "invalid", "plugins": [{"id": "a", "pluginId": "a", "enabled": True}]},
 ])
 def test_sidebar_external_schema_rejects_invalid_item_children(child):
-    schema = json.loads((Path(__file__).resolve().parents[4] / "contracts/creator/app-ui-model-operation.schema.json").read_text())
+    schema = json.loads((Path(__file__).resolve().parents[4] / "packages/creator/contracts/creator/app-ui-model-operation.schema.json").read_text())
     operation = {"type": "replace_layout_node", "nodeRef": "l0", "node": {
         "type": "sidebar", "defaultActive": None, "items": [{"id": "history", "child": child}],
         "content": {"type": "slot", "plugins": []},
@@ -54,7 +54,7 @@ def test_sidebar_external_schema_rejects_invalid_item_children(child):
 
 
 def test_sidebar_header_is_an_ordinary_slot_and_is_in_diagnostics():
-    schema = json.loads((Path(__file__).resolve().parents[4] / "contracts/creator/app-ui-model-operation.schema.json").read_text())
+    schema = json.loads((Path(__file__).resolve().parents[4] / "packages/creator/contracts/creator/app-ui-model-operation.schema.json").read_text())
     validator = Draft202012Validator(schema)
     operation = {"type": "replace_layout_node", "nodeRef": "l0", "node": {
         "type": "sidebar", "defaultActive": None, "items": [],

@@ -716,43 +716,38 @@
       "theme",
       "run"
     ],
-    "railAction": "ConversationThreadListRailAction"
-  },
-  {
-    "id": "conversation-history",
-    "component": "ConversationHistoryPlugin",
-    "symbol": "conversationHistoryPlugin",
-    "support": "pluginSupport",
-    "presentation": [
-      "conversation-history.tsx"
-    ],
-    "implementationExports": [
-      "CanonicalConversationHistory",
-      "ConversationHistoryPluginProps"
-    ],
-    "preserveLegacySource": true,
-    "supportEntry": "plugin-support",
-    "presentationOwner": "conversation-history",
-    "implementationModule": "conversation-history",
-    "applicationAlias": "Implementation",
-    "services": {
-      "provides": [],
-      "inject": [
-        "agent-ui.conversations"
+    "applicationModeFiles": {
+      "assistant": [
+        [
+          "index.tsx",
+          "adapters/application/assistant/index.tsx"
+        ],
+        [
+          "assistant.css",
+          "adapters/application/assistant/styles.css"
+        ],
+        [
+          "assistant.css.d.ts",
+          "adapters/application/assistant/styles.css.d.ts"
+        ]
       ],
-      "optionalInject": [
-        "agent-ui.locale"
+      "embedded": [
+        [
+          "index.tsx",
+          "adapters/application/assistant/index.tsx"
+        ],
+        [
+          "assistant.css",
+          "adapters/application/assistant/styles.css"
+        ],
+        [
+          "assistant.css.d.ts",
+          "adapters/application/assistant/styles.css.d.ts"
+        ]
       ]
     },
-    "publicPresentationTypes": true,
-    "componentSource": "adapters/component.tsx",
-    "definitionSource": "adapters/package-definition.ts",
-    "projectFiles": [
-      "styles.css",
-      "styles.css.d.ts"
-    ],
-    "hostBindings": [
-      "conversation-selection"
+    "definitionExports": [
+      "ConversationThreadListRailAction"
     ]
   },
   {
@@ -783,7 +778,21 @@
     "projectFiles": [
       "styles.css",
       "styles.css.d.ts"
-    ]
+    ],
+    "applicationModeFiles": {
+      "assistant": [
+        [
+          "index.tsx",
+          "adapters/application/assistant/index.tsx"
+        ]
+      ],
+      "embedded": [
+        [
+          "index.tsx",
+          "adapters/application/assistant/index.tsx"
+        ]
+      ]
+    }
   },
   {
     "id": "conversation-quote",
@@ -1513,6 +1522,48 @@
     "projectFiles": [
       "style.css",
       "style.css.d.ts"
+    ]
+  },
+  {
+    "id": "locale-switch",
+    "component": "LocaleSwitchPlugin",
+    "symbol": "localeSwitchPlugin",
+    "support": "pluginSupport",
+    "presentation": [
+      "locale-switch.tsx"
+    ],
+    "implementationExports": [
+      "CanonicalLocaleSwitchPlugin",
+      "LocaleSwitchPluginProps"
+    ],
+    "supportEntry": "plugin-support",
+    "presentationOwner": "locale-switch",
+    "implementationModule": "locale-switch",
+    "applicationAlias": "Implementation",
+    "services": {
+      "provides": [],
+      "inject": [
+        "agent-ui.locale"
+      ],
+      "optionalInject": []
+    },
+    "publicPresentationTypes": true,
+    "componentSource": "adapters/component.tsx",
+    "definitionSource": "adapters/package-definition.ts",
+    "hostApplication": true,
+    "applicationFiles": [
+      [
+        "index.tsx",
+        "adapters/application.tsx"
+      ],
+      [
+        "definition.ts",
+        "adapters/application-definition.ts"
+      ]
+    ],
+    "projectFiles": [
+      "styles.css",
+      "styles.css.d.ts"
     ]
   }
 ]

@@ -10,7 +10,7 @@ const repositoryRoot = path.resolve(
 );
 const pythonPackageRoot = path.join(repositoryRoot, "packages/creator/python");
 const requirementsPath = path.join(pythonPackageRoot, "requirements.lock");
-const creatorEnvironmentPath = path.join(repositoryRoot, ".env.creator.local");
+const creatorEnvironmentPath = path.join(repositoryRoot, ".env.agentui.local");
 const virtualEnvironmentRoot = path.join(pythonPackageRoot, ".venv");
 const virtualEnvironmentPython =
   process.platform === "win32"
@@ -82,7 +82,7 @@ export function parseEnvironmentFile(source) {
     const separatorIndex = line.indexOf("=");
     if (separatorIndex === -1) {
       throw new Error(
-        `.env.creator.local line ${String(index + 1)} is not a valid assignment.`,
+        `.env.agentui.local line ${String(index + 1)} is not a valid assignment.`,
       );
     }
 
@@ -90,7 +90,7 @@ export function parseEnvironmentFile(source) {
     let value = line.slice(separatorIndex + 1).trim();
     if (!/^[A-Za-z_][A-Za-z0-9_]*$/u.test(key)) {
       throw new Error(
-        `.env.creator.local line ${String(index + 1)} has an invalid key.`,
+        `.env.agentui.local line ${String(index + 1)} has an invalid key.`,
       );
     }
     if (

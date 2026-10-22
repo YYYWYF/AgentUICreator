@@ -1,5 +1,5 @@
-import { inspectIntegrationHost, readCompatibilityBinding, planCompatibilityProject, initializeCompatibilityProject, buildCompatibilityProject } from "@za38.03/agent-ui-operator/host";
-import { ensureManagedOperator } from "@za38.03/agent-ui-operator";
+import { inspectIntegrationHost, readCompatibilityBinding, planCompatibilityProject, initializeCompatibilityProject, buildCompatibilityProject } from "@za38.03/agent-ui-creator/operator/host";
+import { ensureManagedOperator } from "@za38.03/agent-ui-creator/operator";
 import { createHash } from "node:crypto";
 import { realpath, stat } from "node:fs/promises";
 import path from "node:path";

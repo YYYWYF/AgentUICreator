@@ -1,4 +1,4 @@
-import type { AgentUISourceInspection } from "../../packages/operator/src/project/types";
+import type { AgentUISourceInspection } from "../../packages/creator/operator/src/project/types";
 
 type SourceRequest = {
   operation: "inspect_agent_ui_sources" | "apply_agent_ui_source_item";

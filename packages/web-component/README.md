@@ -82,7 +82,7 @@ pnpm --filter @za38.03/agent-ui-web-component build
 pnpm --filter @za38.03/agent-ui-web-component test
 pnpm --filter @za38.03/agent-ui-web-component test:distribution
 pnpm --filter @za38.03/agent-ui-web-component-vue3-demo dev
-pnpm --filter @za38.03/agent-ui-web-component-legacy-demo dev
+pnpm dev:vue-host
 ```
 
 Build preparation generates disposable `.generated` sources from the official

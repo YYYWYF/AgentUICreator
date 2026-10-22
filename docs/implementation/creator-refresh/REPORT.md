@@ -11,7 +11,7 @@
 1. 初始 `http://127.0.0.1:5174/__agent-ui/creator/workspace` 返回 `broken / AGENT_UI_APP_UI_MODEL_INVALID`，`invalid_union` 的候选只有 `row / column / stack / panel / slot`，并把 `defaultActive / header / items / content` 报为非法字段。完整响应：[before-workspace.json](evidence/before-workspace.json)。
 2. 失败的监听进程 PID **82498** 从 **10 月 7 日 09:25:12** 持续运行；磁盘 Runtime 已于 **10 月 9 日 10:00:45** 更新并包含 Sidebar / Header / Footer 校验。因此磁盘新代码并不等于正在运行的 Node ESM 缓存已经更新。
 3. 模块路径由 Workbench Vite 配置、package exports、Host managed entry 交叉确认，均为：
-   `file:///Users/yifei/Coding/AgentUICreator/packages/operator/dist/runtime/operator-runtime.mjs`。
+   `file:///Users/yifei/Coding/AgentUICreator/packages/creator/operator/dist/runtime/operator-runtime.mjs`。
    Workbench 的 `inspectCreatorProject` 来自 `@agent-ui/operator/dev`；`.agent-ui/operator/entry.mjs` 指向同一文件。没有为 `/dev` 配置另一条解析 alias。
    [路径与进程证据](evidence/runtime-origin.txt)、[实际 Workbench 模块解析](evidence/workbench-module-resolution.log)。无法从已经更新的磁盘反推出旧进程缓存的确切历史 commit；本报告不猜测该 commit。
 4. 使用历史 pre-Sidebar Schema `770a6793^` 在临时目录编译，能对**同一份真实 AppUIModel**重现相同的五分支 `invalid_union`；当前编译 Runtime 对同一模型返回 `ready`：[old-validator-reproduction.json](evidence/old-validator-reproduction.json)。临时旧校验器仅用于测试，执行结束删除，不进入生产或项目代码。
@@ -27,15 +27,15 @@
 | `scripts/preparation-state.mjs` | 为已有准备机制生成内容指纹，覆盖包源码、构建脚本、资源、产物和 lockfile；只允许父进程完成构建后产生且仍匹配的准备标记被子进程复用。 |
 | `scripts/prepare-host-packages.mjs`、`scripts/prepare-workbench.mjs` | 不再信任字符串 `1`；准备完成后更新指纹。源码变化、产物变化/删除和遗留标记均不能跳过。 |
 | `scripts/dev-workbench.mjs` | 传递真实准备结果，不再覆盖成无条件的 `1`；继续在 Vite / Creator 服务加载前使用原准备顺序。 |
-| `packages/operator/scripts/build.mjs` | 同一次 esbuild 输出内嵌 build ID 与构建输入哈希清单；这是工具构建身份，不是 AppUIModel schemaVersion 或协议版本。 |
-| `packages/operator/src/runtime-integrity.mjs`、`.d.mts` | 在项目检查前识别源码/编译输入漂移、编译产物替换后的旧进程缓存、缺失构建清单；报告 `CREATOR_OPERATOR_RESTART_REQUIRED`。不在 HTTP 请求中构建或覆盖包。 |
-| `packages/operator/src/project/creator-project-inspector.ts`、`src/handler.ts` | 在读取和校验用户模型、执行控制操作之前检查工具一致性，防止工具异常被误归因于模型或继续做 mutation。 |
+| `packages/creator/operator/scripts/build.mjs` | 同一次 esbuild 输出内嵌 build ID 与构建输入哈希清单；这是工具构建身份，不是 AppUIModel schemaVersion 或协议版本。 |
+| `packages/creator/operator/src/runtime-integrity.mjs`、`.d.mts` | 在项目检查前识别源码/编译输入漂移、编译产物替换后的旧进程缓存、缺失构建清单；报告 `CREATOR_OPERATOR_RESTART_REQUIRED`。不在 HTTP 请求中构建或覆盖包。 |
+| `packages/creator/operator/src/project/creator-project-inspector.ts`、`src/handler.ts` | 在读取和校验用户模型、执行控制操作之前检查工具一致性，防止工具异常被误归因于模型或继续做 mutation。 |
 | `packages/creator/src/workspace/CreatorWorkspaceManager.ts` | 保留工具错误码；已有 ready 项目遇到过期工具时保持项目状态，并将 Runtime 标为 unavailable。未初始化项目不会擅自安装控制平面。 |
 | `packages/creator/src/ui/CreatorWorkbench.tsx` | Workspace 非 ready 或 Runtime 不可用时停止依赖请求；保留原并发防护、四资源逐项失败来源与真实成功判断。配置错误普通展示简短建议，完整 issue message / Zod Issues 在技术详情中展示。工具错误使用服务不可用标题和重启建议。 |
 | `packages/creator/src/ui/i18n/en-US.ts`、`zh-CN.ts` | 新增提示通过现有 Creator locale namespace，双语 parity。 |
 | `apps/creator-workbench/vite.config.ts` | 显式 await 官方资源安装器，适配其返回 receipt 与 Host 回调 `Promise<void>` 的现有签名，消除真实 Workbench typecheck 错误。 |
 | Creator / Operator 测试、`scripts/preparation-state.test.mjs` | 覆盖准备标记、旧缓存识别、状态机、无初始化安装、broken 时停止资源请求、单资源失败、重复点击、草稿和会话保留。 |
-| `packages/operator/tests/migrated/creator-project-inspector.test.ts` | 修正非法模型测试缺失 project.json 且 sourceRoot 路径不匹配的夹具；保留未初始化项目检查与真正非法模型拒绝。 |
+| `packages/creator/operator/tests/migrated/creator-project-inspector.test.ts` | 修正非法模型测试缺失 project.json 且 sourceRoot 路径不匹配的夹具；保留未初始化项目检查与真正非法模型拒绝。 |
 | `apps/creator-workbench/playwright.refresh.config.ts`、两份 refresh spec | 真实主 Workbench + Host 顶部刷新 E2E 和刷新后真实模型对话；不使用 Workspace、资源或模型 mock。 |
 | 当时的 Schema reproduction/test 脚本 | 源码/编译 Schema、历史旧校验器与缓存替换的隔离验证；其中阶段性入口已在 scripts 清理时删除，不再作为现行命令。 |
 

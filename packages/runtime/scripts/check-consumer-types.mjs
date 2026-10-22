@@ -41,7 +41,7 @@ try {
   const dependencies = {};
   // Pack the actual publishable files; never symlink a workspace package or its node_modules.
   const packageNames = ["core", "renderer", "plugins", "runtime"];
-  if (checkReactCompatibility) packageNames.push("source-registry", "operator", "creator", "web-component");
+  if (checkReactCompatibility) packageNames.push("creator", "web-component");
   for (const name of packageNames) {
     const destination = path.join(archives, name);
     await mkdir(destination);

@@ -1,0 +1,16 @@
+{
+  "id": "locale-switch",
+  "name": "Locale Switch",
+  "description": "Selects the application language through the shared locale service.",
+  "version": "0.0.1",
+  "capabilities": [
+    "locale-control",
+    "plugin-service-consumer"
+  ],
+  "authoring": {
+    "intents": [
+      "let the user switch between Chinese and English"
+    ],
+    "visualRole": "language control"
+  }
+}

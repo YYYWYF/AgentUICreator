@@ -276,7 +276,7 @@ def test_same_owner_api_inspection_keeps_lane_but_another_owner_expands(tmp_path
     assert not grounding.metrics.sourceFastPathExited
     grounding._failed(own)
     assert not grounding.metrics.sourceFastPathExited
-    other = SimpleNamespace(tool_call={"name": "inspect_ui_plugin", "args": {"pluginId": "conversation-history"}})
+    other = SimpleNamespace(tool_call={"name": "inspect_ui_plugin", "args": {"pluginId": "conversation-new"}})
     grounding.wrap_tool_call(other, lambda _: ToolMessage(content='{"ok":true}', tool_call_id="other", status="success"))
     assert grounding.metrics.sourceFastPathExited
     assert grounding.metrics.sourceFastPathExitTool == "inspect_ui_plugin"

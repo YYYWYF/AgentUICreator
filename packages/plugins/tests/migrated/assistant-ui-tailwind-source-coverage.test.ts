@@ -1,4 +1,4 @@
-import { generatedProjectFixture } from "../../../operator/tests/support/generated-project";
+import { generatedProjectFixture } from "../../../creator/operator/tests/support/generated-project";
 import { readFile } from "node:fs/promises";
 
 import { describe, expect, it } from "vitest";

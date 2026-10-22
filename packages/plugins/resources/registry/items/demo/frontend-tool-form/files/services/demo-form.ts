@@ -1,3 +1,4 @@
+import type {} from "../framework/contracts/ui-plugin";
 import type { ReactHookFormCapability } from "../integrations/react-hook-form";
 
 export const DEMO_FORM_SERVICE = "demo.form" as const;

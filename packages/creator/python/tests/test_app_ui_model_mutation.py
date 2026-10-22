@@ -497,7 +497,7 @@ def test_coordinator_allows_different_project_roots_to_run_independently(tmp_pat
 def test_tool_schema_is_sourced_from_operation_contract_and_tool_errors_are_structured(tmp_path):
     root = _create_project(tmp_path)
     contract = json.loads(
-        (Path(__file__).resolve().parents[4] / "contracts" / "creator" / "app-ui-model-operation.schema.json").read_text(encoding="utf-8")
+        (Path(__file__).resolve().parents[4] / "packages" / "creator" / "contracts" / "creator" / "app-ui-model-operation.schema.json").read_text(encoding="utf-8")
     )
     schema = load_app_ui_model_mutation_tool_schema()
     assert schema == APP_UI_MODEL_MUTATION_TOOL_SCHEMA

@@ -1411,8 +1411,6 @@ export { CanonicalWebSearch, type WebSearchPluginProps } from "./plugins/web-sea
 export { CanonicalConversationThreadList, CanonicalConversationThreadListRailAction } from "./plugins/conversation-thread-list/adapters/presentation/conversation-thread-list.js";
 export type { ConversationThreadListPluginProps, ConversationThreadListRailActionProps } from "./plugins/conversation-thread-list/adapters/presentation/conversation-thread-list.js";
 
-export { CanonicalConversationHistory } from "./plugins/conversation-history/adapters/presentation/conversation-history.js";
-export type { ConversationHistoryPluginProps } from "./plugins/conversation-history/adapters/presentation/conversation-history.js";
 
 export { CanonicalConversationNew } from "./plugins/conversation-new/adapters/presentation/conversation-new.js";
 export type { ConversationNewPluginProps } from "./plugins/conversation-new/adapters/presentation/conversation-new.js";
@@ -1467,3 +1465,6 @@ export { createAgentUIThemeService, readAgentUITheme } from "./plugins/theme-pro
 export { createAgentUILocaleService } from "./plugins/locale-provider/adapters/presentation/locale-service.js";
 
 export { createAuthSession } from "./plugins/auth-gate/adapters/presentation/session.js";
+
+export { CanonicalLocaleSwitchPlugin } from "./plugins/locale-switch/adapters/presentation/locale-switch.js";
+export type { LocaleSwitchPluginProps } from "./plugins/locale-switch/adapters/presentation/locale-switch.js";

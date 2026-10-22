@@ -128,10 +128,10 @@
     "conversation-new": {
       "version": "0.0.1"
     },
-    "conversation-history": {
+    "transient-assistant-messages": {
       "version": "0.0.1"
     },
-    "transient-assistant-messages": {
+    "locale-switch": {
       "version": "0.0.1"
     }
   }

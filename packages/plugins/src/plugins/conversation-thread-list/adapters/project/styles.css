@@ -30,23 +30,6 @@
   overflow-wrap: anywhere;
 }
 
-.conversation-thread-list-plugin [data-slot="aui_thread-list-new"] {
-  align-self: stretch;
-  width: 100%;
-  justify-content: flex-start;
-  max-width: 100%;
-  height: 36px;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--sidebar-foreground);
-  border: 0;
-  box-shadow: none;
-}
-.conversation-thread-list-plugin [data-slot="aui_thread-list-new"]:hover {
-  background: var(--sidebar-accent);
-}
 .conversation-thread-list-plugin [data-slot="aui_thread-list-search"] { flex-shrink: 0; min-width: 0; padding: 0; }
 .conversation-thread-list-plugin [data-slot="aui_thread-list-search"] input {
   height: 36px;

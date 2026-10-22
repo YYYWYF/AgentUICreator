@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterEach, expect, it, vi } from "vitest";
-vi.mock("@za38.03/agent-ui-operator/commands", () => ({
+vi.mock("@za38.03/agent-ui-creator/operator/commands", () => ({
   getAvailableAgentUIThemes: vi.fn(async () => ({ current: "light", options: [{ id: "light" }, { id: "violet" }] })),
   setAgentUITheme: vi.fn(),
   synchronizeAgentUIPluginRegistry: vi.fn(async () => ({ changed: true, path: "plugins/registry.generated.ts", pluginIds: [] })),
@@ -12,11 +12,11 @@ vi.mock("@za38.03/agent-ui-operator/commands", () => ({
   resolveOfficialResource: (id: string) => { if (id === "unknown") throw Object.assign(new Error("unknown"), { code: "RESOURCE_UNKNOWN" }); return { id, discoverable: id !== "demo" }; },
   installOfficialAgentUIResource: vi.fn(async (_root: string, resourceId: string) => ({ resourceId, changed: true, reenabled: false, verification: { status: "passed", errors: [], warnings: [] } })),
 }));
-import { inspectIntegrationHost, planIntegrationRecipe, installOfficialAgentUIResource, inspectOfficialAgentUIResourceCatalog } from "@za38.03/agent-ui-operator/resources";
-import { synchronizeAgentUIPluginRegistry } from "@za38.03/agent-ui-operator/commands";
+import { inspectIntegrationHost, planIntegrationRecipe, installOfficialAgentUIResource, inspectOfficialAgentUIResourceCatalog } from "@za38.03/agent-ui-creator/operator/resources";
+import { synchronizeAgentUIPluginRegistry } from "@za38.03/agent-ui-creator/operator/commands";
 import { createCreatorCommandHandler } from "../src/commands/command-api.js";
 import type { CreatorWorkspaceManager } from "../src/workspace/CreatorWorkspaceManager.js";
-import { setAgentUITheme } from "@za38.03/agent-ui-operator/commands";
+import { setAgentUITheme } from "@za38.03/agent-ui-creator/operator/commands";
 const servers: ReturnType<typeof createServer>[] = [];
 afterEach(async () => { vi.clearAllMocks(); await Promise.all(servers.splice(0).map(server => new Promise<void>(resolve => server.close(() => resolve())))); });
 async function host(active = false) {

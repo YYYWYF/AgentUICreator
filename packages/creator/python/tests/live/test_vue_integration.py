@@ -21,7 +21,6 @@ from agent_ui_creator.operator.client import OperatorClient
 from agent_ui_creator.streaming.deepagent_v3_runner import DeepAgentInterrupted
 
 ROOT = Path(__file__).resolve().parents[5]
-FIXTURE = ROOT / "examples/clean-vue-vite-host"
 pytestmark = [pytest.mark.live_model, pytest.mark.skipif(os.environ.get("CREATOR_RUN_LIVE_MODEL") != "1", reason="Set CREATOR_RUN_LIVE_MODEL=1.")]
 
 
@@ -45,10 +44,21 @@ def snapshot(project):
 
 def fresh(tmp_path):
     project = tmp_path / "clean-vue-vite-host"
-            shutil.copytree(FIXTURE, project, ignore=shutil.ignore_patterns("node_modules", "dist", ".agent-ui"))
+    (project / "src").mkdir(parents=True)
+    consumer = json.loads((ROOT / "examples/web-component-vue3/package.json").read_text())
+    consumer["name"] = "clean-vue-integration-fixture"
+    consumer["scripts"] = {"dev": "vite --host 127.0.0.1", "build": "vue-tsc --noEmit && vite build", "typecheck": "vue-tsc --noEmit"}
+    consumer["dependencies"] = {"vue": consumer["dependencies"]["vue"]}
+    consumer["devDependencies"] = {key: value for key, value in consumer["devDependencies"].items() if not key.startswith("@za38.03/")}
+    (project / "package.json").write_text(json.dumps(consumer))
+    for name in ("tsconfig.json", "index.html"):
+        shutil.copyfile(ROOT / "examples/web-component-vue3" / name, project / name)
+    (project / "vite.config.ts").write_text('import { defineConfig } from "vite"; import vue from "@vitejs/plugin-vue"; export default defineConfig({ plugins: [vue()] });\n')
+    (project / "src/main.ts").write_text('import { createApp } from "vue"; import App from "./App.vue"; createApp(App).mount("#app");\n')
+    (project / "src/App.vue").write_text("<template><main></main></template>\n")
     # Development tooling is installed by Host before the user request.
     subprocess.run(["node", "--input-type=module", "-e",
-                    'import { installManagedOperator } from "./packages/operator/src/install.mjs"; await installManagedOperator(process.argv[1]);', str(project)], cwd=ROOT, check=True)
+                    'import { installManagedOperator } from "./packages/creator/operator/src/install.mjs"; await installManagedOperator(process.argv[1]);', str(project)], cwd=ROOT, check=True)
     (project / ".agent-ui/project.json").write_text(json.dumps({"mode": "embedded", "sourceRoot": "src/agent-ui"}))
     assert not (project / "public/agent-ui.js").exists()
     assert not (project / "src/components/AgentUIBridge.vue").exists()

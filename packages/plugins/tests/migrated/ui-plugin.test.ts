@@ -10,7 +10,7 @@ import { describe, expect, expectTypeOf, it } from "vitest";
 import {
   parseUIPluginManifest,
   uiPluginManifestSchema,
-} from "../../../operator/src/framework/contracts/ui-plugin";
+} from "../../../creator/operator/src/framework/contracts/ui-plugin";
 import {
   useAgentConversation,
   useAgentExecutions,

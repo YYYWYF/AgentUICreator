@@ -10,12 +10,24 @@ const registry = fileURLToPath(new URL("../resources/registry/items", import.met
 const registryRoot = path.dirname(registry);
 const registryManifest = JSON.parse(await readFile(path.join(registryRoot, "registry.json"), "utf8"));
 const sourceItems = new Map(registryManifest.items.map(entry => [entry.id, entry]));
+const sourceLayout = JSON.parse(await readFile(path.join(root, "source-layout.json"), "utf8"));
+const sourceByView = new Map(sourceLayout.files.map(file => [file.view, file.source]));
 function sourceItemRoot(id) {
   const entry = sourceItems.get(id);
   if (!entry) throw new Error(`Missing source item ${id}`);
   return path.join(registryRoot, ...path.posix.dirname(entry.path).split("/"));
 }
-const verification = spawnPnpmSync(["exec", "node", "--import", "tsx", "../operator/scripts/source-catalog/verify-package-services.mjs"], { cwd: root, stdio: "inherit" });
+function sourceItemFile(id, relativePath) {
+  const entry = sourceItems.get(id);
+  if (!entry) throw new Error(`Missing source item ${id}`);
+  const itemRoot = path.posix.dirname(entry.path);
+  const view = path.posix.join("resources/registry", itemRoot, relativePath.split(path.sep).join("/"));
+  const canonical = sourceByView.get(view);
+  if (!canonical) throw new Error(`Missing canonical Plugin source mapping: ${view}`);
+  return path.join(root, ...canonical.split("/"));
+}
+const verificationScript = fileURLToPath(new URL("../../creator/operator/scripts/source-catalog/verify-package-services.mjs", import.meta.url));
+const verification = spawnPnpmSync(["exec", "node", "--import", "tsx", verificationScript], { cwd: root, stdio: "inherit" });
 if (verification.error) throw verification.error;
 if (verification.status !== 0) throw new Error("OFFICIAL_PACKAGE_SERVICE_METADATA_DRIFT: reference validation failed");
 const generated = path.join(root, ".generated");
@@ -30,7 +42,6 @@ const plugins = deliveries;
 for (const delivery of plugins) {
   const { id, component } = delivery;
   await rm(path.join(root, "dist", id), { recursive: true, force: true });
-  await cp(path.join(sourceItemRoot(`plugin/${id}`), "files/plugins"), path.join(generated, "plugins"), { recursive: true });
   if (delivery.componentSource) {
     const directory = path.join(generated, "plugins", id);
     await rm(directory, {recursive:true,force:true});
@@ -38,6 +49,14 @@ for (const delivery of plugins) {
       const file=path.join(directory,...target.split("/"));await mkdir(path.dirname(file),{recursive:true});
       const text=await readFile(path.join(root,...origin.split("/")),"utf8");
       await writeFile(file,target.startsWith("adapters/") ? portableSource(delivery,target,text) : text);
+    }
+  } else {
+    const itemPath = path.join(sourceItemRoot(`plugin/${id}`), "item.json");
+    const item = JSON.parse(await readFile(itemPath, "utf8"));
+    for (const file of item.files) {
+      const target = path.join(generated, ...file.target.split("/"));
+      await mkdir(path.dirname(target), { recursive: true });
+      await cp(sourceItemFile(`plugin/${id}`, file.source), target);
     }
   }
   for (const file of delivery.projectFiles ?? []) await cp(path.join(root, "src/plugins", id, "adapters/project", file), path.join(generated, "plugins", id, file));

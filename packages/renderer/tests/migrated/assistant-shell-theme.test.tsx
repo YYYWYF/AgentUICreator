@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import { describe, expect, it, vi } from "vitest";
 import { AgentUIRoot, getAgentUIThemeColorScheme } from "@za38.03/agent-ui-plugins";
 import { AssistantShell } from "../../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/mode-shell/AssistantShell";
-import { generatedProjectFixture } from "../../../operator/tests/support/generated-project";
+import { generatedProjectFixture } from "../../../creator/operator/tests/support/generated-project";
 
 describe("Assistant shell preset theme boundary", () => {
   it("inherits the root preset while preserving panel state and its mounted consumer", async () => {

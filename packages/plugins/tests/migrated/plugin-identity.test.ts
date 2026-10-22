@@ -1,4 +1,4 @@
-import { parseUIPluginManifest } from "../../../operator/src/framework/contracts/ui-plugin";
+import { parseUIPluginManifest } from "../../../creator/operator/src/framework/contracts/ui-plugin";
 import { describe, expect, it } from "vitest";
 import { officialPackagePlugins } from "../../src/catalog/package-plugins";
 

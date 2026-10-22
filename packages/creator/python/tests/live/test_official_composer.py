@@ -90,32 +90,8 @@ def instances(value):
 def fresh_host(tmp_path):
     # Build development tooling before taking immutable official-source baselines.
     subprocess.run(["node", "scripts/prepare-host-packages.mjs"], cwd=ROOT, check=True)
-    template = ROOT / "examples/creator-host-sandbox"
     project = tmp_path / "composer-host"
-
-    def ignore(directory, names):
-        ignored = {name for name in names if name in {"node_modules", "dist", ".agent-ui"}}
-        if Path(directory) == template / "src":
-            ignored.add("agent-ui")
-        return ignored
-
-    shutil.copytree(template, project, ignore=ignore)
-    (project / "node_modules").symlink_to(template / "node_modules", target_is_directory=True)
-    # Temporary consumer keeps its ordinary validation commands, without repository-relative
-    # development-shell lifecycle hooks (which would initialize the shared example).
-    pkg = json.loads((project / "package.json").read_text())
-    pkg["scripts"] = {key: pkg["scripts"][key] for key in ("dev", "typecheck", "build")}
-    (project / "package.json").write_text(json.dumps(pkg, indent=2) + "\n")
-    tsconfig = json.loads((project / "tsconfig.json").read_text())
-    tsconfig["compilerOptions"].pop("paths", None)
-    (project / "tsconfig.json").write_text(json.dumps(tsconfig, indent=2) + "\n")
-    (project / "vite-runtime-aliases.ts").write_text("export const runtimeAliases = {};\n")
-    script = '''
-import { initializeAgentUIProject } from "./packages/operator/dist/bootstrap/index.js";
-import { createAgentUIInitializationHost } from "./packages/operator/dist/runtime/operator-runtime.mjs";
-await initializeAgentUIProject({ projectRoot: process.argv[1], mode: "platform", sourceRoot: "src/agent-ui" }, createAgentUIInitializationHost());
-'''
-    subprocess.run(["node", "--input-type=module", "-e", script, str(project)], cwd=ROOT, check=True)
+    subprocess.run(["node", str(ROOT / "packages/creator/python/tests/fixtures/phase3/prepare-host.mjs"), str(project), str(ROOT)], cwd=ROOT, check=True)
     return project
 
 
@@ -123,7 +99,7 @@ def test_real_creator_customizes_official_composer_without_source_mutation(tmp_p
     async def scenario():
         project = fresh_host(tmp_path)
         source = project / "src/agent-ui"
-        reference = ROOT / "packages/plugins/resources/registry/items/plugin/composer"
+        reference = ROOT / "packages/plugins/src/plugins/composer"
         package = ROOT / "packages/plugins"
         official_before = (hashes(reference), hashes(package))
         assert not (source / "plugins" / OFFICIAL_ID).exists()

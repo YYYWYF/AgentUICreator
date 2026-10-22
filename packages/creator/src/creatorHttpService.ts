@@ -4,7 +4,7 @@ import { createConnectionHandler } from "./agent-connection/connection-api.js";
 import { createHash } from "node:crypto";
 import { realpathSync } from "node:fs";
 import { createCreatorUpdateHandler, CREATOR_UPDATES_API_PATH } from "./updates/update-api.js";
-import type { UpdateSourceProvider } from "@za38.03/agent-ui-operator/updates";
+import type { UpdateSourceProvider } from "@za38.03/agent-ui-creator/operator/updates";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import {
@@ -19,7 +19,7 @@ import { CreatorMockService } from "./mock/CreatorMockService.js";
 import { CREATOR_MOCK_API_PATH } from "./mock/types.js";
 import type { MockProjectInspector } from "./mock/demo-compatibility.js";
 import { handleCreatorMockRequest } from "./mock/mock-api.js";
-import { resolveOfficialResource } from "@za38.03/agent-ui-operator/resources";
+import { resolveOfficialResource } from "@za38.03/agent-ui-creator/operator/resources";
 import {
   resolveCreatorPythonAgentMode,
   resolveCreatorVerificationMode,

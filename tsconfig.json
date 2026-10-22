@@ -1,0 +1,41 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./packages/renderer"
+    },
+    {
+      "path": "./packages/renderer/tests"
+    },
+    {
+      "path": "./packages/runtime"
+    },
+    {
+      "path": "./packages/plugins"
+    },
+    {
+      "path": "./packages/plugins/tests"
+    },
+    {
+      "path": "./packages/creator/operator"
+    },
+    {
+      "path": "./packages/creator/operator/tests"
+    },
+    {
+      "path": "./packages/creator"
+    },
+    {
+      "path": "./packages/web-component"
+    },
+    {
+      "path": "./apps/creator-workbench"
+    },
+    {
+      "path": "./examples/web-component-vue3"
+    }
+  ]
+}

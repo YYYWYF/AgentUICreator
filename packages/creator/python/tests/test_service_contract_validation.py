@@ -24,7 +24,7 @@ class PassingRunner:
 
 
 class TopologyControl:
-    def __init__(self, provider="conversation-history", mode="required") -> None:
+    def __init__(self, provider="history-provider", mode="required") -> None:
         self.provider = provider
         self.mode = mode
 
@@ -55,7 +55,7 @@ def validation(tmp_path, control):
             change_kind="create",
             service_name="conversation.navigation",
             contract_path="services/conversation-navigation.ts",
-            owner_plugin_id="conversation-history",
+            owner_plugin_id="history-provider",
             consumers=(("search", "required"),),
         ),
         authorized=True,

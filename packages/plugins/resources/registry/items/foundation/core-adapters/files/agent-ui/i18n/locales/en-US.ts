@@ -41,6 +41,7 @@ export const enUS = {
     summarize: "Summarize",
   },
   searchTools: {
+    ...AGENT_UI_PRESENTATION_LOCALES["en-US"].searchTools,
     searching: "Searching",
     sources: "Read {count} sources",
     retrieving: "Retrieving",

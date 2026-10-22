@@ -14,7 +14,7 @@ from agent_ui_creator.project_paths import (
 
 
 SOURCE_ROOT_CASES = json.loads(
-    (Path(__file__).resolve().parents[4] / "contracts/fixtures/agent-ui-source-root.json")
+    (Path(__file__).resolve().parents[4] / "packages/creator/contracts/fixtures/agent-ui-source-root.json")
     .read_text(encoding="utf-8")
 )
 

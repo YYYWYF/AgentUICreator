@@ -1,6 +1,6 @@
 import { useAgentUILocale, DEFAULT_CREATOR_MESSAGES, type CreatorLocaleMessages } from "./i18n/locale.js";
 import { useEffect, useRef } from "react";
-import type { UpdateInspection } from "@za38.03/agent-ui-operator/updates";
+import type { UpdateInspection } from "@za38.03/agent-ui-creator/operator/updates";
 import type { AgentConnectionState } from "../agent-connection/types.js";
 import type { CreatorMockState } from "../mock/types.js";
 import type { MockDemoCompatibility } from "../mock/demo-compatibility.js";

@@ -84,6 +84,7 @@ export function CanonicalConversationThreadList({rootProps, listProps, children,
 }
 
 export interface ConversationThreadListRailActionProps { renderSlot?: (name: string, fallback?: ReactNode) => ReactNode; enabled?: boolean; newProps?: ComponentProps<typeof ConversationThreadListNew>; tooltipProps?: ComponentProps<typeof AgentUITooltip>; tooltipContentProps?: ComponentProps<typeof AgentUITooltipContent>; }
+/** @deprecated Place the independent conversation-new Plugin in the application layout. */
 export function CanonicalConversationThreadListRailAction({enabled = true, newProps, tooltipProps, tooltipContentProps}: ConversationThreadListRailActionProps) {
   const labels = useAgentUILocale("threadList");
   const navigate = useAgentUISidebarNavigation();

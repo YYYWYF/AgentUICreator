@@ -1,9 +1,1 @@
-{
-  "0.0.1": {
-    "summary": "Temporary assistant message presentation",
-    "changes": [
-      "Render page-memory notices independently of Agent messages and interrupts.",
-      "Add display-only user and assistant bubbles through addMessage({ role, text })."
-    ]
-  }
-}
+{}

@@ -99,16 +99,16 @@ SERVICE_CONTENT = (
     "}\n"
 )
 SERVICE_PLUGIN_FILES = {
-    "conversation-history": {
-        "manifest.json": '{"id":"conversation-history"}\n',
+    "history-provider": {
+        "manifest.json": '{"id":"history-provider"}\n',
         "definition.ts": (
             'import { defineUIPlugin } from "../../framework/contracts/ui-plugin";\n'
             'import manifest from "./manifest.json";\n'
-            'import { ConversationHistory } from "./index";\n'
-            "export default defineUIPlugin({ manifest, component: ConversationHistory });\n"
+            'import { HistoryProvider } from "./index";\n'
+            "export default defineUIPlugin({ manifest, component: HistoryProvider });\n"
         ),
         "index.tsx": (
-            "export function ConversationHistory() { return <section>History</section>; }\n"
+            "export function HistoryProvider() { return <section>History</section>; }\n"
         ),
     },
     "search": {
@@ -370,7 +370,7 @@ class ServiceOperator(PluginOperator):
                 "issues": [],
             }
         provider_source = (
-            self.root / "plugins/conversation-history/definition.ts"
+            self.root / "plugins/history-provider/definition.ts"
         ).read_text(encoding="utf-8")
         consumer_source = (self.root / "plugins/search/definition.ts").read_text(
             encoding="utf-8"
@@ -383,7 +383,7 @@ class ServiceOperator(PluginOperator):
                     "status": "available",
                     "contractPaths": [SERVICE_PATH],
                     "providers": (
-                        [{"pluginId": "conversation-history"}]
+                        [{"pluginId": "history-provider"}]
                         if "provides: [CONVERSATION_NAVIGATION_SERVICE]"
                         in provider_source
                         else []
@@ -1194,7 +1194,7 @@ def test_missing_shared_service_stops_for_ownership_clarification(tmp_path):
                 "changeKind": "create",
                 "serviceName": "conversation.navigation",
                 "contractPath": "services/conversation-navigation.ts",
-                "ownerPluginId": "conversation-history",
+                "ownerPluginId": "history-provider",
                 "consumers": [
                     {"pluginId": "search", "dependencyMode": "required"}
                 ],
@@ -1205,14 +1205,14 @@ def test_missing_shared_service_stops_for_ownership_clarification(tmp_path):
         AIMessage(
             content=(
                 "当前 Search Plugin 需要会话跳转能力，但项目没有对应 Service。"
-                "建议由 conversation-history 提供 ConversationNavigationService，"
+                "建议由 history-provider 提供 ConversationNavigationService，"
                 "Search Plugin 通过 inject 使用。是否按这个方式继续？"
             )
         ),
     ]
     agent, client, _diagnostics, validation = make_agent(tmp_path, responses)
     client.service_topology = {"services": [], "plugins": [], "issues": []}
-    for plugin_id in ("conversation-history", "search"):
+    for plugin_id in ("history-provider", "search"):
         plugin_root = tmp_path / "plugins" / plugin_id
         plugin_root.mkdir()
         (plugin_root / "manifest.json").write_text(
@@ -1243,13 +1243,13 @@ def test_explicit_service_ownership_does_not_repeat_confirmation(tmp_path):
                 "changeKind": "create",
                 "serviceName": SERVICE_NAME,
                 "contractPath": SERVICE_PATH,
-                "ownerPluginId": "conversation-history",
+                "ownerPluginId": "history-provider",
                 "consumers": [
                     {"pluginId": "search", "dependencyMode": "required"}
                 ],
                 "reason": "Search needs history navigation.",
                 "userAuthorizationEvidence": (
-                    "conversation-history 提供 conversation.navigation，"
+                    "history-provider 提供 conversation.navigation，"
                     "Search 通过 required dependency 使用"
                 ),
             },
@@ -1264,7 +1264,7 @@ def test_explicit_service_ownership_does_not_repeat_confirmation(tmp_path):
     ]
     agent, client, _diagnostics, validation = make_agent(tmp_path, responses)
     client.service_topology = {"services": [], "plugins": [], "issues": []}
-    for plugin_id in ("conversation-history", "search"):
+    for plugin_id in ("history-provider", "search"):
         plugin_root = tmp_path / "plugins" / plugin_id
         plugin_root.mkdir()
         (plugin_root / "manifest.json").write_text(
@@ -1273,7 +1273,7 @@ def test_explicit_service_ownership_does_not_repeat_confirmation(tmp_path):
 
     result = asyncio.run(
         agent.run(
-            "让 conversation-history 提供 conversation.navigation，"
+            "让 history-provider 提供 conversation.navigation，"
             "Search 通过 required dependency 使用。"
         )
     )
@@ -1308,7 +1308,7 @@ def test_service_authorization_multi_turn_creation_golden(tmp_path, monkeypatch)
                 "changeKind": "create",
                 "serviceName": SERVICE_NAME,
                 "contractPath": SERVICE_PATH,
-                "ownerPluginId": "conversation-history",
+                "ownerPluginId": "history-provider",
                 "consumers": [
                     {"pluginId": "search", "dependencyMode": "required"}
                 ],
@@ -1316,7 +1316,7 @@ def test_service_authorization_multi_turn_creation_golden(tmp_path, monkeypatch)
             },
             "propose-service",
         ),
-        AIMessage(content="建议由 conversation-history 提供导航能力，是否继续？"),
+        AIMessage(content="建议由 history-provider 提供导航能力，是否继续？"),
     ]
     proposal_agent, proposal_validation = make_service_agent(
         root,
@@ -1339,7 +1339,7 @@ def test_service_authorization_multi_turn_creation_golden(tmp_path, monkeypatch)
     assert proposal_agent.activity.snapshot()["files"] == []
     assert records[0].proposal_id == proposal_id
 
-    provider_before = SERVICE_PLUGIN_FILES["conversation-history"]["definition.ts"]
+    provider_before = SERVICE_PLUGIN_FILES["history-provider"]["definition.ts"]
     consumer_before = SERVICE_PLUGIN_FILES["search"]["definition.ts"]
     implementation_responses = [
         call(
@@ -1362,7 +1362,7 @@ def test_service_authorization_multi_turn_creation_golden(tmp_path, monkeypatch)
         batch(
             call(
                 "inspect_ui_plugin",
-                {"pluginId": "conversation-history"},
+                {"pluginId": "history-provider"},
                 "inspect-provider",
             ),
             call(
@@ -1374,7 +1374,7 @@ def test_service_authorization_multi_turn_creation_golden(tmp_path, monkeypatch)
         batch(
             call(
                 "inspect_ui_plugin_source_references",
-                {"pluginId": "conversation-history"},
+                {"pluginId": "history-provider"},
                 "provider-references",
             ),
             call(
@@ -1386,7 +1386,7 @@ def test_service_authorization_multi_turn_creation_golden(tmp_path, monkeypatch)
         batch(
             call(
                 "read_file",
-                {"file_path": "/plugins/conversation-history/definition.ts"},
+                {"file_path": "/plugins/history-provider/definition.ts"},
                 "read-provider",
             ),
             call(
@@ -1398,7 +1398,7 @@ def test_service_authorization_multi_turn_creation_golden(tmp_path, monkeypatch)
         call(
             "mutate_ui_plugin_source",
             {
-                "pluginId": "conversation-history",
+                "pluginId": "history-provider",
                 "changes": [
                     {
                         "type": "edit",
@@ -1411,8 +1411,8 @@ def test_service_authorization_multi_turn_creation_golden(tmp_path, monkeypatch)
                                     'import manifest from "./manifest.json";\n'
                                     'import { CONVERSATION_NAVIGATION_SERVICE } from "../../services/conversation-navigation";\n',
                                 ).replace(
-                                    "{ manifest, component: ConversationHistory }",
-                                    "{ manifest, provides: [CONVERSATION_NAVIGATION_SERVICE], component: ConversationHistory }",
+                                    "{ manifest, component: HistoryProvider }",
+                                    "{ manifest, provides: [CONVERSATION_NAVIGATION_SERVICE], component: HistoryProvider }",
                                 ),
                             }
                         ],
@@ -1466,7 +1466,7 @@ def test_service_authorization_multi_turn_creation_golden(tmp_path, monkeypatch)
 
     assert (root / SERVICE_PATH).read_text(encoding="utf-8") == SERVICE_CONTENT
     assert "provides: [CONVERSATION_NAVIGATION_SERVICE]" in (
-        root / "plugins/conversation-history/definition.ts"
+        root / "plugins/history-provider/definition.ts"
     ).read_text(encoding="utf-8")
     assert "inject: [CONVERSATION_NAVIGATION_SERVICE]" in (
         root / "plugins/search/definition.ts"
@@ -1484,7 +1484,7 @@ def test_runtime_repair_cannot_bypass_service_authorization_golden(tmp_path):
     root = make_service_project(tmp_path)
     (root / "services").mkdir()
     (root / SERVICE_PATH).write_text(SERVICE_CONTENT, encoding="utf-8")
-    provider = root / "plugins/conversation-history/definition.ts"
+    provider = root / "plugins/history-provider/definition.ts"
     provider.write_text(
         provider.read_text(encoding="utf-8")
         .replace(
@@ -1493,8 +1493,8 @@ def test_runtime_repair_cannot_bypass_service_authorization_golden(tmp_path):
             'import { CONVERSATION_NAVIGATION_SERVICE } from "../../services/conversation-navigation";\n',
         )
         .replace(
-            "{ manifest, component: ConversationHistory }",
-            "{ manifest, provides: [CONVERSATION_NAVIGATION_SERVICE], component: ConversationHistory }",
+            "{ manifest, component: HistoryProvider }",
+            "{ manifest, provides: [CONVERSATION_NAVIGATION_SERVICE], component: HistoryProvider }",
         ),
         encoding="utf-8",
     )
@@ -1531,7 +1531,7 @@ def test_runtime_repair_cannot_bypass_service_authorization_golden(tmp_path):
         batch(
             call(
                 "read_file",
-                {"file_path": "/plugins/conversation-history/index.tsx"},
+                {"file_path": "/plugins/history-provider/index.tsx"},
                 "read-provider-component",
             ),
             call(
@@ -1543,7 +1543,7 @@ def test_runtime_repair_cannot_bypass_service_authorization_golden(tmp_path):
         call(
             "edit_file",
             {
-                "file_path": "/plugins/conversation-history/index.tsx",
+                "file_path": "/plugins/history-provider/index.tsx",
                 "old_string": "History",
                 "new_string": "Conversation History",
             },
@@ -1590,7 +1590,7 @@ def test_runtime_repair_cannot_bypass_service_authorization_golden(tmp_path):
             change_kind="create",
             service_name=SERVICE_NAME,
             contract_path=SERVICE_PATH,
-            owner_plugin_id="conversation-history",
+            owner_plugin_id="history-provider",
             consumers=(("search", "required"),),
         ),
         authorized=True,
@@ -1653,7 +1653,7 @@ def test_generic_edit_cannot_bypass_service_ownership_gate(tmp_path):
     client.service_topology = {"services": [], "plugins": [], "issues": []}
 
     result = asyncio.run(
-        agent.run("给 conversation-history 增加一个新的导航 Service。")
+        agent.run("给 history-provider 增加一个新的导航 Service。")
     )
 
     names = [item.name for item in agent.runtime.activities]

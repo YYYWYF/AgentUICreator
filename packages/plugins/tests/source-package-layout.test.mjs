@@ -21,6 +21,8 @@ it("ships exact canonical plugin and shared source bytes with its own package ve
   const deliveries = JSON.parse(await readFile(path.join(root, "src/catalog/plugin-delivery.json"), "utf8"));
   const ids = deliveries.map(plugin => plugin.id).sort();
   expect(ids).toHaveLength(44);
+  expect(ids).not.toContain("conversation-history");
+  expect(pkg.exports).not.toHaveProperty("./conversation-history");
   expect(catalog.plugins.map(plugin => plugin.id).sort()).toEqual(ids);
   expect(ids.every(id => !id.startsWith("assistant-ui-") && id !== "message-footer")).toBe(true);
   expect(Object.keys(pkg.exports).some(key => key.startsWith("./assistant-ui-") || key === "./message-footer")).toBe(false);
@@ -38,6 +40,11 @@ it("ships exact canonical plugin and shared source bytes with its own package ve
     expect(published.equals(canonical), file.path).toBe(true);
   }
   const registry = JSON.parse(await readFile(path.join(root, "dist/resources/registry/registry.json"), "utf8"));
+  expect(registry.items.some(item => item.id === "plugin/conversation-history")).toBe(false);
+  expect(await readFile(path.join(root, "dist/public.d.ts"), "utf8")).not.toContain("ConversationHistory");
+  for (const stale of ["conversation-history/index.js", "sources/plugins/conversation-history/plugin.json", "sources/takeover/conversation-history/index.tsx"]) {
+    await expect(readFile(sourcePath(path.join(root, "dist"), stale))).rejects.toMatchObject({ code: "ENOENT" });
+  }
   expect(registry.items.some(item => item.id === "integration/a2ui")).toBe(false);
   await expect(readFile(path.join(root, "dist/resources/history/releases/0.0.1/release.json"))).rejects.toMatchObject({ code: "ENOENT" });
 });

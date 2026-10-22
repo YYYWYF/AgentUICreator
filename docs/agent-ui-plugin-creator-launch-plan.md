@@ -1,5 +1,7 @@
 # Agent UI Plugin Creator 最终设计与启动计划
 
+> 2026-10-21 发布边界更新：Operator 已合入 `@za38.03/agent-ui-creator`，源码在 `packages/creator/operator`，协议与共享测试数据在 `packages/creator/contracts`。Operator 保留独立内部职责，通过 `/operator`、`/operator/*`、`/bootstrap`、`/source-registry` 公开；不再独立发包或维护版本。公共包由七个变为六个。本更新取代本文旧的 Creator/Operator 独立发布描述；生产前端仍不得依赖 Creator。验证范围与未通过项见 [合包验证记录](implementation/creator-operator-merge/REPORT.md)。
+
 > 文档状态：Canonical。本文合并原始启动设计、当前代码实现、DeepSeek Harness Creator/Cordis 机制评估，以及 Creator 控制面复核结论。若专题实施细节与本文冲突，以本文和仓库根目录 `AGENTS.md` 为准。
 >
 > 配套实施文档：[Creator 开发控制面实施计划](./creator-control-plane-implementation-plan.md)
@@ -1194,10 +1196,10 @@ delete_ui_plugin_source
 
 Capability Catalog 由 Plugin inventory 自动生成，Active Registry 由 published composition 解析，因此不再向模型暴露 `register_plugin` / `unregister_plugin` bookkeeping 工具。
 
-专项工具通过 Agent UI 管理的 Operator Adapter 使用目标项目自己的 Schema、Registry generator 和验证逻辑。Creator package 负责模型工具、权限、事务编排与回执，不在自身复制一份 AppUIModel 或 Plugin Contract；目标项目也不反向依赖 Creator。初始化在 `.agent-ui/operator/entry.mjs` 安装 Node 入口，正式协议 implementation 由 development-only `@za38.03/agent-ui-operator` 提供；不要求 Host 手写脚本或安装 tsx。Adapter 使用固定入口和结构化 JSON 输入输出，不能退化成可由模型传入任意 shell 命令的执行器。
+专项工具通过 Agent UI 管理的 Operator Adapter 使用目标项目自己的 Schema、Registry generator 和验证逻辑。Creator package 负责模型工具、权限、事务编排与回执，不在自身复制一份 AppUIModel 或 Plugin Contract；目标项目也不反向依赖 Creator。初始化在 `.agent-ui/operator/entry.mjs` 安装 Node 入口，正式协议 implementation 由 development-only `@za38.03/agent-ui-creator/operator` 提供；不要求 Host 手写脚本或安装 tsx。Adapter 使用固定入口和结构化 JSON 输入输出，不能退化成可由模型传入任意 shell 命令的执行器。
 
-Operator 的 canonical wire contract 是 `contracts/creator/operator.schema.json`，
-`contracts/creator/operator.operations.json` 是 operation/input/result/Agent exposure 的单一清单。
+Operator 的 canonical wire contract 是 `packages/creator/contracts/creator/operator.schema.json`，
+`packages/creator/contracts/creator/operator.operations.json` 是 operation/input/result/Agent exposure 的单一清单。
 TypeScript Zod request parsing 是 Host 实现细节；Python Literal/client methods 是 transport bindings，
 两者不能独立定义协议。Host 返回前与 Python 接收后均根据请求 operation 校验 canonical Result Schema，
 保持当前 response envelope。Agent Tool exposure 是独立授权面：内部 remove capability 不开放给模型。
@@ -1239,7 +1241,7 @@ Creator 通过显式 `projectRoot` 操作目标前端；目标前端不依赖 Cr
 
 用户侧采用同一个 [统一更新中心](architecture/unified-update-center.md)：官方兼容版本清单给出经过验证的跨包组合，默认展示当前到目标的累计变更并允许展开逐版本记录；用户确认具体计划后，由 Creator/Operator 在正确安装位置更新依赖、实际安装、更新锁文件和验证。统一入口不改变包的独立版本，也不把 Creator/Operator 装入应用生产依赖。2026-10-18 已实现真实版本来源、配置式只读在线发现与变更展示；npm 产物核验、安装/恢复及工具升级仍待实现。
 目标将 `packages/source-registry` 的资源、目录和源码快照合入 `packages/plugins`，不再独立发包；独立目录/发布项已移除，通用接管另行实现；
-`packages/operator` 以 `@za38.03/agent-ui-operator` 独立发行，包含 Bootstrap（`/bootstrap` 子路径），负责项目初始化、安装、检查和升级；
+`packages/creator/operator` 随 `@za38.03/agent-ui-creator` 发行，通过 `/operator/*` 提供操作接口，Bootstrap 使用 Creator 的 `/bootstrap` 子路径，负责项目初始化、安装、检查和升级；
 `packages/creator` 包含 Mock Agent（`/mock-agent` 子路径），负责 Creator CLI、工作台和开发模拟服务。
 Core、Renderer、Runtime 保持生产 npm 底座职责，Plugins 是默认官方插件实现的统一 npm 包；用户明确同意后可按插件接管完整源码。Plugins 包内目录提供匹配版本的源码快照，Web Component 保持兼容宿主职责；以文末当前交付边界为准。
 

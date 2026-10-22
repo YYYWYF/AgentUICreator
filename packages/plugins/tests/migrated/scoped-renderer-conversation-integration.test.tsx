@@ -19,8 +19,8 @@ import { createConversationToolkit } from "../../resources/registry/items/founda
 import {
   parseAppUIRuntimeModel,
   type AppUIRuntimeModel,
-} from "../../../operator/src/framework/contracts/app-ui-runtime-model";
-import type { UIPluginComponentProps, UIPluginDefinition, UIPluginRenderScope } from "../../../operator/src/framework/contracts/ui-plugin";
+} from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
+import type { UIPluginComponentProps, UIPluginDefinition, UIPluginRenderScope } from "../../../creator/operator/src/framework/contracts/ui-plugin";
 import { ConversationReasoningPlugin } from "../../resources/registry/items/plugin/reasoning/files/plugins/reasoning/index";
 import { ConversationToolFallbackPlugin } from "../../resources/registry/items/plugin/tool-fallback/files/plugins/tool-fallback/index";
 import { ConversationToolGroupPlugin } from "../../resources/registry/items/plugin/tool-group/files/plugins/tool-group/index";
@@ -30,7 +30,7 @@ import {
   type RuntimeDiagnostic,
   usePluginRenderScope,
 } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
-import { PluginRuntimeFixture } from "../../../operator/tests/support/agent-runtime-fixture";
+import { PluginRuntimeFixture } from "../../../creator/operator/tests/support/agent-runtime-fixture";
 
 const roots: Root[] = [];
 const fallbackInvocations = vi.fn();

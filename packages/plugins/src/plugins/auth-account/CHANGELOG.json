@@ -1,13 +1,1 @@
-{
-  "0.0.1": {
-    "summary": "Refined account profile and popover menu",
-    "changes": [
-      "Accept the Host-owned Agent user prop for display-only profiles without an auth gate or adapter; explicit null displays a default avatar and localized signed-out profile.",
-      "Show a compact themed avatar, userName and userId with a separate upward-opening account popover.",
-      "Use the shared Popover for dismissal and focus handling, and retain optional auth.session compatibility when no Host user prop is supplied.",
-      "Declare the generated project's icon dependency; preview profiles remain outside the official plugin.",
-      "Optional Host-owned authentication with existing Application Gate and Plugin Services.",
-      "Support avatar-only narrow header Slots and show a signed-out default when no Host auth session is available."
-    ]
-  }
-}
+{}

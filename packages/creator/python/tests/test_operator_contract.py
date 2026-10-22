@@ -21,7 +21,7 @@ def _literal_names(binding):
 
 
 def test_inventory_and_actual_agent_tool_surface():
-    inventory = json.loads((ROOT / "contracts/creator/operator.operations.json").read_text())["operations"]
+    inventory = json.loads((ROOT / "packages/creator/contracts/creator/operator.operations.json").read_text())["operations"]
     names = {entry["name"] for entry in inventory}
     assert _literal_names(OperatorOperation) == names
     client = OperatorClient(project_root=ROOT)

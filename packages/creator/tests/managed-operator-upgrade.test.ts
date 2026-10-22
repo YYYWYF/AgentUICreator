@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ensureManagedOperator, installManagedOperator, MANAGED_OPERATOR_ENTRY } from "@za38.03/agent-ui-operator";
+import { ensureManagedOperator, installManagedOperator, MANAGED_OPERATOR_ENTRY } from "@za38.03/agent-ui-creator/operator";
 import { CreatorWorkspaceManager } from "../src/workspace/CreatorWorkspaceManager.js";
 import type { PythonCreatorProcessManager } from "../src/PythonCreatorProcessManager.js";
 

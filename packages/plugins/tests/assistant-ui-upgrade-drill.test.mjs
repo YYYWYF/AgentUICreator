@@ -16,7 +16,7 @@ import { checkAgUiLockfile } from "../../../scripts/check-ag-ui-lockfile.mjs";
 import { main as generateReport } from "../../../scripts/generate-assistant-ui-upgrade-report.mjs";
 import { checkGenerativeUiResource } from "../../../scripts/check-generative-ui-resource.mjs";
 import { packageManifestMismatches, updatePackageManifests } from "../../../scripts/assistant-ui-workspace-packages.mjs";
-import { main as syncGenerativeUi } from "../../operator/scripts/source-catalog/sync-generative-ui-upstream.mjs";
+import { main as syncGenerativeUi } from "../../creator/operator/scripts/source-catalog/sync-generative-ui-upstream.mjs";
 import {
   ensureSourceCache,
   main as updateAssistantUi,
@@ -1081,10 +1081,8 @@ exit 99
     await writeFixtureFile(root, "packages/renderer/package.json", JSON.stringify({
       dependencies: { "@assistant-ui/react-generative-ui": "0.0.21" },
     }, null, 2));
-    await writeFixtureFile(root, "packages/operator/package.json", JSON.stringify({
-      optionalDependencies: { "@assistant-ui/react-generative-ui": "0.0.21" },
-    }, null, 2));
     await writeFixtureFile(root, "packages/creator/package.json", JSON.stringify({
+      optionalDependencies: { "@assistant-ui/react-generative-ui": "0.0.21" },
       peerDependencies: { "@assistant-ui/react-generative-ui": "^0.0.21" },
       devDependencies: { "@assistant-ui/react-generative-ui": "0.0.21" },
     }, null, 2));

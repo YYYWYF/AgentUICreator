@@ -6,15 +6,15 @@ import {
 } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { parseAppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
-import type { UIPluginDefinition } from "../../../operator/src/framework/contracts/ui-plugin";
+import { parseAppUIRuntimeModel } from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
+import type { UIPluginDefinition } from "../../../creator/operator/src/framework/contracts/ui-plugin";
 import {
   createPluginRegistry,
   type PluginRegistry,
   type RuntimeCompositionSnapshot,
   type RuntimeDiagnostic,
 } from "../../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
-import { PluginRuntimeFixture } from "../../../operator/tests/support/agent-runtime-fixture";
+import { PluginRuntimeFixture } from "../../../creator/operator/tests/support/agent-runtime-fixture";
 
 const appUIModelHash = "c".repeat(64);
 const runtimeActions = {

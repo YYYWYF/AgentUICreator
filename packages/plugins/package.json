@@ -180,11 +180,6 @@
       "import": "./dist/conversation-thread-list/index.js",
       "default": "./dist/conversation-thread-list/index.js"
     },
-    "./conversation-history": {
-      "types": "./dist/conversation-history/index.d.ts",
-      "import": "./dist/conversation-history/index.js",
-      "default": "./dist/conversation-history/index.js"
-    },
     "./conversation-new": {
       "types": "./dist/conversation-new/index.d.ts",
       "import": "./dist/conversation-new/index.js",
@@ -270,7 +265,12 @@
       "import": "./dist/theme-switch/index.js",
       "default": "./dist/theme-switch/index.js"
     },
-    "./compatibility.json": "./dist/compatibility.json"
+    "./compatibility.json": "./dist/compatibility.json",
+    "./locale-switch": {
+      "types": "./dist/locale-switch/index.d.ts",
+      "import": "./dist/locale-switch/index.js",
+      "default": "./dist/locale-switch/index.js"
+    }
   },
   "files": [
     "dist",
@@ -287,14 +287,14 @@
     "check:assistant-ui-latest": "node scripts/materialize-plugin-sources.mjs && node scripts/check-assistant-ui-latest.mjs",
     "check:assistant-ui-revision": "node scripts/materialize-plugin-sources.mjs && node scripts/check-assistant-ui-revision.mjs",
     "sync:assistant-ui-upstream": "node scripts/materialize-plugin-sources.mjs && node scripts/sync-assistant-ui-upstream.mjs",
-    "typecheck": "node scripts/materialize-plugin-sources.mjs && tsc --noEmit && tsc -p tsconfig.tests.json",
-    "test": "node scripts/materialize-plugin-sources.mjs && vitest run",
+    "typecheck": "node ../../scripts/run-plugin-source-views-check.mjs typecheck",
+    "test": "node ../../scripts/run-plugin-source-views-check.mjs test",
     "check:lexical-boundary": "node scripts/check-lexical-boundary.mjs",
-    "release:verify": "node scripts/materialize-plugin-sources.mjs && node --import tsx ../operator/scripts/source-catalog/prepare-release.mjs --verify",
-    "release:prepare": "node scripts/materialize-plugin-sources.mjs && node --import tsx ../operator/scripts/source-catalog/prepare-release.mjs",
-    "sync:generative-ui-upstream": "node scripts/materialize-plugin-sources.mjs && node ../operator/scripts/source-catalog/sync-generative-ui-upstream.mjs",
+    "release:verify": "node scripts/verify-source-distribution.mjs && node --import tsx ../creator/operator/scripts/source-catalog/prepare-release.mjs --verify",
+    "release:prepare": "node scripts/verify-source-distribution.mjs && node --import tsx ../creator/operator/scripts/source-catalog/prepare-release.mjs --verify",
+    "release:record": "node scripts/verify-source-distribution.mjs && node --import tsx ../creator/operator/scripts/source-catalog/prepare-release.mjs --record",
+    "sync:generative-ui-upstream": "node scripts/materialize-plugin-sources.mjs && node ../creator/operator/scripts/source-catalog/sync-generative-ui-upstream.mjs",
     "verify:sources": "node scripts/verify-source-distribution.mjs",
-    "prepublishOnly": "node scripts/verify-source-distribution.mjs && node --import tsx ../operator/scripts/source-catalog/prepare-release.mjs --verify --publish",
     "prepack": "node ../../scripts/sync-package-release-metadata.mjs plugins"
   },
   "dependencies": {
@@ -389,83 +389,7 @@
     "schemaVersion": 1,
     "compatibility": {
       "schemaVersion": 1,
-      "releases": [
-        {
-          "id": "agent-ui-initial-0.0.1",
-          "publishedAt": "2026-10-18T00:00:00Z",
-          "channel": "stable",
-          "node": "^20.19.0 || >=22.12.0",
-          "react": ">=18 <20",
-          "packages": [
-            {
-              "name": "@za38.03/agent-ui-core",
-              "version": "0.0.1",
-              "requires": {},
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-renderer",
-              "version": "0.0.1",
-              "requires": {},
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-runtime",
-              "version": "0.0.1",
-              "requires": {
-                "@za38.03/agent-ui-core": "0.0.1",
-                "@za38.03/agent-ui-plugins": "0.0.1"
-              },
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-plugins",
-              "version": "0.0.1",
-              "requires": {
-                "@za38.03/agent-ui-core": "0.0.1",
-                "@za38.03/agent-ui-renderer": "0.0.1"
-              },
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-web-component",
-              "version": "0.0.1",
-              "requires": {
-                "@za38.03/agent-ui-plugins": "0.0.1",
-                "@za38.03/agent-ui-runtime": "0.0.1",
-                "@za38.03/agent-ui-core": "0.0.1",
-                "@za38.03/agent-ui-renderer": "0.0.1"
-              },
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-creator",
-              "version": "0.0.1",
-              "requires": {
-                "@za38.03/agent-ui-operator": "0.0.1",
-                "@za38.03/agent-ui-core": "0.0.1"
-              },
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-operator",
-              "version": "0.0.1",
-              "requires": {
-                "@za38.03/agent-ui-web-component": "0.0.1",
-                "@za38.03/agent-ui-plugins": "0.0.1"
-              },
-              "historyFrom": "0.0.1",
-              "changes": []
-            }
-          ]
-        }
-      ]
+      "releases": []
     }
   }
 }

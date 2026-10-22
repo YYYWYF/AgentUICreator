@@ -7,7 +7,11 @@ from pathlib import Path
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-EXCLUDED_DIRECTORY_NAMES = {".git", ".venv", "node_modules", "tests"}
+EXCLUDED_DIRECTORY_NAMES = {
+    ".git", ".github", ".venv", ".vscode", ".pnpm-store",
+    ".pytest_cache", "node_modules", "tests",
+}
+EXCLUDED_FILE_NAMES = {"pnpm-lock.yaml"}
 
 
 def repository_files(root: Path, output: Path):
@@ -21,6 +25,10 @@ def repository_files(root: Path, output: Path):
 
         for file_name in sorted(file_names):
             source = current_path / file_name
+            if file_name in EXCLUDED_FILE_NAMES:
+                continue
+            if file_name.startswith(".env") and file_name.endswith(".local"):
+                continue
             if source.resolve() == output:
                 continue
             if source.is_file():
@@ -30,8 +38,9 @@ def repository_files(root: Path, output: Path):
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Create a ZIP of the repository, excluding .venv, node_modules, "
-            "tests, and .git directories at any depth."
+            "Create a ZIP of the repository, excluding development/cache "
+            "directories, all pnpm-lock.yaml files, and local environment files "
+            "at any depth."
         )
     )
     parser.add_argument(

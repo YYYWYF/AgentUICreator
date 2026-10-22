@@ -84,7 +84,7 @@ def call(name, args, identifier):
 
 @pytest.fixture(scope="module", autouse=True)
 def build_host_runtime():
-    subprocess.run(["pnpm", "--filter", "@za38.03/agent-ui-operator", "build"], cwd=ROOT, check=True, capture_output=True)
+    subprocess.run(["pnpm", "--filter", "@za38.03/agent-ui-creator", "build"], cwd=ROOT, check=True, capture_output=True)
 
 
 @pytest.mark.parametrize("choice", ["hide", "purge"])
@@ -92,7 +92,7 @@ def test_selector_question_interrupt_answer_and_real_host_removal(tmp_path, monk
     # All mutations run through the actual compiled Operator against a
     # disposable official preset. Only the model and external typecheck command
     # are fixtures; this does not exercise a live model or frontend acceptance.
-    subprocess.run(["pnpm", "--filter", "@za38.03/agent-ui-operator", "exec", "tsx",
+    subprocess.run(["pnpm", "--filter", "@za38.03/agent-ui-creator", "exec", "tsx",
                     "tests/support/create-removal-host.ts", str(tmp_path)], cwd=ROOT, check=True, capture_output=True)
     operator = OperatorClient(project_root=tmp_path)
     model_before = asyncio.run(operator.inspect_app_ui_model())

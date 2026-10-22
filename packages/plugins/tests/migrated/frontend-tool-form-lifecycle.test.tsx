@@ -8,14 +8,14 @@ import { HttpAgent } from "@ag-ui/client";
 import type { RunAgentInput } from "@ag-ui/core";
 import { runMockScenario } from "@za38.03/agent-ui-creator/mock-agent";
 import { frontendToolFillFormScenario } from "@za38.03/agent-ui-creator/mock-agent";
-import { frontendTools as appFrontendTools } from "../../../operator/tests/fixtures/official-form/agent-contract/frontend-tools/demo-form-tools";
-import { frontendToolUIs } from "../../../operator/tests/fixtures/official-form/agent-ui/conversation/frontend-tool-uis/demo-form-tools";
+import { frontendTools as appFrontendTools } from "../../../creator/operator/tests/fixtures/official-form/agent-contract/frontend-tools/demo-form-tools";
+import { frontendToolUIs } from "../../../creator/operator/tests/fixtures/official-form/agent-ui/conversation/frontend-tool-uis/demo-form-tools";
 import { ConversationSurface } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/ConversationSurface";
-import { parseAppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
-import frontendToolFormDemoPlugin from "../../../operator/tests/fixtures/official-form/plugins/frontend-tool-form-demo/definition";
+import { parseAppUIRuntimeModel } from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
+import frontendToolFormDemoPlugin from "../../../creator/operator/tests/fixtures/official-form/plugins/frontend-tool-form-demo/definition";
 import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../../resources/registry/items/foundation/core-runtime/files/runtime/tools/index";
 import { PluginServiceRuntime, PluginServiceRuntimeContext, createPluginRegistry, UIPluginRuntime } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
-import { DEMO_FORM_SERVICE, type DemoFormService } from "../../../operator/tests/fixtures/official-form/services/demo-form";
+import { DEMO_FORM_SERVICE, type DemoFormService } from "../../../creator/operator/tests/fixtures/official-form/services/demo-form";
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 class ResizeObserverMock { observe() {} unobserve() {} disconnect() {} }

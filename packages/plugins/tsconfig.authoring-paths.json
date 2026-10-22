@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "rootDirs": [
+      ".",
+      ".typecheck",
+      ".typecheck/project"
+    ]
+  }
+}

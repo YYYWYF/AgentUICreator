@@ -38,10 +38,11 @@ async function visit(file) {
   }
 }
 await visit(path.join(reactRoot, "index.ts"));
-const itemsRoot = path.join(root, "packages/plugins/resources/registry/items");
-for (const file of await files(itemsRoot)) {
-  if (!/[/\\]plugins[/\\].*\.[jt]sx?$/u.test(file)) continue;
-  if (upstream.test(await readFile(file, "utf8"))) errors.push(`${path.relative(root, file)}: Source Plugins must use @za38.03/agent-ui-plugins/lexical`);
+const sourceLayout = JSON.parse(await readFile(path.join(root, "packages/plugins/source-layout.json"), "utf8"));
+for (const entry of sourceLayout.files) {
+  if (!entry.view.startsWith("resources/registry/items/plugin/") || !/\.[jt]sx?$/u.test(entry.view)) continue;
+  const file = path.join(root, "packages/plugins", ...entry.source.split("/"));
+  if (upstream.test(await readFile(file, "utf8"))) errors.push(`${entry.view}: Source Plugins must use @za38.03/agent-ui-plugins/lexical`);
 }
 // Optional peers never make the main facade install the editor. The Source Item
 // and workspace lock must resolve exactly one Lexical release family.

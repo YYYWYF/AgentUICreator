@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { PackageUpdateOverview, PackageUpgradePlan } from "@za38.03/agent-ui-operator/updates";
+import type { PackageUpdateOverview, PackageUpgradePlan } from "@za38.03/agent-ui-creator/operator/updates";
 import { ArrowRight, ArrowUpRight, Check, CircleCheck, Package, RefreshCw, ShieldCheck } from "lucide-react";
 import { useAgentUILocale, formatLocaleMessage } from "./i18n/locale.js";
 import { Button } from "./components/button.js";

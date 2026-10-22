@@ -41,6 +41,7 @@ export const zhCN = {
     summarize: "总结",
   },
   searchTools: {
+    ...AGENT_UI_PRESENTATION_LOCALES["zh-CN"].searchTools,
     searching: "正在搜索",
     sources: "已读取 {count} 个来源",
     retrieving: "正在检索",

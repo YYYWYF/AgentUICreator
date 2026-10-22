@@ -338,7 +338,7 @@ export function MockServicePanel({ projectId, projectPath }: { projectId?: strin
               <summary>{localeMessages.mock.howToConnect}</summary>
               <p>{localeMessages.mock.setTheComponentEndpointOrFrontendEnvironmentVariable}</p>
               <pre><code>{`<Agent endpoint="${state.endpoint}" />\n\nVITE_AGENT_ENDPOINT=${state.endpoint}`}</code></pre>
-              <p>{localeMessages.mock.createOrEditThisFileAtTheRoot} <code>.env.local</code>{localeMessages.mock.andEnterTheValueAboveFor} <code>VITE_AGENT_ENDPOINT</code>。</p>
+              <p>{localeMessages.mock.createOrEditThisFileAtTheRoot} <code>.env.agentui.local</code>{localeMessages.mock.andEnterTheValueAboveFor} <code>VITE_AGENT_ENDPOINT</code>。</p>
               <p>{localeMessages.mock.saveAndRestartYourFrontendDevelopmentServerAn}</p>
             </details>
           </>}

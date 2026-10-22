@@ -10,7 +10,7 @@ import {
   type CreatorVerificationMode,
 } from "./shared.js";
 
-export const CREATOR_HOST_ENV_FILE = ".env.creator.local";
+export const CREATOR_HOST_ENV_FILE = ".env.agentui.local";
 
 export interface LoadCreatorHostConfigOptions {
   configRoot?: string | undefined;

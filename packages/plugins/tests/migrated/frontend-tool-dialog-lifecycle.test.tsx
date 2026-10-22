@@ -11,7 +11,7 @@ import { frontendToolOpenDialogScenario } from "../../../creator/src/mock-agent/
 import { frontendTools as appFrontendTools } from "../../resources/registry/items/demo/frontend-tool-dialog/files/agent-contract/frontend-tools/open-demo-dialog";
 import { frontendToolUIs } from "../../resources/registry/items/demo/frontend-tool-dialog/files/agent-ui/conversation/frontend-tool-uis/open-demo-dialog";
 import { ConversationSurface } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/ConversationSurface";
-import { parseAppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
+import { parseAppUIRuntimeModel } from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
 import { frontendToolDialogDemoPlugin } from "../../resources/registry/items/demo/frontend-tool-dialog/files/plugins/frontend-tool-dialog-demo/definition";
 import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../../resources/registry/items/foundation/core-runtime/files/runtime/tools/index";
 import { PluginServiceProvider, PluginServiceRuntime, PluginServiceRuntimeContext, createPluginRegistry, UIPluginRuntime } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";

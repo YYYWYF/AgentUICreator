@@ -28,7 +28,7 @@ Initialization retains its separate clean-install transaction.
 
 Product callers use `applyAgentUISourceProjectMutation` or
 `removeAgentUISourceProjectMutation` from
-`packages/operator/src/project/source-registry/project-mutation.ts`.
+`packages/creator/operator/src/project/source-registry/project-mutation.ts`.
 The architecture guard rejects direct storage apply/remove references outside the
 storage module, its compatibility exports, and this Host orchestrator. Low-level
 unit tests may continue testing storage APIs directly.
@@ -85,7 +85,7 @@ or protocol-schema changes are introduced.
 
 Legacy optional resources pass their existing `resourcePaths().config` unchanged,
 including provided foundations, `sourceRoot: "."`, and scenario-resource metadata.
-The shared implementation now belongs to `@za38.03/agent-ui-operator`. Hosts and
+The shared implementation now belongs to `@za38.03/agent-ui-creator/operator`. Hosts and
 the Workbench consume its development APIs; they do not own storage or mutation
 implementations. `@agent-ui/bootstrap` owns initialization transactions and receives
 the Operator adapter explicitly from the composition root.

@@ -1,0 +1,8 @@
+# Keep text sources, resource templates and generated metadata consistent across platforms.
+# Auto detection leaves binary assets untouched. Do not renormalize upstream snapshots
+# without reviewing their recorded integrity/provenance.
+* text=auto eol=lf
+
+# Native Windows command scripts use CRLF when checked out.
+*.bat text eol=crlf
+*.cmd text eol=crlf

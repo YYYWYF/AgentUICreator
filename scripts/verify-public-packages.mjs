@@ -80,7 +80,7 @@ try {
   await symlink(source, link, "junction");
  }
  await readFile(path.join(consumer, "node_modules/@za38.03/agent-ui-creator/skills/ui-debugging/references/runtime-debugging.md"));
- await assertContractParity(path.join(root, "contracts/creator"), path.join(consumer, "node_modules/@za38.03/agent-ui-creator/dist/python/agent_ui_creator/_contracts/creator"));
+ await assertContractParity(path.join(root, "packages/creator/contracts/creator"), path.join(consumer, "node_modules/@za38.03/agent-ui-creator/dist/python/agent_ui_creator/_contracts/creator"));
  await writeFile(path.join(consumer, "package.json"), JSON.stringify({ name: "independent-public-consumer", private: true, type: "module", dependencies: Object.fromEntries(publicModules.map(name => [manifests[name].name, manifests[name].version])) }));
  await mkdir(path.join(consumer, "src"));
  await writeFile(path.join(consumer, "consumer.tsx"), `
@@ -91,9 +91,9 @@ import { LayoutRenderer } from "@za38.03/agent-ui-renderer";
 import { useConversationRuntimeBridge } from "@za38.03/agent-ui-runtime";
 import { createPythonCreatorClient } from "@za38.03/agent-ui-creator";
 import { createMockAgentHttpHandler } from "@za38.03/agent-ui-creator/mock-agent";
-import { createDefaultAgentUIPresetRegistry, initializeAgentUIProject } from "@za38.03/agent-ui-operator/bootstrap";
-import { handleUIOperatorRequest } from "@za38.03/agent-ui-operator/dev";
-import { loadAgentUISourceRegistry } from "@za38.03/agent-ui-operator/source-registry";
+import { createDefaultAgentUIPresetRegistry, initializeAgentUIProject } from "@za38.03/agent-ui-creator/bootstrap";
+import { handleUIOperatorRequest } from "@za38.03/agent-ui-creator/operator/dev";
+import { loadAgentUISourceRegistry } from "@za38.03/agent-ui-creator/source-registry";
 import composer from "@za38.03/agent-ui-plugins/composer";
 import { formTools } from "@za38.03/agent-ui-plugins/form-tools";
 void [createAgentUIGenerativeUI, Button, DemoAttachmentAdapter, LayoutRenderer, useConversationRuntimeBridge, createPythonCreatorClient, createMockAgentHttpHandler, createDefaultAgentUIPresetRegistry, initializeAgentUIProject, handleUIOperatorRequest, loadAgentUISourceRegistry, composer, formTools];
@@ -103,9 +103,9 @@ let theme: AgentUITheme | undefined; void theme;
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
-import { loadAgentUISourceRegistry, officialPackagePlugin } from "@za38.03/agent-ui-operator/source-registry";
-import { initializeAgentUIProject } from "@za38.03/agent-ui-operator/bootstrap";
-import { createAgentUIInitializationHost, inspectCreatorProject } from "@za38.03/agent-ui-operator/host";
+import { loadAgentUISourceRegistry, officialPackagePlugin } from "@za38.03/agent-ui-creator/source-registry";
+import { initializeAgentUIProject } from "@za38.03/agent-ui-creator/bootstrap";
+import { createAgentUIInitializationHost, inspectCreatorProject } from "@za38.03/agent-ui-creator/operator/host";
 import { createMockAgentHttpHandler, builtinMockScenarios } from "@za38.03/agent-ui-creator/mock-agent";
 const registry = await loadAgentUISourceRegistry();
 assert(registry.items.length > 0);
@@ -118,6 +118,16 @@ for (const item of registry.items) for (const name of Object.keys(item.packages 
 assert.equal(officialPackagePlugin("composer").runtime.package, "@za38.03/agent-ui-plugins");
 await initializeAgentUIProject({ projectRoot: process.cwd(), mode: "assistant", sourceRoot: "src/agent-ui" }, createAgentUIInitializationHost());
 assert.equal((await inspectCreatorProject(process.cwd())).status, "ready");
+const { ensureManagedOperator } = await import("@za38.03/agent-ui-creator/operator");
+await ensureManagedOperator(process.cwd());
+const { spawnSync } = await import("node:child_process");
+const operation = spawnSync(process.execPath, [".agent-ui/operator/entry.mjs"], {
+  cwd: process.cwd(), encoding: "utf8",
+  input: JSON.stringify({ operation: "inspect_ui_project", input: {} }),
+});
+assert.equal(operation.status, 0, operation.stderr);
+assert.equal(JSON.parse(operation.stdout).ok, true, operation.stdout);
+
 async function assertProductSource(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const file = path.join(directory, entry.name);
@@ -155,7 +165,7 @@ await build({ configFile: false, logLevel: "error", plugins: [react(), tailwind(
 import assert from "node:assert/strict";
 import { readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
-import { handleUIOperatorRequest } from "@za38.03/agent-ui-operator/dev";
+import { handleUIOperatorRequest } from "@za38.03/agent-ui-creator/operator/dev";
 const request = async (operation, input) => {
  const result = await handleUIOperatorRequest({ operation, input }, process.cwd());
  assert(result.ok, JSON.stringify(result)); return result.result;
@@ -194,11 +204,11 @@ console.log("Packaged takeover: exact installed source, Host typecheck/build, st
   run(["takeover-check.mjs"]);
  }
  // Deployment consumer physically excludes every development package and control entry.
- for (const name of ["creator", "operator"]) {
+ for (const name of ["creator"]) {
   await rm(path.join(consumer, "node_modules", manifests[name].name), { recursive: true });
  }
  await rm(path.join(consumer, ".agent-ui"), { recursive: true, force: true });
- const frontendModules = publicModules.filter(name => !["creator", "operator"].includes(name));
+ const frontendModules = publicModules.filter(name => !["creator"].includes(name));
  await writeFile(path.join(consumer, "package.json"), JSON.stringify({ name: "independent-frontend-consumer", private: true, type: "module", dependencies: Object.fromEntries(frontendModules.map(name => [manifests[name].name, manifests[name].version])) }));
  const configFile = path.join(consumer, "tsconfig.json");
  const config = JSON.parse(await readFile(configFile, "utf8"));
@@ -213,7 +223,7 @@ import tailwind from "@tailwindcss/vite";
 const inputs = new Set();
 await build({ configFile: false, plugins: [react(), tailwind(), { name: "production-boundary", generateBundle(_, bundle) { for (const chunk of Object.values(bundle)) if (chunk.type === "chunk") for (const file of Object.keys(chunk.modules)) inputs.add(file); } }], resolve: { dedupe: ["react", "react-dom"] }, build: { lib: { entry: "app.tsx", formats: ["es"], fileName: () => "app.js" } } });
 assert(![...inputs].some(file => file.replaceAll(String.fromCharCode(92), "/").includes("/dist/catalog/") || file.replaceAll(String.fromCharCode(92), "/").includes("/dist/sources/")), "Production imported source tooling assets");
-assert(![...inputs].some(file => ["creator", "operator"].some(name => file.replaceAll(String.fromCharCode(92), "/").includes("/agent-ui-" + name + "/"))), "Production imported development packages");
+assert(![...inputs].some(file => ["creator"].some(name => file.replaceAll(String.fromCharCode(92), "/").includes("/agent-ui-" + name + "/"))), "Production imported development packages");
 if (${process.argv.includes("--takeover")}) {
  const normalized = [...inputs].map(file => file.replaceAll(String.fromCharCode(92), "/"));
  assert(normalized.some(file => file.includes("/src/agent-ui/plugins/composer/adapters/composer.tsx")), "Production must include local Composer");
@@ -223,5 +233,5 @@ if (${process.argv.includes("--takeover")}) {
 console.log("Production module graph excludes development tooling.");
 `);
  run(["bundle.mjs"]);
- console.log("7 independent tarballs: exact dependency versions, merged subpaths, Registry, initialization, consumer types and independent production build passed.");
+ console.log("6 independent tarballs: exact dependency versions, merged subpaths, Registry, initialization, consumer types and independent production build passed.");
 } finally { await rm(consumer, { recursive: true, force: true }); }

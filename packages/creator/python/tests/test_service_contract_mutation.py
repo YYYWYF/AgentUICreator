@@ -24,7 +24,7 @@ class MutationControl:
                 {
                     "name": "agent-ui.conversations",
                     "contractPaths": ["services/conversations.ts"],
-                    "providers": [{"pluginId": "conversation-history"}],
+                    "providers": [{"pluginId": "history-provider"}],
                     "requiredConsumers": [{"pluginId": "search"}],
                     "optionalConsumers": [],
                 }
@@ -47,7 +47,7 @@ def fixture(tmp_path):
             change_kind="mutate",
             service_name="agent-ui.conversations",
             contract_path="services/conversations.ts",
-            owner_plugin_id="conversation-history",
+            owner_plugin_id="history-provider",
             consumers=(("search", "required"),),
         ),
         authorized=True,

@@ -133,7 +133,7 @@ def test_new_recovery_wire_fixtures_and_transport(tmp_path, monkeypatch):
     from pathlib import Path
     from agent_ui_creator.operator import OperatorClient
     client = OperatorClient(project_root=tmp_path)
-    fixtures = Path(__file__).resolve().parents[4] / "contracts/creator/fixtures/operator"
+    fixtures = Path(__file__).resolve().parents[4] / "packages/creator/contracts/creator/fixtures/operator"
     manifest = json.loads((fixtures / "manifest.json").read_text())
     for group, entries in manifest.items():
         for entry in entries:

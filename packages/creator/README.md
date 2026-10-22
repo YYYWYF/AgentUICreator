@@ -134,3 +134,11 @@ export default function SelfPage() {
 ### 默认 npm 更新来源
 
 更新中心直接使用目标工程的 npm registry 和凭据检查官方包版本；无需配置额外更新接口。兼容组合与变更历史随官方包发布，源码接管/同步读取实际安装的 Plugins 包 catalog 和源码快照。检查只读，安装需用户确认；npm 升级不会自动覆盖应用层和已托管源码，源码同步另行确认。尚未发布或 registry 无法访问时会明确显示不可用，不使用演示发行数据。
+
+## Project Operator and contracts
+
+Creator is one development-tool package, including the internal `operator/` module and canonical `contracts/` schemas/fixtures. There is no separate Operator npm package. Agent orchestration stays in Creator; project inspection, controlled mutations, validation, transactions, source operations and update planning stay in Operator. The Python sidecar and Node implementation share the same protocol, shipped in the npm artifact and Python wheel.
+
+Public Node entry points: `/operator` (managed entry installer), `/operator/dev`, `/operator/protocol`, `/operator/host`, `/operator/resources`, `/operator/updates`, `/operator/commands`, `/bootstrap`, and `/source-registry`. Import these subpaths to use project tools without starting the Creator UI or Python sidecar. Production frontends must remain independent of Creator.
+
+`pnpm --filter @za38.03/agent-ui-creator build` builds both modules and packages Operator runtime/types/presets. `test:operator` and `typecheck:operator` run the internal module checks; the main `test` and `typecheck` include them.

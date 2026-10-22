@@ -7,15 +7,8 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
+    "preinstall": "node scripts/check-dependency-pins.mjs",
     "dev": "node scripts/dev-workbench.mjs",
-    "dev:host-sandbox": "pnpm --filter @za38.03/agent-ui-creator-host-sandbox dev",
-    "dev:assistant-host": "pnpm --filter @za38.03/agent-ui-creator-assistant-host dev",
-    "dev:embedded-host": "pnpm --filter @za38.03/agent-ui-creator-embedded-host dev",
-    "reset:host-sandbox": "pnpm --filter @za38.03/agent-ui-creator-host-sandbox reset",
-    "inspect:host-sandbox": "pnpm --filter @za38.03/agent-ui-creator-host-sandbox inspect",
-    "init:host-sandbox:assistant": "pnpm --filter @za38.03/agent-ui-creator-host-sandbox init:assistant",
-    "init:host-sandbox:embedded": "pnpm --filter @za38.03/agent-ui-creator-host-sandbox init:embedded",
-    "init:host-sandbox:platform": "pnpm --filter @za38.03/agent-ui-creator-host-sandbox init:platform",
     "creator:python": "node scripts/start-creator-python.mjs",
     "build": "node scripts/build-workspace.mjs",
     "check:assistant-ui-upstream": "pnpm --filter @za38.03/agent-ui-plugins check:assistant-ui-upstream",
@@ -29,17 +22,14 @@
     "typecheck": "node scripts/typecheck-workspace.mjs",
     "test": "pnpm test:python && pnpm test:ts",
     "test:ts": "node scripts/test-workspace-ts.mjs",
-    "test:style-isolation": "node scripts/prepare-host-packages.mjs && pnpm --filter @za38.03/agent-ui-creator-embedded-host exec node --import tsx ../../scripts/host-examples/host-project.ts ensure embedded creator-embedded-host && pnpm --filter @za38.03/agent-ui-creator-workbench test:e2e:style-isolation",
-    "verify:style-isolation": "node scripts/prepare-host-packages.mjs && pnpm check:assistant-ui-upstream && pnpm --filter @za38.03/agent-ui-runtime exec vitest run tests/conversation-quote-context.test.ts && pnpm --filter @za38.03/agent-ui-plugins exec vitest run tests/conversation-quote.test.tsx tests/quote-selection-root.test.tsx tests/quote-upstream-regression.test.mjs tests/assistant-ui-portal-sync.test.mjs tests/migrated/assistant-ui-thread-delete-integration.test.tsx tests/portal-container-boundary.test.tsx tests/image-zoom-portal.test.tsx tests/assistant-ui-integration-boundary.test.ts tests/upstream-guard.test.ts tests/migrated/assistant-ui-tailwind-source-coverage.test.ts tests/theme-contract.test.ts tests/violet-brand.test.tsx tests/violet-surface-overrides.test.tsx tests/migrated/generative-ui-library.test.tsx tests/migrated/a2ui-integration.test.tsx tests/migrated/frontend-tool-dialog-lifecycle.test.tsx tests/migrated/assistant-ui-attachments.test.tsx tests/migrated/assistant-ui-style-isolation.test.ts && pnpm --filter @za38.03/agent-ui-operator exec vitest run tests/migrated/verify-ui.test.ts tests/migrated/plugin-style-verifier.test.ts && pnpm test:style-isolation",
+    "verify:style-isolation": "node scripts/prepare-host-packages.mjs --with-mock && pnpm check:assistant-ui-upstream && pnpm --filter @za38.03/agent-ui-runtime exec vitest run tests/conversation-quote-context.test.ts && pnpm --filter @za38.03/agent-ui-plugins exec vitest run tests/conversation-quote.test.tsx tests/quote-selection-root.test.tsx tests/quote-upstream-regression.test.mjs tests/assistant-ui-portal-sync.test.mjs tests/migrated/assistant-ui-thread-delete-integration.test.tsx tests/portal-container-boundary.test.tsx tests/image-zoom-portal.test.tsx tests/assistant-ui-integration-boundary.test.ts tests/upstream-guard.test.ts tests/migrated/assistant-ui-tailwind-source-coverage.test.ts tests/theme-contract.test.ts tests/violet-brand.test.tsx tests/violet-surface-overrides.test.tsx tests/migrated/generative-ui-library.test.tsx tests/migrated/a2ui-integration.test.tsx tests/migrated/frontend-tool-dialog-lifecycle.test.tsx tests/migrated/assistant-ui-attachments.test.tsx tests/migrated/assistant-ui-style-isolation.test.ts && pnpm --filter @za38.03/agent-ui-creator test:operator tests/migrated/verify-ui.test.ts tests/migrated/plugin-style-verifier.test.ts && pnpm test:style-isolation",
     "verify:assistant-ui-upgrade-contract": "pnpm --filter @za38.03/agent-ui-plugins exec vitest run tests/lexical-upgrade-contract.test.mjs tests/assistant-ui-upgrade-drill.test.mjs tests/product-localization-generation.test.mjs",
     "verify:assistant-ui-upgrade": "pnpm verify:assistant-ui-upgrade-contract && pnpm verify:style-isolation",
-    "verify:ui": "pnpm --filter @za38.03/agent-ui-creator-host-sandbox verify:ui && pnpm --filter @za38.03/agent-ui-creator-assistant-host verify:ui && pnpm --filter @za38.03/agent-ui-creator-embedded-host verify:ui",
     "test:python:setup": "node scripts/run-python-tests.mjs --setup-only",
     "test:python": "node scripts/run-python-tests.mjs",
     "test:python-live-model": "node scripts/run-python-tests.mjs --live-model",
     "package:repo": "node scripts/package-repository.mjs",
     "test:python-sidecar": "pnpm test:python:setup && pnpm --filter @za38.03/agent-ui-creator test:python-sidecar",
-    "creator": "pnpm --filter @za38.03/agent-ui-creator build && node packages/creator/dist/cli.js --project examples/creator-host-sandbox --config-root .",
     "verify:creator:official-composer-live": "node scripts/run-python-tests.mjs --official-composer-live",
     "verify:creator:live": "node scripts/run-python-tests.mjs --live-model",
     "verify:creator-package": "node scripts/verify-creator-package.mjs",
@@ -56,7 +46,13 @@
     "creator:demo": "node scripts/start-creator-workbench.mjs",
     "verify:creator-workbench": "node scripts/verify-creator-workbench.mjs",
     "build:package": "node scripts/build-public-packages.mjs",
-    "verify:package": "node --test scripts/package-ownership.test.mjs && node scripts/verify-public-packages.mjs"
+    "verify:package": "node --test scripts/package-ownership.test.mjs && node scripts/verify-public-packages.mjs",
+    "prepare:types": "node scripts/prepare-typescript-authoring.mjs",
+    "postinstall": "node scripts/prepare-typescript-authoring.mjs",
+    "test:types": "node --test scripts/typescript-authoring.test.mjs scripts/preparation-state.test.mjs",
+    "dev:vue-host": "pnpm --filter @za38.03/agent-ui-web-component-vue3-demo dev",
+    "creator": "pnpm --filter @za38.03/agent-ui-creator build && node packages/creator/dist/cli.js --project examples/web-component-vue3 --config-root .",
+    "test:style-isolation": "pnpm test:web-component"
   },
   "devDependencies": {
     "typescript-ui-audit": "npm:typescript@5.9.3"
@@ -65,24 +61,6 @@
     "onlyBuiltDependencies": [
       "esbuild"
     ],
-    "overrides": {
-      "@assistant-ui/core": "0.3.29",
-      "react": "19.1.1",
-      "react-dom": "19.1.1",
-      "react-test-renderer": "19.1.1",
-      "@assistant-ui/store": "0.3.21",
-      "@assistant-ui/tap": "0.9.23",
-      "assistant-stream": "0.3.52",
-      "assistant-cloud": "0.2.7",
-      "@vitejs/plugin-react": "6.0.2",
-      "@vitejs/plugin-vue": "6.0.1",
-      "vue-tsc": "3.0.6",
-      "vue": "3.5.42",
-      "@types/semver": "7.7.1",
-      "@types/node": "26.6.2",
-      "tailwind-merge": "3.6.0",
-      "@types/jsdom": "28.0.3"
-    },
     "peerDependencyRules": {
       "allowedVersions": {
         "vite@8.3.0>esbuild": "0.25.12",

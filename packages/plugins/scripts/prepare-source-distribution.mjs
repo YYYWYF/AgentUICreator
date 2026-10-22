@@ -8,6 +8,13 @@ import { fileURLToPath } from "node:url";
 const packageRoot = fileURLToPath(new URL("..", import.meta.url));
 const source = path.join(packageRoot, "resources", "registry");
 const destination = path.join(packageRoot, "dist", "resources", "registry");
+const sourceLayout = JSON.parse(await readFile(path.join(packageRoot, "source-layout.json"), "utf8"));
+const sourceByView = new Map(sourceLayout.files.map(file => [file.view, file.source]));
+function itemResourceSource(itemRoot, relativePath) {
+  const view = path.posix.join("resources/registry", itemRoot, relativePath.split(path.sep).join("/"));
+  const canonical = sourceByView.get(view);
+  return canonical ? path.join(packageRoot, ...canonical.split("/")) : path.join(source, ...itemRoot.split("/"), ...relativePath.split("/"));
+}
 const manifest = JSON.parse(await readFile(path.join(source, "registry.json"), "utf8"));
 const records = await Promise.all(manifest.items.map(async entry => ({ entry,
   item: JSON.parse(await readFile(path.join(source, entry.path), "utf8")),
@@ -26,32 +33,38 @@ await mkdir(destination, { recursive: true });
 await writeFile(path.join(destination, "registry.json"), JSON.stringify({ items: published.map(record => record.entry) }, null, 2) + "\n");
 await cp(path.join(source, "release.json"), path.join(destination, "release.json"));
 for (const { entry, item } of published) {
-  const itemRoot = path.dirname(entry.path);
-  await mkdir(path.join(destination, itemRoot), { recursive: true });
+  const itemRoot = path.posix.dirname(entry.path);
+  await mkdir(path.join(destination, ...itemRoot.split("/")), { recursive: true });
   await cp(path.join(source, entry.path), path.join(destination, entry.path));
-  if (item.id.startsWith("plugin/")) await cp(path.join(source, itemRoot, "changelog.json"), path.join(destination, itemRoot, "changelog.json"));
+  if (item.id.startsWith("plugin/")) await cp(itemResourceSource(itemRoot, "changelog.json"), path.join(destination, ...itemRoot.split("/"), "changelog.json"));
   for (const file of item.files) {
-    const target = path.join(destination, itemRoot, file.source);
+    const target = path.join(destination, ...itemRoot.split("/"), ...file.source.split("/"));
     await mkdir(path.dirname(target), { recursive: true });
-    await cp(path.join(source, itemRoot, file.source), target);
+    await cp(itemResourceSource(itemRoot, file.source), target);
   }
 }
 console.log(`Prepared ${published.length} publishable resources; A2UI and development fixtures excluded.`);
 
 // Source snapshots and catalog ship in the same tarball as their runtime entries.
-// Test history fixtures remain in the workspace, never in the public tarball.
+// Historical release archives are not bundled in the public tarball.
 await cp(path.join(packageRoot, "src/plugins"), path.join(packageRoot, "dist/sources/plugins"), { recursive: true });
 await cp(path.join(packageRoot, "src/shared"), path.join(packageRoot, "dist/sources/shared"), { recursive: true });
-const layout = JSON.parse(await readFile(path.join(packageRoot, "source-layout.json"), "utf8"));
-await writeFile(path.join(packageRoot, "dist/sources/source-layout.json"), JSON.stringify(layout, null, 2) + "\n");
+await writeFile(path.join(packageRoot, "dist/sources/source-layout.json"), JSON.stringify(sourceLayout, null, 2) + "\n");
 const pkg = JSON.parse(await readFile(path.join(packageRoot, "package.json"), "utf8"));
 const { createHash } = await import("node:crypto");
 const digest = buffer => createHash("sha256").update(buffer).digest("hex");
+async function catalogApplicationFiles(id, entries = []) {
+  return Promise.all(entries.map(async ([target, origin]) => ({
+    target,
+    path: `sources/plugins/${id}/${origin}`,
+    sha256: digest(await readFile(path.join(packageRoot, "src", "plugins", id, ...origin.split("/")))),
+  })));
+}
 const plugins = [];
 for (const { item } of published.filter(record => record.item.id.startsWith("plugin/"))) {
   const id = item.id.slice(7);
   const manifest = JSON.parse(await readFile(path.join(packageRoot, "src/plugins", id, "plugin.json"), "utf8"));
-  const files = await Promise.all(layout.files.filter(file => file.pluginId === id).map(async file => ({
+  const files = await Promise.all(sourceLayout.files.filter(file => file.pluginId === id).map(async file => ({
     path: file.source.replace(/^src\//u, "sources/"), logicalPath: file.view, kind: file.kind,
     sha256: digest(await readFile(path.join(packageRoot, ...file.source.split("/")))),
   })));
@@ -69,12 +82,38 @@ for (const { item } of published.filter(record => record.item.id.startsWith("plu
     }
   }
   await indexCanonical(`src/plugins/${id}`);
-  plugins.push({ id, version: manifest.version, application: deliveries.find(delivery => delivery.id === id) ? { schemaVersion: 1, composition: deliveries.find(delivery => delivery.id === id).applicationComposition, preserveLegacySource: deliveries.find(delivery => delivery.id === id).preserveLegacySource === true, component: deliveries.find(delivery => delivery.id === id).component, scopeKind: deliveries.find(delivery => delivery.id === id).scopeKind, registration: deliveries.find(delivery => delivery.id === id).registration, runtimeContext: deliveries.find(delivery => delivery.id === id).runtimeContext === true, hostBindings: deliveries.find(delivery => delivery.id === id).hostBindings, railAction: deliveries.find(delivery => delivery.id === id).railAction, hostApplication: deliveries.find(delivery => delivery.id === id).hostApplication === true, services: deliveries.find(delivery => delivery.id === id).hostApplication ? deliveries.find(delivery => delivery.id === id).services : undefined, sharedFiles: await Promise.all((deliveries.find(delivery => delivery.id === id).applicationSharedFiles ?? []).map(async ([target,origin])=>({target,path:origin.replace(/^src\//u,"sources/"),sha256:digest(await readFile(path.join(packageRoot,...origin.split("/"))))}))), files: await Promise.all((deliveries.find(delivery => delivery.id === id).applicationFiles ?? []).map(async ([target, origin]) => ({target, path: `sources/plugins/${id}/${origin}`, sha256: digest(await readFile(path.join(packageRoot, "src/plugins", id, origin)))}))) } : undefined, sourceRoot: `sources/plugins/${id}`, files });
+  const delivery = deliveries.find(delivery => delivery.id === id);
+  const application = delivery ? {
+    schemaVersion: 1,
+    composition: delivery.applicationComposition,
+    preserveLegacySource: delivery.preserveLegacySource === true,
+    component: delivery.component,
+    scopeKind: delivery.scopeKind,
+    registration: delivery.registration,
+    runtimeContext: delivery.runtimeContext === true,
+    hostBindings: delivery.hostBindings,
+    railAction: delivery.railAction,
+    hostApplication: delivery.hostApplication === true,
+    services: delivery.hostApplication ? delivery.services : undefined,
+    sharedFiles: await Promise.all((delivery.applicationSharedFiles ?? []).map(async ([target, origin]) => ({
+      target,
+      path: origin.replace(/^src\//u, "sources/"),
+      sha256: digest(await readFile(path.join(packageRoot, ...origin.split("/")))),
+    }))),
+    files: await catalogApplicationFiles(id, delivery.applicationFiles),
+    modeFiles: Object.keys(delivery.applicationModeFiles ?? {}).length
+      ? Object.fromEntries(await Promise.all(Object.entries(delivery.applicationModeFiles).map(async ([mode, entries]) => [
+        mode,
+        await catalogApplicationFiles(id, entries),
+      ])))
+      : undefined,
+  } : undefined;
+  plugins.push({ id, version: manifest.version, application, sourceRoot: `sources/plugins/${id}`, files });
 }
 await writeFile(path.join(packageRoot, "dist/catalog.json"), JSON.stringify({ schemaVersion: 1,
   package: { name: pkg.name, version: pkg.version }, plugins,
   publicComponents: JSON.parse(await readFile(path.join(packageRoot, "src/catalog/public-component-contracts.json"), "utf8")),
-  shared: await Promise.all(layout.files.filter(file => !file.pluginId).map(async file => ({
+  shared: await Promise.all(sourceLayout.files.filter(file => !file.pluginId).map(async file => ({
     path: file.source.replace(/^src\//u, "sources/"), logicalPath: file.view, kind: file.kind,
     sha256: digest(await readFile(path.join(packageRoot, ...file.source.split("/")))),
   }))),

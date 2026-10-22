@@ -12,6 +12,6 @@ export function AgentUILocaleBridge({ locale, onLocaleChange, children }: { loca
   const service = usePluginService<AgentUILocaleService>(AGENT_UI_LOCALE_SERVICE);
   const snapshot = usePluginServiceSnapshot(service, defaultSnapshot);
   useLayoutEffect(() => { if (locale !== undefined) service?.setLocale(locale); }, [locale, service]);
-  useEffect(() => { onLocaleChange?.(locale ?? snapshot.locale); }, [locale, snapshot.locale, onLocaleChange]);
+  useEffect(() => { onLocaleChange?.(service?.getSnapshot().locale ?? locale ?? snapshot.locale); }, [service, locale, snapshot.locale, onLocaleChange]);
   return <AgentUILocaleProvider locale={locale ?? snapshot.locale} messages={AGENT_UI_LOCALES[locale ?? snapshot.locale]}>{children}</AgentUILocaleProvider>;
 }

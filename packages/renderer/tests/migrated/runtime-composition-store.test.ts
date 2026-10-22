@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 import { describe, expect, it, vi } from "vitest";
 
-import type { UIPluginDefinition } from "../../../operator/src/framework/contracts/ui-plugin";
+import type { UIPluginDefinition } from "../../../creator/operator/src/framework/contracts/ui-plugin";
 import {
   createPluginCapabilityCatalog,
   createRuntimeCompositionStore,

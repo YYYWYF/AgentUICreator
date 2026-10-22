@@ -38,8 +38,8 @@ describe("Python Creator agent mode selection", () => {
     const configRoot = await mkdtemp(path.join(tmpdir(), "creator-runtime-"));
     temporaryDirectories.push(configRoot);
     await writeFile(
-      path.join(configRoot, ".env.creator.local"),
-      "CREATOR_PYTHON_AGENT_MODE=domain-read\n",
+      path.join(configRoot, ".env.agentui.local"),
+      "CREATOR_PYTHON_AGENT_MODE=domain-read\nVITE_AGENT_ENDPOINT=http://127.0.0.1:47831/agent\nCREATOR_MODEL_API_KEY=fixture-private-key\n",
     );
 
     expect(resolveCreatorPythonAgentMode({ configRoot, environment: {} })).toBe(

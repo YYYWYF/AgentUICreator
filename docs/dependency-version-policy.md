@@ -2,11 +2,21 @@
 
 直接 dependencies、devDependencies、optionalDependencies 和当前 Source Registry 的 packages 使用精确版本；workspace 依赖使用 `workspace:*`，发布时转换为精确包版本。peerDependencies 中 React 等宽范围表示消费者兼容性，不负责选择安装版本。历史验收文件和历史 release fixtures 保留其原始记录。
 
-`pnpm-workspace.yaml` 的 `saveExact` 和 `.npmrc` 的 `save-exact` 保证后续添加依赖默认保存精确版本。`pnpm check:dependency-pins` 检查当前包声明和生成项目的 Source Registry。完整传递依赖和平台二进制由提交的 `pnpm-lock.yaml` 锁定；复制项目时必须包含该文件，安装使用 `pnpm install --frozen-lockfile`，不要使用 update 或删除锁文件。
+`.npmrc` 的 `save-exact=true` 保证后续添加依赖默认保存精确版本，`frozen-lockfile=true` 使普通安装默认使用已提交的锁文件，拒绝静默重新解析依赖。根目录 `preinstall` 执行精确版本守卫，覆盖当前安装声明、overrides、测试工程和 Python 依赖；不改写历史 release 或上游源码。`pnpm check:dependency-pins` 检查当前包声明和生成项目的 Source Registry。完整传递依赖和平台二进制由提交的 `pnpm-lock.yaml` 锁定；复制项目时必须包含该文件，安装使用 `pnpm install --frozen-lockfile`，不要使用 update 或删除锁文件。
 
 本次按公司版本固定 React / react-dom / react-test-renderer 19.1.1、TypeScript 7.0.2（根目录审计 alias 和 Vue 项目保留 5.9.3）、Vite 8.3.0、Vitest 4.1.8、AG-UI client/core 0.0.59、assistant-ui React 0.15.23、Lexical adapter 0.2.15、AG-UI adapter 0.0.63、LangGraph adapter 0.14.29、Markdown adapter 0.14.6、Hook Form adapter 0.12.34、Generative UI 0.0.22、core 0.3.27、Lexical 系列 0.51.0、Tailwind 4.3.3、zod 4.5.4、lucide-react 1.41.0。Generative UI 的历史 0.0.21 fixtures 不参与工作区安装。
 
 core 0.3.27 官方依赖要求 assistant-stream ^0.3.50，以及 store ^0.3.19、tap ^0.9.23，因此 workspace override 同步锁定 assistant-stream 0.3.50、store 0.3.19、tap 0.9.23；公司镜像需提供这些版本。Markdown adapter 0.14.6 官方声明的 React adapter peer 为 ^0.14.18，与本次指定的 0.15.23 不匹配；构建/回归结果不能消除这个上游声明不一致。
+
+## overrides 审计（2026-10-21）
+
+已逐项移除根 package.json 的全部 16 项 overrides，无保留项。当前精确解析版本均满足上游原始要求；直接依赖已有精确声明，传递依赖和自动安装的 peers 由 pnpm-lock.yaml 锁定。冻结安装负责防止漂移，无需覆盖上游兼容范围。pnpm 离线同步后，525 个包实例、依赖边、integrity 和平台条件均未改变，仅移除 overrides 并恢复上游 peer 范围。具体逐项依据见 [审计记录](dependency-overrides-audit-20261021.md)。下文旧环境记录中的 overrides 描述仅为历史记录。
+
+## 当前依赖基线（2026-10-21）
+
+上面的“本次按公司版本固定”和 2026-10-12 验证记录属于历史适配记录，不是当前安装版本清单。当前版本以各包 package.json、assistant-ui-upgrade-target.json 和 pnpm-lock.yaml 为准；本轮不采用内网降级组合，不升级或重解析依赖。工作区引用保留 workspace:*，peerDependencies 和 engines 保留兼容范围。
+
+显式变更依赖后，使用固定的 pnpm 版本和 `pnpm install --lockfile-only --no-frozen-lockfile` 有控制地同步锁文件，审查差异后再执行冻结安装和相关验证。不要删除 lockfile 或为了固定传递依赖把它们全部提升为直接依赖。
 
 ## Windows PowerShell
 
@@ -26,7 +36,7 @@ pnpm verify:creator-distribution
 
 安装不能把 macOS 的 node_modules 或 Python .venv 搬到 Windows；在 Windows 上按锁文件重新安装，以获取对应平台的原生二进制。公司 npm 镜像需包含完整锁文件依赖（不仅上表里的直接包），pip 镜像需包含 `packages/creator/python/requirements.lock` 中的依赖和 Windows wheels。通过本机 npm/pnpm 和 pip 配置设置公司镜像，不在仓库提交凭据。
 
-从源码拷贝后，在根目录直接执行 `pnpm dev`；该入口自动冻结安装 JS 依赖、构建开发包、初始化平台 Host，并由 Creator 自动准备 Python 环境。UI 启动不需要模型密钥，发起真实模型请求前配置根目录 `.env.creator.local`（参考 `.env.creator.example`）。使用独立 sidecar 时，先运行 `pnpm test:python:setup`，再在一个 PowerShell 窗口执行 `pnpm creator:python`，另一个窗口执行 `pnpm dev`。`creator:python` 已使用 Node 跨平台入口，无需 Bash。模型/API 地址和凭据必须使用公司环境的可访问配置。
+从源码拷贝后，在根目录直接执行 `pnpm dev`；该入口自动冻结安装 JS 依赖、构建开发包、初始化平台 Host，并由 Creator 自动准备 Python 环境。UI 启动不需要模型密钥，发起真实模型请求前配置根目录 `.env.agentui.local`（参考 `.env.agentui.example`）。使用独立 sidecar 时，先运行 `pnpm test:python:setup`，再在一个 PowerShell 窗口执行 `pnpm creator:python`，另一个窗口执行 `pnpm dev`。`creator:python` 已使用 Node 跨平台入口，无需 Bash。模型/API 地址和凭据必须使用公司环境的可访问配置。
 
 Creator distribution CI 包含 Ubuntu 和 Windows；CI 尚未实际执行时，不能视作 Windows 实机验收通过。公司网络、镜像完整性和真实模型交互仍需在公司环境验收。
 
@@ -58,7 +68,7 @@ Creator distribution CI 包含 Ubuntu 和 Windows；CI 尚未实际执行时，�
 
 公司指定 Markdown / React 和 Vite / esbuild 组合已通过构建、浏览器及对应回归验证，使用根 package.json 中仅针对这两组精确版本的 pnpm.peerDependencyRules.allowedVersions 声明本地兼容策略；其他非法 peers 仍可由 strict 检查拒绝。`pnpm install --frozen-lockfile --strict-peer-dependencies` 和 `pnpm peers check` 均通过，不修改 upstream 包。该设置的选择器语义见 [pnpm 官方 peer dependency 文档](https://pnpm.io/settings/peer-dependencies#peerdependencyrulesallowedversions)。
 
-从不带 node_modules、dist、生成 Host、.env.creator.local 或 Python .venv 的新源码目录（目录名包含空格），仅运行 `pnpm dev`，已自动完成 JS 安装、构建、Host 初始化与全新 Python 缓存创建，并启动 Host / Dock / sidecar。Windows 包命令及资源安装测试 18 项、Python 环境管理/解析测试 20 项、Node 启动测试 12 项通过。独立 Windows / Ubuntu 冷启动 CI 与 `pnpm verify:dev-startup` 已加入；本机实际执行环境仍是 macOS。
+从不带 node_modules、dist、生成 Host、.env.agentui.local 或 Python .venv 的新源码目录（目录名包含空格），仅运行 `pnpm dev`，已自动完成 JS 安装、构建、Host 初始化与全新 Python 缓存创建，并启动 Host / Dock / sidecar。Windows 包命令及资源安装测试 18 项、Python 环境管理/解析测试 20 项、Node 启动测试 12 项通过。独立 Windows / Ubuntu 冷启动 CI 与 `pnpm verify:dev-startup` 已加入；本机实际执行环境仍是 macOS。
 
 自动冷启动验收已执行通过：`pnpm verify:dev-startup` 对源码拷贝目录启动随机端口的 Host 与 Dock，确认 workspace ready、鉴权 Python proxy 返回预期 JSON 校验响应，并由 Chromium 验证两页内容、输入控件及无 pageerror；结束时停止本轮进程并清理独立 Python 缓存。该检查覆盖启动路径，不代替真实模型请求验收或所有历史单元测试门禁。
 
@@ -99,3 +109,9 @@ pnpm dev
 ## 公司补充版本锁定（2026-10-13）
 
 已按补充清单精确锁定全部 16 个包，同步根 overrides、活动声明、Source Registry 和锁文件。严格冻结安装、Creator/平台 Host 构建、定向类型检查、实际启动及 AG-UI 会话浏览器验证通过。Vue plugin 6.0.1 与 Vite 8.3.0 存在官方 peer 范围差异，经验证后添加仅覆盖该精确组合的 allowedVersions 例外。全仓库 build/typecheck/tests 仍未全绿，旧组合可复现多项失败。详细范围、对照和限制见 [本轮报告](verification/dependency-pins-20261013/REPORT.md)。
+
+## 编辑器与类型检查
+
+首次安装依赖时会生成 Plugins 的 TypeScript 编写上下文；更新 `source-layout.json`、资源映射或交付清单后执行 `pnpm prepare:types`。`.typecheck/` 是由现有源码 owner 生成的类型解析目录，不提交、不发布，也不参与生产构建。它转发真实导出和服务类型，不声明宽泛的模块或跳过原始源码检查。
+
+工作区根目录的 `tsconfig.json` 提供项目索引，各包测试目录也有自己的配置入口。VS Code 可使用工作区配置的 `typescript-ui-audit` SDK；命令行包检查仍使用固定的 TypeScript 7。`pnpm typecheck` 先准备公共包和 Web Component 声明，再串行检查全部包、Workbench、React/Vue/HTML 示例，避免消费者检查期间有另一个进程清理同一份构建输出。`pnpm test:types` 使用真实编辑器语言服务检查原始源码，并以错误类型和不存在的导出验证检查没有被放宽。编辑器若仍保留修改前的诊断，可重新加载 TypeScript 项目。

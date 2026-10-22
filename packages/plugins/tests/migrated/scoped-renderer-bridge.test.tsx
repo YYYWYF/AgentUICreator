@@ -9,7 +9,7 @@ import {
   ScopedToolFallback,
   ScopedToolGroup,
 } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/ScopedRendererBridge";
-import type { UIPluginRenderScope } from "../../../operator/src/framework/contracts/ui-plugin";
+import type { UIPluginRenderScope } from "../../../creator/operator/src/framework/contracts/ui-plugin";
 import {
   PluginRenderScopeProvider,
   usePluginRenderScope,

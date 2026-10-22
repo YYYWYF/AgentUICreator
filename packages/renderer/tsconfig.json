@@ -1,4 +1,5 @@
 {
+  "extends": "../plugins/tsconfig.authoring-paths.json",
   "compilerOptions": {
     "target": "ES2022",
     "lib": [

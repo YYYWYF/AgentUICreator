@@ -4,7 +4,6 @@
   "description": "Uses the public Conversation thread list with AgentUICreator policy and data binding.",
   "version": "0.0.1",
   "capabilities": [
-    "conversation-create",
     "conversation-history",
     "conversation-selection",
     "plugin-service-consumer"
@@ -13,8 +12,7 @@
     "intents": [
       "add conversation management",
       "browse conversation history",
-      "select an existing conversation",
-      "start a new conversation"
+      "select an existing conversation"
     ],
     "visualRole": "conversation navigation",
     "defaultPlacement": {
@@ -30,7 +28,7 @@
     "icon": "messages-square",
     "labels": {
       "en-US": "History",
-      "zh-CN": "历史会话"
+      "zh-CN": "\u5386\u53f2\u4f1a\u8bdd"
     }
   }
 }

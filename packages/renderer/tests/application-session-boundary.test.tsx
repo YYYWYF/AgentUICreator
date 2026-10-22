@@ -8,7 +8,7 @@ import { createDemoAuthAdapter } from "../../plugins/resources/registry/items/pl
 import { createPluginRegistry } from "../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/plugins";
 import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../../plugins/resources/registry/items/foundation/core-runtime/files/runtime/tools";
 import gateManifest from "../../plugins/resources/registry/items/plugin/auth-gate/files/plugins/auth-gate/manifest.json";
-import { parseUIPluginManifest } from "../../operator/src/framework/contracts/ui-plugin";
+import { parseUIPluginManifest } from "../../creator/operator/src/framework/contracts/ui-plugin";
 
 it("starts no conversation subtree while blocked and disposes it across logout and identity changes", async () => {
   const adapter = createDemoAuthAdapter({ demo: true }); const session = createAuthSession(adapter);

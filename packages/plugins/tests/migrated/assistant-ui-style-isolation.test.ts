@@ -1,4 +1,4 @@
-import { generatedProjectFixture } from "../../../operator/tests/support/generated-project";
+import { generatedProjectFixture } from "../../../creator/operator/tests/support/generated-project";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
@@ -9,7 +9,6 @@ import { createServer, resolveConfig } from "vite";
 const globalsUrl = new URL("../../../../packages/plugins/src/styles.css", import.meta.url);
 const scopedPreflightUrl = new URL("../../../../packages/plugins/src/preflight.scoped.css", import.meta.url);
 const workbenchViteConfigUrl = new URL("../../../../apps/creator-workbench/vite.config.ts", import.meta.url);
-const frontendViteConfigUrl = new URL("../../../../examples/creator-host-sandbox/vite.config.ts", import.meta.url);
 const frontendRoot = await generatedProjectFixture();
 
 describe("formal assistant-ui adapter style isolation", () => {
@@ -31,8 +30,8 @@ describe("formal assistant-ui adapter style isolation", () => {
     );
   });
 
-  it("generates formal vendor utilities in both Vite hosts", async () => {
-    for (const configUrl of [frontendViteConfigUrl, workbenchViteConfigUrl]) {
+  it("generates formal vendor utilities in the Workbench and generated project", async () => {
+    for (const configUrl of [workbenchViteConfigUrl]) {
       const config = await resolveConfig(
         {
           configFile: fileURLToPath(configUrl),

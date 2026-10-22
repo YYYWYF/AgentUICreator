@@ -10,7 +10,7 @@ function HostPreview({ threadId, workspaceId }: { threadId: string; workspaceId:
   const messages = useAgentUILocale("creatorWorkbench");
   const frame = useRef<HTMLIFrameElement>(null);
   const [loadRevision, setLoadRevision] = useState(0);
-  const url = new URL(import.meta.env.VITE_CREATOR_HOST_PREVIEW_URL || "http://127.0.0.1:5176/", location.href);
+  const url = new URL(import.meta.env.VITE_CREATOR_HOST_PREVIEW_URL || "http://127.0.0.1:5180/", location.href);
   url.searchParams.set("creator-preview", "");
   useEffect(() => {
     if (frame.current === null) return;

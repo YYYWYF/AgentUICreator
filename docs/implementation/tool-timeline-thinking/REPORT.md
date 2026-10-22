@@ -168,9 +168,9 @@ Paths below include P0 and P1 only; unrelated pre-existing changes are excluded.
 | `packages/mock-agent/tests/p5-scenarios.test.ts` | Automated behavior, contract, installation, preset or catalog regression coverage. |
 | `packages/mock-agent/tests/scenario-registry.test.ts` | Automated behavior, contract, installation, preset or catalog regression coverage. |
 | `packages/mock-agent/tsconfig.tests.json` | TypeScript roots for the new registry source templates. |
-| `packages/operator/tests/fixtures/project/registry-files.json` | Materialize new registry templates in disposable generated-project fixtures. |
-| `packages/operator/tests/migrated/install-demo-plugin.test.ts` | Automated behavior, contract, installation, preset or catalog regression coverage. |
-| `packages/operator/tsconfig.tests.json` | TypeScript roots for the new registry source templates. |
+| `packages/creator/operator/tests/fixtures/project/registry-files.json` | Materialize new registry templates in disposable generated-project fixtures. |
+| `packages/creator/operator/tests/migrated/install-demo-plugin.test.ts` | Automated behavior, contract, installation, preset or catalog regression coverage. |
+| `packages/creator/operator/tsconfig.tests.json` | TypeScript roots for the new registry source templates. |
 | `packages/plugins/package.json` | Public facade version 0.1.5. |
 | `packages/plugins/src/internal/composable-thread.tsx` | Message-level anchor, tool detail reuse, protected action visibility and thinking handoff. |
 | `packages/plugins/src/internal/conversation-thinking-indicator.tsx` | Official Indicator facade with message/thread-local observed elapsed time. |

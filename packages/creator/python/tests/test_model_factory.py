@@ -128,7 +128,7 @@ def test_model_settings_defaults_to_agent_owned_retry_budget():
 
 
 def test_model_settings_priority_and_compatibility(tmp_path):
-    (tmp_path / ".env.creator.local").write_text(
+    (tmp_path / ".env.agentui.local").write_text(
         "MODEL_PROVIDER=openai\n"
         "MODEL_API_NAME=file-model\n"
         "MODEL_BASE_URL=https://file.example/v1\n"
@@ -154,7 +154,7 @@ def test_model_settings_priority_and_compatibility(tmp_path):
 
 
 def test_opencode_session_header_setting_is_opt_in(tmp_path):
-    (tmp_path / ".env.creator.local").write_text(
+    (tmp_path / ".env.agentui.local").write_text(
         "MODEL_BASE_URL=https://model.example/v1\n"
         "MODEL_API_KEY=test-key\n"
         "CREATOR_MODEL_OPENCODE_SESSION_HEADER=1\n",
@@ -163,7 +163,7 @@ def test_opencode_session_header_setting_is_opt_in(tmp_path):
     settings = CreatorModelSettings.from_environment(config_root=tmp_path, environment={})
     assert settings.opencode_session_header is True
     assert settings.max_tokens == 8192
-    (tmp_path / ".env.creator.local").write_text(
+    (tmp_path / ".env.agentui.local").write_text(
         "MODEL_BASE_URL=https://model.example/v1\nMODEL_API_KEY=test-key\n",
         encoding="utf-8",
     )
@@ -171,7 +171,7 @@ def test_opencode_session_header_setting_is_opt_in(tmp_path):
 
 
 def test_selector_settings_are_independent_of_general_model_settings(tmp_path):
-    (tmp_path / ".env.creator.local").write_text(
+    (tmp_path / ".env.agentui.local").write_text(
         "CREATOR_SELECTOR_MAX_TOKENS=512\nCREATOR_SELECTOR_REASONING_EFFORT=low\n",
         encoding="utf-8",
     )
@@ -313,7 +313,7 @@ def test_python_agent_mode_keeps_all_diagnostic_overrides():
 
 
 def test_python_agent_mode_prefers_environment_over_host_config(tmp_path):
-    (tmp_path / ".env.creator.local").write_text(
+    (tmp_path / ".env.agentui.local").write_text(
         "CREATOR_PYTHON_AGENT_MODE=domain-read\n", encoding="utf-8"
     )
 
@@ -337,7 +337,7 @@ def test_creator_verification_mode_defaults_to_static_only():
 def test_creator_verification_mode_prefers_environment_and_accepts_runtime_opt_in(
     tmp_path,
 ):
-    (tmp_path / ".env.creator.local").write_text(
+    (tmp_path / ".env.agentui.local").write_text(
         "CREATOR_VERIFICATION_MODE=static_only\n", encoding="utf-8"
     )
 

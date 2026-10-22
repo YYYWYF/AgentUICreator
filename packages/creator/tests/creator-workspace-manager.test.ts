@@ -244,7 +244,7 @@ describe("CreatorWorkspaceManager", () => {
 it("mutation gate rejects new requests and commands and waits before switching workspace", async () => {
   const manager = new CreatorWorkspaceManager({ ...setupDependencies(),
     inspectProject: async () => ({ status: "ready", projectConfig: { mode: "platform", sourceRoot: "agent-ui" }, paths: { sourceRoot: "agent-ui" } }),
-    ensureOperator: vi.fn(async () => ({})) as unknown as typeof import("@za38.03/agent-ui-operator").ensureManagedOperator,
+    ensureOperator: vi.fn(async () => ({})) as unknown as typeof import("@za38.03/agent-ui-creator/operator").ensureManagedOperator,
     createPythonManager: () => ({ ensureStarted: async () => undefined, dispose: async () => undefined }) as unknown as PythonCreatorProcessManager,
   });
   await manager.selectProject(await root());

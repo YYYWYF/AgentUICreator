@@ -1,10 +1,11 @@
+import { generatedProjectFixture } from "../../../creator/operator/tests/support/generated-project";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const workspaceRoot = fileURLToPath(new URL("../../../..", import.meta.url));
-const projectRoot = path.join(workspaceRoot, "examples/creator-host-sandbox");
+const projectRoot = await generatedProjectFixture();
 const coreRoot = path.join(workspaceRoot, "packages/core");
 const conversationRoot = path.join(workspaceRoot, "packages/runtime");
 const protectedRoots = [

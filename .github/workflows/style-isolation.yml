@@ -6,11 +6,11 @@ on:
     paths:
       - 'packages/creator/**'
       - 'packages/creator/src/mock-agent/**'
-      - 'packages/operator/src/bootstrap/**'
+      - 'packages/creator/operator/src/bootstrap/**'
       - 'packages/plugins/**'
       - 'packages/runtime-*/**'
       - 'scripts/**'
-      - 'packages/operator/**'
+      - 'packages/creator/operator/**'
       - 'packages/source-registry/**'
       - 'examples/creator-embedded-host/**'
       - 'apps/creator-workbench/**'
@@ -22,11 +22,11 @@ on:
     paths:
       - 'packages/creator/**'
       - 'packages/creator/src/mock-agent/**'
-      - 'packages/operator/src/bootstrap/**'
+      - 'packages/creator/operator/src/bootstrap/**'
       - 'packages/plugins/**'
       - 'packages/runtime-*/**'
       - 'scripts/**'
-      - 'packages/operator/**'
+      - 'packages/creator/operator/**'
       - 'packages/source-registry/**'
       - 'examples/creator-embedded-host/**'
       - 'apps/creator-workbench/**'
@@ -104,7 +104,7 @@ jobs:
           packages/creator/python/.venv/bin/pip install -e 'packages/creator/python[test]'
       - run: pnpm --filter @za38.03/agent-ui-creator-workbench exec playwright install --with-deps chromium
       - run: node scripts/prepare-workbench.mjs
-      - run: pnpm --filter @za38.03/agent-ui-operator exec vitest run tests/agent-ui-theme.test.ts tests/creator-resource-commands.test.ts tests/migrated/ensure-resource-packages.test.ts
+      - run: pnpm --filter @za38.03/agent-ui-creator test:operator tests/agent-ui-theme.test.ts tests/creator-resource-commands.test.ts tests/migrated/ensure-resource-packages.test.ts
       - run: pnpm --filter @za38.03/agent-ui-creator exec vitest run tests/creator-command-parser.test.ts tests/creator-command-api.test.ts tests/CreatorCommands.test.tsx tests/creator-workspace-manager.test.ts tests/host-preview-reload.test.ts
       - run: .venv/bin/python -m pytest tests/test_creator_command_commit.py tests/test_creator_transactions.py -q
         working-directory: packages/creator/python

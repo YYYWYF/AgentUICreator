@@ -9,12 +9,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from agent_ui_creator.operator.client import _load_protocol_validator
 
 ROOT = Path(__file__).resolve().parents[4]
-FIXTURES = ROOT / "contracts/creator/fixtures/operator"
+FIXTURES = ROOT / "packages/creator/contracts/creator/fixtures/operator"
 
 
 def canonical_fixture_outcomes():
     validator = _load_protocol_validator()
-    inventory = json.loads((ROOT / "contracts/creator/operator.operations.json").read_text())
+    inventory = json.loads((ROOT / "packages/creator/contracts/creator/operator.operations.json").read_text())
     definitions = {entry["name"]: entry["resultDef"] for entry in inventory["operations"]}
     manifest = json.loads((FIXTURES / "manifest.json").read_text())
     results = {}

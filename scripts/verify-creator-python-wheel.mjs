@@ -14,7 +14,7 @@ await inTemporaryDirectory(async (temporary) => {
   const artifacts = (await readdir(wheels)).filter((name) => name.startsWith("agent_ui_creator_core-") && name.endsWith(".whl"));
   assert.equal(artifacts.length, 1);
   const wheel = path.join(wheels, artifacts[0]);
-  const canonical = await contractManifest(path.join(repositoryRoot, "contracts/creator"));
+  const canonical = await contractManifest(path.join(repositoryRoot, "packages/creator/contracts/creator"));
   await run(python, ["-c", `
 import hashlib, json, sys, zipfile
 prefix = "agent_ui_creator/_contracts/creator/"

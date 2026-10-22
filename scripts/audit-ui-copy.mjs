@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const agentUIOnly = process.argv.includes("--agent-ui-only");
-const scopes = agentUIOnly ? ["packages/plugins/src", "packages/renderer/src", "packages/runtime/src", "packages/plugins/resources/registry/items", ...["creator-host-sandbox", "creator-assistant-host", "creator-embedded-host"].map(name => `examples/${name}/src/agent-ui`)] : ["packages/creator/src/ui", "packages/plugins/src", "packages/renderer/src", "packages/runtime/src", "packages/plugins/resources/registry/items", "examples", "apps/creator-workbench/src"];
+const scopes = agentUIOnly ? ["packages/plugins/src", "packages/renderer/src", "packages/runtime/src", "packages/plugins/resources/registry/items"] : ["packages/creator/src/ui", "packages/plugins/src", "packages/renderer/src", "packages/runtime/src", "packages/plugins/resources/registry/items", "examples", "apps/creator-workbench/src"];
 const excluded = /\/(?:vendor|vendors|fixtures|node_modules|dist|dev)\/|(?:\.test|\.spec)\.[cm]?[jt]sx?$|\.generated\./;
 async function collect(directory) {
   const results = [];

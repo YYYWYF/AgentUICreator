@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url";
 import { readCreatorHostConfigValue } from "../creatorRuntimeConfig.js";
 import { readFileSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { AgentUIUpdateService, PackageUpgradeService, PackageUpdateService, HttpCompatibilityReleaseProvider, NpmCompatibilityReleaseProvider, type CompatibilityReleaseProvider, type UpdateSourceProvider } from "@za38.03/agent-ui-operator/updates";
+import { AgentUIUpdateService, PackageUpgradeService, PackageUpdateService, HttpCompatibilityReleaseProvider, NpmCompatibilityReleaseProvider, type CompatibilityReleaseProvider, type UpdateSourceProvider } from "@za38.03/agent-ui-creator/operator/updates";
 import type { CreatorWorkspaceManager } from "../workspace/CreatorWorkspaceManager.js";
 
 export const CREATOR_UPDATES_API_PATH = "/__creator/updates";

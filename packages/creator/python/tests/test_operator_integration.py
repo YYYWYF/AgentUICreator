@@ -24,21 +24,15 @@ from agent_ui_creator.files import read_creator_file_state
 from agent_ui_creator.operator import OperatorClient
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
-TARGET_PROJECT = REPOSITORY_ROOT / "examples" / "creator-host-sandbox"
+TARGET_PROJECT = None
 
 @pytest.fixture(scope="module", autouse=True)
-def _ensure_real_host_project():
+def _ensure_real_host_project(tmp_path_factory):
+    global TARGET_PROJECT
     import subprocess
-    subprocess.run(
-        ["pnpm", "--filter", "@za38.03/agent-ui-operator", "build"], cwd=REPOSITORY_ROOT, check=True,
-    )
-    subprocess.run(
-        ["pnpm", "--filter", "@za38.03/agent-ui-operator/bootstrap", "build"], cwd=REPOSITORY_ROOT, check=True,
-    )
-    subprocess.run(
-        ["pnpm", "--filter", "@za38.03/agent-ui-creator-host-sandbox", "exec", "node", "--import", "tsx", "../../scripts/host-examples/host-project.ts", "ensure", "platform", "creator-host-sandbox"],
-        cwd=REPOSITORY_ROOT, check=True,
-    )
+    TARGET_PROJECT = tmp_path_factory.mktemp("creator-react-host")
+    subprocess.run(["node", str(REPOSITORY_ROOT / "packages/creator/python/tests/fixtures/phase3/prepare-host.mjs"), str(TARGET_PROJECT), str(REPOSITORY_ROOT)], cwd=REPOSITORY_ROOT, check=True)
+
 
 
 
@@ -167,16 +161,11 @@ def test_real_source_tool_lists_uninstalled_resources_with_current_state_hash():
         ("creator-embedded-host", "embedded"),
     ],
 )
-def test_current_host_modes_have_complete_bounded_inspection(host_name, mode):
+def test_current_host_modes_have_complete_bounded_inspection(host_name, mode, tmp_path):
     import subprocess
 
-    host = REPOSITORY_ROOT / "examples" / host_name
-    subprocess.run(
-        ["node", "--import", "tsx", "../../scripts/host-examples/host-project.ts",
-         "ensure", mode, host_name],
-        cwd=host,
-        check=True,
-    )
+    host = tmp_path / host_name
+    subprocess.run(["node", str(REPOSITORY_ROOT / "packages/creator/python/tests/fixtures/phase3/prepare-host.mjs"), str(host), str(REPOSITORY_ROOT), mode], cwd=REPOSITORY_ROOT, check=True)
     client = OperatorClient(project_root=host)
     tools = {tool.name: tool for tool in create_operator_tools(client)}
     full = asyncio.run(client.inspect_ui_project(view="composition"))
@@ -510,8 +499,8 @@ def test_real_managed_host_source_apply_and_internal_remove_contract(tmp_path):
     (source / "app-ui").mkdir()
     (metadata / "project.json").write_text(json.dumps({"mode": "platform", "sourceRoot": "custom-ui"}))
     (source / "app-ui/app-ui.json").write_text(json.dumps({"root": {"type": "slot", "plugins": []}}))
-    runtime = REPOSITORY_ROOT / "packages/operator/dist/runtime/operator-runtime.mjs"
-    assert runtime.is_file(), "Build @za38.03/agent-ui-operator before cross-language integration tests."
+    runtime = REPOSITORY_ROOT / "packages/creator/operator/dist/runtime/operator-runtime.mjs"
+    assert runtime.is_file(), "Build @za38.03/agent-ui-creator/operator before cross-language integration tests."
     entry = metadata / "operator/entry.mjs"
     entry.parent.mkdir()
     entry.write_text(
@@ -527,7 +516,7 @@ import { createRequire } from 'node:module';
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 const [repository, target] = process.argv.slice(1);
-const require = createRequire(path.join(repository, 'examples/creator-host-sandbox/package.json'));
+const require = createRequire(path.join(repository, 'packages/creator/package.json'));
 const { minVersion } = require('semver');
 const registry = path.join(repository, 'packages/plugins/resources/registry/items');
 const byId = new Map();

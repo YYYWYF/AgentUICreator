@@ -29,12 +29,13 @@
   "sideEffects": true,
   "scripts": {
     "prepare:shell": "node scripts/prepare-shell.mjs",
-    "build": "node ../../scripts/sync-package-release-metadata.mjs web-component && pnpm prepare:shell && tsc --noEmit && node scripts/build-register.mjs && vite build --config vite.host.config.ts && tsc -p tsconfig.types.json && node scripts/finish-build.mjs && node ../../scripts/sync-package-release-metadata.mjs web-component",
-    "typecheck": "pnpm prepare:shell && tsc --noEmit",
+    "build": "node ../../scripts/sync-package-release-metadata.mjs web-component && node scripts/prepare-shell.mjs && tsc --noEmit && node scripts/build-register.mjs && vite build --config vite.host.config.ts && tsc -p tsconfig.types.json && node scripts/finish-build.mjs && node ../../scripts/sync-package-release-metadata.mjs web-component",
+    "typecheck": "node scripts/prepare-shell.mjs && tsc --noEmit",
     "test": "vitest run",
     "test:distribution": "node tests/distribution.test.mjs",
     "test:installation": "node tests/installation.test.mjs",
-    "prepack": "node ../../scripts/sync-package-release-metadata.mjs web-component"
+    "prepack": "node ../../scripts/sync-package-release-metadata.mjs web-component",
+    "prepublishOnly": "node ../../scripts/sync-package-release-metadata.mjs web-component --publish"
   },
   "dependencies": {
     "@za38.03/agent-ui-plugins": "workspace:*",
@@ -62,10 +63,10 @@
     "tsx": "4.20.6",
     "typescript": "7.0.2",
     "vite": "8.3.0",
-    "@za38.03/agent-ui-operator": "workspace:*",
     "vitest": "4.1.8",
     "jsdom": "27.4.0",
-    "esbuild": "0.25.12"
+    "esbuild": "0.25.12",
+    "@za38.03/agent-ui-creator": "workspace:*"
   },
   "agentUICompatibility": {
     "kind": "compatibility",
@@ -82,83 +83,7 @@
     "schemaVersion": 1,
     "compatibility": {
       "schemaVersion": 1,
-      "releases": [
-        {
-          "id": "agent-ui-initial-0.0.1",
-          "publishedAt": "2026-10-18T00:00:00Z",
-          "channel": "stable",
-          "node": "^20.19.0 || >=22.12.0",
-          "react": ">=18 <20",
-          "packages": [
-            {
-              "name": "@za38.03/agent-ui-core",
-              "version": "0.0.1",
-              "requires": {},
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-renderer",
-              "version": "0.0.1",
-              "requires": {},
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-runtime",
-              "version": "0.0.1",
-              "requires": {
-                "@za38.03/agent-ui-core": "0.0.1",
-                "@za38.03/agent-ui-plugins": "0.0.1"
-              },
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-plugins",
-              "version": "0.0.1",
-              "requires": {
-                "@za38.03/agent-ui-core": "0.0.1",
-                "@za38.03/agent-ui-renderer": "0.0.1"
-              },
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-web-component",
-              "version": "0.0.1",
-              "requires": {
-                "@za38.03/agent-ui-plugins": "0.0.1",
-                "@za38.03/agent-ui-runtime": "0.0.1",
-                "@za38.03/agent-ui-core": "0.0.1",
-                "@za38.03/agent-ui-renderer": "0.0.1"
-              },
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-creator",
-              "version": "0.0.1",
-              "requires": {
-                "@za38.03/agent-ui-operator": "0.0.1",
-                "@za38.03/agent-ui-core": "0.0.1"
-              },
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-operator",
-              "version": "0.0.1",
-              "requires": {
-                "@za38.03/agent-ui-web-component": "0.0.1",
-                "@za38.03/agent-ui-plugins": "0.0.1"
-              },
-              "historyFrom": "0.0.1",
-              "changes": []
-            }
-          ]
-        }
-      ]
+      "releases": []
     }
   }
 }

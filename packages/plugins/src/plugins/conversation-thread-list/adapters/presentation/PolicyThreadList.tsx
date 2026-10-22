@@ -8,7 +8,6 @@ import {
   ConversationIf,
   ConversationThreadListItem,
   ConversationThreadListItemByIndex,
-  ConversationThreadListNew,
   ConversationThreadListRoot,
   ConversationThreadListSearch,
   Skeleton,
@@ -133,21 +132,27 @@ const PolicyThreadListItems: FC<{ searchQuery?: string }> = ({
   );
 };
 
-export interface PolicyThreadListProps { labels: ConversationThreadListItemLabels; rootProps?: ComponentProps<typeof ConversationThreadListRoot>; newProps?: ComponentProps<typeof ConversationThreadListNew>; searchProps?: Partial<ComponentProps<typeof ConversationThreadListSearch>>; itemProps?: ConversationThreadListItemProps; components?: { ThreadListItem?: ComponentType }; }
-export function PolicyThreadList({ labels, rootProps, newProps, searchProps, itemProps, components }: PolicyThreadListProps) {
+export interface PolicyThreadListProps {
+  labels: ConversationThreadListItemLabels;
+  rootProps?: ComponentProps<typeof ConversationThreadListRoot>;
+  /** Disabling search also removes its query from list filtering. */
+  showSearch?: boolean;
+  searchProps?: Partial<ComponentProps<typeof ConversationThreadListSearch>>;
+  itemProps?: ConversationThreadListItemProps;
+  components?: { ThreadListItem?: ComponentType };
+}
+export function PolicyThreadList({ labels, rootProps, showSearch = true, searchProps, itemProps, components }: PolicyThreadListProps) {
   const messages = useAgentUILocale("threadList");
-  const onNavigate = useAgentUISidebarNavigation();
   const [search, setSearch] = useState("");
   const hasThreads = useConversationState((s) => s.threads.threadIds.length > 0);
 
   return (
     <ThreadListOptionsContext.Provider value={{itemProps,components}}><ThreadListLabelsContext.Provider value={labels}>
       <ConversationThreadListRoot {...rootProps}>
-        <ConversationThreadListNew {...newProps} onClick={event => { newProps?.onClick?.(event); if (!event.defaultPrevented) onNavigate(); }}>{newProps?.children ?? messages.newThread}</ConversationThreadListNew>
-        {hasThreads && (
+        {showSearch && hasThreads && (
           <ConversationThreadListSearch placeholder={messages.search} aria-label={messages.search} {...searchProps} value={searchProps?.value ?? search} onValueChange={value => { setSearch(value); searchProps?.onValueChange?.(value); }} />
         )}
-        <PolicyThreadListItems searchQuery={hasThreads ? (searchProps?.value ?? search) : ""} />
+        <PolicyThreadListItems searchQuery={showSearch && hasThreads ? (searchProps?.value ?? search) : ""} />
       </ConversationThreadListRoot>
     </ThreadListLabelsContext.Provider></ThreadListOptionsContext.Provider>
   );

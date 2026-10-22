@@ -7,7 +7,7 @@ import { ArrowLeft, ArrowUpCircle, RefreshCw, GitMerge, ShieldCheck } from "luci
 import { Button } from "./components/button.js";
 import { Alert, AlertDescription } from "./components/alert.js";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/card.js";
-import type { UpdateInspection, UpgradePlan, PackageUpgradePlan, PackageUpgradeResult } from "@za38.03/agent-ui-operator/updates";
+import type { UpdateInspection, UpgradePlan, PackageUpgradePlan, PackageUpgradeResult } from "@za38.03/agent-ui-creator/operator/updates";
 import { useCreatorRefresh } from "./creatorRefresh.js";
 
 export interface UpdateNotificationStateStore { isDismissed(projectId: string, fingerprint: string): boolean; dismiss(projectId: string, fingerprint: string): void }

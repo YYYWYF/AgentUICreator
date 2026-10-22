@@ -6,6 +6,7 @@ dist/
 coverage/
 *.tsbuildinfo
 .DS_Store
+.env.agentui.local
 .env.creator.local
 examples/creator-host-sandbox/.env.local
 examples/creator-assistant-host/.env.local
@@ -35,3 +36,6 @@ packages/plugins/src/internal/vendor-generated/assistant-ui/
 packages/plugins/src/internal/adapters-generated/assistant-ui/
 packages/plugins/resources/registry/items/plugin/*/files/
 packages/plugins/resources/registry/items/plugin/*/changelog.json
+
+# TypeScript authoring resolution generated from the source-layout owners.
+packages/plugins/.typecheck/

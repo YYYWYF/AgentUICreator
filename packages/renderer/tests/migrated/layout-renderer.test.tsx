@@ -2,14 +2,14 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { LayoutRenderer } from "@za38.03/agent-ui-renderer";
 
-import type { AppUIModel } from "../../../operator/src/framework/contracts/app-ui-model";
-import { compileAppUIModel } from "../../../operator/src/framework/contracts/app-ui-compiler";
+import type { AppUIModel } from "../../../creator/operator/src/framework/contracts/app-ui-model";
+import { compileAppUIModel } from "../../../creator/operator/src/framework/contracts/app-ui-compiler";
 import { pluginCapabilityCatalog } from "../../../plugins/resources/registry/items/foundation/core/files/plugins/index";
-import appUIJson from "../../../operator/tests/fixtures/project/app-ui/app-ui.json";
+import appUIJson from "../../../creator/operator/tests/fixtures/project/app-ui/app-ui.json";
 import {
   parseAppUIRuntimeModel,
   type AppUIRuntimeModel,
-} from "../../../operator/src/framework/contracts/app-ui-runtime-model";
+} from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
 
 describe("LayoutRenderer integration", () => {
   it("renders the checked-in Conversation layout through the official Runtime", () => {

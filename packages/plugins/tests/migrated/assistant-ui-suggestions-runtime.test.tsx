@@ -15,14 +15,14 @@ import {
   ConversationRuntimeProvider,
   type ConversationAgentFactory,
 } from "@za38.03/agent-ui-runtime";
-import type { AppUIModel } from "../../../operator/src/framework/contracts/app-ui-model";
+import type { AppUIModel } from "../../../creator/operator/src/framework/contracts/app-ui-model";
 import { ConversationSuggestionsPlugin } from "../../resources/registry/items/plugin/conversation-suggestions/files/plugins/conversation-suggestions/index";
 import {
   capabilityCatalogRevision,
   pluginCapabilityCatalog,
 } from "../../resources/registry/items/foundation/core/files/plugins/index";
 import { createConversationServiceThreadBinding } from "../../resources/registry/items/foundation/core-adapters/files/agent-ui/conversation/threads/conversation-service-thread-binding";
-import { platformMode } from "../../../operator/src/framework/modes/platform";
+import { platformMode } from "../../../creator/operator/src/framework/modes/platform";
 import { AgentRuntimeProvider } from "../../resources/registry/items/foundation/core-runtime/files/runtime/context/index";
 import {
   buildRuntimeComposition,
@@ -32,17 +32,17 @@ import {
   UIPluginRuntime,
   type UIPluginRuntimeActions,
 } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
-import { createStaticAgentRuntime } from "../../../operator/tests/support/agent-runtime-fixture";
-import { mutateAppUIModel } from "../../../operator/src/project/app-ui-transaction";
+import { createStaticAgentRuntime } from "../../../creator/operator/tests/support/agent-runtime-fixture";
+import { mutateAppUIModel } from "../../../creator/operator/src/project/app-ui-transaction";
 import {
   buildCreatorActionCatalog,
-} from "../../../operator/src/project/creator-action-catalog";
+} from "../../../creator/operator/src/project/creator-action-catalog";
 import {
   generatePluginRegistryFromFacts,
   collectPluginProjectFacts,
-} from "../../../operator/src/project/registry-generator";
-import { resolveAgentUIProjectPaths } from "../../../operator/src/project/agent-ui-project-paths";
-import type { UIOperatorConfig } from "../../../operator/src/project/types";
+} from "../../../creator/operator/src/project/registry-generator";
+import { resolveAgentUIProjectPaths } from "../../../creator/operator/src/project/agent-ui-project-paths";
+import type { UIOperatorConfig } from "../../../creator/operator/src/project/types";
 
 const mountedRoots: Root[] = [];
 const temporaryProjects: string[] = [];

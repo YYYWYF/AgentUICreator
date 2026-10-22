@@ -17,7 +17,7 @@ export const enUS = {
     "hint": "Choose a project and product mode in Creator Agent on the right to initialize Agent UI."
 },
   "launcher": {
-    "help": "Agent UI Creator\n\nUsage:\n  agent-ui-creator                 Open Creator in the browser\n  agent-ui-creator --message <request> --project <directory>\n\nOptional:\n  -p, --project      Select an initial project\n  -c, --config-root  Directory containing .env.creator.local\n  -m, --message      Run one request in the terminal\n      --port         Creator service port (fails if occupied)\n      --no-open      Do not open the standalone page\n  -h, --help         Show help\n",
+    "help": "Agent UI Creator\n\nUsage:\n  agent-ui-creator                 Open Creator in the browser\n  agent-ui-creator --message <request> --project <directory>\n\nOptional:\n  -p, --project      Select an initial project\n  -c, --config-root  Directory containing .env.agentui.local\n  -m, --message      Run one request in the terminal\n      --port         Creator service port (fails if occupied)\n      --no-open      Do not open the standalone page\n  -h, --help         Show help\n",
     "started": "Creator is running: {0}",
     "stop": "Press Ctrl+C to stop. Select your project and capabilities in Creator.",
     "browserUnavailable": "Could not open the browser automatically. Open the address above.",

@@ -10,7 +10,7 @@ import type {
 import type {
   UIPluginActions,
   UIPluginEvents,
-} from "../../../operator/src/framework/contracts/ui-plugin";
+} from "../../../creator/operator/src/framework/contracts/ui-plugin";
 import {
   AgentRuntimeProvider,
   PluginInstanceProvider,

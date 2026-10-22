@@ -134,7 +134,7 @@ product acceptance are not run. Expansion beyond Composer waits for acceptance.
 ## Explicit real-model Composer acceptance
 
 Run `pnpm verify:creator:official-composer-live` when acceptance is requested.
-The runner loads the normal `.env.creator.local` model settings, selects only
+The runner loads the normal `.env.agentui.local` model settings, selects only
 `tests/live/test_official_composer.py`, and sets the existing live-model opt-in.
 Ordinary test runs skip the test. StaticChatModel regressions remain unchanged.
 

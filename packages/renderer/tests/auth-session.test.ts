@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createAuthSession } from "../../plugins/resources/registry/items/plugin/auth-gate/files/plugins/auth-gate/session";
 import { createDemoAuthAdapter } from "../../plugins/resources/registry/items/plugin/auth-gate/files/services/auth/mock-adapter";
 import { createHostAuthAdapter } from "../../plugins/resources/registry/items/plugin/auth-gate/files/services/auth/adapter";
-import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure } from "../../operator/src/source-catalog/index";
+import { loadAgentUISourceRegistry, resolveAgentUISourceItemClosure } from "../../creator/operator/src/source-catalog/index";
 
 const credentials = (account = "A") => ({ account, password: "demo" });
 describe("optional authentication source and single session", () => {

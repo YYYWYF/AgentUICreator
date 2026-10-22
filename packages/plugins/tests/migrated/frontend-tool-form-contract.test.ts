@@ -1,6 +1,6 @@
 import { expect, it, vi } from "vitest";
 import { formTools } from "@assistant-ui/react-hook-form";
-import { createReactHookFormFrontendTools, reactHookFormToolContracts } from "../../../operator/tests/fixtures/official-form/integrations/react-hook-form/index";
+import { createReactHookFormFrontendTools, reactHookFormToolContracts } from "../../../creator/operator/tests/fixtures/official-form/integrations/react-hook-form/index";
 import { AppFrontendToolRegistry, AppFrontendToolRuntime } from "../../resources/registry/items/foundation/core-runtime/files/runtime/tools/index";
 
 it("uses public upstream semantics for all three tool descriptions", () => {

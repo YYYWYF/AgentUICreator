@@ -1,4 +1,4 @@
-import { generatedProjectFixture } from "../../../operator/tests/support/generated-project";
+import { generatedProjectFixture } from "../../../creator/operator/tests/support/generated-project";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

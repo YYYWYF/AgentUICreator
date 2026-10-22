@@ -771,7 +771,7 @@ def parse_args() -> argparse.Namespace:
         "--config-root",
         type=Path,
         default=REPO_ROOT,
-        help="Root containing .env.creator.local (default: repository root).",
+        help="Root containing .env.agentui.local (default: repository root).",
     )
     parser.add_argument(
         "--runs",

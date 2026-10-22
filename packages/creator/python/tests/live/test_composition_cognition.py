@@ -27,31 +27,15 @@ from agent_ui_creator.validation import CreatorValidationCommandRunner
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[5]
-TARGET_PROJECT = REPOSITORY_ROOT / "examples" / "creator-host-sandbox"
+TARGET_PROJECT = None
 
 @pytest.fixture(scope="module", autouse=True)
-def _ensure_real_host_project():
+def _ensure_real_host_project(tmp_path_factory):
+    global TARGET_PROJECT
     import subprocess
-    subprocess.run(
-        ["pnpm", "--filter", "@za38.03/agent-ui-operator", "build"], cwd=REPOSITORY_ROOT, check=True,
-    )
-    subprocess.run(
-        ["pnpm", "--filter", "@za38.03/agent-ui-operator/bootstrap", "build"], cwd=REPOSITORY_ROOT, check=True,
-    )
-    subprocess.run(
-        ["pnpm", "--filter", "@za38.03/agent-ui-creator-host-sandbox", "exec", "node", "--import", "tsx", "../../scripts/host-examples/host-project.ts", "ensure", "platform", "creator-host-sandbox"],
-        cwd=REPOSITORY_ROOT, check=True,
-    )
+    TARGET_PROJECT = tmp_path_factory.mktemp("creator-react-host")
+    subprocess.run(["node", str(REPOSITORY_ROOT / "packages/creator/python/tests/fixtures/phase3/prepare-host.mjs"), str(TARGET_PROJECT), str(REPOSITORY_ROOT)], cwd=REPOSITORY_ROOT, check=True)
 
-SKILLS_ROOT = REPOSITORY_ROOT / "packages" / "creator" / "skills"
-APP_UI_MODEL_PATH = "src/agent-ui/app-ui/app-ui.json"
-SURFACE_PLUGIN_ROOT = "src/agent-ui/plugins/conversation-surface"
-CASE_A_PROMPT = "我要会话管理的功能"
-CASE_B_PROMPT = "帮我去掉左边的历史会话"
-CASE_C_PROMPT = "给这个应用加一个主题切换功能"
-CASE_D_PROMPT = "修改历史会话列表的具体展示行为"
-CASE_E_PROMPT = "添加会话管理入口，并让历史列表支持搜索"
-_LIVE_RUN_METRICS: list[tuple[int, int]] = []
 
 
 @pytest.fixture(scope="module", autouse=True)

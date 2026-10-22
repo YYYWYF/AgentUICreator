@@ -1,5 +1,7 @@
 # 统一更新中心与兼容版本清单
 
+> 2026-10-21：Creator 与 Operator 合为一个开发工具发布包，Operator 是 `packages/creator/operator` 内部模块。更新中心仅识别六个公共包；工具版本和安装位置取自实际 Creator 包，Operator 随 Creator 更新，不再作为独立 npm 升级目标。历史 `minimumOperatorVersion` 字段为协议兼容而保留，校验合包后的 Creator 工具版本；不生成新的独立 Operator 包记录。工具自升级执行和运行中重启原有待实现边界不变。
+
 状态：Accepted，2026-10-17；2026-10-18 已接入第一阶段：真实版本来源、兼容清单校验、默认 npm registry 只读发现（保留旧 HTTP provider 兼容）、兼容稳定组合选择、累计/逐版本变更展示和明确的离线缓存状态。第二阶段已接入独立项目的 npm/pnpm 产物核验、用户确认安装/锁文件更新、失败恢复与安装后源码同步衔接。共享 workspace、其他包管理器、工具升级和意外中断进程的自动恢复仍未实现；不能扩大为所有安装宿主已完成统一升级。
 
 本文定义官方包的发现、版本比较、统一升级和升级后源码同步。插件所有权继续遵守 [统一 Plugins 包与源码托管](npm-default-plugin-source-ownership.md)。本文取代此前“用户手动升级 npm，Creator 只处理源码同步”的决定；用户仍可在外部包管理器自行操作，但这不再是产品默认要求。
@@ -10,7 +12,7 @@
 
 更新中心在 Creator 启动、选中工程及用户打开更新页时，有界地检查官方更新；后台发现仅做读取、缓存和通知，不下载并执行代码、不修改依赖或本地源码。提供手动刷新及上次检查时间。网络失败或仅有缓存时明确显示“未能确认最新版本”，不能显示为“已是最新”。无需后台常驻服务或生产应用自行访问更新服务。
 
-同一个页面包含两类更新，不增加新的 npm 总包，也不把七个包强制改成相同版本：
+同一个页面包含两类更新，不增加新的 npm 总包，也不把六个包强制改成相同版本：
 
 | 更新对象 | 官方包范围 | 执行位置与边界 |
 | --- | --- | --- |
@@ -103,7 +105,7 @@ Operator 只在确认范围内执行：
 | 更新合同与聚合 | 扩展 `operator/src/update-contract.ts` 与 `project/source-registry/updates.ts`：分开兼容组合、包版本、插件版本、来源/基线身份，覆盖 npm 默认应用层；目前 inspect 跳过这些应用层，只聚合托管与旧源码更新 |
 | 依赖计划与安装 | 新增受控 npm 升级规划/执行/恢复服务（拟新增 `operator/src/updates/package-upgrade-plan.ts`、`package-upgrade-executor.ts`），复用 `project/ensure-resource-packages.ts` 的包管理器识别与跨平台进程能力；其现有 ensureResourcePackages 只补缺失依赖、不升级现有声明，不能直接当升级器 |
 | 工具宿主管理 | Creator 安装宿主/CLI 增加工具安装身份、受控重启与恢复通道（拟新增 `creator/src/updates/tool-update-host.ts`）；与 `PythonCreatorProcessManager.ts`、`workspace/CreatorWorkspaceManager.ts` 协作，避免自覆盖和把开发依赖装入生产工程 |
-| 确认与开发期 API | 扩展 `creator/src/updates/update-api.ts`、Operator 公开更新入口及 `contracts/creator` 对应合同/类型：只读检查、绑定计划的确认执行、进度/恢复/工具重连。沿用现有授权和当前工程校验，不把 confirmed 布尔或模型自然语言当作独立凭据 |
+| 确认与开发期 API | 扩展 `creator/src/updates/update-api.ts`、Operator 公开更新入口及 `packages/creator/contracts/creator` 对应合同/类型：只读检查、绑定计划的确认执行、进度/恢复/工具重连。沿用现有授权和当前工程校验，不把 confirmed 布尔或模型自然语言当作独立凭据 |
 | 页面与通知 | `creator/src/ui/CreatorPluginUpdates.tsx`、`CreatorWorkbench.tsx` 增加项目/工具分区、累计变化、逐版本展开、真实当前/目标、依赖联动及阶段进度。默认 npm 插件也在总览出现；复用统一 locale，新增文案 en-US/zh-CN 对等 |
 | 源码同步衔接 | `operator/src/project/owned-plugin-updates.ts`、`takeover-plugin-source.ts` 和 ownership/BASE 机制复用；只在安装及实际包校验完成后生成新同步计划，旧计划失效。刷新 UI 时保持 npm 安装状态与源码基线状态独立 |
 | 打包与兼容 | 官方七包继续独立发布；核对全部 exports、包/清单版本、插件内部版本、运行/快照一致性、浏览器图及独立生产构建。Web Component 仍是 React 生产工程的兼容产物 |
@@ -117,7 +119,7 @@ Operator 只在确认范围内执行：
 - 默认 `NpmCompatibilityReleaseProvider` 在目标工程执行 npm 元数据查询，读取真实 latest 身份和发布者随包维护的兼容历史，验证组合内精确版本已发布，按工程隔离缓存及并发请求；不可变组合被改写、元数据缺失或不可达时不报最新。无需设置 `CREATOR_UPDATE_MANIFEST_URL`。旧宿主显式设置该变量时仍使用原 HTTP provider，仅作为兼容入口；正常工程不依赖它。
 - `/__creator/updates/check` 在保留旧源码检查结果的基础上添加可选 `packageUpdates`，分开包组合身份与历史 releaseVersion。默认 npm 包不再因没有 ownership 而从版本总览消失。API 始终绑定当前工程，源码检查启用只读模式，有待恢复事务时明确阻塞、不顺带恢复或覆盖文件；不提供本阶段 npm 安装/执行路由。
 - 页面按项目/工具展示实际版本和推荐目标，聚合区间内功能变化，保留逐版本条目、不兼容原因与历史缺口。推荐来自清单要求的校验，不表示客户端已经向 npm 注册源确认这些产物可下载；该核验属于安装前阶段。`installationSupported=false`，页面明确暂不安装。既有源码计划/合并/验证采用按钮继续使用已安装包，不读取在线快照或改写 BASE。
-- `scripts/prepare-compatibility-release.mjs --id <immutable-id> --notes <authored-json> --output <feed-json> [--previous <feed-json>]` 从七个真实 package.json 生成版本、官方依赖范围及 Node/React 交集，保留历史发行并通过同一 Schema 校验；notes 按完整包名提供 `historyFrom` 和 `changes`。`historyFrom` 是发布者对记录完整性的声明，不从补丁号连续性推测；缺失或区间资料不足时页面明确提示。该脚本只准备资料，不发布、部署或验证 npm 产物已存在；正式托管前发布者仍须完成发行验证。测试 feed 不作为正式发布记录。
+- `scripts/prepare-compatibility-release.mjs --id <immutable-id> --notes <authored-json> --output <feed-json> [--previous <feed-json>]` 从六个真实 package.json 生成版本、官方依赖范围及 Node/React 交集，保留历史发行并通过同一 Schema 校验；notes 按完整包名提供 `historyFrom` 和 `changes`。`historyFrom` 是发布者对记录完整性的声明，不从补丁号连续性推测；缺失或区间资料不足时页面明确提示。该脚本只准备资料，不发布、部署或验证 npm 产物已存在；正式托管前发布者仍须完成发行验证。测试 feed 不作为正式发布记录。
 
 第一阶段本身不执行依赖升级；以下第二阶段在此基础上提供独立项目安装。两阶段均不提供工具自升级/重启、发行清单磁盘持久缓存或默认正式在线地址。验证记录见 [第一阶段记录](../verification/unified-update-discovery-2026-10-18/README.md)。
 
@@ -148,3 +150,11 @@ Operator 只在确认范围内执行：
 ## 随包发布流程
 
 每次发行使用 `scripts/prepare-compatibility-release.mjs` 从真实包版本、依赖与经审阅的变更记录生成组合，将结果保存到 `releases/compatibility.json`，保留既有组合 ID 和内容。随后运行正式构建和 pack；各包 build/prepack 执行 `scripts/sync-package-release-metadata.mjs`，阻止缺少当前版本或依赖要求已漂移的清单进入产物。清单不是自动推断的兼容承诺，发布者仍须验证组合。npm 全部目标版本可获取之后客户端才展示该组合。Plugins 源码仍由现有 catalog、快照和哈希验证发布，不从 Creator 内嵌副本读取。
+
+首次发行准备前，`releases/compatibility.json` 的 `releases`、`releases/plugins-history.json` 的 `releases` 保持空数组，插件 `CHANGELOG.json` 保持空对象，不保留模拟发行快照。开发构建和 pack 允许空历史。Plugins 的发行校验由发布者在本地显式执行，不接入 `prepublishOnly`，不要求环境变量、不联网下载上一版，也不自动修改版本或 changelog；其他包的现有发布钩子不变。
+
+本地先编辑包版本、`resources/registry/release.json`、各 Plugin 的 canonical `plugin.json` / `CHANGELOG.json` 和经审阅的兼容清单，完成构建后运行 `pnpm --filter @za38.03/agent-ui-plugins release:verify`。命令只读校验当前 changelog、版本、兼容资料、catalog / source 快照和本地历史；`release:prepare` 是同一只读校验的兼容入口，不再自动递增 patch。校验失败由发布者修正后重跑。
+
+首次校验以随仓库提交的显式空 `releases/plugins-history.json` 为起点；文件缺失或损坏必须报错，不推断为首次发行。`pnpm --filter @za38.03/agent-ui-plugins release:record` 在相同校验通过后显式追加本地准备记录（发行描述、各 Plugin 源码摘要和累计 changelog）。该记录不含完整源码，不进入包内资源，不替代源码同步所需的精确 BASE/LOCAL/TARGET。Plugin 摘要组合现有 resource 摘要与 catalog 中全部 canonical Plugin 文件摘要，共享源码摘要另行记录以检测已准备内容漂移；仓库 `.gitattributes` 固定文本 LF，文件系统绝对路径不进入摘要。历史记录应随代码提交，不可随意重写；已记录版本内容变化需恢复原内容或提升发行版本，再校验和记录。相同内容重复记录是幂等操作。准备后可再次执行只读校验确认未漂移，再推送代码和发包。
+
+本地准备记录不表示 npm 已发布，不更新在线可用性；发布失败后保留原记录并可重试相同版本。完整 `.tgz` 和源码发行归档仍可作为 CI 制品/发行附件另行保存。发行序列以本地记录为准，不从 npm latest 猜测；已有正式发行但本地历史缺失时需先由维护者补齐真实基线，不能用空历史重置。实际发布成功与否仍以 npm 为准，客户端仍验证组合内目标版本真实可获取。

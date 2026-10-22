@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { spawnPnpmSync } from "./pnpm-process.mjs";
-export const publicModules = ["core", "renderer", "plugins", "runtime", "operator", "creator", "web-component"];
+export const publicModules = ["core", "renderer", "plugins", "runtime", "creator", "web-component"];
 export const publicPackageName = name => `@za38.03/agent-ui-${name}`;
 export function buildPublicPackages() {
   const cwd = fileURLToPath(new URL("..", import.meta.url));

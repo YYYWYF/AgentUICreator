@@ -14,7 +14,7 @@ export interface CreatorCommandCatalogEntry extends CreatorCommandDefinition {
   current?: string;
 }
 export interface CreatorCommandCatalog { commands: CreatorCommandCatalogEntry[] }
-export interface CreatorCommandResult { status?: "integration-required"; integrationPlan?: Awaited<ReturnType<typeof import("@za38.03/agent-ui-operator/resources").planIntegrationRecipe>>; value?: string; changed: boolean; reenabled?: boolean; receipt: CreatorRunReceipt }
+export interface CreatorCommandResult { status?: "integration-required"; integrationPlan?: Awaited<ReturnType<typeof import("@za38.03/agent-ui-creator/operator/resources").planIntegrationRecipe>>; value?: string; changed: boolean; reenabled?: boolean; receipt: CreatorRunReceipt }
 export interface CreatorCommandActivity {
   kind: "command";
   id: string;

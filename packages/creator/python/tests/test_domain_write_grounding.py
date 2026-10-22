@@ -475,9 +475,9 @@ def test_validation_mode_prompt_narrows_clean_mode_to_workspace_clean_requests()
     [
         (("session-manager",), "我要历史会话功能", QUESTION),
         (
-            ("session-manager", "conversation-history"),
+            ("session-manager", "history-browser"),
             "把会话插件恢复回来。",
-            "项目有 session-manager 和 conversation-history，你要恢复哪一个？",
+            "项目有 session-manager 和 history-browser，你要恢复哪一个？",
         ),
     ],
     ids=["A-restore-or-create", "D-two-targets"],

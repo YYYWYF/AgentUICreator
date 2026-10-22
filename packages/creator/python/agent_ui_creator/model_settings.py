@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Mapping
 
 CREATOR_MODEL_NAME = "mimo-v2.5-pro"
-CREATOR_HOST_ENV_FILE = ".env.creator.local"
+CREATOR_HOST_ENV_FILE = ".env.agentui.local"
 DEFAULT_CREATOR_MODEL_MAX_RETRIES = 2
 
 

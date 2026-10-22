@@ -28,10 +28,7 @@ export interface AgentUILocaleMessages extends Omit<AgentUIPresentationMessages,
     localeKey: string; personOne: string; personTwo: string; personThree: string;
     departmentOne: string; departmentTwo: string; departmentThree: string; summarize: string;
   };
-  searchTools: {
-    searching: string; sources: string; retrieving: string; passages: string; relevance: string; score: string;
-    contextKnowledgeBase: string; contextLongTermMemory: string; contextCount: string; contextQuery: string; contextEmpty: string;
-  };
+  searchTools: AgentUIPresentationMessages["searchTools"];
   composer: AgentUIPresentationMessages["composer"];
   conversationFeedback: { helpful: string; notHelpful: string; };
   conversationQuote: {

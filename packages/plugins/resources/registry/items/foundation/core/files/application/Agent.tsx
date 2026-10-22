@@ -2,7 +2,7 @@ import { agentUILocaleConfig } from "../agent-ui/i18n/locale-config";
 import type { AgentUILocaleCode } from "../agent-ui/i18n/locale-types";
 import { usePreviewAgentEnvironment } from "./preview-environment";
 import type { ConversationRuntimeProviderProps } from "@za38.03/agent-ui-runtime";
-import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
   ConversationRuntimeProvider,
@@ -46,6 +46,8 @@ export interface AgentProps {
   transientMessages?: ConversationRuntimeProviderProps["transientMessages"];
   /** Optional Host-owned presentation locale; never sent to AG-UI. */
   locale?: AgentUILocaleCode;
+  /** Reports language changes initiated by the UI, including locale-switch. */
+  onLocaleChange?: ((locale: AgentUILocaleCode) => void) | undefined;
   /** The Host application's AG-UI endpoint. Defaults to VITE_AGENT_ENDPOINT or /agent. */
   endpoint?: string;
   observability?: AgentObservability;
@@ -63,8 +65,12 @@ export interface AgentProps {
   initialThreadId?: string | undefined;
 }
 
-function AgentSession({ transientMessages, locale, endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
+function AgentSession({ transientMessages, locale, onLocaleChange, endpoint = import.meta.env.VITE_AGENT_ENDPOINT || "/agent", observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId }: AgentProps = {}) {
   const [presentationLocale, setPresentationLocale] = useState<AgentUILocaleCode>(locale ?? agentUILocaleConfig.defaultLocale);
+  const handleLocaleChange = useCallback((nextLocale: AgentUILocaleCode) => {
+    setPresentationLocale(nextLocale);
+    onLocaleChange?.(nextLocale);
+  }, [onLocaleChange]);
   const suggestions = useMemo(() => getConversationStarterSuggestions(locale ?? presentationLocale), [locale, presentationLocale]);
   const frontendToolRuntime = useMemo(() => new AppFrontendToolRuntime(new AppFrontendToolRegistry(appFrontendTools)), []);
   const composition = useSyncExternalStore(
@@ -110,7 +116,7 @@ function AgentSession({ transientMessages, locale, endpoint = import.meta.env.VI
   return (
     <ApplicationSessionBoundary composition={composition} frontendTools={frontendToolRuntime} observability={observability} locale={locale ?? presentationLocale}
       renderGate={(content, phase) => <><AgentUIConnectionState status={phase === "error" ? "error" : phase === "blocked" ? "blocked" : "initializing"} /><AgentSurfacePortal>{content}</AgentSurfacePortal></>}>
-    <AuthenticatedConversation {...{ transientMessages, locale, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale, suggestions, frontendToolRuntime, composition, toolkit }} />
+    <AuthenticatedConversation {...{ transientMessages, locale, onLocaleChange, endpoint, observability, attachmentAdapter, dictationAdapter, feedbackAdapter, onError, runResumeProvider, initialThreadId, presentationLocale, setPresentationLocale: handleLocaleChange, suggestions, frontendToolRuntime, composition, toolkit }} />
     </ApplicationSessionBoundary>
   );
 }

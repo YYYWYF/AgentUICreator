@@ -3,8 +3,8 @@ import { MockAgentTransport } from "@za38.03/agent-ui-core/testing";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
-import { parseAppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
-import type { UIPluginDefinition } from "../../../operator/src/framework/contracts/ui-plugin";
+import { parseAppUIRuntimeModel } from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
+import type { UIPluginDefinition } from "../../../creator/operator/src/framework/contracts/ui-plugin";
 import {
   AppEventRegistry,
   AppEventRuntime,

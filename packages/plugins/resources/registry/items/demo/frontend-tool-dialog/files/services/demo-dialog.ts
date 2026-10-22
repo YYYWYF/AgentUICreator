@@ -1,3 +1,4 @@
+import type {} from "../framework/contracts/ui-plugin";
 export const DEMO_DIALOG_SERVICE = "demo.dialog" as const;
 export interface DemoDialogInput { title: string; message: string }
 export interface DemoDialogSnapshot { open: boolean; title: string; message: string }

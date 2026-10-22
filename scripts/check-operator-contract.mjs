@@ -6,9 +6,9 @@ const root = new URL('../', import.meta.url);
 const read = name => readFile(new URL(name, root), 'utf8');
 export async function checkOperatorContract() {
   const [inventoryText, schemaText, handler, models, readTools, mutationTool, recoveryTool, policy] = await Promise.all([
-    read('contracts/creator/operator.operations.json'),
-    read('contracts/creator/operator.schema.json'),
-    read('packages/operator/src/handler.ts'),
+    read('packages/creator/contracts/creator/operator.operations.json'),
+    read('packages/creator/contracts/creator/operator.schema.json'),
+    read('packages/creator/operator/src/handler.ts'),
     read('packages/creator/python/agent_ui_creator/operator/models.py'),
     read('packages/creator/python/agent_ui_creator/domain_tools/operator_tools.py'),
     read('packages/creator/python/agent_ui_creator/app_ui_model/mutation_tool.py'),

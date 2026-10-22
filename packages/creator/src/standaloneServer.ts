@@ -2,12 +2,12 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { readFile, realpath, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { initializeAgentUIProject, suggestAgentUISourceRoot, validateAgentUIProjectSetup } from "@za38.03/agent-ui-operator/bootstrap";
+import { initializeAgentUIProject, suggestAgentUISourceRoot, validateAgentUIProjectSetup } from "@za38.03/agent-ui-creator/bootstrap";
 import {
   createAgentUIInitializationHost, handleUIOperatorRequest, inspectCreatorProject,
   installDemoPlugin,
-} from "@za38.03/agent-ui-operator/host";
-import { inspectScenarioResources, installOfficialAgentUIResource, mergeOptionalResourceInspection } from "@za38.03/agent-ui-operator/resources";
+} from "@za38.03/agent-ui-creator/operator/host";
+import { inspectScenarioResources, installOfficialAgentUIResource, mergeOptionalResourceInspection } from "@za38.03/agent-ui-creator/operator/resources";
 import { createCreatorHttpService, type CreatorMiddleware, type CreatorMiddlewareRegistry } from "./creatorHttpService.js";
 import { PythonCreatorProcessManager } from "./PythonCreatorProcessManager.js";
 import { CreatorWorkspaceManager } from "./workspace/CreatorWorkspaceManager.js";

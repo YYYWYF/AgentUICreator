@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { spawnPnpm, spawnPnpmSync } from "./pnpm-process.mjs";
+import { spawnPnpm } from "./pnpm-process.mjs";
 import { fileURLToPath } from "node:url";
 import { ensureWorkspaceDependencies } from "./ensure-workspace-dependencies.mjs";
 import { prepareWorkbench } from "./prepare-workbench.mjs";
@@ -12,7 +12,7 @@ function port(option, fallback) {
   if (!Number.isInteger(value) || value < 1 || value > 65535) throw new Error(`Invalid ${option}`);
   return value;
 }
-const hostPort = port("--host-port", 5176);
+const hostPort = port("--host-port", 5180);
 const workbenchPort = port("--workbench-port", 5174);
 ensureWorkspaceDependencies();
 prepareWorkbench();
@@ -21,13 +21,8 @@ const environment = {
   VITE_CREATOR_DOCK_URL: process.env.VITE_CREATOR_DOCK_URL || `http://127.0.0.1:${workbenchPort}/dock.html`,
   VITE_CREATOR_HOST_PREVIEW_URL: process.env.VITE_CREATOR_HOST_PREVIEW_URL || `http://127.0.0.1:${hostPort}/?creator-preview`,
 };
-const ensure = spawnPnpmSync(["--filter", "@za38.03/agent-ui-creator-host-sandbox", "exec", "node", "--import", "tsx", "../../scripts/host-examples/host-project.ts", "ensure", "platform", "creator-host-sandbox"], {
-  cwd: workspaceRoot, env: environment, stdio: "inherit",
-});
-if (ensure.error) throw ensure.error;
-if (ensure.status !== 0) throw new Error("Could not prepare the platform Host");
 const children = [
-  ["@za38.03/agent-ui-creator-host-sandbox", hostPort, ["--config", fileURLToPath(new URL("../apps/creator-workbench/host-preview.vite.config.ts", import.meta.url))]],
+  ["@za38.03/agent-ui-web-component-vue3-demo", hostPort, ["--config", fileURLToPath(new URL("../apps/creator-workbench/host-preview.vite.config.ts", import.meta.url))]],
   ["@za38.03/agent-ui-creator-workbench", workbenchPort, []],
 ].map(([name, listenPort, configArgs]) => spawnPnpm(["--filter", String(name), "dev", ...configArgs, "--host", "127.0.0.1", "--port", String(listenPort), "--strictPort"], {
   cwd: workspaceRoot, env: environment, stdio: "inherit",

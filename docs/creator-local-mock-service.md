@@ -5,12 +5,26 @@ Creator 工作台顶部的 **Mock Agent** 入口控制一个独立的本机 HTTP
 ## 使用
 
 1. 打开 Mock Agent 面板，点击“启动服务”。服务固定绑定 `127.0.0.1:47831`；端口被占用时启动失败，不自动更换端口。
-2. 新初始化模板会在项目根目录创建 `.env.development.local`，默认写入 `VITE_AGENT_ENDPOINT=http://127.0.0.1:47831/agent`。已有开发环境 endpoint 或已有该文件时保留用户配置。此默认值只用于开发模式，不进入生产构建。
-3. 旧项目可手动添加上述开发环境配置，或在接入处配置 `<Agent endpoint="http://127.0.0.1:47831/agent" />`。环境变量方式需要重启用户项目的开发服务器；不要填写到 Creator 的 `.env.creator.local`。Creator 预览选择 Mock 时自动使用预览路由，无需该变量。
+2. 新初始化模板会在项目根目录创建 `.env.agentui.local`，默认写入 `VITE_AGENT_ENDPOINT=http://127.0.0.1:47831/agent`。已有开发环境 endpoint 或已有该文件时保留用户配置。此默认值只用于开发模式，不进入生产构建。
+3. 旧项目可手动添加上述开发环境配置，或在接入处配置 `<Agent endpoint="http://127.0.0.1:47831/agent" />`。环境变量方式需要重启用户项目的开发服务器。Creator 与前端使用相同文件名；Creator 从工具配置目录读取，前端从目标项目根目录读取，同目录时可共用一份文件。Creator 预览选择 Mock 时自动使用预览路由，无需该变量。
 4. 在面板选择预置 Demo 和播放时长倍率，然后在已接入的 Agent UI 中发送消息。Demo 是预设事件流，不会理解或执行用户的自然语言要求。
 5. 点击“停止服务”停止所有 Mock 流并释放端口。再次启动使用同一地址。
 
 面板控制服务和场景，并在用户点击引入按钮时安装所需前端插件；不会创建额外的 Conversation Runtime，也不自动更改用户项目 endpoint。关闭面板不会停止服务，重新打开会读取当前状态；退出 Creator 开发服务器时服务停止。服务状态和 Demo 选择属于当前 Creator 开发服务器，不随项目切换重建，不持久化到生成项目。
+
+## 本地配置与密钥边界
+
+统一使用 `.env.agentui.local`，不需要线上 `.env.agentui` 文件。参考根目录的 `.env.agentui.example`。Creator 的 `CREATOR_*` 配置（包括模型 API Key）只在 Node/Python 工具进程读取；不要给密钥添加 `VITE_` 前缀。
+
+Vite 不会自动加载这个自定义文件名。新项目初始化会生成独立的 `agentui.vite-env.mjs` 及类型声明，并包装已有 Vite 配置；该适配器仅在开发服务中运行，只允许 `VITE_AGENT_ENDPOINT` 进入前端。它不依赖 Creator 或 Operator，生产构建不读取本地文件，也不打包这些 Node 文件。用户的标准 Vite 环境变量和显式 `<Agent endpoint="..." />` 保持更高优先级。已有共享文件（包括只包含 Creator 设置的文件）保持原样，不覆盖或追加配置；需要 Mock 时手动添加 endpoint。
+
+旧项目将 `.env.creator.local` 重命名为 `.env.agentui.local`。原来的 `.env.development.local` 可能属于用户，不自动移动或删除；可手动将 Agent UI 的 endpoint 移到新文件。已有项目在 Vite 配置中导入本仓库示例的独立适配器（复制 `agentui.vite-env.mjs` 及其 `.d.mts` 到项目根目录），并将原来的默认导出包在 `withAgentUILocalEnv(...)` 中。将 `.env.agentui.local` 加入目标项目的 `.gitignore`。配置变更后重启对应服务；Creator 的配置目录仍由 `--config-root` 决定，选择另一个目标项目不会切换模型密钥来源。
+
+```ts
+import { withAgentUILocalEnv } from "./agentui.vite-env.mjs";
+// 保留原有插件和配置；也支持配置函数或 Promise。
+export default withAgentUILocalEnv({ /* 原有 Vite 配置 */ });
+```
 
 ## 接口与生命周期
 

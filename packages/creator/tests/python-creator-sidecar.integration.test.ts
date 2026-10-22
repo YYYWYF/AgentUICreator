@@ -30,10 +30,10 @@ const repositoryRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../../..",
 );
-const projectRoot = path.join(repositoryRoot, "examples/creator-host-sandbox");
+const projectRoot = path.join(repositoryRoot, "packages/creator");
 const pythonPackageRoot = path.join(repositoryRoot, "packages/creator/python");
 const skillsRoot = path.join(repositoryRoot, "packages/creator/skills");
-const contractsRoot = path.join(repositoryRoot, "contracts/creator/fixtures");
+const contractsRoot = path.join(repositoryRoot, "packages/creator/contracts/creator/fixtures");
 const virtualEnvironmentPython =
   process.platform === "win32"
     ? path.join(pythonPackageRoot, ".venv", "Scripts", "python.exe")
@@ -330,17 +330,9 @@ async function createDomainWriteMockChatCompletionsServer(
 }
 
 async function copyTargetProject(label: string): Promise<string> {
-  execFileSync("pnpm", ["--filter", "@za38.03/agent-ui-creator-host-sandbox", "exec", "node", "--import", "tsx", "../../scripts/host-examples/host-project.ts", "ensure", "platform", "creator-host-sandbox"], { cwd: repositoryRoot, stdio: "pipe" });
   const root = await mkdtemp(path.join(tmpdir(), `creator-${label}-`));
   temporaryDirectories.push(root);
-  await cp(projectRoot, root, {
-    recursive: true,
-    filter: (entry) =>
-      !["node_modules", "dist", ".agent-ui"].includes(
-        path.basename(entry),
-      ),
-  });
-  await symlink(path.join(projectRoot, "node_modules"), path.join(root, "node_modules"));
+  execFileSync(process.execPath, [path.join(repositoryRoot, "packages/creator/python/tests/fixtures/phase3/prepare-host.mjs"), root, repositoryRoot], { cwd: repositoryRoot, stdio: "pipe" });
   return root;
 }
 

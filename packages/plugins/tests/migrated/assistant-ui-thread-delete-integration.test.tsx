@@ -18,7 +18,7 @@ import { PolicyThreadList } from "../../resources/registry/items/plugin/conversa
 import { createConversationService, createHttpConversationDataSource } from "../../resources/registry/items/foundation/core-application/files/services/conversations";
 
 import { PluginServiceProvider, createPluginRegistry, UIPluginRuntime } from "../../resources/registry/items/foundation/core-runtime/files/runtime/plugins/index";
-import { parseAppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
+import { parseAppUIRuntimeModel } from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
 import { AgentRuntimeProvider } from "../../resources/registry/items/foundation/core-runtime/files/runtime/context/AgentRuntimeProvider";
 import { conversationThreadListPlugin } from "../../resources/registry/items/plugin/conversation-thread-list/files/plugins/conversation-thread-list/definition";
 import { AGENT_UI_CONVERSATION_SERVICE } from "../../resources/registry/items/foundation/core-application/files/services/conversations";

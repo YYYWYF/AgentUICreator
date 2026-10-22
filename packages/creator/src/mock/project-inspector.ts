@@ -1,4 +1,4 @@
-import { inspectScenarioResources, mergeOptionalResourceInspection } from "@za38.03/agent-ui-operator/resources";
+import { inspectScenarioResources, mergeOptionalResourceInspection } from "@za38.03/agent-ui-creator/operator/resources";
 import { spawn } from "node:child_process";
 import { access } from "node:fs/promises";
 import path from "node:path";

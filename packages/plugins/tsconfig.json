@@ -1,4 +1,5 @@
 {
+  "extends": "./tsconfig.authoring-paths.json",
   "compilerOptions": {
     "target": "ES2022",
     "lib": [
@@ -18,7 +19,8 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "types": [
-      "node"
+      "node",
+      "vite/client"
     ],
     "paths": {
       "@za38.03/agent-ui-runtime": [
@@ -35,8 +37,6 @@
     "src/**/*.tsx"
   ],
   "exclude": [
-    "tests",
-    "src/plugins/**",
-    "src/shared/**"
+    "tests"
   ]
 }

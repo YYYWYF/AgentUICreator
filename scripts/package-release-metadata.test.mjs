@@ -19,3 +19,17 @@ test('build/prepack emits the same compatibility history in npm metadata and pay
   await assert.rejects(syncPackageReleaseMetadata('../outside',root),/Unknown public package/);
  }finally{await rm(root,{recursive:true,force:true});}
 });
+
+test('unpublished development emits empty history while publication still requires review',async()=>{
+ const root=await mkdtemp(path.join(tmpdir(),'agent-ui unpublished 中文 space-'));
+ try{
+  const directory=path.join(root,'packages','core');await mkdir(directory,{recursive:true});await mkdir(path.join(root,'releases'));
+  const file=path.join(directory,'package.json');
+  await writeFile(file,JSON.stringify({name:'@za38.03/agent-ui-core',version:'0.0.1',agentUI:{schemaVersion:1,compatibility:{schemaVersion:1,releases:[{id:'stale'}]}}}));
+  const manifest={schemaVersion:1,releases:[]};await writeFile(path.join(root,'releases','compatibility.json'),JSON.stringify(manifest));
+  await syncPackageReleaseMetadata('core',root);
+  assert.deepEqual(JSON.parse(await readFile(file,'utf8')).agentUI.compatibility,manifest);
+  assert.deepEqual(JSON.parse(await readFile(path.join(directory,'dist','compatibility.json'),'utf8')),manifest);
+  await assert.rejects(syncPackageReleaseMetadata('core',root,{publishing:true}),/Review compatibility metadata/);
+ }finally{await rm(root,{recursive:true,force:true});}
+});

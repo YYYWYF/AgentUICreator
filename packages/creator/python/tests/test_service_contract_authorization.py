@@ -15,7 +15,7 @@ from agent_ui_creator.service_contracts import (
 class AuthorizationControl:
     def __init__(self) -> None:
         self.services = []
-        self.plugin_ids = {"conversation-history", "search"}
+        self.plugin_ids = {"history-provider", "search"}
 
     async def inspect_ui_services(self):
         return {"services": self.services, "plugins": [], "issues": []}
@@ -35,7 +35,7 @@ def proposal(*, evidence=None):
             "changeKind": "create",
             "serviceName": "conversation.navigation",
             "contractPath": "services/conversation-navigation.ts",
-            "ownerPluginId": "conversation-history",
+            "ownerPluginId": "history-provider",
             "consumers": [
                 {"pluginId": "search", "dependencyMode": "required"}
             ],
@@ -54,7 +54,7 @@ def service(tmp_path):
     store = ServiceContractAuthorizationStore(tmp_path, thread_id="thread-1")
     store.set_current_user_context(
         current_user_message=(
-            "让 conversation-history 提供 conversation.navigation，再让 search 使用。"
+            "让 history-provider 提供 conversation.navigation，再让 search 使用。"
         ),
         run_id="run-1",
     )
@@ -74,13 +74,13 @@ def test_explicit_current_user_evidence_authorizes_without_confirmation(tmp_path
 
     result = asyncio.run(
         authorization.prepare(
-            proposal(evidence="conversation-history 提供 conversation.navigation")
+            proposal(evidence="history-provider 提供 conversation.navigation")
         )
     )
 
     assert result["status"] == "authorized"
     assert store.get_authorization(result["authorizationId"]).spec.owner_plugin_id == (
-        "conversation-history"
+        "history-provider"
     )
     assert not list((tmp_path / ".agent-ui/creator").rglob("*.txt"))
 

@@ -157,10 +157,6 @@
       "path": "items/plugin/conversation-new/item.json"
     },
     {
-      "id": "plugin/conversation-history",
-      "path": "items/plugin/conversation-history/item.json"
-    },
-    {
       "id": "plugin/add-attachment-action",
       "path": "items/plugin/add-attachment-action/item.json"
     },
@@ -235,6 +231,10 @@
     {
       "id": "plugin/transient-assistant-messages",
       "path": "items/plugin/transient-assistant-messages/item.json"
+    },
+    {
+      "id": "plugin/locale-switch",
+      "path": "items/plugin/locale-switch/item.json"
     }
   ]
 }

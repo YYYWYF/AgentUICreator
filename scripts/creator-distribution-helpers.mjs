@@ -57,7 +57,7 @@ export async function unpackCreator(temporary) {
   const unpacked = path.join(temporary, "package");
   for (const file of ["dist/cli.js", "dist/standaloneServer.js", "dist/browser/index.html", "dist/browser/dock.html", "dist/browser/dock-client.js", "dist/python/agent_ui_creator/server.py", "dist/python/pyproject.toml", "dist/python/requirements.lock", "skills"]) await access(path.join(unpacked, file));
   assert((await readdir(path.join(unpacked, "skills"))).length > 0);
-  await assertContractParity(path.join(repositoryRoot, "contracts/creator"), path.join(unpacked, "dist/python/agent_ui_creator/_contracts/creator"));
+  await assertContractParity(path.join(repositoryRoot, "packages/creator/contracts/creator"), path.join(unpacked, "dist/python/agent_ui_creator/_contracts/creator"));
   return unpacked;
 }
 

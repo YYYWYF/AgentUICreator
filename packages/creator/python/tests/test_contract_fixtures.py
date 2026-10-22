@@ -12,7 +12,7 @@ from referencing import Registry, Resource
 from agent_ui_creator.runtime_diagnostics import RuntimeDiagnosticEnvelope
 from agent_ui_creator.server import AgUiRunInput
 
-CONTRACTS_ROOT = Path(__file__).resolve().parents[4] / "contracts" / "creator"
+CONTRACTS_ROOT = Path(__file__).resolve().parents[4] / "packages" / "creator" / "contracts" / "creator"
 SCHEMA_NAMES = (
     "creator-transport.schema.json",
     "operator.schema.json",

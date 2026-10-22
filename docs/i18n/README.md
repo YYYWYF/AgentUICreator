@@ -27,7 +27,7 @@ recording transcripts, sample payloads and backend diagnostic details remain dat
   domain dictionaries live in `packages/creator/src/ui/i18n`. The UI export
   accepts a controlled `locale` and `onLocaleChange`, and Settings offers a
   language selector. Generated projects never import Creator or its messages.
-- Example Hosts select language independently and pass it to their Agent. Their
+- `locale-switch` renders the language control and consumes the existing `locale-provider` service. Generated Agent `onLocaleChange` lets controlled Hosts follow UI changes. Example Hosts pass that callback together with `locale`; their
   product UI and theme showcase use the same public presentation context.
 
 Components consume messages; pure presentation helpers receive messages as an

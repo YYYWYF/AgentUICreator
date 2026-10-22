@@ -1,3 +1,4 @@
+import { withAgentUILocalEnv } from "./agentui.vite-env.mjs";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { realpathSync } from "node:fs";
@@ -7,23 +8,24 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
+import { readCreatorHostConfigValue } from "../../packages/creator/src/creatorRuntimeConfig.js";
 import { createCreatorDevServerPlugin } from "../../packages/creator/src/vitePlugin.js";
 import { CreatorWorkspaceManager } from "../../packages/creator/src/workspace/CreatorWorkspaceManager.js";
 import { PythonCreatorProcessManager } from "../../packages/creator/src/PythonCreatorProcessManager.js";
-import { createAgentUIInitializationHost, inspectCreatorProject } from "@za38.03/agent-ui-operator/dev";
-import { initializeAgentUIProject } from "@za38.03/agent-ui-operator/bootstrap";
-import { handleUIOperatorRequest } from "@za38.03/agent-ui-operator/dev";
+import { createAgentUIInitializationHost, inspectCreatorProject } from "@za38.03/agent-ui-creator/operator/dev";
+import { initializeAgentUIProject } from "@za38.03/agent-ui-creator/bootstrap";
+import { handleUIOperatorRequest } from "@za38.03/agent-ui-creator/operator/dev";
 import type { MockProjectInspector } from "../../packages/creator/src/mock/demo-compatibility";
-import { installOfficialAgentUIResource, inspectScenarioResources } from "@za38.03/agent-ui-operator/dev";
-import { mergeOptionalResourceInspection } from "@za38.03/agent-ui-operator/dev";
-import { installDemoPlugin } from "@za38.03/agent-ui-operator/dev";
-import { suggestAgentUISourceRoot, validateAgentUIProjectSetup } from "@za38.03/agent-ui-operator/bootstrap";
+import { installOfficialAgentUIResource, inspectScenarioResources } from "@za38.03/agent-ui-creator/operator/dev";
+import { mergeOptionalResourceInspection } from "@za38.03/agent-ui-creator/operator/dev";
+import { installDemoPlugin } from "@za38.03/agent-ui-creator/operator/dev";
+import { suggestAgentUISourceRoot, validateAgentUIProjectSetup } from "@za38.03/agent-ui-creator/bootstrap";
 
 const workspaceRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
 );
-const hostProjectRoot = path.join(workspaceRoot, "examples/creator-host-sandbox");
+const hostProjectRoot = path.join(workspaceRoot, "examples/web-component-vue3");
 const initializationHost = createAgentUIInitializationHost();
 const workspaceManager = new CreatorWorkspaceManager({
     compatibility: true,
@@ -38,7 +40,7 @@ const workspaceManager = new CreatorWorkspaceManager({
   }),
 });
 
-export default defineConfig({
+export default withAgentUILocalEnv(defineConfig({
   envDir: workspaceRoot,
   define: {
     __CREATOR_HOST_WORKSPACE_ID__: JSON.stringify(
@@ -50,6 +52,13 @@ export default defineConfig({
     tailwindcss(),
     {
       name: "creator-default-host-project",
+      apply: "serve",
+      configResolved(config) {
+        for (const name of ["VITE_CREATOR_HOST_PREVIEW_URL", "VITE_ENABLE_VISUAL_OBSERVATION"]) {
+          const value = readCreatorHostConfigValue(workspaceRoot, name);
+          if (!config.env[name] && value) config.env[name] = value;
+        }
+      },
       async configureServer() {
         await workspaceManager.selectProject(hostProjectRoot);
       },
@@ -128,4 +137,4 @@ export default defineConfig({
     strictPort: true,
     fs: { allow: [workspaceRoot] },
   },
-});
+}));

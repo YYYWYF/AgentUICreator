@@ -9,12 +9,12 @@ import react from "@vitejs/plugin-react";
 import pluginDeliveries from "../../../../packages/plugins/src/catalog/plugin-delivery.json";
 import tailwindcss from "@tailwindcss/vite";
 import { createServer, type ViteDevServer } from "vite";
-import { initializeAgentUIProject } from "@za38.03/agent-ui-operator/bootstrap";
-import { createAgentUIInitializationHost } from "@za38.03/agent-ui-operator/dev";
+import { initializeAgentUIProject } from "@za38.03/agent-ui-creator/bootstrap";
+import { createAgentUIInitializationHost } from "@za38.03/agent-ui-creator/operator/dev";
 import { CreatorWorkspaceManager } from "../../../../packages/creator/src/workspace/CreatorWorkspaceManager.js";
 import { PythonCreatorProcessManager } from "../../../../packages/creator/src/PythonCreatorProcessManager.js";
-import { inspectCreatorProject } from "@za38.03/agent-ui-operator/host";
-import { suggestAgentUISourceRoot, validateAgentUIProjectSetup } from "@za38.03/agent-ui-operator/bootstrap";
+import { inspectCreatorProject } from "@za38.03/agent-ui-creator/operator/host";
+import { suggestAgentUISourceRoot, validateAgentUIProjectSetup } from "@za38.03/agent-ui-creator/bootstrap";
 import { createCreatorDevServerPlugin } from "../../../../packages/creator/src/vitePlugin.js";
 import { createCreatorHostPreviewPlugin } from "../../../../packages/creator/src/host-preview/vite.js";
 const repository = fileURLToPath(new URL("../../../../", import.meta.url));
@@ -80,8 +80,7 @@ export async function createConnectionHostFixture(options: { mode?: "platform" |
       ...(name === "@za38.03/agent-ui-plugins" && options.pluginsPackageRoot ? [options.pluginsPackageRoot] : []),
       // Workspace packages must use the current release, never an older installed tarball.
       ...(name.startsWith("@za38.03/agent-ui-") ? [path.join(repository, "packages", name.slice("@za38.03/agent-ui-".length))] : []),
-      ...["creator-host-sandbox", "creator-assistant-host"].map(owner => path.join(repository, "examples", owner, "node_modules", name)),
-      ...["react", "runtime", "operator", "creator", "plugins", "core", "renderer"].map(owner => path.join(repository, "packages", owner, "node_modules", name)),
+      ...["react", "runtime", "creator", "plugins", "core", "renderer"].map(owner => path.join(repository, "packages", owner, "node_modules", name)),
     ];
     const source = candidates.find(existsSync);
     if (!source) throw new Error(`Missing prepared fixture dependency: ${name}`);
@@ -91,17 +90,17 @@ export async function createConnectionHostFixture(options: { mode?: "platform" |
   };
   try {
     if (!options.existingHostRoot) await mkdir(hostRoot); await mkdir(creatorRoot);
-    const template = JSON.parse(await readFile(path.join(repository, "packages/operator/tests/fixtures/project/package.json"), "utf8"));
+    const template = JSON.parse(await readFile(path.join(repository, "packages/creator/operator/tests/fixtures/project/package.json"), "utf8"));
     const packageManager = JSON.parse(await readFile(path.join(repository,"package.json"),"utf8")).packageManager;
     template.dependencies["@za38.03/agent-ui-plugins"] = "workspace:*";
-    const devDependencies = Object.fromEntries(["tailwindcss", "tw-animate-css", "@tailwindcss/vite", ...(options.liveModel ? ["vite", "@vitejs/plugin-react", "typescript", "tsx", "@types/react", "@types/react-dom", "@types/node", "@za38.03/agent-ui-operator"] : [])].map(name => [name, template.devDependencies[name]]));
+    const devDependencies = Object.fromEntries(["tailwindcss", "tw-animate-css", "@tailwindcss/vite", ...(options.liveModel ? ["vite", "@vitejs/plugin-react", "typescript", "tsx", "@types/react", "@types/react-dom", "@types/node", "@za38.03/agent-ui-creator/operator"] : [])].map(name => [name, template.devDependencies[name]]));
     if (!options.existingHostRoot) {
     await writeFile(path.join(hostRoot, "package.json"), JSON.stringify({ name: "ordinary-preview-host", private: true, type: "module", dependencies: template.dependencies, devDependencies, ...(options.liveModel ? {packageManager, scripts: { build: "node validate-build.mjs", typecheck:"node node_modules/typescript/bin/tsc --noEmit", "verify:ui":"node verify-ui.mjs" } } : {}) }));
     for (const name of Object.keys({ ...template.dependencies, ...devDependencies })) await link(hostRoot, name);
     await mkdir(path.join(hostRoot, "src"), { recursive: true });
     await initializeAgentUIProject({ projectRoot: hostRoot, mode: options.mode ?? "platform", sourceRoot: "src/agent-ui" }, createAgentUIInitializationHost());
     if (existsSync(path.join(hostRoot, "node_modules/@za38.03/agent-ui-creator"))) throw new Error("Host fixture must not install Mock infrastructure.");
-    await writeFile(path.join(hostRoot, "index.html"), '<div id="root"></div><script type="module" src="/src/main.tsx"></script><script type="module" src="/@fs/' + path.join(repository, "examples/creator-host-sandbox/dev/creator-dock.ts").replaceAll("\\", "/") + '"></script>');
+    await writeFile(path.join(hostRoot, "index.html"), '<div id="root"></div><script type="module" src="/src/main.tsx"></script><script type="module" src="/@fs/' + path.join(repository, "apps/creator-workbench/tests/support/creator-dock.ts").replaceAll("\\", "/") + '"></script>');
     await writeFile(path.join(hostRoot, "src/main.tsx"), 'import { createRoot } from "react-dom/client"; import { Agent } from "./agent-ui"; import "./host.css"; createRoot(document.getElementById("root")!).render(<Agent />);');
     await writeFile(path.join(hostRoot, "src/host.css"), "html,body,#root { margin:0; width:100%; height:100%; } #root { height:100dvh; }");
     }
@@ -119,7 +118,7 @@ export async function createConnectionHostFixture(options: { mode?: "platform" |
       await writeFile(path.join(hostRoot, ".npmrc"), "verify-deps-before-run=false\n");
       await writeFile(path.join(hostRoot, "pnpm-workspace.yaml"), "verifyDepsBeforeRun: false\n");
       await writeFile(path.join(hostRoot, "tsconfig.json"), JSON.stringify({compilerOptions:{target:"ES2022",module:"ESNext",moduleResolution:"Bundler",jsx:"react-jsx",strict:true,skipLibCheck:true,noEmit:true,resolveJsonModule:true,esModuleInterop:true,lib:["ES2022","DOM","DOM.Iterable"],types:["node","vite/client"]},include:["src"]}));
-      await writeFile(path.join(hostRoot, "verify-ui.mjs"), 'import {runUIProjectVerificationCli} from "@za38.03/agent-ui-operator/dev"; await runUIProjectVerificationCli(process.cwd());');
+      await writeFile(path.join(hostRoot, "verify-ui.mjs"), 'import {runUIProjectVerificationCli} from "@za38.03/agent-ui-creator/operator/dev"; await runUIProjectVerificationCli(process.cwd());');
       await writeFile(path.join(hostRoot, "validate-build.mjs"), `import {build} from "vite"; import react from "@vitejs/plugin-react";
 import tailwind from "@tailwindcss/vite"; await build({configFile:false,plugins:[react(),tailwind()],logLevel:"error",resolve:{dedupe:["react","react-dom"]},build:{write:false,lib:{entry:"src/agent-ui/application/Agent.tsx",formats:["es"]}}});`);
       await options.prepareHost?.(hostRoot);

@@ -38,12 +38,12 @@ await copyFile(
   new URL("../dist/python/requirements.lock", import.meta.url),
 );
 await cp(
-  new URL("../../../contracts/creator/", import.meta.url),
+  new URL("../contracts/creator/", import.meta.url),
   new URL("../dist/python/agent_ui_creator/_contracts/creator/", import.meta.url),
   { recursive: true },
 );
 await assertContractParity(
-  fileURLToPath(new URL("../../../contracts/creator/", import.meta.url)),
+  fileURLToPath(new URL("../contracts/creator/", import.meta.url)),
   fileURLToPath(new URL("../dist/python/agent_ui_creator/_contracts/creator/", import.meta.url)),
 );
 await chmod(new URL("../dist/cli.js", import.meta.url), 0o755);

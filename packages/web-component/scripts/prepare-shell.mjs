@@ -3,9 +3,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { prepareHostPackages } from "../../../scripts/prepare-host-packages.mjs";
 
-prepareHostPackages();
-const { initializeAgentUIProject } = await import("../../operator/dist/bootstrap/index.js");
-const { createAgentUIInitializationHost } = await import("../../operator/dist/runtime/operator-runtime.mjs");
+// Bootstrap is part of Creator now. Prepare the complete tool artifact before
+// resolving its public entry points, including on a clean checkout.
+prepareHostPackages({ withMock: true });
+const { initializeAgentUIProject } = await import("@za38.03/agent-ui-creator/bootstrap");
+const { createAgentUIInitializationHost } = await import("@za38.03/agent-ui-creator/operator/host");
 const projectRoot = fileURLToPath(new URL("../.generated/", import.meta.url));
 const sourceRoot = path.join(projectRoot, "src");
 const nodeModules = path.join(projectRoot, "node_modules");

@@ -1,6 +1,6 @@
 # Changed files
 
-- `contracts/creator/app-ui-model-operation.schema.json`
+- `packages/creator/contracts/creator/app-ui-model-operation.schema.json`
 - `docs/architecture/generic-sidebar-layout.md`
 - `docs/sidebar/identity-header-2026-10-08/CHANGED_FILES.md`
 - `docs/sidebar/identity-header-2026-10-08/REPORT.md`
@@ -31,15 +31,15 @@
 - `packages/creator/python/tests/test_sidebar_contract.py`
 - `packages/creator/skills/app-ui-model/SKILL.md`
 - `packages/creator/skills/ui-layout/SKILL.md`
-- `packages/operator/src/framework/contracts/app-ui-compiler.ts`
-- `packages/operator/src/framework/contracts/app-ui-composition.ts`
-- `packages/operator/src/framework/contracts/app-ui-model.ts`
-- `packages/operator/src/framework/contracts/app-ui-runtime-model.ts`
-- `packages/operator/src/project/app-ui-operations.ts`
-- `packages/operator/src/project/project-inspector.ts`
-- `packages/operator/src/project/types.ts`
-- `packages/operator/tests/fixtures/project/registry-files.json`
-- `packages/operator/tests/sidebar.test.ts`
+- `packages/creator/operator/src/framework/contracts/app-ui-compiler.ts`
+- `packages/creator/operator/src/framework/contracts/app-ui-composition.ts`
+- `packages/creator/operator/src/framework/contracts/app-ui-model.ts`
+- `packages/creator/operator/src/framework/contracts/app-ui-runtime-model.ts`
+- `packages/creator/operator/src/project/app-ui-operations.ts`
+- `packages/creator/operator/src/project/project-inspector.ts`
+- `packages/creator/operator/src/project/types.ts`
+- `packages/creator/operator/tests/fixtures/project/registry-files.json`
+- `packages/creator/operator/tests/sidebar.test.ts`
 - `packages/plugins/package.json`
 - `packages/plugins/src/internal/sidebar-frame.tsx`
 - `packages/plugins/src/public.tsx`

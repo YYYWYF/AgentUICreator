@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { initializeAgentUIProject } from '../../operator/dist/bootstrap/index.js';
-import { createAgentUIInitializationHost, installOfficialAgentUIResource, inspectOfficialAgentUIResourceCatalog } from '../../operator/dist/runtime/operator-runtime.mjs';
+import { initializeAgentUIProject } from '@za38.03/agent-ui-creator/bootstrap';
+import { createAgentUIInitializationHost, installOfficialAgentUIResource, inspectOfficialAgentUIResourceCatalog } from '@za38.03/agent-ui-creator/operator/host';
 
 const packageRoot = fileURLToPath(new URL('../', import.meta.url));
 const root = await mkdtemp(path.join(tmpdir(), 'agent-ui-compatibility-'));

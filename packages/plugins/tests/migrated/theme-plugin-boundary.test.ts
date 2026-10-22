@@ -1,11 +1,11 @@
-import { generatedProjectFixture } from "../../../operator/tests/support/generated-project";
+import { generatedProjectFixture } from "../../../creator/operator/tests/support/generated-project";
 import { readFile } from "node:fs/promises";
 
 import { describe, expect, it } from "vitest";
 
-import appUIJson from "../../../operator/tests/fixtures/project/app-ui/app-ui.json";
-import { parseAppUIModel } from "../../../operator/src/framework/contracts/app-ui-model";
-import { collectAppUIPluginLocations } from "../../../operator/src/framework/contracts/app-ui-model";
+import appUIJson from "../../../creator/operator/tests/fixtures/project/app-ui/app-ui.json";
+import { parseAppUIModel } from "../../../creator/operator/src/framework/contracts/app-ui-model";
+import { collectAppUIPluginLocations } from "../../../creator/operator/src/framework/contracts/app-ui-model";
 
 describe("theme plugin boundary", () => {
   it("keeps public component implementation dependencies out of the picker item", async () => {

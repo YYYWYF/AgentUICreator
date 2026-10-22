@@ -37,6 +37,18 @@ for (const plugin of catalog.plugins.filter(plugin => plugin.application?.hostAp
   if(JSON.stringify(plugin.application.services)!==JSON.stringify(recipe.services)) throw new Error(`Stale application services: ${plugin.id}`);
   for(const file of [...plugin.application.files,...plugin.application.sharedFiles]) if(createHash("sha256").update(await readFile(sourcePath(path.join(packageRoot,"dist"),file.path))).digest("hex")!==file.sha256) throw new Error(`Stale application template: ${plugin.id}/${file.target}`);
 }
+for (const recipe of deliveries.filter(delivery => Object.keys(delivery.applicationModeFiles ?? {}).length)) {
+  const plugin = catalog.plugins.find(plugin => plugin.id === recipe.id);
+  if (!plugin?.application) throw new Error(`Missing mode application templates: ${recipe.id}`);
+  const expectedModes = recipe.applicationModeFiles ?? {};
+  if (JSON.stringify(Object.keys(plugin.application.modeFiles).sort()) !== JSON.stringify(Object.keys(expectedModes).sort())) throw new Error(`Stale mode application template plan: ${plugin.id}`);
+  for (const [mode, entries] of Object.entries(expectedModes)) {
+    const declared = entries.map(([target, origin]) => ({target, path:`sources/plugins/${plugin.id}/${origin}`}));
+    const actual = plugin.application.modeFiles[mode];
+    if (!Array.isArray(actual) || JSON.stringify(actual.map(({target,path})=>({target,path}))) !== JSON.stringify(declared)) throw new Error(`Stale mode application template plan: ${plugin.id}/${mode}`);
+    for (const file of actual) if (createHash("sha256").update(await readFile(sourcePath(path.join(packageRoot,"dist"),file.path))).digest("hex") !== file.sha256) throw new Error(`Stale mode application template: ${plugin.id}/${mode}/${file.target}`);
+  }
+}
 for (const plugin of catalog.plugins.filter(plugin => plugin.takeover)) {
   if (plugin.takeover.schemaVersion !== 1 || !plugin.takeover.runtimeFiles?.length) throw new Error("Incomplete takeover distribution");
   for (const file of plugin.takeover.files) {

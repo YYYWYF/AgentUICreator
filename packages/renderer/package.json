@@ -21,9 +21,10 @@
   ],
   "scripts": {
     "build": "node ../../scripts/sync-package-release-metadata.mjs renderer && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && node ../../scripts/sync-package-release-metadata.mjs renderer",
-    "typecheck": "tsc --noEmit && tsc -p tsconfig.tests.json",
-    "test": "vitest run",
-    "prepack": "node ../../scripts/sync-package-release-metadata.mjs renderer"
+    "typecheck": "node ../../scripts/run-plugin-source-views-check.mjs typecheck",
+    "test": "node ../../scripts/run-plugin-source-views-check.mjs test",
+    "prepack": "node ../../scripts/sync-package-release-metadata.mjs renderer",
+    "prepublishOnly": "node ../../scripts/sync-package-release-metadata.mjs renderer --publish"
   },
   "peerDependencies": {
     "react": ">=18 <20",
@@ -62,83 +63,7 @@
     "schemaVersion": 1,
     "compatibility": {
       "schemaVersion": 1,
-      "releases": [
-        {
-          "id": "agent-ui-initial-0.0.1",
-          "publishedAt": "2026-10-18T00:00:00Z",
-          "channel": "stable",
-          "node": "^20.19.0 || >=22.12.0",
-          "react": ">=18 <20",
-          "packages": [
-            {
-              "name": "@za38.03/agent-ui-core",
-              "version": "0.0.1",
-              "requires": {},
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-renderer",
-              "version": "0.0.1",
-              "requires": {},
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-runtime",
-              "version": "0.0.1",
-              "requires": {
-                "@za38.03/agent-ui-core": "0.0.1",
-                "@za38.03/agent-ui-plugins": "0.0.1"
-              },
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-plugins",
-              "version": "0.0.1",
-              "requires": {
-                "@za38.03/agent-ui-core": "0.0.1",
-                "@za38.03/agent-ui-renderer": "0.0.1"
-              },
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-web-component",
-              "version": "0.0.1",
-              "requires": {
-                "@za38.03/agent-ui-plugins": "0.0.1",
-                "@za38.03/agent-ui-runtime": "0.0.1",
-                "@za38.03/agent-ui-core": "0.0.1",
-                "@za38.03/agent-ui-renderer": "0.0.1"
-              },
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-creator",
-              "version": "0.0.1",
-              "requires": {
-                "@za38.03/agent-ui-operator": "0.0.1",
-                "@za38.03/agent-ui-core": "0.0.1"
-              },
-              "historyFrom": "0.0.1",
-              "changes": []
-            },
-            {
-              "name": "@za38.03/agent-ui-operator",
-              "version": "0.0.1",
-              "requires": {
-                "@za38.03/agent-ui-web-component": "0.0.1",
-                "@za38.03/agent-ui-plugins": "0.0.1"
-              },
-              "historyFrom": "0.0.1",
-              "changes": []
-            }
-          ]
-        }
-      ]
+      "releases": []
     }
   }
 }

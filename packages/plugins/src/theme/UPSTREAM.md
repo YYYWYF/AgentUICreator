@@ -79,7 +79,7 @@ For assistant-ui: sync the pinned upstream normally; run the same tests and
 showcase. Audit new upstream hardcoded colors; prefer removable integration CSS
 or wrapper styling. Do not fork vendor presentation for a preset.
 
-The development showcase is `examples/creator-embedded-host/theme-showcase.html`.
+The Vue Web Component integration demo is `examples/web-component-vue3`.
 
 Runtime `--color-*` aliases are declared at the Agent UI theme boundary alongside
 semantic palette tokens. `@theme inline` remains the utility-generation mapping;

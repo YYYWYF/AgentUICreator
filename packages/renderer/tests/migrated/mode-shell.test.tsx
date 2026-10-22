@@ -1,4 +1,4 @@
-import { generatedProjectFixture } from "../../../operator/tests/support/generated-project";
+import { generatedProjectFixture } from "../../../creator/operator/tests/support/generated-project";
 import { readFile } from "node:fs/promises";
 
 import { useEffect, useState } from "react";

@@ -26,21 +26,35 @@ export async function readSourceLayout(root = packageRoot) {
   return layout;
 }
 
-/** Compatibility views preserve upstream bytes/import geometry; only canonical
- * plugin folders are maintained. These ignored views are build inputs, not a
- * second source authority and are not an API for user source takeover. */
-export async function materializePluginSources(root = packageRoot) {
+/** Remove generated Source Registry compatibility files after use. Item
+ * manifests and all non-generated resources remain in the registry tree. */
+export async function cleanGeneratedPluginResourceViews(root = packageRoot) {
   const layout = await readSourceLayout(root);
-  // Rebuild only declared generated trees, so removed files cannot silently
-  // survive a layout change or enter the next TypeScript/browser build.
-  const roots = new Set(["src/internal/vendor-generated/assistant-ui", "src/internal/adapters-generated/assistant-ui"]);
+  const generatedFileRoots = new Set();
   for (const entry of layout.files) {
-    if (entry.view.startsWith("resources/registry/items/") && entry.view.includes("/files/")) {
-      roots.add(`${entry.view.split("/files/")[0]}/files`);
+    if (!entry.view.startsWith("resources/registry/items/plugin/")) continue;
+    const fileMarker = "/files/";
+    const markerIndex = entry.view.indexOf(fileMarker);
+    if (markerIndex >= 0) {
+      generatedFileRoots.add(entry.view.slice(0, markerIndex + "/files".length));
+      continue;
     }
+    const target = sourcePath(root, entry.view);
+    await rm(target, { force: true });
   }
+  for (const directory of generatedFileRoots) await rm(sourcePath(root, directory), { recursive: true, force: true });
+}
+
+/** Internal presentation views are needed by package compilation. Source
+ * Registry plugin files are read from canonical owners directly and are only
+ * materialized temporarily for the legacy TypeScript/Vitest fixture layout. */
+export async function materializePluginSources(root = packageRoot, { resourceViews = false } = {}) {
+  const layout = await readSourceLayout(root);
+  const roots = new Set(["src/internal/vendor-generated/assistant-ui", "src/internal/adapters-generated/assistant-ui"]);
+  await cleanGeneratedPluginResourceViews(root);
   for (const directory of roots) await rm(sourcePath(root, directory), { recursive: true, force: true });
   for (const entry of layout.files) {
+    if (entry.view.startsWith("resources/registry/items/plugin/") && !resourceViews) continue;
     const destination = sourcePath(root, entry.view);
     await mkdir(path.dirname(destination), { recursive: true });
     await copyFile(sourcePath(root, entry.source), destination);
@@ -85,5 +99,5 @@ export async function capturePresentationSources(root = packageRoot) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  await materializePluginSources();
+  await materializePluginSources(packageRoot, { resourceViews: process.argv.includes("--resource-views") });
 }

@@ -15,6 +15,14 @@
         "portal": "Uses the nearest AgentUIRoot portal container, preserving theme. Centering is relative to its CSS fixed-position containing block; inspect actual Host ancestors if geometry is wrong.",
         "interaction": "Inherits Popup props, including public focus controls. Pair with a registered Trigger or deliberate finalFocus targeting when controlled by an external button; validate actual focus restoration.",
         "styles": "Required asset: @za38.03/agent-ui-plugins/styles.css. className composes with the package styles; imported project CSS can override them. Check the owned stylesheet/cascade when visual placement fails."
+      },
+      "CanonicalConversationThreadList": {
+        "presentation": "Conversation list with optional search. It contains no new-conversation button.",
+        "composition": "Configure listProps.showSearch in the project application JSX (default true). Setting false hides search and ignores its query. Compose a separate conversation-new Plugin through AppUIModel for new conversations."
+      },
+      "CanonicalConversationNew": {
+        "presentation": "Independent new-conversation button backed by the existing canonical Conversation Runtime.",
+        "composition": "Configure showLabel in the project application JSX (default true). Assistant/Embedded initialization supplies false for an icon-only button; Platform uses the labeled default. Both variants retain localized accessibility and tooltip text. newProps, children and tooltip props remain public customization seams."
       }
     }
   }

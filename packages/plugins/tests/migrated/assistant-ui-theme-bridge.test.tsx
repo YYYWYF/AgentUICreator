@@ -17,7 +17,7 @@ import {
   AGENT_UI_THEME_SERVICE,
   type AgentUIThemeService,
 } from "../../resources/registry/items/foundation/core-application/files/services/agent-ui-theme";
-import type { AppUIRuntimeModel } from "../../../operator/src/framework/contracts/app-ui-runtime-model";
+import type { AppUIRuntimeModel } from "../../../creator/operator/src/framework/contracts/app-ui-runtime-model";
 
 const runtimeActions = {
   sendMessage: async () => undefined,

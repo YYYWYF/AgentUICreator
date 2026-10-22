@@ -8,20 +8,20 @@ import { spawnPnpmSync } from "./pnpm-process.mjs";
 const workspaceRoot = fileURLToPath(new URL("..", import.meta.url));
 const pythonRoot = path.join(workspaceRoot, "packages/creator/python");
 const environment = mergeEnvironmentFileValues(process.env, parseEnvironmentFile(
-  await readFile(path.join(workspaceRoot, ".env.creator.local"), "utf8"),
+  await readFile(path.join(workspaceRoot, ".env.agentui.local"), "utf8"),
 ));
 const token = environment.CREATOR_PYTHON_AUTH_TOKEN;
-if (!token?.trim()) throw new Error("CREATOR_PYTHON_AUTH_TOKEN is missing from .env.creator.local");
+if (!token?.trim()) throw new Error("CREATOR_PYTHON_AUTH_TOKEN is missing from .env.agentui.local");
 const endpoint = environment.CREATOR_PYTHON_ENDPOINT || "http://127.0.0.1:8010";
 const match = /^http:\/\/127\.0\.0\.1:(\d+)$/u.exec(endpoint);
 const port = Number(match?.[1]);
 if (!match || port < 1 || port > 65535) throw new Error("CREATOR_PYTHON_ENDPOINT must use http://127.0.0.1:<port> with a valid port");
 const python = path.join(pythonRoot, ".venv", process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
 try { await access(python); } catch { throw new Error("Missing managed Python runtime. Run: pnpm test:python:setup"); }
-const build = spawnPnpmSync(["--filter", "@za38.03/agent-ui-operator", "build"], { cwd: workspaceRoot, env: environment, stdio: "inherit" });
+const build = spawnPnpmSync(["--filter", "@za38.03/agent-ui-creator", "build"], { cwd: workspaceRoot, env: environment, stdio: "inherit" });
 if (build.error) throw build.error;
 if (build.status !== 0) throw new Error("Operator build failed");
-const serverArgs = ["-m", "agent_ui_creator.server", "--project-root", path.join(workspaceRoot, "examples/creator-host-sandbox"),
+const serverArgs = ["-m", "agent_ui_creator.server", "--project-root", path.join(workspaceRoot, "examples/web-component-vue3"),
   "--skills-root", path.join(workspaceRoot, "packages/creator/skills"), "--config-root", workspaceRoot,
   "--port", String(port), "--auth-token", token];
 const args = environment.CREATOR_PYTHON_HOT_RELOAD === "1"

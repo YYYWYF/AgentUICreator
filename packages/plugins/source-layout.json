@@ -680,36 +680,6 @@
       "pluginId": "conversation-new"
     },
     {
-      "view": "resources/registry/items/plugin/conversation-history/files/plugins/conversation-history/definition.ts",
-      "source": "src/plugins/conversation-history/adapters/project/definition.ts",
-      "kind": "project",
-      "pluginId": "conversation-history"
-    },
-    {
-      "view": "resources/registry/items/plugin/conversation-history/files/plugins/conversation-history/index.tsx",
-      "source": "src/plugins/conversation-history/adapters/project/index.tsx",
-      "kind": "project",
-      "pluginId": "conversation-history"
-    },
-    {
-      "view": "resources/registry/items/plugin/conversation-history/files/plugins/conversation-history/manifest.json",
-      "source": "src/plugins/conversation-history/plugin.json",
-      "kind": "project",
-      "pluginId": "conversation-history"
-    },
-    {
-      "view": "resources/registry/items/plugin/conversation-history/files/plugins/conversation-history/styles.css",
-      "source": "src/plugins/conversation-history/adapters/project/styles.css",
-      "kind": "project",
-      "pluginId": "conversation-history"
-    },
-    {
-      "view": "resources/registry/items/plugin/conversation-history/changelog.json",
-      "source": "src/plugins/conversation-history/CHANGELOG.json",
-      "kind": "changelog",
-      "pluginId": "conversation-history"
-    },
-    {
       "view": "resources/registry/items/plugin/add-attachment-action/files/plugins/add-attachment-action/definition.ts",
       "source": "src/plugins/add-attachment-action/adapters/project/definition.ts",
       "kind": "project",
@@ -1744,6 +1714,36 @@
       "source": "src/plugins/auth-gate/adapters/project-support/services/auth/session.ts",
       "kind": "project",
       "pluginId": "auth-gate"
+    },
+    {
+      "view": "resources/registry/items/plugin/locale-switch/files/plugins/locale-switch/definition.ts",
+      "source": "src/plugins/locale-switch/adapters/project/definition.ts",
+      "kind": "project",
+      "pluginId": "locale-switch"
+    },
+    {
+      "view": "resources/registry/items/plugin/locale-switch/files/plugins/locale-switch/index.tsx",
+      "source": "src/plugins/locale-switch/adapters/project/index.tsx",
+      "kind": "project",
+      "pluginId": "locale-switch"
+    },
+    {
+      "view": "resources/registry/items/plugin/locale-switch/files/plugins/locale-switch/manifest.json",
+      "source": "src/plugins/locale-switch/plugin.json",
+      "kind": "project",
+      "pluginId": "locale-switch"
+    },
+    {
+      "view": "resources/registry/items/plugin/locale-switch/files/plugins/locale-switch/styles.css",
+      "source": "src/plugins/locale-switch/adapters/project/styles.css",
+      "kind": "project",
+      "pluginId": "locale-switch"
+    },
+    {
+      "view": "resources/registry/items/plugin/locale-switch/changelog.json",
+      "source": "src/plugins/locale-switch/CHANGELOG.json",
+      "kind": "changelog",
+      "pluginId": "locale-switch"
     }
   ]
 }
